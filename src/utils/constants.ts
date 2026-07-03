@@ -27,6 +27,19 @@ export const EXCLUDED_BORROWERS = shouldShowExcludedMarkets
   ? []
   : ["0x569e7cb1a1c839133012de4adee8361389b0113b"]
 
+// Temporary manual frontend action disable for borrowers going through default handling.
+// "0xdefd11f619847a3a737be1df7f3f80a7a05fb8bc" is dev borrower address for testing
+export const MANUALLY_DISABLED_MARKET_ACTION_BORROWERS = [
+  "0xdefd11f619847a3a737be1df7f3f80a7a05fb8bc",
+  "0x40a42340c7829d1b31eed3860928b4862715e5de",
+]
+
+export const hasManuallyDisabledMarketActions = (borrowerAddress?: string) =>
+  !!borrowerAddress &&
+  MANUALLY_DISABLED_MARKET_ACTION_BORROWERS.includes(
+    borrowerAddress.toLowerCase(),
+  )
+
 export const EXCLUDED_MARKETS_FILTER: SubgraphMarket_Filter[] =
   shouldShowExcludedMarkets
     ? []
