@@ -15,6 +15,7 @@ export async function GET() {
     legacyWrapperHash: agreement.legacyWrapperHash,
     acknowledgementText: agreement.acknowledgementText,
     effectiveDate: agreement.effectiveDate.toISOString(),
+    reacceptanceDeadline: agreement.reacceptanceDeadline?.toISOString() ?? null,
   }
   return NextResponse.json(response)
 }

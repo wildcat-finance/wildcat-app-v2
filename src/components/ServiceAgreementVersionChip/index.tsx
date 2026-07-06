@@ -19,14 +19,31 @@ const VersionChipSx = {
   whiteSpace: "nowrap",
 }
 
+export type ServiceAgreementVersionChipTone = "default" | "stale" | "current"
+
+// Colour pairs follow the app's status-chip language: stale mirrors the muted
+// "Terminated" treatment, current mirrors the "Healthy" treatment.
+const TONE_SX: Record<
+  ServiceAgreementVersionChipTone,
+  { backgroundColor: string; color: string }
+> = {
+  default: { backgroundColor: COLORS.blackRock006, color: COLORS.blackRock },
+  stale: { backgroundColor: COLORS.whiteSmoke, color: COLORS.santasGrey },
+  current: { backgroundColor: COLORS.glitter, color: COLORS.ultramarineBlue },
+}
+
 export const ServiceAgreementVersionChip = ({
   version,
+  tone = "default",
 }: {
   version: string | undefined
+  tone?: ServiceAgreementVersionChipTone
 }) => {
   if (!version) return null
 
   return (
-    <Box sx={VersionChipSx}>{formatServiceAgreementVersionLabel(version)}</Box>
+    <Box sx={{ ...VersionChipSx, ...TONE_SX[tone] }} title={version}>
+      {formatServiceAgreementVersionLabel(version)}
+    </Box>
   )
 }

@@ -1,0 +1,59 @@
+/// Pure ToU acceptance-state machine, shared by server routes and client hooks.
+/// No prisma / wagmi imports allowed here.
+
+export type ToUAcceptanceState =
+  /// Accepted the current version (an acceptance supersedes a recorded decline).
+  | "signedCurrent"
+  /// Accepted an older version; no re-acceptance campaign is active
+  /// (reacceptanceDeadline is NULL) so nothing is enforced yet.
+  | "stale"
+  /// Accepted an older version; campaign active and the deadline is in the
+  /// future - show the dismissible re-acceptance prompt.
+  | "staleWithinGrace"
+  /// Accepted an older version and the deadline has passed - blocking prompt,
+  /// restricted actions (no deposits / new markets / borrowing).
+  | "staleExpired"
+  /// Never accepted any version - the existing hard gate (/agreement) applies.
+  | "neverSigned"
+  /// Signed a refusal of the current version and has not accepted it since.
+  | "declined"
+
+/// States in which deposits (lender) and create-market / borrow (borrower)
+/// are blocked. Withdrawals are never blocked.
+export const TOU_BLOCKED_STATES: ToUAcceptanceState[] = [
+  "staleExpired",
+  "declined",
+]
+
+export const isToUBlockedState = (
+  state: ToUAcceptanceState | undefined,
+): boolean => !!state && TOU_BLOCKED_STATES.includes(state)
+
+export type ComputeToUStateInput = {
+  /// Account has an acceptance of the current version (any party).
+  hasAcceptedCurrent: boolean
+  /// Account has an acceptance of any version (any party).
+  hasAnyAcceptance: boolean
+  /// Account has a recorded refusal of the current version (any party).
+  hasDeclinedCurrent: boolean
+  /// The current version's re-acceptance deadline; null = no campaign.
+  reacceptanceDeadline: Date | null
+  /// Injected for testability; callers pass new Date().
+  now: Date
+}
+
+export function computeToUAcceptanceState({
+  hasAcceptedCurrent,
+  hasAnyAcceptance,
+  hasDeclinedCurrent,
+  reacceptanceDeadline,
+  now,
+}: ComputeToUStateInput): ToUAcceptanceState {
+  if (hasAcceptedCurrent) return "signedCurrent"
+  if (hasDeclinedCurrent) return "declined"
+  if (!hasAnyAcceptance) return "neverSigned"
+  if (!reacceptanceDeadline) return "stale"
+  return now.getTime() < reacceptanceDeadline.getTime()
+    ? "staleWithinGrace"
+    : "staleExpired"
+}

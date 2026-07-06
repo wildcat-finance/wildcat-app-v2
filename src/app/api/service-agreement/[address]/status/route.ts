@@ -29,6 +29,7 @@ export async function GET(
       version: current.version,
       plaintextSha256: current.plaintextSha256,
       effectiveDate: current.effectiveDate.toISOString(),
+      reacceptanceDeadline: current.reacceptanceDeadline?.toISOString() ?? null,
     },
     accepted: acceptance
       ? {

@@ -36,6 +36,7 @@ import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
 import { isUSDTLikeToken } from "@/utils/constants"
@@ -131,6 +132,8 @@ export const DepositModal = ({
 
   const { t } = useTranslation()
   const { getTxUrl } = useBlockExplorer()
+  // ToU re-acceptance lockout (staleExpired / declined): deposits blocked.
+  const { touBlocked } = useNetworkGate()
 
   const { market } = marketAccount
 
@@ -273,6 +276,10 @@ export const DepositModal = ({
   }
 
   const handleOpenDepositModal = () => {
+    // ToU re-acceptance lockout: deposits are blocked until the current
+    // version is accepted (withdrawals stay available).
+    if (touBlocked) return
+
     if (isMlaLoading || mla === undefined) {
       setDepositOpenRequested(true)
       return
@@ -302,6 +309,7 @@ export const DepositModal = ({
     isUSDTLikeToken(market.underlyingToken.address)
 
   const disableApprove =
+    touBlocked ||
     !borrowerLegalName ||
     market.isClosed ||
     depositTokenAmount.raw.isZero() ||
@@ -311,6 +319,7 @@ export const DepositModal = ({
     !Signer.isSigner(market.provider)
 
   const disableDeposit =
+    touBlocked ||
     !borrowerLegalName ||
     !!depositError ||
     market.isClosed ||
@@ -341,9 +350,12 @@ export const DepositModal = ({
 
   const underlyingBalanceIsZero = marketAccount.underlyingBalance.raw.isZero()
 
-  const tooltip = underlyingBalanceIsZero
+  const capacityTooltip = underlyingBalanceIsZero
     ? "Underlying token balance is zero"
     : "Market is at full capacity"
+  const tooltip = touBlocked
+    ? "Accept the updated Terms of Use to deposit"
+    : capacityTooltip
 
   useEffect(() => {
     if (amount === "" || amount === "0" || depositStep === "Ready") {
@@ -828,7 +840,8 @@ export const DepositModal = ({
   if (!isMobile)
     return (
       <>
-        {marketAccount.maximumDeposit.raw.isZero() ||
+        {touBlocked ||
+        marketAccount.maximumDeposit.raw.isZero() ||
         underlyingBalanceIsZero ? (
           <Tooltip title={tooltip} placement="right">
             <Box sx={{ display: "flex" }}>
@@ -838,6 +851,7 @@ export const DepositModal = ({
                 size="large"
                 sx={{ width: "152px" }}
                 disabled={
+                  touBlocked ||
                   marketAccount.maximumDeposit.raw.isZero() ||
                   underlyingBalanceIsZero
                 }

@@ -25,6 +25,7 @@ import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { Loader } from "@/components/Loader"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
@@ -67,6 +68,8 @@ export default function CreateMarketPage() {
   const dispatch = useAppDispatch()
   const { address } = useAccount()
   const { isTestnet } = useCurrentNetwork()
+  // ToU re-acceptance lockout (staleExpired / declined): no new markets.
+  const { touBlocked } = useNetworkGate()
   const { chainId: targetChainId } = useAppSelector(
     (state) => state.selectedNetwork,
   )
@@ -257,6 +260,32 @@ export default function CreateMarketPage() {
     newMarketForm.reset()
     dispatch(setInitialCreateState())
   }, [])
+
+  if (touBlocked) {
+    return (
+      <Box sx={PageContainer}>
+        <Box sx={{ width: "100%", padding: "40px 100px 0" }}>
+          <Typography variant="title2" fontWeight={600}>
+            Terms of Use update required
+          </Typography>
+          <Typography variant="text2" sx={{ marginTop: "12px" }}>
+            Creating new markets is disabled until you accept the current
+            Wildcat Terms of Use. Review and sign them on the agreement page;
+            your existing markets and withdrawals are unaffected.
+          </Typography>
+          <Box sx={{ marginTop: "24px" }}>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={() => router.push(ROUTES.agreement)}
+            >
+              Review Terms of Use
+            </Button>
+          </Box>
+        </Box>
+      </Box>
+    )
+  }
 
   return (
     <Box sx={PageContainer}>

@@ -4,9 +4,11 @@ import { useQuery } from "@tanstack/react-query"
 import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { useAccount, useSwitchChain } from "wagmi"
 
+import { ServiceAgreementGateResponse } from "@/app/api/service-agreement/interface"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { setSelectedNetwork } from "@/store/slices/selectedNetworkSlice/selectedNetworkSlice"
+import { isToUBlockedState } from "@/utils/serviceAgreementState"
 
 import { useSelectedNetwork } from "./useSelectedNetwork"
 
@@ -18,9 +20,7 @@ export type UseNetworkGateOptions = {
 
 export const SLA_STATUS_QUERY_KEY = "sla-status"
 
-type SlaResponse = {
-  isSigned: boolean
-}
+type SlaResponse = ServiceAgreementGateResponse
 
 const NO_WALLET_RESTRICTED_PATHS = [
   ROUTES.agreement,
@@ -84,6 +84,19 @@ export const useNetworkGate = ({
   })
 
   const isAgreementSigned = slaQuery.data?.isSigned ?? false
+  // Re-acceptance state; fall back to legacy binary semantics if the response
+  // predates the state field (cached/stale deployments).
+  const legacyFallbackState = isAgreementSigned
+    ? ("signedCurrent" as const)
+    : ("neverSigned" as const)
+  const touState =
+    slaQuery.data?.state ?? (slaQuery.data ? legacyFallbackState : undefined)
+  const touDeadline = slaQuery.data?.currentVersion?.reacceptanceDeadline
+    ? new Date(slaQuery.data.currentVersion.reacceptanceDeadline)
+    : null
+  const touCurrentVersion = slaQuery.data?.currentVersion
+  const touAcceptedVersion = slaQuery.data?.acceptedVersion ?? null
+  const touBlocked = isToUBlockedState(touState)
 
   const redirectPath = useMemo(() => {
     if (!pathname) return null
@@ -100,7 +113,10 @@ export const useNetworkGate = ({
       return "/"
     }
 
-    if (isAgreementPath && isAgreementSigned) {
+    // Only bounce signed users off /agreement when their acceptance is for the
+    // CURRENT version - stale/declined accounts must be able to review and
+    // re-sign the new terms directly.
+    if (isAgreementPath && isAgreementSigned && touState === "signedCurrent") {
       return "/"
     }
 
@@ -118,7 +134,7 @@ export const useNetworkGate = ({
     }
 
     return null
-  }, [address, isAgreementSigned, isWrongNetwork, pathname])
+  }, [address, isAgreementSigned, isWrongNetwork, pathname, touState])
 
   const requestSwitchNetwork = useCallback(async () => {
     if (typeof desiredChainId !== "number") return
@@ -156,6 +172,11 @@ export const useNetworkGate = ({
     isSelectionMismatch,
     canInteract,
     isAgreementSigned,
+    touState,
+    touDeadline,
+    touCurrentVersion,
+    touAcceptedVersion,
+    touBlocked,
     isAgreementLoading: slaQuery.isLoading,
     agreementError: slaQuery.error,
     redirectPath,

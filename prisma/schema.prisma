@@ -178,9 +178,14 @@ model ServiceAgreement {
   acknowledgementText String   // exact wrapper body, no Date / Organization Name lines
   effectiveDate       DateTime
   isCurrent           Boolean  @default(false)
+  // Re-acceptance campaign deadline for accounts that accepted an older version.
+  // NULL = no campaign: a newer version exists but nothing is enforced yet.
+  // Set explicitly when the campaign is announced (default now + 14 days).
+  reacceptanceDeadline DateTime?
   createdAt           DateTime @default(now())
 
   signatures ServiceAgreementSignature[]
+  refusals   ServiceAgreementRefusal[]
 }
 
 // One ToU acceptance. Chain-scoped, serves both parties.
@@ -203,6 +208,34 @@ model ServiceAgreementSignature {
   organizationName   String?
   // Exact signed message for new rows; reconstructed (or NULL) for legacy rows
   signedMessage      String?
+  createdAt          DateTime              @default(now())
+
+  serviceAgreement ServiceAgreement @relation(fields: [serviceAgreementId], references: [id])
+
+  @@unique([chainId, address, party, serviceAgreementId])
+  @@index([serviceAgreementId])
+}
+
+// A signed refusal ("decline") of a ToU version. Kept separate from
+// ServiceAgreementSignature so acceptance readers can never mistake a decline
+// for an acceptance, and so a later acceptance of the same version coexists
+// with the recorded decline (mirrors MlaSignature / RefusalToAssignMla).
+model ServiceAgreementRefusal {
+  id                 Int                   @id @default(autoincrement())
+  chainId            Int
+  address            String
+  // If the signature is from a single owner of a gnosis safe, this is the address of the
+  // owner that made the signature; otherwise, it's the same as `address`
+  signer             String
+  party              ServiceAgreementParty
+  serviceAgreementId Int
+  signature          String
+  kind               SignatureKind
+  // The block number at which the signature was verified - only relevant for non-EOA signatures
+  blockNumber        Int?
+  // Optional free-text reason the account gave when declining
+  reason             String?
+  timeSigned         DateTime
   createdAt          DateTime              @default(now())
 
   serviceAgreement ServiceAgreement @relation(fields: [serviceAgreementId], references: [id])

@@ -25,6 +25,7 @@ import PollingRegistration from "@/components/PollingRegistration"
 import { Sidebar } from "@/components/Sidebar"
 import StoreProvider from "@/components/StoreProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
+import { ToUReacceptanceModal } from "@/components/ToUReacceptanceModal"
 import TranslationsProvider from "@/components/TranslationsProvider"
 import { config } from "@/lib/config"
 import { RedirectsProvider } from "@/providers/RedirectsProvider"
@@ -95,6 +96,7 @@ export default async function RootLayout({
                         </Box>
                       </Box>
                       <HelpModal />
+                      <ToUReacceptanceModal />
                     </ThemeRegistry>
                   </TranslationsProvider>
                 </SubgraphProvider>

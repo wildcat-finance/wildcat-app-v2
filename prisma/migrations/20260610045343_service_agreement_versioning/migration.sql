@@ -26,6 +26,7 @@ CREATE TABLE "ServiceAgreement" (
     "acknowledgementText" TEXT NOT NULL,
     "effectiveDate" TIMESTAMP(3) NOT NULL,
     "isCurrent" BOOLEAN NOT NULL DEFAULT false,
+    "reacceptanceDeadline" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "ServiceAgreement_pkey" PRIMARY KEY ("id")
@@ -50,6 +51,24 @@ CREATE TABLE "ServiceAgreementSignature" (
     CONSTRAINT "ServiceAgreementSignature_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "ServiceAgreementRefusal" (
+    "id" SERIAL NOT NULL,
+    "chainId" INTEGER NOT NULL,
+    "address" TEXT NOT NULL,
+    "signer" TEXT NOT NULL,
+    "party" "ServiceAgreementParty" NOT NULL,
+    "serviceAgreementId" INTEGER NOT NULL,
+    "signature" TEXT NOT NULL,
+    "kind" "SignatureKind" NOT NULL,
+    "blockNumber" INTEGER,
+    "reason" TEXT,
+    "timeSigned" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ServiceAgreementRefusal_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "ServiceAgreement_plaintextSha256_key" ON "ServiceAgreement"("plaintextSha256");
 
@@ -62,8 +81,17 @@ CREATE INDEX "ServiceAgreementSignature_serviceAgreementId_idx" ON "ServiceAgree
 -- CreateIndex
 CREATE UNIQUE INDEX "ServiceAgreementSignature_chainId_address_party_serviceAgre_key" ON "ServiceAgreementSignature"("chainId", "address", "party", "serviceAgreementId");
 
+-- CreateIndex
+CREATE INDEX "ServiceAgreementRefusal_serviceAgreementId_idx" ON "ServiceAgreementRefusal"("serviceAgreementId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ServiceAgreementRefusal_chainId_address_party_serviceAgreem_key" ON "ServiceAgreementRefusal"("chainId", "address", "party", "serviceAgreementId");
+
 -- AddForeignKey
 ALTER TABLE "ServiceAgreementSignature" ADD CONSTRAINT "ServiceAgreementSignature_serviceAgreementId_fkey" FOREIGN KEY ("serviceAgreementId") REFERENCES "ServiceAgreement"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ServiceAgreementRefusal" ADD CONSTRAINT "ServiceAgreementRefusal_serviceAgreementId_fkey" FOREIGN KEY ("serviceAgreementId") REFERENCES "ServiceAgreement"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- One current version globally (partial unique index; not expressible in schema.prisma).
 CREATE UNIQUE INDEX "ServiceAgreement_one_current"

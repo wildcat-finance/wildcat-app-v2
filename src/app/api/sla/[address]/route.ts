@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 
+import { ServiceAgreementGateResponse } from "@/app/api/service-agreement/interface"
 import { hasSignedServiceAgreement, prisma } from "@/lib/db"
+import { getServiceAgreementGateStatus } from "@/lib/serviceAgreement"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
 /// GET /api/sla/[address]?chainId=<chainId>
+/// `isSigned` keeps its historical lender-scoped meaning (drives the hard
+/// /agreement gate); `state`/`currentVersion` drive the re-acceptance flow.
 export async function GET(
   request: NextRequest,
   { params }: { params: { address: `0x${string}` } },
@@ -13,8 +17,23 @@ export async function GET(
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
   }
   const address = params.address.toLowerCase()
-  const isSigned = await hasSignedServiceAgreement(chainId, address)
-  return NextResponse.json({ isSigned })
+  const [isSigned, gate] = await Promise.all([
+    hasSignedServiceAgreement(chainId, address),
+    getServiceAgreementGateStatus(chainId, address),
+  ])
+  const response: ServiceAgreementGateResponse = {
+    isSigned,
+    state: gate.state,
+    currentVersion: {
+      version: gate.currentVersion.version,
+      plaintextSha256: gate.currentVersion.plaintextSha256,
+      effectiveDate: gate.currentVersion.effectiveDate.toISOString(),
+      reacceptanceDeadline:
+        gate.currentVersion.reacceptanceDeadline?.toISOString() ?? null,
+    },
+    acceptedVersion: gate.acceptedVersion,
+  }
+  return NextResponse.json(response)
 }
 
 /// DELETE /api/sla/[address]?chainId=<chainId>
