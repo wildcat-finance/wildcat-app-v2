@@ -4,10 +4,13 @@ import { Box, Button, Divider, Typography } from "@mui/material"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { useAppDispatch } from "@/store/hooks"
 import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
+import { setTouModalOpen } from "@/store/slices/touModalSlice/touModalSlice"
 import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
 
@@ -78,6 +81,28 @@ export const Footer = ({
 
   const handleOpenCookiesModal = () => dispatch(setIsVisible(true))
 
+  // "Terms of Use status" opens the ToU status/re-acceptance modal on
+  // demand (bypasses the session dismissal). Hidden without a wallet.
+  const { address } = useAccount()
+  const { touState } = useNetworkGate()
+  const handleOpenTouModal = () => dispatch(setTouModalOpen(true))
+  const touAttentionColor =
+    touState === "staleWithinGrace"
+      ? COLORS.galliano
+      : (touState === "staleExpired" || touState === "declined") &&
+        COLORS.dullRed
+  const touDot = touAttentionColor && (
+    <Box
+      sx={{
+        width: "6px",
+        height: "6px",
+        borderRadius: "50%",
+        marginLeft: "6px",
+        backgroundColor: touAttentionColor,
+      }}
+    />
+  )
+
   const COMMIT_INFO = getCommitInfo(isMobile)
 
   if (isMobile) {
@@ -108,6 +133,24 @@ export const Footer = ({
           >
             Cookies Settings
           </Button>
+
+          {address && (
+            <Button
+              size="small"
+              variant="contained"
+              color="secondary"
+              sx={{
+                borderRadius: "8px",
+                color: COLORS.white,
+                bgcolor: COLORS.white03,
+                "&:hover": { color: COLORS.white, bgcolor: COLORS.white03 },
+              }}
+              onClick={handleOpenTouModal}
+            >
+              Terms of Use status
+              {touDot}
+            </Button>
+          )}
 
           <Link
             href="https://docs.wildcat.finance/legal/protocol-ui-privacy-policy"
@@ -153,6 +196,22 @@ export const Footer = ({
             >
               Cookies Settings
             </Button>
+
+            {address && (
+              <Button
+                size="small"
+                variant="contained"
+                color="secondary"
+                sx={{
+                  borderRadius: "8px",
+                  marginBottom: "8px",
+                }}
+                onClick={handleOpenTouModal}
+              >
+                Terms of Use status
+                {touDot}
+              </Button>
+            )}
 
             <Link
               href="/api/service-agreement/current/download"

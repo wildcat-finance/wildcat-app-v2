@@ -20,6 +20,8 @@ import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { useAcceptToU, useDeclineToU } from "@/hooks/useToUReacceptance"
 import { ROUTES } from "@/routes"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { setTouModalOpen } from "@/store/slices/touModalSlice/touModalSlice"
 import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
 import { formatServiceAgreementVersionLabel } from "@/utils/serviceAgreementVersions"
@@ -30,16 +32,21 @@ const dismissKey = (chainId: unknown, address: string, sha: string) =>
 // "17 Jan 2025" - matches the re-acceptance design mock.
 const formatChipDate = (iso: string) => dayjs(iso).utc().format("DD MMM YYYY")
 
-/// Global re-acceptance prompt for accounts whose ToU acceptance is stale.
-/// Styled after NonMlaAcknowledgementModal (the app's accept/decline dialog).
+/// Global ToU status / re-acceptance modal.
+/// Auto-opens for accounts whose acceptance is stale:
 /// - staleWithinGrace: dismissible (header cross) until the deadline.
 /// - staleExpired: forced choice - accept or decline (no dismiss).
 /// - declined: dismissible notice; deposits / new markets / borrowing stay
 ///   blocked (withdrawals are never blocked), and re-accepting reinstates.
+/// Can also be opened manually (footer "Terms of Use status" button) for any
+/// state - that bypasses the session dismissal without erasing it, and adds
+/// read-only views for signedCurrent / neverSigned accounts.
 export const ToUReacceptanceModal = () => {
   const theme = useTheme()
   const pathname = usePathname()
   const router = useRouter()
+  const dispatch = useAppDispatch()
+  const forcedOpen = useAppSelector((state) => state.touModal.forcedOpen)
   const { address } = useAccount()
   const {
     touState,
@@ -73,9 +80,31 @@ export const ToUReacceptanceModal = () => {
     setView("main")
   }, [storageKey, touState])
 
+  // A manual open doesn't outlive the surface it applies to: reset it when
+  // the wallet disconnects or the user lands on /agreement (which has the
+  // actions itself and always suppresses this modal).
+  useEffect(() => {
+    if (forcedOpen && (!address || pathname === ROUTES.agreement)) {
+      dispatch(setTouModalOpen(false))
+    }
+  }, [address, dispatch, forcedOpen, pathname])
+
   const handleDismiss = () => {
-    if (storageKey) sessionStorage.setItem(storageKey, "1")
-    setDismissed(true)
+    if (forcedOpen) dispatch(setTouModalOpen(false))
+    // Only stamp the session dismissal for states whose AUTO popup is
+    // dismissible - a manual open of a read-only view never records one.
+    if (
+      storageKey &&
+      (touState === "staleWithinGrace" || touState === "declined")
+    ) {
+      sessionStorage.setItem(storageKey, "1")
+      setDismissed(true)
+    }
+  }
+
+  const goToAgreement = () => {
+    if (forcedOpen) dispatch(setTouModalOpen(false))
+    router.push(ROUTES.agreement)
   }
 
   // The /agreement page is where stale users review and re-sign - never cover
@@ -86,8 +115,14 @@ export const ToUReacceptanceModal = () => {
   const isGrace = touState === "staleWithinGrace"
   const isExpired = touState === "staleExpired"
   const isDeclined = touState === "declined"
-  if (!isGrace && !isExpired && !isDeclined) return null
-  if ((isGrace || isDeclined) && dismissed) return null
+  const isSignedCurrent = touState === "signedCurrent"
+  const isNeverSigned = touState === "neverSigned"
+  // Read-only status views: no sign/decline actions. The "stale" state
+  // (newer version, no campaign) opens the normal sign/decline view.
+  const isReadOnly = isSignedCurrent || isNeverSigned
+
+  const autoOpen = isExpired || ((isGrace || isDeclined) && !dismissed)
+  if (!forcedOpen && !autoOpen) return null
 
   const deadlineLabel = touDeadline
     ? dayjs(touDeadline).utc().format("MMMM DD, YYYY")
@@ -95,7 +130,7 @@ export const ToUReacceptanceModal = () => {
   const newVersionLabel = formatServiceAgreementVersionLabel(
     touCurrentVersion.version,
   )
-  const canDismiss = isGrace || isDeclined
+  const canDismiss = !isExpired
   const isBusy = accept.isPending || decline.isPending
 
   const handleDecline = () => {
@@ -107,7 +142,9 @@ export const ToUReacceptanceModal = () => {
 
   const title = (() => {
     if (view === "decline") return "Decline Terms of Use"
-    return isDeclined ? "Terms of Use Declined" : "Updated Terms of Use"
+    if (isDeclined) return "Terms of Use Declined"
+    if (isReadOnly) return "Terms of Use"
+    return "Updated Terms of Use"
   })()
 
   let description = ""
@@ -123,6 +160,13 @@ export const ToUReacceptanceModal = () => {
       `Deposits, new markets and borrowing are disabled for this account; ` +
       `withdrawals remain available. You can accept the terms at any time ` +
       `to restore full access.`
+  } else if (isSignedCurrent) {
+    description =
+      "You have accepted the current Wildcat Terms of Use - you are up to date."
+  } else if (isNeverSigned) {
+    description =
+      "This account has not accepted the Wildcat Terms of Use on this " +
+      "network yet. Review and sign them on the agreement page."
   } else if (isExpired) {
     description =
       "The Wildcat Terms of Use have been updated. The signing deadline " +
@@ -133,6 +177,12 @@ export const ToUReacceptanceModal = () => {
     }`
   }
 
+  // In the signedCurrent view the accepted version IS the current one - show
+  // a single blue row. Everywhere else: grey signed row + blue new row.
+  const showSignedRow =
+    !!touAcceptedVersion && !isSignedCurrent && !isNeverSigned
+  const showNewRow = !isSignedCurrent
+
   return (
     <Dialog
       open
@@ -141,7 +191,7 @@ export const ToUReacceptanceModal = () => {
       sx={{
         "& .MuiDialog-paper": {
           width: "440px",
-          maxWidth: "440px",
+          maxWidth: "min(440px, calc(100vw - 32px))",
           minWidth: 0,
           border: "none",
           borderRadius: "20px",
@@ -186,7 +236,31 @@ export const ToUReacceptanceModal = () => {
                 gap: "12px",
               }}
             >
-              {touAcceptedVersion && (
+              {isSignedCurrent && touAcceptedVersion && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography
+                    variant="text3"
+                    fontWeight={600}
+                    color={COLORS.ultramarineBlue}
+                    title={touAcceptedVersion.version}
+                  >
+                    {`Signed ${formatServiceAgreementVersionLabel(
+                      touAcceptedVersion.version,
+                    )}`}
+                  </Typography>
+                  <ServiceAgreementChip
+                    label={formatChipDate(touAcceptedVersion.effectiveDate)}
+                    tone="current"
+                  />
+                </Box>
+              )}
+              {showSignedRow && touAcceptedVersion && (
                 <>
                   <Box
                     sx={{
@@ -212,31 +286,35 @@ export const ToUReacceptanceModal = () => {
                   <Divider sx={{ borderColor: COLORS.whiteLilac }} />
                 </>
               )}
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Typography
-                  variant="text3"
-                  fontWeight={600}
-                  color={COLORS.ultramarineBlue}
-                  title={touCurrentVersion.version}
+              {showNewRow && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
                 >
-                  {`New ${newVersionLabel}`}
-                </Typography>
-                <ServiceAgreementChip
-                  label={formatChipDate(touCurrentVersion.effectiveDate)}
-                  tone="current"
-                />
-              </Box>
+                  <Typography
+                    variant="text3"
+                    fontWeight={600}
+                    color={COLORS.ultramarineBlue}
+                    title={touCurrentVersion.version}
+                  >
+                    {isNeverSigned
+                      ? `Current ${newVersionLabel}`
+                      : `New ${newVersionLabel}`}
+                  </Typography>
+                  <ServiceAgreementChip
+                    label={formatChipDate(touCurrentVersion.effectiveDate)}
+                    tone="current"
+                  />
+                </Box>
+              )}
             </Box>
             <Typography
               variant="text3"
               color={COLORS.blueRibbon}
-              onClick={() => router.push(ROUTES.agreement)}
+              onClick={goToAgreement}
               sx={{ cursor: "pointer", alignSelf: "center" }}
             >
               View full terms
@@ -269,7 +347,30 @@ export const ToUReacceptanceModal = () => {
           marginTop: "24px",
         }}
       >
-        {view === "main" ? (
+        {view === "main" && isSignedCurrent && (
+          <Button
+            variant="contained"
+            color="secondary"
+            size="large"
+            onClick={handleDismiss}
+            fullWidth
+          >
+            Close
+          </Button>
+        )}
+
+        {view === "main" && isNeverSigned && (
+          <Button
+            variant="contained"
+            size="large"
+            onClick={goToAgreement}
+            fullWidth
+          >
+            Review Terms of Use
+          </Button>
+        )}
+
+        {view === "main" && !isReadOnly && (
           <>
             <Button
               variant="contained"
@@ -293,7 +394,9 @@ export const ToUReacceptanceModal = () => {
               </Button>
             )}
           </>
-        ) : (
+        )}
+
+        {view === "decline" && (
           <>
             <Button
               variant="contained"

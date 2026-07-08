@@ -25,6 +25,7 @@ import notificationsSidebarSlice from "./slices/notificationsSidebarSlice/notifi
 import notificationsSlice from "./slices/notificationsSlice/notificationsSlice"
 import routingSlice from "./slices/routingSlice/routingSlice"
 import selectedNetworkSlice from "./slices/selectedNetworkSlice/selectedNetworkSlice"
+import touModalSlice from "./slices/touModalSlice/touModalSlice"
 
 export const makeStore = () => {
   const store = configureStore({
@@ -52,6 +53,7 @@ export const makeStore = () => {
       cookieBanner: cookieBannerSlice,
       selectedNetwork: selectedNetworkSlice,
       marketFilters: marketFiltersSlice,
+      touModal: touModalSlice,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({

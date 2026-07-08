@@ -40,6 +40,7 @@ import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useAppDispatch } from "@/store/hooks"
 import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
+import { setTouModalOpen } from "@/store/slices/touModalSlice/touModalSlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
@@ -86,6 +87,11 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
 
   const handleOpenCookiesModal = () => {
     dispatch(setIsVisible(true))
+    handleToggleModal()
+  }
+
+  const handleOpenTouModal = () => {
+    dispatch(setTouModalOpen(true))
     handleToggleModal()
   }
 
@@ -558,6 +564,38 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                   </SvgIcon>
                 </Box>
                 <Divider sx={{ borderColor: COLORS.whiteLilac }} />
+
+                {address && (
+                  <>
+                    <Box
+                      onClick={handleOpenTouModal}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "12px 6px",
+                        cursor: "pointer",
+                        borderRadius: "8px",
+                        "&:hover": { backgroundColor: COLORS.whiteSmoke },
+                      }}
+                    >
+                      <Typography variant="text3">
+                        Terms of Use status
+                      </Typography>
+                      <SvgIcon
+                        aria-hidden="true"
+                        sx={{
+                          transform: "rotate(-180deg)",
+                          fontSize: "16px",
+                          "& path": { fill: COLORS.santasGrey },
+                        }}
+                      >
+                        <Arrow />
+                      </SvgIcon>
+                    </Box>
+                    <Divider sx={{ borderColor: COLORS.whiteLilac }} />
+                  </>
+                )}
 
                 {/* Footer */}
                 <Box
