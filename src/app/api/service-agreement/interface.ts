@@ -59,6 +59,7 @@ export interface ServiceAgreementGateResponse {
   acceptedVersion: {
     version: string
     plaintextSha256: string
+    effectiveDate: string
   } | null
 }
 

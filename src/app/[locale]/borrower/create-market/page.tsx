@@ -23,6 +23,7 @@ import { PageContainer } from "@/app/[locale]/borrower/create-market/style"
 import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
+import Docs from "@/assets/icons/docs_icon.svg"
 import { Loader } from "@/components/Loader"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
@@ -32,6 +33,7 @@ import {
   CreateMarketSteps,
   setInitialCreateState,
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
+import { COLORS } from "@/theme/colors"
 
 import { BasicSetupForm } from "./components/Forms/BasicSetupForn"
 import { ConfirmationForm } from "./components/Forms/ConfirmationForm"
@@ -264,24 +266,63 @@ export default function CreateMarketPage() {
   if (touBlocked) {
     return (
       <Box sx={PageContainer}>
-        <Box sx={{ width: "100%", padding: "40px 100px 0" }}>
-          <Typography variant="title2" fontWeight={600}>
+        <Box
+          sx={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "24px",
+            padding: "40px",
+            // Centre on the same axis as the create-market form (the
+            // glossary sidebar occupies 267px on the right), and sit a
+            // little above true vertical centre.
+            paddingRight: "307px",
+            paddingBottom: "160px",
+          }}
+        >
+          <Box
+            sx={{
+              width: "52px",
+              height: "52px",
+              borderRadius: "14px",
+              backgroundColor: COLORS.glitter,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <SvgIcon
+              sx={{
+                fontSize: "26px",
+                "& path": { stroke: COLORS.ultramarineBlue },
+              }}
+            >
+              <Docs />
+            </SvgIcon>
+          </Box>
+          <Typography variant="title2" fontWeight={600} textAlign="center">
             Terms of Use update required
           </Typography>
-          <Typography variant="text2" sx={{ marginTop: "12px" }}>
-            Creating new markets is disabled until you accept the current
-            Wildcat Terms of Use. Review and sign them on the agreement page;
-            your existing markets and withdrawals are unaffected.
+          <Typography
+            variant="text2"
+            color={COLORS.santasGrey}
+            textAlign="center"
+            sx={{ maxWidth: "440px", marginTop: "-8px" }}
+          >
+            Creating new markets is paused until you accept the current Terms of
+            Use. Your existing markets and withdrawals are unaffected.
           </Typography>
-          <Box sx={{ marginTop: "24px" }}>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={() => router.push(ROUTES.agreement)}
-            >
-              Review Terms of Use
-            </Button>
-          </Box>
+          <Button
+            variant="contained"
+            size="large"
+            onClick={() => router.push(ROUTES.agreement)}
+            sx={{ minWidth: "220px" }}
+          >
+            Review Terms of Use
+          </Button>
         </Box>
       </Box>
     )

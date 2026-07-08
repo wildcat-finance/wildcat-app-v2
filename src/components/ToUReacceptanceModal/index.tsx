@@ -6,6 +6,7 @@ import {
   Box,
   Button,
   Dialog,
+  Divider,
   TextField,
   Typography,
   useTheme,
@@ -13,7 +14,7 @@ import {
 import { usePathname, useRouter } from "next/navigation"
 import { useAccount } from "wagmi"
 
-import { ServiceAgreementVersionChip } from "@/components/ServiceAgreementVersionChip"
+import { ServiceAgreementChip } from "@/components/ServiceAgreementVersionChip"
 import { TxModalFooterContainer } from "@/components/TxModalComponents/TxModalFooter/style"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
@@ -25,6 +26,9 @@ import { formatServiceAgreementVersionLabel } from "@/utils/serviceAgreementVers
 
 const dismissKey = (chainId: unknown, address: string, sha: string) =>
   `tou-reaccept-dismissed:${chainId}:${address.toLowerCase()}:${sha}`
+
+// "17 Jan 2025" - matches the re-acceptance design mock.
+const formatChipDate = (iso: string) => dayjs(iso).utc().format("DD MMM YYYY")
 
 /// Global re-acceptance prompt for accounts whose ToU acceptance is stale.
 /// Styled after NonMlaAcknowledgementModal (the app's accept/decline dialog).
@@ -170,18 +174,44 @@ export const ToUReacceptanceModal = () => {
         </Typography>
 
         {view === "main" && (
-          <Box
-            sx={{
-              border: `1px solid ${COLORS.whiteLilac}`,
-              borderRadius: "12px",
-              padding: "14px 16px",
-              backgroundColor: COLORS.alabaster,
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-            }}
-          >
-            {touAcceptedVersion && (
+          <>
+            <Box
+              sx={{
+                border: `1px solid ${COLORS.whiteLilac}`,
+                borderRadius: "12px",
+                padding: "14px 16px",
+                backgroundColor: COLORS.alabaster,
+                display: "flex",
+                flexDirection: "column",
+                gap: "12px",
+              }}
+            >
+              {touAcceptedVersion && (
+                <>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Typography
+                      variant="text3"
+                      color={COLORS.santasGrey}
+                      title={touAcceptedVersion.version}
+                    >
+                      {`Signed ${formatServiceAgreementVersionLabel(
+                        touAcceptedVersion.version,
+                      )}`}
+                    </Typography>
+                    <ServiceAgreementChip
+                      label={formatChipDate(touAcceptedVersion.effectiveDate)}
+                      tone="stale"
+                    />
+                  </Box>
+                  <Divider sx={{ borderColor: COLORS.whiteLilac }} />
+                </>
+              )}
               <Box
                 sx={{
                   display: "flex",
@@ -189,39 +219,29 @@ export const ToUReacceptanceModal = () => {
                   alignItems: "center",
                 }}
               >
-                <Typography variant="text3" color={COLORS.santasGrey}>
-                  Version you&apos;ve signed
+                <Typography
+                  variant="text3"
+                  fontWeight={600}
+                  color={COLORS.ultramarineBlue}
+                  title={touCurrentVersion.version}
+                >
+                  {`New ${newVersionLabel}`}
                 </Typography>
-                <ServiceAgreementVersionChip
-                  version={touAcceptedVersion.version}
-                  tone="stale"
+                <ServiceAgreementChip
+                  label={formatChipDate(touCurrentVersion.effectiveDate)}
+                  tone="current"
                 />
               </Box>
-            )}
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Typography variant="text3" color={COLORS.santasGrey}>
-                New Version
-              </Typography>
-              <ServiceAgreementVersionChip
-                version={touCurrentVersion.version}
-                tone="current"
-              />
             </Box>
             <Typography
               variant="text3"
               color={COLORS.blueRibbon}
               onClick={() => router.push(ROUTES.agreement)}
-              sx={{ cursor: "pointer", width: "fit-content", marginTop: "8px" }}
+              sx={{ cursor: "pointer", alignSelf: "center" }}
             >
               View full terms
             </Typography>
-          </Box>
+          </>
         )}
 
         {view === "decline" && (
@@ -229,9 +249,16 @@ export const ToUReacceptanceModal = () => {
             label="Reason (optional)"
             multiline
             minRows={2}
+            fullWidth
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             inputProps={{ maxLength: 1000 }}
+            // The theme pins MuiTextField roots to a fixed height (44px for
+            // the default size), which clips a multiline field - let it grow.
+            sx={{
+              height: "auto",
+              "& .MuiInputBase-root": { height: "auto" },
+            }}
           />
         )}
       </Box>
@@ -244,6 +271,15 @@ export const ToUReacceptanceModal = () => {
       >
         {view === "main" ? (
           <>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={() => accept.mutate()}
+              disabled={isBusy || !accept.isReady}
+              fullWidth
+            >
+              {accept.isPending ? "Signing..." : "Sign Terms of Use"}
+            </Button>
             {!isDeclined && (
               <Button
                 variant="contained"
@@ -256,15 +292,6 @@ export const ToUReacceptanceModal = () => {
                 Decline
               </Button>
             )}
-            <Button
-              variant="contained"
-              size="large"
-              onClick={() => accept.mutate()}
-              disabled={isBusy || !accept.isReady}
-              fullWidth
-            >
-              {accept.isPending ? "Signing..." : "Sign Terms of Use"}
-            </Button>
           </>
         ) : (
           <>

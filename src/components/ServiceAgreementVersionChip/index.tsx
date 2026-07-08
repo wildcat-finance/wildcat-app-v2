@@ -32,6 +32,21 @@ const TONE_SX: Record<
   current: { backgroundColor: COLORS.glitter, color: COLORS.ultramarineBlue },
 }
 
+/// Generic pill in the version-chip style; used for the companion date chips.
+export const ServiceAgreementChip = ({
+  label,
+  tone = "default",
+  title,
+}: {
+  label: string
+  tone?: ServiceAgreementVersionChipTone
+  title?: string
+}) => (
+  <Box sx={{ ...VersionChipSx, ...TONE_SX[tone] }} title={title}>
+    {label}
+  </Box>
+)
+
 export const ServiceAgreementVersionChip = ({
   version,
   tone = "default",
@@ -42,8 +57,10 @@ export const ServiceAgreementVersionChip = ({
   if (!version) return null
 
   return (
-    <Box sx={{ ...VersionChipSx, ...TONE_SX[tone] }} title={version}>
-      {formatServiceAgreementVersionLabel(version)}
-    </Box>
+    <ServiceAgreementChip
+      label={formatServiceAgreementVersionLabel(version)}
+      title={version}
+      tone={tone}
+    />
   )
 }

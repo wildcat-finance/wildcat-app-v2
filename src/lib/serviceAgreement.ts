@@ -330,6 +330,7 @@ export type ServiceAgreementGateStatus = {
   acceptedVersion: {
     version: string
     plaintextSha256: string
+    effectiveDate: Date
   } | null
 }
 
@@ -359,6 +360,7 @@ export async function getServiceAgreementGateStatus(
           id: true,
           version: true,
           plaintextSha256: true,
+          effectiveDate: true,
           legacyWrapperHash: true,
         },
       }),
@@ -413,6 +415,7 @@ export async function getServiceAgreementGateStatus(
       ? {
           version: latestAccepted.version,
           plaintextSha256: latestAccepted.plaintextSha256,
+          effectiveDate: latestAccepted.effectiveDate,
         }
       : null,
   }

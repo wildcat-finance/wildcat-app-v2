@@ -31,7 +31,13 @@ export async function GET(
       reacceptanceDeadline:
         gate.currentVersion.reacceptanceDeadline?.toISOString() ?? null,
     },
-    acceptedVersion: gate.acceptedVersion,
+    acceptedVersion: gate.acceptedVersion
+      ? {
+          version: gate.acceptedVersion.version,
+          plaintextSha256: gate.acceptedVersion.plaintextSha256,
+          effectiveDate: gate.acceptedVersion.effectiveDate.toISOString(),
+        }
+      : null,
   }
   return NextResponse.json(response)
 }
