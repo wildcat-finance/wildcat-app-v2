@@ -39,4 +39,11 @@ export const compareByHighestYield = compareChain(
   byMarketAddressAsc,
 )
 
+export const compareByShortestCycle = compareChain(
+  byWithdrawalCycleAsc,
+  byAprDesc,
+  byRemainingCapacityDesc,
+  byMarketAddressAsc,
+)
+
 export const compareByCurrentAprBestInMarket = compareByHighestYield

@@ -68,7 +68,10 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
-import { compareByHighestYield } from "@/utils/marketSort"
+import {
+  compareByHighestYield,
+  compareByShortestCycle,
+} from "@/utils/marketSort"
 import {
   getMarketStatusChip,
   getPenaltyBorrowers,
@@ -80,7 +83,7 @@ import { getMarketTypeChip } from "@/utils/marketType"
 const SORT_OPTIONS = [
   "Most Funded",
   "Highest Yield",
-  "Most Liquid",
+  "Shortest Cycle",
   "Newest",
 ] as const
 
@@ -263,10 +266,8 @@ export const ExploreMarketsTable = () => {
       if (sortMode === "Highest Yield") {
         return compareByHighestYield(a, b)
       }
-      if (sortMode === "Most Liquid") {
-        const capA = a.market.maxTotalSupply.sub(a.market.totalSupply)
-        const capB = b.market.maxTotalSupply.sub(b.market.totalSupply)
-        return tokenAmountComparator(capB, capA)
+      if (sortMode === "Shortest Cycle") {
+        return compareByShortestCycle(a, b)
       }
       if (sortMode === "Newest") {
         return (

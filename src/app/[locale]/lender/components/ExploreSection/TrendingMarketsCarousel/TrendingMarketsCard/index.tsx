@@ -66,14 +66,14 @@ const VARIANT_BADGE: Record<
     Icon: PopularIcon,
   },
   trackRecord: {
-    label: "Track Record",
+    label: "Total Paid Out",
     accent: "#7547F5",
     iconColor: "#B9A0FF",
     band: "#EFEAFF",
     Icon: ProvenIcon,
   },
   hotRate: {
-    label: "Hot Rate",
+    label: "Peak APR",
     accent: "#D36229",
     iconColor: "#F5651D",
     band: "#FFE8DC",
