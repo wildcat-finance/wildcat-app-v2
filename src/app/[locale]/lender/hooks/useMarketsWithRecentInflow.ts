@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo } from "react"
+import { useCallback } from "react"
 
 import { useQuery } from "@tanstack/react-query"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
@@ -19,18 +19,13 @@ type RecentInflowNode = {
   market: { id: string }
 }
 
-type InflowWindow = {
-  markets: Set<string>
-  windowStart: number
-}
-
 export const useMarketsWithRecentInflow = () => {
   const subgraphClient = useSubgraphClient()
   const { targetChainId, isTestnet } = useCurrentNetwork()
 
   const { data, isLoading, isError } = useQuery({
     queryKey: QueryKeys.Lender.GET_MARKETS_WITH_RECENT_INFLOW(targetChainId),
-    queryFn: async (): Promise<InflowWindow> => {
+    queryFn: async (): Promise<Set<string>> => {
       const windowDays = isTestnet ? TESTNET_WINDOW_DAYS : MAINNET_WINDOW_DAYS
       const windowStart =
         Math.floor(Date.now() / 1000) - windowDays * DAY_SECONDS
@@ -46,28 +41,20 @@ export const useMarketsWithRecentInflow = () => {
         fetchPolicy: "network-only",
       })
 
-      return {
-        markets: new Set(
-          response.deposits.map((deposit) => deposit.market.id.toLowerCase()),
-        ),
-        windowStart,
-      }
+      return new Set(
+        response.deposits.map((deposit) => deposit.market.id.toLowerCase()),
+      )
     },
     staleTime: 60_000,
   })
 
-  const empty = useMemo<InflowWindow>(
-    () => ({ markets: new Set<string>(), windowStart: 0 }),
-    [],
-  )
-  const { markets, windowStart } = data ?? empty
-
+  // Qualification is strictly event-based: a market appears in explore
+  // categories only if a lender deposit landed inside the window. Fail open
+  // on subgraph errors so an indexer outage doesn't blank the explore page.
   const isMarketQualifying = useCallback(
     (account: MarketAccount): boolean =>
-      isError ||
-      markets.has(account.market.address.toLowerCase()) ||
-      (account.market.deployedEvent?.blockTimestamp ?? 0) >= windowStart,
-    [markets, windowStart, isError],
+      isError || (data?.has(account.market.address.toLowerCase()) ?? false),
+    [data, isError],
   )
 
   return { isMarketQualifying, isLoading, isError }

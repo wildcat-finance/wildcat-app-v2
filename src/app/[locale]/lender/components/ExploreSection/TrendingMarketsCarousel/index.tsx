@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import * as React from "react"
 
 import { Box, Skeleton, Typography } from "@mui/material"
@@ -96,10 +96,30 @@ type Slot = {
 const useDragScroll = () => {
   const ref = useRef<HTMLDivElement>(null)
   const drag = useRef({ active: false, startX: 0, scrollLeft: 0 })
+  const [isScrollable, setIsScrollable] = useState(false)
+
+  const measure = useCallback(() => {
+    const el = ref.current
+    if (!el) return
+    setIsScrollable(el.scrollWidth > el.clientWidth)
+  }, [])
+
+  // Content swaps (skeletons ↔ cards) change scrollWidth without resizing
+  // the container, so re-measure after every render; the observer covers
+  // container resizes that happen without one (e.g. window resizes)
+  useEffect(measure)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return undefined
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [measure])
 
   const onMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const el = ref.current
-    if (!el) return
+    if (!el || el.scrollWidth <= el.clientWidth) return
     drag.current = {
       active: true,
       startX: e.pageX - el.offsetLeft,
@@ -119,7 +139,7 @@ const useDragScroll = () => {
   const stopDrag = useCallback(() => {
     drag.current.active = false
     if (!ref.current) return
-    ref.current.style.cursor = "grab"
+    ref.current.style.cursor = ""
     ref.current.style.userSelect = ""
   }, [])
 
@@ -127,6 +147,7 @@ const useDragScroll = () => {
     const el = ref.current
     if (!el) return
     const onWheel = (e: WheelEvent) => {
+      if (el.scrollWidth <= el.clientWidth) return
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return
       e.preventDefault()
       el.scrollLeft += e.deltaY
@@ -138,6 +159,7 @@ const useDragScroll = () => {
 
   return {
     ref,
+    isScrollable,
     onMouseDown,
     onMouseMove,
     onMouseUp: stopDrag,
@@ -500,7 +522,7 @@ export const TrendingMarketsCarousel = () => {
             "&::-webkit-scrollbar": { display: "none" },
             scrollbarWidth: "none",
             marginBottom: "8px",
-            cursor: "grab",
+            cursor: dragScroll.isScrollable ? "grab" : "default",
           }}
         >
           {isLoading
@@ -562,7 +584,7 @@ export const TrendingMarketsCarousel = () => {
           padding: "20px 0 4px",
           "&::-webkit-scrollbar": { display: "none" },
           scrollbarWidth: "none",
-          cursor: "grab",
+          cursor: dragScroll.isScrollable ? "grab" : "default",
         }}
       >
         {isLoading

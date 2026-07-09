@@ -168,6 +168,16 @@ export type LenderOtherMarketsTableModel = {
   capacityLeft: TokenAmount
 }
 
+// Native 11×9 box — sizing via fontSize puts the arrow in a square em-box,
+// letterboxing it off the label's optical center
+const ActionArrowIcon = (
+  <SvgIcon
+    component={ArrowRightIcon}
+    inheritViewBox
+    sx={{ width: "11px", height: "9px" }}
+  />
+)
+
 const MarketLinkRow = (props: GridRowProps) => (
   <Link
     href={buildMarketHref(props.row.id, props.row.chainId)}
@@ -546,14 +556,7 @@ export const ExploreMarketsTable = () => {
               size="small"
               variant="contained"
               color="secondary"
-              onClick={(e: React.MouseEvent) => e.stopPropagation()}
-              endIcon={
-                <SvgIcon
-                  component={ArrowRightIcon}
-                  inheritViewBox
-                  sx={{ fontSize: "11px" }}
-                />
-              }
+              endIcon={ActionArrowIcon}
             >
               {t("dashboard.markets.tables.other.depositBTN")}
             </Button>
@@ -564,7 +567,12 @@ export const ExploreMarketsTable = () => {
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
               style={{ textDecoration: "none" }}
             >
-              <Button size="small" variant="contained" color="secondary">
+              <Button
+                size="small"
+                variant="contained"
+                color="secondary"
+                endIcon={ActionArrowIcon}
+              >
                 {t("dashboard.markets.tables.other.requestBTN")}
               </Button>
             </Link>

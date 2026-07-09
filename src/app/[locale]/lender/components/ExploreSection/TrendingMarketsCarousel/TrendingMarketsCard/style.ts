@@ -76,6 +76,8 @@ export const BorrowerLinkStyle = {
   minWidth: 0,
   overflow: "hidden",
   textDecoration: "none",
+  // cursor inherits from the drag-scroll container, so restate the link cursor
+  cursor: "pointer",
 }
 
 // Bar colors sampled from target.png (converted to sRGB)
@@ -102,4 +104,6 @@ export const MarketContainerStyle = {
   borderRadius: "10px",
   backgroundColor: COLORS.bunker,
   textDecoration: "none",
+  // cursor inherits from the drag-scroll container, so restate the link cursor
+  cursor: "pointer",
 }
