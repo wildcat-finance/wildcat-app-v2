@@ -21,7 +21,6 @@ import { COLORS } from "@/theme/colors"
 
 import {
   VerificationDisclosureVariant,
-  VerificationHeader,
   VerificationIconBox,
   VerificationList,
   VerificationModalDialog,
@@ -138,11 +137,11 @@ const VerificationGroupHeading = ({
   </Box>
 )
 
-const VerificationIcon = ({ compact }: { compact?: boolean }) => (
-  <Box sx={VerificationIconBox(compact)}>
+const VerificationIcon = () => (
+  <Box sx={VerificationIconBox}>
     <SvgIcon
       sx={{
-        fontSize: compact ? "16px" : "18px",
+        fontSize: "18px",
         "& path": { fill: COLORS.blackRock },
       }}
     >
@@ -198,25 +197,22 @@ export const BorrowerProfileVerificationDisclosure = ({
           aria-labelledby="borrower-profile-verification-title"
           sx={VerificationNoteContainer(variant)}
         >
-          <Box sx={VerificationHeader}>
-            <VerificationIcon compact={compactNote} />
-
-            <Typography
-              id="borrower-profile-verification-title"
-              variant="text2Highlighted"
-              color={COLORS.bunker}
-              sx={
-                compactNote
-                  ? {
-                      fontSize: "13px",
-                      lineHeight: "18px",
-                    }
-                  : undefined
-              }
-            >
-              {t("borrowerProfile.profile.verification.title")}
-            </Typography>
-          </Box>
+          <Typography
+            id="borrower-profile-verification-title"
+            component="p"
+            variant="text2Highlighted"
+            color={COLORS.bunker}
+            sx={
+              compactNote
+                ? {
+                    fontSize: "13px",
+                    lineHeight: "18px",
+                  }
+                : undefined
+            }
+          >
+            {t("borrowerProfile.profile.verification.title")}
+          </Typography>
 
           <Typography
             variant="text3"

@@ -7,7 +7,7 @@ export type VerificationDisclosureVariant = "desktop" | "market" | "inline"
 const NOTE_LAYOUT = {
   desktop: {
     width: "320px",
-    right: "clamp(24px, 7vw, 132px)",
+    right: "clamp(20px, 2vw, 40px)",
   },
   market: {
     width: "280px",
@@ -56,22 +56,16 @@ export const VerificationNoteContainer = (
       }),
 })
 
-export const VerificationHeader = {
-  display: "flex",
-  alignItems: "center",
-  gap: "10px",
-}
-
-export const VerificationIconBox = (compact?: boolean) => ({
-  width: compact ? "28px" : "32px",
-  height: compact ? "28px" : "32px",
-  minWidth: compact ? "28px" : "32px",
+export const VerificationIconBox = {
+  width: "32px",
+  height: "32px",
+  minWidth: "32px",
   borderRadius: "10px",
   backgroundColor: COLORS.athensGrey,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-})
+}
 
 export const VerificationSectionHeader = (compact?: boolean) => ({
   display: "flex",
