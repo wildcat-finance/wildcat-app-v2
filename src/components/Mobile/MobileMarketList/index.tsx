@@ -22,16 +22,13 @@ import FilterIcon from "@/assets/icons/filter_icon.svg"
 import SortAscIcon from "@/assets/icons/tableSort-ascSort_icon.svg"
 import SortDescIcon from "@/assets/icons/tableSort-descSort_icon.svg"
 import { getAdsMobileContent } from "@/components/AdsBanners/adsHelpers"
+import { getMarketImplementationVariantForType } from "@/components/market-implementation-variants"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { MarketStatus } from "@/utils/marketStatus"
 import { getPaginationRange } from "@/utils/pagination"
 
-import {
-  MobileMarketCard,
-  MobileMarketCardVariant,
-  MobileMarketItem,
-} from "../MobileMarketCard"
+import { MobileMarketCardVariant, MobileMarketItem } from "../MobileMarketCard"
 
 const ITEMS_PER_PAGE = 20
 
@@ -471,6 +468,9 @@ export const MobileMarketList = ({
             const displayName = grouped
               ? stripAssetSuffix(marketItem.name, marketItem.asset)
               : marketItem.name
+            const { MarketCard } = getMarketImplementationVariantForType(
+              marketItem.implementationType,
+            )
             return (
               <React.Fragment key={marketItem.id}>
                 {showAssetHeader && (
@@ -487,7 +487,7 @@ export const MobileMarketList = ({
                     {headerLabel}
                   </Typography>
                 )}
-                <MobileMarketCard
+                <MarketCard
                   adsComponent={getAdsMobileContent(marketItem.id)}
                   marketItem={marketItem}
                   buttonText={

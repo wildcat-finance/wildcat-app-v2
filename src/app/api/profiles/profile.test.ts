@@ -799,7 +799,7 @@ describe("API", () => {
 
         const values = getFieldValuesForBorrower({
           market,
-          borrowerInfo: borrowerProfile as BasicBorrowerInfo,
+          borrowerInfo: borrowerProfile as unknown as BasicBorrowerInfo,
           networkData: TargetNetwork,
           timeSigned,
           lastSlaUpdateTime: +lastSlaUpdateTime,

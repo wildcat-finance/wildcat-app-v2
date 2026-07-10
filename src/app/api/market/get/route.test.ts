@@ -5,7 +5,9 @@
 import { NextRequest } from "next/server"
 
 const mockQuery = jest.fn()
-const mockUnstableCache = jest.fn((fn: () => unknown) => fn)
+const mockUnstableCache = jest.fn(
+  (fn: () => unknown, ..._args: unknown[]) => fn,
+)
 
 jest.mock("@apollo/client", () => ({
   ApolloClient: jest.fn().mockImplementation(() => ({ query: mockQuery })),

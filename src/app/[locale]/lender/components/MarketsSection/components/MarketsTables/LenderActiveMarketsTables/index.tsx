@@ -19,8 +19,8 @@ import {
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
+import { getMarketImplementationVariantForType } from "@/components/market-implementation-variants"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
-import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useMarketRowPrefetchHandlers } from "@/hooks/usePrefetchMarketDetailMetadata"
@@ -430,13 +430,18 @@ export const LenderActiveMarketsTables = ({
         >
           {isMobile ? (
             <Box display="flex" flexDirection="column">
-              {depositedMarkets.map((marketItem) => (
-                <MobileMarketCard
-                  marketItem={marketItem}
-                  buttonText="Deposit"
-                  buttonIcon
-                />
-              ))}
+              {depositedMarkets.map((marketItem) => {
+                const { MarketCard } = getMarketImplementationVariantForType(
+                  marketItem.implementationType,
+                )
+                return (
+                  <MarketCard
+                    marketItem={marketItem}
+                    buttonText="Deposit"
+                    buttonIcon
+                  />
+                )
+              })}
             </Box>
           ) : (
             <Box {...depositedPrefetchHandlers}>
@@ -470,13 +475,18 @@ export const LenderActiveMarketsTables = ({
         >
           {isMobile ? (
             <Box display="flex" flexDirection="column">
-              {nonDepositedMarkets.map((marketItem) => (
-                <MobileMarketCard
-                  marketItem={marketItem}
-                  buttonText="Deposit"
-                  buttonIcon
-                />
-              ))}
+              {nonDepositedMarkets.map((marketItem) => {
+                const { MarketCard } = getMarketImplementationVariantForType(
+                  marketItem.implementationType,
+                )
+                return (
+                  <MarketCard
+                    marketItem={marketItem}
+                    buttonText="Deposit"
+                    buttonIcon
+                  />
+                )
+              })}
             </Box>
           ) : (
             <Box {...nonDepositedPrefetchHandlers}>

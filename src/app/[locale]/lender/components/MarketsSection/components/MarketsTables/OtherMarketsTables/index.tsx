@@ -24,8 +24,8 @@ import {
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
+import { getMarketImplementationVariantForType } from "@/components/market-implementation-variants"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
-import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { TablePagination } from "@/components/TablePagination"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -478,12 +478,14 @@ export const OtherMarketsTables = ({
         >
           {isMobile ? (
             <Box display="flex" flexDirection="column">
-              {selfOnboard.map((marketItem) => (
-                <MobileMarketCard
-                  marketItem={marketItem}
-                  buttonText="Onboard"
-                />
-              ))}
+              {selfOnboard.map((marketItem) => {
+                const { MarketCard } = getMarketImplementationVariantForType(
+                  marketItem.implementationType,
+                )
+                return (
+                  <MarketCard marketItem={marketItem} buttonText="Onboard" />
+                )
+              })}
             </Box>
           ) : (
             <Box {...selfOnboardPrefetchHandlers}>
@@ -516,12 +518,14 @@ export const OtherMarketsTables = ({
         >
           {isMobile ? (
             <Box display="flex" flexDirection="column">
-              {manual.map((marketItem) => (
-                <MobileMarketCard
-                  marketItem={marketItem}
-                  buttonText="Request"
-                />
-              ))}
+              {manual.map((marketItem) => {
+                const { MarketCard } = getMarketImplementationVariantForType(
+                  marketItem.implementationType,
+                )
+                return (
+                  <MarketCard marketItem={marketItem} buttonText="Request" />
+                )
+              })}
             </Box>
           ) : (
             <Box {...manualPrefetchHandlers}>

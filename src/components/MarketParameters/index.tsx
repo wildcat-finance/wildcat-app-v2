@@ -7,6 +7,7 @@ import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import { getAdsMarketParameterComponent } from "@/components/AdsBanners/adsHelpers"
+import { getMarketImplementationVariant } from "@/components/market-implementation-variants"
 import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
@@ -25,10 +26,7 @@ import {
   toTokenAmountProps,
   trimAddress,
 } from "@/utils/formatters"
-import {
-  getConfiguredAprLabelKey,
-  getMarketAprDisplayBips,
-} from "@/utils/marketApr"
+import { getMarketAprDisplayBips } from "@/utils/marketApr"
 import {
   getMarketImplementationConfig,
   getMarketImplementationType,
@@ -317,7 +315,8 @@ export const MarketParameters = ({
 
   const { hooksConfig, periodicHooksConfig } = market
   const aprDisplay = getMarketAprDisplayBips(market)
-  const { isRevolving } = aprDisplay
+  const { aprCopy, ExtraParametersSection } =
+    getMarketImplementationVariant(market)
   const implementationType = getMarketImplementationType(market)
   const implementationConfig = getMarketImplementationConfig(implementationType)
   const fixedTermHooksConfig =
@@ -441,27 +440,7 @@ export const MarketParameters = ({
     }
   }, [isMobile])
 
-  const configuredAprLabel = t(getConfiguredAprLabelKey(market))
-
-  const configuredAprTooltip = isRevolving
-    ? "The annual percentage rate charged on drawn capital in a revolving market. Undrawn deposited capital accrues the separate commitment APR instead."
-    : "The fixed annual percentage rate (excluding any protocol fees) that borrowers pay to lenders for assets within the market."
-
-  const protocolAprTooltip = isRevolving
-    ? "An additional APR that accrues to the protocol as a percentage of the market's current blended lender APR: commitment APR plus the utilization-weighted utilization APR."
-    : "An additional APR that accrues to the protocol by slowly increasing required reserves. Derived by the fee configuration of the protocol as a percentage of the current base APR."
-
-  const effectiveLenderAprTooltip = isRevolving
-    ? "The current APR being paid to lenders across deposited capital: commitment APR on undrawn capital, plus utilization APR on drawn capital, plus penalty APR if applicable."
-    : "The current interest rate being paid to lenders: the base APR plus penalty APR if applicable."
-
-  const revolvingUtilizationTooltip =
-    aprDisplay.utilizationBips !== undefined
-      ? `Current utilization: ${formatBps(
-          aprDisplay.utilizationBips,
-          MARKET_PARAMS_DECIMALS.reserveRatioBips,
-        )}% of deposited capital is drawn.`
-      : undefined
+  const configuredAprLabel = t(aprCopy.configuredAprLabelKey)
 
   const configuredAprDisplayValue = `${formatBps(
     aprDisplay.configuredAprBips,
@@ -817,10 +796,10 @@ export const MarketParameters = ({
             <ParametersItem
               title={configuredAprLabel}
               value={configuredAprDisplayValue}
-              tooltipText={configuredAprTooltip}
-              valueTooltipText={
-                isRevolving ? revolvingUtilizationTooltip : undefined
-              }
+              tooltipText={aprCopy.configuredAprTooltip}
+              valueTooltipText={aprCopy.getConfiguredAprValueTooltip(
+                aprDisplay,
+              )}
             />
             {pendingPeriodicAprChange && pendingPeriodicAprReadyAt && (
               <>
@@ -854,22 +833,8 @@ export const MarketParameters = ({
               </>
             )}
             <Divider sx={{ margin: "12px 0 12px" }} />
-            {isRevolving && (
-              <>
-                <ParametersItem
-                  title={t("borrowerMarketDetails.parameters.commitmentAPR")}
-                  value={
-                    aprDisplay.commitmentAprBips !== undefined
-                      ? `${formatBps(
-                          aprDisplay.commitmentAprBips,
-                          MARKET_PARAMS_DECIMALS.annualInterestBips,
-                        )}%`
-                      : "..."
-                  }
-                  tooltipText="The annual percentage rate charged on undrawn deposited capital in a revolving market."
-                />
-                <Divider sx={{ margin: "12px 0 12px" }} />
-              </>
+            {ExtraParametersSection && (
+              <ExtraParametersSection aprDisplay={aprDisplay} />
             )}
             {adsMarketParameter && (
               <>
@@ -880,13 +845,13 @@ export const MarketParameters = ({
             <ParametersItem
               title={t("borrowerMarketDetails.parameters.protocolAPR")}
               value={protocolAprDisplayValue}
-              tooltipText={protocolAprTooltip}
+              tooltipText={aprCopy.protocolAprTooltip}
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
               title={t("borrowerMarketDetails.parameters.effectiveAPR")}
               value={effectiveLenderAprDisplayValue}
-              tooltipText={effectiveLenderAprTooltip}
+              tooltipText={aprCopy.effectiveLenderAprTooltip}
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem

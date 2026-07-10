@@ -16,6 +16,7 @@ import {
   formatSecsToHours,
   formatTokenWithCommas,
 } from "@/utils/formatters"
+import { MarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -34,6 +35,7 @@ import {
 
 export type MobileMarketItem = {
   id: string
+  implementationType: MarketImplementationType
   status: ReturnType<typeof getMarketStatusChip>
   apr: number
   withdrawalBatchDuration: number
@@ -52,6 +54,16 @@ export type MobileMarketItem = {
 }
 
 export type MobileMarketCardVariant = "lender-action" | "borrower-context"
+
+export type MobileMarketCardProps = {
+  marketItem: MobileMarketItem
+  buttonText?: string
+  buttonIcon?: boolean
+  showBorrower?: boolean
+  adsComponent?: React.ReactNode
+  variant?: MobileMarketCardVariant
+  displayName?: string
+}
 
 export const DepositArrow = () => (
   <SvgIcon
@@ -201,15 +213,7 @@ export const MobileMarketCard = ({
   adsComponent,
   variant = "lender-action",
   displayName,
-}: {
-  marketItem: MobileMarketItem
-  buttonText?: string
-  buttonIcon?: boolean
-  showBorrower?: boolean
-  adsComponent?: React.ReactNode
-  variant?: MobileMarketCardVariant
-  displayName?: string
-}) => {
+}: MobileMarketCardProps) => {
   const isBorrowerContext = variant === "borrower-context"
   const renderedName = displayName ?? marketItem.name
   const utilisation = marketItem.utilisation ?? 0

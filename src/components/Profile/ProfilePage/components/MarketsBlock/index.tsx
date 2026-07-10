@@ -27,6 +27,7 @@ import {
   formatTokenWithCommas,
 } from "@/utils/formatters"
 import { getDisplayLenderAprBips } from "@/utils/marketApr"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 import { isBorrowerContextPath } from "@/utils/profileRoutes"
@@ -67,6 +68,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
 
       return {
         id: marketAddress,
+        implementationType: getMarketImplementationType(market),
         chainId,
         name,
         status: marketStatus,

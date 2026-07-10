@@ -24,6 +24,7 @@ import { useTranslation } from "react-i18next"
 import Alert from "@/assets/icons/circledAlert_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { DepositAlert } from "@/components/DepositAlert"
+import { getMarketImplementationVariant } from "@/components/market-implementation-variants"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
@@ -133,7 +134,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
   const aprDisplay = getMarketAprDisplayBips(market)
-  const isRevolving = aprDisplay.configuredAprKind === "utilization"
+  const { aprCopy } = getMarketImplementationVariant(market)
   const currentConfiguredAprBips = aprDisplay.configuredAprBips
   const currentConfiguredAprDisplayValue = formatBps(
     currentConfiguredAprBips,
@@ -157,18 +158,10 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const [resetTxHash, setResetTxHash] = useState<string | undefined>()
 
   const isFixedTerm = market.isInFixedTerm
-  const adjustAprLabel = isRevolving
-    ? t("borrowerMarketDetails.modals.apr.adjustUtilization")
-    : t("borrowerMarketDetails.modals.apr.adjustBase")
-  const alreadyUpdatedLabel = isRevolving
-    ? t("borrowerMarketDetails.modals.apr.alreadyUpdatedUtilization")
-    : t("borrowerMarketDetails.modals.apr.alreadyUpdated")
-  const currentAprLabel = isRevolving
-    ? t("borrowerMarketDetails.modals.apr.currentUtilizationApr")
-    : t("borrowerMarketDetails.modals.apr.currentBaseApr")
-  const newAprLabel = isRevolving
-    ? t("borrowerMarketDetails.modals.apr.newUtilizationApr")
-    : t("borrowerMarketDetails.modals.apr.newBaseApr")
+  const adjustAprLabel = t(aprCopy.adjustAprLabelKey)
+  const alreadyUpdatedLabel = t(aprCopy.alreadyUpdatedLabelKey)
+  const currentAprLabel = t(aprCopy.currentAprLabelKey)
+  const newAprLabel = t(aprCopy.newAprLabelKey)
   const aprBips = parseAprBips(apr)
   const isPeriodicTerm = !!market.periodicHooksConfig
   const existingPendingProposal = isPeriodicTerm
