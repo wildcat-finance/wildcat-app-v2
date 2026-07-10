@@ -33,11 +33,12 @@ import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
+import { tokenAmountComparator } from "@/utils/comparators"
 import {
   DATE_FORMAT,
+  formatTokenWithCommas,
   formatBlockTimestamp,
   timestampToDateFormatted,
-  TOKEN_FORMAT_DECIMALS,
   trimAddress,
 } from "@/utils/formatters"
 
@@ -91,10 +92,9 @@ export const MarketAuthorisedLenders = ({
     ? data?.map((lender) => {
         const lenderData = {
           id: lender.address,
-          balance:
-            market?.marketToken
-              .getAmount(market?.normalizeAmount(lender.scaledBalance))
-              .format(TOKEN_FORMAT_DECIMALS, true) ?? "0",
+          balance: market.marketToken.getAmount(
+            market.normalizeAmount(lender.scaledBalance),
+          ),
           role: lender.inferredRole,
           isDeauthorized:
             market?.version === MarketVersion.V2
@@ -246,19 +246,12 @@ export const MarketAuthorisedLenders = ({
       headerAlign: "left",
       align: "left",
       flex: 2,
-      renderCell: ({ value }) => {
-        const number = parseFloat(value.split(" ")[0].replace(/,/g, "")) || 0
-        return (
-          <span style={{ width: "100%", whiteSpace: "normal" }}>
-            {number.toLocaleString()}
-          </span>
-        )
-      },
-      sortComparator: (v1, v2) => {
-        const num1 = parseFloat(v1.split(" ")[0].replace(/,/g, "")) || 0
-        const num2 = parseFloat(v2.split(" ")[0].replace(/,/g, "")) || 0
-        return num1 - num2
-      },
+      renderCell: ({ value }) => (
+        <span style={{ width: "100%", whiteSpace: "normal" }}>
+          {formatTokenWithCommas(value, { fractionDigits: 2 })}
+        </span>
+      ),
+      sortComparator: tokenAmountComparator,
     },
     {
       sortable: false,
@@ -434,8 +427,8 @@ export const MarketAuthorisedLenders = ({
     ? [...commonColumns, ...mlaColumns]
     : commonColumns
 
-  const lendersInMarket = authorizedRows.filter(
-    (lender) => parseFloat(lender.balance.split(" ")[0].replace(/,/g, "")) > 0,
+  const lendersInMarket = authorizedRows.filter((lender) =>
+    lender.balance.gt(0),
   ).length
 
   if (isLoading) {
