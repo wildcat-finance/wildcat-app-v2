@@ -162,6 +162,7 @@ export const MarketParameters = ({
   viewerType,
   wrapper,
   hasWrapper,
+  additionalItems,
 }: MarketParametersProps) => {
   const isLocalHost = window.location.hostname === "localhost"
   const { t } = useTranslation()
@@ -319,6 +320,8 @@ export const MarketParameters = ({
   const { isRevolving } = aprDisplay
   const implementationType = getMarketImplementationType(market)
   const implementationConfig = getMarketImplementationConfig(implementationType)
+  const fixedTermHooksConfig =
+    hooksConfig?.kind === HooksKind.FixedTerm ? hooksConfig : undefined
   const depositAccess =
     hooksConfig?.depositRequiresAccess === false ? "open" : "restricted"
 
@@ -350,9 +353,9 @@ export const MarketParameters = ({
   }
   let earlyClosure: "yes" | "no" | "na" = "no"
   if (hooksConfig) {
-    if (hooksConfig.kind !== HooksKind.FixedTerm) {
+    if (!fixedTermHooksConfig) {
       earlyClosure = "na"
-    } else if (hooksConfig.allowClosureBeforeTerm) {
+    } else if (fixedTermHooksConfig.allowClosureBeforeTerm) {
       earlyClosure = "yes"
     } else {
       earlyClosure = "no"
@@ -362,9 +365,9 @@ export const MarketParameters = ({
   }
   let earlyMaturity: "yes" | "no" | "na" = "no"
   if (hooksConfig) {
-    if (hooksConfig.kind !== HooksKind.FixedTerm) {
+    if (!fixedTermHooksConfig) {
       earlyMaturity = "na"
-    } else if (hooksConfig.allowTermReduction) {
+    } else if (fixedTermHooksConfig.allowTermReduction) {
       earlyMaturity = "yes"
     } else {
       earlyMaturity = "no"
@@ -528,59 +531,6 @@ export const MarketParameters = ({
             value={market.marketToken.symbol}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
-
-          <ParametersItem
-            title="Wrapper"
-            value=""
-            valueComponent={<WrapperChip hasWrapper={hasWrapper} />}
-          />
-          <Divider sx={{ margin: "12px 0 12px" }} />
-
-          {hasWrapper && wrapper && (
-            <>
-              <ParametersItem
-                title="Wrapper Address"
-                value={trimAddress(wrapper.address.toLowerCase())}
-                copy={wrapper.address}
-                link={getAddressUrl(wrapper.address.toLowerCase())}
-              />
-              <Divider sx={{ margin: "12px 0 12px" }} />
-            </>
-          )}
-
-          {hasWrapper && wrapper && (
-            <>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "4px",
-                  width: "100%",
-                }}
-              >
-                <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                  <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-                    Adoption Status
-                  </Typography>
-                  <TooltipButton value={adoptionStatsTooltip} />
-                </Box>
-                <AdoptionStats
-                  marketAmount={marketValue}
-                  marketAsset={wrapper.marketToken.symbol}
-                  sharesAmount={shareValue}
-                  sharesAsset={
-                    viewerType === "borrower"
-                      ? wrapper.marketToken.symbol
-                      : wrapper.shareToken.symbol
-                  }
-                  marketPct={marketPct}
-                  sharesPct={sharesPct}
-                />
-              </Box>
-              <Divider sx={{ margin: "12px 0 12px" }} />
-            </>
-          )}
-
           <ParametersItem
             title={t("borrowerMarketDetails.parameters.maxBorrowingCapacity")}
             value={`${formatTokenWithCommas(market.maxTotalSupply, {
@@ -593,6 +543,20 @@ export const MarketParameters = ({
             title={t("borrowerMarketDetails.parameters.totalInterestAccrued")}
             value={toTokenAmountProps(totalInterestAccrued).value}
           />
+          {isMobileOpen && additionalItems && additionalItems.length > 0 && (
+            <>
+              {additionalItems.slice(0, -1).map((item) => (
+                <React.Fragment key={item.title}>
+                  <Divider sx={{ margin: "12px 0 12px" }} />
+                  <ParametersItem
+                    title={item.title}
+                    value={item.value}
+                    tooltipText={item.tooltipText}
+                  />
+                </React.Fragment>
+              ))}
+            </>
+          )}
           {isMobileOpen && (
             <>
               <Divider sx={{ margin: "12px 0 12px" }} />
@@ -634,13 +598,13 @@ export const MarketParameters = ({
                       ),
                     })}
               />
-              {market.hooksConfig?.kind === HooksKind.FixedTerm && (
+              {fixedTermHooksConfig && (
                 <>
                   <Divider sx={{ margin: "12px 0 12px" }} />
                   <ParametersItem
                     title={t("borrowerMarketDetails.parameters.marketExpiry")}
                     value={`${formatDate(
-                      market.hooksConfig.fixedTermEndTime,
+                      fixedTermHooksConfig.fixedTermEndTime,
                     )} 00:00 UTC`}
                   />
                 </>
@@ -991,9 +955,105 @@ export const MarketParameters = ({
                 `borrowerMarketDetails.parameters.marketMaturityReduction.${earlyMaturity}.tooltip`,
               )}
             />
+            {additionalItems && additionalItems.length > 0 && (
+              <>
+                <Divider sx={{ margin: "12px 0 12px" }} />
+                <ParametersItem
+                  title={additionalItems[additionalItems.length - 1].title}
+                  value={additionalItems[additionalItems.length - 1].value}
+                  tooltipText={
+                    additionalItems[additionalItems.length - 1].tooltipText
+                  }
+                />
+              </>
+            )}
           </Box>
         )}
       </Box>
+
+      {isMobileOpen && (
+        <>
+          <Divider />
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: isMobile ? "column" : "row",
+              gap: isMobile ? "0px" : "24px",
+              width: "100%",
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                flex: 1,
+              }}
+            >
+              <ParametersItem
+                title="Wrapper"
+                value=""
+                valueComponent={<WrapperChip hasWrapper={hasWrapper} />}
+              />
+              {hasWrapper && wrapper && (
+                <>
+                  <Divider sx={{ margin: "12px 0" }} />
+                  <ParametersItem
+                    title="Wrapper Address"
+                    value={trimAddress(wrapper.address.toLowerCase())}
+                    copy={wrapper.address}
+                    link={getAddressUrl(wrapper.address.toLowerCase())}
+                  />
+                </>
+              )}
+            </Box>
+            {hasWrapper && wrapper && (
+              <Box
+                sx={{
+                  flex: 1,
+                  borderLeft: isMobile
+                    ? "none"
+                    : `1px solid ${COLORS.athensGrey}`,
+                  paddingLeft: isMobile ? 0 : "24px",
+                  borderTop: isMobile
+                    ? `1px solid ${COLORS.athensGrey}`
+                    : "none",
+                  marginTop: isMobile ? "12px" : 0,
+                  paddingTop: isMobile ? "12px" : 0,
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    marginBottom: "4px",
+                  }}
+                >
+                  <Typography
+                    variant={isMobile ? "mobText3" : "text3"}
+                    sx={{ color: COLORS.santasGrey }}
+                  >
+                    Adoption Status
+                  </Typography>
+                  <TooltipButton value={adoptionStatsTooltip} />
+                </Box>
+                <AdoptionStats
+                  marketAmount={marketValue}
+                  marketAsset={wrapper.marketToken.symbol}
+                  sharesAmount={shareValue}
+                  sharesAsset={
+                    viewerType === "borrower"
+                      ? wrapper.marketToken.symbol
+                      : wrapper.shareToken.symbol
+                  }
+                  marketPct={marketPct}
+                  sharesPct={sharesPct}
+                />
+              </Box>
+            )}
+          </Box>
+        </>
+      )}
 
       {hooksConfig && isLocalHost && isMobileOpen && (
         <>

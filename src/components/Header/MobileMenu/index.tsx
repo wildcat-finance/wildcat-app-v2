@@ -38,10 +38,12 @@ import { LinkGroup } from "@/components/LinkComponent"
 import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
+import { isBorrowerContextPath } from "@/utils/profileRoutes"
 
 const SlideTransition = React.forwardRef(
   (
@@ -61,6 +63,10 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
   const { address, isConnected } = useAccount()
   const pathname = usePathname()
   const isMain = pathname.includes("lender") || pathname.includes("borrower")
+  const isBorrowerContext = isBorrowerContextPath(pathname, address)
+  const profileRoute = isBorrowerContext
+    ? ROUTES.borrower.profile
+    : ROUTES.lender.profile
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
@@ -321,12 +327,29 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
               {isConnected ? (
                 <Box
                   sx={{
-                    display: "flex",
+                    display: "grid",
                     gap: "6px",
+                    gridTemplateColumns: "1fr 1fr",
                     paddingTop: "6px",
                     marginBottom: "12px",
                   }}
                 >
+                  <Button
+                    component={Link}
+                    href={profileRoute}
+                    variant="contained"
+                    color="secondary"
+                    size="medium"
+                    onClick={handleToggleModal}
+                    sx={{
+                      borderRadius: "10px",
+                      gridColumn: "1 / -1",
+                      padding: "12px 8px",
+                    }}
+                    fullWidth
+                  >
+                    View Profile
+                  </Button>
                   <Button
                     variant="contained"
                     color="secondary"

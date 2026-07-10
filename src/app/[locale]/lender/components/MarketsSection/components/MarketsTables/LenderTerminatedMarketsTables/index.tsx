@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
+import { getBorrowerDisplayName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import {
   clickableGridSx,
   rowLinkInteractiveSx,
@@ -33,10 +34,10 @@ import {
   typeComparator,
 } from "@/utils/comparators"
 import {
+  buildBorrowerProfileHref,
   buildMarketHref,
   formatSecsToHours,
   formatTokenWithCommas,
-  trimAddress,
 } from "@/utils/formatters"
 import { getDisplayLenderAprBips } from "@/utils/marketApr"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
@@ -91,12 +92,7 @@ export const LenderTerminatedMarketsTables = ({
         chainId,
       } = market
 
-      const borrower = borrowers?.find(
-        (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
-      )
-      const borrowerName = borrower
-        ? borrower.alias || borrower.name
-        : trimAddress(borrowerAddress)
+      const borrowerName = getBorrowerDisplayName(borrowerAddress, borrowers)
       const marketStatus = getMarketStatusChip(market)
       const implementationType = getMarketImplementationType(market)
       const marketType = getMarketTypeChip(market)
@@ -173,7 +169,10 @@ export const LenderTerminatedMarketsTables = ({
           {params.row.borrowerAddress ? (
             <Box
               component={Link}
-              href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+              href={buildBorrowerProfileHref(
+                params.row.borrowerAddress,
+                params.row.chainId,
+              )}
               prefetch={false}
               sx={{
                 ...rowLinkInteractiveSx,

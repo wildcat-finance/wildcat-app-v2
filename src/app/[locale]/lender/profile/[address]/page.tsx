@@ -3,24 +3,25 @@
 import * as React from "react"
 import { useEffect } from "react"
 
-import { redirect } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useAccount } from "wagmi"
 
-import { ProfilePage } from "@/components/Profile/ProfilePage"
 import { ROUTES } from "@/routes"
 
-export default function OtherBorrowerProfile({
-  params: { address },
-}: {
-  params: { address: `0x${string}` }
-}) {
-  const { address: userAddress } = useAccount()
+export default function LenderProfileAddressRedirect() {
+  const router = useRouter()
+  const { isConnected, isConnecting, isReconnecting } = useAccount()
 
   useEffect(() => {
-    if (address.toLowerCase() === userAddress?.toLowerCase()) {
-      redirect(ROUTES.lender.profile)
+    if (isConnected) {
+      router.replace(ROUTES.lender.profile)
+      return
     }
-  }, [address, userAddress])
 
-  return <ProfilePage profileAddress={address} type="external" />
+    if (!isConnecting && !isReconnecting) {
+      router.replace(ROUTES.lender.root)
+    }
+  }, [isConnected, isConnecting, isReconnecting, router])
+
+  return null
 }

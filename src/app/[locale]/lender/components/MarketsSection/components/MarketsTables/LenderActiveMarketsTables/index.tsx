@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
+import { getBorrowerDisplayName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MarketImplementationChip } from "@/components/@extended/MarketImplementationChip"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
@@ -33,11 +34,11 @@ import {
   typeComparator,
 } from "@/utils/comparators"
 import {
+  buildBorrowerProfileHref,
   buildMarketHref,
   formatBps,
   formatSecsToHours,
   formatTokenWithCommas,
-  trimAddress,
 } from "@/utils/formatters"
 import { getDisplayLenderAprBips } from "@/utils/marketApr"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
@@ -98,12 +99,7 @@ export const LenderActiveMarketsTables = ({
         chainId,
       } = market
 
-      const borrower = borrowers?.find(
-        (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
-      )
-      const borrowerName = borrower
-        ? borrower.alias || borrower.name
-        : trimAddress(borrowerAddress)
+      const borrowerName = getBorrowerDisplayName(borrowerAddress, borrowers)
       const marketStatus = getMarketStatusChip(market)
       const implementationType = getMarketImplementationType(market)
       const marketType = getMarketTypeChip(market)
@@ -180,7 +176,10 @@ export const LenderActiveMarketsTables = ({
           {params.row.borrowerAddress ? (
             <Box
               component={Link}
-              href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+              href={buildBorrowerProfileHref(
+                params.row.borrowerAddress,
+                params.row.chainId,
+              )}
               prefetch={false}
               sx={{
                 ...rowLinkInteractiveSx,

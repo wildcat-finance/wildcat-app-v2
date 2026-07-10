@@ -15,6 +15,7 @@ export type MarketsTableModel = {
   term: ReturnType<typeof getMarketTypeChip>
   name: string
   borrowerName?: string
+  borrowerAddress?: string
   asset: string
   lenderAPR: number
   crr: number
