@@ -34,8 +34,6 @@ import {
 import { getCreateMarketDeployRouting } from "@/utils/createMarketDeploy"
 
 import { BasicSetupForm } from "./components/Forms/BasicSetupForn"
-import { ConfirmationForm } from "./components/Forms/ConfirmationForm"
-import { FinancialForm } from "./components/Forms/FinancialForm"
 import { LenderRestrictionsForm } from "./components/Forms/LenderRestrictionsForm"
 import { MarketPolicyForm } from "./components/Forms/MarketPolicyForm"
 import { MlaForm } from "./components/Forms/MLAForm"
@@ -53,6 +51,7 @@ import {
   DeploySubtitle,
   DeployTypoBox,
 } from "./deploy-style"
+import { getCreateMarketFlowVariant } from "./flow-variants"
 import {
   DeployNewV2MarketParams,
   useDeployV2Market,
@@ -79,7 +78,15 @@ export default function CreateMarketPage() {
   const currentNumber = steps.find((step) => step.step === currentStep)?.number
 
   const newMarketForm = useNewMarketForm(isTestnet ?? false)
-  const implementationTypeWatch = newMarketForm.watch("implementationType")
+  const flowVariant = getCreateMarketFlowVariant(
+    newMarketForm.watch("implementationType"),
+  )
+  const marketTypeWatch = newMarketForm.watch("marketType")
+  const glossaryItems = flowVariant.getGlossaryItems(
+    currentStep,
+    t,
+    marketTypeWatch,
+  )
 
   const { selectedHooksInstance, selectedHooksTemplate, hooksInstances } =
     useNewMarketHooksData(newMarketForm)
@@ -325,7 +332,10 @@ export default function CreateMarketPage() {
         )}
 
         {currentStep === CreateMarketSteps.FINANCIAL && (
-          <FinancialForm form={newMarketForm} tokenAsset={tokenAsset} />
+          <flowVariant.FinancialForm
+            form={newMarketForm}
+            tokenAsset={tokenAsset}
+          />
         )}
 
         {currentStep === CreateMarketSteps.LRESTRICTIONS && (
@@ -337,7 +347,7 @@ export default function CreateMarketPage() {
         )}
 
         {currentStep === CreateMarketSteps.CONFIRM && (
-          <ConfirmationForm
+          <flowVariant.ConfirmationForm
             form={newMarketForm}
             tokenAsset={tokenAsset}
             handleDeploy={handleClickDeploy}
@@ -481,13 +491,7 @@ export default function CreateMarketPage() {
         </Dialog>
       </Box>
 
-      {currentNumber && (
-        <GlossarySidebar
-          step={currentStep}
-          isRevolving={implementationTypeWatch === "revolving"}
-          marketType={newMarketForm.watch("marketType")}
-        />
-      )}
+      {currentNumber && <GlossarySidebar items={glossaryItems} />}
     </Box>
   )
 }

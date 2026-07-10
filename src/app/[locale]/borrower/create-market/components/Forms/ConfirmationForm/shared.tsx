@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { ComponentType, useState } from "react"
 
 import { Box, Button, Divider, SxProps, Theme, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
@@ -104,7 +104,16 @@ const PreviewMlaModal = ({
   )
 }
 
-export const ConfirmationForm = ({
+export type ConfirmationFinancialSectionProps = Pick<
+  ConfirmationFormProps,
+  "form" | "tokenAsset"
+>
+
+type SharedConfirmationFormProps = ConfirmationFormProps & {
+  FinancialSection: ComponentType<ConfirmationFinancialSectionProps>
+}
+
+export const SharedConfirmationForm = ({
   form,
   tokenAsset,
   handleDeploy,
@@ -113,7 +122,8 @@ export const ConfirmationForm = ({
   onClickSign,
   isSigning,
   mlaSignature,
-}: ConfirmationFormProps) => {
+  FinancialSection,
+}: SharedConfirmationFormProps) => {
   const { t } = useTranslation()
 
   const { address } = useAccount()
@@ -143,12 +153,6 @@ export const ConfirmationForm = ({
   )?.label
 
   const isFixedTerm = getValues("marketType") === "fixedTerm"
-  const isRevolving = getValues("implementationType") === "revolving"
-  const aprLabel = t(
-    isRevolving
-      ? "createNewMarket.financial.baseAPR.labelRevolving"
-      : "createNewMarket.financial.baseAPR.label",
-  )
   const isNewPolicy = getValues("policy") === "createNewPolicy"
   const policyNameValue = getValues("policyName") || "Unnamed Policy"
   const depositRequiresAccess = "Yes" // getValues("depositRequiresAccess")
@@ -346,64 +350,7 @@ export const ConfirmationForm = ({
 
       {isPeriodicTerm && <PeriodicTermsConfirmation form={form} />}
 
-      <Typography variant="text4" sx={SubtitleStyle}>
-        {t("createNewMarket.financial.title")}
-      </Typography>
-
-      <Box
-        sx={{
-          ...SectionGrid,
-          gap: "20px 12px",
-          gridTemplateRows: "repeat(3, 1fr)",
-        }}
-      >
-        <ConfirmationFormItem
-          label={t("createNewMarket.financial.maxCapacity.label")}
-          value={`${getValues("maxTotalSupply")} ${tokenAsset?.symbol}`}
-        />
-
-        <ConfirmationFormItem
-          label={aprLabel}
-          value={`${getValues("annualInterestBips")}%`}
-        />
-
-        <ConfirmationFormItem
-          label={t("createNewMarket.financial.protocolFee.label")}
-          /* dev: hardcoded for now, need to grab protocol fee from template */
-          value={`${(getValues("annualInterestBips") * 5) / 100}%`}
-        />
-
-        <ConfirmationFormItem
-          label={t("createNewMarket.financial.penaltyAPR.label")}
-          value={`${getValues("delinquencyFeeBips")}%`}
-        />
-
-        <ConfirmationFormItem
-          label={t("createNewMarket.financial.ratio.label")}
-          value={`${getValues("reserveRatioBips")}%`}
-        />
-
-        {isRevolving && (
-          <ConfirmationFormItem
-            label={t("createNewMarket.policy.commitmentFee.label")}
-            value={`${getValues("commitmentFeePercent")}%`}
-          />
-        )}
-
-        <ConfirmationFormItem
-          label={t("createNewMarket.periods.grace.label")}
-          value={`${getValues("delinquencyGracePeriod")} hours`}
-        />
-        <ConfirmationFormItem
-          label={t("createNewMarket.periods.wdCycle.label")}
-          value={`${getValues("withdrawalBatchDuration")} hours`}
-        />
-
-        <ConfirmationFormItem
-          label={t("createNewMarket.financial.minDeposit.label")}
-          value={`${getValues("minimumDeposit") ?? 0} ${tokenAsset?.symbol}`}
-        />
-      </Box>
+      <FinancialSection form={form} tokenAsset={tokenAsset} />
 
       <Divider sx={DividerStyle} />
 

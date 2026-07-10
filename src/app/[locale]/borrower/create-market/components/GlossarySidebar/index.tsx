@@ -6,192 +6,23 @@ import { CreateMarketSteps } from "@/store/slices/createMarketSidebarSlice/creat
 import { COLORS } from "@/theme/colors"
 
 import { GlossarySidebarProps } from "./interface"
-import { GlossaryContainer, GlossaryItem } from "./style"
+import { GlossaryContainer, GlossaryItem as GlossaryItemStyle } from "./style"
+import { getCreateMarketFlowVariant } from "../../flow-variants"
 
 export const GlossarySidebar = ({
-  step,
   hideGlossary,
-  isRevolving,
+  items,
   marketType,
+  step,
 }: GlossarySidebarProps) => {
   const { t } = useTranslation()
-
-  let glossaryArray: {
-    title: string
-    description: string
-  }[]
-
-  switch (step) {
-    case CreateMarketSteps.POLICY: {
-      glossaryArray = [
-        {
-          title: t("createNewMarket.policy.policy.label"),
-          description: t("createNewMarket.policy.policy.glossary"),
-        },
-        {
-          title: t("createNewMarket.policy.name.label"),
-          description: t("createNewMarket.policy.name.glossary"),
-        },
-      ]
-      if (marketType === "periodicTerm") {
-        glossaryArray.push(
-          {
-            title: t("createNewMarket.policy.periodic.firstWindowStart.label"),
-            description: t(
-              "createNewMarket.policy.periodic.firstWindowStart.glossary",
-            ),
-          },
-          {
-            title: t("createNewMarket.policy.periodic.periodDuration.label"),
-            description: t(
-              "createNewMarket.policy.periodic.periodDuration.glossary",
-            ),
-          },
-          {
-            title: t(
-              "createNewMarket.policy.periodic.withdrawalWindowDuration.label",
-            ),
-            description: t(
-              "createNewMarket.policy.periodic.withdrawalWindowDuration.glossary",
-            ),
-          },
-        )
-      } else if (marketType === "fixedTerm") {
-        glossaryArray.push(
-          {
-            title: t("createNewMarket.policy.expiration.label"),
-            description: t("createNewMarket.policy.expiration.glossary"),
-          },
-          {
-            title: t("createNewMarket.policy.earlyClose.label"),
-            description: t("createNewMarket.policy.earlyClose.explainer"),
-          },
-          {
-            title: t("createNewMarket.policy.reduceExpiration.label"),
-            description: t("createNewMarket.policy.reduceExpiration.explainer"),
-          },
-        )
-      }
-      break
-    }
-    case CreateMarketSteps.BASIC: {
-      glossaryArray = [
-        {
-          title: t("createNewMarket.basic.asset.label"),
-          description: t("createNewMarket.basic.asset.glossary"),
-        },
-        {
-          title: t("createNewMarket.basic.tokenName.label"),
-          description: t("createNewMarket.basic.tokenName.glossary"),
-        },
-        {
-          title: t("createNewMarket.basic.tokenSymbol.label"),
-          description: t("createNewMarket.basic.tokenSymbol.glossary"),
-        },
-      ]
-      break
-    }
-    case CreateMarketSteps.MLA: {
-      glossaryArray = [
-        {
-          title: t("createNewMarket.mla.mla.label"),
-          description: t("createNewMarket.mla.mla.glossary"),
-        },
-      ]
-      break
-    }
-    case CreateMarketSteps.FINANCIAL: {
-      glossaryArray = [
-        {
-          title: t("createNewMarket.financial.maxCapacity.label"),
-          description: t("createNewMarket.financial.maxCapacity.glossary"),
-        },
-        {
-          title: t(
-            isRevolving
-              ? "createNewMarket.financial.baseAPR.labelRevolving"
-              : "createNewMarket.financial.baseAPR.label",
-          ),
-          description: t(
-            isRevolving
-              ? "createNewMarket.financial.baseAPR.glossaryRevolving"
-              : "createNewMarket.financial.baseAPR.glossary",
-          ),
-        },
-        {
-          title: t("createNewMarket.financial.penaltyAPR.label"),
-          description: t("createNewMarket.financial.penaltyAPR.glossary"),
-        },
-        {
-          title: t("createNewMarket.financial.ratio.label"),
-          description: t("createNewMarket.financial.ratio.glossary"),
-        },
-        ...(isRevolving
-          ? [
-              {
-                title: t("createNewMarket.financial.commitmentFee.label"),
-                description: t(
-                  "createNewMarket.financial.commitmentFee.glossary",
-                ),
-              },
-            ]
-          : []),
-        {
-          title: t("createNewMarket.periods.grace.label"),
-          description: t("createNewMarket.periods.grace.glossary"),
-        },
-        {
-          title: t("createNewMarket.periods.wdCycle.label"),
-          description: t("createNewMarket.periods.wdCycle.glossary"),
-        },
-        {
-          title: t("createNewMarket.financial.minDeposit.label"),
-          description: t("createNewMarket.financial.minDeposit.glossary"),
-        },
-      ]
-      break
-    }
-    case CreateMarketSteps.LRESTRICTIONS: {
-      glossaryArray = [
-        {
-          title: t(
-            "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
-          ),
-          description: t(
-            "createNewMarket.lenderRestrictions.restrictWithdrawals.glossary",
-          ),
-        },
-        {
-          title: t(
-            "createNewMarket.lenderRestrictions.restrictTransfers.label",
-          ),
-          description: t(
-            "createNewMarket.lenderRestrictions.restrictTransfers.glossary",
-          ),
-        },
-        {
-          title: t("createNewMarket.lenderRestrictions.disableTransfers.label"),
-          description: t(
-            "createNewMarket.lenderRestrictions.disableTransfers.glossary",
-          ),
-        },
-      ]
-      break
-    }
-    default: {
-      glossaryArray = [
-        {
-          title: t("createNewMarket.policy.policy.label"),
-          description: t("createNewMarket.policy.policy.glossary"),
-        },
-        {
-          title: t("createNewMarket.policy.name.label"),
-          description: t("createNewMarket.policy.name.glossary"),
-        },
-      ]
-      break
-    }
-  }
+  const glossaryItems =
+    items ??
+    getCreateMarketFlowVariant(undefined).getGlossaryItems(
+      step ?? CreateMarketSteps.POLICY,
+      t,
+      marketType,
+    )
   if (hideGlossary)
     return (
       <Box
@@ -213,8 +44,8 @@ export const GlossarySidebar = ({
         {t("createNewMarket.glossary")}
       </Typography>
 
-      {glossaryArray.map((block) => (
-        <Box key={`${block.title}-${block.description}`} sx={GlossaryItem}>
+      {glossaryItems.map((block) => (
+        <Box key={`${block.title}-${block.description}`} sx={GlossaryItemStyle}>
           <Typography variant="text3">{`‣ ${block.title}`}</Typography>
 
           <Typography variant="text3" color={COLORS.santasGrey}>
