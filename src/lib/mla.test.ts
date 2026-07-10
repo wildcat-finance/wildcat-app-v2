@@ -37,10 +37,7 @@ const borrowerInfo: BasicBorrowerInfo = {
   name: "Borrower",
 }
 
-const getMlaValues = (
-  implementationType?: "legacy" | "revolving",
-  allowForceBuyBack = false,
-) =>
+const getMlaValues = (implementationType?: "legacy" | "revolving") =>
   getFieldValuesForBorrower({
     market: {
       address: "0x0000000000000000000000000000000000000003",
@@ -65,7 +62,6 @@ const getMlaValues = (
       reserveRatio: 1000,
       allowClosureBeforeTerm: undefined,
       allowTermReduction: undefined,
-      allowForceBuyBack,
     },
     borrowerInfo,
     asset: token,
@@ -102,11 +98,5 @@ describe("MLA field values", () => {
     expect(getMlaValues("revolving").get("market.aprLabel")).toBe(
       "Utilization APR",
     )
-  })
-
-  it("forces force-buyback MLA compatibility data to disabled", () => {
-    expect(
-      getMlaValues("revolving", true).get("market.allowForceBuyBack"),
-    ).toBe("No")
   })
 })

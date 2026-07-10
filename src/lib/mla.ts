@@ -84,7 +84,6 @@ export type MlaBorrowerFields = {
     // boolean (format as Yes, No, N/A)
     allowClosureBeforeTerm: boolean | undefined
     allowTermReduction: boolean | undefined
-    allowForceBuyBack: boolean | undefined
   }
   borrowerInfo: BasicBorrowerInfo
   // address (format as checksum address)
@@ -144,7 +143,6 @@ export const MlaFieldValueKeys = [
   // boolean (format as Yes, No, N/A)
   "market.allowClosureBeforeTerm",
   "market.allowTermReduction",
-  "market.allowForceBuyBack",
 ] as const
 
 export type MlaFieldValueKey = (typeof MlaFieldValueKeys)[number]
@@ -305,7 +303,6 @@ const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
       hooksConfig?.kind === HooksKind.FixedTerm
         ? hooksConfig.allowTermReduction
         : undefined,
-    allowForceBuyBack: false,
   }
 }
 
@@ -484,7 +481,6 @@ export function getFieldValuesForBorrower({
         ? formatBool(market.allowTermReduction)
         : "N/A",
     ],
-    ["market.allowForceBuyBack", formatBool(false) ?? "N/A"],
   ])
   return allData
 }

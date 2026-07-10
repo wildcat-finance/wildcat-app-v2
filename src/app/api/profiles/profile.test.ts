@@ -229,10 +229,6 @@ const borrowerFields: MlaTemplateField[] = [
     source: "market.allowTermReduction",
     placeholder: "Insert Allow Term Reduction",
   },
-  {
-    source: "market.allowForceBuyBack",
-    placeholder: "Insert Allow Force Buy Back",
-  },
 ]
 const lenderFields: MlaTemplateField[] = [
   {

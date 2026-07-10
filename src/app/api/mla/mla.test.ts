@@ -120,7 +120,6 @@ describe("mla helpers", () => {
         reserveRatio: 1_000,
         allowClosureBeforeTerm: undefined,
         allowTermReduction: undefined,
-        allowForceBuyBack: undefined,
       },
       borrowerInfo: {
         address: "0x0000000000000000000000000000000000000004",

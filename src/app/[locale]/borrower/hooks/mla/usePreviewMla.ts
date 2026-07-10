@@ -111,7 +111,6 @@ export function getFieldValuesForBorrowerFromForm(
       allowTermReduction: isFixedTerm
         ? !!marketParams.allowTermReduction
         : undefined,
-      allowForceBuyBack: false,
       apr: annualInterestBips,
       aprLabel,
       delinquencyFee: delinquencyFeeBips,
