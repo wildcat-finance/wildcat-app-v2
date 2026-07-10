@@ -17,6 +17,7 @@ import { useLivePeriodicNowSeconds } from "@/hooks/useLiveNowSeconds"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { COLORS } from "@/theme/colors"
+import { hasManuallyDisabledMarketActions } from "@/utils/constants"
 import { formatTokenWithCommas } from "@/utils/formatters"
 import {
   formatPeriodicWithdrawalWindowStart,
@@ -189,6 +190,9 @@ export const MobileMarketActions = ({
     isTestnet &&
     market.underlyingToken.isMock &&
     marketAccount.underlyingBalance.eq(0)
+  const marketActionsManuallyDisabled = hasManuallyDisabledMarketActions(
+    market.borrower,
+  )
 
   const { data: mla } = useMarketMla(market.address)
   const mlaResponse = mla && "noMLA" in mla ? null : mla
@@ -373,7 +377,10 @@ export const MobileMarketActions = ({
                   color="secondary"
                   size="large"
                   fullWidth
-                  disabled={marketAccount.maximumDeposit.eq(0)}
+                  disabled={
+                    marketActionsManuallyDisabled ||
+                    marketAccount.maximumDeposit.eq(0)
+                  }
                   sx={{ padding: "10px 20px", marginTop: "16px" }}
                 >
                   ↓ {t("lenderMarketDetails.transactions.deposit.button")}

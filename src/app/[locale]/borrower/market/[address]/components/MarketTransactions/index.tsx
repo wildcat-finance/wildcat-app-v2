@@ -17,6 +17,7 @@ import {
   setSidebarHighlightState,
 } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
+import { hasManuallyDisabledMarketActions } from "@/utils/constants"
 import { dayjs } from "@/utils/dayjs"
 import {
   formatBps,
@@ -65,10 +66,12 @@ export const MarketTransactions = ({
     React.useState(false)
 
   const disableRepay = market.isClosed
-  const disableBorrow =
+  const hideBorrow =
     market.isClosed ||
     market?.isDelinquent ||
     (marketAccount && marketAccount.market.borrowableAssets.eq(0))
+  const disableBorrow =
+    hideBorrow || hasManuallyDisabledMarketActions(market.borrower)
 
   const fixedTermHooksConfig = getFixedTermHooksConfig(market)
   const isFixedTerm = isFixedTermMarket(market)
@@ -466,7 +469,7 @@ export const MarketTransactions = ({
           amount={formatTokenWithCommas(marketAccount.market.borrowableAssets)}
           asset={market.underlyingToken.symbol}
         >
-          {!disableBorrow && (
+          {!hideBorrow && (
             <BorrowModal
               market={market}
               marketAccount={marketAccount}
