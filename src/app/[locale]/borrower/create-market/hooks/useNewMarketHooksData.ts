@@ -7,8 +7,8 @@ import {
   type MarketType,
 } from "@wildcatfi/wildcat-sdk"
 import {
-  HooksInstance,
-  HooksTemplate,
+  type HooksInstance,
+  type HooksTemplate,
 } from "@wildcatfi/wildcat-sdk/dist/access"
 
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
@@ -18,6 +18,19 @@ import { useGetBorrowerHooksData } from "../../hooks/useGetBorrowerHooksData"
 
 type FactoryScopedHooksData = {
   hooksFactory?: string
+}
+
+const MARKET_TYPE_TO_HOOKS_KIND: Record<string, HooksKind | undefined> = {
+  standard: HooksKind.OpenTerm,
+  fixedTerm: HooksKind.FixedTerm,
+  periodicTerm: HooksKind.PeriodicTerm,
+}
+
+const HOOKS_KIND_TO_MARKET_TYPE: Record<HooksKind, string> = {
+  [HooksKind.OpenTerm]: "standard",
+  [HooksKind.FixedTerm]: "fixedTerm",
+  [HooksKind.PeriodicTerm]: "periodicTerm",
+  [HooksKind.Unknown]: "",
 }
 
 function matchesTargetHooksFactory(
@@ -32,9 +45,33 @@ function matchesTargetHooksFactory(
   return hooksFactory === targetHooksFactory
 }
 
+function getDeployableHooksTemplate({
+  hooksTemplates,
+  hooksKind,
+  targetHooksFactory,
+  targetMarketType,
+}: {
+  hooksTemplates: HooksTemplate[]
+  hooksKind: HooksKind
+  targetHooksFactory: string | undefined
+  targetMarketType: MarketType
+}) {
+  return hooksTemplates.find(
+    (hooksTemplate) =>
+      hooksTemplate.kind === hooksKind &&
+      hooksTemplate.enabled &&
+      matchesTargetHooksFactory(
+        hooksTemplate as FactoryScopedHooksData,
+        targetHooksFactory,
+        targetMarketType,
+      ),
+  )
+}
+
 export function useNewMarketHooksData(form: NewMarketFormType) {
   const { data: hooksData, ...queryData } = useGetBorrowerHooksData()
   const { chainId } = useCurrentNetwork()
+  const { getValues, setValue } = form
   const [selectedHooksInstance, setSelectedHooksInstance] = useState<
     HooksInstance | undefined
   >(undefined)
@@ -56,8 +93,7 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
       : undefined
 
   useEffect(() => {
-    const selectedHooksKind =
-      marketType === "standard" ? HooksKind.OpenTerm : HooksKind.FixedTerm
+    const selectedHooksKind = MARKET_TYPE_TO_HOOKS_KIND[marketType]
     if (hooksData && policyValue) {
       const hooksInstances = hooksData.hooksInstances.filter((instance) =>
         matchesTargetHooksFactory(
@@ -66,20 +102,15 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
           targetMarketType,
         ),
       )
-      const hooksTemplates = hooksData.hooksTemplates.filter((template) =>
-        matchesTargetHooksFactory(
-          template as FactoryScopedHooksData,
-          targetHooksFactory,
-          targetMarketType,
-        ),
-      )
       if (policyValue === "createNewPolicy") {
-        const hooksTemplate = hooksTemplates.find(
-          (template) =>
-            template.kind === selectedHooksKind &&
-            template.hooksTemplate.toLowerCase() !==
-              "0x7e49CabA6FB53CDc70CD98829731A2b8d76dfc36".toLowerCase(),
-        )
+        const hooksTemplate = selectedHooksKind
+          ? getDeployableHooksTemplate({
+              hooksTemplates: hooksData.hooksTemplates,
+              hooksKind: selectedHooksKind,
+              targetHooksFactory,
+              targetMarketType,
+            })
+          : undefined
         setSelectedHooksInstance(undefined)
         setSelectedHooksTemplate(hooksTemplate)
       } else {
@@ -91,48 +122,62 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
         setSelectedHooksTemplate(hooksInstance?.hooksTemplate)
 
         if (hooksInstance) {
-          form.setValue(
+          setValue(
             "marketType",
-            hooksInstance.kind === HooksKind.OpenTerm
-              ? "standard"
-              : "fixedTerm",
+            HOOKS_KIND_TO_MARKET_TYPE[hooksInstance.kind],
             {
               shouldValidate: true,
             },
           )
-          form.setValue(
+          setValue(
             "accessControl",
             hooksInstance.roleProviders.length === 1
               ? "manualApproval"
               : "defaultPullProvider",
           )
-          form.setValue("policyName", hooksInstance.name)
+          setValue("policyName", hooksInstance.name)
         } else {
-          form.setValue("policyName", "")
+          setValue("policyName", "")
         }
       }
     }
   }, [
-    form,
     hooksData,
     marketType,
     policyValue,
+    setValue,
     targetHooksFactory,
     targetMarketType,
   ])
 
   useEffect(() => {
     if (marketType === "fixedTerm") {
-      form.setValue("allowClosureBeforeTerm", undefined)
-      form.setValue("allowTermReduction", undefined)
+      setValue(
+        "allowClosureBeforeTerm",
+        getValues("allowClosureBeforeTerm") ?? false,
+      )
+      setValue("allowTermReduction", getValues("allowTermReduction") ?? false)
+      setValue("firstWithdrawalWindowStart", undefined)
+      setValue("periodDuration", undefined)
+      setValue("withdrawalWindowDuration", undefined)
+    } else if (marketType === "periodicTerm") {
+      setValue("allowClosureBeforeTerm", undefined)
+      setValue("allowTermReduction", undefined)
+      setValue("fixedTermEndTime", undefined)
+    } else {
+      setValue("fixedTermEndTime", undefined)
+      setValue("firstWithdrawalWindowStart", undefined)
+      setValue("periodDuration", undefined)
+      setValue("withdrawalWindowDuration", undefined)
+      setValue("allowClosureBeforeTerm", undefined)
+      setValue("allowTermReduction", undefined)
     }
-  }, [form, marketType])
+  }, [getValues, marketType, setValue])
 
   return {
     selectedHooksInstance,
     selectedHooksTemplate,
-    hooksKind:
-      marketType === "standard" ? HooksKind.OpenTerm : HooksKind.FixedTerm,
+    hooksKind: MARKET_TYPE_TO_HOOKS_KIND[marketType] ?? HooksKind.Unknown,
     hooksInstances:
       hooksData?.hooksInstances.filter((instance) =>
         matchesTargetHooksFactory(

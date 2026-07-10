@@ -5,6 +5,7 @@ import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   MarketAccount,
+  MAX_UNPAID_BATCHES_PER_SETTLEMENT_TX,
   SafeTransactionInput,
   TokenAmount,
   toSafeTransactionInput,
@@ -81,8 +82,9 @@ export const useRepay = (
       }
 
       const repay = async () => {
-        const maxBatches =
-          marketAccount.market.unpaidWithdrawalBatchExpiries.length
+        // Per-tx cap rather than the snapshot batch count: headroom is a no-op
+        // on-chain and a snapshot can go stale.
+        const maxBatches = MAX_UNPAID_BATCHES_PER_SETTLEMENT_TX
         const processUnpaidWithdrawals = shouldProcessUnpaidWithdrawals(amount)
         if (gnosisTransactions.length) {
           gnosisTransactions.push(

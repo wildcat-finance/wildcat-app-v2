@@ -2,11 +2,32 @@ import { Dispatch } from "react"
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { MarketAccount } from "@wildcatfi/wildcat-sdk"
+import {
+  iPeriodicTermHooksAbi,
+  MarketAccount,
+  prepareTransaction,
+} from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
-import { waitForSubmittedTransaction } from "@/utils/transactions"
+import {
+  toEthersTransactionRequest,
+  waitForSubmittedTransaction,
+} from "@/utils/transactions"
+
+export type AdjustAprMode = "set" | "propose"
+
+export type AdjustAprInput =
+  | number
+  | {
+      apr: number
+      mode?: AdjustAprMode
+    }
+
+const normalizeAdjustAprInput = (input: AdjustAprInput) =>
+  typeof input === "number"
+    ? { apr: input, mode: "set" as const }
+    : { apr: input.apr, mode: input.mode ?? "set" }
 
 export const useAdjustAPR = (
   marketAccount: MarketAccount,
@@ -17,7 +38,7 @@ export const useAdjustAPR = (
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
   return useMutation({
-    mutationFn: async (amount: number) => {
+    mutationFn: async (input: AdjustAprInput) => {
       if (!marketAccount || !signer) {
         return
       }
@@ -29,8 +50,31 @@ export const useAdjustAPR = (
         )
       }
 
-      const setApr = async () => {
-        const hash = await marketAccount.setAnnualInterestBips(amount * 100)
+      const submitAprChange = async () => {
+        const { apr, mode } = normalizeAdjustAprInput(input)
+        const aprBips = Math.round(apr * 100)
+        const proposeAnnualInterestBips = async () => {
+          const hooksAddress =
+            marketAccount.market.periodicHooksConfig?.hooksAddress
+          if (!hooksAddress) {
+            throw Error("Market does not have periodic term hooks")
+          }
+
+          const tx = prepareTransaction({
+            to: hooksAddress,
+            abi: iPeriodicTermHooksAbi,
+            functionName: "proposeAnnualInterestBips",
+            args: [aprBips],
+          })
+          const { hash } = await signer.sendTransaction(
+            toEthersTransactionRequest(tx),
+          )
+          return hash
+        }
+        const hash =
+          mode === "propose"
+            ? await proposeAnnualInterestBips()
+            : await marketAccount.setAnnualInterestBips(aprBips)
 
         if (!safeConnected) setTxHash(hash.toString())
 
@@ -45,7 +89,7 @@ export const useAdjustAPR = (
         return receipt
       }
 
-      await setApr()
+      await submitAprChange()
     },
     onSuccess() {
       client.invalidateQueries({

@@ -1,183 +1,146 @@
-// /**
-//  * @jest-environment node
-//  */
+/**
+ * @jest-environment node
+ */
 
-// import { RequestInit } from "next/dist/server/web/spec-extension/request"
-// import { NextRequest } from "next/server"
-// import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-// // import { Body, createMocks, createRequest } from "node-mocks-http"
+import {
+  DepositAccess,
+  HooksKind,
+  SignerOrProvider,
+  Token,
+  TransferAccess,
+  WithdrawalAccess,
+} from "@wildcatfi/wildcat-sdk"
+import { getAddress } from "viem"
 
-// import { TargetChainId } from "@/config/network"
-// import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
-// import { getProviderForServer } from "@/lib/provider"
+import {
+  fillInMlaForLender,
+  fillInMlaTemplate,
+  getFieldValuesForBorrower,
+  MlaFieldValueKey,
+  MlaTemplateField,
+} from "@/lib/mla"
 
-// import { GET as getMla, POST as postMla } from "./[market]/route"
-// import { GET as getAllMlaTemplates } from "./templates/route"
-// import { POST as postLogin } from "../auth/login/route"
-// import {
-//   AcceptInvitationInput,
-//   BorrowerInvitationInput,
-// } from "../invite/interface"
-// import {
-//   GET as getBorrowerInvites,
-//   POST as postBorrowerInvite,
-//   DELETE as deleteBorrowerInvite,
-//   PUT as putBorrowerInvite,
-// } from "../invite/route"
+const marketAddress = "0x0000000000000000000000000000000000000001"
+const lenderAddress = "0x0000000000000000000000000000000000000002"
 
-// export const mockPut = (
-//   path: string,
-//   body: unknown = null,
-//   otherOptions: Omit<RequestInit, "body"> = {},
-// ): NextRequest =>
-//   new NextRequest(`http://localhost:3000${path}`, {
-//     method: "PUT",
-//     body: body ? JSON.stringify(body) : null,
-//     ...otherOptions,
-//   })
+describe("mla helpers", () => {
+  const token = new Token(
+    11155111,
+    "0x0000000000000000000000000000000000000003",
+    "Mock USDC",
+    "mUSDC",
+    6,
+    true,
+    {} as SignerOrProvider,
+  )
 
-// export const mockPost = (
-//   path: string,
-//   body: unknown = null,
-//   otherOptions: Omit<RequestInit, "body"> = {},
-// ): NextRequest =>
-//   new NextRequest(`http://localhost:3000${path}`, {
-//     method: "POST",
-//     body: body ? JSON.stringify(body) : null,
-//     ...otherOptions,
-//   })
-// export const mockGet = (
-//   path: string,
-//   otherOptions: RequestInit = {},
-// ): NextRequest =>
-//   new NextRequest(`http://localhost:3000${path}`, {
-//     method: "GET",
-//     ...otherOptions,
-//   })
+  test("fills borrower template values and derives an acceptance message", () => {
+    const borrowerFields: MlaTemplateField[] = [
+      {
+        source: "market.name",
+        placeholder: "Insert Market Name",
+      },
+      {
+        source: "market.address",
+        placeholder: "Insert Market Address",
+      },
+    ]
+    const fieldValues = new Map<MlaFieldValueKey, string | undefined>([
+      ["market.name", "Sepolia Credit"],
+      ["market.address", marketAddress],
+    ])
 
-// describe("API", () => {
-//   const provider = getProviderForServer()
-//   const wallet = privateKeyToAccount(
-//     process.env.TEST_BORROWER_PRIVATE_KEY! as `0x${string}`,
-//   )
+    const result = fillInMlaTemplate(
+      {
+        html: "<p>{{market.name}}</p><p>{{market.address}}</p>",
+        plaintext: "market {{market.name}} at {{market.address}}",
+        borrowerFields,
+        lenderFields: [],
+      },
+      fieldValues,
+    )
 
-//   const borrowerAddress = wallet.address as `0x${string}`
+    expect(result.html).toBe(`<p>Sepolia Credit</p><p>${marketAddress}</p>`)
+    expect(result.plaintext).toBe(`market Sepolia Credit at ${marketAddress}`)
+    expect(result.message).toContain(getAddress(marketAddress))
+    expect(result.message).not.toContain("{{hash}}")
+  })
 
-//   const invite: BorrowerInvitationInput = {
-//     address: borrowerAddress,
-//     name: "Borrower 1",
-//   }
+  test("fills lender fields while preserving borrower-filled content", () => {
+    const result = fillInMlaForLender(
+      {
+        html: "<p>borrower terms</p><p>{{lender.address}}</p>",
+        plaintext: "borrower terms\n{{lender.address}}",
+        lenderFields: [
+          {
+            source: "lender.address",
+            placeholder: "Insert Lender Address",
+          },
+        ],
+      },
+      new Map<MlaFieldValueKey, string | undefined>([
+        ["lender.address", lenderAddress],
+      ]),
+      marketAddress,
+    )
 
-//   describe("/api/auth/login", () => {
-//     test("[POST] Fails if no signature", async () => {
-//       const req = mockPost("/api/auth/login", {
-//         address: borrowerAddress,
-//       })
+    expect(result.html).toBe(`<p>borrower terms</p><p>${lenderAddress}</p>`)
+    expect(result.plaintext).toBe(`borrower terms\n${lenderAddress}`)
+    expect(result.message).toContain(getAddress(marketAddress))
+    expect(result.message).not.toContain("{{hash}}")
+  })
 
-//       const response = await postLogin(req)
-//       expect(response.status).toBe(400)
-//       expect(await response.json()).toEqual({ error: "Invalid signature" })
-//     })
-//   })
+  test("maps periodic mla fields without fixed-term placeholders", () => {
+    const firstWindowStart = Date.UTC(2026, 4, 30) / 1000
+    const nextWindowStart = Date.UTC(2026, 5, 30) / 1000
+    const fieldValues = getFieldValuesForBorrower({
+      networkData: {
+        chainId: 11155111,
+        name: "Sepolia",
+      },
+      market: {
+        address: marketAddress,
+        name: "Periodic Credit",
+        symbol: "pCREDIT",
+        marketTerm: HooksKind.PeriodicTerm,
+        depositAccess: DepositAccess.Open,
+        transferAccess: TransferAccess.Open,
+        withdrawalAccess: WithdrawalAccess.Open,
+        capacity: token.parseAmount("1000"),
+        minimumDeposit: token.parseAmount("10"),
+        delinquencyGracePeriod: 86_400,
+        withdrawalBatchDuration: 86_400,
+        fixedTermEndTime: undefined,
+        firstWithdrawalWindowStart: firstWindowStart,
+        periodDuration: 2 * 86_400,
+        withdrawalWindowDuration: 86_400,
+        nextWithdrawalWindowStart: nextWindowStart,
+        apr: 500,
+        delinquencyFee: 200,
+        reserveRatio: 1_000,
+        allowClosureBeforeTerm: undefined,
+        allowTermReduction: undefined,
+        allowForceBuyBack: undefined,
+      },
+      borrowerInfo: {
+        address: "0x0000000000000000000000000000000000000004",
+      },
+      asset: token,
+      timeSigned: Date.UTC(2026, 4, 1),
+      lastSlaUpdateTime: Date.UTC(2026, 0, 1),
+    })
 
-//   describe("/api/invite", () => {
-//     test("[POST] Creates invitation", async () => {
-//       const req = mockPost("/api/invite", invite)
-//       const response = await postBorrowerInvite(req)
-//       expect(response.status).toBe(200)
-//       expect(await response.json()).toEqual({ success: true })
-//     })
-
-//     test("[POST] Creates profile with name", async () => {
-//       const req = mockGet(`/api/profiles/${borrowerAddress}`)
-//       const response = await getProfile(req, {
-//         params: { address: borrowerAddress },
-//       })
-//       expect(response.status).toBe(200)
-//       expect(await response.json()).toEqual({
-//         profile: {
-//           address: borrowerAddress.toLowerCase(),
-//           chainId: TargetChainId,
-//           name: "Borrower 1",
-//           registeredOnChain: false,
-//         },
-//       })
-//     })
-
-//     test("[POST] Fails if parameter missing", async () => {
-//       const req = mockPost("/api/invite", { inviter: borrowerAddress })
-//       const response = await postBorrowerInvite(req)
-//       expect(response.status).toBe(400)
-//       expect(await response.json()).toHaveProperty("errors")
-//     })
-
-//     test("[POST] Fails if invitation already exists", async () => {
-//       const req = mockPost("/api/invite", invite)
-//       const response = await postBorrowerInvite(req)
-//       expect(response.status).toBe(400)
-//       expect(await response.json()).toEqual({
-//         error: `An invitation for ${borrowerAddress.toLowerCase()} already exists`,
-//       })
-//     })
-
-//     test("[PUT] Fails if invitation does not exist", async () => {
-//       const dateSigned = new Date().toISOString()
-//       const wallet2 = privateKeyToAccount(generatePrivateKey())
-//       const body: AcceptInvitationInput = {
-//         address: wallet2.address as `0x${string}`,
-//         name: invite.name,
-//         dateSigned,
-//         signature: "0x",
-//       }
-//       const req = mockPut(`/api/invite/${wallet2.address}`, body)
-//       const response = await putBorrowerInvite(req)
-//       expect(response.status).toBe(404)
-//       expect(await response.json()).toEqual({
-//         error: `Pending borrower invitation not found for ${wallet2.address.toLowerCase()}`,
-//       })
-//     })
-
-//     test("[PUT] Fails if EOA signature is from other account", async () => {
-//       let agreementText = AgreementText
-//       const dateSigned = new Date().toISOString()
-//       if (dateSigned) {
-//         agreementText = `${agreementText}\n\nDate: ${dateSigned}`
-//       }
-//       agreementText = `${agreementText}\n\nOrganization Name: ${invite.name}`
-//       const wallet2 = privateKeyToAccount(generatePrivateKey())
-//       const body: AcceptInvitationInput = {
-//         address: borrowerAddress,
-//         name: invite.name,
-//         dateSigned,
-//         signature: await wallet2.signMessage({ message: agreementText }),
-//       }
-//       const req = mockPut(`/api/invite/${borrowerAddress}`, body)
-//       const response = await putBorrowerInvite(req)
-//       expect(response.status).toBe(400)
-//       expect(await response.json()).toEqual({ error: "Invalid signature" })
-//     })
-
-//     test("[PUT] Accepts EOA signature", async () => {
-//       let agreementText = AgreementText
-//       const dateSigned = new Date().toISOString()
-//       if (dateSigned) {
-//         agreementText = `${agreementText}\n\nDate: ${dateSigned}`
-//       }
-//       agreementText = `${agreementText}\n\nOrganization Name: ${invite.name}`
-//       const body: AcceptInvitationInput = {
-//         address: borrowerAddress,
-//         name: invite.name,
-//         dateSigned,
-//         signature: await wallet.signMessage({ message: agreementText }),
-//       }
-//       const req = mockPut(`/api/invite/${borrowerAddress}`, body)
-//       const response = await putBorrowerInvite(req)
-//       expect(response.status).toBe(200)
-//       expect(await response.json()).toEqual({ success: true })
-//     })
-//   })
-// })
-
-describe.skip("legacy MLA route tests", () => {
-  test.todo("restore MLA route coverage")
+    expect(fieldValues.get("market.marketType")).toBe("Periodic Term")
+    expect(fieldValues.get("market.fixedTermEndTime")).toBe("N/A")
+    expect(fieldValues.get("market.allowClosureBeforeTerm")).toBe("N/A")
+    expect(fieldValues.get("market.allowTermReduction")).toBe("N/A")
+    expect(fieldValues.get("market.firstWithdrawalWindowStart")).toBe(
+      "May 30, 2026",
+    )
+    expect(fieldValues.get("market.periodDuration")).toBe("2 days")
+    expect(fieldValues.get("market.withdrawalWindowDuration")).toBe("1 day")
+    expect(fieldValues.get("market.nextWithdrawalWindowStart")).toBe(
+      "June 30, 2026",
+    )
+  })
 })

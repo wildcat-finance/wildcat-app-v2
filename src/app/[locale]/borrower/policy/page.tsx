@@ -229,12 +229,9 @@ export default function PolicyPage() {
           {tab === PolicyTabs.DETAILS && (
             <DetailsTab
               name={policyName}
-              type={
-                (data?.hooksInstance?.kind ?? HooksKind.OpenTerm) ===
-                HooksKind.OpenTerm
-                  ? t("policyType.OpenTerm")
-                  : t("policyType.FixedTerm")
-              }
+              type={t(
+                `policyType.${data?.hooksInstance?.kind ?? HooksKind.OpenTerm}`,
+              )}
               access={accessControl}
               isLoading={isLoading}
             />

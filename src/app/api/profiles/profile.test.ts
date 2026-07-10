@@ -25,7 +25,7 @@ import {
   MlaTemplateField,
 } from "@/lib/mla"
 import { getProviderForServer } from "@/lib/provider"
-import { dayjs } from "@/utils/dayjs"
+import { formatUnixMsAsDate } from "@/utils/formatters"
 
 import { GET as getProfile, DELETE as deleteProfile } from "./[address]/route"
 import { GET as getAllProfiles } from "./route"
@@ -61,25 +61,40 @@ import {
   GET as getMlaTemplates,
 } from "../mla/templates/route"
 
+const withDefaultChainId = (body: unknown) => {
+  if (body && typeof body === "object" && !Array.isArray(body)) {
+    return {
+      chainId: TargetChainId,
+      ...body,
+    }
+  }
+  return body
+}
+
+const withDefaultChainIdParam = (path: string) => {
+  const url = new URL(`http://localhost:3000${path}`)
+  if (!url.searchParams.has("chainId")) {
+    url.searchParams.set("chainId", `${TargetChainId}`)
+  }
+  return url
+}
+
 export const mockPut = (
   path: string,
   body: unknown = null,
   otherOptions: Omit<RequestInit, "body"> = {},
 ): NextRequest =>
-  new NextRequest(`http://localhost:3000${path}`, {
+  new NextRequest(withDefaultChainIdParam(path), {
     method: "PUT",
-    body: body ? JSON.stringify(body) : null,
+    body: body ? JSON.stringify(withDefaultChainId(body)) : null,
     ...otherOptions,
   })
-
-const withChainIdParam = (path: string) =>
-  `${path}${path.includes("?") ? "&" : "?"}chainId=${TargetChainId}`
 
 export const mockHead = (
   path: string,
   otherOptions: RequestInit = {},
 ): NextRequest =>
-  new NextRequest(`http://localhost:3000${withChainIdParam(path)}`, {
+  new NextRequest(withDefaultChainIdParam(path), {
     method: "HEAD",
     ...otherOptions,
   })
@@ -89,16 +104,16 @@ export const mockPost = (
   body: unknown = null,
   otherOptions: Omit<RequestInit, "body"> = {},
 ): NextRequest =>
-  new NextRequest(`http://localhost:3000${path}`, {
+  new NextRequest(withDefaultChainIdParam(path), {
     method: "POST",
-    body: body ? JSON.stringify(body) : null,
+    body: body ? JSON.stringify(withDefaultChainId(body)) : null,
     ...otherOptions,
   })
 export const mockGet = (
   path: string,
   otherOptions: RequestInit = {},
 ): NextRequest =>
-  new NextRequest(`http://localhost:3000${withChainIdParam(path)}`, {
+  new NextRequest(withDefaultChainIdParam(path), {
     method: "GET",
     ...otherOptions,
   })
@@ -166,6 +181,22 @@ const borrowerFields: MlaTemplateField[] = [
     placeholder: "Insert Fixed Term End Time",
   },
   {
+    source: "market.firstWithdrawalWindowStart",
+    placeholder: "Insert First Withdrawal Window Start",
+  },
+  {
+    source: "market.periodDuration",
+    placeholder: "Insert Withdrawal Period Duration",
+  },
+  {
+    source: "market.withdrawalWindowDuration",
+    placeholder: "Insert Withdrawal Window Duration",
+  },
+  {
+    source: "market.nextWithdrawalWindowStart",
+    placeholder: "Insert Next Withdrawal Window Start",
+  },
+  {
     source: "borrower.timeSigned",
     placeholder: "Insert Borrower Time Signed",
   },
@@ -219,6 +250,10 @@ const lenderFields: MlaTemplateField[] = [
   { source: "lender.address", placeholder: "Insert Lender Address" },
 ]
 
+const nowSeconds = () => Math.floor(Date.now() / 1000)
+
+process.env.SECRET_KEY ??= "test-secret"
+
 describe("API", () => {
   const privateKey = randomBytes(32)
   const adminPrivateKey = randomBytes(32)
@@ -271,7 +306,7 @@ describe("API", () => {
     if (isAdmin) {
       await ensureAdminAccount(walletToUse.address)
     }
-    const timeSigned = dayjs().unix()
+    const timeSigned = nowSeconds()
     const LoginMessage = getLoginSignatureMessage(
       walletToUse.address,
       timeSigned,
@@ -323,7 +358,7 @@ describe("API", () => {
       const req = mockPost("/api/auth/login", {
         address: borrowerAddress,
         signature: "0x",
-        timeSigned: dayjs().unix(),
+        timeSigned: nowSeconds(),
         chainId: TargetChainId,
       })
       const response = await postLogin(req)
@@ -332,7 +367,7 @@ describe("API", () => {
     })
 
     test("[POST] Succeeds with ECDSA signature", async () => {
-      const timeSigned = dayjs().unix()
+      const timeSigned = nowSeconds()
       const LoginMessage = getLoginSignatureMessage(
         adminWallet.address,
         timeSigned,
@@ -554,7 +589,7 @@ describe("API", () => {
     test("Fails if EOA signature is from other account", async () => {
       let agreementText = AgreementText
       const timeSigned = Date.now()
-      const dateSigned = dayjs(timeSigned).format("MMMM DD, YYYY")
+      const dateSigned = formatUnixMsAsDate(timeSigned)
       if (dateSigned) {
         agreementText = `${agreementText}\n\nDate: ${dateSigned}`
       }
@@ -580,7 +615,7 @@ describe("API", () => {
     test("Accepts EOA signature", async () => {
       let agreementText = AgreementText
       const timeSigned = Date.now()
-      const dateSigned = dayjs(timeSigned).format("MMMM DD, YYYY")
+      const dateSigned = formatUnixMsAsDate(timeSigned)
       if (dateSigned) {
         agreementText = `${agreementText}\n\nDate: ${dateSigned}`
       }

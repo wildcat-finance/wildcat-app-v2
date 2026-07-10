@@ -4,4 +4,5 @@ export type GlossarySidebarProps = {
   step: CreateMarketSteps
   hideGlossary?: boolean
   isRevolving?: boolean
+  marketType?: string
 }

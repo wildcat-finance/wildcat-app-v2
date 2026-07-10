@@ -125,6 +125,12 @@ export default function CreateMarketPage() {
     label: "Create New Policy",
     value: "createNewPolicy",
   } as const
+  const hooksKindLabels: Record<HooksKind, string> = {
+    [HooksKind.OpenTerm]: "Open Term",
+    [HooksKind.FixedTerm]: "Fixed Term",
+    [HooksKind.PeriodicTerm]: "Periodic Term",
+    [HooksKind.Unknown]: "Unknown Term",
+  }
 
   const policyOptions = useMemo(
     () => [
@@ -132,8 +138,7 @@ export default function CreateMarketPage() {
       ...(hooksInstances?.map((instance) => ({
         id: instance.address,
         label: instance.name || "Unnamed Policy",
-        badge:
-          instance.kind === HooksKind.OpenTerm ? "Open Term" : "Fixed Term",
+        badge: hooksKindLabels[instance.kind],
         value: instance.address,
       })) ?? []),
     ],
@@ -213,17 +218,33 @@ export default function CreateMarketPage() {
                 },
               ]
             : [],
-        allowClosureBeforeTerm: !!marketParams.allowClosureBeforeTerm,
-        allowForceBuyBacks: false,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        fixedTermEndTime: marketParams.fixedTermEndTime as any,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        allowTermReduction: marketParams.allowTermReduction as any,
-
         newProviderInputs: [],
         roleProviderFactory: zeroAddress,
         minimumDeposit: marketParams.minimumDeposit,
         deployWrapper: marketParams.deployWrapper,
+        ...(marketParams.marketType !== "periodicTerm"
+          ? { allowForceBuyBacks: false }
+          : {}),
+        ...(marketParams.marketType === "fixedTerm"
+          ? {
+              allowClosureBeforeTerm: !!marketParams.allowClosureBeforeTerm,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              fixedTermEndTime: marketParams.fixedTermEndTime as any,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              allowTermReduction: marketParams.allowTermReduction as any,
+            }
+          : {}),
+        ...(marketParams.marketType === "periodicTerm"
+          ? {
+              firstWithdrawalWindowStart: Number(
+                marketParams.firstWithdrawalWindowStart,
+              ),
+              periodDuration: Number(marketParams.periodDuration),
+              withdrawalWindowDuration: Number(
+                marketParams.withdrawalWindowDuration,
+              ),
+            }
+          : {}),
         ...(deployRouting.marketType === "revolving"
           ? { commitmentFeeBips: deployRouting.commitmentFeeBips }
           : {}),
@@ -464,6 +485,7 @@ export default function CreateMarketPage() {
         <GlossarySidebar
           step={currentStep}
           isRevolving={implementationTypeWatch === "revolving"}
+          marketType={newMarketForm.watch("marketType")}
         />
       )}
     </Box>

@@ -23,6 +23,8 @@ import {
   FixedTermMarketDeploymentArgs,
   OpenTermHooksTemplate,
   OpenTermMarketDeploymentArgs,
+  PeriodicTermHooksTemplate,
+  PeriodicTermMarketDeploymentArgs,
 } from "@wildcatfi/wildcat-sdk/dist/access"
 import { decodeEventLog, parseAbiItem, zeroAddress, type Hex } from "viem"
 
@@ -50,6 +52,15 @@ export type DeployNewV2MarketParams = (
       assetData: MarketParameters["asset"]
       hooksTemplate: OpenTermHooksTemplate
     })
+  | (Omit<
+      PeriodicTermMarketDeploymentArgs,
+      "maxTotalSupply" | "minimumDeposit" | "asset"
+    > & {
+      maxTotalSupply: number
+      minimumDeposit?: number
+      assetData: MarketParameters["asset"]
+      hooksTemplate: PeriodicTermHooksTemplate
+    })
 ) & {
   timeSigned: number
   mlaTemplateId: number | undefined
@@ -60,6 +71,13 @@ export type DeployNewV2MarketParams = (
 type MarketDeployedEventArgs = {
   market: string
 }
+
+type DeployMarketPreview =
+  | ReturnType<FixedTermHooksTemplate["previewDeployMarket"]>
+  | ReturnType<OpenTermHooksTemplate["previewDeployMarket"]>
+  | ReturnType<PeriodicTermHooksTemplate["previewDeployMarket"]>
+
+type PreviewDeployMarket = (params: unknown) => DeployMarketPreview
 
 const marketDeployedEventAbi = parseAbiItem(
   "event MarketDeployed(address indexed hooksTemplate, address indexed market, string name, string symbol, address asset, uint256 maxTotalSupply, uint256 annualInterestBips, uint256 delinquencyFeeBips, uint256 withdrawalBatchDuration, uint256 reserveRatioBips, uint256 delinquencyGracePeriod, uint256 hooks)",
@@ -263,8 +281,9 @@ export const useDeployV2Market = () => {
             minimumDeposit,
             asset,
           }
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const preview = hooksTemplate.previewDeployMarket(params as any)
+          const previewDeployMarket =
+            hooksTemplate.previewDeployMarket as PreviewDeployMarket
+          const preview = previewDeployMarket(params)
           if (preview.status !== DeployMarketStatus.Ready) {
             throw Error(`Market not ready : ${preview.status}`)
           }

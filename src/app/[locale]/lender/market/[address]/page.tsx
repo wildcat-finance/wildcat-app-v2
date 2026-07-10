@@ -29,6 +29,7 @@ import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { useIdlePrefetchMarketRecords } from "@/components/PaginatedMarketRecordsTable/hooks/usePrefetchMarketRecords"
+import { PendingAprReductionBanner } from "@/components/PendingAprReductionBanner"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketDetailPerformanceMark } from "@/hooks/useMarketDetailPerformance"
@@ -474,6 +475,10 @@ export default function LenderMarketDetails({
           />
 
           {showBorrowerPenaltyWarning && <BorrowerPenaltyWarning />}
+          <PendingAprReductionBanner
+            market={market}
+            sx={{ margin: "8px 0 4px" }}
+          />
 
           <Box id="depositWithdraw">
             {marketAccount && !isWithdrawalsLoading ? (
@@ -572,6 +577,10 @@ export default function LenderMarketDetails({
 
       <Box sx={MarketContentColumn(theme, isDifferentChain)}>
         {showBorrowerPenaltyWarning && <BorrowerPenaltyWarning />}
+        <PendingAprReductionBanner
+          market={market}
+          sx={{ margin: "16px 0 24px" }}
+        />
 
         <Box sx={SectionContainer(theme)}>
           {currentSection === LenderMarketSections.TRANSACTIONS && (

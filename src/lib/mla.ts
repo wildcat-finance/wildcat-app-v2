@@ -46,6 +46,13 @@ export const WithdrawalAccessString = {
   [WithdrawalAccess.RequiresCredential]: "Restricted",
 }
 
+export const MarketTypeString = {
+  [HooksKind.OpenTerm]: "Open Term",
+  [HooksKind.FixedTerm]: "Fixed Term",
+  [HooksKind.PeriodicTerm]: "Periodic Term",
+  [HooksKind.Unknown]: "Unknown",
+}
+
 export type MlaBorrowerFields = {
   lastSlaUpdateTime: number
   networkData: NetworkData
@@ -63,6 +70,10 @@ export type MlaBorrowerFields = {
     delinquencyGracePeriod: number
     withdrawalBatchDuration: number
     fixedTermEndTime: number | undefined
+    firstWithdrawalWindowStart: number | undefined
+    periodDuration: number | undefined
+    withdrawalWindowDuration: number | undefined
+    nextWithdrawalWindowStart: number | undefined
     /** APR in bips (format as %) */
     apr: number
     aprLabel?: string
@@ -114,8 +125,12 @@ export const MlaFieldValueKeys = [
   // duration
   "market.delinquencyGracePeriod",
   "market.withdrawalBatchDuration",
+  "market.periodDuration",
+  "market.withdrawalWindowDuration",
   // Date
   "market.fixedTermEndTime",
+  "market.firstWithdrawalWindowStart",
+  "market.nextWithdrawalWindowStart",
   "borrower.timeSigned",
   "lender.timeSigned",
   "lender.timeSignedDayOrdinal",
@@ -133,51 +148,6 @@ export const MlaFieldValueKeys = [
 ] as const
 
 export type MlaFieldValueKey = (typeof MlaFieldValueKeys)[number]
-// // number
-// | "network.chainId"
-// // string
-// | "network.name"
-// | "asset.name"
-// | "asset.symbol"
-// | "market.marketType"
-// | "market.name"
-// | "market.symbol"
-// | "borrower.name"
-// | "borrower.jurisdiction"
-// | "borrower.physicalAddress"
-// | "borrower.entityKind"
-// // address (format as checksum address)
-// | "market.depositAccess"
-// | "market.transferAccess"
-// | "market.withdrawalAccess"
-// | "asset.address"
-// | "market.address"
-// | "borrower.address"
-// | "lender.address"
-// | "chainalysisOracle.address"
-// | "hooksFactory.address"
-// // token amount
-// | "market.capacity"
-// | "market.minimumDeposit"
-// // duration
-// | "market.delinquencyGracePeriod"
-// | "market.withdrawalBatchDuration"
-// // Date
-// | "market.fixedTermEndTime"
-// | "borrower.timeSigned"
-// | "lender.timeSigned"
-// | "lender.timeSignedDayOrdinal"
-// | "lender.timeSignedMonthYear"
-// | "sla.timeUpdated"
-// // bips (format as %)
-// | "market.aprLabel"
-// | "market.apr"
-// | "market.delinquencyFee"
-// | "market.reserveRatio"
-// // boolean (format as Yes, No, N/A)
-// | "market.allowClosureBeforeTerm"
-// | "market.allowTermReduction"
-// | "market.allowForceBuyBack"
 
 export type MlaTemplateField = {
   /* one of the possible field keys */
@@ -304,6 +274,22 @@ const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
       hooksConfig?.kind === HooksKind.FixedTerm
         ? hooksConfig.fixedTermEndTime
         : undefined,
+    firstWithdrawalWindowStart:
+      hooksConfig?.kind === HooksKind.PeriodicTerm
+        ? hooksConfig.firstWithdrawalWindowStart
+        : undefined,
+    periodDuration:
+      hooksConfig?.kind === HooksKind.PeriodicTerm
+        ? hooksConfig.periodDuration
+        : undefined,
+    withdrawalWindowDuration:
+      hooksConfig?.kind === HooksKind.PeriodicTerm
+        ? hooksConfig.withdrawalWindowDuration
+        : undefined,
+    nextWithdrawalWindowStart:
+      hooksConfig?.kind === HooksKind.PeriodicTerm
+        ? market.nextPeriodicWithdrawalWindowStart
+        : undefined,
     apr: aprDisplay.configuredAprBips,
     aprLabel:
       aprDisplay.configuredAprKind === "utilization"
@@ -365,6 +351,16 @@ export function getFieldValuesForBorrower({
         ].find((elf) => elf.elfCode === entityKind)?.name
       : undefined
 
+  const formatPeriodicDate = (value: number | undefined) =>
+    market.marketTerm === HooksKind.PeriodicTerm
+      ? formatDate(value) ?? "N/A"
+      : "N/A"
+
+  const formatPeriodicDuration = (value: number | undefined) =>
+    market.marketTerm === HooksKind.PeriodicTerm
+      ? formatDuration(value) ?? "N/A"
+      : "N/A"
+
   const allData: Map<MlaFieldValueKey, string | undefined> = new Map([
     // number
     ["network.chainId", formatNumber(networkData.chainId)],
@@ -372,12 +368,7 @@ export function getFieldValuesForBorrower({
     ["network.name", formatString(networkData.name)],
     ["asset.name", formatString(asset.name)],
     ["asset.symbol", formatString(asset.symbol)],
-    [
-      "market.marketType",
-      formatString(
-        market.marketTerm === HooksKind.FixedTerm ? "Fixed Term" : "Open Term",
-      ),
-    ],
+    ["market.marketType", formatString(MarketTypeString[market.marketTerm])],
     ["market.name", formatString(market.name)],
     ["market.symbol", formatString(market.symbol)],
     ["borrower.name", formatString(borrowerInfo.name)],
@@ -446,12 +437,25 @@ export function getFieldValuesForBorrower({
       "market.withdrawalBatchDuration",
       formatDuration(market.withdrawalBatchDuration),
     ],
+    ["market.periodDuration", formatPeriodicDuration(market.periodDuration)],
+    [
+      "market.withdrawalWindowDuration",
+      formatPeriodicDuration(market.withdrawalWindowDuration),
+    ],
     // date
     [
       "market.fixedTermEndTime",
       market.marketTerm === HooksKind.FixedTerm
         ? formatDate(market.fixedTermEndTime)
         : "N/A",
+    ],
+    [
+      "market.firstWithdrawalWindowStart",
+      formatPeriodicDate(market.firstWithdrawalWindowStart),
+    ],
+    [
+      "market.nextWithdrawalWindowStart",
+      formatPeriodicDate(market.nextWithdrawalWindowStart),
     ],
     ["borrower.timeSigned", formatDate(timeSigned)],
     // ["lender.timeSigned", formatDate(Date.now())],

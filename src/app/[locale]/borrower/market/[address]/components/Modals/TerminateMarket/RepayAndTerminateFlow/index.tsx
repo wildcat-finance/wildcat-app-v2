@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react"
 import { Box, Button, Dialog, Typography } from "@mui/material"
 import {
   CloseMarketStatus,
+  MAX_UNPAID_BATCHES_PER_SETTLEMENT_TX,
   minTokenAmount,
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
@@ -148,7 +149,6 @@ export const RepayAndTerminateFlow = ({
   }
 
   const handleRepay = () => {
-    const { length } = market.unpaidWithdrawalBatchExpiries
     const repayAmount = minTokenAmount(
       market.outstandingDebt,
       market.underlyingToken.getAmount(marketAccount.underlyingApproval),
@@ -156,7 +156,10 @@ export const RepayAndTerminateFlow = ({
     modal.setFlowStep(TerminateModalSteps.repayLoading)
     repayAndProcess({
       tokenAmount: repayAmount,
-      maxBatches: length,
+      // Per-tx cap, not the snapshot batch count: headroom is a no-op on-chain
+      // and a snapshot can go stale or be empty on data sources blind to the
+      // stored FIFO.
+      maxBatches: MAX_UNPAID_BATCHES_PER_SETTLEMENT_TX,
     })
       .catch((err) => console.log(err))
       .finally(() => modal.setFlowStep(TerminateModalSteps.repayed))

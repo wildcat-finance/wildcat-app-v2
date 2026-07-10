@@ -1,14 +1,23 @@
-import { FixedTermHooksConfig, HooksKind, Market } from "@wildcatfi/wildcat-sdk"
+import { HooksKind, Market, MarketVersion } from "@wildcatfi/wildcat-sdk"
 
 import { isFixedTermMarket } from "@/utils/marketCapabilities"
 
 export const getMarketTypeChip = (market: Market) => {
-  const kind = isFixedTermMarket(market)
-    ? HooksKind.FixedTerm
-    : HooksKind.OpenTerm
+  const kind = (() => {
+    if (market.version === MarketVersion.V1) return HooksKind.OpenTerm
+    if (
+      market.periodicHooksConfig ||
+      market.hooksKind === HooksKind.PeriodicTerm ||
+      market.hooksConfig?.kind === HooksKind.PeriodicTerm
+    ) {
+      return HooksKind.PeriodicTerm
+    }
+    if (isFixedTermMarket(market)) return HooksKind.FixedTerm
+    return market.hooksKind ?? market.hooksConfig?.kind ?? HooksKind.OpenTerm
+  })()
 
-  if (kind === HooksKind.FixedTerm) {
-    const hooksConfig = market.hooksConfig as FixedTermHooksConfig
+  if (kind === HooksKind.FixedTerm && market.hooksConfig?.kind === kind) {
+    const { hooksConfig } = market
     const fixedTermEndTime = hooksConfig.fixedTermEndTime * 1000
     return {
       kind,
@@ -25,6 +34,24 @@ export const getMarketTypeChip = (market: Market) => {
       kind: HooksKind.OpenTerm,
     } */
   }
+
+  if (kind === HooksKind.PeriodicTerm && market.periodicHooksConfig) {
+    const config = market.periodicHooksConfig
+    if (config.periodDuration) {
+      // Pass the raw schedule so the chip can tick its own countdown and flip
+      // open/closed live across window boundaries.
+      return {
+        kind,
+        periodicWindow: {
+          isTermClosed: config.periodicTermClosed || market.isClosed,
+          firstWithdrawalWindowStart: config.firstWithdrawalWindowStart,
+          periodDuration: config.periodDuration,
+          withdrawalWindowDuration: config.withdrawalWindowDuration,
+        },
+      }
+    }
+  }
+
   return {
     kind,
   }

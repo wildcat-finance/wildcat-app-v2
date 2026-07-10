@@ -9,6 +9,7 @@ export type MarketRecordFilterOption = {
 export const MARKET_RECORD_FILTERS: MarketRecordFilterOption[] = (
   [
     ["AnnualInterestBipsUpdated", "APR Change"],
+    ["AnnualInterestBipsReductionProposed", "APR Reduction Proposal"],
     ["Borrow", "Borrow"],
     ["DebtRepaid", "Repayment"],
     ["DelinquencyStatusChanged", "Delinquency"],
@@ -18,6 +19,8 @@ export const MARKET_RECORD_FILTERS: MarketRecordFilterOption[] = (
     ["MarketClosed", "Market Closed"],
     ["MaxTotalSupplyUpdated", "Capacity Change"],
     ["MinimumDepositUpdated", "Minimum Deposit Updated"],
+    ["PeriodicTermClosed", "Periodic Term Closed"],
+    ["PeriodicTermUpdated", "Periodic Term Updated"],
     ["ProtocolFeeBipsUpdated", "Protocol Fee Change"],
     ["WithdrawalRequest", "Withdrawal"],
   ] as [MarketRecordKind, string][]
