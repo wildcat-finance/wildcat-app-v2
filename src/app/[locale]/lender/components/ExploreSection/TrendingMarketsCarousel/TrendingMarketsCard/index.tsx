@@ -3,19 +3,17 @@
 import { Box, SvgIcon, Typography } from "@mui/material"
 import Link from "next/link"
 
+import { BorrоwerBlock } from "@/app/[locale]/lender/components/ExploreSection/TrendingMarketsCarousel/TrendingMarketsCard/BorrowerBlock"
 import HotRateIcon from "@/assets/icons/hotRateCard_icon.svg"
 import PopularIcon from "@/assets/icons/popularCard_icon.svg"
 import ProvenIcon from "@/assets/icons/provenCard_icon.svg"
 import TopFundedIcon from "@/assets/icons/topFundedCard_icon.svg"
 import TrendingIcon from "@/assets/icons/trendingCard_icon.svg"
-import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
-import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 import { buildMarketHref, formatBps } from "@/utils/formatters"
 
 import {
-  BorrowerLinkStyle,
   CardBodyStyle,
   CardContainerStyle,
   CardContentStyle,
@@ -24,9 +22,6 @@ import {
   CardIconStyle,
   CardValueStyle,
   MarketContainerStyle,
-  MarketInfoBoxStyle,
-  SupplyProgressFillStyle,
-  SupplyProgressTrackStyle,
 } from "./style"
 
 export type TrendingMarketCardVariant =
@@ -126,8 +121,8 @@ export const TrendingMarketCard = ({
       <Box sx={{ ...CardHeaderStyle, backgroundColor: badge.band }}>
         <Typography
           sx={{
-            fontSize: pxToRem(13),
-            lineHeight: lh(20, 13),
+            fontSize: pxToRem(11),
+            lineHeight: lh(16, 11),
             fontWeight: 600,
             color: badge.accent,
             whiteSpace: "nowrap",
@@ -138,7 +133,6 @@ export const TrendingMarketCard = ({
 
         <SvgIcon
           component={badge.Icon}
-          inheritViewBox
           sx={{
             ...CardIconStyle,
             // icons draw with rect/path/circle, all dark-filled with #30313E
@@ -162,9 +156,9 @@ export const TrendingMarketCard = ({
             </Typography>
             <Typography
               sx={{
-                fontSize: pxToRem(16),
-                lineHeight: lh(24, 16),
-                fontWeight: 700,
+                fontSize: pxToRem(20),
+                lineHeight: lh(32, 20),
+                fontWeight: 600,
                 color: COLORS.blackRock,
               }}
             >
@@ -179,37 +173,19 @@ export const TrendingMarketCard = ({
             }}
             variant="text4"
           >
-            {period ?? "\u00A0"}
+            {period ?? " "}
           </Typography>
         </Box>
 
         <Box sx={CardFooterStyle}>
-          <Box sx={MarketInfoBoxStyle}>
-            <Box
-              component={Link}
-              href={`${ROUTES.lender.profile}/${borrowerAddress}`}
-              sx={BorrowerLinkStyle}
-            >
-              <BorrowerProfileChip borrower={borrowerName} />
-            </Box>
-
-            <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-              {asset} · {formatBps(apr)}% APR
-            </Typography>
-
-            <Box sx={SupplyProgressTrackStyle}>
-              <Box
-                sx={{
-                  ...SupplyProgressFillStyle,
-                  width: `${Math.min(100, Math.max(0, suppliedPct))}%`,
-                }}
-              />
-            </Box>
-
-            <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-              {supplied} / {capacity} supplied
-            </Typography>
-          </Box>
+          <BorrоwerBlock
+            borrower={borrowerName}
+            apr={apr}
+            asset={asset}
+            suppliedPct={suppliedPct}
+            supplied={supplied}
+            capacity={capacity}
+          />
 
           <Box
             component={Link}
