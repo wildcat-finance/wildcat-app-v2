@@ -178,7 +178,13 @@ export const LenderProfileMarketsTab = ({
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {filteredCards.map((card) => (
-            <MarketCard key={card.id} data={card} chainId={chainId} />
+            <MarketCard
+              key={card.id}
+              data={card}
+              chainId={chainId}
+              lenderAddress={lenderAddress}
+              priceMap={lenderData?.priceMap ?? {}}
+            />
           ))}
 
           {filteredCards.length === 0 && (

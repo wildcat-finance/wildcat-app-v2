@@ -1,3 +1,5 @@
+"use client"
+
 import * as React from "react"
 
 import { Box, Button, Divider, Typography } from "@mui/material"
@@ -12,6 +14,8 @@ import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { buildBorrowerProfileHref, buildMarketHref } from "@/utils/formatters"
 
+import { CapitalRiskChart } from "./charts/CapitalRiskChart"
+import { YieldPressureChart } from "./charts/YieldPressureChart"
 import { MarketCardData } from "./interface"
 
 // Interest breakdown colors (kept in sync with the Capital tab's breakdown).
@@ -198,10 +202,15 @@ const InterestBreakdown = ({
 export const MarketCard = ({
   data,
   chainId,
+  lenderAddress,
+  priceMap,
 }: {
   data: MarketCardData
   chainId: number | undefined
+  lenderAddress: `0x${string}` | undefined
+  priceMap: Record<string, number>
 }) => {
+  const [expanded, setExpanded] = React.useState(false)
   const marketHref = buildMarketHref(
     data.marketId,
     undefined,
@@ -285,16 +294,37 @@ export const MarketCard = ({
           </Box>
         </Box>
 
-        <Button
-          component={Link}
-          href={marketHref}
-          variant="contained"
-          color="secondary"
-          size="small"
-          sx={{ flexShrink: 0 }}
-        >
-          View options
-        </Button>
+        <Box sx={{ display: "flex", gap: "8px", flexShrink: 0 }}>
+          <Button
+            type="button"
+            variant="contained"
+            size="small"
+            onClick={() => setExpanded((value) => !value)}
+            sx={{
+              flexShrink: 0,
+              backgroundColor: COLORS.whiteSmoke,
+              color: COLORS.blackRock,
+              boxShadow: "none",
+              "&:hover": {
+                backgroundColor: COLORS.athensGrey,
+                boxShadow: "none",
+              },
+            }}
+          >
+            {expanded ? "Hide Details" : "Show Details"}
+          </Button>
+
+          <Button
+            component={Link}
+            href={marketHref}
+            variant="contained"
+            color="secondary"
+            size="small"
+            sx={{ flexShrink: 0 }}
+          >
+            View options
+          </Button>
+        </Box>
       </Box>
 
       <Box sx={{ display: "flex", marginTop: "28px" }}>
@@ -322,10 +352,33 @@ export const MarketCard = ({
         <Stat label="APR" value={formatPercent(data.apr)} />
       </Box>
 
-      {showBreakdown && data.breakdown && (
+      {expanded && (
         <>
           <Divider sx={{ marginY: "16px", borderColor: COLORS.iron }} />
-          <InterestBreakdown entry={data.breakdown} />
+
+          {showBreakdown && data.breakdown && (
+            <InterestBreakdown entry={data.breakdown} />
+          )}
+
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+              marginTop: showBreakdown ? "28px" : 0,
+            }}
+          >
+            <YieldPressureChart
+              lenderAddress={lenderAddress}
+              marketId={data.marketId}
+              priceMap={priceMap}
+            />
+            <CapitalRiskChart
+              lenderAddress={lenderAddress}
+              marketId={data.marketId}
+              priceMap={priceMap}
+            />
+          </Box>
         </>
       )}
     </Box>
