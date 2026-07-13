@@ -17,7 +17,7 @@ import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { useGetMarket } from "@/hooks/useGetMarket"
-import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
+import { useMarketAccount } from "@/hooks/useMarketAccount"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
@@ -71,7 +71,7 @@ export default function MarketDetails({
     chainId: marketChainId,
   })
   const { data: withdrawals } = useGetWithdrawals(market)
-  const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
+  const { data: marketAccount } = useMarketAccount(market)
 
   const { isWrongNetwork, isSelectionMismatch } = useNetworkGate({
     desiredChainId: market?.chainId ?? marketChainId,

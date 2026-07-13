@@ -10,8 +10,6 @@ import { useAccount } from "wagmi"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 
-import type { BorrowerWithdrawalsForMarketResult } from "../../../../borrower/market/[address]/hooks/useGetWithdrawals"
-
 export const useWithdraw = (
   marketAccount: MarketAccount,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
@@ -76,16 +74,21 @@ export const useWithdraw = (
         ),
       })
       client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
           marketAccount.market.chainId,
-          "initial",
           marketAccount.market.address,
         ),
       })
       client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
+        queryKey: QueryKeys.Lender.GET_WITHDRAWALS.PREFIX(
           marketAccount.market.chainId,
-          "update",
+          address,
+          marketAccount.market.address,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS.PREFIX(
+          marketAccount.market.chainId,
           marketAccount.market.address,
         ),
       })
