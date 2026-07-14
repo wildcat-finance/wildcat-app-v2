@@ -23,7 +23,7 @@ export function useTokenMetadata({ address }: { address: string | undefined }) {
       )
       return token
     }
-    return undefined
+    return null
   }
 
   return useQuery({

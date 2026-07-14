@@ -48,7 +48,12 @@ export const useGetBorrowerInvitation = (address: string | undefined) => {
     queryFn: getInvitation,
     refetchOnMount: false,
   })
-  return { ...data, ...result }
+  return {
+    inviteExists: data?.inviteExists,
+    mustLogin: data?.mustLogin,
+    invitation: data?.invitation,
+    ...result,
+  }
 }
 
 export enum BorrowerInvitationStatus {
@@ -64,14 +69,14 @@ export enum BorrowerInvitationStatus {
 export const useBorrowerInvitationExists = (address: string | undefined) => {
   const { chainId } = useSelectedNetwork()
   const getInvitationExists = async () => {
-    if (!address) return undefined
+    if (!address) return null
     const res = await fetch(
       `/api/invite/${address.toLowerCase()}?chainId=${chainId}`,
       {
         method: "HEAD",
       },
     )
-    if (res.status === 404) return undefined
+    if (res.status === 404) return null
     if (res.headers.get("Signed") === "true")
       return BorrowerInvitationStatus.PendingRegistration
     return BorrowerInvitationStatus.PendingSignature

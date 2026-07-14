@@ -7,7 +7,7 @@ import { setCheckBlock } from "@/store/slices/highlightSidebarSlice/highlightSid
 const useScrollSlidesHandler = (
   slidesCount: number,
   checked: number,
-  scrollContainer: RefObject<HTMLElement>,
+  scrollContainer: RefObject<HTMLElement | null>,
 ) => {
   const dispatch = useDispatch()
 

@@ -69,7 +69,9 @@ export const MarketActions = ({
     market?.marketToken,
   )
 
-  const mlaResponse = mla && "noMLA" in mla ? null : mla
+  const mlaResponse = (mla && "noMLA" in mla ? null : mla) as Parameters<
+    typeof useGetSignedMla
+  >[0]
   const { data: signedMla, isLoading: signedMlaLoading } =
     useGetSignedMla(mlaResponse)
   const mlaRequiredAndUnsigned =

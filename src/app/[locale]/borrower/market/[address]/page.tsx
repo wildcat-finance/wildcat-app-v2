@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useEffect, useState } from "react"
+import { use, useEffect, useState } from "react"
 
 import { Box, Divider, Skeleton, Typography } from "@mui/material"
 import { MarketVersion, SupportedChainId } from "@wildcatfi/wildcat-sdk"
@@ -47,11 +47,10 @@ import {
   SkeletonStyle,
 } from "./style"
 
-export default function MarketDetails({
-  params: { address },
-}: {
-  params: { address: string }
+export default function MarketDetails(props: {
+  params: Promise<{ address: string }>
 }) {
+  const { address } = use(props.params)
   const dispatch = useAppDispatch()
   const searchParams = useSearchParams()
   const marketChainIdRaw = parseInt(searchParams.get("chainId") ?? "", 10)

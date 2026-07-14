@@ -23,7 +23,7 @@ export type AdsConfig = {
   /** Market-specific amount string */
   tokenAmount: string
   /** Icons displayed in the APR table cell */
-  cellIcons: JSX.Element[]
+  cellIcons: React.JSX.Element[]
   /** "Request withdrawal at any time" in the APR tooltip */
   withdrawalAnyTime: boolean
 }
