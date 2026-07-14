@@ -319,7 +319,7 @@ export default function MarketDetails(props: {
                 marketAddress={market.address}
                 chainId={market.chainId}
                 isBorrower={holdTheMarket}
-                marketSummary={marketSummary}
+                marketSummary={marketSummary ?? undefined}
                 isLoading={isSummaryLoading}
               />
             </Box>

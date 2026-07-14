@@ -8,7 +8,7 @@
     "npm": "11.12.0"
   },
   "scripts": {
-    "dev": "next dev --webpack",
+    "dev": "prisma generate && next dev --webpack",
     "build": "prisma generate && next build --webpack",
     "start": "next start",
     "storybook": "storybook dev -p 6006",

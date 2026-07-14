@@ -354,7 +354,7 @@ export default function LenderMarketDetails(props: {
       <Box>
         <MobileMarketDescriptionModal
           marketName={market?.name}
-          marketSummary={marketSummary}
+          marketSummary={marketSummary ?? undefined}
           isLoading={isLoadingSummary}
           setIsMobileDescriptionOpen={setIsMobileDescriptionOpen}
         />
@@ -449,7 +449,7 @@ export default function LenderMarketDetails(props: {
           {hasMarketDescription && (
             <Box id="marketDescription">
               <MarketSummary
-                marketSummary={marketSummary}
+                marketSummary={marketSummary ?? undefined}
                 isLoading={isLoadingSummary}
                 isOpen={isMobileDescriptionOpen}
                 setIsOpen={setIsMobileDescriptionOpen}
@@ -569,7 +569,7 @@ export default function LenderMarketDetails(props: {
 
           {currentSection === LenderMarketSections.SUMMARY && (
             <MarketSummary
-              marketSummary={marketSummary}
+              marketSummary={marketSummary ?? undefined}
               isLoading={isLoadingSummary}
             />
           )}
