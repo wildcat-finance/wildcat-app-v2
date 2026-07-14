@@ -26,8 +26,6 @@ export const ProfileSection = ({
 
   return (
     <>
-      <BorrowerProfileVerificationDisclosure variant="market" />
-
       <ProfileSectionNameBlock {...profileData} />
 
       <OverallBlock
@@ -35,6 +33,8 @@ export const ProfileSection = ({
         marketsAmount={marketsAmount}
         externalChainId={externalChainId}
       />
+
+      <BorrowerProfileVerificationDisclosure variant="market" />
     </>
   )
 }

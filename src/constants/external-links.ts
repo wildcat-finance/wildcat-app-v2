@@ -1,5 +1,6 @@
 export const EXTERNAL_LINKS = {
-  DOCS_HOME: "https://docs.wildcat.finance/",
+  BORROWER_ONBOARDING:
+    "https://docs.wildcat.finance/using-wildcat/onboarding/how-borrowers-are-onboarded",
   TELEGRAM_BOT: "https://t.me/wildcat_notifications_bot",
   TELEGRAM_COMMUNITY: "https://t.me/+ewyCAZOA5_Y2Zjg0",
   FAQ: "https://docs.wildcat.finance/overview/faqs",

@@ -100,8 +100,6 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
 
   return (
     <Box sx={PageContentContainer}>
-      <BorrowerProfileVerificationDisclosure />
-
       <ProfileNamePageBlock
         {...profileData}
         name={accountName}
@@ -113,6 +111,8 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
       <Divider sx={{ marginY: "32px" }} />
 
       <OverallBlock {...profileData} marketsAmount={marketsAmount} isPage />
+
+      <BorrowerProfileVerificationDisclosure />
 
       <Divider sx={{ marginY: "32px" }} />
 

@@ -33,39 +33,35 @@ const getVerificationNoteRightOffset = (
   return NOTE_LAYOUT[variant].right
 }
 
-export const VerificationNoteContainer = (
-  variant: VerificationDisclosureVariant,
-): SxProps<Theme> => ({
-  boxSizing: "border-box",
-  width: getVerificationNoteWidth(variant),
-  border: `1px solid ${COLORS.iron}`,
-  borderRadius: "14px",
-  backgroundColor: COLORS.white,
-  padding: variant === "inline" ? "20px 22px" : "14px 16px",
-  ...(variant !== "inline"
-    ? {
-        position: "fixed",
-        top: "118px",
-        right: getVerificationNoteRightOffset(variant),
-        zIndex: 1,
-        maxHeight: "calc(100vh - 142px)",
-        overflowY: "auto",
-      }
-    : {
-        marginTop: "16px",
-      }),
-})
-
-export const VerificationIconBox = {
-  width: "32px",
-  height: "32px",
-  minWidth: "32px",
-  borderRadius: "10px",
-  backgroundColor: COLORS.athensGrey,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-}
+export const VerificationNoteContainer =
+  (variant: VerificationDisclosureVariant): SxProps<Theme> =>
+  (theme) => ({
+    boxSizing: "border-box",
+    width: getVerificationNoteWidth(variant),
+    border: `1px solid ${COLORS.iron}`,
+    borderRadius: "14px",
+    backgroundColor: COLORS.white,
+    padding: variant === "inline" ? "20px 22px" : "14px 16px",
+    ...(variant !== "inline"
+      ? {
+          position: "fixed",
+          top: "118px",
+          right: getVerificationNoteRightOffset(variant),
+          zIndex: 1,
+          maxHeight: "calc(100vh - 142px)",
+          overflowY: "auto",
+          [theme.breakpoints.down(variant === "market" ? "xl" : "lg")]: {
+            position: "static",
+            width: "100%",
+            maxHeight: "none",
+            overflowY: "visible",
+            marginTop: "24px",
+          },
+        }
+      : {
+          marginTop: "16px",
+        }),
+  })
 
 export const VerificationSectionHeader = (compact?: boolean) => ({
   display: "flex",

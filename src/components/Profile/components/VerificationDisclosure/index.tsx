@@ -21,7 +21,6 @@ import { COLORS } from "@/theme/colors"
 
 import {
   VerificationDisclosureVariant,
-  VerificationIconBox,
   VerificationList,
   VerificationModalDialog,
   VerificationModalFieldGroup,
@@ -137,19 +136,6 @@ const VerificationGroupHeading = ({
   </Box>
 )
 
-const VerificationIcon = () => (
-  <Box sx={VerificationIconBox}>
-    <SvgIcon
-      sx={{
-        fontSize: "18px",
-        "& path": { fill: COLORS.blackRock },
-      }}
-    >
-      <CheckIcon />
-    </SvgIcon>
-  </Box>
-)
-
 export const BorrowerProfileVerificationDisclosure = ({
   variant = "desktop",
   showModal = true,
@@ -261,7 +247,7 @@ export const BorrowerProfileVerificationDisclosure = ({
 
           <Button
             component={Link}
-            href={EXTERNAL_LINKS.DOCS_HOME}
+            href={EXTERNAL_LINKS.BORROWER_ONBOARDING}
             target="_blank"
             rel="noopener noreferrer"
             variant="text"
@@ -301,13 +287,10 @@ export const BorrowerProfileVerificationDisclosure = ({
           sx={VerificationModalDialog}
           aria-labelledby="borrower-profile-verification-modal-title"
         >
-          <VerificationIcon />
-
           <Typography
             id="borrower-profile-verification-modal-title"
             variant="title2"
             color={COLORS.bunker}
-            marginTop="18px"
           >
             {t("borrowerProfile.profile.verification.modalTitle")}
           </Typography>
