@@ -1,4 +1,4 @@
-import { LenderRole, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { LenderRole, Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { LenderStatus } from "./interface"
 
@@ -17,3 +17,13 @@ export const getEffectiveLenderRole = (
       return LenderStatus.Null
   }
 }
+
+export const borrowerPenaltyWarningThresholdSeconds = 30 * 24 * 60 * 60
+
+export const getPenaltySecondsPastGrace = (market: Market) =>
+  market.timeDelinquent - market.delinquencyGracePeriod
+
+export const shouldMarketTriggerBorrowerPenaltyWarning = (market: Market) =>
+  !market.isClosed &&
+  market.isIncurringPenalties &&
+  getPenaltySecondsPastGrace(market) >= borrowerPenaltyWarningThresholdSeconds

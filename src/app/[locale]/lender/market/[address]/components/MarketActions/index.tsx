@@ -57,6 +57,7 @@ const FaucetButton = ({ marketAccount }: { marketAccount: MarketAccount }) => {
 export const MarketActions = ({
   marketAccount,
   withdrawals,
+  showBorrowerPenaltyWarning,
 }: MarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
@@ -247,7 +248,12 @@ export const MarketActions = ({
                 amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
                 asset={market.underlyingToken.symbol}
               >
-                {!showFaucet && <DepositModal marketAccount={marketAccount} />}
+                {!showFaucet && (
+                  <DepositModal
+                    marketAccount={marketAccount}
+                    showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
+                  />
+                )}
                 {showFaucet && <FaucetButton marketAccount={marketAccount} />}
               </TransactionBlock>
 

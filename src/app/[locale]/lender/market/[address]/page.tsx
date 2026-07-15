@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
+import { BorrowerPenaltyWarning } from "@/app/[locale]/lender/market/[address]/components/BorrowerPenaltyWarning"
 import { MobileMarketActions } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMarketActions"
 import { MobileMlaAlert } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaAlert"
 import { MobileMlaModal } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaModal/MobileMlaModal"
@@ -56,13 +57,19 @@ import { LenderFlowCharts } from "./components/LenderFlowCharts"
 import { MarketActions } from "./components/MarketActions"
 import { MarketSummary } from "./components/MarketSummary"
 import { WrapDebtToken } from "./components/WrapDebtToken"
+import { useBorrowerPenaltyWarning } from "./hooks/useBorrowerPenaltyWarning"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { useLenderMarketAnalytics } from "./hooks/useLenderMarketAnalytics"
 import { useMarketDailyFlows } from "./hooks/useMarketDailyFlows"
 import { useMarketDelinquencyHistory } from "./hooks/useMarketDelinquencyHistory"
 import { LenderStatus } from "./interface"
-import { SectionContainer, SkeletonContainer, SkeletonStyle } from "./style"
+import {
+  MarketContentColumn,
+  SectionContainer,
+  SkeletonContainer,
+  SkeletonStyle,
+} from "./style"
 import { getEffectiveLenderRole } from "./utils"
 
 export default function LenderMarketDetails({
@@ -185,6 +192,8 @@ export default function LenderMarketDetails({
     address.toLowerCase(),
     market?.chainId ?? selectedChainId,
   )
+  const { shouldWarn: showBorrowerPenaltyWarning } =
+    useBorrowerPenaltyWarning(market)
 
   const hasMarketDescription =
     !!marketSummary && marketSummary?.description !== ""
@@ -406,6 +415,7 @@ export default function LenderMarketDetails({
         isMobileOpen={isMobileDepositOpen}
         setIsMobileOpen={setIsMobileDepositOpen}
         marketAccount={marketAccount}
+        showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
       />
     )
 
@@ -515,6 +525,8 @@ export default function LenderMarketDetails({
             hasMarketDescription={hasMarketDescription}
           />
 
+          {showBorrowerPenaltyWarning && <BorrowerPenaltyWarning />}
+
           <Box id="depositWithdraw">
             <BarCharts
               marketAccount={marketAccount}
@@ -620,20 +632,23 @@ export default function LenderMarketDetails({
 
   return (
     <Box>
-      <Box>
-        <MarketHeader marketAccount={marketAccount} />
+      <MarketHeader marketAccount={marketAccount} />
 
-        {isDifferentChain && (
-          <SwitchChainAlert desiredChainId={market?.chainId} />
-        )}
+      {isDifferentChain && (
+        <SwitchChainAlert desiredChainId={market?.chainId} />
+      )}
 
-        <Box sx={SectionContainer(theme, isDifferentChain)}>
+      <Box sx={MarketContentColumn(theme, isDifferentChain)}>
+        {showBorrowerPenaltyWarning && <BorrowerPenaltyWarning />}
+
+        <Box sx={SectionContainer(theme)}>
           {currentSection === LenderMarketSections.TRANSACTIONS && (
             <Box>
               {authorizedInMarket && !isDifferentChain && (
                 <MarketActions
                   marketAccount={marketAccount}
                   withdrawals={withdrawals}
+                  showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
                 />
               )}
               <CapacityBarChart
