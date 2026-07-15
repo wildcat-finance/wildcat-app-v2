@@ -1,18 +1,47 @@
 "use client"
 
 import { Box, Button, Typography, useTheme } from "@mui/material"
+import { useRouter } from "next/navigation"
 import { Trans } from "react-i18next"
 
 import { ServiceAgreementVersionChip } from "@/components/ServiceAgreementVersionChip"
 import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
+import { useNetworkGate } from "@/hooks/useNetworkGate"
 
 import { AgreementText } from "./components/AgreementText"
+import { ReacceptButton } from "./components/ReacceptButton"
 import { SignButton } from "./components/SignButton"
 
 export default function Agreement() {
   const theme = useTheme()
+  const router = useRouter()
   const { data: currentAgreement, isLoading: isAgreementLoading } =
     useCurrentServiceAgreement()
+  const { touState, isAgreementSigned } = useNetworkGate()
+
+  // The primary action derives from two independent axes: touState (the
+  // any-party re-acceptance campaign) and isAgreementSigned (the
+  // Lender-party-scoped signature that hard-gates /lender pages).
+  // - signedCurrent + lender signature: read-only review (e.g. "View full
+  //   terms" in the ToU status modal) - nothing to sign, Cancel + Download.
+  // - stale*/declined: party-aware re-acceptance; the legacy lender-only flow
+  //   would record borrowers under the wrong party.
+  // - neverSigned, or signedCurrent WITHOUT a lender signature (dual-role
+  //   accounts, e.g. a registered borrower browsing /lender - their
+  //   Borrower-party acceptance satisfies the campaign but not the lender
+  //   gate): legacy lender sign flow, kept on the dual-write path for
+  //   rollback compatibility (old table removed in Release 2).
+  // No CTA while the state is loading, so review-only visitors never see a
+  // transient Sign button.
+  const isReview = touState === "signedCurrent" && isAgreementSigned
+  const needsReacceptance =
+    touState === "stale" ||
+    touState === "staleWithinGrace" ||
+    touState === "staleExpired" ||
+    touState === "declined"
+  const needsLenderSignature =
+    touState === "neverSigned" ||
+    (touState === "signedCurrent" && !isAgreementSigned)
 
   const handleDownload = () => {
     window.open(`/api/service-agreement/current/download`, "_blank")
@@ -114,7 +143,25 @@ export default function Agreement() {
           },
         }}
       >
-        <SignButton />
+        {isReview && (
+          <Button
+            variant="contained"
+            color="secondary"
+            size="large"
+            onClick={() => router.back()}
+            sx={{
+              width: "168.63px",
+              height: "44px",
+              [theme.breakpoints.down("md")]: {
+                width: "100%",
+              },
+            }}
+          >
+            <Trans i18nKey="agreement.page.cancel" />
+          </Button>
+        )}
+        {needsReacceptance && <ReacceptButton />}
+        {needsLenderSignature && <SignButton />}
 
         <Button
           variant="contained"

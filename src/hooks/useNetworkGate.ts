@@ -113,13 +113,6 @@ export const useNetworkGate = ({
       return "/"
     }
 
-    // Only bounce signed users off /agreement when their acceptance is for the
-    // CURRENT version - stale/declined accounts must be able to review and
-    // re-sign the new terms directly.
-    if (isAgreementPath && isAgreementSigned && touState === "signedCurrent") {
-      return "/"
-    }
-
     if (
       !isAgreementPath &&
       isLenderPath(pathname) &&
@@ -134,7 +127,7 @@ export const useNetworkGate = ({
     }
 
     return null
-  }, [address, isAgreementSigned, isWrongNetwork, pathname, touState])
+  }, [address, isAgreementSigned, isWrongNetwork, pathname])
 
   const requestSwitchNetwork = useCallback(async () => {
     if (typeof desiredChainId !== "number") return
