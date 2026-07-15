@@ -5,4 +5,5 @@ import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[
 export type MarketActionsProps = {
   marketAccount: MarketAccount
   withdrawals: LenderWithdrawalsForMarketResult
+  showBorrowerPenaltyWarning?: boolean
 }

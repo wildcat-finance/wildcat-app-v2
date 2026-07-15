@@ -72,8 +72,8 @@ export const OverallBlock = ({
   const normalizedDefaults = defaults !== undefined ? String(defaults) : "0"
 
   const profileInfo: ProfileItem[] = [
-    makeInformationItem(t("borrower.profile.view.name"), name),
-    makeInformationItem(t("borrower.profile.view.alias"), alias),
+    makeInformationItem(t("common.fields.legalName"), name),
+    makeInformationItem(t("common.fields.alias"), alias),
     makeInformationItem(
       t("borrower.profile.view.address"),
       address ? trimAddress(address) : undefined,

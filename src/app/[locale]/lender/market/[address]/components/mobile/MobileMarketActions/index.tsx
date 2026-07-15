@@ -15,6 +15,7 @@ import { TooltipButton } from "@/components/TooltipButton"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { COLORS } from "@/theme/colors"
+import { hasManuallyDisabledMarketActions } from "@/utils/constants"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 export type MobileMarketActionsProps = {
@@ -146,6 +147,9 @@ export const MobileMarketActions = ({
     isTestnet &&
     market.underlyingToken.isMock &&
     marketAccount.underlyingBalance.raw.isZero()
+  const marketActionsManuallyDisabled = hasManuallyDisabledMarketActions(
+    market.borrower,
+  )
 
   const { data: mla } = useMarketMla(market.address)
   const mlaResponse = mla && "noMLA" in mla ? null : mla
@@ -332,7 +336,10 @@ export const MobileMarketActions = ({
                   color="secondary"
                   size="large"
                   fullWidth
-                  disabled={marketAccount.maximumDeposit.raw.isZero()}
+                  disabled={
+                    marketActionsManuallyDisabled ||
+                    marketAccount.maximumDeposit.raw.isZero()
+                  }
                   sx={{ padding: "10px 20px", marginTop: "16px" }}
                 >
                   ↓ {t("marketDetails.lender.transactions.deposit.button")}

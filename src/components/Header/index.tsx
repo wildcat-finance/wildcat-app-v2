@@ -104,7 +104,9 @@ export default function Header() {
 
   return (
     <>
-      {isMobile && <Box sx={{ width: "100%", height: "64px" }} />}
+      {isMobile && (
+        <Box sx={{ width: "100%", height: "64px", flexShrink: 0 }} />
+      )}
 
       <Box sx={contentContainer(theme)}>
         <Link
