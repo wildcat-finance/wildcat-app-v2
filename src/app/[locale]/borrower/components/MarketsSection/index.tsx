@@ -382,7 +382,7 @@ export const MarketsSection = () => {
           }}
         >
           <Typography variant="title2" sx={{ marginBottom: "6px" }}>
-            {t("dashboard.markets.title")}
+            {t("marketList.shared.title")}
           </Typography>
           {!bannerDisplayConfig.hideCreateMarket && (
             <Link href={ROUTES.borrower.createMarket}>
@@ -396,7 +396,7 @@ export const MarketsSection = () => {
                   minWidth: "100px",
                 }}
               >
-                {t("dashboard.markets.borrowerTitleButton")}
+                {t("marketList.shared.borrowerTitleButton")}
               </Button>
             </Link>
           )}
@@ -406,13 +406,13 @@ export const MarketsSection = () => {
           color={COLORS.santasGrey}
           sx={{ marginBottom: "24px", padding: "0 24px" }}
         >
-          {t("dashboard.markets.borrowerSubtitle")}{" "}
+          {t("marketList.shared.borrowerSubtitle")}{" "}
           <Link
             href="https://docs.wildcat.finance/using-wildcat/day-to-day-usage/borrowers"
             style={{ color: COLORS.santasGrey }}
             target="_blank"
           >
-            {t("dashboard.markets.docsLink")}
+            {t("marketList.shared.docsLink")}
           </Link>
         </Typography>
 
@@ -444,7 +444,7 @@ export const MarketsSection = () => {
           >
             <Box sx={{ display: "flex", gap: "6px" }}>
               <MarketsFilterSelect
-                placeholder={t("dashboard.markets.filters.assets")}
+                placeholder={t("marketList.shared.filters.assets")}
                 options={
                   tokens?.map((token) => ({
                     id: token.address,
@@ -456,7 +456,7 @@ export const MarketsSection = () => {
               />
 
               <MarketsFilterSelect
-                placeholder={t("dashboard.markets.filters.statuses")}
+                placeholder={t("common.fields.status")}
                 options={marketStatusesMock}
                 selected={marketStatuses}
                 setSelected={setMarketStatuses}
@@ -473,7 +473,7 @@ export const MarketsSection = () => {
             <FilterTextField
               value={marketSearch}
               setValue={setMarketSearch}
-              placeholder={t("dashboard.markets.filters.name")}
+              placeholder={t("common.buttons.search")}
               width="264px"
             />
           </Box>

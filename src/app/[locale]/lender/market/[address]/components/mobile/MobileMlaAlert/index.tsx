@@ -39,10 +39,10 @@ export const MobileMlaAlert = ({
   const buttonText =
     // eslint-disable-next-line no-nested-ternary
     mla === null
-      ? t("lenderMarketDetails.buttons.mlaNotSet")
+      ? t("marketDetails.lender.buttons.mlaNotSet")
       : mla && "noMLA" in mla
-        ? t("lenderMarketDetails.buttons.mlaRefused")
-        : t("lenderMarketDetails.buttons.viewMla")
+        ? t("marketDetails.lender.buttons.mlaRefused")
+        : t("marketDetails.lender.buttons.viewMla")
 
   if (!mlaRequiredAndUnsigned && !!signedMla)
     return (
@@ -57,7 +57,7 @@ export const MobileMlaAlert = ({
         }}
       >
         <Typography variant="mobH3" textAlign="center" marginTop="12px">
-          Master Loan Agreement
+          {t("marketDetails.shared.mla.title")}
         </Typography>
 
         <Box
@@ -76,7 +76,9 @@ export const MobileMlaAlert = ({
             <Check />
           </SvgIcon>
           <Typography variant="mobText3" color={COLORS.santasGrey}>
-            Signed: {formatDate(signedMla.timeSigned)}
+            {t("marketDetails.lender.mla.signedAt", {
+              date: formatDate(signedMla.timeSigned),
+            })}
           </Typography>
         </Box>
 

@@ -57,7 +57,7 @@ export const NoWrapperState = ({
           variant={isMobile ? "mobH3" : "text1"}
           sx={PlaceholderTitle}
         >
-          {t("lenderMarketDetails.wrapDebtToken.title")}
+          {t("marketDetails.lender.wrapDebtToken.title")}
         </Typography>
 
         <Typography
@@ -65,7 +65,7 @@ export const NoWrapperState = ({
           textAlign="center"
           color={COLORS.manate}
         >
-          {t("lenderMarketDetails.wrapDebtToken.subtitle")}
+          {t("marketDetails.lender.wrapDebtToken.subtitle")}
         </Typography>
 
         {statusMessage && (
@@ -89,10 +89,10 @@ export const NoWrapperState = ({
             {isCreatingWrapper ? (
               <>
                 <MiniLoader />
-                {t("lenderMarketDetails.wrapDebtToken.deployButton")}
+                {t("marketDetails.lender.wrapDebtToken.deployButton")}
               </>
             ) : (
-              t("lenderMarketDetails.wrapDebtToken.deployButton")
+              t("marketDetails.lender.wrapDebtToken.deployButton")
             )}
           </Button>
         )}
@@ -104,46 +104,48 @@ export const NoWrapperState = ({
         <Box sx={QuestionsContainer(isMobile)}>
           {!isMobile && (
             <Typography variant="title3">
-              {t("lenderMarketDetails.wrapDebtToken.commonQuestions")}
+              {t("marketDetails.lender.wrapDebtToken.commonQuestions")}
             </Typography>
           )}
 
           <Box sx={QuestionItem}>
             <Typography variant={isMobile ? "mobText2SemiBold" : "text2"}>
-              {t("lenderMarketDetails.wrapDebtToken.whatIsWrapping.question")}
+              {t("marketDetails.lender.wrapDebtToken.whatIsWrapping.question")}
             </Typography>
 
             <Typography
               variant={isMobile ? "mobText2" : "text2"}
               color={COLORS.manate}
             >
-              {t("lenderMarketDetails.wrapDebtToken.whatIsWrapping.answer")}
+              {t("marketDetails.lender.wrapDebtToken.whatIsWrapping.answer")}
             </Typography>
           </Box>
 
           <Box sx={QuestionItem}>
             <Typography variant={isMobile ? "mobText2SemiBold" : "text2"}>
-              {t("lenderMarketDetails.wrapDebtToken.whoCanDeploy.question")}
+              {t("marketDetails.lender.wrapDebtToken.whoCanDeploy.question")}
             </Typography>
 
             <Typography
               variant={isMobile ? "mobText2" : "text2"}
               color={COLORS.manate}
             >
-              {t("lenderMarketDetails.wrapDebtToken.whoCanDeploy.answer")}
+              {t("marketDetails.lender.wrapDebtToken.whoCanDeploy.answer")}
             </Typography>
           </Box>
 
           <Box sx={QuestionItem}>
             <Typography variant={isMobile ? "mobText2SemiBold" : "text2"}>
-              {t("lenderMarketDetails.wrapDebtToken.whatHappensAfter.question")}
+              {t(
+                "marketDetails.lender.wrapDebtToken.whatHappensAfter.question",
+              )}
             </Typography>
 
             <Typography
               variant={isMobile ? "mobText2" : "text2"}
               color={COLORS.manate}
             >
-              {t("lenderMarketDetails.wrapDebtToken.whatHappensAfter.answer")}
+              {t("marketDetails.lender.wrapDebtToken.whatHappensAfter.answer")}
             </Typography>
           </Box>
         </Box>
@@ -161,7 +163,7 @@ export const NoWrapperState = ({
             size="medium"
             fullWidth={isMobile}
           >
-            {t("lenderMarketDetails.wrapDebtToken.learnMore")}
+            {t("marketDetails.lender.wrapDebtToken.learnMore")}
           </Button>
         </Link>
       )}
@@ -194,7 +196,9 @@ export const NoWrapperState = ({
           >
             <UpArrow />
           </SvgIcon>
-          See {open ? "less" : "more"}
+          {open
+            ? t("marketDetails.lender.wrapDebtToken.seeLess")
+            : t("marketDetails.lender.wrapDebtToken.seeMore")}
         </Button>
       )}
     </Box>

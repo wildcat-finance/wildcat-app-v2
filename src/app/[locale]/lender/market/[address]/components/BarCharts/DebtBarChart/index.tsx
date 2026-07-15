@@ -51,7 +51,7 @@ export const DebtBarChart = ({ marketAccount }: BarChartProps) => {
         >
           <Box sx={{ display: "flex", justifyContent: "space-between" }}>
             <Typography variant={isMobile ? "mobH3" : "title3"}>
-              {t("lenderMarketDetails.barchart.debts.title")}
+              {t("common.fields.totalDebt")}
             </Typography>
 
             <Box

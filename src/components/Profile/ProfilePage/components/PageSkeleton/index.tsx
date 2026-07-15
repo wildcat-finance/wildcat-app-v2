@@ -190,7 +190,7 @@ export const ProfilePageSkeleton = ({
 
       <Box>
         <Typography variant="title3">
-          {t("borrowerProfile.profile.overallInfo.title")}
+          {t("borrower.profile.view.title")}
         </Typography>
 
         <Box sx={InfoContainer}>
@@ -241,7 +241,7 @@ export const ProfilePageSkeleton = ({
 
         <Box sx={MarketsSectionSkeletonContainer}>
           <Typography variant="title3">
-            {t("borrowerProfile.profile.activeMarkets.title")}
+            {t("borrower.profile.view.activeMarkets.title")}
           </Typography>
 
           <Box sx={MarketsSkeletonContainer}>

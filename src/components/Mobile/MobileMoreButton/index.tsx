@@ -83,7 +83,9 @@ export const MobileMoreButton = ({
           }}
         >
           <Box sx={{ width: 20 }} />
-          <Typography variant="mobText2">Wallet Actions</Typography>
+          <Typography variant="mobText2">
+            {t("header.wallet.actions")}
+          </Typography>
           <IconButton onClick={toggleOpen} sx={{ width: 20, height: 20 }}>
             <SvgIcon
               sx={{ fontSize: 20, "& path": { fill: COLORS.santasGrey } }}
@@ -102,7 +104,7 @@ export const MobileMoreButton = ({
             disabled={isAddingToken}
           >
             <Typography variant="mobText3SemiBold">
-              {t("lenderMarketDetails.buttons.addToken")}
+              {t("marketDetails.lender.buttons.addToken")}
             </Typography>
           </Button>
         ) : (
@@ -123,8 +125,7 @@ export const MobileMoreButton = ({
             </Box>
 
             <Typography variant="mobText4" color={COLORS.santasGrey}>
-              To add debt token to wallet please copy the token address and add
-              it manually.
+              {t("marketDetails.lender.buttons.addTokenManualHint")}
             </Typography>
           </Box>
         )}
@@ -157,7 +158,7 @@ export const MobileMoreButton = ({
             <TelegramIcon />
           </SvgIcon>
 
-          {t("helpModal.items.telegram.botButton")}
+          {t("modals.shared.help.telegram.botButton")}
         </Button>
       </Dialog>
     </>

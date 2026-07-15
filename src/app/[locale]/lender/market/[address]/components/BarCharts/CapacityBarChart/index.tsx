@@ -63,7 +63,7 @@ export const CapacityBarChart = ({
             }}
           >
             <Typography variant={isMobile ? "mobH3" : "title3"}>
-              {t("lenderMarketDetails.barchart.capacity.title")}
+              {t("common.fields.capacity")}
             </Typography>
 
             <Box

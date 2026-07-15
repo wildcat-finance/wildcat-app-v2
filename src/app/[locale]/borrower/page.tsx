@@ -6,6 +6,7 @@ import { Box, Button, Typography } from "@mui/material"
 import { GridRowsProp } from "@mui/x-data-grid"
 import { HooksKind } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { LendersSection } from "@/app/[locale]/borrower/components/LendersSection"
@@ -27,6 +28,7 @@ import { MarketsSection } from "./components/MarketsSection"
 import { PoliciesSection, PolicyDataT } from "./components/PoliciesSection"
 
 export default function BorrowerPage() {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const isMobile = useMobileResolution()
 
@@ -54,7 +56,7 @@ export default function BorrowerPage() {
   const policies: GridRowsProp<PolicyDataT> = [
     ...(hooksData?.hooksInstances.map((policy) => ({
       id: policy.address,
-      name: policy.name || "Unnamed Policy",
+      name: policy.name || t("borrower.editPolicy.unnamedPolicy.label"),
       type: policy.kind,
       markets: unfilteredBorrowerMarkets
         ? unfilteredBorrowerMarkets
@@ -64,7 +66,9 @@ export default function BorrowerPage() {
             .map((market) => ({ name: market.name, address: market.address }))
         : [],
       accessRequirements:
-        policy.roleProviders.length === 1 ? "Manual Approval" : "Self-Onboard",
+        policy.roleProviders.length === 1
+          ? t("marketParameters.policyType.manualApproval")
+          : t("marketParameters.policyType.selfOnboard"),
     })) ?? []),
     ...(hooksData?.controller
       ? [
@@ -77,7 +81,7 @@ export default function BorrowerPage() {
                   (market) => market.hooksConfig?.hooksAddress === undefined,
                 )
               : [],
-            accessRequirements: "Manual Approval",
+            accessRequirements: t("marketParameters.policyType.manualApproval"),
           },
         ]
       : []),
@@ -108,12 +112,9 @@ export default function BorrowerPage() {
           justifyContent: "center",
         }}
       >
-        <Typography variant="mobH3">
-          The Borrower UI is not configured for mobile, sorry!
-        </Typography>
+        <Typography variant="mobH3">{t("borrower.mobile.title")}</Typography>
         <Typography variant="mobText3" color={COLORS.santasGrey}>
-          Hop on a desktop or laptop instead: we are aiming to sort this out in
-          time.
+          {t("borrower.mobile.subtitle")}
         </Typography>
         <Link
           href={ROUTES.lender.root}
@@ -125,7 +126,7 @@ export default function BorrowerPage() {
           }}
         >
           <Button variant="contained" size="medium" color="secondary">
-            Switch to the Lenders
+            {t("borrower.mobile.switchToLenders")}
           </Button>
         </Link>
       </Box>

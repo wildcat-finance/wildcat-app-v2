@@ -59,7 +59,7 @@ export const OthersMarketsTable = ({
   const columns: TypeSafeColDef<MarketsTableModel>[] = [
     {
       field: "status",
-      headerName: t("borrowerMarketList.table.header.status"),
+      headerName: t("common.fields.status"),
       maxWidth: 146,
       minWidth: 130,
       flex: 2,
@@ -83,7 +83,7 @@ export const OthersMarketsTable = ({
     },
     {
       field: "name",
-      headerName: t("borrowerMarketList.table.header.marketName"),
+      headerName: t("common.fields.marketName"),
       flex: 1.7,
       minWidth: 134,
       headerAlign: "left",
@@ -112,7 +112,7 @@ export const OthersMarketsTable = ({
     },
     {
       field: "marketType",
-      headerName: t("borrowerMarketList.table.header.marketType"),
+      headerName: t("marketList.borrower.table.header.marketType"),
       maxWidth: 146,
       minWidth: 130,
       flex: 2,
@@ -136,7 +136,7 @@ export const OthersMarketsTable = ({
     },
     {
       field: "borrowerName",
-      headerName: t("borrowerMarketList.table.header.borrowerName"),
+      headerName: t("marketList.borrower.table.header.borrowerName"),
       minWidth: 134,
       flex: 1.7,
       headerAlign: "left",
@@ -150,7 +150,7 @@ export const OthersMarketsTable = ({
             padding: "0 12px",
           }}
         >
-          Borrower
+          {t("marketList.shared.tables.header.borrower")}
         </Typography>
       ),
       renderCell: (params) => (
@@ -192,7 +192,7 @@ export const OthersMarketsTable = ({
     },
     {
       field: "asset",
-      headerName: t("borrowerMarketList.table.header.asset"),
+      headerName: t("common.fields.underlyingAsset"),
       minWidth: 131,
       flex: 1,
       headerAlign: "right",
@@ -212,7 +212,7 @@ export const OthersMarketsTable = ({
     },
     {
       field: "lenderAPR",
-      headerName: t("borrowerMarketList.table.header.apr"),
+      headerName: t("marketList.borrower.table.header.apr"),
       minWidth: 102,
       flex: 1,
       headerAlign: "right",
@@ -232,7 +232,7 @@ export const OthersMarketsTable = ({
     },
     {
       field: "crr",
-      headerName: t("borrowerMarketList.table.header.crr"),
+      headerName: t("marketList.borrower.table.header.crr"),
       minWidth: 79,
       flex: 1,
       headerAlign: "right",
@@ -263,7 +263,7 @@ export const OthersMarketsTable = ({
     },
     {
       field: "maxCapacity",
-      headerName: t("borrowerMarketList.table.header.capacity"),
+      headerName: t("marketList.borrower.table.header.capacity"),
       minWidth: 136,
       headerAlign: "right",
       align: "right",
@@ -286,7 +286,7 @@ export const OthersMarketsTable = ({
     },
     {
       field: "borrowable",
-      headerName: t("borrowerMarketList.table.header.borrowable"),
+      headerName: t("marketList.borrower.table.header.borrowable"),
       minWidth: 106,
       flex: 1.6,
       headerAlign: "right",
@@ -314,7 +314,7 @@ export const OthersMarketsTable = ({
     },
     {
       field: "deploy",
-      headerName: t("borrowerMarketList.table.header.deploy"),
+      headerName: t("marketList.borrower.table.header.deploy"),
       minWidth: 126,
       flex: 1.2,
       headerAlign: "right",
@@ -388,12 +388,10 @@ export const OthersMarketsTable = ({
       <AccordionSummary>
         <Box display="flex" columnGap="4px">
           <Typography variant="text3">
-            {t("borrowerMarketList.table.title.other")}
+            {t("marketList.borrower.table.title.other")}
           </Typography>
           <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-            {isLoading
-              ? t("borrowerMarketList.table.title.loading")
-              : rows.length}
+            {isLoading ? t("common.states.loading") : rows.length}
           </Typography>
         </Box>
       </AccordionSummary>
@@ -429,13 +427,13 @@ export const OthersMarketsTable = ({
       {tableData.length === 0 && !isLoading && !defaultFilters && (
         <Box display="flex" flexDirection="column" padding="24px 16px 12px">
           <Typography variant="text2" color={COLORS.santasGrey}>
-            {t("borrowerMarketList.table.noMarkets.filter.beginning")}{" "}
+            {t("common.yesNo.no")}{" "}
             {statusFilter?.length !== 0 &&
               statusFilter?.map((status) => ` ${status.toLowerCase()}`)}{" "}
             {nameFilter === "" ? "" : nameFilter}{" "}
             {assetFilter?.length !== 0 &&
               `${assetFilter?.map((asset) => ` ${asset.name}`)}`}{" "}
-            {t("borrowerMarketList.table.noMarkets.filter.ending")}
+            {t("marketList.borrower.noMarketsFilterEnding")}
           </Typography>
         </Box>
       )}

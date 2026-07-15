@@ -23,9 +23,23 @@ export type EarningsProjectionProps = {
 }
 
 const PERIODS = [
-  { key: "thirtyDays", days: 30 },
-  { key: "ninetyDays", days: 90 },
-  { key: "oneYear", days: 365 },
+  {
+    key: "thirtyDays",
+    days: 30,
+    labelKey:
+      "marketDetails.lender.modals.deposit.projection.periods.thirtyDays",
+  },
+  {
+    key: "ninetyDays",
+    days: 90,
+    labelKey:
+      "marketDetails.lender.modals.deposit.projection.periods.ninetyDays",
+  },
+  {
+    key: "oneYear",
+    days: 365,
+    labelKey: "marketDetails.lender.modals.deposit.projection.periods.oneYear",
+  },
 ] as const
 
 const BPS_DENOMINATOR = 10_000
@@ -40,12 +54,16 @@ export const EarningsProjection = ({
   const isEmpty = depositAmount.raw.isZero()
   const isMobile = useMobileResolution()
 
-  const projections = PERIODS.map(({ key, days }) => {
+  const projections = PERIODS.map(({ key, days, labelKey }) => {
     const interestRaw = depositAmount.raw
       .mul(BigNumber.from(annualInterestBips))
       .mul(BigNumber.from(days))
       .div(BigNumber.from(BPS_DENOMINATOR * DAYS_PER_YEAR))
-    return { key, interest: underlyingToken.getAmount(interestRaw) }
+    return {
+      key,
+      labelKey,
+      interest: underlyingToken.getAmount(interestRaw),
+    }
   })
 
   const aprFormatted = formatBps(
@@ -72,15 +90,11 @@ export const EarningsProjection = ({
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
           <Typography variant={isMobile ? "mobText2" : "text1"}>
-            {t(
-              "lenderMarketDetails.transactions.deposit.modal.projection.title",
-            )}
+            {t("marketDetails.lender.modals.deposit.projection.title")}
           </Typography>
 
           <TooltipButton
-            value={t(
-              "lenderMarketDetails.transactions.deposit.modal.projection.tooltip",
-            )}
+            value={t("marketDetails.lender.modals.deposit.projection.tooltip")}
           />
         </Box>
 
@@ -89,9 +103,7 @@ export const EarningsProjection = ({
           color={isMobile ? COLORS.manate : COLORS.blackRock}
           sx={{ opacity: isMobile ? 0.8 : 1 }}
         >
-          {t(
-            "lenderMarketDetails.transactions.deposit.modal.projection.subtitle",
-          )}{" "}
+          {t("marketDetails.lender.modals.deposit.projection.subtitle")}{" "}
           <span style={{ textDecoration: "underline" }}>{aprFormatted}%</span>.
         </Typography>
       </Box>
@@ -104,7 +116,7 @@ export const EarningsProjection = ({
           width: "100%",
         }}
       >
-        {projections.map(({ key, interest }) => (
+        {projections.map(({ key, labelKey, interest }) => (
           <Box
             key={key}
             sx={{
@@ -133,9 +145,7 @@ export const EarningsProjection = ({
                 textOverflow: "ellipsis",
               }}
             >
-              {`${t(
-                `lenderMarketDetails.transactions.deposit.modal.projection.periods.${key}`,
-              )}・${underlyingToken.symbol}`}
+              {`${t(labelKey)}・${underlyingToken.symbol}`}
             </Typography>
 
             <Typography
@@ -157,9 +167,7 @@ export const EarningsProjection = ({
         variant={isMobile ? "mobText4" : "text4"}
         sx={{ color: COLORS.manate }}
       >
-        {`* ${t(
-          "lenderMarketDetails.transactions.deposit.modal.projection.disclaimer",
-        )}`}
+        {`* ${t("marketDetails.lender.modals.deposit.projection.disclaimer")}`}
       </Typography>
     </Box>
   )

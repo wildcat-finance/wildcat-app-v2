@@ -2,6 +2,7 @@ import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react"
 import * as React from "react"
 
 import { Box, Button } from "@mui/material"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { useSignLenderMLA } from "@/app/[locale]/lender/hooks/useSignLenderMla"
@@ -23,6 +24,7 @@ export const MobileMlaModal = ({
   isMobileOpen,
   setIsMobileOpen,
 }: MobileMlaModalProps) => {
+  const { t } = useTranslation()
   const mla = mlaInput && "noMLA" in mlaInput ? undefined : mlaInput
   const { address, chainId } = useAccount()
   const { data: signedMla, isLoading: signedMlaLoading } = useGetSignedMla(mla)
@@ -87,7 +89,7 @@ export const MobileMlaModal = ({
       }}
     >
       <TransactionHeader
-        label="Market Lending Agreement"
+        label={t("marketDetails.shared.mla.title")}
         arrowOnClick={null}
         crossOnClick={() => setIsMobileOpen(false)}
       />
@@ -105,7 +107,7 @@ export const MobileMlaModal = ({
             height: "100%",
             border: "none",
           }}
-          title="Market Lending Agreement"
+          title={t("marketDetails.shared.mla.title")}
         />
       </Box>
 
@@ -120,7 +122,7 @@ export const MobileMlaModal = ({
             disabled={disableActions}
             fullWidth
           >
-            Download PDF
+            {t("marketDetails.lender.mla.downloadPdf")}
           </Button>
         )}
 
@@ -133,7 +135,7 @@ export const MobileMlaModal = ({
             disabled={disableActions}
             fullWidth
           >
-            Download Signed MLA
+            {t("marketDetails.lender.mla.downloadSigned")}
           </Button>
         )}
 
@@ -146,7 +148,9 @@ export const MobileMlaModal = ({
             disabled={disableActions}
             fullWidth
           >
-            {signedMlaLoading ? "Signing..." : "Sign MLA"}
+            {signedMlaLoading
+              ? t("marketDetails.lender.mla.signing")
+              : t("marketDetails.lender.mla.signMla")}
           </Button>
         )}
       </Box>

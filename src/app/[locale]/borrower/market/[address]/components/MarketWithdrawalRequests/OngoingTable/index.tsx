@@ -59,7 +59,7 @@ export const OngoingTable = ({
           }}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            {t("marketWithdrawalRequests.noOngoing")}
+            {t("marketDetails.shared.withdrawalRequests.noOngoing")}
           </Typography>
         </Box>
       )

@@ -80,7 +80,7 @@ export const EditProfileItem = ({
               >
                 <Return />
               </SvgIcon>
-              {t("borrowerProfile.edit.buttons.back")}
+              {t("borrower.profile.edit.buttons.back")}
             </Button>
             <Typography variant="text3" color={COLORS.santasGrey}>
               {oldLabel ?? oldValue}

@@ -11,6 +11,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import Icon from "@/assets/icons/search_icon.svg"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -25,6 +26,7 @@ import {
 } from "./style"
 
 export const MarketSelect = () => {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
   // Getting active borrower markets from the store
@@ -138,7 +140,7 @@ export const MarketSelect = () => {
           onKeyDown={(e) => e.stopPropagation()}
           fullWidth
           size="small"
-          placeholder="Search by Name"
+          placeholder={t("common.placeholders.searchByName")}
           sx={SearchStyles}
           InputProps={{
             startAdornment: (

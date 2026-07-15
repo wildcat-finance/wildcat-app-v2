@@ -2,11 +2,11 @@ import React, { useState } from "react"
 
 import { Box, Button, Skeleton, Typography } from "@mui/material"
 import { usePathname } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 import { getAdsMobileContent } from "@/components/AdsBanners/adsHelpers"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-import { formatBps } from "@/utils/formatters"
 import { getPaginationRange } from "@/utils/pagination"
 
 import { LenderMobileMarketItem, MobileMarketCard } from "../MobileMarketCard"
@@ -20,6 +20,7 @@ export const MobileMarketList = ({
   markets: LenderMobileMarketItem[]
   isLoading: boolean
 }) => {
+  const { t } = useTranslation()
   const [page, setPage] = useState(0)
   const pathname = usePathname()
 
@@ -54,9 +55,11 @@ export const MobileMarketList = ({
           alignItems: "center",
         }}
       >
-        <Typography variant="mobH3">No Markets Here</Typography>
+        <Typography variant="mobH3">
+          {t("marketList.shared.empty.noMarkets")}
+        </Typography>
         <Typography variant="mobText3" color={COLORS.santasGrey}>
-          Change selected filters or check other sections
+          {t("marketList.shared.empty.changeFilters")}
         </Typography>
       </Box>
     )
@@ -84,7 +87,7 @@ export const MobileMarketList = ({
               adsComponent={getAdsMobileContent(marketItem.id)}
               key={marketItem.id}
               marketItem={marketItem}
-              buttonText="Deposit"
+              buttonText={t("marketList.shared.tables.other.depositBTN")}
               buttonIcon
               showBorrower={showBorrowerInCard}
             />
@@ -144,7 +147,7 @@ export const MobileMarketList = ({
               borderRadius: "8px",
             }}
           >
-            Prev
+            {t("common.buttons.prev")}
           </Button>
 
           <Box sx={{ display: "flex", gap: "8px" }}>
@@ -208,7 +211,7 @@ export const MobileMarketList = ({
               borderRadius: "8px",
             }}
           >
-            Next
+            {t("common.buttons.next")}
           </Button>
         </Box>
       )}

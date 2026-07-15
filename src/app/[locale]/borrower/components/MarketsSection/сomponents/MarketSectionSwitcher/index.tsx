@@ -100,17 +100,17 @@ export const MarketSectionSwitcher = () => {
       }}
     >
       <SwitcherButton
-        label={t("dashboard.markets.tables.borrower.active.title")}
+        label={t("marketList.borrower.active.title")}
         amount={activeMarketsAmount}
         section={BorrowerMarketDashboardSections.ACTIVE}
       />
       <SwitcherButton
-        label={t("dashboard.markets.tables.borrower.closed.title")}
+        label={t("marketList.borrower.closed.title")}
         amount={closedMarketsAmount}
         section={BorrowerMarketDashboardSections.TERMINATED}
       />
       <SwitcherButton
-        label={t("dashboard.markets.tables.other.title")}
+        label={t("marketList.shared.tables.other.title")}
         amount={otherMarketsAmount}
         section={BorrowerMarketDashboardSections.OTHER}
       />

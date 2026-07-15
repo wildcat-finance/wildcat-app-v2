@@ -13,7 +13,7 @@ import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { BigNumber } from "ethers"
 import humanizeDuration from "humanize-duration"
-import { useTranslation } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
 import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
@@ -262,10 +262,10 @@ export const RepayModal = ({
       : ""
 
   const amountInputLabel = isRepayByDays
-    ? `${t("borrowerMarketDetails.modals.repay.interestRemaining")}${
+    ? `${t("marketDetails.borrower.modals.repay.interestRemaining")}${
         remainingInterest ? ` ${remainingInterest}` : ""
       }`
-    : `${t("borrowerMarketDetails.modals.repay.upTo")} ${formatTokenWithCommas(
+    : `${t("marketDetails.borrower.modals.repay.upTo")} ${formatTokenWithCommas(
         market.outstandingDebt,
         {
           withSymbol: true,
@@ -382,7 +382,7 @@ export const RepayModal = ({
           sx={{ width: "152px" }}
           disabled={disableRepayBtn}
         >
-          {t("borrowerMarketDetails.modals.repay.repay")}
+          {t("marketDetails.borrower.modals.repay.repay")}
         </Button>
       )}
 
@@ -394,7 +394,7 @@ export const RepayModal = ({
           sx={PenaltyRepayBtn}
           disabled={disableRepayBtn}
         >
-          {t("borrowerMarketDetails.modals.repay.repay")}
+          {t("marketDetails.borrower.modals.repay.repay")}
           <SvgIcon fontSize="tiny" sx={PenaltyRepayBtnIcon}>
             <Arrow />
           </SvgIcon>
@@ -445,14 +445,14 @@ export const RepayModal = ({
 
             {isRepayByDays && modal.gettingValueStep && (
               <Typography variant="text4" sx={DaysSubtitle}>
-                {t("borrowerMarketDetails.modals.repay.daysSubtitle")}
+                {t("marketDetails.borrower.modals.repay.daysSubtitle")}
               </Typography>
             )}
 
             {modal.approvedStep && (
               <Box sx={TxModalInfoItem} padding="0 16px" marginBottom="8px">
                 <Typography variant="text3" sx={TxModalInfoTitle}>
-                  {t("borrowerMarketDetails.modals.repay.repaySum")}
+                  {t("marketDetails.borrower.modals.repay.repaySum")}
                 </Typography>
                 <Typography variant="text3">
                   {isTooSmallOutstandingDebt
@@ -469,9 +469,9 @@ export const RepayModal = ({
               padding="0 16px"
             >
               <Typography variant="text3" sx={TxModalInfoTitle}>
-                {t("borrowerMarketDetails.modals.repay.repaySum")}{" "}
+                {t("marketDetails.borrower.modals.repay.repaySum")}{" "}
                 {modal.approvedStep &&
-                  t("borrowerMarketDetails.modals.repay.afterTransaction")}
+                  t("marketDetails.borrower.modals.repay.afterTransaction")}
               </Typography>
               <Typography variant="text3">
                 {isTooSmallOutstandingDebt
@@ -593,17 +593,16 @@ export const RepayModal = ({
         {mustResetAllowance && (
           <Box width="100%" height="100%" padding="0 24px">
             <Typography variant="text3" color={COLORS.dullRed}>
-              You have an existing allowance of{" "}
-              {market.underlyingToken
-                .getAmount(marketAccount.underlyingApproval)
-                .format(market.underlyingToken.decimals, true)}{" "}
-              for this market.
-              <br />
-              {market.underlyingToken.symbol} requires that allowances be reset
-              to zero prior to being increased.
-              <br />
-              You will be prompted to execute two approval transactions to first
-              reset and then increase the allowance for this market.
+              <Trans
+                i18nKey="marketDetails.borrower.modals.repay.existingAllowanceWarning"
+                values={{
+                  amount: market.underlyingToken
+                    .getAmount(marketAccount.underlyingApproval)
+                    .format(market.underlyingToken.decimals, true),
+                  symbol: market.underlyingToken.symbol,
+                }}
+                components={{ br: <br /> }}
+              />
             </Typography>
           </Box>
         )}
@@ -615,8 +614,8 @@ export const RepayModal = ({
             isConnectedToSafe
               ? undefined
               : isApprovedButton
-                ? t("borrowerMarketDetails.modals.repay.approved")
-                : t("borrowerMarketDetails.modals.repay.approve")
+                ? t("marketDetails.borrower.modals.repay.approved")
+                : t("marketDetails.borrower.modals.repay.approve")
           }
           secondBtnIcon={isApprovedButton && !isConnectedToSafe}
           mainBtnOnClick={handleRepay}

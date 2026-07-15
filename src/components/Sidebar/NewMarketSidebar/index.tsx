@@ -50,7 +50,7 @@ export const NewMarketSidebar = () => {
 
   return (
     <Box sx={ContentContainer}>
-      <BackButton title={t("createMarket.sidebar.back")} />
+      <BackButton title={t("borrower.createMarket.sidebar.back")} />
 
       <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
         <Button
@@ -59,7 +59,7 @@ export const NewMarketSidebar = () => {
           sx={checkButtonStyle(STEPS_NAME.marketDescription)}
           onClick={handleClickDescription}
         >
-          {t("createMarket.sidebar.marketDescription")}
+          {t("common.fields.marketDescription")}
         </Button>
         {!hideLegalInfoStep && (
           <Button
@@ -69,7 +69,7 @@ export const NewMarketSidebar = () => {
             onClick={handleClickInformation}
             disabled={disableInfoStepButton}
           >
-            {t("createMarket.sidebar.legalInfo")}
+            {t("borrower.createMarket.sidebar.legalInfo")}
           </Button>
         )}
         <Button
@@ -78,7 +78,7 @@ export const NewMarketSidebar = () => {
           sx={checkButtonStyle(STEPS_NAME.confirmation)}
           disabled={disableConfirmationStepButton}
         >
-          {t("createMarket.sidebar.confirm")}
+          {t("borrower.createMarket.sidebar.confirm")}
         </Button>
       </Box>
     </Box>

@@ -25,7 +25,7 @@ export const NotificationsSidebar = () => {
   return (
     <Box sx={ContentContainer}>
       <Box position="sticky" top="32px">
-        <BackButton title={t("notifications.sidebar.back")} />
+        <BackButton title={t("common.buttons.back")} />
 
         <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
           <Button
@@ -48,7 +48,7 @@ export const NotificationsSidebar = () => {
               )
             }}
           >
-            {t("notifications.sidebar.all")}
+            {t("common.filters.all")}
           </Button>
           <Button
             variant="text"

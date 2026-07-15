@@ -3,6 +3,7 @@ import React, { ChangeEvent, useState } from "react"
 import { Box, Button, Typography } from "@mui/material"
 import { Market } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import { LendersTable } from "@/app/[locale]/borrower/components/AuthorizedLendersTable"
 import { useGetAllLenders } from "@/app/[locale]/borrower/hooks/useGetAllLenders"
@@ -25,6 +26,7 @@ export const LendersSection = ({
   markets,
   isMarketsLoading,
 }: LendersSectionProps) => {
+  const { t } = useTranslation()
   const { data: lenders } = useGetAllLenders()
 
   const [lenderSearch, setLenderSearch] = useState<string>("")
@@ -147,7 +149,7 @@ export const LendersSection = ({
           }}
         >
           <Typography variant="title2" sx={{ marginBottom: "6px" }}>
-            Lenders
+            {t("borrower.lenders.title")}
           </Typography>
           {showFullFunctionality && (
             <Link href={ROUTES.borrower.createMarket}>
@@ -161,7 +163,7 @@ export const LendersSection = ({
                   minWidth: "100px",
                 }}
               >
-                Edit Lenders List
+                {t("borrower.lenders.editButton")}
               </Button>
             </Link>
           )}
@@ -171,13 +173,13 @@ export const LendersSection = ({
           color={COLORS.santasGrey}
           sx={{ marginBottom: "24px" }}
         >
-          List of lenders that’s applied to your markets.{" "}
+          {t("borrower.lenders.subtitle")}{" "}
           <Link
             href="https://docs.wildcat.finance/"
             style={{ color: COLORS.santasGrey }}
             target="_blank"
           >
-            Learn more
+            {t("common.links.learnMore")}
           </Link>
         </Typography>
 
@@ -185,18 +187,18 @@ export const LendersSection = ({
           <FilterTextField
             value={lenderSearch}
             setValue={setLenderSearch}
-            placeholder="Search by Name"
+            placeholder={t("common.placeholders.searchByName")}
           />
 
           <SmallFilterSelect
-            placeholder="Markets"
+            placeholder={t("common.placeholders.markets")}
             options={marketsOptions ?? []}
             selected={marketsFilter}
             setSelected={setMarketsFilter}
           />
 
           <SmallFilterSelect
-            placeholder="Lenders"
+            placeholder={t("common.placeholders.lenders")}
             options={lendersOptions ?? []}
             selected={selectedLenders}
             setSelected={setSelectedLenders}

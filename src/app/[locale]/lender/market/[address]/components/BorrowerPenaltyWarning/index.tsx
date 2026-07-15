@@ -33,7 +33,7 @@ export const BorrowerPenaltyWarning = ({
       </SvgIcon>
 
       <Typography variant="text3" color={COLORS.dullRed}>
-        {t("lenderMarketDetails.borrowerPenaltyWarning")}
+        {t("marketDetails.lender.warnings.borrowerPenalty")}
       </Typography>
     </Box>
   )

@@ -51,7 +51,7 @@ export const MlaForm = ({ form }: MLAFormProps) => {
   const options = [
     {
       id: "noMLA",
-      label: "Don’t Use",
+      label: t("borrower.createMarket.mla.optionDontUse"),
       value: "noMLA",
     },
     ...(templates
@@ -79,12 +79,12 @@ export const MlaForm = ({ form }: MLAFormProps) => {
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("createNewMarket.mla.title")}
+        {t("borrower.createMarket.mla.title")}
       </Typography>
 
       <HorizontalInputLabel
-        label={t("createNewMarket.mla.mla.label")}
-        explainer={t("createNewMarket.mla.mla.explainer")}
+        label={t("borrower.createMarket.mla.mla.label")}
+        explainer={t("borrower.createMarket.mla.mla.explainer")}
       >
         <RadioGroup
           aria-labelledby="mla-label"

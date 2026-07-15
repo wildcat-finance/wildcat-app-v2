@@ -132,7 +132,7 @@ export const MarketWithdrawalRequests = ({
         }}
       >
         <Typography variant="title3" sx={isMobile ? { marginTop: "12px" } : {}}>
-          {t("marketWithdrawalRequests.openWithdrawals")}
+          {t("marketDetails.shared.withdrawalRequests.openWithdrawals")}
         </Typography>
         {(market.isDelinquent || market.isIncurringPenalties) &&
           isHoldingMarket && (
@@ -145,7 +145,7 @@ export const MarketWithdrawalRequests = ({
 
       <Box sx={TotalAccordionSummary(theme)}>
         <Typography variant="text2">
-          {t("marketWithdrawalRequests.total")}
+          {t("marketDetails.shared.withdrawalRequests.total")}
         </Typography>
 
         <TextfieldChip

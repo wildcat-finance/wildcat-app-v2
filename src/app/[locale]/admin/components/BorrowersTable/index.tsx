@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 
 import { Box, Skeleton, Typography, Button } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
@@ -36,133 +36,140 @@ export const BorrowersTable = () => {
 
   const columns: TypeSafeColDef<
     BorrowerProfileForAdminView & { id: string }
-  >[] = [
-    {
-      field: "timeInvited",
-      headerName: "Invited At",
-      flex: 1,
-      minWidth: 134,
-      headerAlign: "left",
-      align: "left",
-      renderCell: (params) => (
-        <span
-          style={{
-            width: "100%",
-            paddingRight: "20px",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {timestampToDateFormatted(+new Date(params.value) / 1000)}
-        </span>
-      ),
-    },
-    {
-      field: "name",
-      headerName: "Borrower Name",
-      flex: 1.7,
-      minWidth: 134,
-      headerAlign: "left",
-      align: "left",
-      renderCell: (params) => (
-        <span
-          style={{
-            width: "100%",
-            paddingRight: "20px",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {params.value}
-        </span>
-      ),
-    },
-    {
-      field: "alias",
-      headerName: "Borrower Alias",
-      flex: 1,
-      // minWidth: 134,
-      headerAlign: "left",
-      align: "left",
-      renderCell: (params) => (
-        <span
-          style={{
-            width: "100%",
-            paddingRight: "20px",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {params.value}
-        </span>
-      ),
-    },
-    {
-      sortable: false,
-      field: "address",
-      headerName: "Wallet Address",
-      minWidth: 176,
-      headerAlign: "left",
-      align: "left",
-      renderCell: ({ value }) => (
-        <Box sx={MarketWithdrawalRequetstCell}>
-          <Typography sx={{ minWidth: "80px" }} variant="text3">
-            {trimAddress(value)}
-          </Typography>
-
-          <LinkGroup linkValue={getAddressUrl(value)} copyValue={value} />
-        </Box>
-      ),
-      flex: 1,
-    },
-    {
-      field: "registeredOnChain",
-      headerName: "Registered On Chain",
-      flex: 1,
-      minWidth: 134,
-      headerAlign: "left",
-      align: "left",
-      renderCell: (params) => <span>{params.value ? "Yes" : "No"}</span>,
-    },
-    {
-      field: "timeSigned",
-      headerName: "Signed At",
-      flex: 1,
-      minWidth: 134,
-      headerAlign: "left",
-      align: "left",
-      renderCell: (params) => (
-        <span>
-          {params.value
-            ? timestampToDateFormatted(+new Date(params.value) / 1000)
-            : "N/A"}
-        </span>
-      ),
-    },
-    {
-      field: "chainId",
-      headerName: "",
-      sortable: false,
-      minWidth: 100,
-      align: "right",
-      headerAlign: "right",
-      renderCell: (params) => {
-        if (!params.row.timeSigned) {
-          return (
-            <Button
-              variant="text"
-              color="error"
-              onClick={() => setSelectedBorrower(params.row)}
-            >
-              View Profile
-            </Button>
-          )
-        }
-
-        return <EditBorrowerModal address={params.row.address} />
+  >[] = useMemo(
+    () => [
+      {
+        field: "timeInvited",
+        headerName: t("admin.borrowers.table.columns.invitedAt"),
+        flex: 1,
+        minWidth: 134,
+        headerAlign: "left",
+        align: "left",
+        renderCell: (params) => (
+          <span
+            style={{
+              width: "100%",
+              paddingRight: "20px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {timestampToDateFormatted(+new Date(params.value) / 1000)}
+          </span>
+        ),
       },
-    },
-  ]
+      {
+        field: "name",
+        headerName: t("admin.borrowers.table.columns.name"),
+        flex: 1.7,
+        minWidth: 134,
+        headerAlign: "left",
+        align: "left",
+        renderCell: (params) => (
+          <span
+            style={{
+              width: "100%",
+              paddingRight: "20px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {params.value}
+          </span>
+        ),
+      },
+      {
+        field: "alias",
+        headerName: t("admin.borrowers.table.columns.alias"),
+        flex: 1,
+        // minWidth: 134,
+        headerAlign: "left",
+        align: "left",
+        renderCell: (params) => (
+          <span
+            style={{
+              width: "100%",
+              paddingRight: "20px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {params.value}
+          </span>
+        ),
+      },
+      {
+        sortable: false,
+        field: "address",
+        headerName: t("common.fields.walletAddress"),
+        minWidth: 176,
+        headerAlign: "left",
+        align: "left",
+        renderCell: ({ value }) => (
+          <Box sx={MarketWithdrawalRequetstCell}>
+            <Typography sx={{ minWidth: "80px" }} variant="text3">
+              {trimAddress(value)}
+            </Typography>
+
+            <LinkGroup linkValue={getAddressUrl(value)} copyValue={value} />
+          </Box>
+        ),
+        flex: 1,
+      },
+      {
+        field: "registeredOnChain",
+        headerName: t("admin.borrowers.table.columns.registeredOnChain"),
+        flex: 1,
+        minWidth: 134,
+        headerAlign: "left",
+        align: "left",
+        renderCell: (params) => (
+          <span>
+            {params.value ? t("common.yesNo.yes") : t("common.yesNo.no")}
+          </span>
+        ),
+      },
+      {
+        field: "timeSigned",
+        headerName: t("admin.borrowers.table.columns.signedAt"),
+        flex: 1,
+        minWidth: 134,
+        headerAlign: "left",
+        align: "left",
+        renderCell: (params) => (
+          <span>
+            {params.value
+              ? timestampToDateFormatted(+new Date(params.value) / 1000)
+              : t("common.yesNo.na")}
+          </span>
+        ),
+      },
+      {
+        field: "chainId",
+        headerName: "",
+        sortable: false,
+        minWidth: 100,
+        align: "right",
+        headerAlign: "right",
+        renderCell: (params) => {
+          if (!params.row.timeSigned) {
+            return (
+              <Button
+                variant="text"
+                color="error"
+                onClick={() => setSelectedBorrower(params.row)}
+              >
+                {t("common.buttons.viewProfile")}
+              </Button>
+            )
+          }
+
+          return <EditBorrowerModal address={params.row.address} />
+        },
+      },
+    ],
+    [t, getAddressUrl],
+  )
 
   if (isLoading)
     return (

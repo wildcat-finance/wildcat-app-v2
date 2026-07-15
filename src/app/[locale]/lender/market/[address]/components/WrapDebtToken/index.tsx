@@ -11,6 +11,7 @@ import {
   WrapperFactory,
 } from "@wildcatfi/wildcat-sdk"
 import { constants } from "ethers"
+import { useTranslation } from "react-i18next"
 
 import { toastRequest } from "@/components/Toasts"
 import { NoWrapperState } from "@/components/WrapDebtToken/NoWrapperState"
@@ -44,6 +45,7 @@ export const WrapDebtToken = ({
   isAuthorizedLender,
   isDifferentChain,
 }: WrapDebtTokenProps) => {
+  const { t } = useTranslation()
   const { targetChainId } = useCurrentNetwork()
   const { signer } = useEthersProvider({ chainId: market?.chainId })
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
@@ -132,7 +134,7 @@ export const WrapDebtToken = ({
     <Box>
       {!isAuthorizedLender && (
         <Typography variant="text3" color={COLORS.manate}>
-          Only authorized lenders can access the wrapper.
+          {t("marketDetails.lender.wrapDebtToken.onlyAuthorized")}
         </Typography>
       )}
 
@@ -141,7 +143,9 @@ export const WrapDebtToken = ({
           {!hasFactory && (
             <NoWrapperState
               canCreateWrapper={false}
-              statusMessage="Wrappers are not available on this chain yet."
+              statusMessage={t(
+                "marketDetails.lender.wrapDebtToken.unavailableOnChain",
+              )}
             />
           )}
 

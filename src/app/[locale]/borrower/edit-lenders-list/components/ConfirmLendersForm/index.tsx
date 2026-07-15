@@ -80,7 +80,7 @@ export const ConfirmLendersForm = () => {
             }}
           >
             {lendersName[params.row.address.toLowerCase()] ||
-              t("editLendersList.forms.confirm.addName")}
+              t("borrower.editLenders.forms.confirm.addName")}
           </Typography>
         </>
       ),
@@ -136,9 +136,7 @@ export const ConfirmLendersForm = () => {
             ))}
           </Box>
         ) : (
-          <Typography variant="text3">
-            {t("editLendersList.forms.confirm.all")}
-          </Typography>
+          <Typography variant="text3">{t("common.filters.all")}</Typography>
         ),
     },
   ]
@@ -148,9 +146,9 @@ export const ConfirmLendersForm = () => {
       <Box sx={AlertBox}>
         <Coins />
         <Typography variant="text3" color={COLORS.butteredRum}>
-          {t("editLendersList.forms.confirm.keepInMind")}{" "}
+          {t("borrower.editLenders.forms.confirm.keepInMind")}{" "}
           <span style={{ fontWeight: 700 }}>
-            {t("editLendersList.forms.confirm.payGas")}
+            {t("borrower.editLenders.forms.confirm.payGas")}
           </span>
         </Typography>
       </Box>
@@ -169,11 +167,11 @@ export const ConfirmLendersForm = () => {
           onClick={handleClickEdit}
           sx={{ width: "140px" }}
         >
-          {t("editLendersList.forms.confirm.back")}
+          {t("common.buttons.back")}
         </Button>
 
         <Button size="large" variant="contained" sx={{ width: "140px" }}>
-          {t("editLendersList.forms.confirm.confirm")}
+          {t("common.buttons.confirm")}
         </Button>
       </Box>
     </Box>
