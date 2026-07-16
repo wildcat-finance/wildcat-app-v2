@@ -25,7 +25,6 @@ const config: Config = {
     "^@/store/(.*)$": "<rootDir>/store/$1",
     "^@/theme/(.*)$": "<rootDir>/theme/$1",
     "^@/routes$": "<rootDir>/routes",
-    "^@/middleware$": "<rootDir>/middleware",
   },
   // Add more setup options before each test is run
   // setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
