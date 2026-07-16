@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "prisma generate && next dev --webpack",
-    "build": "prisma generate && next build --webpack",
+    "build": "npm run lint:errors && prisma generate && next build --webpack",
     "start": "next start",
     "lint:errors": "eslint src --ext .js,.jsx,.ts,.tsx --quiet",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
