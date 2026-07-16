@@ -23,7 +23,6 @@ const config: Config = {
     "^@/mocks/(.*)$": "<rootDir>/mocks/$1",
     "^@/providers/(.*)$": "<rootDir>/providers/$1",
     "^@/store/(.*)$": "<rootDir>/store/$1",
-    "^@/stories/(.*)$": "<rootDir>/stories/$1",
     "^@/theme/(.*)$": "<rootDir>/theme/$1",
     "^@/routes$": "<rootDir>/routes",
     "^@/middleware$": "<rootDir>/middleware",
