@@ -116,7 +116,7 @@ export const getRecordText = (
     }`
   }
   if (record.__typename === "PeriodicTermClosed") {
-    return `Periodic term closed`
+    return `Periodic term closed; withdrawals are no longer limited to scheduled windows`
   }
   if (record.__typename === "AnnualInterestBipsReductionProposed") {
     const start = timestampToDateFormatted(record.responseWindowStart)

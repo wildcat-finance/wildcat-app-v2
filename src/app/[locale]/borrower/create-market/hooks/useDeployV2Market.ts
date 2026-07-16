@@ -32,7 +32,10 @@ import { toastError, toastRequest, toastSuccess } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { getDeployMarketPreviewError } from "@/utils/createMarketDeploy"
+import {
+  assertWrapperDeploymentCompatible,
+  getDeployMarketPreviewError,
+} from "@/utils/createMarketDeploy"
 
 export type DeployNewV2MarketParams = (
   | (Omit<
@@ -175,6 +178,11 @@ export const useDeployV2Market = () => {
       if (!signer || !hooksTemplate || !marketParams) {
         return
       }
+
+      assertWrapperDeploymentCompatible(
+        deployWrapper,
+        marketParams.transferAccess,
+      )
 
       const includeMockTokenStep = !!isTestnet && !isConnectedToSafe
       const deploymentSteps = getDeploySteps({

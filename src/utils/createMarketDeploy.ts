@@ -1,4 +1,20 @@
-import { DeployMarketStatus, MarketType } from "@wildcatfi/wildcat-sdk"
+import {
+  DeployMarketStatus,
+  MarketType,
+  TransferAccess,
+} from "@wildcatfi/wildcat-sdk"
+
+export const WRAPPER_TRANSFERS_DISABLED_ERROR =
+  "A wrapper cannot be deployed when market transfers are disabled"
+
+export const assertWrapperDeploymentCompatible = (
+  deployWrapper: boolean | undefined,
+  transferAccess: TransferAccess,
+) => {
+  if (deployWrapper && transferAccess === TransferAccess.Disabled) {
+    throw new Error(WRAPPER_TRANSFERS_DISABLED_ERROR)
+  }
+}
 
 type CreateMarketDeployRoutingInput = {
   implementationType: MarketType

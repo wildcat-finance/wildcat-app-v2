@@ -12,6 +12,7 @@ import {
   getMaxFixedTermDays,
   PERIODIC_TERM_LIMITS,
 } from "@/config/market-duration"
+import { WRAPPER_TRANSFERS_DISABLED_ERROR } from "@/utils/createMarketDeploy"
 import { dayjs } from "@/utils/dayjs"
 import { isLetterNumber, isLetterNumberSpace } from "@/utils/validations"
 
@@ -142,6 +143,7 @@ export const marketRefinementCallback = (
     transferRequiresAccess: boolean
     depositRequiresAccess: boolean
     withdrawalRequiresAccess: boolean
+    deployWrapper?: boolean
   },
   ctx: z.RefinementCtx,
 ) => {
@@ -165,6 +167,14 @@ export const marketRefinementCallback = (
       message:
         "Restricted withdrawals require restricted deposits and restricted or disabled transfers",
       path: ["withdrawalRequiresAccess"],
+      code: "custom",
+    })
+  }
+
+  if (data.disableTransfers && data.deployWrapper) {
+    ctx.addIssue({
+      message: WRAPPER_TRANSFERS_DISABLED_ERROR,
+      path: ["deployWrapper"],
       code: "custom",
     })
   }

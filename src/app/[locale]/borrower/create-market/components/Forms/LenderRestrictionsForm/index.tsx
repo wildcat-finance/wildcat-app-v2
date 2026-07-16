@@ -131,6 +131,9 @@ export const LenderRestrictionsForm = ({
               setValue("disableTransfers", disabled, {
                 shouldValidate: true,
               })
+              if (disabled) {
+                setValue("deployWrapper", false, { shouldValidate: true })
+              }
               if (!disabled && withdrawalRequiresAccessWatch) {
                 setValue("transferRequiresAccess", true, {
                   shouldValidate: true,

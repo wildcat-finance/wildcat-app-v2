@@ -1,6 +1,7 @@
-import { DeployMarketStatus } from "@wildcatfi/wildcat-sdk"
+import { DeployMarketStatus, TransferAccess } from "@wildcatfi/wildcat-sdk"
 
 import {
+  assertWrapperDeploymentCompatible,
   getCreateMarketDeployRouting,
   getDeployMarketPreviewError,
 } from "./createMarketDeploy"
@@ -34,6 +35,19 @@ describe("createMarketDeploy", () => {
         implementationType: "revolving",
       }),
     ).toThrow("Commitment fee percent is required for revolving markets")
+  })
+
+  it("rejects wrapper deployment for a transfer-disabled market", () => {
+    expect(() =>
+      assertWrapperDeploymentCompatible(true, TransferAccess.Disabled),
+    ).toThrow("A wrapper cannot be deployed when market transfers are disabled")
+
+    expect(() =>
+      assertWrapperDeploymentCompatible(false, TransferAccess.Disabled),
+    ).not.toThrow()
+    expect(() =>
+      assertWrapperDeploymentCompatible(true, TransferAccess.Open),
+    ).not.toThrow()
   })
 
   it.each<[Exclude<DeployMarketStatus, DeployMarketStatus.Ready>, string]>([

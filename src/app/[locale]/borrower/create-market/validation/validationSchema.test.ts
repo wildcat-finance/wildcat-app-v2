@@ -113,4 +113,21 @@ describe("create market validation schema", () => {
       expect(result.success).toBe(true)
     },
   )
+
+  it("rejects wrapper deployment when market transfers are disabled", () => {
+    const result = schema.safeParse({
+      ...baseData,
+      disableTransfers: true,
+      deployWrapper: true,
+    })
+
+    expect(result.success).toBe(false)
+    expect(result.error?.issues).toContainEqual(
+      expect.objectContaining({
+        path: ["deployWrapper"],
+        message:
+          "A wrapper cannot be deployed when market transfers are disabled",
+      }),
+    )
+  })
 })

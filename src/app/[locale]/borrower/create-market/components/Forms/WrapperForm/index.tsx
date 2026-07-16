@@ -27,6 +27,13 @@ export const WrapperForm = ({
   const { setValue, watch } = form
 
   const deployWrapper = watch("deployWrapper")
+  const disableTransfers = watch("disableTransfers")
+
+  useEffect(() => {
+    if (disableTransfers && deployWrapper) {
+      setValue("deployWrapper", false, { shouldValidate: true })
+    }
+  }, [deployWrapper, disableTransfers, setValue])
 
   const handleNextClick = () => {
     dispatch(setCreatingStep(CreateMarketSteps.MLA))
@@ -54,12 +61,19 @@ export const WrapperForm = ({
 
       <HorizontalInputLabel
         label={t("createNewMarket.wrapper.deploy.label")}
-        explainer={t("createNewMarket.wrapper.deploy.explainer")}
+        explainer={t(
+          disableTransfers
+            ? "createNewMarket.wrapper.deploy.unavailableWhenTransfersDisabled"
+            : "createNewMarket.wrapper.deploy.explainer",
+        )}
       >
         <Switch
-          checked={deployWrapper}
+          checked={Boolean(deployWrapper)}
+          disabled={disableTransfers}
           onChange={(e) => {
-            setValue("deployWrapper", e.target.checked)
+            setValue("deployWrapper", e.target.checked, {
+              shouldValidate: true,
+            })
           }}
         />
       </HorizontalInputLabel>
