@@ -59,10 +59,14 @@ export const BorrowModal = ({
   }
 
   const handleBorrow = () => {
+    if (disableBorrowBtn) return
+
     modal.setFlowStep(ModalSteps.approved)
   }
 
   const handleConfirm = () => {
+    if (disableBorrowBtn) return
+
     mutate(amount)
   }
 
@@ -109,6 +113,7 @@ export const BorrowModal = ({
 
   const disableBorrow =
     touBlocked ||
+    disableBorrowBtn ||
     market.isClosed ||
     market.borrowableAssets.eq(0) ||
     underlyingBorrowAmount.gt(market.borrowableAssets) ||
