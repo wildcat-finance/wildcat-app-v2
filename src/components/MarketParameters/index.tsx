@@ -1058,6 +1058,7 @@ export const MarketParameters = ({
                   "useOnSetMaxTotalSupply",
                   "useOnSetAnnualInterestAndReserveRatioBips",
                   "useOnSetProtocolFeeBips",
+                  "useOnExecutePendingAnnualInterestBipsReduction",
                 ] as const
               ).map((x) => (
                 <ParametersItem

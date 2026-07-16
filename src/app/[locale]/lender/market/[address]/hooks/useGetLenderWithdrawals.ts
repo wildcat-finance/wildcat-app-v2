@@ -24,6 +24,7 @@ import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { cloneSdkObject } from "@/lib/sdk-object"
 import { TwoStepQueryHookResult } from "@/utils/types"
+import { applyLatestLensWithdrawalBatchUpdate } from "@/utils/withdrawalBatch"
 
 export type LenderWithdrawalsForMarketResult = {
   completeWithdrawals: LenderWithdrawalStatus[]
@@ -189,12 +190,20 @@ export function useGetLenderWithdrawals(
     let i = 0
     for (const withdrawal of completeWithdrawalUpdates) {
       const update = withdrawalUpdates[i++]
-      withdrawal.batch.applyLensUpdate(update.batch)
+      applyLatestLensWithdrawalBatchUpdate(
+        withdrawal.batch,
+        update.batch,
+        market.chainId,
+      )
       withdrawal.updateWith(update.lenderStatus)
     }
     for (const withdrawal of incompleteWithdrawals) {
       const update = withdrawalUpdates[i++]
-      withdrawal.batch.applyLensUpdate(update.batch)
+      applyLatestLensWithdrawalBatchUpdate(
+        withdrawal.batch,
+        update.batch,
+        market.chainId,
+      )
       withdrawal.updateWith(update.lenderStatus)
     }
     logger.debug(

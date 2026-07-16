@@ -77,6 +77,16 @@ export const MinimumDepositModal = ({
   const disableConfirm =
     amount === "" || preview?.status !== SetMinimumDepositStatus.Ready
 
+  const minimumDepositError = (() => {
+    if (preview?.status === SetMinimumDepositStatus.MinimumDepositTooHigh) {
+      return "Minimum deposit is too large for this periodic market."
+    }
+    if (preview?.status === SetMinimumDepositStatus.DepositHookNotEnabled) {
+      return "This market does not support a positive minimum deposit."
+    }
+    return undefined
+  })()
+
   const showForm = !(isPending || showSuccessPopup || showErrorPopup)
 
   useEffect(() => {
@@ -145,6 +155,8 @@ export const MinimumDepositModal = ({
               style={{ width: "100%" }}
               value={amount}
               onChange={handleAmountChange}
+              error={!!minimumDepositError}
+              helperText={minimumDepositError}
               endAdornment={
                 <TextfieldChip
                   text={market.underlyingToken.symbol}

@@ -19,6 +19,7 @@ import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { cloneSdkObject } from "@/lib/sdk-object"
 import { TwoStepQueryHookResult } from "@/utils/types"
+import { applyLatestLensWithdrawalBatchUpdate } from "@/utils/withdrawalBatch"
 
 export type BorrowerWithdrawalsForMarketResult = {
   activeWithdrawal: WithdrawalBatch | undefined
@@ -189,7 +190,7 @@ export function useGetWithdrawals(
           true,
         )}`,
       )
-      batch.applyLensUpdate(update)
+      applyLatestLensWithdrawalBatchUpdate(batch, update, targetChainId)
       logger.debug(
         `New batch total value: ${batch.normalizedTotalAmount.format(
           18,

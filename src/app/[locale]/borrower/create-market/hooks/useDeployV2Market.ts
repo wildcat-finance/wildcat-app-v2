@@ -32,6 +32,7 @@ import { toastError, toastRequest, toastSuccess } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { getDeployMarketPreviewError } from "@/utils/createMarketDeploy"
 
 export type DeployNewV2MarketParams = (
   | (Omit<
@@ -285,7 +286,9 @@ export const useDeployV2Market = () => {
             hooksTemplate.previewDeployMarket as PreviewDeployMarket
           const preview = previewDeployMarket(params)
           if (preview.status !== DeployMarketStatus.Ready) {
-            throw Error(`Market not ready : ${preview.status}`)
+            const message = getDeployMarketPreviewError(preview.status)
+            toastError(message)
+            throw Error(message)
           }
           if (preview.marketType === "legacy") {
             const hooksFactory = getHooksFactoryContract(

@@ -60,4 +60,57 @@ describe("create market validation schema", () => {
     expect(result.success).toBe(false)
     expect(result.error?.issues[0]?.path).toEqual(["commitmentFeePercent"])
   })
+
+  it("rejects restricted withdrawals when transfers remain open", () => {
+    const result = schema.safeParse({
+      ...baseData,
+      withdrawalRequiresAccess: true,
+      transferRequiresAccess: false,
+      disableTransfers: false,
+    })
+
+    expect(result.success).toBe(false)
+    expect(result.error?.issues).toContainEqual(
+      expect.objectContaining({
+        path: ["withdrawalRequiresAccess"],
+        message:
+          "Restricted withdrawals require restricted deposits and restricted or disabled transfers",
+      }),
+    )
+  })
+
+  it("rejects restricted withdrawals when deposits remain open", () => {
+    const result = schema.safeParse({
+      ...baseData,
+      withdrawalRequiresAccess: true,
+      depositRequiresAccess: false,
+      transferRequiresAccess: true,
+    })
+
+    expect(result.success).toBe(false)
+    expect(result.error?.issues).toContainEqual(
+      expect.objectContaining({
+        path: ["withdrawalRequiresAccess"],
+        message:
+          "Restricted withdrawals require restricted deposits and restricted or disabled transfers",
+      }),
+    )
+  })
+
+  it.each([
+    { transferRequiresAccess: true, disableTransfers: false },
+    { transferRequiresAccess: false, disableTransfers: true },
+  ])(
+    "accepts restricted withdrawals with closed transfer escape paths",
+    ({ transferRequiresAccess, disableTransfers }) => {
+      const result = schema.safeParse({
+        ...baseData,
+        withdrawalRequiresAccess: true,
+        transferRequiresAccess,
+        disableTransfers,
+      })
+
+      expect(result.success).toBe(true)
+    },
+  )
 })

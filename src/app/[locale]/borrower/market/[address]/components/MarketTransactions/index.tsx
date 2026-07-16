@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
+import { PeriodicAprSettlementStatus } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -129,13 +130,22 @@ export const MarketTransactions = ({
     !!pendingPeriodicAprChange?.isResponseWindowElapsed,
   )
   const pendingAprNeedsSettlement =
-    pendingAprSettlementQuote?.status === "NeedsSettlement"
-  const pendingAprExecutionError =
+    pendingAprSettlementQuote?.status ===
+    PeriodicAprSettlementStatus.NeedsSettlement
+  const pendingAprExecutionErrorStatus =
     pendingAprSettlementQuote &&
-    pendingAprSettlementQuote.status !== "Ready" &&
-    pendingAprSettlementQuote.status !== "NeedsSettlement"
+    pendingAprSettlementQuote.status !== PeriodicAprSettlementStatus.Ready &&
+    pendingAprSettlementQuote.status !==
+      PeriodicAprSettlementStatus.NeedsSettlement
       ? pendingAprSettlementQuote.status
       : undefined
+  const pendingAprExecutionError =
+    pendingAprExecutionErrorStatus ===
+    PeriodicAprSettlementStatus.ExecutionNotEnabled
+      ? t(
+          "borrowerMarketDetails.parameters.pendingPeriodicApr.executionNotEnabled",
+        )
+      : pendingAprExecutionErrorStatus
   const aprDisplay = getMarketAprDisplayBips(market)
   const currentAprFormatted = formatBps(
     aprDisplay.configuredAprBips,
@@ -155,7 +165,7 @@ export const MarketTransactions = ({
     : undefined
   const canExecutePendingApr =
     !!pendingPeriodicAprChange?.isResponseWindowElapsed &&
-    pendingAprSettlementQuote?.status === "Ready"
+    pendingAprSettlementQuote?.status === PeriodicAprSettlementStatus.Ready
   const pendingAprNoticeKey = (() => {
     if (!pendingPeriodicAprChange) return undefined
     if (!pendingPeriodicAprChange.isResponseWindowElapsed) {

@@ -18,7 +18,7 @@ export type PendingPeriodicAprChange = {
   isResponseWindowOpen: boolean
   /**
    * Unix seconds after which the proposal can no longer be executed on-chain
-   * (template v2+ enforces `responseWindowEnd + validityPeriods * period`).
+   * (template v2+ enforces `responseWindowStart + validityPeriods * period`).
    */
   expiresAt: number
   isExpired: boolean
@@ -41,7 +41,7 @@ export const getPendingPeriodicAprChange = (
   }
 
   const expiresAt =
-    config.pendingAprChangeResponseWindowEnd +
+    config.pendingAprChangeResponseWindowStart +
     config.periodDuration * APR_REDUCTION_PROPOSAL_VALIDITY_PERIODS
 
   return {

@@ -138,6 +138,10 @@ export const marketRefinementCallback = (
     firstWithdrawalWindowStart?: number
     periodDuration?: number
     withdrawalWindowDuration?: number
+    disableTransfers: boolean
+    transferRequiresAccess: boolean
+    depositRequiresAccess: boolean
+    withdrawalRequiresAccess: boolean
   },
   ctx: z.RefinementCtx,
 ) => {
@@ -148,6 +152,19 @@ export const marketRefinementCallback = (
     ctx.addIssue({
       message: "Commitment fee is required for revolving markets",
       path: ["commitmentFeePercent"],
+      code: "custom",
+    })
+  }
+
+  if (
+    data.withdrawalRequiresAccess &&
+    (!data.depositRequiresAccess ||
+      (!data.disableTransfers && !data.transferRequiresAccess))
+  ) {
+    ctx.addIssue({
+      message:
+        "Restricted withdrawals require restricted deposits and restricted or disabled transfers",
+      path: ["withdrawalRequiresAccess"],
       code: "custom",
     })
   }

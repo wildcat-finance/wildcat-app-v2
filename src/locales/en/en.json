@@ -366,7 +366,8 @@
       "useOnNukeFromOrbit": "Hook on Sanction Block?",
       "useOnSetMaxTotalSupply": "Hook on Max Capacity Shift?",
       "useOnSetAnnualInterestAndReserveRatioBips": "Hook on APR/CRR Shift?",
-      "useOnSetProtocolFeeBips": "Hook on Protocol Fee Shift?"
+      "useOnSetProtocolFeeBips": "Hook on Protocol Fee Shift?",
+      "useOnExecutePendingAnnualInterestBipsReduction": "Hook on Pending APR Reduction Execution?"
     },
     "parameters": {
       "marketAddress": "Market Address",
@@ -401,6 +402,7 @@
         "pendingNotice": "Lenders can respond until {{readyAt}}. The reduction can be applied once the response window closes.",
         "readyNotice": "The lender response window has closed — the reduction is ready to apply.",
         "blockedNotice": "The response window has closed, but the reduction cannot be applied yet: {{reason}}",
+        "executionNotEnabled": "This market was not deployed with the V2.5 APR-reduction execution hook enabled.",
         "execute": "Apply APR",
         "executing": "Applying...",
         "settlementNotice": "{{amount}} {{symbol}} is needed to settle withdrawal and reserve obligations before the reduction can be applied.",

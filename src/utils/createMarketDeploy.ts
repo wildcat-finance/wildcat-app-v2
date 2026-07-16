@@ -1,4 +1,4 @@
-import { MarketType } from "@wildcatfi/wildcat-sdk"
+import { DeployMarketStatus, MarketType } from "@wildcatfi/wildcat-sdk"
 
 type CreateMarketDeployRoutingInput = {
   implementationType: MarketType
@@ -33,4 +33,16 @@ export const getCreateMarketDeployRouting = ({
     marketType: "revolving",
     commitmentFeeBips: Math.round(commitmentFeePercent * 100),
   }
+}
+
+export const getDeployMarketPreviewError = (
+  status: Exclude<DeployMarketStatus, DeployMarketStatus.Ready>,
+) => {
+  if (status === DeployMarketStatus.InvalidAccessConfiguration) {
+    return "Restricted withdrawals require restricted deposits and restricted or disabled transfers"
+  }
+  if (status === DeployMarketStatus.MinimumDepositTooHigh) {
+    return "Minimum deposit is too large for this periodic market"
+  }
+  return `Market is not ready for deployment: ${status}`
 }

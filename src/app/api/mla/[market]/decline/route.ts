@@ -1,8 +1,4 @@
-import {
-  getLatestLensContract,
-  isSupportedChainId,
-  Market,
-} from "@wildcatfi/wildcat-sdk"
+import { isSupportedChainId, Market } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
 import { DECLINE_MLA_ASSIGNMENT_MESSAGE } from "@/config/mla-rejection"
@@ -40,14 +36,7 @@ export const POST = async (
   }
 
   const market = await Market.getMarket(chainId, marketAddress, provider).catch(
-    async () => {
-      const lens = getLatestLensContract(chainId, provider)
-      return Market.fromUnifiedMarketData(
-        chainId,
-        provider,
-        await lens.getMarketData(marketAddress),
-      )
-    },
+    () => Market.getMarketV2(chainId, marketAddress, provider),
   )
   const address = market.borrower.toLowerCase()
 

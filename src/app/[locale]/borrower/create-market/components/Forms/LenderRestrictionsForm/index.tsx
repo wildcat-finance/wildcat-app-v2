@@ -46,6 +46,21 @@ export const LenderRestrictionsForm = ({
     )
   }, [])
 
+  useEffect(() => {
+    if (
+      withdrawalRequiresAccessWatch &&
+      !disableTransfersWatch &&
+      !transferRequiresAccessWatch
+    ) {
+      setValue("transferRequiresAccess", true, { shouldValidate: true })
+    }
+  }, [
+    disableTransfersWatch,
+    setValue,
+    transferRequiresAccessWatch,
+    withdrawalRequiresAccessWatch,
+  ])
+
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
@@ -71,7 +86,15 @@ export const LenderRestrictionsForm = ({
           <Switch
             checked={withdrawalRequiresAccessWatch}
             onChange={(e) => {
-              setValue("withdrawalRequiresAccess", e.target.checked)
+              const requiresAccess = e.target.checked
+              setValue("withdrawalRequiresAccess", requiresAccess, {
+                shouldValidate: true,
+              })
+              if (requiresAccess && !disableTransfersWatch) {
+                setValue("transferRequiresAccess", true, {
+                  shouldValidate: true,
+                })
+              }
             }}
           />
         </HorizontalInputLabel>
@@ -86,8 +109,11 @@ export const LenderRestrictionsForm = ({
         >
           <Switch
             checked={transferRequiresAccessWatch}
+            disabled={withdrawalRequiresAccessWatch && !disableTransfersWatch}
             onChange={(e) => {
-              setValue("transferRequiresAccess", e.target.checked)
+              setValue("transferRequiresAccess", e.target.checked, {
+                shouldValidate: true,
+              })
             }}
           />
         </HorizontalInputLabel>
@@ -101,7 +127,15 @@ export const LenderRestrictionsForm = ({
           <Switch
             checked={disableTransfersWatch}
             onChange={(e) => {
-              setValue("disableTransfers", e.target.checked)
+              const disabled = e.target.checked
+              setValue("disableTransfers", disabled, {
+                shouldValidate: true,
+              })
+              if (!disabled && withdrawalRequiresAccessWatch) {
+                setValue("transferRequiresAccess", true, {
+                  shouldValidate: true,
+                })
+              }
             }}
           />
         </HorizontalInputLabel>
