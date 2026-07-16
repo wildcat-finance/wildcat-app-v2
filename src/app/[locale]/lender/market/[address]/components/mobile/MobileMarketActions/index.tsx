@@ -152,7 +152,9 @@ export const MobileMarketActions = ({
   )
 
   const { data: mla } = useMarketMla(market.address)
-  const mlaResponse = mla && "noMLA" in mla ? null : mla
+  const mlaResponse = (mla && "noMLA" in mla ? null : mla) as Parameters<
+    typeof useGetSignedMla
+  >[0]
   const { data: signedMla } = useGetSignedMla(mlaResponse)
   const mlaRequiredAndUnsigned =
     signedMla === null && !!mla && !("noMLA" in mla)

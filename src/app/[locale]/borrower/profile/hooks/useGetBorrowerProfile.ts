@@ -7,8 +7,8 @@ import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 const fetchBorrowerProfile = async (
   address: `0x${string}` | undefined,
   chainId: number,
-): Promise<BorrowerProfile | undefined> => {
-  if (!address) return undefined
+): Promise<BorrowerProfile | null> => {
+  if (!address) return null
   const normalizedAddress = address.toLowerCase() as `0x${string}`
   const response = await fetch(
     `/api/profiles/${normalizedAddress}?chainId=${chainId}`,
@@ -21,7 +21,7 @@ const fetchBorrowerProfile = async (
   )
 
   if (response.status === 404) {
-    return undefined
+    return null
   }
 
   if (!response.ok) {
@@ -40,7 +40,7 @@ export const useGetBorrowerProfile = (
   const { chainId: selectedChainId } = useSelectedNetwork()
   const chainId = externalChainId ?? selectedChainId
   const normalizedAddress = address?.toLowerCase() as `0x${string}` | undefined
-  return useQuery<BorrowerProfile | undefined>({
+  return useQuery<BorrowerProfile | null>({
     queryKey: QueryKeys.Borrower.GET_PROFILE(chainId, normalizedAddress),
     queryFn: () => fetchBorrowerProfile(normalizedAddress, chainId),
     enabled: !!normalizedAddress && !!chainId,

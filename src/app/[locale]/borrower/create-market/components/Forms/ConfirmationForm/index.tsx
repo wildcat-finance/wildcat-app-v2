@@ -176,7 +176,7 @@ export const ConfirmationForm = ({
     onClickSign({
       form,
       timeSigned,
-      borrowerProfile: borrowerData,
+      borrowerProfile: borrowerData ?? undefined,
       asset: tokenAsset,
     })
     setRequestedSign(true)
@@ -274,7 +274,7 @@ export const ConfirmationForm = ({
               form={form}
               mlaTemplateId={mlaTemplateId}
               timeSigned={timeSigned}
-              borrowerProfile={borrowerData}
+              borrowerProfile={borrowerData ?? undefined}
               asset={tokenAsset}
               salt={salt}
               isSigning={false}
@@ -544,7 +544,7 @@ export const ConfirmationForm = ({
               form={form}
               mlaTemplateId={mlaTemplateId}
               timeSigned={timeSigned}
-              borrowerProfile={borrowerData}
+              borrowerProfile={borrowerData ?? undefined}
               asset={tokenAsset}
               salt={salt}
               onSign={handleSign}

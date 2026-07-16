@@ -35,7 +35,7 @@ export function getAdsTooltipComponent(
  */
 export function getAdsCellProps(
   marketId: string,
-): { isBonus: true; icons: JSX.Element[] } | undefined {
+): { isBonus: true; icons: React.JSX.Element[] } | undefined {
   const config = getAdsConfig(marketId)
   if (!config) return undefined
 

@@ -149,7 +149,7 @@ export default function CreateMarketPage() {
   const [tokenAsset, setTokenAsset] = useState<Token | undefined>()
 
   useEffect(() => {
-    setTokenAsset(assetData)
+    setTokenAsset(assetData ?? undefined)
   }, [assetData])
 
   const handleDeployMarket = newMarketForm.handleSubmit((data) => {

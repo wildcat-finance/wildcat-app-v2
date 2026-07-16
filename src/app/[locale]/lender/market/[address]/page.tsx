@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useEffect, useState } from "react"
+import { use, useEffect, useState } from "react"
 
 import { Box, Divider, Skeleton, Typography, useTheme } from "@mui/material"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
@@ -65,11 +65,10 @@ import {
 } from "./style"
 import { getEffectiveLenderRole } from "./utils"
 
-export default function LenderMarketDetails({
-  params: { address },
-}: {
-  params: { address: string }
+export default function LenderMarketDetails(props: {
+  params: Promise<{ address: string }>
 }) {
+  const { address } = use(props.params)
   const theme = useTheme()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
@@ -355,7 +354,7 @@ export default function LenderMarketDetails({
       <Box>
         <MobileMarketDescriptionModal
           marketName={market?.name}
-          marketSummary={marketSummary}
+          marketSummary={marketSummary ?? undefined}
           isLoading={isLoadingSummary}
           setIsMobileDescriptionOpen={setIsMobileDescriptionOpen}
         />
@@ -450,7 +449,7 @@ export default function LenderMarketDetails({
           {hasMarketDescription && (
             <Box id="marketDescription">
               <MarketSummary
-                marketSummary={marketSummary}
+                marketSummary={marketSummary ?? undefined}
                 isLoading={isLoadingSummary}
                 isOpen={isMobileDescriptionOpen}
                 setIsOpen={setIsMobileDescriptionOpen}
@@ -570,7 +569,7 @@ export default function LenderMarketDetails({
 
           {currentSection === LenderMarketSections.SUMMARY && (
             <MarketSummary
-              marketSummary={marketSummary}
+              marketSummary={marketSummary ?? undefined}
               isLoading={isLoadingSummary}
             />
           )}

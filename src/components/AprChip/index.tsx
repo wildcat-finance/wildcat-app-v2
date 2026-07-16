@@ -1,4 +1,4 @@
-import { ReactNode } from "react"
+import { JSX, ReactNode } from "react"
 
 import { Box, SvgIcon, Tooltip, Typography } from "@mui/material"
 

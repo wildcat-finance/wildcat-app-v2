@@ -18,9 +18,9 @@ export const useGetSignedMla = (
   const { chainId: targetChainId } = useSelectedNetwork()
 
   const getSignedMla = async () => {
-    if (!mla) return undefined
+    if (!mla) return null
     const marketAddress = mla.market
-    if (!marketAddress) return undefined
+    if (!marketAddress) return null
     const res = await fetch(
       `/api/mla/${marketAddress.toLowerCase()}/${address?.toLowerCase()}?chainId=${chainId}`,
     )
@@ -39,7 +39,7 @@ export const useGetSignedMla = (
     if (res.status === 404) {
       return null
     }
-    return undefined
+    return null
   }
 
   return useQuery({

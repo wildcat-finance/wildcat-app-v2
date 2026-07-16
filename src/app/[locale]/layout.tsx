@@ -49,14 +49,20 @@ export function generateStaticParams() {
   return i18nConfig.locales.map((locale) => ({ locale }))
 }
 
-export default async function RootLayout({
-  children,
-  params: { locale },
-}: {
+export default async function RootLayout(props: {
   children: ReactNode
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }) {
-  const initialState = cookieToInitialState(config, headers().get("cookie"))
+  const params = await props.params
+
+  const { locale } = params
+
+  const { children } = props
+
+  const initialState = cookieToInitialState(
+    config,
+    (await headers()).get("cookie"),
+  )
   const { resources } = await initTranslations(locale, i18nNamespaces)
 
   return (

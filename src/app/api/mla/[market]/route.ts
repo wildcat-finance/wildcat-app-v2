@@ -29,8 +29,9 @@ import {
 /// Route to get the MLA for a given market.
 export async function GET(
   request: NextRequest,
-  { params }: { params: { market: string } },
+  props: { params: Promise<{ market: string }> },
 ) {
+  const params = await props.params
   const market = params.market.toLowerCase()
   const chainId = validateChainIdParam(request)
   if (!chainId) {
@@ -65,8 +66,9 @@ export async function GET(
 /// Fails if the MLA already exists or if the borrower has refused to assign an MLA.
 export async function POST(
   request: NextRequest,
-  { params }: { params: { market: string } },
+  props: { params: Promise<{ market: string }> },
 ) {
+  const params = await props.params
   console.log(`Got request to set MLA for market ${params.market}`)
   let body: SetMasterLoanAgreementInput
   try {
