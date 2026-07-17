@@ -14,7 +14,11 @@ export type ProfileTabDef<T extends string> = {
 
 export type LenderProfileTab = "overview" | "capital" | "activity" | "markets"
 // | "lender-charts"
-export type BorrowerProfileTab = "overview" | "delinquency" | "borrower-charts"
+export type BorrowerProfileTab =
+  | "overview"
+  | "delinquency"
+  | "borrower-charts"
+  | "description"
 
 export const LENDER_PROFILE_TABS: ProfileTabDef<LenderProfileTab>[] = [
   {
@@ -52,13 +56,18 @@ export const BORROWER_PROFILE_TABS: ProfileTabDef<BorrowerProfileTab>[] = [
   },
   {
     value: "delinquency",
-    label: "Withdrawals & Delinquency",
+    label: "Delinquency & Reliability",
     description: "Delinquency track record and withdrawal analytics.",
   },
   {
     value: "borrower-charts",
-    label: "[preview] borrower charts",
-    description: "Cure velocity, realized capital cost, and APR drift.",
+    label: "Cost & debt trends",
+    description: "Cost of capital, aggregate debt, and cumulative interest.",
+  },
+  {
+    value: "description",
+    label: "Legal Info",
+    description: "",
   },
 ]
 

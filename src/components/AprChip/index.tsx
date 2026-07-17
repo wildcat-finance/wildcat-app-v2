@@ -48,7 +48,7 @@ export const AprChip = ({
           }}
         >
           <Typography variant={isMobile ? "text4" : "text3"}>
-            {baseApr}%
+            {baseAprString}
           </Typography>
         </Box>
 

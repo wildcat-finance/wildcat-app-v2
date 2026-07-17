@@ -13,9 +13,9 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { isHinterlightSupported } from "@/lib/hinterlight"
 import { pageCalcHeights } from "@/utils/constants"
-import { trimAddress } from "@/utils/formatters"
 
 import { BorrowerChartsTab } from "./components/BorrowerChartsTab"
+import { LegalInfoTab } from "./components/LegalInfoTab"
 import { OverviewTab } from "./components/OverviewTab"
 import { ProfilePageSkeleton } from "./components/PageSkeleton"
 import { WithdrawalsDelinquencyTab } from "./components/WithdrawalsDelinquencyTab"
@@ -30,8 +30,10 @@ export const ProfilePage = ({
   const chainId = profileChainId ?? selectedChainId
   const analyticsAvailable = isHinterlightSupported(chainId)
 
-  const { data: profileData, isLoading: isProfileLoading } =
-    useGetBorrowerProfile(profileAddress, chainId)
+  const { isLoading: isProfileLoading } = useGetBorrowerProfile(
+    profileAddress,
+    chainId,
+  )
   const { data: borrowerMarkets, isLoading: isMarketsLoading } =
     useGetBorrowerMarkets(profileAddress, chainId)
   const borrowerAnalyticsQuery = useBorrowerAggregateStats(
@@ -41,11 +43,6 @@ export const ProfilePage = ({
 
   const isMobile = useMobileResolution()
   const { currentTab } = useProfileTab(BORROWER_PROFILE_TABS, "overview")
-
-  const activeMarkets =
-    borrowerMarkets?.filter((market) => !market.isClosed) ?? []
-  const marketsAmount = borrowerMarkets?.length ?? 0
-  const accountName = profileData?.name ?? trimAddress(profileAddress ?? "")
 
   if (isProfileLoading || isMarketsLoading) {
     return (
@@ -62,7 +59,7 @@ export const ProfilePage = ({
         width: "100%",
         height: isMobile ? "auto" : `calc(100vh - ${pageCalcHeights.page})`,
         overflowY: isMobile ? "visible" : "auto",
-        padding: isMobile ? "0" : "44px 44px 24px 44px",
+        padding: isMobile ? "0" : "32px 16px",
         display: "flex",
         flexDirection: "column",
         gap: "24px",
@@ -80,10 +77,7 @@ export const ProfilePage = ({
         <OverviewTab
           profileAddress={profileAddress}
           chainId={chainId}
-          type={type}
-          accountName={accountName}
-          marketsAmount={marketsAmount}
-          borrowerMarkets={activeMarkets}
+          markets={borrowerMarkets ?? []}
           analytics={borrowerAnalyticsQuery.data}
           isAnalyticsLoading={
             analyticsAvailable && borrowerAnalyticsQuery.isLoading
@@ -114,6 +108,16 @@ export const ProfilePage = ({
             analyticsAvailable && borrowerAnalyticsQuery.isLoading
           }
           analyticsAvailable={analyticsAvailable}
+        />
+      )}
+
+      {currentTab === "description" && (
+        <LegalInfoTab
+          profileAddress={profileAddress}
+          chainId={chainId}
+          type={type}
+          markets={borrowerMarkets ?? []}
+          isMobile={isMobile}
         />
       )}
 

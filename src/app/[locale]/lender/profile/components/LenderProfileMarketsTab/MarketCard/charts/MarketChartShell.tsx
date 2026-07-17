@@ -14,7 +14,7 @@ import {
   LegendItem,
 } from "./constants"
 
-const ChartRangeSelector = ({
+export const ChartRangeSelector = ({
   value,
   onChange,
 }: {
@@ -122,7 +122,7 @@ const LegendSwatch = ({ item }: { item: LegendItem }) => {
   )
 }
 
-const ChartLegend = ({ items }: { items: LegendItem[] }) => (
+export const ChartLegend = ({ items }: { items: LegendItem[] }) => (
   <Box
     sx={{
       display: "flex",
