@@ -1,94 +1,54 @@
 import { useMemo } from "react"
 
-import { gql } from "@apollo/client"
 import { useQuery } from "@tanstack/react-query"
+import {
+  getLatestTokenUsdPrices,
+  IndexedTokenUsdPrice,
+} from "@wildcatfi/wildcat-sdk"
 
-import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
+import {
+  getConfiguredSubgraphClient,
+  isSubgraphPricingConfigured,
+} from "@/lib/subgraphCapabilities"
 
-const GET_TOKEN_USD_PRICES = gql`
-  query getTokenUsdPrices($addresses: [Bytes!]!, $first: Int!, $skip: Int!) {
-    tokens(where: { address_in: $addresses }) {
-      address
-      isUsdStablecoin
-    }
-    tokenDailyPrices(
-      first: $first
-      skip: $skip
-      orderBy: timestamp
-      orderDirection: desc
-      where: { token_: { address_in: $addresses } }
-    ) {
-      priceUSD
-      timestamp
-      token {
-        address
-      }
-    }
-  }
-`
-
-type TokenUsdPricesQuery = {
-  tokens: Array<{
-    address: string
-    isUsdStablecoin: boolean
-  }>
-  tokenDailyPrices: Array<{
-    priceUSD: string
-    timestamp: number
-    token: { address: string }
-  }>
+export type TokenUsdPricesResult = {
+  prices: Record<string, number>
+  unpriced: Record<
+    string,
+    Extract<IndexedTokenUsdPrice, { status: "unpriced" }>["reason"]
+  >
 }
 
-const PRICE_PAGE_SIZE = 1000
-
-export const fetchHinterlightTokenUsdPrices = async (
+export const fetchIndexedTokenUsdPrices = async (
   chainId: number,
   addresses: string[],
-) => {
-  if (addresses.length === 0) return {}
+): Promise<TokenUsdPricesResult> => {
+  if (addresses.length === 0) return { prices: {}, unpriced: {} }
 
-  const client = getHinterlightClient(chainId)
-  if (!client) return {}
+  const client = getConfiguredSubgraphClient(chainId)
+  if (!client) return { prices: {}, unpriced: {} }
 
   const normalized = Array.from(
     new Set(addresses.map((address) => address.toLowerCase())),
   )
-
-  const prices: Record<string, number> = {}
-
-  const fetchPricePage = async (
-    skip: number,
-  ): Promise<Record<string, number>> => {
-    const result = await client.query<TokenUsdPricesQuery>({
-      query: GET_TOKEN_USD_PRICES,
-      variables: { addresses: normalized, first: PRICE_PAGE_SIZE, skip },
-    })
-
-    result.data.tokens.forEach((token) => {
-      if (token.isUsdStablecoin) prices[token.address.toLowerCase()] = 1
-    })
-
-    // tokenDailyPrices is sorted desc by timestamp; first hit per token wins.
-    result.data.tokenDailyPrices.forEach((point) => {
-      const address = point.token.address.toLowerCase()
-      if (prices[address] !== undefined) return
-      const value = Number(point.priceUSD)
-      if (Number.isFinite(value)) prices[address] = value
-    })
-
-    const hasEveryPrice = normalized.every(
-      (address) => prices[address] !== undefined,
-    )
-    if (
-      hasEveryPrice ||
-      result.data.tokenDailyPrices.length < PRICE_PAGE_SIZE
-    ) {
-      return prices
-    }
-    return fetchPricePage(skip + PRICE_PAGE_SIZE)
-  }
-
-  return fetchPricePage(0)
+  const result = await getLatestTokenUsdPrices(client, {
+    tokens: normalized,
+    fetchPolicy: "network-only",
+  })
+  return result.prices.reduce<TokenUsdPricesResult>(
+    (mapped, price) => {
+      const address = price.address.toLowerCase()
+      if (price.status === "unpriced") {
+        mapped.unpriced[address] = price.reason
+        return mapped
+      }
+      const value = Number(price.priceUSD)
+      if (Number.isFinite(value)) mapped.prices[address] = value
+      else mapped.unpriced[address] = "no-observation"
+      return mapped
+    },
+    { prices: {}, unpriced: {} },
+  )
 }
 
 export const useTokenUsdPrices = (
@@ -104,9 +64,9 @@ export const useTokenUsdPrices = (
   )
 
   return useQuery({
-    queryKey: ["token", "HINTERLIGHT_USD_PRICES", chainId, sortedAddresses],
-    enabled: isHinterlightSupported(chainId) && sortedAddresses.length > 0,
-    queryFn: () => fetchHinterlightTokenUsdPrices(chainId, sortedAddresses),
+    queryKey: ["token", "INDEXED_USD_PRICES", chainId, sortedAddresses],
+    enabled: isSubgraphPricingConfigured(chainId) && sortedAddresses.length > 0,
+    queryFn: () => fetchIndexedTokenUsdPrices(chainId, sortedAddresses),
     staleTime: 60_000,
     refetchOnMount: false,
   })

@@ -8,7 +8,6 @@ import {
   getSubgraphClient,
   SignerOrProvider,
 } from "@wildcatfi/wildcat-sdk"
-import { SubgraphGetMarketQueryVariables } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 import { zeroAddress } from "viem"
 
 import { POLLING_INTERVAL } from "@/config/polling"
@@ -22,14 +21,13 @@ export type UseBorrowerMarketAccountProps = {
   lender: string | undefined
   provider: SignerOrProvider | undefined
   enabled: boolean
-} & Omit<SubgraphGetMarketQueryVariables, "market">
+}
 
 export function useBorrowerMarketAccountQuery({
   market,
   lender,
   provider,
   enabled,
-  ...filters
 }: UseBorrowerMarketAccountProps): TwoStepQueryHookResult<
   MarketAccount | undefined
 > {
@@ -49,7 +47,6 @@ export function useBorrowerMarketAccountQuery({
       market: market as Market,
       lender: lenderAddress as string,
       fetchPolicy: "network-only",
-      ...filters,
     })
 
     return result

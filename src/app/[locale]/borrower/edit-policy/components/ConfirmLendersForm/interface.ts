@@ -1,6 +1,5 @@
 import { GridColDef } from "@mui/x-data-grid"
-import { MarketController } from "@wildcatfi/wildcat-sdk"
-import { HooksInstance } from "@wildcatfi/wildcat-sdk/dist/access"
+import { HooksInstance, MarketController } from "@wildcatfi/wildcat-sdk"
 
 import { PolicyLenderMarketTableDataType } from "../../interface"
 

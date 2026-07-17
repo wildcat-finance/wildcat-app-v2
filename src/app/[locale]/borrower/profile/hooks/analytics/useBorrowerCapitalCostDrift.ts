@@ -1,7 +1,12 @@
 import { useMemo } from "react"
 
-import { gql } from "@apollo/client"
 import { useQuery } from "@tanstack/react-query"
+import {
+  collectIndexedPages,
+  getAnnualInterestBipsUpdatePage,
+  getBorrowerDailyStatsPage,
+  getMarketDailyStatsPage,
+} from "@wildcatfi/wildcat-sdk"
 
 import { BorrowerCapitalCostPoint } from "@/app/[locale]/borrower/profile/hooks/analytics/types"
 import {
@@ -13,81 +18,10 @@ import {
 } from "@/components/Profile/shared/analytics"
 import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
-import { fetchAllGraphqlPages } from "@/lib/paginated-query"
-
-const GET_BORROWER_CAPITAL_COST_DAILY_STATS = gql`
-  query getBorrowerCapitalCostDailyStats(
-    $borrower: Bytes!
-    $first: Int!
-    $skip: Int!
-  ) {
-    borrowerDailyStats: borrowerDailyStats_collection(
-      where: { borrower: $borrower }
-      orderBy: startTimestamp
-      orderDirection: asc
-      first: $first
-      skip: $skip
-    ) {
-      startTimestamp
-      dayBaseInterestAccruedUSD
-      dayDelinquencyFeesAccruedUSD
-      dayProtocolFeesAccruedUSD
-    }
-  }
-`
-
-const GET_BORROWER_CAPITAL_COST_MARKET_DAILY_STATS = gql`
-  query getBorrowerCapitalCostMarketDailyStats(
-    $marketIds: [String!]!
-    $first: Int!
-    $skip: Int!
-  ) {
-    marketDailyStats: marketDailyStats_collection(
-      where: { market_in: $marketIds }
-      orderBy: startTimestamp
-      orderDirection: asc
-      first: $first
-      skip: $skip
-    ) {
-      startTimestamp
-      scaledTotalSupply
-      scaleFactor
-      usdPrice
-      market {
-        id
-        annualInterestBips
-        originalAnnualInterestBips
-        asset {
-          decimals
-        }
-      }
-    }
-  }
-`
-
-const GET_BORROWER_CAPITAL_COST_APR_UPDATES = gql`
-  query getBorrowerCapitalCostAprUpdates(
-    $marketIds: [String!]!
-    $first: Int!
-    $skip: Int!
-  ) {
-    annualInterestBipsUpdateds(
-      where: { market_in: $marketIds }
-      orderBy: blockTimestamp
-      orderDirection: asc
-      first: $first
-      skip: $skip
-    ) {
-      market {
-        id
-      }
-      oldAnnualInterestBips
-      newAnnualInterestBips
-      blockTimestamp
-    }
-  }
-`
+import {
+  getConfiguredSubgraphClient,
+  isSubgraphPricingConfigured,
+} from "@/lib/subgraphCapabilities"
 
 type BorrowerDailyStatsRaw = {
   startTimestamp: number
@@ -118,26 +52,6 @@ type AnnualInterestBipsUpdatedRaw = {
   oldAnnualInterestBips: number
   newAnnualInterestBips: number
   blockTimestamp: number
-}
-
-type BorrowerDailyStatsQuery = {
-  borrowerDailyStats: BorrowerDailyStatsRaw[]
-}
-
-type BorrowerMarketDailyStatsQuery = {
-  marketDailyStats: MarketDailyStatsRaw[]
-}
-
-type BorrowerAprUpdatesQuery = {
-  annualInterestBipsUpdateds: AnnualInterestBipsUpdatedRaw[]
-}
-
-type BorrowerDailyStatsVariables = {
-  borrower: string
-}
-
-type BorrowerMarketVariables = {
-  marketIds: string[]
 }
 
 const getAprAtTimestamp = (
@@ -185,49 +99,70 @@ export const useBorrowerCapitalCostDrift = ({
     ],
     enabled:
       !!normalizedAddress &&
-      isHinterlightSupported(chainId) &&
+      isSubgraphPricingConfigured(chainId) &&
       normalizedMarketIds.length > 0,
     refetchOnMount: false,
     staleTime: 60_000,
     queryFn: async () => {
       if (!normalizedAddress) throw new Error("Missing borrower address")
 
-      const client = getHinterlightClient(chainId)
-      if (!client) throw new Error("Hinterlight not supported on this network")
+      const client = getConfiguredSubgraphClient(chainId)
+      if (!client) throw new Error("Subgraph not configured on this network")
 
-      const [borrowerDailyStats, marketDailyStats, annualInterestBipsUpdateds] =
+      const [indexedBorrowerStats, indexedMarketStats, indexedAprUpdates] =
         await Promise.all([
-          fetchAllGraphqlPages<
-            BorrowerDailyStatsQuery,
-            BorrowerDailyStatsVariables,
-            BorrowerDailyStatsRaw
-          >({
-            client,
-            query: GET_BORROWER_CAPITAL_COST_DAILY_STATS,
-            variables: { borrower: normalizedAddress },
-            getItems: (page) => page.borrowerDailyStats,
-          }),
-          fetchAllGraphqlPages<
-            BorrowerMarketDailyStatsQuery,
-            BorrowerMarketVariables,
-            MarketDailyStatsRaw
-          >({
-            client,
-            query: GET_BORROWER_CAPITAL_COST_MARKET_DAILY_STATS,
-            variables: { marketIds: normalizedMarketIds },
-            getItems: (page) => page.marketDailyStats,
-          }),
-          fetchAllGraphqlPages<
-            BorrowerAprUpdatesQuery,
-            BorrowerMarketVariables,
-            AnnualInterestBipsUpdatedRaw
-          >({
-            client,
-            query: GET_BORROWER_CAPITAL_COST_APR_UPDATES,
-            variables: { marketIds: normalizedMarketIds },
-            getItems: (page) => page.annualInterestBipsUpdateds,
-          }),
+          collectIndexedPages(
+            (request) =>
+              getBorrowerDailyStatsPage(client, {
+                borrower: normalizedAddress,
+                fetchPolicy: "network-only",
+                ...request,
+              }),
+            { first: 1000 },
+          ),
+          collectIndexedPages(
+            (request) =>
+              getMarketDailyStatsPage(client, {
+                markets: normalizedMarketIds,
+                fetchPolicy: "network-only",
+                ...request,
+              }),
+            { first: 1000 },
+          ),
+          collectIndexedPages(
+            (request) =>
+              getAnnualInterestBipsUpdatePage(client, {
+                markets: normalizedMarketIds,
+                fetchPolicy: "network-only",
+                ...request,
+              }),
+            { first: 1000 },
+          ),
         ])
+      const borrowerDailyStats: BorrowerDailyStatsRaw[] = indexedBorrowerStats
+        .slice()
+        .sort((left, right) => left.startTimestamp - right.startTimestamp)
+      const marketDailyStats: MarketDailyStatsRaw[] = indexedMarketStats.map(
+        (point) => ({
+          startTimestamp: point.startTimestamp,
+          scaledTotalSupply: point.scaledTotalSupply.toString(),
+          scaleFactor: point.scaleFactor.toString(),
+          usdPrice: point.usdPrice ?? null,
+          market: {
+            id: point.market.address,
+            annualInterestBips: point.market.annualInterestBips,
+            originalAnnualInterestBips: point.market.originalAnnualInterestBips,
+            asset: { decimals: point.market.asset.decimals },
+          },
+        }),
+      )
+      const annualInterestBipsUpdateds: AnnualInterestBipsUpdatedRaw[] =
+        indexedAprUpdates.map((update) => ({
+          market: { id: update.market.address },
+          oldAnnualInterestBips: update.oldAnnualInterestBips,
+          newAnnualInterestBips: update.newAnnualInterestBips,
+          blockTimestamp: Number(update.blockTimestamp),
+        }))
 
       const initialAprByMarket = new Map<string, number>()
       const debtByDay = new Map<number, Map<string, number>>()
@@ -246,7 +181,10 @@ export const useBorrowerCapitalCostDrift = ({
         )
         const price = entry.usdPrice
           ? Number(entry.usdPrice)
-          : priceMap[marketId] ?? 0
+          : priceMap[marketId]
+        if (price === undefined || !Number.isFinite(price)) {
+          throw new Error(`Missing USD price for market ${marketId}`)
+        }
         const dayDebt = debtByDay.get(entry.startTimestamp) ?? new Map()
         dayDebt.set(marketId, debtToken * price)
         debtByDay.set(entry.startTimestamp, dayDebt)
@@ -257,6 +195,11 @@ export const useBorrowerCapitalCostDrift = ({
         const updates = updatesByMarket.get(update.market.id) ?? []
         updates.push(update)
         updatesByMarket.set(update.market.id, updates)
+      })
+      updatesByMarket.forEach((updates) => {
+        updates.sort(
+          (left, right) => left.blockTimestamp - right.blockTimestamp,
+        )
       })
 
       const lastDebtByMarket = new Map<string, number>()

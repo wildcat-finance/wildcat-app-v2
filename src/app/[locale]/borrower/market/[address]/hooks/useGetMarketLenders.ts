@@ -45,12 +45,12 @@ export const useGetMarketLenders = (market?: Market) => {
         contractAddress: policy?.toLowerCase(),
         chainId: targetChainId as SupportedChainId,
         signerOrProvider: signerOrProvider as SignerOrProvider,
-        numMarkets: 1,
       }),
       getActiveLendersByMarket(subgraphClient, {
         fetchPolicy: "network-only",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        market: market as any,
+        // The SDK currently intersects its generated `market: string`
+        // variable with this domain `Market` input.
+        market: market as never,
       }),
     ])
 

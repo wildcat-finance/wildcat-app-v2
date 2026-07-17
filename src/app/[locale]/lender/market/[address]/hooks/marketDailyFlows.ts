@@ -36,28 +36,31 @@ export function toDailyFlows(
   let cumReq = 0
   let cumExec = 0
 
-  return stats.map((s) => {
-    const dep = parseFloat(formatUnits(BigInt(s.dayDeposited), decimals))
-    const req = parseFloat(
-      formatUnits(BigInt(s.dayWithdrawalsRequested), decimals),
-    )
-    const exec = parseFloat(
-      formatUnits(BigInt(s.dayWithdrawalsExecuted), decimals),
-    )
-    cumDep += dep
-    cumReq += req
-    cumExec += exec
+  return stats
+    .slice()
+    .sort((left, right) => left.startTimestamp - right.startTimestamp)
+    .map((s) => {
+      const dep = parseFloat(formatUnits(BigInt(s.dayDeposited), decimals))
+      const req = parseFloat(
+        formatUnits(BigInt(s.dayWithdrawalsRequested), decimals),
+      )
+      const exec = parseFloat(
+        formatUnits(BigInt(s.dayWithdrawalsExecuted), decimals),
+      )
+      cumDep += dep
+      cumReq += req
+      cumExec += exec
 
-    return {
-      date: formatDateISO(s.startTimestamp),
-      dateShort: formatDateShort(s.startTimestamp),
-      timestamp: s.startTimestamp,
-      dailyDeposit: dep,
-      dailyWithdrawalRequested: req,
-      dailyWithdrawalExecuted: exec,
-      dailyWithdrawalRequestedNeg: -req,
-      dailyWithdrawalExecutedNeg: -exec,
-      netFlow: cumDep - cumReq,
-    }
-  })
+      return {
+        date: formatDateISO(s.startTimestamp),
+        dateShort: formatDateShort(s.startTimestamp),
+        timestamp: s.startTimestamp,
+        dailyDeposit: dep,
+        dailyWithdrawalRequested: req,
+        dailyWithdrawalExecuted: exec,
+        dailyWithdrawalRequestedNeg: -req,
+        dailyWithdrawalExecutedNeg: -exec,
+        netFlow: cumDep - cumReq,
+      }
+    })
 }

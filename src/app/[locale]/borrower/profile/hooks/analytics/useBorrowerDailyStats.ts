@@ -1,5 +1,8 @@
-import { gql } from "@apollo/client"
 import { useQuery } from "@tanstack/react-query"
+import {
+  collectIndexedPages,
+  getBorrowerDailyStatsPage,
+} from "@wildcatfi/wildcat-sdk"
 
 import { BorrowerInterestCostPoint } from "@/app/[locale]/borrower/profile/hooks/analytics/types"
 import {
@@ -7,38 +10,10 @@ import {
   formatShortDate,
 } from "@/components/Profile/shared/analytics"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
-import { fetchAllGraphqlPages } from "@/lib/paginated-query"
-
-const GET_BORROWER_DAILY_STATS = gql`
-  query getBorrowerDailyStats($borrower: Bytes!, $first: Int!, $skip: Int!) {
-    borrowerDailyStats: borrowerDailyStats_collection(
-      where: { borrower: $borrower }
-      orderBy: startTimestamp
-      orderDirection: asc
-      first: $first
-      skip: $skip
-    ) {
-      startTimestamp
-      dayBaseInterestAccruedUSD
-      dayDelinquencyFeesAccruedUSD
-      dayProtocolFeesAccruedUSD
-    }
-  }
-`
-
-type BorrowerDailyStatsQuery = {
-  borrowerDailyStats: Array<{
-    startTimestamp: number
-    dayBaseInterestAccruedUSD: string
-    dayDelinquencyFeesAccruedUSD: string
-    dayProtocolFeesAccruedUSD: string
-  }>
-}
-
-type BorrowerDailyStatsVariables = {
-  borrower: string
-}
+import {
+  getConfiguredSubgraphClient,
+  isSubgraphPricingConfigured,
+} from "@/lib/subgraphCapabilities"
 
 export const useBorrowerDailyStats = (
   borrowerAddress: `0x${string}` | undefined,
@@ -53,48 +28,50 @@ export const useBorrowerDailyStats = (
       chainId,
       normalizedAddress,
     ],
-    enabled: !!normalizedAddress && isHinterlightSupported(chainId),
+    enabled: !!normalizedAddress && isSubgraphPricingConfigured(chainId),
     refetchOnMount: false,
     staleTime: 60_000,
     queryFn: async () => {
       if (!normalizedAddress) throw new Error("Missing borrower address")
 
-      const client = getHinterlightClient(chainId)
-      if (!client) throw new Error("Hinterlight not supported on this network")
+      const client = getConfiguredSubgraphClient(chainId)
+      if (!client) throw new Error("Subgraph not configured on this network")
 
-      const borrowerDailyStats = await fetchAllGraphqlPages<
-        BorrowerDailyStatsQuery,
-        BorrowerDailyStatsVariables,
-        BorrowerDailyStatsQuery["borrowerDailyStats"][number]
-      >({
-        client,
-        query: GET_BORROWER_DAILY_STATS,
-        variables: { borrower: normalizedAddress },
-        getItems: (page) => page.borrowerDailyStats,
-      })
+      const borrowerDailyStats = await collectIndexedPages(
+        (request) =>
+          getBorrowerDailyStatsPage(client, {
+            borrower: normalizedAddress,
+            fetchPolicy: "network-only",
+            ...request,
+          }),
+        { first: 1000 },
+      )
 
       let cumBase = 0
       let cumDelinq = 0
       let cumProtocol = 0
 
-      return borrowerDailyStats.map((point) => {
-        cumBase += Number(point.dayBaseInterestAccruedUSD) || 0
-        cumDelinq += Number(point.dayDelinquencyFeesAccruedUSD) || 0
-        cumProtocol += Number(point.dayProtocolFeesAccruedUSD) || 0
+      return borrowerDailyStats
+        .slice()
+        .sort((left, right) => left.startTimestamp - right.startTimestamp)
+        .map((point) => {
+          cumBase += Number(point.dayBaseInterestAccruedUSD) || 0
+          cumDelinq += Number(point.dayDelinquencyFeesAccruedUSD) || 0
+          cumProtocol += Number(point.dayProtocolFeesAccruedUSD) || 0
 
-        return {
-          date: formatDateLabel(point.startTimestamp),
-          dateShort: formatShortDate(point.startTimestamp),
-          timestamp: point.startTimestamp,
-          dayBaseInterest: Number(point.dayBaseInterestAccruedUSD) || 0,
-          dayDelinquencyFees: Number(point.dayDelinquencyFeesAccruedUSD) || 0,
-          dayProtocolFees: Number(point.dayProtocolFeesAccruedUSD) || 0,
-          baseInterest: cumBase,
-          delinquencyFees: cumDelinq,
-          protocolFees: cumProtocol,
-          totalCost: cumBase + cumDelinq + cumProtocol,
-        }
-      })
+          return {
+            date: formatDateLabel(point.startTimestamp),
+            dateShort: formatShortDate(point.startTimestamp),
+            timestamp: point.startTimestamp,
+            dayBaseInterest: Number(point.dayBaseInterestAccruedUSD) || 0,
+            dayDelinquencyFees: Number(point.dayDelinquencyFeesAccruedUSD) || 0,
+            dayProtocolFees: Number(point.dayProtocolFeesAccruedUSD) || 0,
+            baseInterest: cumBase,
+            delinquencyFees: cumDelinq,
+            protocolFees: cumProtocol,
+            totalCost: cumBase + cumDelinq + cumProtocol,
+          }
+        })
     },
   })
 }

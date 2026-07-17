@@ -3,7 +3,7 @@ import { createMarketValidationSchema } from "./validationSchema"
 const schema = createMarketValidationSchema(false)
 
 const baseData = {
-  implementationType: "legacy" as const,
+  implementationType: "standard" as const,
   marketName: "Test Market",
   mla: "noMLA",
   accessControl: "manualApproval",
@@ -31,7 +31,7 @@ const baseData = {
 }
 
 describe("create market validation schema", () => {
-  it("accepts legacy markets without commitment fee", () => {
+  it("accepts standard markets without commitment fee", () => {
     const result = schema.safeParse(baseData)
 
     expect(result.success).toBe(true)

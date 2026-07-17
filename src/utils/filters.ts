@@ -1,9 +1,4 @@
-/* eslint-disable camelcase */
-import {
-  Market,
-  MarketAccount,
-  SubgraphMarket_Filter,
-} from "@wildcatfi/wildcat-sdk"
+import { Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
@@ -23,17 +18,6 @@ export const isExcludedMarket = (market: Market | string) => {
 
 export const isNotExcludedMarket = (market: Market | string) =>
   !isExcludedMarket(market)
-
-export const combineFilters = (
-  _filters: (SubgraphMarket_Filter | null | undefined)[],
-) => {
-  const filters = _filters.filter(
-    (filter) => filter && Object.keys(filter).length > 0,
-  ) as SubgraphMarket_Filter[]
-  if (filters.length === 0) return undefined
-  if (filters.length === 1) return filters[0]
-  return { and: filters }
-}
 
 export const filterMarketAccounts = (
   marketAccounts: MarketAccount[] | undefined,

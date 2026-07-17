@@ -7,16 +7,12 @@ import {
   WithdrawalBatch,
   TokenAmount,
   getSubgraphClient,
+  logger,
 } from "@wildcatfi/wildcat-sdk"
-import {
-  GetIncompleteWithdrawalsForMarketDocument,
-  SubgraphGetIncompleteWithdrawalsForMarketQuery,
-  SubgraphGetIncompleteWithdrawalsForMarketQueryVariables,
-} from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
-import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
+import { GET_INCOMPLETE_WITHDRAWALS_FOR_MARKET } from "@/graphql/withdrawals"
 import { cloneSdkObject } from "@/lib/sdk-object"
 import { TwoStepQueryHookResult } from "@/utils/types"
 import { applyLatestLensWithdrawalBatchUpdate } from "@/utils/withdrawalBatch"
@@ -102,19 +98,22 @@ export function useGetWithdrawals(
   async function getAllPendingWithdrawalBatches(): Promise<BorrowerWithdrawalsForMarketResult> {
     if (!address || !market || !subgraphClient) throw Error()
     logger.debug(`Getting withdrawal batches...`)
-    const result = await subgraphClient.query<
-      SubgraphGetIncompleteWithdrawalsForMarketQuery,
-      SubgraphGetIncompleteWithdrawalsForMarketQueryVariables
-    >({
-      query: GetIncompleteWithdrawalsForMarketDocument,
+    const result = await subgraphClient.query({
+      query: GET_INCOMPLETE_WITHDRAWALS_FOR_MARKET,
       variables: { market: address },
+      fetchPolicy: "network-only",
     })
     logger.debug(
       `Got withdrawal batches: ${result.data.market?.withdrawalBatches.length}`,
     )
     const incompleteBatches =
       result.data.market?.withdrawalBatches.map((batch) =>
-        WithdrawalBatch.fromSubgraphWithdrawalBatch(market, batch),
+        WithdrawalBatch.fromSubgraphWithdrawalBatch(
+          market,
+          batch as Parameters<
+            typeof WithdrawalBatch.fromSubgraphWithdrawalBatch
+          >[1],
+        ),
       ) ?? []
 
     incompleteBatches.forEach((batch) => {

@@ -10,7 +10,7 @@ import { LenderAnalyticsSummary } from "@/app/[locale]/lender/market/[address]/c
 import { AnalyticsUnavailableNotice } from "@/components/Profile/shared/AnalyticsUnavailableNotice"
 import { buildBorrowerSummaryItems } from "@/components/Profile/shared/borrowerSummaryItems"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { isHinterlightSupported } from "@/lib/hinterlight"
+import { isSubgraphPricingConfigured } from "@/lib/subgraphCapabilities"
 import { buildBorrowerProfileHref } from "@/utils/formatters"
 
 import { BorrowerMarketsTreemap } from "./components/BorrowerMarketsTreemap"
@@ -24,7 +24,7 @@ export const ProfileSection = ({
 }: ProfileSectionProps) => {
   const { chainId: selectedChainId } = useSelectedNetwork()
   const chainId = externalChainId ?? selectedChainId
-  const analyticsAvailable = isHinterlightSupported(chainId)
+  const analyticsAvailable = isSubgraphPricingConfigured(chainId)
   const { data: profileData } = useGetBorrowerProfile(profileAddress, chainId)
   const { data: borrowerMarkets, isLoading: isMarketsLoading } =
     useGetBorrowerMarkets(profileAddress, chainId)
@@ -64,7 +64,7 @@ export const ProfileSection = ({
       ) : (
         <AnalyticsUnavailableNotice
           title="Aggregate KPIs unavailable on this network"
-          description="Borrower analytics are sourced from the Hinterlight analytics subgraph on Ethereum mainnet and Sepolia."
+          description="This network does not provide the indexed analytics and pricing required for borrower KPIs."
         />
       )}
 

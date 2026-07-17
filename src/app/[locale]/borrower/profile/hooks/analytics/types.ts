@@ -5,15 +5,16 @@ export type BorrowerProfileAnalytics = {
   activeMarkets: number
   closedMarkets: number
   assetsUsed: string[]
-  totalDebt: number
-  totalCapacity: number
-  avgApr: number
+  totalDebt: number | undefined
+  totalCapacity: number | undefined
+  avgApr: number | undefined
   totalBorrowed: number
   totalRepaid: number
   marketIds: string[]
   nameMap: Record<string, string>
   gracePeriodMap: Record<string, number>
   priceMap: Record<string, number>
+  unpricedMarketIds: string[]
   decimalsMap: Record<string, number>
 }
 

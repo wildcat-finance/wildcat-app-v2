@@ -1,5 +1,16 @@
-import { gql, TypedDocumentNode } from "@apollo/client"
 import { useQuery } from "@tanstack/react-query"
+import {
+  collectIndexedPages,
+  getDelinquencyStatusChangePage,
+  getIndexedMarket,
+  getLenderDepositPage,
+  getLenderTransferPage,
+  getLenderWithdrawalExecutionPage,
+  getLenderWithdrawalRequestPage,
+  getMarketDailyStatsPage,
+  hydrateMarketsLive,
+  isSupportedChainId,
+} from "@wildcatfi/wildcat-sdk"
 
 import { LenderRiskReturnsPoint } from "@/app/[locale]/lender/profile/hooks/types"
 import {
@@ -9,187 +20,15 @@ import {
   toHumanAmount,
 } from "@/components/Profile/shared/analytics"
 import { QueryKeys } from "@/config/query-keys"
+import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
+import {
+  getConfiguredSubgraphClient,
+  isSubgraphPricingConfigured,
+} from "@/lib/subgraphCapabilities"
 
-const PAGE_SIZE = 1000
 const DAY_SECONDS = 86_400
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
-
-type PageVariables = {
-  first: number
-  skip: number
-}
-
-type MarketPageVariables = PageVariables & {
-  marketId: string
-}
-
-type AccountPageVariables = PageVariables & {
-  accountId: string
-}
-
-const GET_MARKET_DAILY_STATS = gql`
-  query getLenderRiskReturnsMarketDailyStats(
-    $marketId: String!
-    $first: Int!
-    $skip: Int!
-  ) {
-    marketDailyStats: marketDailyStats_collection(
-      where: { market: $marketId }
-      orderBy: startTimestamp
-      orderDirection: asc
-      first: $first
-      skip: $skip
-    ) {
-      startTimestamp
-      scaledTotalSupply
-      scaleFactor
-      usdPrice
-      dayWithdrawalsRequested
-      market {
-        id
-        asset {
-          decimals
-        }
-      }
-    }
-  }
-`
-
-const GET_LENDER_DEPOSITS = gql`
-  query getLenderRiskReturnsDeposits(
-    $accountId: String!
-    $first: Int!
-    $skip: Int!
-  ) {
-    deposits(
-      where: { account: $accountId }
-      orderBy: blockTimestamp
-      orderDirection: asc
-      first: $first
-      skip: $skip
-    ) {
-      assetAmount
-      scaledAmount
-      blockTimestamp
-    }
-  }
-`
-
-const GET_LENDER_WITHDRAWAL_REQUESTS = gql`
-  query getLenderRiskReturnsWithdrawalRequests(
-    $accountId: String!
-    $first: Int!
-    $skip: Int!
-  ) {
-    withdrawalRequests(
-      where: { account: $accountId }
-      orderBy: blockTimestamp
-      orderDirection: asc
-      first: $first
-      skip: $skip
-    ) {
-      scaledAmount
-      normalizedAmount
-      blockTimestamp
-    }
-  }
-`
-
-const GET_LENDER_WITHDRAWAL_EXECUTIONS = gql`
-  query getLenderRiskReturnsWithdrawalExecutions(
-    $accountId: String!
-    $first: Int!
-    $skip: Int!
-  ) {
-    withdrawalExecutions(
-      where: { account: $accountId }
-      orderBy: blockTimestamp
-      orderDirection: asc
-      first: $first
-      skip: $skip
-    ) {
-      normalizedAmount
-      blockTimestamp
-    }
-  }
-`
-
-const GET_LENDER_TRANSFERS_IN = gql`
-  query getLenderRiskReturnsTransfersIn(
-    $accountId: String!
-    $first: Int!
-    $skip: Int!
-  ) {
-    transfers(
-      where: { to: $accountId }
-      orderBy: blockTimestamp
-      orderDirection: asc
-      first: $first
-      skip: $skip
-    ) {
-      from {
-        address
-      }
-      scaledAmount
-      blockTimestamp
-    }
-  }
-`
-
-const GET_LENDER_TRANSFERS_OUT = gql`
-  query getLenderRiskReturnsTransfersOut(
-    $accountId: String!
-    $first: Int!
-    $skip: Int!
-  ) {
-    transfers(
-      where: { from: $accountId }
-      orderBy: blockTimestamp
-      orderDirection: asc
-      first: $first
-      skip: $skip
-    ) {
-      to {
-        address
-      }
-      scaledAmount
-      blockTimestamp
-    }
-  }
-`
-
-const GET_DELINQUENCY_STATUS_CHANGES = gql`
-  query getLenderRiskReturnsDelinquency(
-    $marketId: String!
-    $first: Int!
-    $skip: Int!
-  ) {
-    delinquencyStatusChangeds(
-      where: { market: $marketId }
-      orderBy: blockTimestamp
-      orderDirection: asc
-      first: $first
-      skip: $skip
-    ) {
-      isDelinquent
-      blockTimestamp
-    }
-  }
-`
-
-const GET_MARKET_LIVE_STATE = gql`
-  query getLenderRiskReturnsMarketLiveState($marketId: ID!) {
-    market(id: $marketId) {
-      id
-      scaleFactor
-      asset {
-        decimals
-      }
-    }
-  }
-`
 
 type MarketDailyStatRaw = {
   startTimestamp: number
@@ -262,36 +101,6 @@ type DayBucket = {
   transfersOut: TransferOutRaw[]
 }
 
-const fetchAllPages = async <TItem, TVariables extends PageVariables>(
-  client: NonNullable<ReturnType<typeof getHinterlightClient>>,
-  query: TypedDocumentNode<Record<string, TItem[]>, TVariables>,
-  field: string,
-  variables: Omit<TVariables, "first" | "skip">,
-  skip = 0,
-  items: TItem[] = [],
-): Promise<TItem[]> => {
-  const page = await client.query<Record<string, TItem[]>, TVariables>({
-    query,
-    variables: {
-      ...variables,
-      first: PAGE_SIZE,
-      skip,
-    } as TVariables,
-  })
-  const pageItems = page.data[field] ?? []
-  const nextItems = [...items, ...pageItems]
-
-  if (pageItems.length < PAGE_SIZE) return nextItems
-  return fetchAllPages(
-    client,
-    query,
-    field,
-    variables,
-    skip + PAGE_SIZE,
-    nextItems,
-  )
-}
-
 const toDayStart = (timestamp: number) =>
   Math.floor(timestamp / DAY_SECONDS) * DAY_SECONDS
 
@@ -304,20 +113,23 @@ const buildDelinquencyPeriods = (
   const periods: DelinquencyMarkArea[] = []
   let openStart: number | null = null
 
-  events.forEach((event) => {
-    if (event.isDelinquent) {
-      if (openStart === null) openStart = event.blockTimestamp
-      return
-    }
+  events
+    .slice()
+    .sort((left, right) => left.blockTimestamp - right.blockTimestamp)
+    .forEach((event) => {
+      if (event.isDelinquent) {
+        if (openStart === null) openStart = event.blockTimestamp
+        return
+      }
 
-    if (openStart !== null) {
-      periods.push({
-        startTimestamp: openStart,
-        endTimestamp: event.blockTimestamp,
-      })
-      openStart = null
-    }
-  })
+      if (openStart !== null) {
+        periods.push({
+          startTimestamp: openStart,
+          endTimestamp: event.blockTimestamp,
+        })
+        openStart = null
+      }
+    })
 
   if (openStart !== null) {
     periods.push({
@@ -571,11 +383,13 @@ export const useLenderRiskReturnsChart = ({
   priceMap: Record<string, number>
 }) => {
   const { chainId } = useSelectedNetwork()
+  const { provider, signer } = useEthersProvider({ chainId })
+  const signerOrProvider = signer ?? provider
   const normalizedAddress = lenderAddress?.toLowerCase()
   const normalizedMarketId = marketId?.toLowerCase()
   const fallbackPrice = normalizedMarketId
-    ? priceMap[normalizedMarketId] ?? 0
-    : 0
+    ? priceMap[normalizedMarketId]
+    : undefined
 
   return useQuery<RiskReturnsData>({
     queryKey: [
@@ -587,80 +401,173 @@ export const useLenderRiskReturnsChart = ({
     enabled:
       !!normalizedAddress &&
       !!normalizedMarketId &&
-      isHinterlightSupported(chainId),
+      !!signerOrProvider &&
+      fallbackPrice !== undefined &&
+      isSubgraphPricingConfigured(chainId),
     refetchOnMount: false,
     staleTime: 60_000,
     queryFn: async () => {
       if (!normalizedAddress || !normalizedMarketId) {
         throw new Error("Missing lender or market address")
       }
+      if (!signerOrProvider || !isSupportedChainId(chainId)) {
+        throw new Error("No provider for the selected network")
+      }
+      if (fallbackPrice === undefined || !Number.isFinite(fallbackPrice)) {
+        throw new Error(`Missing USD price for market ${normalizedMarketId}`)
+      }
 
-      const client = getHinterlightClient(chainId)
-      if (!client) throw new Error("Hinterlight not supported on this network")
-
-      const accountId = `LENDER-${normalizedMarketId}-${normalizedAddress}`
+      const client = getConfiguredSubgraphClient(chainId)
+      if (!client) throw new Error("Subgraph not configured on this network")
 
       const [
-        marketDailyStats,
-        deposits,
-        withdrawalRequests,
-        withdrawalExecutions,
-        transfersIn,
-        transfersOut,
-        delinquencyEvents,
-        marketLiveStateResult,
+        indexedMarketDailyStats,
+        indexedDeposits,
+        indexedWithdrawalRequests,
+        indexedWithdrawalExecutions,
+        indexedTransfersIn,
+        indexedTransfersOut,
+        indexedDelinquencyEvents,
+        indexedMarket,
       ] = await Promise.all([
-        fetchAllPages<MarketDailyStatRaw, MarketPageVariables>(
-          client,
-          GET_MARKET_DAILY_STATS,
-          "marketDailyStats",
-          { marketId: normalizedMarketId },
+        collectIndexedPages(
+          (request) =>
+            getMarketDailyStatsPage(client, {
+              markets: [normalizedMarketId],
+              fetchPolicy: "network-only",
+              ...request,
+            }),
+          { first: 1000 },
         ),
-        fetchAllPages<DepositRaw, AccountPageVariables>(
-          client,
-          GET_LENDER_DEPOSITS,
-          "deposits",
-          { accountId },
+        collectIndexedPages(
+          (request) =>
+            getLenderDepositPage(client, {
+              lender: normalizedAddress,
+              markets: [normalizedMarketId],
+              fetchPolicy: "network-only",
+              ...request,
+            }),
+          { first: 1000 },
         ),
-        fetchAllPages<WithdrawalRequestRaw, AccountPageVariables>(
-          client,
-          GET_LENDER_WITHDRAWAL_REQUESTS,
-          "withdrawalRequests",
-          { accountId },
+        collectIndexedPages(
+          (request) =>
+            getLenderWithdrawalRequestPage(client, {
+              lender: normalizedAddress,
+              markets: [normalizedMarketId],
+              fetchPolicy: "network-only",
+              ...request,
+            }),
+          { first: 1000 },
         ),
-        fetchAllPages<WithdrawalExecutionRaw, AccountPageVariables>(
-          client,
-          GET_LENDER_WITHDRAWAL_EXECUTIONS,
-          "withdrawalExecutions",
-          { accountId },
+        collectIndexedPages(
+          (request) =>
+            getLenderWithdrawalExecutionPage(client, {
+              lender: normalizedAddress,
+              markets: [normalizedMarketId],
+              fetchPolicy: "network-only",
+              ...request,
+            }),
+          { first: 1000 },
         ),
-        fetchAllPages<TransferInRaw, AccountPageVariables>(
-          client,
-          GET_LENDER_TRANSFERS_IN,
-          "transfers",
-          { accountId },
+        collectIndexedPages(
+          (request) =>
+            getLenderTransferPage(client, {
+              lender: normalizedAddress,
+              markets: [normalizedMarketId],
+              direction: "in",
+              fetchPolicy: "network-only",
+              ...request,
+            }),
+          { first: 1000 },
         ),
-        fetchAllPages<TransferOutRaw, AccountPageVariables>(
-          client,
-          GET_LENDER_TRANSFERS_OUT,
-          "transfers",
-          { accountId },
+        collectIndexedPages(
+          (request) =>
+            getLenderTransferPage(client, {
+              lender: normalizedAddress,
+              markets: [normalizedMarketId],
+              direction: "out",
+              fetchPolicy: "network-only",
+              ...request,
+            }),
+          { first: 1000 },
         ),
-        fetchAllPages<DelinquencyStatusChangedRaw, MarketPageVariables>(
-          client,
-          GET_DELINQUENCY_STATUS_CHANGES,
-          "delinquencyStatusChangeds",
-          { marketId: normalizedMarketId },
+        collectIndexedPages(
+          (request) =>
+            getDelinquencyStatusChangePage(client, {
+              markets: [normalizedMarketId],
+              fetchPolicy: "network-only",
+              ...request,
+            }),
+          { first: 1000 },
         ),
-        client.query<{ market: MarketLiveStateRaw | null }>({
-          query: GET_MARKET_LIVE_STATE,
-          variables: { marketId: normalizedMarketId },
+        getIndexedMarket(client, {
+          chainId,
+          signerOrProvider,
+          market: normalizedMarketId,
+          fetchPolicy: "network-only",
         }),
       ])
 
+      if (!indexedMarket) {
+        throw new Error(`Market not found: ${normalizedMarketId}`)
+      }
+      await hydrateMarketsLive(chainId, [indexedMarket], signerOrProvider)
+
+      const marketDailyStats: MarketDailyStatRaw[] =
+        indexedMarketDailyStats.map((stat) => ({
+          startTimestamp: stat.startTimestamp,
+          scaledTotalSupply: stat.scaledTotalSupply.toString(),
+          scaleFactor: stat.scaleFactor.toString(),
+          usdPrice: stat.usdPrice ?? null,
+          dayWithdrawalsRequested: stat.dayWithdrawalsRequested.toString(),
+          market: {
+            id: stat.market.address,
+            asset: { decimals: stat.market.asset.decimals },
+          },
+        }))
+      const deposits: DepositRaw[] = indexedDeposits.map((deposit) => ({
+        assetAmount: deposit.assetAmount.toString(),
+        scaledAmount: deposit.scaledAmount.toString(),
+        blockTimestamp: Number(deposit.blockTimestamp),
+      }))
+      const withdrawalRequests: WithdrawalRequestRaw[] =
+        indexedWithdrawalRequests.map((request) => ({
+          scaledAmount: request.scaledAmount.toString(),
+          normalizedAmount: request.normalizedAmount.toString(),
+          blockTimestamp: Number(request.blockTimestamp),
+        }))
+      const withdrawalExecutions: WithdrawalExecutionRaw[] =
+        indexedWithdrawalExecutions.map((execution) => ({
+          normalizedAmount: execution.normalizedAmount.toString(),
+          blockTimestamp: Number(execution.blockTimestamp),
+        }))
+      const transfersIn: TransferInRaw[] = indexedTransfersIn.map(
+        (transfer) => ({
+          from: { address: transfer.from },
+          scaledAmount: transfer.scaledAmount.toString(),
+          blockTimestamp: Number(transfer.blockTimestamp),
+        }),
+      )
+      const transfersOut: TransferOutRaw[] = indexedTransfersOut.map(
+        (transfer) => ({
+          to: { address: transfer.to },
+          scaledAmount: transfer.scaledAmount.toString(),
+          blockTimestamp: Number(transfer.blockTimestamp),
+        }),
+      )
+      const delinquencyEvents: DelinquencyStatusChangedRaw[] =
+        indexedDelinquencyEvents.map((event) => ({
+          isDelinquent: event.isDelinquent,
+          blockTimestamp: Number(event.blockTimestamp),
+        }))
+      const marketLiveState: MarketLiveStateRaw = {
+        scaleFactor: indexedMarket.scaleFactor.toString(),
+        asset: { decimals: indexedMarket.underlyingToken.decimals },
+      }
+
       return buildRiskReturnsData({
         marketDailyStats,
-        marketLiveState: marketLiveStateResult.data?.market ?? null,
+        marketLiveState,
         deposits,
         withdrawalRequests,
         withdrawalExecutions,

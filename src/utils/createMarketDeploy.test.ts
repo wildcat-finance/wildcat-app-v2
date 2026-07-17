@@ -7,13 +7,13 @@ import {
 } from "./createMarketDeploy"
 
 describe("createMarketDeploy", () => {
-  it("routes legacy markets without commitment fee", () => {
+  it("routes standard markets without commitment fee", () => {
     expect(
       getCreateMarketDeployRouting({
-        implementationType: "legacy",
+        implementationType: "standard",
       }),
     ).toEqual({
-      marketType: "legacy",
+      marketKind: "standard",
     })
   })
 
@@ -24,7 +24,7 @@ describe("createMarketDeploy", () => {
         commitmentFeePercent: 2.5,
       }),
     ).toEqual({
-      marketType: "revolving",
+      marketKind: "revolving",
       commitmentFeeBips: 250,
     })
   })
@@ -61,7 +61,11 @@ describe("createMarketDeploy", () => {
     ],
     [
       DeployMarketStatus.WrongHooksFactory,
-      "Market is not ready for deployment: WrongHooksFactory",
+      "The selected policy cannot deploy this market implementation",
+    ],
+    [
+      DeployMarketStatus.HooksTemplateRegistrationUnavailable,
+      "The selected hooks template is missing indexed registration metadata",
     ],
   ])("describes rejected SDK deployment previews", (status, expected) => {
     expect(getDeployMarketPreviewError(status)).toBe(expected)

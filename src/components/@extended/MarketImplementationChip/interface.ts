@@ -1,7 +1,7 @@
-import { MarketType } from "@wildcatfi/wildcat-sdk"
+import { MarketKind } from "@wildcatfi/wildcat-sdk"
 
 export type MarketImplementationChipProps = {
-  implementationType: MarketType
+  implementationType: MarketKind
   type?: "table" | "market"
   isMobile?: boolean
 }

@@ -2,12 +2,13 @@ import { useEffect, useMemo } from "react"
 
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
+  getIndexedMarket,
+  getSubgraphClient,
   isSupportedChainId,
   Market,
   MarketVersion,
   type SignerOrProvider,
 } from "@wildcatfi/wildcat-sdk"
-import type { SubgraphGetMarketQuery } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
@@ -23,7 +24,7 @@ export type UseMarketProps = {
 
 type ApiResponse = {
   chainId: number | null
-  market: NonNullable<SubgraphGetMarketQuery["market"]> | null
+  market: { id: string } | null
 }
 
 export const getMarketApiQueryKey = (
@@ -79,7 +80,7 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
   })
 
   const effectiveChainId = api.data?.chainId ?? undefined
-  const subgraphMarket = api.data?.market ?? null
+  const discoveredMarket = api.data?.market ?? null
   const performanceContext = {
     address: marketAddressLower,
     chainId: effectiveChainId ?? chainId,
@@ -88,7 +89,7 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
   useMarketDetailPerformanceMark(
     "api-market-ready",
     performanceContext,
-    !!effectiveChainId && !!subgraphMarket,
+    !!effectiveChainId && !!discoveredMarket,
   )
 
   const { signer, provider } = useEthersProvider({
@@ -108,18 +109,27 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
     enabled:
       !!marketAddressLower &&
       !!effectiveChainId &&
-      !!subgraphMarket &&
+      !!discoveredMarket &&
       !!signerOrProvider,
     refetchInterval: POLLING_INTERVAL,
     queryFn: async () => {
-      if (!effectiveChainId || !subgraphMarket || !signerOrProvider)
+      if (
+        typeof effectiveChainId !== "number" ||
+        !isSupportedChainId(effectiveChainId) ||
+        !discoveredMarket ||
+        !signerOrProvider
+      ) {
         throw Error()
+      }
 
-      const market = Market.fromSubgraphMarketData(
-        effectiveChainId,
+      const subgraphClient = getSubgraphClient(effectiveChainId)
+      const market = await getIndexedMarket(subgraphClient, {
+        chainId: effectiveChainId,
         signerOrProvider,
-        subgraphMarket,
-      )
+        market: discoveredMarket.id,
+        fetchPolicy: "network-only",
+      })
+      if (!market) throw Error(`Market not found: ${discoveredMarket.id}`)
 
       return refreshMarketForDetail(effectiveChainId, market, signerOrProvider)
     },

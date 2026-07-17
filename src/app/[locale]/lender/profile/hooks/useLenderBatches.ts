@@ -1,79 +1,23 @@
 import { useMemo } from "react"
 
-import { gql } from "@apollo/client"
 import { useQuery } from "@tanstack/react-query"
+import {
+  collectIndexedPages,
+  getLenderWithdrawalStatusPage,
+} from "@wildcatfi/wildcat-sdk"
 
 import { LenderBatchRow } from "@/app/[locale]/lender/profile/hooks/types"
 import {
   formatDate,
+  stableRecordKey,
   toHumanAmount,
 } from "@/components/Profile/shared/analytics"
 import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
-import { fetchAllGraphqlPages } from "@/lib/paginated-query"
-
-const GET_LENDER_PROFILE_BATCHES = gql`
-  query getLenderProfileBatches(
-    $accountIds: [String!]!
-    $first: Int!
-    $skip: Int!
-  ) {
-    lenderWithdrawalStatuses(
-      where: { account_in: $accountIds }
-      orderBy: batch__expiry
-      orderDirection: desc
-      first: $first
-      skip: $skip
-    ) {
-      batch {
-        id
-        expiry
-        isClosed
-        isExpired
-      }
-      account {
-        market {
-          id
-          name
-          asset {
-            decimals
-          }
-        }
-      }
-      totalNormalizedRequests
-      normalizedAmountWithdrawn
-      isCompleted
-    }
-  }
-`
-
-type LenderProfileBatchesQuery = {
-  lenderWithdrawalStatuses: Array<{
-    batch: {
-      id: string
-      expiry: string
-      isClosed: boolean
-      isExpired: boolean
-    }
-    account: {
-      market: {
-        id: string
-        name: string
-        asset: {
-          decimals: number
-        }
-      }
-    }
-    totalNormalizedRequests: string
-    normalizedAmountWithdrawn: string
-    isCompleted: boolean
-  }>
-}
-
-type AccountIdsVariables = {
-  accountIds: string[]
-}
+import {
+  getConfiguredSubgraphClient,
+  isSubgraphPricingConfigured,
+} from "@/lib/subgraphCapabilities"
 
 export const useLenderBatches = (
   lenderAddress: `0x${string}` | undefined,
@@ -83,68 +27,73 @@ export const useLenderBatches = (
   const { chainId } = useSelectedNetwork()
   const normalizedAddress = lenderAddress?.toLowerCase()
   const normalizedMarketIds = useMemo(() => [...marketIds].sort(), [marketIds])
+  const stablePriceMapKey = useMemo(() => stableRecordKey(priceMap), [priceMap])
 
   return useQuery<LenderBatchRow[]>({
-    queryKey: QueryKeys.Lender.GET_PROFILE_BATCHES(
-      chainId,
-      normalizedAddress,
-      normalizedMarketIds,
-    ),
+    queryKey: [
+      ...QueryKeys.Lender.GET_PROFILE_BATCHES(
+        chainId,
+        normalizedAddress,
+        normalizedMarketIds,
+      ),
+      stablePriceMapKey,
+    ],
     enabled:
       !!normalizedAddress &&
-      isHinterlightSupported(chainId) &&
+      isSubgraphPricingConfigured(chainId) &&
       normalizedMarketIds.length > 0,
     refetchOnMount: false,
     staleTime: 60_000,
     queryFn: async () => {
       if (!normalizedAddress) throw new Error("Missing lender address")
 
-      const client = getHinterlightClient(chainId)
-      if (!client) throw new Error("Hinterlight not supported on this network")
+      const client = getConfiguredSubgraphClient(chainId)
+      if (!client) throw new Error("Subgraph not configured on this network")
 
-      const accountIds = normalizedMarketIds.map(
-        (marketId) => `LENDER-${marketId.toLowerCase()}-${normalizedAddress}`,
+      const lenderWithdrawalStatuses = await collectIndexedPages(
+        (request) =>
+          getLenderWithdrawalStatusPage(client, {
+            lender: normalizedAddress,
+            markets: normalizedMarketIds,
+            fetchPolicy: "network-only",
+            ...request,
+          }),
+        { first: 1000 },
       )
 
-      const lenderWithdrawalStatuses = await fetchAllGraphqlPages<
-        LenderProfileBatchesQuery,
-        AccountIdsVariables,
-        LenderProfileBatchesQuery["lenderWithdrawalStatuses"][number]
-      >({
-        client,
-        query: GET_LENDER_PROFILE_BATCHES,
-        variables: {
-          accountIds,
-        },
-        getItems: (page) => page.lenderWithdrawalStatuses,
-      })
+      return lenderWithdrawalStatuses
+        .slice()
+        .sort((left, right) => Number(right.batch.expiry - left.batch.expiry))
+        .map((status) => {
+          const marketId = status.market.address
+          const price = priceMap[marketId]
+          if (price === undefined) {
+            throw new Error(`Missing USD price for market ${marketId}`)
+          }
+          const requested =
+            toHumanAmount(
+              status.totalNormalizedRequests,
+              status.market.asset.decimals,
+            ) * price
+          const withdrawn =
+            toHumanAmount(
+              status.normalizedAmountWithdrawn,
+              status.market.asset.decimals,
+            ) * price
 
-      return lenderWithdrawalStatuses.map((status) => {
-        const price = priceMap[status.account.market.id] ?? 0
-        const requested =
-          toHumanAmount(
-            status.totalNormalizedRequests,
-            status.account.market.asset.decimals,
-          ) * price
-        const withdrawn =
-          toHumanAmount(
-            status.normalizedAmountWithdrawn,
-            status.account.market.asset.decimals,
-          ) * price
-
-        return {
-          id: status.batch.id,
-          marketId: status.account.market.id,
-          marketName: status.account.market.name,
-          requested,
-          withdrawn,
-          remaining: Math.max(0, requested - withdrawn),
-          isCompleted: status.isCompleted,
-          isClosed: status.batch.isClosed,
-          isExpired: status.batch.isExpired,
-          expiry: formatDate(Number(status.batch.expiry)),
-        }
-      })
+          return {
+            id: status.batch.id,
+            marketId,
+            marketName: status.market.name,
+            requested,
+            withdrawn,
+            remaining: Math.max(0, requested - withdrawn),
+            isCompleted: status.isCompleted,
+            isClosed: status.batch.isClosed,
+            isExpired: status.batch.isExpired,
+            expiry: formatDate(Number(status.batch.expiry)),
+          }
+        })
     },
   })
 }

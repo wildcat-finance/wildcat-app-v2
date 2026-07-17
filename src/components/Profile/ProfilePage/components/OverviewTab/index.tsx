@@ -79,7 +79,7 @@ export const OverviewTab = ({
       ) : (
         <AnalyticsUnavailableNotice
           title="Aggregate KPIs unavailable on this network"
-          description="Analytics for this profile are sourced from the Hinterlight analytics subgraph (mainnet + Sepolia). Switch networks to view them."
+          description="This network does not provide the indexed analytics and pricing required for aggregate profile KPIs."
         />
       )}
 

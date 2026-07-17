@@ -7,6 +7,7 @@ import {
   BorrowerHooksDataResult,
   getController,
   getAllHooksDataForBorrower,
+  getHooksTemplateRegistrations,
 } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
@@ -35,6 +36,7 @@ export function useGetBorrowerHooksDataQuery({
   chainId,
 }: GetBorrowerHooksDataProps) {
   const { address } = useAccount()
+  const subgraphClient = useSubgraphClient()
 
   async function getBorrowerHooksDataQueryFn(): Promise<BorrowerHooksDataQueryResult> {
     const chain = chainId! as SupportedChainId
@@ -42,10 +44,18 @@ export function useGetBorrowerHooksDataQuery({
     const supportsV1 =
       NETWORKS_BY_ID[chainId as SupportedChainId].hasV1Deployment
     const borrower = address as string
-    const [result, controller] = await Promise.all([
-      getBorrowerHooksData(chain, signerOrProvider, borrower),
+    const [hooksTemplateRegistrations, controller] = await Promise.all([
+      getHooksTemplateRegistrations(subgraphClient, {
+        fetchPolicy: "network-only",
+      }),
       supportsV1 ? getController(chain, signerOrProvider, borrower) : undefined,
     ])
+    const result = await getBorrowerHooksData({
+      chainId: chain,
+      signerOrProvider,
+      hooksTemplateRegistrations,
+      borrower,
+    })
 
     return {
       hooksInstances: result.hooksInstances,
@@ -59,7 +69,7 @@ export function useGetBorrowerHooksDataQuery({
     queryKey: [GET_BORROWER_HOOKS_DATA, address, chainId],
     queryFn: getBorrowerHooksDataQueryFn,
     refetchInterval: POLLING_INTERVAL,
-    enabled,
+    enabled: enabled && !!address,
     refetchOnMount: false,
   })
 }

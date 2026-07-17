@@ -12,7 +12,7 @@ import {
   MenuItemButton,
 } from "@/components/Sidebar/BorrowerSidebar/style"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { isHinterlightSupported } from "@/lib/hinterlight"
+import { isSubgraphPricingConfigured } from "@/lib/subgraphCapabilities"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { isBorrowerContextPath } from "@/utils/profileRoutes"
@@ -64,7 +64,7 @@ export const BorrowerSidebar = () => {
 
   const resolved = resolveProfileTabs(pathname)
   const { chainId } = useSelectedNetwork()
-  const analyticsAvailable = isHinterlightSupported(chainId)
+  const analyticsAvailable = isSubgraphPricingConfigured(chainId)
   const showTabs =
     !isEditProfile &&
     resolved !== null &&

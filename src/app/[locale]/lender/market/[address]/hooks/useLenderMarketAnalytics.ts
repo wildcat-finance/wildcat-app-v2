@@ -1,33 +1,20 @@
 import { useMemo } from "react"
 
-import { gql } from "@apollo/client"
 import { useQuery } from "@tanstack/react-query"
-import { Market, TokenAmount, getSubgraphClient } from "@wildcatfi/wildcat-sdk"
+import {
+  collectIndexedPages,
+  getLenderPositionPage,
+  Market,
+  TokenAmount,
+} from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
-import { fetchAllGraphqlPages } from "@/lib/paginated-query"
+import {
+  getConfiguredSubgraphClient,
+  isSubgraphAnalyticsConfigured,
+} from "@/lib/subgraphCapabilities"
 
 import { LenderWithdrawalsForMarketResult } from "./useGetLenderWithdrawals"
-
-const GET_ACTIVE_LENDERS = gql`
-  query getActiveLenders($market: ID!, $first: Int!, $skip: Int!) {
-    lenderAccounts(
-      where: { market: $market, scaledBalance_gt: "0" }
-      first: $first
-      skip: $skip
-    ) {
-      id
-    }
-  }
-`
-
-type ActiveLendersQuery = {
-  lenderAccounts: Array<{ id: string }>
-}
-
-type ActiveLendersQueryVariables = {
-  market: string
-}
 
 export type LenderMarketAnalytics = {
   activeLendersCount?: number
@@ -41,7 +28,7 @@ export function useLenderMarketAnalytics(
 ): LenderMarketAnalytics {
   const marketAddress = market?.address.toLowerCase()
   const subgraphClient = useMemo(
-    () => (market ? getSubgraphClient(market.chainId) : undefined),
+    () => getConfiguredSubgraphClient(market?.chainId),
     [market],
   )
 
@@ -66,22 +53,25 @@ export function useLenderMarketAnalytics(
         market?.chainId ?? 0,
         marketAddress,
       ),
-      enabled: !!marketAddress && !!subgraphClient,
+      enabled:
+        !!marketAddress &&
+        !!subgraphClient &&
+        isSubgraphAnalyticsConfigured(market?.chainId),
       refetchInterval: 60_000,
       refetchOnMount: false,
       queryFn: async () => {
         if (!marketAddress || !subgraphClient) throw new Error("Missing market")
 
-        const activeLenders = await fetchAllGraphqlPages<
-          ActiveLendersQuery,
-          ActiveLendersQueryVariables,
-          ActiveLendersQuery["lenderAccounts"][number]
-        >({
-          client: subgraphClient,
-          query: GET_ACTIVE_LENDERS,
-          variables: { market: marketAddress },
-          getItems: (page) => page.lenderAccounts,
-        })
+        const activeLenders = await collectIndexedPages(
+          (request) =>
+            getLenderPositionPage(subgraphClient, {
+              markets: [marketAddress],
+              activeOnly: true,
+              fetchPolicy: "network-only",
+              ...request,
+            }),
+          { first: 1000 },
+        )
 
         return activeLenders.length
       },

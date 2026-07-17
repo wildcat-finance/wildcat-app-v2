@@ -1,6 +1,6 @@
 import {
+  DeployableMarketKind,
   DeployMarketStatus,
-  MarketType,
   TransferAccess,
 } from "@wildcatfi/wildcat-sdk"
 
@@ -17,17 +17,17 @@ export const assertWrapperDeploymentCompatible = (
 }
 
 type CreateMarketDeployRoutingInput = {
-  implementationType: MarketType
+  implementationType: DeployableMarketKind
   commitmentFeePercent?: number
 }
 
 type CreateMarketDeployRoutingOutput =
   | {
-      marketType: "legacy"
+      marketKind: "standard"
       commitmentFeeBips?: undefined
     }
   | {
-      marketType: "revolving"
+      marketKind: "revolving"
       commitmentFeeBips: number
     }
 
@@ -35,9 +35,9 @@ export const getCreateMarketDeployRouting = ({
   implementationType,
   commitmentFeePercent,
 }: CreateMarketDeployRoutingInput): CreateMarketDeployRoutingOutput => {
-  if (implementationType === "legacy") {
+  if (implementationType === "standard") {
     return {
-      marketType: "legacy",
+      marketKind: "standard",
     }
   }
 
@@ -46,7 +46,7 @@ export const getCreateMarketDeployRouting = ({
   }
 
   return {
-    marketType: "revolving",
+    marketKind: "revolving",
     commitmentFeeBips: Math.round(commitmentFeePercent * 100),
   }
 }
@@ -59,6 +59,24 @@ export const getDeployMarketPreviewError = (
   }
   if (status === DeployMarketStatus.MinimumDepositTooHigh) {
     return "Minimum deposit is too large for this periodic market"
+  }
+  if (status === DeployMarketStatus.HooksTemplateRegistrationUnavailable) {
+    return "The selected hooks template is missing indexed registration metadata"
+  }
+  if (status === DeployMarketStatus.HooksTemplateDisabled) {
+    return "The selected hooks template is disabled"
+  }
+  if (
+    status === DeployMarketStatus.WrongHooksFactory ||
+    status === DeployMarketStatus.HooksFactoryNotDeploymentTarget
+  ) {
+    return "The selected policy cannot deploy this market implementation"
+  }
+  if (
+    status === DeployMarketStatus.HooksFactoryRegistrationUnknown ||
+    status === DeployMarketStatus.HooksFactoryNotRegistered
+  ) {
+    return "The selected hooks factory is not currently registered"
   }
   return `Market is not ready for deployment: ${status}`
 }

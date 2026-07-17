@@ -16,7 +16,7 @@ import {
 import { formatConstrainToNumber } from "@/utils/formatters"
 
 export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
-  implementationType: "legacy",
+  implementationType: "standard",
   marketType: "",
   maxTotalSupply: undefined,
   annualInterestBips: undefined,

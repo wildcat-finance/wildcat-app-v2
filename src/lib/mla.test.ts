@@ -4,7 +4,6 @@
 
 import {
   DepositAccess,
-  getDeploymentAddress,
   HooksKind,
   type SignerOrProvider,
   SupportedChainId,
@@ -37,11 +36,20 @@ const borrowerInfo: BasicBorrowerInfo = {
   name: "Borrower",
 }
 
-const getMlaValues = (implementationType?: "legacy" | "revolving") =>
+const standardFactory = "0x00000000000000000000000000000000000000a1"
+const revolvingFactory = "0x00000000000000000000000000000000000000b2"
+
+const getMlaValues = (
+  marketKind: "standard" | "revolving" = "standard",
+  hooksFactory: string | null = marketKind === "revolving"
+    ? revolvingFactory
+    : standardFactory,
+) =>
   getFieldValuesForBorrower({
     market: {
       address: "0x0000000000000000000000000000000000000003",
-      implementationType,
+      marketKind,
+      hooksFactory: hooksFactory ?? undefined,
       name: "Market",
       symbol: "MKT",
       marketTerm: HooksKind.OpenTerm,
@@ -73,25 +81,23 @@ const getMlaValues = (implementationType?: "legacy" | "revolving") =>
     },
   })
 
-const getHooksFactoryAddressField = (
-  implementationType?: "legacy" | "revolving",
-) => getMlaValues(implementationType).get("hooksFactory.address")
-
 describe("MLA field values", () => {
-  it("defaults hooksFactory.address to the legacy factory", () => {
-    expect(getHooksFactoryAddressField()).toBe(
-      getAddress(
-        getDeploymentAddress(SupportedChainId.Sepolia, "HooksFactory"),
-      ),
+  it("uses the actual historical standard factory", () => {
+    expect(getMlaValues("standard").get("hooksFactory.address")).toBe(
+      getAddress(standardFactory),
     )
   })
 
-  it("uses the revolving factory for revolving market MLA values", () => {
-    expect(getHooksFactoryAddressField("revolving")).toBe(
-      getAddress(
-        getDeploymentAddress(SupportedChainId.Sepolia, "HooksFactoryRevolving"),
-      ),
+  it("uses the actual historical revolving factory", () => {
+    expect(getMlaValues("revolving").get("hooksFactory.address")).toBe(
+      getAddress(revolvingFactory),
     )
+  })
+
+  it("does not substitute a configured factory when provenance is absent", () => {
+    expect(
+      getMlaValues("standard", null).get("hooksFactory.address"),
+    ).toBeUndefined()
   })
 
   it("exposes an APR label for revolving MLA templates", () => {

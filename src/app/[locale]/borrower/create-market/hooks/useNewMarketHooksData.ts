@@ -1,24 +1,19 @@
 import { useEffect, useState } from "react"
 
 import {
-  getHooksFactoryAddressForMarketType,
+  type DeployableMarketKind,
+  getHooksFactoryAddress,
+  getHooksTemplateDeploymentStatus,
   hasHooksFactoryDeployment,
-  HooksKind,
-  type MarketType,
-} from "@wildcatfi/wildcat-sdk"
-import {
   type HooksInstance,
+  HooksKind,
   type HooksTemplate,
-} from "@wildcatfi/wildcat-sdk/dist/access"
+} from "@wildcatfi/wildcat-sdk"
 
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 
 import { NewMarketFormType } from "./useNewMarketForm"
 import { useGetBorrowerHooksData } from "../../hooks/useGetBorrowerHooksData"
-
-type FactoryScopedHooksData = {
-  hooksFactory?: string
-}
 
 const MARKET_TYPE_TO_HOOKS_KIND: Record<string, HooksKind | undefined> = {
   standard: HooksKind.OpenTerm,
@@ -33,37 +28,36 @@ const HOOKS_KIND_TO_MARKET_TYPE: Record<HooksKind, string> = {
   [HooksKind.Unknown]: "",
 }
 
-function matchesTargetHooksFactory(
-  item: FactoryScopedHooksData,
+function isDeployableHooksTemplate(
+  template: HooksTemplate,
   targetHooksFactory: string | undefined,
-  targetMarketType: MarketType,
+  targetMarketKind: DeployableMarketKind,
 ) {
-  const hooksFactory = item.hooksFactory?.toLowerCase()
-  if (!hooksFactory) {
-    return targetMarketType === "legacy"
-  }
-  return hooksFactory === targetHooksFactory
+  return (
+    !!targetHooksFactory &&
+    template.hooksFactory.toLowerCase() === targetHooksFactory &&
+    getHooksTemplateDeploymentStatus(template, targetMarketKind) === undefined
+  )
 }
 
 function getDeployableHooksTemplate({
   hooksTemplates,
   hooksKind,
   targetHooksFactory,
-  targetMarketType,
+  targetMarketKind,
 }: {
   hooksTemplates: HooksTemplate[]
   hooksKind: HooksKind
   targetHooksFactory: string | undefined
-  targetMarketType: MarketType
+  targetMarketKind: DeployableMarketKind
 }) {
   return hooksTemplates.find(
     (hooksTemplate) =>
       hooksTemplate.kind === hooksKind &&
-      hooksTemplate.enabled &&
-      matchesTargetHooksFactory(
-        hooksTemplate as FactoryScopedHooksData,
+      isDeployableHooksTemplate(
+        hooksTemplate,
         targetHooksFactory,
-        targetMarketType,
+        targetMarketKind,
       ),
   )
 }
@@ -82,24 +76,20 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
   const policyValue = form.watch("policy")
   const marketType = form.watch("marketType")
   const implementationType = form.watch("implementationType")
-  const targetMarketType: MarketType =
-    implementationType === "revolving" ? "revolving" : "legacy"
+  const targetMarketKind: DeployableMarketKind = implementationType
   const targetHooksFactory =
-    chainId && hasHooksFactoryDeployment(chainId, targetMarketType)
-      ? getHooksFactoryAddressForMarketType(
-          chainId,
-          targetMarketType,
-        ).toLowerCase()
+    chainId && hasHooksFactoryDeployment(chainId, targetMarketKind)
+      ? getHooksFactoryAddress(chainId, targetMarketKind).toLowerCase()
       : undefined
 
   useEffect(() => {
     const selectedHooksKind = MARKET_TYPE_TO_HOOKS_KIND[marketType]
     if (hooksData && policyValue) {
       const hooksInstances = hooksData.hooksInstances.filter((instance) =>
-        matchesTargetHooksFactory(
-          instance as FactoryScopedHooksData,
+        isDeployableHooksTemplate(
+          instance.hooksTemplate,
           targetHooksFactory,
-          targetMarketType,
+          targetMarketKind,
         ),
       )
       if (policyValue === "createNewPolicy") {
@@ -108,7 +98,7 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
               hooksTemplates: hooksData.hooksTemplates,
               hooksKind: selectedHooksKind,
               targetHooksFactory,
-              targetMarketType,
+              targetMarketKind,
             })
           : undefined
         setSelectedHooksInstance(undefined)
@@ -147,7 +137,7 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
     policyValue,
     setValue,
     targetHooksFactory,
-    targetMarketType,
+    targetMarketKind,
   ])
 
   useEffect(() => {
@@ -180,18 +170,18 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
     hooksKind: MARKET_TYPE_TO_HOOKS_KIND[marketType] ?? HooksKind.Unknown,
     hooksInstances:
       hooksData?.hooksInstances.filter((instance) =>
-        matchesTargetHooksFactory(
-          instance as FactoryScopedHooksData,
+        isDeployableHooksTemplate(
+          instance.hooksTemplate,
           targetHooksFactory,
-          targetMarketType,
+          targetMarketKind,
         ),
       ) ?? [],
     hooksTemplates:
       hooksData?.hooksTemplates.filter((template) =>
-        matchesTargetHooksFactory(
-          template as FactoryScopedHooksData,
+        isDeployableHooksTemplate(
+          template,
           targetHooksFactory,
-          targetMarketType,
+          targetMarketKind,
         ),
       ) ?? [],
     ...queryData,

@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query"
 import {
-  getHooksFactoryContract,
-  getHooksFactoryRevolvingContract,
-  MarketType,
+  DeployableMarketKind,
+  getHooksFactoryContractForMarketKind,
+  SignerOrProvider,
 } from "@wildcatfi/wildcat-sdk"
 
 import { useEthersProvider } from "@/hooks/useEthersSigner"
@@ -13,27 +13,28 @@ export const calculateMarketAddress = async ({
   chainId,
   provider,
   salt,
-  marketType,
+  marketKind,
 }: {
   chainId: number
-  provider: Parameters<typeof getHooksFactoryContract>[1]
+  provider: SignerOrProvider
   salt: string
-  marketType: MarketType
+  marketKind: DeployableMarketKind
 }) => {
-  const hooksFactoryContract =
-    marketType === "revolving"
-      ? getHooksFactoryRevolvingContract(chainId, provider)
-      : getHooksFactoryContract(chainId, provider)
+  const hooksFactoryContract = getHooksFactoryContractForMarketKind(
+    chainId,
+    marketKind,
+    provider,
+  )
   return hooksFactoryContract.computeMarketAddress(salt)
 }
 
 export const useCalculateMarketAddress = (
   salt: string,
-  marketType: MarketType,
+  marketKind: DeployableMarketKind,
 ) => {
   const { provider, chain } = useEthersProvider()
   return useQuery({
-    queryKey: [CALCULATE_MARKET_ADDRESS_KEY, chain?.id, marketType, salt],
+    queryKey: [CALCULATE_MARKET_ADDRESS_KEY, chain?.id, marketKind, salt],
     enabled: !!salt && !!provider && !!chain,
     queryFn: async () => {
       if (!provider || !chain) throw new Error("Provider is required")
@@ -41,7 +42,7 @@ export const useCalculateMarketAddress = (
         chainId: chain.id,
         provider,
         salt,
-        marketType,
+        marketKind,
       })
     },
   })

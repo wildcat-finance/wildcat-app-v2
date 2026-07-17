@@ -4,12 +4,7 @@ import * as React from "react"
 import { useEffect, useState } from "react"
 
 import { Box, Tab, Tabs, Typography } from "@mui/material"
-import {
-  HooksKind,
-  // eslint-disable-next-line camelcase
-  SubgraphMarket_OrderBy,
-  SubgraphOrderDirection,
-} from "@wildcatfi/wildcat-sdk"
+import { HooksKind } from "@wildcatfi/wildcat-sdk"
 import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
@@ -59,9 +54,6 @@ export default function PolicyPage() {
 
   const { data, isLoading: isPolicyLoading } = useGetPolicy({
     policy: policyAddress || undefined,
-    // eslint-disable-next-line camelcase
-    orderMarkets: SubgraphMarket_OrderBy.IsClosed,
-    directionMarkets: SubgraphOrderDirection.Asc,
   })
 
   const { data: hooksData, isLoading: isHooksDataLoading } =

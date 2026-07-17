@@ -35,20 +35,8 @@ const BORROWER_QUERY_KEYS = {
   GET_ALL_LENDERS: (chainId: number) =>
     k(["borrower", "GET_ALL_LENDERS", chainId]),
   // GET_ALL_MARKETS
-  GET_ALL_MARKETS: (
-    chainId: number,
-    marketFilter?: string,
-    shouldSkipRecords?: boolean,
-    variables?: unknown,
-  ) =>
-    k([
-      "borrower",
-      "GET_ALL_MARKETS",
-      chainId,
-      marketFilter,
-      shouldSkipRecords,
-      variables,
-    ]),
+  GET_ALL_MARKETS: (chainId: number, borrowerAddress?: string) =>
+    k(["borrower", "GET_ALL_MARKETS", chainId, borrowerAddress]),
   // GET_BASIC_BORROWER_DATA_KEY
   GET_BASIC_BORROWER_DATA: (chainId: number, borrowerAddress?: string) =>
     k(["borrower", "GET_BASIC_BORROWER_DATA", chainId, borrowerAddress]),
@@ -85,22 +73,8 @@ const BORROWER_QUERY_KEYS = {
   GET_HOOKS_DATA_WITH_SUBGRAPH: (chainId: number, borrowerAddress?: string) =>
     k(["borrower", "GET_HOOKS_DATA_WITH_SUBGRAPH", chainId, borrowerAddress]),
   // GET_BORROWER_MARKETS
-  GET_OWN_MARKETS: (
-    chainId: number,
-    borrowerAddress?: string,
-    marketFilter?: string,
-    shouldSkipRecords?: boolean,
-    variables?: unknown,
-  ) =>
-    k([
-      "borrower",
-      "GET_OWN_MARKETS",
-      chainId,
-      borrowerAddress,
-      marketFilter,
-      shouldSkipRecords,
-      variables,
-    ]),
+  GET_OWN_MARKETS: (chainId: number, borrowerAddress?: string) =>
+    k(["borrower", "GET_OWN_MARKETS", chainId, borrowerAddress]),
   // GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY
   GET_BORROWER_MARKET_ACCOUNT_LEGACY: (
     chainId: number,

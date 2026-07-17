@@ -1,15 +1,16 @@
 import { useQuery } from "@tanstack/react-query"
 import {
-  GetAllAuthorizedLendersDocument,
-  SubgraphGetAllAuthorizedLendersQuery,
-  SubgraphGetAllAuthorizedLendersQueryVariables,
-  SubgraphAllAuthorizedLendersViewFragment,
-  SubgraphLenderHooksAccessDataFragment,
-} from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
+  getAllHooksDataForBorrower,
+  getPolicyMarketsAndLenders,
+  SignerOrProvider,
+  SupportedChainId,
+} from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import {
   SubgraphClientType,
   useSubgraphClient,
@@ -20,21 +21,15 @@ export const GET_ALL_LENDERS = "GET_ALL_LENDERS"
 export type AllLendersData = {
   addresses: string[]
   lenders: {
-    [address: string]: SubgraphAllAuthorizedLendersViewFragment & {
+    [address: string]: {
+      lender: string
+      authorized: boolean
       markets: {
         marketIds: string[]
         markets: {
           [address: string]: {
             id: string
             name: string
-            controller?: {
-              __typename: "Controller"
-              authorizedLenders: SubgraphAllAuthorizedLendersViewFragment[]
-            }
-            hooks?: {
-              __typename: "HooksInstance"
-              lenders: SubgraphLenderHooksAccessDataFragment[]
-            }
           }
         }
       }
@@ -45,13 +40,13 @@ export type AllLendersData = {
 export const getAllLenders = async (
   subgraphClient: SubgraphClientType,
   address: string,
+  chainId: SupportedChainId,
+  signerOrProvider: SignerOrProvider,
 ) => {
-  const { data } = await subgraphClient.query<
-    SubgraphGetAllAuthorizedLendersQuery,
-    SubgraphGetAllAuthorizedLendersQueryVariables
-  >({
-    query: GetAllAuthorizedLendersDocument,
-    variables: { borrower: address },
+  const { controller } = await getAllHooksDataForBorrower(subgraphClient, {
+    borrower: address,
+    chainId,
+    signerOrProvider,
     fetchPolicy: "network-only",
   })
 
@@ -60,55 +55,61 @@ export const getAllLenders = async (
     lenders: {},
   }
 
-  data?.markets.forEach((market) => {
-    market.controller?.authorizedLenders.forEach((lender) => {
-      const lenderAddress = lender.lender.toLowerCase()
+  if (!controller) return allLenders
 
-      if (!allLenders.lenders[lenderAddress]) {
-        allLenders.addresses.push(lenderAddress)
+  const { lenders, markets } = await getPolicyMarketsAndLenders(
+    subgraphClient,
+    {
+      contractAddress: controller.address.toLowerCase(),
+      chainId,
+      signerOrProvider,
+      fetchPolicy: "network-only",
+    },
+  )
+  const activeMarkets = markets.filter((market) => !market.isClosed)
 
-        allLenders.lenders[lenderAddress] = {
-          ...lender,
-          markets: {
-            marketIds: [market.id],
-            markets: {
-              [market.id]: {
-                id: market.id,
-                name: market.name,
-                controller: market.controller || undefined,
-                hooks: market.hooks || undefined,
-              },
-            },
-          },
-        }
-      }
-
-      const lenderItem = allLenders.lenders[lenderAddress]
-
-      if (!lenderItem.markets.markets[market.id]) {
-        lenderItem.markets.marketIds.push(market.id)
-        lenderItem.markets.markets[market.id] = {
-          id: market.id,
-          name: market.name,
-          controller: market.controller || undefined,
-          hooks: market.hooks || undefined,
-        }
-      }
-    })
+  lenders.forEach((lender) => {
+    const lenderAddress = lender.address.toLowerCase()
+    // V1 lender authorization is controller-wide. `lender.activeMarkets`
+    // describes positions, not the markets to which the authorization applies.
+    const marketIds = activeMarkets.map((market) => market.address)
+    allLenders.addresses.push(lenderAddress)
+    allLenders.lenders[lenderAddress] = {
+      lender: lender.address,
+      authorized: lender.isAuthorizedOnController ?? false,
+      markets: {
+        marketIds,
+        markets: Object.fromEntries(
+          activeMarkets.map((market) => [
+            market.address,
+            { id: market.address, name: market.name },
+          ]),
+        ),
+      },
+    }
   })
 
   return allLenders
 }
 
 export const useGetAllLenders = () => {
-  const { chainId, isWrongNetwork } = useCurrentNetwork()
+  const { isWrongNetwork } = useCurrentNetwork()
+  const { chainId } = useSelectedNetwork()
   const { address } = useAccount()
+  const { provider, signer } = useEthersProvider({ chainId })
+  const signerOrProvider = signer ?? provider
   const subgraphClient = useSubgraphClient()
 
   return useQuery({
-    queryKey: [GET_ALL_LENDERS, chainId],
-    queryFn: () => getAllLenders(subgraphClient, address!),
+    queryKey: [GET_ALL_LENDERS, chainId, address?.toLowerCase()],
+    queryFn: () =>
+      getAllLenders(
+        subgraphClient,
+        address!,
+        chainId,
+        signerOrProvider as SignerOrProvider,
+      ),
     refetchInterval: POLLING_INTERVAL,
-    enabled: address && !isWrongNetwork,
+    enabled: !!address && !!signerOrProvider && !isWrongNetwork,
   })
 }

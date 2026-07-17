@@ -13,7 +13,7 @@ import {
 } from "@/components/Profile/shared/profileTabs"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { isHinterlightSupported } from "@/lib/hinterlight"
+import { isSubgraphPricingConfigured } from "@/lib/subgraphCapabilities"
 import { COLORS } from "@/theme/colors"
 import { pageCalcHeights } from "@/utils/constants"
 
@@ -32,7 +32,7 @@ export const LenderProfilePage = ({
   type,
 }: LenderProfilePageProps) => {
   const { chainId } = useSelectedNetwork()
-  const analyticsAvailable = isHinterlightSupported(chainId)
+  const analyticsAvailable = isSubgraphPricingConfigured(chainId)
 
   const isMobile = useMobileResolution()
   const positionsQuery = useLenderPositions(profileAddress)
@@ -122,7 +122,7 @@ export const LenderProfilePage = ({
       ) : (
         <AnalyticsUnavailableNotice
           title="Lender analytics unavailable on this network"
-          description="Switch to Ethereum mainnet or Sepolia to view positions, cash flow, and interest analytics for this lender."
+          description="This network does not provide the indexed analytics and pricing required for lender positions, cash flow, and interest metrics."
         />
       )}
 

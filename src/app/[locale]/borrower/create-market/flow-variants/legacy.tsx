@@ -48,8 +48,8 @@ const getGlossaryItems = (
   ]
 }
 
-export const legacyCreateMarketFlowVariant: CreateMarketFlowVariant = {
-  key: "legacy",
+export const standardCreateMarketFlowVariant: CreateMarketFlowVariant = {
+  key: "standard",
   FinancialForm: LegacyFinancialForm,
   ConfirmationForm: LegacyConfirmationForm,
   getGlossaryItems,

@@ -1,52 +1,28 @@
 import { useMemo } from "react"
 
-import { gql } from "@apollo/client"
 import { useQuery } from "@tanstack/react-query"
-import { Market } from "@wildcatfi/wildcat-sdk"
+import {
+  collectIndexedPages,
+  getMarketDailyStatsPage,
+  Market,
+} from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
-import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
-import { fetchAllGraphqlPages } from "@/lib/paginated-query"
-
 import {
-  DailyFlowPoint,
-  MarketDailyFlowStat,
-  toDailyFlows,
-} from "./marketDailyFlows"
+  getConfiguredSubgraphClient,
+  isSubgraphAnalyticsConfigured,
+} from "@/lib/subgraphCapabilities"
+
+import { MarketDailyFlowStat, toDailyFlows } from "./marketDailyFlows"
 
 export type { DailyFlowPoint } from "./marketDailyFlows"
-
-const GET_MARKET_DAILY_STATS = gql`
-  query getMarketDailyStats($market: String!, $first: Int!, $skip: Int!) {
-    marketDailyStats_collection(
-      where: { market: $market }
-      orderBy: startTimestamp
-      orderDirection: asc
-      first: $first
-      skip: $skip
-    ) {
-      startTimestamp
-      dayDeposited
-      dayWithdrawalsRequested
-      dayWithdrawalsExecuted
-    }
-  }
-`
-
-type MarketDailyStatsQuery = {
-  marketDailyStats_collection: MarketDailyFlowStat[]
-}
-
-type MarketDailyStatsVariables = {
-  market: string
-}
 
 export function useMarketDailyFlows(market: Market | undefined) {
   const marketAddress = market?.address.toLowerCase()
   const decimals = market?.underlyingToken.decimals ?? 18
 
-  const hinterlightClient = useMemo(
-    () => (market ? getHinterlightClient(market.chainId) : undefined),
+  const subgraphClient = useMemo(
+    () => getConfiguredSubgraphClient(market?.chainId),
     [market],
   )
 
@@ -57,25 +33,32 @@ export function useMarketDailyFlows(market: Market | undefined) {
     ),
     enabled:
       !!marketAddress &&
-      !!hinterlightClient &&
-      isHinterlightSupported(market?.chainId),
+      !!subgraphClient &&
+      isSubgraphAnalyticsConfigured(market?.chainId),
     refetchInterval: 60_000,
     refetchOnMount: false,
     queryFn: async () => {
-      if (!marketAddress || !hinterlightClient) {
+      if (!marketAddress || !subgraphClient) {
         throw new Error("Missing daily flow analytics client")
       }
 
-      const marketDailyStats = await fetchAllGraphqlPages<
-        MarketDailyStatsQuery,
-        MarketDailyStatsVariables,
-        MarketDailyStatsQuery["marketDailyStats_collection"][number]
-      >({
-        client: hinterlightClient,
-        query: GET_MARKET_DAILY_STATS,
-        variables: { market: marketAddress },
-        getItems: (page) => page.marketDailyStats_collection,
-      })
+      const indexedStats = await collectIndexedPages(
+        (request) =>
+          getMarketDailyStatsPage(subgraphClient, {
+            markets: [marketAddress],
+            fetchPolicy: "network-only",
+            ...request,
+          }),
+        { first: 1000 },
+      )
+      const marketDailyStats: MarketDailyFlowStat[] = indexedStats.map(
+        (point) => ({
+          startTimestamp: point.startTimestamp,
+          dayDeposited: point.dayDeposited.toString(),
+          dayWithdrawalsRequested: point.dayWithdrawalsRequested.toString(),
+          dayWithdrawalsExecuted: point.dayWithdrawalsExecuted.toString(),
+        }),
+      )
 
       return toDailyFlows(marketDailyStats, decimals)
     },

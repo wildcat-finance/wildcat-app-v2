@@ -1,31 +1,17 @@
 import { useMemo } from "react"
 
-import { gql } from "@apollo/client"
 import { useQuery } from "@tanstack/react-query"
-import { Market, getSubgraphClient } from "@wildcatfi/wildcat-sdk"
+import {
+  collectIndexedPages,
+  getDelinquencyStatusChangePage,
+  Market,
+} from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
-
-const GET_MARKET_DELINQUENCY_EVENTS = gql`
-  query getMarketDelinquencyEvents(
-    $market: String!
-    $first: Int!
-    $skip: Int!
-  ) {
-    delinquencyStatusChangeds(
-      where: { market: $market }
-      orderBy: blockTimestamp
-      orderDirection: asc
-      first: $first
-      skip: $skip
-    ) {
-      id
-      isDelinquent
-      blockTimestamp
-      transactionHash
-    }
-  }
-`
+import {
+  getConfiguredSubgraphClient,
+  isSubgraphAnalyticsConfigured,
+} from "@/lib/subgraphCapabilities"
 
 type MarketDelinquencyEventsQuery = {
   delinquencyStatusChangeds: Array<{
@@ -34,12 +20,6 @@ type MarketDelinquencyEventsQuery = {
     blockTimestamp: number
     transactionHash: string
   }>
-}
-
-type MarketDelinquencyEventsVariables = {
-  market: string
-  first: number
-  skip: number
 }
 
 export type DelinquencyHistoryPoint = {
@@ -73,7 +53,7 @@ const formatDateShort = (timestamp: number) => {
 
 const toHours = (seconds: number) => seconds / 3600
 
-function toDelinquencyHistory(
+export function toDelinquencyHistory(
   events: MarketDelinquencyEventsQuery["delinquencyStatusChangeds"],
   gracePeriodSeconds: number,
 ): DelinquencyHistoryPoint[] {
@@ -86,40 +66,43 @@ function toDelinquencyHistory(
     transactionHash: string
   } | null = null
 
-  events.forEach((event) => {
-    if (event.isDelinquent) {
-      open = {
-        id: event.id,
-        timestamp: event.blockTimestamp,
-        transactionHash: event.transactionHash,
+  events
+    .slice()
+    .sort((left, right) => left.blockTimestamp - right.blockTimestamp)
+    .forEach((event) => {
+      if (event.isDelinquent) {
+        open = {
+          id: event.id,
+          timestamp: event.blockTimestamp,
+          transactionHash: event.transactionHash,
+        }
+        return
       }
-      return
-    }
 
-    if (!open) return
+      if (!open) return
 
-    const durationSeconds = Math.max(0, event.blockTimestamp - open.timestamp)
-    const durationHours = toHours(durationSeconds)
-    const eventNumber = points.length + 1
+      const durationSeconds = Math.max(0, event.blockTimestamp - open.timestamp)
+      const durationHours = toHours(durationSeconds)
+      const eventNumber = points.length + 1
 
-    points.push({
-      id: open.id,
-      eventNumber,
-      label: formatDateShort(open.timestamp),
-      startTimestamp: open.timestamp,
-      endTimestamp: event.blockTimestamp,
-      startDate: formatDateISO(open.timestamp),
-      endDate: formatDateISO(event.blockTimestamp),
-      durationSeconds,
-      durationHours,
-      graceHours: Math.min(durationHours, gracePeriodHours),
-      penaltyHours: Math.max(durationHours - gracePeriodHours, 0),
-      isActive: false,
-      isPenalized: durationSeconds > gracePeriodSeconds,
-      transactionHash: open.transactionHash,
+      points.push({
+        id: open.id,
+        eventNumber,
+        label: formatDateShort(open.timestamp),
+        startTimestamp: open.timestamp,
+        endTimestamp: event.blockTimestamp,
+        startDate: formatDateISO(open.timestamp),
+        endDate: formatDateISO(event.blockTimestamp),
+        durationSeconds,
+        durationHours,
+        graceHours: Math.min(durationHours, gracePeriodHours),
+        penaltyHours: Math.max(durationHours - gracePeriodHours, 0),
+        isActive: false,
+        isPenalized: durationSeconds > gracePeriodSeconds,
+        transactionHash: open.transactionHash,
+      })
+      open = null
     })
-    open = null
-  })
 
   const lastOpen = open as {
     id: string
@@ -158,7 +141,7 @@ export function useMarketDelinquencyHistory(market: Market | undefined) {
   const gracePeriodSeconds = market?.delinquencyGracePeriod ?? 0
 
   const subgraphClient = useMemo(
-    () => (market ? getSubgraphClient(market.chainId) : undefined),
+    () => getConfiguredSubgraphClient(market?.chainId),
     [market],
   )
 
@@ -168,31 +151,31 @@ export function useMarketDelinquencyHistory(market: Market | undefined) {
       marketAddress,
       gracePeriodSeconds,
     ),
-    enabled: !!marketAddress && !!subgraphClient,
+    enabled:
+      !!marketAddress &&
+      !!subgraphClient &&
+      isSubgraphAnalyticsConfigured(market?.chainId),
     refetchInterval: 60_000,
     refetchOnMount: false,
     queryFn: async () => {
       if (!marketAddress || !subgraphClient) throw new Error("Missing data")
 
-      const pageSize = 1000
-      const fetchPage = async (
-        skip: number,
-      ): Promise<MarketDelinquencyEventsQuery["delinquencyStatusChangeds"]> => {
-        const result = await subgraphClient.query<
-          MarketDelinquencyEventsQuery,
-          MarketDelinquencyEventsVariables
-        >({
-          query: GET_MARKET_DELINQUENCY_EVENTS,
-          variables: { market: marketAddress, first: pageSize, skip },
-        })
-
-        const page = result.data.delinquencyStatusChangeds
-        if (page.length < pageSize) return page
-
-        return [...page, ...(await fetchPage(skip + pageSize))]
-      }
-
-      const allEvents = await fetchPage(0)
+      const indexedEvents = await collectIndexedPages(
+        (request) =>
+          getDelinquencyStatusChangePage(subgraphClient, {
+            markets: [marketAddress],
+            fetchPolicy: "network-only",
+            ...request,
+          }),
+        { first: 1000 },
+      )
+      const allEvents: MarketDelinquencyEventsQuery["delinquencyStatusChangeds"] =
+        indexedEvents.map((event) => ({
+          id: event.id,
+          isDelinquent: event.isDelinquent,
+          blockTimestamp: Number(event.blockTimestamp),
+          transactionHash: event.transactionHash,
+        }))
 
       return toDelinquencyHistory(allEvents, gracePeriodSeconds)
     },

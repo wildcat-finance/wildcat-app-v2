@@ -1,5 +1,4 @@
-import { LenderRole } from "@wildcatfi/wildcat-sdk"
-import { PolicyLender } from "@wildcatfi/wildcat-sdk/dist/gql/utils"
+import { LenderRole, PolicyMarketsAndLenders } from "@wildcatfi/wildcat-sdk"
 
 import {
   EditLenderFlowStatuses,
@@ -22,7 +21,7 @@ export type PolicyLenderTableDataType = {
   status: EditLenderFlowStatuses
 }
 
-export type LenderInfo = PolicyLender & {
+export type LenderInfo = PolicyMarketsAndLenders["lenders"][number] & {
   credentialExpiry: number | undefined
   credentialSource: string
 }

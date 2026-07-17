@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
 import {
   DepositAccess,
-  getHooksFactoryContract,
-  getHooksFactoryRevolvingContract,
+  DeployableMarketKind,
+  getHooksFactoryAddress,
+  getHooksFactoryContractForMarketKind,
   HooksKind,
-  MarketType,
   Market,
   SignerOrProvider,
   Token,
@@ -83,7 +83,11 @@ export function getFieldValuesForBorrowerFromForm(
     market: {
       name: marketName,
       symbol: marketSymbol,
-      implementationType: marketParams.implementationType,
+      marketKind: marketParams.implementationType,
+      hooksFactory: getHooksFactoryAddress(
+        networkData.chainId,
+        marketParams.implementationType,
+      ),
       marketTerm:
         MARKET_TYPE_TO_HOOKS_KIND[marketParams.marketType] ?? HooksKind.Unknown,
       address: marketAddress,
@@ -133,13 +137,14 @@ export async function getMlaFromForm(
   borrowerProfile: BorrowerProfile,
   asset: Token,
   salt: string,
-  marketType: MarketType,
+  marketKind: DeployableMarketKind,
   networkData: NetworkInfo,
 ) {
-  const hooksFactoryContract =
-    marketType === "revolving"
-      ? getHooksFactoryRevolvingContract(networkData.chainId, provider)
-      : getHooksFactoryContract(networkData.chainId, provider)
+  const hooksFactoryContract = getHooksFactoryContractForMarketKind(
+    networkData.chainId,
+    marketKind,
+    provider,
+  )
   const marketAddress = await hooksFactoryContract.computeMarketAddress(salt)
 
   const mlaTemplate = await fetch(`/api/mla/templates/${mlaTemplateId}`).then(
@@ -191,8 +196,8 @@ export const usePreviewMlaFromForm = (
   salt: string,
 ) => {
   const { provider } = useEthersProvider()
-  const marketType = form.watch("implementationType")
-  const { data: marketAddress } = useCalculateMarketAddress(salt, marketType)
+  const marketKind = form.watch("implementationType")
+  const { data: marketAddress } = useCalculateMarketAddress(salt, marketKind)
   const selectedNetwork = useSelectedNetwork()
   return useQuery({
     refetchOnMount: true,
@@ -217,7 +222,7 @@ export const usePreviewMlaFromForm = (
         borrowerProfile,
         asset,
         salt,
-        marketType,
+        marketKind,
         selectedNetwork,
       )
     },

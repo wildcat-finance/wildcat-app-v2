@@ -1,8 +1,4 @@
-/* eslint-disable camelcase */
-
 "use client"
-
-import { SubgraphMarket_Filter } from "@wildcatfi/wildcat-sdk"
 
 export const TOKENS_ADDRESSES = {
   WETH: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
@@ -39,16 +35,6 @@ export const hasManuallyDisabledMarketActions = (borrowerAddress?: string) =>
   MANUALLY_DISABLED_MARKET_ACTION_BORROWERS.includes(
     borrowerAddress.toLowerCase(),
   )
-
-export const EXCLUDED_MARKETS_FILTER: SubgraphMarket_Filter[] =
-  shouldShowExcludedMarkets
-    ? []
-    : [
-        {
-          borrower_not_in: EXCLUDED_BORROWERS,
-        },
-        { id_not_in: EXCLUDED_MARKETS },
-      ]
 
 export const pageCalcHeights = {
   dashboard: "320px",

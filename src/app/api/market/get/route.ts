@@ -1,15 +1,5 @@
-import {
-  ApolloClient,
-  HttpLink,
-  InMemoryCache,
-  NormalizedCacheObject,
-} from "@apollo/client"
-import { SubgraphUrls } from "@wildcatfi/wildcat-sdk"
-import {
-  GetMarketDocument,
-  SubgraphGetMarketQuery,
-  SubgraphGetMarketQueryVariables,
-} from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
+import { gql } from "@apollo/client"
+import { getSubgraphClient, SubgraphUrls } from "@wildcatfi/wildcat-sdk"
 // eslint-disable-next-line camelcase
 import { unstable_cache } from "next/cache"
 import { NextRequest, NextResponse } from "next/server"
@@ -18,26 +8,24 @@ export const runtime = "nodejs"
 
 type SupportedChainId = keyof typeof SubgraphUrls
 
-const CLIENT_CACHE = new Map<
-  SupportedChainId,
-  ApolloClient<NormalizedCacheObject>
->()
+type MarketDiscoveryQuery = {
+  market: { id: string } | null
+}
+
+type MarketDiscoveryQueryVariables = {
+  market: string
+}
+
+const MARKET_DISCOVERY_QUERY = gql`
+  query MarketDiscovery($market: ID!) {
+    market(id: $market) {
+      id
+    }
+  }
+`
 
 function isSupportedChainId(chainId: number): chainId is SupportedChainId {
   return Object.prototype.hasOwnProperty.call(SubgraphUrls, chainId)
-}
-
-function getClient(chainId: SupportedChainId) {
-  const cached = CLIENT_CACHE.get(chainId)
-  if (cached) return cached
-
-  const uri = SubgraphUrls[chainId]
-  const client = new ApolloClient<NormalizedCacheObject>({
-    link: new HttpLink({ uri }),
-    cache: new InMemoryCache(),
-  })
-  CLIENT_CACHE.set(chainId, client)
-  return client
 }
 
 const DISCOVERY_CHAIN_IDS: SupportedChainId[] = Object.keys(SubgraphUrls)
@@ -46,7 +34,7 @@ const DISCOVERY_CHAIN_IDS: SupportedChainId[] = Object.keys(SubgraphUrls)
     (n): n is SupportedChainId => Number.isFinite(n) && isSupportedChainId(n),
   )
 
-const MARKET_DISCOVERY_CACHE_VERSION = "marketGet:v3"
+const MARKET_DISCOVERY_CACHE_VERSION = "marketGet:v4"
 const MARKET_DISCOVERY_HIT_CACHE_CONTROL =
   "public, s-maxage=86400, stale-while-revalidate=604800"
 const MARKET_DISCOVERY_MISS_CACHE_CONTROL =
@@ -56,13 +44,13 @@ async function fetchMarketFromChain(
   addressLower: string,
   chainId: SupportedChainId,
 ) {
-  const client = getClient(chainId)
+  const client = getSubgraphClient(chainId)
   const res = await client.query<
-    SubgraphGetMarketQuery,
-    SubgraphGetMarketQueryVariables
+    MarketDiscoveryQuery,
+    MarketDiscoveryQueryVariables
   >({
-    query: GetMarketDocument,
-    variables: { market: addressLower, shouldSkipRecords: true },
+    query: MARKET_DISCOVERY_QUERY,
+    variables: { market: addressLower },
     fetchPolicy: "network-only",
   })
   return res.data.market ?? null
@@ -85,7 +73,7 @@ async function findMarketAcrossChains(addressLower: string) {
         x,
       ): x is {
         chainId: SupportedChainId
-        market: NonNullable<SubgraphGetMarketQuery["market"]>
+        market: NonNullable<MarketDiscoveryQuery["market"]>
       } => !!x,
     ) ?? null
   )

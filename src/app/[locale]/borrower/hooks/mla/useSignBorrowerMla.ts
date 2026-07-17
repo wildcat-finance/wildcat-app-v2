@@ -2,8 +2,8 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
+  DeployableMarketKind,
   Market,
-  MarketType,
   SupportedChainId,
   Token,
 } from "@wildcatfi/wildcat-sdk"
@@ -224,13 +224,15 @@ export const useSignMla = (salt: string) => {
       const selectedMla = form.getValues("mla")
       const mlaTemplateId =
         selectedMla === "noMLA" ? undefined : Number(selectedMla)
-      const marketType = form.getValues("implementationType") as MarketType
+      const marketKind = form.getValues(
+        "implementationType",
+      ) as DeployableMarketKind
       const marketAddress = signer
         ? await calculateMarketAddress({
             chainId: signer.chainId,
             provider: signer,
             salt,
-            marketType,
+            marketKind,
           })
         : undefined
       console.log("mlaTemplateId", mlaTemplateId)
@@ -256,7 +258,7 @@ export const useSignMla = (salt: string) => {
           borrowerProfile,
           asset,
           salt,
-          marketType,
+          marketKind,
           NETWORKS_BY_ID[signer.chainId as SupportedChainId],
         )
         message = mlaData.message
@@ -308,9 +310,9 @@ export const useSignMla = (salt: string) => {
         chainId: signer.chainId,
         provider: signer,
         salt,
-        marketType: variables.form.getValues(
+        marketKind: variables.form.getValues(
           "implementationType",
-        ) as MarketType,
+        ) as DeployableMarketKind,
       })
       client.invalidateQueries({
         queryKey: QueryKeys.Borrower.PREVIEW_MLA.FROM_FORM(

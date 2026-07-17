@@ -81,7 +81,7 @@ export const selectDepositAccessOptions: ExtendedSelectOptionItem<
 ]
 
 export const baseMarketSchemaFields = {
-  implementationType: z.enum(["legacy", "revolving"]),
+  implementationType: z.enum(["standard", "revolving"]),
   marketName: z.string().min(1),
   mla: z.string().optional(),
   accessControl: z.string().min(1),
@@ -132,7 +132,7 @@ const isPositiveNumber = (value: number | undefined): value is number =>
 
 export const marketRefinementCallback = (
   data: {
-    implementationType: "legacy" | "revolving"
+    implementationType: "standard" | "revolving"
     marketType: string
     fixedTermEndTime?: number
     commitmentFeePercent?: number

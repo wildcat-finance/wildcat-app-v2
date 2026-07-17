@@ -4,14 +4,7 @@ import { useEffect } from "react"
 import * as React from "react"
 
 import { Box, FormControlLabel, TextField, Typography } from "@mui/material"
-import {
-  HooksKind,
-  MarketVersion,
-  // eslint-disable-next-line camelcase
-  SubgraphMarket_OrderBy,
-  SubgraphOrderDirection,
-} from "@wildcatfi/wildcat-sdk"
-import { PolicyLender } from "@wildcatfi/wildcat-sdk/dist/gql/utils"
+import { HooksKind, MarketVersion } from "@wildcatfi/wildcat-sdk"
 import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
@@ -51,9 +44,6 @@ export default function EditPolicyPage() {
   // Getting Lenders Data Logic
   const { data, isLoading: isPolicyLoading } = useGetPolicy({
     policy: policyAddress || undefined,
-    // eslint-disable-next-line camelcase
-    orderMarkets: SubgraphMarket_OrderBy.IsClosed,
-    directionMarkets: SubgraphOrderDirection.Asc,
   })
 
   const lendersTableData = useAppSelector(

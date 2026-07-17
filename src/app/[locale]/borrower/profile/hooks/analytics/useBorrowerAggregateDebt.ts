@@ -1,7 +1,10 @@
 import { useMemo } from "react"
 
-import { gql } from "@apollo/client"
 import { useQuery } from "@tanstack/react-query"
+import {
+  collectIndexedPages,
+  getMarketDailyStatsPage,
+} from "@wildcatfi/wildcat-sdk"
 
 import {
   BorrowerAggregateDebtRaw,
@@ -10,45 +13,12 @@ import {
 import { BorrowerAggregateDebtPoint } from "@/app/[locale]/borrower/profile/hooks/analytics/types"
 import { stableRecordKey } from "@/components/Profile/shared/analytics"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
-import { fetchAllGraphqlPages } from "@/lib/paginated-query"
-
-const GET_BORROWER_AGGREGATE_DEBT = gql`
-  query getBorrowerAggregateDebt(
-    $marketIds: [String!]!
-    $first: Int!
-    $skip: Int!
-  ) {
-    marketDailyStats: marketDailyStats_collection(
-      where: { market_in: $marketIds }
-      orderBy: startTimestamp
-      orderDirection: asc
-      first: $first
-      skip: $skip
-    ) {
-      startTimestamp
-      scaledTotalSupply
-      scaleFactor
-      usdPrice
-      market {
-        id
-        asset {
-          decimals
-        }
-      }
-    }
-  }
-`
+import {
+  getConfiguredSubgraphClient,
+  isSubgraphPricingConfigured,
+} from "@/lib/subgraphCapabilities"
 
 type MarketDailyStatsRaw = BorrowerAggregateDebtRaw
-
-type BorrowerAggregateDebtQuery = {
-  marketDailyStats: MarketDailyStatsRaw[]
-}
-
-type BorrowerAggregateDebtVariables = {
-  marketIds: string[]
-}
 
 export type BorrowerAggregateDebtData = {
   points: BorrowerAggregateDebtPoint[]
@@ -77,24 +47,35 @@ export const useBorrowerAggregateDebt = (
     ],
     enabled:
       !!normalizedAddress &&
-      isHinterlightSupported(chainId) &&
+      isSubgraphPricingConfigured(chainId) &&
       normalizedMarketIds.length > 0,
     refetchOnMount: false,
     staleTime: 60_000,
     queryFn: async () => {
-      const client = getHinterlightClient(chainId)
-      if (!client) throw new Error("Hinterlight not supported on this network")
+      const client = getConfiguredSubgraphClient(chainId)
+      if (!client) throw new Error("Subgraph not configured on this network")
 
-      const marketDailyStats = await fetchAllGraphqlPages<
-        BorrowerAggregateDebtQuery,
-        BorrowerAggregateDebtVariables,
-        MarketDailyStatsRaw
-      >({
-        client,
-        query: GET_BORROWER_AGGREGATE_DEBT,
-        variables: { marketIds: normalizedMarketIds },
-        getItems: (page) => page.marketDailyStats,
-      })
+      const indexedStats = await collectIndexedPages(
+        (request) =>
+          getMarketDailyStatsPage(client, {
+            markets: normalizedMarketIds,
+            fetchPolicy: "network-only",
+            ...request,
+          }),
+        { first: 1000 },
+      )
+      const marketDailyStats: MarketDailyStatsRaw[] = indexedStats.map(
+        (point) => ({
+          startTimestamp: point.startTimestamp,
+          scaledTotalSupply: point.scaledTotalSupply.toString(),
+          scaleFactor: point.scaleFactor.toString(),
+          usdPrice: point.usdPrice ?? null,
+          market: {
+            id: point.market.address,
+            asset: { decimals: point.market.asset.decimals },
+          },
+        }),
+      )
 
       return buildBorrowerAggregateDebtData({
         marketDailyStats,

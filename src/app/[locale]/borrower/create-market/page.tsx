@@ -184,7 +184,7 @@ export default function CreateMarketPage() {
             ? Number(marketParams.mla)
             : undefined,
         mlaSignature: mlaSignature.signature as string,
-        marketType: deployRouting.marketType,
+        marketKind: deployRouting.marketKind,
         namePrefix: `${marketParams.namePrefix.trimEnd()} `,
         symbolPrefix: marketParams.symbolPrefix,
         annualInterestBips: Number(marketParams.annualInterestBips) * 100,
@@ -252,7 +252,7 @@ export default function CreateMarketPage() {
               ),
             }
           : {}),
-        ...(deployRouting.marketType === "revolving"
+        ...(deployRouting.marketKind === "revolving"
           ? { commitmentFeeBips: deployRouting.commitmentFeeBips }
           : {}),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -11,7 +11,7 @@ import {
 } from "@/components/Profile/shared/profileTabs"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { isHinterlightSupported } from "@/lib/hinterlight"
+import { isSubgraphPricingConfigured } from "@/lib/subgraphCapabilities"
 import { pageCalcHeights } from "@/utils/constants"
 import { trimAddress } from "@/utils/formatters"
 
@@ -28,7 +28,7 @@ export const ProfilePage = ({
 }: ProfilePageProps) => {
   const { chainId: selectedChainId } = useSelectedNetwork()
   const chainId = profileChainId ?? selectedChainId
-  const analyticsAvailable = isHinterlightSupported(chainId)
+  const analyticsAvailable = isSubgraphPricingConfigured(chainId)
 
   const { data: profileData, isLoading: isProfileLoading } =
     useGetBorrowerProfile(profileAddress, chainId)

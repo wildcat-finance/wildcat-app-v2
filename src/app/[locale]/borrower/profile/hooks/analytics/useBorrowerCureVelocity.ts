@@ -1,7 +1,11 @@
 import { useMemo } from "react"
 
-import { gql } from "@apollo/client"
 import { useQuery } from "@tanstack/react-query"
+import {
+  collectIndexedPages,
+  getDelinquencyStatusChangePage,
+  getMarketInterestAccrualPage,
+} from "@wildcatfi/wildcat-sdk"
 
 import { BorrowerCureVelocityData } from "@/app/[locale]/borrower/profile/hooks/analytics/types"
 import {
@@ -10,83 +14,10 @@ import {
 } from "@/components/Profile/shared/analytics"
 import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
-import { fetchAllGraphqlPages } from "@/lib/paginated-query"
-
-const PAGE_SIZE = 1000
-
-const GET_BORROWER_CURE_DELINQUENCY_EVENTS = gql`
-  query getBorrowerCureDelinquencyEvents(
-    $marketIds: [String!]!
-    $first: Int!
-    $skip: Int!
-  ) {
-    delinquencyStatusChangeds(
-      where: { market_in: $marketIds }
-      orderBy: blockTimestamp
-      orderDirection: asc
-      first: $first
-      skip: $skip
-    ) {
-      id
-      isDelinquent
-      liquidityCoverageRequired
-      totalAssets
-      blockTimestamp
-      market {
-        id
-        name
-        asset {
-          decimals
-        }
-      }
-    }
-  }
-`
-
-const GET_BORROWER_CURE_INTEREST_ACCRUALS = gql`
-  query getBorrowerCureInterestAccruals(
-    $marketIds: [String!]!
-    $first: Int!
-    $skip: Int!
-  ) {
-    marketInterestAccrueds(
-      where: { market_in: $marketIds }
-      orderBy: fromTimestamp
-      orderDirection: asc
-      first: $first
-      skip: $skip
-    ) {
-      market {
-        id
-        asset {
-          decimals
-        }
-      }
-      fromTimestamp
-      toTimestamp
-      timeWithPenalties
-      delinquencyFeesAccrued
-    }
-  }
-`
-
-const GET_PROTOCOL_DELINQUENCY_EVENTS = gql`
-  query getProtocolDelinquencyEvents($first: Int!, $skip: Int!) {
-    delinquencyStatusChangeds(
-      first: $first
-      skip: $skip
-      orderBy: blockTimestamp
-      orderDirection: asc
-    ) {
-      isDelinquent
-      blockTimestamp
-      market {
-        id
-      }
-    }
-  }
-`
+import {
+  getConfiguredSubgraphClient,
+  isSubgraphPricingConfigured,
+} from "@/lib/subgraphCapabilities"
 
 type DelinquencyStatusChangedRaw = {
   id: string
@@ -116,27 +47,10 @@ type MarketInterestAccruedRaw = {
   delinquencyFeesAccrued: string
 }
 
-type BorrowerCureEventsQuery = {
-  delinquencyStatusChangeds: DelinquencyStatusChangedRaw[]
-}
-
-type BorrowerCureAccrualsQuery = {
-  marketInterestAccrueds: MarketInterestAccruedRaw[]
-}
-
-type ProtocolDelinquencyEventsQuery = {
-  delinquencyStatusChangeds: Array<{
-    isDelinquent: boolean
-    blockTimestamp: number
-    market: {
-      id: string
-    }
-  }>
-}
-
-type MarketIdsVariables = {
-  marketIds: string[]
-}
+type ProtocolDelinquencyEvent = Pick<
+  DelinquencyStatusChangedRaw,
+  "isDelinquent" | "blockTimestamp" | "market"
+>
 
 const getMedian = (values: number[]) => {
   if (values.length === 0) return null
@@ -158,38 +72,23 @@ const getCureDurations = (
   const openStarts = new Map<string, number>()
   const durations: number[] = []
 
-  events.forEach((event) => {
-    if (event.isDelinquent) {
-      openStarts.set(event.market.id, event.blockTimestamp)
-      return
-    }
+  events
+    .slice()
+    .sort((left, right) => left.blockTimestamp - right.blockTimestamp)
+    .forEach((event) => {
+      if (event.isDelinquent) {
+        openStarts.set(event.market.id, event.blockTimestamp)
+        return
+      }
 
-    const startedAt = openStarts.get(event.market.id)
-    if (!startedAt) return
+      const startedAt = openStarts.get(event.market.id)
+      if (!startedAt) return
 
-    durations.push((event.blockTimestamp - startedAt) / 3600)
-    openStarts.delete(event.market.id)
-  })
+      durations.push((event.blockTimestamp - startedAt) / 3600)
+      openStarts.delete(event.market.id)
+    })
 
   return durations
-}
-
-const fetchProtocolDelinquencyEvents = async (
-  client: NonNullable<ReturnType<typeof getHinterlightClient>>,
-  skip = 0,
-  events: ProtocolDelinquencyEventsQuery["delinquencyStatusChangeds"] = [],
-): Promise<ProtocolDelinquencyEventsQuery["delinquencyStatusChangeds"]> => {
-  const page = await client.query<ProtocolDelinquencyEventsQuery>({
-    query: GET_PROTOCOL_DELINQUENCY_EVENTS,
-    variables: { first: PAGE_SIZE, skip },
-  })
-  const nextEvents = [...events, ...page.data.delinquencyStatusChangeds]
-
-  if (page.data.delinquencyStatusChangeds.length < PAGE_SIZE) {
-    return nextEvents
-  }
-
-  return fetchProtocolDelinquencyEvents(client, skip + PAGE_SIZE, nextEvents)
 }
 
 export const useBorrowerCureVelocity = ({
@@ -228,41 +127,85 @@ export const useBorrowerCureVelocity = ({
     ],
     enabled:
       !!normalizedAddress &&
-      isHinterlightSupported(chainId) &&
+      isSubgraphPricingConfigured(chainId) &&
       normalizedMarketIds.length > 0,
     refetchOnMount: false,
     staleTime: 60_000,
     queryFn: async () => {
-      const client = getHinterlightClient(chainId)
-      if (!client) throw new Error("Hinterlight not supported on this network")
+      const client = getConfiguredSubgraphClient(chainId)
+      if (!client) throw new Error("Subgraph not configured on this network")
 
-      const [
-        delinquencyStatusChangeds,
-        marketInterestAccrueds,
-        protocolEvents,
-      ] = await Promise.all([
-        fetchAllGraphqlPages<
-          BorrowerCureEventsQuery,
-          MarketIdsVariables,
-          DelinquencyStatusChangedRaw
-        >({
-          client,
-          query: GET_BORROWER_CURE_DELINQUENCY_EVENTS,
-          variables: { marketIds: normalizedMarketIds },
-          getItems: (page) => page.delinquencyStatusChangeds,
-        }),
-        fetchAllGraphqlPages<
-          BorrowerCureAccrualsQuery,
-          MarketIdsVariables,
-          MarketInterestAccruedRaw
-        >({
-          client,
-          query: GET_BORROWER_CURE_INTEREST_ACCRUALS,
-          variables: { marketIds: normalizedMarketIds },
-          getItems: (page) => page.marketInterestAccrueds,
-        }),
-        fetchProtocolDelinquencyEvents(client),
-      ])
+      const [indexedBorrowerEvents, indexedAccruals, indexedProtocolEvents] =
+        await Promise.all([
+          collectIndexedPages(
+            (request) =>
+              getDelinquencyStatusChangePage(client, {
+                markets: normalizedMarketIds,
+                fetchPolicy: "network-only",
+                ...request,
+              }),
+            { first: 1000 },
+          ),
+          collectIndexedPages(
+            (request) =>
+              getMarketInterestAccrualPage(client, {
+                markets: normalizedMarketIds,
+                fetchPolicy: "network-only",
+                ...request,
+              }),
+            { first: 1000 },
+          ),
+          collectIndexedPages(
+            (request) =>
+              getDelinquencyStatusChangePage(client, {
+                fetchPolicy: "network-only",
+                ...request,
+              }),
+            { first: 1000 },
+          ),
+        ])
+      const delinquencyStatusChangeds: DelinquencyStatusChangedRaw[] =
+        indexedBorrowerEvents.map((event) => ({
+          id: event.id,
+          isDelinquent: event.isDelinquent,
+          liquidityCoverageRequired: event.liquidityCoverageRequired.toString(),
+          totalAssets: event.totalAssets.toString(),
+          blockTimestamp: Number(event.blockTimestamp),
+          market: {
+            id: event.market.address,
+            name: event.market.name,
+            asset: { decimals: event.market.asset.decimals },
+          },
+        }))
+      const marketInterestAccrueds: MarketInterestAccruedRaw[] =
+        indexedAccruals.map((accrual) => ({
+          market: {
+            id: accrual.market.address,
+            asset: { decimals: accrual.market.asset.decimals },
+          },
+          fromTimestamp: accrual.fromTimestamp,
+          toTimestamp: accrual.toTimestamp,
+          timeWithPenalties: accrual.timeWithPenalties,
+          delinquencyFeesAccrued: accrual.delinquencyFeesAccrued.toString(),
+        }))
+      const protocolEvents: ProtocolDelinquencyEvent[] =
+        indexedProtocolEvents.map((event) => ({
+          isDelinquent: event.isDelinquent,
+          blockTimestamp: Number(event.blockTimestamp),
+          market: {
+            id: event.market.address,
+            name: event.market.name,
+            asset: { decimals: event.market.asset.decimals },
+          },
+        }))
+
+      const getMarketPrice = (marketId: string) => {
+        const price = priceMap[marketId]
+        if (price === undefined) {
+          throw new Error(`Missing USD price for market ${marketId}`)
+        }
+        return price
+      }
 
       const accrualsByMarket = new Map<string, MarketInterestAccruedRaw[]>()
       marketInterestAccrueds.forEach((accrual) => {
@@ -274,55 +217,58 @@ export const useBorrowerCureVelocity = ({
       const openByMarket = new Map<string, DelinquencyStatusChangedRaw>()
       const points: BorrowerCureVelocityData["points"] = []
 
-      delinquencyStatusChangeds.forEach((event) => {
-        if (event.isDelinquent) {
-          openByMarket.set(event.market.id, event)
-          return
-        }
+      delinquencyStatusChangeds
+        .slice()
+        .sort((left, right) => left.blockTimestamp - right.blockTimestamp)
+        .forEach((event) => {
+          if (event.isDelinquent) {
+            openByMarket.set(event.market.id, event)
+            return
+          }
 
-        const start = openByMarket.get(event.market.id)
-        if (!start) return
+          const start = openByMarket.get(event.market.id)
+          if (!start) return
 
-        const price = priceMap[start.market.id] ?? 0
-        const severityRaw =
-          BigInt(start.liquidityCoverageRequired) - BigInt(start.totalAssets)
-        const zero = BigInt(0)
-        const severityUsd =
-          toHumanAmount(
-            severityRaw > zero ? severityRaw : zero,
-            start.market.asset.decimals,
-          ) * price
-        const eventAccruals = accrualsByMarket.get(start.market.id) ?? []
-        const matchingAccruals = eventAccruals.filter(
-          (accrual) =>
-            accrual.toTimestamp > start.blockTimestamp &&
-            accrual.fromTimestamp < event.blockTimestamp,
-        )
-        const delinquencyFeesUsd = matchingAccruals.reduce((sum, accrual) => {
-          const fee =
+          const price = getMarketPrice(start.market.id)
+          const severityRaw =
+            BigInt(start.liquidityCoverageRequired) - BigInt(start.totalAssets)
+          const zero = BigInt(0)
+          const severityUsd =
             toHumanAmount(
-              accrual.delinquencyFeesAccrued,
-              accrual.market.asset.decimals,
-            ) * (priceMap[accrual.market.id] ?? 0)
-          return sum + fee
-        }, 0)
-        const cureHours = (event.blockTimestamp - start.blockTimestamp) / 3600
+              severityRaw > zero ? severityRaw : zero,
+              start.market.asset.decimals,
+            ) * price
+          const eventAccruals = accrualsByMarket.get(start.market.id) ?? []
+          const matchingAccruals = eventAccruals.filter(
+            (accrual) =>
+              accrual.toTimestamp > start.blockTimestamp &&
+              accrual.fromTimestamp < event.blockTimestamp,
+          )
+          const delinquencyFeesUsd = matchingAccruals.reduce((sum, accrual) => {
+            const fee =
+              toHumanAmount(
+                accrual.delinquencyFeesAccrued,
+                accrual.market.asset.decimals,
+              ) * getMarketPrice(accrual.market.id)
+            return sum + fee
+          }, 0)
+          const cureHours = (event.blockTimestamp - start.blockTimestamp) / 3600
 
-        points.push({
-          id: start.id,
-          marketId: start.market.id,
-          marketName: start.market.name,
-          startTimestamp: start.blockTimestamp,
-          endTimestamp: event.blockTimestamp,
-          severityUsd,
-          cureHours,
-          delinquencyFeesUsd,
-          penalized:
-            cureHours * 3600 > (gracePeriodMap[start.market.id] ?? 0) ||
-            matchingAccruals.some((accrual) => accrual.timeWithPenalties > 0),
+          points.push({
+            id: start.id,
+            marketId: start.market.id,
+            marketName: start.market.name,
+            startTimestamp: start.blockTimestamp,
+            endTimestamp: event.blockTimestamp,
+            severityUsd,
+            cureHours,
+            delinquencyFeesUsd,
+            penalized:
+              cureHours * 3600 > (gracePeriodMap[start.market.id] ?? 0) ||
+              matchingAccruals.some((accrual) => accrual.timeWithPenalties > 0),
+          })
+          openByMarket.delete(event.market.id)
         })
-        openByMarket.delete(event.market.id)
-      })
 
       return {
         points,

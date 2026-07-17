@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import { useMemo } from "react"
 
 import { useQuery } from "@tanstack/react-query"
@@ -9,12 +8,10 @@ import {
   getLensContract,
   MarketVersion,
   SupportedChainId,
-  SubgraphGetAllMarketsForLenderViewQueryVariables,
   getLenderAccountsForAllMarkets,
-  SubgraphMarket_Filter,
   hasDeploymentAddress,
+  logger,
 } from "@wildcatfi/wildcat-sdk"
-import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 import { zeroAddress } from "viem"
 
 import { POLLING_INTERVAL } from "@/config/polling"
@@ -22,13 +19,10 @@ import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
-import { EXCLUDED_MARKETS_FILTER, TOKENS_ADDRESSES } from "@/utils/constants"
-import { combineFilters } from "@/utils/filters"
+import { TOKENS_ADDRESSES } from "@/utils/constants"
+import { isNotExcludedMarket } from "@/utils/filters"
 import { refreshMarketAccountsV2LiveDataSafe } from "@/utils/marketV2Reads"
 import { TwoStepQueryHookResult } from "@/utils/types"
-
-export type LenderMarketsQueryProps =
-  SubgraphGetAllMarketsForLenderViewQueryVariables
 
 function getChunks<T extends Market | MarketAccount>(
   chainId: SupportedChainId,
@@ -77,9 +71,7 @@ function zeroLenderBalances(lenderStatus: LenderStatusUpdate) {
   } as unknown as LenderStatusUpdate
 }
 
-export function useLendersMarkets(
-  filters: LenderMarketsQueryProps = {},
-): TwoStepQueryHookResult<MarketAccount[]> {
+export function useLendersMarkets(): TwoStepQueryHookResult<MarketAccount[]> {
   const { isWrongNetwork, provider, signer, address } = useEthersProvider()
   const { chainId, targetChainId } = useCurrentNetwork()
   const subgraphClient = useSubgraphClient()
@@ -91,28 +83,22 @@ export function useLendersMarkets(
     logger.debug(`Getting all markets...`)
     if (!chainId) throw Error("No chainId")
     if (!signerOrProvider) throw Error(`no provider`)
-    const { marketFilter, ...otherFilters } = filters
-    const filter = combineFilters([
-      { ...marketFilter },
-      ...EXCLUDED_MARKETS_FILTER,
-    ]) as SubgraphMarket_Filter
     const lenderAccounts = await getLenderAccountsForAllMarkets(
       subgraphClient,
       {
-        ...otherFilters,
         lender: lender ?? zeroAddress,
         fetchPolicy: "network-only",
         chainId,
         signerOrProvider,
-        marketFilter: filter,
       },
     )
-    lenderAccounts.sort(
-      (a, b) =>
-        (b.market.deployedEvent?.blockNumber ?? 0) -
-        (a.market.deployedEvent?.blockNumber ?? 0),
-    )
     return lenderAccounts
+      .filter((account) => isNotExcludedMarket(account.market))
+      .sort(
+        (a, b) =>
+          (b.market.deployedEvent?.blockNumber ?? 0) -
+          (a.market.deployedEvent?.blockNumber ?? 0),
+      )
   }
 
   const {
@@ -125,7 +111,6 @@ export function useLendersMarkets(
     queryKey: QueryKeys.Lender.GET_LENDER_ACCOUNTS.INITIAL(
       targetChainId,
       lender,
-      JSON.stringify(filters),
     ),
     queryFn: queryMarketsForLender,
     refetchInterval: POLLING_INTERVAL,

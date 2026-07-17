@@ -1,12 +1,13 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { MarketController, PartialTransaction } from "@wildcatfi/wildcat-sdk"
 import {
   FixedTermHooks,
   HooksInstance,
+  MarketController,
   OpenTermHooks,
+  PartialTransaction,
   PeriodicTermHooks,
-} from "@wildcatfi/wildcat-sdk/dist/access"
+} from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"

@@ -2,14 +2,14 @@ import {
   CreateMarketFlowVariant,
   CreateMarketFlowVariantKey,
 } from "./interface"
-import { legacyCreateMarketFlowVariant } from "./legacy"
+import { standardCreateMarketFlowVariant } from "./legacy"
 import { revolvingCreateMarketFlowVariant } from "./revolving"
 
 const CREATE_MARKET_FLOW_VARIANTS: Record<
   CreateMarketFlowVariantKey,
   CreateMarketFlowVariant
 > = {
-  legacy: legacyCreateMarketFlowVariant,
+  standard: standardCreateMarketFlowVariant,
   revolving: revolvingCreateMarketFlowVariant,
 }
 
@@ -28,5 +28,5 @@ export const getCreateMarketFlowVariant = (
     ]
   }
 
-  return CREATE_MARKET_FLOW_VARIANTS.legacy
+  return CREATE_MARKET_FLOW_VARIANTS.standard
 }

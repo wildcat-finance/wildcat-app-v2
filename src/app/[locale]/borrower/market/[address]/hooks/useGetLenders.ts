@@ -1,11 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
-import { Market, getSubgraphClient } from "@wildcatfi/wildcat-sdk"
 import {
-  GetAuthorizedLendersByMarketDocument,
-  SubgraphGetAuthorizedLendersByMarketQuery,
-  SubgraphGetAuthorizedLendersByMarketQueryVariables,
-} from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
-import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
+  getAuthorisedLendersByMarket,
+  getSubgraphClient,
+  logger,
+  Market,
+} from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 
@@ -13,25 +12,18 @@ export const useGetAuthorisedLendersByMarket = (market: Market | undefined) => {
   const subgraphClient = market?.chainId
     ? getSubgraphClient(market.chainId)
     : undefined
-  const getAuthorisedLendersByMarket = async () => {
+  const queryAuthorisedLenders = async () => {
     if (!market || !subgraphClient) throw Error()
 
     logger.debug(`Getting authorised lenders batches...`)
 
-    const res = await subgraphClient.query<
-      SubgraphGetAuthorizedLendersByMarketQuery,
-      SubgraphGetAuthorizedLendersByMarketQueryVariables
-    >({
-      query: GetAuthorizedLendersByMarketDocument,
-      variables: { market: market.address.toLowerCase() },
+    const lenders = await getAuthorisedLendersByMarket(subgraphClient, {
+      market: market.address,
+      fetchPolicy: "network-only",
     })
 
-    logger.debug(
-      `Got authorised lenders : ${res.data.market?.controller?.authorizedLenders}`,
-    )
-    return res.data?.market?.controller?.authorizedLenders.map(
-      (lender) => lender,
-    )
+    logger.debug(`Got ${lenders.length} authorised lenders`)
+    return lenders.map((lender) => ({ lender, authorized: true }))
   }
 
   return useQuery({
@@ -39,7 +31,7 @@ export const useGetAuthorisedLendersByMarket = (market: Market | undefined) => {
       market?.chainId ?? 0,
       market?.address,
     ),
-    queryFn: getAuthorisedLendersByMarket,
+    queryFn: queryAuthorisedLenders,
     enabled: !!market && !!market.chainId,
     refetchOnMount: false,
   })

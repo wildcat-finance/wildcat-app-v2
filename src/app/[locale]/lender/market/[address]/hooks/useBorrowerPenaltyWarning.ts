@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import {
-  getMarketsForBorrower,
+  getIndexedMarketList,
   getSubgraphClient,
   Market,
   SignerOrProvider,
@@ -12,8 +12,8 @@ import { NETWORKS_BY_ID } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
-import { EXCLUDED_MARKETS_FILTER } from "@/utils/constants"
-import { combineFilters } from "@/utils/filters"
+import { EXCLUDED_MARKETS } from "@/utils/constants"
+import { isNotExcludedMarket } from "@/utils/filters"
 
 import { shouldMarketTriggerBorrowerPenaltyWarning } from "../utils"
 
@@ -45,19 +45,17 @@ export const useBorrowerPenaltyWarning = (market: Market | undefined) => {
       }
 
       const subgraphClient = getSubgraphClient(chainId)
-      const borrowerMarkets = await getMarketsForBorrower(subgraphClient, {
-        borrower: borrowerAddress,
+      const indexedMarkets = await getIndexedMarketList(subgraphClient, {
         chainId,
         signerOrProvider: signerOrProvider as SignerOrProvider,
         fetchPolicy: "network-only",
-        marketFilter: combineFilters([
-          { borrower: borrowerAddress },
-          ...EXCLUDED_MARKETS_FILTER,
-        ]),
-        shouldSkipRecords: true,
+        filter: {
+          borrower: borrowerAddress,
+          excludeAddresses: EXCLUDED_MARKETS,
+        },
       })
       const updatedMarkets = await updateMarkets(
-        borrowerMarkets,
+        indexedMarkets.filter(isNotExcludedMarket),
         signerOrProvider,
         network,
       )

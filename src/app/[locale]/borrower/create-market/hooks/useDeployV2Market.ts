@@ -11,13 +11,12 @@ import {
   SafeTransactionInput,
   toSafeTransactionInput,
   getMockArchControllerOwnerContract,
-  getHooksFactoryContract,
-  getHooksFactoryRevolvingContract,
+  getRevolvingHooksFactoryContract,
+  getStandardHooksFactoryContract,
   WrapperFactory,
   hasDeploymentAddress,
   SupportedChainId,
-} from "@wildcatfi/wildcat-sdk"
-import {
+  DeployMarketPreview,
   DeployMarketStatus,
   FixedTermHooksTemplate,
   FixedTermMarketDeploymentArgs,
@@ -25,7 +24,7 @@ import {
   OpenTermMarketDeploymentArgs,
   PeriodicTermHooksTemplate,
   PeriodicTermMarketDeploymentArgs,
-} from "@wildcatfi/wildcat-sdk/dist/access"
+} from "@wildcatfi/wildcat-sdk"
 import { decodeEventLog, parseAbiItem, zeroAddress, type Hex } from "viem"
 
 import { toastError, toastRequest, toastSuccess } from "@/components/Toasts"
@@ -75,11 +74,6 @@ export type DeployNewV2MarketParams = (
 type MarketDeployedEventArgs = {
   market: string
 }
-
-type DeployMarketPreview =
-  | ReturnType<FixedTermHooksTemplate["previewDeployMarket"]>
-  | ReturnType<OpenTermHooksTemplate["previewDeployMarket"]>
-  | ReturnType<PeriodicTermHooksTemplate["previewDeployMarket"]>
 
 type PreviewDeployMarket = (params: unknown) => DeployMarketPreview
 
@@ -298,8 +292,8 @@ export const useDeployV2Market = () => {
             toastError(message)
             throw Error(message)
           }
-          if (preview.marketType === "legacy") {
-            const hooksFactory = getHooksFactoryContract(
+          if (preview.marketKind === "standard") {
+            const hooksFactory = getStandardHooksFactoryContract(
               hooksTemplate.chainId,
               signer,
             )
@@ -309,13 +303,11 @@ export const useDeployV2Market = () => {
                 preview.fn === "deployMarket"
                   ? hooksFactory.interface.encodeFunctionData(
                       "deployMarket",
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      preview.args as any,
+                      preview.args,
                     )
                   : hooksFactory.interface.encodeFunctionData(
                       "deployMarketAndHooks",
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      preview.args as any,
+                      preview.args,
                     )
 
               gnosisTransactions.push({
@@ -330,7 +322,7 @@ export const useDeployV2Market = () => {
               return tx.wait()
             }
           } else {
-            const hooksFactory = getHooksFactoryRevolvingContract(
+            const hooksFactory = getRevolvingHooksFactoryContract(
               hooksTemplate.chainId,
               signer,
             )
@@ -340,13 +332,11 @@ export const useDeployV2Market = () => {
                 preview.fn === "deployMarket"
                   ? hooksFactory.interface.encodeFunctionData(
                       "deployMarket",
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      preview.args as any,
+                      preview.args,
                     )
                   : hooksFactory.interface.encodeFunctionData(
                       "deployMarketAndHooks",
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      preview.args as any,
+                      preview.args,
                     )
 
               gnosisTransactions.push({
@@ -355,16 +345,12 @@ export const useDeployV2Market = () => {
                 value: "0",
               })
             } else if (preview.fn === "deployMarket") {
-              const args = preview.args as unknown as Parameters<
-                typeof hooksFactory.deployMarket
-              >
-              const tx = await hooksFactory.deployMarket(...args)
+              const tx = await hooksFactory.deployMarket(...preview.args)
               return tx.wait()
             } else {
-              const args = preview.args as unknown as Parameters<
-                typeof hooksFactory.deployMarketAndHooks
-              >
-              const tx = await hooksFactory.deployMarketAndHooks(...args)
+              const tx = await hooksFactory.deployMarketAndHooks(
+                ...preview.args,
+              )
               return tx.wait()
             }
           }

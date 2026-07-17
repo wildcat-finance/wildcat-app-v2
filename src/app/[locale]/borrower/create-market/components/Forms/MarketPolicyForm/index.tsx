@@ -26,7 +26,6 @@ import { InputLabel } from "@/components/InputLabel"
 import { getMaxFixedTermDays } from "@/config/market-duration"
 import {
   mockedAccessControlOptions,
-  mockedImplementationTypesOptions,
   mockedMarketTypesOptions,
 } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
@@ -40,6 +39,7 @@ import {
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 import { dayjs } from "@/utils/dayjs"
+import { marketImplementationOptions } from "@/utils/marketImplementation"
 
 import { MarketPolicyFormProps } from "./interface"
 import { PeriodicTermsSection } from "./PeriodicTermsSection"
@@ -228,7 +228,7 @@ export const MarketPolicyForm = ({
             control={control}
             name="implementationType"
             label={t("createNewMarket.policy.implementation.placeholder")}
-            options={mockedImplementationTypesOptions}
+            options={marketImplementationOptions}
             optionSX={{ width: "360px" }}
           />
         </InputLabel>

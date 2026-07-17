@@ -18,14 +18,14 @@ describe("market implementation variants", () => {
     expect(
       getMarketImplementationVariant({
         version: MarketVersion.V1,
-        marketType: "revolving",
+        marketKind: "revolving",
       }).key,
-    ).toBe("legacy")
+    ).toBe("standard")
 
     expect(
       getMarketImplementationVariant({
         version: MarketVersion.V2,
-        marketType: "revolving",
+        marketKind: "revolving",
       }).key,
     ).toBe("revolving")
   })

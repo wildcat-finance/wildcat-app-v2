@@ -19,7 +19,6 @@ import JurisdictionsByCountry from "@/config/jurisdictions-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
 import {
   mockedAccessControlOptions,
-  mockedImplementationTypesOptions,
   mockedMarketTypesOptions,
   mockedNaturesOptions,
 } from "@/mocks/mocks"
@@ -30,6 +29,7 @@ import {
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import { COLORS } from "@/theme/colors"
 import { timestampToDateFormatted } from "@/utils/formatters"
+import { marketImplementationOptions } from "@/utils/marketImplementation"
 
 import { ConfirmationFormProps } from "./interface"
 import { PeriodicTermsConfirmation } from "./PeriodicTermsConfirmation"
@@ -140,7 +140,7 @@ export const SharedConfirmationForm = ({
 
   const [requestedSign, setRequestedSign] = useState<boolean>(false)
 
-  const implementationTypeValue = mockedImplementationTypesOptions.find(
+  const implementationTypeValue = marketImplementationOptions.find(
     (el) => el.value === getValues("implementationType"),
   )?.label
 

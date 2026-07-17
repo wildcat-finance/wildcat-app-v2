@@ -1,6 +1,10 @@
-import { gql } from "@apollo/client"
 import { useQuery } from "@tanstack/react-query"
-import { rayMul } from "@wildcatfi/wildcat-sdk"
+import {
+  collectIndexedPages,
+  getLenderAnalyticsProfile,
+  getLenderPositionPage,
+  rayMul,
+} from "@wildcatfi/wildcat-sdk"
 
 import {
   LenderPositionRow,
@@ -14,98 +18,35 @@ import {
 } from "@/components/Profile/shared/analytics"
 import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { fetchHinterlightTokenUsdPrices } from "@/hooks/useTokenUsdPrices"
-import { getHinterlightClient, isHinterlightSupported } from "@/lib/hinterlight"
-import { fetchAllGraphqlPages } from "@/lib/paginated-query"
+import { fetchIndexedTokenUsdPrices } from "@/hooks/useTokenUsdPrices"
+import {
+  getConfiguredSubgraphClient,
+  isSubgraphPricingConfigured,
+} from "@/lib/subgraphCapabilities"
 
-const GET_LENDER_PROFILE_POSITIONS = gql`
-  query getLenderProfilePositions(
-    $address: String!
-    $statsId: ID!
-    $first: Int!
-    $skip: Int!
-  ) {
-    lenderStats(id: $statsId) {
-      firstSeenTimestamp
-      totalDepositedUSD
-      totalWithdrawalsRequestedUSD
-      totalWithdrawalsExecutedUSD
-      totalInterestEarnedUSD
-      numMarkets
-      numActiveMarkets
-    }
-    lenderAccounts(
-      where: { address: $address }
-      orderBy: scaledBalance
-      orderDirection: desc
-      first: $first
-      skip: $skip
-    ) {
-      market {
-        id
-        name
-        borrower
-        annualInterestBips
-        maxTotalSupply
-        scaledTotalSupply
-        scaleFactor
-        isDelinquent
-        isIncurringPenalties
-        isClosed
-        asset {
-          address
-          symbol
-          decimals
-        }
-      }
-      scaledBalance
-      totalDeposited
-      totalInterestEarned
-      lastScaleFactor
-      addedTimestamp
+type LenderPositionRaw = {
+  market: {
+    id: string
+    name: string
+    borrower: string
+    annualInterestBips: number
+    maxTotalSupply: string
+    scaledTotalSupply: string
+    scaleFactor: string
+    isDelinquent: boolean
+    isIncurringPenalties: boolean
+    isClosed: boolean
+    asset: {
+      address: string
+      symbol: string
+      decimals: number
     }
   }
-`
-
-type LenderProfilePositionsQuery = {
-  lenderStats: {
-    firstSeenTimestamp: number
-    totalDepositedUSD: string
-    totalWithdrawalsRequestedUSD: string
-    totalWithdrawalsExecutedUSD: string
-    totalInterestEarnedUSD: string
-    numMarkets: number
-    numActiveMarkets: number
-  } | null
-  lenderAccounts: Array<{
-    market: {
-      id: string
-      name: string
-      borrower: string
-      annualInterestBips: number
-      maxTotalSupply: string
-      scaledTotalSupply: string
-      scaleFactor: string
-      isDelinquent: boolean
-      isIncurringPenalties: boolean
-      isClosed: boolean
-      asset: {
-        address: string
-        symbol: string
-        decimals: number
-      }
-    }
-    scaledBalance: string
-    totalDeposited: string
-    totalInterestEarned: string
-    lastScaleFactor: string
-    addedTimestamp: number
-  }>
-}
-
-type LenderProfilePositionsVariables = {
-  address: string
-  statsId: string
+  scaledBalance: string
+  totalDeposited: string
+  totalInterestEarned: string
+  lastScaleFactor: string
+  addedTimestamp: number
 }
 
 const getPositionStatus = (
@@ -174,40 +115,62 @@ export const useLenderPositions = (
       chainId,
       normalizedAddress,
     ),
-    enabled: !!normalizedAddress && isHinterlightSupported(chainId),
+    enabled: !!normalizedAddress && isSubgraphPricingConfigured(chainId),
     refetchOnMount: false,
     refetchInterval: 60_000,
     staleTime: 60_000,
     queryFn: async () => {
       if (!normalizedAddress) throw new Error("Missing lender address")
 
-      const client = getHinterlightClient(chainId)
-      if (!client) throw new Error("Hinterlight not supported on this network")
+      const client = getConfiguredSubgraphClient(chainId)
+      if (!client) throw new Error("Subgraph not configured on this network")
 
-      const pageState: {
-        lenderStats: LenderProfilePositionsQuery["lenderStats"]
-      } = { lenderStats: null }
-      const lenderAccounts = await fetchAllGraphqlPages<
-        LenderProfilePositionsQuery,
-        LenderProfilePositionsVariables,
-        LenderProfilePositionsQuery["lenderAccounts"][number]
-      >({
-        client,
-        query: GET_LENDER_PROFILE_POSITIONS,
-        variables: {
-          address: normalizedAddress,
-          statsId: `LENDER-STATS-${normalizedAddress}`,
-        },
-        getItems: (page) => {
-          pageState.lenderStats ??= page.lenderStats
-          return page.lenderAccounts
-        },
-      })
+      const [profile, indexedPositions] = await Promise.all([
+        getLenderAnalyticsProfile(client, {
+          lender: normalizedAddress,
+          fetchPolicy: "network-only",
+        }),
+        collectIndexedPages(
+          (request) =>
+            getLenderPositionPage(client, {
+              lender: normalizedAddress,
+              fetchPolicy: "network-only",
+              ...request,
+            }),
+          { first: 1000 },
+        ),
+      ])
+      const lenderAccounts: LenderPositionRaw[] = indexedPositions.map(
+        (account) => ({
+          market: {
+            id: account.market.address,
+            name: account.market.name,
+            borrower: account.market.borrower,
+            annualInterestBips: account.market.annualInterestBips,
+            maxTotalSupply: account.market.maxTotalSupply.toString(),
+            scaledTotalSupply: account.market.scaledTotalSupply.toString(),
+            scaleFactor: account.market.scaleFactor.toString(),
+            isDelinquent: account.market.isDelinquent,
+            isIncurringPenalties: account.market.isIncurringPenalties,
+            isClosed: account.market.isClosed,
+            asset: {
+              address: account.market.asset.address,
+              symbol: account.market.asset.symbol,
+              decimals: account.market.asset.decimals,
+            },
+          },
+          scaledBalance: account.scaledBalance.toString(),
+          totalDeposited: account.totalDeposited.toString(),
+          totalInterestEarned: account.totalInterestEarned.toString(),
+          lastScaleFactor: account.lastScaleFactor.toString(),
+          addedTimestamp: account.addedTimestamp,
+        }),
+      )
 
       if (lenderAccounts.length === 0) return emptyPositions(normalizedAddress)
-      const { lenderStats } = pageState
+      const lenderStats = profile.stats
 
-      const tokenPrices = await fetchHinterlightTokenUsdPrices(
+      const { prices: tokenPrices } = await fetchIndexedTokenUsdPrices(
         chainId,
         lenderAccounts.map((account) => account.market.asset.address),
       )
@@ -216,8 +179,11 @@ export const useLenderPositions = (
       const decimalsMap: Record<string, number> = {}
 
       lenderAccounts.forEach((account) => {
-        priceMap[account.market.id] =
-          tokenPrices[account.market.asset.address.toLowerCase()] ?? 0
+        const price = tokenPrices[account.market.asset.address.toLowerCase()]
+        if (price === undefined) {
+          throw new Error(`Missing USD price for market ${account.market.id}`)
+        }
+        priceMap[account.market.id] = price
         decimalsMap[account.market.id] = account.market.asset.decimals
       })
 

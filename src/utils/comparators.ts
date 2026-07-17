@@ -1,4 +1,4 @@
-import { HooksKind, MarketType, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { HooksKind, MarketKind, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
 import { MarketStatus } from "@/utils/marketStatus"
 
@@ -31,10 +31,11 @@ export const typeComparator = (
   return 0
 }
 
-export const implementationComparator = (v1: MarketType, v2: MarketType) => {
-  const order: Record<MarketType, number> = {
-    legacy: 0,
+export const implementationComparator = (v1: MarketKind, v2: MarketKind) => {
+  const order: Record<MarketKind, number> = {
+    standard: 0,
     revolving: 1,
+    unknown: 2,
   }
 
   return order[v1] - order[v2]

@@ -1,12 +1,11 @@
 import {
   Market,
   DepositAccess,
+  MarketKind,
   TokenAmount,
   TransferAccess,
   getDeploymentAddress,
-  getHooksFactoryAddressForMarketType,
   HooksKind,
-  MarketType,
   WithdrawalAccess,
   Token,
 } from "@wildcatfi/wildcat-sdk"
@@ -58,7 +57,8 @@ export type MlaBorrowerFields = {
   networkData: NetworkData
   market: {
     address: string
-    implementationType?: MarketType
+    marketKind?: MarketKind
+    hooksFactory?: string
     name: string
     symbol: string
     marketTerm: HooksKind
@@ -257,7 +257,9 @@ const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
   }
   return {
     address,
-    implementationType: market.marketType ?? "legacy",
+    marketKind: market.marketKind,
+    hooksFactory:
+      market.hooksFactory ?? market.provenance?.hooksFactory?.address,
     name,
     symbol,
     marketTerm: hooksConfig?.kind ?? HooksKind.OpenTerm,
@@ -339,8 +341,6 @@ export function getFieldValuesForBorrower({
       jurisdictionObj?.subDivisionName || jurisdictionObj?.countryName
   }
   const networkInfo = NETWORKS_BY_ID[asset.chainId]
-  const implementationType = market.implementationType ?? "legacy"
-
   const entityKindText =
     entityKind !== undefined && jurisdictionObj
       ? ELFsByCountry[
@@ -405,15 +405,7 @@ export function getFieldValuesForBorrower({
             getDeploymentAddress(networkInfo.chainId, "Chainalysis"),
           ),
     ],
-    [
-      "hooksFactory.address",
-      formatAddress(
-        getHooksFactoryAddressForMarketType(
-          networkInfo.chainId,
-          implementationType,
-        ),
-      ),
-    ],
+    ["hooksFactory.address", formatAddress(market.hooksFactory)],
     // token amount
     [
       "market.capacity",
@@ -461,9 +453,7 @@ export function getFieldValuesForBorrower({
     [
       "market.aprLabel",
       market.aprLabel ??
-        (market.implementationType === "revolving"
-          ? "Utilization APR"
-          : "Base APR"),
+        (market.marketKind === "revolving" ? "Utilization APR" : "Base APR"),
     ],
     ["market.apr", formatBips(market.apr)],
     ["market.delinquencyFee", formatBips(market.delinquencyFee)],

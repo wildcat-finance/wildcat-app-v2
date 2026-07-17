@@ -9,20 +9,13 @@ const mockUnstableCache = jest.fn(
   (fn: () => unknown, ..._args: unknown[]) => fn,
 )
 
-jest.mock("@apollo/client", () => ({
-  ApolloClient: jest.fn().mockImplementation(() => ({ query: mockQuery })),
-  HttpLink: jest.fn(),
-  InMemoryCache: jest.fn(),
-}))
+jest.mock("@apollo/client", () => ({ gql: jest.fn(() => ({})) }))
 
 jest.mock("@wildcatfi/wildcat-sdk", () => ({
+  getSubgraphClient: jest.fn(() => ({ query: mockQuery })),
   SubgraphUrls: {
     11155111: "https://example.invalid/subgraph",
   },
-}))
-
-jest.mock("@wildcatfi/wildcat-sdk/dist/gql/graphql", () => ({
-  GetMarketDocument: {},
 }))
 
 jest.mock("next/cache", () => ({
@@ -56,7 +49,7 @@ describe("/api/market/get", () => {
     expect(mockUnstableCache).toHaveBeenCalledWith(
       expect.any(Function),
       [
-        "marketGet:v3",
+        "marketGet:v4",
         "0x04fb4e4577ad2cdd65e70f18d7a5f326162ddd90",
         "11155111",
         "11155111",
@@ -68,7 +61,6 @@ describe("/api/market/get", () => {
         query: {},
         variables: {
           market: "0x04fb4e4577ad2cdd65e70f18d7a5f326162ddd90",
-          shouldSkipRecords: true,
         },
         fetchPolicy: "network-only",
       }),

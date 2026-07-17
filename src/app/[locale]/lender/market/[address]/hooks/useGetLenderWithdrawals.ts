@@ -11,17 +11,13 @@ import {
   TokenAmount,
   BatchStatus,
   getSubgraphClient,
+  logger,
 } from "@wildcatfi/wildcat-sdk"
-import {
-  GetLenderWithdrawalsForMarketDocument,
-  SubgraphGetLenderWithdrawalsForMarketQuery,
-  SubgraphGetLenderWithdrawalsForMarketQueryVariables,
-} from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
-import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 import { useAccount } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
+import { GET_LENDER_WITHDRAWALS_FOR_MARKET } from "@/graphql/withdrawals"
 import { cloneSdkObject } from "@/lib/sdk-object"
 import { TwoStepQueryHookResult } from "@/utils/types"
 import { applyLatestLensWithdrawalBatchUpdate } from "@/utils/withdrawalBatch"
@@ -60,25 +56,26 @@ export function useGetLenderWithdrawals(
   async function queryLenderWithdrawals() {
     if (!lender || !market || !marketAddress || !subgraphClient) throw Error()
     logger.debug(`Getting lender withdrawals...`)
-    const result = await subgraphClient.query<
-      SubgraphGetLenderWithdrawalsForMarketQuery,
-      SubgraphGetLenderWithdrawalsForMarketQueryVariables
-    >({
-      query: GetLenderWithdrawalsForMarketDocument,
+    const result = await subgraphClient.query({
+      query: GET_LENDER_WITHDRAWALS_FOR_MARKET,
       variables: { market: marketAddress, lender },
+      fetchPolicy: "network-only",
     })
     const lenderData = result.data.market?.lenders[0]
     const completeWithdrawals =
       lenderData?.completeWithdrawals.map((data) => {
         const batch = WithdrawalBatch.fromSubgraphWithdrawalBatch(
           market,
-          data.batch,
+          data.batch as Parameters<
+            typeof WithdrawalBatch.fromSubgraphWithdrawalBatch
+          >[1],
         )
         return LenderWithdrawalStatus.fromSubgraphLenderWithdrawalStatus(
           market,
           batch,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          data as any,
+          data as unknown as Parameters<
+            typeof LenderWithdrawalStatus.fromSubgraphLenderWithdrawalStatus
+          >[2],
           lender,
         )
       }) ?? []
@@ -86,13 +83,16 @@ export function useGetLenderWithdrawals(
       lenderData?.incompleteWithdrawals.map((data) => {
         const batch = WithdrawalBatch.fromSubgraphWithdrawalBatch(
           market,
-          data.batch,
+          data.batch as Parameters<
+            typeof WithdrawalBatch.fromSubgraphWithdrawalBatch
+          >[1],
         )
         return LenderWithdrawalStatus.fromSubgraphLenderWithdrawalStatus(
           market,
           batch,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          data as any,
+          data as unknown as Parameters<
+            typeof LenderWithdrawalStatus.fromSubgraphLenderWithdrawalStatus
+          >[2],
           lender,
         )
       }) ?? []

@@ -41,12 +41,16 @@ export const buildBorrowerAggregateDebtData = ({
       normalizeScaledAmount(entry.scaledTotalSupply, entry.scaleFactor),
       entry.market.asset.decimals,
     )
-    const historicalPrice = entry.usdPrice ? Number(entry.usdPrice) : null
-    const fallbackPrice = priceMap[marketId] ?? 0
+    const historicalPrice =
+      entry.usdPrice === null ? undefined : Number(entry.usdPrice)
+    const fallbackPrice = priceMap[marketId]
     const price =
-      historicalPrice && Number.isFinite(historicalPrice)
+      historicalPrice !== undefined && Number.isFinite(historicalPrice)
         ? historicalPrice
         : fallbackPrice
+    if (price === undefined || !Number.isFinite(price)) {
+      throw new Error(`Missing USD price for market ${marketId}`)
+    }
     const debtUsd = debtToken * price
 
     const dayBucket = byDay.get(entry.startTimestamp) ?? new Map()
@@ -124,7 +128,10 @@ export const buildBorrowerWithdrawalAnalytics = ({
   const settledBatches = withdrawalBatches.reduce<
     BorrowerWithdrawalAnalytics["batches"]
   >((batches, batch) => {
-    const price = priceMap[batch.market.id] ?? 0
+    const price = priceMap[batch.market.id]
+    if (price === undefined || !Number.isFinite(price)) {
+      throw new Error(`Missing USD price for market ${batch.market.id}`)
+    }
     const requested =
       toHumanAmount(
         batch.totalNormalizedRequests,
