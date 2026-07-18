@@ -7,6 +7,7 @@ import { useAccount } from "wagmi"
 
 import { ServiceAgreementPartyInput } from "@/app/api/service-agreement/interface"
 import { toastError, toastRequest } from "@/components/Toasts"
+import { QueryKeys } from "@/config/query-keys"
 import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { SLA_STATUS_QUERY_KEY } from "@/hooks/useNetworkGate"
@@ -38,7 +39,8 @@ export const useAccountToUParty = () => {
       const res = await fetch(
         `/api/profiles/${address?.toLowerCase()}?chainId=${chainId}`,
       )
-      if (!res.ok) return { party: "Lender" as const }
+      if (res.status === 404) return { party: "Lender" as const }
+      if (!res.ok) throw Error(`Failed to load account role`)
       const { profile } = (await res.json()) as {
         profile: { name?: string } | null
       }
@@ -74,17 +76,23 @@ const useSignToUMessage = () => {
 
 const invalidateToUQueries = async (
   client: ReturnType<typeof useQueryClient>,
+  chainId: number,
+  address: string | undefined,
 ) => {
   await client.invalidateQueries({
     queryKey: [SLA_STATUS_QUERY_KEY],
     exact: false,
   })
   await client.invalidateQueries({ queryKey: [HAS_SIGNED_SLA_KEY] })
+  await client.invalidateQueries({
+    queryKey: QueryKeys.ServiceAgreement.GET_STATUS(chainId, address),
+  })
 }
 
 /// Accept the CURRENT ToU version (re-acceptance path, both parties).
 export const useAcceptToU = () => {
   const { address } = useAccount()
+  const { chainId: selectedChainId } = useSelectedNetwork()
   const client = useQueryClient()
   const currentAgreement = useCurrentServiceAgreement()
   const partyQuery = useAccountToUParty()
@@ -96,6 +104,7 @@ export const useAcceptToU = () => {
       if (!address) throw Error(`No address`)
       if (!currentAgreement.data) throw Error(`Current Terms of Use not loaded`)
       if (!partyQuery.data) throw Error(`Account role not loaded`)
+      if (signer.chainId !== selectedChainId) throw Error(`Wrong network`)
       const timeSigned = Date.now()
       const { party, organizationName } = partyQuery.data
       const message = buildServiceAgreementMessage({
@@ -118,7 +127,7 @@ export const useAcceptToU = () => {
         method: "POST",
         body: JSON.stringify({
           address: address.toLowerCase(),
-          chainId: signer.chainId,
+          chainId: selectedChainId,
           signature,
           timeSigned,
           party,
@@ -131,7 +140,7 @@ export const useAcceptToU = () => {
         throw Error(`Failed to submit signature`)
       }
     },
-    onSuccess: () => invalidateToUQueries(client),
+    onSuccess: () => invalidateToUQueries(client, selectedChainId, address),
     onError(error) {
       console.log(error)
     },
@@ -139,8 +148,14 @@ export const useAcceptToU = () => {
 
   return {
     ...mutation,
+    party: partyQuery.data,
     isReady:
-      !!currentAgreement.data && !!partyQuery.data && !!signer && !!address,
+      !!currentAgreement.data &&
+      !!partyQuery.data &&
+      !partyQuery.isError &&
+      !!signer &&
+      signer.chainId === selectedChainId &&
+      !!address,
   }
 }
 
@@ -148,6 +163,7 @@ export const useAcceptToU = () => {
 /// message (never confusable with an acceptance) and records it.
 export const useDeclineToU = () => {
   const { address } = useAccount()
+  const { chainId: selectedChainId } = useSelectedNetwork()
   const client = useQueryClient()
   const currentAgreement = useCurrentServiceAgreement()
   const partyQuery = useAccountToUParty()
@@ -159,6 +175,7 @@ export const useDeclineToU = () => {
       if (!address) throw Error(`No address`)
       if (!currentAgreement.data) throw Error(`Current Terms of Use not loaded`)
       if (!partyQuery.data) throw Error(`Account role not loaded`)
+      if (signer.chainId !== selectedChainId) throw Error(`Wrong network`)
       const timeSigned = Date.now()
       const message = buildServiceAgreementDeclineMessage({
         version: currentAgreement.data.version,
@@ -180,7 +197,7 @@ export const useDeclineToU = () => {
         method: "POST",
         body: JSON.stringify({
           address: address.toLowerCase(),
-          chainId: signer.chainId,
+          chainId: selectedChainId,
           signature,
           timeSigned,
           party: partyQuery.data.party,
@@ -194,7 +211,7 @@ export const useDeclineToU = () => {
         throw Error(`Failed to submit decline`)
       }
     },
-    onSuccess: () => invalidateToUQueries(client),
+    onSuccess: () => invalidateToUQueries(client, selectedChainId, address),
     onError(error) {
       console.log(error)
     },
@@ -202,7 +219,13 @@ export const useDeclineToU = () => {
 
   return {
     ...mutation,
+    party: partyQuery.data,
     isReady:
-      !!currentAgreement.data && !!partyQuery.data && !!signer && !!address,
+      !!currentAgreement.data &&
+      !!partyQuery.data &&
+      !partyQuery.isError &&
+      !!signer &&
+      signer.chainId === selectedChainId &&
+      !!address,
   }
 }

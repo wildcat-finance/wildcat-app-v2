@@ -33,7 +33,8 @@ export const BorrowModal = ({
 }: BorrowModalProps) => {
   const { t } = useTranslation()
   // ToU re-acceptance lockout (staleExpired / declined): borrowing blocked.
-  const { touBlocked } = useNetworkGate()
+  const { touGateState } = useNetworkGate()
+  const touActionBlocked = touGateState !== "unblocked"
   const [amount, setAmount] = useState("")
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
@@ -59,13 +60,13 @@ export const BorrowModal = ({
   }
 
   const handleBorrow = () => {
-    if (disableBorrowBtn) return
+    if (disableBorrowBtn || touActionBlocked) return
 
     modal.setFlowStep(ModalSteps.approved)
   }
 
   const handleConfirm = () => {
-    if (disableBorrowBtn) return
+    if (disableBorrowBtn || touActionBlocked) return
 
     mutate(amount)
   }
@@ -112,7 +113,7 @@ export const BorrowModal = ({
   const showForm = !(isPending || showSuccessPopup || showErrorPopup)
 
   const disableBorrow =
-    touBlocked ||
+    touActionBlocked ||
     disableBorrowBtn ||
     market.isClosed ||
     market.borrowableAssets.eq(0) ||
@@ -135,7 +136,7 @@ export const BorrowModal = ({
         variant="contained"
         size="large"
         sx={{ width: "152px" }}
-        disabled={disableBorrowBtn || touBlocked}
+        disabled={disableBorrowBtn || touActionBlocked}
       >
         {t("borrowerMarketDetails.modals.borrow.borrow")}
       </Button>

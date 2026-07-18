@@ -12,6 +12,8 @@
   - cloned template 2 rows for Plasma mainnet, Plasma testnet, and Sepolia.
 */
 
+BEGIN;
+
 -- DropForeignKey
 ALTER TABLE "MasterLoanAgreement"
 DROP CONSTRAINT "MasterLoanAgreement_templateId_fkey";
@@ -180,3 +182,5 @@ FOREIGN KEY ("chainId", "templateId")
 REFERENCES "MlaTemplate"("chainId", "id")
 ON DELETE RESTRICT
 ON UPDATE CASCADE;
+
+COMMIT;

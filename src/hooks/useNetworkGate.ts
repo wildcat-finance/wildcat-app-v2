@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { useQuery } from "@tanstack/react-query"
 import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
@@ -8,7 +8,10 @@ import { ServiceAgreementGateResponse } from "@/app/api/service-agreement/interf
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { setSelectedNetwork } from "@/store/slices/selectedNetworkSlice/selectedNetworkSlice"
-import { isToUBlockedState } from "@/utils/serviceAgreementState"
+import {
+  applyToUDeadlineBoundary,
+  computeToUGateState,
+} from "@/utils/serviceAgreementState"
 
 import { useSelectedNetwork } from "./useSelectedNetwork"
 
@@ -19,6 +22,8 @@ export type UseNetworkGateOptions = {
 }
 
 export const SLA_STATUS_QUERY_KEY = "sla-status"
+
+const MAX_TIMEOUT_MS = 2_147_483_647
 
 type SlaResponse = ServiceAgreementGateResponse
 
@@ -69,13 +74,15 @@ export const useNetworkGate = ({
 
   const isWrongNetwork = Boolean(isWalletMismatch)
 
+  const agreementQueryEnabled =
+    includeAgreementStatus &&
+    !!address &&
+    typeof selectedChainId === "number" &&
+    isSupportedChainId(selectedChainId)
+
   const slaQuery = useQuery({
     queryKey: [SLA_STATUS_QUERY_KEY, address, selectedChainId],
-    enabled:
-      includeAgreementStatus &&
-      !!address &&
-      typeof selectedChainId === "number" &&
-      isSupportedChainId(selectedChainId),
+    enabled: agreementQueryEnabled,
     queryFn: async () => {
       const res = await fetch(`/api/sla/${address}?chainId=${selectedChainId}`)
       if (!res.ok) throw new Error("Failed to fetch SLA status")
@@ -89,14 +96,40 @@ export const useNetworkGate = ({
   const legacyFallbackState = isAgreementSigned
     ? ("signedCurrent" as const)
     : ("neverSigned" as const)
-  const touState =
+  const serverTouState =
     slaQuery.data?.state ?? (slaQuery.data ? legacyFallbackState : undefined)
   const touDeadline = slaQuery.data?.currentVersion?.reacceptanceDeadline
     ? new Date(slaQuery.data.currentVersion.reacceptanceDeadline)
     : null
+  const touDeadlineMs = touDeadline?.getTime() ?? null
+  const [deadlineTick, setDeadlineTick] = useState(0)
+
+  useEffect(() => {
+    if (serverTouState !== "staleWithinGrace" || touDeadlineMs === null) {
+      return undefined
+    }
+    const remaining = touDeadlineMs - Date.now()
+    if (remaining <= 0) return undefined
+    const timeout = window.setTimeout(
+      () => setDeadlineTick((value) => value + 1),
+      Math.min(remaining, MAX_TIMEOUT_MS),
+    )
+    return () => window.clearTimeout(timeout)
+  }, [deadlineTick, serverTouState, touDeadlineMs])
+
+  const touState = applyToUDeadlineBoundary(
+    serverTouState,
+    touDeadline,
+    new Date(),
+  )
   const touCurrentVersion = slaQuery.data?.currentVersion
   const touAcceptedVersion = slaQuery.data?.acceptedVersion ?? null
-  const touBlocked = isToUBlockedState(touState)
+  const touGateState = computeToUGateState({
+    queryEnabled: agreementQueryEnabled,
+    querySucceeded: slaQuery.isSuccess,
+    state: touState,
+  })
+  const touBlocked = touGateState === "blocked"
 
   const redirectPath = useMemo(() => {
     if (!pathname) return null
@@ -169,11 +202,13 @@ export const useNetworkGate = ({
     touDeadline,
     touCurrentVersion,
     touAcceptedVersion,
+    touGateState,
     touBlocked,
     isAgreementLoading: slaQuery.isLoading,
+    isAgreementUnknown: touGateState === "unknown",
     agreementError: slaQuery.error,
     redirectPath,
-    isRedirectLoading: includeAgreementStatus && slaQuery.isLoading,
+    isRedirectLoading: touGateState === "unknown",
     requestSwitchNetwork,
     isSwitching,
   }

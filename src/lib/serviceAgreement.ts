@@ -168,9 +168,10 @@ export async function verifyServiceAgreementSignature({
 /// wins; repeats are no-ops.
 export async function saveServiceAgreementSignature(
   data: VerifiedServiceAgreementSignature,
+  transaction?: Prisma.TransactionClient,
 ): Promise<void> {
   const { chainId, address, party, serviceAgreementId } = data
-  await prisma.serviceAgreementSignature.upsert({
+  await (transaction ?? prisma).serviceAgreementSignature.upsert({
     where: {
       chainId_address_party_serviceAgreementId: {
         chainId,

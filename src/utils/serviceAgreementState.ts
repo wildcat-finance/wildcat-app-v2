@@ -29,6 +29,37 @@ export const isToUBlockedState = (
   state: ToUAcceptanceState | undefined,
 ): boolean => !!state && TOU_BLOCKED_STATES.includes(state)
 
+export type ToUGateState = "blocked" | "unblocked" | "unknown"
+
+export function computeToUGateState({
+  queryEnabled,
+  querySucceeded,
+  state,
+}: {
+  queryEnabled: boolean
+  querySucceeded: boolean
+  state: ToUAcceptanceState | undefined
+}): ToUGateState {
+  if (!queryEnabled) return "unblocked"
+  if (!querySucceeded || !state) return "unknown"
+  return isToUBlockedState(state) ? "blocked" : "unblocked"
+}
+
+export function applyToUDeadlineBoundary(
+  state: ToUAcceptanceState | undefined,
+  reacceptanceDeadline: Date | null,
+  now: Date,
+): ToUAcceptanceState | undefined {
+  if (
+    state === "staleWithinGrace" &&
+    reacceptanceDeadline &&
+    now.getTime() >= reacceptanceDeadline.getTime()
+  ) {
+    return "staleExpired"
+  }
+  return state
+}
+
 export type ComputeToUStateInput = {
   /// Account has an acceptance of the current version (any party).
   hasAcceptedCurrent: boolean

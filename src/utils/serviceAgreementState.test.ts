@@ -1,5 +1,7 @@
 import {
+  applyToUDeadlineBoundary,
   computeToUAcceptanceState,
+  computeToUGateState,
   isToUBlockedState,
 } from "./serviceAgreementState"
 
@@ -107,5 +109,58 @@ describe("isToUBlockedState", () => {
     expect(isToUBlockedState("staleWithinGrace")).toBe(false)
     expect(isToUBlockedState("neverSigned")).toBe(false)
     expect(isToUBlockedState(undefined)).toBe(false)
+  })
+})
+
+describe("computeToUGateState", () => {
+  it("does not apply the gate when the agreement query is disabled", () => {
+    expect(
+      computeToUGateState({
+        queryEnabled: false,
+        querySucceeded: false,
+        state: undefined,
+      }),
+    ).toBe("unblocked")
+  })
+
+  it("stays unknown until the enabled query succeeds", () => {
+    expect(
+      computeToUGateState({
+        queryEnabled: true,
+        querySucceeded: false,
+        state: undefined,
+      }),
+    ).toBe("unknown")
+  })
+
+  it("maps a successful response to its enforcement state", () => {
+    expect(
+      computeToUGateState({
+        queryEnabled: true,
+        querySucceeded: true,
+        state: "staleExpired",
+      }),
+    ).toBe("blocked")
+    expect(
+      computeToUGateState({
+        queryEnabled: true,
+        querySucceeded: true,
+        state: "staleWithinGrace",
+      }),
+    ).toBe("unblocked")
+  })
+})
+
+describe("applyToUDeadlineBoundary", () => {
+  it("expires the grace state at the deadline without a refetch", () => {
+    expect(applyToUDeadlineBoundary("staleWithinGrace", FUTURE, NOW)).toBe(
+      "staleWithinGrace",
+    )
+    expect(applyToUDeadlineBoundary("staleWithinGrace", NOW, NOW)).toBe(
+      "staleExpired",
+    )
+    expect(applyToUDeadlineBoundary("staleWithinGrace", PAST, NOW)).toBe(
+      "staleExpired",
+    )
   })
 })

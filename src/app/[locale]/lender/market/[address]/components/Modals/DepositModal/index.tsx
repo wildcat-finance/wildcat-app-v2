@@ -136,7 +136,8 @@ export const DepositModal = ({
   const { t } = useTranslation()
   const { getTxUrl } = useBlockExplorer()
   // ToU re-acceptance lockout (staleExpired / declined): deposits blocked.
-  const { touBlocked } = useNetworkGate()
+  const { touGateState } = useNetworkGate()
+  const touActionBlocked = touGateState !== "unblocked"
 
   const { market } = marketAccount
 
@@ -247,7 +248,7 @@ export const DepositModal = ({
   }
 
   const handleDeposit = () => {
-    if (marketActionsManuallyDisabled) return
+    if (marketActionsManuallyDisabled || touActionBlocked) return
 
     setTxHash("")
     deposit(depositTokenAmount)
@@ -259,7 +260,7 @@ export const DepositModal = ({
   }
 
   const handleApprove = () => {
-    if (marketActionsManuallyDisabled) return
+    if (marketActionsManuallyDisabled || touActionBlocked) return
 
     setTxHash("")
 
@@ -288,7 +289,7 @@ export const DepositModal = ({
   const handleOpenDepositModal = () => {
     // ToU re-acceptance lockout: deposits are blocked until the current
     // version is accepted (withdrawals stay available).
-    if (touBlocked) return
+    if (touActionBlocked) return
 
     if (isMlaLoading || mla === undefined) {
       setDepositOpenRequested(true)
@@ -319,7 +320,7 @@ export const DepositModal = ({
     isUSDTLikeToken(market.underlyingToken.address)
 
   const disableApprove =
-    touBlocked ||
+    touActionBlocked ||
     marketActionsManuallyDisabled ||
     !borrowerLegalName ||
     market.isClosed ||
@@ -330,7 +331,7 @@ export const DepositModal = ({
     !Signer.isSigner(market.provider)
 
   const disableDeposit =
-    touBlocked ||
+    touActionBlocked ||
     marketActionsManuallyDisabled ||
     !borrowerLegalName ||
     !!depositError ||
@@ -365,9 +366,12 @@ export const DepositModal = ({
   const capacityTooltip = underlyingBalanceIsZero
     ? "Underlying token balance is zero"
     : "Market is at full capacity"
-  const tooltip = touBlocked
-    ? "Accept the updated Terms of Use to deposit"
-    : capacityTooltip
+  let tooltip = capacityTooltip
+  if (touGateState === "blocked") {
+    tooltip = "Accept the updated Terms of Use to deposit"
+  } else if (touGateState === "unknown") {
+    tooltip = "Checking Terms of Use status"
+  }
 
   useEffect(() => {
     if (amount === "" || amount === "0" || depositStep === "Ready") {
@@ -852,7 +856,7 @@ export const DepositModal = ({
   if (!isMobile)
     return (
       <>
-        {touBlocked ||
+        {touActionBlocked ||
         marketAccount.maximumDeposit.raw.isZero() ||
         underlyingBalanceIsZero ? (
           <Tooltip title={tooltip} placement="right">
@@ -863,7 +867,7 @@ export const DepositModal = ({
                 size="large"
                 sx={{ width: "152px" }}
                 disabled={
-                  touBlocked ||
+                  touActionBlocked ||
                   marketActionsManuallyDisabled ||
                   marketAccount.maximumDeposit.raw.isZero() ||
                   underlyingBalanceIsZero

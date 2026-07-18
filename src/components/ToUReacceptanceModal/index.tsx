@@ -54,6 +54,7 @@ export const ToUReacceptanceModal = () => {
     touCurrentVersion,
     touAcceptedVersion,
     selectedChainId,
+    isWrongNetwork,
   } = useNetworkGate()
   const accept = useAcceptToU()
   const decline = useDeclineToU()
@@ -132,6 +133,13 @@ export const ToUReacceptanceModal = () => {
   )
   const canDismiss = !isExpired
   const isBusy = accept.isPending || decline.isPending
+  let signingAs: string | null = null
+  if (accept.party) {
+    signingAs =
+      accept.party.party === "Borrower"
+        ? `Borrower (${accept.party.organizationName})`
+        : "Lender"
+  }
 
   const handleDecline = () => {
     decline.mutate(
@@ -222,6 +230,12 @@ export const ToUReacceptanceModal = () => {
         <Typography variant="text3" color={COLORS.santasGrey}>
           {description}
         </Typography>
+
+        {!isReadOnly && signingAs && (
+          <Typography variant="text3" color={COLORS.blackRock}>
+            <strong>Signing as:</strong> {signingAs}
+          </Typography>
+        )}
 
         {view === "main" && (
           <>
@@ -376,7 +390,7 @@ export const ToUReacceptanceModal = () => {
               variant="contained"
               size="large"
               onClick={() => accept.mutate()}
-              disabled={isBusy || !accept.isReady}
+              disabled={isBusy || !accept.isReady || isWrongNetwork}
               fullWidth
             >
               {accept.isPending ? "Signing..." : "Sign Terms of Use"}
@@ -387,7 +401,7 @@ export const ToUReacceptanceModal = () => {
                 color="secondary"
                 size="large"
                 onClick={() => setView("decline")}
-                disabled={isBusy}
+                disabled={isBusy || isWrongNetwork}
                 fullWidth
               >
                 Decline
@@ -412,7 +426,7 @@ export const ToUReacceptanceModal = () => {
               variant="contained"
               size="large"
               onClick={handleDecline}
-              disabled={isBusy || !decline.isReady}
+              disabled={isBusy || !decline.isReady || isWrongNetwork}
               fullWidth
             >
               {decline.isPending ? "Signing..." : "Sign Decline"}

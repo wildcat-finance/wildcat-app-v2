@@ -42,25 +42,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
   const serviceAgreementHash = requireLegacyWrapperHash(agreement)
-  // New table first, old table second (compatibility dual-write, removed in
-  // Release 2). Both writes are idempotent.
-  await saveServiceAgreementSignature(verified)
-  await prisma.lenderServiceAgreementSignature.upsert({
-    where: {
-      chainId_signer_serviceAgreementHash: {
+  await prisma.$transaction(async (transaction) => {
+    // New table first, old table second (compatibility dual-write, removed in
+    // Release 2). Both writes commit or roll back together.
+    await saveServiceAgreementSignature(verified, transaction)
+    await transaction.lenderServiceAgreementSignature.upsert({
+      where: {
+        chainId_signer_serviceAgreementHash: {
+          chainId,
+          signer: address,
+          serviceAgreementHash,
+        },
+      },
+      update: {},
+      create: {
         chainId,
         signer: address,
+        signature,
+        timeSigned: new Date(timeSigned),
         serviceAgreementHash,
       },
-    },
-    update: {},
-    create: {
-      chainId,
-      signer: address,
-      signature,
-      timeSigned: new Date(timeSigned),
-      serviceAgreementHash,
-    },
+    })
   })
   return NextResponse.json({ success: true })
 }

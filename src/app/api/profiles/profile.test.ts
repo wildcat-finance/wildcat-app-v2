@@ -289,6 +289,7 @@ describe("API", () => {
     address: borrowerAddress,
     name: "Borrower 1",
   }
+  const acceptedBorrowerName = "Borrower 1 Updated"
   beforeAll(async () => {
     await Promise.all([
       getToken(adminWallet, true),
@@ -567,30 +568,77 @@ describe("API", () => {
       expect(await response.json()).toEqual({ error: "Invalid signature" })
     })
 
-    test("Accepts EOA signature", async () => {
+    test("rolls back a failed compatibility write and allows retry", async () => {
       const timeSigned = Date.now()
       const agreement = await getCurrentServiceAgreement()
       const agreementText = buildServiceAgreementMessage({
         acknowledgementText: agreement.acknowledgementText,
         timeSigned,
-        organizationName: invite.name,
+        organizationName: acceptedBorrowerName,
       })
       const body: AcceptInvitationInput = {
         chainId: TargetChainId,
         address: borrowerAddress,
-        name: invite.name,
+        name: acceptedBorrowerName,
         timeSigned,
         signature: await wallet.signMessage(agreementText),
       }
-      const req = mockPut(`/api/invite/${borrowerAddress}`, body, {
+
+      let failCompatibilityWrite = true
+      prisma.$use((params, next) => {
+        if (
+          failCompatibilityWrite &&
+          params.model === "BorrowerServiceAgreementSignature" &&
+          params.action === "upsert"
+        ) {
+          failCompatibilityWrite = false
+          throw new Error("forced compatibility write failure")
+        }
+        return next(params)
+      })
+
+      const failedRequest = mockPut(`/api/invite/${borrowerAddress}`, body, {
         headers: {
           Authorization: `Bearer ${borrowerToken}`,
         },
       })
-      const response = await putBorrowerInvite(req)
+      await expect(putBorrowerInvite(failedRequest)).rejects.toThrow(
+        "forced compatibility write failure",
+      )
+
+      await expect(
+        prisma.serviceAgreementSignature.findUnique({
+          where: {
+            chainId_address_party_serviceAgreementId: {
+              chainId: TargetChainId,
+              address: borrowerAddress.toLowerCase(),
+              party: "Borrower",
+              serviceAgreementId: agreement.id,
+            },
+          },
+        }),
+      ).resolves.toBeNull()
+      await expect(
+        prisma.borrower.findUnique({
+          where: {
+            chainId_address: {
+              chainId: TargetChainId,
+              address: borrowerAddress.toLowerCase(),
+            },
+          },
+          select: { name: true },
+        }),
+      ).resolves.toEqual({ name: invite.name })
+
+      const retryRequest = mockPut(`/api/invite/${borrowerAddress}`, body, {
+        headers: {
+          Authorization: `Bearer ${borrowerToken}`,
+        },
+      })
+      const response = await putBorrowerInvite(retryRequest)
       expect(response.status).toBe(200)
       expect(await response.json()).toEqual({ success: true })
-    })
+    }, 60_000)
   })
   // })
 
@@ -615,7 +663,7 @@ describe("API", () => {
           profile: {
             address: borrowerAddress.toLowerCase(),
             chainId: TargetChainId,
-            name: "Borrower 1",
+            name: acceptedBorrowerName,
             registeredOnChain: false,
           },
         })

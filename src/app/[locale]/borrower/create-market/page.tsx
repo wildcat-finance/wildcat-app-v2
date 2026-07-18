@@ -71,7 +71,7 @@ export default function CreateMarketPage() {
   const { address } = useAccount()
   const { isTestnet } = useCurrentNetwork()
   // ToU re-acceptance lockout (staleExpired / declined): no new markets.
-  const { touBlocked } = useNetworkGate()
+  const { touGateState } = useNetworkGate()
   const { chainId: targetChainId } = useAppSelector(
     (state) => state.selectedNetwork,
   )
@@ -233,6 +233,7 @@ export default function CreateMarketPage() {
   })
 
   const handleClickDeploy = () => {
+    if (touGateState !== "unblocked") return
     console.log(`clicked deploy`)
     setFinalOpen(true)
     handleDeployMarket()
@@ -263,7 +264,22 @@ export default function CreateMarketPage() {
     dispatch(setInitialCreateState())
   }, [])
 
-  if (touBlocked) {
+  if (touGateState === "unknown") {
+    return (
+      <Box
+        sx={{
+          ...PageContainer,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Loader />
+      </Box>
+    )
+  }
+
+  if (touGateState === "blocked") {
     return (
       <Box sx={PageContainer}>
         <Box

@@ -391,52 +391,54 @@ export async function PUT(request: NextRequest) {
   //     2,
   //   ),
   // )
-  if (
-    borrowerInvitation.name !== name ||
-    borrowerInvitation.description !== description ||
-    borrowerInvitation.entityKind !== entityKind ||
-    borrowerInvitation.founded !== founded ||
-    borrowerInvitation.headquarters !== headquarters ||
-    borrowerInvitation.jurisdiction !== jurisdiction ||
-    borrowerInvitation.physicalAddress !== physicalAddress
-  ) {
-    await prisma.borrower.update({
+  await prisma.$transaction(async (transaction) => {
+    if (
+      borrowerInvitation.name !== name ||
+      borrowerInvitation.description !== description ||
+      borrowerInvitation.entityKind !== entityKind ||
+      borrowerInvitation.founded !== founded ||
+      borrowerInvitation.headquarters !== headquarters ||
+      borrowerInvitation.jurisdiction !== jurisdiction ||
+      borrowerInvitation.physicalAddress !== physicalAddress
+    ) {
+      await transaction.borrower.update({
+        where: {
+          chainId_address: {
+            chainId,
+            address,
+          },
+        },
+        data: {
+          name,
+          description,
+          entityKind,
+          founded,
+          headquarters,
+          jurisdiction,
+          physicalAddress,
+        },
+      })
+    }
+    // New table first, old table second (compatibility dual-write, removed in
+    // Release 2). Both writes commit or roll back together.
+    await saveServiceAgreementSignature(verified, transaction)
+    await transaction.borrowerServiceAgreementSignature.upsert({
       where: {
         chainId_address: {
           chainId,
           address,
         },
       },
-      data: {
-        name,
-        description,
-        entityKind,
-        founded,
-        headquarters,
-        jurisdiction,
-        physicalAddress,
-      },
-    })
-  }
-  // New table first, old table second (compatibility dual-write, removed in
-  // Release 2). Both writes are idempotent.
-  await saveServiceAgreementSignature(verified)
-  await prisma.borrowerServiceAgreementSignature.upsert({
-    where: {
-      chainId_address: {
+      update: {},
+      create: {
         chainId,
         address,
+        signature,
+        timeSigned: new Date(timeSigned),
+        borrowerName: name,
+        serviceAgreementHash,
       },
-    },
-    update: {},
-    create: {
-      chainId,
-      address,
-      signature,
-      timeSigned: new Date(timeSigned),
-      borrowerName: name,
-      serviceAgreementHash,
-    },
+    })
   })
   return NextResponse.json({ success: true })
 }
