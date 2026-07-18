@@ -33,6 +33,5 @@ export const useGetServiceAgreementStatus = (
     queryKey: QueryKeys.ServiceAgreement.GET_STATUS(chainId, normalizedAddress),
     queryFn: () => fetchServiceAgreementStatus(normalizedAddress, chainId),
     enabled: !!normalizedAddress && !!chainId,
-    refetchOnMount: false,
   })
 }

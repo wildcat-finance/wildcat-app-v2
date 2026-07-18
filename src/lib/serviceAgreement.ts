@@ -257,6 +257,7 @@ export async function verifyServiceAgreementRefusal({
   signature,
   timeSigned,
   reason,
+  organizationName,
 }: {
   agreement: ServiceAgreementMeta
   chainId: SupportedChainId
@@ -265,12 +266,15 @@ export async function verifyServiceAgreementRefusal({
   signature: string
   timeSigned: number
   reason?: string
+  organizationName?: string
 }): Promise<VerifiedServiceAgreementRefusal | undefined> {
   const accountAddress = address.toLowerCase()
   const message = buildServiceAgreementDeclineMessage({
     version: agreement.version,
     plaintextSha256: agreement.plaintextSha256,
     timeSigned,
+    party,
+    organizationName,
   })
   const result = await verifyAndDescribeSignature({
     provider: getProviderForServer(chainId),

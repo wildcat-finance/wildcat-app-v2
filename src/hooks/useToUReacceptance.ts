@@ -177,10 +177,13 @@ export const useDeclineToU = () => {
       if (!partyQuery.data) throw Error(`Account role not loaded`)
       if (signer.chainId !== selectedChainId) throw Error(`Wrong network`)
       const timeSigned = Date.now()
+      const { party, organizationName } = partyQuery.data
       const message = buildServiceAgreementDeclineMessage({
         version: currentAgreement.data.version,
         plaintextSha256: currentAgreement.data.plaintextSha256,
         timeSigned,
+        party,
+        organizationName,
       })
       let signature = ""
       await toastRequest(
@@ -200,7 +203,7 @@ export const useDeclineToU = () => {
           chainId: selectedChainId,
           signature,
           timeSigned,
-          party: partyQuery.data.party,
+          party,
           ...(reason ? { reason } : {}),
         }),
         headers: { "Content-Type": "application/json" },

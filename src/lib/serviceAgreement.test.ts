@@ -1,7 +1,10 @@
 /**
  * @jest-environment node
  */
-import { buildServiceAgreementMessage } from "@/lib/serviceAgreement"
+import {
+  buildServiceAgreementDeclineMessage,
+  buildServiceAgreementMessage,
+} from "@/lib/serviceAgreement"
 import { formatUnixMsAsDate } from "@/utils/formatters"
 
 const AgreementText =
@@ -53,5 +56,38 @@ describe("buildServiceAgreementMessage", () => {
         timeSigned: Date.UTC(2025, 2, 5),
       }),
     ).toBe("wrapper\n\nDate: March 05, 2025")
+  })
+})
+
+describe("buildServiceAgreementDeclineMessage", () => {
+  const input = {
+    version: "tou-2026-07-01",
+    plaintextSha256: "abc123",
+    timeSigned: Date.UTC(2026, 6, 17),
+  }
+
+  it("binds a lender decline to the lender capacity", () => {
+    expect(
+      buildServiceAgreementDeclineMessage({ ...input, party: "Lender" }),
+    ).toBe(
+      "I decline the Wildcat Terms of Use version tou-2026-07-01.\n\n" +
+        "Hash of agreement text: abc123\n\n" +
+        "Date: July 17, 2026\n\nParty: Lender",
+    )
+  })
+
+  it("binds a borrower decline to its organization capacity", () => {
+    expect(
+      buildServiceAgreementDeclineMessage({
+        ...input,
+        party: "Borrower",
+        organizationName: "Wildcat Labs",
+      }),
+    ).toBe(
+      "I decline the Wildcat Terms of Use version tou-2026-07-01.\n\n" +
+        "Hash of agreement text: abc123\n\n" +
+        "Date: July 17, 2026\n\nParty: Borrower\n\n" +
+        "Organization Name: Wildcat Labs",
+    )
   })
 })

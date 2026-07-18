@@ -151,6 +151,7 @@ export const useNetworkGate = ({
       isLenderPath(pathname) &&
       !lenderMarketPath &&
       address &&
+      slaQuery.isSuccess &&
       !isAgreementSigned
     ) {
       if (isWrongNetwork) {
@@ -160,7 +161,7 @@ export const useNetworkGate = ({
     }
 
     return null
-  }, [address, isAgreementSigned, isWrongNetwork, pathname])
+  }, [address, isAgreementSigned, isWrongNetwork, pathname, slaQuery.isSuccess])
 
   const requestSwitchNetwork = useCallback(async () => {
     if (typeof desiredChainId !== "number") return
@@ -208,7 +209,8 @@ export const useNetworkGate = ({
     isAgreementUnknown: touGateState === "unknown",
     agreementError: slaQuery.error,
     redirectPath,
-    isRedirectLoading: touGateState === "unknown",
+    isRedirectLoading:
+      !redirectPath && agreementQueryEnabled && slaQuery.isPending,
     requestSwitchNetwork,
     isSwitching,
   }

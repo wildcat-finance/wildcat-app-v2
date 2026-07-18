@@ -125,12 +125,13 @@ export const MobileMarketActions = ({
 }: MobileMarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
-  const { isTestnet, isSelectionMismatch, isWrongNetwork } = useNetworkGate({
-    desiredChainId: market.chainId,
-    includeAgreementStatus: false,
-  })
+  const { isTestnet, isSelectionMismatch, isWrongNetwork, touGateState } =
+    useNetworkGate({
+      desiredChainId: market.chainId,
+    })
 
   const isDifferentChain = isSelectionMismatch || isWrongNetwork
+  const touActionBlocked = touGateState !== "unblocked"
 
   const notMature =
     market &&
@@ -176,6 +177,8 @@ export const MobileMarketActions = ({
   }
 
   const handleClickDeposit = () => {
+    if (touActionBlocked) return
+
     if (mlaLoading || mla === undefined) {
       setDepositOpenRequested(true)
       return
@@ -200,6 +203,11 @@ export const MobileMarketActions = ({
   }
 
   React.useEffect(() => {
+    if (touActionBlocked) {
+      if (depositOpenRequested) setDepositOpenRequested(false)
+      return
+    }
+
     if (!depositOpenRequested || mlaLoading || mla === undefined) {
       return
     }
@@ -236,7 +244,15 @@ export const MobileMarketActions = ({
     nonMlaAcknowledgement,
     setIsMobileDepositOpen,
     setIsMobileAckOpen,
+    touActionBlocked,
   ])
+
+  let depositTooltip = t("lenderMarketDetails.transactions.deposit.tooltip")
+  if (touGateState === "blocked") {
+    depositTooltip = "Accept the updated Terms of Use to deposit"
+  } else if (touGateState === "unknown") {
+    depositTooltip = "Checking Terms of Use status"
+  }
 
   return (
     <Box
@@ -397,7 +413,7 @@ export const MobileMarketActions = ({
             >
               <MobileMarketTransactionItem
                 title={t("lenderMarketDetails.transactions.deposit.title")}
-                tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
+                tooltip={depositTooltip}
                 amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
                 asset={market.underlyingToken.symbol}
               />
@@ -412,6 +428,7 @@ export const MobileMarketActions = ({
                   size="large"
                   fullWidth
                   disabled={
+                    touActionBlocked ||
                     marketActionsManuallyDisabled ||
                     marketAccount.maximumDeposit.raw.isZero()
                   }

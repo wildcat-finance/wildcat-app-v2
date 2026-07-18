@@ -25,11 +25,22 @@ export const buildServiceAgreementDeclineMessage = ({
   version,
   plaintextSha256,
   timeSigned,
+  party,
+  organizationName,
 }: {
   version: string
   plaintextSha256: string
   timeSigned: number
-}): string =>
-  `I decline the Wildcat Terms of Use version ${version}.` +
-  `\n\nHash of agreement text: ${plaintextSha256}` +
-  `\n\nDate: ${formatUnixMsAsDate(timeSigned)}`
+  party: "Borrower" | "Lender"
+  organizationName?: string
+}): string => {
+  let message =
+    `I decline the Wildcat Terms of Use version ${version}.` +
+    `\n\nHash of agreement text: ${plaintextSha256}` +
+    `\n\nDate: ${formatUnixMsAsDate(timeSigned)}` +
+    `\n\nParty: ${party}`
+  if (organizationName) {
+    message = `${message}\n\nOrganization Name: ${organizationName}`
+  }
+  return message
+}
