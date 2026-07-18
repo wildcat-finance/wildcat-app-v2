@@ -26,8 +26,13 @@ import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
 import { formatServiceAgreementVersionLabel } from "@/utils/serviceAgreementVersions"
 
-const dismissKey = (chainId: unknown, address: string, sha: string) =>
-  `tou-reaccept-dismissed:${chainId}:${address.toLowerCase()}:${sha}`
+const dismissKey = (
+  chainId: unknown,
+  address: string,
+  party: string,
+  sha: string,
+) =>
+  `tou-reaccept-dismissed:${chainId}:${address.toLowerCase()}:${party}:${sha}`
 
 // "17 Jan 2025" - matches the re-acceptance design mock.
 const formatChipDate = (iso: string) => dayjs(iso).utc().format("DD MMM YYYY")
@@ -36,23 +41,27 @@ const formatChipDate = (iso: string) => dayjs(iso).utc().format("DD MMM YYYY")
 /// Auto-opens for accounts whose acceptance is stale:
 /// - staleWithinGrace: dismissible (header cross) until the deadline.
 /// - staleExpired: forced choice - accept or decline (no dismiss).
-/// - declined: dismissible notice; deposits / new markets / borrowing stay
+/// - declined: dismissible notice; actions for the active capacity stay
 ///   blocked (withdrawals are never blocked), and re-accepting reinstates.
 /// Can also be opened manually (footer "Terms of Use status" button) for any
 /// state - that bypasses the session dismissal without erasing it, and adds
-/// read-only views for signedCurrent / neverSigned accounts.
+/// read-only views for signedCurrent accounts and first-time Lenders.
 export const ToUReacceptanceModal = () => {
   const theme = useTheme()
   const pathname = usePathname()
   const router = useRouter()
   const dispatch = useAppDispatch()
   const forcedOpen = useAppSelector((state) => state.touModal.forcedOpen)
+  const pendingSafeMessages = useAppSelector(
+    (state) => state.pendingSafeMessages.records,
+  )
   const { address } = useAccount()
   const {
     touState,
     touDeadline,
     touCurrentVersion,
     touAcceptedVersion,
+    touParty,
     selectedChainId,
     isWrongNetwork,
   } = useNetworkGate()
@@ -60,6 +69,7 @@ export const ToUReacceptanceModal = () => {
   const decline = useDeclineToU()
 
   const [dismissed, setDismissed] = useState(false)
+  const [pendingDismissed, setPendingDismissed] = useState(false)
   const [view, setView] = useState<"main" | "decline">("main")
   const [reason, setReason] = useState("")
 
@@ -69,17 +79,33 @@ export const ToUReacceptanceModal = () => {
         ? dismissKey(
             selectedChainId,
             address,
+            touParty,
             touCurrentVersion.plaintextSha256,
           )
         : null,
-    [address, selectedChainId, touCurrentVersion],
+    [address, selectedChainId, touCurrentVersion, touParty],
   )
 
   useEffect(() => {
     if (!storageKey) return
     setDismissed(sessionStorage.getItem(storageKey) === "1")
+    setPendingDismissed(false)
     setView("main")
+    setReason("")
   }, [storageKey, touState])
+
+  const hasPendingSafeAction = Object.values(pendingSafeMessages).some(
+    (record) =>
+      (record.flow === "tou-accept" || record.flow === "tou-decline") &&
+      record.address === address?.toLowerCase() &&
+      record.chainId === selectedChainId &&
+      record.context?.party === touParty &&
+      record.status !== "failed",
+  )
+
+  useEffect(() => {
+    if (!hasPendingSafeAction) setPendingDismissed(false)
+  }, [hasPendingSafeAction])
 
   // A manual open doesn't outlive the surface it applies to: reset it when
   // the wallet disconnects or the user lands on /agreement (which has the
@@ -92,6 +118,9 @@ export const ToUReacceptanceModal = () => {
 
   const handleDismiss = () => {
     if (forcedOpen) dispatch(setTouModalOpen(false))
+    if (touState === "staleExpired" && hasPendingSafeAction) {
+      setPendingDismissed(true)
+    }
     // Only stamp the session dismissal for states whose AUTO popup is
     // dismissible - a manual open of a read-only view never records one.
     if (
@@ -103,7 +132,11 @@ export const ToUReacceptanceModal = () => {
     }
   }
 
-  const goToAgreement = () => {
+  const viewFullTerms = () => {
+    if (touParty === "Borrower") {
+      window.open(`/api/service-agreement/current/download`, "_blank")
+      return
+    }
     if (forcedOpen) dispatch(setTouModalOpen(false))
     router.push(ROUTES.agreement)
   }
@@ -120,9 +153,10 @@ export const ToUReacceptanceModal = () => {
   const isNeverSigned = touState === "neverSigned"
   // Read-only status views: no sign/decline actions. The "stale" state
   // (newer version, no campaign) opens the normal sign/decline view.
-  const isReadOnly = isSignedCurrent || isNeverSigned
+  const isReadOnly = isSignedCurrent || (isNeverSigned && touParty === "Lender")
 
-  const autoOpen = isExpired || ((isGrace || isDeclined) && !dismissed)
+  const autoOpen =
+    (isExpired && !pendingDismissed) || ((isGrace || isDeclined) && !dismissed)
   if (!forcedOpen && !autoOpen) return null
 
   const deadlineLabel = touDeadline
@@ -131,8 +165,9 @@ export const ToUReacceptanceModal = () => {
   const newVersionLabel = formatServiceAgreementVersionLabel(
     touCurrentVersion.version,
   )
-  const canDismiss = !isExpired
   const isBusy = accept.isPending || decline.isPending
+  const canDismiss = !isExpired || hasPendingSafeAction
+  const canClose = canDismiss && (!isBusy || hasPendingSafeAction)
   let signingAs: string | null = null
   if (accept.party) {
     signingAs =
@@ -162,26 +197,26 @@ export const ToUReacceptanceModal = () => {
     return "Updated Terms of Use"
   })()
 
+  const restrictedActions =
+    touParty === "Borrower" ? "new markets and borrowing" : "deposits"
   let description = ""
   if (view === "decline") {
     description =
       `You are declining Terms of Use ${newVersionLabel}. Your decline is ` +
-      `recorded with a wallet signature. Deposits, new markets and borrowing ` +
-      `will be disabled for this account until you accept; withdrawals ` +
+      `recorded with a wallet signature. For this ${touParty} capacity, ` +
+      `${restrictedActions} will be disabled until you accept; withdrawals ` +
       `remain available.`
   } else if (isDeclined) {
     description =
       `You declined the current Wildcat Terms of Use (${newVersionLabel}). ` +
-      `Deposits, new markets and borrowing are disabled for this account; ` +
-      `withdrawals remain available. You can accept the terms at any time ` +
-      `to restore full access, and you can decline again later if needed.`
+      `For this ${touParty} capacity, ${restrictedActions} are disabled; ` +
+      `withdrawals remain available. You can accept the terms at any time to ` +
+      `restore access in this capacity, and you can decline again later if needed.`
   } else if (isSignedCurrent) {
     description =
       "You have accepted the current Wildcat Terms of Use - you are up to date."
   } else if (isNeverSigned) {
-    description =
-      "This account has not accepted the Wildcat Terms of Use on this " +
-      "network yet. Review and sign them on the agreement page."
+    description = `This account has not accepted the Wildcat Terms of Use as ${touParty} on this network yet.`
   } else if (isExpired) {
     description =
       "The Wildcat Terms of Use have been updated. The signing deadline " +
@@ -204,8 +239,8 @@ export const ToUReacceptanceModal = () => {
   return (
     <Dialog
       open
-      onClose={canDismiss && !isBusy ? handleDismiss : undefined}
-      disableEscapeKeyDown={!canDismiss}
+      onClose={canClose ? handleDismiss : undefined}
+      disableEscapeKeyDown={!canClose}
       sx={{
         "& .MuiDialog-paper": {
           width: "440px",
@@ -223,7 +258,7 @@ export const ToUReacceptanceModal = () => {
         arrowOnClick={
           view === "decline" && !isBusy ? () => setView("main") : null
         }
-        crossOnClick={canDismiss && !isBusy ? handleDismiss : null}
+        crossOnClick={canClose ? handleDismiss : null}
       />
 
       <Box
@@ -338,7 +373,7 @@ export const ToUReacceptanceModal = () => {
             <Typography
               variant="text3"
               color={COLORS.blueRibbon}
-              onClick={goToAgreement}
+              onClick={viewFullTerms}
               sx={{ cursor: "pointer", alignSelf: "center" }}
             >
               View full terms
@@ -394,11 +429,11 @@ export const ToUReacceptanceModal = () => {
           </>
         )}
 
-        {view === "main" && isNeverSigned && (
+        {view === "main" && isNeverSigned && isReadOnly && (
           <Button
             variant="contained"
             size="large"
-            onClick={goToAgreement}
+            onClick={viewFullTerms}
             fullWidth
           >
             Review Terms of Use

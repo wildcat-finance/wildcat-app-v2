@@ -14,7 +14,7 @@ import { isAdminForChain, verifyApiToken } from "../../auth/verify-header"
 /// GET /api/service-agreement/reacceptance?chainId=<chainId>
 /// Admin-only campaign overview: who declined the current version, and which
 /// accounts hold only a stale acceptance ("remove them / ask why" work list).
-/// Reads the new tables only - the backfill made them complete.
+/// Reads the versioned acceptance and refusal snapshots.
 export async function GET(request: NextRequest) {
   const chainId = validateChainIdParam(request)
   if (!chainId) {
@@ -53,12 +53,13 @@ export async function GET(request: NextRequest) {
     }),
   ])
 
-  // Group acceptances by account; stale = accepted something, never the
-  // current version.
-  const byAddress = new Map<
+  // Group acceptances by capacity; a current Borrower acceptance must not hide
+  // a stale Lender acceptance for the same dual-role account (or vice versa).
+  const byCapacity = new Map<
     string,
     {
-      parties: Set<ServiceAgreementPartyInput>
+      address: string
+      party: ServiceAgreementPartyInput
       hasCurrent: boolean
       latestVersion: string
       latestVersionId: number
@@ -66,17 +67,18 @@ export async function GET(request: NextRequest) {
     }
   >()
   signatures.forEach((row) => {
-    const entry = byAddress.get(row.address)
+    const key = `${row.address}:${row.party}`
+    const entry = byCapacity.get(key)
     if (!entry) {
-      byAddress.set(row.address, {
-        parties: new Set([row.party]),
+      byCapacity.set(key, {
+        address: row.address,
+        party: row.party,
         hasCurrent: row.serviceAgreementId === current.id,
         latestVersion: row.serviceAgreement.version,
         latestVersionId: row.serviceAgreementId,
         latestTimeSigned: row.timeSigned,
       })
     } else {
-      entry.parties.add(row.party)
       entry.hasCurrent =
         entry.hasCurrent || row.serviceAgreementId === current.id
       if (row.serviceAgreementId > entry.latestVersionId) {
@@ -87,15 +89,28 @@ export async function GET(request: NextRequest) {
     }
   })
   const staleAccounts: ServiceAgreementStaleAccountInfo[] = Array.from(
-    byAddress.entries(),
+    byCapacity.values(),
   )
-    .filter(([, entry]) => !entry.hasCurrent)
-    .map(([address, entry]) => ({
-      address,
-      parties: Array.from(entry.parties),
+    .filter((entry) => !entry.hasCurrent)
+    .map((entry) => ({
+      address: entry.address,
+      party: entry.party,
       latestAcceptedVersion: entry.latestVersion,
       latestTimeSigned: entry.latestTimeSigned.getTime(),
     }))
+
+  const currentAcceptanceByCapacity = new Map<string, Date>()
+  signatures
+    .filter(({ serviceAgreementId }) => serviceAgreementId === current.id)
+    .forEach(({ address, party, timeSigned }) => {
+      currentAcceptanceByCapacity.set(`${address}:${party}`, timeSigned)
+    })
+  const activeRefusals = refusals.filter((refusal) => {
+    const acceptedAt = currentAcceptanceByCapacity.get(
+      `${refusal.address}:${refusal.party}`,
+    )
+    return !acceptedAt || refusal.timeSigned.getTime() >= acceptedAt.getTime()
+  })
 
   const response: ServiceAgreementReacceptanceResponse = {
     currentVersion: {
@@ -104,7 +119,7 @@ export async function GET(request: NextRequest) {
       effectiveDate: current.effectiveDate.toISOString(),
       reacceptanceDeadline: current.reacceptanceDeadline?.toISOString() ?? null,
     },
-    refusals: refusals.map((refusal) => ({
+    refusals: activeRefusals.map((refusal) => ({
       address: refusal.address,
       signer: refusal.signer,
       party: refusal.party,

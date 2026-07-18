@@ -14,6 +14,7 @@ import wrapDebtTokenFlowSlice from "@/store/slices/wrapDebtTokenFlowSlice/wrapDe
 import apiTokensSlice from "./slices/apiTokensSlice/apiTokensSlice"
 import borrowerLendersTabSidebarSlice from "./slices/borrowerLendersTabSidebarSlice/borrowerLendersTabSidebarSlice"
 import borrowerOverviewSlice from "./slices/borrowerOverviewSlice/borrowerOverviewSlice"
+import createMarketSigningDraftsSlice from "./slices/createMarketSigningDraftsSlice/createMarketSigningDraftsSlice"
 import editLendersListSlice from "./slices/editLendersListSlice/editLendersListSlice"
 import editPolicySlice from "./slices/editPolicySlice/editPolicySlice"
 import highlightSidebarSlice from "./slices/highlightSidebarSlice/highlightSidebarSlice"
@@ -56,6 +57,7 @@ export const makeStore = () => {
       marketFilters: marketFiltersSlice,
       touModal: touModalSlice,
       pendingSafeMessages: pendingSafeMessagesSlice,
+      createMarketSigningDrafts: createMarketSigningDraftsSlice,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({

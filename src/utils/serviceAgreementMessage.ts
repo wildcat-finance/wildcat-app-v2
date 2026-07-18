@@ -1,7 +1,5 @@
 import { formatUnixMsAsDate } from "@/utils/formatters"
 
-export const SERVICE_AGREEMENT_SIGNATURE_MAX_AGE_MS = 10 * 60 * 1000
-
 export const normalizeServiceAgreementDeclineReason = (reason?: string) =>
   reason?.trim() || undefined
 

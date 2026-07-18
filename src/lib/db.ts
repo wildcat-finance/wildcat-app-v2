@@ -28,8 +28,7 @@ import { resolveRegisteredByMany, tryResolveRegisteredBy } from "./registrar"
 export const prisma = new PrismaClient()
 
 /// Legacy wrapper hashes of the seeded ServiceAgreement versions. Old-table
-/// rows with any other hash (the orphaned 48a56e9e wrapper) are not valid ToU
-/// acceptances.
+/// rows with any other hash are not valid ToU acceptances.
 async function getSeededLegacyWrapperHashes(): Promise<string[]> {
   const versions = await prisma.serviceAgreement.findMany({
     where: { NOT: { legacyWrapperHash: null } },
@@ -66,31 +65,6 @@ export async function getBorrowerAcceptanceTimes(
     oldRows.forEach((row) => acceptanceTimes.set(row.address, row.timeSigned))
   }
   return acceptanceTimes
-}
-
-/// Lender-scoped ToU gate: each capacity's first use requires that capacity's
-/// acceptance, so only a Lender-party acceptance satisfies it (borrowers accept
-/// theirs via the invitation flow). Prefers the new table; falls back to the
-/// old lender table (mapped hashes only) during the rolling window. The
-/// fallback is removed in Release 2.
-export async function hasSignedServiceAgreement(
-  chainId: SupportedChainId,
-  address: string,
-): Promise<boolean> {
-  const account = address.toLowerCase()
-  const signature = await prisma.serviceAgreementSignature.findFirst({
-    where: { chainId, address: account, party: "Lender" },
-  })
-  if (signature) return true
-  const lenderSignature =
-    await prisma.lenderServiceAgreementSignature.findFirst({
-      where: {
-        chainId,
-        signer: account,
-        serviceAgreementHash: { in: await getSeededLegacyWrapperHashes() },
-      },
-    })
-  return !!lenderSignature
 }
 
 export async function findBorrowerWithPendingInvitation(

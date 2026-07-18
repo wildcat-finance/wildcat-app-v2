@@ -4,10 +4,8 @@
 import {
   buildServiceAgreementDeclineMessage,
   buildServiceAgreementMessage,
-  isFreshServiceAgreementAction,
 } from "@/lib/serviceAgreement"
 import { formatUnixMsAsDate } from "@/utils/formatters"
-import { SERVICE_AGREEMENT_SIGNATURE_MAX_AGE_MS } from "@/utils/serviceAgreementMessage"
 
 const AgreementText =
   "I agree to the Wildcat Terms of Use located at https://docs.wildcat.finance/legal/wildcat-terms-of-use, last updated on 12 February, 2025.\n\nHash of agreement text: 711a9e6707e6cf85166786461a0a45aa3b926b22b414abe8dfcc6c1afef020d1"
@@ -117,39 +115,5 @@ describe("buildServiceAgreementDeclineMessage", () => {
         reason: "  I do not agree.  ",
       }),
     ).toContain("\n\nReason: I do not agree.")
-  })
-})
-
-describe("isFreshServiceAgreementAction", () => {
-  const now = Date.UTC(2026, 6, 17, 12)
-
-  it("accepts either side of the ten-minute boundary", () => {
-    expect(
-      isFreshServiceAgreementAction(
-        now - SERVICE_AGREEMENT_SIGNATURE_MAX_AGE_MS,
-        now,
-      ),
-    ).toBe(true)
-    expect(
-      isFreshServiceAgreementAction(
-        now + SERVICE_AGREEMENT_SIGNATURE_MAX_AGE_MS,
-        now,
-      ),
-    ).toBe(true)
-  })
-
-  it("rejects older and future-dated actions outside the window", () => {
-    expect(
-      isFreshServiceAgreementAction(
-        now - SERVICE_AGREEMENT_SIGNATURE_MAX_AGE_MS - 1,
-        now,
-      ),
-    ).toBe(false)
-    expect(
-      isFreshServiceAgreementAction(
-        now + SERVICE_AGREEMENT_SIGNATURE_MAX_AGE_MS + 1,
-        now,
-      ),
-    ).toBe(false)
   })
 })

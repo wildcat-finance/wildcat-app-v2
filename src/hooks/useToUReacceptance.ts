@@ -1,7 +1,10 @@
 "use client"
 
+import { useEffect } from "react"
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
+import { usePathname } from "next/navigation"
 import { useAccount } from "wagmi"
 
 import { ServiceAgreementPartyInput } from "@/app/api/service-agreement/interface"
@@ -14,12 +17,13 @@ import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { HAS_SIGNED_SLA_KEY } from "@/providers/RedirectsProvider/hooks/useHasSignedSla"
 import { useAppSelector } from "@/store/hooks"
+import { isTerminalClientError } from "@/utils/httpStatus"
 import {
   buildServiceAgreementDeclineMessage,
   buildServiceAgreementMessage,
   normalizeServiceAgreementDeclineReason,
-  SERVICE_AGREEMENT_SIGNATURE_MAX_AGE_MS,
 } from "@/utils/serviceAgreementMessage"
+import { getServiceAgreementPartyForPath } from "@/utils/serviceAgreementParty"
 
 export const TOU_PARTY_QUERY_KEY = "tou-party"
 
@@ -28,28 +32,30 @@ export type AccountToUParty = {
   organizationName?: string
 }
 
-/// Which party hat the connected account re-accepts under. Accounts with a
-/// named borrower profile sign the borrower message (organization name is
-/// derived server-side from the same profile); everyone else signs as lender.
+/// The active app side determines the signing capacity. Borrower signing also
+/// loads the organization name required by its signed message; it never falls
+/// back to Lender merely because the profile is missing or failed to load.
 export const useAccountToUParty = () => {
   const { address } = useAccount()
   const { chainId } = useSelectedNetwork()
+  const pathname = usePathname()
+  const party = getServiceAgreementPartyForPath(pathname)
   return useQuery<AccountToUParty>({
-    queryKey: [TOU_PARTY_QUERY_KEY, address, chainId],
+    queryKey: [TOU_PARTY_QUERY_KEY, address, chainId, party],
     enabled:
       !!address && typeof chainId === "number" && isSupportedChainId(chainId),
     queryFn: async () => {
+      if (party === "Lender") return { party }
       const res = await fetch(
         `/api/profiles/${address?.toLowerCase()}?chainId=${chainId}`,
       )
-      if (res.status === 404) return { party: "Lender" as const }
-      if (!res.ok) throw Error(`Failed to load account role`)
+      if (res.status === 404) throw Error(`Borrower profile not found`)
+      if (!res.ok) throw Error(`Failed to load borrower profile`)
       const { profile } = (await res.json()) as {
         profile: { name?: string } | null
       }
-      if (profile?.name)
-        return { party: "Borrower" as const, organizationName: profile.name }
-      return { party: "Lender" as const }
+      if (!profile?.name) throw Error(`Borrower profile has no name`)
+      return { party, organizationName: profile.name }
     },
   })
 }
@@ -78,6 +84,40 @@ export const useAcceptToU = () => {
   const partyQuery = useAccountToUParty()
   const signer = useEthersSigner()
   const safeSigning = useSafeMessageSigning()
+  const pendingSafeMessages = useAppSelector(
+    (state) => state.pendingSafeMessages.records,
+  )
+
+  useEffect(() => {
+    if (!address || !currentAgreement.data || !partyQuery.data) return
+    const { party, organizationName } = partyQuery.data
+    Object.values(pendingSafeMessages)
+      .filter(
+        (record) =>
+          record.flow === "tou-accept" &&
+          record.address === address.toLowerCase() &&
+          record.chainId === selectedChainId &&
+          record.status !== "failed",
+      )
+      .filter(
+        (record) =>
+          record.context?.party === party &&
+          buildServiceAgreementMessage({
+            acknowledgementText: currentAgreement.data.acknowledgementText,
+            timeSigned: record.timeSigned,
+            chainId: selectedChainId,
+            organizationName,
+          }) !== record.message,
+      )
+      .forEach((record) => safeSigning.markCompleted(record.id))
+  }, [
+    address,
+    currentAgreement.data,
+    partyQuery.data,
+    pendingSafeMessages,
+    safeSigning,
+    selectedChainId,
+  ])
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -93,7 +133,8 @@ export const useAcceptToU = () => {
         address,
         chainId: selectedChainId,
         timeSigned,
-        expiresAt: timeSigned + SERVICE_AGREEMENT_SIGNATURE_MAX_AGE_MS,
+        context: { party },
+        canResumePending: (context) => context?.party === party,
         buildMessage: (effectiveTimeSigned) =>
           buildServiceAgreementMessage({
             acknowledgementText: currentAgreement.data.acknowledgementText,
@@ -111,7 +152,7 @@ export const useAcceptToU = () => {
           })
       safeSigning.markSubmitting(signed.pendingSafeMessageId)
       try {
-        const result = await fetch(`/api/service-agreement/accept`, {
+        const response = await fetch(`/api/service-agreement/accept`, {
           method: "POST",
           body: JSON.stringify({
             address: address.toLowerCase(),
@@ -122,7 +163,11 @@ export const useAcceptToU = () => {
           }),
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-        }).then((res) => res.json())
+        })
+        const result = await response.json()
+        if (isTerminalClientError(response.status)) {
+          safeSigning.markCompleted(signed.pendingSafeMessageId)
+        }
         if (!result.success) throw Error(`Failed to submit signature`)
         safeSigning.markCompleted(signed.pendingSafeMessageId)
         toastSuccess("Terms of Use accepted.")
@@ -165,6 +210,40 @@ export const useDeclineToU = () => {
     (state) => state.pendingSafeMessages.records,
   )
 
+  useEffect(() => {
+    if (!address || !currentAgreement.data || !partyQuery.data) return
+    const { party, organizationName } = partyQuery.data
+    Object.values(pendingSafeMessages)
+      .filter(
+        (record) =>
+          record.flow === "tou-decline" &&
+          record.address === address.toLowerCase() &&
+          record.chainId === selectedChainId &&
+          record.status !== "failed",
+      )
+      .filter(
+        (record) =>
+          record.context?.party === party &&
+          buildServiceAgreementDeclineMessage({
+            version: currentAgreement.data.version,
+            plaintextSha256: currentAgreement.data.plaintextSha256,
+            timeSigned: record.timeSigned,
+            chainId: selectedChainId,
+            party,
+            organizationName,
+            reason: String(record.context?.reason ?? ""),
+          }) !== record.message,
+      )
+      .forEach((record) => safeSigning.markCompleted(record.id))
+  }, [
+    address,
+    currentAgreement.data,
+    partyQuery.data,
+    pendingSafeMessages,
+    safeSigning,
+    selectedChainId,
+  ])
+
   const pendingReason = (() => {
     if (!address || !currentAgreement.data || !partyQuery.data) return undefined
     const { party, organizationName } = partyQuery.data
@@ -175,7 +254,7 @@ export const useDeclineToU = () => {
           record.address === address.toLowerCase() &&
           record.chainId === selectedChainId &&
           record.status !== "failed" &&
-          (!record.expiresAt || record.expiresAt > Date.now()) &&
+          record.context?.party === party &&
           typeof record.context?.reason === "string",
       )
       .sort((a, b) => b.createdAt - a.createdAt)
@@ -203,15 +282,25 @@ export const useDeclineToU = () => {
       if (signer.chainId !== selectedChainId) throw Error(`Wrong network`)
       const { party, organizationName } = partyQuery.data
       const reasonToSign = normalizeServiceAgreementDeclineReason(reason)
+      Object.values(pendingSafeMessages)
+        .filter(
+          (record) =>
+            record.flow === "tou-decline" &&
+            record.address === address.toLowerCase() &&
+            record.chainId === selectedChainId &&
+            record.context?.party === party &&
+            String(record.context?.reason ?? "") !== (reasonToSign ?? ""),
+        )
+        .forEach((record) => safeSigning.markCompleted(record.id))
       const timeSigned = Date.now()
       const signPromise = safeSigning.signMessage({
         flow: "tou-decline",
         address,
         chainId: selectedChainId,
         timeSigned,
-        expiresAt: timeSigned + SERVICE_AGREEMENT_SIGNATURE_MAX_AGE_MS,
-        context: { reason: reasonToSign ?? "" },
+        context: { party, reason: reasonToSign ?? "" },
         canResumePending: (context) =>
+          context?.party === party &&
           String(context?.reason ?? "") === (reasonToSign ?? ""),
         buildMessage: (effectiveTimeSigned, context) =>
           buildServiceAgreementDeclineMessage({
@@ -238,7 +327,7 @@ export const useDeclineToU = () => {
         String(signed.context?.reason ?? reasonToSign ?? ""),
       )
       try {
-        const result = await fetch(`/api/service-agreement/decline`, {
+        const response = await fetch(`/api/service-agreement/decline`, {
           method: "POST",
           body: JSON.stringify({
             address: address.toLowerCase(),
@@ -250,7 +339,11 @@ export const useDeclineToU = () => {
           }),
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-        }).then((res) => res.json())
+        })
+        const result = await response.json()
+        if (isTerminalClientError(response.status)) {
+          safeSigning.markCompleted(signed.pendingSafeMessageId)
+        }
         if (!result.success) throw Error(`Failed to submit decline`)
         safeSigning.markCompleted(signed.pendingSafeMessageId)
         toastSuccess("Terms of Use declined.")

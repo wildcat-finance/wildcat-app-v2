@@ -14,7 +14,6 @@ import {
   buildServiceAgreementDeclineMessage,
   buildServiceAgreementMessage,
   normalizeServiceAgreementDeclineReason,
-  SERVICE_AGREEMENT_SIGNATURE_MAX_AGE_MS,
 } from "@/utils/serviceAgreementMessage"
 import {
   computeToUAcceptanceState,
@@ -22,11 +21,6 @@ import {
 } from "@/utils/serviceAgreementState"
 
 export { buildServiceAgreementMessage, buildServiceAgreementDeclineMessage }
-
-export const isFreshServiceAgreementAction = (
-  timeSigned: number,
-  now = Date.now(),
-) => Math.abs(now - timeSigned) <= SERVICE_AGREEMENT_SIGNATURE_MAX_AGE_MS
 
 // ServiceAgreement without the heavy plaintext/html columns - all the signing
 // and status paths need. The certificate path uses the full row instead.
@@ -289,7 +283,7 @@ export async function verifyServiceAgreementRefusal({
   organizationName?: string
 }): Promise<VerifiedServiceAgreementRefusal | undefined> {
   const accountAddress = address.toLowerCase()
-  const message = buildServiceAgreementDeclineMessage({
+  const signedMessage = buildServiceAgreementDeclineMessage({
     version: agreement.version,
     plaintextSha256: agreement.plaintextSha256,
     timeSigned,
@@ -301,7 +295,7 @@ export async function verifyServiceAgreementRefusal({
   const result = await verifyAndDescribeSignature({
     provider: getProviderForServer(chainId),
     signature,
-    message,
+    message: signedMessage,
     address: accountAddress,
     allowSingleSafeOwner: false,
   })
@@ -351,6 +345,7 @@ export async function saveServiceAgreementRefusal(
 }
 
 export type ServiceAgreementGateStatus = {
+  hasAnyAcceptance: boolean
   state: ToUAcceptanceState
   currentVersion: {
     id: number
@@ -359,7 +354,7 @@ export type ServiceAgreementGateStatus = {
     effectiveDate: Date
     reacceptanceDeadline: Date | null
   }
-  /// The newest version this account has accepted (any party); null if none.
+  /// The newest version this account has accepted in this capacity; null if none.
   acceptedVersion: {
     version: string
     plaintextSha256: string
@@ -367,25 +362,30 @@ export type ServiceAgreementGateStatus = {
   } | null
 }
 
-/// Party-agnostic re-acceptance state for the network gate: the ToU is one
-/// document, so an acceptance under either party hat satisfies the current
-/// version. Reads the new tables, with an old-table fallback (mapped hashes
-/// only) for rows written by pre-Release-1 app instances during the rolling
-/// window; the fallback is removed in Release 2.
+/// Capacity-scoped re-acceptance state for the network gate. An account that
+/// uses both sides of the app has independent Borrower and Lender records.
+/// Reads the versioned tables, with the corresponding old-table fallback
+/// during the rolling window; the fallback is removed in Release 2.
 export async function getServiceAgreementGateStatus(
   chainId: SupportedChainId,
   address: string,
+  party: ServiceAgreementParty,
 ): Promise<ServiceAgreementGateStatus> {
   const account = address.toLowerCase()
   const current = await getCurrentServiceAgreement()
-  const [acceptances, refusals, versions, oldLenderRows, oldBorrowerRow] =
+  const [acceptances, refusals, versions, legacyAcceptances] =
     await Promise.all([
       prisma.serviceAgreementSignature.findMany({
-        where: { chainId, address: account },
+        where: { chainId, address: account, party },
         select: { serviceAgreementId: true, timeSigned: true },
       }),
       prisma.serviceAgreementRefusal.findMany({
-        where: { chainId, address: account, serviceAgreementId: current.id },
+        where: {
+          chainId,
+          address: account,
+          party,
+          serviceAgreementId: current.id,
+        },
         select: { timeSigned: true },
       }),
       prisma.serviceAgreement.findMany({
@@ -397,14 +397,15 @@ export async function getServiceAgreementGateStatus(
           legacyWrapperHash: true,
         },
       }),
-      prisma.lenderServiceAgreementSignature.findMany({
-        where: { chainId, signer: account },
-        select: { serviceAgreementHash: true, timeSigned: true },
-      }),
-      prisma.borrowerServiceAgreementSignature.findFirst({
-        where: { chainId, address: account },
-        select: { serviceAgreementHash: true, timeSigned: true },
-      }),
+      party === "Lender"
+        ? prisma.lenderServiceAgreementSignature.findMany({
+            where: { chainId, signer: account },
+            select: { serviceAgreementHash: true, timeSigned: true },
+          })
+        : prisma.borrowerServiceAgreementSignature.findMany({
+            where: { chainId, address: account },
+            select: { serviceAgreementHash: true, timeSigned: true },
+          }),
     ])
   const versionIdByWrapperHash = new Map<string, number>()
   versions.forEach(({ legacyWrapperHash, id }) => {
@@ -413,10 +414,6 @@ export async function getServiceAgreementGateStatus(
   const acceptedVersionIds = new Set(
     acceptances.map(({ serviceAgreementId }) => serviceAgreementId),
   )
-  const legacyAcceptances = [
-    ...oldLenderRows,
-    ...(oldBorrowerRow ? [oldBorrowerRow] : []),
-  ]
   legacyAcceptances.forEach((row) => {
     const mapped = versionIdByWrapperHash.get(row.serviceAgreementHash)
     if (mapped !== undefined) acceptedVersionIds.add(mapped)
@@ -461,6 +458,7 @@ export async function getServiceAgreementGateStatus(
       ? undefined
       : versions.find(({ id }) => id === latestAcceptedId)
   return {
+    hasAnyAcceptance: acceptedVersionIds.size > 0,
     state,
     currentVersion: {
       id: current.id,

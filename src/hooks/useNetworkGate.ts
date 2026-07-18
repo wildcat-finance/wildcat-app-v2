@@ -2,12 +2,14 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { useQuery } from "@tanstack/react-query"
 import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
+import { usePathname } from "next/navigation"
 import { useAccount, useSwitchChain } from "wagmi"
 
 import { ServiceAgreementGateResponse } from "@/app/api/service-agreement/interface"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { setSelectedNetwork } from "@/store/slices/selectedNetworkSlice/selectedNetworkSlice"
+import { getServiceAgreementPartyForPath } from "@/utils/serviceAgreementParty"
 import {
   applyToUDeadlineBoundary,
   computeToUGateState,
@@ -54,12 +56,14 @@ export const useNetworkGate = ({
   includeAgreementStatus = true,
 }: UseNetworkGateOptions = {}) => {
   const dispatch = useAppDispatch()
+  const currentPathname = usePathname()
   const { chainId: selectedChainId, isTestnet } = useSelectedNetwork()
   const { address, chain: walletChain, isConnected } = useAccount()
   const { switchChainAsync, isPending: isSwitching } = useSwitchChain()
 
   const effectiveChainId = desiredChainId ?? selectedChainId
   const walletChainId = walletChain?.id
+  const touParty = getServiceAgreementPartyForPath(pathname ?? currentPathname)
 
   const isSelectionMismatch =
     typeof effectiveChainId === "number" &&
@@ -81,23 +85,24 @@ export const useNetworkGate = ({
     isSupportedChainId(selectedChainId)
 
   const slaQuery = useQuery({
-    queryKey: [SLA_STATUS_QUERY_KEY, address, selectedChainId],
+    queryKey: [SLA_STATUS_QUERY_KEY, address, selectedChainId, touParty],
     enabled: agreementQueryEnabled,
     queryFn: async () => {
-      const res = await fetch(`/api/sla/${address}?chainId=${selectedChainId}`)
+      const res = await fetch(
+        `/api/sla/${address}?chainId=${selectedChainId}&party=${touParty}`,
+        { cache: "no-store" },
+      )
       if (!res.ok) throw new Error("Failed to fetch SLA status")
-      return (await res.json()) as SlaResponse
+      const result = (await res.json()) as SlaResponse
+      if (result.party !== touParty) {
+        throw new Error("SLA status returned for the wrong account capacity")
+      }
+      return result
     },
   })
 
   const isAgreementSigned = slaQuery.data?.isSigned ?? false
-  // Re-acceptance state; fall back to legacy binary semantics if the response
-  // predates the state field (cached/stale deployments).
-  const legacyFallbackState = isAgreementSigned
-    ? ("signedCurrent" as const)
-    : ("neverSigned" as const)
-  const serverTouState =
-    slaQuery.data?.state ?? (slaQuery.data ? legacyFallbackState : undefined)
+  const serverTouState = slaQuery.data?.state
   const touDeadline = slaQuery.data?.currentVersion?.reacceptanceDeadline
     ? new Date(slaQuery.data.currentVersion.reacceptanceDeadline)
     : null
@@ -199,6 +204,7 @@ export const useNetworkGate = ({
     isSelectionMismatch,
     canInteract,
     isAgreementSigned,
+    touParty,
     touState,
     touDeadline,
     touCurrentVersion,

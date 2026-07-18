@@ -22,6 +22,8 @@ import {
   formatDate,
   getFieldValuesForBorrower,
 } from "@/lib/mla"
+import { useAppStore } from "@/store/hooks"
+import { getCreateMarketSigningDraftScope } from "@/store/slices/createMarketSigningDraftsSlice/createMarketSigningDraftsSlice"
 import { isTerminalClientError } from "@/utils/httpStatus"
 
 import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
@@ -207,12 +209,15 @@ export type SignMlaFromFormInputs = {
   timeSigned: number
   borrowerProfile: BorrowerProfile | undefined
   asset: Token | undefined
+  draftId?: string
+  resumeMessage?: string
 }
 
 export const useSignMla = (salt: string) => {
   const { address } = useAccount()
   const signer = useEthersSigner()
   const safeSigning = useSafeMessageSigning()
+  const store = useAppStore()
   const client = useQueryClient()
   const { chainId } = useSelectedNetwork()
 
@@ -224,6 +229,8 @@ export const useSignMla = (salt: string) => {
       timeSigned,
       borrowerProfile,
       asset,
+      draftId,
+      resumeMessage,
     }: SignMlaFromFormInputs) => {
       console.log("signing mla")
       const selectedMla = form.getValues("mla")
@@ -244,7 +251,25 @@ export const useSignMla = (salt: string) => {
           address,
           chainId,
           timeSigned,
-          buildMessage: async (effectiveTimeSigned) => {
+          context: draftId ? { draftId } : undefined,
+          isStillRelevant: draftId
+            ? () =>
+                store.getState().createMarketSigningDrafts.records[
+                  getCreateMarketSigningDraftScope(address, chainId)
+                ]?.id === draftId
+            : undefined,
+          canResumePending: draftId
+            ? (context) => context?.draftId === draftId
+            : undefined,
+          buildMessage: async (effectiveTimeSigned, context) => {
+            if (
+              resumeMessage &&
+              draftId &&
+              effectiveTimeSigned === timeSigned &&
+              context?.draftId === draftId
+            ) {
+              return resumeMessage
+            }
             if (mlaTemplateId === undefined) {
               return DECLINE_MLA_ASSIGNMENT_MESSAGE.replace(
                 "{{market}}",
@@ -289,6 +314,8 @@ export const useSignMla = (salt: string) => {
 
   return {
     ...mutation,
+    marketAddress,
+    isSafeSigning: safeSigning.safeConnected,
     completeSafeMessage: safeSigning.markCompleted,
   }
 }

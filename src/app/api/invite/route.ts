@@ -273,10 +273,17 @@ export async function DELETE(request: NextRequest) {
     },
   })
   if (borrower) {
-    // Delete borrower as well as invitation. ToU acceptances die with the
-    // borrower row (replaces the old table's onDelete cascade).
+    // The versioned ToU records have no FK to Borrower, so clear both
+    // snapshots explicitly when the borrower is removed.
     await prisma.$transaction([
       prisma.serviceAgreementSignature.deleteMany({
+        where: {
+          chainId,
+          address: borrowerAddress,
+          party: "Borrower",
+        },
+      }),
+      prisma.serviceAgreementRefusal.deleteMany({
         where: {
           chainId,
           address: borrowerAddress,

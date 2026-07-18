@@ -78,8 +78,8 @@ export async function DELETE(
       { status: 400 },
     )
   }
-  // ToU acceptances die with the borrower rows (replaces the old table's
-  // onDelete cascade).
+  // The versioned ToU records have no FK to Borrower, so clear both
+  // snapshots explicitly when the borrower is removed.
   const [result] = await prisma.$transaction([
     prisma.borrower.deleteMany({
       where: {
@@ -88,6 +88,13 @@ export async function DELETE(
       },
     }),
     prisma.serviceAgreementSignature.deleteMany({
+      where: {
+        chainId,
+        party: "Borrower",
+        ...(borrower !== "all" && { address: borrower }),
+      },
+    }),
+    prisma.serviceAgreementRefusal.deleteMany({
       where: {
         chainId,
         party: "Borrower",

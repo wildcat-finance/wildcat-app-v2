@@ -34,6 +34,7 @@ export type MessageToSign = {
   canResumePending?: (
     context?: Record<string, string | number | boolean>,
   ) => boolean
+  isStillRelevant?: () => boolean
 }
 
 export type WalletMessageSignature = {
@@ -188,7 +189,13 @@ export const useSafeMessageSigning = () => {
       if (matching) return resumePendingMessage(matching.record)
 
       const message = await input.buildMessage(input.timeSigned, input.context)
+      if (input.isStillRelevant && !input.isStillRelevant()) {
+        throw new Error("Signing request was discarded")
+      }
       const proposal = await proposeSafeMessage(sdk, message)
+      if (input.isStillRelevant && !input.isStillRelevant()) {
+        throw new Error("Signing request was discarded")
+      }
       const id = getPendingSafeMessageId({
         chainId: input.chainId,
         address: input.address,

@@ -146,8 +146,10 @@ export const useDeployV2Market = () => {
       deployWrapper,
       ...marketParams
     }: DeployNewV2MarketParams) => {
-      if (!signer || !hooksTemplate || !marketParams) {
-        return
+      if (!signer) throw Error("No signer")
+      if (!hooksTemplate) throw Error("No hooks template")
+      if (signer.chainId !== targetChainId) {
+        throw Error("Wallet network does not match selected network")
       }
 
       const includeMockTokenStep = !!isTestnet && !isConnectedToSafe

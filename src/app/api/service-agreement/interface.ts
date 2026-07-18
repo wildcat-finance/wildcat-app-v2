@@ -49,13 +49,14 @@ export interface DeclineServiceAgreementInput
 }
 
 /// Shape returned by GET /api/sla/[address] (the network-gate query).
-/// `isSigned` keeps its historical lender-scoped meaning; the re-acceptance
-/// fields are additive.
+/// All acceptance fields are scoped to `party`.
 export interface ServiceAgreementGateResponse {
+  party: ServiceAgreementPartyInput
+  // True when this capacity has accepted any seeded version.
   isSigned: boolean
   state: ToUAcceptanceState
   currentVersion: ServiceAgreementVersionInfo
-  // Newest version this account has accepted (any party); null if none.
+  // Newest version this account has accepted in this capacity; null if none.
   acceptedVersion: {
     version: string
     plaintextSha256: string
@@ -73,7 +74,7 @@ export interface ServiceAgreementRefusalInfo {
 
 export interface ServiceAgreementStaleAccountInfo {
   address: string
-  parties: ServiceAgreementPartyInput[]
+  party: ServiceAgreementPartyInput
   latestAcceptedVersion: string
   latestTimeSigned: number
 }
