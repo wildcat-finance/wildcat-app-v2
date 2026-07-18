@@ -211,7 +211,7 @@ export const ToUReacceptanceModal = () => {
       `You declined the current Wildcat Terms of Use (${newVersionLabel}). ` +
       `For this ${touParty} capacity, ${restrictedActions} are disabled; ` +
       `withdrawals remain available. You can accept the terms at any time to ` +
-      `restore access in this capacity, and you can decline again later if needed.`
+      `restore access in this capacity.`
   } else if (isSignedCurrent) {
     description =
       "You have accepted the current Wildcat Terms of Use - you are up to date."
@@ -407,26 +407,15 @@ export const ToUReacceptanceModal = () => {
         }}
       >
         {view === "main" && isSignedCurrent && (
-          <>
-            <Button
-              variant="contained"
-              color="secondary"
-              size="large"
-              onClick={handleDismiss}
-              fullWidth
-            >
-              Close
-            </Button>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={openDecline}
-              disabled={isBusy || !decline.isReady || isWrongNetwork}
-              fullWidth
-            >
-              Decline
-            </Button>
-          </>
+          <Button
+            variant="contained"
+            color="secondary"
+            size="large"
+            onClick={handleDismiss}
+            fullWidth
+          >
+            Close
+          </Button>
         )}
 
         {view === "main" && isNeverSigned && isReadOnly && (

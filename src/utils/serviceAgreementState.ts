@@ -2,7 +2,7 @@
 /// No prisma / wagmi imports allowed here.
 
 export type ToUAcceptanceState =
-  /// Accepted the current version more recently than it was declined.
+  /// Accepted the current version. Acceptance is final for this version.
   | "signedCurrent"
   /// Accepted an older version; no re-acceptance campaign is active
   /// (reacceptanceDeadline is NULL) so nothing is enforced yet.
@@ -80,18 +80,8 @@ export function computeToUAcceptanceState({
   reacceptanceDeadline,
   now,
 }: ComputeToUStateInput): ToUAcceptanceState {
-  if (acceptedCurrentAt || declinedCurrentAt) {
-    // A tie is treated as declined: two distinct actions sharing the same
-    // millisecond are ambiguous, so the restrictive choice wins.
-    if (
-      declinedCurrentAt &&
-      (!acceptedCurrentAt ||
-        declinedCurrentAt.getTime() >= acceptedCurrentAt.getTime())
-    ) {
-      return "declined"
-    }
-    return "signedCurrent"
-  }
+  if (acceptedCurrentAt) return "signedCurrent"
+  if (declinedCurrentAt) return "declined"
   if (!hasAnyAcceptance) return "neverSigned"
   if (!reacceptanceDeadline) return "stale"
   return now.getTime() < reacceptanceDeadline.getTime()

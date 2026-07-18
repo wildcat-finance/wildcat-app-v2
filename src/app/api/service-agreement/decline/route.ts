@@ -16,8 +16,8 @@ import { DeclineServiceAgreementInputDTO } from "./dto"
 /// POST /api/service-agreement/decline
 /// Records a signed refusal of the CURRENT ToU version. The signed message is
 /// distinct from the acceptance message so the two can never be confused
-/// (mirrors the MLA decline flow). The latest acceptance/refusal timestamp
-/// controls the gate; both snapshots are kept.
+/// (mirrors the MLA decline flow). A current-version acceptance is final for
+/// that capacity, so it cannot subsequently be replaced by a refusal.
 export async function POST(request: NextRequest) {
   let body: DeclineServiceAgreementInput
   try {
@@ -36,20 +36,27 @@ export async function POST(request: NextRequest) {
   const address = body.address.toLowerCase()
   const agreement = await getCurrentServiceAgreement()
 
-  const existing = await prisma.serviceAgreementRefusal.findUnique({
-    where: {
-      chainId_address_party_serviceAgreementId: {
-        chainId,
-        address,
-        party,
-        serviceAgreementId: agreement.id,
-      },
-    },
-  })
+  const key = { chainId, address, party, serviceAgreementId: agreement.id }
+  const [existingAcceptance, existingRefusal] = await Promise.all([
+    prisma.serviceAgreementSignature.findUnique({
+      where: { chainId_address_party_serviceAgreementId: key },
+      select: { id: true },
+    }),
+    prisma.serviceAgreementRefusal.findUnique({
+      where: { chainId_address_party_serviceAgreementId: key },
+    }),
+  ])
+  if (existingAcceptance) {
+    return NextResponse.json(
+      { error: "Current Terms of Use already accepted for this capacity" },
+      { status: 409 },
+    )
+  }
   if (
-    existing?.signature === signature &&
-    existing.timeSigned.getTime() === timeSigned &&
-    existing.reason === (normalizeServiceAgreementDeclineReason(reason) ?? null)
+    existingRefusal?.signature === signature &&
+    existingRefusal.timeSigned.getTime() === timeSigned &&
+    existingRefusal.reason ===
+      (normalizeServiceAgreementDeclineReason(reason) ?? null)
   ) {
     return NextResponse.json({ success: true })
   }

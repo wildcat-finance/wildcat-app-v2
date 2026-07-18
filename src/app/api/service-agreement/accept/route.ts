@@ -15,7 +15,7 @@ import { AcceptServiceAgreementInputDTO } from "./dto"
 /// POST /api/service-agreement/accept
 /// Party-generic acceptance of the CURRENT ToU version - the re-acceptance
 /// path for accounts whose acceptance is stale or who declined and changed
-/// their mind. The latest acceptance/refusal timestamp controls the gate.
+/// their mind. Acceptance is final for this version and capacity.
 ///
 /// The wallet signature is the authentication, as with POST /api/sla.
 export async function POST(request: NextRequest) {

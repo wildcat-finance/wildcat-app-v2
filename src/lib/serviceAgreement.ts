@@ -167,7 +167,7 @@ export async function verifyServiceAgreementSignature({
 }
 
 /// One row per account/capacity/version. A newly signed acceptance replaces the
-/// previous acceptance so its timestamp can participate in latest-action wins.
+/// previous acceptance so the canonical row retains the newest signed evidence.
 export async function saveServiceAgreementSignature(
   data: VerifiedServiceAgreementSignature,
   transaction?: Prisma.TransactionClient,
@@ -317,8 +317,8 @@ export async function verifyServiceAgreementRefusal({
   }
 }
 
-/// One row per account/capacity/version. A newly signed refusal replaces the
-/// previous refusal so its timestamp can participate in latest-action wins.
+/// One row per account/capacity/version. Before acceptance, a newly signed
+/// refusal replaces the previous refusal with the newest reason and evidence.
 export async function saveServiceAgreementRefusal(
   data: VerifiedServiceAgreementRefusal,
 ): Promise<void> {

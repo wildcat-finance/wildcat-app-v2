@@ -28,13 +28,13 @@ describe("computeToUAcceptanceState", () => {
     ).toBe("signedCurrent")
   })
 
-  it("uses the later acceptance when both actions are recorded", () => {
+  it("keeps acceptance final when both actions are recorded", () => {
     expect(
       computeToUAcceptanceState({
         ...base,
-        acceptedCurrentAt: new Date("2026-07-01T12:00:01Z"),
+        acceptedCurrentAt: NOW,
         hasAnyAcceptance: true,
-        declinedCurrentAt: NOW,
+        declinedCurrentAt: new Date("2026-07-01T12:00:01Z"),
         reacceptanceDeadline: PAST,
       }),
     ).toBe("signedCurrent")
@@ -59,15 +59,7 @@ describe("computeToUAcceptanceState", () => {
     ).toBe("declined")
   })
 
-  it("uses the later refusal and treats an exact tie as declined", () => {
-    expect(
-      computeToUAcceptanceState({
-        ...base,
-        acceptedCurrentAt: NOW,
-        hasAnyAcceptance: true,
-        declinedCurrentAt: new Date("2026-07-01T12:00:01Z"),
-      }),
-    ).toBe("declined")
+  it("keeps acceptance final when both actions have the same timestamp", () => {
     expect(
       computeToUAcceptanceState({
         ...base,
@@ -75,7 +67,7 @@ describe("computeToUAcceptanceState", () => {
         hasAnyAcceptance: true,
         declinedCurrentAt: NOW,
       }),
-    ).toBe("declined")
+    ).toBe("signedCurrent")
   })
 
   it("returns neverSigned with no acceptance at all", () => {

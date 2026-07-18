@@ -99,18 +99,16 @@ export async function GET(request: NextRequest) {
       latestTimeSigned: entry.latestTimeSigned.getTime(),
     }))
 
-  const currentAcceptanceByCapacity = new Map<string, Date>()
+  const currentAcceptanceCapacities = new Set<string>()
   signatures
     .filter(({ serviceAgreementId }) => serviceAgreementId === current.id)
-    .forEach(({ address, party, timeSigned }) => {
-      currentAcceptanceByCapacity.set(`${address}:${party}`, timeSigned)
+    .forEach(({ address, party }) => {
+      currentAcceptanceCapacities.add(`${address}:${party}`)
     })
-  const activeRefusals = refusals.filter((refusal) => {
-    const acceptedAt = currentAcceptanceByCapacity.get(
-      `${refusal.address}:${refusal.party}`,
-    )
-    return !acceptedAt || refusal.timeSigned.getTime() >= acceptedAt.getTime()
-  })
+  const activeRefusals = refusals.filter(
+    (refusal) =>
+      !currentAcceptanceCapacities.has(`${refusal.address}:${refusal.party}`),
+  )
 
   const response: ServiceAgreementReacceptanceResponse = {
     currentVersion: {
