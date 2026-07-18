@@ -17,6 +17,7 @@ import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import TelegramIcon from "@/assets/icons/telegram_icon.svg"
+import { toastError } from "@/components/Toasts"
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useMarketMla } from "@/hooks/useMarketMla"
@@ -73,8 +74,12 @@ export const MarketActions = ({
   )
 
   const mlaResponse = mla && "noMLA" in mla ? null : mla
-  const { data: signedMla, isLoading: signedMlaLoading } =
-    useGetSignedMla(mlaResponse)
+  const {
+    data: signedMla,
+    isLoading: signedMlaLoading,
+    isError: isSignedMlaError,
+    refetch: refetchSignedMla,
+  } = useGetSignedMla(mlaResponse)
   const mlaRequiredAndUnsigned =
     signedMla === null && !!mla && !("noMLA" in mla)
 
@@ -224,6 +229,26 @@ export const MarketActions = ({
         {(() => {
           if (mlaLoading || signedMlaLoading) {
             return <Typography variant="title3">Loading MLA Data...</Typography>
+          }
+
+          if (isSignedMlaError) {
+            return (
+              <>
+                <Typography variant="title3" sx={{ marginBottom: "8px" }}>
+                  Couldn&apos;t load agreement data
+                </Typography>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => {
+                    toastError("Couldn't load agreement data — retrying")
+                    refetchSignedMla().catch(() => undefined)
+                  }}
+                >
+                  Retry agreement data
+                </Button>
+              </>
+            )
           }
 
           if (mlaRequiredAndUnsigned) {

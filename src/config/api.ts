@@ -2,11 +2,14 @@ import { formatUnixMsAsDate } from "@/utils/formatters"
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL as string | undefined
 
+export const LOGIN_SIGNATURE_MAX_AGE_SECONDS = 3_600
+
 export const getLoginSignatureMessage = (
   address: string,
   timeSigned: number,
   chainId: number,
 ) =>
-  `Connect to wildcat.finance as account ${address.toLowerCase()}\nDate: ${formatUnixMsAsDate(
-    timeSigned * 1000,
-  )}\nChain ID: ${chainId}`
+  `Connect to wildcat.finance as account ${address.toLowerCase()}` +
+  `\nDate: ${formatUnixMsAsDate(timeSigned * 1000)}` +
+  `\nChain ID: ${chainId}` +
+  `\nTimestamp: ${timeSigned}`

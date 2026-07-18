@@ -266,12 +266,12 @@ describe("API", () => {
       }
     }
     const timeSigned = dayjs().unix()
-    const LoginMessage = getLoginSignatureMessage(
+    const message = getLoginSignatureMessage(
       walletToUse.address,
       timeSigned,
       TargetChainId,
     )
-    const signature = await walletToUse.signMessage(LoginMessage)
+    const signature = await walletToUse.signMessage(message)
     const req = mockPost("/api/auth/login", {
       address: walletToUse.address,
       signature,
@@ -325,18 +325,19 @@ describe("API", () => {
 
     test("[POST] Succeeds with ECDSA signature", async () => {
       const timeSigned = dayjs().unix()
-      const LoginMessage = getLoginSignatureMessage(
+      const message = getLoginSignatureMessage(
         adminWallet.address,
         timeSigned,
         TargetChainId,
       )
-      const signature = await adminWallet.signMessage(LoginMessage)
-      const req = mockPost("/api/auth/login", {
+      const signature = await adminWallet.signMessage(message)
+      const input: LoginInput = {
         address: adminWallet.address,
         signature,
         timeSigned,
         chainId: TargetChainId,
-      } as LoginInput)
+      }
+      const req = mockPost("/api/auth/login", input)
       const response = await postLogin(req)
       expect(response.status).toBe(200)
       const { token } = await response.json()
@@ -548,6 +549,7 @@ describe("API", () => {
       const agreementText = buildServiceAgreementMessage({
         acknowledgementText: agreement.acknowledgementText,
         timeSigned,
+        chainId: TargetChainId,
         organizationName: invite.name,
       })
       const wallet2 = Wallet.createRandom({ provider })
@@ -574,6 +576,7 @@ describe("API", () => {
       const agreementText = buildServiceAgreementMessage({
         acknowledgementText: agreement.acknowledgementText,
         timeSigned,
+        chainId: TargetChainId,
         organizationName: acceptedBorrowerName,
       })
       const body: AcceptInvitationInput = {

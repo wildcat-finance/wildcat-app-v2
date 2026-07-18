@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
 import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
+import { isPrismaUniqueConstraintError } from "@/lib/mlaPersistence"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
@@ -69,9 +70,15 @@ export async function POST(request: NextRequest) {
     },
   })
   if (signatureExists) {
+    if (
+      signatureExists.signature === signature &&
+      signatureExists.timeSigned.getTime() === timeSigned
+    ) {
+      return NextResponse.json({ success: true })
+    }
     return NextResponse.json(
       { error: "Signature already exists" },
-      { status: 400 },
+      { status: 409 },
     )
   }
 
@@ -101,24 +108,40 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     )
   }
-  await prisma.mlaSignature.create({
-    data: {
-      chainId,
-      address: lenderAddress,
-      market: marketAddress,
-      signature,
-      blockNumber:
-        "blockNumber" in verifiedSignature
-          ? verifiedSignature.blockNumber
-          : undefined,
-      kind: verifiedSignature.kind,
-      signer:
-        "owner" in verifiedSignature
-          ? verifiedSignature.owner.toLowerCase()
-          : lenderAddress,
-      timeSigned: new Date(timeSigned).toISOString(),
-    },
-  })
+  try {
+    await prisma.mlaSignature.create({
+      data: {
+        chainId,
+        address: lenderAddress,
+        market: marketAddress,
+        signature,
+        blockNumber:
+          "blockNumber" in verifiedSignature
+            ? verifiedSignature.blockNumber
+            : undefined,
+        kind: verifiedSignature.kind,
+        signer:
+          "owner" in verifiedSignature
+            ? verifiedSignature.owner.toLowerCase()
+            : lenderAddress,
+        timeSigned: new Date(timeSigned).toISOString(),
+      },
+    })
+  } catch (error) {
+    if (!isPrismaUniqueConstraintError(error)) throw error
+    const concurrent = await prisma.mlaSignature.findFirst({
+      where: { chainId, address: lenderAddress, market: marketAddress },
+    })
+    if (
+      concurrent?.signature !== signature ||
+      concurrent.timeSigned.getTime() !== timeSigned
+    ) {
+      return NextResponse.json(
+        { error: "Signature already exists" },
+        { status: 409 },
+      )
+    }
+  }
   return NextResponse.json({
     success: true,
   })

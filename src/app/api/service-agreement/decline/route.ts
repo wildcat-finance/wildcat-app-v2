@@ -5,18 +5,20 @@ import { DeclineServiceAgreementInput } from "@/app/api/service-agreement/interf
 import { prisma } from "@/lib/db"
 import {
   getCurrentServiceAgreement,
+  isFreshServiceAgreementAction,
   saveServiceAgreementRefusal,
   verifyServiceAgreementRefusal,
 } from "@/lib/serviceAgreement"
 import { getZodParseError } from "@/lib/zod-error"
+import { normalizeServiceAgreementDeclineReason } from "@/utils/serviceAgreementMessage"
 
 import { DeclineServiceAgreementInputDTO } from "./dto"
 
 /// POST /api/service-agreement/decline
 /// Records a signed refusal of the CURRENT ToU version. The signed message is
 /// distinct from the acceptance message so the two can never be confused
-/// (mirrors the MLA decline flow). A later acceptance of the same version
-/// supersedes the refusal; both records are kept.
+/// (mirrors the MLA decline flow). The latest signed accept/decline action
+/// controls the gate; both records are kept.
 export async function POST(request: NextRequest) {
   let body: DeclineServiceAgreementInput
   try {
@@ -33,6 +35,31 @@ export async function POST(request: NextRequest) {
   }
   const { chainId, signature, timeSigned, party, reason } = body
   const address = body.address.toLowerCase()
+  const agreement = await getCurrentServiceAgreement()
+
+  const existing = await prisma.serviceAgreementRefusal.findUnique({
+    where: {
+      chainId_address_party_serviceAgreementId: {
+        chainId,
+        address,
+        party,
+        serviceAgreementId: agreement.id,
+      },
+    },
+  })
+  if (
+    existing?.signature === signature &&
+    existing.timeSigned.getTime() === timeSigned &&
+    existing.reason === (normalizeServiceAgreementDeclineReason(reason) ?? null)
+  ) {
+    return NextResponse.json({ success: true })
+  }
+  if (!isFreshServiceAgreementAction(timeSigned)) {
+    return NextResponse.json(
+      { error: "Signature timestamp is outside the allowed window" },
+      { status: 400 },
+    )
+  }
 
   let organizationName: string | undefined
   if (party === "Borrower") {
@@ -49,7 +76,6 @@ export async function POST(request: NextRequest) {
     organizationName = borrower.name
   }
 
-  const agreement = await getCurrentServiceAgreement()
   const verified = await verifyServiceAgreementRefusal({
     agreement,
     chainId,

@@ -117,6 +117,7 @@ export default function CreateMarketPage() {
     mutate: signMla,
     isPending: isSigning,
     reset: resetMlaSignature,
+    completeSafeMessage,
   } = useSignMla(salt)
 
   const handleClickClose = () => {
@@ -247,9 +248,15 @@ export default function CreateMarketPage() {
       setShowErrorPopup(true)
     }
     if (isSuccess) {
+      completeSafeMessage(mlaSignature?.pendingSafeMessageId)
       setShowSuccessPopup(true)
     }
-  }, [isError, isSuccess])
+  }, [
+    completeSafeMessage,
+    isError,
+    isSuccess,
+    mlaSignature?.pendingSafeMessageId,
+  ])
 
   const handleResetModal = () => {
     setShowErrorPopup(false)

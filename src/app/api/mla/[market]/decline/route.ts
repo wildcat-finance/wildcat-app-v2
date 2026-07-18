@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { DECLINE_MLA_ASSIGNMENT_MESSAGE } from "@/config/mla-rejection"
 import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
 import { formatDate } from "@/lib/mla"
+import { lockMlaAssignment } from "@/lib/mlaPersistence"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
 import { getZodParseError } from "@/lib/zod-error"
@@ -33,6 +34,22 @@ export const POST = async (
   const { chainId } = body
   const marketAddress = params.params.market.toLowerCase()
   const provider = getProviderForServer(chainId)
+
+  const existingRefusal = await prisma.refusalToAssignMla.findFirst({
+    where: { chainId, market: marketAddress },
+  })
+  if (existingRefusal) {
+    if (
+      existingRefusal.signature === body.signature &&
+      existingRefusal.timeSigned.getTime() === body.timeSigned
+    ) {
+      return NextResponse.json({ success: true })
+    }
+    return NextResponse.json(
+      { error: "MLA assignment already declined" },
+      { status: 409 },
+    )
+  }
 
   const mla = await getSignedMasterLoanAgreement(marketAddress, chainId)
   if (mla) {
@@ -66,19 +83,47 @@ export const POST = async (
   if (!signature) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
-  await prisma.refusalToAssignMla.create({
-    data: {
-      chainId,
-      market: marketAddress,
-      address,
-      signer: signature.address,
-      signature: body.signature,
-      timeSigned: new Date(body.timeSigned).toISOString(),
-      kind: signature.kind,
-      blockNumber:
-        "blockNumber" in signature ? signature.blockNumber : undefined,
-    },
+  const result = await prisma.$transaction(async (transaction) => {
+    await lockMlaAssignment(transaction, chainId, marketAddress)
+    const [concurrentRefusal, concurrentMla] = await Promise.all([
+      transaction.refusalToAssignMla.findUnique({
+        where: { chainId_market: { chainId, market: marketAddress } },
+      }),
+      transaction.masterLoanAgreement.findUnique({
+        where: { chainId_market: { chainId, market: marketAddress } },
+      }),
+    ])
+    if (concurrentRefusal) {
+      return concurrentRefusal.signature === body.signature &&
+        concurrentRefusal.timeSigned.getTime() === body.timeSigned
+        ? "success"
+        : "refusal-conflict"
+    }
+    if (concurrentMla) return "mla-conflict"
+    await transaction.refusalToAssignMla.create({
+      data: {
+        chainId,
+        market: marketAddress,
+        address,
+        signer: signature.address,
+        signature: body.signature,
+        timeSigned: new Date(body.timeSigned).toISOString(),
+        kind: signature.kind,
+        blockNumber:
+          "blockNumber" in signature ? signature.blockNumber : undefined,
+      },
+    })
+    return "success"
   })
+  if (result === "refusal-conflict") {
+    return NextResponse.json(
+      { error: "MLA assignment already declined" },
+      { status: 409 },
+    )
+  }
+  if (result === "mla-conflict") {
+    return NextResponse.json({ error: "MLA already exists" }, { status: 400 })
+  }
   return NextResponse.json({ success: true })
 }
 

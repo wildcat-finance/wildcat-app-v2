@@ -1,4 +1,3 @@
-import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAccount } from "wagmi"
 
@@ -6,6 +5,7 @@ import { NonMlaAcknowledgementResponse } from "@/app/api/mla/[market]/acknowledg
 import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
 import { buildNonMlaAcknowledgementText } from "@/utils/nonMlaAcknowledgementMessage"
 
 export const useGetNonMlaAcknowledgement = ({
@@ -45,8 +45,8 @@ export const useGetNonMlaAcknowledgement = ({
 }
 
 export const useSignNonMlaAcknowledgement = () => {
-  const { sdk, connected: safeConnected } = useSafeAppsSDK()
   const signer = useEthersSigner()
+  const safeSigning = useSafeMessageSigning()
   const client = useQueryClient()
 
   return useMutation({
@@ -81,75 +81,60 @@ export const useSignNonMlaAcknowledgement = () => {
         chainId,
       })
 
-      const signMessage = async () => {
-        if (sdk && safeConnected) {
-          await sdk.eth.setSafeSettings([
-            {
-              offChainSigning: true,
-            },
-          ])
-
-          const result = await sdk.txs.signMessage(acknowledgementText)
-
-          if ("safeTxHash" in result) {
-            return {
-              signature: undefined,
-              safeTxHash: result.safeTxHash,
-            }
-          }
-          if ("signature" in result) {
-            return {
-              signature: result.signature as string,
-              safeTxHash: undefined,
-            }
-          }
-        }
-        const signatureResult = await signer.signMessage(acknowledgementText)
-        return {
-          signature: signatureResult,
-          safeTxHash: undefined,
-        }
-      }
-
       const doSubmit = async () => {
-        const { signature } = await signMessage()
-        const response = await fetch(
-          `/api/mla/${marketAddress.toLowerCase()}/acknowledgement`,
-          {
-            method: "POST",
-            body: JSON.stringify({
-              chainId,
-              address: lenderAddress,
-              signature: signature ?? "0x",
-            }),
-            headers: {
-              "Content-Type": "application/json",
+        const signed = await safeSigning.signMessage({
+          flow: "non-mla-acknowledgement",
+          address: lenderAddress,
+          chainId,
+          timeSigned: Date.now(),
+          buildMessage: () => acknowledgementText,
+        })
+        safeSigning.markSubmitting(signed.pendingSafeMessageId)
+        try {
+          const response = await fetch(
+            `/api/mla/${marketAddress.toLowerCase()}/acknowledgement`,
+            {
+              method: "POST",
+              body: JSON.stringify({
+                chainId,
+                address: lenderAddress,
+                signature: signed.signature,
+              }),
+              headers: {
+                "Content-Type": "application/json",
+              },
             },
-          },
-        )
-        if (response.status !== 200) {
-          throw Error("Failed to submit non-MLA acknowledgement")
-        }
-        const acknowledgement =
-          (await response.json()) as NonMlaAcknowledgementResponse
+          )
+          if (response.status !== 200) {
+            throw Error("Failed to submit non-MLA acknowledgement")
+          }
+          const acknowledgement =
+            (await response.json()) as NonMlaAcknowledgementResponse
 
-        // Cache the server row immediately so handoffs from this modal can
-        // proceed before the invalidation refetch resolves.
-        client.setQueryData<NonMlaAcknowledgementResponse>(
-          QueryKeys.Lender.GET_NON_MLA_ACKNOWLEDGEMENT(
-            chainId,
-            marketAddress,
-            lenderAddress,
-          ),
-          acknowledgement,
-        )
-        return true
+          // Cache the server row immediately so handoffs from this modal can
+          // proceed before the invalidation refetch resolves.
+          client.setQueryData<NonMlaAcknowledgementResponse>(
+            QueryKeys.Lender.GET_NON_MLA_ACKNOWLEDGEMENT(
+              chainId,
+              marketAddress,
+              lenderAddress,
+            ),
+            acknowledgement,
+          )
+          safeSigning.markCompleted(signed.pendingSafeMessageId)
+          return true
+        } catch (error) {
+          safeSigning.markSubmissionFailed(signed.pendingSafeMessageId, error)
+          throw error
+        }
       }
 
       await toastRequest(doSubmit(), {
         success: "Acknowledgement signed",
         error: "Failed to sign acknowledgement",
-        pending: "Signing acknowledgement...",
+        pending: safeSigning.safeConnected
+          ? "Awaiting Safe confirmations — you may leave this page."
+          : "Signing acknowledgement...",
       })
     },
     onSuccess(_, variables) {

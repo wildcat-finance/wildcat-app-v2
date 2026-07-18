@@ -10,9 +10,9 @@ const FUTURE = new Date("2026-07-15T12:00:00Z")
 const PAST = new Date("2026-06-15T12:00:00Z")
 
 const base = {
-  hasAcceptedCurrent: false,
+  acceptedCurrentAt: null as Date | null,
   hasAnyAcceptance: false,
-  hasDeclinedCurrent: false,
+  declinedCurrentAt: null as Date | null,
   reacceptanceDeadline: null as Date | null,
   now: NOW,
 }
@@ -22,19 +22,19 @@ describe("computeToUAcceptanceState", () => {
     expect(
       computeToUAcceptanceState({
         ...base,
-        hasAcceptedCurrent: true,
+        acceptedCurrentAt: NOW,
         hasAnyAcceptance: true,
       }),
     ).toBe("signedCurrent")
   })
 
-  it("acceptance of the current version supersedes a recorded decline", () => {
+  it("uses the later acceptance when both actions are recorded", () => {
     expect(
       computeToUAcceptanceState({
         ...base,
-        hasAcceptedCurrent: true,
+        acceptedCurrentAt: new Date("2026-07-01T12:00:01Z"),
         hasAnyAcceptance: true,
-        hasDeclinedCurrent: true,
+        declinedCurrentAt: NOW,
         reacceptanceDeadline: PAST,
       }),
     ).toBe("signedCurrent")
@@ -45,7 +45,7 @@ describe("computeToUAcceptanceState", () => {
       computeToUAcceptanceState({
         ...base,
         hasAnyAcceptance: true,
-        hasDeclinedCurrent: true,
+        declinedCurrentAt: NOW,
       }),
     ).toBe("declined")
   })
@@ -54,7 +54,26 @@ describe("computeToUAcceptanceState", () => {
     expect(
       computeToUAcceptanceState({
         ...base,
-        hasDeclinedCurrent: true,
+        declinedCurrentAt: NOW,
+      }),
+    ).toBe("declined")
+  })
+
+  it("uses the later refusal and treats an exact tie as declined", () => {
+    expect(
+      computeToUAcceptanceState({
+        ...base,
+        acceptedCurrentAt: NOW,
+        hasAnyAcceptance: true,
+        declinedCurrentAt: new Date("2026-07-01T12:00:01Z"),
+      }),
+    ).toBe("declined")
+    expect(
+      computeToUAcceptanceState({
+        ...base,
+        acceptedCurrentAt: NOW,
+        hasAnyAcceptance: true,
+        declinedCurrentAt: NOW,
       }),
     ).toBe("declined")
   })

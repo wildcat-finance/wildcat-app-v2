@@ -12,6 +12,7 @@ import {
   prisma,
 } from "@/lib/db"
 import { fillInMlaTemplate, getFieldValuesForBorrower } from "@/lib/mla"
+import { lockMlaAssignment } from "@/lib/mlaPersistence"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
@@ -79,9 +80,34 @@ export async function POST(
     return getZodParseError(error)
   }
   const marketAddress = params.market.toLowerCase()
+  const { chainId } = body
+
+  const existingAgreement = await prisma.masterLoanAgreement.findFirst({
+    where: {
+      chainId,
+      market: marketAddress,
+    },
+  })
+  if (existingAgreement) {
+    const existingSignature = await prisma.mlaSignature.findFirst({
+      where: {
+        chainId,
+        market: marketAddress,
+        address: existingAgreement.borrower,
+      },
+    })
+    if (
+      existingAgreement.templateId === body.mlaTemplate &&
+      existingSignature?.signature === body.signature &&
+      existingSignature.timeSigned.getTime() === body.timeSigned
+    ) {
+      return NextResponse.json({ success: true })
+    }
+    return NextResponse.json({ error: "MLA already exists" }, { status: 409 })
+  }
+
   const provider = getProviderForServer(body.chainId)
   const codeSize = (await provider.getCode(marketAddress)).length
-  const { chainId } = body
   console.log(`Code size for market ${marketAddress}: ${codeSize}`)
   console.log(body.timeSigned)
 
@@ -109,17 +135,6 @@ export async function POST(
     },
   )
   const address = market.borrower.toLowerCase()
-
-  if (
-    await prisma.masterLoanAgreement.count({
-      where: {
-        chainId,
-        market: marketAddress,
-      },
-    })
-  ) {
-    return NextResponse.json({ error: "MLA already exists" }, { status: 400 })
-  }
 
   const mlaTemplate: MlaTemplate | undefined = await prisma.mlaTemplate
     .findFirst({
@@ -174,8 +189,28 @@ export async function POST(
   if (!signature) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
-  await prisma.$transaction([
-    prisma.masterLoanAgreement.create({
+  const result = await prisma.$transaction(async (transaction) => {
+    await lockMlaAssignment(transaction, chainId, marketAddress)
+    const [concurrentAgreement, concurrentRefusal] = await Promise.all([
+      transaction.masterLoanAgreement.findUnique({
+        where: { chainId_market: { chainId, market: marketAddress } },
+      }),
+      transaction.refusalToAssignMla.findUnique({
+        where: { chainId_market: { chainId, market: marketAddress } },
+      }),
+    ])
+    if (concurrentAgreement) {
+      const concurrentSignature = await transaction.mlaSignature.findFirst({
+        where: { chainId, market: marketAddress, address },
+      })
+      return concurrentAgreement.templateId === body.mlaTemplate &&
+        concurrentSignature?.signature === body.signature &&
+        concurrentSignature.timeSigned.getTime() === body.timeSigned
+        ? "success"
+        : "mla-conflict"
+    }
+    if (concurrentRefusal) return "refusal-conflict"
+    await transaction.masterLoanAgreement.create({
       data: {
         chainId,
         market: marketAddress,
@@ -185,8 +220,8 @@ export async function POST(
         plaintext,
         lenderFields: mlaTemplate.lenderFields,
       },
-    }),
-    prisma.mlaSignature.create({
+    })
+    await transaction.mlaSignature.create({
       data: {
         chainId,
         market: marketAddress,
@@ -198,8 +233,18 @@ export async function POST(
         kind: signature.kind,
         timeSigned: new Date(body.timeSigned).toISOString(),
       },
-    }),
-  ])
+    })
+    return "success"
+  })
+  if (result === "mla-conflict") {
+    return NextResponse.json({ error: "MLA already exists" }, { status: 409 })
+  }
+  if (result === "refusal-conflict") {
+    return NextResponse.json(
+      { error: "MLA assignment already declined" },
+      { status: 400 },
+    )
+  }
   return NextResponse.json({
     success: true,
   })

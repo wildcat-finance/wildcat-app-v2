@@ -23,6 +23,7 @@ import marketFiltersSlice from "./slices/marketFiltersSlice/marketFiltersSlice"
 import marketsOverviewSidebarSlice from "./slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import notificationsSidebarSlice from "./slices/notificationsSidebarSlice/notificationsSidebarSlice"
 import notificationsSlice from "./slices/notificationsSlice/notificationsSlice"
+import pendingSafeMessagesSlice from "./slices/pendingSafeMessagesSlice/pendingSafeMessagesSlice"
 import routingSlice from "./slices/routingSlice/routingSlice"
 import selectedNetworkSlice from "./slices/selectedNetworkSlice/selectedNetworkSlice"
 import touModalSlice from "./slices/touModalSlice/touModalSlice"
@@ -54,6 +55,7 @@ export const makeStore = () => {
       selectedNetwork: selectedNetworkSlice,
       marketFilters: marketFiltersSlice,
       touModal: touModalSlice,
+      pendingSafeMessages: pendingSafeMessagesSlice,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({

@@ -1,4 +1,3 @@
-import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 
@@ -7,6 +6,7 @@ import { toastRequest } from "@/components/Toasts"
 import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
 import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
 import { buildServiceAgreementMessage } from "@/utils/serviceAgreementMessage"
@@ -17,8 +17,8 @@ import {
 } from "../../hooks/useBorrowerInvitation"
 
 export const useSubmitAcceptInvitation = () => {
-  const { sdk, connected: safeConnected } = useSafeAppsSDK()
   const signer = useEthersSigner()
+  const safeSigning = useSafeMessageSigning()
   const client = useQueryClient()
   const { replace } = useRouter()
   const token = useAuthToken()
@@ -40,82 +40,52 @@ export const useSubmitAcceptInvitation = () => {
       if (token.chainId !== chainId) throw Error(`Wrong-chain API token`)
       if (!currentAgreement.data) throw Error(`Current Terms of Use not loaded`)
 
-      const sign = async () => {
-        const agreementText = buildServiceAgreementMessage({
-          acknowledgementText: currentAgreement.data.acknowledgementText,
-          timeSigned,
-          organizationName: name,
-        })
-        if (sdk && safeConnected) {
-          await sdk.eth.setSafeSettings([
-            {
-              offChainSigning: true,
-            },
-          ])
-
-          const result = await sdk.txs.signMessage(agreementText)
-
-          if ("safeTxHash" in result) {
-            return {
-              signature: undefined,
-              safeTxHash: result.safeTxHash,
-            }
-          }
-          if ("signature" in result) {
-            return {
-              signature: result.signature as string,
-              safeTxHash: undefined,
-            }
-          }
-        }
-        const signatureResult = await signer.signMessage(agreementText)
-        return { signature: signatureResult }
-      }
-      let result: { signature?: string; safeTxHash?: string } = {}
-      await toastRequest(
-        sign().then((res) => {
-          result = res
-        }),
-        {
-          pending: `Waiting for signature...`,
-          success: `Terms of Use signed!`,
-          error: `Failed to sign Terms of Use!`,
-        },
-      )
-
-      if (result.signature) {
-        console.log(`Got Signature`)
-        console.log({
-          signature: result.signature,
-          name,
-          timeSigned,
-          address,
-        })
-      } else if (result.safeTxHash) {
-        console.log(`Got result.safeTxHash`)
-        console.log(await sdk?.txs.getBySafeTxHash(result.safeTxHash))
-      }
-      const response = await fetch("/api/invite", {
-        method: "PUT",
-        body: JSON.stringify({
-          chainId,
-          signature: result.signature ?? "0x",
-          name,
-          timeSigned,
-          address,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token.token}`,
-        },
+      const signPromise = safeSigning.signMessage({
+        flow: "invitation-accept",
+        address,
+        chainId,
+        timeSigned,
+        buildMessage: (effectiveTimeSigned) =>
+          buildServiceAgreementMessage({
+            acknowledgementText: currentAgreement.data.acknowledgementText,
+            timeSigned: effectiveTimeSigned,
+            chainId,
+            organizationName: name,
+          }),
       })
-      if (response.status === 401) {
-        removeBadToken()
-        throw Error("Failed to accept invitation")
-      }
-      const data = await response.json()
-      if (!data.success) {
-        throw Error("Failed to accept invitation")
+      const result = safeSigning.safeConnected
+        ? await signPromise
+        : await toastRequest(signPromise, {
+            pending: `Waiting for signature...`,
+            success: `Terms of Use signature ready!`,
+            error: `Failed to sign Terms of Use!`,
+          })
+      safeSigning.markSubmitting(result.pendingSafeMessageId)
+      try {
+        const response = await fetch("/api/invite", {
+          method: "PUT",
+          body: JSON.stringify({
+            chainId,
+            signature: result.signature,
+            name,
+            timeSigned: result.timeSigned,
+            address,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token.token}`,
+          },
+        })
+        if (response.status === 401) {
+          removeBadToken()
+          throw Error("Failed to accept invitation")
+        }
+        const data = await response.json()
+        if (!data.success) throw Error("Failed to accept invitation")
+        safeSigning.markCompleted(result.pendingSafeMessageId)
+      } catch (error) {
+        safeSigning.markSubmissionFailed(result.pendingSafeMessageId, error)
+        throw error
       }
       return result
     },

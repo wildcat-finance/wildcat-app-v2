@@ -84,6 +84,32 @@ export async function POST(
   const lenderAddress = body.address.toLowerCase()
   const { chainId, signature } = body
 
+  const existingAcknowledgement = await prisma.nonMlaAcknowledgement.findUnique(
+    {
+      where: {
+        chainId_market_address_acknowledgementTextVersion: {
+          chainId,
+          market: marketAddress,
+          address: lenderAddress,
+          acknowledgementTextVersion: NON_MLA_ACKNOWLEDGEMENT_TEXT_VERSION,
+        },
+      },
+    },
+  )
+  if (existingAcknowledgement) {
+    if (existingAcknowledgement.signature !== signature) {
+      return NextResponse.json(
+        { error: "Acknowledgement already exists" },
+        { status: 409 },
+      )
+    }
+    const { blockNumber, ...rest } = existingAcknowledgement
+    return NextResponse.json({
+      ...rest,
+      blockNumber: blockNumber || undefined,
+    } as NonMlaAcknowledgementResponse)
+  }
+
   const mla = await getSignedMasterLoanAgreement(marketAddress, chainId)
   if (mla) {
     return NextResponse.json({ error: "MLA already exists" }, { status: 400 })

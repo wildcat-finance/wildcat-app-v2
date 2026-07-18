@@ -2,7 +2,6 @@
 
 import { useEffect } from "react"
 
-import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useIsMutating, useMutation, useQuery } from "@tanstack/react-query"
 import { decode as decodeJWT } from "jsonwebtoken"
 import { useAccount } from "wagmi"
@@ -125,8 +124,6 @@ export const useAuthToken = (chainIdOverride?: number) => {
 export const useLogin = () => {
   const dispatch = useAppDispatch()
   const selectedNetwork = useSelectedNetwork()
-
-  const { sdk, connected: safeConnected } = useSafeAppsSDK()
   const signer = useEthersSigner()
 
   return useMutation({
@@ -138,46 +135,17 @@ export const useLogin = () => {
       }
       address = address.toLowerCase()
       const timeSigned = dayjs().unix()
-
-      const sign = async () => {
-        const LoginMessage = getLoginSignatureMessage(
-          address,
-          timeSigned,
-          selectedNetwork.chainId,
-        )
-
-        if (sdk && safeConnected) {
-          console.log(
-            `Set safe settings: ${await sdk.eth.setSafeSettings([
-              {
-                offChainSigning: true,
-              },
-            ])}`,
-          )
-
-          const result = await sdk.txs.signMessage(LoginMessage)
-
-          if ("safeTxHash" in result) {
-            return {
-              signature: undefined,
-              safeTxHash: result.safeTxHash,
-            }
+      const loginMessage = getLoginSignatureMessage(
+        address,
+        timeSigned,
+        selectedNetwork.chainId,
+      )
+      const signature = await toastRequest(
+        signer.signMessage(loginMessage).then((result) => {
+          if (result === "0x") {
+            throw Error(`Wallet did not return a login signature`)
           }
-          if ("signature" in result) {
-            return {
-              signature: result.signature as string,
-              safeTxHash: undefined,
-            }
-          }
-        }
-        console.log(`Signing message with EOA`)
-        const signatureResult = await signer.signMessage(LoginMessage)
-        return { signature: signatureResult }
-      }
-      let result: { signature?: string; safeTxHash?: string } = {}
-      await toastRequest(
-        sign().then((res) => {
-          result = res
+          return result
         }),
         {
           pending: `Signing login message...`,
@@ -185,18 +153,20 @@ export const useLogin = () => {
           error: `Failed to sign login message!`,
         },
       )
+
       const submitLogin = async () => {
         const response = await fetch("/api/auth/login", {
           method: "POST",
           body: JSON.stringify({
-            signature: result.signature ?? "0x",
+            signature,
             timeSigned,
             address,
             chainId: selectedNetwork.chainId,
           }),
         })
-        if (response.status !== 200)
+        if (response.status !== 200) {
           throw Error(`Failed to log in! ${response.statusText}`)
+        }
         const token = (await response.json()) as ApiToken
         if (token.chainId !== selectedNetwork.chainId) {
           throw Error(`Login returned token for wrong chain`)
@@ -204,12 +174,11 @@ export const useLogin = () => {
         return token
       }
 
-      const token = await toastRequest(submitLogin(), {
+      return toastRequest(submitLogin(), {
         pending: `Submitting login...`,
         success: `Logged in!`,
         error: `Failed to log in!`,
       })
-      return token
     },
     onSuccess: (token) => {
       if (token) {

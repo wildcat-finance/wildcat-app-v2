@@ -13,6 +13,8 @@ import { verifyAndDescribeSignature } from "@/lib/signatures"
 import {
   buildServiceAgreementDeclineMessage,
   buildServiceAgreementMessage,
+  normalizeServiceAgreementDeclineReason,
+  SERVICE_AGREEMENT_SIGNATURE_MAX_AGE_MS,
 } from "@/utils/serviceAgreementMessage"
 import {
   computeToUAcceptanceState,
@@ -20,6 +22,11 @@ import {
 } from "@/utils/serviceAgreementState"
 
 export { buildServiceAgreementMessage, buildServiceAgreementDeclineMessage }
+
+export const isFreshServiceAgreementAction = (
+  timeSigned: number,
+  now = Date.now(),
+) => Math.abs(now - timeSigned) <= SERVICE_AGREEMENT_SIGNATURE_MAX_AGE_MS
 
 // ServiceAgreement without the heavy plaintext/html columns - all the signing
 // and status paths need. The certificate path uses the full row instead.
@@ -136,6 +143,7 @@ export async function verifyServiceAgreementSignature({
   const signedMessage = buildServiceAgreementMessage({
     acknowledgementText: agreement.acknowledgementText,
     timeSigned,
+    chainId,
     organizationName,
   })
   const result = await verifyAndDescribeSignature({
@@ -164,24 +172,36 @@ export async function verifyServiceAgreementSignature({
   }
 }
 
-/// Idempotent new-table write: the first acceptance of a version by an account
-/// wins; repeats are no-ops.
+/// One row per account/capacity/version. A newly signed acceptance replaces the
+/// previous acceptance so its timestamp can participate in latest-action wins.
 export async function saveServiceAgreementSignature(
   data: VerifiedServiceAgreementSignature,
   transaction?: Prisma.TransactionClient,
 ): Promise<void> {
   const { chainId, address, party, serviceAgreementId } = data
-  await (transaction ?? prisma).serviceAgreementSignature.upsert({
+  const client = transaction ?? prisma
+  const key = { chainId, address, party, serviceAgreementId }
+  // Ensure the row exists without modifying an existing action, then replace
+  // it only if this action is newer. This makes retries and concurrent replay
+  // monotonic: an older signature can never move the account backwards.
+  await client.serviceAgreementSignature.upsert({
     where: {
-      chainId_address_party_serviceAgreementId: {
-        chainId,
-        address,
-        party,
-        serviceAgreementId,
-      },
+      chainId_address_party_serviceAgreementId: key,
     },
     update: {},
     create: data,
+  })
+  await client.serviceAgreementSignature.updateMany({
+    where: { ...key, timeSigned: { lt: data.timeSigned } },
+    data: {
+      signer: data.signer,
+      signature: data.signature,
+      kind: data.kind,
+      blockNumber: data.blockNumber,
+      timeSigned: data.timeSigned,
+      organizationName: data.organizationName,
+      signedMessage: data.signedMessage,
+    },
   })
 }
 
@@ -273,8 +293,10 @@ export async function verifyServiceAgreementRefusal({
     version: agreement.version,
     plaintextSha256: agreement.plaintextSha256,
     timeSigned,
+    chainId,
     party,
     organizationName,
+    reason,
   })
   const result = await verifyAndDescribeSignature({
     provider: getProviderForServer(chainId),
@@ -296,29 +318,35 @@ export async function verifyServiceAgreementRefusal({
     signature,
     kind: result.kind,
     blockNumber: result.kind === "ECDSA" ? null : result.blockNumber,
-    reason: reason ?? null,
+    reason: normalizeServiceAgreementDeclineReason(reason) ?? null,
     timeSigned: new Date(timeSigned),
   }
 }
 
-/// Idempotent write: the first recorded decline of a version by an account
-/// wins; repeats are no-ops. A later acceptance of the same version coexists
-/// with (and supersedes) the refusal - see computeToUAcceptanceState.
+/// One row per account/capacity/version. A newly signed refusal replaces the
+/// previous refusal so its timestamp can participate in latest-action wins.
 export async function saveServiceAgreementRefusal(
   data: VerifiedServiceAgreementRefusal,
 ): Promise<void> {
   const { chainId, address, party, serviceAgreementId } = data
+  const key = { chainId, address, party, serviceAgreementId }
   await prisma.serviceAgreementRefusal.upsert({
     where: {
-      chainId_address_party_serviceAgreementId: {
-        chainId,
-        address,
-        party,
-        serviceAgreementId,
-      },
+      chainId_address_party_serviceAgreementId: key,
     },
     update: {},
     create: data,
+  })
+  await prisma.serviceAgreementRefusal.updateMany({
+    where: { ...key, timeSigned: { lt: data.timeSigned } },
+    data: {
+      signer: data.signer,
+      signature: data.signature,
+      kind: data.kind,
+      blockNumber: data.blockNumber,
+      reason: data.reason,
+      timeSigned: data.timeSigned,
+    },
   })
 }
 
@@ -350,15 +378,15 @@ export async function getServiceAgreementGateStatus(
 ): Promise<ServiceAgreementGateStatus> {
   const account = address.toLowerCase()
   const current = await getCurrentServiceAgreement()
-  const [acceptances, refusal, versions, oldLenderRows, oldBorrowerRow] =
+  const [acceptances, refusals, versions, oldLenderRows, oldBorrowerRow] =
     await Promise.all([
       prisma.serviceAgreementSignature.findMany({
         where: { chainId, address: account },
-        select: { serviceAgreementId: true },
+        select: { serviceAgreementId: true, timeSigned: true },
       }),
-      prisma.serviceAgreementRefusal.findFirst({
+      prisma.serviceAgreementRefusal.findMany({
         where: { chainId, address: account, serviceAgreementId: current.id },
-        select: { id: true },
+        select: { timeSigned: true },
       }),
       prisma.serviceAgreement.findMany({
         select: {
@@ -371,11 +399,11 @@ export async function getServiceAgreementGateStatus(
       }),
       prisma.lenderServiceAgreementSignature.findMany({
         where: { chainId, signer: account },
-        select: { serviceAgreementHash: true },
+        select: { serviceAgreementHash: true, timeSigned: true },
       }),
       prisma.borrowerServiceAgreementSignature.findFirst({
         where: { chainId, address: account },
-        select: { serviceAgreementHash: true },
+        select: { serviceAgreementHash: true, timeSigned: true },
       }),
     ])
   const versionIdByWrapperHash = new Map<string, number>()
@@ -385,16 +413,41 @@ export async function getServiceAgreementGateStatus(
   const acceptedVersionIds = new Set(
     acceptances.map(({ serviceAgreementId }) => serviceAgreementId),
   )
-  ;[...oldLenderRows, oldBorrowerRow].forEach((row) => {
-    const mapped = row
-      ? versionIdByWrapperHash.get(row.serviceAgreementHash)
-      : undefined
+  const legacyAcceptances = [
+    ...oldLenderRows,
+    ...(oldBorrowerRow ? [oldBorrowerRow] : []),
+  ]
+  legacyAcceptances.forEach((row) => {
+    const mapped = versionIdByWrapperHash.get(row.serviceAgreementHash)
     if (mapped !== undefined) acceptedVersionIds.add(mapped)
   })
+  const currentAcceptanceTimes = [
+    ...acceptances
+      .filter(({ serviceAgreementId }) => serviceAgreementId === current.id)
+      .map(({ timeSigned }) => timeSigned),
+    ...legacyAcceptances
+      .filter(
+        ({ serviceAgreementHash }) =>
+          versionIdByWrapperHash.get(serviceAgreementHash) === current.id,
+      )
+      .map(({ timeSigned }) => timeSigned),
+  ]
+  const acceptedCurrentAt =
+    currentAcceptanceTimes.length > 0
+      ? new Date(
+          Math.max(...currentAcceptanceTimes.map((date) => date.getTime())),
+        )
+      : null
+  const declinedCurrentAt =
+    refusals.length > 0
+      ? new Date(
+          Math.max(...refusals.map(({ timeSigned }) => timeSigned.getTime())),
+        )
+      : null
   const state = computeToUAcceptanceState({
-    hasAcceptedCurrent: acceptedVersionIds.has(current.id),
+    acceptedCurrentAt,
     hasAnyAcceptance: acceptedVersionIds.size > 0,
-    hasDeclinedCurrent: !!refusal,
+    declinedCurrentAt,
     reacceptanceDeadline: current.reacceptanceDeadline,
     now: new Date(),
   })

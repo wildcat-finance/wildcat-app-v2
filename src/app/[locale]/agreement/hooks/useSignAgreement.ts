@@ -1,4 +1,3 @@
-import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 
@@ -6,6 +5,8 @@ import { toastError, toastRequest } from "@/components/Toasts"
 import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { SLA_STATUS_QUERY_KEY } from "@/hooks/useNetworkGate"
+import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { HAS_SIGNED_SLA_KEY } from "@/providers/RedirectsProvider/hooks/useHasSignedSla"
 import { buildServiceAgreementMessage } from "@/utils/serviceAgreementMessage"
 
@@ -35,8 +36,9 @@ export async function submitSignature(input: SignatureSubmissionProps) {
 }
 
 export const useSignAgreement = () => {
-  const { sdk, connected: safeConnected } = useSafeAppsSDK()
   const signer = useEthersSigner()
+  const { chainId } = useSelectedNetwork()
+  const safeSigning = useSafeMessageSigning()
   const router = useRouter()
   const client = useQueryClient()
   const currentAgreement = useCurrentServiceAgreement()
@@ -48,73 +50,44 @@ export const useSignAgreement = () => {
       if (!name) throw Error(`No organization name`)
       if (!timeSigned) throw Error(`No time signed`)
       if (!currentAgreement.data) throw Error(`Current Terms of Use not loaded`)
-
-      const sign = async () => {
-        const agreementText = buildServiceAgreementMessage({
-          acknowledgementText: currentAgreement.data.acknowledgementText,
-          timeSigned,
-        })
-
-        if (sdk && safeConnected) {
-          const settings = {
-            offChainSigning: true,
-          }
-          console.log(
-            `Set safe settings: ${await sdk.eth.setSafeSettings([settings])}`,
-          )
-
-          const result = await sdk.txs.signMessage(agreementText)
-
-          if ("safeTxHash" in result) {
-            return {
-              signature: undefined,
-              safeTxHash: result.safeTxHash,
-            }
-          }
-          if ("signature" in result) {
-            return {
-              signature: result.signature as string,
-              safeTxHash: undefined,
-            }
-          }
-        }
-        const signatureResult = await signer.signMessage(agreementText)
-        return { signature: signatureResult }
+      if (signer.chainId !== chainId) {
+        throw Error(`Wallet network does not match selected network`)
       }
-      let result: { signature?: string; safeTxHash?: string } = {}
-      await toastRequest(
-        sign().then((res) => {
-          result = res
-        }),
-        {
-          pending: `Waiting For Signature...`,
-          success: `Terms of Use signed!`,
-          error: `Failed to sign Terms of Use!`,
-        },
-      )
 
-      if (result.signature) {
-        console.log(`Got Signature`)
-        console.log({
+      const signPromise = safeSigning.signMessage({
+        flow: "initial-tou",
+        address,
+        chainId,
+        timeSigned,
+        buildMessage: (effectiveTimeSigned) =>
+          buildServiceAgreementMessage({
+            acknowledgementText: currentAgreement.data.acknowledgementText,
+            timeSigned: effectiveTimeSigned,
+            chainId,
+          }),
+      })
+      const result = safeSigning.safeConnected
+        ? await signPromise
+        : await toastRequest(signPromise, {
+            pending: `Waiting For Signature...`,
+            success: `Terms of Use signature ready!`,
+            error: `Failed to sign Terms of Use!`,
+          })
+      safeSigning.markSubmitting(result.pendingSafeMessageId)
+      try {
+        await submitSignature({
           signature: result.signature,
           name,
-          timeSigned,
+          timeSigned: result.timeSigned,
           address,
+          chainId,
         })
-      } else if (result.safeTxHash) {
-        console.log(`Got result.safeTxHash`)
-        console.log(await sdk?.txs.getBySafeTxHash(result.safeTxHash))
-      }
-      await submitSignature({
-        signature: result.signature ?? "0x",
-        name,
-        timeSigned,
-        address,
-        chainId: signer.chainId,
-      }).catch((error) => {
+        safeSigning.markCompleted(result.pendingSafeMessageId)
+      } catch (error) {
+        safeSigning.markSubmissionFailed(result.pendingSafeMessageId, error)
         toastError("Failed to submit TOU signature.")
         throw error
-      })
+      }
       return result
     },
     onSuccess: () => {

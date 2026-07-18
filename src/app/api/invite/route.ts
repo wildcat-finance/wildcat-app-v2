@@ -350,6 +350,30 @@ export async function PUT(request: NextRequest) {
   //   address,
   // })
 
+  const agreement = await getCurrentServiceAgreement()
+  const existingAcceptance = await prisma.serviceAgreementSignature.findUnique({
+    where: {
+      chainId_address_party_serviceAgreementId: {
+        chainId,
+        address,
+        party: "Borrower",
+        serviceAgreementId: agreement.id,
+      },
+    },
+  })
+  if (existingAcceptance) {
+    if (
+      existingAcceptance.signature === signature &&
+      existingAcceptance.timeSigned.getTime() === timeSigned
+    ) {
+      return NextResponse.json({ success: true })
+    }
+    return NextResponse.json(
+      { error: "Invitation has already been accepted" },
+      { status: 409 },
+    )
+  }
+
   const borrowerInvitation = await findBorrowerWithPendingInvitation(
     address,
     chainId,
@@ -360,7 +384,6 @@ export async function PUT(request: NextRequest) {
       { status: 404 },
     )
   }
-  const agreement = await getCurrentServiceAgreement()
   const verified = await verifyServiceAgreementSignature({
     agreement,
     chainId,

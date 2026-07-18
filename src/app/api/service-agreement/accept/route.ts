@@ -5,6 +5,7 @@ import { AcceptServiceAgreementInput } from "@/app/api/service-agreement/interfa
 import { prisma } from "@/lib/db"
 import {
   getCurrentServiceAgreement,
+  isFreshServiceAgreementAction,
   saveServiceAgreementSignature,
   verifyServiceAgreementSignature,
 } from "@/lib/serviceAgreement"
@@ -14,8 +15,8 @@ import { AcceptServiceAgreementInputDTO } from "./dto"
 
 /// POST /api/service-agreement/accept
 /// Party-generic acceptance of the CURRENT ToU version - the re-acceptance
-/// path for accounts whose acceptance is stale (or who declined and changed
-/// their mind; an acceptance supersedes a recorded refusal).
+/// path for accounts whose acceptance is stale or who declined and changed
+/// their mind. The latest signed accept/decline action controls the gate.
 ///
 /// Writes the new table only. No old-table dual-write: a repeat acceptance is
 /// unrepresentable in the legacy tables (the old borrower table's PK is one
@@ -39,6 +40,30 @@ export async function POST(request: NextRequest) {
   }
   const { chainId, signature, timeSigned, party } = body
   const address = body.address.toLowerCase()
+  const agreement = await getCurrentServiceAgreement()
+
+  const existing = await prisma.serviceAgreementSignature.findUnique({
+    where: {
+      chainId_address_party_serviceAgreementId: {
+        chainId,
+        address,
+        party,
+        serviceAgreementId: agreement.id,
+      },
+    },
+  })
+  if (
+    existing?.signature === signature &&
+    existing.timeSigned.getTime() === timeSigned
+  ) {
+    return NextResponse.json({ success: true })
+  }
+  if (!isFreshServiceAgreementAction(timeSigned)) {
+    return NextResponse.json(
+      { error: "Signature timestamp is outside the allowed window" },
+      { status: 400 },
+    )
+  }
 
   // The borrower message embeds the organization name; derive it from the
   // stored profile rather than trusting request input for a legal record.
@@ -57,7 +82,6 @@ export async function POST(request: NextRequest) {
     organizationName = borrower.name
   }
 
-  const agreement = await getCurrentServiceAgreement()
   const verified = await verifyServiceAgreementSignature({
     agreement,
     chainId,

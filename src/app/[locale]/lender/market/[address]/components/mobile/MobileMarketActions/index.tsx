@@ -5,15 +5,14 @@ import { Box, Button, SvgIcon, Typography } from "@mui/material"
 import { DepositStatus, HooksKind, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
-import { useGetNonMlaAcknowledgement } from "@/app/[locale]/lender/hooks/useNonMlaAcknowledgement"
-import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
 import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { useFaucet } from "@/app/[locale]/lender/market/[address]/hooks/useFaucet"
 import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"
 import Clock from "@/assets/icons/clock_icon.svg"
+import { toastError } from "@/components/Toasts"
 import { TooltipButton } from "@/components/TooltipButton"
-import { useMarketMla } from "@/hooks/useMarketMla"
+import { useDepositAgreementGate } from "@/hooks/useDepositAgreementGate"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { COLORS } from "@/theme/colors"
 import { hasManuallyDisabledMarketActions } from "@/utils/constants"
@@ -153,23 +152,9 @@ export const MobileMarketActions = ({
     market.borrower,
   )
 
-  const { data: mla, isLoading: mlaLoading } = useMarketMla(
-    market.address,
-    market.chainId,
-  )
-  const mlaResponse = mla && "noMLA" in mla ? null : mla
-  const { data: signedMla } = useGetSignedMla(mlaResponse)
+  const agreementGate = useDepositAgreementGate(market.address, market.chainId)
   const mlaRequiredAndUnsigned =
-    signedMla === null && !!mla && !("noMLA" in mla)
-  const requiresNonMlaAcknowledgement = !!mla && "noMLA" in mla
-  const {
-    data: nonMlaAcknowledgement,
-    isLoading: isNonMlaAcknowledgementLoading,
-  } = useGetNonMlaAcknowledgement({
-    marketAddress: market.address,
-    chainId: market.chainId,
-    enabled: requiresNonMlaAcknowledgement,
-  })
+    agreementGate.state === "requires-mla-signature"
   const [depositOpenRequested, setDepositOpenRequested] = React.useState(false)
 
   const handleClickToggleMLA = () => {
@@ -179,22 +164,21 @@ export const MobileMarketActions = ({
   const handleClickDeposit = () => {
     if (touActionBlocked) return
 
-    if (mlaLoading || mla === undefined) {
+    if (agreementGate.state === "error") {
+      setDepositOpenRequested(false)
+      toastError("Couldn't load agreement data — retrying")
+      agreementGate.retry().catch(() => undefined)
+      return
+    }
+
+    if (agreementGate.state === "loading") {
       setDepositOpenRequested(true)
       return
     }
 
-    if (!requiresNonMlaAcknowledgement) {
-      setIsMobileDepositOpen(true)
-      return
-    }
+    if (mlaRequiredAndUnsigned) return
 
-    if (isNonMlaAcknowledgementLoading || nonMlaAcknowledgement === undefined) {
-      setDepositOpenRequested(true)
-      return
-    }
-
-    if (nonMlaAcknowledgement) {
+    if (agreementGate.state === "satisfied") {
       setIsMobileDepositOpen(true)
       return
     }
@@ -208,27 +192,19 @@ export const MobileMarketActions = ({
       return
     }
 
-    if (!depositOpenRequested || mlaLoading || mla === undefined) {
+    if (agreementGate.state === "error") {
+      if (depositOpenRequested) setDepositOpenRequested(false)
       return
     }
 
-    if (mlaRequiredAndUnsigned) {
-      setDepositOpenRequested(false)
-      return
-    }
-
-    if (!requiresNonMlaAcknowledgement) {
-      setDepositOpenRequested(false)
-      setIsMobileDepositOpen(true)
-      return
-    }
-
-    if (isNonMlaAcknowledgementLoading || nonMlaAcknowledgement === undefined) {
+    if (!depositOpenRequested || agreementGate.state === "loading") {
       return
     }
 
     setDepositOpenRequested(false)
-    if (nonMlaAcknowledgement) {
+    if (agreementGate.state === "requires-mla-signature") return
+
+    if (agreementGate.state === "satisfied") {
       setIsMobileDepositOpen(true)
       return
     }
@@ -236,12 +212,7 @@ export const MobileMarketActions = ({
     setIsMobileAckOpen(true)
   }, [
     depositOpenRequested,
-    mlaLoading,
-    mla,
-    mlaRequiredAndUnsigned,
-    requiresNonMlaAcknowledgement,
-    isNonMlaAcknowledgementLoading,
-    nonMlaAcknowledgement,
+    agreementGate.state,
     setIsMobileDepositOpen,
     setIsMobileAckOpen,
     touActionBlocked,
@@ -252,6 +223,8 @@ export const MobileMarketActions = ({
     depositTooltip = "Accept the updated Terms of Use to deposit"
   } else if (touGateState === "unknown") {
     depositTooltip = "Checking Terms of Use status"
+  } else if (agreementGate.state === "error") {
+    depositTooltip = "Tap to retry loading agreement data"
   }
 
   return (

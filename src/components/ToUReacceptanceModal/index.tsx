@@ -148,6 +148,13 @@ export const ToUReacceptanceModal = () => {
     )
   }
 
+  const openDecline = () => {
+    if (decline.pendingReason !== undefined) {
+      setReason(decline.pendingReason)
+    }
+    setView("decline")
+  }
+
   const title = (() => {
     if (view === "decline") return "Decline Terms of Use"
     if (isDeclined) return "Terms of Use Declined"
@@ -167,7 +174,7 @@ export const ToUReacceptanceModal = () => {
       `You declined the current Wildcat Terms of Use (${newVersionLabel}). ` +
       `Deposits, new markets and borrowing are disabled for this account; ` +
       `withdrawals remain available. You can accept the terms at any time ` +
-      `to restore full access.`
+      `to restore full access, and you can decline again later if needed.`
   } else if (isSignedCurrent) {
     description =
       "You have accepted the current Wildcat Terms of Use - you are up to date."
@@ -188,7 +195,10 @@ export const ToUReacceptanceModal = () => {
   // In the signedCurrent view the accepted version IS the current one - show
   // a single blue row. Everywhere else: grey signed row + blue new row.
   const showSignedRow =
-    !!touAcceptedVersion && !isSignedCurrent && !isNeverSigned
+    !!touAcceptedVersion &&
+    !isSignedCurrent &&
+    !isNeverSigned &&
+    touAcceptedVersion.plaintextSha256 !== touCurrentVersion.plaintextSha256
   const showNewRow = !isSignedCurrent
 
   return (
@@ -231,7 +241,7 @@ export const ToUReacceptanceModal = () => {
           {description}
         </Typography>
 
-        {!isReadOnly && signingAs && (
+        {(!isReadOnly || view === "decline") && signingAs && (
           <Typography variant="text3" color={COLORS.blackRock}>
             <strong>Signing as:</strong> {signingAs}
           </Typography>
@@ -362,15 +372,26 @@ export const ToUReacceptanceModal = () => {
         }}
       >
         {view === "main" && isSignedCurrent && (
-          <Button
-            variant="contained"
-            color="secondary"
-            size="large"
-            onClick={handleDismiss}
-            fullWidth
-          >
-            Close
-          </Button>
+          <>
+            <Button
+              variant="contained"
+              color="secondary"
+              size="large"
+              onClick={handleDismiss}
+              fullWidth
+            >
+              Close
+            </Button>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={openDecline}
+              disabled={isBusy || !decline.isReady || isWrongNetwork}
+              fullWidth
+            >
+              Decline
+            </Button>
+          </>
         )}
 
         {view === "main" && isNeverSigned && (
@@ -400,7 +421,7 @@ export const ToUReacceptanceModal = () => {
                 variant="contained"
                 color="secondary"
                 size="large"
-                onClick={() => setView("decline")}
+                onClick={openDecline}
                 disabled={isBusy || isWrongNetwork}
                 fullWidth
               >

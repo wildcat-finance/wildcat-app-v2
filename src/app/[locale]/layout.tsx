@@ -22,6 +22,7 @@ import Header from "@/components/Header"
 import { HelpModal } from "@/components/HelpModal"
 import HotjarConsent from "@/components/HotjarConsent"
 import PollingRegistration from "@/components/PollingRegistration"
+import { SafeMessageCoordinator } from "@/components/SafeMessageCoordinator"
 import { Sidebar } from "@/components/Sidebar"
 import StoreProvider from "@/components/StoreProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
@@ -96,6 +97,7 @@ export default async function RootLayout({
                         </Box>
                       </Box>
                       <HelpModal />
+                      <SafeMessageCoordinator />
                       <ToUReacceptanceModal />
                     </ThemeRegistry>
                   </TranslationsProvider>

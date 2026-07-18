@@ -2,7 +2,7 @@
 /// No prisma / wagmi imports allowed here.
 
 export type ToUAcceptanceState =
-  /// Accepted the current version (an acceptance supersedes a recorded decline).
+  /// Accepted the current version more recently than it was declined.
   | "signedCurrent"
   /// Accepted an older version; no re-acceptance campaign is active
   /// (reacceptanceDeadline is NULL) so nothing is enforced yet.
@@ -61,12 +61,12 @@ export function applyToUDeadlineBoundary(
 }
 
 export type ComputeToUStateInput = {
-  /// Account has an acceptance of the current version (any party).
-  hasAcceptedCurrent: boolean
+  /// Latest acceptance of the current version (any party).
+  acceptedCurrentAt: Date | null
   /// Account has an acceptance of any version (any party).
   hasAnyAcceptance: boolean
-  /// Account has a recorded refusal of the current version (any party).
-  hasDeclinedCurrent: boolean
+  /// Latest refusal of the current version (any party).
+  declinedCurrentAt: Date | null
   /// The current version's re-acceptance deadline; null = no campaign.
   reacceptanceDeadline: Date | null
   /// Injected for testability; callers pass new Date().
@@ -74,14 +74,24 @@ export type ComputeToUStateInput = {
 }
 
 export function computeToUAcceptanceState({
-  hasAcceptedCurrent,
+  acceptedCurrentAt,
   hasAnyAcceptance,
-  hasDeclinedCurrent,
+  declinedCurrentAt,
   reacceptanceDeadline,
   now,
 }: ComputeToUStateInput): ToUAcceptanceState {
-  if (hasAcceptedCurrent) return "signedCurrent"
-  if (hasDeclinedCurrent) return "declined"
+  if (acceptedCurrentAt || declinedCurrentAt) {
+    // A tie is treated as declined: two distinct actions sharing the same
+    // millisecond are ambiguous, so the restrictive choice wins.
+    if (
+      declinedCurrentAt &&
+      (!acceptedCurrentAt ||
+        declinedCurrentAt.getTime() >= acceptedCurrentAt.getTime())
+    ) {
+      return "declined"
+    }
+    return "signedCurrent"
+  }
   if (!hasAnyAcceptance) return "neverSigned"
   if (!reacceptanceDeadline) return "stale"
   return now.getTime() < reacceptanceDeadline.getTime()

@@ -39,7 +39,7 @@ export const useGetSignedMla = (
     if (res.status === 404) {
       return null
     }
-    return undefined
+    throw new Error("Failed to fetch signed MLA")
   }
 
   return useQuery({
