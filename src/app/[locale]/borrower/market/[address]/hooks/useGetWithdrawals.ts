@@ -7,12 +7,12 @@ import {
   WithdrawalBatch,
   TokenAmount,
   getSubgraphClient,
+  getIncompleteWithdrawalsForMarket,
   logger,
 } from "@wildcatfi/wildcat-sdk"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
-import { GET_INCOMPLETE_WITHDRAWALS_FOR_MARKET } from "@/graphql/withdrawals"
 import { cloneSdkObject } from "@/lib/sdk-object"
 import { TwoStepQueryHookResult } from "@/utils/types"
 import { applyLatestLensWithdrawalBatchUpdate } from "@/utils/withdrawalBatch"
@@ -95,37 +95,17 @@ export function useGetWithdrawals(
     () => (targetChainId ? getSubgraphClient(targetChainId) : undefined),
     [targetChainId],
   )
-  async function getAllPendingWithdrawalBatches(): Promise<BorrowerWithdrawalsForMarketResult> {
+  async function getIncompleteWithdrawalBatches(): Promise<BorrowerWithdrawalsForMarketResult> {
     if (!address || !market || !subgraphClient) throw Error()
     logger.debug(`Getting withdrawal batches...`)
-    const result = await subgraphClient.query({
-      query: GET_INCOMPLETE_WITHDRAWALS_FOR_MARKET,
-      variables: { market: address },
-      fetchPolicy: "network-only",
-    })
-    logger.debug(
-      `Got withdrawal batches: ${result.data.market?.withdrawalBatches.length}`,
+    const incompleteBatches = await getIncompleteWithdrawalsForMarket(
+      subgraphClient,
+      {
+        market,
+        fetchPolicy: "network-only",
+      },
     )
-    const incompleteBatches =
-      result.data.market?.withdrawalBatches.map((batch) =>
-        WithdrawalBatch.fromSubgraphWithdrawalBatch(
-          market,
-          batch as Parameters<
-            typeof WithdrawalBatch.fromSubgraphWithdrawalBatch
-          >[1],
-        ),
-      ) ?? []
-
-    incompleteBatches.forEach((batch) => {
-      if (batch.requests.length)
-        batch.withdrawals.forEach((withdrawal) => {
-          if (!withdrawal.requests.length) {
-            withdrawal.requests = batch.requests.filter(
-              (request) => request.address === withdrawal.lender,
-            )
-          }
-        })
-    })
+    logger.debug(`Got withdrawal batches: ${incompleteBatches.length}`)
 
     return processIncompleteWithdrawals(market, incompleteBatches)
   }
@@ -141,7 +121,7 @@ export function useGetWithdrawals(
       "initial",
       address,
     ),
-    queryFn: getAllPendingWithdrawalBatches,
+    queryFn: getIncompleteWithdrawalBatches,
     refetchInterval: POLLING_INTERVAL,
     placeholderData: keepPreviousData,
     enabled: !!market && !!targetChainId && !!subgraphClient,

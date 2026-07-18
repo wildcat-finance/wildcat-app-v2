@@ -48,9 +48,7 @@ export const useGetMarketLenders = (market?: Market) => {
       }),
       getActiveLendersByMarket(subgraphClient, {
         fetchPolicy: "network-only",
-        // The SDK currently intersects its generated `market: string`
-        // variable with this domain `Market` input.
-        market: market as never,
+        market,
       }),
     ])
 

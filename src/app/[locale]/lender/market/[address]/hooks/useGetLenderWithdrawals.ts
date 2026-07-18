@@ -6,18 +6,17 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   Market,
   getLatestLensContract,
-  WithdrawalBatch,
   LenderWithdrawalStatus,
   TokenAmount,
   BatchStatus,
   getSubgraphClient,
+  getLenderWithdrawalsForMarket,
   logger,
 } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
-import { GET_LENDER_WITHDRAWALS_FOR_MARKET } from "@/graphql/withdrawals"
 import { cloneSdkObject } from "@/lib/sdk-object"
 import { TwoStepQueryHookResult } from "@/utils/types"
 import { applyLatestLensWithdrawalBatchUpdate } from "@/utils/withdrawalBatch"
@@ -56,46 +55,12 @@ export function useGetLenderWithdrawals(
   async function queryLenderWithdrawals() {
     if (!lender || !market || !marketAddress || !subgraphClient) throw Error()
     logger.debug(`Getting lender withdrawals...`)
-    const result = await subgraphClient.query({
-      query: GET_LENDER_WITHDRAWALS_FOR_MARKET,
-      variables: { market: marketAddress, lender },
-      fetchPolicy: "network-only",
-    })
-    const lenderData = result.data.market?.lenders[0]
-    const completeWithdrawals =
-      lenderData?.completeWithdrawals.map((data) => {
-        const batch = WithdrawalBatch.fromSubgraphWithdrawalBatch(
-          market,
-          data.batch as Parameters<
-            typeof WithdrawalBatch.fromSubgraphWithdrawalBatch
-          >[1],
-        )
-        return LenderWithdrawalStatus.fromSubgraphLenderWithdrawalStatus(
-          market,
-          batch,
-          data as unknown as Parameters<
-            typeof LenderWithdrawalStatus.fromSubgraphLenderWithdrawalStatus
-          >[2],
-          lender,
-        )
-      }) ?? []
-    const incompleteWithdrawals =
-      lenderData?.incompleteWithdrawals.map((data) => {
-        const batch = WithdrawalBatch.fromSubgraphWithdrawalBatch(
-          market,
-          data.batch as Parameters<
-            typeof WithdrawalBatch.fromSubgraphWithdrawalBatch
-          >[1],
-        )
-        return LenderWithdrawalStatus.fromSubgraphLenderWithdrawalStatus(
-          market,
-          batch,
-          data as unknown as Parameters<
-            typeof LenderWithdrawalStatus.fromSubgraphLenderWithdrawalStatus
-          >[2],
-          lender,
-        )
-      }) ?? []
+    const { completeWithdrawals, incompleteWithdrawals } =
+      await getLenderWithdrawalsForMarket(subgraphClient, {
+        market,
+        lender,
+        fetchPolicy: "network-only",
+      })
     logger.debug(`Got ${completeWithdrawals.length} complete withdrawals...`)
     logger.debug(
       `Got ${incompleteWithdrawals.length} incomplete withdrawals...`,
