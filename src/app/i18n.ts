@@ -2,6 +2,8 @@ import { Resource, createInstance, i18n } from "i18next"
 import resourcesToBackend from "i18next-resources-to-backend"
 import { initReactI18next } from "react-i18next/initReactI18next"
 
+import { loadNamespaceResources } from "@/lib/i18n/strapi"
+
 import i18nConfig from "../../i18nConfig"
 
 export default async function initTranslations(
@@ -16,9 +18,8 @@ export default async function initTranslations(
 
   if (!resources) {
     i18nInstance.use(
-      resourcesToBackend(
-        (language: string, namespace: string) =>
-          import(`@/locales/${language}/${namespace}.json`),
+      resourcesToBackend((language: string, namespace: string) =>
+        loadNamespaceResources(language, namespace),
       ),
     )
   }
