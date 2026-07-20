@@ -49,6 +49,7 @@ import {
   saveCreateMarketSigningDraft,
 } from "@/store/slices/createMarketSigningDraftsSlice/createMarketSigningDraftsSlice"
 import { removePendingSafeMessage } from "@/store/slices/pendingSafeMessagesSlice/pendingSafeMessagesSlice"
+import { setTouModalOpen } from "@/store/slices/touModalSlice/touModalSlice"
 import { COLORS } from "@/theme/colors"
 
 import { BasicSetupForm } from "./components/Forms/BasicSetupForn"
@@ -709,7 +710,7 @@ export default function CreateMarketPage() {
           <Button
             variant="contained"
             size="large"
-            onClick={() => router.push(ROUTES.agreement)}
+            onClick={() => dispatch(setTouModalOpen(true))}
             sx={{ minWidth: "220px" }}
           >
             Review Terms of Use
