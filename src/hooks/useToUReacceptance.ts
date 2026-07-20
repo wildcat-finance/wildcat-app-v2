@@ -4,7 +4,6 @@ import { useEffect } from "react"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
-import { usePathname } from "next/navigation"
 import { useAccount } from "wagmi"
 
 import { ServiceAgreementPartyInput } from "@/app/api/service-agreement/interface"
@@ -23,7 +22,6 @@ import {
   buildServiceAgreementMessage,
   normalizeServiceAgreementDeclineReason,
 } from "@/utils/serviceAgreementMessage"
-import { getServiceAgreementPartyForPath } from "@/utils/serviceAgreementParty"
 
 export const TOU_PARTY_QUERY_KEY = "tou-party"
 
@@ -35,11 +33,9 @@ export type AccountToUParty = {
 /// The active app side determines the signing capacity. Borrower signing also
 /// loads the organization name required by its signed message; it never falls
 /// back to Lender merely because the profile is missing or failed to load.
-export const useAccountToUParty = () => {
+export const useAccountToUParty = (party: ServiceAgreementPartyInput) => {
   const { address } = useAccount()
   const { chainId } = useSelectedNetwork()
-  const pathname = usePathname()
-  const party = getServiceAgreementPartyForPath(pathname)
   return useQuery<AccountToUParty>({
     queryKey: [TOU_PARTY_QUERY_KEY, address, chainId, party],
     enabled:
@@ -76,12 +72,12 @@ const invalidateToUQueries = async (
 }
 
 /// Accept the CURRENT ToU version (re-acceptance path, both parties).
-export const useAcceptToU = () => {
+export const useAcceptToU = (agreementParty: ServiceAgreementPartyInput) => {
   const { address } = useAccount()
   const { chainId: selectedChainId } = useSelectedNetwork()
   const client = useQueryClient()
   const currentAgreement = useCurrentServiceAgreement()
-  const partyQuery = useAccountToUParty()
+  const partyQuery = useAccountToUParty(agreementParty)
   const signer = useEthersSigner()
   const safeSigning = useSafeMessageSigning()
   const pendingSafeMessages = useAppSelector(
@@ -198,12 +194,12 @@ export const useAcceptToU = () => {
 
 /// Decline the CURRENT ToU version - wallet-signs an unambiguous refusal
 /// message (never confusable with an acceptance) and records it.
-export const useDeclineToU = () => {
+export const useDeclineToU = (agreementParty: ServiceAgreementPartyInput) => {
   const { address } = useAccount()
   const { chainId: selectedChainId } = useSelectedNetwork()
   const client = useQueryClient()
   const currentAgreement = useCurrentServiceAgreement()
-  const partyQuery = useAccountToUParty()
+  const partyQuery = useAccountToUParty(agreementParty)
   const signer = useEthersSigner()
   const safeSigning = useSafeMessageSigning()
   const pendingSafeMessages = useAppSelector(

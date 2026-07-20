@@ -5,11 +5,17 @@ import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { usePathname } from "next/navigation"
 import { useAccount, useSwitchChain } from "wagmi"
 
-import { ServiceAgreementGateResponse } from "@/app/api/service-agreement/interface"
+import {
+  ServiceAgreementGateResponse,
+  ServiceAgreementPartyInput,
+} from "@/app/api/service-agreement/interface"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { setSelectedNetwork } from "@/store/slices/selectedNetworkSlice/selectedNetworkSlice"
-import { getServiceAgreementPartyForPath } from "@/utils/serviceAgreementParty"
+import {
+  getServiceAgreementPartyForPath,
+  isServiceAgreementPath,
+} from "@/utils/serviceAgreementParty"
 import {
   applyToUDeadlineBoundary,
   computeToUGateState,
@@ -20,6 +26,7 @@ import { useSelectedNetwork } from "./useSelectedNetwork"
 export type UseNetworkGateOptions = {
   desiredChainId?: number
   pathname?: string
+  agreementParty?: ServiceAgreementPartyInput
   includeAgreementStatus?: boolean
 }
 
@@ -31,6 +38,8 @@ type SlaResponse = ServiceAgreementGateResponse
 
 const NO_WALLET_RESTRICTED_PATHS = [
   ROUTES.agreement,
+  ROUTES.borrower.agreement,
+  ROUTES.lender.agreement,
   ROUTES.borrower.createMarket,
   ROUTES.borrower.market,
   ROUTES.borrower.lendersList,
@@ -53,6 +62,7 @@ const isLenderPath = (pathname: string) =>
 export const useNetworkGate = ({
   desiredChainId,
   pathname,
+  agreementParty,
   includeAgreementStatus = true,
 }: UseNetworkGateOptions = {}) => {
   const dispatch = useAppDispatch()
@@ -63,7 +73,9 @@ export const useNetworkGate = ({
 
   const effectiveChainId = desiredChainId ?? selectedChainId
   const walletChainId = walletChain?.id
-  const touParty = getServiceAgreementPartyForPath(pathname ?? currentPathname)
+  const touParty =
+    agreementParty ??
+    getServiceAgreementPartyForPath(pathname ?? currentPathname)
 
   const isSelectionMismatch =
     typeof effectiveChainId === "number" &&
@@ -139,7 +151,7 @@ export const useNetworkGate = ({
   const redirectPath = useMemo(() => {
     if (!pathname) return null
 
-    const isAgreementPath = pathname === ROUTES.agreement
+    const isAgreementPath = isServiceAgreementPath(pathname)
     const lenderMarketPath = isLenderMarketPath(pathname)
     const borrowerMarketPath = pathname.startsWith(ROUTES.borrower.market)
 
@@ -162,7 +174,7 @@ export const useNetworkGate = ({
       if (isWrongNetwork) {
         return "/"
       }
-      return ROUTES.agreement
+      return ROUTES.lender.agreement
     }
 
     return null

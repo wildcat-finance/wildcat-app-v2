@@ -19,11 +19,14 @@ import { TxModalFooterContainer } from "@/components/TxModalComponents/TxModalFo
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { useAcceptToU, useDeclineToU } from "@/hooks/useToUReacceptance"
-import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setTouModalOpen } from "@/store/slices/touModalSlice/touModalSlice"
 import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
+import {
+  getServiceAgreementRouteForParty,
+  isServiceAgreementPath,
+} from "@/utils/serviceAgreementParty"
 import { formatServiceAgreementVersionLabel } from "@/utils/serviceAgreementVersions"
 
 const dismissKey = (
@@ -65,8 +68,8 @@ export const ToUReacceptanceModal = () => {
     selectedChainId,
     isWrongNetwork,
   } = useNetworkGate()
-  const accept = useAcceptToU()
-  const decline = useDeclineToU()
+  const accept = useAcceptToU(touParty)
+  const decline = useDeclineToU(touParty)
 
   const [dismissed, setDismissed] = useState(false)
   const [pendingDismissed, setPendingDismissed] = useState(false)
@@ -108,10 +111,10 @@ export const ToUReacceptanceModal = () => {
   }, [hasPendingSafeAction])
 
   // A manual open doesn't outlive the surface it applies to: reset it when
-  // the wallet disconnects or the user lands on /agreement (which has the
-  // actions itself and always suppresses this modal).
+  // the wallet disconnects or the user lands on an agreement page (which has
+  // the actions itself and always suppresses this modal).
   useEffect(() => {
-    if (forcedOpen && (!address || pathname === ROUTES.agreement)) {
+    if (forcedOpen && (!address || isServiceAgreementPath(pathname))) {
       dispatch(setTouModalOpen(false))
     }
   }, [address, dispatch, forcedOpen, pathname])
@@ -133,17 +136,13 @@ export const ToUReacceptanceModal = () => {
   }
 
   const viewFullTerms = () => {
-    if (touParty === "Borrower") {
-      window.open(`/api/service-agreement/current/download`, "_blank")
-      return
-    }
     if (forcedOpen) dispatch(setTouModalOpen(false))
-    router.push(ROUTES.agreement)
+    router.push(getServiceAgreementRouteForParty(touParty))
   }
 
-  // The /agreement page is where stale users review and re-sign - never cover
-  // it with this prompt.
-  if (pathname === ROUTES.agreement) return null
+  // Agreement pages are where users review and re-sign - never cover them
+  // with this prompt.
+  if (isServiceAgreementPath(pathname)) return null
   if (!address || !touState || !touCurrentVersion) return null
 
   const isGrace = touState === "staleWithinGrace"

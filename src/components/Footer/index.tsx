@@ -13,6 +13,7 @@ import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice
 import { setTouModalOpen } from "@/store/slices/touModalSlice/touModalSlice"
 import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
+import { isServiceAgreementPath } from "@/utils/serviceAgreementParty"
 
 import { ContentContainer, DeployInfoSx } from "./style"
 
@@ -77,7 +78,7 @@ export const Footer = ({
 
   const { t } = useTranslation()
   const pathname = usePathname()
-  const showFooterOnPage = pathname !== "/agreement"
+  const showFooterOnPage = !isServiceAgreementPath(pathname)
 
   const handleOpenCookiesModal = () => dispatch(setIsVisible(true))
 

@@ -14,6 +14,7 @@ import { MarketSidebar } from "@/components/Sidebar/MarketSidebar"
 import { ROUTES } from "@/routes"
 import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
+import { isServiceAgreementPath } from "@/utils/serviceAgreementParty"
 
 import { EditPolicySidebar } from "./EditPolicySidebar"
 import { TelegramBanner } from "../TelegramBanner"
@@ -21,7 +22,7 @@ import { TelegramBanner } from "../TelegramBanner"
 export const Sidebar = () => {
   const pathname = usePathname()
   const theme = useTheme()
-  const isAgreementPath = pathname.endsWith(ROUTES.agreement)
+  const isAgreementPath = isServiceAgreementPath(pathname)
 
   if (isAgreementPath) return null
 
