@@ -112,13 +112,15 @@ describe("computeToUAcceptanceState", () => {
 })
 
 describe("isToUBlockedState", () => {
-  it("blocks only staleExpired and declined", () => {
+  it("blocks staleExpired, declined, and neverSigned", () => {
     expect(isToUBlockedState("staleExpired")).toBe(true)
     expect(isToUBlockedState("declined")).toBe(true)
+    // Market deep links skip the /agreement redirect, so never-signed
+    // accounts must be blocked at the action sites too.
+    expect(isToUBlockedState("neverSigned")).toBe(true)
     expect(isToUBlockedState("signedCurrent")).toBe(false)
     expect(isToUBlockedState("stale")).toBe(false)
     expect(isToUBlockedState("staleWithinGrace")).toBe(false)
-    expect(isToUBlockedState("neverSigned")).toBe(false)
     expect(isToUBlockedState(undefined)).toBe(false)
   })
 })

@@ -387,7 +387,7 @@ export const DepositModal = ({
     : "Market is at full capacity"
   let tooltip = capacityTooltip
   if (touGateState === "blocked") {
-    tooltip = "Accept the updated Terms of Use to deposit"
+    tooltip = "Accept the Terms of Use to deposit"
   } else if (touGateState === "unknown") {
     tooltip = "Checking Terms of Use status"
   } else if (networkActionBlocked) {

@@ -13,7 +13,9 @@ export type ToUAcceptanceState =
   /// Accepted an older version and the deadline has passed - blocking prompt,
   /// restricted actions (no deposits / new markets / borrowing).
   | "staleExpired"
-  /// Never accepted any version - the existing hard gate (/agreement) applies.
+  /// Never accepted any version. The /agreement redirect handles onboarding on
+  /// most pages, but market deep links skip it - so this state is also in the
+  /// blocked set, keeping deposits gated for accounts that never signed.
   | "neverSigned"
   /// Signed a refusal of the current version and has not accepted it since.
   | "declined"
@@ -23,6 +25,7 @@ export type ToUAcceptanceState =
 export const TOU_BLOCKED_STATES: ToUAcceptanceState[] = [
   "staleExpired",
   "declined",
+  "neverSigned",
 ]
 
 export const isToUBlockedState = (

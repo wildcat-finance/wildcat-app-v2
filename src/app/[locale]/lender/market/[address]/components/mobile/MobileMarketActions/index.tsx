@@ -220,7 +220,7 @@ export const MobileMarketActions = ({
 
   let depositTooltip = t("lenderMarketDetails.transactions.deposit.tooltip")
   if (touGateState === "blocked") {
-    depositTooltip = "Accept the updated Terms of Use to deposit"
+    depositTooltip = "Accept the Terms of Use to deposit"
   } else if (touGateState === "unknown") {
     depositTooltip = "Checking Terms of Use status"
   } else if (agreementGate.state === "error") {
