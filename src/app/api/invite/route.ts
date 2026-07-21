@@ -14,6 +14,7 @@ import { getProviderForServer } from "@/lib/provider"
 import { tryResolveRegisteredBy } from "@/lib/registrar"
 import {
   getCurrentServiceAgreement,
+  isServiceAgreementTimeSignedInBounds,
   requireLegacyWrapperHash,
   saveServiceAgreementSignature,
   verifyServiceAgreementSignature,
@@ -378,6 +379,16 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json(
       { error: "Invitation has already been accepted" },
       { status: 409 },
+    )
+  }
+
+  // After the idempotent-replay check so retries of an already-stored action
+  // still succeed; before verification so a new record can only claim a
+  // signing time the server clock roughly agrees with.
+  if (!isServiceAgreementTimeSignedInBounds(timeSigned)) {
+    return NextResponse.json(
+      { error: "timeSigned is outside the accepted signing window" },
+      { status: 400 },
     )
   }
 

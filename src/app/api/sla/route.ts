@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import {
   getCurrentServiceAgreement,
+  isServiceAgreementTimeSignedInBounds,
   requireLegacyWrapperHash,
   saveServiceAgreementSignature,
   verifyServiceAgreementSignature,
@@ -29,6 +30,12 @@ export async function POST(request: NextRequest) {
   }
   const { chainId, signature, timeSigned } = body
   const address = body.address.toLowerCase()
+  if (!isServiceAgreementTimeSignedInBounds(timeSigned)) {
+    return NextResponse.json(
+      { error: "timeSigned is outside the accepted signing window" },
+      { status: 400 },
+    )
+  }
   const agreement = await getCurrentServiceAgreement()
   const verified = await verifyServiceAgreementSignature({
     agreement,

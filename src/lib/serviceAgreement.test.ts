@@ -4,6 +4,9 @@
 import {
   buildServiceAgreementDeclineMessage,
   buildServiceAgreementMessage,
+  isServiceAgreementTimeSignedInBounds,
+  SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
+  SERVICE_AGREEMENT_TIME_SIGNED_MAX_FUTURE_MS,
 } from "@/lib/serviceAgreement"
 import { formatUnixMsAsDate } from "@/utils/formatters"
 
@@ -115,5 +118,60 @@ describe("buildServiceAgreementDeclineMessage", () => {
         reason: "  I do not agree.  ",
       }),
     ).toContain("\n\nReason: I do not agree.")
+  })
+})
+
+// timeSigned is inside the signed message, so the server cannot substitute
+// its own clock - it can only refuse claims outside the ceremony window.
+describe("isServiceAgreementTimeSignedInBounds", () => {
+  const now = Date.UTC(2026, 6, 21, 12, 0, 0)
+
+  it("accepts the present and the recent past", () => {
+    expect(isServiceAgreementTimeSignedInBounds(now, now)).toBe(true)
+    expect(
+      isServiceAgreementTimeSignedInBounds(now - 60 * 60 * 1000, now),
+    ).toBe(true)
+    // A Safe ceremony proposed days before submission stays valid.
+    expect(
+      isServiceAgreementTimeSignedInBounds(
+        now - SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
+        now,
+      ),
+    ).toBe(true)
+  })
+
+  it("rejects backdated claims beyond the window", () => {
+    expect(
+      isServiceAgreementTimeSignedInBounds(
+        now - SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS - 1,
+        now,
+      ),
+    ).toBe(false)
+    expect(isServiceAgreementTimeSignedInBounds(0, now)).toBe(false)
+  })
+
+  it("allows small clock skew but rejects future-dated claims", () => {
+    expect(
+      isServiceAgreementTimeSignedInBounds(
+        now + SERVICE_AGREEMENT_TIME_SIGNED_MAX_FUTURE_MS,
+        now,
+      ),
+    ).toBe(true)
+    // A far-future timeSigned would otherwise permanently win the monotonic
+    // replace guard in saveServiceAgreementSignature/Refusal.
+    expect(
+      isServiceAgreementTimeSignedInBounds(
+        now + SERVICE_AGREEMENT_TIME_SIGNED_MAX_FUTURE_MS + 1,
+        now,
+      ),
+    ).toBe(false)
+    expect(
+      isServiceAgreementTimeSignedInBounds(Date.UTC(3000, 0, 1), now),
+    ).toBe(false)
+  })
+
+  it("rejects non-finite values", () => {
+    expect(isServiceAgreementTimeSignedInBounds(NaN, now)).toBe(false)
+    expect(isServiceAgreementTimeSignedInBounds(Infinity, now)).toBe(false)
   })
 })

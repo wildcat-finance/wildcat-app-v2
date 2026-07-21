@@ -19,7 +19,8 @@ const buildRecordFile = (acceptance: BorrowerAcceptance): string => {
     `Network (chain ID):       ${acceptance.chainId}`,
     `Accepted version:         ${sa.version}`,
     `Effective date:           ${sa.effectiveDate.toISOString().slice(0, 10)}`,
-    `Acceptance timestamp:     ${acceptance.timeSigned.toISOString()} (UTC)`,
+    `Signed at (claimed):      ${acceptance.timeSigned.toISOString()} (UTC)`,
+    `Recorded at (server):     ${acceptance.createdAt.toISOString()} (UTC)`,
     `SHA-256 of accepted ToU:  ${sa.plaintextSha256}`,
     ...(sa.legacyWrapperHash
       ? [`Acknowledgement hash:     ${sa.legacyWrapperHash}`]
@@ -42,6 +43,10 @@ Files:
 - "Accepted Terms of Use.txt": the exact Terms of Use text that was accepted.
 - "acceptance-record.json": the data Wildcat stored for this acceptance, including
   the raw signature.
+
+Timestamps:
+"Signed at (claimed)" is the time attested inside the wallet-signed message;
+"Recorded at (server)" is when Wildcat's server stored the acceptance.
 
 Verifying the accepted document:
 The SHA-256 of "Accepted Terms of Use.txt" equals the "plaintextSha256" value in
@@ -76,6 +81,7 @@ export async function GET(
     legacyWrapperHash: sa.legacyWrapperHash,
     organizationName: acceptance.organizationName,
     timeSigned: acceptance.timeSigned.toISOString(),
+    recordedAt: acceptance.createdAt.toISOString(),
     kind: acceptance.kind,
     signature: acceptance.signature,
     signedMessage: acceptance.signedMessage,

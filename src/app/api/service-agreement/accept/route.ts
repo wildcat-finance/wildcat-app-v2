@@ -5,6 +5,7 @@ import { AcceptServiceAgreementInput } from "@/app/api/service-agreement/interfa
 import { prisma } from "@/lib/db"
 import {
   getCurrentServiceAgreement,
+  isServiceAgreementTimeSignedInBounds,
   saveServiceAgreementSignature,
   verifyServiceAgreementSignature,
 } from "@/lib/serviceAgreement"
@@ -53,6 +54,16 @@ export async function POST(request: NextRequest) {
     existing.timeSigned.getTime() === timeSigned
   ) {
     return NextResponse.json({ success: true })
+  }
+
+  // After the idempotent-replay check so retries of an already-stored action
+  // still succeed; before verification so a new record can only claim a
+  // signing time the server clock roughly agrees with.
+  if (!isServiceAgreementTimeSignedInBounds(timeSigned)) {
+    return NextResponse.json(
+      { error: "timeSigned is outside the accepted signing window" },
+      { status: 400 },
+    )
   }
 
   // The borrower message embeds the organization name; derive it from the
