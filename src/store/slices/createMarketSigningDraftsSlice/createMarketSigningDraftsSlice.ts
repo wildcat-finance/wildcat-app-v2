@@ -26,6 +26,10 @@ export type CreateMarketSigningDraft = {
   borrowerProfile: BorrowerProfile
   asset: CreateMarketAssetSnapshot
   createdAt: number
+  // Set once the market for `salt` is deployed on chain. Lets a resumed
+  // draft skip re-deploying (the CREATE2 address is already taken) and go
+  // straight to retrying the MLA upload.
+  deployedMarket?: string
 }
 
 export type CreateMarketSigningDraftsState = {
@@ -65,11 +69,36 @@ const createMarketSigningDraftsSlice = createSlice({
         )
       ]
     },
+    // Records the deployed market on the draft it belongs to. The salt guard
+    // means a deploy result can never attach to a draft that was discarded
+    // and re-created (new salt) while the transaction was in flight.
+    markCreateMarketDraftDeployed: (
+      state,
+      action: PayloadAction<{
+        address: string
+        chainId: number
+        salt: string
+        deployedMarket: string
+      }>,
+    ) => {
+      const record =
+        state.records[
+          getCreateMarketSigningDraftScope(
+            action.payload.address,
+            action.payload.chainId,
+          )
+        ]
+      if (!record || record.salt !== action.payload.salt) return
+      record.deployedMarket = action.payload.deployedMarket
+    },
   },
 })
 
-export const { saveCreateMarketSigningDraft, removeCreateMarketSigningDraft } =
-  createMarketSigningDraftsSlice.actions
+export const {
+  saveCreateMarketSigningDraft,
+  removeCreateMarketSigningDraft,
+  markCreateMarketDraftDeployed,
+} = createMarketSigningDraftsSlice.actions
 export const createMarketSigningDraftsReducer =
   createMarketSigningDraftsSlice.reducer
 
