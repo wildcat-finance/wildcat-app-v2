@@ -7,7 +7,10 @@ import { decode as decodeJWT } from "jsonwebtoken"
 import { useAccount } from "wagmi"
 
 import { toastError, toastRequest } from "@/components/Toasts"
-import { getLoginSignatureMessage } from "@/config/api"
+import {
+  getLoginSignatureMessage,
+  LOGIN_SIGNATURE_MAX_AGE_SECONDS,
+} from "@/config/api"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   getApiTokenKey,
@@ -18,6 +21,7 @@ import { ApiToken } from "@/store/slices/apiTokensSlice/interface"
 import { dayjs } from "@/utils/dayjs"
 
 import { useEthersSigner } from "./useEthersSigner"
+import { useSafeMessageSigning } from "./useSafeMessageSigning"
 import { useSelectedNetwork } from "./useSelectedNetwork"
 
 export const useRefreshApiToken = (chainIdOverride?: number) => {
@@ -125,6 +129,7 @@ export const useLogin = () => {
   const dispatch = useAppDispatch()
   const selectedNetwork = useSelectedNetwork()
   const signer = useEthersSigner()
+  const safeSigning = useSafeMessageSigning()
 
   return useMutation({
     mutationFn: async (address: string) => {
@@ -134,32 +139,54 @@ export const useLogin = () => {
         throw Error(`Wallet network does not match selected network`)
       }
       address = address.toLowerCase()
+      // Login timestamps are unix SECONDS (the server's freshness check and
+      // the signed message both use them); the pending-message machinery
+      // treats the value as opaque and hands it back on resume.
       const timeSigned = dayjs().unix()
-      const loginMessage = getLoginSignatureMessage(
-        address,
-        timeSigned,
-        selectedNetwork.chainId,
-      )
-      const signature = await toastRequest(
-        signer.signMessage(loginMessage).then((result) => {
-          if (result === "0x") {
+      const signPromise = safeSigning
+        .signMessage({
+          flow: "login",
+          address,
+          chainId: selectedNetwork.chainId,
+          timeSigned,
+          // The server rejects login messages older than an hour, so a
+          // pending Safe login proposal is worthless past that - expire it
+          // instead of submitting a guaranteed rejection.
+          expiresAt: (timeSigned + LOGIN_SIGNATURE_MAX_AGE_SECONDS) * 1000,
+          buildMessage: (effectiveTimeSigned) =>
+            getLoginSignatureMessage(
+              address,
+              effectiveTimeSigned,
+              selectedNetwork.chainId,
+            ),
+        })
+        .then((result) => {
+          // Outside a Safe app context "0x" means the wallet gave us nothing.
+          // Inside one, "0x" is a real answer: an on-chain-registered Safe
+          // message the server verifies against the Safe's signed-message
+          // registry.
+          if (!safeSigning.safeConnected && result.signature === "0x") {
             throw Error(`Wallet did not return a login signature`)
           }
           return result
-        }),
-        {
-          pending: `Signing login message...`,
-          success: `Signed login message!`,
-          error: `Failed to sign login message!`,
-        },
-      )
+        })
+      // When connected to a Safe the coordinator owns progress toasts
+      // ("Awaiting Safe confirmations for login...").
+      const signed = safeSigning.safeConnected
+        ? await signPromise
+        : await toastRequest(signPromise, {
+            pending: `Signing login message...`,
+            success: `Signed login message!`,
+            error: `Failed to sign login message!`,
+          })
 
+      safeSigning.markSubmitting(signed.pendingSafeMessageId)
       const submitLogin = async () => {
         const response = await fetch("/api/auth/login", {
           method: "POST",
           body: JSON.stringify({
-            signature,
-            timeSigned,
+            signature: signed.signature,
+            timeSigned: signed.timeSigned,
             address,
             chainId: selectedNetwork.chainId,
           }),
@@ -174,11 +201,18 @@ export const useLogin = () => {
         return token
       }
 
-      return toastRequest(submitLogin(), {
-        pending: `Submitting login...`,
-        success: `Logged in!`,
-        error: `Failed to log in!`,
-      })
+      try {
+        const token = await toastRequest(submitLogin(), {
+          pending: `Submitting login...`,
+          success: `Logged in!`,
+          error: `Failed to log in!`,
+        })
+        safeSigning.markCompleted(signed.pendingSafeMessageId)
+        return token
+      } catch (error) {
+        safeSigning.markSubmissionFailed(signed.pendingSafeMessageId, error)
+        throw error
+      }
     },
     onSuccess: (token) => {
       if (token) {
