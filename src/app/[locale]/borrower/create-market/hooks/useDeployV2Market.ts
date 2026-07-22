@@ -188,7 +188,39 @@ export const useDeployV2Market = () => {
       let marketAddress: string | undefined
       if (reusableMarket) {
         marketAddress = reusableMarket
-      } else {
+      }
+      if (!marketAddress) {
+        // The salt fully determines the CREATE2 market address, so the chain
+        // is the authority on whether this deployment already happened - a
+        // Safe transaction can execute after every tab observing it closed,
+        // leaving both the in-memory state and the draft unmarked. Anything
+        // found at the predicted address is exactly the market the signed
+        // MLA binds: changed params mean a different salt and address.
+        try {
+          const lookupFactory = getHooksFactoryContract(targetChainId, signer)
+          const predicted: string = await lookupFactory.computeMarketAddress(
+            marketParams.salt,
+          )
+          if ((await lookupFactory.provider.getCode(predicted)) !== "0x") {
+            marketAddress = predicted
+            setDeployed({ salt: marketParams.salt, market: predicted })
+            if (draftScopeAddress) {
+              dispatch(
+                markCreateMarketDraftDeployed({
+                  address: draftScopeAddress,
+                  chainId: targetChainId,
+                  salt: marketParams.salt,
+                  deployedMarket: predicted,
+                }),
+              )
+            }
+          }
+        } catch {
+          // Best-effort lookup: on RPC failure fall through to the deploy
+          // path, which reverts harmlessly if the market already exists.
+        }
+      }
+      if (!marketAddress) {
         const useGnosisMultiSend = isConnectedToSafe && isTestnet
 
         let asset: Token
