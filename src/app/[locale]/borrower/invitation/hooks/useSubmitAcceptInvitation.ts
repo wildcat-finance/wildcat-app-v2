@@ -9,7 +9,11 @@ import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
-import { buildServiceAgreementMessage } from "@/utils/serviceAgreementMessage"
+import { isTerminalClientError } from "@/utils/httpStatus"
+import {
+  buildServiceAgreementMessage,
+  SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
+} from "@/utils/serviceAgreementMessage"
 
 import {
   USE_BORROWER_INVITE_EXISTS_KEY,
@@ -45,6 +49,10 @@ export const useSubmitAcceptInvitation = () => {
         address,
         chainId,
         timeSigned,
+        // Expire the pending Safe record exactly when the server would start
+        // rejecting its embedded timeSigned, so a too-slow ceremony discards
+        // itself instead of resubmitting a guaranteed 400 forever.
+        expiresAt: timeSigned + SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
         buildMessage: (effectiveTimeSigned) =>
           buildServiceAgreementMessage({
             acknowledgementText: currentAgreement.data.acknowledgementText,
@@ -77,8 +85,16 @@ export const useSubmitAcceptInvitation = () => {
           },
         })
         if (response.status === 401) {
+          // Token problem, not a signature problem - keep the pending Safe
+          // signature so it can be resubmitted after a fresh login.
           removeBadToken()
           throw Error("Failed to accept invitation")
+        }
+        // A terminal rejection (e.g. timeSigned outside the server window,
+        // or the invitation no longer pending) can never succeed on resubmit
+        // - discard the pending record so the next attempt starts fresh.
+        if (isTerminalClientError(response.status)) {
+          safeSigning.markCompleted(result.pendingSafeMessageId)
         }
         const data = await response.json()
         if (!data.success) throw Error("Failed to accept invitation")

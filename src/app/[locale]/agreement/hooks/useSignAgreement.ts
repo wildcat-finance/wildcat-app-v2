@@ -8,31 +8,16 @@ import { SLA_STATUS_QUERY_KEY } from "@/hooks/useNetworkGate"
 import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { HAS_SIGNED_SLA_KEY } from "@/providers/RedirectsProvider/hooks/useHasSignedSla"
-import { buildServiceAgreementMessage } from "@/utils/serviceAgreementMessage"
-
-import { SignatureSubmissionProps } from "./interface"
+import { isTerminalClientError } from "@/utils/httpStatus"
+import {
+  buildServiceAgreementMessage,
+  SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
+} from "@/utils/serviceAgreementMessage"
 
 export type SignAgreementProps = {
   address: string | undefined
   name: string | undefined
   timeSigned: number | undefined
-}
-
-export async function submitSignature(input: SignatureSubmissionProps) {
-  const result = await fetch(`/api/sla`, {
-    method: "POST",
-    body: JSON.stringify({
-      ...input,
-      chainId: input.chainId,
-    }),
-    headers: {
-      "Content-Type": "application/json",
-    },
-    credentials: "include",
-  }).then((res) => res.json())
-  if (!result.success) {
-    throw Error(`Failed to submit signature`)
-  }
 }
 
 export const useSignAgreement = () => {
@@ -59,6 +44,10 @@ export const useSignAgreement = () => {
         address,
         chainId,
         timeSigned,
+        // Expire the pending Safe record exactly when the server would start
+        // rejecting its embedded timeSigned, so a too-slow ceremony discards
+        // itself instead of resubmitting a guaranteed 400 forever.
+        expiresAt: timeSigned + SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
         buildMessage: (effectiveTimeSigned) =>
           buildServiceAgreementMessage({
             acknowledgementText: currentAgreement.data.acknowledgementText,
@@ -75,13 +64,26 @@ export const useSignAgreement = () => {
           })
       safeSigning.markSubmitting(result.pendingSafeMessageId)
       try {
-        await submitSignature({
-          signature: result.signature,
-          name,
-          timeSigned: result.timeSigned,
-          address,
-          chainId,
+        const response = await fetch(`/api/sla`, {
+          method: "POST",
+          body: JSON.stringify({
+            signature: result.signature,
+            name,
+            timeSigned: result.timeSigned,
+            address,
+            chainId,
+          }),
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
         })
+        const submission = await response.json()
+        // A terminal rejection (e.g. timeSigned outside the server window)
+        // can never succeed on resubmit - discard the pending record so the
+        // next attempt starts a fresh ceremony with a fresh timestamp.
+        if (isTerminalClientError(response.status)) {
+          safeSigning.markCompleted(result.pendingSafeMessageId)
+        }
+        if (!submission.success) throw Error(`Failed to submit signature`)
         safeSigning.markCompleted(result.pendingSafeMessageId)
       } catch (error) {
         safeSigning.markSubmissionFailed(result.pendingSafeMessageId, error)

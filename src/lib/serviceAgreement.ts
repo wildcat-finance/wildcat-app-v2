@@ -13,34 +13,25 @@ import { verifyAndDescribeSignature } from "@/lib/signatures"
 import {
   buildServiceAgreementDeclineMessage,
   buildServiceAgreementMessage,
+  isServiceAgreementTimeSignedInBounds,
   normalizeServiceAgreementDeclineReason,
+  SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
+  SERVICE_AGREEMENT_TIME_SIGNED_MAX_FUTURE_MS,
 } from "@/utils/serviceAgreementMessage"
 import {
   computeToUAcceptanceState,
   ToUAcceptanceState,
 } from "@/utils/serviceAgreementState"
 
-export { buildServiceAgreementMessage, buildServiceAgreementDeclineMessage }
-
-/// timeSigned is embedded in the wallet-signed message, so the server cannot
-/// replace it with its own clock - it can only refuse claims that disagree
-/// with it by more than the signing-ceremony window. The window is wide
-/// because Safe threshold signatures are legitimately proposed days before
-/// they are submitted; it still prevents arbitrary backdating of the stored
-/// legal record and the far-future timeSigned that would permanently win the
-/// monotonic replace guard in saveServiceAgreementSignature/Refusal.
-export const SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000
-export const SERVICE_AGREEMENT_TIME_SIGNED_MAX_FUTURE_MS = 5 * 60 * 1000
-
-export function isServiceAgreementTimeSignedInBounds(
-  timeSigned: number,
-  now: number = Date.now(),
-): boolean {
-  return (
-    Number.isFinite(timeSigned) &&
-    timeSigned >= now - SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS &&
-    timeSigned <= now + SERVICE_AGREEMENT_TIME_SIGNED_MAX_FUTURE_MS
-  )
+// The timeSigned window lives in utils/serviceAgreementMessage (shared with
+// client flows, which align pending-signature expiry to it); re-exported here
+// so server routes keep a single import origin.
+export {
+  buildServiceAgreementMessage,
+  buildServiceAgreementDeclineMessage,
+  isServiceAgreementTimeSignedInBounds,
+  SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
+  SERVICE_AGREEMENT_TIME_SIGNED_MAX_FUTURE_MS,
 }
 
 // ServiceAgreement without the heavy plaintext/html columns - all the signing
