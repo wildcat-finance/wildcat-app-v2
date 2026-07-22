@@ -2,8 +2,15 @@ import { Dispatch, SetStateAction } from "react"
 import * as React from "react"
 
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
-import { DepositStatus, HooksKind, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { useQuery } from "@tanstack/react-query"
+import {
+  DepositStatus,
+  HooksKind,
+  MarketAccount,
+  TokenWrapper,
+} from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
 import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
@@ -12,8 +19,10 @@ import { useFaucet } from "@/app/[locale]/lender/market/[address]/hooks/useFauce
 import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"
 import Clock from "@/assets/icons/clock_icon.svg"
 import { TooltipButton } from "@/components/TooltipButton"
+import { QueryKeys } from "@/config/query-keys"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
+import { useWrapperBalances } from "@/hooks/wrapper/useWrapperBalances"
 import { COLORS } from "@/theme/colors"
 import { hasManuallyDisabledMarketActions } from "@/utils/constants"
 import { formatTokenWithCommas } from "@/utils/formatters"
@@ -27,6 +36,8 @@ export type MobileMarketActionsProps = {
   setIsMobileWithdrawalOpen: Dispatch<SetStateAction<boolean>>
   isMLAOpen: boolean
   setIsMLAOpen: Dispatch<SetStateAction<boolean>>
+  wrapper?: TokenWrapper
+  hasWrapper?: boolean
 }
 
 export type MobileMarketTransactionItemProps = {
@@ -121,12 +132,38 @@ export const MobileMarketActions = ({
   setIsMobileDepositOpen,
   isMLAOpen,
   setIsMLAOpen,
+  wrapper,
+  hasWrapper,
 }: MobileMarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
+  const { address } = useAccount()
   const { isTestnet, isSelectionMismatch, isWrongNetwork } = useNetworkGate({
     desiredChainId: market.chainId,
     includeAgreementStatus: false,
+  })
+
+  const { data: wrapperBalances } = useWrapperBalances(
+    market.chainId,
+    wrapper,
+    address,
+  )
+  const shareBalance = wrapperBalances?.shareBalance
+  const showWrappedLine =
+    !!hasWrapper && !!wrapper && !!shareBalance && !shareBalance.raw.isZero()
+
+  const { data: wrappedAssets } = useQuery({
+    queryKey: QueryKeys.Wrapper.MAX_ASSETS_FROM_SHARES(
+      wrapper?.address,
+      shareBalance?.raw.toString(),
+    ),
+    enabled: showWrappedLine,
+    queryFn: async () => {
+      if (!wrapper || !shareBalance) throw new Error("no shares")
+      return wrapper.previewRedeem(shareBalance)
+    },
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   })
 
   const isDifferentChain = isSelectionMismatch || isWrongNetwork
@@ -291,6 +328,22 @@ export const MobileMarketActions = ({
                 amount={formatTokenWithCommas(marketAccount.marketBalance)}
                 asset={market.underlyingToken.symbol}
               />
+
+              {showWrappedLine && wrapper && shareBalance && (
+                <Typography
+                  variant="mobText3"
+                  sx={{ color: COLORS.white06, marginTop: "4px" }}
+                >
+                  {t("lenderMarketDetails.transactions.withdraw.wrappedLine", {
+                    shares: formatTokenWithCommas(shareBalance),
+                    shareSymbol: wrapper.shareToken.symbol,
+                    assets: wrappedAssets
+                      ? formatTokenWithCommas(wrappedAssets)
+                      : "…",
+                    symbol: market.underlyingToken.symbol,
+                  })}
+                </Typography>
+              )}
 
               <Button
                 variant="contained"

@@ -335,6 +335,8 @@ export default function LenderMarketDetails({
     return (
       <WithdrawModal
         marketAccount={marketAccount}
+        wrapper={wrapper}
+        hasWrapper={hasWrapper}
         isMobileOpen={isMobileWithdrawalOpen}
         setIsMobileOpen={setIsMobileWithdrawalOpen}
       />
@@ -364,6 +366,8 @@ export default function LenderMarketDetails({
           <MobileMarketActions
             marketAccount={marketAccount}
             withdrawals={withdrawals}
+            wrapper={wrapper}
+            hasWrapper={hasWrapper}
             isMobileDepositOpen={isMobileDepositOpen}
             isMobileWithdrawalOpen={isMobileWithdrawalOpen}
             setIsMobileDepositOpen={setIsMobileDepositOpen}
@@ -389,6 +393,8 @@ export default function LenderMarketDetails({
           <MobileMarketActions
             marketAccount={marketAccount}
             withdrawals={withdrawals}
+            wrapper={wrapper}
+            hasWrapper={hasWrapper}
             isMobileDepositOpen={isMobileDepositOpen}
             isMobileWithdrawalOpen={isMobileWithdrawalOpen}
             setIsMobileDepositOpen={setIsMobileDepositOpen}
@@ -508,6 +514,8 @@ export default function LenderMarketDetails({
             <MobileMarketActions
               marketAccount={marketAccount}
               withdrawals={withdrawals}
+              wrapper={wrapper}
+              hasWrapper={hasWrapper}
               isMobileDepositOpen={isMobileDepositOpen}
               isMobileWithdrawalOpen={isMobileWithdrawalOpen}
               setIsMobileDepositOpen={setIsMobileDepositOpen}
@@ -541,6 +549,8 @@ export default function LenderMarketDetails({
                   marketAccount={marketAccount}
                   withdrawals={withdrawals}
                   showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
+                  wrapper={wrapper}
+                  hasWrapper={hasWrapper}
                 />
               )}
               <CapacityBarChart

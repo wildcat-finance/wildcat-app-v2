@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
+import { useQuery } from "@tanstack/react-query"
 import {
   DepositStatus,
   MarketAccount,
@@ -8,6 +9,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import { LenderMlaModal } from "@/app/[locale]/lender/components/LenderMlaModal"
 import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
@@ -18,9 +20,11 @@ import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import TelegramIcon from "@/assets/icons/telegram_icon.svg"
 import { TransactionBlock } from "@/components/TransactionBlock"
+import { QueryKeys } from "@/config/query-keys"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { useWrapperBalances } from "@/hooks/wrapper/useWrapperBalances"
 import { useAppDispatch } from "@/store/hooks"
 import {
   LenderMarketSections,
@@ -58,10 +62,36 @@ export const MarketActions = ({
   marketAccount,
   withdrawals,
   showBorrowerPenaltyWarning,
+  wrapper,
+  hasWrapper,
 }: MarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
   const { isTestnet } = useSelectedNetwork()
+  const { address } = useAccount()
+
+  const { data: wrapperBalances } = useWrapperBalances(
+    market.chainId,
+    wrapper,
+    address,
+  )
+  const shareBalance = wrapperBalances?.shareBalance
+  const showWrappedLine =
+    !!hasWrapper && !!wrapper && !!shareBalance && !shareBalance.raw.isZero()
+
+  const { data: wrappedAssets } = useQuery({
+    queryKey: QueryKeys.Wrapper.MAX_ASSETS_FROM_SHARES(
+      wrapper?.address,
+      shareBalance?.raw.toString(),
+    ),
+    enabled: showWrappedLine,
+    queryFn: async () => {
+      if (!wrapper || !shareBalance) throw new Error("no shares")
+      return wrapper.previewRedeem(shareBalance)
+    },
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  })
 
   const { data: mla, isLoading: mlaLoading } = useMarketMla(market.address)
 
@@ -241,37 +271,67 @@ export const MarketActions = ({
           }
 
           return (
-            <Box sx={TransactionsContainer}>
-              <TransactionBlock
-                title={t("lenderMarketDetails.transactions.deposit.title")}
-                tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
-                amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
-                asset={market.underlyingToken.symbol}
-              >
-                {!showFaucet && (
-                  <DepositModal
-                    marketAccount={marketAccount}
-                    showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
-                  />
-                )}
-                {showFaucet && <FaucetButton marketAccount={marketAccount} />}
-              </TransactionBlock>
+            <>
+              <Box sx={TransactionsContainer}>
+                <TransactionBlock
+                  title={t("lenderMarketDetails.transactions.deposit.title")}
+                  tooltip={t(
+                    "lenderMarketDetails.transactions.deposit.tooltip",
+                  )}
+                  amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
+                  asset={market.underlyingToken.symbol}
+                >
+                  {!showFaucet && (
+                    <DepositModal
+                      marketAccount={marketAccount}
+                      showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
+                    />
+                  )}
+                  {showFaucet && <FaucetButton marketAccount={marketAccount} />}
+                </TransactionBlock>
 
-              <TransactionBlock
-                title={t("lenderMarketDetails.transactions.withdraw.title")}
-                tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
-                amount={
-                  isTooSmallMarketBalance
-                    ? `< 0.00001`
-                    : formatTokenWithCommas(marketAccount.marketBalance)
-                }
-                asset={market.underlyingToken.symbol}
-              >
-                {!hideWithdraw && (
-                  <WithdrawModal marketAccount={marketAccount} />
-                )}
-              </TransactionBlock>
-            </Box>
+                <TransactionBlock
+                  title={t("lenderMarketDetails.transactions.withdraw.title")}
+                  tooltip={t(
+                    "lenderMarketDetails.transactions.withdraw.tooltip",
+                  )}
+                  amount={
+                    isTooSmallMarketBalance
+                      ? `< 0.00001`
+                      : formatTokenWithCommas(marketAccount.marketBalance)
+                  }
+                  asset={market.underlyingToken.symbol}
+                >
+                  {(!hideWithdraw ||
+                    (showWrappedLine &&
+                      marketAccount.withdrawalAvailability ===
+                        QueueWithdrawalStatus.Ready)) && (
+                    <WithdrawModal
+                      marketAccount={marketAccount}
+                      wrapper={wrapper}
+                      hasWrapper={hasWrapper}
+                    />
+                  )}
+                </TransactionBlock>
+              </Box>
+
+              {showWrappedLine && wrapper && shareBalance && (
+                <Typography
+                  variant="text3"
+                  align="right"
+                  sx={{ color: COLORS.santasGrey, marginTop: "12px" }}
+                >
+                  {t("lenderMarketDetails.transactions.withdraw.wrappedLine", {
+                    shares: formatTokenWithCommas(shareBalance),
+                    shareSymbol: wrapper.shareToken.symbol,
+                    assets: wrappedAssets
+                      ? formatTokenWithCommas(wrappedAssets)
+                      : "…",
+                    symbol: market.underlyingToken.symbol,
+                  })}
+                </Typography>
+              )}
+            </>
           )
         })()}
       </Box>

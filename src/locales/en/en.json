@@ -1133,6 +1133,24 @@
           "buttons": {
             "confirm": "Confirm"
           }
+        },
+        "source": {
+          "direct": "Direct",
+          "wrapped": "Wrapped"
+        },
+        "wrapped": {
+          "inputLabel": "Wrapped shares to withdraw",
+          "toWithdraw": "to withdraw",
+          "available": "Wrapped position",
+          "step": {
+            "unwrapping": "Unwrapping…",
+            "queueing": "Queueing withdrawal…"
+          }
+        },
+        "wrappedLine": "Wrapped position: {{shares}} {{shareSymbol}} (≈ {{assets}} {{symbol}})",
+        "success": {
+          "title": "Withdrawal requested",
+          "subtitle": "{{amount}} {{symbol}} queued for withdrawal."
         }
       },
       "withdrawalsAlert": {
