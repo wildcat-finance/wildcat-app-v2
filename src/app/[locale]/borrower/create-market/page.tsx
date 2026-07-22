@@ -50,6 +50,7 @@ import {
 } from "@/store/slices/createMarketSigningDraftsSlice/createMarketSigningDraftsSlice"
 import { removePendingSafeMessage } from "@/store/slices/pendingSafeMessagesSlice/pendingSafeMessagesSlice"
 import { COLORS } from "@/theme/colors"
+import { SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS } from "@/utils/serviceAgreementMessage"
 
 import { BasicSetupForm } from "./components/Forms/BasicSetupForn"
 import { ConfirmationForm } from "./components/Forms/ConfirmationForm"
@@ -116,7 +117,8 @@ export default function CreateMarketPage() {
     useGetBorrowerProfile(address)
   const { isTestnet } = useCurrentNetwork()
   // ToU re-acceptance lockout (staleExpired / declined): no new markets.
-  const { touGateState } = useNetworkGate()
+  const { touGateState, isAgreementFetching, refetchAgreementStatus } =
+    useNetworkGate()
   const { chainId: targetChainId } = useAppSelector(
     (state) => state.selectedNetwork,
   )
@@ -387,6 +389,23 @@ export default function CreateMarketPage() {
 
   const handleResumeSavedDraft = useCallback(async () => {
     if (!signingDraft) return
+    // The draft pins timeSigned into the signed MLA message; once it falls
+    // out of the server's acceptance window every submit is a guaranteed 400
+    // (and resuming would propose dead requests into the Safe's queue), so
+    // restart the ceremony with the saved form values instead.
+    if (
+      Date.now() >=
+      signingDraft.timeSigned + SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS
+    ) {
+      toastError(
+        "The saved signing draft has expired. Review and sign the market agreement again.",
+      )
+      removeDraftRecords(signingDraft.id)
+      startFreshSigningContext()
+      newMarketForm.reset(signingDraft.formValues)
+      dispatch(setCreatingStep(CreateMarketSteps.CONFIRM))
+      return
+    }
     if (signingDraft.formValues.mla !== "noMLA") {
       const profileResult = await refetchBorrowerProfile()
       if (profileResult.error) {
@@ -645,11 +664,31 @@ export default function CreateMarketPage() {
         sx={{
           ...PageContainer,
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
+          gap: "16px",
         }}
       >
-        <Loader />
+        {isAgreementFetching ? (
+          <Loader />
+        ) : (
+          // The status fetch failed and react-query's retries are exhausted -
+          // stay fail-closed, but give an explicit retry instead of a
+          // spinner that nothing will ever resolve.
+          <>
+            <Typography variant="text2" color={COLORS.santasGrey}>
+              Couldn&apos;t verify your Terms of Use status.
+            </Typography>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={() => refetchAgreementStatus()}
+            >
+              Retry
+            </Button>
+          </>
+        )}
       </Box>
     )
   }

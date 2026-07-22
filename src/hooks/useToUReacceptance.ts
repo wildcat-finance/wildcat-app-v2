@@ -21,6 +21,7 @@ import {
   buildServiceAgreementDeclineMessage,
   buildServiceAgreementMessage,
   normalizeServiceAgreementDeclineReason,
+  SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
 } from "@/utils/serviceAgreementMessage"
 
 export const TOU_PARTY_QUERY_KEY = "tou-party"
@@ -129,6 +130,11 @@ export const useAcceptToU = (agreementParty: ServiceAgreementPartyInput) => {
         address,
         chainId: selectedChainId,
         timeSigned,
+        // Expire the pending Safe record exactly when the server would start
+        // rejecting its embedded timeSigned, so a ceremony the co-signers
+        // never complete discards itself instead of blocking re-acceptance
+        // (and the ToU gate behind it) forever.
+        expiresAt: timeSigned + SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
         context: { party },
         canResumePending: (context) => context?.party === party,
         buildMessage: (effectiveTimeSigned) =>
@@ -294,6 +300,9 @@ export const useDeclineToU = (agreementParty: ServiceAgreementPartyInput) => {
         address,
         chainId: selectedChainId,
         timeSigned,
+        // Same window as the decline endpoint enforces on the embedded
+        // timeSigned - a ceremony that outlives it can only ever be a 400.
+        expiresAt: timeSigned + SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
         context: { party, reason: reasonToSign ?? "" },
         canResumePending: (context) =>
           context?.party === party &&

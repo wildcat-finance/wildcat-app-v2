@@ -124,13 +124,22 @@ export const MobileMarketActions = ({
 }: MobileMarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
-  const { isTestnet, isSelectionMismatch, isWrongNetwork, touGateState } =
-    useNetworkGate({
-      desiredChainId: market.chainId,
-    })
+  const {
+    isTestnet,
+    isSelectionMismatch,
+    isWrongNetwork,
+    touGateState,
+    isAgreementFetching,
+    refetchAgreementStatus,
+  } = useNetworkGate({
+    desiredChainId: market.chainId,
+  })
 
   const isDifferentChain = isSelectionMismatch || isWrongNetwork
   const touActionBlocked = touGateState !== "unblocked"
+  // The status fetch failed (not merely in flight): let the button through so
+  // its click can retry the fetch instead of dead-ending on a disabled state.
+  const touRetryAvailable = touGateState === "unknown" && !isAgreementFetching
 
   const notMature =
     market &&
@@ -162,6 +171,11 @@ export const MobileMarketActions = ({
   }
 
   const handleClickDeposit = () => {
+    if (touRetryAvailable) {
+      toastError("Couldn't verify Terms of Use status — retrying")
+      refetchAgreementStatus().catch(() => undefined)
+      return
+    }
     if (touActionBlocked) return
 
     if (agreementGate.state === "error") {
@@ -222,7 +236,9 @@ export const MobileMarketActions = ({
   if (touGateState === "blocked") {
     depositTooltip = "Accept the Terms of Use to deposit"
   } else if (touGateState === "unknown") {
-    depositTooltip = "Checking Terms of Use status"
+    depositTooltip = isAgreementFetching
+      ? "Checking Terms of Use status"
+      : "Couldn't verify Terms of Use status — tap to retry"
   } else if (agreementGate.state === "error") {
     depositTooltip = "Tap to retry loading agreement data"
   }
@@ -401,7 +417,7 @@ export const MobileMarketActions = ({
                   size="large"
                   fullWidth
                   disabled={
-                    touActionBlocked ||
+                    (touActionBlocked && !touRetryAvailable) ||
                     marketActionsManuallyDisabled ||
                     marketAccount.maximumDeposit.raw.isZero()
                   }

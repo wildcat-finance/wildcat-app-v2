@@ -224,8 +224,10 @@ export const useNetworkGate = ({
     touGateState,
     touBlocked,
     isAgreementLoading: slaQuery.isLoading,
+    isAgreementFetching: slaQuery.isFetching,
     isAgreementUnknown: touGateState === "unknown",
     agreementError: slaQuery.error,
+    refetchAgreementStatus: slaQuery.refetch,
     redirectPath,
     isRedirectLoading:
       !redirectPath && agreementQueryEnabled && slaQuery.isPending,

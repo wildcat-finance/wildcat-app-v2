@@ -139,10 +139,19 @@ export const DepositModal = ({
   const { market } = marketAccount
   const { address: connectedAddress } = useAccount()
   // ToU re-acceptance lockout (staleExpired / declined): deposits blocked.
-  const { touGateState, isWrongNetwork, isSelectionMismatch } = useNetworkGate({
+  const {
+    touGateState,
+    isWrongNetwork,
+    isSelectionMismatch,
+    isAgreementFetching,
+    refetchAgreementStatus,
+  } = useNetworkGate({
     desiredChainId: market.chainId,
   })
   const touActionBlocked = touGateState !== "unblocked"
+  // The status fetch failed (not merely in flight): let the button through so
+  // its click can retry the fetch instead of dead-ending on a disabled state.
+  const touRetryAvailable = touGateState === "unknown" && !isAgreementFetching
   const networkActionBlocked = isWrongNetwork || isSelectionMismatch
   const accountActionBlocked =
     !connectedAddress ||
@@ -299,6 +308,11 @@ export const DepositModal = ({
   }
 
   const handleOpenDepositModal = () => {
+    if (touRetryAvailable) {
+      toastError("Couldn't verify Terms of Use status — retrying")
+      refetchAgreementStatus().catch(() => undefined)
+      return
+    }
     // ToU re-acceptance lockout: deposits are blocked until the current
     // version is accepted (withdrawals stay available).
     if (touActionBlocked || networkActionBlocked || accountActionBlocked) return
@@ -389,7 +403,9 @@ export const DepositModal = ({
   if (touGateState === "blocked") {
     tooltip = "Accept the Terms of Use to deposit"
   } else if (touGateState === "unknown") {
-    tooltip = "Checking Terms of Use status"
+    tooltip = isAgreementFetching
+      ? "Checking Terms of Use status"
+      : "Couldn't verify Terms of Use status — tap to retry"
   } else if (networkActionBlocked) {
     tooltip = "Switch to the market network to deposit"
   } else if (agreementGate.state === "error") {
@@ -946,7 +962,7 @@ export const DepositModal = ({
                 size="large"
                 sx={{ width: "152px" }}
                 disabled={
-                  touActionBlocked ||
+                  (touActionBlocked && !touRetryAvailable) ||
                   networkActionBlocked ||
                   accountActionBlocked ||
                   marketActionsManuallyDisabled ||

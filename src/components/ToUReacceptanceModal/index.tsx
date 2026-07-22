@@ -14,6 +14,7 @@ import {
 import { usePathname, useRouter } from "next/navigation"
 import { useAccount } from "wagmi"
 
+import { Loader } from "@/components/Loader"
 import { ServiceAgreementChip } from "@/components/ServiceAgreementVersionChip"
 import { TxModalFooterContainer } from "@/components/TxModalComponents/TxModalFooter/style"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
@@ -67,6 +68,8 @@ export const ToUReacceptanceModal = () => {
     touParty,
     selectedChainId,
     isWrongNetwork,
+    isAgreementFetching,
+    refetchAgreementStatus,
   } = useNetworkGate()
   const accept = useAcceptToU(touParty)
   const decline = useDeclineToU(touParty)
@@ -143,7 +146,72 @@ export const ToUReacceptanceModal = () => {
   // Agreement pages are where users review and re-sign - never cover them
   // with this prompt.
   if (isServiceAgreementPath(pathname)) return null
-  if (!address || !touState || !touCurrentVersion) return null
+  if (!address) return null
+  if (!touState || !touCurrentVersion) {
+    // Status not resolved. Auto-open never fires here, but a manual open
+    // must respond immediately - silently waiting would make the click a
+    // no-op and then pop the modal open unprompted whenever the query
+    // eventually resolves.
+    if (!forcedOpen) return null
+    return (
+      <Dialog
+        open
+        onClose={() => dispatch(setTouModalOpen(false))}
+        sx={{
+          "& .MuiDialog-paper": {
+            width: "440px",
+            maxWidth: "min(440px, calc(100vw - 32px))",
+            minWidth: 0,
+            border: "none",
+            borderRadius: "20px",
+            margin: 0,
+            padding: "24px 0",
+          },
+        }}
+      >
+        <TxModalHeader
+          title="Terms of Use"
+          arrowOnClick={null}
+          crossOnClick={() => dispatch(setTouModalOpen(false))}
+        />
+        <Box
+          sx={{
+            width: "440px",
+            maxWidth: "100%",
+            boxSizing: "border-box",
+            padding: "0 24px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "16px",
+          }}
+        >
+          {isAgreementFetching ? (
+            <>
+              <Loader />
+              <Typography variant="text3" color={COLORS.santasGrey}>
+                Checking Terms of Use status...
+              </Typography>
+            </>
+          ) : (
+            <>
+              <Typography variant="text3" color={COLORS.santasGrey}>
+                Couldn&apos;t verify your Terms of Use status. Check your
+                connection and selected network, then retry.
+              </Typography>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={() => refetchAgreementStatus()}
+              >
+                Retry
+              </Button>
+            </>
+          )}
+        </Box>
+      </Dialog>
+    )
+  }
 
   const isGrace = touState === "staleWithinGrace"
   const isExpired = touState === "staleExpired"

@@ -43,6 +43,7 @@ import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice
 import { setTouModalOpen } from "@/store/slices/touModalSlice/touModalSlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
+import { isServiceAgreementPath } from "@/utils/serviceAgreementParty"
 
 const SlideTransition = React.forwardRef(
   (
@@ -565,7 +566,9 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                 </Box>
                 <Divider sx={{ borderColor: COLORS.whiteLilac }} />
 
-                {address && (
+                {/* Agreement pages have the ToU actions themselves and
+                    suppress the modal - hide the entry there. */}
+                {address && !isServiceAgreementPath(pathname) && (
                   <>
                     <Box
                       onClick={handleOpenTouModal}

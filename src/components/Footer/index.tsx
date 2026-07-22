@@ -135,7 +135,9 @@ export const Footer = ({
             Cookies Settings
           </Button>
 
-          {address && (
+          {/* Agreement pages have the ToU actions themselves and suppress the
+              modal - match the desktop footer and hide the button there. */}
+          {address && showFooterOnPage && (
             <Button
               size="small"
               variant="contained"

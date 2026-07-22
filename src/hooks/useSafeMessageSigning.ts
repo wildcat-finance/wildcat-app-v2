@@ -128,6 +128,16 @@ export const useSafeMessageSigning = () => {
         throw new Error("Safe connection is not ready")
       }
 
+      // An input whose embedded timeSigned is already outside the server's
+      // acceptance window can only ever produce a 400 - and for Safe wallets
+      // a proposal would push a dead, unsubmittable request into the owners'
+      // shared message queue. Refuse before signing or proposing anything.
+      if (input.expiresAt && input.expiresAt <= Date.now()) {
+        throw new Error(
+          "Signing request has expired - start the action again to sign with a fresh timestamp",
+        )
+      }
+
       if (!isSafeWallet) {
         if (
           (await signer.getAddress()).toLowerCase() !==

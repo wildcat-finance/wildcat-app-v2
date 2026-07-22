@@ -6,6 +6,7 @@ import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
+import { isTerminalClientError } from "@/utils/httpStatus"
 import { buildNonMlaAcknowledgementText } from "@/utils/nonMlaAcknowledgementMessage"
 
 export const useGetNonMlaAcknowledgement = ({
@@ -106,6 +107,25 @@ export const useSignNonMlaAcknowledgement = () => {
             },
           )
           if (response.status !== 200) {
+            // A terminal rejection can never succeed on resubmit (e.g. the
+            // borrower's stored name changed, so the server-rebuilt text no
+            // longer matches this signature) - discard the pending record so
+            // the next attempt proposes a fresh message.
+            if (isTerminalClientError(response.status)) {
+              safeSigning.markCompleted(signed.pendingSafeMessageId)
+            }
+            // 409 means an acknowledgement is already stored (a lost
+            // response): refetch it so the deposit gate unblocks without
+            // asking for a re-sign.
+            if (response.status === 409) {
+              client.invalidateQueries({
+                queryKey: QueryKeys.Lender.GET_NON_MLA_ACKNOWLEDGEMENT(
+                  chainId,
+                  marketAddress,
+                  lenderAddress,
+                ),
+              })
+            }
             throw Error("Failed to submit non-MLA acknowledgement")
           }
           const acknowledgement =
