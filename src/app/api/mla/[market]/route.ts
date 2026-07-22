@@ -17,6 +17,7 @@ import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 import { getZodParseError } from "@/lib/zod-error"
+import { isServiceAgreementTimeSignedInBounds } from "@/utils/serviceAgreementMessage"
 
 import { SetMasterLoanAgreementInputDTO } from "./dto"
 import {
@@ -106,10 +107,20 @@ export async function POST(
     return NextResponse.json({ error: "MLA already exists" }, { status: 409 })
   }
 
+  // MLA signing shares the ToU ceremony window: after the idempotent-replay
+  // check so retries of an already-stored action still succeed; before
+  // verification so a new record can only claim a signing time the server
+  // clock roughly agrees with.
+  if (!isServiceAgreementTimeSignedInBounds(body.timeSigned)) {
+    return NextResponse.json(
+      { error: "timeSigned is outside the accepted signing window" },
+      { status: 400 },
+    )
+  }
+
   const provider = getProviderForServer(body.chainId)
   const codeSize = (await provider.getCode(marketAddress)).length
   console.log(`Code size for market ${marketAddress}: ${codeSize}`)
-  console.log(body.timeSigned)
 
   const refusal = await prisma.refusalToAssignMla.findFirst({
     where: {

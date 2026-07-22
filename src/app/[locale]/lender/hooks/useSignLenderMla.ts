@@ -8,6 +8,7 @@ import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
 import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
 import { isTerminalClientError } from "@/utils/httpStatus"
+import { SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS } from "@/utils/serviceAgreementMessage"
 
 export const useSignLenderMLA = () => {
   const signer = useEthersSigner()
@@ -39,6 +40,10 @@ export const useSignLenderMLA = () => {
           address: lenderAddress,
           chainId: mla.chainId,
           timeSigned,
+          // Expire the pending Safe record when the server would start
+          // rejecting its embedded timeSigned (the MLA endpoints share the
+          // ToU signing window).
+          expiresAt: timeSigned + SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
           buildMessage: (effectiveTimeSigned) => {
             const values = getFieldValuesForLender(
               lenderAddress,

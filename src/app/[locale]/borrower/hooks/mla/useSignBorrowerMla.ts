@@ -25,6 +25,7 @@ import {
 import { useAppStore } from "@/store/hooks"
 import { getCreateMarketSigningDraftScope } from "@/store/slices/createMarketSigningDraftsSlice/createMarketSigningDraftsSlice"
 import { isTerminalClientError } from "@/utils/httpStatus"
+import { SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS } from "@/utils/serviceAgreementMessage"
 
 import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
 import { getMlaFromForm } from "./usePreviewMla"
@@ -94,6 +95,10 @@ export const useSetMarketMLA = () => {
           address: market.borrower,
           chainId: market.chainId,
           timeSigned,
+          // Expire the pending Safe record when the server would start
+          // rejecting its embedded timeSigned (the MLA endpoints share the
+          // ToU signing window).
+          expiresAt: timeSigned + SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
           buildMessage: (effectiveTimeSigned) => {
             if (template === "noMLA") {
               return DECLINE_MLA_ASSIGNMENT_MESSAGE.replace(
@@ -251,6 +256,10 @@ export const useSignMla = (salt: string) => {
           address,
           chainId,
           timeSigned,
+          // Expire the pending Safe record when the server would start
+          // rejecting its embedded timeSigned (the MLA endpoints share the
+          // ToU signing window).
+          expiresAt: timeSigned + SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
           context: draftId ? { draftId } : undefined,
           isStillRelevant: draftId
             ? () =>

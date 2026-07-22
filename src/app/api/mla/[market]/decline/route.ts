@@ -12,6 +12,7 @@ import { lockMlaAssignment } from "@/lib/mlaPersistence"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
 import { getZodParseError } from "@/lib/zod-error"
+import { isServiceAgreementTimeSignedInBounds } from "@/utils/serviceAgreementMessage"
 
 import { DeclineMlaRequestDTO } from "./dto"
 import { DeclineMlaRequest } from "./interface"
@@ -48,6 +49,17 @@ export const POST = async (
     return NextResponse.json(
       { error: "MLA assignment already declined" },
       { status: 409 },
+    )
+  }
+
+  // MLA signing shares the ToU ceremony window: after the idempotent-replay
+  // check so retries of an already-stored action still succeed; before
+  // verification so a new record can only claim a signing time the server
+  // clock roughly agrees with.
+  if (!isServiceAgreementTimeSignedInBounds(body.timeSigned)) {
+    return NextResponse.json(
+      { error: "timeSigned is outside the accepted signing window" },
+      { status: 400 },
     )
   }
 
