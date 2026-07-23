@@ -33,6 +33,17 @@ import { formatTokenWithCommas } from "@/utils/formatters"
 import { MarketActionsProps } from "./interface"
 import { useFaucet } from "../../hooks/useFaucet"
 
+// Compact status content for the deposit block's action slot. The
+// TransactionBlock is a fixed-width row whose right slot is sized for a
+// ~150px button - oversized status text warps the whole panel.
+const DepositStatusContainer = {
+  maxWidth: "200px",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  gap: "6px",
+}
+
 const FaucetButton = ({ marketAccount }: { marketAccount: MarketAccount }) => {
   const {
     mutate: faucet,
@@ -238,19 +249,24 @@ export const MarketActions = ({
             {(() => {
               if (mlaLoading || signedMlaLoading) {
                 return (
-                  <Typography variant="title3">Loading MLA Data...</Typography>
+                  <Box sx={DepositStatusContainer}>
+                    <Typography variant="text3" color={COLORS.santasGrey}>
+                      Loading MLA Data...
+                    </Typography>
+                  </Box>
                 )
               }
 
               if (isMlaError || isSignedMlaError) {
                 return (
-                  <>
-                    <Typography variant="title3" sx={{ marginBottom: "8px" }}>
+                  <Box sx={DepositStatusContainer}>
+                    <Typography variant="text3" color={COLORS.santasGrey}>
                       Couldn&apos;t load agreement data
                     </Typography>
                     <Button
                       variant="contained"
                       size="small"
+                      sx={{ alignSelf: "flex-start" }}
                       onClick={() => {
                         toastError("Couldn't load agreement data — retrying")
                         Promise.all([
@@ -261,21 +277,21 @@ export const MarketActions = ({
                     >
                       Retry agreement data
                     </Button>
-                  </>
+                  </Box>
                 )
               }
 
               if (mlaRequiredAndUnsigned) {
                 return (
-                  <>
-                    <Typography variant="title3" sx={{ marginBottom: "8px" }}>
+                  <Box sx={DepositStatusContainer}>
+                    <Typography variant="text3" sx={{ fontWeight: 600 }}>
                       Loan Agreement Signature Required
                     </Typography>
-                    <Typography variant="text3" color={COLORS.santasGrey}>
+                    <Typography variant="text4" color={COLORS.santasGrey}>
                       You need to sign the MLA before you can deposit into this
                       market.
                     </Typography>
-                  </>
+                  </Box>
                 )
               }
 
