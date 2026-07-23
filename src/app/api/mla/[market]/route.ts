@@ -200,53 +200,56 @@ export async function POST(
   if (!signature) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
-  const result = await prisma.$transaction(async (transaction) => {
-    await lockMlaAssignment(transaction, chainId, marketAddress)
-    const [concurrentAgreement, concurrentRefusal] = await Promise.all([
-      transaction.masterLoanAgreement.findUnique({
-        where: { chainId_market: { chainId, market: marketAddress } },
-      }),
-      transaction.refusalToAssignMla.findUnique({
-        where: { chainId_market: { chainId, market: marketAddress } },
-      }),
-    ])
-    if (concurrentAgreement) {
-      const concurrentSignature = await transaction.mlaSignature.findFirst({
-        where: { chainId, market: marketAddress, address },
+  const result = await prisma.$transaction(
+    async (transaction) => {
+      await lockMlaAssignment(transaction, chainId, marketAddress)
+      const [concurrentAgreement, concurrentRefusal] = await Promise.all([
+        transaction.masterLoanAgreement.findUnique({
+          where: { chainId_market: { chainId, market: marketAddress } },
+        }),
+        transaction.refusalToAssignMla.findUnique({
+          where: { chainId_market: { chainId, market: marketAddress } },
+        }),
+      ])
+      if (concurrentAgreement) {
+        const concurrentSignature = await transaction.mlaSignature.findFirst({
+          where: { chainId, market: marketAddress, address },
+        })
+        return concurrentAgreement.templateId === body.mlaTemplate &&
+          concurrentSignature?.signature === body.signature &&
+          concurrentSignature.timeSigned.getTime() === body.timeSigned
+          ? "success"
+          : "mla-conflict"
+      }
+      if (concurrentRefusal) return "refusal-conflict"
+      await transaction.masterLoanAgreement.create({
+        data: {
+          chainId,
+          market: marketAddress,
+          templateId: mlaTemplate.id,
+          borrower: address,
+          html,
+          plaintext,
+          lenderFields: mlaTemplate.lenderFields,
+        },
       })
-      return concurrentAgreement.templateId === body.mlaTemplate &&
-        concurrentSignature?.signature === body.signature &&
-        concurrentSignature.timeSigned.getTime() === body.timeSigned
-        ? "success"
-        : "mla-conflict"
-    }
-    if (concurrentRefusal) return "refusal-conflict"
-    await transaction.masterLoanAgreement.create({
-      data: {
-        chainId,
-        market: marketAddress,
-        templateId: mlaTemplate.id,
-        borrower: address,
-        html,
-        plaintext,
-        lenderFields: mlaTemplate.lenderFields,
-      },
-    })
-    await transaction.mlaSignature.create({
-      data: {
-        chainId,
-        market: marketAddress,
-        address,
-        signer: address,
-        signature: body.signature,
-        blockNumber:
-          "blockNumber" in signature ? signature.blockNumber : undefined,
-        kind: signature.kind,
-        timeSigned: new Date(body.timeSigned).toISOString(),
-      },
-    })
-    return "success"
-  })
+      await transaction.mlaSignature.create({
+        data: {
+          chainId,
+          market: marketAddress,
+          address,
+          signer: address,
+          signature: body.signature,
+          blockNumber:
+            "blockNumber" in signature ? signature.blockNumber : undefined,
+          kind: signature.kind,
+          timeSigned: new Date(body.timeSigned).toISOString(),
+        },
+      })
+      return "success"
+    },
+    { timeout: 15_000 },
+  )
   if (result === "mla-conflict") {
     return NextResponse.json({ error: "MLA already exists" }, { status: 409 })
   }

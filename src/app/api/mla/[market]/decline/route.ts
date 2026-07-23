@@ -95,38 +95,41 @@ export const POST = async (
   if (!signature) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
-  const result = await prisma.$transaction(async (transaction) => {
-    await lockMlaAssignment(transaction, chainId, marketAddress)
-    const [concurrentRefusal, concurrentMla] = await Promise.all([
-      transaction.refusalToAssignMla.findUnique({
-        where: { chainId_market: { chainId, market: marketAddress } },
-      }),
-      transaction.masterLoanAgreement.findUnique({
-        where: { chainId_market: { chainId, market: marketAddress } },
-      }),
-    ])
-    if (concurrentRefusal) {
-      return concurrentRefusal.signature === body.signature &&
-        concurrentRefusal.timeSigned.getTime() === body.timeSigned
-        ? "success"
-        : "refusal-conflict"
-    }
-    if (concurrentMla) return "mla-conflict"
-    await transaction.refusalToAssignMla.create({
-      data: {
-        chainId,
-        market: marketAddress,
-        address,
-        signer: signature.address,
-        signature: body.signature,
-        timeSigned: new Date(body.timeSigned).toISOString(),
-        kind: signature.kind,
-        blockNumber:
-          "blockNumber" in signature ? signature.blockNumber : undefined,
-      },
-    })
-    return "success"
-  })
+  const result = await prisma.$transaction(
+    async (transaction) => {
+      await lockMlaAssignment(transaction, chainId, marketAddress)
+      const [concurrentRefusal, concurrentMla] = await Promise.all([
+        transaction.refusalToAssignMla.findUnique({
+          where: { chainId_market: { chainId, market: marketAddress } },
+        }),
+        transaction.masterLoanAgreement.findUnique({
+          where: { chainId_market: { chainId, market: marketAddress } },
+        }),
+      ])
+      if (concurrentRefusal) {
+        return concurrentRefusal.signature === body.signature &&
+          concurrentRefusal.timeSigned.getTime() === body.timeSigned
+          ? "success"
+          : "refusal-conflict"
+      }
+      if (concurrentMla) return "mla-conflict"
+      await transaction.refusalToAssignMla.create({
+        data: {
+          chainId,
+          market: marketAddress,
+          address,
+          signer: signature.address,
+          signature: body.signature,
+          timeSigned: new Date(body.timeSigned).toISOString(),
+          kind: signature.kind,
+          blockNumber:
+            "blockNumber" in signature ? signature.blockNumber : undefined,
+        },
+      })
+      return "success"
+    },
+    { timeout: 15_000 },
+  )
   if (result === "refusal-conflict") {
     return NextResponse.json(
       { error: "MLA assignment already declined" },

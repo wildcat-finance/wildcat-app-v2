@@ -9,7 +9,7 @@ export const lockMlaAssignment = async (
   // is (int4, int4) and Postgres does not downcast during function
   // resolution - without the explicit cast the call fails with 42883.
   // hashtext() already returns int4.
-  await transaction.$queryRaw`
+  await transaction.$executeRaw`
     SELECT pg_advisory_xact_lock((${chainId})::int, hashtext(${market}))
   `
 }
