@@ -8,6 +8,7 @@ import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
 import { isTerminalClientError } from "@/utils/httpStatus"
 import { buildNonMlaAcknowledgementText } from "@/utils/nonMlaAcknowledgementMessage"
+import { SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS } from "@/utils/serviceAgreementMessage"
 
 export const useGetNonMlaAcknowledgement = ({
   marketAddress,
@@ -83,11 +84,16 @@ export const useSignNonMlaAcknowledgement = () => {
       })
 
       const doSubmit = async () => {
+        const timeSigned = Date.now()
         const signed = await safeSigning.signMessage({
           flow: "non-mla-acknowledgement",
           address: lenderAddress,
           chainId,
-          timeSigned: Date.now(),
+          timeSigned,
+          // The acknowledgement itself is intentionally timeless, but its
+          // persisted Safe ceremony is not: abandon it on the same bounded
+          // lifecycle as the other legal-signing flows.
+          expiresAt: timeSigned + SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
           buildMessage: () => acknowledgementText,
         })
         safeSigning.markSubmitting(signed.pendingSafeMessageId)

@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query"
 
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { HAS_SIGNED_SLA_KEY } from "@/utils/serviceAgreementQueries"
 
-export const HAS_SIGNED_SLA_KEY = "has-signed-sla"
+export { HAS_SIGNED_SLA_KEY } from "@/utils/serviceAgreementQueries"
 
 type Response = {
   isSigned: boolean

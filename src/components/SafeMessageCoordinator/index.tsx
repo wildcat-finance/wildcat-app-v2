@@ -11,7 +11,9 @@ import {
   markSafeMessagePollError,
   markSafeMessageSignatureReady,
   PendingSafeMessage,
+  removePendingSafeMessage,
 } from "@/store/slices/pendingSafeMessagesSlice/pendingSafeMessagesSlice"
+import { SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS } from "@/utils/serviceAgreementMessage"
 
 const POLL_INTERVAL_MS = 15_000
 
@@ -89,29 +91,41 @@ export const SafeMessageCoordinator = () => {
     let polling = false
 
     const poll = async () => {
-      if (
-        stopped ||
-        polling ||
-        !navigator.onLine ||
-        document.visibilityState !== "visible"
-      ) {
+      if (stopped || polling) return
+      polling = true
+
+      const now = Date.now()
+      const unexpired = scopedRecordsRef.current.filter((record) => {
+        // `createdAt` covers records persisted before expiresAt was added.
+        const expiresAt =
+          record.expiresAt ??
+          record.createdAt + SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS
+        if (expiresAt > now) return true
+
+        // Reject an active waiter with the precise expiry reason before the
+        // synchronous removal dispatch makes the record disappear.
+        if (record.status === "awaitingConfirmations") {
+          dispatch(
+            markSafeMessageFailed({
+              id: record.id,
+              error: "Safe signing request expired",
+            }),
+          )
+        }
+        dispatch(removePendingSafeMessage(record.id))
+        return false
+      })
+
+      if (!navigator.onLine || document.visibilityState !== "visible") {
+        polling = false
         return
       }
-      polling = true
-      const pending = scopedRecordsRef.current.filter(
+
+      const pending = unexpired.filter(
         ({ status }) => status === "awaitingConfirmations",
       )
       await Promise.all(
         pending.map(async (record) => {
-          if (record.expiresAt && record.expiresAt <= Date.now()) {
-            dispatch(
-              markSafeMessageFailed({
-                id: record.id,
-                error: "Safe signing request expired",
-              }),
-            )
-            return
-          }
           try {
             if (record.kind === "offchain" && record.messageHash) {
               const signature = await sdk.safe.getOffChainSignature(

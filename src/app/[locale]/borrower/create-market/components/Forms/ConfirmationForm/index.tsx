@@ -163,8 +163,9 @@ export const ConfirmationForm = ({
   const signed = signatureRequested && !isSigning && !!mlaSignature
 
   const handleBackClick = () => {
-    onDiscardSignature()
-    dispatch(setCreatingStep(CreateMarketSteps.MLA))
+    if (onDiscardSignature()) {
+      dispatch(setCreatingStep(CreateMarketSteps.MLA))
+    }
   }
 
   const handleSign = () => {

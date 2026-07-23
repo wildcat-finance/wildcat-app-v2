@@ -64,10 +64,12 @@ export const MarketActions = ({
   const { market } = marketAccount
   const { isTestnet } = useSelectedNetwork()
 
-  const { data: mla, isLoading: mlaLoading } = useMarketMla(
-    market.address,
-    market.chainId,
-  )
+  const {
+    data: mla,
+    isLoading: mlaLoading,
+    isError: isMlaError,
+    refetch: refetchMla,
+  } = useMarketMla(market.address, market.chainId)
 
   const { canAddToken, handleAddToken, isAddingToken } = useAddToken(
     market?.marketToken,
@@ -226,82 +228,84 @@ export const MarketActions = ({
       <Divider sx={{ margin: "32px 0" }} />
 
       <Box width="100%" display="flex" flexDirection="column">
-        {(() => {
-          if (mlaLoading || signedMlaLoading) {
-            return <Typography variant="title3">Loading MLA Data...</Typography>
-          }
+        <Box sx={TransactionsContainer}>
+          <TransactionBlock
+            title={t("lenderMarketDetails.transactions.deposit.title")}
+            tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
+            amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
+            asset={market.underlyingToken.symbol}
+          >
+            {(() => {
+              if (mlaLoading || signedMlaLoading) {
+                return (
+                  <Typography variant="title3">Loading MLA Data...</Typography>
+                )
+              }
 
-          if (isSignedMlaError) {
-            return (
-              <>
-                <Typography variant="title3" sx={{ marginBottom: "8px" }}>
-                  Couldn&apos;t load agreement data
-                </Typography>
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={() => {
-                    toastError("Couldn't load agreement data — retrying")
-                    refetchSignedMla().catch(() => undefined)
-                  }}
-                >
-                  Retry agreement data
-                </Button>
-              </>
-            )
-          }
+              if (isMlaError || isSignedMlaError) {
+                return (
+                  <>
+                    <Typography variant="title3" sx={{ marginBottom: "8px" }}>
+                      Couldn&apos;t load agreement data
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => {
+                        toastError("Couldn't load agreement data — retrying")
+                        Promise.all([
+                          refetchMla(),
+                          ...(mlaResponse ? [refetchSignedMla()] : []),
+                        ]).catch(() => undefined)
+                      }}
+                    >
+                      Retry agreement data
+                    </Button>
+                  </>
+                )
+              }
 
-          if (mlaRequiredAndUnsigned) {
-            return (
-              <>
-                <Typography variant="title3" sx={{ marginBottom: "8px" }}>
-                  Loan Agreement Signature Required
-                </Typography>
-                <Typography
-                  variant="text3"
-                  sx={{ marginBottom: isClaimableZero ? "0" : "24px" }}
-                  color={COLORS.santasGrey}
-                >
-                  You need to sign the MLA before you can access this market.
-                </Typography>
-              </>
-            )
-          }
+              if (mlaRequiredAndUnsigned) {
+                return (
+                  <>
+                    <Typography variant="title3" sx={{ marginBottom: "8px" }}>
+                      Loan Agreement Signature Required
+                    </Typography>
+                    <Typography variant="text3" color={COLORS.santasGrey}>
+                      You need to sign the MLA before you can deposit into this
+                      market.
+                    </Typography>
+                  </>
+                )
+              }
 
-          return (
-            <Box sx={TransactionsContainer}>
-              <TransactionBlock
-                title={t("lenderMarketDetails.transactions.deposit.title")}
-                tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
-                amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
-                asset={market.underlyingToken.symbol}
-              >
-                {!showFaucet && (
-                  <DepositModal
-                    marketAccount={marketAccount}
-                    showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
-                  />
-                )}
-                {showFaucet && <FaucetButton marketAccount={marketAccount} />}
-              </TransactionBlock>
+              return (
+                <>
+                  {!showFaucet && (
+                    <DepositModal
+                      marketAccount={marketAccount}
+                      showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
+                    />
+                  )}
+                  {showFaucet && <FaucetButton marketAccount={marketAccount} />}
+                </>
+              )
+            })()}
+          </TransactionBlock>
 
-              <TransactionBlock
-                title={t("lenderMarketDetails.transactions.withdraw.title")}
-                tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
-                amount={
-                  isTooSmallMarketBalance
-                    ? `< 0.00001`
-                    : formatTokenWithCommas(marketAccount.marketBalance)
-                }
-                asset={market.underlyingToken.symbol}
-              >
-                {!hideWithdraw && (
-                  <WithdrawModal marketAccount={marketAccount} />
-                )}
-              </TransactionBlock>
-            </Box>
-          )
-        })()}
+          <TransactionBlock
+            title={t("lenderMarketDetails.transactions.withdraw.title")}
+            tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
+            amount={
+              isTooSmallMarketBalance
+                ? `< 0.00001`
+                : formatTokenWithCommas(marketAccount.marketBalance)
+            }
+            asset={market.underlyingToken.symbol}
+          >
+            {!hideWithdraw && <WithdrawModal marketAccount={marketAccount} />}
+          </TransactionBlock>
+        </Box>
       </Box>
 
       <Divider sx={{ margin: "32px 0 40px" }} />

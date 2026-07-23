@@ -234,6 +234,20 @@ export default function CreateMarketPage() {
     [pendingSafeMessages],
   )
 
+  const removePendingMessagesForDraft = useCallback(
+    (draftId: string | undefined) => {
+      if (!draftId) return
+      Object.values(pendingSafeMessages)
+        .filter(
+          (record) =>
+            record.flow === "borrower-market-mla" &&
+            record.context?.draftId === draftId,
+        )
+        .forEach((record) => dispatch(removePendingSafeMessage(record.id)))
+    },
+    [dispatch, pendingSafeMessages],
+  )
+
   const removeDraftRecords = useCallback(
     (draftId: string | undefined) => {
       if (!address || !draftId) return
@@ -243,15 +257,9 @@ export default function CreateMarketPage() {
           chainId: targetChainId,
         }),
       )
-      Object.values(pendingSafeMessages)
-        .filter(
-          (record) =>
-            record.flow === "borrower-market-mla" &&
-            record.context?.draftId === draftId,
-        )
-        .forEach((record) => dispatch(removePendingSafeMessage(record.id)))
+      removePendingMessagesForDraft(draftId)
     },
-    [address, dispatch, pendingSafeMessages, targetChainId],
+    [address, dispatch, removePendingMessagesForDraft, targetChainId],
   )
 
   const startFreshSigningContext = useCallback(() => {
@@ -263,10 +271,93 @@ export default function CreateMarketPage() {
     setSalt(address ? getNewMarketSalt(address) : "")
   }, [address, resetMlaSignature])
 
-  const handleDiscardSignature = useCallback(() => {
-    removeDraftRecords(activeDraftId)
-    startFreshSigningContext()
-  }, [activeDraftId, removeDraftRecords, startFreshSigningContext])
+  const restartDeployedSigningContext = useCallback(
+    (
+      draft: CreateMarketSigningDraft,
+      refreshedBorrowerProfile: BorrowerProfile = draft.borrowerProfile,
+    ) => {
+      if (!address || !draft.deployedMarket) return false
+
+      const nextTimeSigned = Math.max(Date.now(), draft.timeSigned + 1)
+      const nextDraftId = getCreateMarketSigningDraftId(
+        address,
+        targetChainId,
+        nextTimeSigned,
+        draft.salt,
+      )
+
+      removePendingMessagesForDraft(draft.id)
+      dispatch(
+        saveCreateMarketSigningDraft({
+          ...draft,
+          id: nextDraftId,
+          timeSigned: nextTimeSigned,
+          borrowerProfile: refreshedBorrowerProfile,
+          createdAt: Date.now(),
+        }),
+      )
+      resetMlaSignature()
+      setSignatureRequested(false)
+      setActiveDraftId(nextDraftId)
+      setDraftToResumeId(undefined)
+      setTimeSigned(nextTimeSigned)
+      setSalt(draft.salt)
+      newMarketForm.reset(draft.formValues)
+      dispatch(setCreatingStep(CreateMarketSteps.CONFIRM))
+      return true
+    },
+    [
+      address,
+      dispatch,
+      newMarketForm,
+      removePendingMessagesForDraft,
+      resetMlaSignature,
+      targetChainId,
+    ],
+  )
+
+  const getCurrentMlaBorrowerProfile = useCallback(
+    async (draft: CreateMarketSigningDraft) => {
+      if (draft.formValues.mla === "noMLA") return draft.borrowerProfile
+
+      const profileResult = await refetchBorrowerProfile()
+      if (profileResult.error || !profileResult.data) {
+        toastError("Failed to refresh borrower profile. Please try again.")
+        return undefined
+      }
+      return profileResult.data
+    },
+    [refetchBorrowerProfile],
+  )
+
+  const handleDiscardSignature = useCallback(
+    (refreshedBorrowerProfile?: BorrowerProfile) => {
+      const deployedDraft =
+        signingDraft &&
+        signingDraft.id === activeDraftId &&
+        signingDraft.deployedMarket
+          ? signingDraft
+          : undefined
+      if (deployedDraft) {
+        restartDeployedSigningContext(
+          deployedDraft,
+          refreshedBorrowerProfile ?? deployedDraft.borrowerProfile,
+        )
+        return false
+      }
+
+      removeDraftRecords(activeDraftId)
+      startFreshSigningContext()
+      return true
+    },
+    [
+      activeDraftId,
+      removeDraftRecords,
+      restartDeployedSigningContext,
+      signingDraft,
+      startFreshSigningContext,
+    ],
+  )
 
   useEffect(() => {
     if (
@@ -278,16 +369,28 @@ export default function CreateMarketPage() {
     }
   }, [activeDraftId, currentStep, draftToResumeId, handleDiscardSignature])
 
-  const handleDiscardSavedDraft = useCallback(() => {
+  const handleDiscardSavedDraft = useCallback(async () => {
+    if (signingDraft?.deployedMarket) {
+      const refreshedBorrowerProfile =
+        await getCurrentMlaBorrowerProfile(signingDraft)
+      if (!refreshedBorrowerProfile) return
+      toastError(
+        "This market is already deployed. Complete its agreement before creating another market.",
+      )
+      restartDeployedSigningContext(signingDraft, refreshedBorrowerProfile)
+      return
+    }
     removeDraftRecords(signingDraft?.id)
     startFreshSigningContext()
     newMarketForm.reset()
     dispatch(setInitialCreateState())
   }, [
     dispatch,
+    getCurrentMlaBorrowerProfile,
     newMarketForm,
     removeDraftRecords,
-    signingDraft?.id,
+    restartDeployedSigningContext,
+    signingDraft,
     startFreshSigningContext,
   ])
 
@@ -389,6 +492,14 @@ export default function CreateMarketPage() {
 
   const handleResumeSavedDraft = useCallback(async () => {
     if (!signingDraft) return
+    const refreshedBorrowerProfile =
+      await getCurrentMlaBorrowerProfile(signingDraft)
+    if (!refreshedBorrowerProfile) return
+    const borrowerProfileChanged = !hasSameMlaProfile(
+      signingDraft.borrowerProfile,
+      refreshedBorrowerProfile,
+    )
+
     // The draft pins timeSigned into the signed MLA message; once it falls
     // out of the server's acceptance window every submit is a guaranteed 400
     // (and resuming would propose dead requests into the Safe's queue), so
@@ -400,30 +511,29 @@ export default function CreateMarketPage() {
       toastError(
         "The saved signing draft has expired. Review and sign the market agreement again.",
       )
+      if (signingDraft.deployedMarket) {
+        restartDeployedSigningContext(signingDraft, refreshedBorrowerProfile)
+        return
+      }
       removeDraftRecords(signingDraft.id)
       startFreshSigningContext()
       newMarketForm.reset(signingDraft.formValues)
       dispatch(setCreatingStep(CreateMarketSteps.CONFIRM))
       return
     }
-    if (signingDraft.formValues.mla !== "noMLA") {
-      const profileResult = await refetchBorrowerProfile()
-      if (profileResult.error) {
-        toastError("Failed to refresh borrower profile. Please try again.")
+    if (borrowerProfileChanged) {
+      toastError(
+        "Borrower legal details changed. Review and sign the market agreement again.",
+      )
+      if (signingDraft.deployedMarket) {
+        restartDeployedSigningContext(signingDraft, refreshedBorrowerProfile)
         return
       }
-      if (
-        !hasSameMlaProfile(signingDraft.borrowerProfile, profileResult.data)
-      ) {
-        toastError(
-          "Borrower legal details changed. Review and sign the market agreement again.",
-        )
-        removeDraftRecords(signingDraft.id)
-        startFreshSigningContext()
-        newMarketForm.reset(signingDraft.formValues)
-        dispatch(setCreatingStep(CreateMarketSteps.CONFIRM))
-        return
-      }
+      removeDraftRecords(signingDraft.id)
+      startFreshSigningContext()
+      newMarketForm.reset(signingDraft.formValues)
+      dispatch(setCreatingStep(CreateMarketSteps.CONFIRM))
+      return
     }
     newMarketForm.reset(signingDraft.formValues)
     setSalt(signingDraft.salt)
@@ -434,9 +544,10 @@ export default function CreateMarketPage() {
     dispatch(setCreatingStep(CreateMarketSteps.CONFIRM))
   }, [
     dispatch,
+    getCurrentMlaBorrowerProfile,
     newMarketForm,
-    refetchBorrowerProfile,
     removeDraftRecords,
+    restartDeployedSigningContext,
     signingDraft,
     startFreshSigningContext,
   ])
@@ -578,6 +689,7 @@ export default function CreateMarketPage() {
     try {
       const selectedMla = newMarketForm.getValues("mla")
       let currentMessage: string
+      let refreshedBorrowerProfile: BorrowerProfile | undefined
 
       if (selectedMla === "noMLA") {
         currentMessage = DECLINE_MLA_ASSIGNMENT_MESSAGE.replace(
@@ -589,6 +701,7 @@ export default function CreateMarketPage() {
         if (profileResult.error || !profileResult.data) {
           throw new Error("Failed to refresh borrower profile")
         }
+        refreshedBorrowerProfile = profileResult.data
         const currentMla = await getMlaFromForm(
           signer,
           newMarketForm,
@@ -607,7 +720,7 @@ export default function CreateMarketPage() {
         toastError(
           "Market or borrower details changed. Review and sign the market agreement again.",
         )
-        handleDiscardSignature()
+        handleDiscardSignature(refreshedBorrowerProfile)
         return
       }
 

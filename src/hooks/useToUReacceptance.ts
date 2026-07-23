@@ -8,13 +8,10 @@ import { useAccount } from "wagmi"
 
 import { ServiceAgreementPartyInput } from "@/app/api/service-agreement/interface"
 import { toastError, toastRequest, toastSuccess } from "@/components/Toasts"
-import { QueryKeys } from "@/config/query-keys"
 import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { SLA_STATUS_QUERY_KEY } from "@/hooks/useNetworkGate"
 import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { HAS_SIGNED_SLA_KEY } from "@/providers/RedirectsProvider/hooks/useHasSignedSla"
 import { useAppSelector } from "@/store/hooks"
 import { isTerminalClientError } from "@/utils/httpStatus"
 import {
@@ -23,6 +20,7 @@ import {
   normalizeServiceAgreementDeclineReason,
   SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
 } from "@/utils/serviceAgreementMessage"
+import { invalidateToUQueries } from "@/utils/serviceAgreementQueries"
 
 export const TOU_PARTY_QUERY_KEY = "tou-party"
 
@@ -54,21 +52,6 @@ export const useAccountToUParty = (party: ServiceAgreementPartyInput) => {
       if (!profile?.name) throw Error(`Borrower profile has no name`)
       return { party, organizationName: profile.name }
     },
-  })
-}
-
-const invalidateToUQueries = async (
-  client: ReturnType<typeof useQueryClient>,
-  chainId: number,
-  address: string | undefined,
-) => {
-  await client.invalidateQueries({
-    queryKey: [SLA_STATUS_QUERY_KEY],
-    exact: false,
-  })
-  await client.invalidateQueries({ queryKey: [HAS_SIGNED_SLA_KEY] })
-  await client.invalidateQueries({
-    queryKey: QueryKeys.ServiceAgreement.GET_STATUS(chainId, address),
   })
 }
 

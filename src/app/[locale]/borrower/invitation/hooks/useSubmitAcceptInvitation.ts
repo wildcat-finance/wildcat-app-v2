@@ -14,6 +14,7 @@ import {
   buildServiceAgreementMessage,
   SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
 } from "@/utils/serviceAgreementMessage"
+import { invalidateToUQueries } from "@/utils/serviceAgreementQueries"
 
 import {
   USE_BORROWER_INVITE_EXISTS_KEY,
@@ -105,10 +106,14 @@ export const useSubmitAcceptInvitation = () => {
       }
       return result
     },
-    onSuccess: () => {
-      console.log(`Invalidating queries`)
-      client.invalidateQueries({ queryKey: [USE_BORROWER_INVITE_KEY] })
-      client.invalidateQueries({ queryKey: [USE_BORROWER_INVITE_EXISTS_KEY] })
+    onSuccess: async (_, variables) => {
+      await Promise.all([
+        invalidateToUQueries(client, chainId, variables.address),
+        client.invalidateQueries({ queryKey: [USE_BORROWER_INVITE_KEY] }),
+        client.invalidateQueries({
+          queryKey: [USE_BORROWER_INVITE_EXISTS_KEY],
+        }),
+      ])
       replace(ROUTES.borrower.root)
     },
     onError(error) {

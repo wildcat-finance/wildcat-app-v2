@@ -37,6 +37,10 @@ export const useDepositAgreementGate = (
       (acknowledgementQuery.isLoading ||
         acknowledgementQuery.data === undefined))
 
+  // A null MLA is the API's current 404 result for both legacy markets without
+  // an explicit refusal and newly unconfigured markets. Preserve the legacy
+  // behavior until those states can be distinguished and backfilled; this
+  // knowingly allows an unconfigured market to pass the deposit gate.
   let state: DepositAgreementGateState = "satisfied"
   if (hasError) state = "error"
   else if (isLoading) state = "loading"

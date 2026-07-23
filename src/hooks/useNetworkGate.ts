@@ -16,6 +16,7 @@ import {
   getServiceAgreementPartyForPath,
   isServiceAgreementPath,
 } from "@/utils/serviceAgreementParty"
+import { SLA_STATUS_QUERY_KEY } from "@/utils/serviceAgreementQueries"
 import {
   applyToUDeadlineBoundary,
   computeToUGateState,
@@ -30,7 +31,7 @@ export type UseNetworkGateOptions = {
   includeAgreementStatus?: boolean
 }
 
-export const SLA_STATUS_QUERY_KEY = "sla-status"
+export { SLA_STATUS_QUERY_KEY } from "@/utils/serviceAgreementQueries"
 
 const MAX_TIMEOUT_MS = 2_147_483_647
 

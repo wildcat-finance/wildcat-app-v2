@@ -13,7 +13,7 @@ export type ConfirmationFormProps = {
   salt: string
   timeSigned: number
   onClickSign: (args: SignMlaFromFormInputs) => void
-  onDiscardSignature: () => void
+  onDiscardSignature: () => boolean
   signatureRequested: boolean
   isSigning: boolean
   isDeployReady: boolean

@@ -4,15 +4,14 @@ import { useRouter } from "next/navigation"
 import { toastError, toastRequest } from "@/components/Toasts"
 import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { SLA_STATUS_QUERY_KEY } from "@/hooks/useNetworkGate"
 import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { HAS_SIGNED_SLA_KEY } from "@/providers/RedirectsProvider/hooks/useHasSignedSla"
 import { isTerminalClientError } from "@/utils/httpStatus"
 import {
   buildServiceAgreementMessage,
   SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
 } from "@/utils/serviceAgreementMessage"
+import { invalidateToUQueries } from "@/utils/serviceAgreementQueries"
 
 export type SignAgreementProps = {
   address: string | undefined
@@ -92,12 +91,8 @@ export const useSignAgreement = () => {
       }
       return result
     },
-    onSuccess: () => {
-      client.invalidateQueries({
-        queryKey: [SLA_STATUS_QUERY_KEY],
-        exact: false,
-      })
-      client.invalidateQueries({ queryKey: [HAS_SIGNED_SLA_KEY] })
+    onSuccess: async (_, variables) => {
+      await invalidateToUQueries(client, chainId, variables.address)
       router.back()
     },
     onError(error) {
