@@ -20,12 +20,16 @@ export async function GET(
   }
   const market = params.market.toLowerCase()
   const mla = await getSignedMasterLoanAgreement(market, chainId)
+  if (!mla) {
+    return new NextResponse(null, { status: 404 })
+  }
   const template = await prisma.mlaTemplate.findFirst({
     where: {
-      id: mla?.templateId,
+      chainId,
+      id: mla.templateId,
     },
   })
-  if (!mla) {
+  if (!template) {
     return new NextResponse(null, { status: 404 })
   }
   if (!mla.borrowerSignature) {
@@ -34,7 +38,7 @@ export async function GET(
   }
   // For the HTML version, we replace any unfilled fields with the placeholders.
   const values: Map<MlaFieldValueKey, string> = new Map(
-    (template!.lenderFields as MlaTemplateField[]).map((field) => [
+    (template.lenderFields as MlaTemplateField[]).map((field) => [
       field.source,
       `[${field.placeholder}]`,
     ]),

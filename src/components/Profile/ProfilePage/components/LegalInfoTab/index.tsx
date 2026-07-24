@@ -5,10 +5,12 @@ import * as React from "react"
 import { Box, Divider } from "@mui/material"
 import { Market } from "@wildcatfi/wildcat-sdk"
 
+import { useGetServiceAgreementStatus } from "@/app/[locale]/borrower/hooks/useGetServiceAgreementStatus"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { trimAddress } from "@/utils/formatters"
 
 import { OverallBlock } from "../../../components/OverallBlock"
+import { ToUStatusBlock } from "../../../components/ToUStatusBlock"
 import { ProfileNamePageBlock } from "../ProfileNamePageBlock"
 
 type LegalInfoTabProps = {
@@ -19,8 +21,9 @@ type LegalInfoTabProps = {
   isMobile: boolean
 }
 
-// The original (main-branch) borrower profile view — identity block + overall
-// info block — minus the Active Markets table, surfaced under the Legal Info tab.
+// The original (main-branch) borrower profile view — identity block, overall
+// info block, and Terms-of-Use status — minus the Active Markets table,
+// surfaced under the Legal Info tab.
 export const LegalInfoTab = ({
   profileAddress,
   chainId,
@@ -29,6 +32,8 @@ export const LegalInfoTab = ({
   isMobile,
 }: LegalInfoTabProps) => {
   const { data: profileData } = useGetBorrowerProfile(profileAddress, chainId)
+  const { data: touStatus, isLoading: isTouStatusLoading } =
+    useGetServiceAgreementStatus(profileAddress, chainId)
 
   const accountName = profileData?.name ?? trimAddress(profileAddress ?? "")
   const marketsAmount = markets.filter((market) => !market.isClosed).length
@@ -46,6 +51,12 @@ export const LegalInfoTab = ({
         />
 
         <OverallBlock {...profileData} marketsAmount={marketsAmount} />
+
+        <ToUStatusBlock
+          address={profileAddress}
+          status={touStatus}
+          isLoading={isTouStatusLoading}
+        />
       </Box>
     )
   }
@@ -63,6 +74,15 @@ export const LegalInfoTab = ({
       <Divider sx={{ marginY: "32px" }} />
 
       <OverallBlock {...profileData} marketsAmount={marketsAmount} isPage />
+
+      <Divider sx={{ marginY: "32px" }} />
+
+      <ToUStatusBlock
+        address={profileAddress}
+        status={touStatus}
+        isLoading={isTouStatusLoading}
+        isPage
+      />
     </Box>
   )
 }

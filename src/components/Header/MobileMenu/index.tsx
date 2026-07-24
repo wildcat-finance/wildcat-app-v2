@@ -38,12 +38,12 @@ import { LinkGroup } from "@/components/LinkComponent"
 import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
-import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
+import { setTouModalOpen } from "@/store/slices/touModalSlice/touModalSlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
-import { isBorrowerContextPath } from "@/utils/profileRoutes"
+import { isServiceAgreementPath } from "@/utils/serviceAgreementParty"
 
 const SlideTransition = React.forwardRef(
   (
@@ -63,10 +63,6 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
   const { address, isConnected } = useAccount()
   const pathname = usePathname()
   const isMain = pathname.includes("lender") || pathname.includes("borrower")
-  const isBorrowerContext = isBorrowerContextPath(pathname, address)
-  const profileRoute = isBorrowerContext
-    ? ROUTES.borrower.profile
-    : ROUTES.lender.profile
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
@@ -92,6 +88,11 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
 
   const handleOpenCookiesModal = () => {
     dispatch(setIsVisible(true))
+    handleToggleModal()
+  }
+
+  const handleOpenTouModal = () => {
+    dispatch(setTouModalOpen(true))
     handleToggleModal()
   }
 
@@ -327,29 +328,12 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
               {isConnected ? (
                 <Box
                   sx={{
-                    display: "grid",
+                    display: "flex",
                     gap: "6px",
-                    gridTemplateColumns: "1fr 1fr",
                     paddingTop: "6px",
                     marginBottom: "12px",
                   }}
                 >
-                  <Button
-                    component={Link}
-                    href={profileRoute}
-                    variant="contained"
-                    color="secondary"
-                    size="medium"
-                    onClick={handleToggleModal}
-                    sx={{
-                      borderRadius: "10px",
-                      gridColumn: "1 / -1",
-                      padding: "12px 8px",
-                    }}
-                    fullWidth
-                  >
-                    View Profile
-                  </Button>
                   <Button
                     variant="contained"
                     color="secondary"
@@ -554,7 +538,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
 
                 <Box
                   component={Link}
-                  href="/pdf/Wildcat_Terms_of_Use.pdf"
+                  href="/api/service-agreement/current/download"
                   target="_blank"
                   rel="noopener noreferrer"
                   sx={{
@@ -581,6 +565,40 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                   </SvgIcon>
                 </Box>
                 <Divider sx={{ borderColor: COLORS.whiteLilac }} />
+
+                {/* Agreement pages have the ToU actions themselves and
+                    suppress the modal - hide the entry there. */}
+                {address && !isServiceAgreementPath(pathname) && (
+                  <>
+                    <Box
+                      onClick={handleOpenTouModal}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "12px 6px",
+                        cursor: "pointer",
+                        borderRadius: "8px",
+                        "&:hover": { backgroundColor: COLORS.whiteSmoke },
+                      }}
+                    >
+                      <Typography variant="text3">
+                        Terms of Use status
+                      </Typography>
+                      <SvgIcon
+                        aria-hidden="true"
+                        sx={{
+                          transform: "rotate(-180deg)",
+                          fontSize: "16px",
+                          "& path": { fill: COLORS.santasGrey },
+                        }}
+                      >
+                        <Arrow />
+                      </SvgIcon>
+                    </Box>
+                    <Divider sx={{ borderColor: COLORS.whiteLilac }} />
+                  </>
+                )}
 
                 {/* Footer */}
                 <Box

@@ -13,7 +13,6 @@ import {
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
-import { useAccount } from "wagmi"
 
 import Logo from "@/assets/icons/logo_white.svg"
 import MobileLogo from "@/assets/icons/noNameLogo_icon.svg"
@@ -24,7 +23,7 @@ import { useAppDispatch } from "@/store/hooks"
 import { setTab } from "@/store/slices/borrowerOverviewSlice/borrowerOverviewSlice"
 import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/interface"
 import { COLORS } from "@/theme/colors"
-import { isBorrowerContextPath } from "@/utils/profileRoutes"
+import { getServiceAgreementPartyForPath } from "@/utils/serviceAgreementParty"
 
 import { HeaderButton } from "./HeaderButton"
 import { HeaderNetworkButton } from "./HeaderNetworkButton"
@@ -41,30 +40,20 @@ export default function Header() {
 
   const router = useRouter()
   const pathname = usePathname()
-  const { address } = useAccount()
   const dispatch = useAppDispatch()
 
-  // Set default to "lender"
-  const [side, setSide] = useState<"lender" | "borrower">("lender")
-  const isBorrowerContext = isBorrowerContextPath(pathname, address)
+  const side =
+    getServiceAgreementPartyForPath(pathname) === "Borrower"
+      ? "borrower"
+      : "lender"
 
   const handleToggleSide = () => {
     if (side === "borrower") {
-      setSide("lender")
       router.push(ROUTES.lender.root)
     } else {
-      setSide("borrower")
       router.push(ROUTES.borrower.root)
     }
   }
-
-  useEffect(() => {
-    if (isBorrowerContext) {
-      setSide("borrower")
-    } else {
-      setSide("lender")
-    }
-  }, [isBorrowerContext])
 
   const handleResetTab = () => {
     if (side === "borrower") {
