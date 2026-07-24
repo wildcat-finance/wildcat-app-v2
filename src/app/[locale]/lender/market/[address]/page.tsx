@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
+import { BorrowerPenaltyWarning } from "@/app/[locale]/lender/market/[address]/components/BorrowerPenaltyWarning"
 import { MobileLenderBanner } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileLenderBanner"
 import { MobileMarketActions } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMarketActions"
 import { MobileMlaAlert } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaAlert"
@@ -17,6 +18,7 @@ import { MobileMlaModal } from "@/app/[locale]/lender/market/[address]/component
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
 import { MobileMarketDescriptionModal } from "@/app/[locale]/lender/market/[address]/components/Modals/MobileMarketDescriptionModal"
 import { MobileMarketHistoryModal } from "@/app/[locale]/lender/market/[address]/components/Modals/MobileMarketHistoryModal"
+import { NonMlaAcknowledgementModal } from "@/app/[locale]/lender/market/[address]/components/Modals/NonMlaAcknowledgementModal"
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
@@ -57,12 +59,13 @@ import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
 import { MarketActions } from "./components/MarketActions"
 import { MarketSummary } from "./components/MarketSummary"
 import { WrapDebtToken } from "./components/WrapDebtToken"
+import { useBorrowerPenaltyWarning } from "./hooks/useBorrowerPenaltyWarning"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { LenderStatus } from "./interface"
 import {
   LenderBannerWrapper,
-  PageColumn,
+  MarketContentColumn,
   SectionContainer,
   SkeletonContainer,
   SkeletonStyle,
@@ -112,6 +115,8 @@ export default function LenderMarketDetails({
     address.toLowerCase(),
     market?.chainId ?? selectedChainId,
   )
+  const { shouldWarn: showBorrowerPenaltyWarning } =
+    useBorrowerPenaltyWarning(market)
 
   const hasMarketDescription =
     !!marketSummary && marketSummary?.description !== ""
@@ -211,9 +216,13 @@ export default function LenderMarketDetails({
 
   const isMobile = useMobileResolution()
 
-  const { data: mla, isLoading: mlaLoading } = useMarketMla(market?.address)
+  const { data: mla, isLoading: mlaLoading } = useMarketMla(
+    market?.address,
+    market?.chainId,
+  )
 
   const [isMobileDepositOpen, setIsMobileDepositOpen] = React.useState(false)
+  const [isMobileAckOpen, setIsMobileAckOpen] = React.useState(false)
   const [isMobileWithdrawalOpen, setIsMobileWithdrawalOpen] =
     React.useState(false)
   const [isMobileMLAOpen, setIsMobileMLAOpen] = React.useState(false)
@@ -327,12 +336,29 @@ export default function LenderMarketDetails({
       </Box>
     )
 
+  if (isMobile && isMobileAckOpen)
+    return (
+      <NonMlaAcknowledgementModal
+        open
+        marketAddress={market.address}
+        marketName={market.name}
+        borrowerAddress={market.borrower}
+        chainId={market.chainId}
+        onClose={() => setIsMobileAckOpen(false)}
+        onAcknowledged={() => {
+          setIsMobileAckOpen(false)
+          setIsMobileDepositOpen(true)
+        }}
+      />
+    )
+
   if (isMobile && isMobileDepositOpen)
     return (
       <DepositModal
         isMobileOpen={isMobileDepositOpen}
         setIsMobileOpen={setIsMobileDepositOpen}
         marketAccount={marketAccount}
+        showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
       />
     )
 
@@ -369,9 +395,9 @@ export default function LenderMarketDetails({
           <MobileMarketActions
             marketAccount={marketAccount}
             withdrawals={withdrawals}
-            isMobileDepositOpen={isMobileDepositOpen}
             isMobileWithdrawalOpen={isMobileWithdrawalOpen}
             setIsMobileDepositOpen={setIsMobileDepositOpen}
+            setIsMobileAckOpen={setIsMobileAckOpen}
             setIsMobileWithdrawalOpen={setIsMobileWithdrawalOpen}
             isMLAOpen={isMobileMLAOpen}
             setIsMLAOpen={setIsMobileMLAOpen}
@@ -394,9 +420,9 @@ export default function LenderMarketDetails({
           <MobileMarketActions
             marketAccount={marketAccount}
             withdrawals={withdrawals}
-            isMobileDepositOpen={isMobileDepositOpen}
             isMobileWithdrawalOpen={isMobileWithdrawalOpen}
             setIsMobileDepositOpen={setIsMobileDepositOpen}
+            setIsMobileAckOpen={setIsMobileAckOpen}
             setIsMobileWithdrawalOpen={setIsMobileWithdrawalOpen}
             isMLAOpen={isMobileMLAOpen}
             setIsMLAOpen={setIsMobileMLAOpen}
@@ -441,6 +467,8 @@ export default function LenderMarketDetails({
             mla={mla}
             hasMarketDescription={hasMarketDescription}
           />
+
+          {showBorrowerPenaltyWarning && <BorrowerPenaltyWarning />}
 
           <Box id="depositWithdraw">
             <BarCharts
@@ -536,9 +564,9 @@ export default function LenderMarketDetails({
             <MobileMarketActions
               marketAccount={marketAccount}
               withdrawals={withdrawals}
-              isMobileDepositOpen={isMobileDepositOpen}
               isMobileWithdrawalOpen={isMobileWithdrawalOpen}
               setIsMobileDepositOpen={setIsMobileDepositOpen}
+              setIsMobileAckOpen={setIsMobileAckOpen}
               setIsMobileWithdrawalOpen={setIsMobileWithdrawalOpen}
               isMLAOpen={isMobileMLAOpen}
               setIsMLAOpen={setIsMobileMLAOpen}
@@ -551,8 +579,14 @@ export default function LenderMarketDetails({
     )
 
   return (
-    <Box sx={PageColumn}>
-      <Box sx={PageColumn}>
+    <Box>
+      <MarketHeader marketAccount={marketAccount} />
+
+      {isDifferentChain && (
+        <SwitchChainAlert desiredChainId={market?.chainId} />
+      )}
+
+      <Box sx={MarketContentColumn(theme, isDifferentChain)}>
         {!isConnected && (
           <Box sx={LenderBannerWrapper}>
             <LeadBanner
@@ -587,11 +621,7 @@ export default function LenderMarketDetails({
           />
         )}
 
-        <MarketHeader marketAccount={marketAccount} />
-
-        {isDifferentChain && (
-          <SwitchChainAlert desiredChainId={market?.chainId} />
-        )}
+        {showBorrowerPenaltyWarning && <BorrowerPenaltyWarning />}
 
         <Box sx={SectionContainer(theme)}>
           {currentSection === LenderMarketSections.TRANSACTIONS && (
@@ -600,6 +630,7 @@ export default function LenderMarketDetails({
                 <MarketActions
                   marketAccount={marketAccount}
                   withdrawals={withdrawals}
+                  showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
                 />
               )}
               <CapacityBarChart

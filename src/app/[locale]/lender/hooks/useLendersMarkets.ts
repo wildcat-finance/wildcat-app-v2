@@ -25,6 +25,7 @@ import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { EXCLUDED_MARKETS_FILTER, TOKENS_ADDRESSES } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
+import { isFrontendVisibleMarket } from "@/utils/marketType"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type LenderMarketsQueryProps =
@@ -94,12 +95,15 @@ export function useLendersMarkets(
         marketFilter: filter,
       },
     )
-    lenderAccounts.sort(
+    const visibleAccounts = lenderAccounts.filter(({ market }) =>
+      isFrontendVisibleMarket(market),
+    )
+    visibleAccounts.sort(
       (a, b) =>
         (b.market.deployedEvent?.blockNumber ?? 0) -
         (a.market.deployedEvent?.blockNumber ?? 0),
     )
-    return lenderAccounts
+    return visibleAccounts
   }
 
   const {

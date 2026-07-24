@@ -22,6 +22,7 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { BorrowModalProps } from "./interface"
@@ -31,6 +32,9 @@ export const BorrowModal = ({
   disableBorrowBtn,
 }: BorrowModalProps) => {
   const { t } = useTranslation()
+  // ToU re-acceptance lockout (staleExpired / declined): borrowing blocked.
+  const { touGateState } = useNetworkGate()
+  const touActionBlocked = touGateState !== "unblocked"
   const [amount, setAmount] = useState("")
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
@@ -56,10 +60,14 @@ export const BorrowModal = ({
   }
 
   const handleBorrow = () => {
+    if (disableBorrowBtn || touActionBlocked) return
+
     modal.setFlowStep(ModalSteps.approved)
   }
 
   const handleConfirm = () => {
+    if (disableBorrowBtn || touActionBlocked) return
+
     mutate(amount)
   }
 
@@ -105,6 +113,8 @@ export const BorrowModal = ({
   const showForm = !(isPending || showSuccessPopup || showErrorPopup)
 
   const disableBorrow =
+    touActionBlocked ||
+    disableBorrowBtn ||
     market.isClosed ||
     market.borrowableAssets.eq(0) ||
     underlyingBorrowAmount.gt(market.borrowableAssets) ||
@@ -126,7 +136,7 @@ export const BorrowModal = ({
         variant="contained"
         size="large"
         sx={{ width: "152px" }}
-        disabled={disableBorrowBtn}
+        disabled={disableBorrowBtn || touActionBlocked}
       >
         {t("borrowerMarketDetails.modals.borrow.borrow")}
       </Button>

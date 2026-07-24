@@ -31,6 +31,11 @@ import { toastError, toastRequest, toastSuccess } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { useAppDispatch, useAppStore } from "@/store/hooks"
+import {
+  getCreateMarketSigningDraftScope,
+  markCreateMarketDraftDeployed,
+} from "@/store/slices/createMarketSigningDraftsSlice/createMarketSigningDraftsSlice"
 
 export type DeployNewV2MarketParams = (
   | (Omit<
@@ -92,7 +97,15 @@ export const useDeployV2Market = () => {
     return resolvedTxHash
   }
 
-  const [deployedMarket, setDeployedMarket] = useState<string | undefined>()
+  // Deploy progress survives an MLA-upload failure so a retry can skip the
+  // (already successful) deployment. Keyed by salt: a signature belongs to
+  // the CREATE2 address its salt produces, so a discarded-and-re-signed
+  // attempt (new salt) must never reuse an earlier deployment.
+  const [deployed, setDeployed] = useState<
+    { salt: string; market: string } | undefined
+  >()
+  const dispatch = useAppDispatch()
+  const store = useAppStore()
 
   type DeployStep = "mockToken" | "market" | "wrapper"
 
@@ -146,8 +159,10 @@ export const useDeployV2Market = () => {
       deployWrapper,
       ...marketParams
     }: DeployNewV2MarketParams) => {
-      if (!signer || !hooksTemplate || !marketParams) {
-        return
+      if (!signer) throw Error("No signer")
+      if (!hooksTemplate) throw Error("No hooks template")
+      if (signer.chainId !== targetChainId) {
+        throw Error("Wallet network does not match selected network")
       }
 
       const includeMockTokenStep = !!isTestnet && !isConnectedToSafe
@@ -155,10 +170,57 @@ export const useDeployV2Market = () => {
         includeMockToken: includeMockTokenStep,
         includeWrapper: !!deployWrapper,
       })
+      // A deployment is only reusable if it was made for this exact salt -
+      // in-memory for same-session retries, from the persisted signing draft
+      // for retries after a reload.
+      const draftScopeAddress = hooksTemplate.signerAddress?.toLowerCase()
+      const persistedDraft = draftScopeAddress
+        ? store.getState().createMarketSigningDrafts.records[
+            getCreateMarketSigningDraftScope(draftScopeAddress, targetChainId)
+          ]
+        : undefined
+      let reusableMarket: string | undefined
+      if (deployed?.salt === marketParams.salt) {
+        reusableMarket = deployed.market
+      } else if (persistedDraft?.salt === marketParams.salt) {
+        reusableMarket = persistedDraft.deployedMarket
+      }
       let marketAddress: string | undefined
-      if (deployedMarket) {
-        marketAddress = deployedMarket
-      } else {
+      if (reusableMarket) {
+        marketAddress = reusableMarket
+      }
+      if (!marketAddress) {
+        // The salt fully determines the CREATE2 market address, so the chain
+        // is the authority on whether this deployment already happened - a
+        // Safe transaction can execute after every tab observing it closed,
+        // leaving both the in-memory state and the draft unmarked. Anything
+        // found at the predicted address is exactly the market the signed
+        // MLA binds: changed params mean a different salt and address.
+        try {
+          const lookupFactory = getHooksFactoryContract(targetChainId, signer)
+          const predicted: string = await lookupFactory.computeMarketAddress(
+            marketParams.salt,
+          )
+          if ((await lookupFactory.provider.getCode(predicted)) !== "0x") {
+            marketAddress = predicted
+            setDeployed({ salt: marketParams.salt, market: predicted })
+            if (draftScopeAddress) {
+              dispatch(
+                markCreateMarketDraftDeployed({
+                  address: draftScopeAddress,
+                  chainId: targetChainId,
+                  salt: marketParams.salt,
+                  deployedMarket: predicted,
+                }),
+              )
+            }
+          }
+        } catch {
+          // Best-effort lookup: on RPC failure fall through to the deploy
+          // path, which reverts harmlessly if the market already exists.
+        }
+      }
+      if (!marketAddress) {
         const useGnosisMultiSend = isConnectedToSafe && isTestnet
 
         let asset: Token
@@ -348,7 +410,21 @@ export const useDeployV2Market = () => {
           log.topics,
         ) as unknown as MarketDeployedEvent["args"]
         marketAddress = event.market
-        setDeployedMarket(marketAddress)
+        setDeployed({ salt: marketParams.salt, market: marketAddress })
+        // Persist deploy progress on the signing draft (if one exists) so a
+        // reload can resume with the MLA upload instead of re-deploying into
+        // an already-occupied CREATE2 address. No-ops for EOA flows, which
+        // have no draft.
+        if (draftScopeAddress) {
+          dispatch(
+            markCreateMarketDraftDeployed({
+              address: draftScopeAddress,
+              chainId: targetChainId,
+              salt: marketParams.salt,
+              deployedMarket: marketAddress,
+            }),
+          )
+        }
       }
 
       if (deployWrapper) {
@@ -410,7 +486,7 @@ export const useDeployV2Market = () => {
         if (mlaTemplateId === undefined) {
           console.log(`Declining MLA for market ${marketAddress.toLowerCase()}`)
           const response = await fetch(
-            `/api/mla/${marketAddress.toLowerCase()}/decline`,
+            `/api/mla/${marketAddress.toLowerCase()}/decline?chainId=${targetChainId}`,
             {
               method: "POST",
               body: JSON.stringify({
@@ -425,7 +501,7 @@ export const useDeployV2Market = () => {
         }
         console.log(`Submitting MLA for market ${marketAddress.toLowerCase()}`)
         const response = await fetch(
-          `/api/mla/${marketAddress.toLowerCase()}`,
+          `/api/mla/${marketAddress.toLowerCase()}?chainId=${targetChainId}`,
           {
             method: "POST",
             body: JSON.stringify({

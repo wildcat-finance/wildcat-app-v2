@@ -310,6 +310,10 @@ export const theme = createTheme({
     MuiButton: {
       defaultProps: {
         disableRipple: true,
+        // The design system has no button elevation anywhere (every variant
+        // override sets boxShadow: none for rest/hover) - this also removes
+        // MUI's built-in :active / focus-visible shadows those miss.
+        disableElevation: true,
       },
       styleOverrides: {
         root: ({ ownerState }) => ({

@@ -1,0 +1,3 @@
+if git diff --cached --name-only -- .npmrc .nvmrc package.json package-lock.json scripts/check-exact-versions.mjs .github/workflows/commitlint.yml | grep -q .; then
+  node scripts/check-exact-versions.mjs --staged || exit 1
+fi

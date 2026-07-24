@@ -6,8 +6,32 @@ import { useAccount } from "wagmi"
 import { useLogin } from "@/hooks/useApiAuth"
 
 import { AcceptInvitationForm } from "./components/AcceptInvitationForm"
-import { PageContainer } from "../create-market/style"
+import {
+  InvitationPageContainer,
+  InvitationStatePanel,
+  StateDescription,
+} from "./style"
 import { useGetBorrowerInvitation } from "../hooks/useBorrowerInvitation"
+
+const InvitationState = ({
+  title,
+  description,
+  action,
+}: {
+  title: string
+  description: string
+  action?: React.ReactNode
+}) => (
+  <Box sx={InvitationPageContainer}>
+    <Box sx={InvitationStatePanel}>
+      <Typography variant="title2">{title}</Typography>
+      <Typography variant="text2" sx={StateDescription}>
+        {description}
+      </Typography>
+      {action}
+    </Box>
+  </Box>
+)
 
 const BorrowerInvitationPage = () => {
   const { address } = useAccount()
@@ -20,32 +44,45 @@ const BorrowerInvitationPage = () => {
   } = useGetBorrowerInvitation(address)
 
   if (!address) {
-    return <Box sx={PageContainer}>No Wallet Connected</Box>
+    return (
+      <InvitationState
+        title="Connect wallet"
+        description="Connect the invited wallet to review and accept your borrower invitation."
+      />
+    )
   }
   if (isLoadingInvite) {
-    return <Box sx={PageContainer}>Loading...</Box>
+    return (
+      <InvitationState
+        title="Loading invitation"
+        description="Checking whether this wallet has an active borrower invitation."
+      />
+    )
   }
   if (!inviteExists) {
-    return <Box sx={PageContainer}>No invitation found</Box>
+    return (
+      <InvitationState
+        title="No invitation found"
+        description="This wallet does not currently have a borrower invitation."
+      />
+    )
   }
   if (mustLogin || !invitation) {
     return (
-      <Box
-        sx={{
-          ...PageContainer,
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: 2,
-          textAlign: "center",
-        }}
-      >
-        <Typography variant="h6">
-          Sign In with wallet to view invitation
-        </Typography>
-        <Button onClick={() => login.mutate(address)}>Sign In</Button>
-      </Box>
+      <InvitationState
+        title="Sign in required"
+        description="Sign in with the invited wallet to view and accept your borrower invitation."
+        action={
+          <Button
+            variant="contained"
+            size="large"
+            onClick={() => login.mutate(address)}
+            disabled={login.isPending}
+          >
+            {login.isPending ? "Signing in..." : "Sign in"}
+          </Button>
+        }
+      />
     )
   }
 
