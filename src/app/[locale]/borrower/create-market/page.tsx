@@ -2,7 +2,7 @@
 
 import { randomBytes } from "crypto"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { Box, Button, Dialog, IconButton, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
@@ -10,6 +10,7 @@ import {
   DepositAccess,
   getDeploymentAddress,
   HooksKind,
+  SupportedChainId,
   Token,
   TransferAccess,
   WithdrawalAccess,
@@ -20,17 +21,36 @@ import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { PageContainer } from "@/app/[locale]/borrower/create-market/style"
+import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
+import { BorrowerProfile } from "@/app/api/profiles/interface"
 import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
+import Docs from "@/assets/icons/docs_icon.svg"
 import { Loader } from "@/components/Loader"
+import { toastError } from "@/components/Toasts"
+import { DECLINE_MLA_ASSIGNMENT_MESSAGE } from "@/config/mla-rejection"
+import { NETWORKS_BY_ID } from "@/config/network"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { useNetworkGate } from "@/hooks/useNetworkGate"
+import { formatDate } from "@/lib/mla"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   CreateMarketSteps,
   setInitialCreateState,
+  setCreatingStep,
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
+import {
+  CreateMarketSigningDraft,
+  getCreateMarketSigningDraftScope,
+  removeCreateMarketSigningDraft,
+  saveCreateMarketSigningDraft,
+} from "@/store/slices/createMarketSigningDraftsSlice/createMarketSigningDraftsSlice"
+import { removePendingSafeMessage } from "@/store/slices/pendingSafeMessagesSlice/pendingSafeMessagesSlice"
+import { COLORS } from "@/theme/colors"
+import { SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS } from "@/utils/serviceAgreementMessage"
 
 import { BasicSetupForm } from "./components/Forms/BasicSetupForn"
 import { ConfirmationForm } from "./components/Forms/ConfirmationForm"
@@ -59,17 +79,70 @@ import {
 import { useNewMarketForm } from "./hooks/useNewMarketForm"
 import { useNewMarketHooksData } from "./hooks/useNewMarketHooksData"
 import { useTokenMetadata } from "./hooks/useTokenMetadata"
-import { useSignMla } from "../hooks/mla/useSignBorrowerMla"
+import { getMlaFromForm } from "../hooks/mla/usePreviewMla"
+import {
+  SignMlaFromFormInputs,
+  useSignMla,
+} from "../hooks/mla/useSignBorrowerMla"
+
+const getNewMarketSalt = (address: string) =>
+  `${address}${randomBytes(12).toString("hex")}`
+
+const getCreateMarketSigningDraftId = (
+  address: string,
+  chainId: number,
+  timeSigned: number,
+  salt: string,
+) => `${chainId}:${address.toLowerCase()}:${timeSigned}:${salt.toLowerCase()}`
+
+const hasSameMlaProfile = (
+  first: BorrowerProfile | undefined,
+  second: BorrowerProfile | undefined,
+) =>
+  !!first &&
+  !!second &&
+  first.address.toLowerCase() === second.address.toLowerCase() &&
+  first.name === second.name &&
+  first.jurisdiction === second.jurisdiction &&
+  first.physicalAddress === second.physicalAddress &&
+  first.entityKind === second.entityKind
 
 export default function CreateMarketPage() {
   const { t } = useTranslation()
   const router = useRouter()
   const dispatch = useAppDispatch()
   const { address } = useAccount()
+  const signer = useEthersSigner()
+  const { data: borrowerProfile, refetch: refetchBorrowerProfile } =
+    useGetBorrowerProfile(address)
   const { isTestnet } = useCurrentNetwork()
+  // ToU re-acceptance lockout (staleExpired / declined): no new markets.
+  const { touGateState, isAgreementFetching, refetchAgreementStatus } =
+    useNetworkGate()
   const { chainId: targetChainId } = useAppSelector(
     (state) => state.selectedNetwork,
   )
+  const signingDraftScope = address
+    ? getCreateMarketSigningDraftScope(address, targetChainId)
+    : undefined
+  const {
+    signingDraft,
+    signingDraftsRehydrated,
+    pendingSafeMessages,
+    pendingSafeMessagesRehydrated,
+  } = useAppSelector((state) => ({
+    signingDraft: signingDraftScope
+      ? state.createMarketSigningDrafts.records[signingDraftScope]
+      : undefined,
+    signingDraftsRehydrated:
+      // `_persist` is redux-persist's rehydration marker.
+      // eslint-disable-next-line no-underscore-dangle
+      state.createMarketSigningDrafts._persist?.rehydrated ?? false,
+    pendingSafeMessages: state.pendingSafeMessages.records,
+    pendingSafeMessagesRehydrated:
+      // eslint-disable-next-line no-underscore-dangle
+      state.pendingSafeMessages._persist?.rehydrated ?? false,
+  }))
 
   const currentStep = useAppSelector(
     (state) => state.createMarketSidebar.currentStep,
@@ -86,32 +159,29 @@ export default function CreateMarketPage() {
     useDeployV2Market()
 
   const [finalOpen, setFinalOpen] = useState<boolean>(false)
+  const [activeDraftId, setActiveDraftId] = useState<string>()
+  const [draftToResumeId, setDraftToResumeId] = useState<string>()
+  const [signatureRequested, setSignatureRequested] = useState(false)
+  const [isValidatingSignature, setIsValidatingSignature] = useState(false)
 
   const [timeSigned, setTimeSigned] = useState(0)
-  useEffect(() => {
-    setTimeSigned(Date.now())
-  }, [])
-
   const [salt, setSalt] = useState<string>("")
   useEffect(() => {
-    const randomSaltNumber = randomBytes(12).toString("hex")
-    // Salt must be zero or deployer address as first 20 bytes, followed by a nonce in the last 12 bytes
-    const saltWithAddress = `${address}${randomSaltNumber}`
-    setSalt(saltWithAddress)
-  }, [address])
-
-  // const resetSalt = () => {
-  //   const randomSaltNumber = randomBytes(12).toString("hex")
-  //   // Salt must be zero or deployer address as first 20 bytes, followed by a nonce in the last 12 bytes
-  //   const saltWithAddress = `${address}${randomSaltNumber}`
-  //   setSalt(saltWithAddress)
-  // }
+    setTimeSigned(Date.now())
+    setSalt(address ? getNewMarketSalt(address) : "")
+    setActiveDraftId(undefined)
+    setDraftToResumeId(undefined)
+    setSignatureRequested(false)
+  }, [address, targetChainId])
 
   const {
     data: mlaSignature,
     mutate: signMla,
     isPending: isSigning,
     reset: resetMlaSignature,
+    marketAddress,
+    isSafeSigning,
+    completeSafeMessage,
   } = useSignMla(salt)
 
   const handleClickClose = () => {
@@ -151,6 +221,377 @@ export default function CreateMarketPage() {
   useEffect(() => {
     setTokenAsset(assetData)
   }, [assetData])
+
+  const getPendingMessageForDraft = useCallback(
+    (draftId: string) =>
+      Object.values(pendingSafeMessages)
+        .filter(
+          (record) =>
+            record.flow === "borrower-market-mla" &&
+            record.context?.draftId === draftId,
+        )
+        .sort((a, b) => b.createdAt - a.createdAt)[0],
+    [pendingSafeMessages],
+  )
+
+  const removePendingMessagesForDraft = useCallback(
+    (draftId: string | undefined) => {
+      if (!draftId) return
+      Object.values(pendingSafeMessages)
+        .filter(
+          (record) =>
+            record.flow === "borrower-market-mla" &&
+            record.context?.draftId === draftId,
+        )
+        .forEach((record) => dispatch(removePendingSafeMessage(record.id)))
+    },
+    [dispatch, pendingSafeMessages],
+  )
+
+  const removeDraftRecords = useCallback(
+    (draftId: string | undefined) => {
+      if (!address || !draftId) return
+      dispatch(
+        removeCreateMarketSigningDraft({
+          address,
+          chainId: targetChainId,
+        }),
+      )
+      removePendingMessagesForDraft(draftId)
+    },
+    [address, dispatch, removePendingMessagesForDraft, targetChainId],
+  )
+
+  const startFreshSigningContext = useCallback(() => {
+    resetMlaSignature()
+    setSignatureRequested(false)
+    setActiveDraftId(undefined)
+    setDraftToResumeId(undefined)
+    setTimeSigned(Date.now())
+    setSalt(address ? getNewMarketSalt(address) : "")
+  }, [address, resetMlaSignature])
+
+  const restartDeployedSigningContext = useCallback(
+    (
+      draft: CreateMarketSigningDraft,
+      refreshedBorrowerProfile: BorrowerProfile = draft.borrowerProfile,
+    ) => {
+      if (!address || !draft.deployedMarket) return false
+
+      const nextTimeSigned = Math.max(Date.now(), draft.timeSigned + 1)
+      const nextDraftId = getCreateMarketSigningDraftId(
+        address,
+        targetChainId,
+        nextTimeSigned,
+        draft.salt,
+      )
+
+      removePendingMessagesForDraft(draft.id)
+      dispatch(
+        saveCreateMarketSigningDraft({
+          ...draft,
+          id: nextDraftId,
+          timeSigned: nextTimeSigned,
+          borrowerProfile: refreshedBorrowerProfile,
+          createdAt: Date.now(),
+        }),
+      )
+      resetMlaSignature()
+      setSignatureRequested(false)
+      setActiveDraftId(nextDraftId)
+      setDraftToResumeId(undefined)
+      setTimeSigned(nextTimeSigned)
+      setSalt(draft.salt)
+      newMarketForm.reset(draft.formValues)
+      dispatch(setCreatingStep(CreateMarketSteps.CONFIRM))
+      return true
+    },
+    [
+      address,
+      dispatch,
+      newMarketForm,
+      removePendingMessagesForDraft,
+      resetMlaSignature,
+      targetChainId,
+    ],
+  )
+
+  const getCurrentMlaBorrowerProfile = useCallback(
+    async (draft: CreateMarketSigningDraft) => {
+      if (draft.formValues.mla === "noMLA") return draft.borrowerProfile
+
+      const profileResult = await refetchBorrowerProfile()
+      if (profileResult.error || !profileResult.data) {
+        toastError("Failed to refresh borrower profile. Please try again.")
+        return undefined
+      }
+      return profileResult.data
+    },
+    [refetchBorrowerProfile],
+  )
+
+  const handleDiscardSignature = useCallback(
+    (refreshedBorrowerProfile?: BorrowerProfile) => {
+      const deployedDraft =
+        signingDraft &&
+        signingDraft.id === activeDraftId &&
+        signingDraft.deployedMarket
+          ? signingDraft
+          : undefined
+      if (deployedDraft) {
+        restartDeployedSigningContext(
+          deployedDraft,
+          refreshedBorrowerProfile ?? deployedDraft.borrowerProfile,
+        )
+        return false
+      }
+
+      removeDraftRecords(activeDraftId)
+      startFreshSigningContext()
+      return true
+    },
+    [
+      activeDraftId,
+      removeDraftRecords,
+      restartDeployedSigningContext,
+      signingDraft,
+      startFreshSigningContext,
+    ],
+  )
+
+  useEffect(() => {
+    if (
+      activeDraftId &&
+      !draftToResumeId &&
+      currentStep !== CreateMarketSteps.CONFIRM
+    ) {
+      handleDiscardSignature()
+    }
+  }, [activeDraftId, currentStep, draftToResumeId, handleDiscardSignature])
+
+  const handleDiscardSavedDraft = useCallback(async () => {
+    if (signingDraft?.deployedMarket) {
+      const refreshedBorrowerProfile =
+        await getCurrentMlaBorrowerProfile(signingDraft)
+      if (!refreshedBorrowerProfile) return
+      toastError(
+        "This market is already deployed. Complete its agreement before creating another market.",
+      )
+      restartDeployedSigningContext(signingDraft, refreshedBorrowerProfile)
+      return
+    }
+    removeDraftRecords(signingDraft?.id)
+    startFreshSigningContext()
+    newMarketForm.reset()
+    dispatch(setInitialCreateState())
+  }, [
+    dispatch,
+    getCurrentMlaBorrowerProfile,
+    newMarketForm,
+    removeDraftRecords,
+    restartDeployedSigningContext,
+    signingDraft,
+    startFreshSigningContext,
+  ])
+
+  const createTokenFromDraft = useCallback(
+    (draft: CreateMarketSigningDraft) => {
+      if (!signer) return undefined
+      return new Token(
+        draft.asset.chainId as SupportedChainId,
+        draft.asset.address,
+        draft.asset.name,
+        draft.asset.symbol,
+        draft.asset.decimals,
+        draft.asset.isMock,
+        signer,
+      )
+    },
+    [signer],
+  )
+
+  const handleSignMla = useCallback(
+    (args: SignMlaFromFormInputs) => {
+      const resumedDraft =
+        signingDraft?.id === activeDraftId ? signingDraft : undefined
+      const signingBorrowerProfile =
+        resumedDraft?.borrowerProfile ?? args.borrowerProfile
+      const asset = resumedDraft
+        ? createTokenFromDraft(resumedDraft)
+        : args.asset
+
+      setSignatureRequested(true)
+      if (!isSafeSigning) {
+        signMla(args)
+        return
+      }
+      if (
+        !address ||
+        !signingBorrowerProfile ||
+        !asset ||
+        !salt ||
+        !timeSigned
+      ) {
+        signMla(args)
+        return
+      }
+
+      const draftId =
+        resumedDraft?.id ??
+        getCreateMarketSigningDraftId(address, targetChainId, timeSigned, salt)
+
+      if (!resumedDraft) {
+        dispatch(
+          saveCreateMarketSigningDraft({
+            version: 1,
+            walletKind: "Safe",
+            id: draftId,
+            chainId: targetChainId,
+            address: address.toLowerCase(),
+            salt,
+            timeSigned,
+            formValues: { ...args.form.getValues() },
+            borrowerProfile: signingBorrowerProfile,
+            asset: {
+              chainId: asset.chainId,
+              address: asset.address,
+              name: asset.name,
+              symbol: asset.symbol,
+              decimals: asset.decimals,
+              isMock: asset.isMock,
+            },
+            createdAt: Date.now(),
+          }),
+        )
+      }
+
+      setActiveDraftId(draftId)
+      const pendingMessage = getPendingMessageForDraft(draftId)
+      signMla({
+        ...args,
+        borrowerProfile: signingBorrowerProfile,
+        asset,
+        draftId,
+        resumeMessage: pendingMessage?.message,
+      })
+    },
+    [
+      activeDraftId,
+      address,
+      createTokenFromDraft,
+      dispatch,
+      getPendingMessageForDraft,
+      isSafeSigning,
+      salt,
+      signMla,
+      signingDraft,
+      targetChainId,
+      timeSigned,
+    ],
+  )
+
+  const handleResumeSavedDraft = useCallback(async () => {
+    if (!signingDraft) return
+    const refreshedBorrowerProfile =
+      await getCurrentMlaBorrowerProfile(signingDraft)
+    if (!refreshedBorrowerProfile) return
+    const borrowerProfileChanged = !hasSameMlaProfile(
+      signingDraft.borrowerProfile,
+      refreshedBorrowerProfile,
+    )
+
+    // The draft pins timeSigned into the signed MLA message; once it falls
+    // out of the server's acceptance window every submit is a guaranteed 400
+    // (and resuming would propose dead requests into the Safe's queue), so
+    // restart the ceremony with the saved form values instead.
+    if (
+      Date.now() >=
+      signingDraft.timeSigned + SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS
+    ) {
+      toastError(
+        "The saved signing draft has expired. Review and sign the market agreement again.",
+      )
+      if (signingDraft.deployedMarket) {
+        restartDeployedSigningContext(signingDraft, refreshedBorrowerProfile)
+        return
+      }
+      removeDraftRecords(signingDraft.id)
+      startFreshSigningContext()
+      newMarketForm.reset(signingDraft.formValues)
+      dispatch(setCreatingStep(CreateMarketSteps.CONFIRM))
+      return
+    }
+    if (borrowerProfileChanged) {
+      toastError(
+        "Borrower legal details changed. Review and sign the market agreement again.",
+      )
+      if (signingDraft.deployedMarket) {
+        restartDeployedSigningContext(signingDraft, refreshedBorrowerProfile)
+        return
+      }
+      removeDraftRecords(signingDraft.id)
+      startFreshSigningContext()
+      newMarketForm.reset(signingDraft.formValues)
+      dispatch(setCreatingStep(CreateMarketSteps.CONFIRM))
+      return
+    }
+    newMarketForm.reset(signingDraft.formValues)
+    setSalt(signingDraft.salt)
+    setTimeSigned(signingDraft.timeSigned)
+    setActiveDraftId(signingDraft.id)
+    setDraftToResumeId(signingDraft.id)
+    setSignatureRequested(true)
+    dispatch(setCreatingStep(CreateMarketSteps.CONFIRM))
+  }, [
+    dispatch,
+    getCurrentMlaBorrowerProfile,
+    newMarketForm,
+    removeDraftRecords,
+    restartDeployedSigningContext,
+    signingDraft,
+    startFreshSigningContext,
+  ])
+
+  useEffect(() => {
+    if (
+      !signingDraft ||
+      signingDraft.id !== draftToResumeId ||
+      !marketAddress ||
+      !selectedHooksTemplate
+    ) {
+      return
+    }
+    const asset = createTokenFromDraft(signingDraft)
+    if (!asset) return
+
+    setDraftToResumeId(undefined)
+    const pendingMessage = getPendingMessageForDraft(signingDraft.id)
+    signMla({
+      form: newMarketForm,
+      timeSigned: signingDraft.timeSigned,
+      borrowerProfile: signingDraft.borrowerProfile,
+      asset,
+      draftId: signingDraft.id,
+      resumeMessage: pendingMessage?.message,
+    })
+  }, [
+    createTokenFromDraft,
+    draftToResumeId,
+    getPendingMessageForDraft,
+    marketAddress,
+    newMarketForm,
+    signMla,
+    selectedHooksTemplate,
+    signingDraft,
+  ])
+
+  const showSigningDraftDialog =
+    signingDraftsRehydrated &&
+    pendingSafeMessagesRehydrated &&
+    isSafeSigning &&
+    !!signingDraft &&
+    signingDraft.walletKind === "Safe" &&
+    signingDraft.id !== activeDraftId
 
   const handleDeployMarket = newMarketForm.handleSubmit((data) => {
     const marketParams = newMarketForm.getValues()
@@ -227,10 +668,71 @@ export default function CreateMarketPage() {
     }
   })
 
-  const handleClickDeploy = () => {
-    console.log(`clicked deploy`)
-    setFinalOpen(true)
-    handleDeployMarket()
+  const handleClickDeploy = async () => {
+    if (
+      touGateState !== "unblocked" ||
+      !assetData ||
+      !tokenAsset ||
+      !selectedHooksTemplate ||
+      !mlaSignature?.message ||
+      !signer ||
+      !marketAddress
+    ) {
+      return
+    }
+    if (signer.chainId !== targetChainId) {
+      toastError("Wallet network does not match selected network.")
+      return
+    }
+
+    setIsValidatingSignature(true)
+    try {
+      const selectedMla = newMarketForm.getValues("mla")
+      let currentMessage: string
+      let refreshedBorrowerProfile: BorrowerProfile | undefined
+
+      if (selectedMla === "noMLA") {
+        currentMessage = DECLINE_MLA_ASSIGNMENT_MESSAGE.replace(
+          "{{market}}",
+          marketAddress.toLowerCase(),
+        ).replace("{{timeSigned}}", formatDate(timeSigned)!)
+      } else {
+        const profileResult = await refetchBorrowerProfile()
+        if (profileResult.error || !profileResult.data) {
+          throw new Error("Failed to refresh borrower profile")
+        }
+        refreshedBorrowerProfile = profileResult.data
+        const currentMla = await getMlaFromForm(
+          signer,
+          newMarketForm,
+          Number(selectedMla),
+          timeSigned,
+          profileResult.data,
+          tokenAsset,
+          salt,
+          NETWORKS_BY_ID[targetChainId as SupportedChainId],
+        )
+        currentMessage = currentMla.message
+      }
+
+      if (currentMessage !== mlaSignature.message) {
+        setFinalOpen(false)
+        toastError(
+          "Market or borrower details changed. Review and sign the market agreement again.",
+        )
+        handleDiscardSignature(refreshedBorrowerProfile)
+        return
+      }
+
+      console.log(`clicked deploy`)
+      setFinalOpen(true)
+      handleDeployMarket()
+    } catch {
+      setFinalOpen(false)
+      toastError("Couldn't validate the market agreement. Please try again.")
+    } finally {
+      setIsValidatingSignature(false)
+    }
   }
 
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
@@ -241,9 +743,20 @@ export default function CreateMarketPage() {
       setShowErrorPopup(true)
     }
     if (isSuccess) {
+      completeSafeMessage(mlaSignature?.pendingSafeMessageId)
+      removeDraftRecords(activeDraftId)
+      setActiveDraftId(undefined)
+      setSignatureRequested(false)
       setShowSuccessPopup(true)
     }
-  }, [isError, isSuccess])
+  }, [
+    activeDraftId,
+    completeSafeMessage,
+    isError,
+    isSuccess,
+    mlaSignature?.pendingSafeMessageId,
+    removeDraftRecords,
+  ])
 
   const handleResetModal = () => {
     setShowErrorPopup(false)
@@ -257,6 +770,106 @@ export default function CreateMarketPage() {
     newMarketForm.reset()
     dispatch(setInitialCreateState())
   }, [])
+
+  if (touGateState === "unknown") {
+    return (
+      <Box
+        sx={{
+          ...PageContainer,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "16px",
+        }}
+      >
+        {isAgreementFetching ? (
+          <Loader />
+        ) : (
+          // The status fetch failed and react-query's retries are exhausted -
+          // stay fail-closed, but give an explicit retry instead of a
+          // spinner that nothing will ever resolve.
+          <>
+            <Typography variant="text2" color={COLORS.santasGrey}>
+              Couldn&apos;t verify your Terms of Use status.
+            </Typography>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={() => refetchAgreementStatus()}
+            >
+              Retry
+            </Button>
+          </>
+        )}
+      </Box>
+    )
+  }
+
+  if (touGateState === "blocked") {
+    return (
+      <Box sx={PageContainer}>
+        <Box
+          sx={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "24px",
+            padding: "40px",
+            // Centre on the same axis as the create-market form (the
+            // glossary sidebar occupies 267px on the right), and sit a
+            // little above true vertical centre.
+            paddingRight: "307px",
+            paddingBottom: "160px",
+          }}
+        >
+          <Box
+            sx={{
+              width: "52px",
+              height: "52px",
+              borderRadius: "14px",
+              backgroundColor: COLORS.glitter,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <SvgIcon
+              sx={{
+                fontSize: "26px",
+                "& path": { stroke: COLORS.ultramarineBlue },
+              }}
+            >
+              <Docs />
+            </SvgIcon>
+          </Box>
+          <Typography variant="title2" fontWeight={600} textAlign="center">
+            Terms of Use update required
+          </Typography>
+          <Typography
+            variant="text2"
+            color={COLORS.santasGrey}
+            textAlign="center"
+            sx={{ maxWidth: "440px", marginTop: "-8px" }}
+          >
+            Creating new markets is paused until you accept the current Terms of
+            Use. Your existing markets and withdrawals are unaffected.
+          </Typography>
+          <Button
+            variant="contained"
+            size="large"
+            onClick={() => router.push(ROUTES.borrower.agreement)}
+            sx={{ minWidth: "220px" }}
+          >
+            Review Terms of Use
+          </Button>
+        </Box>
+      </Box>
+    )
+  }
 
   return (
     <Box sx={PageContainer}>
@@ -309,14 +922,62 @@ export default function CreateMarketPage() {
           <ConfirmationForm
             form={newMarketForm}
             tokenAsset={tokenAsset}
+            borrowerProfile={borrowerProfile}
             handleDeploy={handleClickDeploy}
             salt={salt}
             timeSigned={timeSigned}
-            onClickSign={signMla}
+            onClickSign={handleSignMla}
+            onDiscardSignature={handleDiscardSignature}
+            signatureRequested={signatureRequested}
             isSigning={isSigning}
+            isDeployReady={
+              !!assetData &&
+              !!tokenAsset &&
+              !!selectedHooksTemplate &&
+              !isValidatingSignature
+            }
             mlaSignature={mlaSignature}
           />
         )}
+
+        <Dialog open={showSigningDraftDialog} maxWidth="xs" fullWidth>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "20px",
+              padding: "24px",
+            }}
+          >
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <Typography variant="title3">Resume market signing?</Typography>
+              <Typography variant="text3" color={COLORS.santasGrey}>
+                A signing draft exists for this wallet and network. Resume the
+                exact market settings and Safe request, or discard it and start
+                again.
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", gap: "8px" }}>
+              <Button
+                variant="contained"
+                color="secondary"
+                size="large"
+                fullWidth
+                onClick={handleDiscardSavedDraft}
+              >
+                Discard
+              </Button>
+              <Button
+                variant="contained"
+                size="large"
+                fullWidth
+                onClick={handleResumeSavedDraft}
+              >
+                Resume
+              </Button>
+            </Box>
+          </Box>
+        </Dialog>
 
         <Dialog
           open={finalOpen}
@@ -375,7 +1036,7 @@ export default function CreateMarketPage() {
                     fullWidth
                     onClick={() => {
                       handleResetModal()
-                      handleDeployMarket()
+                      handleClickDeploy()
                     }}
                   >
                     {t("createNewMarket.deploy.error.buttons.again")}

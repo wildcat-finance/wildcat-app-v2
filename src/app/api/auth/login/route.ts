@@ -1,7 +1,10 @@
 import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
-import { getLoginSignatureMessage } from "@/config/api"
+import {
+  getLoginSignatureMessage,
+  LOGIN_SIGNATURE_MAX_AGE_SECONDS,
+} from "@/config/api"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
 import { getZodParseError } from "@/lib/zod-error"
@@ -9,8 +12,6 @@ import { getZodParseError } from "@/lib/zod-error"
 import { LoginInputDTO } from "./dto"
 import { LoginInput } from "./interface"
 import { createApiToken } from "../verify-header"
-
-const MAX_SIGNATURE_AGE = 3_600 // 1 hour
 
 export async function POST(request: NextRequest) {
   let body: LoginInput
@@ -28,12 +29,18 @@ export async function POST(request: NextRequest) {
   }
   const address = body.address.toLowerCase()
   const { signature, timeSigned } = body
-  // Check if the signature is too old
-  const unixTime = Date.now() / 1000
-  if (timeSigned > unixTime || timeSigned < unixTime - MAX_SIGNATURE_AGE) {
+  const unixTime = Math.floor(Date.now() / 1000)
+  if (
+    timeSigned > unixTime ||
+    timeSigned < unixTime - LOGIN_SIGNATURE_MAX_AGE_SECONDS
+  ) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
-  const LoginMessage = getLoginSignatureMessage(address, timeSigned)
+  const LoginMessage = getLoginSignatureMessage(
+    address,
+    timeSigned,
+    body.chainId,
+  )
   const provider = getProviderForServer(body.chainId)
   const result = await verifyAndDescribeSignature({
     provider,
@@ -47,7 +54,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
 
-  const token = await createApiToken(address)
+  const token = await createApiToken(address, body.chainId)
 
   if (!token) {
     return NextResponse.json({ error: "Server error" }, { status: 500 })

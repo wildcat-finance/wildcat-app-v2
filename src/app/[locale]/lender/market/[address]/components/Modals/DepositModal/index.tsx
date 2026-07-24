@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useMemo, useState } from "react"
+import React, { ChangeEvent, useEffect, useMemo, useRef, useState } from "react"
 
 import {
   Box,
@@ -13,6 +13,7 @@ import {
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
 import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
@@ -29,11 +30,14 @@ import { LinkGroup } from "@/components/LinkComponent"
 import { TransactionHeader } from "@/components/Mobile/TransactionHeader"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
+import { toastError } from "@/components/Toasts"
 import { TooltipButton } from "@/components/TooltipButton"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { useDepositAgreementGate } from "@/hooks/useDepositAgreementGate"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
 import {
@@ -47,6 +51,7 @@ import { EarningsProjection } from "./EarningsProjection"
 import { DepositModalProps } from "./interface"
 import { useDepositGate } from "./useDepositGate"
 import { useDeposit } from "../../../hooks/useDeposit"
+import { NonMlaAcknowledgementModal } from "../NonMlaAcknowledgementModal"
 
 type BorrowerIdentityDisclosureProps = {
   legalName: string | undefined
@@ -131,8 +136,26 @@ export const DepositModal = ({
 
   const { t } = useTranslation()
   const { getTxUrl } = useBlockExplorer()
-
   const { market } = marketAccount
+  const { address: connectedAddress } = useAccount()
+  // ToU re-acceptance lockout (staleExpired / declined): deposits blocked.
+  const {
+    touGateState,
+    isWrongNetwork,
+    isSelectionMismatch,
+    isAgreementFetching,
+    refetchAgreementStatus,
+  } = useNetworkGate({
+    desiredChainId: market.chainId,
+  })
+  const touActionBlocked = touGateState !== "unblocked"
+  // The status fetch failed (not merely in flight): let the button through so
+  // its click can retry the fetch instead of dead-ending on a disabled state.
+  const touRetryAvailable = touGateState === "unknown" && !isAgreementFetching
+  const networkActionBlocked = isWrongNetwork || isSelectionMismatch
+  const accountActionBlocked =
+    !connectedAddress ||
+    connectedAddress.toLowerCase() !== marketAccount.account.toLowerCase()
 
   const { data: borrowerProfile } = useGetBorrowerProfile(
     market.chainId,
@@ -185,6 +208,14 @@ export const DepositModal = ({
     isModalOpen: modal.isModalOpen || !!isMobileOpen,
   })
 
+  const agreementGate = useDepositAgreementGate(market.address, market.chainId)
+  const [isNonMlaAcknowledgementOpen, setIsNonMlaAcknowledgementOpen] =
+    useState(false)
+  const [depositOpenRequested, setDepositOpenRequested] = useState(false)
+  const awaitingAcknowledgementRefresh = useRef(false)
+  const previousConnectedAddress = useRef(connectedAddress?.toLowerCase())
+  const agreementActionBlocked = agreementGate.state !== "satisfied"
+
   // user inputted amount
   const depositTokenAmount = useMemo(
     () => marketAccount.market.underlyingToken.parseAmount(amount || "0"),
@@ -224,7 +255,14 @@ export const DepositModal = ({
   }
 
   const handleDeposit = () => {
-    if (marketActionsManuallyDisabled) return
+    if (
+      marketActionsManuallyDisabled ||
+      touActionBlocked ||
+      networkActionBlocked ||
+      accountActionBlocked ||
+      agreementActionBlocked
+    )
+      return
 
     setTxHash("")
     deposit(depositTokenAmount)
@@ -236,7 +274,14 @@ export const DepositModal = ({
   }
 
   const handleApprove = () => {
-    if (marketActionsManuallyDisabled) return
+    if (
+      marketActionsManuallyDisabled ||
+      touActionBlocked ||
+      networkActionBlocked ||
+      accountActionBlocked ||
+      agreementActionBlocked
+    )
+      return
 
     setTxHash("")
 
@@ -262,12 +307,50 @@ export const DepositModal = ({
     }
   }
 
+  const handleOpenDepositModal = () => {
+    if (touRetryAvailable) {
+      toastError("Couldn't verify Terms of Use status — retrying")
+      refetchAgreementStatus().catch(() => undefined)
+      return
+    }
+    // ToU re-acceptance lockout: deposits are blocked until the current
+    // version is accepted (withdrawals stay available).
+    if (touActionBlocked || networkActionBlocked || accountActionBlocked) return
+
+    if (agreementGate.state === "error") {
+      setDepositOpenRequested(false)
+      toastError("Couldn't load agreement data — retrying")
+      agreementGate.retry().catch(() => undefined)
+      return
+    }
+
+    if (agreementGate.state === "loading") {
+      setDepositOpenRequested(true)
+      return
+    }
+
+    if (agreementGate.state === "requires-mla-signature") {
+      return
+    }
+
+    if (agreementGate.state === "requires-non-mla-acknowledgement") {
+      setIsNonMlaAcknowledgementOpen(true)
+      return
+    }
+
+    modal.handleOpenModal()
+  }
+
   const mustResetAllowance =
     !isAllowanceSufficient &&
     marketAccount.underlyingApproval.gt(0) &&
     isUSDTLikeToken(market.underlyingToken.address)
 
   const disableApprove =
+    touActionBlocked ||
+    networkActionBlocked ||
+    accountActionBlocked ||
+    agreementActionBlocked ||
     marketActionsManuallyDisabled ||
     !borrowerLegalName ||
     market.isClosed ||
@@ -278,6 +361,10 @@ export const DepositModal = ({
     !Signer.isSigner(market.provider)
 
   const disableDeposit =
+    touActionBlocked ||
+    networkActionBlocked ||
+    accountActionBlocked ||
+    agreementActionBlocked ||
     marketActionsManuallyDisabled ||
     !borrowerLegalName ||
     !!depositError ||
@@ -309,9 +396,21 @@ export const DepositModal = ({
 
   const underlyingBalanceIsZero = marketAccount.underlyingBalance.raw.isZero()
 
-  const tooltip = underlyingBalanceIsZero
+  const capacityTooltip = underlyingBalanceIsZero
     ? "Underlying token balance is zero"
     : "Market is at full capacity"
+  let tooltip = capacityTooltip
+  if (touGateState === "blocked") {
+    tooltip = "Accept the Terms of Use to deposit"
+  } else if (touGateState === "unknown") {
+    tooltip = isAgreementFetching
+      ? "Checking Terms of Use status"
+      : "Couldn't verify Terms of Use status — tap to retry"
+  } else if (networkActionBlocked) {
+    tooltip = "Switch to the market network to deposit"
+  } else if (agreementGate.state === "error") {
+    tooltip = "Tap to retry loading agreement data"
+  }
 
   useEffect(() => {
     if (amount === "" || amount === "0" || depositStep === "Ready") {
@@ -343,10 +442,95 @@ export const DepositModal = ({
 
   useEffect(() => {
     if (isMobileOpen) {
-      modal.handleOpenModal()
+      handleOpenDepositModal()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobileOpen])
+
+  useEffect(() => {
+    if (
+      touActionBlocked ||
+      networkActionBlocked ||
+      accountActionBlocked ||
+      agreementGate.state === "error"
+    ) {
+      if (depositOpenRequested) setDepositOpenRequested(false)
+      awaitingAcknowledgementRefresh.current = false
+      return
+    }
+
+    if (!depositOpenRequested || agreementGate.state === "loading") {
+      return
+    }
+
+    setDepositOpenRequested(false)
+    if (agreementGate.state === "requires-mla-signature") return
+
+    if (agreementGate.state === "satisfied") {
+      awaitingAcknowledgementRefresh.current = false
+      modal.handleOpenModal()
+      return
+    }
+
+    if (awaitingAcknowledgementRefresh.current) return
+    setIsNonMlaAcknowledgementOpen(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    accountActionBlocked,
+    depositOpenRequested,
+    agreementGate.state,
+    networkActionBlocked,
+    touActionBlocked,
+  ])
+
+  // Agreement and ToU authorization are account-scoped. If either changes
+  // while this modal is open, stop the old account's in-progress action.
+  useEffect(() => {
+    if (!modal.isModalOpen && !isMobileOpen) return
+    if (
+      !touActionBlocked &&
+      !networkActionBlocked &&
+      !accountActionBlocked &&
+      !awaitingAcknowledgementRefresh.current &&
+      agreementGate.state === "requires-non-mla-acknowledgement"
+    ) {
+      modal.handleCloseModal()
+      setIsNonMlaAcknowledgementOpen(true)
+      return
+    }
+    if (
+      touActionBlocked ||
+      networkActionBlocked ||
+      accountActionBlocked ||
+      agreementGate.state !== "satisfied"
+    ) {
+      modal.handleCloseModal()
+      if (setIsMobileOpen) setIsMobileOpen(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    accountActionBlocked,
+    agreementGate.state,
+    isMobileOpen,
+    networkActionBlocked,
+    touActionBlocked,
+  ])
+
+  useEffect(() => {
+    const currentAddress = connectedAddress?.toLowerCase()
+    if (previousConnectedAddress.current === currentAddress) return
+    previousConnectedAddress.current = currentAddress
+    setDepositOpenRequested(false)
+    setIsNonMlaAcknowledgementOpen(false)
+    awaitingAcknowledgementRefresh.current = false
+    setAmount("")
+    setTxHash("")
+    gate.reset()
+    resetDeposit()
+    modal.handleCloseModal()
+    if (setIsMobileOpen) setIsMobileOpen(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connectedAddress])
 
   useEffect(() => {
     if (isDepositError) {
@@ -381,6 +565,26 @@ export const DepositModal = ({
 
     return 0
   }
+
+  const acknowledgementModal = (
+    <NonMlaAcknowledgementModal
+      open={isNonMlaAcknowledgementOpen}
+      marketAddress={market.address}
+      marketName={market.name}
+      borrowerAddress={market.borrower}
+      chainId={market.chainId}
+      onClose={() => {
+        setIsNonMlaAcknowledgementOpen(false)
+        setDepositOpenRequested(false)
+        if (setIsMobileOpen) setIsMobileOpen(false)
+      }}
+      onAcknowledged={() => {
+        setIsNonMlaAcknowledgementOpen(false)
+        awaitingAcknowledgementRefresh.current = true
+        setDepositOpenRequested(true)
+      }}
+    />
+  )
 
   if (isMobile && isMobileOpen)
     return (
@@ -738,22 +942,29 @@ export const DepositModal = ({
             />
           )}
         </Dialog>
+        {acknowledgementModal}
       </>
     )
 
   if (!isMobile)
     return (
       <>
-        {marketAccount.maximumDeposit.raw.isZero() ||
+        {touActionBlocked ||
+        networkActionBlocked ||
+        agreementGate.state === "error" ||
+        marketAccount.maximumDeposit.raw.isZero() ||
         underlyingBalanceIsZero ? (
           <Tooltip title={tooltip} placement="right">
             <Box sx={{ display: "flex" }}>
               <Button
-                onClick={modal.handleOpenModal}
+                onClick={handleOpenDepositModal}
                 variant="contained"
                 size="large"
                 sx={{ width: "152px" }}
                 disabled={
+                  (touActionBlocked && !touRetryAvailable) ||
+                  networkActionBlocked ||
+                  accountActionBlocked ||
                   marketActionsManuallyDisabled ||
                   marketAccount.maximumDeposit.raw.isZero() ||
                   underlyingBalanceIsZero
@@ -765,12 +976,14 @@ export const DepositModal = ({
           </Tooltip>
         ) : (
           <Button
-            onClick={modal.handleOpenModal}
+            onClick={handleOpenDepositModal}
             variant="contained"
             size="large"
             sx={{ width: "152px" }}
             disabled={
               marketActionsManuallyDisabled ||
+              networkActionBlocked ||
+              accountActionBlocked ||
               marketAccount.maximumDeposit.raw.isZero() ||
               underlyingBalanceIsZero
             }
@@ -1193,6 +1406,7 @@ export const DepositModal = ({
             </Box>
           )}
         </Dialog>
+        {acknowledgementModal}
       </>
     )
 

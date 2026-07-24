@@ -5,14 +5,14 @@ import { Box, Button, SvgIcon, Typography } from "@mui/material"
 import { DepositStatus, HooksKind, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
-import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
 import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { useFaucet } from "@/app/[locale]/lender/market/[address]/hooks/useFaucet"
 import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"
 import Clock from "@/assets/icons/clock_icon.svg"
+import { toastError } from "@/components/Toasts"
 import { TooltipButton } from "@/components/TooltipButton"
-import { useMarketMla } from "@/hooks/useMarketMla"
+import { useDepositAgreementGate } from "@/hooks/useDepositAgreementGate"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { COLORS } from "@/theme/colors"
 import { hasManuallyDisabledMarketActions } from "@/utils/constants"
@@ -21,9 +21,9 @@ import { formatTokenWithCommas } from "@/utils/formatters"
 export type MobileMarketActionsProps = {
   marketAccount: MarketAccount
   withdrawals: LenderWithdrawalsForMarketResult
-  isMobileDepositOpen: boolean
   isMobileWithdrawalOpen: boolean
   setIsMobileDepositOpen: Dispatch<SetStateAction<boolean>>
+  setIsMobileAckOpen: Dispatch<SetStateAction<boolean>>
   setIsMobileWithdrawalOpen: Dispatch<SetStateAction<boolean>>
   isMLAOpen: boolean
   setIsMLAOpen: Dispatch<SetStateAction<boolean>>
@@ -116,20 +116,30 @@ export const MobileMarketActions = ({
   marketAccount,
   withdrawals,
   isMobileWithdrawalOpen,
-  isMobileDepositOpen,
   setIsMobileWithdrawalOpen,
   setIsMobileDepositOpen,
+  setIsMobileAckOpen,
   isMLAOpen,
   setIsMLAOpen,
 }: MobileMarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
-  const { isTestnet, isSelectionMismatch, isWrongNetwork } = useNetworkGate({
+  const {
+    isTestnet,
+    isSelectionMismatch,
+    isWrongNetwork,
+    touGateState,
+    isAgreementFetching,
+    refetchAgreementStatus,
+  } = useNetworkGate({
     desiredChainId: market.chainId,
-    includeAgreementStatus: false,
   })
 
   const isDifferentChain = isSelectionMismatch || isWrongNetwork
+  const touActionBlocked = touGateState !== "unblocked"
+  // The status fetch failed (not merely in flight): let the button through so
+  // its click can retry the fetch instead of dead-ending on a disabled state.
+  const touRetryAvailable = touGateState === "unknown" && !isAgreementFetching
 
   const notMature =
     market &&
@@ -151,14 +161,86 @@ export const MobileMarketActions = ({
     market.borrower,
   )
 
-  const { data: mla } = useMarketMla(market.address)
-  const mlaResponse = mla && "noMLA" in mla ? null : mla
-  const { data: signedMla } = useGetSignedMla(mlaResponse)
+  const agreementGate = useDepositAgreementGate(market.address, market.chainId)
   const mlaRequiredAndUnsigned =
-    signedMla === null && !!mla && !("noMLA" in mla)
+    agreementGate.state === "requires-mla-signature"
+  const [depositOpenRequested, setDepositOpenRequested] = React.useState(false)
 
   const handleClickToggleMLA = () => {
     setIsMLAOpen(!isMLAOpen)
+  }
+
+  const handleClickDeposit = () => {
+    if (touRetryAvailable) {
+      toastError("Couldn't verify Terms of Use status — retrying")
+      refetchAgreementStatus().catch(() => undefined)
+      return
+    }
+    if (touActionBlocked) return
+
+    if (agreementGate.state === "error") {
+      setDepositOpenRequested(false)
+      toastError("Couldn't load agreement data — retrying")
+      agreementGate.retry().catch(() => undefined)
+      return
+    }
+
+    if (agreementGate.state === "loading") {
+      setDepositOpenRequested(true)
+      return
+    }
+
+    if (mlaRequiredAndUnsigned) return
+
+    if (agreementGate.state === "satisfied") {
+      setIsMobileDepositOpen(true)
+      return
+    }
+
+    setIsMobileAckOpen(true)
+  }
+
+  React.useEffect(() => {
+    if (touActionBlocked) {
+      if (depositOpenRequested) setDepositOpenRequested(false)
+      return
+    }
+
+    if (agreementGate.state === "error") {
+      if (depositOpenRequested) setDepositOpenRequested(false)
+      return
+    }
+
+    if (!depositOpenRequested || agreementGate.state === "loading") {
+      return
+    }
+
+    setDepositOpenRequested(false)
+    if (agreementGate.state === "requires-mla-signature") return
+
+    if (agreementGate.state === "satisfied") {
+      setIsMobileDepositOpen(true)
+      return
+    }
+
+    setIsMobileAckOpen(true)
+  }, [
+    depositOpenRequested,
+    agreementGate.state,
+    setIsMobileDepositOpen,
+    setIsMobileAckOpen,
+    touActionBlocked,
+  ])
+
+  let depositTooltip = t("lenderMarketDetails.transactions.deposit.tooltip")
+  if (touGateState === "blocked") {
+    depositTooltip = "Accept the Terms of Use to deposit"
+  } else if (touGateState === "unknown") {
+    depositTooltip = isAgreementFetching
+      ? "Checking Terms of Use status"
+      : "Couldn't verify Terms of Use status — tap to retry"
+  } else if (agreementGate.state === "error") {
+    depositTooltip = "Tap to retry loading agreement data"
   }
 
   return (
@@ -172,47 +254,42 @@ export const MobileMarketActions = ({
         width: "calc(100vw - 8px)",
       }}
     >
-      {!mlaRequiredAndUnsigned &&
-        !withdrawals.totalClaimableAmount.raw.isZero() &&
-        !isDifferentChain && (
+      {!withdrawals.totalClaimableAmount.raw.isZero() && !isDifferentChain && (
+        <Box
+          sx={{
+            display: "flex",
+            padding: "12px",
+            backgroundColor: COLORS.bunker,
+            borderRadius: "14px",
+            width: "100%",
+          }}
+        >
           <Box
             sx={{
-              display: "flex",
-              padding: "12px",
-              backgroundColor: COLORS.bunker,
-              borderRadius: "14px",
               width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
             }}
           >
-            <Box
-              sx={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Box>
-                <MobileMarketTransactionItem
-                  title="Available To Claim"
-                  amount={formatTokenWithCommas(
-                    withdrawals.totalClaimableAmount,
-                  )}
-                  asset={market.underlyingToken.symbol}
-                />
-              </Box>
-
-              <ClaimModal market={market} withdrawals={withdrawals} />
+            <Box>
+              <MobileMarketTransactionItem
+                title="Available To Claim"
+                amount={formatTokenWithCommas(withdrawals.totalClaimableAmount)}
+                asset={market.underlyingToken.symbol}
+              />
             </Box>
+
+            <ClaimModal market={market} withdrawals={withdrawals} />
           </Box>
-        )}
+        </Box>
+      )}
 
       <Box
         sx={{
           display: "flex",
-          flexDirection:
-            mlaRequiredAndUnsigned || isDifferentChain ? "column" : "row",
-          gap: mlaRequiredAndUnsigned || isDifferentChain ? 0 : "8px",
+          flexDirection: isDifferentChain ? "column" : "row",
+          gap: isDifferentChain ? 0 : "8px",
           padding: "12px",
           backgroundColor: COLORS.bunker,
           borderRadius: "14px",
@@ -224,57 +301,7 @@ export const MobileMarketActions = ({
           <SwitchChainAlert desiredChainId={market.chainId} />
         )}
 
-        {mlaRequiredAndUnsigned && !isDifferentChain && (
-          <>
-            <Typography
-              variant="mobH3"
-              color={COLORS.white}
-              textAlign="center"
-              marginTop="12px"
-            >
-              Master Loan Agreement
-            </Typography>
-
-            <Box
-              sx={{
-                width: "100%",
-                display: "flex",
-                gap: "4px",
-                justifyContent: "center",
-                alignItems: "center",
-                marginTop: "8px",
-              }}
-            >
-              <SvgIcon
-                sx={{ fontSize: "12px", "& path": { fill: COLORS.white06 } }}
-              >
-                <Clock />
-              </SvgIcon>
-              <Typography variant="mobText3" color={COLORS.white06}>
-                Waiting for sign
-              </Typography>
-            </Box>
-
-            <Button
-              onClick={handleClickToggleMLA}
-              variant="contained"
-              color="secondary"
-              size="large"
-              sx={{
-                marginTop: "24px",
-                padding: "8px 12px",
-                borderRadius: "10px",
-                fontSize: "13px",
-                fontWeight: 600,
-                lineHeight: "20px",
-              }}
-            >
-              {t("lenderMarketDetails.buttons.viewMla")}
-            </Button>
-          </>
-        )}
-
-        {!mlaRequiredAndUnsigned && !isDifferentChain && (
+        {!isDifferentChain && (
           <>
             <Box
               sx={{
@@ -315,33 +342,90 @@ export const MobileMarketActions = ({
                 width: "100%",
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "flex-end",
+                alignItems: mlaRequiredAndUnsigned ? "center" : "flex-end",
               }}
             >
-              <MobileMarketTransactionItem
-                title={t("lenderMarketDetails.transactions.deposit.title")}
-                tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
-                amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
-                asset={market.underlyingToken.symbol}
-              />
+              {mlaRequiredAndUnsigned ? (
+                <>
+                  <Typography
+                    variant="mobH3"
+                    color={COLORS.white}
+                    textAlign="center"
+                    marginTop="12px"
+                  >
+                    Master Loan Agreement
+                  </Typography>
 
-              {showFaucet ? (
-                <MobileFaucetButton marketAccount={marketAccount} />
+                  <Box
+                    sx={{
+                      width: "100%",
+                      display: "flex",
+                      gap: "4px",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      marginTop: "8px",
+                    }}
+                  >
+                    <SvgIcon
+                      sx={{
+                        fontSize: "12px",
+                        "& path": { fill: COLORS.white06 },
+                      }}
+                    >
+                      <Clock />
+                    </SvgIcon>
+                    <Typography variant="mobText3" color={COLORS.white06}>
+                      Waiting for sign
+                    </Typography>
+                  </Box>
+
+                  <Button
+                    onClick={handleClickToggleMLA}
+                    variant="contained"
+                    color="secondary"
+                    size="large"
+                    fullWidth
+                    sx={{
+                      marginTop: "24px",
+                      padding: "8px 12px",
+                      borderRadius: "10px",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      lineHeight: "20px",
+                    }}
+                  >
+                    {t("lenderMarketDetails.buttons.viewMla")}
+                  </Button>
+                </>
               ) : (
-                <Button
-                  onClick={() => setIsMobileDepositOpen(!isMobileDepositOpen)}
-                  variant="contained"
-                  color="secondary"
-                  size="large"
-                  fullWidth
-                  disabled={
-                    marketActionsManuallyDisabled ||
-                    marketAccount.maximumDeposit.raw.isZero()
-                  }
-                  sx={{ padding: "10px 20px", marginTop: "16px" }}
-                >
-                  ↓ {t("lenderMarketDetails.transactions.deposit.button")}
-                </Button>
+                <>
+                  <MobileMarketTransactionItem
+                    title={t("lenderMarketDetails.transactions.deposit.title")}
+                    tooltip={depositTooltip}
+                    amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
+                    asset={market.underlyingToken.symbol}
+                  />
+
+                  {showFaucet ? (
+                    <MobileFaucetButton marketAccount={marketAccount} />
+                  ) : (
+                    <Button
+                      onClick={handleClickDeposit}
+                      variant="contained"
+                      color="secondary"
+                      size="large"
+                      fullWidth
+                      disabled={
+                        (touActionBlocked && !touRetryAvailable) ||
+                        marketActionsManuallyDisabled ||
+                        marketAccount.maximumDeposit.raw.isZero()
+                      }
+                      sx={{ padding: "10px 20px", marginTop: "16px" }}
+                    >
+                      ↓ {t("lenderMarketDetails.transactions.deposit.button")}
+                    </Button>
+                  )}
+                </>
               )}
             </Box>
           </>
