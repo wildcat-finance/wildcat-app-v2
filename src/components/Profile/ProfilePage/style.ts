@@ -9,6 +9,6 @@ export const MobileContentContainer = {
 export const PageContentContainer = {
   width: "100%",
   height: `calc(100vh - ${pageCalcHeights.page})`,
-  padding: "44px 27.48% 0px 44px",
+  padding: "44px 27.48% 44px 44px",
   overflow: "scroll",
 }

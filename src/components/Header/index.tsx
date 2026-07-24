@@ -23,6 +23,7 @@ import { useAppDispatch } from "@/store/hooks"
 import { setTab } from "@/store/slices/borrowerOverviewSlice/borrowerOverviewSlice"
 import { BorrowerOverviewTabs } from "@/store/slices/borrowerOverviewSlice/interface"
 import { COLORS } from "@/theme/colors"
+import { getServiceAgreementPartyForPath } from "@/utils/serviceAgreementParty"
 
 import { HeaderButton } from "./HeaderButton"
 import { HeaderNetworkButton } from "./HeaderNetworkButton"
@@ -41,27 +42,18 @@ export default function Header() {
   const pathname = usePathname()
   const dispatch = useAppDispatch()
 
-  // Set default to "lender"
-  const [side, setSide] = useState<"lender" | "borrower">("lender")
+  const side =
+    getServiceAgreementPartyForPath(pathname) === "Borrower"
+      ? "borrower"
+      : "lender"
 
   const handleToggleSide = () => {
     if (side === "borrower") {
-      setSide("lender")
       router.push(ROUTES.lender.root)
     } else {
-      setSide("borrower")
       router.push(ROUTES.borrower.root)
     }
   }
-
-  useEffect(() => {
-    // Default to lender unless explicitly on borrower path
-    if (pathname.includes(ROUTES.borrower.root)) {
-      setSide("borrower")
-    } else {
-      setSide("lender")
-    }
-  }, [pathname])
 
   const handleResetTab = () => {
     if (side === "borrower") {

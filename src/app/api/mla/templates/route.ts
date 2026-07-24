@@ -3,18 +3,27 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { prisma } from "@/lib/db"
+import { validateChainIdParam } from "@/lib/validateChainIdParam"
 import { getZodParseError } from "@/lib/zod-error"
 
 import { CreateMlaTemplateInputDTO } from "./dto"
-import { verifyApiToken } from "../../auth/verify-header"
+import { isAdminForChain, verifyApiToken } from "../../auth/verify-header"
 import { CreateMlaTemplateInput, MlaTemplateMetadata } from "../interface"
 
-/// Route to get list of all MLA templates.
-export async function GET() {
+/// Route to get list of all MLA templates for a chain.
+export async function GET(request: NextRequest) {
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
   const mlas: MlaTemplateMetadata[] = (
     await prisma.mlaTemplate.findMany({
+      where: {
+        chainId,
+      },
       select: {
         id: true,
+        chainId: true,
         name: true,
         description: true,
         hide: true,
@@ -38,9 +47,6 @@ export async function POST(request: NextRequest) {
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-  if (!token.isAdmin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-  }
   let body: CreateMlaTemplateInput
   try {
     const input = await request.json()
@@ -48,7 +54,23 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     return getZodParseError(error)
   }
-  const mlaTemplate = await prisma.mlaTemplate.create({ data: body })
+  if (!(await isAdminForChain(token, body.chainId))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+  const mlaTemplate = await prisma.$transaction(async (tx) => {
+    if (body.isDefault) {
+      await tx.mlaTemplate.updateMany({
+        where: {
+          chainId: body.chainId,
+          isDefault: true,
+        },
+        data: {
+          isDefault: false,
+        },
+      })
+    }
+    return tx.mlaTemplate.create({ data: body })
+  })
   return NextResponse.json(mlaTemplate)
 }
 
