@@ -1,6 +1,4 @@
 import {
-  getLensContract,
-  getLensV2Contract,
   hasDeploymentAddress,
   logger,
   Market,
@@ -10,6 +8,7 @@ import {
 
 import { NetworkInfo, NETWORKS } from "@/config/network"
 import { TOKENS_ADDRESSES } from "@/utils/constants"
+import { getViemLensContract, getViemLensV2Contract } from "@/utils/viemLens"
 
 export async function updateMarkets(
   markets: Market[],
@@ -18,9 +17,9 @@ export async function updateMarkets(
 ) {
   const hasV1Lens = hasDeploymentAddress(networkData.chainId, "MarketLens")
   const lens = hasV1Lens
-    ? getLensContract(networkData.chainId, provider as SignerOrProvider)
+    ? getViemLensContract(networkData.chainId, provider as SignerOrProvider)
     : undefined
-  const lensV2 = getLensV2Contract(
+  const lensV2 = getViemLensV2Contract(
     networkData.chainId,
     provider as SignerOrProvider,
   )
