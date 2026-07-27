@@ -44,9 +44,12 @@ export const VerificationNoteContainer =
     padding: variant === "inline" ? "20px 22px" : "14px 16px",
     ...(variant !== "inline"
       ? {
-          position: "fixed",
-          top: "118px",
-          right: getVerificationNoteRightOffset(variant),
+          position: variant === "desktop" ? "absolute" : "fixed",
+          top: variant === "desktop" ? "-32px" : "118px",
+          right:
+            variant === "desktop"
+              ? `calc(0px - ${NOTE_LAYOUT.desktop.width} - ${DESKTOP_NOTE_GAP})`
+              : getVerificationNoteRightOffset(variant),
           zIndex: 1,
           maxHeight: "calc(100vh - 142px)",
           overflowY: "auto",

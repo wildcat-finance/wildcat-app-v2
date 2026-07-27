@@ -110,9 +110,11 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
 
       <Divider sx={{ marginY: "32px" }} />
 
-      <OverallBlock {...profileData} marketsAmount={marketsAmount} isPage />
+      <Box sx={{ position: "relative" }}>
+        <OverallBlock {...profileData} marketsAmount={marketsAmount} isPage />
 
-      <BorrowerProfileVerificationDisclosure />
+        <BorrowerProfileVerificationDisclosure />
+      </Box>
 
       <Divider sx={{ marginY: "32px" }} />
 
