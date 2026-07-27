@@ -45,10 +45,10 @@ export const VerificationNoteContainer =
     ...(variant !== "inline"
       ? {
           position: variant === "desktop" ? "absolute" : "fixed",
-          top: variant === "desktop" ? "-32px" : "118px",
+          top: variant === "desktop" ? "44px" : "118px",
           right:
             variant === "desktop"
-              ? `calc(0px - ${NOTE_LAYOUT.desktop.width} - ${DESKTOP_NOTE_GAP})`
+              ? NOTE_LAYOUT.desktop.right
               : getVerificationNoteRightOffset(variant),
           zIndex: 1,
           maxHeight: "calc(100vh - 142px)",

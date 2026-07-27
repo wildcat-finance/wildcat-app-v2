@@ -32,15 +32,33 @@ export const MarketContentColumn = (
   },
 })
 
+// Row that holds the scrollable main content and the right-hand side panel.
+// The right 32.3% that used to be empty padding is now the MarketSidePanel; the
+// left 44px inset and the vertical scroll move onto SectionMainColumn so the
+// main content keeps its exact width and scroll behaviour.
 export const SectionContainer = (theme: Theme): SxProps<Theme> => ({
   width: "100%",
   flex: 1,
   minHeight: 0,
+  display: "flex",
   overflow: "hidden",
-  overflowY: "visible",
-  padding: "0 32.3% 24px 44px",
+  boxSizing: "border-box",
   [theme.breakpoints.down("md")]: {
     flex: "none",
+    flexDirection: "column",
+  },
+})
+
+export const SectionMainColumn = (theme: Theme): SxProps<Theme> => ({
+  flex: "1 1 auto",
+  minWidth: 0,
+  minHeight: 0,
+  overflowX: "hidden",
+  overflowY: "auto",
+  boxSizing: "border-box",
+  padding: "0 0 24px 44px",
+  [theme.breakpoints.down("md")]: {
     padding: "12px 0px 0px",
+    overflow: "visible",
   },
 })

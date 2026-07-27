@@ -302,6 +302,10 @@ export const ToUReacceptanceModal = () => {
     !isNeverSigned &&
     touAcceptedVersion.plaintextSha256 !== touCurrentVersion.plaintextSha256
   const showNewRow = !isSignedCurrent
+  // The read-only "up to date" view is dismissed via the header cross - it has
+  // no footer action, so skip the footer bar entirely instead of leaving a lone
+  // "Close" button that duplicates the cross.
+  const showFooter = view === "decline" || !isSignedCurrent
 
   return (
     <Dialog
@@ -467,85 +471,75 @@ export const ToUReacceptanceModal = () => {
         )}
       </Box>
 
-      <Box
-        sx={{
-          ...TxModalFooterContainer(theme),
-          marginTop: "24px",
-        }}
-      >
-        {view === "main" && isSignedCurrent && (
-          <Button
-            variant="contained"
-            color="secondary"
-            size="large"
-            onClick={handleDismiss}
-            fullWidth
-          >
-            Close
-          </Button>
-        )}
-
-        {view === "main" && isNeverSigned && isReadOnly && (
-          <Button
-            variant="contained"
-            size="large"
-            onClick={viewFullTerms}
-            fullWidth
-          >
-            Review Terms of Use
-          </Button>
-        )}
-
-        {view === "main" && !isReadOnly && (
-          <>
+      {showFooter && (
+        <Box
+          sx={{
+            ...TxModalFooterContainer(theme),
+            marginTop: "24px",
+          }}
+        >
+          {view === "main" && isNeverSigned && isReadOnly && (
             <Button
               variant="contained"
               size="large"
-              onClick={() => accept.mutate()}
-              disabled={isBusy || !accept.isReady || isWrongNetwork}
+              onClick={viewFullTerms}
               fullWidth
             >
-              {accept.isPending ? "Signing..." : "Sign Terms of Use"}
+              Review Terms of Use
             </Button>
-            {!isDeclined && (
+          )}
+
+          {view === "main" && !isReadOnly && (
+            <>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={() => accept.mutate()}
+                disabled={isBusy || !accept.isReady || isWrongNetwork}
+                fullWidth
+              >
+                {accept.isPending ? "Signing..." : "Sign Terms of Use"}
+              </Button>
+              {!isDeclined && (
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  size="large"
+                  onClick={openDecline}
+                  disabled={isBusy || isWrongNetwork}
+                  fullWidth
+                >
+                  Decline
+                </Button>
+              )}
+            </>
+          )}
+
+          {view === "decline" && (
+            <>
               <Button
                 variant="contained"
                 color="secondary"
                 size="large"
-                onClick={openDecline}
-                disabled={isBusy || isWrongNetwork}
+                onClick={() => setView("main")}
+                disabled={isBusy}
                 fullWidth
               >
-                Decline
+                Back
               </Button>
-            )}
-          </>
-        )}
-
-        {view === "decline" && (
-          <>
-            <Button
-              variant="contained"
-              color="secondary"
-              size="large"
-              onClick={() => setView("main")}
-              disabled={isBusy}
-              fullWidth
-            >
-              Back
-            </Button>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={handleDecline}
-              disabled={isBusy || !decline.isReady || isWrongNetwork}
-              fullWidth
-            >
-              {decline.isPending ? "Signing..." : "Sign Decline"}
-            </Button>
-          </>
-        )}
-      </Box>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={handleDecline}
+                disabled={isBusy || !decline.isReady || isWrongNetwork}
+                fullWidth
+              >
+                {decline.isPending ? "Signing..." : "Sign Decline"}
+              </Button>
+            </>
+          )}
+        </Box>
+      )}
     </Dialog>
   )
 }

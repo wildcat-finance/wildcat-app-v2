@@ -11,6 +11,7 @@ export const MobileContentContainer = {
 }
 
 export const PageContentContainer: SxProps<Theme> = (theme) => ({
+  position: "relative",
   width: "100%",
   height: `calc(100vh - ${pageCalcHeights.page})`,
   padding: `44px ${BORROWER_PROFILE_VERIFICATION_GUTTER} 44px 44px`,

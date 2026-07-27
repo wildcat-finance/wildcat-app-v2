@@ -24,6 +24,7 @@ import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/compo
 import { Footer } from "@/components/Footer"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
+import { MarketSidePanel } from "@/components/MarketSidePanel"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
 import { useGetMarket } from "@/hooks/useGetMarket"
@@ -61,6 +62,7 @@ import { LenderStatus } from "./interface"
 import {
   MarketContentColumn,
   SectionContainer,
+  SectionMainColumn,
   SkeletonContainer,
   SkeletonStyle,
 } from "./style"
@@ -555,80 +557,83 @@ export default function LenderMarketDetails({
         {showBorrowerPenaltyWarning && <BorrowerPenaltyWarning />}
 
         <Box sx={SectionContainer(theme)}>
-          {currentSection === LenderMarketSections.TRANSACTIONS && (
-            <Box>
-              {authorizedInMarket && !isDifferentChain && (
-                <MarketActions
+          <Box sx={SectionMainColumn(theme)}>
+            {currentSection === LenderMarketSections.TRANSACTIONS && (
+              <Box>
+                {authorizedInMarket && !isDifferentChain && (
+                  <MarketActions
+                    marketAccount={marketAccount}
+                    withdrawals={withdrawals}
+                    showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
+                  />
+                )}
+                <CapacityBarChart
+                  marketAccount={marketAccount}
+                  legendType="big"
+                  isLender={authorizedInMarket}
+                />
+              </Box>
+            )}
+
+            {currentSection === LenderMarketSections.STATUS && (
+              <Box marginTop="12px">
+                <BarCharts
                   marketAccount={marketAccount}
                   withdrawals={withdrawals}
-                  showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
+                  isLender={authorizedInMarket as boolean}
                 />
-              )}
-              <CapacityBarChart
-                marketAccount={marketAccount}
-                legendType="big"
-                isLender={authorizedInMarket}
-              />
-            </Box>
-          )}
+                <Divider sx={{ margin: "40px 0 44px" }} />
+                <MarketParameters
+                  market={market}
+                  viewerType="lender"
+                  wrapper={wrapper}
+                  hasWrapper={hasWrapper}
+                />
+              </Box>
+            )}
 
-          {currentSection === LenderMarketSections.STATUS && (
-            <Box marginTop="12px">
-              <BarCharts
-                marketAccount={marketAccount}
-                withdrawals={withdrawals}
-                isLender={authorizedInMarket as boolean}
+            {currentSection === LenderMarketSections.SUMMARY && (
+              <MarketSummary
+                marketSummary={marketSummary}
+                isLoading={isLoadingSummary}
               />
-              <Divider sx={{ margin: "40px 0 44px" }} />
-              <MarketParameters
+            )}
+
+            {currentSection === LenderMarketSections.BORROWER_PROFILE && (
+              <ProfileSection
+                profileAddress={marketAccount.market.borrower as `0x${string}`}
+                externalChainId={marketChainId}
+              />
+            )}
+
+            {currentSection === LenderMarketSections.REQUESTS && (
+              <Box marginTop="12px">
+                <WithdrawalRequests
+                  withdrawals={withdrawals}
+                  chainId={market.chainId}
+                />
+              </Box>
+            )}
+            {currentSection === LenderMarketSections.MARKET_HISTORY && (
+              <Box marginTop="12px">
+                <PaginatedMarketRecordsTable market={market} />
+              </Box>
+            )}
+            {currentSection === LenderMarketSections.WRAP_DEBT_TOKEN && (
+              <WrapDebtToken
                 market={market}
-                viewerType="lender"
                 wrapper={wrapper}
                 hasWrapper={hasWrapper}
+                hasFactory={hasFactory}
+                isWrapperLoading={isWrapperLoading}
+                isWrapperLookupLoading={isWrapperLookupLoading}
+                isWrapperError={isWrapperError}
+                isAuthorizedLender={authorizedInMarket as boolean}
+                isDifferentChain={isDifferentChain}
               />
-            </Box>
-          )}
-
-          {currentSection === LenderMarketSections.SUMMARY && (
-            <MarketSummary
-              marketSummary={marketSummary}
-              isLoading={isLoadingSummary}
-            />
-          )}
-
-          {currentSection === LenderMarketSections.BORROWER_PROFILE && (
-            <ProfileSection
-              profileAddress={marketAccount.market.borrower as `0x${string}`}
-              externalChainId={marketChainId}
-            />
-          )}
-
-          {currentSection === LenderMarketSections.REQUESTS && (
-            <Box marginTop="12px">
-              <WithdrawalRequests
-                withdrawals={withdrawals}
-                chainId={market.chainId}
-              />
-            </Box>
-          )}
-          {currentSection === LenderMarketSections.MARKET_HISTORY && (
-            <Box marginTop="12px">
-              <PaginatedMarketRecordsTable market={market} />
-            </Box>
-          )}
-          {currentSection === LenderMarketSections.WRAP_DEBT_TOKEN && (
-            <WrapDebtToken
-              market={market}
-              wrapper={wrapper}
-              hasWrapper={hasWrapper}
-              hasFactory={hasFactory}
-              isWrapperLoading={isWrapperLoading}
-              isWrapperLookupLoading={isWrapperLookupLoading}
-              isWrapperError={isWrapperError}
-              isAuthorizedLender={authorizedInMarket as boolean}
-              isDifferentChain={isDifferentChain}
-            />
-          )}
+            )}
+          </Box>
+          <MarketSidePanel />
         </Box>
       </Box>
     </Box>

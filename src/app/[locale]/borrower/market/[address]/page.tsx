@@ -15,6 +15,7 @@ import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/compone
 import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
+import { MarketSidePanel } from "@/components/MarketSidePanel"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
@@ -248,145 +249,160 @@ export default function MarketDetails({
         )}
         <Box
           // ref={scrollContainer}
+          // Row: scrollable main content on the left, MarketSidePanel on the
+          // right occupying the 32.3% that used to be empty right padding.
           sx={{
             width: "100%",
+            display: "flex",
             overflow: "hidden",
-            overflowY: "visible",
-            padding: "0 32.3% 24px 44px",
+            boxSizing: "border-box",
             height: `calc(100vh - ${pageCalcHeights.market}${
               isDifferentChain ? " - 130px" : ""
             })`,
           }}
         >
-          {/* <Slide */}
-          {/*  direction={direction} */}
-          {/*  container={scrollContainer.current} */}
-          {/*  unmountOnExit */}
-          {/*  in={checked === 1} */}
-          {/* > */}
-          {/*  <Box sx={SlideContentContainer}> */}
-          {/*    {holdTheMarket && ( */}
-          {/*      <MarketTransactions */}
-          {/*        market={market} */}
-          {/*        marketAccount={marketAccount} */}
-          {/*        holdTheMarket={holdTheMarket} */}
-          {/*      /> */}
-          {/*    )} */}
-          {/*    {holdTheMarket && <Divider sx={{ margin: "32px 0 44px" }} />} */}
-          {/*    <MarketStatusChart market={market} /> */}
-          {/*  </Box> */}
-          {/* </Slide> */}
-          {checked === 1 && (
-            <Box sx={SlideContentContainer}>
-              {canInteract && (
-                <MarketTransactions
+          <Box
+            sx={{
+              flex: "1 1 auto",
+              minWidth: 0,
+              minHeight: 0,
+              overflowX: "hidden",
+              overflowY: "auto",
+              boxSizing: "border-box",
+              padding: "0 0 24px 44px",
+            }}
+          >
+            {/* <Slide */}
+            {/*  direction={direction} */}
+            {/*  container={scrollContainer.current} */}
+            {/*  unmountOnExit */}
+            {/*  in={checked === 1} */}
+            {/* > */}
+            {/*  <Box sx={SlideContentContainer}> */}
+            {/*    {holdTheMarket && ( */}
+            {/*      <MarketTransactions */}
+            {/*        market={market} */}
+            {/*        marketAccount={marketAccount} */}
+            {/*        holdTheMarket={holdTheMarket} */}
+            {/*      /> */}
+            {/*    )} */}
+            {/*    {holdTheMarket && <Divider sx={{ margin: "32px 0 44px" }} />} */}
+            {/*    <MarketStatusChart market={market} /> */}
+            {/*  </Box> */}
+            {/* </Slide> */}
+            {checked === 1 && (
+              <Box sx={SlideContentContainer}>
+                {canInteract && (
+                  <MarketTransactions
+                    market={market}
+                    marketAccount={marketAccount}
+                    withdrawals={withdrawals}
+                    holdTheMarket={holdTheMarket}
+                  />
+                )}
+                {canInteract && <Divider sx={{ margin: "32px 0" }} />}
+                <MarketStatusChart market={market} />
+              </Box>
+            )}
+            {/* <Slide */}
+            {/*  direction={direction} */}
+            {/*  container={scrollContainer.current} */}
+            {/*  unmountOnExit */}
+            {/*  in={checked === 2} */}
+            {/* > */}
+            {/*  <Box sx={SlideContentContainer} marginTop="12px"> */}
+            {/*    <MarketStatusChart market={market} /> */}
+            {/*    <Divider sx={{ margin: "32px 0 44px" }} /> */}
+            {/*    <MarketParameters market={market} /> */}
+            {/*  </Box> */}
+            {/* </Slide> */}
+            {checked === 2 && (
+              <Box sx={SlideContentContainer} marginTop="12px">
+                <MarketStatusChart market={market} />
+                <Divider sx={{ margin: "32px 0 44px" }} />
+                <MarketParameters
                   market={market}
+                  wrapper={wrapper}
+                  hasWrapper={hasWrapper}
+                  viewerType="borrower"
+                />
+              </Box>
+            )}
+
+            {checked === 3 && (
+              <Box sx={SlideContentContainer} marginTop="12px">
+                <BorrowerMarketSummary
+                  marketAddress={market.address}
+                  chainId={market.chainId}
+                  isBorrower={holdTheMarket}
+                  marketSummary={marketSummary}
+                  isLoading={isSummaryLoading}
+                />
+              </Box>
+            )}
+            {/* <Slide */}
+            {/*  direction={direction} */}
+            {/*  container={scrollContainer.current} */}
+            {/*  unmountOnExit */}
+            {/*  in={checked === 3} */}
+            {/* > */}
+            {/*  <Box sx={SlideContentContainer} marginTop="12px"> */}
+            {/*    <MarketWithdrawalRequests marketAccount={marketAccount} /> */}
+            {/*  </Box> */}
+            {/* </Slide> */}
+            {checked === 4 && (
+              <Box sx={SlideContentContainer} marginTop="12px">
+                <MarketWithdrawalRequests
                   marketAccount={marketAccount}
                   withdrawals={withdrawals}
-                  holdTheMarket={holdTheMarket}
+                  isHoldingMarket={canInteract}
                 />
-              )}
-              {canInteract && <Divider sx={{ margin: "32px 0" }} />}
-              <MarketStatusChart market={market} />
-            </Box>
-          )}
-          {/* <Slide */}
-          {/*  direction={direction} */}
-          {/*  container={scrollContainer.current} */}
-          {/*  unmountOnExit */}
-          {/*  in={checked === 2} */}
-          {/* > */}
-          {/*  <Box sx={SlideContentContainer} marginTop="12px"> */}
-          {/*    <MarketStatusChart market={market} /> */}
-          {/*    <Divider sx={{ margin: "32px 0 44px" }} /> */}
-          {/*    <MarketParameters market={market} /> */}
-          {/*  </Box> */}
-          {/* </Slide> */}
-          {checked === 2 && (
-            <Box sx={SlideContentContainer} marginTop="12px">
-              <MarketStatusChart market={market} />
-              <Divider sx={{ margin: "32px 0 44px" }} />
-              <MarketParameters
-                market={market}
-                wrapper={wrapper}
-                hasWrapper={hasWrapper}
-                viewerType="borrower"
-              />
-            </Box>
-          )}
+              </Box>
+            )}
+            {/* <Slide */}
+            {/*  direction={direction} */}
+            {/*  container={scrollContainer.current} */}
+            {/*  unmountOnExit */}
+            {/*  in={checked === 4} */}
+            {/* > */}
+            {/*  <Box sx={SlideContentContainer} marginTop="12px"> */}
+            {/*    <MarketAuthorisedLenders market={market} /> */}
+            {/*  </Box> */}
+            {/* </Slide> */}
+            {checked === 5 && (
+              <Box sx={SlideContentContainer} marginTop="12px">
+                <MarketAuthorisedLenders
+                  market={market}
+                  marketAccount={marketAccount}
+                />
+              </Box>
+            )}
 
-          {checked === 3 && (
-            <Box sx={SlideContentContainer} marginTop="12px">
-              <BorrowerMarketSummary
-                marketAddress={market.address}
-                chainId={market.chainId}
-                isBorrower={holdTheMarket}
-                marketSummary={marketSummary}
-                isLoading={isSummaryLoading}
-              />
-            </Box>
-          )}
-          {/* <Slide */}
-          {/*  direction={direction} */}
-          {/*  container={scrollContainer.current} */}
-          {/*  unmountOnExit */}
-          {/*  in={checked === 3} */}
-          {/* > */}
-          {/*  <Box sx={SlideContentContainer} marginTop="12px"> */}
-          {/*    <MarketWithdrawalRequests marketAccount={marketAccount} /> */}
-          {/*  </Box> */}
-          {/* </Slide> */}
-          {checked === 4 && (
-            <Box sx={SlideContentContainer} marginTop="12px">
-              <MarketWithdrawalRequests
-                marketAccount={marketAccount}
-                withdrawals={withdrawals}
-                isHoldingMarket={canInteract}
-              />
-            </Box>
-          )}
-          {/* <Slide */}
-          {/*  direction={direction} */}
-          {/*  container={scrollContainer.current} */}
-          {/*  unmountOnExit */}
-          {/*  in={checked === 4} */}
-          {/* > */}
-          {/*  <Box sx={SlideContentContainer} marginTop="12px"> */}
-          {/*    <MarketAuthorisedLenders market={market} /> */}
-          {/*  </Box> */}
-          {/* </Slide> */}
-          {checked === 5 && (
-            <Box sx={SlideContentContainer} marginTop="12px">
-              <MarketAuthorisedLenders
-                market={market}
-                marketAccount={marketAccount}
-              />
-            </Box>
-          )}
-
-          {checked === 6 && canInteract && (
-            <Box sx={SlideContentContainer} marginTop="12px">
-              <MarketMLA marketAccount={marketAccount} />
-            </Box>
-          )}
-          {checked === 7 && (
-            <Box sx={SlideContentContainer} marginTop="12px">
-              <PaginatedMarketRecordsTable market={market} />
-            </Box>
-          )}
-          {checked === 8 && (
-            <Box sx={SlideContentContainer} marginTop="4px">
-              <WrapDebtToken
-                market={market}
-                wrapper={wrapper}
-                hasWrapper={hasWrapper}
-                hasFactory={hasFactory}
-                isWrapperLoading={isWrapperLoading}
-                isWrapperLookupLoading={isWrapperLookupLoading}
-                isWrapperError={isWrapperError}
-              />
-            </Box>
-          )}
+            {checked === 6 && canInteract && (
+              <Box sx={SlideContentContainer} marginTop="12px">
+                <MarketMLA marketAccount={marketAccount} />
+              </Box>
+            )}
+            {checked === 7 && (
+              <Box sx={SlideContentContainer} marginTop="12px">
+                <PaginatedMarketRecordsTable market={market} />
+              </Box>
+            )}
+            {checked === 8 && (
+              <Box sx={SlideContentContainer} marginTop="4px">
+                <WrapDebtToken
+                  market={market}
+                  wrapper={wrapper}
+                  hasWrapper={hasWrapper}
+                  hasFactory={hasFactory}
+                  isWrapperLoading={isWrapperLoading}
+                  isWrapperLookupLoading={isWrapperLookupLoading}
+                  isWrapperError={isWrapperError}
+                />
+              </Box>
+            )}
+          </Box>
+          <MarketSidePanel />
         </Box>
       </Box>
     </Box>
