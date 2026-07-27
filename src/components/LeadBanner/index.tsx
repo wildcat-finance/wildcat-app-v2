@@ -59,17 +59,23 @@ export const LeadBanner = ({
       </Typography>
     </Box>
 
-    <Button
-      component={Link}
-      href={buttonLink ? buttonLink.url : ""}
-      target={buttonLink && buttonLink.isExternal ? "_blank" : "_self"}
-      onClick={buttonOnClick}
-      variant="contained"
-      color="secondary"
-      size="medium"
-      sx={{ width: "fit-content" }}
-    >
-      {buttonText}
-    </Button>
+    {Boolean(buttonText && (buttonLink || buttonOnClick)) && (
+      <Button
+        {...(buttonLink
+          ? {
+              component: Link,
+              href: buttonLink.url,
+              target: buttonLink.isExternal ? "_blank" : "_self",
+            }
+          : {})}
+        onClick={buttonOnClick}
+        variant="contained"
+        color="secondary"
+        size="medium"
+        sx={{ width: "fit-content" }}
+      >
+        {buttonText}
+      </Button>
+    )}
   </Box>
 )

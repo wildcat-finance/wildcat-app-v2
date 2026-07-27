@@ -70,7 +70,7 @@ import {
   SkeletonContainer,
   SkeletonStyle,
 } from "./style"
-import { getEffectiveLenderRole } from "./utils"
+import { getEffectiveLenderRole, shouldShowLenderRequestBanner } from "./utils"
 
 export default function LenderMarketDetails({
   params: { address },
@@ -130,6 +130,12 @@ export default function LenderMarketDetails({
     [LenderStatus.DepositAndWithdraw, LenderStatus.WithdrawOnly].includes(
       getEffectiveLenderRole(marketAccount),
     )
+
+  const showLenderRequestBanner = shouldShowLenderRequestBanner({
+    isConnected,
+    isDifferentChain,
+    authorizedInMarket,
+  })
 
   const {
     wrapperAddress,
@@ -544,10 +550,10 @@ export default function LenderMarketDetails({
             />
           )}
 
-          {isConnected && !authorizedInMarket && (
+          {showLenderRequestBanner && (
             <MobileLenderBanner
               title="Lend through Wildcat"
-              subtitle="Interested in lending through Wildcat? Click in the link below to connect with this borrower!"
+              subtitle="Interested in lending through Wildcat? Click the link below to connect with this borrower!"
               buttonText="Leave a Request"
               href={`${ROUTES.lender.profile}/${market.borrower.toLowerCase()}`}
             />
@@ -598,11 +604,11 @@ export default function LenderMarketDetails({
           </Box>
         )}
 
-        {isConnected && !authorizedInMarket && (
+        {showLenderRequestBanner && (
           <Box sx={LenderBannerWrapper}>
             <LeadBanner
               title="Lend through Wildcat"
-              subtitle="Interested in lending through Wildcat? Click in the link below to connect with this borrower!"
+              subtitle="Interested in lending through Wildcat? Click the link below to connect with this borrower!"
               buttonText="Leave a Request"
               buttonLink={{
                 isExternal: false,
