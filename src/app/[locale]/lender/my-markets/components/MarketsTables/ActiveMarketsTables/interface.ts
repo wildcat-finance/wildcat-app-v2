@@ -19,7 +19,7 @@ export type ActiveMarketsTableModel = {
   withdrawalBatchDuration: number
   capacityLeft: TokenAmount
   hasEverInteracted: boolean
-  chainId?: number
+  chainId: number
 }
 
 export type ActiveMarketsTableProps = {

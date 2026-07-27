@@ -7,7 +7,7 @@ import { getMarketTypeChip } from "@/utils/marketType"
 
 export type OtherMarketsTableModel = {
   id: string
-  chainId?: number
+  chainId: number
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string

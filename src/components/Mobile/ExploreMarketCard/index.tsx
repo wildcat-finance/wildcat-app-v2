@@ -34,7 +34,7 @@ export type ExploreMarketCardItem = {
   asset: string
   apr: number
   withdrawalBatchDuration: number
-  chainId?: number
+  chainId: number
 }
 
 export const ExploreMarketCard = ({
@@ -46,9 +46,13 @@ export const ExploreMarketCard = ({
 }) => {
   const router = useRouter()
 
-  const adsCellProps = getAdsCellProps(marketItem.id)
+  const adsCellProps = getAdsCellProps(marketItem.chainId, marketItem.id)
   const adsComponent = adsCellProps
-    ? getAdsTooltipComponent(marketItem.id, formatBps(marketItem.apr))
+    ? getAdsTooltipComponent(
+        marketItem.chainId,
+        marketItem.id,
+        formatBps(marketItem.apr),
+      )
     : undefined
 
   return (

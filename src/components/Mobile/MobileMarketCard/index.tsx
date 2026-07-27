@@ -45,7 +45,7 @@ export type LenderMobileMarketItem = {
   loan?: TokenAmount | undefined
   asset: string
   isSelfOnboard?: boolean
-  chainId?: number
+  chainId: number
 }
 
 export const DepositArrow = () => (

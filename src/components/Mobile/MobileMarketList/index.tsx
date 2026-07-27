@@ -81,7 +81,10 @@ export const MobileMarketList = ({
         {!isLoading &&
           currentItems.map((marketItem) => (
             <MobileMarketCard
-              adsComponent={getAdsMobileContent(marketItem.id)}
+              adsComponent={getAdsMobileContent(
+                marketItem.chainId,
+                marketItem.id,
+              )}
               key={marketItem.id}
               marketItem={marketItem}
               buttonText="Deposit"
