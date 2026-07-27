@@ -3,7 +3,7 @@
 import { Box, SvgIcon, Typography } from "@mui/material"
 import Link from "next/link"
 
-import { BorrоwerBlock } from "@/app/[locale]/lender/components/ExploreSection/TrendingMarketsCarousel/TrendingMarketsCard/BorrowerBlock"
+import { TrendingMarketDetails } from "@/app/[locale]/lender/components/ExploreSection/TrendingMarketsCarousel/TrendingMarketsCard/BorrowerBlock"
 import HotRateIcon from "@/assets/icons/hotRateCard_icon.svg"
 import PopularIcon from "@/assets/icons/popularCard_icon.svg"
 import ProvenIcon from "@/assets/icons/provenCard_icon.svg"
@@ -11,17 +11,16 @@ import TopFundedIcon from "@/assets/icons/topFundedCard_icon.svg"
 import TrendingIcon from "@/assets/icons/trendingCard_icon.svg"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
-import { buildMarketHref, formatBps } from "@/utils/formatters"
+import { buildMarketHref } from "@/utils/formatters"
+import { getMarketStatusChip } from "@/utils/marketStatus"
 
 import {
-  CardBodyStyle,
   CardContainerStyle,
   CardContentStyle,
-  CardFooterStyle,
   CardHeaderStyle,
   CardIconStyle,
-  CardValueStyle,
   MarketContainerStyle,
+  StatStyle,
 } from "./style"
 
 export type TrendingMarketCardVariant =
@@ -31,180 +30,202 @@ export type TrendingMarketCardVariant =
   | "hotRate"
   | "topFunded"
 
-// accent = badge text color, iconColor = tint for the icon's dark shapes,
-// band = tinted header strip background. Sampled from target.png after
-// converting its embedded monitor ICC profile to sRGB.
 const VARIANT_BADGE: Record<
   TrendingMarketCardVariant,
   {
     label: string
+    context: string
     accent: string
     iconColor: string
-    band: string
     Icon: typeof TrendingIcon
   }
 > = {
   trending: {
     label: "Trending",
-    accent: COLORS.blueRibbon,
-    // pale tone for the six dark squares; the asset's native #6687FF
-    // top-right square is untouched by the recolor, keeping the two-tone look
+    context: "Last 7 days",
+    accent: "#CBD7FF",
     iconColor: "#B6C8FF",
-    band: "#ECF0FF",
     Icon: TrendingIcon,
   },
   popular: {
     label: "Popular",
-    accent: "#19955A",
+    context: "Last 7 days",
+    accent: "#BEEFD7",
     iconColor: "#2ACA7C",
-    band: "#E3F8EE",
     Icon: PopularIcon,
   },
   trackRecord: {
     label: "Total Paid Out",
-    accent: "#7547F5",
-    iconColor: "#B9A0FF",
-    band: "#EFEAFF",
+    context: "All time",
+    accent: "#D7C9FD",
+    iconColor: "#7547F5",
     Icon: ProvenIcon,
   },
   hotRate: {
     label: "Peak APR",
-    accent: "#D36229",
+    context: "Highest market",
+    accent: "#FDCEB6",
     iconColor: "#F5651D",
-    band: "#FFE8DC",
     Icon: HotRateIcon,
   },
   topFunded: {
     label: "Top Funded",
-    accent: "#238BC8",
+    context: "Largest market",
+    accent: "#BFE7FD",
     iconColor: "#48B5F4",
-    band: "#DDF3FF",
     Icon: TopFundedIcon,
   },
 }
 
 type TrendingMarketCardProps = {
   variant: TrendingMarketCardVariant
-  title: string
   value: string
-  period?: string
+  marketName: string
   marketAddress: string
   chainId?: number
   borrowerName: string
-  borrowerAddress: string
   asset: string
   apr: number
   supplied: string
   capacity: string
   suppliedPct: number
+  status: ReturnType<typeof getMarketStatusChip>
+  termLabel: string
+  termDetail: string
+  requiresMlaSignature: boolean
 }
 
 export const TrendingMarketCard = ({
   variant,
-  title,
   value,
-  period,
+  marketName,
   marketAddress,
   chainId,
   borrowerName,
-  borrowerAddress,
   asset,
   apr,
   supplied,
   capacity,
   suppliedPct,
+  status,
+  termLabel,
+  termDetail,
+  requiresMlaSignature,
 }: TrendingMarketCardProps) => {
   const badge = VARIANT_BADGE[variant]
 
+  let statisticLabel: string
+  if (variant === "popular") {
+    statisticLabel = `${
+      Number(value) === 1 ? "new lender" : "new lenders"
+    } joined`
+  } else if (variant === "trackRecord") {
+    statisticLabel = `${asset} interest paid`
+  } else if (variant === "hotRate") {
+    statisticLabel = "best base APR"
+  } else {
+    statisticLabel = `${asset} deposited`
+  }
+
   return (
-    <Box sx={CardContainerStyle}>
-      <Box sx={{ ...CardHeaderStyle, backgroundColor: badge.band }}>
-        <Typography
-          sx={{
-            fontSize: pxToRem(11),
-            lineHeight: lh(16, 11),
-            fontWeight: 600,
-            color: badge.accent,
-            whiteSpace: "nowrap",
-          }}
-        >
-          {badge.label}
-        </Typography>
-
-        <SvgIcon
-          component={badge.Icon}
-          sx={{
-            ...CardIconStyle,
-            // icons draw with rect/path/circle, all dark-filled with #30313E
-            '& [fill="#30313E"]': { fill: badge.iconColor },
-          }}
-        />
-      </Box>
-
-      <Box sx={CardContentStyle}>
-        <Box sx={CardBodyStyle}>
-          <Box sx={CardValueStyle}>
-            <Typography
-              sx={{
-                fontSize: pxToRem(13),
-                lineHeight: lh(20, 13),
-                fontWeight: 500,
-                color: COLORS.blackRock,
-              }}
-            >
-              {title}
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: pxToRem(20),
-                lineHeight: lh(32, 20),
-                fontWeight: 600,
-                color: COLORS.blackRock,
-              }}
-            >
-              {value}
-            </Typography>
-          </Box>
-
+    <Box sx={{ ...CardContainerStyle, borderTop: `2px solid ${badge.accent}` }}>
+      <Box sx={CardHeaderStyle}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: "7px" }}>
+          <SvgIcon
+            component={badge.Icon}
+            sx={{
+              ...CardIconStyle,
+              '& [fill="#30313E"]': { fill: badge.iconColor },
+            }}
+          />
           <Typography
             sx={{
-              color: COLORS.matteSilver,
+              color: COLORS.black,
+              fontSize: pxToRem(10),
+              fontWeight: 600,
+              letterSpacing: "0.07em",
+              lineHeight: lh(14, 10),
+              textTransform: "uppercase",
               whiteSpace: "nowrap",
             }}
-            variant="text4"
           >
-            {period ?? " "}
+            {badge.label}
           </Typography>
         </Box>
 
-        <Box sx={CardFooterStyle}>
-          <BorrоwerBlock
-            borrower={borrowerName}
-            apr={apr}
-            asset={asset}
-            suppliedPct={suppliedPct}
-            supplied={supplied}
-            capacity={capacity}
-          />
+        <Typography
+          sx={{
+            color: COLORS.matteSilver,
+            fontSize: pxToRem(9),
+            lineHeight: lh(14, 9),
+            whiteSpace: "nowrap",
+          }}
+        >
+          {badge.context}
+        </Typography>
+      </Box>
 
-          <Box
-            component={Link}
-            href={buildMarketHref(marketAddress, chainId)}
-            sx={MarketContainerStyle}
+      <Box sx={CardContentStyle}>
+        <Box sx={StatStyle}>
+          <Typography
+            sx={{
+              color: COLORS.black,
+              fontSize: pxToRem(20),
+              fontWeight: 500,
+              lineHeight: 1,
+              whiteSpace: "nowrap",
+            }}
           >
-            <Box sx={{ display: "flex", gap: "2px", alignItems: "center" }}>
-              <Typography variant="text4" color={COLORS.white}>
-                Earn
-              </Typography>
-              <Typography variant="text4" color={COLORS.white}>
-                {formatBps(apr)}% APR
-              </Typography>
-            </Box>
+            {value}
+          </Typography>
+          <Typography
+            sx={{
+              minWidth: 0,
+              overflow: "hidden",
+              color: COLORS.blackRock,
+              fontSize: pxToRem(10),
+              lineHeight: lh(14, 10),
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {statisticLabel}
+          </Typography>
+        </Box>
 
-            <Typography variant="mobText3SemiBold" color={COLORS.white}>
-              Deposit
-            </Typography>
-          </Box>
+        <TrendingMarketDetails
+          marketName={marketName}
+          borrower={borrowerName}
+          apr={apr}
+          suppliedPct={suppliedPct}
+          supplied={supplied}
+          capacity={capacity}
+          status={status}
+          termLabel={termLabel}
+          termDetail={termDetail}
+        />
+
+        <Box
+          component={Link}
+          href={buildMarketHref(marketAddress, chainId)}
+          sx={{
+            ...MarketContainerStyle,
+            ...(requiresMlaSignature && {
+              border: `1px solid ${COLORS.whiteLilac}`,
+              backgroundColor: COLORS.white,
+              color: COLORS.bunker,
+            }),
+          }}
+        >
+          <Typography
+            sx={{
+              color: requiresMlaSignature ? COLORS.bunker : COLORS.white,
+              fontSize: "11px",
+              fontWeight: 600,
+            }}
+          >
+            {requiresMlaSignature ? "Sign MLA to Lend" : "Deposit →"}
+          </Typography>
         </Box>
       </Box>
     </Box>

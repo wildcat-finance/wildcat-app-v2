@@ -1,47 +1,72 @@
 import * as React from "react"
 
-import { Box, SvgIcon, Typography } from "@mui/material"
+import { Box, Chip, SvgIcon, Typography } from "@mui/material"
 
 import Avatar from "@/assets/icons/avatar_icon.svg"
-import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { COLORS } from "@/theme/colors"
 import { formatBps } from "@/utils/formatters"
+import { getMarketStatusChip } from "@/utils/marketStatus"
 
-export type BorrоwerBlockProps = {
+import { SupplyProgressFillStyle, SupplyProgressTrackStyle } from "../style"
+
+export type TrendingMarketDetailsProps = {
+  marketName: string
   borrower: string
-  asset: string
   apr: number
   suppliedPct: number
   supplied: string
   capacity: string
+  status: ReturnType<typeof getMarketStatusChip>
+  termLabel: string
+  termDetail: string
 }
 
-export const BorrоwerBlock = ({
+export const TrendingMarketDetails = ({
+  marketName,
   borrower,
-  asset,
   apr,
   suppliedPct,
   supplied,
   capacity,
-}: BorrоwerBlockProps) => {
-  const isMobile = useMobileResolution()
-
-  return (
+  status,
+  termLabel,
+  termDetail,
+}: TrendingMarketDetailsProps) => (
+  <Box
+    sx={{
+      display: "flex",
+      flexDirection: "column",
+      gap: "9px",
+      paddingTop: "10px",
+    }}
+  >
     <Box
-      sx={{
-        padding: "6px 6px 8px 6px",
-        backgroundColor: COLORS.whiteSmoke,
-        borderRadius: "12px",
-      }}
+      sx={{ display: "flex", flexDirection: "column", gap: "2px", minWidth: 0 }}
     >
-      <Box sx={{ display: "flex", gap: "6px" }}>
-        {borrower && borrower.startsWith("0") ? (
+      <Typography
+        sx={{
+          display: "block",
+          overflow: "hidden",
+          fontSize: "13px",
+          fontWeight: 600,
+          lineHeight: "18px",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {marketName}
+      </Typography>
+
+      <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
+        {borrower.startsWith("0") ? (
           <SvgIcon
             sx={{
-              marginTop: "2px",
-              fontSize: "16px",
-              "& circle": { fill: "#4CA6D9", opacity: 1 },
-              "& path": { fill: COLORS.white },
+              width: "14px",
+              height: "14px",
+              flexShrink: 0,
+              "& circle": { fill: COLORS.hawkesBlue, opacity: 1 },
+              "& path": { fill: COLORS.blueRibbon },
             }}
           >
             <Avatar />
@@ -49,81 +74,119 @@ export const BorrоwerBlock = ({
         ) : (
           <Box
             sx={{
-              marginTop: "2px",
-              width: "16px",
-              height: "16px",
-              borderRadius: "50%",
-              bgcolor: "#4CA6D9",
+              width: "14px",
+              height: "14px",
+              flex: "0 0 auto",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              flex: "0 0 auto",
+              borderRadius: "50%",
+              backgroundColor: COLORS.hawkesBlue,
+              color: COLORS.blueRibbon,
+              fontSize: "7px",
+              fontWeight: 600,
+              textTransform: "uppercase",
             }}
           >
-            <Typography
-              variant="mobText4"
-              sx={{
-                fontSize: "6px",
-                lineHeight: "8px",
-                color: COLORS.white,
-                textAlign: "center",
-              }}
-            >
-              {borrower?.trim()?.[0]}
-            </Typography>
+            {borrower.trim()[0]}
           </Box>
         )}
 
-        <Box sx={{ display: "flex", flexDirection: "column", gap: "3px" }}>
-          <Typography variant={isMobile ? "mobText3" : "text3"}>
-            {borrower}
-          </Typography>
-          <Typography
-            variant={isMobile ? "mobText3" : "text3"}
-            sx={{ opacity: 0.8 }}
-          >
-            {asset} · {formatBps(apr)}% APR
-          </Typography>
-        </Box>
+        <Typography
+          sx={{
+            overflow: "hidden",
+            color: COLORS.blackRock,
+            fontSize: "11px",
+            lineHeight: "16px",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {borrower}
+        </Typography>
+      </Box>
+    </Box>
+
+    <Box sx={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+        <Typography sx={{ fontSize: "18px", fontWeight: 500, lineHeight: 1 }}>
+          {formatBps(apr)}%
+        </Typography>
+        <Typography
+          sx={{
+            color: COLORS.matteSilver,
+            fontSize: "8px",
+            fontWeight: 600,
+            lineHeight: "12px",
+            textTransform: "uppercase",
+          }}
+        >
+          Base APR
+        </Typography>
       </Box>
 
       <Box
         sx={{
-          width: "100%",
           display: "flex",
           flexDirection: "column",
-          gap: "6px",
-          padding: "12px 4px 0",
+          gap: "1px",
+          minWidth: 0,
+          textAlign: "right",
         }}
       >
-        <Box
+        <Typography sx={{ fontSize: "12px", fontWeight: 600, lineHeight: 1 }}>
+          {supplied}
+        </Typography>
+        <Typography
           sx={{
-            width: "100%",
-            height: "4px",
-            borderRadius: "2px",
-            backgroundColor: COLORS.iron,
-            overflow: "hidden",
+            color: COLORS.matteSilver,
+            fontSize: "9px",
+            lineHeight: "13px",
+            whiteSpace: "nowrap",
           }}
         >
-          <Box
-            sx={{
-              ...{
-                height: "100%",
-                borderRadius: "inherit",
-                backgroundColor: "#555988",
-              },
-              width: `${Math.min(100, Math.max(0, suppliedPct))}%`,
-            }}
-          />
-        </Box>
-
-        <Typography
-          variant={isMobile ? "mobText3" : "text3"}
-          sx={{ color: COLORS.manate }}
-        >
-          {supplied} / {capacity} supplied
+          deposited of {capacity} cap
         </Typography>
       </Box>
     </Box>
-  )
-}
+
+    <Box sx={SupplyProgressTrackStyle}>
+      <Box
+        sx={{
+          ...SupplyProgressFillStyle,
+          width: `${Math.min(100, Math.max(0, suppliedPct))}%`,
+        }}
+      />
+    </Box>
+
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "6px",
+        marginTop: "3px",
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+        <MarketStatusChip status={status} withPeriod={false} />
+        <Chip
+          label={termLabel}
+          sx={{ backgroundColor: COLORS.whiteSmoke, color: COLORS.blackRock }}
+        />
+      </Box>
+
+      <Typography
+        sx={{
+          color: COLORS.matteSilver,
+          fontSize: "9px",
+          lineHeight: "14px",
+          textAlign: "right",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {termDetail}
+      </Typography>
+    </Box>
+  </Box>
+)

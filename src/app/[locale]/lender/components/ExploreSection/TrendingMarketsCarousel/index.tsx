@@ -4,8 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import * as React from "react"
 
 import { Box, Skeleton, Typography } from "@mui/material"
-import { MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { HooksKind, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { formatUnits } from "viem"
+import { useAccount } from "wagmi"
 
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
 import { useMarketsWithRecentInflow } from "@/app/[locale]/lender/hooks/useMarketsWithRecentInflow"
@@ -15,20 +16,23 @@ import {
 } from "@/app/[locale]/lender/hooks/useRecentDeposits"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { fmtUSD, toHuman } from "@/lib/protocol-stats/format"
+import { toHuman } from "@/lib/protocol-stats/format"
 import { COLORS } from "@/theme/colors"
 import { formatBps, trimAddress } from "@/utils/formatters"
 import { compareByCurrentAprBestInMarket } from "@/utils/marketSort"
 import {
+  getMarketStatusChip,
   getPenaltyBorrowers,
   isExploreVisible,
   isMarketHealthy,
 } from "@/utils/marketStatus"
+import { getMarketTypeChip } from "@/utils/marketType"
 
 import {
   TrendingMarketCard,
   TrendingMarketCardVariant,
 } from "./TrendingMarketsCard"
+import { useTrendingMarketMlaStatus } from "./useTrendingMarketMlaStatus"
 import { useTrendingUsdPrices } from "./useTrendingUsdPrices"
 
 const SLOT_COUNT = 5
@@ -38,7 +42,7 @@ const ZERO = BigInt(0)
 const compactFormat = (num: number): string =>
   new Intl.NumberFormat("en-US", {
     notation: "compact",
-    maximumFractionDigits: 1,
+    maximumFractionDigits: 2,
   }).format(num)
 
 const formatTokenCompact = (raw: bigint, decimals: number): string =>
@@ -87,10 +91,20 @@ const pickLendersWinner = (
 type Slot = {
   key: string
   variant: TrendingMarketCardVariant
-  title: string
-  period: string | undefined
   account: MarketAccount
   value: string
+}
+
+const formatMaturityDate = (millisecondsFromNow: number) =>
+  new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit",
+  }).format(Date.now() + millisecondsFromNow)
+
+const formatWithdrawalCycle = (seconds: number) => {
+  const hours = Math.floor(seconds / 3600)
+  return `${hours > 0 ? `${hours}h` : "<1h"} withdrawal`
 }
 
 const useDragScroll = () => {
@@ -232,9 +246,8 @@ export const TrendingMarketsCarousel = () => {
     useMarketsWithRecentInflow()
   const dragScroll = useDragScroll()
 
-  const isLoading = isLoadingInitial || isLoadingUpdate || isInflowLoading
-
   const { chainId } = useSelectedNetwork()
+  const { address: lenderAddress } = useAccount()
   const tokenAddresses = useMemo(
     () =>
       Array.from(
@@ -247,17 +260,6 @@ export const TrendingMarketsCarousel = () => {
     [marketAccounts],
   )
   const { data: priceMap } = useTrendingUsdPrices(chainId, tokenAddresses)
-
-  // USD display when a price is known, compact token amount otherwise
-  const toCardValue = useCallback(
-    (raw: bigint, decimals: number, tokenAddress: string): string => {
-      const price = priceMap?.[tokenAddress.toLowerCase()]
-      return price != null
-        ? fmtUSD(toHuman(raw, decimals) * price)
-        : formatTokenCompact(raw, decimals)
-    },
-    [priceMap],
-  )
 
   const slots = useMemo<Slot[]>(() => {
     const penaltyBorrowers = getPenaltyBorrowers(
@@ -272,19 +274,6 @@ export const TrendingMarketsCarousel = () => {
         isMarketQualifying(a),
     )
     if (eligible.length === 0) return []
-
-    // Same as toCardValue but without the $ sign (target design shows the
-    // Fresh Capital stat as a bare number, e.g. "+4.2M")
-    const toCardNumber = (
-      raw: bigint,
-      decimals: number,
-      tokenAddress: string,
-    ): string => {
-      const price = priceMap?.[tokenAddress.toLowerCase()]
-      return price != null
-        ? compactFormat(toHuman(raw, decimals) * price)
-        : formatTokenCompact(raw, decimals)
-    }
 
     const marketUsdScore = (account: MarketAccount, raw: bigint): number => {
       const { address, decimals } = account.market.underlyingToken
@@ -332,23 +321,17 @@ export const TrendingMarketsCarousel = () => {
       const addr = tvlInflowAccount.market.address.toLowerCase()
       const { decimals } = tvlInflowAccount.market.underlyingToken
       const stats7d = recentDeposits.last7d[addr]
-      const inflowTokenAddress = tvlInflowAccount.market.underlyingToken.address
       if (stats7d && stats7d.totalAssetAmount > ZERO) {
-        tvlInflowStat = `+${toCardNumber(
+        tvlInflowStat = `+${formatTokenCompact(
           stats7d.totalAssetAmount,
           decimals,
-          inflowTokenAddress,
         )}`
       } else {
         const deposited = tvlInflowAccount.market.totalDeposited?.raw
         if (deposited) {
           const big = deposited.toBigInt()
           if (big > ZERO)
-            tvlInflowStat = `+${toCardNumber(
-              big,
-              decimals,
-              inflowTokenAddress,
-            )}`
+            tvlInflowStat = `+${formatTokenCompact(big, decimals)}`
         }
       }
     }
@@ -359,10 +342,9 @@ export const TrendingMarketsCarousel = () => {
       if (raw) {
         const big = raw.toBigInt()
         if (big > ZERO) {
-          interestPaidStat = toCardValue(
+          interestPaidStat = formatTokenCompact(
             big,
             interestPaidWinner.market.underlyingToken.decimals,
-            interestPaidWinner.market.underlyingToken.address,
           )
         }
       }
@@ -372,10 +354,9 @@ export const TrendingMarketsCarousel = () => {
     if (tvlWinner) {
       const big = tvlWinner.market.totalSupply.raw.toBigInt()
       if (big > ZERO) {
-        tvlStat = toCardValue(
+        tvlStat = formatTokenCompact(
           big,
           tvlWinner.market.underlyingToken.decimals,
-          tvlWinner.market.underlyingToken.address,
         )
       }
     }
@@ -389,37 +370,24 @@ export const TrendingMarketsCarousel = () => {
     const makeSlot = (
       key: string,
       variant: TrendingMarketCardVariant,
-      title: string,
-      period: string | undefined,
       account: MarketAccount | undefined,
       value: string | undefined,
     ): Slot | null => {
       if (!account || !value) return null
-      return { key, variant, title, period, account, value }
+      return { key, variant, account, value }
     }
 
     const built: (Slot | null)[] = [
-      makeSlot(
-        "tvlInflow",
-        "trending",
-        "Fresh Capital",
-        "This Week",
-        tvlInflowAccount,
-        tvlInflowStat,
-      ),
+      makeSlot("tvlInflow", "trending", tvlInflowAccount, tvlInflowStat),
       makeSlot(
         "lenders",
         "popular",
-        "Lenders Joined",
-        "This Week",
         lendersAccount,
         lendersCount > 0 ? lendersCount.toString() : undefined,
       ),
       makeSlot(
         "highestApr",
         "hotRate",
-        "Best In Market APR",
-        undefined,
         aprWinner,
         aprWinner
           ? `${formatBps(aprWinner.market.annualInterestBips)}%`
@@ -428,19 +396,10 @@ export const TrendingMarketsCarousel = () => {
       makeSlot(
         "interestPaid",
         "trackRecord",
-        "Paid In Total",
-        "All Time",
         interestPaidWinner,
         interestPaidStat,
       ),
-      makeSlot(
-        "highestTvl",
-        "topFunded",
-        "Total Value Locked",
-        undefined,
-        tvlWinner,
-        tvlStat,
-      ),
+      makeSlot("highestTvl", "topFunded", tvlWinner, tvlStat),
     ]
 
     return built.filter((s): s is Slot => s !== null).slice(0, SLOT_COUNT)
@@ -448,10 +407,27 @@ export const TrendingMarketsCarousel = () => {
     marketAccounts,
     recentDeposits,
     priceMap,
-    toCardValue,
     isLoadingUpdate,
     isMarketQualifying,
   ])
+
+  const slotMarketAddresses = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          slots.map(({ account }) => account.market.address.toLowerCase()),
+        ),
+      ).sort(),
+    [slots],
+  )
+  const { data: mlaStatus, isLoading: isMlaStatusLoading } =
+    useTrendingMarketMlaStatus(chainId, slotMarketAddresses, lenderAddress)
+  const marketsRequiringMlaSignature = useMemo(
+    () => new Set(mlaStatus?.requiresSignature ?? []),
+    [mlaStatus],
+  )
+  const isLoading =
+    isLoadingInitial || isLoadingUpdate || isInflowLoading || isMlaStatusLoading
 
   const isMobile = useMobileResolution()
 
@@ -466,29 +442,39 @@ export const TrendingMarketsCarousel = () => {
       ? borrower.alias || borrower.name || trimAddress(market.borrower)
       : trimAddress(market.borrower)
 
-    const { address: tokenAddress, decimals } = market.underlyingToken
+    const { decimals } = market.underlyingToken
     const suppliedRaw = market.totalSupply.raw.toBigInt()
     const capacityRaw = market.maxTotalSupply.raw.toBigInt()
     const suppliedPct =
       capacityRaw > ZERO
         ? Number((suppliedRaw * BigInt(10000)) / capacityRaw) / 100
         : 0
+    const term = getMarketTypeChip(market)
+    const isOpenTerm = term.kind === HooksKind.OpenTerm
+    const termLabel = isOpenTerm ? "Open Term" : "Fixed Term"
+    const termDetail = isOpenTerm
+      ? formatWithdrawalCycle(market.withdrawalBatchDuration)
+      : `Matures ${formatMaturityDate(term.fixedPeriod ?? 0)}`
 
     return (
       <TrendingMarketCard
         variant={slot.variant}
-        title={slot.title}
         value={slot.value}
-        period={slot.period}
+        marketName={market.name}
         marketAddress={market.address}
         chainId={market.chainId}
         borrowerName={borrowerName}
-        borrowerAddress={market.borrower.toLowerCase()}
         asset={market.underlyingToken.symbol}
         apr={market.annualInterestBips}
-        supplied={toCardValue(suppliedRaw, decimals, tokenAddress)}
-        capacity={toCardValue(capacityRaw, decimals, tokenAddress)}
+        supplied={formatTokenCompact(suppliedRaw, decimals)}
+        capacity={formatTokenCompact(capacityRaw, decimals)}
         suppliedPct={suppliedPct}
+        status={getMarketStatusChip(market)}
+        termLabel={termLabel}
+        termDetail={termDetail}
+        requiresMlaSignature={marketsRequiringMlaSignature.has(
+          market.address.toLowerCase(),
+        )}
       />
     )
   }
@@ -530,7 +516,7 @@ export const TrendingMarketsCarousel = () => {
                 (key, index) => (
                   <Skeleton
                     key={key}
-                    height="217px"
+                    height="270px"
                     sx={{
                       flex: "1 0 222px",
                       minWidth: "222px",
@@ -592,7 +578,7 @@ export const TrendingMarketsCarousel = () => {
               (key, index) => (
                 <Skeleton
                   key={key}
-                  height="217px"
+                  height="270px"
                   sx={{
                     flex: "1 0 222px",
                     minWidth: "222px",
