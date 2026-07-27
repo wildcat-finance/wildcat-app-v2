@@ -3,7 +3,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 
 import { Box, Divider, Skeleton, Typography } from "@mui/material"
-import { DepositStatus, MarketVersion } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
@@ -25,6 +24,10 @@ import { setMarketFilters } from "@/store/slices/marketFiltersSlice/marketFilter
 import { COLORS } from "@/theme/colors"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
 import { filterMarketAccounts } from "@/utils/filters"
+import {
+  getKnownMarketOnboardingMode,
+  MarketOnboardingMode,
+} from "@/utils/marketOnboarding"
 import { MarketStatus } from "@/utils/marketStatus"
 
 import { OtherMarketsTable } from "../MarketsTables/OtherMarketsTable"
@@ -51,8 +54,13 @@ export const AllMarketsSection = () => {
     isTestnet,
   } = useCurrentNetwork()
 
-  const { marketAccounts, isLoadingInitial, isLoadingUpdate, borrowers } =
-    useLenderMarketsContext()
+  const {
+    marketAccounts,
+    isLoadingInitial,
+    isLoadingUpdate,
+    onboardingByMarket,
+    borrowers,
+  } = useLenderMarketsContext()
 
   const isLoading = isLoadingInitial || isLoadingUpdate
 
@@ -183,10 +191,13 @@ export const AllMarketsSection = () => {
       otherMarketAccounts.filter(
         (account) =>
           !account.market.isClosed &&
-          account.market.version === MarketVersion.V2 &&
-          account.depositAvailability === DepositStatus.Ready,
+          getKnownMarketOnboardingMode(
+            account.market.version,
+            account.market.address,
+            onboardingByMarket,
+          ) === MarketOnboardingMode.SelfOnboard,
       ).length,
-    [otherMarketAccounts],
+    [onboardingByMarket, otherMarketAccounts],
   )
 
   const manualAmount = useMemo(
@@ -194,12 +205,13 @@ export const AllMarketsSection = () => {
       otherMarketAccounts.filter(
         (account) =>
           !account.market.isClosed &&
-          !(
-            account.market.version === MarketVersion.V2 &&
-            account.depositAvailability === DepositStatus.Ready
-          ),
+          getKnownMarketOnboardingMode(
+            account.market.version,
+            account.market.address,
+            onboardingByMarket,
+          ) === MarketOnboardingMode.BorrowerApproval,
       ).length,
-    [otherMarketAccounts],
+    [onboardingByMarket, otherMarketAccounts],
   )
 
   const terminatedOtherAmount = useMemo(
@@ -386,6 +398,7 @@ export const AllMarketsSection = () => {
       {!isWrongNetwork && (
         <OtherMarketsTable
           marketAccounts={filteredMarketAccounts}
+          onboardingByMarket={onboardingByMarket}
           borrowers={borrowers ?? []}
           isLoading={isLoading}
           filters={filters}

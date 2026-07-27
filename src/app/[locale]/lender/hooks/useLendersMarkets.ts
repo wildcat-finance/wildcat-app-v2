@@ -25,11 +25,31 @@ import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { EXCLUDED_MARKETS_FILTER, TOKENS_ADDRESSES } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
+import {
+  getV2MarketOnboardingMode,
+  MarketOnboardingByAddress,
+  MarketOnboardingMode,
+} from "@/utils/marketOnboarding"
 import { isFrontendVisibleMarket } from "@/utils/marketType"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type LenderMarketsQueryProps =
   SubgraphGetAllMarketsForLenderViewQueryVariables
+
+type LenderMarketUpdates = {
+  marketAccounts: MarketAccount[]
+  onboardingByMarket: MarketOnboardingByAddress
+}
+
+export type LenderMarketsOnboardingStatus = "loading" | "ready" | "error"
+
+export type LenderMarketsResult = TwoStepQueryHookResult<
+  MarketAccount[],
+  LenderMarketUpdates
+> & {
+  onboardingByMarket: MarketOnboardingByAddress
+  onboardingStatus: LenderMarketsOnboardingStatus
+}
 
 function getChunks<T extends Market | MarketAccount>(
   chainId: SupportedChainId,
@@ -67,7 +87,7 @@ function getChunks<T extends Market | MarketAccount>(
 
 export function useLendersMarkets(
   filters: LenderMarketsQueryProps = {},
-): TwoStepQueryHookResult<MarketAccount[]> {
+): LenderMarketsResult {
   const { isWrongNetwork, provider, signer, address } = useEthersProvider()
   const { chainId, targetChainId } = useCurrentNetwork()
   const subgraphClient = useSubgraphClient()
@@ -140,6 +160,14 @@ export function useLendersMarkets(
     )
 
     const { v1Chunks, v2Chunks } = getChunks(targetChainId, accounts)
+    const onboardingByMarket: MarketOnboardingByAddress = Object.fromEntries(
+      accounts
+        .filter((account) => account.market.version === MarketVersion.V1)
+        .map((account) => [
+          account.market.address.toLowerCase(),
+          MarketOnboardingMode.BorrowerApproval,
+        ]),
+    )
     await Promise.all([
       ...(lens
         ? v1Chunks.map(async (accountsChunk) => {
@@ -175,6 +203,8 @@ export function useLendersMarkets(
         )
         accountsChunk.forEach((account, i) => {
           let update = updates[i]
+          onboardingByMarket[account.market.address.toLowerCase()] =
+            getV2MarketOnboardingMode(update.market)
           account.market.updateWith(update.market)
           // If the lender account is not set, set the balances to 0 but still use
           // the credential, as that will tell us whether the market is open access.
@@ -198,7 +228,7 @@ export function useLendersMarkets(
       throw e
     })
     console.log(`getLenderUpdates:: Got lender updates: ${accounts.length}`)
-    return accounts
+    return { marketAccounts: accounts, onboardingByMarket }
   }
 
   const updateQueryKeys = useMemo(
@@ -207,7 +237,7 @@ export function useLendersMarkets(
   )
 
   const {
-    data: updatedLenders,
+    data: updates,
     isLoading: isLoadingUpdate,
     isPaused: isPendingUpdate,
     refetch: refetchUpdate,
@@ -224,8 +254,14 @@ export function useLendersMarkets(
     refetchOnMount: false,
   })
 
+  let onboardingStatus: LenderMarketsOnboardingStatus = "loading"
+  if (isErrorUpdate) onboardingStatus = "error"
+  else if (updates) onboardingStatus = "ready"
+
   return {
-    data: updatedLenders ?? accounts,
+    data: updates?.marketAccounts ?? accounts,
+    onboardingByMarket: updates?.onboardingByMarket ?? {},
+    onboardingStatus,
     isLoadingInitial,
     isErrorInitial,
     errorInitial: errorInitial as Error | null,

@@ -19,11 +19,7 @@ import {
   GridRowsProp,
   GridSortModel,
 } from "@mui/x-data-grid"
-import {
-  DepositStatus,
-  MarketVersion,
-  TokenAmount,
-} from "@wildcatfi/wildcat-sdk"
+import { DepositStatus, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -68,6 +64,12 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import {
+  getLenderMarketAction,
+  getKnownMarketOnboardingMode,
+  LenderMarketAction,
+  MarketOnboardingMode,
+} from "@/utils/marketOnboarding"
 import {
   compareByHighestYield,
   compareByShortestCycle,
@@ -168,7 +170,8 @@ export type LenderOtherMarketsTableModel = {
   debt: TokenAmount | undefined
   apr: number
   withdrawalBatchDuration: number
-  isSelfOnboard: boolean
+  onboardingMode: MarketOnboardingMode | undefined
+  depositStatus: DepositStatus
   button?: string
   capacityLeft: TokenAmount
 }
@@ -196,8 +199,13 @@ const MarketLinkRow = (props: GridRowProps) => (
 export const ExploreMarketsTable = () => {
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
-  const { marketAccounts, borrowers, isLoadingInitial, isLoadingUpdate } =
-    useLenderMarketsContext()
+  const {
+    marketAccounts,
+    borrowers,
+    isLoadingInitial,
+    isLoadingUpdate,
+    onboardingByMarket,
+  } = useLenderMarketsContext()
   const { isTestnet } = useCurrentNetwork()
   const { isMarketQualifying, isLoading: isInflowLoading } =
     useMarketsWithRecentInflow()
@@ -285,13 +293,19 @@ export const ExploreMarketsTable = () => {
     const onboardFiltered = filtered.filter((account) => {
       if (!gateActive) return true
 
-      const isSelf =
-        !account.hasEverInteracted &&
-        account.market.version === MarketVersion.V2 &&
-        account.depositAvailability === DepositStatus.Ready
+      const onboardingMode = getKnownMarketOnboardingMode(
+        account.market.version,
+        account.market.address,
+        onboardingByMarket,
+      )
 
-      if (isSelf) return showSelfOnboard
-      return showOnboardByBorrower
+      if (onboardingMode === MarketOnboardingMode.SelfOnboard) {
+        return showSelfOnboard
+      }
+      if (onboardingMode === MarketOnboardingMode.BorrowerApproval) {
+        return showOnboardByBorrower
+      }
+      return false
     })
 
     const sorted = [...onboardFiltered].sort((a, b) => {
@@ -343,10 +357,12 @@ export const ExploreMarketsTable = () => {
         withdrawalBatchDuration,
         debt: totalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
-        isSelfOnboard:
-          !account.hasEverInteracted &&
-          market.version === MarketVersion.V2 &&
-          account.depositAvailability === DepositStatus.Ready,
+        onboardingMode: getKnownMarketOnboardingMode(
+          market.version,
+          market.address,
+          onboardingByMarket,
+        ),
+        depositStatus: account.depositAvailability,
         button: address,
         chainId,
       }
@@ -361,6 +377,7 @@ export const ExploreMarketsTable = () => {
     withdrawalCycles,
     showSelfOnboard,
     showOnboardByBorrower,
+    onboardingByMarket,
     isLoadingUpdate,
     isMarketQualifying,
   ])
@@ -583,36 +600,57 @@ export const ExploreMarketsTable = () => {
       flex: 1,
       headerAlign: "right",
       align: "right",
-      renderCell: (params) => (
-        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-          {params.row.isSelfOnboard ? (
-            <Button
-              size="small"
-              variant="contained"
-              color="secondary"
-              endIcon={ActionArrowIcon}
-            >
-              {t("dashboard.markets.tables.other.depositBTN")}
-            </Button>
-          ) : (
-            <Link
-              href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
-              prefetch={false}
-              onClick={(e: React.MouseEvent) => e.stopPropagation()}
-              style={{ textDecoration: "none" }}
-            >
+      renderCell: (params) => {
+        const action = getLenderMarketAction(
+          params.row.onboardingMode,
+          params.row.depositStatus,
+        )
+
+        return (
+          <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
+            {action === LenderMarketAction.Deposit && (
               <Button
                 size="small"
                 variant="contained"
                 color="secondary"
                 endIcon={ActionArrowIcon}
               >
-                {t("dashboard.markets.tables.other.requestBTN")}
+                {t("dashboard.markets.tables.other.depositBTN")}
               </Button>
-            </Link>
-          )}
-        </Box>
-      ),
+            )}
+            {action === LenderMarketAction.RequestAccess && (
+              <Link
+                href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+                prefetch={false}
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                style={{ textDecoration: "none" }}
+              >
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="secondary"
+                  endIcon={ActionArrowIcon}
+                >
+                  {t("dashboard.markets.tables.other.requestBTN")}
+                </Button>
+              </Link>
+            )}
+            {(action === LenderMarketAction.DepositUnavailable ||
+              action === LenderMarketAction.Unavailable) && (
+              <Button
+                size="small"
+                variant="contained"
+                color="secondary"
+                disabled
+              >
+                {action === LenderMarketAction.DepositUnavailable
+                  ? t("dashboard.markets.tables.other.depositBTN")
+                  : "Unavailable"}
+              </Button>
+            )}
+          </Box>
+        )
+      },
     },
   ]
 

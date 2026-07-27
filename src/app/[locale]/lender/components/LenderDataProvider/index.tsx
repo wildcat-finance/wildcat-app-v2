@@ -2,11 +2,7 @@
 
 import { ReactNode, useEffect, useMemo } from "react"
 
-import {
-  DepositStatus,
-  LenderRole,
-  MarketVersion,
-} from "@wildcatfi/wildcat-sdk"
+import { LenderRole } from "@wildcatfi/wildcat-sdk"
 
 import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { LenderMarketsContext } from "@/app/[locale]/lender/context"
@@ -15,6 +11,10 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useAppDispatch } from "@/store/hooks"
 import { setLendersSectionAmount } from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
+import {
+  getKnownMarketOnboardingMode,
+  MarketOnboardingMode,
+} from "@/utils/marketOnboarding"
 
 export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
   const dispatch = useAppDispatch()
@@ -24,6 +24,8 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
     data: marketAccounts,
     isLoadingInitial,
     isLoadingUpdate,
+    onboardingByMarket,
+    onboardingStatus,
   } = useLendersMarkets()
 
   const { data: borrowers } = useBorrowerNames()
@@ -91,11 +93,13 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
       othersMarkets.filter(
         (account) =>
           !account.market.isClosed &&
-          !account.hasEverInteracted &&
-          account.market.version === MarketVersion.V2 &&
-          account.depositAvailability === DepositStatus.Ready,
+          getKnownMarketOnboardingMode(
+            account.market.version,
+            account.market.address,
+            onboardingByMarket,
+          ) === MarketOnboardingMode.SelfOnboard,
       ).length,
-    [othersMarkets],
+    [onboardingByMarket, othersMarkets],
   )
 
   const manualAmount = useMemo(
@@ -103,13 +107,13 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
       othersMarkets.filter(
         (account) =>
           !account.market.isClosed &&
-          !(
-            !account.hasEverInteracted &&
-            account.market.version === MarketVersion.V2 &&
-            account.depositAvailability === DepositStatus.Ready
-          ),
+          getKnownMarketOnboardingMode(
+            account.market.version,
+            account.market.address,
+            onboardingByMarket,
+          ) === MarketOnboardingMode.BorrowerApproval,
       ).length,
-    [othersMarkets],
+    [onboardingByMarket, othersMarkets],
   )
 
   const terminatedOtherAmount = useMemo(
@@ -181,8 +185,22 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
   ])
 
   const contextValue = useMemo(
-    () => ({ marketAccounts, isLoadingInitial, isLoadingUpdate, borrowers }),
-    [marketAccounts, isLoadingInitial, isLoadingUpdate, borrowers],
+    () => ({
+      marketAccounts,
+      isLoadingInitial,
+      isLoadingUpdate,
+      onboardingByMarket,
+      onboardingStatus,
+      borrowers,
+    }),
+    [
+      marketAccounts,
+      isLoadingInitial,
+      isLoadingUpdate,
+      onboardingByMarket,
+      onboardingStatus,
+      borrowers,
+    ],
   )
 
   return (

@@ -1,7 +1,7 @@
 import * as React from "react"
 
 import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
-import { TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { DepositStatus, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
@@ -16,6 +16,7 @@ import {
   formatSecsToHours,
   formatTokenWithCommas,
 } from "@/utils/formatters"
+import { MarketOnboardingMode } from "@/utils/marketOnboarding"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -44,7 +45,8 @@ export type LenderMobileMarketItem = {
   borrowerAddress: string | undefined
   loan?: TokenAmount | undefined
   asset: string
-  isSelfOnboard?: boolean
+  onboardingMode?: MarketOnboardingMode
+  depositStatus?: DepositStatus
   chainId: number
 }
 
@@ -64,12 +66,16 @@ export const MobileMarketCard = ({
   marketItem,
   buttonText,
   buttonIcon,
+  buttonHref,
+  buttonDisabled = false,
   showBorrower = true,
   adsComponent,
 }: {
   marketItem: LenderMobileMarketItem
   buttonText?: string
   buttonIcon?: boolean
+  buttonHref?: string
+  buttonDisabled?: boolean
   showBorrower?: boolean
   adsComponent?: React.ReactNode
 }) => {
@@ -199,9 +205,11 @@ export const MobileMarketCard = ({
               More
             </Button>
           </Link>
-          {buttonText && (
+          {buttonText && !buttonDisabled && (
             <Link
-              href={buildMarketHref(marketItem.id, marketItem.chainId)}
+              href={
+                buttonHref ?? buildMarketHref(marketItem.id, marketItem.chainId)
+              }
               style={{ textDecoration: "none" }}
             >
               <Button
@@ -219,6 +227,21 @@ export const MobileMarketCard = ({
                 {buttonIcon && <DepositArrow />}
               </Button>
             </Link>
+          )}
+          {buttonText && buttonDisabled && (
+            <Button
+              variant="contained"
+              size="small"
+              disabled
+              sx={{
+                ...CardFooterButtonContainer,
+                height: "100%",
+                display: "flex",
+                gap: "2px",
+              }}
+            >
+              {buttonText}
+            </Button>
           )}
         </Box>
       </Box>

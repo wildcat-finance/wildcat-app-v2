@@ -1,11 +1,7 @@
 import React, { useEffect, useMemo, useCallback, useState } from "react"
 
 import { Box, Button, Divider, Typography } from "@mui/material"
-import {
-  DepositStatus,
-  MarketAccount,
-  MarketVersion,
-} from "@wildcatfi/wildcat-sdk"
+import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
@@ -31,6 +27,10 @@ import { BorrowerMarketDashboardSections } from "@/store/slices/borrowerDashboar
 import { setMarketFilters } from "@/store/slices/marketFiltersSlice/marketFiltersSlice"
 import { COLORS } from "@/theme/colors"
 import { filterMarketAccounts } from "@/utils/filters"
+import {
+  getKnownMarketOnboardingMode,
+  MarketOnboardingMode,
+} from "@/utils/marketOnboarding"
 import { MarketStatus } from "@/utils/marketStatus"
 
 import { useBorrowerNames } from "../../hooks/useBorrowerNames"
@@ -178,6 +178,7 @@ export const MarketsSection = () => {
     data: marketAccounts,
     isLoadingInitial,
     isLoadingUpdate,
+    onboardingByMarket,
   } = useLendersMarkets()
 
   const isLoading = isLoadingInitial || isLoadingUpdate
@@ -281,19 +282,21 @@ export const MarketsSection = () => {
   const selfOnboardAmount = othersMarkets.filter(
     (account) =>
       !account.market.isClosed &&
-      !account.hasEverInteracted &&
-      account.market.version === MarketVersion.V2 &&
-      account.depositAvailability === DepositStatus.Ready,
+      getKnownMarketOnboardingMode(
+        account.market.version,
+        account.market.address,
+        onboardingByMarket,
+      ) === MarketOnboardingMode.SelfOnboard,
   ).length
 
   const manualAmount = othersMarkets.filter(
     (account) =>
       !account.market.isClosed &&
-      !(
-        !account.hasEverInteracted &&
-        account.market.version === MarketVersion.V2 &&
-        account.depositAvailability === DepositStatus.Ready
-      ),
+      getKnownMarketOnboardingMode(
+        account.market.version,
+        account.market.address,
+        onboardingByMarket,
+      ) === MarketOnboardingMode.BorrowerApproval,
   ).length
 
   const terminatedOtherAmount = othersMarkets.filter(
@@ -521,6 +524,7 @@ export const MarketsSection = () => {
         !isWrongNetwork && (
           <OtherMarketsTables
             marketAccounts={filteredOtherMarketAccounts}
+            onboardingByMarket={onboardingByMarket}
             isLoading={isLoading}
             filters={filters}
           />

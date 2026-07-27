@@ -1,7 +1,15 @@
-import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import {
+  DepositStatus,
+  MarketAccount,
+  TokenAmount,
+} from "@wildcatfi/wildcat-sdk"
 
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
+import {
+  MarketOnboardingByAddress,
+  MarketOnboardingMode,
+} from "@/utils/marketOnboarding"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -17,13 +25,15 @@ export type OtherMarketsTableModel = {
   debt: TokenAmount | undefined
   apr: number
   withdrawalBatchDuration: number
-  isSelfOnboard: boolean
+  onboardingMode: MarketOnboardingMode | undefined
+  depositStatus: DepositStatus
   button?: string
   capacityLeft: TokenAmount
 }
 
 export type OtherMarketsTableProps = {
   marketAccounts: MarketAccount[]
+  onboardingByMarket: MarketOnboardingByAddress
   borrowers: BorrowerWithName[]
   isLoading: boolean
   filters: {

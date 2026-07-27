@@ -6,7 +6,10 @@ import { usePathname } from "next/navigation"
 import { getAdsMobileContent } from "@/components/AdsBanners/adsHelpers"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-import { formatBps } from "@/utils/formatters"
+import {
+  getLenderMarketAction,
+  LenderMarketAction,
+} from "@/utils/marketOnboarding"
 import { getPaginationRange } from "@/utils/pagination"
 
 import { LenderMobileMarketItem, MobileMarketCard } from "../MobileMarketCard"
@@ -16,9 +19,11 @@ const ITEMS_PER_PAGE = 20
 export const MobileMarketList = ({
   markets,
   isLoading,
+  showOnboardingAction = false,
 }: {
   markets: LenderMobileMarketItem[]
   isLoading: boolean
+  showOnboardingAction?: boolean
 }) => {
   const [page, setPage] = useState(0)
   const pathname = usePathname()
@@ -79,19 +84,54 @@ export const MobileMarketList = ({
         }}
       >
         {!isLoading &&
-          currentItems.map((marketItem) => (
-            <MobileMarketCard
-              adsComponent={getAdsMobileContent(
-                marketItem.chainId,
-                marketItem.id,
-              )}
-              key={marketItem.id}
-              marketItem={marketItem}
-              buttonText="Deposit"
-              buttonIcon
-              showBorrower={showBorrowerInCard}
-            />
-          ))}
+          currentItems.map((marketItem) => {
+            const action = marketItem.depositStatus
+              ? getLenderMarketAction(
+                  marketItem.onboardingMode,
+                  marketItem.depositStatus,
+                )
+              : LenderMarketAction.Deposit
+            let buttonText = "Deposit"
+            if (showOnboardingAction) {
+              if (
+                action === LenderMarketAction.Deposit ||
+                action === LenderMarketAction.DepositUnavailable
+              ) {
+                buttonText = "Deposit"
+              } else if (action === LenderMarketAction.RequestAccess) {
+                buttonText = "Request Access"
+              } else {
+                buttonText = "Unavailable"
+              }
+            }
+
+            return (
+              <MobileMarketCard
+                adsComponent={getAdsMobileContent(
+                  marketItem.chainId,
+                  marketItem.id,
+                )}
+                key={marketItem.id}
+                marketItem={marketItem}
+                buttonText={buttonText}
+                buttonIcon={
+                  !showOnboardingAction || action === LenderMarketAction.Deposit
+                }
+                buttonHref={
+                  showOnboardingAction &&
+                  action === LenderMarketAction.RequestAccess
+                    ? `${ROUTES.lender.profile}/${marketItem.borrowerAddress}`
+                    : undefined
+                }
+                buttonDisabled={
+                  showOnboardingAction &&
+                  (action === LenderMarketAction.DepositUnavailable ||
+                    action === LenderMarketAction.Unavailable)
+                }
+                showBorrower={showBorrowerInCard}
+              />
+            )
+          })}
         {isLoading && (
           <>
             <Skeleton
