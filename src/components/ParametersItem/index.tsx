@@ -1,7 +1,8 @@
 import * as React from "react"
 
-import { Box, Tooltip, Typography } from "@mui/material"
+import { Box, SvgIcon, Tooltip, Typography } from "@mui/material"
 
+import CheckIcon from "@/assets/icons/check_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
 import { TooltipButton } from "@/components/TooltipButton"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -24,6 +25,7 @@ export const ParametersItem = ({
   alarmState,
   copy,
   link,
+  verified,
 }: ParametersItemProps) => {
   const isMobile = useMobileResolution()
 
@@ -73,6 +75,17 @@ export const ParametersItem = ({
         )}
 
         <LinkGroup linkValue={link} copyValue={copy} />
+
+        {verified && (
+          <SvgIcon
+            sx={{
+              fontSize: "14px",
+              "& path": { fill: "#1B9B16" },
+            }}
+          >
+            <CheckIcon />
+          </SvgIcon>
+        )}
       </Box>
     </Box>
   )

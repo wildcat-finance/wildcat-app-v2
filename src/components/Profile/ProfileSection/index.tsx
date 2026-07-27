@@ -6,6 +6,7 @@ import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/use
 import { ProfileSectionNameBlock } from "./components/ProfileSectionNameBlock"
 import { ProfileSectionProps } from "./interface"
 import { OverallBlock } from "../components/OverallBlock"
+import { BorrowerProfileVerificationDisclosure } from "../components/VerificationDisclosure"
 
 export const ProfileSection = ({
   profileAddress,
@@ -32,6 +33,8 @@ export const ProfileSection = ({
         marketsAmount={marketsAmount}
         externalChainId={externalChainId}
       />
+
+      <BorrowerProfileVerificationDisclosure variant="market" />
     </>
   )
 }

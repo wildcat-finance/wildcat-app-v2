@@ -13,4 +13,5 @@ export type ProfileItem = {
   tooltipText?: string
   link?: string
   copy?: string
+  verified?: boolean
 }
