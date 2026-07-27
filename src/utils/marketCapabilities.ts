@@ -2,6 +2,7 @@ import {
   DepositStatus,
   FixedTermHooksConfig,
   HooksKind,
+  type RoleProvider,
 } from "@wildcatfi/wildcat-sdk"
 
 type MarketHooksConfigLike = {
@@ -20,6 +21,13 @@ type MarketAccountLike = {
   hasEverInteracted?: boolean
   market: MarketLike
 }
+
+export const hasActivePullRoleProvider = (
+  roleProviders: readonly Pick<RoleProvider, "isApproved" | "isPullProvider">[],
+): boolean =>
+  roleProviders.some(
+    ({ isApproved, isPullProvider }) => isApproved && isPullProvider,
+  )
 
 export const isHooksManagedMarket = (market: MarketLike): boolean =>
   market.hooksConfig?.hooksAddress !== undefined

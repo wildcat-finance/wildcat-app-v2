@@ -3,12 +3,36 @@ import { DepositStatus, HooksKind } from "@wildcatfi/wildcat-sdk"
 import {
   getFixedTermHooksConfig,
   getMarketPolicyAddress,
+  hasActivePullRoleProvider,
   isFixedTermMarket,
   isHooksManagedMarket,
   isSelfOnboardMarketAccount,
 } from "./marketCapabilities"
 
 describe("marketCapabilities", () => {
+  it("classifies self-onboarding from active pull-provider metadata", () => {
+    const borrowerPushProvider = {
+      isApproved: true,
+      isPullProvider: false,
+    }
+    const removedPullProvider = {
+      isApproved: false,
+      isPullProvider: true,
+    }
+    const activePullProvider = {
+      isApproved: true,
+      isPullProvider: true,
+    }
+
+    expect(hasActivePullRoleProvider([borrowerPushProvider])).toBe(false)
+    expect(
+      hasActivePullRoleProvider([borrowerPushProvider, removedPullProvider]),
+    ).toBe(false)
+    expect(
+      hasActivePullRoleProvider([borrowerPushProvider, activePullProvider]),
+    ).toBe(true)
+  })
+
   it("prefers hooks policy addresses when present", () => {
     const market = {
       controller: "0xcontroller",

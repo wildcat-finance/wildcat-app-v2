@@ -11,6 +11,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { hasActivePullRoleProvider } from "@/utils/marketCapabilities"
 
 import { NewMarketFormType } from "./useNewMarketForm"
 import { useGetBorrowerHooksData } from "../../hooks/useGetBorrowerHooksData"
@@ -121,9 +122,9 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
           )
           setValue(
             "accessControl",
-            hooksInstance.roleProviders.length === 1
-              ? "manualApproval"
-              : "defaultPullProvider",
+            hasActivePullRoleProvider(hooksInstance.roleProviders)
+              ? "defaultPullProvider"
+              : "manualApproval",
           )
           setValue("policyName", hooksInstance.name)
         } else {

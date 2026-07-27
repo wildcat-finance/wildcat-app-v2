@@ -26,6 +26,7 @@ import {
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 import { pageCalcHeights } from "@/utils/constants"
+import { hasActivePullRoleProvider } from "@/utils/marketCapabilities"
 
 import { SmallFilterSelectItem } from "../../../../components/SmallFilterSelect"
 
@@ -93,8 +94,8 @@ export default function PolicyPage() {
     }
   }, [data, policyName, policyAddress])
 
-  const accessControl = data?.hooksInstance?.roleProviders.some(
-    (p) => p.isPullProvider,
+  const accessControl = hasActivePullRoleProvider(
+    data?.hooksInstance?.roleProviders ?? [],
   )
     ? t("roleProviders.defaultPullProvider")
     : t("roleProviders.manualApproval")
