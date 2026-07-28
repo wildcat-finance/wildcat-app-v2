@@ -33,7 +33,7 @@ import { getCreateMarketSigningDraftScope } from "@/store/slices/createMarketSig
 import { SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS } from "@/utils/serviceAgreementMessage"
 
 import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
-import { getMlaFromForm } from "./usePreviewMla"
+import { CreateMarketMlaIdentity, getMlaFromForm } from "./usePreviewMla"
 import { MarketValidationSchemaType } from "../../create-market/validation/validationSchema"
 
 export const useBorrowerProfileTmp = (address: string | undefined) => {
@@ -212,6 +212,7 @@ export type SignMlaFromFormInputs = {
   asset: Token | undefined
   draftId?: string
   resumeMessage?: string
+  marketIdentity?: CreateMarketMlaIdentity
 }
 
 export const useSignMla = (salt: string, marketKind: DeployableMarketKind) => {
@@ -232,6 +233,7 @@ export const useSignMla = (salt: string, marketKind: DeployableMarketKind) => {
       asset,
       draftId,
       resumeMessage,
+      marketIdentity,
     }: SignMlaFromFormInputs) => {
       console.log("signing mla")
       const selectedMla = form.getValues("mla")
@@ -277,7 +279,7 @@ export const useSignMla = (salt: string, marketKind: DeployableMarketKind) => {
             if (mlaTemplateId === undefined) {
               return DECLINE_MLA_ASSIGNMENT_MESSAGE.replace(
                 "{{market}}",
-                marketAddress.toLowerCase(),
+                (marketIdentity?.marketAddress ?? marketAddress).toLowerCase(),
               ).replace("{{timeSigned}}", formatDate(effectiveTimeSigned)!)
             }
             const mlaData = await getMlaFromForm(
@@ -290,6 +292,7 @@ export const useSignMla = (salt: string, marketKind: DeployableMarketKind) => {
               salt,
               marketKind,
               NETWORKS_BY_ID[chainId as SupportedChainId],
+              marketIdentity,
             )
             return mlaData.message
           },

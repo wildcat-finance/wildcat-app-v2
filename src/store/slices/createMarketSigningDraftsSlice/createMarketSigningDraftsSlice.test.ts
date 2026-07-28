@@ -1,16 +1,21 @@
 import { SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS } from "@/utils/serviceAgreementMessage"
 
 import {
+  clearCreateMarketSafeTransactionProposal,
   CreateMarketSigningDraft,
   createMarketSigningDraftsReducer,
   discardLegacyCreateMarketSigningDrafts,
+  getCreateMarketSafeTransactionProposal,
   getCreateMarketDeploymentIdentity,
   getCreateMarketSigningDraftScope,
   getReusableCreateMarketDraftDeployment,
+  hasCommittedCreateMarketDeployment,
   haveSameCreateMarketFormValues,
+  isCommittedCreateMarketDraftCompatible,
   isCreateMarketDraftCompatible,
   isCreateMarketSigningDraftExpired,
   markCreateMarketDraftDeployed,
+  recordCreateMarketSafeTransactionProposal,
   removeCreateMarketSigningDraft,
   saveCreateMarketSigningDraft,
 } from "./createMarketSigningDraftsSlice"
@@ -198,6 +203,192 @@ describe("createMarketSigningDraftsSlice", () => {
     )
   })
 
+  it("persists Safe proposals for the exact deployment ceremony", () => {
+    let state = createMarketSigningDraftsReducer(
+      undefined,
+      saveCreateMarketSigningDraft(draft),
+    )
+    const scope = getCreateMarketSigningDraftScope(draft.address, 1)
+
+    state = createMarketSigningDraftsReducer(
+      state,
+      recordCreateMarketSafeTransactionProposal({
+        address: draft.address,
+        chainId: draft.chainId,
+        salt: "0xother",
+        predictedMarket: deploymentIdentity.predictedMarket,
+        step: "market",
+        safeTxHash: "0xignored",
+        submittedAt: 100,
+      }),
+    )
+    expect(state.records[scope].safeTransactionProposals).toBeUndefined()
+
+    state = createMarketSigningDraftsReducer(
+      state,
+      recordCreateMarketSafeTransactionProposal({
+        address: draft.address,
+        chainId: draft.chainId,
+        salt: draft.salt,
+        predictedMarket: deploymentIdentity.predictedMarket,
+        step: "market",
+        safeTxHash: "0xproposal",
+        submittedAt: 101,
+      }),
+    )
+    expect(
+      getCreateMarketSafeTransactionProposal({
+        draft: state.records[scope],
+        salt: draft.salt,
+        predictedMarket: deploymentIdentity.predictedMarket,
+        step: "market",
+      }),
+    ).toEqual({
+      safeTxHash: "0xproposal",
+      submittedAt: 101,
+    })
+    expect(hasCommittedCreateMarketDeployment(state.records[scope])).toBe(true)
+
+    state = createMarketSigningDraftsReducer(
+      state,
+      recordCreateMarketSafeTransactionProposal({
+        address: draft.address,
+        chainId: draft.chainId,
+        salt: draft.salt,
+        predictedMarket: deploymentIdentity.predictedMarket,
+        step: "wrapper",
+        safeTxHash: "0ximpossible-wrapper",
+        submittedAt: 102,
+      }),
+    )
+    expect(
+      state.records[scope].safeTransactionProposals?.wrapper,
+    ).toBeUndefined()
+
+    state = createMarketSigningDraftsReducer(
+      state,
+      recordCreateMarketSafeTransactionProposal({
+        address: draft.address,
+        chainId: draft.chainId,
+        salt: draft.salt,
+        predictedMarket: deploymentIdentity.predictedMarket,
+        step: "market",
+        safeTxHash: "0xduplicate",
+        submittedAt: 102,
+      }),
+    )
+    expect(
+      state.records[scope].safeTransactionProposals?.market?.safeTxHash,
+    ).toBe("0xproposal")
+
+    state = createMarketSigningDraftsReducer(
+      state,
+      clearCreateMarketSafeTransactionProposal({
+        address: draft.address,
+        chainId: draft.chainId,
+        salt: draft.salt,
+        predictedMarket: deploymentIdentity.predictedMarket,
+        step: "market",
+        safeTxHash: "0xwrong",
+      }),
+    )
+    expect(
+      state.records[scope].safeTransactionProposals?.market?.safeTxHash,
+    ).toBe("0xproposal")
+
+    state = createMarketSigningDraftsReducer(
+      state,
+      clearCreateMarketSafeTransactionProposal({
+        address: draft.address,
+        chainId: draft.chainId,
+        salt: draft.salt,
+        predictedMarket: deploymentIdentity.predictedMarket,
+        step: "market",
+        safeTxHash: "0xproposal",
+      }),
+    )
+    expect(
+      state.records[scope].safeTransactionProposals?.market,
+    ).toBeUndefined()
+    expect(hasCommittedCreateMarketDeployment(state.records[scope])).toBe(false)
+  })
+
+  it("clears the market proposal when the exact deployment is recorded", () => {
+    let state = createMarketSigningDraftsReducer(
+      undefined,
+      saveCreateMarketSigningDraft({
+        ...draft,
+        safeTransactionProposals: {
+          market: { safeTxHash: "0xmarket", submittedAt: 100 },
+        },
+      }),
+    )
+    const scope = getCreateMarketSigningDraftScope(draft.address, 1)
+
+    state = createMarketSigningDraftsReducer(
+      state,
+      markCreateMarketDraftDeployed({
+        address: draft.address,
+        chainId: draft.chainId,
+        salt: draft.salt,
+        deployedMarket: deploymentIdentity.predictedMarket,
+      }),
+    )
+
+    expect(state.records[scope].deployedMarket).toBe(
+      deploymentIdentity.predictedMarket,
+    )
+    expect(
+      state.records[scope].safeTransactionProposals?.market,
+    ).toBeUndefined()
+
+    state = createMarketSigningDraftsReducer(
+      state,
+      recordCreateMarketSafeTransactionProposal({
+        address: draft.address,
+        chainId: draft.chainId,
+        salt: draft.salt,
+        predictedMarket: deploymentIdentity.predictedMarket,
+        step: "wrapper",
+        safeTxHash: "0xwrapper",
+        submittedAt: 101,
+      }),
+    )
+    expect(
+      state.records[scope].safeTransactionProposals?.wrapper?.safeTxHash,
+    ).toBe("0xwrapper")
+  })
+
+  it("retains a committed Safe proposal when the legal signing context rotates", () => {
+    const proposedDraft: CreateMarketSigningDraft = {
+      ...draft,
+      safeTransactionProposals: {
+        market: { safeTxHash: "0xmarket", submittedAt: 100 },
+      },
+    }
+    let state = createMarketSigningDraftsReducer(
+      undefined,
+      saveCreateMarketSigningDraft(proposedDraft),
+    )
+    const scope = getCreateMarketSigningDraftScope(draft.address, 1)
+
+    state = createMarketSigningDraftsReducer(
+      state,
+      saveCreateMarketSigningDraft({
+        ...state.records[scope],
+        id: "draft-2",
+        timeSigned: 789,
+        createdAt: 790,
+      }),
+    )
+
+    expect(state.records[scope].id).toBe("draft-2")
+    expect(
+      state.records[scope].safeTransactionProposals?.market?.safeTxHash,
+    ).toBe("0xmarket")
+    expect(hasCommittedCreateMarketDeployment(state.records[scope])).toBe(true)
+  })
+
   it("reuses a persisted deployment only for the same ceremony", () => {
     const deployedDraft = {
       ...draft,
@@ -311,6 +502,53 @@ describe("createMarketSigningDraftsSlice", () => {
         chainId: draft.chainId,
       }),
     ).toBe(true)
+  })
+
+  it("validates a committed draft without current template metadata", () => {
+    const committedDraft = {
+      ...draft,
+      deployedMarket: deploymentIdentity.predictedMarket,
+    }
+    const proposedDraft: CreateMarketSigningDraft = {
+      ...draft,
+      safeTransactionProposals: {
+        market: { safeTxHash: "0xmarket", submittedAt: 100 },
+      },
+    }
+
+    expect(
+      isCommittedCreateMarketDraftCompatible({
+        draft: committedDraft,
+        formValues,
+        asset,
+        address: draft.address,
+        chainId: draft.chainId,
+        salt: draft.salt,
+        predictedMarket: deploymentIdentity.predictedMarket,
+      }),
+    ).toBe(true)
+    expect(
+      isCommittedCreateMarketDraftCompatible({
+        draft: proposedDraft,
+        formValues,
+        asset,
+        address: draft.address,
+        chainId: draft.chainId,
+        salt: draft.salt,
+        predictedMarket: deploymentIdentity.predictedMarket,
+      }),
+    ).toBe(true)
+    expect(
+      isCommittedCreateMarketDraftCompatible({
+        draft: committedDraft,
+        formValues: { ...formValues, commitmentFeePercent: 2 },
+        asset,
+        address: draft.address,
+        chainId: draft.chainId,
+        salt: draft.salt,
+        predictedMarket: deploymentIdentity.predictedMarket,
+      }),
+    ).toBe(false)
   })
 
   it("invalidates asset and predicted-market changes", () => {

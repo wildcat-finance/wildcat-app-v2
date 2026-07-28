@@ -63,7 +63,12 @@ function getDeployableHooksTemplate({
   )
 }
 
-export function useNewMarketHooksData(form: NewMarketFormType) {
+export function useNewMarketHooksData(
+  form: NewMarketFormType,
+  {
+    preserveUnavailablePolicy = false,
+  }: { preserveUnavailablePolicy?: boolean } = {},
+) {
   const { data: hooksData, ...queryData } = useGetBorrowerHooksData()
   const { chainId } = useCurrentNetwork()
   const { getValues, setValue } = form
@@ -127,7 +132,7 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
               : "manualApproval",
           )
           setValue("policyName", hooksInstance.name)
-        } else {
+        } else if (!preserveUnavailablePolicy) {
           setValue("policyName", "")
         }
       }
@@ -136,6 +141,7 @@ export function useNewMarketHooksData(form: NewMarketFormType) {
     hooksData,
     marketType,
     policyValue,
+    preserveUnavailablePolicy,
     setValue,
     targetHooksFactory,
     targetMarketKind,

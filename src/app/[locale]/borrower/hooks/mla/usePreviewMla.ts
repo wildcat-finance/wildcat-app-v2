@@ -40,6 +40,11 @@ const MARKET_TYPE_TO_HOOKS_KIND: Record<string, HooksKind | undefined> = {
   periodicTerm: HooksKind.PeriodicTerm,
 }
 
+export type CreateMarketMlaIdentity = {
+  marketAddress: string
+  hooksFactory: string
+}
+
 export function getFieldValuesForBorrowerFromForm(
   marketParams: MarketValidationSchemaType,
   borrowerInfo: BasicBorrowerInfo,
@@ -47,6 +52,10 @@ export function getFieldValuesForBorrowerFromForm(
   marketAddress: string,
   asset: Token,
   networkData: NetworkInfo,
+  hooksFactory = getHooksFactoryAddress(
+    networkData.chainId,
+    marketParams.implementationType,
+  ),
 ) {
   // eslint-disable-next-line no-nested-ternary
   const transferAccess = marketParams.disableTransfers
@@ -85,10 +94,7 @@ export function getFieldValuesForBorrowerFromForm(
       name: marketName,
       symbol: marketSymbol,
       marketKind: marketParams.implementationType,
-      hooksFactory: getHooksFactoryAddress(
-        networkData.chainId,
-        marketParams.implementationType,
-      ),
+      hooksFactory,
       marketTerm:
         MARKET_TYPE_TO_HOOKS_KIND[marketParams.marketType] ?? HooksKind.Unknown,
       address: marketAddress,
@@ -140,13 +146,15 @@ export async function getMlaFromForm(
   salt: string,
   marketKind: DeployableMarketKind,
   networkData: NetworkInfo,
+  marketIdentity?: CreateMarketMlaIdentity,
 ) {
-  const hooksFactoryContract = getHooksFactoryContractForMarketKind(
-    networkData.chainId,
-    marketKind,
-    provider,
-  )
-  const marketAddress = await hooksFactoryContract.computeMarketAddress(salt)
+  const marketAddress =
+    marketIdentity?.marketAddress ??
+    (await getHooksFactoryContractForMarketKind(
+      networkData.chainId,
+      marketKind,
+      provider,
+    ).computeMarketAddress(salt))
 
   const mlaTemplate = await fetch(
     getMlaTemplateApiPath(mlaTemplateId, networkData.chainId),
@@ -159,6 +167,7 @@ export async function getMlaFromForm(
     marketAddress,
     asset,
     networkData,
+    marketIdentity?.hooksFactory,
   )
 
   const { html, plaintext, message } = fillInMlaTemplate(

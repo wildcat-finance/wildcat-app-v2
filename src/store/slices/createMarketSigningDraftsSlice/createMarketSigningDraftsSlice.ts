@@ -29,6 +29,13 @@ export type CreateMarketDeploymentIdentity = {
   mlaTemplate: string
 }
 
+export type CreateMarketSafeTransactionStep = "market" | "wrapper"
+
+export type CreateMarketSafeTransactionProposal = {
+  safeTxHash: string
+  submittedAt: number
+}
+
 export type CreateMarketSigningDraft = {
   version: 2
   walletKind: "Safe"
@@ -45,7 +52,28 @@ export type CreateMarketSigningDraft = {
   // Set once the market for `salt` is deployed on chain. This lets a resumed
   // draft skip re-deploying and retry only the agreement upload.
   deployedMarket?: string
+  // Safe transaction proposals are part of the deployment ceremony once
+  // submitted. Persisting them prevents reloads from proposing duplicate
+  // market or wrapper transactions while the original is still executable.
+  safeTransactionProposals?: Partial<
+    Record<CreateMarketSafeTransactionStep, CreateMarketSafeTransactionProposal>
+  >
 }
+
+export type CommittedCreateMarketSigningDraft = CreateMarketSigningDraft &
+  (
+    | { deployedMarket: string }
+    | {
+        safeTransactionProposals: Partial<
+          Record<
+            CreateMarketSafeTransactionStep,
+            CreateMarketSafeTransactionProposal
+          >
+        > & {
+          market: CreateMarketSafeTransactionProposal
+        }
+      }
+  )
 
 export type CreateMarketSigningDraftsState = {
   records: Record<string, CreateMarketSigningDraft>
@@ -167,6 +195,43 @@ export const isCreateMarketDraftCompatible = ({
         value,
   )
 
+export const hasCommittedCreateMarketDeployment = (
+  draft: CreateMarketSigningDraft | undefined,
+): draft is CommittedCreateMarketSigningDraft =>
+  !!draft &&
+  (!!draft.deployedMarket || !!draft.safeTransactionProposals?.market)
+
+export const isCommittedCreateMarketDraftCompatible = ({
+  draft,
+  formValues,
+  asset,
+  address,
+  chainId,
+  salt,
+  predictedMarket,
+}: {
+  draft: CreateMarketSigningDraft
+  formValues: MarketValidationSchemaType
+  asset: CreateMarketAssetSnapshot
+  address: string
+  chainId: number
+  salt: string
+  predictedMarket: string
+}) =>
+  hasCommittedCreateMarketDeployment(draft) &&
+  draft.version === 2 &&
+  draft.walletKind === "Safe" &&
+  draft.chainId === chainId &&
+  normalizeAddress(draft.address) === normalizeAddress(address) &&
+  draft.salt === salt &&
+  haveSameCreateMarketFormValues(draft.formValues, formValues) &&
+  haveSameCreateMarketAsset(draft.asset, asset) &&
+  normalizeAddress(predictedMarket) ===
+    draft.deploymentIdentity.predictedMarket &&
+  (!draft.deployedMarket ||
+    normalizeAddress(draft.deployedMarket) ===
+      draft.deploymentIdentity.predictedMarket)
+
 export const getReusableCreateMarketDraftDeployment = ({
   draft,
   salt,
@@ -186,6 +251,25 @@ export const getReusableCreateMarketDraftDeployment = ({
   normalizeAddress(draft.deployedMarket) ===
     draft.deploymentIdentity.predictedMarket
     ? draft.deployedMarket
+    : undefined
+
+export const getCreateMarketSafeTransactionProposal = ({
+  draft,
+  salt,
+  predictedMarket,
+  step,
+}: {
+  draft: CreateMarketSigningDraft | undefined
+  salt: string
+  predictedMarket: string
+  step: CreateMarketSafeTransactionStep
+}) =>
+  draft?.version === 2 &&
+  draft.salt === salt &&
+  draft.deploymentIdentity.predictedMarket ===
+    normalizeAddress(predictedMarket) &&
+  !(step === "market" && draft.deployedMarket)
+    ? draft.safeTransactionProposals?.[step]
     : undefined
 
 export const getCreateMarketSigningDraftScope = (
@@ -253,14 +337,91 @@ const createMarketSigningDraftsSlice = createSlice({
         return
       }
       record.deployedMarket = action.payload.deployedMarket
+      if (record.safeTransactionProposals) {
+        delete record.safeTransactionProposals.market
+      }
+    },
+    recordCreateMarketSafeTransactionProposal: (
+      state,
+      action: PayloadAction<{
+        address: string
+        chainId: number
+        salt: string
+        predictedMarket: string
+        step: CreateMarketSafeTransactionStep
+        safeTxHash: string
+        submittedAt: number
+      }>,
+    ) => {
+      const record =
+        state.records[
+          getCreateMarketSigningDraftScope(
+            action.payload.address,
+            action.payload.chainId,
+          )
+        ]
+      if (
+        !record ||
+        record.salt !== action.payload.salt ||
+        record.deploymentIdentity.predictedMarket !==
+          normalizeAddress(action.payload.predictedMarket) ||
+        (action.payload.step === "market" && record.deployedMarket) ||
+        (action.payload.step === "wrapper" &&
+          (!record.deployedMarket ||
+            normalizeAddress(record.deployedMarket) !==
+              record.deploymentIdentity.predictedMarket))
+      ) {
+        return
+      }
+      const existing = record.safeTransactionProposals?.[action.payload.step]
+      if (existing && existing.safeTxHash !== action.payload.safeTxHash) {
+        return
+      }
+      record.safeTransactionProposals ??= {}
+      record.safeTransactionProposals[action.payload.step] = {
+        safeTxHash: action.payload.safeTxHash,
+        submittedAt: action.payload.submittedAt,
+      }
+    },
+    clearCreateMarketSafeTransactionProposal: (
+      state,
+      action: PayloadAction<{
+        address: string
+        chainId: number
+        salt: string
+        predictedMarket: string
+        step: CreateMarketSafeTransactionStep
+        safeTxHash: string
+      }>,
+    ) => {
+      const record =
+        state.records[
+          getCreateMarketSigningDraftScope(
+            action.payload.address,
+            action.payload.chainId,
+          )
+        ]
+      const proposal = record?.safeTransactionProposals?.[action.payload.step]
+      if (
+        !record ||
+        record.salt !== action.payload.salt ||
+        record.deploymentIdentity.predictedMarket !==
+          normalizeAddress(action.payload.predictedMarket) ||
+        proposal?.safeTxHash !== action.payload.safeTxHash
+      ) {
+        return
+      }
+      delete record.safeTransactionProposals?.[action.payload.step]
     },
   },
 })
 
 export const {
+  clearCreateMarketSafeTransactionProposal,
   saveCreateMarketSigningDraft,
   removeCreateMarketSigningDraft,
   markCreateMarketDraftDeployed,
+  recordCreateMarketSafeTransactionProposal,
 } = createMarketSigningDraftsSlice.actions
 export const createMarketSigningDraftsReducer =
   createMarketSigningDraftsSlice.reducer

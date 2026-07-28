@@ -29,11 +29,21 @@ export const sendTransactionAndWait = async (
   return submitted.wait()
 }
 
+export type SafeTransactionDetails = {
+  txStatus?:
+    | "AWAITING_CONFIRMATIONS"
+    | "AWAITING_EXECUTION"
+    | "CANCELLED"
+    | "FAILED"
+    | "SUCCESS"
+  txHash?: string | null
+}
+
 type SafeSdkLike = {
   txs: {
     getBySafeTxHash: (
       safeTxHash: string,
-    ) => Promise<{ txHash?: string | null } | null | undefined>
+    ) => Promise<SafeTransactionDetails | null | undefined>
   }
 }
 
@@ -60,6 +70,69 @@ export const waitForSafeTransactionHash = async (
         resolve(transactionBySafeHash.txHash)
       } else {
         setTimeout(check, 1000)
+      }
+    }
+    check()
+  })
+
+export type SafeTransactionResolution =
+  | { status: "pending" }
+  | { status: "executed"; transactionHash: string }
+  | { status: "terminal"; transactionStatus: "CANCELLED" | "FAILED" }
+
+export const getSafeTransactionResolution = (
+  transaction: SafeTransactionDetails | null | undefined,
+): SafeTransactionResolution => {
+  if (
+    transaction?.txStatus === "CANCELLED" ||
+    transaction?.txStatus === "FAILED"
+  ) {
+    return {
+      status: "terminal",
+      transactionStatus: transaction.txStatus,
+    }
+  }
+  if (transaction?.txHash) {
+    return { status: "executed", transactionHash: transaction.txHash }
+  }
+  return { status: "pending" }
+}
+
+export class SafeTransactionTerminalError extends Error {
+  constructor(
+    readonly safeTxHash: string,
+    readonly transactionStatus: "CANCELLED" | "FAILED",
+  ) {
+    super(`Safe transaction ${transactionStatus.toLowerCase()}`)
+    this.name = "SafeTransactionTerminalError"
+  }
+}
+
+export const waitForSafeTransactionExecution = async (
+  sdk: SafeSdkLike,
+  safeTxHash: string,
+): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const check = async () => {
+      try {
+        const transaction = await sdk.txs.getBySafeTxHash(safeTxHash)
+        const resolution = getSafeTransactionResolution(transaction)
+        if (resolution.status === "executed") {
+          resolve(resolution.transactionHash)
+          return
+        }
+        if (resolution.status === "terminal") {
+          reject(
+            new SafeTransactionTerminalError(
+              safeTxHash,
+              resolution.transactionStatus,
+            ),
+          )
+          return
+        }
+        setTimeout(check, 1000)
+      } catch (error) {
+        reject(error)
       }
     }
     check()
