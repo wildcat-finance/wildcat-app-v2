@@ -11,6 +11,7 @@ import {
   ContentContainer,
   MenuItemButton,
 } from "@/components/Sidebar/BorrowerSidebar/style"
+import { analyticsUiEnabled } from "@/config/featureFlags"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { isSubgraphPricingConfigured } from "@/lib/subgraphCapabilities"
 import { ROUTES } from "@/routes"
@@ -66,6 +67,7 @@ export const BorrowerSidebar = () => {
   const { chainId } = useSelectedNetwork()
   const analyticsAvailable = isSubgraphPricingConfigured(chainId)
   const showTabs =
+    analyticsUiEnabled &&
     !isEditProfile &&
     resolved !== null &&
     (resolved.kind === "borrower" || analyticsAvailable)

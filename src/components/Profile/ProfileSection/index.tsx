@@ -9,6 +9,7 @@ import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/use
 import { LenderAnalyticsSummary } from "@/app/[locale]/lender/market/[address]/components/LenderAnalyticsSummary"
 import { AnalyticsUnavailableNotice } from "@/components/Profile/shared/AnalyticsUnavailableNotice"
 import { buildBorrowerSummaryItems } from "@/components/Profile/shared/borrowerSummaryItems"
+import { analyticsUiEnabled } from "@/config/featureFlags"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { isSubgraphPricingConfigured } from "@/lib/subgraphCapabilities"
 import { buildBorrowerProfileHref } from "@/utils/formatters"
@@ -18,7 +19,7 @@ import { ProfileSectionNameBlock } from "./components/ProfileSectionNameBlock"
 import { ProfileSectionProps } from "./interface"
 import { OverallBlock } from "../components/OverallBlock"
 
-export const ProfileSection = ({
+const AnalyticsProfileSection = ({
   profileAddress,
   externalChainId,
 }: ProfileSectionProps) => {
@@ -88,3 +89,38 @@ export const ProfileSection = ({
     </Box>
   )
 }
+
+const CoreProfileSection = ({
+  profileAddress,
+  externalChainId,
+}: ProfileSectionProps) => {
+  const { chainId: selectedChainId } = useSelectedNetwork()
+  const chainId = externalChainId ?? selectedChainId
+  const { data: profileData } = useGetBorrowerProfile(profileAddress, chainId)
+  const { data: borrowerMarkets } = useGetBorrowerMarkets(
+    profileAddress,
+    chainId,
+  )
+
+  const activeMarkets = borrowerMarkets?.filter((market) => !market.isClosed)
+  const marketsAmount = (activeMarkets ?? []).length
+
+  return (
+    <>
+      <ProfileSectionNameBlock {...profileData} />
+
+      <OverallBlock
+        {...profileData}
+        marketsAmount={marketsAmount}
+        externalChainId={chainId}
+      />
+    </>
+  )
+}
+
+export const ProfileSection = (props: ProfileSectionProps) =>
+  analyticsUiEnabled ? (
+    <AnalyticsProfileSection {...props} />
+  ) : (
+    <CoreProfileSection {...props} />
+  )

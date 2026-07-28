@@ -36,6 +36,7 @@ import {
 } from "@/components/HelpModal/HelpMenuItems"
 import { LinkGroup } from "@/components/LinkComponent"
 import { MobileConnectWallet } from "@/components/MobileConnectWallet"
+import { analyticsUiEnabled } from "@/config/featureFlags"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { ROUTES } from "@/routes"
@@ -69,6 +70,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
   const profileRoute = isBorrowerContext
     ? ROUTES.borrower.profile
     : ROUTES.lender.profile
+  const shouldShowProfileLink = isBorrowerContext || analyticsUiEnabled
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
@@ -341,22 +343,24 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     marginBottom: "12px",
                   }}
                 >
-                  <Button
-                    component={Link}
-                    href={profileRoute}
-                    variant="contained"
-                    color="secondary"
-                    size="medium"
-                    onClick={handleToggleModal}
-                    sx={{
-                      borderRadius: "10px",
-                      gridColumn: "1 / -1",
-                      padding: "12px 8px",
-                    }}
-                    fullWidth
-                  >
-                    View Profile
-                  </Button>
+                  {shouldShowProfileLink && (
+                    <Button
+                      component={Link}
+                      href={profileRoute}
+                      variant="contained"
+                      color="secondary"
+                      size="medium"
+                      onClick={handleToggleModal}
+                      sx={{
+                        borderRadius: "10px",
+                        gridColumn: "1 / -1",
+                        padding: "12px 8px",
+                      }}
+                      fullWidth
+                    >
+                      View Profile
+                    </Button>
+                  )}
                   <Button
                     variant="contained"
                     color="secondary"

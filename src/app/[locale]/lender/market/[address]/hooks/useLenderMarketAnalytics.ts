@@ -25,6 +25,7 @@ export type LenderMarketAnalytics = {
 export function useLenderMarketAnalytics(
   market: Market | undefined,
   withdrawals: LenderWithdrawalsForMarketResult,
+  enabled = true,
 ): LenderMarketAnalytics {
   const marketAddress = market?.address.toLowerCase()
   const subgraphClient = useMemo(
@@ -33,7 +34,7 @@ export function useLenderMarketAnalytics(
   )
 
   const totalWithdrawalsExecuted = useMemo(() => {
-    if (!market) return undefined
+    if (!enabled || !market) return undefined
 
     const allWithdrawals = [
       ...withdrawals.completeWithdrawals,
@@ -45,7 +46,7 @@ export function useLenderMarketAnalytics(
       (total, withdrawal) => total.add(withdrawal.normalizedAmountWithdrawn),
       market.underlyingToken.getAmount(0),
     )
-  }, [market, withdrawals])
+  }, [enabled, market, withdrawals])
 
   const { data: activeLendersCount, isLoading: isLoadingActiveLenders } =
     useQuery({
@@ -54,6 +55,7 @@ export function useLenderMarketAnalytics(
         marketAddress,
       ),
       enabled:
+        enabled &&
         !!marketAddress &&
         !!subgraphClient &&
         isSubgraphAnalyticsConfigured(market?.chainId),

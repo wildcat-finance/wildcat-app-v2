@@ -37,6 +37,7 @@ import { useIdlePrefetchMarketRecords } from "@/components/PaginatedMarketRecord
 import { PendingAprReductionBanner } from "@/components/PendingAprReductionBanner"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
 import { METRIC_BASIS } from "@/components/Profile/shared/metricBasis"
+import { analyticsUiEnabled } from "@/config/featureFlags"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketDetailPerformanceMark } from "@/hooks/useMarketDetailPerformance"
 import { useMarketMla } from "@/hooks/useMarketMla"
@@ -61,7 +62,10 @@ import {
   WrapDebtTokenTab,
 } from "@/store/slices/wrapDebtTokenFlowSlice/wrapDebtTokenFlowSlice"
 import { COLORS } from "@/theme/colors"
-import { formatTokenWithCommas } from "@/utils/formatters"
+import {
+  buildBorrowerProfileHref,
+  formatTokenWithCommas,
+} from "@/utils/formatters"
 
 import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
 import { LenderAnalyticsSummary } from "./components/LenderAnalyticsSummary"
@@ -148,17 +152,21 @@ export default function LenderMarketDetails({
     performanceContext,
     !!market && !isWithdrawalsLoading,
   )
-  const analytics = useLenderMarketAnalytics(market, withdrawals)
+  const analytics = useLenderMarketAnalytics(
+    market,
+    withdrawals,
+    analyticsUiEnabled,
+  )
   const {
     dailyFlows,
     isLoading: isFlowsLoading,
     symbol,
-  } = useMarketDailyFlows(market)
+  } = useMarketDailyFlows(market, analyticsUiEnabled)
   const {
     delinquencyHistory,
     isLoading: isDelinquencyLoading,
     gracePeriodHours,
-  } = useMarketDelinquencyHistory(market)
+  } = useMarketDelinquencyHistory(market, analyticsUiEnabled)
 
   const hasLenderInteracted = !!marketAccount?.hasEverInteracted
 
@@ -625,7 +633,7 @@ export default function LenderMarketDetails({
             )}
           </Box>
 
-          {hasLenderInteracted && (
+          {analyticsUiEnabled && hasLenderInteracted && (
             <LenderAnalyticsSummary
               items={analyticsSummaryItems}
               isLoading={analytics.isLoadingActiveLenders}
@@ -704,7 +712,7 @@ export default function LenderMarketDetails({
               title="Lend through Wildcat"
               subtitle="Interested in lending through Wildcat? Connect with this borrower to request access."
               buttonText="Leave a Request"
-              href={`${ROUTES.lender.profile}/${market.borrower.toLowerCase()}`}
+              href={buildBorrowerProfileHref(market.borrower, market.chainId)}
             />
           )}
 
@@ -730,17 +738,19 @@ export default function LenderMarketDetails({
               />
             )}
 
-          <Box sx={{ padding: "0 4px" }}>
-            <LenderFlowCharts
-              market={market}
-              dailyFlows={dailyFlows}
-              isLoading={isFlowsLoading}
-              delinquencyHistory={delinquencyHistory}
-              isDelinquencyLoading={isDelinquencyLoading}
-              gracePeriodHours={gracePeriodHours}
-              symbol={symbol}
-            />
-          </Box>
+          {analyticsUiEnabled && (
+            <Box sx={{ padding: "0 4px" }}>
+              <LenderFlowCharts
+                market={market}
+                dailyFlows={dailyFlows}
+                isLoading={isFlowsLoading}
+                delinquencyHistory={delinquencyHistory}
+                isDelinquencyLoading={isDelinquencyLoading}
+                gracePeriodHours={gracePeriodHours}
+                symbol={symbol}
+              />
+            </Box>
+          )}
         </Box>
 
         <Footer showFooter={false} />
@@ -775,9 +785,7 @@ export default function LenderMarketDetails({
               buttonText="Leave a Request"
               buttonLink={{
                 isExternal: false,
-                url: `${
-                  ROUTES.lender.profile
-                }/${market.borrower.toLowerCase()}`,
+                url: buildBorrowerProfileHref(market.borrower, market.chainId),
               }}
             />
           </Box>
@@ -817,7 +825,7 @@ export default function LenderMarketDetails({
                   />
                 </>
               )}
-              {hasLenderInteracted && (
+              {analyticsUiEnabled && hasLenderInteracted && (
                 <Box sx={{ marginTop: "32px" }}>
                   <LenderAnalyticsSummary
                     items={analyticsSummaryItems}
@@ -825,17 +833,19 @@ export default function LenderMarketDetails({
                   />
                 </Box>
               )}
-              <Box sx={{ marginTop: "32px" }}>
-                <LenderFlowCharts
-                  market={market}
-                  dailyFlows={dailyFlows}
-                  isLoading={isFlowsLoading}
-                  delinquencyHistory={delinquencyHistory}
-                  isDelinquencyLoading={isDelinquencyLoading}
-                  gracePeriodHours={gracePeriodHours}
-                  symbol={symbol}
-                />
-              </Box>
+              {analyticsUiEnabled && (
+                <Box sx={{ marginTop: "32px" }}>
+                  <LenderFlowCharts
+                    market={market}
+                    dailyFlows={dailyFlows}
+                    isLoading={isFlowsLoading}
+                    delinquencyHistory={delinquencyHistory}
+                    isDelinquencyLoading={isDelinquencyLoading}
+                    gracePeriodHours={gracePeriodHours}
+                    symbol={symbol}
+                  />
+                </Box>
+              )}
             </Box>
           )}
 

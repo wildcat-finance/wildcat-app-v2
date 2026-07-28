@@ -17,7 +17,10 @@ import { MarketDailyFlowStat, toDailyFlows } from "./marketDailyFlows"
 
 export type { DailyFlowPoint } from "./marketDailyFlows"
 
-export function useMarketDailyFlows(market: Market | undefined) {
+export function useMarketDailyFlows(
+  market: Market | undefined,
+  enabled = true,
+) {
   const marketAddress = market?.address.toLowerCase()
   const decimals = market?.underlyingToken.decimals ?? 18
 
@@ -32,6 +35,7 @@ export function useMarketDailyFlows(market: Market | undefined) {
       marketAddress,
     ),
     enabled:
+      enabled &&
       !!marketAddress &&
       !!subgraphClient &&
       isSubgraphAnalyticsConfigured(market?.chainId),

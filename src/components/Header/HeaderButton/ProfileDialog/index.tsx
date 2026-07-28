@@ -25,6 +25,7 @@ import {
 } from "@/components/Header/HeaderButton/ProfileDialog/style"
 import { ProfileDialogProps } from "@/components/Header/HeaderButton/ProfileDialog/type"
 import { LinkGroup } from "@/components/LinkComponent"
+import { analyticsUiEnabled } from "@/config/featureFlags"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useGetIsRegisteredBorrower } from "@/hooks/useIsRegisteredBorrower"
@@ -59,8 +60,9 @@ export const ProfileDialog = ({
   const { data: isRegisteredBorrower } = useGetIsRegisteredBorrower()
   const isBorrowerContext = isBorrowerContextPath(pathname, address)
   const isLenderContext = !isBorrowerContext
-  const shouldShowProfileLink = isLenderContext || isRegisteredBorrower
-  const profileRoute = isLenderContext
+  const useLenderProfile = analyticsUiEnabled && isLenderContext
+  const shouldShowProfileLink = useLenderProfile || isRegisteredBorrower
+  const profileRoute = useLenderProfile
     ? ROUTES.lender.profile
     : ROUTES.borrower.profile
 
@@ -162,7 +164,7 @@ export const ProfileDialog = ({
                   variant="text2"
                   sx={{ width: "100%", fontWeight: 600, textAlign: "left" }}
                 >
-                  View {isLenderContext ? "Lender" : "Borrower"} Profile
+                  View {useLenderProfile ? "Lender" : "Borrower"} Profile
                 </Typography>
               </Button>
             </Link>

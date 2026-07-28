@@ -136,7 +136,10 @@ export function toDelinquencyHistory(
   return points
 }
 
-export function useMarketDelinquencyHistory(market: Market | undefined) {
+export function useMarketDelinquencyHistory(
+  market: Market | undefined,
+  enabled = true,
+) {
   const marketAddress = market?.address.toLowerCase()
   const gracePeriodSeconds = market?.delinquencyGracePeriod ?? 0
 
@@ -152,6 +155,7 @@ export function useMarketDelinquencyHistory(market: Market | undefined) {
       gracePeriodSeconds,
     ),
     enabled:
+      enabled &&
       !!marketAddress &&
       !!subgraphClient &&
       isSubgraphAnalyticsConfigured(market?.chainId),
