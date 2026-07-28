@@ -44,6 +44,7 @@ type ExportBorrowerCsvModalProps = {
   open: boolean
   onClose: () => void
   borrowerAddress: `0x${string}`
+  chainId?: number
   markets: BorrowerMarketOption[]
 }
 
@@ -94,6 +95,7 @@ export const ExportBorrowerCsvModal = ({
   open,
   onClose,
   borrowerAddress,
+  chainId,
   markets,
 }: ExportBorrowerCsvModalProps) => {
   const [period, setPeriod] = React.useState<"all" | "range">("all")
@@ -112,6 +114,7 @@ export const ExportBorrowerCsvModal = ({
   const exportMutation = useBorrowerExportData({
     borrowerAddress,
     marketIds,
+    chainId,
   })
 
   const handleClose = () => {

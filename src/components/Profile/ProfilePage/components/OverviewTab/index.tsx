@@ -56,15 +56,20 @@ export const OverviewTab = ({
   const totalCount = markets.length
   const activeCount = markets.filter((market) => !market.isClosed).length
 
+  // Source the export's market set from the analytics (Hinterlight) universe —
+  // the same place the export events come from — rather than the SDK market
+  // list, which drops periodic/excluded markets and depends on a connected
+  // wallet. Otherwise those markets' events are silently missing from the CSV.
   const exportMarkets = React.useMemo(
     () =>
-      markets.map((market) => ({
-        marketId: market.address,
-        marketName: market.name,
+      (analytics?.marketIds ?? []).map((marketId) => ({
+        marketId,
+        marketName: analytics?.nameMap[marketId] ?? marketId,
       })),
-    [markets],
+    [analytics],
   )
-  const canExport = !!profileAddress && markets.length > 0
+  const canExport =
+    !!profileAddress && analyticsAvailable && exportMarkets.length > 0
 
   return (
     <Box sx={LenderProfilePageContainer}>
@@ -152,6 +157,7 @@ export const OverviewTab = ({
           open={exportOpen}
           onClose={() => setExportOpen(false)}
           borrowerAddress={profileAddress}
+          chainId={chainId}
           markets={exportMarkets}
         />
       )}

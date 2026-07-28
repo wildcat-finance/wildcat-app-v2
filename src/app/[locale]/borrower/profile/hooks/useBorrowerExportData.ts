@@ -155,6 +155,92 @@ const GET_BORROWER_EXPORT_DELINQUENCIES = gql`
   }
 `
 
+const GET_BORROWER_EXPORT_DEPOSITS = gql`
+  query getBorrowerExportDeposits(
+    $marketIds: [String!]!
+    $first: Int!
+    $skip: Int!
+  ) {
+    deposits(
+      where: { market_in: $marketIds }
+      orderBy: blockTimestamp
+      orderDirection: desc
+      first: $first
+      skip: $skip
+    ) {
+      market {
+        id
+        name
+        asset {
+          symbol
+          decimals
+        }
+      }
+      assetAmount
+      blockTimestamp
+      transactionHash
+    }
+  }
+`
+
+const GET_BORROWER_EXPORT_WITHDRAWAL_REQUESTS = gql`
+  query getBorrowerExportWithdrawalRequests(
+    $marketIds: [String!]!
+    $first: Int!
+    $skip: Int!
+  ) {
+    withdrawalRequests(
+      where: { market_in: $marketIds }
+      orderBy: blockTimestamp
+      orderDirection: desc
+      first: $first
+      skip: $skip
+    ) {
+      market {
+        id
+        name
+        asset {
+          symbol
+          decimals
+        }
+      }
+      normalizedAmount
+      blockTimestamp
+      transactionHash
+    }
+  }
+`
+
+const GET_BORROWER_EXPORT_WITHDRAWAL_EXECUTIONS = gql`
+  query getBorrowerExportWithdrawalExecutions(
+    $marketIds: [String!]!
+    $first: Int!
+    $skip: Int!
+  ) {
+    withdrawalExecutions(
+      where: { account_: { market_in: $marketIds } }
+      orderBy: blockTimestamp
+      orderDirection: desc
+      first: $first
+      skip: $skip
+    ) {
+      account {
+        market {
+          id
+          name
+          asset {
+            symbol
+            decimals
+          }
+        }
+      }
+      normalizedAmount
+      blockTimestamp
+      transactionHash
+    }
+  }
+`
+
 const GET_BORROWER_EXPORT_MARKETS = gql`
   query getBorrowerExportMarkets($marketIds: [String!]!) {
     markets(where: { id_in: $marketIds }, first: 500) {
@@ -206,6 +292,27 @@ type BorrowNode = {
 }
 
 type RepayNode = BorrowNode
+
+type DepositNode = {
+  market: MarketShape
+  assetAmount: string
+  blockTimestamp: number
+  transactionHash: string
+}
+
+type WithdrawalRequestNode = {
+  market: MarketShape
+  normalizedAmount: string
+  blockTimestamp: number
+  transactionHash: string
+}
+
+type WithdrawalExecutionNode = {
+  account: { market: MarketShape }
+  normalizedAmount: string
+  blockTimestamp: number
+  transactionHash: string
+}
 
 type AprChangeNode = {
   market: MarketShape
@@ -288,6 +395,43 @@ const toRepayEvent = (node: RepayNode): BorrowerExportEvent => ({
   assetSymbol: node.market.asset.symbol,
   assetDecimals: node.market.asset.decimals,
   amountRaw: node.assetAmount,
+  txHash: node.transactionHash,
+})
+
+const toDepositEvent = (node: DepositNode): BorrowerExportEvent => ({
+  type: "Deposit",
+  timestamp: node.blockTimestamp,
+  marketId: node.market.id,
+  marketName: node.market.name,
+  assetSymbol: node.market.asset.symbol,
+  assetDecimals: node.market.asset.decimals,
+  amountRaw: node.assetAmount,
+  txHash: node.transactionHash,
+})
+
+const toWithdrawalRequestEvent = (
+  node: WithdrawalRequestNode,
+): BorrowerExportEvent => ({
+  type: "Withdrawal request",
+  timestamp: node.blockTimestamp,
+  marketId: node.market.id,
+  marketName: node.market.name,
+  assetSymbol: node.market.asset.symbol,
+  assetDecimals: node.market.asset.decimals,
+  amountRaw: node.normalizedAmount,
+  txHash: node.transactionHash,
+})
+
+const toWithdrawalExecutionEvent = (
+  node: WithdrawalExecutionNode,
+): BorrowerExportEvent => ({
+  type: "Withdrawal execution",
+  timestamp: node.blockTimestamp,
+  marketId: node.account.market.id,
+  marketName: node.account.market.name,
+  assetSymbol: node.account.market.asset.symbol,
+  assetDecimals: node.account.market.asset.decimals,
+  amountRaw: node.normalizedAmount,
   txHash: node.transactionHash,
 })
 
@@ -421,6 +565,9 @@ export const fetchBorrowerExportData = async (
   const [
     borrows,
     repays,
+    deposits,
+    withdrawalRequests,
+    withdrawalExecutions,
     aprChanges,
     capacityChanges,
     delinquencies,
@@ -442,6 +589,34 @@ export const fetchBorrowerExportData = async (
         fetchPolicy: "no-cache",
       })
       return result.data.debtRepaids
+    }),
+    paginateAll<DepositNode>(async (first, skip) => {
+      const result = await client.query<{ deposits: DepositNode[] }>({
+        query: GET_BORROWER_EXPORT_DEPOSITS,
+        variables: { ...eventVariables, first, skip },
+        fetchPolicy: "no-cache",
+      })
+      return result.data.deposits
+    }),
+    paginateAll<WithdrawalRequestNode>(async (first, skip) => {
+      const result = await client.query<{
+        withdrawalRequests: WithdrawalRequestNode[]
+      }>({
+        query: GET_BORROWER_EXPORT_WITHDRAWAL_REQUESTS,
+        variables: { ...eventVariables, first, skip },
+        fetchPolicy: "no-cache",
+      })
+      return result.data.withdrawalRequests
+    }),
+    paginateAll<WithdrawalExecutionNode>(async (first, skip) => {
+      const result = await client.query<{
+        withdrawalExecutions: WithdrawalExecutionNode[]
+      }>({
+        query: GET_BORROWER_EXPORT_WITHDRAWAL_EXECUTIONS,
+        variables: { ...eventVariables, first, skip },
+        fetchPolicy: "no-cache",
+      })
+      return result.data.withdrawalExecutions
     }),
     paginateAll<AprChangeNode>(async (first, skip) => {
       const result = await client.query<{
@@ -507,6 +682,9 @@ export const fetchBorrowerExportData = async (
   const events: BorrowerExportEvent[] = [
     ...borrows.map(toBorrowEvent),
     ...repays.map(toRepayEvent),
+    ...deposits.map(toDepositEvent),
+    ...withdrawalRequests.map(toWithdrawalRequestEvent),
+    ...withdrawalExecutions.map(toWithdrawalExecutionEvent),
     ...aprChanges.map(toAprChangeEvent),
     ...capacityChanges.map(toCapacityChangeEvent),
     ...buildDelinquencyEvents(delinquencies, nowSeconds),
@@ -522,13 +700,20 @@ export const fetchBorrowerExportData = async (
 export type UseBorrowerExportDataOptions = {
   borrowerAddress: `0x${string}` | undefined
   marketIds: string[]
+  chainId?: number
 }
 
 export const useBorrowerExportData = ({
   borrowerAddress,
   marketIds,
+  chainId: externalChainId,
 }: UseBorrowerExportDataOptions) => {
-  const { chainId } = useSelectedNetwork()
+  // Use the profile's chainId (same network the markets/analytics come from),
+  // not the connected wallet's network — otherwise a mainnet profile viewed
+  // while the wallet sits on another network queries the wrong subgraph and
+  // returns an empty export.
+  const { chainId: selectedChainId } = useSelectedNetwork()
+  const chainId = externalChainId ?? selectedChainId
 
   return useMutation<
     BorrowerExportData,

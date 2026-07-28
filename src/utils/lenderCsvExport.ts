@@ -75,7 +75,8 @@ const matchesMarket = (
   filterMarketIds: string[] | null,
 ): boolean => {
   if (filterMarketIds === null || filterMarketIds.length === 0) return true
-  return filterMarketIds.includes(marketId)
+  const normalized = marketId.toLowerCase()
+  return filterMarketIds.some((id) => id.toLowerCase() === normalized)
 }
 
 const eventInDateRange = (

@@ -3,6 +3,9 @@ import { escapeCsvField, formatBigIntDecimal } from "@/utils/csvExport"
 export type BorrowerExportEventType =
   | "Borrow"
   | "Repay"
+  | "Deposit"
+  | "Withdrawal request"
+  | "Withdrawal execution"
   | "APR change"
   | "Capacity change"
   | "Delinquency"
@@ -39,6 +42,24 @@ export type BorrowerExportRepayEvent = BorrowerExportBaseRow & {
   txHash: string
 }
 
+export type BorrowerExportDepositEvent = BorrowerExportBaseRow & {
+  type: "Deposit"
+  amountRaw: string
+  txHash: string
+}
+
+export type BorrowerExportWithdrawalRequestEvent = BorrowerExportBaseRow & {
+  type: "Withdrawal request"
+  amountRaw: string
+  txHash: string
+}
+
+export type BorrowerExportWithdrawalExecutionEvent = BorrowerExportBaseRow & {
+  type: "Withdrawal execution"
+  amountRaw: string
+  txHash: string
+}
+
 export type BorrowerExportAprChangeEvent = BorrowerExportBaseRow & {
   type: "APR change"
   oldBips: number
@@ -65,6 +86,9 @@ export type BorrowerExportDelinquencyEvent = BorrowerExportBaseRow & {
 export type BorrowerExportEvent =
   | BorrowerExportBorrowEvent
   | BorrowerExportRepayEvent
+  | BorrowerExportDepositEvent
+  | BorrowerExportWithdrawalRequestEvent
+  | BorrowerExportWithdrawalExecutionEvent
   | BorrowerExportAprChangeEvent
   | BorrowerExportCapacityChangeEvent
   | BorrowerExportDelinquencyEvent
@@ -135,7 +159,8 @@ const matchesMarket = (
   filterMarketIds: string[] | null,
 ): boolean => {
   if (filterMarketIds === null || filterMarketIds.length === 0) return true
-  return filterMarketIds.includes(marketId)
+  const normalized = marketId.toLowerCase()
+  return filterMarketIds.some((id) => id.toLowerCase() === normalized)
 }
 
 const eventInDateRange = (
@@ -161,7 +186,13 @@ const buildEventRow = (event: BorrowerExportEvent): Row => {
     event.marketId,
   ]
 
-  if (event.type === "Borrow" || event.type === "Repay") {
+  if (
+    event.type === "Borrow" ||
+    event.type === "Repay" ||
+    event.type === "Deposit" ||
+    event.type === "Withdrawal request" ||
+    event.type === "Withdrawal execution"
+  ) {
     return [
       ...base,
       event.type,
