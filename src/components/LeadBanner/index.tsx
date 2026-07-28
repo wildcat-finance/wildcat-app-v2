@@ -24,15 +24,21 @@ export const LeadBanner = ({
         {text}
       </Typography>
     </Box>
-    {buttonLink && (
-      <Link
-        href={buttonLink.url || ""}
-        target={buttonLink.isExternal ? "_blank" : "_self"}
+    {buttonText && (buttonLink || onClick) && (
+      <Button
+        {...(buttonLink
+          ? {
+              component: Link,
+              href: buttonLink.url,
+              target: buttonLink.isExternal ? "_blank" : "_self",
+            }
+          : {})}
+        size="large"
+        sx={RequestButton}
+        onClick={onClick}
       >
-        <Button size="large" sx={RequestButton} onClick={onClick}>
-          {buttonText}
-        </Button>
-      </Link>
+        {buttonText}
+      </Button>
     )}
   </Box>
 )

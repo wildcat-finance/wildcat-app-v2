@@ -2,19 +2,25 @@ import { Dispatch, SetStateAction } from "react"
 import * as React from "react"
 
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
-import { DepositStatus, HooksKind, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import {
+  DepositStatus,
+  HooksKind,
+  MarketAccount,
+  QueueWithdrawalStatus,
+} from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
-import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
 import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { useFaucet } from "@/app/[locale]/lender/market/[address]/hooks/useFaucet"
 import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"
+import { resolveLenderActionState } from "@/app/[locale]/lender/market/[address]/utils"
 import Clock from "@/assets/icons/clock_icon.svg"
+import { toastError } from "@/components/Toasts"
 import { TooltipButton } from "@/components/TooltipButton"
+import { useDepositAgreementGate } from "@/hooks/useDepositAgreementGate"
 import { useLivePeriodicNowSeconds } from "@/hooks/useLiveNowSeconds"
-import { useMarketMla } from "@/hooks/useMarketMla"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { COLORS } from "@/theme/colors"
 import { hasManuallyDisabledMarketActions } from "@/utils/constants"
@@ -28,9 +34,9 @@ import {
 export type MobileMarketActionsProps = {
   marketAccount: MarketAccount
   withdrawals: LenderWithdrawalsForMarketResult
-  isMobileDepositOpen: boolean
   isMobileWithdrawalOpen: boolean
   setIsMobileDepositOpen: Dispatch<SetStateAction<boolean>>
+  setIsMobileAcknowledgementOpen: Dispatch<SetStateAction<boolean>>
   setIsMobileWithdrawalOpen: Dispatch<SetStateAction<boolean>>
   isMLAOpen: boolean
   setIsMLAOpen: Dispatch<SetStateAction<boolean>>
@@ -91,6 +97,31 @@ const MobileMarketTransactionItem = ({
   </>
 )
 
+const MobileDepositStatus = ({ text }: { text: string }) => (
+  <Box
+    sx={{
+      width: "100%",
+      display: "flex",
+      gap: "4px",
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: "16px",
+    }}
+  >
+    <SvgIcon
+      sx={{
+        fontSize: "12px",
+        "& path": { fill: COLORS.white06 },
+      }}
+    >
+      <Clock />
+    </SvgIcon>
+    <Typography variant="mobText3" color={COLORS.white06} textAlign="center">
+      {text}
+    </Typography>
+  </Box>
+)
+
 export const MobileFaucetButton = ({
   marketAccount,
 }: {
@@ -123,20 +154,30 @@ export const MobileMarketActions = ({
   marketAccount,
   withdrawals,
   isMobileWithdrawalOpen,
-  isMobileDepositOpen,
   setIsMobileWithdrawalOpen,
   setIsMobileDepositOpen,
+  setIsMobileAcknowledgementOpen,
   isMLAOpen,
   setIsMLAOpen,
 }: MobileMarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
-  const { isTestnet, isSelectionMismatch, isWrongNetwork } = useNetworkGate({
+  const {
+    isTestnet,
+    isConnected,
+    isSelectionMismatch,
+    isWrongNetwork,
+    touGateState,
+    isAgreementFetching,
+    refetchAgreementStatus,
+  } = useNetworkGate({
     desiredChainId: market.chainId,
-    includeAgreementStatus: false,
+    agreementParty: "Lender",
   })
 
   const isDifferentChain = isSelectionMismatch || isWrongNetwork
+  const touActionBlocked = touGateState !== "unblocked"
+  const touRetryAvailable = touGateState === "unknown" && !isAgreementFetching
 
   const notMature =
     market &&
@@ -194,14 +235,133 @@ export const MobileMarketActions = ({
     market.borrower,
   )
 
-  const { data: mla } = useMarketMla(market.address)
-  const mlaResponse = mla && "noMLA" in mla ? null : mla
-  const { data: signedMla } = useGetSignedMla(mlaResponse)
+  const agreementGate = useDepositAgreementGate({
+    marketAddress: market.address,
+    chainId: market.chainId,
+    generation: market.provenance?.generation,
+  })
   const mlaRequiredAndUnsigned =
-    signedMla === null && !!mla && !("noMLA" in mla)
+    agreementGate.state === "requires-mla-signature"
+  const borrowerAgreementIncomplete =
+    agreementGate.state === "requires-borrower-mla-selection"
 
   const handleClickToggleMLA = () => {
     setIsMLAOpen(!isMLAOpen)
+  }
+
+  const disableWithdraw =
+    marketAccount.marketBalance.eq(0) ||
+    marketAccount.withdrawalAvailability !== QueueWithdrawalStatus.Ready
+  const actionState = resolveLenderActionState({
+    isConnected,
+    isDifferentChain,
+    authorizedInMarket: true,
+    depositAvailable: !hideDeposit,
+    touGateState,
+    isAgreementFetching,
+    depositAgreementState: agreementGate.state,
+    withdrawalAvailable: !disableWithdraw,
+    claimAvailable: !withdrawals.totalClaimableAmount.eq(0),
+  })
+
+  const handleClickDeposit = () => {
+    if (touRetryAvailable) {
+      toastError("Couldn't verify Terms of Use status — retrying")
+      refetchAgreementStatus().catch(() => undefined)
+      return
+    }
+    if (touActionBlocked) return
+
+    if (agreementGate.state === "error") {
+      toastError("Couldn't load agreement data — retrying")
+      agreementGate.retry().catch(() => undefined)
+      return
+    }
+    if (
+      agreementGate.state === "loading" ||
+      agreementGate.state === "requires-borrower-mla-selection" ||
+      agreementGate.state === "requires-mla-signature"
+    ) {
+      return
+    }
+    if (agreementGate.state === "requires-non-mla-acknowledgement") {
+      setIsMobileAcknowledgementOpen(true)
+      return
+    }
+
+    setIsMobileDepositOpen(true)
+  }
+
+  let depositTooltip = t("lenderMarketDetails.transactions.deposit.tooltip")
+  if (touGateState === "blocked") {
+    depositTooltip = "Accept the Terms of Use to deposit"
+  } else if (touGateState === "unknown") {
+    depositTooltip = isAgreementFetching
+      ? "Checking Terms of Use status"
+      : "Couldn't verify Terms of Use status — tap to retry"
+  } else if (agreementGate.state === "error") {
+    depositTooltip = "Tap to retry loading agreement data"
+  } else if (borrowerAgreementIncomplete) {
+    depositTooltip =
+      "The borrower must complete the market agreement selection before deposits can begin"
+  }
+
+  let depositButtonText = t("lenderMarketDetails.transactions.deposit.button")
+  if (
+    actionState.deposit === "checking-tou" ||
+    actionState.deposit === "loading"
+  ) {
+    depositButtonText = "Checking..."
+  } else if (
+    actionState.deposit === "error" ||
+    actionState.deposit === "retry-tou"
+  ) {
+    depositButtonText = "Retry"
+  }
+
+  let depositAction: React.ReactNode = (
+    <Button
+      onClick={handleClickDeposit}
+      variant="contained"
+      color="secondary"
+      size="large"
+      fullWidth
+      disabled={
+        actionState.deposit === "checking-tou" ||
+        actionState.deposit === "tou-blocked" ||
+        actionState.deposit === "loading" ||
+        marketActionsManuallyDisabled ||
+        marketAccount.maximumDeposit.eq(0)
+      }
+      sx={{ padding: "10px 20px", marginTop: "16px" }}
+    >
+      ↓ {depositButtonText}
+    </Button>
+  )
+  if (showFaucet) {
+    depositAction = <MobileFaucetButton marketAccount={marketAccount} />
+  } else if (actionState.deposit === "unavailable") {
+    depositAction = null
+  } else if (borrowerAgreementIncomplete) {
+    depositAction = (
+      <MobileDepositStatus text="Waiting for borrower agreement selection" />
+    )
+  } else if (mlaRequiredAndUnsigned) {
+    depositAction = (
+      <>
+        <MobileDepositStatus text="Waiting for signature" />
+        <Button
+          onClick={handleClickToggleMLA}
+          variant="contained"
+          color="secondary"
+          size="large"
+          fullWidth
+          sx={{ padding: "10px 20px", marginTop: "16px" }}
+        >
+          {t("lenderMarketDetails.buttons.viewMla")}
+        </Button>
+      </>
+    )
   }
 
   return (
@@ -215,47 +375,43 @@ export const MobileMarketActions = ({
         width: "calc(100vw - 8px)",
       }}
     >
-      {!mlaRequiredAndUnsigned &&
-        !withdrawals.totalClaimableAmount.eq(0) &&
-        !isDifferentChain && (
+      {actionState.canClaim && (
+        <Box
+          sx={{
+            display: "flex",
+            padding: "12px",
+            backgroundColor: COLORS.bunker,
+            borderRadius: "14px",
+            width: "100%",
+          }}
+        >
           <Box
             sx={{
-              display: "flex",
-              padding: "12px",
-              backgroundColor: COLORS.bunker,
-              borderRadius: "14px",
               width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
             }}
           >
-            <Box
-              sx={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Box>
-                <MobileMarketTransactionItem
-                  title="Available To Claim"
-                  amount={formatTokenWithCommas(
-                    withdrawals.totalClaimableAmount,
-                  )}
-                  asset={market.underlyingToken.symbol}
-                />
-              </Box>
-
-              <ClaimModal market={market} withdrawals={withdrawals} />
+            <Box>
+              <MobileMarketTransactionItem
+                title="Available To Claim"
+                amount={formatTokenWithCommas(withdrawals.totalClaimableAmount)}
+                asset={market.underlyingToken.symbol}
+              />
             </Box>
+
+            <ClaimModal market={market} withdrawals={withdrawals} />
           </Box>
-        )}
+        </Box>
+      )}
 
       <Box
         sx={{
           display: "flex",
           flexDirection:
-            mlaRequiredAndUnsigned || isDifferentChain ? "column" : "row",
-          gap: mlaRequiredAndUnsigned || isDifferentChain ? 0 : "8px",
+            actionState.surface === "switch-network" ? "column" : "row",
+          gap: actionState.surface === "switch-network" ? 0 : "8px",
           padding: "12px",
           backgroundColor: COLORS.bunker,
           borderRadius: "14px",
@@ -263,61 +419,11 @@ export const MobileMarketActions = ({
           width: "100%",
         }}
       >
-        {isDifferentChain && (
+        {actionState.surface === "switch-network" && (
           <SwitchChainAlert desiredChainId={market.chainId} />
         )}
 
-        {mlaRequiredAndUnsigned && !isDifferentChain && (
-          <>
-            <Typography
-              variant="mobH3"
-              color={COLORS.white}
-              textAlign="center"
-              marginTop="12px"
-            >
-              Master Loan Agreement
-            </Typography>
-
-            <Box
-              sx={{
-                width: "100%",
-                display: "flex",
-                gap: "4px",
-                justifyContent: "center",
-                alignItems: "center",
-                marginTop: "8px",
-              }}
-            >
-              <SvgIcon
-                sx={{ fontSize: "12px", "& path": { fill: COLORS.white06 } }}
-              >
-                <Clock />
-              </SvgIcon>
-              <Typography variant="mobText3" color={COLORS.white06}>
-                Waiting for sign
-              </Typography>
-            </Box>
-
-            <Button
-              onClick={handleClickToggleMLA}
-              variant="contained"
-              color="secondary"
-              size="large"
-              sx={{
-                marginTop: "24px",
-                padding: "8px 12px",
-                borderRadius: "10px",
-                fontSize: "13px",
-                fontWeight: 600,
-                lineHeight: "20px",
-              }}
-            >
-              {t("lenderMarketDetails.buttons.viewMla")}
-            </Button>
-          </>
-        )}
-
-        {!mlaRequiredAndUnsigned && !isDifferentChain && (
+        {actionState.surface === "actions" && (
           <>
             <Box
               sx={{
@@ -343,7 +449,7 @@ export const MobileMarketActions = ({
                 onClick={() =>
                   setIsMobileWithdrawalOpen(!isMobileWithdrawalOpen)
                 }
-                disabled={notMature}
+                disabled={notMature || !actionState.canWithdraw}
                 sx={{ padding: "10px 20px", marginTop: "16px" }}
               >
                 ↑{" "}
@@ -358,34 +464,20 @@ export const MobileMarketActions = ({
                 width: "100%",
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "flex-end",
+                alignItems:
+                  mlaRequiredAndUnsigned || borrowerAgreementIncomplete
+                    ? "center"
+                    : "flex-end",
               }}
             >
               <MobileMarketTransactionItem
                 title={t("lenderMarketDetails.transactions.deposit.title")}
-                tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
+                tooltip={depositTooltip}
                 amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
                 asset={market.underlyingToken.symbol}
               />
 
-              {showFaucet ? (
-                <MobileFaucetButton marketAccount={marketAccount} />
-              ) : (
-                <Button
-                  onClick={() => setIsMobileDepositOpen(!isMobileDepositOpen)}
-                  variant="contained"
-                  color="secondary"
-                  size="large"
-                  fullWidth
-                  disabled={
-                    marketActionsManuallyDisabled ||
-                    marketAccount.maximumDeposit.eq(0)
-                  }
-                  sx={{ padding: "10px 20px", marginTop: "16px" }}
-                >
-                  ↓ {t("lenderMarketDetails.transactions.deposit.button")}
-                </Button>
-              )}
+              {depositAction}
             </Box>
           </>
         )}

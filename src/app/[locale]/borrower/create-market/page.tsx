@@ -26,12 +26,14 @@ import { BorrowerProfile } from "@/app/api/profiles/interface"
 import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
+import Docs from "@/assets/icons/docs_icon.svg"
 import { Loader } from "@/components/Loader"
 import { toastError } from "@/components/Toasts"
 import { DECLINE_MLA_ASSIGNMENT_MESSAGE } from "@/config/mla-rejection"
 import { NETWORKS_BY_ID } from "@/config/network"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { formatDate } from "@/lib/mla"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -144,6 +146,8 @@ export default function CreateMarketPage() {
   const { data: borrowerProfile, refetch: refetchBorrowerProfile } =
     useGetBorrowerProfile(address)
   const { isTestnet } = useCurrentNetwork()
+  const { touGateState, isAgreementFetching, refetchAgreementStatus } =
+    useNetworkGate({ agreementParty: "Borrower" })
   const { chainId: targetChainId } = useAppSelector(
     (state) => state.selectedNetwork,
   )
@@ -236,6 +240,7 @@ export default function CreateMarketPage() {
   const committedSigningDraft = hasCommittedCreateMarketDeployment(signingDraft)
     ? signingDraft
     : undefined
+  const canCompleteDeployedMarket = !!committedSigningDraft?.deployedMarket
   const effectiveMarketAddress =
     committedSigningDraft?.deploymentIdentity.predictedMarket ?? marketAddress
 
@@ -817,6 +822,10 @@ export default function CreateMarketPage() {
       signingDraft?.version === 2
         ? signingDraft
         : undefined
+    if (touGateState !== "unblocked" && !activeSafeDraft?.deployedMarket) {
+      toastError("Accept the current Terms of Use before creating a market.")
+      return
+    }
     let transferAccess = TransferAccess.Open
     if (marketParams.disableTransfers) {
       transferAccess = TransferAccess.Disabled
@@ -946,6 +955,9 @@ export default function CreateMarketPage() {
     )
       ? activeSafeDraft
       : undefined
+    if (touGateState !== "unblocked" && !activeCommittedDraft?.deployedMarket) {
+      return
+    }
     if (
       !assetData ||
       !tokenAsset ||
@@ -1094,6 +1106,100 @@ export default function CreateMarketPage() {
     newMarketForm.reset()
     dispatch(setInitialCreateState())
   }, [])
+
+  if (touGateState === "unknown" && !canCompleteDeployedMarket) {
+    return (
+      <Box
+        sx={{
+          ...PageContainer,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "16px",
+        }}
+      >
+        {isAgreementFetching ? (
+          <Loader />
+        ) : (
+          <>
+            <Typography variant="text2" color={COLORS.santasGrey}>
+              Couldn&apos;t verify your Terms of Use status.
+            </Typography>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={() => refetchAgreementStatus()}
+            >
+              Retry
+            </Button>
+          </>
+        )}
+      </Box>
+    )
+  }
+
+  if (touGateState === "blocked" && !canCompleteDeployedMarket) {
+    return (
+      <Box sx={PageContainer}>
+        <Box
+          sx={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "24px",
+            padding: "40px",
+            paddingRight: "307px",
+            paddingBottom: "160px",
+          }}
+        >
+          <Box
+            sx={{
+              width: "52px",
+              height: "52px",
+              borderRadius: "14px",
+              backgroundColor: COLORS.glitter,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <SvgIcon
+              sx={{
+                fontSize: "26px",
+                "& path": { stroke: COLORS.ultramarineBlue },
+              }}
+            >
+              <Docs />
+            </SvgIcon>
+          </Box>
+          <Typography variant="title2" fontWeight={600} textAlign="center">
+            Terms of Use update required
+          </Typography>
+          <Typography
+            variant="text2"
+            color={COLORS.santasGrey}
+            textAlign="center"
+            sx={{ maxWidth: "440px", marginTop: "-8px" }}
+          >
+            Creating new markets is paused until you accept the current Terms of
+            Use. Your existing markets and withdrawals are unaffected.
+          </Typography>
+          <Button
+            variant="contained"
+            size="large"
+            onClick={() => router.push(ROUTES.borrower.agreement)}
+            sx={{ minWidth: "220px" }}
+          >
+            Review Terms of Use
+          </Button>
+        </Box>
+      </Box>
+    )
+  }
 
   return (
     <Box sx={PageContainer}>

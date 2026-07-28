@@ -1,7 +1,7 @@
 import { ChangeEvent, useEffect, useState } from "react"
 import * as React from "react"
 
-import { Box, Button, Dialog, Typography } from "@mui/material"
+import { Box, Button, Dialog, Tooltip, Typography } from "@mui/material"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
@@ -20,8 +20,10 @@ import {
 import { useBorrow } from "@/app/[locale]/borrower/market/[address]/hooks/useBorrow"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
+import { toastError } from "@/components/Toasts"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { BorrowModalProps } from "./interface"
@@ -44,6 +46,19 @@ export const BorrowModal = ({
   )
 
   const { market } = marketAccount
+  const {
+    touGateState,
+    isWrongNetwork,
+    isSelectionMismatch,
+    isAgreementFetching,
+    refetchAgreementStatus,
+  } = useNetworkGate({
+    desiredChainId: market.chainId,
+    agreementParty: "Borrower",
+  })
+  const touActionBlocked = touGateState !== "unblocked"
+  const touRetryAvailable = touGateState === "unknown" && !isAgreementFetching
+  const networkActionBlocked = isWrongNetwork || isSelectionMismatch
 
   const { mutate, isSuccess, isError, isPending } = useBorrow(
     marketAccount,
@@ -56,15 +71,25 @@ export const BorrowModal = ({
   }
 
   const handleBorrow = () => {
-    if (disableBorrowBtn) return
+    if (disableBorrowBtn || touActionBlocked || networkActionBlocked) return
 
     modal.setFlowStep(ModalSteps.approved)
   }
 
   const handleConfirm = () => {
-    if (disableBorrowBtn) return
+    if (disableBorrowBtn || touActionBlocked || networkActionBlocked) return
 
     mutate(amount)
+  }
+
+  const handleOpenBorrowModal = () => {
+    if (touRetryAvailable) {
+      toastError("Couldn't verify Terms of Use status — retrying")
+      refetchAgreementStatus().catch(() => undefined)
+      return
+    }
+    if (touActionBlocked || networkActionBlocked) return
+    modal.handleOpenModal()
   }
 
   const handleTryAgain = () => {
@@ -109,6 +134,8 @@ export const BorrowModal = ({
   const showForm = !(isPending || showSuccessPopup || showErrorPopup)
 
   const disableBorrow =
+    touActionBlocked ||
+    networkActionBlocked ||
     disableBorrowBtn ||
     market.isClosed ||
     market.borrowableAssets.eq(0) ||
@@ -124,17 +151,43 @@ export const BorrowModal = ({
     }
   }, [isError, isSuccess])
 
+  useEffect(() => {
+    if (modal.isModalOpen && (touActionBlocked || networkActionBlocked)) {
+      modal.handleCloseModal()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [networkActionBlocked, touActionBlocked])
+
+  let borrowTooltip = ""
+  if (touGateState === "blocked") {
+    borrowTooltip = "Accept the Terms of Use to borrow"
+  } else if (touGateState === "unknown") {
+    borrowTooltip = isAgreementFetching
+      ? "Checking Terms of Use status"
+      : "Couldn't verify Terms of Use status — click to retry"
+  } else if (networkActionBlocked) {
+    borrowTooltip = "Switch to the market network to borrow"
+  }
+
   return (
     <>
-      <Button
-        onClick={modal.handleOpenModal}
-        variant="contained"
-        size="large"
-        sx={{ width: "152px" }}
-        disabled={disableBorrowBtn}
-      >
-        {t("borrowerMarketDetails.modals.borrow.borrow")}
-      </Button>
+      <Tooltip title={borrowTooltip}>
+        <span>
+          <Button
+            onClick={handleOpenBorrowModal}
+            variant="contained"
+            size="large"
+            sx={{ width: "152px" }}
+            disabled={
+              disableBorrowBtn ||
+              networkActionBlocked ||
+              (touActionBlocked && !touRetryAvailable)
+            }
+          >
+            {t("borrowerMarketDetails.modals.borrow.borrow")}
+          </Button>
+        </span>
+      </Tooltip>
 
       <Dialog
         open={modal.isModalOpen}

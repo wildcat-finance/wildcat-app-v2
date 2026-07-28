@@ -187,6 +187,7 @@ export const MarketMLA = ({
     useBorrowerProfileTmp(marketAccount.market.borrower)
   const { data: marketMla, isLoading: isLoadingMarketMla } = useMarketMla(
     marketAccount.market.address,
+    marketAccount.market.chainId,
   )
   if (isLoadingMarketMla || isLoadingBorrowerProfile)
     return <div>Loading...</div>

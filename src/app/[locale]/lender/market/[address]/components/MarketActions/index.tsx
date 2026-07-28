@@ -10,7 +10,6 @@ import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import { LenderMlaModal } from "@/app/[locale]/lender/components/LenderMlaModal"
-import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
 import { TransactionsContainer } from "@/app/[locale]/lender/market/[address]/components/MarketActions/styles"
 import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
@@ -18,8 +17,10 @@ import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import TelegramIcon from "@/assets/icons/telegram_icon.svg"
 import { PeriodicWithdrawalWindowNotice } from "@/components/PeriodicWithdrawalWindowNotice"
+import { toastError } from "@/components/Toasts"
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
+import { useDepositAgreementGate } from "@/hooks/useDepositAgreementGate"
 import { useLivePeriodicNowSeconds } from "@/hooks/useLiveNowSeconds"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
@@ -34,6 +35,14 @@ import { isPeriodicWithdrawalWindowClosed } from "@/utils/periodicWithdrawalWind
 
 import { MarketActionsProps } from "./interface"
 import { useFaucet } from "../../hooks/useFaucet"
+
+const DepositStatusContainer = {
+  maxWidth: "200px",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  gap: "6px",
+}
 
 const FaucetButton = ({ marketAccount }: { marketAccount: MarketAccount }) => {
   const {
@@ -66,17 +75,19 @@ export const MarketActions = ({
   const { market } = marketAccount
   const { isTestnet } = useSelectedNetwork()
 
-  const { data: mla, isLoading: mlaLoading } = useMarketMla(market.address)
+  const { data: mla, isLoading: mlaLoading } = useMarketMla(
+    market.address,
+    market.chainId,
+  )
+  const agreementGate = useDepositAgreementGate({
+    marketAddress: market.address,
+    chainId: market.chainId,
+    generation: market.provenance?.generation,
+  })
 
   const { canAddToken, handleAddToken, isAddingToken } = useAddToken(
     market?.marketToken,
   )
-
-  const mlaResponse = mla && "noMLA" in mla ? null : mla
-  const { data: signedMla, isLoading: signedMlaLoading } =
-    useGetSignedMla(mlaResponse)
-  const mlaRequiredAndUnsigned =
-    signedMla === null && !!mla && !("noMLA" in mla)
 
   const hideDeposit =
     market.isClosed ||
@@ -227,78 +238,110 @@ export const MarketActions = ({
       <Divider sx={{ margin: "32px 0" }} />
 
       <Box width="100%" display="flex" flexDirection="column">
-        {(() => {
-          if (mlaLoading || signedMlaLoading) {
-            return <Typography variant="title3">Loading MLA Data...</Typography>
-          }
+        <Box sx={TransactionsContainer}>
+          <TransactionBlock
+            title={t("lenderMarketDetails.transactions.deposit.title")}
+            tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
+            amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
+            asset={market.underlyingToken.symbol}
+          >
+            {(() => {
+              if (showFaucet) {
+                return <FaucetButton marketAccount={marketAccount} />
+              }
+              if (hideDeposit) return null
 
-          if (mlaRequiredAndUnsigned) {
-            return (
-              <>
-                <Typography variant="title3" sx={{ marginBottom: "8px" }}>
-                  Loan Agreement Signature Required
-                </Typography>
-                <Typography
-                  variant="text3"
-                  sx={{ marginBottom: isClaimableZero ? "0" : "24px" }}
-                  color={COLORS.santasGrey}
-                >
-                  You need to sign the MLA before you can access this market.
-                </Typography>
-              </>
-            )
-          }
+              if (agreementGate.state === "loading") {
+                return (
+                  <Box sx={DepositStatusContainer}>
+                    <Typography variant="text3" color={COLORS.santasGrey}>
+                      Loading agreement data...
+                    </Typography>
+                  </Box>
+                )
+              }
 
-          return (
-            <>
-              <Box sx={TransactionsContainer}>
-                <TransactionBlock
-                  title={t("lenderMarketDetails.transactions.deposit.title")}
-                  tooltip={t(
-                    "lenderMarketDetails.transactions.deposit.tooltip",
-                  )}
-                  amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
-                  asset={market.underlyingToken.symbol}
-                >
-                  {!showFaucet && (
-                    <DepositModal
-                      marketAccount={marketAccount}
-                      showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
-                    />
-                  )}
-                  {showFaucet && <FaucetButton marketAccount={marketAccount} />}
-                </TransactionBlock>
+              if (agreementGate.state === "error") {
+                return (
+                  <Box sx={DepositStatusContainer}>
+                    <Typography variant="text3" color={COLORS.santasGrey}>
+                      Couldn&apos;t load agreement data
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      sx={{ alignSelf: "flex-start" }}
+                      onClick={() => {
+                        toastError("Couldn't load agreement data — retrying")
+                        agreementGate.retry().catch(() => undefined)
+                      }}
+                    >
+                      Retry agreement data
+                    </Button>
+                  </Box>
+                )
+              }
 
-                <TransactionBlock
-                  title={t("lenderMarketDetails.transactions.withdraw.title")}
-                  tooltip={t(
-                    market.periodicHooksConfig
-                      ? "lenderMarketDetails.transactions.withdraw.periodicTooltip"
-                      : "lenderMarketDetails.transactions.withdraw.tooltip",
-                  )}
-                  amount={
-                    isTooSmallMarketBalance
-                      ? `< 0.00001`
-                      : formatTokenWithCommas(marketAccount.marketBalance)
-                  }
-                  asset={market.underlyingToken.symbol}
-                >
-                  {!hideWithdraw && (
-                    <WithdrawModal marketAccount={marketAccount} />
-                  )}
-                </TransactionBlock>
-              </Box>
+              if (agreementGate.state === "requires-borrower-mla-selection") {
+                return (
+                  <Box sx={DepositStatusContainer}>
+                    <Typography variant="text3" sx={{ fontWeight: 600 }}>
+                      Agreement Selection Required
+                    </Typography>
+                    <Typography variant="text4" color={COLORS.santasGrey}>
+                      The borrower must complete this market&apos;s agreement
+                      selection before deposits can begin.
+                    </Typography>
+                  </Box>
+                )
+              }
 
-              {periodicWindowClosed &&
-                !marketAccount.marketBalance.raw.isZero() && (
-                  <PeriodicWithdrawalWindowNotice
-                    market={market}
-                    sx={{ marginTop: "12px" }}
-                  />
-                )}
-            </>
-          )
-        })()}
+              if (agreementGate.state === "requires-mla-signature") {
+                return (
+                  <Box sx={DepositStatusContainer}>
+                    <Typography variant="text3" sx={{ fontWeight: 600 }}>
+                      Loan Agreement Signature Required
+                    </Typography>
+                    <Typography variant="text4" color={COLORS.santasGrey}>
+                      Sign the MLA before depositing into this market.
+                    </Typography>
+                  </Box>
+                )
+              }
+
+              return (
+                <DepositModal
+                  marketAccount={marketAccount}
+                  showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
+                />
+              )
+            })()}
+          </TransactionBlock>
+
+          <TransactionBlock
+            title={t("lenderMarketDetails.transactions.withdraw.title")}
+            tooltip={t(
+              market.periodicHooksConfig
+                ? "lenderMarketDetails.transactions.withdraw.periodicTooltip"
+                : "lenderMarketDetails.transactions.withdraw.tooltip",
+            )}
+            amount={
+              isTooSmallMarketBalance
+                ? `< 0.00001`
+                : formatTokenWithCommas(marketAccount.marketBalance)
+            }
+            asset={market.underlyingToken.symbol}
+          >
+            {!hideWithdraw && <WithdrawModal marketAccount={marketAccount} />}
+          </TransactionBlock>
+        </Box>
+
+        {periodicWindowClosed && !marketAccount.marketBalance.raw.isZero() && (
+          <PeriodicWithdrawalWindowNotice
+            market={market}
+            sx={{ marginTop: "12px" }}
+          />
+        )}
       </Box>
 
       <Divider sx={{ margin: "32px 0 40px" }} />

@@ -1,4 +1,3 @@
-import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 import { MasterLoanAgreementResponse } from "@/app/api/mla/interface"
@@ -6,14 +5,20 @@ import { LenderMlaSignatureInput } from "@/app/api/mla/lender-signature/interfac
 import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
 import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
+import { isTerminalClientError } from "@/utils/httpStatus"
+import { SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS } from "@/utils/serviceAgreementMessage"
 
 export const useSignLenderMLA = () => {
-  const { sdk, connected: safeConnected } = useSafeAppsSDK()
   const signer = useEthersSigner()
+  const safeSigning = useSafeMessageSigning()
   const client = useQueryClient()
-  const { chainId: targetChainId } = useSelectedNetwork()
+
+  const invalidateSignedMla = (chainId: number, market: string) =>
+    client.invalidateQueries({
+      queryKey: QueryKeys.Lender.GET_SIGNED_MLA(chainId, market),
+    })
 
   return useMutation({
     mutationFn: async ({
@@ -25,65 +30,65 @@ export const useSignLenderMLA = () => {
       mla: MasterLoanAgreementResponse
       timeSigned: number
     }) => {
-      if (!signer) return
-      const values = getFieldValuesForLender(lenderAddress, timeSigned)
-      const mlaData = fillInMlaForLender(mla, values, mla.market)
-
-      const signMessage = async () => {
-        if (sdk && safeConnected) {
-          await sdk.eth.setSafeSettings([
-            {
-              offChainSigning: true,
-            },
-          ])
-
-          const result = await sdk.txs.signMessage(mlaData.message)
-
-          if ("safeTxHash" in result) {
-            return {
-              signature: undefined,
-              safeTxHash: result.safeTxHash,
-            }
-          }
-          if ("signature" in result) {
-            return {
-              signature: result.signature as string,
-              safeTxHash: undefined,
-            }
-          }
-        }
-        const signatureResult = await signer.signMessage(mlaData.message)
-        return {
-          signature: signatureResult,
-          safeTxHash: undefined,
-        }
+      if (!signer) throw Error("No signer")
+      if (signer.chainId !== mla.chainId) {
+        throw Error("Wallet network does not match MLA chain")
       }
-
       const doSubmit = async () => {
-        const { signature } = await signMessage()
-        const response = await fetch(`/api/mla/lender-signature`, {
-          method: "POST",
-          body: JSON.stringify({
-            chainId: signer.chainId,
-            market: mla.market,
-            address: lenderAddress,
-            signature,
-            timeSigned,
-          } as LenderMlaSignatureInput),
+        const signed = await safeSigning.signMessage({
+          flow: "lender-mla",
+          address: lenderAddress,
+          chainId: mla.chainId,
+          timeSigned,
+          expiresAt: timeSigned + SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
+          buildMessage: (effectiveTimeSigned) => {
+            const values = getFieldValuesForLender(
+              lenderAddress,
+              effectiveTimeSigned,
+            )
+            return fillInMlaForLender(mla, values, mla.market).message
+          },
         })
-        if (response.status !== 200) throw Error("Failed to set MLA")
-        return true
+        safeSigning.markSubmitting(signed.pendingSafeMessageId)
+        try {
+          const response = await fetch(`/api/mla/lender-signature`, {
+            method: "POST",
+            body: JSON.stringify({
+              chainId: mla.chainId,
+              market: mla.market,
+              address: lenderAddress,
+              signature: signed.signature,
+              timeSigned: signed.timeSigned,
+            } as LenderMlaSignatureInput),
+          })
+          if (!response.ok) {
+            if (isTerminalClientError(response.status)) {
+              safeSigning.markCompleted(signed.pendingSafeMessageId)
+              await invalidateSignedMla(mla.chainId, mla.market)
+            }
+            throw Error("Failed to set MLA")
+          }
+          safeSigning.markCompleted(signed.pendingSafeMessageId)
+          return true
+        } catch (error) {
+          safeSigning.markSubmissionFailed(signed.pendingSafeMessageId, error)
+          throw error
+        }
       }
       await toastRequest(doSubmit(), {
         success: "MLA signed",
         error: "Failed to sign MLA",
-        pending: "Signing MLA...",
+        pending: safeSigning.safeConnected
+          ? "Awaiting Safe confirmations — you may leave this page."
+          : "Signing MLA...",
       })
     },
-    onSuccess() {
-      client.invalidateQueries({
-        queryKey: QueryKeys.Lender.GET_SIGNED_MLA(targetChainId),
-      })
+    onSuccess(_, variables) {
+      if (variables) {
+        invalidateSignedMla(variables.mla.chainId, variables.mla.market).catch(
+          () => undefined,
+        )
+      }
     },
   })
 }

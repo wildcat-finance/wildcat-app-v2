@@ -6,6 +6,7 @@ import { useAccount } from "wagmi"
 import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export const useApprove = (
@@ -15,20 +16,34 @@ export const useApprove = (
 ) => {
   const { targetChainId } = useCurrentNetwork()
   const { address } = useAccount()
+  const signer = useEthersSigner()
   const client = useQueryClient()
-  const { connected: safeConnected, sdk } = useSafeAppsSDK()
+  const { connected: safeConnected, sdk, safe } = useSafeAppsSDK()
 
   const mutation = useMutation({
     mutationFn: async (tokenAmount: TokenAmount) => {
-      if (!market) {
-        throw Error("Market not available")
+      if (!market || !signer || !address) {
+        throw Error("Market or signing account not available")
       }
-      if (market.chainId !== targetChainId) {
+      const signingChainId = safeConnected ? safe.chainId : signer.chainId
+      const signingAddress = safeConnected
+        ? safe.safeAddress
+        : await signer.getAddress()
+      if (
+        market.chainId !== targetChainId ||
+        market.chainId !== signingChainId
+      ) {
         throw Error(
-          `Market chainId does not match target chainId:` +
+          `Market chainId does not match active chainId:` +
             ` Market ${market.chainId},` +
-            ` Target ${targetChainId}`,
+            ` Target ${targetChainId}, Signing ${signingChainId}`,
         )
+      }
+      if (
+        !signingAddress ||
+        signingAddress.toLowerCase() !== address.toLowerCase()
+      ) {
+        throw Error("Signing account does not match connected account")
       }
 
       const approve = async () => {

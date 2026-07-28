@@ -23,18 +23,31 @@ export const useDeposit = (
 ) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
-  const { connected: safeConnected, sdk } = useSafeAppsSDK()
+  const { connected: safeConnected, sdk, safe } = useSafeAppsSDK()
   const { targetChainId } = useCurrentNetwork()
 
   return useMutation({
     mutationFn: async (tokenAmount: TokenAmount) => {
       if (!marketAccount || !signer) throw Error()
-      if (marketAccount.market.chainId !== targetChainId) {
+      const signingChainId = safeConnected ? safe.chainId : signer.chainId
+      const signingAddress = safeConnected
+        ? safe.safeAddress
+        : await signer.getAddress()
+      if (
+        marketAccount.market.chainId !== targetChainId ||
+        marketAccount.market.chainId !== signingChainId
+      ) {
         throw Error(
-          `Market chainId does not match target chainId:` +
+          `Market chainId does not match active chainId:` +
             ` Market ${marketAccount.market.chainId},` +
-            ` Target ${targetChainId}`,
+            ` Target ${targetChainId}, Signing ${signingChainId}`,
         )
+      }
+      if (
+        !signingAddress ||
+        signingAddress.toLowerCase() !== marketAccount.account.toLowerCase()
+      ) {
+        throw Error("Signing account does not match market account")
       }
 
       const step = marketAccount.previewDeposit(tokenAmount)

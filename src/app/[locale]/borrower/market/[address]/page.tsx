@@ -126,6 +126,7 @@ export default function MarketDetails({
   const [prevURL, setPrevURL] = useState<string | null>(null)
   const { data: marketMla, isLoading: isLoadingMarketMla } = useMarketMla(
     market?.address,
+    market?.chainId,
   )
 
   const {
