@@ -6,7 +6,7 @@
 import { randomBytes } from "crypto"
 import { before } from "node:test"
 
-import { getLensV2Contract, Market } from "@wildcatfi/wildcat-sdk"
+import { Market, SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextApiRequest } from "next"
 import { RequestInit } from "next/dist/server/web/spec-extension/request"
 import { NextRequest } from "next/server"
@@ -16,7 +16,6 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 
 import { getLoginSignatureMessage } from "@/config/api"
 import { TargetChainId, TargetNetwork } from "@/config/network"
-import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 import { prisma } from "@/lib/db"
 import {
   BasicBorrowerInfo,
@@ -25,7 +24,10 @@ import {
   MlaTemplateField,
 } from "@/lib/mla"
 import { getProviderForServer } from "@/lib/provider"
-import { formatUnixMsAsDate } from "@/utils/formatters"
+import {
+  buildServiceAgreementMessage,
+  getCurrentServiceAgreement,
+} from "@/lib/serviceAgreement"
 
 import { GET as getProfile, DELETE as deleteProfile } from "./[address]/route"
 import { GET as getAllProfiles } from "./route"
@@ -262,6 +264,10 @@ describe("API", () => {
     | Hex
     | undefined
   const borrowerAddress = wallet.address as `0x${string}`
+  const otherChainId =
+    TargetChainId === SupportedChainId.Mainnet
+      ? SupportedChainId.Sepolia
+      : SupportedChainId.Mainnet
   let adminToken: string = ""
   let borrowerToken: string = ""
   let otherToken: string = ""
@@ -271,31 +277,25 @@ describe("API", () => {
     await prisma.$executeRaw`
       DELETE FROM "AdminAccount"
       WHERE "address" = ${normalizedAddress}
+        AND "chainId" = ${TargetChainId}
     `
   }
 
   async function ensureAdminAccount(address: string) {
     const normalizedAddress = address.toLowerCase()
-    try {
-      await deleteAdminAccount(normalizedAddress)
-      await prisma.$executeRaw`
-        INSERT INTO "AdminAccount" ("address", "chainId")
-        VALUES (${normalizedAddress}, ${TargetChainId})
-      `
-    } catch {
-      const isAlreadyAdmin = await prisma.adminAccount.findFirst({
-        where: {
+    await prisma.adminAccount.upsert({
+      where: {
+        chainId_address: {
+          chainId: TargetChainId,
           address: normalizedAddress,
         },
-      })
-      if (!isAlreadyAdmin) {
-        await prisma.adminAccount.create({
-          data: {
-            address: normalizedAddress,
-          },
-        })
-      }
-    }
+      },
+      update: {},
+      create: {
+        chainId: TargetChainId,
+        address: normalizedAddress,
+      },
+    })
   }
 
   async function getToken(walletToUse: typeof wallet, isAdmin: boolean) {
@@ -306,6 +306,7 @@ describe("API", () => {
     const LoginMessage = getLoginSignatureMessage(
       walletToUse.address,
       timeSigned,
+      TargetChainId,
     )
     const signature = await walletToUse.signMessage({ message: LoginMessage })
     const req = mockPost("/api/auth/login", {
@@ -325,6 +326,7 @@ describe("API", () => {
     address: borrowerAddress,
     name: "Borrower 1",
   }
+  const acceptedBorrowerName = "Borrower 1 Updated"
   beforeAll(async () => {
     await Promise.all([
       getToken(adminWallet, true),
@@ -367,6 +369,7 @@ describe("API", () => {
       const LoginMessage = getLoginSignatureMessage(
         adminWallet.address,
         timeSigned,
+        TargetChainId,
       )
       const signature = await adminWallet.signMessage({
         message: LoginMessage,
@@ -583,13 +586,14 @@ describe("API", () => {
     })
 
     test("Fails if EOA signature is from other account", async () => {
-      let agreementText = AgreementText
       const timeSigned = Date.now()
-      const dateSigned = formatUnixMsAsDate(timeSigned)
-      if (dateSigned) {
-        agreementText = `${agreementText}\n\nDate: ${dateSigned}`
-      }
-      agreementText = `${agreementText}\n\nOrganization Name: ${invite.name}`
+      const agreement = await getCurrentServiceAgreement()
+      const agreementText = buildServiceAgreementMessage({
+        acknowledgementText: agreement.acknowledgementText,
+        timeSigned,
+        chainId: TargetChainId,
+        organizationName: invite.name,
+      })
       const wallet2 = privateKeyToAccount(generatePrivateKey())
       const body: AcceptInvitationInput = {
         chainId: TargetChainId,
@@ -606,32 +610,80 @@ describe("API", () => {
       const response = await putBorrowerInvite(req)
       expect(response.status).toBe(400)
       expect(await response.json()).toEqual({ error: "Invalid signature" })
-    })
+    }, 15_000)
 
-    test("Accepts EOA signature", async () => {
-      let agreementText = AgreementText
+    test("rolls back a failed compatibility write and allows retry", async () => {
       const timeSigned = Date.now()
-      const dateSigned = formatUnixMsAsDate(timeSigned)
-      if (dateSigned) {
-        agreementText = `${agreementText}\n\nDate: ${dateSigned}`
-      }
-      agreementText = `${agreementText}\n\nOrganization Name: ${invite.name}`
+      const agreement = await getCurrentServiceAgreement()
+      const agreementText = buildServiceAgreementMessage({
+        acknowledgementText: agreement.acknowledgementText,
+        timeSigned,
+        chainId: TargetChainId,
+        organizationName: acceptedBorrowerName,
+      })
       const body: AcceptInvitationInput = {
         chainId: TargetChainId,
         address: borrowerAddress,
-        name: invite.name,
+        name: acceptedBorrowerName,
         timeSigned,
         signature: await wallet.signMessage({ message: agreementText }),
       }
-      const req = mockPut(`/api/invite/${borrowerAddress}`, body, {
+
+      let failCompatibilityWrite = true
+      prisma.$use((params, next) => {
+        if (
+          failCompatibilityWrite &&
+          params.model === "BorrowerServiceAgreementSignature" &&
+          params.action === "upsert"
+        ) {
+          failCompatibilityWrite = false
+          throw new Error("forced compatibility write failure")
+        }
+        return next(params)
+      })
+
+      const failedRequest = mockPut(`/api/invite/${borrowerAddress}`, body, {
         headers: {
           Authorization: `Bearer ${borrowerToken}`,
         },
       })
-      const response = await putBorrowerInvite(req)
+      await expect(putBorrowerInvite(failedRequest)).rejects.toThrow(
+        "forced compatibility write failure",
+      )
+
+      await expect(
+        prisma.serviceAgreementSignature.findUnique({
+          where: {
+            chainId_address_party_serviceAgreementId: {
+              chainId: TargetChainId,
+              address: borrowerAddress.toLowerCase(),
+              party: "Borrower",
+              serviceAgreementId: agreement.id,
+            },
+          },
+        }),
+      ).resolves.toBeNull()
+      await expect(
+        prisma.borrower.findUnique({
+          where: {
+            chainId_address: {
+              chainId: TargetChainId,
+              address: borrowerAddress.toLowerCase(),
+            },
+          },
+          select: { name: true },
+        }),
+      ).resolves.toEqual({ name: invite.name })
+
+      const retryRequest = mockPut(`/api/invite/${borrowerAddress}`, body, {
+        headers: {
+          Authorization: `Bearer ${borrowerToken}`,
+        },
+      })
+      const response = await putBorrowerInvite(retryRequest)
       expect(response.status).toBe(200)
       expect(await response.json()).toEqual({ success: true })
-    })
+    }, 60_000)
   })
   // })
 
@@ -656,7 +708,7 @@ describe("API", () => {
           profile: {
             address: borrowerAddress.toLowerCase(),
             chainId: TargetChainId,
-            name: "Borrower 1",
+            name: acceptedBorrowerName,
             registeredOnChain: false,
           },
         })
@@ -692,12 +744,112 @@ describe("API", () => {
           error: `Borrower ${otherWallet.address.toLowerCase()} not found`,
         })
       })
+
+      test("Rejects borrower self-update with token from another chain", async () => {
+        await prisma.borrower.upsert({
+          where: {
+            chainId_address: {
+              chainId: otherChainId,
+              address: borrowerAddress.toLowerCase(),
+            },
+          },
+          create: {
+            chainId: otherChainId,
+            address: borrowerAddress.toLowerCase(),
+            name: "Other-chain borrower",
+            registeredOnChain: false,
+          },
+          update: {
+            name: "Other-chain borrower",
+          },
+        })
+        const updatesBefore = await prisma.borrowerProfileUpdateRequest.count({
+          where: {
+            chainId: otherChainId,
+            address: borrowerAddress.toLowerCase(),
+          },
+        })
+        const req = mockPost(
+          "/api/profiles/updates",
+          {
+            chainId: otherChainId,
+            name: "Cross-chain update",
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${borrowerToken}`,
+            },
+          },
+        )
+        const response = await postProfileUpdateRequest(req)
+        expect(response.status).toBe(403)
+        expect(await response.json()).toEqual({ error: "Forbidden" })
+        await expect(
+          prisma.borrowerProfileUpdateRequest.count({
+            where: {
+              chainId: otherChainId,
+              address: borrowerAddress.toLowerCase(),
+            },
+          }),
+        ).resolves.toBe(updatesBefore)
+        await expect(
+          prisma.borrower.findUnique({
+            where: {
+              chainId_address: {
+                chainId: otherChainId,
+                address: borrowerAddress.toLowerCase(),
+              },
+            },
+            select: {
+              name: true,
+            },
+          }),
+        ).resolves.toEqual({ name: "Other-chain borrower" })
+      })
+
+      test("Allows borrower self-update on token chain", async () => {
+        const req = mockPost(
+          "/api/profiles/updates",
+          {
+            chainId: TargetChainId,
+            description: "Updated borrower profile",
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${borrowerToken}`,
+            },
+          },
+        )
+        const response = await postProfileUpdateRequest(req)
+        expect(response.status).toBe(200)
+        expect(await response.json()).toEqual({
+          success: true,
+          updateId: expect.any(Number),
+        })
+        await expect(
+          prisma.borrower.findUnique({
+            where: {
+              chainId_address: {
+                chainId: TargetChainId,
+                address: borrowerAddress.toLowerCase(),
+              },
+            },
+            select: {
+              description: true,
+            },
+          }),
+        ).resolves.toEqual({ description: "Updated borrower profile" })
+      })
     })
   })
 
   describe("[POST] /api/mla/templates", () => {
     test("Create a new MLA template", async () => {
-      if ((await prisma.mlaTemplate.count()) > 0) {
+      if (
+        (await prisma.mlaTemplate.count({
+          where: { chainId: TargetChainId },
+        })) > 0
+      ) {
         console.log("Skipping MLA template creation because it already exists")
         return
       }
@@ -752,7 +904,9 @@ describe("API", () => {
       }
 
       async function resetMlaTemplate() {
-        const mlaTemplate = await prisma.mlaTemplate.findFirst()
+        const mlaTemplate = await prisma.mlaTemplate.findFirst({
+          where: { chainId: TargetChainId },
+        })
         await prisma.mlaTemplate.update({
           where: {
             id: mlaTemplate?.id,
@@ -769,7 +923,9 @@ describe("API", () => {
         const marketAddress = "0xbab3e079d3f28a58a14e316dcb15a8b2cc25ca80"
         await clearMla(marketAddress)
         await resetMlaTemplate()
-        const mlaTemplate = await prisma.mlaTemplate.findFirst()
+        const mlaTemplate = await prisma.mlaTemplate.findFirst({
+          where: { chainId: TargetChainId },
+        })
         if (!mlaTemplate) {
           throw new Error("No MLA template found")
         }
@@ -778,17 +934,30 @@ describe("API", () => {
           TargetChainId,
           marketAddress,
           provider,
-        ).catch(async () => {
-          const lens = getLensV2Contract(TargetChainId, provider)
-          return Market.fromMarketDataV2(
-            TargetChainId,
-            provider,
-            await lens.getMarketData(marketAddress),
-          )
-        })
-        const borrowerProfile = await prisma.borrower.findFirst({
+        ).catch(() =>
+          Market.getMarketV2(TargetChainId, marketAddress, provider),
+        )
+        const borrowerProfile = await prisma.borrower.upsert({
           where: {
+            chainId_address: {
+              chainId: TargetChainId,
+              address: realWallet.address.toLowerCase(),
+            },
+          },
+          create: {
+            chainId: TargetChainId,
             address: realWallet.address.toLowerCase(),
+            name: "MLA Test Borrower",
+            jurisdiction: "United States",
+            entityKind: "LLC",
+            physicalAddress: "123 Test Street",
+            registeredOnChain: false,
+          },
+          update: {
+            name: "MLA Test Borrower",
+            jurisdiction: "United States",
+            entityKind: "LLC",
+            physicalAddress: "123 Test Street",
           },
         })
         const timeSigned = Date.now()
@@ -826,7 +995,7 @@ describe("API", () => {
 
   describe("[GET] /api/mla/templates", () => {
     test("Get all MLA templates", async () => {
-      const response = await getMlaTemplates()
+      const response = await getMlaTemplates(mockGet("/api/mla/templates"))
       expect(response.status).toBe(200)
       const results = (await response.json()) as MlaTemplate[]
       expect(

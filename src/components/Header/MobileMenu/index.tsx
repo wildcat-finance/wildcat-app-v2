@@ -41,9 +41,11 @@ import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
+import { setTouModalOpen } from "@/store/slices/touModalSlice/touModalSlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 import { isBorrowerContextPath } from "@/utils/profileRoutes"
+import { isServiceAgreementPath } from "@/utils/serviceAgreementParty"
 
 const SlideTransition = React.forwardRef(
   (
@@ -92,6 +94,11 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
 
   const handleOpenCookiesModal = () => {
     dispatch(setIsVisible(true))
+    handleToggleModal()
+  }
+
+  const handleOpenTouModal = () => {
+    dispatch(setTouModalOpen(true))
     handleToggleModal()
   }
 
@@ -554,7 +561,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
 
                 <Box
                   component={Link}
-                  href="/pdf/Wildcat_Terms_of_Use.pdf"
+                  href="/api/service-agreement/current/download"
                   target="_blank"
                   rel="noopener noreferrer"
                   sx={{
@@ -581,6 +588,38 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                   </SvgIcon>
                 </Box>
                 <Divider sx={{ borderColor: COLORS.whiteLilac }} />
+
+                {address && !isServiceAgreementPath(pathname) && (
+                  <>
+                    <Box
+                      onClick={handleOpenTouModal}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "12px 6px",
+                        cursor: "pointer",
+                        borderRadius: "8px",
+                        "&:hover": { backgroundColor: COLORS.whiteSmoke },
+                      }}
+                    >
+                      <Typography variant="text3">
+                        Terms of Use status
+                      </Typography>
+                      <SvgIcon
+                        aria-hidden="true"
+                        sx={{
+                          transform: "rotate(-180deg)",
+                          fontSize: "16px",
+                          "& path": { fill: COLORS.santasGrey },
+                        }}
+                      >
+                        <Arrow />
+                      </SvgIcon>
+                    </Box>
+                    <Divider sx={{ borderColor: COLORS.whiteLilac }} />
+                  </>
+                )}
 
                 {/* Footer */}
                 <Box

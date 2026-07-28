@@ -22,6 +22,44 @@ import { getProviderForServer } from "./provider"
 
 export const prisma = new PrismaClient()
 
+async function getSeededLegacyWrapperHashes(): Promise<string[]> {
+  const versions = await prisma.serviceAgreement.findMany({
+    where: { NOT: { legacyWrapperHash: null } },
+    select: { legacyWrapperHash: true },
+  })
+  return versions.map(({ legacyWrapperHash }) => legacyWrapperHash as string)
+}
+
+// Prefer the versioned agreement table, while retaining the mapped legacy
+// table as a rolling-deployment fallback.
+export async function getBorrowerAcceptanceTimes(
+  chainId: SupportedChainId,
+  addresses: string[],
+): Promise<Map<string, Date>> {
+  const acceptanceTimes = new Map<string, Date>()
+  if (addresses.length === 0) return acceptanceTimes
+
+  const lowered = addresses.map((address) => address.toLowerCase())
+  const newRows = await prisma.serviceAgreementSignature.findMany({
+    where: { chainId, party: "Borrower", address: { in: lowered } },
+    orderBy: { timeSigned: "asc" },
+  })
+  newRows.forEach((row) => acceptanceTimes.set(row.address, row.timeSigned))
+
+  const missing = lowered.filter((address) => !acceptanceTimes.has(address))
+  if (missing.length > 0) {
+    const oldRows = await prisma.borrowerServiceAgreementSignature.findMany({
+      where: {
+        chainId,
+        address: { in: missing },
+        serviceAgreementHash: { in: await getSeededLegacyWrapperHashes() },
+      },
+    })
+    oldRows.forEach((row) => acceptanceTimes.set(row.address, row.timeSigned))
+  }
+  return acceptanceTimes
+}
+
 export async function findBorrowerWithPendingInvitation(
   address: string,
   chainId: SupportedChainId,
@@ -37,12 +75,13 @@ export async function findBorrowerWithPendingInvitation(
     },
     include: {
       invitation: true,
-      serviceAgreementSignature: true,
     },
   })
   if (!profile?.invitation) return undefined
-  const { invitation, serviceAgreementSignature, registeredOnChain } = profile
-  const timeSigned = serviceAgreementSignature?.timeSigned
+  const { invitation, registeredOnChain } = profile
+  const timeSigned = (await getBorrowerAcceptanceTimes(chainId, [address])).get(
+    address,
+  )
   // If the borrower has signed the service agreement, check if they are registered
   // on chain. If they are, update the borrower record and return undefined.
   if (timeSigned) {
@@ -97,14 +136,17 @@ export async function findBorrowersWithPendingInvitations(
     },
     include: {
       invitation: true,
-      serviceAgreementSignature: true,
     },
   })
+  const acceptanceTimes = await getBorrowerAcceptanceTimes(
+    chainId,
+    profiles.map(({ address }) => address),
+  )
   return profiles
     .map((profile) => {
       if (!profile?.invitation) return undefined
-      const { invitation, serviceAgreementSignature } = profile
-      const timeSigned = serviceAgreementSignature?.timeSigned
+      const { invitation } = profile
+      const timeSigned = acceptanceTimes.get(profile.address)
       if (timeSigned && profile.registeredOnChain) return undefined
       return {
         id: invitation.id,
@@ -133,25 +175,29 @@ export async function tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered(
 ) {
   // Find all borrowers that have an invitation, have signed the service agreement
   // but are not registered on chain
-  const borrowerInvitations = await prisma.borrower.findMany({
+  const invitedBorrowers = await prisma.borrower.findMany({
     where: {
       chainId,
+      registeredOnChain: false,
       NOT: {
         invitation: null,
-        serviceAgreementSignature: null,
-        registeredOnChain: true,
       },
     },
-    include: {
-      invitation: true,
+    select: {
+      address: true,
     },
   })
-  const borrowerAddresses = borrowerInvitations
-    .map(({ invitation }) => invitation?.address)
-    .filter(Boolean) as string[]
+  const acceptanceTimes = await getBorrowerAcceptanceTimes(
+    chainId,
+    invitedBorrowers.map(({ address }) => address),
+  )
+  const borrowerAddresses = invitedBorrowers
+    .map(({ address }) => address)
+    .filter((address) => acceptanceTimes.has(address.toLowerCase()))
   console.log(
     `Found ${borrowerAddresses.length} borrowers with pending invitations`,
   )
+  if (borrowerAddresses.length === 0) return
   const registeredBorrowers = await checkRegisteredBorrowersOnChain(
     getProviderForServer(chainId),
     chainId,
@@ -161,6 +207,7 @@ export async function tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered(
     (_, i) => registeredBorrowers[i],
   )
   console.log(`Found ${borrowersToUpdate.length} borrowers to update`)
+  if (borrowersToUpdate.length === 0) return
   await prisma.$transaction(
     borrowersToUpdate.map((borrower) =>
       prisma.borrower.update({

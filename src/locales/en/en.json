@@ -1332,11 +1332,13 @@
   "agreement": {
     "signButton": {
       "signing": "Signing...",
-      "sign": "Sign And Continue"
+      "sign": "Sign And Continue",
+      "reaccept": "Sign Terms of Use"
     },
     "page": {
       "title": "Wildcat Terms Of Use",
-      "download": "Download"
+      "download": "Download",
+      "cancel": "Cancel"
     }
   },
   "txModal": {

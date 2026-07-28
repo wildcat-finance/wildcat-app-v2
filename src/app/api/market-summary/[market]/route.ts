@@ -63,6 +63,9 @@ export async function POST(
     return getZodParseError(err)
   }
   const token = await verifyApiToken(request)
+  if (!token || token.chainId !== chainId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
   const provider = getProviderForServer(chainId)
   const borrowerResult = await provider.call({
     to: parsedBody.marketAddress,
@@ -77,7 +80,7 @@ export async function POST(
     data: borrowerResult as Hex,
   }).toLowerCase()
 
-  if (borrower !== token?.address.toLowerCase()) {
+  if (borrower !== token.address.toLowerCase()) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

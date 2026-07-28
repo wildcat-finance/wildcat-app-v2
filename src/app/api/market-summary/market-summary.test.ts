@@ -106,7 +106,10 @@ describe("/api/market-summary/[market]", () => {
   it("writes summaries under the validated request chain ID", async () => {
     const market = "0x04fb4e4577ad2cdd65e70f18d7a5f326162ddd90"
     const borrower = "0xca732651410e915090d7a7d889a1e44ef4575fce"
-    ;(verifyApiToken as jest.Mock).mockResolvedValue({ address: borrower })
+    ;(verifyApiToken as jest.Mock).mockResolvedValue({
+      address: borrower,
+      chainId: 9746,
+    })
     ;(getProviderForServer as jest.Mock).mockReturnValue({
       call: jest.fn().mockResolvedValue(
         encodeFunctionResult({
@@ -144,6 +147,27 @@ describe("/api/market-summary/[market]", () => {
         description: "Test description",
       },
     })
+  })
+
+  it("rejects a token issued for a different chain before reading the market", async () => {
+    const market = "0x04fb4e4577ad2cdd65e70f18d7a5f326162ddd90"
+    ;(verifyApiToken as jest.Mock).mockResolvedValue({
+      address: "0xca732651410e915090d7a7d889a1e44ef4575fce",
+      chainId: 11155111,
+    })
+
+    const response = await POST(
+      mockPost(`/api/market-summary/${market}?chainId=9746`, {
+        description: "Test description",
+      }),
+      {
+        params: { market },
+      },
+    )
+
+    expect(response.status).toBe(401)
+    expect(getProviderForServer).not.toHaveBeenCalled()
+    expect(marketDescription.upsert).not.toHaveBeenCalled()
   })
 
   it("uses short cache headers for HEAD misses", async () => {
