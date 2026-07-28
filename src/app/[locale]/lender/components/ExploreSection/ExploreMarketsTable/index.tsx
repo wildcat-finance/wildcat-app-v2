@@ -168,6 +168,7 @@ export type LenderOtherMarketsTableModel = {
   borrowerAddress: string | undefined
   asset: string
   debt: TokenAmount | undefined
+  capacity: TokenAmount
   apr: number
   withdrawalBatchDuration: number
   onboardingMode: MarketOnboardingMode | undefined
@@ -356,6 +357,7 @@ export const ExploreMarketsTable = () => {
         apr: annualInterestBips,
         withdrawalBatchDuration,
         debt: totalSupply,
+        capacity: maxTotalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
         onboardingMode: getKnownMarketOnboardingMode(
           market.version,
@@ -758,7 +760,7 @@ export const ExploreMarketsTable = () => {
           <RepeatingSkeletons
             itemsLength={5}
             skeletonSX={{
-              height: "86px",
+              height: "186px",
               borderRadius: "12px",
               marginBottom: "6px",
               "&:last-of-type": {
@@ -777,19 +779,6 @@ export const ExploreMarketsTable = () => {
               />
             ))
         )}
-
-        <Box sx={{ padding: "10px 8px 4px" }}>
-          <Button
-            component={Link}
-            href="/lender/all-markets"
-            variant="contained"
-            color="secondary"
-            size="small"
-            fullWidth
-          >
-            Go to All Markets
-          </Button>
-        </Box>
       </Box>
     )
 

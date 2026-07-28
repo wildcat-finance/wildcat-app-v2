@@ -11,7 +11,7 @@ import TopFundedIcon from "@/assets/icons/topFundedCard_icon.svg"
 import TrendingIcon from "@/assets/icons/trendingCard_icon.svg"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
-import { buildMarketHref } from "@/utils/formatters"
+import { buildMarketHref, formatBps } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 
 import {
@@ -92,7 +92,6 @@ type TrendingMarketCardProps = {
   status: ReturnType<typeof getMarketStatusChip>
   termLabel: string
   termDetail: string
-  requiresMlaSignature: boolean
 }
 
 export const TrendingMarketCard = ({
@@ -110,7 +109,6 @@ export const TrendingMarketCard = ({
   status,
   termLabel,
   termDetail,
-  requiresMlaSignature,
 }: TrendingMarketCardProps) => {
   const badge = VARIANT_BADGE[variant]
 
@@ -128,9 +126,23 @@ export const TrendingMarketCard = ({
   }
 
   return (
-    <Box sx={{ ...CardContainerStyle, borderTop: `2px solid ${badge.accent}` }}>
+    <Box
+      sx={{
+        ...CardContainerStyle,
+        borderTop: {
+          xs: `3px solid ${badge.accent}`,
+          md: `2px solid ${badge.accent}`,
+        },
+      }}
+    >
       <Box sx={CardHeaderStyle}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: "7px" }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: { xs: "10px", md: "7px" },
+          }}
+        >
           <SvgIcon
             component={badge.Icon}
             sx={{
@@ -141,10 +153,10 @@ export const TrendingMarketCard = ({
           <Typography
             sx={{
               color: COLORS.black,
-              fontSize: pxToRem(10),
+              fontSize: { xs: "14px", md: pxToRem(10) },
               fontWeight: 600,
               letterSpacing: "0.07em",
-              lineHeight: lh(14, 10),
+              lineHeight: { xs: "20px", md: lh(14, 10) },
               textTransform: "uppercase",
               whiteSpace: "nowrap",
             }}
@@ -156,8 +168,8 @@ export const TrendingMarketCard = ({
         <Typography
           sx={{
             color: COLORS.matteSilver,
-            fontSize: pxToRem(9),
-            lineHeight: lh(14, 9),
+            fontSize: { xs: "14px", md: pxToRem(9) },
+            lineHeight: { xs: "20px", md: lh(14, 9) },
             whiteSpace: "nowrap",
           }}
         >
@@ -170,7 +182,7 @@ export const TrendingMarketCard = ({
           <Typography
             sx={{
               color: COLORS.black,
-              fontSize: pxToRem(20),
+              fontSize: { xs: "32px", md: pxToRem(20) },
               fontWeight: 500,
               lineHeight: 1,
               whiteSpace: "nowrap",
@@ -183,8 +195,8 @@ export const TrendingMarketCard = ({
               minWidth: 0,
               overflow: "hidden",
               color: COLORS.blackRock,
-              fontSize: pxToRem(10),
-              lineHeight: lh(14, 10),
+              fontSize: { xs: "16px", md: pxToRem(10) },
+              lineHeight: { xs: "22px", md: lh(14, 10) },
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
             }}
@@ -210,22 +222,29 @@ export const TrendingMarketCard = ({
           href={buildMarketHref(marketAddress, chainId)}
           sx={{
             ...MarketContainerStyle,
-            ...(requiresMlaSignature && {
-              border: `1px solid ${COLORS.whiteLilac}`,
-              backgroundColor: COLORS.white,
-              color: COLORS.bunker,
-            }),
+            justifyContent: "space-between",
           }}
         >
-          <Typography
-            sx={{
-              color: requiresMlaSignature ? COLORS.bunker : COLORS.white,
-              fontSize: "11px",
-              fontWeight: 600,
-            }}
-          >
-            {requiresMlaSignature ? "Sign MLA to Lend" : "Deposit →"}
-          </Typography>
+          <>
+            <Typography
+              sx={{
+                color: COLORS.white,
+                fontSize: { xs: "18px", md: "11px" },
+                fontWeight: 500,
+              }}
+            >
+              Earn {formatBps(apr)}% APR
+            </Typography>
+            <Typography
+              sx={{
+                color: COLORS.white,
+                fontSize: { xs: "18px", md: "11px" },
+                fontWeight: 600,
+              }}
+            >
+              Deposit
+            </Typography>
+          </>
         </Box>
       </Box>
     </Box>

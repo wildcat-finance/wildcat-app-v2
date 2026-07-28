@@ -1,9 +1,9 @@
 import * as React from "react"
 
-import { Box, Chip, SvgIcon, Typography } from "@mui/material"
+import { Box, SvgIcon, Typography } from "@mui/material"
 
 import Avatar from "@/assets/icons/avatar_icon.svg"
-import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { MarketStatusAndTermChip } from "@/components/@extended/MarketStatusAndTermChip"
 import { COLORS } from "@/theme/colors"
 import { formatBps } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
@@ -37,20 +37,25 @@ export const TrendingMarketDetails = ({
     sx={{
       display: "flex",
       flexDirection: "column",
-      gap: "9px",
-      paddingTop: "10px",
+      gap: { xs: "14px", md: "9px" },
+      paddingTop: { xs: "16px", md: "10px" },
     }}
   >
     <Box
-      sx={{ display: "flex", flexDirection: "column", gap: "2px", minWidth: 0 }}
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: { xs: "3px", md: "2px" },
+        minWidth: 0,
+      }}
     >
       <Typography
         sx={{
           display: "block",
           overflow: "hidden",
-          fontSize: "13px",
+          fontSize: { xs: "16px", md: "11px" },
           fontWeight: 600,
-          lineHeight: "18px",
+          lineHeight: { xs: "22px", md: "16px" },
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
         }}
@@ -58,12 +63,18 @@ export const TrendingMarketDetails = ({
         {marketName}
       </Typography>
 
-      <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: { xs: "8px", md: "5px" },
+        }}
+      >
         {borrower.startsWith("0") ? (
           <SvgIcon
             sx={{
-              width: "14px",
-              height: "14px",
+              width: { xs: "20px", md: "14px" },
+              height: { xs: "20px", md: "14px" },
               flexShrink: 0,
               "& circle": { fill: COLORS.hawkesBlue, opacity: 1 },
               "& path": { fill: COLORS.blueRibbon },
@@ -74,8 +85,8 @@ export const TrendingMarketDetails = ({
         ) : (
           <Box
             sx={{
-              width: "14px",
-              height: "14px",
+              width: { xs: "20px", md: "14px" },
+              height: { xs: "20px", md: "14px" },
               flex: "0 0 auto",
               display: "flex",
               alignItems: "center",
@@ -83,7 +94,7 @@ export const TrendingMarketDetails = ({
               borderRadius: "50%",
               backgroundColor: COLORS.hawkesBlue,
               color: COLORS.blueRibbon,
-              fontSize: "7px",
+              fontSize: { xs: "10px", md: "7px" },
               fontWeight: 600,
               textTransform: "uppercase",
             }}
@@ -96,8 +107,8 @@ export const TrendingMarketDetails = ({
           sx={{
             overflow: "hidden",
             color: COLORS.blackRock,
-            fontSize: "11px",
-            lineHeight: "16px",
+            fontSize: { xs: "16px", md: "11px" },
+            lineHeight: { xs: "22px", md: "16px" },
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
           }}
@@ -108,16 +119,28 @@ export const TrendingMarketDetails = ({
     </Box>
 
     <Box sx={{ display: "flex", justifyContent: "space-between", gap: "8px" }}>
-      <Box sx={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-        <Typography sx={{ fontSize: "18px", fontWeight: 500, lineHeight: 1 }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: { xs: "2px", md: "1px" },
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: { xs: "30px", md: "18px" },
+            fontWeight: 500,
+            lineHeight: 1,
+          }}
+        >
           {formatBps(apr)}%
         </Typography>
         <Typography
           sx={{
             color: COLORS.matteSilver,
-            fontSize: "8px",
+            fontSize: { xs: "10px", md: "8px" },
             fontWeight: 600,
-            lineHeight: "12px",
+            lineHeight: { xs: "14px", md: "12px" },
             textTransform: "uppercase",
           }}
         >
@@ -129,19 +152,25 @@ export const TrendingMarketDetails = ({
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: "1px",
+          gap: { xs: "2px", md: "1px" },
           minWidth: 0,
           textAlign: "right",
         }}
       >
-        <Typography sx={{ fontSize: "12px", fontWeight: 600, lineHeight: 1 }}>
+        <Typography
+          sx={{
+            fontSize: { xs: "16px", md: "12px" },
+            fontWeight: 600,
+            lineHeight: 1,
+          }}
+        >
           {supplied}
         </Typography>
         <Typography
           sx={{
             color: COLORS.matteSilver,
-            fontSize: "9px",
-            lineHeight: "13px",
+            fontSize: { xs: "14px", md: "9px" },
+            lineHeight: { xs: "18px", md: "13px" },
             whiteSpace: "nowrap",
           }}
         >
@@ -164,23 +193,17 @@ export const TrendingMarketDetails = ({
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        gap: "6px",
-        marginTop: "3px",
+        gap: { xs: "10px", md: "6px" },
+        marginTop: { xs: "4px", md: "3px" },
       }}
     >
-      <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
-        <MarketStatusChip status={status} withPeriod={false} />
-        <Chip
-          label={termLabel}
-          sx={{ backgroundColor: COLORS.whiteSmoke, color: COLORS.blackRock }}
-        />
-      </Box>
+      <MarketStatusAndTermChip status={status} termLabel={termLabel} />
 
       <Typography
         sx={{
           color: COLORS.matteSilver,
-          fontSize: "9px",
-          lineHeight: "14px",
+          fontSize: { xs: "14px", md: "9px" },
+          lineHeight: { xs: "20px", md: "14px" },
           textAlign: "right",
           whiteSpace: "nowrap",
         }}

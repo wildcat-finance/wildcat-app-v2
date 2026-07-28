@@ -296,18 +296,6 @@ const LENDER_QUERY_KEYS = {
     marketAddress?: string,
     lenderAddress?: string,
   ) => k(["lender", "GET_SIGNED_MLA", chainId, marketAddress, lenderAddress]),
-  GET_MLA_SIGNATURE_REQUIREMENTS: (
-    chainId: number,
-    lenderAddress?: string,
-    marketAddresses?: string[],
-  ) =>
-    k([
-      "lender",
-      "GET_MLA_SIGNATURE_REQUIREMENTS",
-      chainId,
-      lenderAddress,
-      marketAddresses,
-    ]),
   GET_BORROWER_PENALTY_WARNING: (chainId: number, borrowerAddress?: string) =>
     k(["lender", "GET_BORROWER_PENALTY_WARNING", chainId, borrowerAddress]),
   GET_NON_MLA_ACKNOWLEDGEMENT: (

@@ -6,7 +6,6 @@ import * as React from "react"
 import { Box, Skeleton, Typography } from "@mui/material"
 import { HooksKind, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { formatUnits } from "viem"
-import { useAccount } from "wagmi"
 
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
 import { useMarketsWithRecentInflow } from "@/app/[locale]/lender/hooks/useMarketsWithRecentInflow"
@@ -32,7 +31,6 @@ import {
   TrendingMarketCard,
   TrendingMarketCardVariant,
 } from "./TrendingMarketsCard"
-import { useTrendingMarketMlaStatus } from "./useTrendingMarketMlaStatus"
 import { useTrendingUsdPrices } from "./useTrendingUsdPrices"
 
 const SLOT_COUNT = 5
@@ -245,9 +243,48 @@ export const TrendingMarketsCarousel = () => {
   const { isMarketQualifying, isLoading: isInflowLoading } =
     useMarketsWithRecentInflow()
   const dragScroll = useDragScroll()
+  const [activeMobileSlot, setActiveMobileSlot] = useState(0)
+
+  const handleMobileScroll = useCallback(
+    (event: React.UIEvent<HTMLDivElement>) => {
+      const scroller = event.currentTarget
+      const viewportCenter = scroller.scrollLeft + scroller.clientWidth / 2
+      const cards = Array.from(
+        scroller.querySelectorAll<HTMLElement>("[data-carousel-index]"),
+      )
+
+      let closestIndex = 0
+      let closestDistance = Number.POSITIVE_INFINITY
+      cards.forEach((card) => {
+        const distance = Math.abs(
+          card.offsetLeft + card.offsetWidth / 2 - viewportCenter,
+        )
+        if (distance < closestDistance) {
+          closestDistance = distance
+          closestIndex = Number(card.dataset.carouselIndex)
+        }
+      })
+      setActiveMobileSlot(closestIndex)
+    },
+    [],
+  )
+
+  const scrollToMobileSlot = useCallback(
+    (index: number) => {
+      const scroller = dragScroll.ref.current
+      const card = scroller?.querySelector<HTMLElement>(
+        `[data-carousel-index="${index}"]`,
+      )
+      if (!scroller || !card) return
+      scroller.scrollTo({
+        left: card.offsetLeft - (scroller.clientWidth - card.offsetWidth) / 2,
+        behavior: "smooth",
+      })
+    },
+    [dragScroll.ref],
+  )
 
   const { chainId } = useSelectedNetwork()
-  const { address: lenderAddress } = useAccount()
   const tokenAddresses = useMemo(
     () =>
       Array.from(
@@ -411,27 +448,20 @@ export const TrendingMarketsCarousel = () => {
     isMarketQualifying,
   ])
 
-  const slotMarketAddresses = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          slots.map(({ account }) => account.market.address.toLowerCase()),
-        ),
-      ).sort(),
-    [slots],
-  )
-  const { data: mlaStatus, isLoading: isMlaStatusLoading } =
-    useTrendingMarketMlaStatus(chainId, slotMarketAddresses, lenderAddress)
-  const marketsRequiringMlaSignature = useMemo(
-    () => new Set(mlaStatus?.requiresSignature ?? []),
-    [mlaStatus],
-  )
-  const isLoading =
-    isLoadingInitial || isLoadingUpdate || isInflowLoading || isMlaStatusLoading
+  const isLoading = isLoadingInitial || isLoadingUpdate || isInflowLoading
 
   const isMobile = useMobileResolution()
 
-  usePeekOnFirstVisit(dragScroll.ref, !isLoading && slots.length > 0)
+  useEffect(() => {
+    setActiveMobileSlot((index) =>
+      Math.min(index, Math.max(0, slots.length - 1)),
+    )
+  }, [slots.length])
+
+  usePeekOnFirstVisit(
+    dragScroll.ref,
+    !isMobile && !isLoading && slots.length > 0,
+  )
 
   const renderCard = (slot: Slot) => {
     const { market } = slot.account
@@ -472,9 +502,6 @@ export const TrendingMarketsCarousel = () => {
         status={getMarketStatusChip(market)}
         termLabel={termLabel}
         termDetail={termDetail}
-        requiresMlaSignature={marketsRequiringMlaSignature.has(
-          market.address.toLowerCase(),
-        )}
       />
     )
   }
@@ -501,13 +528,15 @@ export const TrendingMarketsCarousel = () => {
           onMouseMove={dragScroll.onMouseMove}
           onMouseUp={dragScroll.onMouseUp}
           onMouseLeave={dragScroll.onMouseLeave}
+          onScroll={handleMobileScroll}
           sx={{
             display: "flex",
-            gap: "6px",
+            gap: "8px",
             overflowX: "auto",
             "&::-webkit-scrollbar": { display: "none" },
             scrollbarWidth: "none",
-            marginBottom: "8px",
+            scrollSnapType: "x mandatory",
+            overscrollBehaviorX: "contain",
             cursor: dragScroll.isScrollable ? "grab" : "default",
           }}
         >
@@ -516,14 +545,16 @@ export const TrendingMarketsCarousel = () => {
                 (key, index) => (
                   <Skeleton
                     key={key}
-                    height="270px"
+                    height="400px"
                     sx={{
-                      flex: "1 0 222px",
+                      flex: "0 0 calc(100% - 72px)",
                       minWidth: "222px",
                       borderRadius: "12px",
                       bgcolor: COLORS.athensGrey,
-                      ...(index === 0 && { marginLeft: "8px" }),
-                      ...(index === 4 && { marginRight: "8px" }),
+                      scrollSnapAlign: "center",
+                      scrollSnapStop: "always",
+                      ...(index === 0 && { marginLeft: "24px" }),
+                      ...(index === 4 && { marginRight: "36px" }),
                     }}
                   />
                 ),
@@ -531,13 +562,16 @@ export const TrendingMarketsCarousel = () => {
             : slots.map((slot, index) => (
                 <Box
                   key={slot.key}
+                  data-carousel-index={index}
                   sx={{
-                    flex: "1 0 222px",
+                    flex: "0 0 calc(100% - 72px)",
                     minWidth: "222px",
                     display: "flex",
-                    ...(index === 0 && { marginLeft: "8px" }),
+                    scrollSnapAlign: "center",
+                    scrollSnapStop: "always",
+                    ...(index === 0 && { marginLeft: "24px" }),
                     ...(index === slots.length - 1 && {
-                      marginRight: "8px",
+                      marginRight: "36px",
                     }),
                   }}
                 >
@@ -545,6 +579,45 @@ export const TrendingMarketsCarousel = () => {
                 </Box>
               ))}
         </Box>
+
+        {!isLoading && slots.length > 1 && (
+          <Box
+            role="group"
+            aria-label="Trending market position"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+              padding: "16px 0 20px",
+            }}
+          >
+            {slots.map((slot, index) => {
+              const isActive = index === activeMobileSlot
+              return (
+                <Box
+                  component="button"
+                  key={slot.key}
+                  type="button"
+                  aria-label={`Show trending market ${index + 1}`}
+                  aria-current={isActive ? "true" : undefined}
+                  onClick={() => scrollToMobileSlot(index)}
+                  sx={{
+                    width: isActive ? "26px" : "8px",
+                    height: "8px",
+                    flexShrink: 0,
+                    padding: 0,
+                    border: 0,
+                    borderRadius: "4px",
+                    backgroundColor: isActive ? COLORS.bunker : COLORS.iron,
+                    cursor: "pointer",
+                    transition: "width 160ms ease, background-color 160ms ease",
+                  }}
+                />
+              )
+            })}
+          </Box>
+        )}
       </Box>
     )
 

@@ -16,14 +16,9 @@ export const useSignLenderMLA = () => {
   const client = useQueryClient()
 
   const invalidateSignedMla = (chainId: number, market: string) =>
-    Promise.all([
-      client.invalidateQueries({
-        queryKey: QueryKeys.Lender.GET_SIGNED_MLA(chainId, market),
-      }),
-      client.invalidateQueries({
-        queryKey: QueryKeys.Lender.GET_MLA_SIGNATURE_REQUIREMENTS(chainId),
-      }),
-    ])
+    client.invalidateQueries({
+      queryKey: QueryKeys.Lender.GET_SIGNED_MLA(chainId, market),
+    })
 
   return useMutation({
     mutationFn: async ({

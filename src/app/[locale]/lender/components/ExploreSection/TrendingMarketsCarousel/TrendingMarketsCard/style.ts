@@ -3,43 +3,47 @@ import { COLORS } from "@/theme/colors"
 export const CardContainerStyle = {
   width: "100%",
   minWidth: "222px",
-  minHeight: "270px",
+  minHeight: { xs: "400px", md: "270px" },
   height: "100%",
   display: "flex",
   flexDirection: "column",
   overflow: "hidden",
   border: `1px solid ${COLORS.whiteLilac}`,
-  borderRadius: "12px",
+  borderRadius: { xs: "24px", md: "12px" },
   backgroundColor: COLORS.white,
 }
 
 export const CardHeaderStyle = {
   width: "100%",
-  minHeight: "32px",
+  minHeight: { xs: "48px", md: "32px" },
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  padding: "7px 10px",
+  padding: { xs: "12px 20px", md: "7px 10px" },
   borderBottom: `1px solid ${COLORS.whiteLilac}`,
   backgroundColor: COLORS.hintOfRed,
 }
 
-export const CardIconStyle = { width: "16px", height: "16px", flexShrink: 0 }
+export const CardIconStyle = {
+  width: { xs: "18px", md: "16px" },
+  height: { xs: "18px", md: "16px" },
+  flexShrink: 0,
+}
 
 export const CardContentStyle = {
   width: "100%",
   flexGrow: 1,
   display: "flex",
   flexDirection: "column",
-  padding: "12px 10px",
+  padding: { xs: "20px", md: "12px 10px" },
 }
 
 export const StatStyle = {
   display: "flex",
   alignItems: "baseline",
-  gap: "4px",
+  gap: { xs: "8px", md: "4px" },
   minWidth: 0,
-  paddingBottom: "11px",
+  paddingBottom: { xs: "16px", md: "11px" },
   borderBottom: `1px solid ${COLORS.whiteLilac}`,
 }
 
@@ -48,10 +52,10 @@ export const MarketContainerStyle = {
   alignItems: "center",
   justifyContent: "center",
   width: "100%",
-  minHeight: "36px",
-  marginTop: "14px",
-  padding: "7px 12px",
-  borderRadius: "8px",
+  minHeight: { xs: "56px", md: "36px" },
+  marginTop: { xs: "18px", md: "14px" },
+  padding: { xs: "12px 32px", md: "7px 12px" },
+  borderRadius: { xs: "28px", md: "8px" },
   backgroundColor: COLORS.bunker,
   color: COLORS.white,
   textDecoration: "none",
@@ -60,8 +64,8 @@ export const MarketContainerStyle = {
 
 export const SupplyProgressTrackStyle = {
   width: "100%",
-  height: "4px",
-  borderRadius: "2px",
+  height: { xs: "7px", md: "4px" },
+  borderRadius: { xs: "4px", md: "2px" },
   backgroundColor: COLORS.athensGrey,
   overflow: "hidden",
 }
