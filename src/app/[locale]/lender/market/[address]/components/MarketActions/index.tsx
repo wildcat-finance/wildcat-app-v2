@@ -1,12 +1,12 @@
 import * as React from "react"
 
 import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
-import { useQuery } from "@tanstack/react-query"
 import {
   DepositStatus,
   MarketAccount,
   QueueWithdrawalStatus,
 } from "@wildcatfi/wildcat-sdk"
+import humanizeDuration from "humanize-duration"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
@@ -20,11 +20,11 @@ import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import TelegramIcon from "@/assets/icons/telegram_icon.svg"
 import { TransactionBlock } from "@/components/TransactionBlock"
-import { QueryKeys } from "@/config/query-keys"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useWrapperBalances } from "@/hooks/wrapper/useWrapperBalances"
+import { useWrapperLimits } from "@/hooks/wrapper/useWrapperLimits"
 import { useAppDispatch } from "@/store/hooks"
 import {
   LenderMarketSections,
@@ -76,22 +76,23 @@ export const MarketActions = ({
     address,
   )
   const shareBalance = wrapperBalances?.shareBalance
-  const showWrappedLine =
+  const hasWrappedPosition =
     !!hasWrapper && !!wrapper && !!shareBalance && !shareBalance.raw.isZero()
 
-  const { data: wrappedAssets } = useQuery({
-    queryKey: QueryKeys.Wrapper.MAX_ASSETS_FROM_SHARES(
-      wrapper?.address,
-      shareBalance?.raw.toString(),
-    ),
-    enabled: showWrappedLine,
-    queryFn: async () => {
-      if (!wrapper || !shareBalance) throw new Error("no shares")
-      return wrapper.previewRedeem(shareBalance)
-    },
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-  })
+  // Authoritative wrapped ceiling — the same source the withdraw routing uses.
+  const { data: wrapperLimits } = useWrapperLimits(
+    market.chainId,
+    wrapper,
+    address,
+  )
+  const wrappedAvailable = hasWrappedPosition
+    ? wrapperLimits?.maxWithdraw
+    : undefined
+
+  /** Everything the lender can request, across both positions. */
+  const combinedAvailable = wrappedAvailable
+    ? marketAccount.marketBalance.add(wrappedAvailable)
+    : marketAccount.marketBalance
 
   const { data: mla, isLoading: mlaLoading } = useMarketMla(market.address)
 
@@ -115,10 +116,6 @@ export const MarketActions = ({
     isTestnet &&
     market.underlyingToken.isMock &&
     marketAccount.underlyingBalance.raw.isZero()
-
-  const hideWithdraw =
-    marketAccount.marketBalance.raw.isZero() ||
-    marketAccount.withdrawalAvailability !== QueueWithdrawalStatus.Ready
 
   const ongoingCount = (
     withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
@@ -192,6 +189,41 @@ export const MarketActions = ({
   const isTooSmallMarketBalance: boolean =
     marketAccount.marketBalance.lt(smallestTokenAmountValue) &&
     !marketAccount.marketBalance.raw.isZero()
+
+  const humanizeDays = (seconds: number) =>
+    humanizeDuration(seconds * 1000, { largest: 1, round: true })
+
+  const depositRows = [
+    {
+      label: t("lenderMarketDetails.transactions.deposit.rows.walletBalance"),
+      value: `${formatTokenWithCommas(marketAccount.underlyingBalance)} ${
+        market.underlyingToken.symbol
+      }`,
+    },
+    ...(market.hooksConfig?.minimumDeposit
+      ? [
+          {
+            label: t(
+              "lenderMarketDetails.transactions.deposit.rows.minimumDeposit",
+            ),
+            value: `${formatTokenWithCommas(
+              market.hooksConfig.minimumDeposit,
+            )} ${market.underlyingToken.symbol}`,
+          },
+        ]
+      : []),
+  ]
+
+  const withdrawRows = [
+    {
+      label: t("lenderMarketDetails.transactions.withdraw.rows.cycle"),
+      value: humanizeDays(market.withdrawalBatchDuration),
+    },
+    {
+      label: t("lenderMarketDetails.transactions.withdraw.rows.gracePeriod"),
+      value: humanizeDays(market.delinquencyGracePeriod),
+    },
+  ]
 
   return (
     <>
@@ -271,67 +303,60 @@ export const MarketActions = ({
           }
 
           return (
-            <>
-              <Box sx={TransactionsContainer}>
-                <TransactionBlock
-                  title={t("lenderMarketDetails.transactions.deposit.title")}
-                  tooltip={t(
-                    "lenderMarketDetails.transactions.deposit.tooltip",
-                  )}
-                  amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
-                  asset={market.underlyingToken.symbol}
-                >
-                  {!showFaucet && (
-                    <DepositModal
-                      marketAccount={marketAccount}
-                      showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
-                    />
-                  )}
-                  {showFaucet && <FaucetButton marketAccount={marketAccount} />}
-                </TransactionBlock>
+            <Box sx={TransactionsContainer}>
+              <TransactionBlock
+                title={t("lenderMarketDetails.transactions.deposit.title")}
+                tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
+                amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
+                asset={market.underlyingToken.symbol}
+                subtitle={t(
+                  "lenderMarketDetails.transactions.deposit.subtitle",
+                )}
+                rows={depositRows}
+              >
+                {!showFaucet && (
+                  <DepositModal
+                    marketAccount={marketAccount}
+                    showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
+                  />
+                )}
+                {showFaucet && <FaucetButton marketAccount={marketAccount} />}
+              </TransactionBlock>
 
-                <TransactionBlock
-                  title={t("lenderMarketDetails.transactions.withdraw.title")}
-                  tooltip={t(
-                    "lenderMarketDetails.transactions.withdraw.tooltip",
-                  )}
-                  amount={
-                    isTooSmallMarketBalance
-                      ? `< 0.00001`
-                      : formatTokenWithCommas(marketAccount.marketBalance)
-                  }
-                  asset={market.underlyingToken.symbol}
-                >
-                  {(!hideWithdraw ||
-                    (showWrappedLine &&
-                      marketAccount.withdrawalAvailability ===
-                        QueueWithdrawalStatus.Ready)) && (
+              <TransactionBlock
+                title={t("lenderMarketDetails.transactions.withdraw.title")}
+                tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
+                amount={
+                  isTooSmallMarketBalance && !hasWrappedPosition
+                    ? `< 0.00001`
+                    : formatTokenWithCommas(combinedAvailable)
+                }
+                asset={market.underlyingToken.symbol}
+                subtitle={
+                  hasWrappedPosition
+                    ? t("lenderMarketDetails.transactions.withdraw.split", {
+                        direct: formatTokenWithCommas(
+                          marketAccount.marketBalance,
+                        ),
+                        wrapped: wrappedAvailable
+                          ? formatTokenWithCommas(wrappedAvailable)
+                          : "…",
+                      })
+                    : undefined
+                }
+                rows={withdrawRows}
+              >
+                {!combinedAvailable.raw.isZero() &&
+                  marketAccount.withdrawalAvailability ===
+                    QueueWithdrawalStatus.Ready && (
                     <WithdrawModal
                       marketAccount={marketAccount}
                       wrapper={wrapper}
                       hasWrapper={hasWrapper}
                     />
                   )}
-                </TransactionBlock>
-              </Box>
-
-              {showWrappedLine && wrapper && shareBalance && (
-                <Typography
-                  variant="text3"
-                  align="right"
-                  sx={{ color: COLORS.santasGrey, marginTop: "12px" }}
-                >
-                  {t("lenderMarketDetails.transactions.withdraw.wrappedLine", {
-                    shares: formatTokenWithCommas(shareBalance),
-                    shareSymbol: wrapper.shareToken.symbol,
-                    assets: wrappedAssets
-                      ? formatTokenWithCommas(wrappedAssets)
-                      : "…",
-                    symbol: market.underlyingToken.symbol,
-                  })}
-                </Typography>
-              )}
-            </>
+              </TransactionBlock>
+            </Box>
           )
         })()}
       </Box>

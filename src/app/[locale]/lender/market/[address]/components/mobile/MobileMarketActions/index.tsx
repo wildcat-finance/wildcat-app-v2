@@ -2,7 +2,6 @@ import { Dispatch, SetStateAction } from "react"
 import * as React from "react"
 
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
-import { useQuery } from "@tanstack/react-query"
 import {
   DepositStatus,
   HooksKind,
@@ -19,10 +18,10 @@ import { useFaucet } from "@/app/[locale]/lender/market/[address]/hooks/useFauce
 import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"
 import Clock from "@/assets/icons/clock_icon.svg"
 import { TooltipButton } from "@/components/TooltipButton"
-import { QueryKeys } from "@/config/query-keys"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { useWrapperBalances } from "@/hooks/wrapper/useWrapperBalances"
+import { useWrapperLimits } from "@/hooks/wrapper/useWrapperLimits"
 import { COLORS } from "@/theme/colors"
 import { hasManuallyDisabledMarketActions } from "@/utils/constants"
 import { formatTokenWithCommas } from "@/utils/formatters"
@@ -149,22 +148,23 @@ export const MobileMarketActions = ({
     address,
   )
   const shareBalance = wrapperBalances?.shareBalance
-  const showWrappedLine =
+  const hasWrappedPosition =
     !!hasWrapper && !!wrapper && !!shareBalance && !shareBalance.raw.isZero()
 
-  const { data: wrappedAssets } = useQuery({
-    queryKey: QueryKeys.Wrapper.MAX_ASSETS_FROM_SHARES(
-      wrapper?.address,
-      shareBalance?.raw.toString(),
-    ),
-    enabled: showWrappedLine,
-    queryFn: async () => {
-      if (!wrapper || !shareBalance) throw new Error("no shares")
-      return wrapper.previewRedeem(shareBalance)
-    },
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-  })
+  // Authoritative wrapped ceiling — the same source the withdraw routing uses.
+  const { data: wrapperLimits } = useWrapperLimits(
+    market.chainId,
+    wrapper,
+    address,
+  )
+  const wrappedAvailable = hasWrappedPosition
+    ? wrapperLimits?.maxWithdraw
+    : undefined
+
+  /** Everything the lender can request, across both positions. */
+  const combinedAvailable = wrappedAvailable
+    ? marketAccount.marketBalance.add(wrappedAvailable)
+    : marketAccount.marketBalance
 
   const isDifferentChain = isSelectionMismatch || isWrongNetwork
 
@@ -325,22 +325,20 @@ export const MobileMarketActions = ({
                 // title={t("lenderMarketDetails.transactions.withdraw.title")}
                 title="Available To Withdraw"
                 tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
-                amount={formatTokenWithCommas(marketAccount.marketBalance)}
+                amount={formatTokenWithCommas(combinedAvailable)}
                 asset={market.underlyingToken.symbol}
               />
 
-              {showWrappedLine && wrapper && shareBalance && (
+              {hasWrappedPosition && (
                 <Typography
                   variant="mobText3"
                   sx={{ color: COLORS.white06, marginTop: "4px" }}
                 >
-                  {t("lenderMarketDetails.transactions.withdraw.wrappedLine", {
-                    shares: formatTokenWithCommas(shareBalance),
-                    shareSymbol: wrapper.shareToken.symbol,
-                    assets: wrappedAssets
-                      ? formatTokenWithCommas(wrappedAssets)
+                  {t("lenderMarketDetails.transactions.withdraw.split", {
+                    direct: formatTokenWithCommas(marketAccount.marketBalance),
+                    wrapped: wrappedAvailable
+                      ? formatTokenWithCommas(wrappedAvailable)
                       : "…",
-                    symbol: market.underlyingToken.symbol,
                   })}
                 </Typography>
               )}

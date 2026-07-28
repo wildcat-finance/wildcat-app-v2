@@ -1,12 +1,19 @@
 import * as React from "react"
 
-import { Box, Typography } from "@mui/material"
+import { Box, Divider, Typography } from "@mui/material"
 
 import { TooltipButton } from "@/components/TooltipButton"
 import { TransactionBlockProps } from "@/components/TransactionBlock/interface"
 import { COLORS } from "@/theme/colors"
 
-import { AmountContainer, BlockContainer, TitleContainer } from "./style"
+import {
+  AmountContainer,
+  BlockContainer,
+  RowContainer,
+  RowsContainer,
+  TitleContainer,
+  TopRowContainer,
+} from "./style"
 
 export const TransactionBlock = ({
   title,
@@ -15,37 +22,84 @@ export const TransactionBlock = ({
   warning,
   asset,
   children,
+  subtitle,
+  rows,
 }: TransactionBlockProps) => (
   <Box sx={BlockContainer}>
+    {/* Header group: the subtitle sits OUTSIDE the row that holds the action
+        button, so it spans the full card width instead of the leftover column. */}
     <Box>
-      <Box sx={TitleContainer}>
-        <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-          {title}
-        </Typography>
-        <TooltipButton value={tooltip} />
+      <Box sx={TopRowContainer}>
+        <Box sx={{ minWidth: 0 }}>
+          <Box sx={TitleContainer}>
+            <Typography
+              variant="text4"
+              sx={{ color: COLORS.manate, whiteSpace: "nowrap" }}
+            >
+              {title}
+            </Typography>
+            <TooltipButton value={tooltip} />
+          </Box>
+
+          <Box sx={AmountContainer}>
+            <Typography
+              variant="title3"
+              sx={{
+                color: warning ? COLORS.carminePink : "",
+              }}
+            >
+              {amount}
+            </Typography>
+            <Typography
+              variant="text4"
+              sx={{
+                marginTop: "6px",
+                color: warning ? COLORS.carminePink : COLORS.manate,
+              }}
+            >
+              {asset}
+            </Typography>
+          </Box>
+        </Box>
+
+        <Box sx={{ flex: "0 0 auto" }}>{children}</Box>
       </Box>
 
-      <Box sx={AmountContainer}>
-        <Typography
-          variant="title3"
-          sx={{
-            color: warning ? COLORS.carminePink : "",
-          }}
-        >
-          {amount}
-        </Typography>
+      {subtitle && (
         <Typography
           variant="text4"
           sx={{
+            color: COLORS.manate,
             marginTop: "4px",
-            color: warning ? COLORS.carminePink : "",
+            display: "block",
+            whiteSpace: "nowrap",
           }}
         >
-          {asset}
+          {subtitle}
         </Typography>
-      </Box>
+      )}
     </Box>
 
-    {children}
+    {!!rows?.length && (
+      <>
+        <Divider sx={{ borderColor: COLORS.whiteLilac }} />
+
+        <Box sx={RowsContainer}>
+          {rows.map((row) => (
+            <Box key={row.label} sx={RowContainer}>
+              <Typography variant="text4" sx={{ color: COLORS.manate }}>
+                {row.label}
+              </Typography>
+              <Typography
+                variant="text4"
+                sx={{ color: COLORS.blackRock, whiteSpace: "nowrap" }}
+              >
+                {row.value}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      </>
+    )}
   </Box>
 )
