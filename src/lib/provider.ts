@@ -40,15 +40,18 @@ const resolveServerRpcUrl = (chainId: SupportedChainId) => {
   )
 }
 
-export const getProviderForServer = (
+export const getViemPublicClientForServer = (
   chainId: SupportedChainId = TargetChainId,
 ) => {
   const chain = VIEM_CHAIN_BY_ID[chainId]
   const rpcUrl = resolveServerRpcUrl(chainId)
 
-  const client = createPublicClient({
+  return createPublicClient({
     chain,
     transport: http(rpcUrl),
   })
-  return createViemProvider(client)
 }
+
+export const getProviderForServer = (
+  chainId: SupportedChainId = TargetChainId,
+) => createViemProvider(getViemPublicClientForServer(chainId))

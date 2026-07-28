@@ -31,4 +31,38 @@ describe("query keys", () => {
       ],
     ])
   })
+
+  it("isolates service-agreement status by chain and normalized address", () => {
+    const key = QueryKeys.ServiceAgreement.GET_STATUS(
+      11155111,
+      "0xCA732651410E915090D7A7D889A1E44EF4575FCE",
+    )
+
+    expect(key).toEqual([
+      [
+        "service-agreement",
+        "GET_STATUS",
+        11155111,
+        "0xca732651410e915090d7a7d889a1e44ef4575fce",
+      ],
+    ])
+  })
+
+  it("isolates non-MLA acknowledgements by chain, market, and lender", () => {
+    const key = QueryKeys.Lender.GET_NON_MLA_ACKNOWLEDGEMENT(
+      11155111,
+      "0x04FB4E4577AD2CDD65E70F18D7A5F326162DDD90",
+      "0xCA732651410E915090D7A7D889A1E44EF4575FCE",
+    )
+
+    expect(key).toEqual([
+      [
+        "lender",
+        "GET_NON_MLA_ACKNOWLEDGEMENT",
+        11155111,
+        "0x04fb4e4577ad2cdd65e70f18d7a5f326162ddd90",
+        "0xca732651410e915090d7a7d889a1e44ef4575fce",
+      ],
+    ])
+  })
 })
