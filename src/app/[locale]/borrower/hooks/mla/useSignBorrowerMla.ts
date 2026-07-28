@@ -8,6 +8,7 @@ import {
   Token,
 } from "@wildcatfi/wildcat-sdk"
 import { UseFormReturn } from "react-hook-form"
+import { useAccount } from "wagmi"
 
 import { lastSlaUpdateTime, MlaTemplate } from "@/app/api/mla/interface"
 import {
@@ -19,6 +20,7 @@ import { DECLINE_MLA_ASSIGNMENT_MESSAGE } from "@/config/mla-rejection"
 import { NETWORKS_BY_ID } from "@/config/network"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import {
   BasicBorrowerInfo,
@@ -26,8 +28,11 @@ import {
   formatDate,
   getFieldValuesForBorrower,
 } from "@/lib/mla"
+import { useAppStore } from "@/store/hooks"
+import { getCreateMarketSigningDraftScope } from "@/store/slices/createMarketSigningDraftsSlice/createMarketSigningDraftsSlice"
+import { SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS } from "@/utils/serviceAgreementMessage"
 
-import { calculateMarketAddress } from "./useCalculateMarketAddress"
+import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
 import { getMlaFromForm } from "./usePreviewMla"
 import { MarketValidationSchemaType } from "../../create-market/validation/validationSchema"
 
@@ -205,115 +210,101 @@ export type SignMlaFromFormInputs = {
   timeSigned: number
   borrowerProfile: BorrowerProfile | undefined
   asset: Token | undefined
+  draftId?: string
+  resumeMessage?: string
 }
 
-export const useSignMla = (salt: string) => {
-  const { sdk, connected: safeConnected } = useSafeAppsSDK()
+export const useSignMla = (salt: string, marketKind: DeployableMarketKind) => {
+  const { address } = useAccount()
   const signer = useEthersSigner()
+  const safeSigning = useSafeMessageSigning()
+  const store = useAppStore()
   const client = useQueryClient()
   const { chainId } = useSelectedNetwork()
 
-  return useMutation({
+  const { data: marketAddress } = useCalculateMarketAddress(salt, marketKind)
+
+  const mutation = useMutation({
     mutationFn: async ({
       form,
       timeSigned,
       borrowerProfile,
       asset,
+      draftId,
+      resumeMessage,
     }: SignMlaFromFormInputs) => {
       console.log("signing mla")
       const selectedMla = form.getValues("mla")
       const mlaTemplateId =
         selectedMla === "noMLA" ? undefined : Number(selectedMla)
-      const marketKind = form.getValues(
-        "implementationType",
-      ) as DeployableMarketKind
-      const marketAddress = signer
-        ? await calculateMarketAddress({
-            chainId: signer.chainId,
-            provider: signer,
-            salt,
-            marketKind,
-          })
-        : undefined
       console.log("mlaTemplateId", mlaTemplateId)
-      if (!signer || !marketAddress || !borrowerProfile || !asset) {
+      if (!signer || !address || !marketAddress || !borrowerProfile || !asset) {
         console.log("missing required data")
         throw Error("Missing required data")
       }
+      if (signer.chainId !== chainId) {
+        throw Error("Wallet network does not match selected network")
+      }
 
-      let message: string
-      if (mlaTemplateId === undefined) {
-        console.log("no mla template id")
-        message = DECLINE_MLA_ASSIGNMENT_MESSAGE.replace(
-          "{{market}}",
-          marketAddress.toLowerCase(),
-        ).replace("{{timeSigned}}", formatDate(timeSigned)!)
-      } else {
-        console.log("getting mla from form")
-        const mlaData = await getMlaFromForm(
-          signer,
-          form,
-          mlaTemplateId,
+      const result = await toastRequest(
+        safeSigning.signMessage({
+          flow: "borrower-market-mla",
+          address,
+          chainId,
           timeSigned,
-          borrowerProfile,
-          asset,
-          salt,
-          marketKind,
-          NETWORKS_BY_ID[signer.chainId as SupportedChainId],
-        )
-        message = mlaData.message
-        console.log("message", message)
-      }
-
-      const signMessage = async () => {
-        console.log(message)
-        if (sdk && safeConnected) {
-          await sdk.eth.setSafeSettings([
-            {
-              offChainSigning: true,
-            },
-          ])
-
-          const result = await sdk.txs.signMessage(message)
-
-          if ("safeTxHash" in result) {
-            return {
-              signature: undefined,
-              safeTxHash: result.safeTxHash,
+          expiresAt: timeSigned + SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
+          context: draftId ? { draftId, draftVersion: 2 } : undefined,
+          isStillRelevant: draftId
+            ? () =>
+                store.getState().createMarketSigningDrafts.records[
+                  getCreateMarketSigningDraftScope(address, chainId)
+                ]?.id === draftId
+            : undefined,
+          canResumePending: draftId
+            ? (context) =>
+                context?.draftId === draftId && context.draftVersion === 2
+            : undefined,
+          buildMessage: async (effectiveTimeSigned, context) => {
+            if (
+              resumeMessage &&
+              draftId &&
+              effectiveTimeSigned === timeSigned &&
+              context?.draftId === draftId &&
+              context.draftVersion === 2
+            ) {
+              return resumeMessage
             }
-          }
-          if ("signature" in result) {
-            return {
-              signature: result.signature as string,
-              safeTxHash: undefined,
+            if (mlaTemplateId === undefined) {
+              return DECLINE_MLA_ASSIGNMENT_MESSAGE.replace(
+                "{{market}}",
+                marketAddress.toLowerCase(),
+              ).replace("{{timeSigned}}", formatDate(effectiveTimeSigned)!)
             }
-          }
-        }
-        const signatureResult = await signer.signMessage(message)
-        console.log("signatureResult", signatureResult)
-        return {
-          signature: signatureResult,
-          safeTxHash: undefined,
-        }
-      }
-
-      const result = await toastRequest(signMessage(), {
-        success: "MLA signed successfully",
-        error: "Failed to set MLA",
-        pending: "Setting MLA...",
-      })
+            const mlaData = await getMlaFromForm(
+              signer,
+              form,
+              mlaTemplateId,
+              effectiveTimeSigned,
+              borrowerProfile,
+              asset,
+              salt,
+              marketKind,
+              NETWORKS_BY_ID[chainId as SupportedChainId],
+            )
+            return mlaData.message
+          },
+        }),
+        {
+          success: "MLA signed successfully",
+          error: "Failed to set MLA",
+          pending: safeSigning.safeConnected
+            ? "Awaiting Safe confirmations — you may leave this page."
+            : "Setting MLA...",
+        },
+      )
       return result
     },
-    async onSuccess(_, variables) {
-      if (!signer) return
-      const marketAddress = await calculateMarketAddress({
-        chainId: signer.chainId,
-        provider: signer,
-        salt,
-        marketKind: variables.form.getValues(
-          "implementationType",
-        ) as DeployableMarketKind,
-      })
+    onSuccess() {
       client.invalidateQueries({
         queryKey: QueryKeys.Borrower.PREVIEW_MLA.FROM_FORM(
           chainId,
@@ -325,4 +316,11 @@ export const useSignMla = (salt: string) => {
       })
     },
   })
+
+  return {
+    ...mutation,
+    marketAddress,
+    isSafeSigning: safeSigning.safeConnected,
+    completeSafeMessage: safeSigning.markCompleted,
+  }
 }

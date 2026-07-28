@@ -6,12 +6,14 @@ import { MlaTemplate } from "@/app/api/mla/interface"
 import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
+import { getMlaTemplateApiPath } from "./templateApiPaths"
+
 export const useGetMlaTemplate = (id: number) => {
   const { chainId } = useSelectedNetwork()
   return useQuery({
     queryKey: QueryKeys.Borrower.GET_MLA_TEMPLATE(chainId, id),
     queryFn: async () => {
-      const response = await fetch(`/api/mla/templates/${id}`)
+      const response = await fetch(getMlaTemplateApiPath(id, chainId))
       return response.json() as Promise<MlaTemplate>
     },
     enabled: !!chainId && id !== undefined,

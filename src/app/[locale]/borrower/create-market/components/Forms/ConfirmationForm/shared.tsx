@@ -1,15 +1,13 @@
-import { ComponentType, useState } from "react"
+import { ComponentType } from "react"
 
 import { Box, Button, Divider, SxProps, Theme, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import { Token } from "@wildcatfi/wildcat-sdk"
 import { UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
-import { useAccount } from "wagmi"
 
 import { usePreviewMlaFromForm } from "@/app/[locale]/borrower/hooks/mla/usePreviewMla"
 import { SignMlaFromFormInputs } from "@/app/[locale]/borrower/hooks/mla/useSignBorrowerMla"
-import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { MlaModal } from "@/app/[locale]/lender/components/MlaModal"
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
@@ -116,19 +114,19 @@ type SharedConfirmationFormProps = ConfirmationFormProps & {
 export const SharedConfirmationForm = ({
   form,
   tokenAsset,
+  borrowerProfile: borrowerData,
   handleDeploy,
   timeSigned,
   salt,
   onClickSign,
+  onDiscardSignature,
+  signatureRequested,
   isSigning,
+  isDeployReady,
   mlaSignature,
   FinancialSection,
 }: SharedConfirmationFormProps) => {
   const { t } = useTranslation()
-
-  const { address } = useAccount()
-  const { data: borrowerData, isLoading: isPublicDataLoading } =
-    useGetBorrowerProfile(address)
 
   // const entityKind = mockedNaturesOptions.find(
   // (option) => option.id === borrowerData?.entityKind,
@@ -137,8 +135,6 @@ export const SharedConfirmationForm = ({
   const dispatch = useAppDispatch()
 
   const { getValues } = form
-
-  const [requestedSign, setRequestedSign] = useState<boolean>(false)
 
   const implementationTypeValue = marketImplementationOptions.find(
     (el) => el.value === getValues("implementationType"),
@@ -182,10 +178,12 @@ export const SharedConfirmationForm = ({
   /// signature was requested at this stage of the deployment process to prevent
   /// using a signature from a previous version of the market's parameters in case
   /// the user goes back and changes some settings.
-  const signed = requestedSign && !isSigning && !!mlaSignature
+  const signed = signatureRequested && !isSigning && !!mlaSignature?.signature
 
   const handleBackClick = () => {
-    dispatch(setCreatingStep(CreateMarketSteps.MLA))
+    if (onDiscardSignature()) {
+      dispatch(setCreatingStep(CreateMarketSteps.MLA))
+    }
   }
 
   const handleSign = () => {
@@ -195,7 +193,6 @@ export const SharedConfirmationForm = ({
       borrowerProfile: borrowerData,
       asset: tokenAsset,
     })
-    setRequestedSign(true)
   }
 
   return (
@@ -521,7 +518,7 @@ export const SharedConfirmationForm = ({
               salt={salt}
               onSign={handleSign}
               isSigning={isSigning}
-              disabled={signed}
+              disabled={signed || isSigning}
               sx={{ width: "168px", borderRadius: "12px" }}
               modalButtonVariant="contained"
               modalButtonSize="large"
@@ -533,7 +530,7 @@ export const SharedConfirmationForm = ({
               size="large"
               variant="contained"
               sx={{ width: "168px", borderRadius: "12px" }}
-              disabled={signed}
+              disabled={signed || isSigning}
               onClick={handleSign}
             >
               {t("createNewMarket.buttons.signMlaRefusal")}
@@ -544,7 +541,7 @@ export const SharedConfirmationForm = ({
             size="large"
             variant="contained"
             sx={{ width: "168px", borderRadius: "12px" }}
-            disabled={!signed}
+            disabled={!signed || !isDeployReady}
             onClick={handleDeploy}
           >
             {t("createNewMarket.buttons.deploy")}

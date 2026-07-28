@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-import { persistReducer } from "redux-persist"
+import { createMigrate, persistReducer } from "redux-persist"
+import type { PersistedState } from "redux-persist"
 import storage from "redux-persist/lib/storage"
 
 export type SafeMessageFlow =
@@ -117,11 +118,37 @@ export const {
 } = pendingSafeMessagesSlice.actions
 export const pendingSafeMessagesReducer = pendingSafeMessagesSlice.reducer
 
+export const discardLegacyCreateMarketSafeMessages = (
+  state: PersistedState,
+): PersistedState => {
+  if (!state) return state
+
+  const pendingState = state as unknown as PendingSafeMessagesState &
+    NonNullable<PersistedState>
+  return {
+    records: Object.fromEntries(
+      Object.entries(pendingState.records).filter(
+        ([, record]) =>
+          record.flow !== "borrower-market-mla" ||
+          record.context?.draftVersion === 2,
+      ),
+    ),
+    // eslint-disable-next-line no-underscore-dangle
+    _persist: pendingState._persist,
+  } as unknown as PersistedState
+}
+
 export default persistReducer(
   {
     key: "pendingSafeMessages",
     storage,
-    version: 1,
+    version: 2,
+    migrate: createMigrate(
+      {
+        2: discardLegacyCreateMarketSafeMessages,
+      },
+      { debug: false },
+    ),
   },
   pendingSafeMessagesReducer,
 )

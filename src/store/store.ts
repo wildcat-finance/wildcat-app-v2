@@ -5,6 +5,7 @@ import borrowerDashboardAmountsSlice from "@/store/slices/borrowerDashboardAmoun
 import borrowerDashboardSlice from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
 import cookieBannerSlice from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
 import createMarketSidebarSlice from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
+import createMarketSigningDraftsSlice from "@/store/slices/createMarketSigningDraftsSlice/createMarketSigningDraftsSlice"
 import hideMarketSectionsSlice from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
 import lenderDashboardAmountsSlice from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
 import lenderDashboardSlice from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
@@ -36,6 +37,7 @@ export const makeStore = () => {
       apiTokens: apiTokensSlice,
       routing: routingSlice,
       createMarketSidebar: createMarketSidebarSlice,
+      createMarketSigningDrafts: createMarketSigningDraftsSlice,
       marketsOverviewSidebar: marketsOverviewSidebarSlice,
       borrowerDashboard: borrowerDashboardSlice,
       borrowerDashboardAmounts: borrowerDashboardAmountsSlice,

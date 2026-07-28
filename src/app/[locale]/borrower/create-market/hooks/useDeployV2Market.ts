@@ -11,6 +11,7 @@ import {
   SafeTransactionInput,
   toSafeTransactionInput,
   getMockArchControllerOwnerContract,
+  getHooksFactoryContractForMarketKind,
   getRevolvingHooksFactoryContract,
   getStandardHooksFactoryContract,
   WrapperFactory,
@@ -31,6 +32,12 @@ import { toastError, toastRequest, toastSuccess } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { useAppDispatch, useAppStore } from "@/store/hooks"
+import {
+  getCreateMarketSigningDraftScope,
+  getReusableCreateMarketDraftDeployment,
+  markCreateMarketDraftDeployed,
+} from "@/store/slices/createMarketSigningDraftsSlice/createMarketSigningDraftsSlice"
 import {
   assertWrapperDeploymentCompatible,
   getDeployMarketPreviewError,
@@ -65,6 +72,7 @@ export type DeployNewV2MarketParams = (
       hooksTemplate: PeriodicTermHooksTemplate
     })
 ) & {
+  marketKind: "standard" | "revolving"
   timeSigned: number
   mlaTemplateId: number | undefined
   mlaSignature: string
@@ -115,7 +123,12 @@ export const useDeployV2Market = () => {
     return resolvedTxHash
   }
 
-  const [deployedMarket, setDeployedMarket] = useState<string | undefined>()
+  const [deployed, setDeployed] = useState<
+    | { salt: string; marketKind: "standard" | "revolving"; market: string }
+    | undefined
+  >()
+  const dispatch = useAppDispatch()
+  const store = useAppStore()
 
   type DeployStep = "mockToken" | "market" | "wrapper"
 
@@ -169,8 +182,10 @@ export const useDeployV2Market = () => {
       deployWrapper,
       ...marketParams
     }: DeployNewV2MarketParams) => {
-      if (!signer || !hooksTemplate || !marketParams) {
-        return
+      if (!signer) throw Error("No signer")
+      if (!hooksTemplate) throw Error("No hooks template")
+      if (signer.chainId !== targetChainId) {
+        throw Error("Wallet network does not match selected network")
       }
 
       assertWrapperDeploymentCompatible(
@@ -183,10 +198,64 @@ export const useDeployV2Market = () => {
         includeMockToken: includeMockTokenStep,
         includeWrapper: !!deployWrapper,
       })
+      const draftScopeAddress = hooksTemplate.signerAddress?.toLowerCase()
+      const persistedDraft = draftScopeAddress
+        ? store.getState().createMarketSigningDrafts.records[
+            getCreateMarketSigningDraftScope(draftScopeAddress, targetChainId)
+          ]
+        : undefined
+      const persistedMarket = getReusableCreateMarketDraftDeployment({
+        draft: persistedDraft,
+        salt: marketParams.salt,
+        marketKind: marketParams.marketKind,
+        hooksTemplate: hooksTemplate.hooksTemplate,
+      })
+
       let marketAddress: string | undefined
-      if (deployedMarket) {
-        marketAddress = deployedMarket
-      } else {
+      if (
+        deployed?.salt === marketParams.salt &&
+        deployed.marketKind === marketParams.marketKind
+      ) {
+        marketAddress = deployed.market
+      } else if (persistedMarket) {
+        marketAddress = persistedMarket
+      }
+
+      if (!marketAddress) {
+        try {
+          const lookupFactory = getHooksFactoryContractForMarketKind(
+            targetChainId,
+            marketParams.marketKind,
+            signer,
+          )
+          const predicted = await lookupFactory.computeMarketAddress(
+            marketParams.salt,
+          )
+          if ((await signer.provider.getCode(predicted)) !== "0x") {
+            marketAddress = predicted
+            setDeployed({
+              salt: marketParams.salt,
+              marketKind: marketParams.marketKind,
+              market: predicted,
+            })
+            if (draftScopeAddress) {
+              dispatch(
+                markCreateMarketDraftDeployed({
+                  address: draftScopeAddress,
+                  chainId: targetChainId,
+                  salt: marketParams.salt,
+                  deployedMarket: predicted,
+                }),
+              )
+            }
+          }
+        } catch {
+          // Best-effort lookup. The deploy path remains authoritative and will
+          // fail if the CREATE2 address was already occupied.
+        }
+      }
+
+      if (!marketAddress) {
         const useGnosisMultiSend = isConnectedToSafe && isTestnet
 
         let asset: Token
@@ -417,7 +486,21 @@ export const useDeployV2Market = () => {
         }
 
         marketAddress = (event.args as MarketDeployedEventArgs).market
-        setDeployedMarket(marketAddress)
+        setDeployed({
+          salt: marketParams.salt,
+          marketKind: marketParams.marketKind,
+          market: marketAddress,
+        })
+        if (draftScopeAddress) {
+          dispatch(
+            markCreateMarketDraftDeployed({
+              address: draftScopeAddress,
+              chainId: targetChainId,
+              salt: marketParams.salt,
+              deployedMarket: marketAddress,
+            }),
+          )
+        }
       }
 
       if (deployWrapper) {

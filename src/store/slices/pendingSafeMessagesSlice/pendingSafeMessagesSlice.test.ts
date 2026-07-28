@@ -1,5 +1,6 @@
 import {
   addPendingSafeMessage,
+  discardLegacyCreateMarketSafeMessages,
   markSafeMessageSignatureReady,
   markSafeMessageSubmitting,
   markSafeMessageSubmissionFailed,
@@ -58,5 +59,37 @@ describe("pendingSafeMessagesSlice", () => {
       removePendingSafeMessage(pending.id),
     )
     expect(state.records).toEqual({})
+  })
+
+  it("drops only pre-V2.5 create-market messages during persistence migration", () => {
+    const legacyMarketMessage: PendingSafeMessage = {
+      ...pending,
+      id: "legacy-market",
+      flow: "borrower-market-mla",
+      context: { draftId: "v1-draft" },
+    }
+    const currentMarketMessage: PendingSafeMessage = {
+      ...pending,
+      id: "current-market",
+      flow: "borrower-market-mla",
+      context: { draftId: "v2-draft", draftVersion: 2 },
+    }
+
+    expect(
+      discardLegacyCreateMarketSafeMessages({
+        records: {
+          [pending.id]: pending,
+          [legacyMarketMessage.id]: legacyMarketMessage,
+          [currentMarketMessage.id]: currentMarketMessage,
+        },
+        _persist: { version: 1, rehydrated: true },
+      } as never),
+    ).toEqual({
+      records: {
+        [pending.id]: pending,
+        [currentMarketMessage.id]: currentMarketMessage,
+      },
+      _persist: { version: 1, rehydrated: true },
+    })
   })
 })
