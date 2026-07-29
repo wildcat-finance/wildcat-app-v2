@@ -18,7 +18,6 @@ import {
   hasDeploymentAddress,
   SupportedChainId,
   TransferAccess,
-  DeployMarketPreview,
   DeployMarketStatus,
   FixedTermHooksTemplate,
   FixedTermMarketDeploymentArgs,
@@ -45,6 +44,7 @@ import {
 import {
   assertWrapperDeploymentCompatible,
   getDeployMarketPreviewError,
+  previewHooksTemplateDeployment,
 } from "@/utils/createMarketDeploy"
 import {
   SafeTransactionTerminalError,
@@ -112,8 +112,6 @@ type DeployV2MarketOperation =
 type MarketDeployedEventArgs = {
   market: string
 }
-
-type PreviewDeployMarket = (params: unknown) => DeployMarketPreview
 
 const marketDeployedEventAbi = parseAbiItem(
   "event MarketDeployed(address indexed hooksTemplate, address indexed market, string name, string symbol, address asset, uint256 maxTotalSupply, uint256 annualInterestBips, uint256 delinquencyFeeBips, uint256 withdrawalBatchDuration, uint256 reserveRatioBips, uint256 delinquencyGracePeriod, uint256 hooks)",
@@ -681,9 +679,7 @@ export const useDeployV2Market = () => {
         const x = marketParams as Parameters<
           typeof hooksTemplate.previewDeployMarket
         >[0]
-        const previewDeployMarket =
-          hooksTemplate.previewDeployMarket as PreviewDeployMarket
-        const preview = previewDeployMarket({
+        const preview = previewHooksTemplateDeployment(hooksTemplate, {
           ...x,
           maxTotalSupply,
           minimumDeposit,

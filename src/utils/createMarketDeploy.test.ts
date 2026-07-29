@@ -5,9 +5,27 @@ import {
   getCreateMarketDeployRouting,
   getDeployMarketPreviewError,
   hasCreateMarketDeploymentTarget,
+  previewHooksTemplateDeployment,
 } from "./createMarketDeploy"
 
 describe("createMarketDeploy", () => {
+  it("preserves the SDK template receiver when previewing deployment", () => {
+    const hooksTemplate = {
+      enabled: true,
+      previewDeployMarket() {
+        return {
+          status: this.enabled
+            ? DeployMarketStatus.HooksFactoryNotRegistered
+            : DeployMarketStatus.HooksTemplateDisabled,
+        }
+      },
+    }
+
+    expect(previewHooksTemplateDeployment(hooksTemplate, {})).toEqual({
+      status: DeployMarketStatus.HooksFactoryNotRegistered,
+    })
+  })
+
   it("requires a selected template unless deployment is already committed", () => {
     expect(
       hasCreateMarketDeploymentTarget({

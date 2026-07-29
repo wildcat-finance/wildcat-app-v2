@@ -1,5 +1,6 @@
 import {
   DeployableMarketKind,
+  DeployMarketPreview,
   DeployMarketStatus,
   TransferAccess,
 } from "@wildcatfi/wildcat-sdk"
@@ -41,6 +42,18 @@ export const hasCreateMarketDeploymentTarget = ({
   hasCommittedDeployment,
 }: CreateMarketDeploymentTargetInput) =>
   hasSelectedHooksTemplate || hasCommittedDeployment
+
+type HooksTemplateDeploymentPreviewer = {
+  previewDeployMarket(params: never): DeployMarketPreview
+}
+
+// The template classes expose different overloaded parameter types, but every
+// preview reads deployment authority from its instance. Keep the member call
+// intact so the SDK receives the template as `this`.
+export const previewHooksTemplateDeployment = (
+  hooksTemplate: HooksTemplateDeploymentPreviewer,
+  params: unknown,
+) => hooksTemplate.previewDeployMarket(params as never)
 
 export const getCreateMarketDeployRouting = ({
   implementationType,
