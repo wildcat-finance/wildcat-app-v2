@@ -6,9 +6,12 @@ import {
   TokenWrapper,
 } from "@wildcatfi/wildcat-sdk"
 
-import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import {
+  getWrapperDiscoveryAttentionRefetch,
+  getWrapperDiscoveryRefetchInterval,
+} from "@/hooks/wrapper/wrapperDiscoveryPolicy"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
 type UseWrapperForMarketResult = {
@@ -39,7 +42,8 @@ export const useWrapperForMarket = (
       market?.address,
     ),
     enabled: !!market && !!signerOrProvider && hasFactory,
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: (currentQuery) =>
+      getWrapperDiscoveryRefetchInterval(!!currentQuery.state.data),
     queryFn: async () => {
       if (!market || !signerOrProvider || !chainId) throw new Error("No market")
       return TokenWrapper.fromMarketWithSubgraph(subgraphClient, {
@@ -51,7 +55,10 @@ export const useWrapperForMarket = (
       })
     },
     refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: (currentQuery) =>
+      getWrapperDiscoveryAttentionRefetch(!!currentQuery.state.data),
+    refetchOnReconnect: (currentQuery) =>
+      getWrapperDiscoveryAttentionRefetch(!!currentQuery.state.data),
   })
 
   const wrapper = query.data
