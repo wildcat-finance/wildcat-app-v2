@@ -9,7 +9,8 @@ type MarketDetailPerformanceContext = {
 type MarketDetailPerformanceLabel =
   | "row-intent"
   | "route-mount"
-  | "api-market-ready"
+  | "chain-ready"
+  | "indexed-market-ready"
   | "live-market-ready"
   | "account-ready"
   | "withdrawals-ready"

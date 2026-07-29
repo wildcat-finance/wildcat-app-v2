@@ -69,7 +69,7 @@ export default function MarketDetails({
   const {
     data: market,
     isLoading: isMarketLoading,
-    apiError,
+    error: marketError,
     apiLoading,
     isDiscoveringChainId,
   } = useGetMarket({
@@ -203,12 +203,13 @@ export default function MarketDetails({
     }
   }, [canInteract, checked, dispatch, isLoadingMarket, market])
 
-  if (apiError) {
+  if (marketError) {
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
         <Box sx={{ width: "69%" }}>
           <Typography variant="title2">
-            Market not found or unable to load market data
+            Market data is unavailable. The market may still be indexing. Please
+            try again.
           </Typography>
         </Box>
       </Box>

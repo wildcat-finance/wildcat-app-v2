@@ -1,10 +1,12 @@
 import * as React from "react"
 
 import { useQueryClient } from "@tanstack/react-query"
+import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 import { QueryKeys } from "@/config/query-keys"
-import { fetchApiMarket, getMarketApiQueryKey } from "@/hooks/useGetMarket"
+import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { getIndexedMarketQueryOptions } from "@/hooks/useGetMarket"
 import { markMarketDetailPerformance } from "@/hooks/useMarketDetailPerformance"
 import { fetchMarketSummary } from "@/hooks/useMarketSummary"
 
@@ -59,6 +61,8 @@ const getRowMarketAddress = (target: EventTarget | null) => {
 
 export const usePrefetchMarketDetailMetadata = () => {
   const queryClient = useQueryClient()
+  const { provider, signer, targetChainId } = useEthersProvider()
+  const signerOrProvider = signer ?? provider
 
   return React.useCallback(
     ({
@@ -71,15 +75,24 @@ export const usePrefetchMarketDetailMetadata = () => {
       }
 
       const normalizedMarket = marketAddress?.toLowerCase()
-      if (normalizedMarket) {
+      if (
+        normalizedMarket &&
+        signerOrProvider &&
+        isSupportedChainId(chainId) &&
+        chainId === targetChainId
+      ) {
         queryClient
           .prefetchQuery({
-            queryKey: getMarketApiQueryKey(normalizedMarket, chainId),
-            queryFn: () => fetchApiMarket(normalizedMarket, chainId),
-            staleTime: METADATA_STALE_TIME,
+            ...getIndexedMarketQueryOptions({
+              chainId,
+              marketAddress: normalizedMarket,
+              signerOrProvider,
+            }),
           })
           .catch(() => undefined)
+      }
 
+      if (normalizedMarket) {
         queryClient
           .prefetchQuery({
             queryKey: QueryKeys.Markets.GET_MARKET_SUMMARY(
@@ -107,7 +120,7 @@ export const usePrefetchMarketDetailMetadata = () => {
           .catch(() => undefined)
       }
     },
-    [queryClient],
+    [queryClient, signerOrProvider, targetChainId],
   )
 }
 

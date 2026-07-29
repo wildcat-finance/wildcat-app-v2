@@ -8,12 +8,14 @@ import {
   Market,
   MarketVersion,
   type SignerOrProvider,
+  type SupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useMarketDetailPerformanceMark } from "@/hooks/useMarketDetailPerformance"
+import { cloneSdkObject } from "@/lib/sdk-object"
 import { refreshMarketsV2LiveDataSafe } from "@/utils/marketV2Reads"
 
 export type UseMarketProps = {
@@ -26,111 +28,231 @@ type ApiResponse = {
   market: { id: string } | null
 }
 
-export const getMarketApiQueryKey = (
-  addressLower: string | undefined,
-  chainId?: number,
-) => ["market", "apiGet", addressLower, chainId ?? "discover"] as const
+export const INDEXED_MARKET_REFRESH_INTERVAL = 60_000
 
-export async function fetchApiMarket(addressLower: string, chainId?: number) {
+export class MarketDetailUnavailableError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "MarketDetailUnavailableError"
+  }
+}
+
+export const getMarketApiQueryKey = (addressLower: string | undefined) =>
+  ["market", "apiGet", addressLower, "discover"] as const
+
+export async function fetchApiMarket(addressLower: string) {
   const url = new URL("/api/market/get", window.location.origin)
   url.searchParams.set("address", addressLower)
-  if (typeof chainId === "number" && Number.isFinite(chainId)) {
-    url.searchParams.set("chainId", String(chainId))
-  }
 
   const res = await fetch(url.toString(), { cache: "no-store" })
   if (!res.ok) throw new Error("Failed to fetch market via api")
   return (await res.json()) as ApiResponse
 }
 
-async function refreshMarketForDetail(
-  chainId: number,
+type IndexedMarketQueryOptionsInput = {
+  chainId: SupportedChainId
+  marketAddress: string
+  signerOrProvider: SignerOrProvider
+}
+
+export async function fetchIndexedMarketForDetail({
+  chainId,
+  marketAddress,
+  signerOrProvider,
+}: IndexedMarketQueryOptionsInput) {
+  const subgraphClient = getSubgraphClient(chainId)
+  const market = await getIndexedMarket(subgraphClient, {
+    chainId,
+    signerOrProvider,
+    market: marketAddress,
+    shouldSkipRecords: true,
+    fetchPolicy: "network-only",
+  })
+
+  if (!market) {
+    throw new MarketDetailUnavailableError(
+      `Market not found or not indexed: ${marketAddress}`,
+    )
+  }
+
+  return market
+}
+
+export const getIndexedMarketQueryOptions = (
+  input: IndexedMarketQueryOptionsInput,
+) => ({
+  queryKey: QueryKeys.Markets.GET_INDEXED_MARKET(
+    input.chainId,
+    input.marketAddress,
+  ),
+  queryFn: () => fetchIndexedMarketForDetail(input),
+  staleTime: INDEXED_MARKET_REFRESH_INTERVAL,
+  retry: (failureCount: number, error: Error) =>
+    !(error instanceof MarketDetailUnavailableError) && failureCount < 1,
+  retryDelay: 250,
+})
+
+export const cloneMarketForLiveRefresh = (
+  market: Market,
+  signerOrProvider: SignerOrProvider,
+) => {
+  const marketForLiveRefresh = cloneSdkObject(market)
+
+  // ContractWrapper.provider propagates to nested wrappers. Clone the tokens
+  // before changing providers so the indexed React Query entry stays immutable.
+  marketForLiveRefresh.marketToken = cloneSdkObject(market.marketToken)
+  marketForLiveRefresh.underlyingToken = cloneSdkObject(market.underlyingToken)
+  marketForLiveRefresh.provider = signerOrProvider
+
+  return marketForLiveRefresh
+}
+
+export async function refreshMarketForDetail(
+  chainId: SupportedChainId,
   market: Market,
   signerOrProvider: SignerOrProvider,
 ) {
-  if (market.version !== MarketVersion.V2 || !isSupportedChainId(chainId)) {
-    await market.update()
-    return market
+  const marketForLiveRefresh = cloneMarketForLiveRefresh(
+    market,
+    signerOrProvider,
+  )
+
+  if (marketForLiveRefresh.version !== MarketVersion.V2) {
+    await marketForLiveRefresh.update()
+    return marketForLiveRefresh
   }
 
-  try {
-    const [refreshedMarket] = await refreshMarketsV2LiveDataSafe(
-      chainId,
-      [market],
-      signerOrProvider,
-    )
-    return refreshedMarket ?? market
-  } catch (_) {
-    await market.update()
-    return market
-  }
+  const [refreshedMarket] = await refreshMarketsV2LiveDataSafe(
+    chainId,
+    [marketForLiveRefresh],
+    signerOrProvider,
+  )
+  return refreshedMarket ?? marketForLiveRefresh
 }
 
 export function useGetMarket({ address, chainId }: UseMarketProps) {
   const marketAddressLower = address?.toLowerCase()
+  const suppliedChainId =
+    typeof chainId === "number" && isSupportedChainId(chainId)
+      ? chainId
+      : undefined
+  const shouldDiscoverChain =
+    !!marketAddressLower && typeof chainId !== "number"
 
-  const api = useQuery({
-    queryKey: getMarketApiQueryKey(marketAddressLower, chainId),
-    enabled: !!marketAddressLower,
-    queryFn: () => fetchApiMarket(marketAddressLower!, chainId),
+  const discoveryQuery = useQuery({
+    queryKey: getMarketApiQueryKey(marketAddressLower),
+    enabled: shouldDiscoverChain,
+    queryFn: () => fetchApiMarket(marketAddressLower!),
     staleTime: 5 * 60 * 1000, // 5min
     refetchOnWindowFocus: false,
+    retry: 1,
+    retryDelay: 250,
   })
 
-  const effectiveChainId = api.data?.chainId ?? undefined
-  const discoveredMarket = api.data?.market ?? null
+  const discoveredChainId =
+    typeof discoveryQuery.data?.chainId === "number" &&
+    isSupportedChainId(discoveryQuery.data.chainId)
+      ? discoveryQuery.data.chainId
+      : undefined
+  const effectiveChainId = suppliedChainId ?? discoveredChainId
+  const suppliedChainError = useMemo(
+    () =>
+      typeof chainId === "number" && !suppliedChainId
+        ? new MarketDetailUnavailableError(`Unsupported chain: ${chainId}`)
+        : null,
+    [chainId, suppliedChainId],
+  )
+  const discoveryMissError = useMemo(
+    () =>
+      shouldDiscoverChain &&
+      discoveryQuery.isSuccess &&
+      (!discoveryQuery.data.market || !discoveredChainId)
+        ? new MarketDetailUnavailableError(
+            `Market not found on a supported chain: ${marketAddressLower}`,
+          )
+        : null,
+    [
+      discoveredChainId,
+      discoveryQuery.data,
+      discoveryQuery.isSuccess,
+      marketAddressLower,
+      shouldDiscoverChain,
+    ],
+  )
   const performanceContext = {
     address: marketAddressLower,
-    chainId: effectiveChainId ?? chainId,
+    chainId: effectiveChainId,
   }
 
   useMarketDetailPerformanceMark(
-    "api-market-ready",
+    "chain-ready",
     performanceContext,
-    !!effectiveChainId && !!discoveredMarket,
+    !!effectiveChainId,
   )
 
   const { signer, provider } = useEthersProvider({
-    chainId:
-      typeof effectiveChainId === "number" ? effectiveChainId : undefined,
+    chainId: effectiveChainId,
   })
   const signerOrProvider = signer || provider
 
-  const marketQueryKey = useMemo(
-    () =>
-      QueryKeys.Markets.GET_MARKET(effectiveChainId ?? 0, marketAddressLower),
-    [effectiveChainId, marketAddressLower],
-  )
-
-  const query = useQuery({
-    queryKey: marketQueryKey,
+  const indexedQuery = useQuery({
+    ...(effectiveChainId && marketAddressLower && signerOrProvider
+      ? getIndexedMarketQueryOptions({
+          chainId: effectiveChainId,
+          marketAddress: marketAddressLower,
+          signerOrProvider,
+        })
+      : {
+          queryKey: QueryKeys.Markets.GET_INDEXED_MARKET(
+            effectiveChainId ?? 0,
+            marketAddressLower,
+          ),
+          queryFn: async () => {
+            throw new MarketDetailUnavailableError(
+              "Market detail prerequisites are unavailable",
+            )
+          },
+          staleTime: INDEXED_MARKET_REFRESH_INTERVAL,
+          retry: false,
+        }),
     enabled:
       !!marketAddressLower &&
       !!effectiveChainId &&
-      !!discoveredMarket &&
-      !!signerOrProvider,
+      !!signerOrProvider &&
+      !suppliedChainError &&
+      !discoveryMissError,
+    refetchInterval: INDEXED_MARKET_REFRESH_INTERVAL,
+    refetchOnWindowFocus: true,
+  })
+
+  useMarketDetailPerformanceMark(
+    "indexed-market-ready",
+    performanceContext,
+    !!indexedQuery.data,
+  )
+
+  const liveQuery = useQuery({
+    queryKey: QueryKeys.Markets.GET_MARKET(
+      effectiveChainId ?? 0,
+      marketAddressLower,
+    ),
+    enabled: !!effectiveChainId && !!indexedQuery.data && !!signerOrProvider,
     refetchInterval: POLLING_INTERVAL,
     queryFn: async () => {
-      if (
-        typeof effectiveChainId !== "number" ||
-        !isSupportedChainId(effectiveChainId) ||
-        !discoveredMarket ||
-        !signerOrProvider
-      ) {
-        throw Error()
+      if (!effectiveChainId || !indexedQuery.data || !signerOrProvider) {
+        throw new MarketDetailUnavailableError(
+          "Market live-read prerequisites are unavailable",
+        )
       }
 
-      const subgraphClient = getSubgraphClient(effectiveChainId)
-      const market = await getIndexedMarket(subgraphClient, {
-        chainId: effectiveChainId,
+      return refreshMarketForDetail(
+        effectiveChainId,
+        indexedQuery.data,
         signerOrProvider,
-        market: discoveredMarket.id,
-        fetchPolicy: "network-only",
-      })
-      if (!market) throw Error(`Market not found: ${discoveredMarket.id}`)
-
-      return refreshMarketForDetail(effectiveChainId, market, signerOrProvider)
+      )
     },
+    retry: 1,
+    retryDelay: 250,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   })
@@ -138,14 +260,24 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
   useMarketDetailPerformanceMark(
     "live-market-ready",
     performanceContext,
-    !!query.data,
+    !!liveQuery.data,
   )
 
+  const error =
+    suppliedChainError ??
+    discoveryMissError ??
+    (discoveryQuery.data ? null : discoveryQuery.error) ??
+    (indexedQuery.data ? null : indexedQuery.error) ??
+    (liveQuery.data ? null : liveQuery.error)
+  const isLoading = !!marketAddressLower && !error && !liveQuery.data
+
   return {
-    ...query,
-    isDiscoveringChainId: api.isLoading,
+    ...liveQuery,
+    error,
+    isError: !!error,
+    isLoading,
+    isDiscoveringChainId: discoveryQuery.isLoading,
     discoveredChainId: effectiveChainId,
-    apiError: api.error,
-    apiLoading: api.isLoading,
+    apiLoading: discoveryQuery.isLoading,
   }
 }

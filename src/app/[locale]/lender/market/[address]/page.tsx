@@ -120,7 +120,7 @@ export default function LenderMarketDetails({
   const {
     data: market,
     isLoading: isMarketLoading,
-    apiError,
+    error: marketError,
     apiLoading,
     isDiscoveringChainId,
   } = useGetMarket({
@@ -279,7 +279,7 @@ export default function LenderMarketDetails({
   const isWrapperLoading = isWrapperLookupLoading
 
   const isLoadingMarket = isMarketLoading || apiLoading || isDiscoveringChainId
-  const isLoading = isLoadingMarket || !market
+  const isLoading = !marketError && (isLoadingMarket || !market)
   const isAuthorizationPending =
     !!market &&
     isConnected &&
@@ -406,12 +406,13 @@ export default function LenderMarketDetails({
 
   if (!mounted) return null
 
-  if (apiError)
+  if (marketError)
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
         <Box sx={{ width: "69%" }}>
           <Typography variant="title2">
-            Failed to load market data. Please try again later.
+            Market data is unavailable. The market may still be indexing. Please
+            try again.
           </Typography>
         </Box>
       </Box>

@@ -82,4 +82,18 @@ describe("/api/market/get", () => {
     expect(await response.json()).toEqual({ chainId: 11155111, market })
     expect(response.headers.get("Cache-Control")).toContain("s-maxage=86400")
   })
+
+  it("rejects an unsupported supplied chain instead of cross-chain discovery", async () => {
+    const { GET } = await import("./route")
+
+    const response = await GET(
+      mockGet(
+        "/api/market/get?address=0x04fb4e4577ad2cdd65e70f18d7a5f326162ddd90&chainId=999",
+      ),
+    )
+
+    expect(response.status).toBe(400)
+    expect(await response.json()).toEqual({ error: "Unsupported chain ID" })
+    expect(mockQuery).not.toHaveBeenCalled()
+  })
 })

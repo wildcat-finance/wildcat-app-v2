@@ -107,9 +107,19 @@ export async function GET(req: NextRequest) {
   }
 
   let chainIdParam: SupportedChainId | undefined
-  if (chainIdRaw && /^\d+$/.test(chainIdRaw)) {
+  if (chainIdRaw) {
+    if (!/^\d+$/.test(chainIdRaw)) {
+      return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+    }
+
     const n = Number(chainIdRaw)
-    if (isSupportedChainId(n)) chainIdParam = n
+    if (!isSupportedChainId(n)) {
+      return NextResponse.json(
+        { error: "Unsupported chain ID" },
+        { status: 400 },
+      )
+    }
+    chainIdParam = n
   }
 
   const found = await getCached(address, chainIdParam)

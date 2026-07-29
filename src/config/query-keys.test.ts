@@ -1,3 +1,5 @@
+import { QueryClient } from "@tanstack/react-query"
+
 import { QueryKeys, k } from "./query-keys"
 
 jest.mock("viem", () => ({
@@ -64,5 +66,28 @@ describe("query keys", () => {
         "0xca732651410e915090d7a7d889a1e44ef4575fce",
       ],
     ])
+  })
+
+  it("invalidates indexed and live market entries through the existing market prefix", async () => {
+    const queryClient = new QueryClient()
+    const address = "0x04fb4e4577ad2cdd65e70f18d7a5f326162ddd90"
+    const marketKey = QueryKeys.Markets.GET_MARKET(11155111, address)
+    const indexedMarketKey = QueryKeys.Markets.GET_INDEXED_MARKET(
+      11155111,
+      address,
+    )
+
+    queryClient.setQueryData(marketKey, "live")
+    queryClient.setQueryData(indexedMarketKey, "indexed")
+
+    await queryClient.invalidateQueries({
+      queryKey: marketKey,
+      refetchType: "none",
+    })
+
+    expect(queryClient.getQueryState(marketKey)?.isInvalidated).toBe(true)
+    expect(queryClient.getQueryState(indexedMarketKey)?.isInvalidated).toBe(
+      true,
+    )
   })
 })
