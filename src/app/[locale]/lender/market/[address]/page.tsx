@@ -4,6 +4,7 @@ import * as React from "react"
 import { useEffect, useState } from "react"
 
 import { Box, Divider, Skeleton, Typography, useTheme } from "@mui/material"
+import dynamic from "next/dynamic"
 import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
@@ -69,7 +70,6 @@ import {
 
 import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
 import { LenderAnalyticsSummary } from "./components/LenderAnalyticsSummary"
-import { LenderFlowCharts } from "./components/LenderFlowCharts"
 import { MarketActions } from "./components/MarketActions"
 import { MarketSummary } from "./components/MarketSummary"
 import { WrapDebtToken } from "./components/WrapDebtToken"
@@ -88,6 +88,17 @@ import {
   SkeletonStyle,
 } from "./style"
 import { getEffectiveLenderRole, shouldShowLenderRequestBanner } from "./utils"
+
+const LenderFlowCharts = dynamic(
+  () =>
+    import("./components/LenderFlowCharts").then(
+      (module) => module.LenderFlowCharts,
+    ),
+  {
+    ssr: false,
+    loading: () => <ChartSectionSkeleton sections={3} />,
+  },
+)
 
 export default function LenderMarketDetails({
   params: { address },
