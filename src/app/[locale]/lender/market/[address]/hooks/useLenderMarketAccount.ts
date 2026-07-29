@@ -27,13 +27,25 @@ export type UseLenderProps = {
   enabled: boolean
 } & Omit<SubgraphGetMarketQueryVariables, "market">
 
+/**
+ * `isAuthoritative` is true once the account has been reconciled against the
+ * on-chain lens. Subgraph-only data must not be used to deny a lender access:
+ * an unindexed lender arrives with a zero balance and no credential, which is
+ * indistinguishable from having none.
+ */
+export type UseLenderMarketAccountResult = TwoStepQueryHookResult<
+  MarketAccount | undefined
+> & {
+  isAuthoritative: boolean
+}
+
 export function useLenderMarketAccountQuery({
   market,
   lender,
   provider,
   enabled,
   ...filters
-}: UseLenderProps): TwoStepQueryHookResult<MarketAccount | undefined> {
+}: UseLenderProps): UseLenderMarketAccountResult {
   const marketAddress = market?.address.toLowerCase()
   const lenderAddress = lender?.toLowerCase()
 
@@ -132,6 +144,7 @@ export function useLenderMarketAccountQuery({
 
   return {
     data: updatedLender ?? data,
+    isAuthoritative: !!updatedLender,
     isLoadingInitial,
     isErrorInitial,
     errorInitial: errorInitial as Error | null,

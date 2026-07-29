@@ -57,7 +57,12 @@ import { WrapDebtToken } from "./components/WrapDebtToken"
 import { useBorrowerPenaltyWarning } from "./hooks/useBorrowerPenaltyWarning"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
-import { LenderStatus } from "./interface"
+import {
+  canActInMarket,
+  shouldRouteOnAccess,
+  LenderAccessState,
+  resolveLenderAccess,
+} from "./lenderAccessState"
 import {
   MarketContentColumn,
   SectionContainer,
@@ -97,8 +102,14 @@ export default function LenderMarketDetails({
       includeAgreementStatus: false,
     })
 
-  const { data: marketAccount, isLoadingInitial: isMarketAccountLoading } =
-    useLenderMarketAccount(market)
+  const {
+    data: marketAccount,
+    isLoadingInitial: isMarketAccountLoading,
+    isLoadingUpdate: isMarketAccountUpdating,
+    isErrorInitial: isMarketAccountErrorInitial,
+    isErrorUpdate: isMarketAccountErrorUpdate,
+    isAuthoritative: isMarketAccountAuthoritative,
+  } = useLenderMarketAccount(market)
   const { data: withdrawals, isLoadingInitial: isWithdrawalsLoading } =
     useGetLenderWithdrawals(market)
   const { data: marketSummary, isLoading: isLoadingSummary } = useMarketSummary(
@@ -113,13 +124,23 @@ export default function LenderMarketDetails({
 
   const isDifferentChain = isSelectionMismatch || isWrongNetwork
 
-  const authorizedInMarket =
-    marketAccount &&
-    isConnected &&
-    !isWrongNetwork &&
-    [LenderStatus.DepositAndWithdraw, LenderStatus.WithdrawOnly].includes(
-      getEffectiveLenderRole(marketAccount),
-    )
+  // Resolved through `resolveLenderAccess` so that "still loading" and "read
+  // failed" stay distinct from "no access". Deriving the verdict inline used to
+  // conflate them, which showed an authorized lender no actions at all while
+  // only subgraph data had arrived.
+  const lenderAccessState = resolveLenderAccess({
+    hasAccount: !!marketAccount,
+    isConnected,
+    isWrongNetwork,
+    role: marketAccount ? getEffectiveLenderRole(marketAccount) : undefined,
+    isAuthoritative: isMarketAccountAuthoritative,
+    isResolving:
+      isMarketLoading || isMarketAccountLoading || isMarketAccountUpdating,
+    hasResolutionError:
+      isMarketAccountErrorInitial || isMarketAccountErrorUpdate,
+  })
+
+  const authorizedInMarket = canActInMarket(lenderAccessState)
 
   const {
     wrapperAddress,
@@ -141,7 +162,7 @@ export default function LenderMarketDetails({
     isMarketLoading ||
     isMarketAccountLoading ||
     isWithdrawalsLoading ||
-    authorizedInMarket === undefined
+    lenderAccessState === LenderAccessState.Resolving
 
   const currentSection = useAppSelector(
     (state) => state.lenderMarketRouting.currentSection,
@@ -152,14 +173,21 @@ export default function LenderMarketDetails({
   }, [isLoading])
 
   useEffect(() => {
-    if (!authorizedInMarket) {
-      dispatch(setIsLender(!!authorizedInMarket))
-      dispatch(setSection(LenderMarketSections.STATUS))
-    } else {
-      dispatch(setIsLender(authorizedInMarket))
-      dispatch(setSection(LenderMarketSections.TRANSACTIONS))
-    }
-  }, [authorizedInMarket])
+    // Do not route while still Resolving. That is what made a loading state
+    // look like a refusal, and sent authorized lenders to STATUS with no way
+    // back. Indeterminate still routes, because a disconnected or
+    // wrong-network visitor cannot be offered actions either way.
+    if (!shouldRouteOnAccess(lenderAccessState)) return
+
+    dispatch(setIsLender(authorizedInMarket))
+    dispatch(
+      setSection(
+        authorizedInMarket
+          ? LenderMarketSections.TRANSACTIONS
+          : LenderMarketSections.STATUS,
+      ),
+    )
+  }, [lenderAccessState, authorizedInMarket])
 
   const ongoingCount = (
     withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []

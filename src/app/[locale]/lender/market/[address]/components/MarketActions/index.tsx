@@ -1,11 +1,7 @@
 import * as React from "react"
 
 import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
-import {
-  DepositStatus,
-  MarketAccount,
-  QueueWithdrawalStatus,
-} from "@wildcatfi/wildcat-sdk"
+import { DepositStatus, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -32,6 +28,11 @@ import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { MarketActionsProps } from "./interface"
 import { useFaucet } from "../../hooks/useFaucet"
+import {
+  LenderAccessState,
+  resolveWithdrawAvailability,
+  WithdrawUnavailableReason,
+} from "../../lenderAccessState"
 
 // Compact status content for the deposit block's action slot. The
 // TransactionBlock is a fixed-width row whose right slot is sized for a
@@ -107,9 +108,32 @@ export const MarketActions = ({
     market.underlyingToken.isMock &&
     marketAccount.underlyingBalance.raw.isZero()
 
+  // Resolved rather than derived inline so the reason survives to the UI. A
+  // silently missing button reads as "you have no access" even when the real
+  // reason is an empty position or an unelapsed fixed term.
+  const withdrawUnavailableReason = resolveWithdrawAvailability({
+    accessState: LenderAccessState.Authorized,
+    hasMarketBalance: !marketAccount.marketBalance.raw.isZero(),
+    withdrawalAvailability: marketAccount.withdrawalAvailability,
+  })
+
   const hideWithdraw =
-    marketAccount.marketBalance.raw.isZero() ||
-    marketAccount.withdrawalAvailability !== QueueWithdrawalStatus.Ready
+    withdrawUnavailableReason !== WithdrawUnavailableReason.None
+
+  const withdrawUnavailableCopy: Record<WithdrawUnavailableReason, string> = {
+    [WithdrawUnavailableReason.None]: "",
+    [WithdrawUnavailableReason.Resolving]: "Checking your position…",
+    [WithdrawUnavailableReason.NoBalance]: "Nothing to withdraw.",
+    [WithdrawUnavailableReason.RequiresAccess]:
+      "Withdrawing from this market needs a credential.",
+    [WithdrawUnavailableReason.MarketInClosedTerm]:
+      "This market is in its fixed term. Withdrawals open when the term ends.",
+    [WithdrawUnavailableReason.WithdrawalWindowClosed]:
+      "The withdrawal window is closed.",
+    [WithdrawUnavailableReason.InsufficientBalance]: "Nothing to withdraw.",
+    [WithdrawUnavailableReason.InsufficientRole]:
+      "Withdrawing from this market needs a credential.",
+  }
 
   const ongoingCount = (
     withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
@@ -319,7 +343,15 @@ export const MarketActions = ({
             }
             asset={market.underlyingToken.symbol}
           >
-            {!hideWithdraw && <WithdrawModal marketAccount={marketAccount} />}
+            {hideWithdraw ? (
+              <Box sx={DepositStatusContainer}>
+                <Typography variant="text4" color={COLORS.santasGrey}>
+                  {withdrawUnavailableCopy[withdrawUnavailableReason]}
+                </Typography>
+              </Box>
+            ) : (
+              <WithdrawModal marketAccount={marketAccount} />
+            )}
           </TransactionBlock>
         </Box>
       </Box>
