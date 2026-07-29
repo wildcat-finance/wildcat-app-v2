@@ -137,9 +137,10 @@ export const useDeposit = (
         ),
       })
       client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
+        queryKey: QueryKeys.Lender.GET_MARKET_ACCOUNT_PREFIX(
           marketAccount.market.chainId,
           marketAccount.market.address,
+          marketAccount.account,
         ),
       })
     },

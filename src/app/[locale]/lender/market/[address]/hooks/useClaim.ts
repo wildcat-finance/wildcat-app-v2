@@ -63,9 +63,10 @@ export const useClaim = (
         queryKey: QueryKeys.Markets.GET_MARKET(market.chainId, market.address),
       })
       client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
+        queryKey: QueryKeys.Lender.GET_MARKET_ACCOUNT_PREFIX(
           market.chainId,
-          market.address,
+          marketAddress,
+          lender,
         ),
       })
       client.invalidateQueries({

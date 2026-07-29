@@ -90,4 +90,71 @@ describe("query keys", () => {
       true,
     )
   })
+
+  it("invalidates indexed and live lender account entries through the lender prefix", async () => {
+    const queryClient = new QueryClient()
+    const chainId = 11155111
+    const market = "0x04fb4e4577ad2cdd65e70f18d7a5f326162ddd90"
+    const lender = "0xca732651410e915090d7a7d889a1e44ef4575fce"
+    const initialKey = QueryKeys.Lender.GET_MARKET_ACCOUNT(
+      chainId,
+      market,
+      lender,
+      "initial",
+    )
+    const updateKey = QueryKeys.Lender.GET_MARKET_ACCOUNT(
+      chainId,
+      market,
+      lender,
+      "update",
+    )
+
+    queryClient.setQueryData(initialKey, "indexed")
+    queryClient.setQueryData(updateKey, "live")
+
+    await queryClient.invalidateQueries({
+      queryKey: QueryKeys.Lender.GET_MARKET_ACCOUNT_PREFIX(
+        chainId,
+        market,
+        lender,
+      ),
+      refetchType: "none",
+    })
+
+    expect(queryClient.getQueryState(initialKey)?.isInvalidated).toBe(true)
+    expect(queryClient.getQueryState(updateKey)?.isInvalidated).toBe(true)
+  })
+
+  it("invalidates indexed and live lender withdrawal entries through the lender prefix", async () => {
+    const queryClient = new QueryClient()
+    const chainId = 11155111
+    const market = "0x04fb4e4577ad2cdd65e70f18d7a5f326162ddd90"
+    const lender = "0xca732651410e915090d7a7d889a1e44ef4575fce"
+    const initialKey = QueryKeys.Lender.GET_WITHDRAWALS.INITIAL(
+      chainId,
+      lender,
+      market,
+    )
+    const updateKey = QueryKeys.Lender.GET_WITHDRAWALS.UPDATE(
+      chainId,
+      lender,
+      market,
+      [["1717171717"]],
+    )
+
+    queryClient.setQueryData(initialKey, "indexed")
+    queryClient.setQueryData(updateKey, "live")
+
+    await queryClient.invalidateQueries({
+      queryKey: QueryKeys.Lender.GET_WITHDRAWALS.PREFIX(
+        chainId,
+        lender,
+        market,
+      ),
+      refetchType: "none",
+    })
+
+    expect(queryClient.getQueryState(initialKey)?.isInvalidated).toBe(true)
+    expect(queryClient.getQueryState(updateKey)?.isInvalidated).toBe(true)
+  })
 })

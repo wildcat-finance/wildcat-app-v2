@@ -210,6 +210,18 @@ const TOKEN_QUERY_KEYS = {
 
 const LENDER_QUERY_KEYS = {
   // GET_LENDER_MARKET_ACCOUNT_KEY
+  GET_MARKET_ACCOUNT_PREFIX: (
+    chainId: number,
+    marketAddress?: string,
+    lenderAddress?: string,
+  ) =>
+    k([
+      "lender",
+      "GET_LENDER_MARKET_ACCOUNT",
+      chainId,
+      marketAddress,
+      lenderAddress,
+    ]),
   GET_MARKET_ACCOUNT: (
     chainId: number,
     marketAddress?: string,

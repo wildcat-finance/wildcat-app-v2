@@ -86,24 +86,41 @@ export const useWithdraw = (
       await withdraw()
     },
     onSuccess() {
+      const lender = marketAccount.account.toLowerCase()
+      const marketAddress = marketAccount.market.address.toLowerCase()
+
       client.invalidateQueries({
         queryKey: QueryKeys.Markets.GET_MARKET(
           marketAccount.market.chainId,
-          marketAccount.market.address,
+          marketAddress,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Lender.GET_MARKET_ACCOUNT_PREFIX(
+          marketAccount.market.chainId,
+          marketAddress,
+          lender,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Lender.GET_WITHDRAWALS.PREFIX(
+          marketAccount.market.chainId,
+          lender,
+          marketAddress,
         ),
       })
       client.invalidateQueries({
         queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
           marketAccount.market.chainId,
           "initial",
-          marketAccount.market.address,
+          marketAddress,
         ),
       })
       client.invalidateQueries({
         queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
           marketAccount.market.chainId,
           "update",
-          marketAccount.market.address,
+          marketAddress,
         ),
       })
     },
