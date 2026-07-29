@@ -31,6 +31,17 @@ type CreateMarketDeployRoutingOutput =
       commitmentFeeBips: number
     }
 
+type CreateMarketDeploymentTargetInput = {
+  hasSelectedHooksTemplate: boolean
+  hasCommittedDeployment: boolean
+}
+
+export const hasCreateMarketDeploymentTarget = ({
+  hasSelectedHooksTemplate,
+  hasCommittedDeployment,
+}: CreateMarketDeploymentTargetInput) =>
+  hasSelectedHooksTemplate || hasCommittedDeployment
+
 export const getCreateMarketDeployRouting = ({
   implementationType,
   commitmentFeePercent,

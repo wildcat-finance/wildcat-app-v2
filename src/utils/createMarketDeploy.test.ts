@@ -4,9 +4,31 @@ import {
   assertWrapperDeploymentCompatible,
   getCreateMarketDeployRouting,
   getDeployMarketPreviewError,
+  hasCreateMarketDeploymentTarget,
 } from "./createMarketDeploy"
 
 describe("createMarketDeploy", () => {
+  it("requires a selected template unless deployment is already committed", () => {
+    expect(
+      hasCreateMarketDeploymentTarget({
+        hasSelectedHooksTemplate: false,
+        hasCommittedDeployment: false,
+      }),
+    ).toBe(false)
+    expect(
+      hasCreateMarketDeploymentTarget({
+        hasSelectedHooksTemplate: true,
+        hasCommittedDeployment: false,
+      }),
+    ).toBe(true)
+    expect(
+      hasCreateMarketDeploymentTarget({
+        hasSelectedHooksTemplate: false,
+        hasCommittedDeployment: true,
+      }),
+    ).toBe(true)
+  })
+
   it("routes standard markets without commitment fee", () => {
     expect(
       getCreateMarketDeployRouting({

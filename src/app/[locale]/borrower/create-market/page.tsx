@@ -57,7 +57,10 @@ import {
 } from "@/store/slices/createMarketSigningDraftsSlice/createMarketSigningDraftsSlice"
 import { removePendingSafeMessage } from "@/store/slices/pendingSafeMessagesSlice/pendingSafeMessagesSlice"
 import { COLORS } from "@/theme/colors"
-import { getCreateMarketDeployRouting } from "@/utils/createMarketDeploy"
+import {
+  getCreateMarketDeployRouting,
+  hasCreateMarketDeploymentTarget,
+} from "@/utils/createMarketDeploy"
 
 import { BasicSetupForm } from "./components/Forms/BasicSetupForn"
 import { LenderRestrictionsForm } from "./components/Forms/LenderRestrictionsForm"
@@ -509,6 +512,16 @@ export default function CreateMarketPage() {
       if (!signer || signer.chainId !== targetChainId) {
         setSignatureRequested(false)
         toastError("Wallet network does not match selected network.")
+        return
+      }
+      if (
+        !hasCreateMarketDeploymentTarget({
+          hasSelectedHooksTemplate: !!selectedHooksTemplate,
+          hasCommittedDeployment: !!resumedCommittedDraft,
+        })
+      ) {
+        setSignatureRequested(false)
+        toastError("Market signing is not ready. Please try again.")
         return
       }
       if (!isSafeSigning) {
@@ -1266,11 +1279,12 @@ export default function CreateMarketPage() {
             isDeployReady={
               !!assetData &&
               !!tokenAsset &&
-              (!!selectedHooksTemplate ||
-                !!(
+              hasCreateMarketDeploymentTarget({
+                hasSelectedHooksTemplate: !!selectedHooksTemplate,
+                hasCommittedDeployment:
                   signingDraft?.id === activeDraftId &&
-                  hasCommittedCreateMarketDeployment(signingDraft)
-                )) &&
+                  hasCommittedCreateMarketDeployment(signingDraft),
+              }) &&
               !isValidatingSignature
             }
             mlaSignature={mlaSignature}
