@@ -4,7 +4,6 @@ import { Box, Button, Divider, SvgIcon } from "@mui/material"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
-import { useAccount } from "wagmi"
 
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
 import { ROUTES } from "@/routes"
@@ -30,8 +29,7 @@ export const MobileNamePageBlockWrapper = ({
   const { t } = useTranslation()
 
   const pathname = usePathname()
-  const { address } = useAccount()
-  const backLink = isBorrowerContextPath(pathname, address)
+  const backLink = isBorrowerContextPath(pathname)
     ? ROUTES.borrower.root
     : ROUTES.lender.root
 

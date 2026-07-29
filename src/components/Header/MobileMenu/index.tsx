@@ -66,7 +66,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
   const { address, isConnected } = useAccount()
   const pathname = usePathname()
   const isMain = pathname.includes("lender") || pathname.includes("borrower")
-  const isBorrowerContext = isBorrowerContextPath(pathname, address)
+  const isBorrowerContext = isBorrowerContextPath(pathname)
   const profileRoute = isBorrowerContext
     ? ROUTES.borrower.profile
     : ROUTES.lender.profile

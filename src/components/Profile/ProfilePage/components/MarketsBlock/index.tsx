@@ -5,7 +5,6 @@ import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
-import { useAccount } from "wagmi"
 
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
@@ -40,8 +39,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
   const isMobile = useMobileResolution()
 
   const pathname = usePathname()
-  const { address: connectedAddress } = useAccount()
-  const marketLink = isBorrowerContextPath(pathname, connectedAddress)
+  const marketLink = isBorrowerContextPath(pathname)
     ? ROUTES.borrower.market
     : ROUTES.lender.market
 

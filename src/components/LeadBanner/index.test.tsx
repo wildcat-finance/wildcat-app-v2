@@ -3,9 +3,19 @@ import { fireEvent, render, screen } from "@testing-library/react"
 
 import { LeadBanner } from "./index"
 
+jest.mock(
+  "../../../theme/colors",
+  () => ({
+    COLORS: {
+      white: "#FFFFFF",
+    },
+  }),
+  { virtual: true },
+)
+
 describe("LeadBanner", () => {
   it("does not render a CTA when no action is configured", () => {
-    render(<LeadBanner title="Pending" text="Registration is pending." />)
+    render(<LeadBanner title="Pending" subtitle="Registration is pending." />)
 
     expect(screen.queryByRole("button")).toBeNull()
     expect(screen.queryByRole("link")).toBeNull()
@@ -27,7 +37,7 @@ describe("LeadBanner", () => {
   it("renders a callback-only CTA as a button without navigation", () => {
     const onClick = jest.fn()
 
-    render(<LeadBanner buttonText="Connect Wallet" onClick={onClick} />)
+    render(<LeadBanner buttonText="Connect Wallet" buttonOnClick={onClick} />)
 
     const button = screen.getByRole("button", { name: "Connect Wallet" })
     expect(button.tagName).toBe("BUTTON")

@@ -770,9 +770,9 @@ export default function LenderMarketDetails({
           <Box sx={LenderBannerWrapper}>
             <LeadBanner
               title="Connect Your Wallet"
-              text="Connect a wallet to deposit into this market, view your position, and manage withdrawals."
+              subtitle="Connect a wallet to deposit into this market, view your position, and manage withdrawals."
               buttonText="Connect Wallet"
-              onClick={() => setIsConnectDialogOpen(true)}
+              buttonOnClick={() => setIsConnectDialogOpen(true)}
             />
           </Box>
         )}
@@ -781,7 +781,7 @@ export default function LenderMarketDetails({
           <Box sx={LenderBannerWrapper}>
             <LeadBanner
               title="Lend through Wildcat"
-              text="Interested in lending through Wildcat? Connect with this borrower to request access."
+              subtitle="Interested in lending through Wildcat? Connect with this borrower to request access."
               buttonText="Leave a Request"
               buttonLink={{
                 isExternal: false,

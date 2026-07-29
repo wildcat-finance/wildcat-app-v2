@@ -58,7 +58,7 @@ export const ProfileDialog = ({
   }
 
   const { data: isRegisteredBorrower } = useGetIsRegisteredBorrower()
-  const isBorrowerContext = isBorrowerContextPath(pathname, address)
+  const isBorrowerContext = isBorrowerContextPath(pathname)
   const isLenderContext = !isBorrowerContext
   const useLenderProfile = analyticsUiEnabled && isLenderContext
   const shouldShowProfileLink = useLenderProfile || isRegisteredBorrower

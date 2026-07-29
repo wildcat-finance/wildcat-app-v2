@@ -256,10 +256,9 @@ export default function MarketDetails({
         <Box sx={{ width: "69%" }}>
           <LeadBanner
             title="Select MLA Settings"
-            text="Your MLA selection was not successfully uploaded. Please try again."
+            subtitle="Your MLA selection was not successfully uploaded. Please try again."
             buttonText="Go to MLA Settings"
-            buttonLink={undefined}
-            onClick={() => dispatch(setCheckBlock(5))}
+            buttonOnClick={() => dispatch(setCheckBlock(5))}
           />
         </Box>
       </Box>

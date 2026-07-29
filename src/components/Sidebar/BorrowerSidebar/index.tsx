@@ -1,6 +1,5 @@
 import { Box, Button } from "@mui/material"
 import { usePathname } from "next/navigation"
-import { useAccount } from "wagmi"
 
 import { BackButton } from "@/components/BackButton"
 import {
@@ -55,11 +54,10 @@ const ProfileTabList = ({
 
 export const BorrowerSidebar = () => {
   const pathname = usePathname()
-  const { address } = useAccount()
   const isLenderProfile = pathname.includes(ROUTES.lender.profile)
   const isEditProfile = pathname.includes(ROUTES.borrower.editProfile)
 
-  const backLink = isBorrowerContextPath(pathname, address)
+  const backLink = isBorrowerContextPath(pathname)
     ? ROUTES.borrower.root
     : ROUTES.lender.root
 

@@ -7,7 +7,6 @@ import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHo
 import { useBorrowerAggregateStats } from "@/app/[locale]/borrower/profile/hooks/analytics/useBorrowerAggregateStats"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { LenderAnalyticsSummary } from "@/app/[locale]/lender/market/[address]/components/LenderAnalyticsSummary"
-import { BorrowerProfileVerificationDisclosure } from "@/components/Profile/components/VerificationDisclosure"
 import { AnalyticsUnavailableNotice } from "@/components/Profile/shared/AnalyticsUnavailableNotice"
 import { buildBorrowerSummaryItems } from "@/components/Profile/shared/borrowerSummaryItems"
 import { analyticsUiEnabled } from "@/config/featureFlags"
@@ -19,6 +18,7 @@ import { BorrowerMarketsTreemap } from "./components/BorrowerMarketsTreemap"
 import { ProfileSectionNameBlock } from "./components/ProfileSectionNameBlock"
 import { ProfileSectionProps } from "./interface"
 import { OverallBlock } from "../components/OverallBlock"
+import { BorrowerProfileVerificationDisclosure } from "../components/VerificationDisclosure"
 
 const AnalyticsProfileSection = ({
   profileAddress,
