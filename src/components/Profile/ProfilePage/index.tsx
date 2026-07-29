@@ -4,9 +4,12 @@ import { useEffect, useState } from "react"
 import { Box, Divider } from "@mui/material"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
+import { useGetServiceAgreementStatus } from "@/app/[locale]/borrower/hooks/useGetServiceAgreementStatus"
 import { useBorrowerAggregateStats } from "@/app/[locale]/borrower/profile/hooks/analytics/useBorrowerAggregateStats"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { Footer } from "@/components/Footer"
+import { ToUStatusBlock } from "@/components/Profile/components/ToUStatusBlock"
+import { BorrowerProfileVerificationDisclosure } from "@/components/Profile/components/VerificationDisclosure"
 import { ProfileTabBar } from "@/components/Profile/shared/ProfileTabBar"
 import {
   BORROWER_PROFILE_TABS,
@@ -43,6 +46,8 @@ const AnalyticsProfilePage = ({
     useGetBorrowerProfile(profileAddress, chainId)
   const { data: borrowerMarkets, isLoading: isMarketsLoading } =
     useGetBorrowerMarkets(profileAddress, chainId)
+  const { data: touStatus, isLoading: isTouStatusLoading } =
+    useGetServiceAgreementStatus(profileAddress, chainId)
   const borrowerAnalyticsQuery = useBorrowerAggregateStats(
     profileAddress,
     chainId,
@@ -81,6 +86,8 @@ const AnalyticsProfilePage = ({
         }),
       }}
     >
+      <BorrowerProfileVerificationDisclosure showNote={false} />
+
       {isMobile && (
         <ProfileTabBar tabs={BORROWER_PROFILE_TABS} defaultTab="overview" />
       )}
@@ -99,6 +106,8 @@ const AnalyticsProfilePage = ({
           }
           analyticsAvailable={analyticsAvailable}
           isMobile={isMobile}
+          touStatus={touStatus}
+          isTouStatusLoading={isTouStatusLoading}
         />
       )}
 
@@ -144,6 +153,8 @@ const CoreProfilePage = ({
     useGetBorrowerProfile(profileAddress, chainId)
   const { data: borrowerMarkets, isLoading: isMarketsLoading } =
     useGetBorrowerMarkets(profileAddress, chainId)
+  const { data: touStatus, isLoading: isTouStatusLoading } =
+    useGetServiceAgreementStatus(profileAddress, chainId)
   const isMobile = useMobileResolution()
 
   const isExternal = type === "external"
@@ -165,6 +176,8 @@ const CoreProfilePage = ({
   if (isMobile) {
     return (
       <Box sx={MobileContentContainer}>
+        <BorrowerProfileVerificationDisclosure showNote={false} />
+
         <MobileNamePageBlockWrapper
           section={section}
           setSection={setSection}
@@ -184,11 +197,23 @@ const CoreProfilePage = ({
         )}
 
         {section === "info" && (
-          <OverallBlock
-            {...profileData}
-            marketsAmount={marketsAmount}
-            externalChainId={chainId}
-          />
+          <>
+            <OverallBlock
+              {...profileData}
+              marketsAmount={marketsAmount}
+              externalChainId={chainId}
+            />
+            <BorrowerProfileVerificationDisclosure
+              variant="inline"
+              showModal={false}
+            />
+            <ToUStatusBlock
+              address={profileAddress}
+              status={touStatus}
+              isLoading={isTouStatusLoading}
+              externalChainId={chainId}
+            />
+          </>
         )}
 
         <Box sx={{ marginTop: "auto" }}>
@@ -210,9 +235,23 @@ const CoreProfilePage = ({
 
       <Divider sx={{ marginY: "32px" }} />
 
-      <OverallBlock
-        {...profileData}
-        marketsAmount={marketsAmount}
+      <Box sx={{ position: "relative" }}>
+        <OverallBlock
+          {...profileData}
+          marketsAmount={marketsAmount}
+          externalChainId={chainId}
+          isPage
+        />
+
+        <BorrowerProfileVerificationDisclosure />
+      </Box>
+
+      <Divider sx={{ marginY: "32px" }} />
+
+      <ToUStatusBlock
+        address={profileAddress}
+        status={touStatus}
+        isLoading={isTouStatusLoading}
         externalChainId={chainId}
         isPage
       />

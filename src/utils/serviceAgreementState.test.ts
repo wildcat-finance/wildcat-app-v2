@@ -3,6 +3,7 @@ import {
   computeToUAcceptanceState,
   computeToUGateState,
   isToUBlockedState,
+  requiresBorrowerInvitationAcceptance,
 } from "./serviceAgreementState"
 
 const NOW = new Date("2026-07-01T12:00:00Z")
@@ -161,6 +162,20 @@ describe("computeToUGateState", () => {
         state: "staleWithinGrace",
       }),
     ).toBe("unblocked")
+  })
+})
+
+describe("requiresBorrowerInvitationAcceptance", () => {
+  it("requires the invitation flow for a borrower's first acceptance", () => {
+    expect(requiresBorrowerInvitationAcceptance("Borrower", false)).toBe(true)
+  })
+
+  it("allows existing borrowers to use the generic re-acceptance flow", () => {
+    expect(requiresBorrowerInvitationAcceptance("Borrower", true)).toBe(false)
+  })
+
+  it("does not change lender onboarding", () => {
+    expect(requiresBorrowerInvitationAcceptance("Lender", false)).toBe(false)
   })
 })
 

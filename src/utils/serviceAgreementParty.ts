@@ -1,10 +1,12 @@
 import type { ServiceAgreementPartyInput } from "@/app/api/service-agreement/interface"
 import { ROUTES } from "@/routes"
 
+import { isBorrowerAppPath } from "./profileRoutes"
+
 export const getServiceAgreementPartyForPath = (
   pathname: string | null | undefined,
 ): ServiceAgreementPartyInput =>
-  pathname?.includes(ROUTES.borrower.root) ? "Borrower" : "Lender"
+  pathname && isBorrowerAppPath(pathname) ? "Borrower" : "Lender"
 
 export const getServiceAgreementRouteForParty = (
   party: ServiceAgreementPartyInput,

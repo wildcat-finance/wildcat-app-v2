@@ -20,6 +20,7 @@ import { TxModalFooterContainer } from "@/components/TxModalComponents/TxModalFo
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { useAcceptToU, useDeclineToU } from "@/hooks/useToUReacceptance"
+import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setTouModalOpen } from "@/store/slices/touModalSlice/touModalSlice"
 import { COLORS } from "@/theme/colors"
@@ -28,6 +29,7 @@ import {
   getServiceAgreementRouteForParty,
   isServiceAgreementPath,
 } from "@/utils/serviceAgreementParty"
+import { requiresBorrowerInvitationAcceptance } from "@/utils/serviceAgreementState"
 import { formatServiceAgreementVersionLabel } from "@/utils/serviceAgreementVersions"
 
 const dismissKey = (
@@ -65,6 +67,7 @@ export const ToUReacceptanceModal = () => {
     touDeadline,
     touCurrentVersion,
     touAcceptedVersion,
+    isAgreementSigned,
     touParty,
     selectedChainId,
     isWrongNetwork,
@@ -218,6 +221,10 @@ export const ToUReacceptanceModal = () => {
   const isDeclined = touState === "declined"
   const isSignedCurrent = touState === "signedCurrent"
   const isNeverSigned = touState === "neverSigned"
+  const needsBorrowerInvitation = requiresBorrowerInvitationAcceptance(
+    touParty,
+    isAgreementSigned,
+  )
   // Read-only status views: no sign/decline actions. The "stale" state
   // (newer version, no campaign) opens the normal sign/decline view.
   const isReadOnly = isSignedCurrent || (isNeverSigned && touParty === "Lender")
@@ -259,6 +266,7 @@ export const ToUReacceptanceModal = () => {
 
   const title = (() => {
     if (view === "decline") return "Decline Terms of Use"
+    if (needsBorrowerInvitation) return "Borrower Invitation Required"
     if (isDeclined) return "Terms of Use Declined"
     if (isReadOnly) return "Terms of Use"
     return "Updated Terms of Use"
@@ -267,7 +275,10 @@ export const ToUReacceptanceModal = () => {
   const restrictedActions =
     touParty === "Borrower" ? "new markets and borrowing" : "deposits"
   let description = ""
-  if (view === "decline") {
+  if (needsBorrowerInvitation) {
+    description =
+      "Complete the borrower invitation to accept the Wildcat Terms of Use for this account."
+  } else if (view === "decline") {
     description =
       `You are declining Terms of Use ${newVersionLabel}. Your decline is ` +
       `recorded with a wallet signature. For this ${touParty} capacity, ` +
@@ -343,11 +354,12 @@ export const ToUReacceptanceModal = () => {
           {description}
         </Typography>
 
-        {(!isReadOnly || view === "decline") && signingAs && (
-          <Typography variant="text3" color={COLORS.blackRock}>
-            <strong>Signing as:</strong> {signingAs}
-          </Typography>
-        )}
+        {((!isReadOnly && !needsBorrowerInvitation) || view === "decline") &&
+          signingAs && (
+            <Typography variant="text3" color={COLORS.blackRock}>
+              <strong>Signing as:</strong> {signingAs}
+            </Typography>
+          )}
 
         {view === "main" && (
           <>
@@ -496,7 +508,21 @@ export const ToUReacceptanceModal = () => {
           </Button>
         )}
 
-        {view === "main" && !isReadOnly && (
+        {view === "main" && needsBorrowerInvitation && (
+          <Button
+            variant="contained"
+            size="large"
+            onClick={() => {
+              dispatch(setTouModalOpen(false))
+              router.push(ROUTES.borrower.invitation)
+            }}
+            fullWidth
+          >
+            Complete Borrower Invitation
+          </Button>
+        )}
+
+        {view === "main" && !isReadOnly && !needsBorrowerInvitation && (
           <>
             <Button
               variant="contained"

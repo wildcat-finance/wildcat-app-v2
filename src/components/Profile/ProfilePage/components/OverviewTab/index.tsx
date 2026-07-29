@@ -7,6 +7,9 @@ import { Box, Typography } from "@mui/material"
 import { BorrowerProfileAnalytics } from "@/app/[locale]/borrower/profile/hooks/analytics/types"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { LenderAnalyticsSummary } from "@/app/[locale]/lender/market/[address]/components/LenderAnalyticsSummary"
+import { ServiceAgreementStatusResponse } from "@/app/api/service-agreement/interface"
+import { ToUStatusBlock } from "@/components/Profile/components/ToUStatusBlock"
+import { BorrowerProfileVerificationDisclosure } from "@/components/Profile/components/VerificationDisclosure"
 import { formatUsd } from "@/components/Profile/shared/analytics"
 import { AnalyticsUnavailableNotice } from "@/components/Profile/shared/AnalyticsUnavailableNotice"
 import { buildBorrowerSummaryItems } from "@/components/Profile/shared/borrowerSummaryItems"
@@ -27,6 +30,8 @@ type OverviewTabProps = {
   isAnalyticsLoading: boolean
   analyticsAvailable: boolean
   isMobile: boolean
+  touStatus: ServiceAgreementStatusResponse | undefined
+  isTouStatusLoading: boolean
 }
 
 export const OverviewTab = ({
@@ -40,6 +45,8 @@ export const OverviewTab = ({
   isAnalyticsLoading,
   analyticsAvailable,
   isMobile,
+  touStatus,
+  isTouStatusLoading,
 }: OverviewTabProps) => {
   const { data: profileData } = useGetBorrowerProfile(profileAddress, chainId)
   const activeBorrowerMarkets = borrowerMarkets ?? []
@@ -122,6 +129,30 @@ export const OverviewTab = ({
                 ]
               : []
           }
+        />
+      </Box>
+
+      <Box sx={{ "& > aside": { marginTop: 0 } }}>
+        <BorrowerProfileVerificationDisclosure
+          variant="inline"
+          showModal={false}
+        />
+      </Box>
+
+      <Box
+        sx={{
+          border: `1px solid ${COLORS.athensGrey}`,
+          borderRadius: "16px",
+          backgroundColor: COLORS.white,
+          padding: isMobile ? "16px" : "24px",
+        }}
+      >
+        <ToUStatusBlock
+          address={profileAddress}
+          status={touStatus}
+          isLoading={isTouStatusLoading}
+          externalChainId={chainId}
+          isPage
         />
       </Box>
 

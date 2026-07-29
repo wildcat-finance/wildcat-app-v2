@@ -34,6 +34,11 @@ export const isToUBlockedState = (
 
 export type ToUGateState = "blocked" | "unblocked" | "unknown"
 
+export const requiresBorrowerInvitationAcceptance = (
+  party: "Borrower" | "Lender",
+  hasAnyAcceptance: boolean,
+): boolean => party === "Borrower" && !hasAnyAcceptance
+
 export function computeToUGateState({
   queryEnabled,
   querySucceeded,

@@ -7,6 +7,7 @@ import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHo
 import { useBorrowerAggregateStats } from "@/app/[locale]/borrower/profile/hooks/analytics/useBorrowerAggregateStats"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { LenderAnalyticsSummary } from "@/app/[locale]/lender/market/[address]/components/LenderAnalyticsSummary"
+import { BorrowerProfileVerificationDisclosure } from "@/components/Profile/components/VerificationDisclosure"
 import { AnalyticsUnavailableNotice } from "@/components/Profile/shared/AnalyticsUnavailableNotice"
 import { buildBorrowerSummaryItems } from "@/components/Profile/shared/borrowerSummaryItems"
 import { analyticsUiEnabled } from "@/config/featureFlags"
@@ -81,6 +82,8 @@ const AnalyticsProfileSection = ({
         }
       />
 
+      <BorrowerProfileVerificationDisclosure variant="market" />
+
       <BorrowerMarketsTreemap
         markets={borrowerMarkets ?? []}
         priceMap={borrowerAnalyticsQuery.data?.priceMap ?? {}}
@@ -114,6 +117,8 @@ const CoreProfileSection = ({
         marketsAmount={marketsAmount}
         externalChainId={chainId}
       />
+
+      <BorrowerProfileVerificationDisclosure variant="market" />
     </>
   )
 }

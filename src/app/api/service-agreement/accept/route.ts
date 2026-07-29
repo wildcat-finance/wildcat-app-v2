@@ -2,7 +2,7 @@ import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
 import { AcceptServiceAgreementInput } from "@/app/api/service-agreement/interface"
-import { prisma } from "@/lib/db"
+import { getBorrowerAcceptanceTimes, prisma } from "@/lib/db"
 import {
   getCurrentServiceAgreement,
   isServiceAgreementTimeSignedInBounds,
@@ -10,6 +10,7 @@ import {
   verifyServiceAgreementSignature,
 } from "@/lib/serviceAgreement"
 import { getZodParseError } from "@/lib/zod-error"
+import { requiresBorrowerInvitationAcceptance } from "@/utils/serviceAgreementState"
 
 import { AcceptServiceAgreementInputDTO } from "./dto"
 
@@ -54,6 +55,25 @@ export async function POST(request: NextRequest) {
     existing.timeSigned.getTime() === timeSigned
   ) {
     return NextResponse.json({ success: true })
+  }
+
+  if (party === "Borrower" && !existing) {
+    // Use the same versioned/seeded-legacy lookup as invitation status. A raw
+    // legacy placeholder row is not enough to enter the re-acceptance path.
+    const priorAcceptances = await getBorrowerAcceptanceTimes(chainId, [
+      address,
+    ])
+    if (
+      requiresBorrowerInvitationAcceptance(party, priorAcceptances.has(address))
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Initial borrower acceptance must be completed through the invitation flow",
+        },
+        { status: 409 },
+      )
+    }
   }
 
   // After the idempotent-replay check so retries of an already-stored action

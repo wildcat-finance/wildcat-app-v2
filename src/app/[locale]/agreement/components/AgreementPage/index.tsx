@@ -8,6 +8,8 @@ import type { ServiceAgreementPartyInput } from "@/app/api/service-agreement/int
 import { ServiceAgreementVersionChip } from "@/components/ServiceAgreementVersionChip"
 import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
+import { ROUTES } from "@/routes"
+import { requiresBorrowerInvitationAcceptance } from "@/utils/serviceAgreementState"
 
 import { AgreementText } from "../AgreementText"
 import { ReacceptButton } from "../ReacceptButton"
@@ -22,17 +24,22 @@ export const AgreementPage = ({
   const router = useRouter()
   const { data: currentAgreement, isLoading: isAgreementLoading } =
     useCurrentServiceAgreement()
-  const { touState } = useNetworkGate({ agreementParty: party })
+  const { touState, isAgreementSigned } = useNetworkGate({
+    agreementParty: party,
+  })
 
-  // Lenders retain the initial onboarding flow, while borrowers only reach
-  // this page to review or re-accept terms for their borrower capacity.
+  // Lenders retain their initial onboarding flow. A borrower's first
+  // acceptance belongs to the invitation flow; this page only reviews or
+  // re-accepts terms for borrowers with an existing acceptance.
   const isReview = touState === "signedCurrent"
+  const needsBorrowerInvitation =
+    !!touState && requiresBorrowerInvitationAcceptance(party, isAgreementSigned)
   const needsReacceptance =
-    touState === "stale" ||
-    touState === "staleWithinGrace" ||
-    touState === "staleExpired" ||
-    touState === "declined" ||
-    (party === "Borrower" && touState === "neverSigned")
+    !needsBorrowerInvitation &&
+    (touState === "stale" ||
+      touState === "staleWithinGrace" ||
+      touState === "staleExpired" ||
+      touState === "declined")
   const needsLenderSignature = party === "Lender" && touState === "neverSigned"
 
   const handleDownload = () => {
@@ -151,6 +158,22 @@ export const AgreementPage = ({
             }}
           >
             <Trans i18nKey="agreement.page.cancel" />
+          </Button>
+        )}
+        {needsBorrowerInvitation && (
+          <Button
+            variant="contained"
+            size="large"
+            onClick={() => router.push(ROUTES.borrower.invitation)}
+            sx={{
+              width: "168.63px",
+              height: "44px",
+              [theme.breakpoints.down("md")]: {
+                width: "100%",
+              },
+            }}
+          >
+            Complete Invitation
           </Button>
         )}
         {needsReacceptance && <ReacceptButton party={party} />}

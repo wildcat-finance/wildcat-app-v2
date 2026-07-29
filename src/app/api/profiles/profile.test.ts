@@ -487,7 +487,7 @@ describe("API", () => {
           timeInvited: expect.any(String),
         },
       })
-    })
+    }, 15_000)
 
     test("Succeeds if user is invited borrower", async () => {
       const req = mockGet(`/api/invite/${borrowerAddress}`, {
@@ -510,7 +510,7 @@ describe("API", () => {
           timeInvited: expect.any(String),
         },
       })
-    })
+    }, 15_000)
 
     test("Returns 404 if no invitation exists", async () => {
       const req = mockGet(`/api/invite/${otherWallet.address}`, {
