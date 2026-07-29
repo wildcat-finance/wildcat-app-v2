@@ -7,10 +7,12 @@ import { COLORS } from "@/theme/colors"
 
 type BorrowerPenaltyWarningProps = {
   variant?: "page" | "modal"
+  verificationUnavailable?: boolean
 }
 
 export const BorrowerPenaltyWarning = ({
   variant = "page",
+  verificationUnavailable = false,
 }: BorrowerPenaltyWarningProps) => {
   const { t } = useTranslation()
   const isMobile = useMobileResolution()
@@ -33,7 +35,11 @@ export const BorrowerPenaltyWarning = ({
       </SvgIcon>
 
       <Typography variant="text3" color={COLORS.dullRed}>
-        {t("lenderMarketDetails.borrowerPenaltyWarning")}
+        {t(
+          verificationUnavailable
+            ? "lenderMarketDetails.borrowerPenaltyWarningUnavailable"
+            : "lenderMarketDetails.borrowerPenaltyWarning",
+        )}
       </Typography>
     </Box>
   )

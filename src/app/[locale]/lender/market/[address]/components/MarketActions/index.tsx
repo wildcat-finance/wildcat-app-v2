@@ -69,7 +69,8 @@ const FaucetButton = ({ marketAccount }: { marketAccount: MarketAccount }) => {
 export const MarketActions = ({
   marketAccount,
   withdrawals,
-  showBorrowerPenaltyWarning,
+  borrowerPenaltyWarningState,
+  refreshBorrowerPenaltyWarning,
 }: MarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
@@ -312,7 +313,8 @@ export const MarketActions = ({
               return (
                 <DepositModal
                   marketAccount={marketAccount}
-                  showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
+                  borrowerPenaltyWarningState={borrowerPenaltyWarningState}
+                  refreshBorrowerPenaltyWarning={refreshBorrowerPenaltyWarning}
                 />
               )
             })()}

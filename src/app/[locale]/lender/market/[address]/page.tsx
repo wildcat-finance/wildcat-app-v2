@@ -241,8 +241,8 @@ export default function LenderMarketDetails({
     address.toLowerCase(),
     market?.chainId ?? selectedChainId,
   )
-  const { shouldWarn: showBorrowerPenaltyWarning } =
-    useBorrowerPenaltyWarning(market)
+  const borrowerPenaltyWarning = useBorrowerPenaltyWarning(market)
+  const showBorrowerPenaltyWarning = borrowerPenaltyWarning.state === "warning"
 
   const hasMarketDescription =
     !!marketSummary && marketSummary?.description !== ""
@@ -500,7 +500,8 @@ export default function LenderMarketDetails({
         setIsMobileOpen={setIsMobileDepositOpen}
         setIsMobileAcknowledgementOpen={setIsMobileAcknowledgementOpen}
         marketAccount={marketAccount}
-        showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
+        borrowerPenaltyWarningState={borrowerPenaltyWarning.state}
+        refreshBorrowerPenaltyWarning={borrowerPenaltyWarning.refresh}
       />
     )
 
@@ -815,7 +816,10 @@ export default function LenderMarketDetails({
                     <MarketActions
                       marketAccount={marketAccount}
                       withdrawals={withdrawals}
-                      showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
+                      borrowerPenaltyWarningState={borrowerPenaltyWarning.state}
+                      refreshBorrowerPenaltyWarning={
+                        borrowerPenaltyWarning.refresh
+                      }
                     />
                   )}
                   <CapacityBarChart

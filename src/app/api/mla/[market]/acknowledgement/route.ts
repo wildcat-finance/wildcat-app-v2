@@ -53,10 +53,10 @@ export async function GET(
   })
 
   if (!acknowledgement) {
-    return NextResponse.json(
-      { error: "Acknowledgement not found" },
-      { status: 404 },
-    )
+    // Missing acknowledgement is the expected pre-signing state, not a failed
+    // request. Keep it nullable so browsers do not report the legal gate's
+    // normal presence check as a console error.
+    return NextResponse.json(null)
   }
 
   const { blockNumber, ...rest } = acknowledgement

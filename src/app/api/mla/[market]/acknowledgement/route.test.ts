@@ -6,6 +6,7 @@ import { wildcatMarketAbi } from "@wildcatfi/wildcat-sdk"
 import { NextRequest } from "next/server"
 import { getAddress } from "viem"
 
+import { NON_MLA_ACKNOWLEDGEMENT_TEXT_VERSION } from "@/config/non-mla-acknowledgement"
 import {
   getBorrowerProfile,
   getSignedMasterLoanAgreement,
@@ -17,13 +18,14 @@ import {
 } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
 
-import { POST } from "./route"
+import { GET, POST } from "./route"
 
 jest.mock("@/lib/db", () => ({
   getBorrowerProfile: jest.fn(),
   getSignedMasterLoanAgreement: jest.fn(),
   prisma: {
     nonMlaAcknowledgement: {
+      findFirst: jest.fn(),
       findUnique: jest.fn(),
       upsert: jest.fn(),
     },
@@ -47,6 +49,8 @@ const lender = "0x1111111111111111111111111111111111111111"
 const borrower = "0x3333333333333333333333333333333333333333"
 const signature = `0x${"11".repeat(65)}`
 
+const mockFindLenderAcknowledgement = prisma.nonMlaAcknowledgement
+  .findFirst as jest.Mock
 const mockFindAcknowledgement = prisma.nonMlaAcknowledgement
   .findUnique as jest.Mock
 const mockUpsertAcknowledgement = prisma.nonMlaAcknowledgement
@@ -60,6 +64,62 @@ const mockVerifySignature = verifyAndDescribeSignature as jest.Mock
 
 beforeEach(() => {
   jest.clearAllMocks()
+})
+
+test("returns a successful null response before the lender acknowledges", async () => {
+  mockFindLenderAcknowledgement.mockResolvedValue(null)
+
+  const response = await GET(
+    new NextRequest(
+      `http://localhost/api/mla/${market}/acknowledgement?chainId=11155111&lenderAddress=${lender}`,
+    ),
+    { params: { market } },
+  )
+
+  expect(response.status).toBe(200)
+  await expect(response.json()).resolves.toBeNull()
+  expect(mockFindLenderAcknowledgement).toHaveBeenCalledWith({
+    where: {
+      chainId: 11155111,
+      market,
+      address: lender,
+      acknowledgementTextVersion: NON_MLA_ACKNOWLEDGEMENT_TEXT_VERSION,
+    },
+  })
+})
+
+test("returns the existing lender acknowledgement", async () => {
+  mockFindLenderAcknowledgement.mockResolvedValue({
+    chainId: 11155111,
+    market,
+    address: lender,
+    signer: lender,
+    signature,
+    kind: "ECDSA",
+    blockNumber: null,
+    acknowledgementTextVersion: NON_MLA_ACKNOWLEDGEMENT_TEXT_VERSION,
+    acknowledgementText: "acknowledgement",
+    timeSigned: new Date("2026-07-29T12:00:00.000Z"),
+    createdAt: new Date("2026-07-29T12:00:00.000Z"),
+  })
+
+  const response = await GET(
+    new NextRequest(
+      `http://localhost/api/mla/${market}/acknowledgement?chainId=11155111&lenderAddress=${lender}`,
+    ),
+    { params: { market } },
+  )
+
+  expect(response.status).toBe(200)
+  await expect(response.json()).resolves.toEqual(
+    expect.objectContaining({
+      chainId: 11155111,
+      market,
+      address: lender,
+      signature,
+      acknowledgementTextVersion: NON_MLA_ACKNOWLEDGEMENT_TEXT_VERSION,
+    }),
+  )
 })
 
 test("reads market name through the native viem client and public SDK ABI", async () => {

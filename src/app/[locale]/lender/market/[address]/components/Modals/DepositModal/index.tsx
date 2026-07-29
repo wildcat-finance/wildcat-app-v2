@@ -132,7 +132,8 @@ export const DepositModal = ({
   isMobileOpen,
   setIsMobileOpen,
   setIsMobileAcknowledgementOpen,
-  showBorrowerPenaltyWarning,
+  borrowerPenaltyWarningState,
+  refreshBorrowerPenaltyWarning,
 }: DepositModalProps) => {
   const isMobile = useMobileResolution()
 
@@ -204,8 +205,22 @@ export const DepositModal = ({
     setTxHash,
   )
 
+  const [verifiedBorrowerPenaltyWarningState, setVerifiedPenaltyWarningState] =
+    useState<typeof borrowerPenaltyWarningState>()
+  const [isBorrowerPenaltyCheckPending, setIsBorrowerPenaltyCheckPending] =
+    useState(false)
+  const borrowerPenaltyCheckInFlight = useRef(false)
+  const effectiveBorrowerPenaltyWarningState =
+    verifiedBorrowerPenaltyWarningState ?? borrowerPenaltyWarningState
+  const showBorrowerPenaltyWarning =
+    effectiveBorrowerPenaltyWarningState === "warning"
+  const borrowerPenaltyVerificationUnavailable =
+    effectiveBorrowerPenaltyWarningState === "unknown"
+  const showBorrowerPenaltyNotice =
+    showBorrowerPenaltyWarning || borrowerPenaltyVerificationUnavailable
+
   const gate = useDepositGate({
-    required: !!showBorrowerPenaltyWarning,
+    required: showBorrowerPenaltyNotice,
     isModalOpen: modal.isModalOpen || !!isMobileOpen,
   })
 
@@ -321,6 +336,25 @@ export const DepositModal = ({
     setIsNonMlaAcknowledgementOpen(true)
   }
 
+  const openDepositModalAfterPenaltyCheck = async () => {
+    if (borrowerPenaltyCheckInFlight.current) return
+
+    borrowerPenaltyCheckInFlight.current = true
+    setIsBorrowerPenaltyCheckPending(true)
+
+    let nextState: typeof borrowerPenaltyWarningState = "unknown"
+    try {
+      nextState = await refreshBorrowerPenaltyWarning()
+    } catch {
+      nextState = "unknown"
+    }
+
+    setVerifiedPenaltyWarningState(nextState)
+    setIsBorrowerPenaltyCheckPending(false)
+    borrowerPenaltyCheckInFlight.current = false
+    modal.handleOpenModal()
+  }
+
   const handleOpenDepositModal = () => {
     if (touRetryAvailable) {
       toastError("Couldn't verify Terms of Use status — retrying")
@@ -353,7 +387,7 @@ export const DepositModal = ({
       return
     }
 
-    modal.handleOpenModal()
+    openDepositModalAfterPenaltyCheck().catch(() => undefined)
   }
 
   const mustResetAllowance =
@@ -495,7 +529,7 @@ export const DepositModal = ({
 
     if (agreementGate.state === "satisfied") {
       awaitingAcknowledgementRefresh.current = false
-      modal.handleOpenModal()
+      openDepositModalAfterPenaltyCheck().catch(() => undefined)
       return
     }
 
@@ -629,9 +663,14 @@ export const DepositModal = ({
               flexDirection: "column",
             }}
           >
-            {showForm && showBorrowerPenaltyWarning && (
+            {showForm && showBorrowerPenaltyNotice && (
               <Box sx={{ marginTop: "24px" }}>
-                <BorrowerPenaltyWarning variant="modal" />
+                <BorrowerPenaltyWarning
+                  variant="modal"
+                  verificationUnavailable={
+                    borrowerPenaltyVerificationUnavailable
+                  }
+                />
               </Box>
             )}
 
@@ -643,10 +682,19 @@ export const DepositModal = ({
                 flexDirection: "column",
               }}
             >
-              {gate.gateActive ? (
+              {isBorrowerPenaltyCheckPending && (
+                <Typography variant="mobText3" color={COLORS.santasGrey}>
+                  {t(
+                    "lenderMarketDetails.transactions.deposit.modal.checkingBorrowerHistory",
+                  )}
+                </Typography>
+              )}
+              {!isBorrowerPenaltyCheckPending && gate.gateActive && (
                 <FormControlLabel
                   label={t(
-                    "lenderMarketDetails.transactions.deposit.modal.gate.checkbox",
+                    borrowerPenaltyVerificationUnavailable
+                      ? "lenderMarketDetails.transactions.deposit.modal.gate.unavailableCheckbox"
+                      : "lenderMarketDetails.transactions.deposit.modal.gate.checkbox",
                   )}
                   sx={{
                     alignItems: "flex-start",
@@ -666,7 +714,8 @@ export const DepositModal = ({
                     />
                   }
                 />
-              ) : (
+              )}
+              {!isBorrowerPenaltyCheckPending && !gate.gateActive && (
                 <>
                   {modal.gettingValueStep && (
                     <>
@@ -881,16 +930,19 @@ export const DepositModal = ({
           )}
 
           <Box sx={{ flexShrink: 0, pt: "8px" }}>
-            {gate.gateActive ? (
+            {gate.gateActive && !isBorrowerPenaltyCheckPending && (
               <TxModalFooter
                 mainBtnText={t(
-                  "lenderMarketDetails.transactions.deposit.modal.gate.button",
+                  borrowerPenaltyVerificationUnavailable
+                    ? "lenderMarketDetails.transactions.deposit.modal.gate.unavailableButton"
+                    : "lenderMarketDetails.transactions.deposit.modal.gate.button",
                 )}
                 mainBtnOnClick={gate.accept}
                 disableMainBtn={!gate.acknowledged}
                 hideButtons={!showForm}
               />
-            ) : (
+            )}
+            {!gate.gateActive && !isBorrowerPenaltyCheckPending && (
               <TxModalFooter
                 mainBtnText={t(
                   "lenderMarketDetails.transactions.deposit.button",
@@ -979,12 +1031,15 @@ export const DepositModal = ({
                   accountActionBlocked ||
                   agreementGate.state === "requires-borrower-mla-selection" ||
                   agreementGate.state === "requires-mla-signature" ||
+                  isBorrowerPenaltyCheckPending ||
                   marketActionsManuallyDisabled ||
                   marketAccount.maximumDeposit.eq(0) ||
                   underlyingBalanceIsZero
                 }
               >
-                {t("lenderMarketDetails.transactions.deposit.button")}
+                {isBorrowerPenaltyCheckPending
+                  ? "Checking..."
+                  : t("lenderMarketDetails.transactions.deposit.button")}
               </Button>
             </Box>
           </Tooltip>
@@ -995,6 +1050,7 @@ export const DepositModal = ({
             size="large"
             sx={{ width: "152px" }}
             disabled={
+              isBorrowerPenaltyCheckPending ||
               marketActionsManuallyDisabled ||
               networkActionBlocked ||
               accountActionBlocked ||
@@ -1002,7 +1058,9 @@ export const DepositModal = ({
               underlyingBalanceIsZero
             }
           >
-            {t("lenderMarketDetails.transactions.deposit.button")}
+            {isBorrowerPenaltyCheckPending
+              ? "Checking..."
+              : t("lenderMarketDetails.transactions.deposit.button")}
           </Button>
         )}
 
@@ -1061,9 +1119,14 @@ export const DepositModal = ({
                   overflowX: "hidden",
                 }}
               >
-                {showBorrowerPenaltyWarning && (
+                {showBorrowerPenaltyNotice && (
                   <Box mb="24px">
-                    <BorrowerPenaltyWarning variant="modal" />
+                    <BorrowerPenaltyWarning
+                      variant="modal"
+                      verificationUnavailable={
+                        borrowerPenaltyVerificationUnavailable
+                      }
+                    />
                   </Box>
                 )}
 
@@ -1090,14 +1153,18 @@ export const DepositModal = ({
 
                       <TooltipButton
                         value={t(
-                          "lenderMarketDetails.transactions.deposit.modal.gate.tooltip",
+                          borrowerPenaltyVerificationUnavailable
+                            ? "lenderMarketDetails.transactions.deposit.modal.gate.unavailableTooltip"
+                            : "lenderMarketDetails.transactions.deposit.modal.gate.tooltip",
                         )}
                       />
                     </Box>
 
                     <FormControlLabel
                       label={t(
-                        "lenderMarketDetails.transactions.deposit.modal.gate.checkbox",
+                        borrowerPenaltyVerificationUnavailable
+                          ? "lenderMarketDetails.transactions.deposit.modal.gate.unavailableCheckbox"
+                          : "lenderMarketDetails.transactions.deposit.modal.gate.checkbox",
                       )}
                       sx={{ marginBottom: "30px" }}
                       control={
@@ -1121,7 +1188,7 @@ export const DepositModal = ({
                       <Box
                         width="100%"
                         padding="0 24px"
-                        marginTop={showBorrowerPenaltyWarning ? 0 : "12px"}
+                        marginTop={showBorrowerPenaltyNotice ? 0 : "12px"}
                         display="flex"
                         flexDirection="column"
                       >
@@ -1394,7 +1461,9 @@ export const DepositModal = ({
               {gate.gateActive ? (
                 <TxModalFooter
                   mainBtnText={t(
-                    "lenderMarketDetails.transactions.deposit.modal.gate.button",
+                    borrowerPenaltyVerificationUnavailable
+                      ? "lenderMarketDetails.transactions.deposit.modal.gate.unavailableButton"
+                      : "lenderMarketDetails.transactions.deposit.modal.gate.button",
                   )}
                   mainBtnOnClick={gate.accept}
                   disableMainBtn={!gate.acknowledged}

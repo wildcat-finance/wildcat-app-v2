@@ -27,8 +27,9 @@ export const useGetNonMlaAcknowledgement = ({
       `/api/mla/${marketAddress.toLowerCase()}/acknowledgement?chainId=${chainId}&lenderAddress=${address.toLowerCase()}`,
     )
     if (res.status === 200) {
-      return (await res.json()) as NonMlaAcknowledgementResponse
+      return (await res.json()) as NonMlaAcknowledgementResponse | null
     }
+    // Accept the previous API contract while preview deployments roll over.
     if (res.status === 404) {
       return null
     }
