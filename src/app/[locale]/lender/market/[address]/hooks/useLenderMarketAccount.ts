@@ -1,5 +1,3 @@
-import { useEffect } from "react"
-
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   Market,
@@ -74,10 +72,6 @@ export function useLenderMarketAccountQuery({
       lenderAddress as string,
       marketAddress as string,
     )
-    // @TODO Check chain id here
-    if (market && market.provider !== provider) {
-      market.provider = provider
-    }
     return updated
   }
 
@@ -101,17 +95,6 @@ export function useLenderMarketAccountQuery({
     enabled: !!data,
     refetchOnMount: false,
   })
-
-  useEffect(() => {
-    if (
-      data &&
-      provider &&
-      data.market.provider &&
-      data.market.provider !== provider
-    ) {
-      data.market.provider = provider
-    }
-  }, [provider])
 
   return {
     data: updatedLender ?? data,

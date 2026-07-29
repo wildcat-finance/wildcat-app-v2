@@ -1,6 +1,6 @@
-import { useEffect, useMemo } from "react"
+import { useMemo } from "react"
 
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import {
   getIndexedMarket,
   getSubgraphClient,
@@ -14,7 +14,6 @@ import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useMarketDetailPerformanceMark } from "@/hooks/useMarketDetailPerformance"
-import { cloneSdkObject } from "@/lib/sdk-object"
 import { refreshMarketsV2LiveDataSafe } from "@/utils/marketV2Reads"
 
 export type UseMarketProps = {
@@ -68,7 +67,6 @@ async function refreshMarketForDetail(
 }
 
 export function useGetMarket({ address, chainId }: UseMarketProps) {
-  const queryClient = useQueryClient()
   const marketAddressLower = address?.toLowerCase()
 
   const api = useQuery({
@@ -142,18 +140,6 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
     performanceContext,
     !!query.data,
   )
-
-  useEffect(() => {
-    if (
-      query.data &&
-      signerOrProvider &&
-      query.data.provider !== signerOrProvider
-    ) {
-      const nextMarket = cloneSdkObject(query.data)
-      nextMarket.provider = signerOrProvider
-      queryClient.setQueryData(marketQueryKey, nextMarket)
-    }
-  }, [marketQueryKey, query.data, queryClient, signerOrProvider])
 
   return {
     ...query,
