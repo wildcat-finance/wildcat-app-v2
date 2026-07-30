@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import {
   Market,
   MarketAccount,
@@ -21,12 +21,25 @@ export type UseLenderProps = {
   enabled: boolean
 }
 
+export type LenderAccountResolutionStatus =
+  | "idle"
+  | "resolving"
+  | "error"
+  | "resolved"
+
+export type UseLenderMarketAccountResult = TwoStepQueryHookResult<
+  MarketAccount | undefined
+> & {
+  authoritativeAccount: MarketAccount | undefined
+  authoritativeStatus: LenderAccountResolutionStatus
+}
+
 export function useLenderMarketAccountQuery({
   market,
   lender,
   provider,
   enabled,
-}: UseLenderProps): TwoStepQueryHookResult<MarketAccount | undefined> {
+}: UseLenderProps): UseLenderMarketAccountResult {
   const marketAddress = market?.address.toLowerCase()
   const lenderAddress = lender?.toLowerCase()
 
@@ -65,15 +78,18 @@ export function useLenderMarketAccountQuery({
   })
 
   async function updateMarketAccount() {
-    if (!data || !provider || !market) throw Error()
+    if (!provider || !market || !lenderAddress || !marketAddress) throw Error()
     const updated = await MarketAccount.getMarketAccount(
       market.chainId,
       provider,
-      lenderAddress as string,
-      marketAddress as string,
+      lenderAddress,
+      marketAddress,
     )
     return updated
   }
+
+  const authoritativeQueryEnabled =
+    enabled && !!provider && !!market && !!lenderAddress && !!marketAddress
 
   const {
     data: updatedLender,
@@ -91,13 +107,21 @@ export function useLenderMarketAccountQuery({
     ),
     queryFn: updateMarketAccount,
     refetchInterval: POLLING_INTERVAL,
-    placeholderData: keepPreviousData,
-    enabled: !!data,
+    enabled: authoritativeQueryEnabled,
     refetchOnMount: false,
   })
 
+  let authoritativeStatus: LenderAccountResolutionStatus = "idle"
+  if (authoritativeQueryEnabled) {
+    if (updatedLender) authoritativeStatus = "resolved"
+    else if (isErrorUpdate) authoritativeStatus = "error"
+    else authoritativeStatus = "resolving"
+  }
+
   return {
     data: updatedLender ?? data,
+    authoritativeAccount: updatedLender,
+    authoritativeStatus,
     isLoadingInitial,
     isErrorInitial,
     errorInitial: errorInitial as Error | null,

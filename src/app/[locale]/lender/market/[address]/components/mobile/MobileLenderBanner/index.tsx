@@ -6,7 +6,7 @@ import { COLORS } from "@/theme/colors"
 export type MobileLenderBannerProps = {
   title: string
   subtitle: string
-  buttonText: string
+  buttonText?: string
   href?: string
   onButtonClick?: () => void
 }
@@ -56,16 +56,18 @@ export const MobileLenderBanner = ({
         {subtitle}
       </Typography>
 
-      <Button
-        {...(href ? { component: Link, href } : {})}
-        variant="contained"
-        color="secondary"
-        size="large"
-        sx={{ mt: "24px" }}
-        onClick={onButtonClick}
-      >
-        {buttonText}
-      </Button>
+      {Boolean(buttonText && (href || onButtonClick)) && (
+        <Button
+          {...(href ? { component: Link, href } : {})}
+          variant="contained"
+          color="secondary"
+          size="large"
+          sx={{ mt: "24px" }}
+          onClick={onButtonClick}
+        >
+          {buttonText}
+        </Button>
+      )}
     </Box>
   </Box>
 )

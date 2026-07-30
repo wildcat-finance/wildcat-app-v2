@@ -1,7 +1,129 @@
+import { LenderStatus } from "./interface"
 import {
+  getLenderSurfaceState,
   resolveLenderActionState,
+  resolveLenderAccessState,
   shouldShowLenderRequestBanner,
 } from "./utils"
+
+describe("resolveLenderAccessState", () => {
+  it.each([
+    {
+      state: "authoritative read is idle",
+      authoritativeStatus: "idle" as const,
+      role: LenderStatus.DepositAndWithdraw,
+      expected: "resolving",
+    },
+    {
+      state: "authoritative read is pending",
+      authoritativeStatus: "resolving" as const,
+      role: LenderStatus.DepositAndWithdraw,
+      expected: "resolving",
+    },
+    {
+      state: "authoritative read failed",
+      authoritativeStatus: "error" as const,
+      role: LenderStatus.DepositAndWithdraw,
+      expected: "error",
+    },
+    {
+      state: "deposit and withdraw access is confirmed",
+      authoritativeStatus: "resolved" as const,
+      role: LenderStatus.DepositAndWithdraw,
+      expected: "authorized",
+    },
+    {
+      state: "withdraw-only access is confirmed",
+      authoritativeStatus: "resolved" as const,
+      role: LenderStatus.WithdrawOnly,
+      expected: "authorized",
+    },
+    {
+      state: "blocked access is confirmed",
+      authoritativeStatus: "resolved" as const,
+      role: LenderStatus.Blocked,
+      expected: "blocked",
+    },
+    {
+      state: "no access is confirmed",
+      authoritativeStatus: "resolved" as const,
+      role: LenderStatus.Null,
+      expected: "unauthorized",
+    },
+    {
+      state: "a missing role is confirmed",
+      authoritativeStatus: "resolved" as const,
+      role: undefined,
+      expected: "unauthorized",
+    },
+  ])("$state", ({ authoritativeStatus, role, expected }) => {
+    expect(resolveLenderAccessState({ authoritativeStatus, role })).toBe(
+      expected,
+    )
+  })
+})
+
+describe("getLenderSurfaceState", () => {
+  it.each([
+    {
+      state: "disconnected",
+      isConnected: false,
+      isDifferentChain: false,
+      accessState: "authorized" as const,
+      expected: "connect",
+    },
+    {
+      state: "wrong network",
+      isConnected: true,
+      isDifferentChain: true,
+      accessState: "authorized" as const,
+      expected: "switch-network",
+    },
+    {
+      state: "authorization resolving",
+      isConnected: true,
+      isDifferentChain: false,
+      accessState: "resolving" as const,
+      expected: "authorization-loading",
+    },
+    {
+      state: "authorization failed",
+      isConnected: true,
+      isDifferentChain: false,
+      accessState: "error" as const,
+      expected: "authorization-error",
+    },
+    {
+      state: "lender is blocked",
+      isConnected: true,
+      isDifferentChain: false,
+      accessState: "blocked" as const,
+      expected: "blocked",
+    },
+    {
+      state: "lender is unauthorized",
+      isConnected: true,
+      isDifferentChain: false,
+      accessState: "unauthorized" as const,
+      expected: "request-access",
+    },
+    {
+      state: "lender is authorized",
+      isConnected: true,
+      isDifferentChain: false,
+      accessState: "authorized" as const,
+      expected: "actions",
+    },
+  ])("$state", ({ isConnected, isDifferentChain, accessState, expected }) => {
+    expect(
+      getLenderSurfaceState({
+        isConnected,
+        isDifferentChain,
+        accessState,
+      }),
+    ).toBe(expected)
+  })
+})
 
 describe("shouldShowLenderRequestBanner", () => {
   it.each([
@@ -9,56 +131,67 @@ describe("shouldShowLenderRequestBanner", () => {
       state: "disconnected",
       isConnected: false,
       isDifferentChain: false,
-      authorizedInMarket: false,
+      accessState: "unauthorized" as const,
       expected: false,
     },
     {
       state: "connected and unauthorized on the correct chain",
       isConnected: true,
       isDifferentChain: false,
-      authorizedInMarket: false,
+      accessState: "unauthorized" as const,
       expected: true,
     },
     {
       state: "connected and authorized on the correct chain",
       isConnected: true,
       isDifferentChain: false,
-      authorizedInMarket: true,
+      accessState: "authorized" as const,
       expected: false,
     },
     {
       state: "connected with a chain mismatch",
       isConnected: true,
       isDifferentChain: true,
-      authorizedInMarket: false,
+      accessState: "unauthorized" as const,
       expected: false,
     },
     {
-      state: "connected while market authorization is unresolved",
+      state: "connected while authorization is unresolved",
       isConnected: true,
       isDifferentChain: false,
-      authorizedInMarket: undefined,
+      accessState: "resolving" as const,
       expected: false,
     },
-  ])(
-    "$state",
-    ({ isConnected, isDifferentChain, authorizedInMarket, expected }) => {
-      expect(
-        shouldShowLenderRequestBanner({
-          isConnected,
-          isDifferentChain,
-          authorizedInMarket,
-        }),
-      ).toBe(expected)
+    {
+      state: "connected after the authoritative read failed",
+      isConnected: true,
+      isDifferentChain: false,
+      accessState: "error" as const,
+      expected: false,
     },
-  )
+    {
+      state: "connected with confirmed blocked access",
+      isConnected: true,
+      isDifferentChain: false,
+      accessState: "blocked" as const,
+      expected: false,
+    },
+  ])("$state", ({ isConnected, isDifferentChain, accessState, expected }) => {
+    expect(
+      shouldShowLenderRequestBanner({
+        isConnected,
+        isDifferentChain,
+        accessState,
+      }),
+    ).toBe(expected)
+  })
 })
 
 describe("lender market action state matrix", () => {
   const base = {
     isConnected: true,
     isDifferentChain: false,
-    authorizedInMarket: true,
+    accessState: "authorized" as const,
     depositAvailable: true,
     touGateState: "unblocked" as const,
     isAgreementFetching: false,
@@ -90,7 +223,7 @@ describe("lender market action state matrix", () => {
     },
     {
       state: "authorization loading",
-      input: { authorizedInMarket: undefined },
+      input: { accessState: "resolving" as const },
       expected: {
         surface: "authorization-loading",
         deposit: "hidden",
@@ -99,8 +232,28 @@ describe("lender market action state matrix", () => {
       },
     },
     {
+      state: "authorization error",
+      input: { accessState: "error" as const },
+      expected: {
+        surface: "authorization-error",
+        deposit: "hidden",
+        canWithdraw: false,
+        canClaim: false,
+      },
+    },
+    {
+      state: "blocked",
+      input: { accessState: "blocked" as const },
+      expected: {
+        surface: "blocked",
+        deposit: "hidden",
+        canWithdraw: false,
+        canClaim: false,
+      },
+    },
+    {
       state: "unauthorized",
-      input: { authorizedInMarket: false },
+      input: { accessState: "unauthorized" as const },
       expected: {
         surface: "request-access",
         deposit: "hidden",

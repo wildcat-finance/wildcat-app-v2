@@ -255,7 +255,7 @@ export const MobileMarketActions = ({
   const actionState = resolveLenderActionState({
     isConnected,
     isDifferentChain,
-    authorizedInMarket: true,
+    accessState: "authorized",
     depositAvailable: !hideDeposit,
     touGateState,
     isAgreementFetching,

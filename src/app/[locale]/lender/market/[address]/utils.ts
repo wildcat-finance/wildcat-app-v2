@@ -3,6 +3,7 @@ import { LenderRole, Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { DepositAgreementGateState } from "@/utils/depositAgreementGate"
 import { ToUGateState } from "@/utils/serviceAgreementState"
 
+import type { LenderAccountResolutionStatus } from "./hooks/useLenderMarketAccount"
 import { LenderStatus } from "./interface"
 
 export const getEffectiveLenderRole = (
@@ -35,37 +36,68 @@ export type LenderSurfaceState =
   | "connect"
   | "switch-network"
   | "authorization-loading"
+  | "authorization-error"
+  | "blocked"
   | "request-access"
   | "actions"
+
+export type LenderAccessState =
+  | "resolving"
+  | "error"
+  | "blocked"
+  | "unauthorized"
+  | "authorized"
+
+export const resolveLenderAccessState = ({
+  authoritativeStatus,
+  role,
+}: {
+  authoritativeStatus: LenderAccountResolutionStatus
+  role: LenderStatus | undefined
+}): LenderAccessState => {
+  if (authoritativeStatus === "error") return "error"
+  if (authoritativeStatus !== "resolved") return "resolving"
+  if (role === LenderStatus.Blocked) return "blocked"
+  if (
+    role === LenderStatus.DepositAndWithdraw ||
+    role === LenderStatus.WithdrawOnly
+  ) {
+    return "authorized"
+  }
+  return "unauthorized"
+}
 
 export const getLenderSurfaceState = ({
   isConnected,
   isDifferentChain,
-  authorizedInMarket,
+  accessState,
 }: {
   isConnected: boolean
   isDifferentChain: boolean
-  authorizedInMarket: boolean | undefined
+  accessState: LenderAccessState
 }): LenderSurfaceState => {
   if (!isConnected) return "connect"
   if (isDifferentChain) return "switch-network"
-  if (authorizedInMarket === undefined) return "authorization-loading"
-  return authorizedInMarket ? "actions" : "request-access"
+  if (accessState === "resolving") return "authorization-loading"
+  if (accessState === "error") return "authorization-error"
+  if (accessState === "blocked") return "blocked"
+  if (accessState === "unauthorized") return "request-access"
+  return "actions"
 }
 
 export const shouldShowLenderRequestBanner = ({
   isConnected,
   isDifferentChain,
-  authorizedInMarket,
+  accessState,
 }: {
   isConnected: boolean
   isDifferentChain: boolean
-  authorizedInMarket: boolean | undefined
+  accessState: LenderAccessState
 }) =>
   getLenderSurfaceState({
     isConnected,
     isDifferentChain,
-    authorizedInMarket,
+    accessState,
   }) === "request-access"
 
 export type LenderDepositActionState =
@@ -79,7 +111,7 @@ export type LenderDepositActionState =
 export const resolveLenderActionState = ({
   isConnected,
   isDifferentChain,
-  authorizedInMarket,
+  accessState,
   depositAvailable,
   touGateState,
   isAgreementFetching,
@@ -89,7 +121,7 @@ export const resolveLenderActionState = ({
 }: {
   isConnected: boolean
   isDifferentChain: boolean
-  authorizedInMarket: boolean | undefined
+  accessState: LenderAccessState
   depositAvailable: boolean
   touGateState: ToUGateState
   isAgreementFetching: boolean
@@ -100,7 +132,7 @@ export const resolveLenderActionState = ({
   const surface = getLenderSurfaceState({
     isConnected,
     isDifferentChain,
-    authorizedInMarket,
+    accessState,
   })
 
   let deposit: LenderDepositActionState = "hidden"

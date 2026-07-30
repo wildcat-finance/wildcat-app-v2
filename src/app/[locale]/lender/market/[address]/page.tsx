@@ -79,7 +79,6 @@ import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { useLenderMarketAnalytics } from "./hooks/useLenderMarketAnalytics"
 import { useMarketDailyFlows } from "./hooks/useMarketDailyFlows"
 import { useMarketDelinquencyHistory } from "./hooks/useMarketDelinquencyHistory"
-import { LenderStatus } from "./interface"
 import {
   LenderBannerWrapper,
   MarketContentColumn,
@@ -87,7 +86,12 @@ import {
   SkeletonContainer,
   SkeletonStyle,
 } from "./style"
-import { getEffectiveLenderRole, shouldShowLenderRequestBanner } from "./utils"
+import {
+  getEffectiveLenderRole,
+  getLenderSurfaceState,
+  resolveLenderAccessState,
+  shouldShowLenderRequestBanner,
+} from "./utils"
 
 const LenderFlowCharts = dynamic(
   () =>
@@ -149,14 +153,18 @@ export default function LenderMarketDetails({
       includeAgreementStatus: false,
     })
 
-  const { data: marketAccount, isLoadingInitial: isMarketAccountLoading } =
-    useLenderMarketAccount(market)
+  const {
+    data: marketAccount,
+    authoritativeAccount,
+    authoritativeStatus,
+    refetchUpdate: refetchLenderAccess,
+  } = useLenderMarketAccount(market)
   const { data: withdrawals, isLoadingInitial: isWithdrawalsLoading } =
     useGetLenderWithdrawals(market)
   useMarketDetailPerformanceMark(
     "account-ready",
     performanceContext,
-    !!market && !isMarketAccountLoading,
+    !!market && authoritativeStatus === "resolved",
   )
   useMarketDetailPerformanceMark(
     "withdrawals-ready",
@@ -260,14 +268,18 @@ export default function LenderMarketDetails({
 
   const isDifferentChain = isSelectionMismatch || isWrongNetwork
 
-  const authorizedInMarket = Boolean(
-    marketAccount &&
-      isConnected &&
-      !isWrongNetwork &&
-      [LenderStatus.DepositAndWithdraw, LenderStatus.WithdrawOnly].includes(
-        getEffectiveLenderRole(marketAccount),
-      ),
-  )
+  const lenderAccessState = resolveLenderAccessState({
+    authoritativeStatus,
+    role: authoritativeAccount
+      ? getEffectiveLenderRole(authoritativeAccount)
+      : undefined,
+  })
+  const lenderSurfaceState = getLenderSurfaceState({
+    isConnected,
+    isDifferentChain,
+    accessState: lenderAccessState,
+  })
+  const authorizedInMarket = lenderAccessState === "authorized"
 
   const {
     wrapper,
@@ -280,18 +292,17 @@ export default function LenderMarketDetails({
 
   const isLoadingMarket = isMarketLoading || apiLoading || isDiscoveringChainId
   const isLoading = !marketError && (isLoadingMarket || !market)
-  const isAuthorizationPending =
-    !!market &&
-    isConnected &&
-    !isWrongNetwork &&
-    !marketAccount &&
-    isMarketAccountLoading
   const showLenderRequestBanner = shouldShowLenderRequestBanner({
     isConnected,
     isDifferentChain,
-    authorizedInMarket: isAuthorizationPending ? undefined : authorizedInMarket,
+    accessState: lenderAccessState,
   })
+  const showLenderAccessLoading = lenderSurfaceState === "authorization-loading"
+  const showLenderAccessError = lenderSurfaceState === "authorization-error"
+  const showLenderBlocked = lenderSurfaceState === "blocked"
   const isTransactionsLoading =
+    lenderAccessState === "resolving" ||
+    lenderAccessState === "error" ||
     !marketAccount ||
     (authorizedInMarket && !isDifferentChain && isWithdrawalsLoading)
   const isBarChartsLoading = !marketAccount || isWithdrawalsLoading
@@ -305,16 +316,24 @@ export default function LenderMarketDetails({
   }, [isLoading])
 
   useEffect(() => {
-    if (isAuthorizationPending) return
-
-    if (!authorizedInMarket) {
-      dispatch(setIsLender(!!authorizedInMarket))
-      dispatch(setSection(LenderMarketSections.STATUS))
-    } else {
-      dispatch(setIsLender(authorizedInMarket))
-      dispatch(setSection(LenderMarketSections.TRANSACTIONS))
+    if (
+      !isConnected ||
+      isDifferentChain ||
+      lenderAccessState === "resolving" ||
+      lenderAccessState === "error"
+    ) {
+      dispatch(setIsLender(false))
+      return
     }
-  }, [authorizedInMarket, dispatch, isAuthorizationPending])
+
+    if (lenderAccessState === "authorized") {
+      dispatch(setIsLender(true))
+      dispatch(setSection(LenderMarketSections.TRANSACTIONS))
+    } else {
+      dispatch(setIsLender(false))
+      dispatch(setSection(LenderMarketSections.STATUS))
+    }
+  }, [dispatch, isConnected, isDifferentChain, lenderAccessState])
 
   const ongoingCount = (
     withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
@@ -720,6 +739,31 @@ export default function LenderMarketDetails({
             />
           )}
 
+          {showLenderAccessLoading && (
+            <MobileLenderBanner
+              title={t("lenderMarketDetails.access.checking.title")}
+              subtitle={t("lenderMarketDetails.access.checking.subtitle")}
+            />
+          )}
+
+          {showLenderAccessError && (
+            <MobileLenderBanner
+              title={t("lenderMarketDetails.access.error.title")}
+              subtitle={t("lenderMarketDetails.access.error.subtitle")}
+              buttonText={t("lenderMarketDetails.access.error.retry")}
+              onButtonClick={() => {
+                refetchLenderAccess().catch(() => undefined)
+              }}
+            />
+          )}
+
+          {showLenderBlocked && (
+            <MobileLenderBanner
+              title={t("lenderMarketDetails.access.blocked.title")}
+              subtitle={t("lenderMarketDetails.access.blocked.subtitle")}
+            />
+          )}
+
           {showLenderRequestBanner && (
             <MobileLenderBanner
               title="Lend through Wildcat"
@@ -786,6 +830,37 @@ export default function LenderMarketDetails({
               subtitle="Connect a wallet to deposit into this market, view your position, and manage withdrawals."
               buttonText="Connect Wallet"
               buttonOnClick={() => setIsConnectDialogOpen(true)}
+            />
+          </Box>
+        )}
+
+        {showLenderAccessLoading && (
+          <Box sx={LenderBannerWrapper}>
+            <LeadBanner
+              title={t("lenderMarketDetails.access.checking.title")}
+              subtitle={t("lenderMarketDetails.access.checking.subtitle")}
+            />
+          </Box>
+        )}
+
+        {showLenderAccessError && (
+          <Box sx={LenderBannerWrapper}>
+            <LeadBanner
+              title={t("lenderMarketDetails.access.error.title")}
+              subtitle={t("lenderMarketDetails.access.error.subtitle")}
+              buttonText={t("lenderMarketDetails.access.error.retry")}
+              buttonOnClick={() => {
+                refetchLenderAccess().catch(() => undefined)
+              }}
+            />
+          </Box>
+        )}
+
+        {showLenderBlocked && (
+          <Box sx={LenderBannerWrapper}>
+            <LeadBanner
+              title={t("lenderMarketDetails.access.blocked.title")}
+              subtitle={t("lenderMarketDetails.access.blocked.subtitle")}
             />
           </Box>
         )}

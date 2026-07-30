@@ -1145,6 +1145,21 @@
     "noDataAvailable": "No Data Available",
     "borrowerPenaltyWarning": "At least one market deployed by this borrower has not honoured withdrawal requests at least thirty days past their self-imposed grace period.",
     "borrowerPenaltyWarningUnavailable": "We couldn't verify whether another market deployed by this borrower has withdrawal requests at least thirty days past its grace period.",
+    "access": {
+      "checking": {
+        "title": "Checking lender access",
+        "subtitle": "Confirming this wallet's market permissions with the blockchain."
+      },
+      "error": {
+        "title": "Unable to verify lender access",
+        "subtitle": "We couldn't confirm this wallet's market permissions from the blockchain. No access decision has been made.",
+        "retry": "Retry"
+      },
+      "blocked": {
+        "title": "Lender access blocked",
+        "subtitle": "The market's onchain access check reports this wallet as blocked."
+      }
+    },
     "sidebar": {
       "actions": "Deposit & Withdraw",
       "status": "Status and Details",
