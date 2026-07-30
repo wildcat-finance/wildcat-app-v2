@@ -29,6 +29,23 @@ type ApiResponse = {
 }
 
 export const INDEXED_MARKET_REFRESH_INTERVAL = 60_000
+export const MARKET_DETAIL_INITIAL_RETRY_INTERVAL = 1_000
+export const MARKET_DETAIL_MAX_RETRY_INTERVAL = 30_000
+
+export const getMarketDetailRetryInterval = ({
+  dataUpdateCount,
+  errorUpdateCount,
+}: {
+  dataUpdateCount: number
+  errorUpdateCount: number
+}) => {
+  const attempts = Math.max(dataUpdateCount, errorUpdateCount, 1)
+  const exponent = Math.min(attempts - 1, 30)
+  return Math.min(
+    MARKET_DETAIL_INITIAL_RETRY_INTERVAL * 2 ** exponent,
+    MARKET_DETAIL_MAX_RETRY_INTERVAL,
+  )
+}
 
 export class MarketDetailUnavailableError extends Error {
   constructor(message: string) {
@@ -90,6 +107,16 @@ export const getIndexedMarketQueryOptions = (
   retry: (failureCount: number, error: Error) =>
     !(error instanceof MarketDetailUnavailableError) && failureCount < 1,
   retryDelay: 250,
+  refetchInterval: (query: {
+    state: {
+      data: Market | undefined
+      dataUpdateCount: number
+      errorUpdateCount: number
+    }
+  }) =>
+    query.state.data
+      ? INDEXED_MARKET_REFRESH_INTERVAL
+      : getMarketDetailRetryInterval(query.state),
 })
 
 export const cloneMarketForLiveRefresh = (
@@ -147,6 +174,17 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
     refetchOnWindowFocus: false,
     retry: 1,
     retryDelay: 250,
+    refetchInterval: (query) => {
+      const response = query.state.data
+      const hasSupportedMarket =
+        !!response?.market &&
+        typeof response.chainId === "number" &&
+        isSupportedChainId(response.chainId)
+
+      return hasSupportedMarket
+        ? false
+        : getMarketDetailRetryInterval(query.state)
+    },
   })
 
   const discoveredChainId =
@@ -221,7 +259,6 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
       !!signerOrProvider &&
       !suppliedChainError &&
       !discoveryMissError,
-    refetchInterval: INDEXED_MARKET_REFRESH_INTERVAL,
     refetchOnWindowFocus: true,
   })
 
@@ -269,6 +306,14 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
     (discoveryQuery.data ? null : discoveryQuery.error) ??
     (indexedQuery.data ? null : indexedQuery.error) ??
     (liveQuery.data ? null : liveQuery.error)
+  const isAwaitingMarketData =
+    !!marketAddressLower &&
+    !suppliedChainError &&
+    !liveQuery.data &&
+    (!!discoveryMissError ||
+      discoveryQuery.errorUpdateCount > 0 ||
+      indexedQuery.errorUpdateCount > 0 ||
+      liveQuery.errorUpdateCount > 0)
   const isLoading = !!marketAddressLower && !error && !liveQuery.data
 
   return {
@@ -279,5 +324,6 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
     isDiscoveringChainId: discoveryQuery.isLoading,
     discoveredChainId: effectiveChainId,
     apiLoading: discoveryQuery.isLoading,
+    isAwaitingMarketData,
   }
 }

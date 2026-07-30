@@ -128,6 +128,7 @@ export default function LenderMarketDetails({
     error: marketError,
     apiLoading,
     isDiscoveringChainId,
+    isAwaitingMarketData,
   } = useGetMarket({
     address,
     chainId: marketChainId,
@@ -441,15 +442,32 @@ export default function LenderMarketDetails({
 
   if (!mounted) return null
 
+  if (isAwaitingMarketData)
+    return (
+      <Box sx={{ padding: "32px 20px 0 44px" }}>
+        <Typography
+          component="p"
+          role="status"
+          aria-live="polite"
+          variant="text3"
+          color={COLORS.santasGrey}
+        >
+          Loading market details…
+        </Typography>
+      </Box>
+    )
+
   if (marketError)
     return (
-      <Box sx={{ padding: "52px 20px 0 44px" }}>
-        <Box sx={{ width: "69%" }}>
-          <Typography variant="title2">
-            Market data is unavailable. The market may still be indexing. Please
-            try again.
-          </Typography>
-        </Box>
+      <Box sx={{ padding: "32px 20px 0 44px" }}>
+        <Typography
+          component="p"
+          role="alert"
+          variant="text3"
+          color={COLORS.santasGrey}
+        >
+          Unable to load market details.
+        </Typography>
       </Box>
     )
 

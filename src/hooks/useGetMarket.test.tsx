@@ -7,7 +7,13 @@ import type { Market, SignerOrProvider } from "@wildcatfi/wildcat-sdk"
 
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 
-import { MarketDetailUnavailableError, useGetMarket } from "./useGetMarket"
+import {
+  MARKET_DETAIL_INITIAL_RETRY_INTERVAL,
+  MARKET_DETAIL_MAX_RETRY_INTERVAL,
+  MarketDetailUnavailableError,
+  getMarketDetailRetryInterval,
+  useGetMarket,
+} from "./useGetMarket"
 import { refreshMarketsV2LiveDataSafe } from "../utils/marketV2Reads"
 
 const getIndexedMarketMock = jest.fn()
@@ -224,6 +230,7 @@ describe("useGetMarket", () => {
         message: "Unsupported chain: 999",
       }),
     )
+    expect(result.current.isAwaitingMarketData).toBe(false)
     expect(result.current.isLoading).toBe(false)
     expect(fetchMock).not.toHaveBeenCalled()
     expect(getIndexedMarketMock).not.toHaveBeenCalled()
@@ -240,12 +247,33 @@ describe("useGetMarket", () => {
     await waitFor(() => expect(result.current.isError).toBe(true))
 
     expect(result.current.error).toBeInstanceOf(MarketDetailUnavailableError)
+    expect(result.current.isAwaitingMarketData).toBe(true)
     expect(result.current.isLoading).toBe(false)
     expect(getIndexedMarketMock).toHaveBeenCalledTimes(1)
     expect(refreshMarketsV2LiveDataSafeMock).not.toHaveBeenCalled()
   })
 
-  it("surfaces a terminal live-read failure after one bounded retry", async () => {
+  it("automatically recovers when an initially missing market becomes indexed", async () => {
+    const indexedMarket = createIndexedMarket()
+    getIndexedMarketMock
+      .mockResolvedValueOnce(undefined)
+      .mockResolvedValue(indexedMarket)
+
+    const { result } = renderHook(
+      () => useGetMarket({ address: marketAddress, chainId: 11155111 }),
+      { wrapper: createWrapper() },
+    )
+
+    await waitFor(() => expect(result.current.isAwaitingMarketData).toBe(true))
+    await waitFor(() => expect(result.current.data).toBeDefined(), {
+      timeout: MARKET_DETAIL_INITIAL_RETRY_INTERVAL + 2_000,
+    })
+
+    expect(getIndexedMarketMock).toHaveBeenCalledTimes(2)
+    expect(result.current.isAwaitingMarketData).toBe(false)
+  })
+
+  it("keeps a live-read failure in the auto-recovering state", async () => {
     const indexedMarket = createIndexedMarket()
     getIndexedMarketMock.mockResolvedValue(indexedMarket)
     refreshMarketsV2LiveDataSafeMock.mockRejectedValue(
@@ -264,8 +292,44 @@ describe("useGetMarket", () => {
     expect(result.current.error).toEqual(
       expect.objectContaining({ message: "RPC unavailable" }),
     )
+    expect(result.current.isAwaitingMarketData).toBe(true)
     expect(result.current.isLoading).toBe(false)
     expect(refreshMarketsV2LiveDataSafeMock).toHaveBeenCalledTimes(2)
     expect(indexedMarket.stateSource).toBe("indexed")
   })
+})
+
+describe("getMarketDetailRetryInterval", () => {
+  it.each([
+    {
+      dataUpdateCount: 0,
+      errorUpdateCount: 0,
+      expected: MARKET_DETAIL_INITIAL_RETRY_INTERVAL,
+    },
+    {
+      dataUpdateCount: 0,
+      errorUpdateCount: 2,
+      expected: MARKET_DETAIL_INITIAL_RETRY_INTERVAL * 2,
+    },
+    {
+      dataUpdateCount: 4,
+      errorUpdateCount: 0,
+      expected: MARKET_DETAIL_INITIAL_RETRY_INTERVAL * 8,
+    },
+    {
+      dataUpdateCount: 100,
+      errorUpdateCount: 100,
+      expected: MARKET_DETAIL_MAX_RETRY_INTERVAL,
+    },
+  ])(
+    "backs off from $dataUpdateCount successful misses and $errorUpdateCount errors",
+    ({ dataUpdateCount, errorUpdateCount, expected }) => {
+      expect(
+        getMarketDetailRetryInterval({
+          dataUpdateCount,
+          errorUpdateCount,
+        }),
+      ).toBe(expected)
+    },
+  )
 })
