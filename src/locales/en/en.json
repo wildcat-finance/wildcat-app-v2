@@ -154,7 +154,8 @@
           "manual": "Onboard by Borrower",
           "terminated": "Terminated",
           "depositBTN": "Deposit",
-          "requestBTN": "Request"
+          "requestBTN": "Request",
+          "unavailableBTN": "Unavailable"
         },
         "header": {
           "status": "Status",

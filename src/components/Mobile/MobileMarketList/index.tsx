@@ -25,7 +25,12 @@ import { getAdsMobileContent } from "@/components/AdsBanners/adsHelpers"
 import { getMarketImplementationVariantForType } from "@/components/market-implementation-variants"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
+import { buildBorrowerProfileHref } from "@/utils/formatters"
 import { MarketLiveDataStatus } from "@/utils/marketLiveData"
+import {
+  getLenderMarketAction,
+  LenderMarketAction,
+} from "@/utils/marketOnboarding"
 import { MarketStatus } from "@/utils/marketStatus"
 import { getPaginationRange } from "@/utils/pagination"
 
@@ -144,6 +149,7 @@ export const MobileMarketList = ({
   groupByAsset = false,
   enableToolbar = false,
   liveDataStatus = "ready",
+  showOnboardingAction = false,
 }: {
   markets: MobileMarketItem[]
   isLoading: boolean
@@ -151,6 +157,7 @@ export const MobileMarketList = ({
   groupByAsset?: boolean
   enableToolbar?: boolean
   liveDataStatus?: MarketLiveDataStatus
+  showOnboardingAction?: boolean
 }) => {
   const [page, setPage] = useState(0)
   const [sortField, setSortField] = useState<SortField>(
@@ -474,6 +481,43 @@ export const MobileMarketList = ({
             const { MarketCard } = getMarketImplementationVariantForType(
               marketItem.implementationType,
             )
+            const action =
+              marketItem.depositStatus === undefined
+                ? LenderMarketAction.Unavailable
+                : getLenderMarketAction(
+                    marketItem.onboardingMode,
+                    marketItem.depositStatus,
+                  )
+            const actionDataReady =
+              !showOnboardingAction || liveDataStatus === "ready"
+            let buttonText = variant === "lender-action" ? "Deposit" : undefined
+            let buttonHref: string | undefined
+            let buttonDisabled = false
+
+            if (showOnboardingAction && actionDataReady) {
+              if (
+                action === LenderMarketAction.RequestAccess &&
+                marketItem.borrowerAddress
+              ) {
+                buttonText = "Request"
+                buttonHref = buildBorrowerProfileHref(
+                  marketItem.borrowerAddress,
+                  marketItem.chainId,
+                )
+              } else if (action === LenderMarketAction.RequestAccess) {
+                buttonText = "Unavailable"
+                buttonDisabled = true
+              } else if (action === LenderMarketAction.DepositUnavailable) {
+                buttonText = "Deposit"
+                buttonDisabled = true
+              } else if (action === LenderMarketAction.Unavailable) {
+                buttonText = "Unavailable"
+                buttonDisabled = true
+              }
+            } else if (showOnboardingAction) {
+              buttonText = undefined
+            }
+
             return (
               <React.Fragment key={marketItem.id}>
                 {showAssetHeader && (
@@ -493,10 +537,17 @@ export const MobileMarketList = ({
                 <MarketCard
                   adsComponent={getAdsMobileContent(marketItem.id)}
                   marketItem={marketItem}
-                  buttonText={
-                    variant === "lender-action" ? "Deposit" : undefined
+                  buttonText={buttonText}
+                  buttonIcon={
+                    variant === "lender-action" &&
+                    (!showOnboardingAction ||
+                      action === LenderMarketAction.Deposit)
                   }
-                  buttonIcon={variant === "lender-action"}
+                  buttonHref={buttonHref}
+                  buttonDisabled={buttonDisabled}
+                  buttonLoading={
+                    showOnboardingAction && liveDataStatus === "loading"
+                  }
                   showBorrower={showBorrowerInCard}
                   variant={variant}
                   displayName={displayName}

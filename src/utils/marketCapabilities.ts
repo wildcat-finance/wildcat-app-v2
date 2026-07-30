@@ -1,7 +1,7 @@
 import {
-  DepositStatus,
   FixedTermHooksConfig,
   HooksKind,
+  MarketOnboardingMode,
   type RoleProvider,
 } from "@wildcatfi/wildcat-sdk"
 
@@ -14,11 +14,10 @@ type MarketHooksConfigLike = {
 type MarketLike = {
   controller?: string
   hooksConfig?: MarketHooksConfigLike
+  onboardingMode?: MarketOnboardingMode
 }
 
 type MarketAccountLike = {
-  depositAvailability?: DepositStatus
-  hasEverInteracted?: boolean
   market: MarketLike
 }
 
@@ -48,7 +47,4 @@ export const isFixedTermMarket = (market: MarketLike): boolean =>
 
 export const isSelfOnboardMarketAccount = (
   account: MarketAccountLike,
-): boolean =>
-  !account.hasEverInteracted &&
-  isHooksManagedMarket(account.market) &&
-  account.depositAvailability === DepositStatus.Ready
+): boolean => account.market.onboardingMode === MarketOnboardingMode.SelfOnboard

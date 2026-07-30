@@ -1,4 +1,4 @@
-import { DepositStatus, HooksKind } from "@wildcatfi/wildcat-sdk"
+import { HooksKind, MarketOnboardingMode } from "@wildcatfi/wildcat-sdk"
 
 import {
   getFixedTermHooksConfig,
@@ -70,12 +70,11 @@ describe("marketCapabilities", () => {
     expect(getFixedTermHooksConfig(market)).toEqual(market.hooksConfig)
   })
 
-  it("classifies self-onboard markets through hooks-managed capability instead of version", () => {
+  it("uses stable market policy rather than lender-specific deposit availability", () => {
     const account = {
-      hasEverInteracted: false,
-      depositAvailability: DepositStatus.Ready,
       market: {
         controller: undefined,
+        onboardingMode: MarketOnboardingMode.SelfOnboard,
         hooksConfig: {
           kind: HooksKind.OpenTerm,
           hooksAddress: "0xhooks",
@@ -84,18 +83,31 @@ describe("marketCapabilities", () => {
     }
 
     expect(isSelfOnboardMarketAccount(account)).toBe(true)
+
+    const deniedLender = {
+      ...account,
+      depositAvailability: "RequiresAccess",
+    }
+    expect(isSelfOnboardMarketAccount(deniedLender)).toBe(true)
   })
 
-  it("does not treat legacy/controller markets as self-onboard", () => {
+  it("does not treat borrower-approval or unknown markets as self-onboard", () => {
     const account = {
-      hasEverInteracted: false,
-      depositAvailability: DepositStatus.Ready,
       market: {
         controller: "0xcontroller",
+        onboardingMode: MarketOnboardingMode.BorrowerApproval,
         hooksConfig: undefined,
       },
     }
 
     expect(isSelfOnboardMarketAccount(account)).toBe(false)
+    expect(
+      isSelfOnboardMarketAccount({
+        market: {
+          ...account.market,
+          onboardingMode: undefined,
+        },
+      }),
+    ).toBe(false)
   })
 })

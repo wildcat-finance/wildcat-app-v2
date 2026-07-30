@@ -16,6 +16,7 @@ import { MarketsTableAccordionProps } from "./interface"
 export const MarketsTableAccordion = ({
   isOpen,
   isLoading,
+  fillLoadingViewport,
 
   label,
   marketsLength,
@@ -36,7 +37,12 @@ export const MarketsTableAccordion = ({
   const { t } = useTranslation()
 
   return (
-    <Accordion defaultExpanded={isOpen}>
+    <Accordion
+      defaultExpanded={isOpen}
+      sx={{
+        minHeight: isLoading && fillLoadingViewport ? "100%" : undefined,
+      }}
+    >
       <AccordionSummary>
         <Box display="flex" columnGap="4px">
           <Typography variant="text3">{label}</Typography>

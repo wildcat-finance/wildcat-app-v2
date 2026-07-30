@@ -516,7 +516,14 @@ export const OtherMarketsTables = ({
         paddingBottom: "26px",
       }}
     >
-      <Box id="self-onboard" ref={selfOnboardRef}>
+      <Box
+        id="self-onboard"
+        ref={selfOnboardRef}
+        sx={{
+          height: isLoading ? "100%" : "auto",
+          flexShrink: 0,
+        }}
+      >
         <MarketsTableAccordion
           label={t("dashboard.markets.tables.other.selfOnboard")}
           marketsLength={selfOnboard.length}
@@ -526,6 +533,7 @@ export const OtherMarketsTables = ({
           assetFilter={filters.assetFilter}
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
+          fillLoadingViewport
         >
           <Box {...selfOnboardPrefetchHandlers}>
             <DataGrid

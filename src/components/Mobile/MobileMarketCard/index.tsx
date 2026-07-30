@@ -1,7 +1,19 @@
 import * as React from "react"
 
-import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
-import { HooksKind, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import {
+  Box,
+  Button,
+  Divider,
+  Skeleton,
+  SvgIcon,
+  Typography,
+} from "@mui/material"
+import {
+  DepositStatus,
+  HooksKind,
+  MarketOnboardingMode,
+  TokenAmount,
+} from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
@@ -49,7 +61,8 @@ export type MobileMarketItem = {
   borrowerAddress: string | undefined
   loan?: TokenAmount | undefined
   asset: string
-  isSelfOnboard?: boolean
+  onboardingMode?: MarketOnboardingMode
+  depositStatus?: DepositStatus
   chainId?: number
   debt?: TokenAmount
   utilisation?: number
@@ -61,6 +74,9 @@ export type MobileMarketCardProps = {
   marketItem: MobileMarketItem
   buttonText?: string
   buttonIcon?: boolean
+  buttonHref?: string
+  buttonDisabled?: boolean
+  buttonLoading?: boolean
   showBorrower?: boolean
   adsComponent?: React.ReactNode
   variant?: MobileMarketCardVariant
@@ -221,6 +237,9 @@ export const MobileMarketCard = ({
   marketItem,
   buttonText,
   buttonIcon,
+  buttonHref,
+  buttonDisabled = false,
+  buttonLoading = false,
   showBorrower = true,
   adsComponent,
   variant = "lender-action",
@@ -406,14 +425,16 @@ export const MobileMarketCard = ({
                   More
                 </Button>
               </Link>
-              {buttonText && (
-                <Link
-                  href={buildMarketHref(marketItem.id, marketItem.chainId)}
-                  style={{ textDecoration: "none" }}
-                >
+              {buttonLoading && (
+                <Skeleton variant="rounded" width={88} height={32} />
+              )}
+              {!buttonLoading &&
+                buttonText &&
+                (buttonDisabled ? (
                   <Button
                     variant="contained"
                     size="small"
+                    disabled
                     sx={{
                       ...CardFooterButtonContainer,
                       height: "100%",
@@ -425,8 +446,30 @@ export const MobileMarketCard = ({
 
                     {buttonIcon && <DepositArrow />}
                   </Button>
-                </Link>
-              )}
+                ) : (
+                  <Link
+                    href={
+                      buttonHref ??
+                      buildMarketHref(marketItem.id, marketItem.chainId)
+                    }
+                    style={{ textDecoration: "none" }}
+                  >
+                    <Button
+                      variant="contained"
+                      size="small"
+                      sx={{
+                        ...CardFooterButtonContainer,
+                        height: "100%",
+                        display: "flex",
+                        gap: "2px",
+                      }}
+                    >
+                      {buttonText}
+
+                      {buttonIcon && <DepositArrow />}
+                    </Button>
+                  </Link>
+                ))}
             </Box>
           </Box>
         </>

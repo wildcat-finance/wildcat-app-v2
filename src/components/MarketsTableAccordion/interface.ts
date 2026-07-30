@@ -6,6 +6,7 @@ import { MarketStatus } from "@/utils/marketStatus"
 export type MarketsTableAccordionProps = {
   isOpen?: boolean
   isLoading: boolean
+  fillLoadingViewport?: boolean
 
   label: string
   marketsLength?: number

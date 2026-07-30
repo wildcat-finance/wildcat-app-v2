@@ -3,7 +3,7 @@ import * as React from "react"
 
 import { Box, Button, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
-import { TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { MarketOnboardingMode, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -48,8 +48,11 @@ import {
   formatTokenWithCommas,
 } from "@/utils/formatters"
 import { getDisplayLenderAprBips } from "@/utils/marketApr"
-import { isSelfOnboardMarketAccount } from "@/utils/marketCapabilities"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
+import {
+  getLenderMarketAction,
+  LenderMarketAction,
+} from "@/utils/marketOnboarding"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -107,6 +110,7 @@ export const OtherMarketsTables = ({
         totalSupply,
         withdrawalBatchDuration,
         chainId,
+        onboardingMode,
       } = market
 
       const borrowerName = getBorrowerDisplayName(borrowerAddress, borrowers)
@@ -114,6 +118,7 @@ export const OtherMarketsTables = ({
       const marketStatus = getMarketStatusChip(market)
       const implementationType = getMarketImplementationType(market)
       const marketType = getMarketTypeChip(market)
+      const depositStatus = account.depositAvailability
 
       return {
         id: address,
@@ -128,7 +133,9 @@ export const OtherMarketsTables = ({
         withdrawalBatchDuration,
         debt: totalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
-        isSelfOnboard: isSelfOnboardMarketAccount(account),
+        onboardingMode,
+        depositStatus,
+        action: getLenderMarketAction(onboardingMode, depositStatus),
         button: address,
         chainId,
       }
@@ -145,8 +152,12 @@ export const OtherMarketsTables = ({
     return !account?.market.isClosed
   })
 
-  const selfOnboard = activeRows.filter((market) => market.isSelfOnboard)
-  const manual = activeRows.filter((market) => !market.isSelfOnboard)
+  const selfOnboard = activeRows.filter(
+    (market) => market.onboardingMode === MarketOnboardingMode.SelfOnboard,
+  )
+  const manual = activeRows.filter(
+    (market) => market.onboardingMode !== MarketOnboardingMode.SelfOnboard,
+  )
   const selfOnboardPrefetchHandlers = useMarketRowPrefetchHandlers(selfOnboard)
   const manualPrefetchHandlers = useMarketRowPrefetchHandlers(manual)
   const terminatedPrefetchHandlers = useMarketRowPrefetchHandlers(terminated)
@@ -386,19 +397,41 @@ export const OtherMarketsTables = ({
       flex: 1,
       headerAlign: "right",
       align: "right",
-      renderCell: (params) => (
-        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-          {params.row.isSelfOnboard ? (
+      renderCell: (params) => {
+        const isDeposit = params.row.action === LenderMarketAction.Deposit
+        const isRequestAccess =
+          params.row.action === LenderMarketAction.RequestAccess
+        const isDepositUnavailable =
+          params.row.action === LenderMarketAction.DepositUnavailable
+        let buttonLabel = t("dashboard.markets.tables.other.unavailableBTN")
+        if (isDeposit || isDepositUnavailable) {
+          buttonLabel = t("dashboard.markets.tables.other.depositBTN")
+        } else if (isRequestAccess) {
+          buttonLabel = t("dashboard.markets.tables.other.requestBTN")
+        }
+        const button = (
+          <Button
+            size="small"
+            variant="contained"
+            color="secondary"
+            disabled={!isDeposit && !isRequestAccess}
+          >
+            {buttonLabel}
+          </Button>
+        )
+        let buttonContent = button
+        if (isDeposit) {
+          buttonContent = (
             <Box
               component={Link}
               href={buildMarketHref(params.row.id, params.row.chainId)}
               sx={{ ...rowLinkInteractiveSx, textDecoration: "none" }}
             >
-              <Button size="small" variant="contained" color="secondary">
-                {t("dashboard.markets.tables.other.depositBTN")}
-              </Button>
+              {button}
             </Box>
-          ) : (
+          )
+        } else if (isRequestAccess) {
+          buttonContent = (
             <Box
               component={Link}
               href={buildBorrowerProfileHref(
@@ -408,13 +441,23 @@ export const OtherMarketsTables = ({
               prefetch={false}
               sx={{ ...rowLinkInteractiveSx, textDecoration: "none" }}
             >
-              <Button size="small" variant="contained" color="secondary">
-                {t("dashboard.markets.tables.other.requestBTN")}
-              </Button>
+              {button}
             </Box>
-          )}
-        </Box>
-      ),
+          )
+        }
+
+        return (
+          <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
+            <LiveMarketDataValue
+              status={liveDataStatus}
+              width={100}
+              height={32}
+            >
+              {buttonContent}
+            </LiveMarketDataValue>
+          </Box>
+        )
+      },
     },
   ]
 
@@ -451,6 +494,7 @@ export const OtherMarketsTables = ({
             markets={selfOnboard}
             isLoading={isLoading}
             liveDataStatus={liveDataStatus}
+            showOnboardingAction
           />
         )}
         {scrollTargetId === "manual" && (
@@ -458,6 +502,7 @@ export const OtherMarketsTables = ({
             markets={manual}
             isLoading={isLoading}
             liveDataStatus={liveDataStatus}
+            showOnboardingAction
           />
         )}
         {scrollTargetId === "other-terminated" && (
@@ -465,6 +510,7 @@ export const OtherMarketsTables = ({
             markets={terminated}
             isLoading={isLoading}
             liveDataStatus={liveDataStatus}
+            showOnboardingAction
           />
         )}
       </>
@@ -485,7 +531,14 @@ export const OtherMarketsTables = ({
         paddingBottom: "26px",
       }}
     >
-      <Box id="self-onboard" ref={selfOnboardRef}>
+      <Box
+        id="self-onboard"
+        ref={selfOnboardRef}
+        sx={{
+          height: isLoading ? "100%" : "auto",
+          flexShrink: 0,
+        }}
+      >
         <MarketsTableAccordion
           label={t("dashboard.markets.tables.other.selfOnboard")}
           marketsLength={selfOnboard.length}
@@ -495,6 +548,7 @@ export const OtherMarketsTables = ({
           assetFilter={filters.assetFilter}
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
+          fillLoadingViewport
         >
           {isMobile ? (
             <Box display="flex" flexDirection="column">
