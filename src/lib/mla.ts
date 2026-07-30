@@ -10,14 +10,15 @@ import {
   Token,
 } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
-import { getAddress, keccak256, stringToHex } from "viem"
+import { keccak256, stringToHex } from "viem"
 
 import { BorrowerProfile } from "@/app/api/profiles/interface"
-import ELFsByCountry from "@/config/elfs-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
 import { ACCEPT_MLA_MESSAGE } from "@/config/mla-acceptance"
 import { NETWORKS_BY_ID } from "@/config/network"
-import { formatBps, formatUnixMsAsDate } from "@/utils/formatters"
+import { getLegalEntityFormName } from "@/lib/legalEntityForms"
+import { formatAddress, formatDate } from "@/lib/mlaFormatters"
+import { formatBps } from "@/utils/formatters"
 import { getMarketAprDisplayBips } from "@/utils/marketApr"
 
 type NetworkData = {
@@ -27,7 +28,12 @@ type NetworkData = {
 
 export type BasicBorrowerInfo = {
   address: string
-} & Partial<Omit<BorrowerProfile, "registeredOnChain" | "chainId" | "address">>
+} & Partial<
+  Omit<
+    BorrowerProfile,
+    "registeredOnChain" | "chainId" | "address" | "entityKindName"
+  >
+>
 
 export const DepositAccessString = {
   [DepositAccess.Open]: "Open",
@@ -169,9 +175,6 @@ export const formatBool = (value: boolean | undefined): string | undefined => {
 const formatString = (value: string | undefined): string | undefined =>
   value ?? undefined
 
-export const formatAddress = (value: string | undefined): string | undefined =>
-  value ? getAddress(value) : undefined
-
 const formatNumber = (value: number | undefined): string | undefined =>
   value ? value.toString() : undefined
 
@@ -185,39 +188,11 @@ const formatTokenAmount = (
   return value.format(undefined, true)
 }
 
-const toUnixMs = (value: number): number => {
-  // If value is in seconds, convert to milliseconds
-  // Works for any unix timestamp prior to the year 22970 (lol)
-  if (new Date(value).getFullYear() === 1970) {
-    value *= 1000
-  }
-  return value
-}
-
-export const formatDate = (value: number | undefined): string | undefined => {
-  if (value === undefined) return undefined
-  return formatUnixMsAsDate(toUnixMs(value))
-}
-
 export const formatDuration = (
   value: number | undefined,
 ): string | undefined => {
   if (value === undefined) return undefined
   return humanizeDuration(1000 * value)
-}
-
-type LenderKeys =
-  | "lender.timeSigned"
-  | "lender.timeSignedDayOrdinal"
-  | "lender.timeSignedMonthYear"
-  | "lender.address"
-
-type BorrowerSignedMla = {
-  // HTML after filling in all borrower fields
-  html: string
-  // Plaintext after filling in all borrower fields
-  plaintext: string
-  lenderFields: MlaTemplateField[]
 }
 
 const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
@@ -341,12 +316,7 @@ export function getFieldValuesForBorrower({
       jurisdictionObj?.subDivisionName || jurisdictionObj?.countryName
   }
   const networkInfo = NETWORKS_BY_ID[asset.chainId]
-  const entityKindText =
-    entityKind !== undefined && jurisdictionObj
-      ? ELFsByCountry[
-          jurisdictionObj.countryCode as keyof typeof ELFsByCountry
-        ].find((elf) => elf.elfCode === entityKind)?.name
-      : undefined
+  const entityKindText = getLegalEntityFormName(jurisdiction, entityKind)
 
   const formatPeriodicDate = (value: number | undefined) =>
     market.marketTerm === HooksKind.PeriodicTerm
@@ -475,44 +445,6 @@ export function getFieldValuesForBorrower({
   return allData
 }
 
-const nth = (d: number) => {
-  const dString = String(d)
-  const last = +dString.slice(-2)
-  if (last > 3 && last < 21) return "th"
-  switch (last % 10) {
-    case 1:
-      return "st"
-    case 2:
-      return "nd"
-    case 3:
-      return "rd"
-    default:
-      return "th"
-  }
-}
-
-export function getFieldValuesForLender(
-  lenderAddress: string,
-  lenderTimeSigned: number,
-) {
-  const date = new Date(lenderTimeSigned)
-  const utcDate = date.getUTCDate()
-  const data: Map<LenderKeys, string | undefined> = new Map([
-    ["lender.timeSigned", formatDate(lenderTimeSigned)],
-    ["lender.timeSignedDayOrdinal", `${utcDate}${nth(utcDate)}`],
-    [
-      "lender.timeSignedMonthYear",
-      date.toLocaleDateString("en-US", {
-        month: "long",
-        year: "numeric",
-        timeZone: "UTC",
-      }),
-    ],
-    ["lender.address", formatAddress(lenderAddress)],
-  ])
-  return data
-}
-
 export function fillInMlaTemplate(
   template: MlaTemplate,
   fieldValues: Map<MlaFieldValueKey, string | undefined>,
@@ -541,21 +473,5 @@ export function fillInMlaTemplate(
   }
 }
 
-export function fillInMlaForLender(
-  mla: BorrowerSignedMla,
-  values: Map<MlaFieldValueKey, string | undefined>,
-  marketAddress: string,
-) {
-  let { html, plaintext } = mla
-  mla.lenderFields.forEach((field) => {
-    const value = values.get(field.source) ?? field.placeholder
-    plaintext = plaintext.replaceAll(`{{${field.source}}}`, value)
-    html = html.replaceAll(`{{${field.source}}}`, value)
-  })
-  const message = ACCEPT_MLA_MESSAGE.replace(
-    "{{market}}",
-    formatAddress(marketAddress) as string,
-  ).replace("{{hash}}", keccak256(stringToHex(plaintext)))
-
-  return { html, plaintext, message }
-}
+export { formatAddress, formatDate } from "@/lib/mlaFormatters"
+export { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mlaLender"

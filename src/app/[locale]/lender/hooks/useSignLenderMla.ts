@@ -6,7 +6,7 @@ import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
-import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
+import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mlaLender"
 import { isTerminalClientError } from "@/utils/httpStatus"
 import { SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS } from "@/utils/serviceAgreementMessage"
 

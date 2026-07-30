@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
-import {
-  fillInMlaForLender,
-  MlaFieldValueKey,
-  MlaTemplateField,
-} from "@/lib/mla"
+import type { MlaFieldValueKey, MlaTemplateField } from "@/lib/mla"
+import { fillInMlaForLender } from "@/lib/mlaLender"
 import { launchPuppeteer } from "@/lib/puppeteer"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 

@@ -1,7 +1,9 @@
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
+import type { BorrowerProfile } from "@/app/api/profiles/interface"
 import { getBorrowerProfile, prisma } from "@/lib/db"
+import { getLegalEntityFormName } from "@/lib/legalEntityForms"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
 import { isAdminForChain, verifyApiToken } from "../../auth/verify-header"
@@ -11,11 +13,22 @@ const PROFILE_CACHE_CONTROL = "public, s-maxage=300, stale-while-revalidate=600"
 const PROFILE_MISS_CACHE_CONTROL =
   "public, s-maxage=60, stale-while-revalidate=300"
 
+const withDisplayFields = (profile: BorrowerProfile | null) =>
+  profile
+    ? {
+        ...profile,
+        entityKindName: getLegalEntityFormName(
+          profile.jurisdiction,
+          profile.entityKind,
+        ),
+      }
+    : null
+
 const profileResponse = (
-  profile: unknown,
+  profile: BorrowerProfile | null,
   cacheControl = PROFILE_CACHE_CONTROL,
 ) => {
-  const response = NextResponse.json({ profile })
+  const response = NextResponse.json({ profile: withDisplayFields(profile) })
   response.headers.set("Cache-Control", cacheControl)
   return response
 }

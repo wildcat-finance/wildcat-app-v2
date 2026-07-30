@@ -25,9 +25,9 @@ import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import {
   BasicBorrowerInfo,
   fillInMlaTemplate,
-  formatDate,
   getFieldValuesForBorrower,
 } from "@/lib/mla"
+import { formatDate } from "@/lib/mlaFormatters"
 import { useAppStore } from "@/store/hooks"
 import { getCreateMarketSigningDraftScope } from "@/store/slices/createMarketSigningDraftsSlice/createMarketSigningDraftsSlice"
 import { SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS } from "@/utils/serviceAgreementMessage"

@@ -34,7 +34,7 @@ import { NETWORKS_BY_ID } from "@/config/network"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
-import { formatDate } from "@/lib/mla"
+import { formatDate } from "@/lib/mlaFormatters"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {

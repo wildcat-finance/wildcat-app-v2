@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { DECLINE_MLA_ASSIGNMENT_MESSAGE } from "@/config/mla-rejection"
 import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
-import { formatDate } from "@/lib/mla"
+import { formatDate } from "@/lib/mlaFormatters"
 import { lockMlaAssignment } from "@/lib/mlaPersistence"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"

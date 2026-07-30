@@ -15,7 +15,7 @@ import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useLivePeriodicNowSeconds } from "@/hooks/useLiveNowSeconds"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useAdoptionData } from "@/hooks/wrapper/useAdoptionData"
-import { formatDate } from "@/lib/mla"
+import { formatDate } from "@/lib/mlaFormatters"
 import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
 import {

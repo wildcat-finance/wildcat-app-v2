@@ -17,7 +17,7 @@ import type { BasicBorrowerInfo } from "./mla"
 
 process.env.NEXT_PUBLIC_TARGET_NETWORK ||= "Sepolia"
 
-const { getFieldValuesForBorrower } = jest.requireActual(
+const { fillInMlaTemplate, getFieldValuesForBorrower } = jest.requireActual(
   "./mla",
 ) as typeof import("./mla")
 
@@ -44,6 +44,7 @@ const getMlaValues = (
   hooksFactory: string | null = marketKind === "revolving"
     ? revolvingFactory
     : standardFactory,
+  borrower: BasicBorrowerInfo = borrowerInfo,
 ) =>
   getFieldValuesForBorrower({
     market: {
@@ -71,7 +72,7 @@ const getMlaValues = (
       allowClosureBeforeTerm: undefined,
       allowTermReduction: undefined,
     },
-    borrowerInfo,
+    borrowerInfo: borrower,
     asset: token,
     timeSigned: 1_700_000_000,
     lastSlaUpdateTime: 1_700_000_000,
@@ -103,6 +104,43 @@ describe("MLA field values", () => {
   it("exposes an APR label for revolving MLA templates", () => {
     expect(getMlaValues("revolving").get("market.aprLabel")).toBe(
       "Utilization APR",
+    )
+  })
+
+  it("preserves the canonical legal entity form in the signed MLA message", () => {
+    const values = getMlaValues("standard", standardFactory, {
+      ...borrowerInfo,
+      jurisdiction: "AG",
+      entityKind: "CDOV",
+    })
+
+    expect(values.get("borrower.entityKind")).toBe(
+      "International Business Corporation",
+    )
+
+    const rendered = fillInMlaTemplate(
+      {
+        html: "{{borrower.entityKind}} for {{market.address}}",
+        plaintext: "{{borrower.entityKind}} for {{market.address}}",
+        borrowerFields: [
+          {
+            source: "borrower.entityKind",
+            placeholder: "Insert Entity Kind",
+          },
+          {
+            source: "market.address",
+            placeholder: "Insert Market Address",
+          },
+        ],
+        lenderFields: [],
+      },
+      values,
+    )
+
+    expect(rendered.message).toBe(
+      "I accept the Master Loan Agreement for market " +
+        "0x0000000000000000000000000000000000000003 with hash " +
+        "0xc188d9d0dbe43e248289dd256c9ff465a1e01dda3a10ad9de462414c6d1b82d5.",
     )
   })
 })

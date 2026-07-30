@@ -39,7 +39,7 @@ import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useDepositAgreementGate } from "@/hooks/useDepositAgreementGate"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
-import { formatDate } from "@/lib/mla"
+import { formatDate } from "@/lib/mlaFormatters"
 import { COLORS } from "@/theme/colors"
 import {
   hasManuallyDisabledMarketActions,

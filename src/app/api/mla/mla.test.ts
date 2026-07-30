@@ -13,12 +13,12 @@ import {
 import { getAddress } from "viem"
 
 import {
-  fillInMlaForLender,
   fillInMlaTemplate,
   getFieldValuesForBorrower,
   MlaFieldValueKey,
   MlaTemplateField,
 } from "@/lib/mla"
+import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mlaLender"
 
 const marketAddress = "0x0000000000000000000000000000000000000001"
 const lenderAddress = "0x0000000000000000000000000000000000000002"
@@ -62,8 +62,11 @@ describe("mla helpers", () => {
 
     expect(result.html).toBe(`<p>Sepolia Credit</p><p>${marketAddress}</p>`)
     expect(result.plaintext).toBe(`market Sepolia Credit at ${marketAddress}`)
-    expect(result.message).toContain(getAddress(marketAddress))
-    expect(result.message).not.toContain("{{hash}}")
+    expect(result.message).toBe(
+      `I accept the Master Loan Agreement for market ${getAddress(
+        marketAddress,
+      )} with hash 0xd58b3a18b56fcbb738a70817e4f5ae1200467abd9921c1e1e413d2f042e81026.`,
+    )
   })
 
   test("fills lender fields while preserving borrower-filled content", () => {
@@ -86,8 +89,22 @@ describe("mla helpers", () => {
 
     expect(result.html).toBe(`<p>borrower terms</p><p>${lenderAddress}</p>`)
     expect(result.plaintext).toBe(`borrower terms\n${lenderAddress}`)
-    expect(result.message).toContain(getAddress(marketAddress))
-    expect(result.message).not.toContain("{{hash}}")
+    expect(result.message).toBe(
+      `I accept the Master Loan Agreement for market ${getAddress(
+        marketAddress,
+      )} with hash 0xd37bd1ba4fc31de4940fd6261371bf91db28caca658eb1f1a9d60e39b21d6a58.`,
+    )
+  })
+
+  test("preserves lender date and address fields used in signed MLA text", () => {
+    const values = getFieldValuesForLender(lenderAddress, Date.UTC(2026, 0, 21))
+
+    expect(Object.fromEntries(values)).toEqual({
+      "lender.timeSigned": "January 21, 2026",
+      "lender.timeSignedDayOrdinal": "21st",
+      "lender.timeSignedMonthYear": "January 2026",
+      "lender.address": getAddress(lenderAddress),
+    })
   })
 
   test("maps periodic mla fields without fixed-term placeholders", () => {

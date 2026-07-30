@@ -21,6 +21,8 @@ export interface BorrowerProfile {
   // telegram?: string
   jurisdiction?: string
   entityKind?: string
+  /** Display-only legal entity form name derived from jurisdiction/entityKind. */
+  entityKindName?: string
   physicalAddress?: string
   email?: string
   additionalUrls?: BorrowerAdditionalUrl[]
@@ -32,4 +34,7 @@ export type BorrowerProfileForAdminView = BorrowerProfile & {
   timeSigned?: Date
 }
 
-export type BorrowerProfileInput = Omit<BorrowerProfile, "registeredOnChain">
+export type BorrowerProfileInput = Omit<
+  BorrowerProfile,
+  "registeredOnChain" | "entityKindName"
+>

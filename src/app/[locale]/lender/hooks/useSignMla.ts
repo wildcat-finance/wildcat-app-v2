@@ -8,7 +8,7 @@ import {
   MlaSignatureResponse,
 } from "@/app/api/mla/interface"
 import { QueryKeys } from "@/config/query-keys"
-import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
+import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mlaLender"
 
 export const useGetSignedMla = (
   mla: MasterLoanAgreementResponse | null | undefined,

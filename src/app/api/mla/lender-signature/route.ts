@@ -2,7 +2,7 @@ import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
 import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
-import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
+import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mlaLender"
 import { isPrismaUniqueConstraintError } from "@/lib/mlaPersistence"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"

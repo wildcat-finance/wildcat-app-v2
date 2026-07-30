@@ -21,10 +21,10 @@ import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import {
   BasicBorrowerInfo,
-  fillInMlaForLender,
   fillInMlaTemplate,
   getFieldValuesForBorrower,
 } from "@/lib/mla"
+import { fillInMlaForLender } from "@/lib/mlaLender"
 
 import { getMlaTemplateApiPath } from "./templateApiPaths"
 import { useCalculateMarketAddress } from "./useCalculateMarketAddress"

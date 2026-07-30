@@ -4,11 +4,8 @@ import { keccak256, stringToHex } from "viem"
 
 import { ACCEPT_MLA_MESSAGE } from "@/config/mla-acceptance"
 import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
-import {
-  fillInMlaForLender,
-  formatAddress,
-  getFieldValuesForLender,
-} from "@/lib/mla"
+import { formatAddress } from "@/lib/mlaFormatters"
+import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mlaLender"
 import { formatSignatureText } from "@/lib/signatures"
 import { VerifiedSignature } from "@/lib/signatures/interface"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"

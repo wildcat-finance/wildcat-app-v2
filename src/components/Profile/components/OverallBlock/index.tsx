@@ -4,7 +4,6 @@ import { Box, Divider, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { ParametersItem } from "@/components/ParametersItem"
-import ELFsByCountry from "@/config/elfs-by-country.json"
 import Jurisdictions from "@/config/jurisdictions.json"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -45,6 +44,7 @@ export const OverallBlock = ({
   founded,
   jurisdiction,
   entityKind,
+  entityKindName,
   additionalUrls,
   marketsAmount,
   externalChainId,
@@ -63,12 +63,7 @@ export const OverallBlock = ({
       : undefined
   const jurisdictionText = jurisdictionObj?.countryName
 
-  const entityKindText =
-    entityKind !== undefined && jurisdictionObj
-      ? ELFsByCountry[
-          jurisdictionObj.countryCode as keyof typeof ELFsByCountry
-        ].find((elf) => elf.elfCode === entityKind)?.name
-      : undefined
+  const entityKindText = entityKindName ?? entityKind
 
   const normalizedMarkets =
     marketsAmount !== undefined ? String(marketsAmount) : "0"
