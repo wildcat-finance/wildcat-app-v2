@@ -2,12 +2,7 @@ import { Dispatch, SetStateAction } from "react"
 import * as React from "react"
 
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
-import {
-  DepositStatus,
-  HooksKind,
-  MarketAccount,
-  QueueWithdrawalStatus,
-} from "@wildcatfi/wildcat-sdk"
+import { DepositStatus, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
@@ -15,7 +10,11 @@ import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Mo
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { useFaucet } from "@/app/[locale]/lender/market/[address]/hooks/useFaucet"
 import { LenderWithdrawalsForMarketResult } from "@/app/[locale]/lender/market/[address]/hooks/useGetLenderWithdrawals"
-import { resolveLenderActionState } from "@/app/[locale]/lender/market/[address]/utils"
+import {
+  LenderAccessState,
+  resolveLenderActionState,
+  resolveLenderWithdrawalActionState,
+} from "@/app/[locale]/lender/market/[address]/utils"
 import Clock from "@/assets/icons/clock_icon.svg"
 import { toastError } from "@/components/Toasts"
 import { TooltipButton } from "@/components/TooltipButton"
@@ -34,6 +33,7 @@ import {
 export type MobileMarketActionsProps = {
   marketAccount: MarketAccount
   withdrawals: LenderWithdrawalsForMarketResult
+  accessState: LenderAccessState
   isMobileWithdrawalOpen: boolean
   setIsMobileDepositOpen: Dispatch<SetStateAction<boolean>>
   setIsMobileAcknowledgementOpen: Dispatch<SetStateAction<boolean>>
@@ -153,6 +153,7 @@ export const MobileFaucetButton = ({
 export const MobileMarketActions = ({
   marketAccount,
   withdrawals,
+  accessState,
   isMobileWithdrawalOpen,
   setIsMobileWithdrawalOpen,
   setIsMobileDepositOpen,
@@ -179,11 +180,6 @@ export const MobileMarketActions = ({
   const touActionBlocked = touGateState !== "unblocked"
   const touRetryAvailable = touGateState === "unknown" && !isAgreementFetching
 
-  const notMature =
-    market &&
-    market.hooksConfig?.kind === HooksKind.FixedTerm &&
-    market.hooksConfig?.fixedTermEndTime !== undefined &&
-    market.hooksConfig.fixedTermEndTime * 1000 >= Date.now()
   const nowSec = useLivePeriodicNowSeconds(market)
   const periodicWindowClosed = isPeriodicWithdrawalWindowClosed(market, nowSec)
   const periodicTiming = getPeriodicWindowTiming(market, nowSec)
@@ -249,18 +245,28 @@ export const MobileMarketActions = ({
     setIsMLAOpen(!isMLAOpen)
   }
 
-  const disableWithdraw =
-    marketAccount.marketBalance.eq(0) ||
-    marketAccount.withdrawalAvailability !== QueueWithdrawalStatus.Ready
+  const withdrawalActionState = resolveLenderWithdrawalActionState({
+    accessState,
+    hasMarketAccount: true,
+    hasMarketBalance: marketAccount.marketBalance.gt(0),
+    withdrawalAvailability: marketAccount.withdrawalAvailability,
+    periodicWindowClosed,
+  })
+  const withdrawalUnavailableText =
+    withdrawalActionState === "ready"
+      ? undefined
+      : t(
+          `lenderMarketDetails.transactions.withdraw.unavailable.${withdrawalActionState}`,
+        )
   const actionState = resolveLenderActionState({
     isConnected,
     isDifferentChain,
-    accessState: "authorized",
+    accessState,
     depositAvailable: !hideDeposit,
     touGateState,
     isAgreementFetching,
     depositAgreementState: agreementGate.state,
-    withdrawalAvailable: !disableWithdraw,
+    withdrawalAvailable: withdrawalActionState === "ready",
     claimAvailable: !withdrawals.totalClaimableAmount.eq(0),
   })
 
@@ -364,6 +370,16 @@ export const MobileMarketActions = ({
     )
   }
 
+  const showQueueWithdrawalBlock =
+    actionState.surface === "actions" ||
+    accessState === "resolving" ||
+    accessState === "error" ||
+    marketAccount.marketBalance.gt(0)
+  const showActionContainer =
+    actionState.surface === "switch-network" ||
+    actionState.surface === "actions" ||
+    showQueueWithdrawalBlock
+
   return (
     <Box
       sx={{
@@ -406,59 +422,73 @@ export const MobileMarketActions = ({
         </Box>
       )}
 
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection:
-            actionState.surface === "switch-network" ? "column" : "row",
-          gap: actionState.surface === "switch-network" ? 0 : "8px",
-          padding: "12px",
-          backgroundColor: COLORS.bunker,
-          borderRadius: "14px",
+      {showActionContainer && (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection:
+              actionState.surface === "switch-network" ? "column" : "row",
+            gap: actionState.surface === "switch-network" ? 0 : "8px",
+            padding: "12px",
+            backgroundColor: COLORS.bunker,
+            borderRadius: "14px",
 
-          width: "100%",
-        }}
-      >
-        {actionState.surface === "switch-network" && (
-          <SwitchChainAlert desiredChainId={market.chainId} />
-        )}
+            width: "100%",
+          }}
+        >
+          {actionState.surface === "switch-network" && (
+            <SwitchChainAlert desiredChainId={market.chainId} />
+          )}
 
-        {actionState.surface === "actions" && (
-          <>
-            <Box
-              sx={{
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-start",
-              }}
-            >
-              <MobileMarketTransactionItem
-                // title={t("lenderMarketDetails.transactions.withdraw.title")}
-                title="Available To Withdraw"
-                tooltip={withdrawTooltip}
-                amount={formatTokenWithCommas(marketAccount.marketBalance)}
-                asset={market.underlyingToken.symbol}
-              />
-
-              <Button
-                variant="contained"
-                color="secondary"
-                size="large"
-                fullWidth
-                onClick={() =>
-                  setIsMobileWithdrawalOpen(!isMobileWithdrawalOpen)
-                }
-                disabled={notMature || !actionState.canWithdraw}
-                sx={{ padding: "10px 20px", marginTop: "16px" }}
+          {actionState.surface !== "switch-network" &&
+            showQueueWithdrawalBlock && (
+              <Box
+                sx={{
+                  width: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                }}
               >
-                ↑{" "}
-                {notMature
-                  ? t("lenderMarketDetails.transactions.withdraw.buttonLocked")
-                  : t("lenderMarketDetails.transactions.withdraw.button")}
-              </Button>
-            </Box>
+                <MobileMarketTransactionItem
+                  title={t("lenderMarketDetails.transactions.withdraw.title")}
+                  tooltip={withdrawTooltip}
+                  amount={formatTokenWithCommas(marketAccount.marketBalance)}
+                  asset={market.underlyingToken.symbol}
+                />
 
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  size="large"
+                  fullWidth
+                  onClick={() =>
+                    setIsMobileWithdrawalOpen(!isMobileWithdrawalOpen)
+                  }
+                  disabled={!actionState.canWithdraw}
+                  sx={{ padding: "10px 20px", marginTop: "16px" }}
+                >
+                  ↑{" "}
+                  {withdrawalActionState === "fixed-term"
+                    ? t(
+                        "lenderMarketDetails.transactions.withdraw.buttonLocked",
+                      )
+                    : t("lenderMarketDetails.transactions.withdraw.button")}
+                </Button>
+
+                {withdrawalActionState !== "ready" && (
+                  <Typography
+                    variant="mobText3"
+                    color={COLORS.white06}
+                    marginTop="12px"
+                  >
+                    {withdrawalUnavailableText}
+                  </Typography>
+                )}
+              </Box>
+            )}
+
+          {actionState.surface === "actions" && (
             <Box
               sx={{
                 width: "100%",
@@ -479,9 +509,9 @@ export const MobileMarketActions = ({
 
               {depositAction}
             </Box>
-          </>
-        )}
-      </Box>
+          )}
+        </Box>
+      )}
     </Box>
   )
 }

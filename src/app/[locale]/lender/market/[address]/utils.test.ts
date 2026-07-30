@@ -1,8 +1,12 @@
+import { QueueWithdrawalStatus } from "@wildcatfi/wildcat-sdk"
+
 import { LenderStatus } from "./interface"
 import {
   getLenderSurfaceState,
   resolveLenderActionState,
   resolveLenderAccessState,
+  resolveLenderWithdrawalActionState,
+  shouldShowLenderTransactions,
   shouldShowLenderRequestBanner,
 } from "./utils"
 
@@ -132,6 +136,8 @@ describe("shouldShowLenderRequestBanner", () => {
       isConnected: false,
       isDifferentChain: false,
       accessState: "unauthorized" as const,
+      hasLenderTransactions: false,
+      isWithdrawalActivityLoading: false,
       expected: false,
     },
     {
@@ -139,13 +145,26 @@ describe("shouldShowLenderRequestBanner", () => {
       isConnected: true,
       isDifferentChain: false,
       accessState: "unauthorized" as const,
+      hasLenderTransactions: false,
+      isWithdrawalActivityLoading: false,
       expected: true,
+    },
+    {
+      state: "connected and unauthorized while withdrawals are loading",
+      isConnected: true,
+      isDifferentChain: false,
+      accessState: "unauthorized" as const,
+      hasLenderTransactions: false,
+      isWithdrawalActivityLoading: true,
+      expected: false,
     },
     {
       state: "connected and authorized on the correct chain",
       isConnected: true,
       isDifferentChain: false,
       accessState: "authorized" as const,
+      hasLenderTransactions: true,
+      isWithdrawalActivityLoading: false,
       expected: false,
     },
     {
@@ -153,6 +172,8 @@ describe("shouldShowLenderRequestBanner", () => {
       isConnected: true,
       isDifferentChain: true,
       accessState: "unauthorized" as const,
+      hasLenderTransactions: false,
+      isWithdrawalActivityLoading: false,
       expected: false,
     },
     {
@@ -160,6 +181,8 @@ describe("shouldShowLenderRequestBanner", () => {
       isConnected: true,
       isDifferentChain: false,
       accessState: "resolving" as const,
+      hasLenderTransactions: false,
+      isWithdrawalActivityLoading: true,
       expected: false,
     },
     {
@@ -167,6 +190,8 @@ describe("shouldShowLenderRequestBanner", () => {
       isConnected: true,
       isDifferentChain: false,
       accessState: "error" as const,
+      hasLenderTransactions: false,
+      isWithdrawalActivityLoading: false,
       expected: false,
     },
     {
@@ -174,17 +199,40 @@ describe("shouldShowLenderRequestBanner", () => {
       isConnected: true,
       isDifferentChain: false,
       accessState: "blocked" as const,
+      hasLenderTransactions: true,
+      isWithdrawalActivityLoading: false,
       expected: false,
     },
-  ])("$state", ({ isConnected, isDifferentChain, accessState, expected }) => {
-    expect(
-      shouldShowLenderRequestBanner({
-        isConnected,
-        isDifferentChain,
-        accessState,
-      }),
-    ).toBe(expected)
-  })
+    {
+      state: "unauthorized lender with an existing position",
+      isConnected: true,
+      isDifferentChain: false,
+      accessState: "unauthorized" as const,
+      hasLenderTransactions: true,
+      isWithdrawalActivityLoading: false,
+      expected: false,
+    },
+  ])(
+    "$state",
+    ({
+      isConnected,
+      isDifferentChain,
+      accessState,
+      hasLenderTransactions,
+      isWithdrawalActivityLoading,
+      expected,
+    }) => {
+      expect(
+        shouldShowLenderRequestBanner({
+          isConnected,
+          isDifferentChain,
+          accessState,
+          hasLenderTransactions,
+          isWithdrawalActivityLoading,
+        }),
+      ).toBe(expected)
+    },
+  )
 })
 
 describe("lender market action state matrix", () => {
@@ -228,7 +276,7 @@ describe("lender market action state matrix", () => {
         surface: "authorization-loading",
         deposit: "hidden",
         canWithdraw: false,
-        canClaim: false,
+        canClaim: true,
       },
     },
     {
@@ -238,7 +286,7 @@ describe("lender market action state matrix", () => {
         surface: "authorization-error",
         deposit: "hidden",
         canWithdraw: false,
-        canClaim: false,
+        canClaim: true,
       },
     },
     {
@@ -248,7 +296,7 @@ describe("lender market action state matrix", () => {
         surface: "blocked",
         deposit: "hidden",
         canWithdraw: false,
-        canClaim: false,
+        canClaim: true,
       },
     },
     {
@@ -258,7 +306,7 @@ describe("lender market action state matrix", () => {
         surface: "request-access",
         deposit: "hidden",
         canWithdraw: false,
-        canClaim: false,
+        canClaim: true,
       },
     },
     {
@@ -351,4 +399,167 @@ describe("lender market action state matrix", () => {
   ])("$state", ({ input, expected }) => {
     expect(resolveLenderActionState({ ...base, ...input })).toEqual(expected)
   })
+})
+
+describe("lender queue-withdrawal action state", () => {
+  const base = {
+    accessState: "authorized" as const,
+    hasMarketAccount: true,
+    hasMarketBalance: true,
+    withdrawalAvailability: QueueWithdrawalStatus.Ready,
+    periodicWindowClosed: false,
+  }
+
+  it.each([
+    {
+      state: "access is still resolving",
+      input: { accessState: "resolving" as const },
+      expected: "resolving",
+    },
+    {
+      state: "access resolution failed",
+      input: { accessState: "error" as const },
+      expected: "resolution-error",
+    },
+    {
+      state: "market account is not available",
+      input: { hasMarketAccount: false },
+      expected: "resolving",
+    },
+    {
+      state: "lender has no market-token balance",
+      input: { hasMarketBalance: false },
+      expected: "no-balance",
+    },
+    {
+      state: "periodic withdrawal window is closed",
+      input: { periodicWindowClosed: true },
+      expected: "withdrawal-window-closed",
+    },
+    {
+      state: "credential is required",
+      input: {
+        withdrawalAvailability: QueueWithdrawalStatus.RequiresAccess,
+      },
+      expected: "requires-access",
+    },
+    {
+      state: "fixed term has not ended",
+      input: {
+        withdrawalAvailability: QueueWithdrawalStatus.MarketInClosedTerm,
+      },
+      expected: "fixed-term",
+    },
+    {
+      state: "SDK reports a closed periodic window",
+      input: {
+        withdrawalAvailability: QueueWithdrawalStatus.WithdrawalWindowClosed,
+      },
+      expected: "withdrawal-window-closed",
+    },
+    {
+      state: "balance is insufficient",
+      input: {
+        withdrawalAvailability: QueueWithdrawalStatus.InsufficientBalance,
+      },
+      expected: "insufficient-balance",
+    },
+    {
+      state: "role is insufficient",
+      input: {
+        withdrawalAvailability: QueueWithdrawalStatus.InsufficientRole,
+      },
+      expected: "insufficient-role",
+    },
+    {
+      state: "indexed availability is ready but live access is unauthorized",
+      input: {
+        accessState: "unauthorized" as const,
+      },
+      expected: "insufficient-role",
+    },
+    {
+      state: "withdrawal is ready",
+      input: {},
+      expected: "ready",
+    },
+  ])("$state", ({ input, expected }) => {
+    expect(resolveLenderWithdrawalActionState({ ...base, ...input })).toBe(
+      expected,
+    )
+  })
+
+  it("changes from unavailable to ready when a periodic window opens", () => {
+    expect(
+      resolveLenderWithdrawalActionState({
+        ...base,
+        periodicWindowClosed: true,
+      }),
+    ).toBe("withdrawal-window-closed")
+
+    expect(
+      resolveLenderWithdrawalActionState({
+        ...base,
+        periodicWindowClosed: false,
+      }),
+    ).toBe("ready")
+  })
+})
+
+describe("shouldShowLenderTransactions", () => {
+  it.each([
+    {
+      state: "authorized lender without a current position",
+      accessState: "authorized" as const,
+      hasMarketPosition: false,
+      hasWithdrawalActivity: false,
+      expected: true,
+    },
+    {
+      state: "unauthorized wallet holding market tokens",
+      accessState: "unauthorized" as const,
+      hasMarketPosition: true,
+      hasWithdrawalActivity: false,
+      expected: true,
+    },
+    {
+      state: "blocked wallet with an existing withdrawal",
+      accessState: "blocked" as const,
+      hasMarketPosition: false,
+      hasWithdrawalActivity: true,
+      expected: true,
+    },
+    {
+      state: "account resolution pending with a claimable withdrawal",
+      accessState: "resolving" as const,
+      hasMarketPosition: false,
+      hasWithdrawalActivity: true,
+      expected: true,
+    },
+    {
+      state: "account resolution failed with a claimable withdrawal",
+      accessState: "error" as const,
+      hasMarketPosition: false,
+      hasWithdrawalActivity: true,
+      expected: true,
+    },
+    {
+      state: "unauthorized wallet without a position or withdrawal",
+      accessState: "unauthorized" as const,
+      hasMarketPosition: false,
+      hasWithdrawalActivity: false,
+      expected: false,
+    },
+  ])(
+    "$state",
+    ({ accessState, hasMarketPosition, hasWithdrawalActivity, expected }) => {
+      expect(
+        shouldShowLenderTransactions({
+          accessState,
+          hasMarketPosition,
+          hasWithdrawalActivity,
+        }),
+      ).toBe(expected)
+    },
+  )
 })

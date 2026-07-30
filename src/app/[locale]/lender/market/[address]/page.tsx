@@ -90,6 +90,7 @@ import {
   getEffectiveLenderRole,
   getLenderSurfaceState,
   resolveLenderAccessState,
+  shouldShowLenderTransactions,
   shouldShowLenderRequestBanner,
 } from "./utils"
 
@@ -280,6 +281,15 @@ export default function LenderMarketDetails({
     accessState: lenderAccessState,
   })
   const authorizedInMarket = lenderAccessState === "authorized"
+  const hasMarketPosition = marketAccount?.marketBalance.gt(0) ?? false
+  const hasWithdrawalActivity =
+    !!withdrawals.activeWithdrawal ||
+    withdrawals.expiredPendingWithdrawals.length > 0
+  const showLenderTransactions = shouldShowLenderTransactions({
+    accessState: lenderAccessState,
+    hasMarketPosition,
+    hasWithdrawalActivity,
+  })
 
   const {
     wrapper,
@@ -296,15 +306,15 @@ export default function LenderMarketDetails({
     isConnected,
     isDifferentChain,
     accessState: lenderAccessState,
+    hasLenderTransactions: showLenderTransactions,
+    isWithdrawalActivityLoading: isWithdrawalsLoading,
   })
   const showLenderAccessLoading = lenderSurfaceState === "authorization-loading"
   const showLenderAccessError = lenderSurfaceState === "authorization-error"
   const showLenderBlocked = lenderSurfaceState === "blocked"
   const isTransactionsLoading =
-    lenderAccessState === "resolving" ||
-    lenderAccessState === "error" ||
     !marketAccount ||
-    (authorizedInMarket && !isDifferentChain && isWithdrawalsLoading)
+    (showLenderTransactions && !isDifferentChain && isWithdrawalsLoading)
   const isBarChartsLoading = !marketAccount || isWithdrawalsLoading
 
   const currentSection = useAppSelector(
@@ -316,24 +326,30 @@ export default function LenderMarketDetails({
   }, [isLoading])
 
   useEffect(() => {
-    if (
-      !isConnected ||
-      isDifferentChain ||
-      lenderAccessState === "resolving" ||
-      lenderAccessState === "error"
-    ) {
+    if (!isConnected || isDifferentChain) {
       dispatch(setIsLender(false))
       return
     }
 
-    if (lenderAccessState === "authorized") {
+    if (lenderAccessState === "resolving" || lenderAccessState === "error") {
+      dispatch(setIsLender(showLenderTransactions))
+      return
+    }
+
+    if (showLenderTransactions) {
       dispatch(setIsLender(true))
       dispatch(setSection(LenderMarketSections.TRANSACTIONS))
     } else {
       dispatch(setIsLender(false))
       dispatch(setSection(LenderMarketSections.STATUS))
     }
-  }, [dispatch, isConnected, isDifferentChain, lenderAccessState])
+  }, [
+    dispatch,
+    isConnected,
+    isDifferentChain,
+    lenderAccessState,
+    showLenderTransactions,
+  ])
 
   const ongoingCount = (
     withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
@@ -567,10 +583,11 @@ export default function LenderMarketDetails({
 
         {marketAccount &&
           isConnected &&
-          (authorizedInMarket || isDifferentChain) && (
+          (showLenderTransactions || isDifferentChain) && (
             <MobileMarketActions
               marketAccount={marketAccount}
               withdrawals={withdrawals}
+              accessState={lenderAccessState}
               isMobileWithdrawalOpen={isMobileWithdrawalOpen}
               setIsMobileDepositOpen={setIsMobileDepositOpen}
               setIsMobileAcknowledgementOpen={setIsMobileAcknowledgementOpen}
@@ -594,10 +611,11 @@ export default function LenderMarketDetails({
 
         {marketAccount &&
           isConnected &&
-          (authorizedInMarket || isDifferentChain) && (
+          (showLenderTransactions || isDifferentChain) && (
             <MobileMarketActions
               marketAccount={marketAccount}
               withdrawals={withdrawals}
+              accessState={lenderAccessState}
               isMobileWithdrawalOpen={isMobileWithdrawalOpen}
               setIsMobileDepositOpen={setIsMobileDepositOpen}
               setIsMobileAcknowledgementOpen={setIsMobileAcknowledgementOpen}
@@ -782,10 +800,11 @@ export default function LenderMarketDetails({
 
           {marketAccount &&
             isConnected &&
-            (authorizedInMarket || isDifferentChain) && (
+            (showLenderTransactions || isDifferentChain) && (
               <MobileMarketActions
                 marketAccount={marketAccount}
                 withdrawals={withdrawals}
+                accessState={lenderAccessState}
                 isMobileWithdrawalOpen={isMobileWithdrawalOpen}
                 setIsMobileDepositOpen={setIsMobileDepositOpen}
                 setIsMobileAcknowledgementOpen={setIsMobileAcknowledgementOpen}
@@ -899,16 +918,21 @@ export default function LenderMarketDetails({
                 <LenderTransactionsSkeleton />
               ) : (
                 <>
-                  {authorizedInMarket && !isDifferentChain && (
-                    <MarketActions
-                      marketAccount={marketAccount}
-                      withdrawals={withdrawals}
-                      borrowerPenaltyWarningState={borrowerPenaltyWarning.state}
-                      refreshBorrowerPenaltyWarning={
-                        borrowerPenaltyWarning.refresh
-                      }
-                    />
-                  )}
+                  {showLenderTransactions &&
+                    isConnected &&
+                    !isDifferentChain && (
+                      <MarketActions
+                        marketAccount={marketAccount}
+                        withdrawals={withdrawals}
+                        accessState={lenderAccessState}
+                        borrowerPenaltyWarningState={
+                          borrowerPenaltyWarning.state
+                        }
+                        refreshBorrowerPenaltyWarning={
+                          borrowerPenaltyWarning.refresh
+                        }
+                      />
+                    )}
                   <CapacityBarChart
                     marketAccount={marketAccount}
                     legendType="big"

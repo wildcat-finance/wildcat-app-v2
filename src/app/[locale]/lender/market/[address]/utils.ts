@@ -1,4 +1,9 @@
-import { LenderRole, Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import {
+  LenderRole,
+  Market,
+  MarketAccount,
+  QueueWithdrawalStatus,
+} from "@wildcatfi/wildcat-sdk"
 
 import { DepositAgreementGateState } from "@/utils/depositAgreementGate"
 import { ToUGateState } from "@/utils/serviceAgreementState"
@@ -67,6 +72,56 @@ export const resolveLenderAccessState = ({
   return "unauthorized"
 }
 
+export type LenderWithdrawalActionState =
+  | "resolving"
+  | "resolution-error"
+  | "no-balance"
+  | "requires-access"
+  | "fixed-term"
+  | "withdrawal-window-closed"
+  | "insufficient-balance"
+  | "insufficient-role"
+  | "ready"
+
+export const resolveLenderWithdrawalActionState = ({
+  accessState,
+  hasMarketAccount,
+  hasMarketBalance,
+  withdrawalAvailability,
+  periodicWindowClosed,
+}: {
+  accessState: LenderAccessState
+  hasMarketAccount: boolean
+  hasMarketBalance: boolean
+  withdrawalAvailability: QueueWithdrawalStatus | undefined
+  periodicWindowClosed: boolean
+}): LenderWithdrawalActionState => {
+  if (accessState === "resolving") return "resolving"
+  if (accessState === "error") return "resolution-error"
+  if (!hasMarketAccount || withdrawalAvailability === undefined) {
+    return "resolving"
+  }
+  if (!hasMarketBalance) return "no-balance"
+  if (periodicWindowClosed) return "withdrawal-window-closed"
+
+  switch (withdrawalAvailability) {
+    case QueueWithdrawalStatus.Ready:
+      return accessState === "authorized" ? "ready" : "insufficient-role"
+    case QueueWithdrawalStatus.RequiresAccess:
+      return "requires-access"
+    case QueueWithdrawalStatus.MarketInClosedTerm:
+      return "fixed-term"
+    case QueueWithdrawalStatus.WithdrawalWindowClosed:
+      return "withdrawal-window-closed"
+    case QueueWithdrawalStatus.InsufficientBalance:
+      return "insufficient-balance"
+    case QueueWithdrawalStatus.InsufficientRole:
+      return "insufficient-role"
+    default:
+      return "resolving"
+  }
+}
+
 export const getLenderSurfaceState = ({
   isConnected,
   isDifferentChain,
@@ -89,16 +144,32 @@ export const shouldShowLenderRequestBanner = ({
   isConnected,
   isDifferentChain,
   accessState,
+  hasLenderTransactions,
+  isWithdrawalActivityLoading,
 }: {
   isConnected: boolean
   isDifferentChain: boolean
   accessState: LenderAccessState
+  hasLenderTransactions: boolean
+  isWithdrawalActivityLoading: boolean
 }) =>
+  !hasLenderTransactions &&
+  !isWithdrawalActivityLoading &&
   getLenderSurfaceState({
     isConnected,
     isDifferentChain,
     accessState,
   }) === "request-access"
+
+export const shouldShowLenderTransactions = ({
+  accessState,
+  hasMarketPosition,
+  hasWithdrawalActivity,
+}: {
+  accessState: LenderAccessState
+  hasMarketPosition: boolean
+  hasWithdrawalActivity: boolean
+}) => accessState === "authorized" || hasMarketPosition || hasWithdrawalActivity
 
 export type LenderDepositActionState =
   | "hidden"
@@ -148,6 +219,6 @@ export const resolveLenderActionState = ({
     surface,
     deposit,
     canWithdraw: surface === "actions" && withdrawalAvailable,
-    canClaim: surface === "actions" && claimAvailable,
+    canClaim: isConnected && !isDifferentChain && claimAvailable,
   }
 }

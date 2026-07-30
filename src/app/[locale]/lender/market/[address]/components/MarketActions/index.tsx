@@ -1,11 +1,7 @@
 import * as React from "react"
 
 import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
-import {
-  DepositStatus,
-  MarketAccount,
-  QueueWithdrawalStatus,
-} from "@wildcatfi/wildcat-sdk"
+import { DepositStatus, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -35,6 +31,7 @@ import { isPeriodicWithdrawalWindowClosed } from "@/utils/periodicWithdrawalWind
 
 import { MarketActionsProps } from "./interface"
 import { useFaucet } from "../../hooks/useFaucet"
+import { resolveLenderWithdrawalActionState } from "../../utils"
 
 const DepositStatusContainer = {
   maxWidth: "200px",
@@ -69,6 +66,7 @@ const FaucetButton = ({ marketAccount }: { marketAccount: MarketAccount }) => {
 export const MarketActions = ({
   marketAccount,
   withdrawals,
+  accessState,
   borrowerPenaltyWarningState,
   refreshBorrowerPenaltyWarning,
 }: MarketActionsProps) => {
@@ -101,15 +99,23 @@ export const MarketActions = ({
     market.underlyingToken.isMock &&
     marketAccount.underlyingBalance.eq(0)
 
-  // `withdrawalAvailability` hides the withdraw button while the periodic
-  // window is closed; the tick re-evaluates it so the button reappears the
-  // moment a window opens, and the notice below explains the gap meanwhile.
+  // The live tick re-evaluates the recurring schedule so the action becomes
+  // available at the window boundary without waiting for a data refetch.
   const nowSec = useLivePeriodicNowSeconds(market)
   const periodicWindowClosed = isPeriodicWithdrawalWindowClosed(market, nowSec)
-
-  const hideWithdraw =
-    marketAccount.marketBalance.eq(0) ||
-    marketAccount.withdrawalAvailability !== QueueWithdrawalStatus.Ready
+  const withdrawalActionState = resolveLenderWithdrawalActionState({
+    accessState,
+    hasMarketAccount: true,
+    hasMarketBalance: marketAccount.marketBalance.gt(0),
+    withdrawalAvailability: marketAccount.withdrawalAvailability,
+    periodicWindowClosed,
+  })
+  const withdrawalUnavailableText =
+    withdrawalActionState === "ready"
+      ? undefined
+      : t(
+          `lenderMarketDetails.transactions.withdraw.unavailable.${withdrawalActionState}`,
+        )
 
   const ongoingCount = (
     withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
@@ -240,85 +246,89 @@ export const MarketActions = ({
 
       <Box width="100%" display="flex" flexDirection="column">
         <Box sx={TransactionsContainer}>
-          <TransactionBlock
-            title={t("lenderMarketDetails.transactions.deposit.title")}
-            tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
-            amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
-            asset={market.underlyingToken.symbol}
-          >
-            {(() => {
-              if (showFaucet) {
-                return <FaucetButton marketAccount={marketAccount} />
-              }
-              if (hideDeposit) return null
+          {accessState === "authorized" && (
+            <TransactionBlock
+              title={t("lenderMarketDetails.transactions.deposit.title")}
+              tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
+              amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
+              asset={market.underlyingToken.symbol}
+            >
+              {(() => {
+                if (showFaucet) {
+                  return <FaucetButton marketAccount={marketAccount} />
+                }
+                if (hideDeposit) return null
 
-              if (agreementGate.state === "loading") {
+                if (agreementGate.state === "loading") {
+                  return (
+                    <Box sx={DepositStatusContainer}>
+                      <Typography variant="text3" color={COLORS.santasGrey}>
+                        Loading agreement data...
+                      </Typography>
+                    </Box>
+                  )
+                }
+
+                if (agreementGate.state === "error") {
+                  return (
+                    <Box sx={DepositStatusContainer}>
+                      <Typography variant="text3" color={COLORS.santasGrey}>
+                        Couldn&apos;t load agreement data
+                      </Typography>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        sx={{ alignSelf: "flex-start" }}
+                        onClick={() => {
+                          toastError("Couldn't load agreement data — retrying")
+                          agreementGate.retry().catch(() => undefined)
+                        }}
+                      >
+                        Retry agreement data
+                      </Button>
+                    </Box>
+                  )
+                }
+
+                if (agreementGate.state === "requires-borrower-mla-selection") {
+                  return (
+                    <Box sx={DepositStatusContainer}>
+                      <Typography variant="text3" sx={{ fontWeight: 600 }}>
+                        Agreement Selection Required
+                      </Typography>
+                      <Typography variant="text4" color={COLORS.santasGrey}>
+                        The borrower must complete this market&apos;s agreement
+                        selection before deposits can begin.
+                      </Typography>
+                    </Box>
+                  )
+                }
+
+                if (agreementGate.state === "requires-mla-signature") {
+                  return (
+                    <Box sx={DepositStatusContainer}>
+                      <Typography variant="text3" sx={{ fontWeight: 600 }}>
+                        Loan Agreement Signature Required
+                      </Typography>
+                      <Typography variant="text4" color={COLORS.santasGrey}>
+                        Sign the MLA before depositing into this market.
+                      </Typography>
+                    </Box>
+                  )
+                }
+
                 return (
-                  <Box sx={DepositStatusContainer}>
-                    <Typography variant="text3" color={COLORS.santasGrey}>
-                      Loading agreement data...
-                    </Typography>
-                  </Box>
+                  <DepositModal
+                    marketAccount={marketAccount}
+                    borrowerPenaltyWarningState={borrowerPenaltyWarningState}
+                    refreshBorrowerPenaltyWarning={
+                      refreshBorrowerPenaltyWarning
+                    }
+                  />
                 )
-              }
-
-              if (agreementGate.state === "error") {
-                return (
-                  <Box sx={DepositStatusContainer}>
-                    <Typography variant="text3" color={COLORS.santasGrey}>
-                      Couldn&apos;t load agreement data
-                    </Typography>
-                    <Button
-                      variant="contained"
-                      size="small"
-                      sx={{ alignSelf: "flex-start" }}
-                      onClick={() => {
-                        toastError("Couldn't load agreement data — retrying")
-                        agreementGate.retry().catch(() => undefined)
-                      }}
-                    >
-                      Retry agreement data
-                    </Button>
-                  </Box>
-                )
-              }
-
-              if (agreementGate.state === "requires-borrower-mla-selection") {
-                return (
-                  <Box sx={DepositStatusContainer}>
-                    <Typography variant="text3" sx={{ fontWeight: 600 }}>
-                      Agreement Selection Required
-                    </Typography>
-                    <Typography variant="text4" color={COLORS.santasGrey}>
-                      The borrower must complete this market&apos;s agreement
-                      selection before deposits can begin.
-                    </Typography>
-                  </Box>
-                )
-              }
-
-              if (agreementGate.state === "requires-mla-signature") {
-                return (
-                  <Box sx={DepositStatusContainer}>
-                    <Typography variant="text3" sx={{ fontWeight: 600 }}>
-                      Loan Agreement Signature Required
-                    </Typography>
-                    <Typography variant="text4" color={COLORS.santasGrey}>
-                      Sign the MLA before depositing into this market.
-                    </Typography>
-                  </Box>
-                )
-              }
-
-              return (
-                <DepositModal
-                  marketAccount={marketAccount}
-                  borrowerPenaltyWarningState={borrowerPenaltyWarningState}
-                  refreshBorrowerPenaltyWarning={refreshBorrowerPenaltyWarning}
-                />
-              )
-            })()}
-          </TransactionBlock>
+              })()}
+            </TransactionBlock>
+          )}
 
           <TransactionBlock
             title={t("lenderMarketDetails.transactions.withdraw.title")}
@@ -334,7 +344,15 @@ export const MarketActions = ({
             }
             asset={market.underlyingToken.symbol}
           >
-            {!hideWithdraw && <WithdrawModal marketAccount={marketAccount} />}
+            {withdrawalActionState === "ready" ? (
+              <WithdrawModal marketAccount={marketAccount} />
+            ) : (
+              <Box sx={DepositStatusContainer}>
+                <Typography variant="text4" color={COLORS.santasGrey}>
+                  {withdrawalUnavailableText}
+                </Typography>
+              </Box>
+            )}
           </TransactionBlock>
         </Box>
 

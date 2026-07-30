@@ -1157,7 +1157,7 @@
       },
       "blocked": {
         "title": "Lender access blocked",
-        "subtitle": "The market's onchain access check reports this wallet as blocked."
+        "subtitle": "The market's onchain access check reports this wallet as blocked. Claimable withdrawals remain available below."
       }
     },
     "sidebar": {
@@ -1237,6 +1237,16 @@
         "title": "Available For Withdraw Requests",
         "tooltip": "The amount of underlying asset debt that the address you are connected with is able to request a withdrawal for. Note that if this market is still in a Fixed Term state (see maturity below), you are unable to make withdrawal requests.",
         "periodicTooltip": "The amount of underlying asset debt that the connected address can request for withdrawal. Periodic markets accept withdrawal requests only during scheduled withdrawal windows.",
+        "unavailable": {
+          "resolving": "Checking withdrawal availability…",
+          "resolution-error": "Withdrawal access could not be verified. Retry the blockchain check above.",
+          "no-balance": "No market tokens are available to withdraw.",
+          "requires-access": "A valid lender credential is required to request a withdrawal.",
+          "fixed-term": "Withdrawal requests open when the fixed term ends.",
+          "withdrawal-window-closed": "Withdrawal requests are available only during the scheduled window.",
+          "insufficient-balance": "The market-token balance is insufficient for this withdrawal.",
+          "insufficient-role": "This wallet does not have permission to request a withdrawal."
+        },
         "periodicWindow": {
           "closed": "Withdrawals are only available during this market's withdrawal window.",
           "nextStart": "Next window opens {{date}} ({{countdown}})"
