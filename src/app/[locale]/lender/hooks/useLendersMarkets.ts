@@ -1,5 +1,3 @@
-import { useMemo } from "react"
-
 import { useQuery } from "@tanstack/react-query"
 import {
   SignerOrProvider,
@@ -14,15 +12,18 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import { zeroAddress } from "viem"
 
-import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { cloneSdkObject } from "@/lib/sdk-object"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TOKENS_ADDRESSES } from "@/utils/constants"
 import { isNotExcludedMarket } from "@/utils/filters"
 import { refreshMarketAccountsV2LiveDataSafe } from "@/utils/marketV2Reads"
 import { TwoStepQueryHookResult } from "@/utils/types"
+
+export const LENDER_DASHBOARD_INDEXED_REFRESH_INTERVAL = 60_000
+export const LENDER_DASHBOARD_LIVE_REFRESH_INTERVAL = 60_000
 
 function getChunks<T extends Market | MarketAccount>(
   chainId: SupportedChainId,
@@ -71,6 +72,23 @@ function zeroLenderBalances(lenderStatus: LenderStatusUpdate) {
   } as unknown as LenderStatusUpdate
 }
 
+export function cloneMarketAccountForLiveRefresh(
+  account: MarketAccount,
+  signerOrProvider: SignerOrProvider,
+) {
+  const market = cloneSdkObject(account.market)
+
+  // ContractWrapper.provider propagates to nested wrappers. Clone the tokens
+  // before changing providers so the indexed React Query entry stays immutable.
+  market.marketToken = cloneSdkObject(account.market.marketToken)
+  market.underlyingToken = cloneSdkObject(account.market.underlyingToken)
+  market.provider = signerOrProvider
+
+  const accountForLiveRefresh = cloneSdkObject(account)
+  accountForLiveRefresh.market = market
+  return accountForLiveRefresh
+}
+
 export function useLendersMarkets(): TwoStepQueryHookResult<MarketAccount[]> {
   const { isWrongNetwork, provider, signer, address } = useEthersProvider()
   const { chainId, targetChainId } = useCurrentNetwork()
@@ -107,29 +125,38 @@ export function useLendersMarkets(): TwoStepQueryHookResult<MarketAccount[]> {
     refetch: refetchInitial,
     isError: isErrorInitial,
     failureReason: errorInitial,
+    dataUpdatedAt: indexedDataUpdatedAt,
   } = useQuery({
     queryKey: QueryKeys.Lender.GET_LENDER_ACCOUNTS.INITIAL(
       targetChainId,
       lender,
     ),
     queryFn: queryMarketsForLender,
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: LENDER_DASHBOARD_INDEXED_REFRESH_INTERVAL,
+    staleTime: LENDER_DASHBOARD_INDEXED_REFRESH_INTERVAL,
     enabled: !!signerOrProvider && !isWrongNetwork,
     refetchOnMount: false,
+    refetchOnWindowFocus: true,
   })
 
   const accounts = data ?? []
 
-  const CHUNK_SIZE = targetChainId === 1 ? 5 : 50
-
   async function getLenderUpdates() {
     logger.debug(`Getting lender updates...`)
+    if (!signerOrProvider) throw Error(`no provider`)
+
+    const accountsForLiveRefresh = accounts.map((account) =>
+      cloneMarketAccountForLiveRefresh(account, signerOrProvider),
+    )
     const hasV1Lens = hasDeploymentAddress(targetChainId, "MarketLens")
     const lens = hasV1Lens
       ? getLensContract(targetChainId, signerOrProvider as SignerOrProvider)
       : undefined
 
-    const { v1Chunks, v2Chunks } = getChunks(targetChainId, accounts)
+    const { v1Chunks, v2Chunks } = getChunks(
+      targetChainId,
+      accountsForLiveRefresh,
+    )
     await Promise.all([
       ...(lens
         ? v1Chunks.map(async (accountsChunk) => {
@@ -164,14 +191,9 @@ export function useLendersMarkets(): TwoStepQueryHookResult<MarketAccount[]> {
     ]).catch((e) => {
       throw e
     })
-    logger.debug(`Got ${accounts.length} lender updates`)
-    return accounts
+    logger.debug(`Got ${accountsForLiveRefresh.length} lender updates`)
+    return accountsForLiveRefresh
   }
-
-  const updateQueryKeys = useMemo(
-    () => accounts.map((b) => [b.market.address, b.account]),
-    [accounts],
-  )
 
   const {
     data: updatedLenders,
@@ -184,11 +206,14 @@ export function useLendersMarkets(): TwoStepQueryHookResult<MarketAccount[]> {
     queryKey: QueryKeys.Lender.GET_LENDER_ACCOUNTS.UPDATE(
       targetChainId,
       lender,
-      updateQueryKeys,
+      indexedDataUpdatedAt,
     ),
     queryFn: getLenderUpdates,
-    enabled: !!data,
+    refetchInterval: LENDER_DASHBOARD_LIVE_REFRESH_INTERVAL,
+    staleTime: LENDER_DASHBOARD_LIVE_REFRESH_INTERVAL,
+    enabled: !!data && !!signerOrProvider && !isWrongNetwork,
     refetchOnMount: false,
+    refetchOnWindowFocus: true,
   })
 
   return {

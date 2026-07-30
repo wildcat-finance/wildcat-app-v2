@@ -159,13 +159,8 @@ export const MarketsSection = () => {
   const { isConnected } = useAccount()
   const { data: borrowers } = useBorrowerNames()
 
-  const {
-    data: marketAccounts,
-    isLoadingInitial,
-    isLoadingUpdate,
-  } = useLendersMarkets()
-
-  const isLoading = isLoadingInitial || isLoadingUpdate
+  const { data: marketAccounts, isLoadingInitial: isLoading } =
+    useLendersMarkets()
 
   const filteredMarketAccounts = useMemo(
     () =>

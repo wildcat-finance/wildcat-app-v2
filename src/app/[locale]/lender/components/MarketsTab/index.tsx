@@ -66,17 +66,12 @@ export const MarketsTab = ({ showConnectedData }: MarketsTabProps) => {
       b.map((x) => `${x.name}:${x.address}`).join(","),
   )
 
-  const {
-    data: lenderMarketAccounts,
-    isLoadingInitial,
-    isLoadingUpdate,
-  } = useLendersMarkets()
+  const { data: lenderMarketAccounts, isLoadingInitial: isLoading } =
+    useLendersMarkets()
 
   const { data: borrowers } = useBorrowerNames()
 
   console.log(`Got ${borrowers?.length} borrowers`)
-
-  const isLoading = isLoadingInitial || isLoadingUpdate
 
   const filteredMarketAccounts = useMemo(
     () =>

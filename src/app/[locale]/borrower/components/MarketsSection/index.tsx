@@ -171,13 +171,8 @@ export const MarketsSection = () => {
     return tokensRaw
   }, [tokensRaw])
 
-  const {
-    data: marketAccounts,
-    isLoadingInitial,
-    isLoadingUpdate,
-  } = useLendersMarkets()
-
-  const isLoading = isLoadingInitial || isLoadingUpdate
+  const { data: marketAccounts, isLoadingInitial: isLoading } =
+    useLendersMarkets()
 
   const borrowerMarketAccounts = marketAccounts.filter(
     (account) =>
