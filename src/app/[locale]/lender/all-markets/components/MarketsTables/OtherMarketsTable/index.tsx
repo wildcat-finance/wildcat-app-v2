@@ -9,7 +9,7 @@ import {
   GridRenderCellParams,
   GridRowsProp,
 } from "@mui/x-data-grid"
-import { DepositStatus, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -35,7 +35,6 @@ import {
   tokenAmountComparator,
   typeComparator,
 } from "@/utils/comparators"
-import { pageCalcHeights } from "@/utils/constants"
 import {
   buildMarketHref,
   formatBps,
@@ -147,6 +146,7 @@ export const OtherMarketsTable = ({
         apr: annualInterestBips,
         withdrawalBatchDuration,
         debt: totalSupply,
+        capacity: maxTotalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
         onboardingMode: getKnownMarketOnboardingMode(
           market.version,
@@ -462,25 +462,13 @@ export const OtherMarketsTable = ({
     return (
       <>
         {scrollTargetId === "self-onboard" && (
-          <MobileMarketList
-            markets={selfOnboard}
-            isLoading={isLoading}
-            showOnboardingAction
-          />
+          <MobileMarketList markets={selfOnboard} isLoading={isLoading} />
         )}
         {scrollTargetId === "manual" && (
-          <MobileMarketList
-            markets={manual}
-            isLoading={isLoading}
-            showOnboardingAction
-          />
+          <MobileMarketList markets={manual} isLoading={isLoading} />
         )}
         {scrollTargetId === "other-terminated" && (
-          <MobileMarketList
-            markets={terminated}
-            isLoading={isLoading}
-            showOnboardingAction
-          />
+          <MobileMarketList markets={terminated} isLoading={isLoading} />
         )}
       </>
     )

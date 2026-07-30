@@ -98,6 +98,7 @@ export const TerminatedMarketsTables = ({
         name,
         underlyingToken,
         annualInterestBips,
+        maxTotalSupply,
         totalSupply,
         withdrawalBatchDuration,
         chainId,
@@ -122,6 +123,7 @@ export const TerminatedMarketsTables = ({
         withdrawalBatchDuration,
         loan: marketBalance,
         debt: totalSupply,
+        capacity: maxTotalSupply,
         hasEverInteracted: account.hasEverInteracted,
         chainId,
       }

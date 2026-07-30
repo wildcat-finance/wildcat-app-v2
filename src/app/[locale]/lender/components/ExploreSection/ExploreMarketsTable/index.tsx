@@ -40,8 +40,8 @@ import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsFilterSelect } from "@/components/MarketsFilterSelect"
 import { MarketsFilterSelectItem } from "@/components/MarketsFilterSelect/interface"
 import { MarketsTableWrapper } from "@/components/MarketsTableWrapper"
-import { ExploreMarketCard } from "@/components/Mobile/ExploreMarketCard"
 import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
+import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
 import { MobileSearchButton } from "@/components/Mobile/MobileSearchButton"
 import { RepeatingSkeletons } from "@/components/RepeatingSkeletons"
 import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
@@ -662,11 +662,17 @@ export const ExploreMarketsTable = () => {
         sx={{
           display: "flex",
           flexDirection: "column",
-          padding: "16px 8px 8px",
-          borderRadius: "14px",
-          backgroundColor: COLORS.white,
+          padding: "24px 8px 8px",
+          backgroundColor: "transparent",
         }}
       >
+        <Typography
+          variant="mobH2"
+          sx={{ padding: "0 8px", marginBottom: "16px" }}
+        >
+          Top Markets
+        </Typography>
+
         <Box
           sx={{
             display: "flex",
@@ -769,15 +775,13 @@ export const ExploreMarketsTable = () => {
             }}
           />
         ) : (
-          rows
-            .slice(0, EXPLORE_PAGE_SIZE)
-            .map((marketItem, index, visibleRows) => (
-              <ExploreMarketCard
-                key={marketItem.id}
-                marketItem={marketItem}
-                isLast={index === visibleRows.length - 1}
-              />
-            ))
+          rows.map((marketItem, index) => (
+            <MobileMarketCard
+              key={marketItem.id}
+              marketItem={marketItem}
+              isLast={index === rows.length - 1}
+            />
+          ))
         )}
       </Box>
     )

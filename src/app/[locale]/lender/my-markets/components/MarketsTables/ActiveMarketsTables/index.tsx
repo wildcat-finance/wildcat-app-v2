@@ -24,7 +24,6 @@ import {
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
-import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
@@ -131,6 +130,7 @@ export const ActiveMarketsTables = ({
         withdrawalBatchDuration,
         loan: marketBalance,
         debt: totalSupply,
+        capacity: maxTotalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
         hasEverInteracted,
         chainId,
@@ -382,27 +382,15 @@ export const ActiveMarketsTables = ({
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
         >
-          {isMobile ? (
-            <Box display="flex" flexDirection="column">
-              {depositedMarkets.map((marketItem) => (
-                <MobileMarketCard
-                  marketItem={marketItem}
-                  buttonText="Deposit"
-                  buttonIcon
-                />
-              ))}
-            </Box>
-          ) : (
-            <DataGrid
-              disableVirtualization
-              sx={clickableGridSx}
-              rowHeight={66}
-              rows={depositedMarkets}
-              columns={columns}
-              columnHeaderHeight={40}
-              slots={{ row: MarketLinkRow }}
-            />
-          )}
+          <DataGrid
+            disableVirtualization
+            sx={clickableGridSx}
+            rowHeight={66}
+            rows={depositedMarkets}
+            columns={columns}
+            columnHeaderHeight={40}
+            slots={{ row: MarketLinkRow }}
+          />
         </MarketsTableAccordion>
       </Box>
 
@@ -421,27 +409,15 @@ export const ActiveMarketsTables = ({
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
         >
-          {isMobile ? (
-            <Box display="flex" flexDirection="column">
-              {nonDepositedMarkets.map((marketItem) => (
-                <MobileMarketCard
-                  marketItem={marketItem}
-                  buttonText="Deposit"
-                  buttonIcon
-                />
-              ))}
-            </Box>
-          ) : (
-            <DataGrid
-              disableVirtualization
-              sx={clickableGridSx}
-              rowHeight={66}
-              rows={nonDepositedMarkets}
-              columns={columns}
-              columnHeaderHeight={40}
-              slots={{ row: MarketLinkRow }}
-            />
-          )}
+          <DataGrid
+            disableVirtualization
+            sx={clickableGridSx}
+            rowHeight={66}
+            rows={nonDepositedMarkets}
+            columns={columns}
+            columnHeaderHeight={40}
+            slots={{ row: MarketLinkRow }}
+          />
         </MarketsTableAccordion>
       </Box>
     </Box>

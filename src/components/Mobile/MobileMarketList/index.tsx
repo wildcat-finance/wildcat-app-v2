@@ -3,13 +3,8 @@ import React, { useState } from "react"
 import { Box, Button, Skeleton, Typography } from "@mui/material"
 import { usePathname } from "next/navigation"
 
-import { getAdsMobileContent } from "@/components/AdsBanners/adsHelpers"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-import {
-  getLenderMarketAction,
-  LenderMarketAction,
-} from "@/utils/marketOnboarding"
 import { getPaginationRange } from "@/utils/pagination"
 
 import { LenderMobileMarketItem, MobileMarketCard } from "../MobileMarketCard"
@@ -18,12 +13,10 @@ const ITEMS_PER_PAGE = 20
 
 export const MobileMarketList = ({
   markets,
-  isLoading,
-  showOnboardingAction = false,
+  isLoading = false,
 }: {
-  markets: LenderMobileMarketItem[]
-  isLoading: boolean
-  showOnboardingAction?: boolean
+  markets: readonly LenderMobileMarketItem[]
+  isLoading?: boolean
 }) => {
   const [page, setPage] = useState(0)
   const pathname = usePathname()
@@ -32,6 +25,9 @@ export const MobileMarketList = ({
   const isLenderProfilePage = pathname.includes(ROUTES.lender.profile)
 
   const showBorrowerInCard = !isBorrowerProfilePage && !isLenderProfilePage
+  const baseRoute = isBorrowerProfilePage
+    ? ROUTES.borrower.market
+    : ROUTES.lender.market
 
   const totalPages = Math.ceil(markets.length / ITEMS_PER_PAGE)
   const startIndex = page * ITEMS_PER_PAGE
@@ -77,67 +73,29 @@ export const MobileMarketList = ({
       <Box
         sx={{
           height: "100%",
-          overflowY: "auto",
+          overflow: "hidden",
           display: "flex",
           flexDirection: "column",
-          gap: "4px",
+          borderRadius: "0 0 14px 14px",
+          backgroundColor: COLORS.white,
         }}
       >
         {!isLoading &&
-          currentItems.map((marketItem) => {
-            const action = marketItem.depositStatus
-              ? getLenderMarketAction(
-                  marketItem.onboardingMode,
-                  marketItem.depositStatus,
-                )
-              : LenderMarketAction.Deposit
-            let buttonText = "Deposit"
-            if (showOnboardingAction) {
-              if (
-                action === LenderMarketAction.Deposit ||
-                action === LenderMarketAction.DepositUnavailable
-              ) {
-                buttonText = "Deposit"
-              } else if (action === LenderMarketAction.RequestAccess) {
-                buttonText = "Request Access"
-              } else {
-                buttonText = "Unavailable"
-              }
-            }
-
-            return (
-              <MobileMarketCard
-                adsComponent={getAdsMobileContent(
-                  marketItem.chainId,
-                  marketItem.id,
-                )}
-                key={marketItem.id}
-                marketItem={marketItem}
-                buttonText={buttonText}
-                buttonIcon={
-                  !showOnboardingAction || action === LenderMarketAction.Deposit
-                }
-                buttonHref={
-                  showOnboardingAction &&
-                  action === LenderMarketAction.RequestAccess
-                    ? `${ROUTES.lender.profile}/${marketItem.borrowerAddress}`
-                    : undefined
-                }
-                buttonDisabled={
-                  showOnboardingAction &&
-                  (action === LenderMarketAction.DepositUnavailable ||
-                    action === LenderMarketAction.Unavailable)
-                }
-                showBorrower={showBorrowerInCard}
-              />
-            )
-          })}
+          currentItems.map((marketItem, index) => (
+            <MobileMarketCard
+              key={marketItem.id}
+              marketItem={marketItem}
+              isLast={index === currentItems.length - 1}
+              showBorrower={showBorrowerInCard}
+              baseRoute={baseRoute}
+            />
+          ))}
         {isLoading && (
           <>
             <Skeleton
               sx={{
                 width: "100%",
-                height: "155px",
+                height: "150px",
                 backgroundColor: COLORS.white06,
                 borderRadius: "14px",
               }}
@@ -145,7 +103,7 @@ export const MobileMarketList = ({
             <Skeleton
               sx={{
                 width: "100%",
-                height: "155px",
+                height: "150px",
                 backgroundColor: COLORS.white06,
                 borderRadius: "14px",
               }}
@@ -153,7 +111,7 @@ export const MobileMarketList = ({
             <Skeleton
               sx={{
                 width: "100%",
-                height: "155px",
+                height: "150px",
                 backgroundColor: COLORS.white06,
                 borderRadius: "14px",
               }}

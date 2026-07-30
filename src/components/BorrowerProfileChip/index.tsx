@@ -6,15 +6,58 @@ import Avatar from "@/assets/icons/avatar_icon.svg"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
+const CHIP_SIZE_STYLES = {
+  small: {
+    avatar: "12px",
+    gap: "5px",
+    padding: "2px 7px 2px 5px",
+    radius: "10px",
+    initialFont: "6px",
+    initialLineHeight: "8px",
+    fontSize: "10px",
+    lineHeight: "14px",
+  },
+  default: {
+    avatar: "12px",
+    gap: "6px",
+    padding: "2px 8px 2px 6px",
+    radius: "12px",
+    initialFont: "6px",
+    initialLineHeight: "8px",
+    fontSize: undefined,
+    lineHeight: undefined,
+  },
+  medium: {
+    avatar: "14px",
+    gap: "6px",
+    padding: "2px 8px 2px 6px",
+    radius: "12px",
+    initialFont: "7px",
+    initialLineHeight: "9px",
+    fontSize: "13px",
+    lineHeight: "18px",
+  },
+  large: {
+    avatar: "18px",
+    gap: "8px",
+    padding: "4px 10px 4px 6px",
+    radius: "14px",
+    initialFont: "9px",
+    initialLineHeight: "12px",
+    fontSize: "16px",
+    lineHeight: "22px",
+  },
+} as const
+
 export const BorrowerProfileChip = ({
   borrower,
   size = "default",
 }: {
   borrower: string | undefined
-  size?: "default" | "large"
+  size?: "small" | "default" | "medium" | "large"
 }) => {
   const isMobile = useMobileResolution()
-  const isLarge = size === "large"
+  const sizeStyles = CHIP_SIZE_STYLES[size]
 
   return (
     <Box
@@ -22,17 +65,17 @@ export const BorrowerProfileChip = ({
         width: "fit-content",
         minWidth: 0,
         display: "flex",
-        gap: isLarge ? "8px" : "6px",
+        gap: sizeStyles.gap,
         alignItems: "center",
-        padding: isLarge ? "4px 10px 4px 6px" : "2px 8px 2px 6px",
-        borderRadius: isLarge ? "14px" : "12px",
+        padding: sizeStyles.padding,
+        borderRadius: sizeStyles.radius,
         bgcolor: COLORS.whiteSmoke,
       }}
     >
       {borrower && borrower.startsWith("0") ? (
         <SvgIcon
           sx={{
-            fontSize: isLarge ? "18px" : "12px",
+            fontSize: sizeStyles.avatar,
             "& circle": { fill: "#4CA6D9", opacity: 1 },
             "& path": { fill: COLORS.white },
           }}
@@ -42,8 +85,8 @@ export const BorrowerProfileChip = ({
       ) : (
         <Box
           sx={{
-            width: isLarge ? "18px" : "12px",
-            height: isLarge ? "18px" : "12px",
+            width: sizeStyles.avatar,
+            height: sizeStyles.avatar,
             borderRadius: "50%",
             bgcolor: "#4CA6D9",
             display: "flex",
@@ -55,8 +98,8 @@ export const BorrowerProfileChip = ({
           <Typography
             variant="mobText4"
             sx={{
-              fontSize: isLarge ? "9px" : "6px",
-              lineHeight: isLarge ? "12px" : "8px",
+              fontSize: sizeStyles.initialFont,
+              lineHeight: sizeStyles.initialLineHeight,
               color: COLORS.white,
               textAlign: "center",
             }}
@@ -71,8 +114,8 @@ export const BorrowerProfileChip = ({
         sx={{
           minWidth: 0,
           overflow: "hidden",
-          fontSize: isLarge ? "16px" : undefined,
-          lineHeight: isLarge ? "22px" : undefined,
+          fontSize: sizeStyles.fontSize,
+          lineHeight: sizeStyles.lineHeight,
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
         }}

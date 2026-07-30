@@ -1,6 +1,7 @@
 "use client"
 
 import { Box, SvgIcon, Typography } from "@mui/material"
+import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 
 import { TrendingMarketDetails } from "@/app/[locale]/lender/components/ExploreSection/TrendingMarketsCarousel/TrendingMarketsCard/BorrowerBlock"
@@ -9,6 +10,8 @@ import PopularIcon from "@/assets/icons/popularCard_icon.svg"
 import ProvenIcon from "@/assets/icons/provenCard_icon.svg"
 import TopFundedIcon from "@/assets/icons/topFundedCard_icon.svg"
 import TrendingIcon from "@/assets/icons/trendingCard_icon.svg"
+import { NetworkIcon } from "@/components/NetworkIcon"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 import { buildMarketHref, formatBps } from "@/utils/formatters"
@@ -20,7 +23,6 @@ import {
   CardHeaderStyle,
   CardIconStyle,
   MarketContainerStyle,
-  StatStyle,
 } from "./style"
 
 export type TrendingMarketCardVariant =
@@ -37,6 +39,7 @@ const VARIANT_BADGE: Record<
     context: string
     accent: string
     iconColor: string
+    labelColor: string
     Icon: typeof TrendingIcon
   }
 > = {
@@ -45,6 +48,7 @@ const VARIANT_BADGE: Record<
     context: "Last 7 days",
     accent: "#CBD7FF",
     iconColor: "#B6C8FF",
+    labelColor: "#4971FF",
     Icon: TrendingIcon,
   },
   popular: {
@@ -52,27 +56,31 @@ const VARIANT_BADGE: Record<
     context: "Last 7 days",
     accent: "#BEEFD7",
     iconColor: "#2ACA7C",
+    labelColor: "#2ACA7C",
     Icon: PopularIcon,
   },
   trackRecord: {
     label: "Total Paid Out",
-    context: "All time",
+    context: "All Time",
     accent: "#D7C9FD",
     iconColor: "#7547F5",
+    labelColor: "#7547F5",
     Icon: ProvenIcon,
   },
   hotRate: {
     label: "Peak APR",
-    context: "Highest market",
+    context: "",
     accent: "#FDCEB6",
     iconColor: "#F5651D",
+    labelColor: "#F5651D",
     Icon: HotRateIcon,
   },
   topFunded: {
     label: "Top Funded",
-    context: "Largest market",
+    context: "",
     accent: "#BFE7FD",
     iconColor: "#48B5F4",
+    labelColor: "#48B5F4",
     Icon: TopFundedIcon,
   },
 }
@@ -91,7 +99,6 @@ type TrendingMarketCardProps = {
   suppliedPct: number
   status: ReturnType<typeof getMarketStatusChip>
   termLabel: string
-  termDetail: string
 }
 
 export const TrendingMarketCard = ({
@@ -108,22 +115,17 @@ export const TrendingMarketCard = ({
   suppliedPct,
   status,
   termLabel,
-  termDetail,
 }: TrendingMarketCardProps) => {
+  const isMobile = useMobileResolution()
   const badge = VARIANT_BADGE[variant]
 
-  let statisticLabel: string
-  if (variant === "popular") {
-    statisticLabel = `${
-      Number(value) === 1 ? "new lender" : "new lenders"
-    } joined`
-  } else if (variant === "trackRecord") {
-    statisticLabel = `${asset} interest paid`
-  } else if (variant === "hotRate") {
-    statisticLabel = "best base APR"
-  } else {
-    statisticLabel = `${asset} deposited`
-  }
+  const statisticTitle = {
+    trending: "Fresh Capital",
+    popular: "Lenders Joined",
+    trackRecord: "Paid In Total",
+    hotRate: "Best In Market APR",
+    topFunded: "Total Value Locked",
+  }[variant]
 
   return (
     <Box
@@ -147,17 +149,17 @@ export const TrendingMarketCard = ({
             component={badge.Icon}
             sx={{
               ...CardIconStyle,
-              '& [fill="#30313E"]': { fill: badge.iconColor },
+              '& [fill="#30313E"]': {
+                fill: { xs: badge.iconColor, md: badge.labelColor },
+              },
             }}
           />
           <Typography
             sx={{
-              color: COLORS.black,
-              fontSize: { xs: "14px", md: pxToRem(10) },
+              color: { xs: COLORS.black, md: badge.labelColor },
+              fontSize: { xs: "14px", md: pxToRem(11) },
               fontWeight: 600,
-              letterSpacing: "0.07em",
-              lineHeight: { xs: "20px", md: lh(14, 10) },
-              textTransform: "uppercase",
+              lineHeight: { xs: "20px", md: lh(14, 11) },
               whiteSpace: "nowrap",
             }}
           >
@@ -165,56 +167,102 @@ export const TrendingMarketCard = ({
           </Typography>
         </Box>
 
-        <Typography
-          sx={{
-            color: COLORS.matteSilver,
-            fontSize: { xs: "14px", md: pxToRem(9) },
-            lineHeight: { xs: "20px", md: lh(14, 9) },
-            whiteSpace: "nowrap",
-          }}
-        >
-          {badge.context}
-        </Typography>
+        {badge.context && (
+          <Typography
+            sx={{
+              color: COLORS.matteSilver,
+              fontSize: { xs: "14px", md: pxToRem(10) },
+              lineHeight: { xs: "20px", md: lh(14, 10) },
+              whiteSpace: "nowrap",
+            }}
+          >
+            {badge.context}
+          </Typography>
+        )}
       </Box>
 
       <Box sx={CardContentStyle}>
-        <Box sx={StatStyle}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: { xs: "5px", md: "3px" },
+            paddingBottom: { xs: "14px", md: "11px" },
+            borderBottom: `1px solid ${COLORS.whiteLilac}`,
+          }}
+        >
           <Typography
             sx={{
-              color: COLORS.black,
-              fontSize: { xs: "32px", md: pxToRem(20) },
-              fontWeight: 500,
-              lineHeight: 1,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {value}
-          </Typography>
-          <Typography
-            sx={{
-              minWidth: 0,
-              overflow: "hidden",
               color: COLORS.blackRock,
-              fontSize: { xs: "16px", md: pxToRem(10) },
-              lineHeight: { xs: "22px", md: lh(14, 10) },
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
+              fontSize: { xs: "15px", md: "11px" },
+              lineHeight: { xs: "20px", md: "14px" },
             }}
           >
-            {statisticLabel}
+            {statisticTitle}
           </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: { xs: "6px", md: "5px" },
+            }}
+          >
+            <Typography
+              sx={{
+                color: COLORS.black,
+                fontSize: { xs: "30px", md: "20px" },
+                fontWeight: 500,
+                lineHeight: 1,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {value}
+            </Typography>
+            {variant !== "popular" && variant !== "hotRate" && (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: { xs: 0, md: "2px 7px 2px 5px" },
+                  borderRadius: "10px",
+                  backgroundColor: {
+                    xs: "transparent",
+                    md: COLORS.whiteSmoke,
+                  },
+                }}
+              >
+                {chainId && (
+                  <NetworkIcon
+                    chainId={chainId as SupportedChainId}
+                    width={isMobile ? 14 : 11}
+                    height={isMobile ? 14 : 11}
+                  />
+                )}
+                <Typography
+                  sx={{
+                    color: COLORS.blackRock,
+                    fontSize: { xs: "15px", md: "10px" },
+                    lineHeight: { xs: "20px", md: "14px" },
+                  }}
+                >
+                  {asset}
+                </Typography>
+              </Box>
+            )}
+          </Box>
         </Box>
 
         <TrendingMarketDetails
           marketName={marketName}
           borrower={borrowerName}
-          apr={apr}
+          asset={asset}
+          chainId={chainId}
           suppliedPct={suppliedPct}
           supplied={supplied}
           capacity={capacity}
           status={status}
           termLabel={termLabel}
-          termDetail={termDetail}
         />
 
         <Box

@@ -98,11 +98,13 @@ const formatMaturityDate = (millisecondsFromNow: number) =>
     day: "2-digit",
     month: "2-digit",
     year: "2-digit",
-  }).format(Date.now() + millisecondsFromNow)
+  })
+    .format(Date.now() + millisecondsFromNow)
+    .replaceAll("/", ".")
 
 const formatWithdrawalCycle = (seconds: number) => {
   const hours = Math.floor(seconds / 3600)
-  return `${hours > 0 ? `${hours}h` : "<1h"} withdrawal`
+  return hours > 0 ? `${hours}h` : "<1h"
 }
 
 const useDragScroll = () => {
@@ -481,10 +483,9 @@ export const TrendingMarketsCarousel = () => {
         : 0
     const term = getMarketTypeChip(market)
     const isOpenTerm = term.kind === HooksKind.OpenTerm
-    const termLabel = isOpenTerm ? "Open Term" : "Fixed Term"
-    const termDetail = isOpenTerm
-      ? formatWithdrawalCycle(market.withdrawalBatchDuration)
-      : `Matures ${formatMaturityDate(term.fixedPeriod ?? 0)}`
+    const termLabel = isOpenTerm
+      ? `Open Term • ${formatWithdrawalCycle(market.withdrawalBatchDuration)}`
+      : `Fixed Term • ${formatMaturityDate(term.fixedPeriod ?? 0)}`
 
     return (
       <TrendingMarketCard
@@ -501,7 +502,6 @@ export const TrendingMarketsCarousel = () => {
         suppliedPct={suppliedPct}
         status={getMarketStatusChip(market)}
         termLabel={termLabel}
-        termDetail={termDetail}
       />
     )
   }
@@ -513,8 +513,7 @@ export const TrendingMarketsCarousel = () => {
           display: "flex",
           flexDirection: "column",
           gap: "4px",
-          borderRadius: "14px",
-          backgroundColor: COLORS.white,
+          backgroundColor: "transparent",
           overflow: "hidden",
         }}
       >
@@ -545,9 +544,9 @@ export const TrendingMarketsCarousel = () => {
                 (key, index) => (
                   <Skeleton
                     key={key}
-                    height="400px"
+                    height="404px"
                     sx={{
-                      flex: "0 0 calc(100% - 72px)",
+                      flex: "0 0 70%",
                       minWidth: "222px",
                       borderRadius: "12px",
                       bgcolor: COLORS.athensGrey,
@@ -564,7 +563,7 @@ export const TrendingMarketsCarousel = () => {
                   key={slot.key}
                   data-carousel-index={index}
                   sx={{
-                    flex: "0 0 calc(100% - 72px)",
+                    flex: "0 0 70%",
                     minWidth: "222px",
                     display: "flex",
                     scrollSnapAlign: "center",
@@ -651,7 +650,7 @@ export const TrendingMarketsCarousel = () => {
               (key, index) => (
                 <Skeleton
                   key={key}
-                  height="270px"
+                  height="297px"
                   sx={{
                     flex: "1 0 222px",
                     minWidth: "222px",
