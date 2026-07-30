@@ -165,7 +165,7 @@ export default function LenderMarketDetails({
   )
   const analytics = useLenderMarketAnalytics(
     market,
-    withdrawals,
+    connectedAddress,
     analyticsUiEnabled,
   )
   const {
@@ -218,7 +218,7 @@ export default function LenderMarketDetails({
         tooltip: t(
           "lenderMarketDetails.analytics.totalWithdrawalsExecutedTooltip",
         ),
-        description: METRIC_BASIS.liveToken,
+        description: METRIC_BASIS.indexedToken,
         fullPrecisionValue: totalWithdrawalsExecuted.format(
           totalWithdrawalsExecuted.decimals,
           true,
@@ -649,7 +649,7 @@ export default function LenderMarketDetails({
           {analyticsUiEnabled && hasLenderInteracted && (
             <LenderAnalyticsSummary
               items={analyticsSummaryItems}
-              isLoading={analytics.isLoadingActiveLenders}
+              isLoading={analytics.isLoading}
             />
           )}
 
@@ -845,7 +845,7 @@ export default function LenderMarketDetails({
                 <Box sx={{ marginTop: "32px" }}>
                   <LenderAnalyticsSummary
                     items={analyticsSummaryItems}
-                    isLoading={analytics.isLoadingActiveLenders}
+                    isLoading={analytics.isLoading}
                   />
                 </Box>
               )}

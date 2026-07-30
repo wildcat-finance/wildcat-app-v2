@@ -299,6 +299,18 @@ const LENDER_QUERY_KEYS = {
   // GET_ACTIVE_LENDERS_COUNT_KEY
   GET_ACTIVE_LENDERS_COUNT: (chainId: number, marketAddress?: string) =>
     k(["lender", "GET_ACTIVE_LENDERS_COUNT", chainId, marketAddress]),
+  GET_MARKET_WITHDRAWALS_EXECUTED: (
+    chainId: number,
+    marketAddress?: string,
+    lenderAddress?: string,
+  ) =>
+    k([
+      "lender",
+      "GET_MARKET_WITHDRAWALS_EXECUTED",
+      chainId,
+      marketAddress,
+      lenderAddress,
+    ]),
   // GET_MARKET_DAILY_FLOWS_KEY
   GET_MARKET_DAILY_FLOWS: (chainId: number, marketAddress?: string) =>
     k(["lender", "GET_MARKET_DAILY_FLOWS", chainId, marketAddress]),

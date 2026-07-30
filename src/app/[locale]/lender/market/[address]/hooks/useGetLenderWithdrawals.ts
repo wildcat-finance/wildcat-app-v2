@@ -10,7 +10,7 @@ import {
   TokenAmount,
   BatchStatus,
   getSubgraphClient,
-  getLenderWithdrawalsForMarket,
+  getIncompleteLenderWithdrawalsForMarket,
   logger,
 } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
@@ -22,7 +22,6 @@ import { TwoStepQueryHookResult } from "@/utils/types"
 import { applyLatestLensWithdrawalBatchUpdate } from "@/utils/withdrawalBatch"
 
 export type LenderWithdrawalsForMarketResult = {
-  completeWithdrawals: LenderWithdrawalStatus[]
   expiredPendingWithdrawals: LenderWithdrawalStatus[]
   activeWithdrawal: LenderWithdrawalStatus | undefined
   expiredTotalPendingAmount: TokenAmount
@@ -37,6 +36,49 @@ const cloneWithdrawalStatus = (
   const nextWithdrawal = cloneSdkObject(withdrawal)
   nextWithdrawal.batch = nextBatch
   return nextWithdrawal
+}
+
+export const summarizeIncompleteLenderWithdrawals = (
+  market: Market,
+  withdrawals: LenderWithdrawalStatus[],
+): LenderWithdrawalsForMarketResult => {
+  const stillIncomplete = withdrawals.filter(
+    (withdrawal) =>
+      withdrawal.effectiveStatus !== BatchStatus.Complete ||
+      !withdrawal.isCompleted,
+  )
+
+  // isConcluded handles both normal expiry AND market termination
+  const activeWithdrawal = stillIncomplete.find(
+    (withdrawal) => !withdrawal.isConcluded,
+  )
+  const expiredPendingWithdrawals = stillIncomplete.filter(
+    (withdrawal) => withdrawal.isConcluded,
+  )
+
+  const zeroAmount = market.underlyingToken.getAmount(0)
+  const activeTotalPendingAmount = activeWithdrawal
+    ? activeWithdrawal.requests.reduce(
+        (total, request) => total.add(request.normalizedAmount),
+        zeroAmount,
+      )
+    : zeroAmount
+  const expiredTotalPendingAmount = expiredPendingWithdrawals.reduce(
+    (total, withdrawal) => total.add(withdrawal.normalizedUnpaidAmount),
+    zeroAmount,
+  )
+  const totalClaimableAmount = expiredPendingWithdrawals.reduce(
+    (total, withdrawal) => total.add(withdrawal.availableWithdrawalAmount),
+    zeroAmount,
+  )
+
+  return {
+    activeWithdrawal,
+    expiredPendingWithdrawals,
+    activeTotalPendingAmount,
+    expiredTotalPendingAmount,
+    totalClaimableAmount,
+  }
 }
 
 export function useGetLenderWithdrawals(
@@ -55,47 +97,19 @@ export function useGetLenderWithdrawals(
   async function queryLenderWithdrawals() {
     if (!lender || !market || !marketAddress || !subgraphClient) throw Error()
     logger.debug(`Getting lender withdrawals...`)
-    const { completeWithdrawals, incompleteWithdrawals } =
-      await getLenderWithdrawalsForMarket(subgraphClient, {
+    const incompleteWithdrawals = await getIncompleteLenderWithdrawalsForMarket(
+      subgraphClient,
+      {
         market,
         lender,
         fetchPolicy: "network-only",
-      })
-    logger.debug(`Got ${completeWithdrawals.length} complete withdrawals...`)
+      },
+    )
     logger.debug(
       `Got ${incompleteWithdrawals.length} incomplete withdrawals...`,
     )
 
-    // isConcluded handles both normal expiry AND market termination
-    const activeWithdrawal = incompleteWithdrawals.find((w) => !w.isConcluded)
-    const expiredPendingWithdrawals = incompleteWithdrawals.filter(
-      (w) => w.isConcluded,
-    )
-
-    const zeroAmount = market.underlyingToken.getAmount(0)
-    const activeTotalPendingAmount = activeWithdrawal
-      ? activeWithdrawal.requests.reduce(
-          (acc, r) => acc.add(r.normalizedAmount),
-          zeroAmount,
-        )
-      : zeroAmount
-    const expiredTotalPendingAmount = expiredPendingWithdrawals.reduce(
-      (acc, w) => acc.add(w.normalizedUnpaidAmount),
-      zeroAmount,
-    )
-    const totalClaimableAmount = expiredPendingWithdrawals.reduce(
-      (acc, w) => acc.add(w.availableWithdrawalAmount),
-      zeroAmount,
-    )
-
-    return {
-      activeWithdrawal,
-      completeWithdrawals,
-      expiredPendingWithdrawals,
-      activeTotalPendingAmount,
-      expiredTotalPendingAmount,
-      totalClaimableAmount,
-    }
+    return summarizeIncompleteLenderWithdrawals(market, incompleteWithdrawals)
   }
 
   const {
@@ -120,7 +134,6 @@ export function useGetLenderWithdrawals(
   const withdrawals = useMemo(() => {
     if (data) return data
     return {
-      completeWithdrawals: [],
       expiredPendingWithdrawals: [],
       activeWithdrawal: undefined,
       expiredTotalPendingAmount: market?.underlyingToken.getAmount(0),
@@ -133,9 +146,6 @@ export function useGetLenderWithdrawals(
     logger.debug(`Updating withdrawals...`)
     if (!lender || !market || !marketAddress) throw Error()
     const lens = getLatestLensContract(market.chainId, market.provider)
-    const completeWithdrawalUpdates = withdrawals.completeWithdrawals.map(
-      cloneWithdrawalStatus,
-    )
     const incompleteWithdrawals = [
       ...(withdrawals.activeWithdrawal
         ? [cloneWithdrawalStatus(withdrawals.activeWithdrawal)]
@@ -147,21 +157,10 @@ export function useGetLenderWithdrawals(
     const withdrawalUpdates =
       await lens.getWithdrawalBatchesDataWithLenderStatus(
         marketAddress,
-        [...completeWithdrawalUpdates, ...incompleteWithdrawals].map(
-          (w) => w.expiry,
-        ),
+        incompleteWithdrawals.map((withdrawal) => withdrawal.expiry),
         lender,
       )
     let i = 0
-    for (const withdrawal of completeWithdrawalUpdates) {
-      const update = withdrawalUpdates[i++]
-      applyLatestLensWithdrawalBatchUpdate(
-        withdrawal.batch,
-        update.batch,
-        market.chainId,
-      )
-      withdrawal.updateWith(update.lenderStatus)
-    }
     for (const withdrawal of incompleteWithdrawals) {
       const update = withdrawalUpdates[i++]
       applyLatestLensWithdrawalBatchUpdate(
@@ -171,9 +170,6 @@ export function useGetLenderWithdrawals(
       )
       withdrawal.updateWith(update.lenderStatus)
     }
-    logger.debug(
-      `Updated ${completeWithdrawalUpdates.length} complete withdrawals...`,
-    )
     logger.debug(
       `Updated ${incompleteWithdrawals.length} incomplete withdrawals...`,
     )
@@ -189,60 +185,16 @@ export function useGetLenderWithdrawals(
         .join(", ")}`,
     )
 
-    // Re-categorize after lens update; status may have changed.
-    const allWithdrawals = [
-      ...incompleteWithdrawals,
-      ...completeWithdrawalUpdates,
-    ]
-
-    const completeWithdrawals: LenderWithdrawalStatus[] = []
-    const stillIncomplete: LenderWithdrawalStatus[] = []
-    for (const wd of allWithdrawals) {
-      if (wd.effectiveStatus === BatchStatus.Complete && wd.isCompleted) {
-        completeWithdrawals.push(wd)
-      } else {
-        stillIncomplete.push(wd)
-      }
-    }
-
-    const activeWithdrawal = stillIncomplete.find((w) => !w.isConcluded)
-    const expiredPendingWithdrawals = stillIncomplete.filter(
-      (w) => w.isConcluded,
-    )
-
-    const zeroAmount = market.underlyingToken.getAmount(0)
-    const activeTotalPendingAmount = activeWithdrawal
-      ? activeWithdrawal.requests.reduce(
-          (acc, r) => acc.add(r.normalizedAmount),
-          zeroAmount,
-        )
-      : zeroAmount
-    const expiredTotalPendingAmount = expiredPendingWithdrawals.reduce(
-      (acc, w) => acc.add(w.normalizedUnpaidAmount),
-      zeroAmount,
-    )
-    const totalClaimableAmount = expiredPendingWithdrawals.reduce(
-      (acc, w) => acc.add(w.availableWithdrawalAmount),
-      zeroAmount,
-    )
-
-    return {
-      activeWithdrawal,
-      completeWithdrawals,
-      expiredPendingWithdrawals,
-      activeTotalPendingAmount,
-      expiredTotalPendingAmount,
-      totalClaimableAmount,
-    }
+    // Re-categorize after the lens update; a batch may have just completed.
+    return summarizeIncompleteLenderWithdrawals(market, incompleteWithdrawals)
   }
 
   const updateQueryKeys = useMemo(
     () => [
-      ...withdrawals.completeWithdrawals.map((b) => [b.expiry]),
       ...(withdrawals.activeWithdrawal
         ? [withdrawals.activeWithdrawal.expiry]
         : []),
-      ...(withdrawals.expiredPendingWithdrawals?.map((b) => [b.expiry]) ?? []),
+      ...(withdrawals.expiredPendingWithdrawals?.map((b) => b.expiry) ?? []),
     ],
     [withdrawals],
   )
@@ -264,13 +216,15 @@ export function useGetLenderWithdrawals(
     queryFn: updateWithdrawals,
     placeholderData: keepPreviousData,
     refetchInterval: POLLING_INTERVAL,
-    enabled: !!data,
+    enabled: !!data && updateQueryKeys.length > 0,
     // refetchOnMount: false,
   })
 
+  const liveWithdrawals =
+    updateQueryKeys.length > 0 ? updatedWithdrawals : undefined
+
   return {
-    data: (updatedWithdrawals ??
-      withdrawals) as LenderWithdrawalsForMarketResult,
+    data: (liveWithdrawals ?? withdrawals) as LenderWithdrawalsForMarketResult,
     isLoadingInitial,
     isErrorInitial,
     errorInitial: errorInitial as Error | null,

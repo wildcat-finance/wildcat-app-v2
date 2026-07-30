@@ -157,4 +157,22 @@ describe("query keys", () => {
     expect(queryClient.getQueryState(initialKey)?.isInvalidated).toBe(true)
     expect(queryClient.getQueryState(updateKey)?.isInvalidated).toBe(true)
   })
+
+  it("isolates indexed withdrawal totals by chain, market, and lender", () => {
+    expect(
+      QueryKeys.Lender.GET_MARKET_WITHDRAWALS_EXECUTED(
+        11155111,
+        "0x04FB4E4577AD2CDD65E70F18D7A5F326162DDD90",
+        "0xCA732651410E915090D7A7D889A1E44EF4575FCE",
+      ),
+    ).toEqual([
+      [
+        "lender",
+        "GET_MARKET_WITHDRAWALS_EXECUTED",
+        11155111,
+        "0x04fb4e4577ad2cdd65e70f18d7a5f326162ddd90",
+        "0xca732651410e915090d7a7d889a1e44ef4575fce",
+      ],
+    ])
+  })
 })
