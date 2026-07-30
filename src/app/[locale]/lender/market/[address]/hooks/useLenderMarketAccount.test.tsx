@@ -9,15 +9,18 @@ import type {
   SignerOrProvider,
 } from "@wildcatfi/wildcat-sdk"
 
+import { POLLING_INTERVAL } from "@/config/polling"
+import { QueryKeys } from "@/config/query-keys"
+
 import { useLenderMarketAccountQuery } from "./useLenderMarketAccount"
 
-const getLenderAccountForMarketMock = jest.fn()
+const getIndexedLenderAccountSummaryForMarketMock = jest.fn()
 const getMarketAccountMock = jest.fn()
 const useSelectedNetworkMock = jest.fn()
 
 jest.mock("@wildcatfi/wildcat-sdk", () => ({
-  getLenderAccountForMarket: (...args: unknown[]) =>
-    getLenderAccountForMarketMock(...args),
+  getIndexedLenderAccountSummaryForMarket: (...args: unknown[]) =>
+    getIndexedLenderAccountSummaryForMarketMock(...args),
   getSubgraphClient: (chainId: number) => ({ chainId }),
   MarketAccount: {
     getMarketAccount: (...args: unknown[]) => getMarketAccountMock(...args),
@@ -56,8 +59,8 @@ const createDeferred = <T,>() => {
   return { promise, resolve, reject }
 }
 
-const createWrapper = () => {
-  const queryClient = new QueryClient({
+const createQueryClient = () =>
+  new QueryClient({
     defaultOptions: {
       queries: {
         retry: false,
@@ -65,10 +68,11 @@ const createWrapper = () => {
     },
   })
 
-  return ({ children }: PropsWithChildren) => (
+const createWrapper =
+  (queryClient = createQueryClient()) =>
+  ({ children }: PropsWithChildren) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
-}
 
 describe("useLenderMarketAccountQuery", () => {
   beforeEach(() => {
@@ -82,7 +86,7 @@ describe("useLenderMarketAccountQuery", () => {
   it("starts the authoritative read without waiting for the indexed account", async () => {
     const indexed = createDeferred<MarketAccount>()
     const authoritative = createAccount(LENDER_A, "live")
-    getLenderAccountForMarketMock.mockReturnValue(indexed.promise)
+    getIndexedLenderAccountSummaryForMarketMock.mockReturnValue(indexed.promise)
     getMarketAccountMock.mockResolvedValue(authoritative)
 
     const { result } = renderHook(
@@ -102,10 +106,63 @@ describe("useLenderMarketAccountQuery", () => {
     expect(result.current.authoritativeStatus).toBe("resolved")
   })
 
+  it("uses the indexed summary at a slower cadence than the live account read", async () => {
+    const indexed = createAccount(LENDER_A, "indexed")
+    const authoritative = createAccount(LENDER_A, "live")
+    const queryClient = createQueryClient()
+    getIndexedLenderAccountSummaryForMarketMock.mockResolvedValue(indexed)
+    getMarketAccountMock.mockResolvedValue(authoritative)
+
+    renderHook(
+      () =>
+        useLenderMarketAccountQuery({
+          market,
+          lender: LENDER_A,
+          provider,
+          enabled: true,
+        }),
+      { wrapper: createWrapper(queryClient) },
+    )
+
+    await waitFor(() =>
+      expect(getIndexedLenderAccountSummaryForMarketMock).toHaveBeenCalledWith(
+        { chainId: SEPOLIA_CHAIN_ID },
+        {
+          market,
+          lender: LENDER_A,
+          fetchPolicy: "network-only",
+        },
+      ),
+    )
+    await waitFor(() => expect(getMarketAccountMock).toHaveBeenCalledTimes(1))
+
+    const initialQuery = queryClient.getQueryCache().find({
+      queryKey: QueryKeys.Lender.GET_MARKET_ACCOUNT(
+        SEPOLIA_CHAIN_ID,
+        MARKET_ADDRESS,
+        LENDER_A,
+        "initial",
+      ),
+      exact: true,
+    })
+    const updateQuery = queryClient.getQueryCache().find({
+      queryKey: QueryKeys.Lender.GET_MARKET_ACCOUNT(
+        SEPOLIA_CHAIN_ID,
+        MARKET_ADDRESS,
+        LENDER_A,
+        "update",
+      ),
+      exact: true,
+    })
+
+    expect(initialQuery?.options.refetchInterval).toBe(60_000)
+    expect(updateQuery?.options.refetchInterval).toBe(POLLING_INTERVAL)
+  })
+
   it("keeps an indexed-only account in resolving state", async () => {
     const indexed = createAccount(LENDER_A, "indexed")
     const authoritative = createDeferred<MarketAccount>()
-    getLenderAccountForMarketMock.mockResolvedValue(indexed)
+    getIndexedLenderAccountSummaryForMarketMock.mockResolvedValue(indexed)
     getMarketAccountMock.mockReturnValue(authoritative.promise)
 
     const { result } = renderHook(
@@ -131,7 +188,7 @@ describe("useLenderMarketAccountQuery", () => {
     const authoritativeA = createAccount(LENDER_A, "live")
     const authoritativeB = createDeferred<MarketAccount>()
 
-    getLenderAccountForMarketMock.mockImplementation(
+    getIndexedLenderAccountSummaryForMarketMock.mockImplementation(
       (_client: unknown, { lender }: { lender: string }) =>
         Promise.resolve(lender === LENDER_A ? indexedA : indexedB),
     )
@@ -176,7 +233,7 @@ describe("useLenderMarketAccountQuery", () => {
   it("reports an authoritative read failure and retries that read directly", async () => {
     const indexed = createAccount(LENDER_A, "indexed")
     const authoritative = createAccount(LENDER_A, "live")
-    getLenderAccountForMarketMock.mockResolvedValue(indexed)
+    getIndexedLenderAccountSummaryForMarketMock.mockResolvedValue(indexed)
     getMarketAccountMock.mockRejectedValueOnce(new Error("RPC unavailable"))
 
     const { result } = renderHook(

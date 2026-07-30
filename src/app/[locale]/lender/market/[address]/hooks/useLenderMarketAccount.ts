@@ -3,7 +3,7 @@ import {
   Market,
   MarketAccount,
   SignerOrProvider,
-  getLenderAccountForMarket,
+  getIndexedLenderAccountSummaryForMarket,
   getSubgraphClient,
 } from "@wildcatfi/wildcat-sdk"
 import { zeroAddress } from "viem"
@@ -13,6 +13,8 @@ import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { TwoStepQueryHookResult } from "@/utils/types"
+
+const INDEXED_ACCOUNT_POLLING_INTERVAL = 60_000
 
 export type UseLenderProps = {
   market: Market | undefined
@@ -49,11 +51,14 @@ export function useLenderMarketAccountQuery({
 
   async function queryMarketAccount() {
     if (!market || !lender) throw Error()
-    const result = await getLenderAccountForMarket(subgraphClient, {
-      market: market as Market,
-      lender: lenderAddress as string,
-      fetchPolicy: "network-only",
-    })
+    const result = await getIndexedLenderAccountSummaryForMarket(
+      subgraphClient,
+      {
+        market: market as Market,
+        lender: lenderAddress as string,
+        fetchPolicy: "network-only",
+      },
+    )
 
     return result
   }
@@ -71,7 +76,7 @@ export function useLenderMarketAccountQuery({
       lenderAddress,
       "initial",
     ),
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: INDEXED_ACCOUNT_POLLING_INTERVAL,
     queryFn: queryMarketAccount,
     enabled,
     refetchOnMount: false,
