@@ -13,6 +13,7 @@ import { OtherMarketsTables } from "@/app/[locale]/borrower/components/MarketsSe
 import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/useBorrowerInvitationRedirect"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { FilterTextField } from "@/components/FilterTextfield"
+import { MarketLiveDataNotice } from "@/components/MarketLiveData"
 import { MarketsFilterSelect } from "@/components/MarketsFilterSelect"
 import { MarketsFilterSelectItem } from "@/components/MarketsFilterSelect/interface"
 import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
@@ -27,6 +28,7 @@ import { setMarketFilters } from "@/store/slices/marketFiltersSlice/marketFilter
 import { COLORS } from "@/theme/colors"
 import { filterMarketAccounts } from "@/utils/filters"
 import { isSelfOnboardMarketAccount } from "@/utils/marketCapabilities"
+import { getMarketLiveDataStatus } from "@/utils/marketLiveData"
 import { MarketStatus } from "@/utils/marketStatus"
 
 import { LeadBanner } from "../../../../../components/LeadBanner"
@@ -171,8 +173,16 @@ export const MarketsSection = () => {
     return tokensRaw
   }, [tokensRaw])
 
-  const { data: marketAccounts, isLoadingInitial: isLoading } =
-    useLendersMarkets()
+  const {
+    data: marketAccounts,
+    isLoadingInitial: isLoading,
+    hasLiveData,
+    isErrorUpdate,
+  } = useLendersMarkets()
+  const liveDataStatus = getMarketLiveDataStatus({
+    hasLiveData,
+    hasError: isErrorUpdate,
+  })
 
   const borrowerMarketAccounts = marketAccounts.filter(
     (account) =>
@@ -476,6 +486,13 @@ export const MarketsSection = () => {
           </Box>
         )}
 
+      {mounted && !isWrongNetwork && marketAccounts.length > 0 && (
+        <MarketLiveDataNotice
+          status={liveDataStatus}
+          message={t("dashboard.markets.liveDataUnavailable")}
+        />
+      )}
+
       {marketSection === BorrowerMarketDashboardSections.ACTIVE &&
         showFullFunctionality &&
         !noMarkets &&
@@ -484,6 +501,7 @@ export const MarketsSection = () => {
           <BorrowerActiveMarketsTables
             marketAccounts={filteredActiveBorrowerMarkets}
             isLoading={isLoading}
+            liveDataStatus={liveDataStatus}
             filters={filters}
           />
         )}
@@ -496,6 +514,7 @@ export const MarketsSection = () => {
           <BorrowerTerminatedMarketsTables
             marketAccounts={filteredTerminatedBorrowerMarkets}
             isLoading={isLoading}
+            liveDataStatus={liveDataStatus}
             filters={filters}
           />
         )}
@@ -506,6 +525,7 @@ export const MarketsSection = () => {
           <OtherMarketsTables
             marketAccounts={filteredOtherMarketAccounts}
             isLoading={isLoading}
+            liveDataStatus={liveDataStatus}
             filters={filters}
           />
         )}

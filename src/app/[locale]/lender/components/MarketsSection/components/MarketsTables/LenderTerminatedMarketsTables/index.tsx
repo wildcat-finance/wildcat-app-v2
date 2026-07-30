@@ -19,6 +19,7 @@ import { MarketImplementationChip } from "@/components/@extended/MarketImplement
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
+import { LiveMarketDataValue } from "@/components/MarketLiveData"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -53,6 +54,7 @@ export const LenderTerminatedMarketsTables = ({
   marketAccounts,
   borrowers,
   isLoading,
+  liveDataStatus,
   filters,
 }: LenderTerminatedMarketsTableProps) => {
   const isMobile = useMobileResolution()
@@ -277,12 +279,14 @@ export const LenderTerminatedMarketsTables = ({
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
         <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-          {params.value
-            ? formatTokenWithCommas(params.value, {
-                withSymbol: false,
-                fractionDigits: 2,
-              })
-            : "0"}
+          <LiveMarketDataValue status={liveDataStatus}>
+            {params.value
+              ? formatTokenWithCommas(params.value, {
+                  withSymbol: false,
+                  fractionDigits: 2,
+                })
+              : "0"}
+          </LiveMarketDataValue>
         </Box>
       ),
     },
@@ -301,12 +305,14 @@ export const LenderTerminatedMarketsTables = ({
         >,
       ) => (
         <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-          {params.value
-            ? formatTokenWithCommas(params.value, {
-                withSymbol: false,
-                fractionDigits: 2,
-              })
-            : "0"}
+          <LiveMarketDataValue status={liveDataStatus}>
+            {params.value
+              ? formatTokenWithCommas(params.value, {
+                  withSymbol: false,
+                  fractionDigits: 2,
+                })
+              : "0"}
+          </LiveMarketDataValue>
         </Box>
       ),
     },
@@ -356,10 +362,18 @@ export const LenderTerminatedMarketsTables = ({
     return (
       <>
         {scrollTargetId === "prev-active" && (
-          <MobileMarketList markets={prevActive} isLoading={isLoading} />
+          <MobileMarketList
+            markets={prevActive}
+            isLoading={isLoading}
+            liveDataStatus={liveDataStatus}
+          />
         )}
         {scrollTargetId === "never-active" && (
-          <MobileMarketList markets={neverActive} isLoading={isLoading} />
+          <MobileMarketList
+            markets={neverActive}
+            isLoading={isLoading}
+            liveDataStatus={liveDataStatus}
+          />
         )}
       </>
     )

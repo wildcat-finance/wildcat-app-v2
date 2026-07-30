@@ -21,6 +21,7 @@ import {
   getAdsTooltipComponent,
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
+import { LiveMarketDataValue } from "@/components/MarketLiveData"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { useMarketRowPrefetchHandlers } from "@/hooks/usePrefetchMarketDetailMetadata"
 import { ROUTES } from "@/routes"
@@ -62,6 +63,7 @@ export type BorrowerActiveMarketsTableModel = {
 export const BorrowerActiveMarketsTables = ({
   marketAccounts,
   isLoading,
+  liveDataStatus,
   filters,
 }: MarketsTablesProps) => {
   const { t } = useTranslation()
@@ -198,7 +200,9 @@ export const BorrowerActiveMarketsTables = ({
           }}
         >
           <Box width="120px">
-            <MarketStatusChip status={params.value} />
+            <LiveMarketDataValue status={liveDataStatus} width={88} height={24}>
+              <MarketStatusChip status={params.value} />
+            </LiveMarketDataValue>
           </Box>
         </Link>
       ),
@@ -359,12 +363,14 @@ export const BorrowerActiveMarketsTables = ({
           )}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {params.value
-            ? formatTokenWithCommas(params.value, {
-                withSymbol: false,
-                fractionDigits: 2,
-              })
-            : "0"}
+          <LiveMarketDataValue status={liveDataStatus}>
+            {params.value
+              ? formatTokenWithCommas(params.value, {
+                  withSymbol: false,
+                  fractionDigits: 2,
+                })
+              : "0"}
+          </LiveMarketDataValue>
         </Link>
       ),
     },
@@ -385,12 +391,14 @@ export const BorrowerActiveMarketsTables = ({
           )}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {params.value
-            ? formatTokenWithCommas(params.value, {
-                withSymbol: false,
-                fractionDigits: 2,
-              })
-            : "0"}
+          <LiveMarketDataValue status={liveDataStatus}>
+            {params.value
+              ? formatTokenWithCommas(params.value, {
+                  withSymbol: false,
+                  fractionDigits: 2,
+                })
+              : "0"}
+          </LiveMarketDataValue>
         </Link>
       ),
     },

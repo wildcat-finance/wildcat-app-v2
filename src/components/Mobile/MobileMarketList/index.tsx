@@ -25,6 +25,7 @@ import { getAdsMobileContent } from "@/components/AdsBanners/adsHelpers"
 import { getMarketImplementationVariantForType } from "@/components/market-implementation-variants"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
+import { MarketLiveDataStatus } from "@/utils/marketLiveData"
 import { MarketStatus } from "@/utils/marketStatus"
 import { getPaginationRange } from "@/utils/pagination"
 
@@ -142,12 +143,14 @@ export const MobileMarketList = ({
   variant = "lender-action",
   groupByAsset = false,
   enableToolbar = false,
+  liveDataStatus = "ready",
 }: {
   markets: MobileMarketItem[]
   isLoading: boolean
   variant?: MobileMarketCardVariant
   groupByAsset?: boolean
   enableToolbar?: boolean
+  liveDataStatus?: MarketLiveDataStatus
 }) => {
   const [page, setPage] = useState(0)
   const [sortField, setSortField] = useState<SortField>(
@@ -497,6 +500,7 @@ export const MobileMarketList = ({
                   showBorrower={showBorrowerInCard}
                   variant={variant}
                   displayName={displayName}
+                  liveDataStatus={liveDataStatus}
                 />
               </React.Fragment>
             )

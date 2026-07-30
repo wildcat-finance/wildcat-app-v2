@@ -12,12 +12,10 @@ import { useAppDispatch } from "@/store/hooks"
 import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
 import { setTouModalOpen } from "@/store/slices/touModalSlice/touModalSlice"
 import { COLORS } from "@/theme/colors"
-import { dayjs } from "@/utils/dayjs"
 import { isServiceAgreementPath } from "@/utils/serviceAgreementParty"
 
+import { formatDeployDate } from "./deployInfo"
 import { ContentContainer, DeployInfoSx } from "./style"
-
-const DEPLOY_DATE_FORMAT = "DD.MM.YYYY HH:mm"
 
 const getCommitInfo = (isMobile: boolean) => {
   if (
@@ -61,7 +59,7 @@ const getCommitInfo = (isMobile: boolean) => {
           color: { xs: COLORS.white06, md: COLORS.santasGrey },
         }}
       >
-        {dayjs(process.env.BUILD_TIME).format(DEPLOY_DATE_FORMAT)}
+        {formatDeployDate(process.env.BUILD_TIME)}
       </Typography>
     </Box>
   )

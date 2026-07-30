@@ -20,6 +20,7 @@ import {
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { getMarketImplementationVariantForType } from "@/components/market-implementation-variants"
+import { LiveMarketDataValue } from "@/components/MarketLiveData"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -59,6 +60,7 @@ export const LenderActiveMarketsTables = ({
   marketAccounts,
   borrowers,
   isLoading,
+  liveDataStatus,
   filters,
 }: LenderActiveMarketsTableProps) => {
   const isMobile = useMobileResolution()
@@ -206,7 +208,9 @@ export const LenderActiveMarketsTables = ({
       renderCell: (params) => (
         <Box sx={{ ...LinkCell, justifyContent: "flex-start" }}>
           <Box width="120px">
-            <MarketStatusChip status={params.value} />
+            <LiveMarketDataValue status={liveDataStatus} width={88} height={24}>
+              <MarketStatusChip status={params.value} />
+            </LiveMarketDataValue>
           </Box>
         </Box>
       ),
@@ -329,12 +333,14 @@ export const LenderActiveMarketsTables = ({
         >,
       ) => (
         <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-          {params.value && params.value.gt(0)
-            ? formatTokenWithCommas(params.value, {
-                withSymbol: false,
-                fractionDigits: 2,
-              })
-            : "0"}
+          <LiveMarketDataValue status={liveDataStatus}>
+            {params.value && params.value.gt(0)
+              ? formatTokenWithCommas(params.value, {
+                  withSymbol: false,
+                  fractionDigits: 2,
+                })
+              : "0"}
+          </LiveMarketDataValue>
         </Box>
       ),
     },
@@ -348,12 +354,14 @@ export const LenderActiveMarketsTables = ({
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
         <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-          {params.value
-            ? formatTokenWithCommas(params.value, {
-                withSymbol: false,
-                fractionDigits: 2,
-              })
-            : "0"}
+          <LiveMarketDataValue status={liveDataStatus}>
+            {params.value
+              ? formatTokenWithCommas(params.value, {
+                  withSymbol: false,
+                  fractionDigits: 2,
+                })
+              : "0"}
+          </LiveMarketDataValue>
         </Box>
       ),
     },
@@ -372,12 +380,14 @@ export const LenderActiveMarketsTables = ({
         >,
       ) => (
         <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-          {params.value
-            ? formatTokenWithCommas(params.value, {
-                withSymbol: false,
-                fractionDigits: 2,
-              })
-            : "0"}
+          <LiveMarketDataValue status={liveDataStatus}>
+            {params.value
+              ? formatTokenWithCommas(params.value, {
+                  withSymbol: false,
+                  fractionDigits: 2,
+                })
+              : "0"}
+          </LiveMarketDataValue>
         </Box>
       ),
     },
@@ -387,12 +397,17 @@ export const LenderActiveMarketsTables = ({
     return (
       <>
         {scrollTargetId === "deposited" && (
-          <MobileMarketList markets={depositedMarkets} isLoading={isLoading} />
+          <MobileMarketList
+            markets={depositedMarkets}
+            isLoading={isLoading}
+            liveDataStatus={liveDataStatus}
+          />
         )}
         {scrollTargetId === "non-deposited" && (
           <MobileMarketList
             markets={nonDepositedMarkets}
             isLoading={isLoading}
+            liveDataStatus={liveDataStatus}
           />
         )}
       </>

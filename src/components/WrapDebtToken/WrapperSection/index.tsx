@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect } from "react"
+import React, { ChangeEvent } from "react"
 
 import {
   Box,
@@ -36,9 +36,7 @@ import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
-import { useWrapperAllowance } from "@/hooks/wrapper/useWrapperAllowance"
-import { useWrapperBalances } from "@/hooks/wrapper/useWrapperBalances"
-import { useWrapperLimits } from "@/hooks/wrapper/useWrapperLimits"
+import { useWrapperAccountState } from "@/hooks/wrapper/useWrapperAccountState"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   setActiveTab,
@@ -117,7 +115,7 @@ export const WrapperSection = ({
   const theme = useTheme()
   const client = useQueryClient()
   const { targetChainId } = useCurrentNetwork()
-  const { signer, address } = useEthersProvider({
+  const { signer, address, publicClient } = useEthersProvider({
     chainId: market?.chainId,
   })
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
@@ -136,17 +134,15 @@ export const WrapperSection = ({
   const [successSnapshot, setSuccessSnapshot] =
     React.useState<SuccessSnapshot | null>(null)
 
-  const { data: balances } = useWrapperBalances(
+  const { data: accountState } = useWrapperAccountState(
     market?.chainId,
     wrapper,
     address,
+    publicClient,
   )
-  const { data: allowance } = useWrapperAllowance(
-    market?.chainId,
-    wrapper,
-    address,
-  )
-  const { data: limits } = useWrapperLimits(market?.chainId, wrapper, address)
+  const balances = accountState?.balances
+  const allowance = accountState?.allowance
+  const limits = accountState?.limits
 
   const {
     canAddToken: canAddMarketToken,
@@ -524,7 +520,7 @@ export const WrapperSection = ({
     },
     onSuccess: () => {
       client.invalidateQueries({
-        queryKey: QueryKeys.Wrapper.GET_ALLOWANCE(
+        queryKey: QueryKeys.Wrapper.GET_ACCOUNT_STATE(
           market?.chainId ?? 0,
           wrapper.address,
           address,
@@ -646,21 +642,7 @@ export const WrapperSection = ({
     },
     onSuccess: () => {
       client.invalidateQueries({
-        queryKey: QueryKeys.Wrapper.GET_BALANCES(
-          market?.chainId ?? 0,
-          wrapper.address,
-          address,
-        ),
-      })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Wrapper.GET_ALLOWANCE(
-          market?.chainId ?? 0,
-          wrapper.address,
-          address,
-        ),
-      })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Wrapper.GET_LIMITS(
+        queryKey: QueryKeys.Wrapper.GET_ACCOUNT_STATE(
           market?.chainId ?? 0,
           wrapper.address,
           address,

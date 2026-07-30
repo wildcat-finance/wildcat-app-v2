@@ -21,6 +21,7 @@ import {
   getAdsTooltipComponent,
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
+import { LiveMarketDataValue } from "@/components/MarketLiveData"
 import { useMarketRowPrefetchHandlers } from "@/hooks/usePrefetchMarketDetailMetadata"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -63,6 +64,7 @@ export type BorrowerTerminatedMarketsTableModel = {
 export const BorrowerTerminatedMarketsTables = ({
   marketAccounts,
   isLoading,
+  liveDataStatus,
   filters,
 }: MarketsTablesProps) => {
   const { t } = useTranslation()
@@ -347,12 +349,14 @@ export const BorrowerTerminatedMarketsTables = ({
           )}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {params.value
-            ? formatTokenWithCommas(params.value, {
-                withSymbol: false,
-                fractionDigits: 2,
-              })
-            : "0"}
+          <LiveMarketDataValue status={liveDataStatus}>
+            {params.value
+              ? formatTokenWithCommas(params.value, {
+                  withSymbol: false,
+                  fractionDigits: 2,
+                })
+              : "0"}
+          </LiveMarketDataValue>
         </Link>
       ),
     },

@@ -185,6 +185,7 @@ describe("useLendersMarkets", () => {
 
     expect(result.current.isLoadingInitial).toBe(false)
     expect(result.current.isLoadingUpdate).toBe(true)
+    expect(result.current.hasLiveData).toBe(false)
 
     const [, providerForLiveRefresh, lenderForLiveRefresh, [liveAccount]] =
       refreshMarketAccountsV2LiveDataSafeMock.mock.calls[0]
@@ -205,6 +206,7 @@ describe("useLendersMarkets", () => {
       expect(result.current.data[0].generation).toBe("live-1"),
     )
     expect(result.current.data[0]).toBe(liveAccount)
+    expect(result.current.hasLiveData).toBe(true)
     expect(indexed.stateSource).toBe("indexed")
     expect(indexed.generation).toBe("indexed-1")
     expect(indexed.market.provider).toBe(publicProvider)
@@ -303,6 +305,37 @@ describe("useLendersMarkets", () => {
     )
     expect(result.current.data).toEqual([indexed])
     expect(result.current.isLoadingInitial).toBe(false)
+    expect(result.current.hasLiveData).toBe(false)
+  })
+
+  it("retains the last live snapshot when a background refresh fails", async () => {
+    const indexed = createIndexedAccount(LENDER_A, "indexed-1")
+    getLenderAccountsForAllMarketsMock.mockResolvedValue([indexed])
+    refreshMarketAccountsV2LiveDataSafeMock
+      .mockImplementationOnce(
+        async (_chainId, _provider, _lender, accounts: TestMarketAccount[]) => {
+          accounts[0].stateSource = "live"
+          accounts[0].generation = "live-1"
+          return accounts
+        },
+      )
+      .mockRejectedValueOnce(new Error("RPC unavailable"))
+
+    const { result } = renderHook(() => useLendersMarkets(), {
+      wrapper: createWrapper(),
+    })
+
+    await waitFor(() =>
+      expect(result.current.data[0].generation).toBe("live-1"),
+    )
+
+    await act(async () => {
+      await result.current.refetchUpdate()
+    })
+
+    await waitFor(() => expect(result.current.isErrorUpdate).toBe(true))
+    expect(result.current.data[0].generation).toBe("live-1")
+    expect(result.current.hasLiveData).toBe(true)
   })
 
   it("does not expose a previous lender's live row during an identity change", async () => {
@@ -340,6 +373,7 @@ describe("useLendersMarkets", () => {
 
     await waitFor(() => expect(result.current.data[0].stateSource).toBe("live"))
     expect(result.current.data[0].account).toBe(LENDER_A)
+    expect(result.current.hasLiveData).toBe(true)
 
     lender = LENDER_B
     rerender()
@@ -347,9 +381,11 @@ describe("useLendersMarkets", () => {
     await waitFor(() => expect(result.current.data[0]).toBe(indexedB))
     expect(result.current.data[0].account).toBe(LENDER_B)
     expect(result.current.data[0].stateSource).toBe("indexed")
+    expect(result.current.hasLiveData).toBe(false)
 
     await act(async () => liveBGate.resolve())
     await waitFor(() => expect(result.current.data[0].stateSource).toBe("live"))
     expect(result.current.data[0].account).toBe(LENDER_B)
+    expect(result.current.hasLiveData).toBe(true)
   })
 })

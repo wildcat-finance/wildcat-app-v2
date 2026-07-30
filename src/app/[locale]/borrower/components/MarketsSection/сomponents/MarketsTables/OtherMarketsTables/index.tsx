@@ -23,6 +23,7 @@ import {
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
+import { LiveMarketDataValue } from "@/components/MarketLiveData"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { TablePagination } from "@/components/TablePagination"
 import { useMarketRowPrefetchHandlers } from "@/hooks/usePrefetchMarketDetailMetadata"
@@ -70,6 +71,7 @@ export type OtherMarketsTableModel = {
 export const OtherMarketsTables = ({
   marketAccounts,
   isLoading,
+  liveDataStatus,
   filters,
 }: MarketsTablesProps) => {
   const { t } = useTranslation()
@@ -235,7 +237,9 @@ export const OtherMarketsTables = ({
           }}
         >
           <Box width="120px">
-            <MarketStatusChip status={params.value} />
+            <LiveMarketDataValue status={liveDataStatus} width={88} height={24}>
+              <MarketStatusChip status={params.value} />
+            </LiveMarketDataValue>
           </Box>
         </Link>
       ),
@@ -393,12 +397,14 @@ export const OtherMarketsTables = ({
           )}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {params.value
-            ? formatTokenWithCommas(params.value, {
-                withSymbol: false,
-                fractionDigits: 2,
-              })
-            : "0"}
+          <LiveMarketDataValue status={liveDataStatus}>
+            {params.value
+              ? formatTokenWithCommas(params.value, {
+                  withSymbol: false,
+                  fractionDigits: 2,
+                })
+              : "0"}
+          </LiveMarketDataValue>
         </Link>
       ),
     },
@@ -429,12 +435,14 @@ export const OtherMarketsTables = ({
             justifyContent: "flex-end",
           }}
         >
-          {params.value && params.value.gt(0)
-            ? formatTokenWithCommas(params.value, {
-                withSymbol: false,
-                fractionDigits: 2,
-              })
-            : "0"}
+          <LiveMarketDataValue status={liveDataStatus}>
+            {params.value && params.value.gt(0)
+              ? formatTokenWithCommas(params.value, {
+                  withSymbol: false,
+                  fractionDigits: 2,
+                })
+              : "0"}
+          </LiveMarketDataValue>
         </Link>
       ),
     },
@@ -455,12 +463,14 @@ export const OtherMarketsTables = ({
           )}
           style={{ ...LinkCell, justifyContent: "flex-end" }}
         >
-          {params.value
-            ? formatTokenWithCommas(params.value, {
-                withSymbol: false,
-                fractionDigits: 2,
-              })
-            : "0"}
+          <LiveMarketDataValue status={liveDataStatus}>
+            {params.value
+              ? formatTokenWithCommas(params.value, {
+                  withSymbol: false,
+                  fractionDigits: 2,
+                })
+              : "0"}
+          </LiveMarketDataValue>
         </Link>
       ),
     },

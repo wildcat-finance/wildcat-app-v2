@@ -61,6 +61,10 @@ function getChunks<T extends Market | MarketAccount>(
 
 type LenderStatusUpdate = Parameters<MarketAccount["updateWith"]>[0]
 
+type UseLendersMarketsResult = TwoStepQueryHookResult<MarketAccount[]> & {
+  hasLiveData: boolean
+}
+
 function zeroLenderBalances(lenderStatus: LenderStatusUpdate) {
   const zero = BigInt(0)
   return {
@@ -89,7 +93,7 @@ export function cloneMarketAccountForLiveRefresh(
   return accountForLiveRefresh
 }
 
-export function useLendersMarkets(): TwoStepQueryHookResult<MarketAccount[]> {
+export function useLendersMarkets(): UseLendersMarketsResult {
   const { isWrongNetwork, provider, signer, address } = useEthersProvider()
   const { chainId, targetChainId } = useCurrentNetwork()
   const subgraphClient = useSubgraphClient()
@@ -218,6 +222,7 @@ export function useLendersMarkets(): TwoStepQueryHookResult<MarketAccount[]> {
 
   return {
     data: updatedLenders ?? accounts,
+    hasLiveData: updatedLenders !== undefined,
     isLoadingInitial,
     isErrorInitial,
     errorInitial: errorInitial as Error | null,

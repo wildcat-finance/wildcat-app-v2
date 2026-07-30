@@ -14,6 +14,7 @@ import { OtherMarketsTables } from "@/app/[locale]/lender/components/MarketsSect
 import { MobileMarketSectionHeader } from "@/app/[locale]/lender/components/MarketsSection/components/MobileMarketSectionSwitcher"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { FilterTextField } from "@/components/FilterTextfield"
+import { MarketLiveDataNotice } from "@/components/MarketLiveData"
 import { MarketsFilterSelect } from "@/components/MarketsFilterSelect"
 import { MarketsFilterSelectItem } from "@/components/MarketsFilterSelect/interface"
 import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
@@ -35,6 +36,7 @@ import { COLORS } from "@/theme/colors"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
 import { filterMarketAccounts } from "@/utils/filters"
 import { isSelfOnboardMarketAccount } from "@/utils/marketCapabilities"
+import { getMarketLiveDataStatus } from "@/utils/marketLiveData"
 import { MarketStatus } from "@/utils/marketStatus"
 
 export const MarketsSection = () => {
@@ -159,8 +161,16 @@ export const MarketsSection = () => {
   const { isConnected } = useAccount()
   const { data: borrowers } = useBorrowerNames()
 
-  const { data: marketAccounts, isLoadingInitial: isLoading } =
-    useLendersMarkets()
+  const {
+    data: marketAccounts,
+    isLoadingInitial: isLoading,
+    hasLiveData,
+    isErrorUpdate,
+  } = useLendersMarkets()
+  const liveDataStatus = getMarketLiveDataStatus({
+    hasLiveData,
+    hasError: isErrorUpdate,
+  })
 
   const filteredMarketAccounts = useMemo(
     () =>
@@ -580,6 +590,13 @@ export const MarketsSection = () => {
         </MobileMarketSectionHeader>
       )}
 
+      {!isWrongNetwork && marketAccounts.length > 0 && (
+        <MarketLiveDataNotice
+          status={liveDataStatus}
+          message={t("dashboard.markets.liveDataUnavailable")}
+        />
+      )}
+
       {marketSection === LenderMarketDashboardSections.ACTIVE &&
         isConnected &&
         !noActiveMarkets &&
@@ -589,6 +606,7 @@ export const MarketsSection = () => {
             marketAccounts={filteredActiveLenderMarketAccounts}
             borrowers={borrowers ?? []}
             isLoading={isLoading}
+            liveDataStatus={liveDataStatus}
             filters={filters}
           />
         )}
@@ -601,6 +619,7 @@ export const MarketsSection = () => {
             marketAccounts={filteredTerminatedMarketAccounts}
             borrowers={borrowers ?? []}
             isLoading={isLoading}
+            liveDataStatus={liveDataStatus}
             filters={filters}
           />
         )}
@@ -611,6 +630,7 @@ export const MarketsSection = () => {
             marketAccounts={filteredOtherMarketAccounts}
             borrowers={borrowers ?? []}
             isLoading={isLoading}
+            liveDataStatus={liveDataStatus}
             filters={filters}
           />
         )}

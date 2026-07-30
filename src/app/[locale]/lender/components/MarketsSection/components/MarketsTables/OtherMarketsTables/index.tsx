@@ -25,6 +25,7 @@ import {
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { getMarketImplementationVariantForType } from "@/components/market-implementation-variants"
+import { LiveMarketDataValue } from "@/components/MarketLiveData"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { TablePagination } from "@/components/TablePagination"
@@ -61,6 +62,7 @@ export const OtherMarketsTables = ({
   marketAccounts,
   borrowers,
   isLoading,
+  liveDataStatus,
   filters,
 }: LenderOtherMarketsTableProps) => {
   const { t } = useTranslation()
@@ -222,7 +224,9 @@ export const OtherMarketsTables = ({
       renderCell: (params) => (
         <Box sx={{ ...LinkCell, justifyContent: "flex-start" }}>
           <Box width="120px">
-            <MarketStatusChip status={params.value} />
+            <LiveMarketDataValue status={liveDataStatus} width={88} height={24}>
+              <MarketStatusChip status={params.value} />
+            </LiveMarketDataValue>
           </Box>
         </Box>
       ),
@@ -342,12 +346,14 @@ export const OtherMarketsTables = ({
         params: GridRenderCellParams<LenderOtherMarketsTableModel, TokenAmount>,
       ) => (
         <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-          {params.value && params.value.gt(0)
-            ? formatTokenWithCommas(params.value, {
-                withSymbol: false,
-                fractionDigits: 2,
-              })
-            : "0"}
+          <LiveMarketDataValue status={liveDataStatus}>
+            {params.value && params.value.gt(0)
+              ? formatTokenWithCommas(params.value, {
+                  withSymbol: false,
+                  fractionDigits: 2,
+                })
+              : "0"}
+          </LiveMarketDataValue>
         </Box>
       ),
     },
@@ -361,12 +367,14 @@ export const OtherMarketsTables = ({
       sortComparator: tokenAmountComparator,
       renderCell: (params) => (
         <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-          {params.value
-            ? formatTokenWithCommas(params.value, {
-                withSymbol: false,
-                fractionDigits: 2,
-              })
-            : "0"}
+          <LiveMarketDataValue status={liveDataStatus}>
+            {params.value
+              ? formatTokenWithCommas(params.value, {
+                  withSymbol: false,
+                  fractionDigits: 2,
+                })
+              : "0"}
+          </LiveMarketDataValue>
         </Box>
       ),
     },
@@ -439,13 +447,25 @@ export const OtherMarketsTables = ({
     return (
       <>
         {scrollTargetId === "self-onboard" && (
-          <MobileMarketList markets={selfOnboard} isLoading={isLoading} />
+          <MobileMarketList
+            markets={selfOnboard}
+            isLoading={isLoading}
+            liveDataStatus={liveDataStatus}
+          />
         )}
         {scrollTargetId === "manual" && (
-          <MobileMarketList markets={manual} isLoading={isLoading} />
+          <MobileMarketList
+            markets={manual}
+            isLoading={isLoading}
+            liveDataStatus={liveDataStatus}
+          />
         )}
         {scrollTargetId === "other-terminated" && (
-          <MobileMarketList markets={terminated} isLoading={isLoading} />
+          <MobileMarketList
+            markets={terminated}
+            isLoading={isLoading}
+            liveDataStatus={liveDataStatus}
+          />
         )}
       </>
     )

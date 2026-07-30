@@ -365,12 +365,11 @@ const WRAPPER_QUERY_KEYS = {
     k(["wrapper", "GET_WRAPPER_FOR_MARKET", chainId, marketAddress]),
   GET_WRAPPER: (chainId: number, wrapperAddress?: string) =>
     k(["wrapper", "GET_WRAPPER", chainId, wrapperAddress]),
-  GET_BALANCES: (chainId: number, wrapperAddress?: string, account?: string) =>
-    k(["wrapper", "GET_BALANCES", chainId, wrapperAddress, account]),
-  GET_ALLOWANCE: (chainId: number, wrapperAddress?: string, account?: string) =>
-    k(["wrapper", "GET_ALLOWANCE", chainId, wrapperAddress, account]),
-  GET_LIMITS: (chainId: number, wrapperAddress?: string, account?: string) =>
-    k(["wrapper", "GET_LIMITS", chainId, wrapperAddress, account]),
+  GET_ACCOUNT_STATE: (
+    chainId: number,
+    wrapperAddress?: string,
+    account?: string,
+  ) => k(["wrapper", "GET_ACCOUNT_STATE", chainId, wrapperAddress, account]),
   GET_ADOPTION: (
     chainId: number,
     wrapperAddress?: string,

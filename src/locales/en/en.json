@@ -126,6 +126,7 @@
       "borrowerSubtitle": "All markets you’ve previously created.",
       "lenderSubtitle": "All markets you have a position in or are potentially eligible for.",
       "docsLink": "Learn More (Documentation)",
+      "liveDataUnavailable": "Live market data is temporarily unavailable. Market links remain available.",
       "borrowerTitleButton": "+ Create New Market",
       "lenderTitleButton": "+ Observe New Markets",
       "filters": {

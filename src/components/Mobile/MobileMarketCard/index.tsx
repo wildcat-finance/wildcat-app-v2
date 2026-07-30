@@ -8,6 +8,7 @@ import Arrow from "@/assets/icons/arrowLeft_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
+import { LiveMarketDataValue } from "@/components/MarketLiveData"
 import { COLORS } from "@/theme/colors"
 import {
   buildBorrowerProfileHref,
@@ -17,6 +18,7 @@ import {
   formatTokenWithCommas,
 } from "@/utils/formatters"
 import { MarketImplementationType } from "@/utils/marketImplementation"
+import { MarketLiveDataStatus } from "@/utils/marketLiveData"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -63,6 +65,7 @@ export type MobileMarketCardProps = {
   adsComponent?: React.ReactNode
   variant?: MobileMarketCardVariant
   displayName?: string
+  liveDataStatus?: MarketLiveDataStatus
 }
 
 export const DepositArrow = () => (
@@ -172,21 +175,28 @@ const UtilisationBar = ({
 const StatusAndTermRow = ({
   marketItem,
   variant,
+  liveDataStatus,
 }: {
   marketItem: MobileMarketItem
   variant: MobileMarketCardVariant
+  liveDataStatus: MarketLiveDataStatus
 }) => {
   const isHealthy = marketItem.status.status === MarketStatus.HEALTHY
   const isOpenTerm = marketItem.term.kind === HooksKind.OpenTerm
 
   if (variant === "borrower-context") {
-    const showStatus = !isHealthy || marketItem.status.healthyPeriod
+    const showStatus =
+      liveDataStatus !== "ready" ||
+      !isHealthy ||
+      Boolean(marketItem.status.healthyPeriod)
     const showTerm = !isOpenTerm
     if (!showStatus && !showTerm) return null
     return (
       <Box sx={StatusAndTermContainer}>
         {showStatus ? (
-          <MarketStatusChip status={marketItem.status} withPeriod />
+          <LiveMarketDataValue status={liveDataStatus} width={96} height={24}>
+            <MarketStatusChip status={marketItem.status} withPeriod />
+          </LiveMarketDataValue>
         ) : (
           <Box />
         )}
@@ -199,7 +209,9 @@ const StatusAndTermRow = ({
 
   return (
     <Box sx={StatusAndTermContainer}>
-      <MarketStatusChip status={marketItem.status} withPeriod={false} />
+      <LiveMarketDataValue status={liveDataStatus} width={80} height={24}>
+        <MarketStatusChip status={marketItem.status} withPeriod={false} />
+      </LiveMarketDataValue>
       <MarketTypeChip type="table" {...marketItem.term} isMobile />
     </Box>
   )
@@ -213,6 +225,7 @@ export const MobileMarketCard = ({
   adsComponent,
   variant = "lender-action",
   displayName,
+  liveDataStatus = "ready",
 }: MobileMarketCardProps) => {
   const isBorrowerContext = variant === "borrower-context"
   const renderedName = displayName ?? marketItem.name
@@ -221,7 +234,11 @@ export const MobileMarketCard = ({
 
   const cardBody = (
     <Box sx={CardContainer}>
-      <StatusAndTermRow marketItem={marketItem} variant={variant} />
+      <StatusAndTermRow
+        marketItem={marketItem}
+        variant={variant}
+        liveDataStatus={liveDataStatus}
+      />
 
       <Box sx={MainInfoContainer}>
         <Box sx={{ ...MainInfoColumnContainer, minWidth: 0 }}>
@@ -279,7 +296,13 @@ export const MobileMarketCard = ({
                   color: debtValue > 0 ? COLORS.blackRock : COLORS.santasGrey,
                 }}
               >
-                {formatCompact(debtValue)} {marketItem.asset}
+                <LiveMarketDataValue
+                  status={liveDataStatus}
+                  width={92}
+                  height={20}
+                >
+                  {formatCompact(debtValue)} {marketItem.asset}
+                </LiveMarketDataValue>
               </Typography>
               <Typography variant="mobText4" color={COLORS.santasGrey}>
                 Debt
@@ -288,13 +311,19 @@ export const MobileMarketCard = ({
           ) : (
             <>
               <Typography variant="mobText2">
-                {marketItem.capacityLeft && marketItem.capacityLeft.gt(0)
-                  ? formatTokenWithCommas(marketItem.capacityLeft, {
-                      withSymbol: false,
-                      fractionDigits: 2,
-                    })
-                  : "0"}{" "}
-                {marketItem.asset}
+                <LiveMarketDataValue
+                  status={liveDataStatus}
+                  width={92}
+                  height={20}
+                >
+                  {marketItem.capacityLeft && marketItem.capacityLeft.gt(0)
+                    ? formatTokenWithCommas(marketItem.capacityLeft, {
+                        withSymbol: false,
+                        fractionDigits: 2,
+                      })
+                    : "0"}{" "}
+                  {marketItem.asset}
+                </LiveMarketDataValue>
               </Typography>
 
               <Typography variant="mobText4" color={COLORS.manate}>
@@ -306,11 +335,13 @@ export const MobileMarketCard = ({
       </Box>
 
       {isBorrowerContext && (
-        <UtilisationBar
-          utilisation={utilisation}
-          capacity={marketItem.capacity}
-          asset={marketItem.asset}
-        />
+        <LiveMarketDataValue status={liveDataStatus} width="100%" height={32}>
+          <UtilisationBar
+            utilisation={utilisation}
+            capacity={marketItem.capacity}
+            asset={marketItem.asset}
+          />
+        </LiveMarketDataValue>
       )}
 
       <Divider />
@@ -352,7 +383,13 @@ export const MobileMarketCard = ({
                   : COLORS.manate
               }
             >
-              {formatLoan(marketItem.loan)} {marketItem.asset} deposited
+              <LiveMarketDataValue
+                status={liveDataStatus}
+                width={112}
+                height={18}
+              >
+                {formatLoan(marketItem.loan)} {marketItem.asset} deposited
+              </LiveMarketDataValue>
             </Typography>
 
             <Box sx={CardFooterButtonsContainer}>
