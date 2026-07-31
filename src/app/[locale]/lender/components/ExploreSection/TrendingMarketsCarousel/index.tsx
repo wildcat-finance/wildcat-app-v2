@@ -518,7 +518,14 @@ export const TrendingMarketsCarousel = () => {
           overflow: "hidden",
         }}
       >
-        <Typography variant="mobH3" sx={{ padding: "16px 16px 8px 16px" }}>
+        <Typography
+          sx={{
+            padding: "20px 16px 12px",
+            fontSize: "20px",
+            fontWeight: 500,
+            lineHeight: "26px",
+          }}
+        >
           Trending Markets
         </Typography>
 
@@ -545,7 +552,7 @@ export const TrendingMarketsCarousel = () => {
                 (key, index) => (
                   <Skeleton
                     key={key}
-                    height="370px"
+                    height="341px"
                     sx={{
                       flex: "0 0 70%",
                       minWidth: "222px",
@@ -553,8 +560,8 @@ export const TrendingMarketsCarousel = () => {
                       bgcolor: COLORS.athensGrey,
                       scrollSnapAlign: "center",
                       scrollSnapStop: "always",
-                      ...(index === 0 && { marginLeft: "24px" }),
-                      ...(index === 4 && { marginRight: "36px" }),
+                      ...(index === 0 && { marginLeft: "8px" }),
+                      ...(index === 4 && { marginRight: "16px" }),
                     }}
                   />
                 ),
@@ -569,9 +576,9 @@ export const TrendingMarketsCarousel = () => {
                     display: "flex",
                     scrollSnapAlign: "center",
                     scrollSnapStop: "always",
-                    ...(index === 0 && { marginLeft: "24px" }),
+                    ...(index === 0 && { marginLeft: "8px" }),
                     ...(index === slots.length - 1 && {
-                      marginRight: "36px",
+                      marginRight: "16px",
                     }),
                   }}
                 >
@@ -588,8 +595,8 @@ export const TrendingMarketsCarousel = () => {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: "6px",
-              padding: "14px 0 8px",
+              gap: "4px",
+              padding: "10px 0 4px",
             }}
           >
             {slots.map((slot, index) => {
@@ -603,12 +610,12 @@ export const TrendingMarketsCarousel = () => {
                   aria-current={isActive ? "true" : undefined}
                   onClick={() => scrollToMobileSlot(index)}
                   sx={{
-                    width: isActive ? "26px" : "8px",
-                    height: "8px",
+                    width: isActive ? "12px" : "4px",
+                    height: "4px",
                     flexShrink: 0,
                     padding: 0,
                     border: 0,
-                    borderRadius: "4px",
+                    borderRadius: "2px",
                     backgroundColor: isActive ? COLORS.bunker : COLORS.iron,
                     cursor: "pointer",
                     transition: "width 160ms ease, background-color 160ms ease",

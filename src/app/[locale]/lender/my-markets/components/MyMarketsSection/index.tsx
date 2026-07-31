@@ -239,7 +239,7 @@ export const MyMarketsSection = () => {
     )
 
   return (
-    <Box>
+    <Box sx={{ overflow: { xs: "auto", md: "visible" } }}>
       {/* Mobile Version */}
       {isMobile && (
         <MobileHeader>

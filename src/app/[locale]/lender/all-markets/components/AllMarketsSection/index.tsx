@@ -279,7 +279,7 @@ export const AllMarketsSection = () => {
     )
 
   return (
-    <Box sx={{ width: "100%" }}>
+    <Box sx={{ width: "100%", overflow: { xs: "auto", md: "visible" } }}>
       {!isMobile && (
         <Box sx={{ display: "flex", flexDirection: "column" }}>
           <Box

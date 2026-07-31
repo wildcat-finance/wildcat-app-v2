@@ -662,74 +662,24 @@ export const ExploreMarketsTable = () => {
         sx={{
           display: "flex",
           flexDirection: "column",
-          padding: "16px 8px 8px",
+          padding: "16px 0 8px",
           backgroundColor: "transparent",
         }}
       >
-        <Typography
-          variant="mobH2"
-          sx={{ padding: "0 8px", marginBottom: "16px" }}
-        >
-          Top Markets
-        </Typography>
-
         <Box
           sx={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "4px",
+            padding: "0 16px",
+            marginBottom: "12px",
           }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              gap: "6px",
-              alignItems: "center",
-            }}
+          <Typography
+            sx={{ fontSize: "20px", fontWeight: 500, lineHeight: "26px" }}
           >
-            {isLoading ? (
-              <RepeatingSkeletons
-                itemsLength={4}
-                skeletonSX={{
-                  height: "24px",
-                  width: "90px",
-                  borderRadius: "20px",
-                }}
-              />
-            ) : (
-              SORT_OPTIONS.map((option) => (
-                <Box
-                  key={option}
-                  onClick={() => handleSortModeChange(option)}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: sortMode === option ? "2px 10px" : "2px",
-                    borderRadius: "20px",
-                    backgroundColor:
-                      sortMode === option ? COLORS.blackRock : "transparent",
-                    cursor: "pointer",
-                    flexShrink: 0,
-                  }}
-                >
-                  <Typography
-                    variant="mobText3"
-                    sx={{
-                      color:
-                        sortMode === option ? COLORS.white : COLORS.blackRock,
-                      fontWeight: sortMode === option ? 600 : 500,
-                      whiteSpace: "nowrap",
-                      lineHeight: "20px",
-                    }}
-                  >
-                    {option}
-                  </Typography>
-                </Box>
-              ))
-            )}
-          </Box>
+            Top Markets
+          </Typography>
 
           <Box sx={{ display: "flex", gap: "4px" }}>
             <MobileFilterButton
@@ -762,13 +712,66 @@ export const ExploreMarketsTable = () => {
           </Box>
         </Box>
 
+        <Box
+          sx={{
+            display: "flex",
+            gap: "6px",
+            alignItems: "center",
+            padding: "0 6px 12px",
+            borderBottom: isLoading
+              ? "none"
+              : `1px solid ${COLORS.iron}`,
+          }}
+        >
+          {isLoading ? (
+            <RepeatingSkeletons
+              itemsLength={4}
+              skeletonSX={{
+                height: "24px",
+                width: "90px",
+                borderRadius: "20px",
+              }}
+            />
+          ) : (
+            SORT_OPTIONS.map((option) => (
+              <Box
+                key={option}
+                onClick={() => handleSortModeChange(option)}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: sortMode === option ? "2px 10px" : "2px",
+                  borderRadius: "20px",
+                  backgroundColor:
+                    sortMode === option ? COLORS.athensGrey : "transparent",
+                  cursor: "pointer",
+                  flexShrink: 0,
+                }}
+              >
+                <Typography
+                  variant="mobText3"
+                  sx={{
+                    color: COLORS.blackRock,
+                    fontWeight: sortMode === option ? 600 : 500,
+                    whiteSpace: "nowrap",
+                    lineHeight: "20px",
+                  }}
+                >
+                  {option}
+                </Typography>
+              </Box>
+            ))
+          )}
+        </Box>
+
         {isLoading ? (
           <RepeatingSkeletons
             itemsLength={5}
             skeletonSX={{
               height: "186px",
               borderRadius: "12px",
-              marginBottom: "6px",
+              margin: "0 8px 6px",
               "&:last-of-type": {
                 marginBottom: "0",
               },

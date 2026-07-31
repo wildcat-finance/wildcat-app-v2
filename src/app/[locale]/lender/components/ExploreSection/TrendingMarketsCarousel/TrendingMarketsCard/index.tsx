@@ -189,14 +189,14 @@ export const TrendingMarketCard = ({
             display: "flex",
             flexDirection: "column",
             gap: { xs: "5px", md: "3px" },
-            paddingBottom: { xs: "10px", md: "11px" },
+            paddingBottom: { xs: "12px", md: "11px" },
             borderBottom: `1px solid ${COLORS.whiteLilac}`,
           }}
         >
           <Typography
             sx={{
               color: COLORS.blackRock,
-              fontSize: { xs: "15px", md: "11px" },
+              fontSize: { xs: "14px", md: "11px" },
               lineHeight: { xs: "20px", md: "14px" },
             }}
           >
@@ -212,7 +212,7 @@ export const TrendingMarketCard = ({
             <Typography
               sx={{
                 color: COLORS.black,
-                fontSize: { xs: "30px", md: "20px" },
+                fontSize: { xs: "24px", md: "20px" },
                 fontWeight: 500,
                 lineHeight: 1,
                 whiteSpace: "nowrap",
@@ -226,26 +226,26 @@ export const TrendingMarketCard = ({
                   display: "flex",
                   alignItems: "center",
                   gap: "4px",
-                  padding: { xs: 0, md: "2px 7px 2px 5px" },
-                  borderRadius: "10px",
-                  backgroundColor: {
-                    xs: "transparent",
-                    md: COLORS.whiteSmoke,
+                  padding: {
+                    xs: "2px 8px 2px 6px",
+                    md: "2px 7px 2px 5px",
                   },
+                  borderRadius: { xs: "12px", md: "10px" },
+                  backgroundColor: COLORS.whiteSmoke,
                 }}
               >
                 {chainId && (
                   <NetworkIcon
                     chainId={chainId as SupportedChainId}
-                    width={isMobile ? 14 : 11}
-                    height={isMobile ? 14 : 11}
+                    width={isMobile ? 12 : 11}
+                    height={isMobile ? 12 : 11}
                   />
                 )}
                 <Typography
                   sx={{
                     color: COLORS.blackRock,
-                    fontSize: { xs: "15px", md: "10px" },
-                    lineHeight: { xs: "20px", md: "14px" },
+                    fontSize: { xs: "13px", md: "10px" },
+                    lineHeight: { xs: "18px", md: "14px" },
                   }}
                 >
                   {asset}

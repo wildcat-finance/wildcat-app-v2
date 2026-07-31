@@ -8,7 +8,9 @@ export default function AllMarkets() {
   return (
     <Box
       sx={{
-        minHeight: { xs: "calc(100dvh - 64px)", md: "auto" },
+        flex: "1 1 0",
+        minHeight: 0,
+        minWidth: 0,
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
@@ -16,7 +18,8 @@ export default function AllMarkets() {
     >
       <Box
         sx={{
-          flex: 1,
+          flex: "1 1 0",
+          minHeight: 0,
           display: "flex",
           flexDirection: "column",
         }}
