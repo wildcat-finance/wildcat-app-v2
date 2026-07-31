@@ -91,6 +91,7 @@ type Slot = {
   variant: TrendingMarketCardVariant
   account: MarketAccount
   value: string
+  secondaryValue?: string
 }
 
 const formatMaturityDate = (millisecondsFromNow: number) =>
@@ -111,7 +112,7 @@ const formatGrowthPct = (ratio: number): string => {
   // Beyond +1000% a percentage stops being readable - show a multiplier
   if (ratio >= 10) return `${compactFormat(Math.round(ratio))}x`
   const pct = ratio * 100
-  return `+${pct >= 10 ? Math.round(pct).toString() : pct.toFixed(1)}%`
+  return `${pct >= 10 ? Math.round(pct).toString() : pct.toFixed(1)}%`
 }
 
 const formatMarketAge = (deployedTimestamp: number): string => {
@@ -357,7 +358,15 @@ export const TrendingMarketsCarousel = () => {
     const fastestGrowingRatio = fastestGrowingWinner
       ? growthScore(fastestGrowingWinner)
       : undefined
-    const fastestGrowingStat = fastestGrowingRatio
+    const fastestGrowingStat = fastestGrowingWinner
+      ? `+${formatTokenCompact(
+          recentDeposits.netInflow7d[
+            fastestGrowingWinner.market.address.toLowerCase()
+          ] ?? ZERO,
+          fastestGrowingWinner.market.underlyingToken.decimals,
+        )}`
+      : undefined
+    const fastestGrowingRate = fastestGrowingRatio
       ? formatGrowthPct(fastestGrowingRatio)
       : undefined
 
@@ -412,9 +421,10 @@ export const TrendingMarketsCarousel = () => {
       variant: TrendingMarketCardVariant,
       account: MarketAccount | undefined,
       value: string | undefined,
+      secondaryValue?: string,
     ): Slot | null => {
       if (!account || !value) return null
-      return { key, variant, account, value }
+      return { key, variant, account, value, secondaryValue }
     }
 
     const built: (Slot | null)[] = [
@@ -423,6 +433,7 @@ export const TrendingMarketsCarousel = () => {
         "fastestGrowing",
         fastestGrowingWinner,
         fastestGrowingStat,
+        fastestGrowingRate,
       ),
       makeSlot(
         "lenders",
@@ -492,6 +503,7 @@ export const TrendingMarketsCarousel = () => {
       <TrendingMarketCard
         variant={slot.variant}
         value={slot.value}
+        secondaryValue={slot.secondaryValue}
         marketName={market.name}
         marketAddress={market.address}
         chainId={market.chainId}

@@ -1,6 +1,6 @@
 "use client"
 
-import { Box, SvgIcon, Typography } from "@mui/material"
+import { Box, SvgIcon, Tooltip, Typography } from "@mui/material"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 
@@ -24,6 +24,10 @@ import {
   CardIconStyle,
   MarketContainerStyle,
 } from "./style"
+
+const GROWTH_TOOLTIP =
+  "New deposits minus withdrawals over the past 7 days. " +
+  "The badge shows how much that grew the market from where it started the week."
 
 export type TrendingMarketCardVariant =
   | "fastestGrowing"
@@ -88,6 +92,8 @@ const VARIANT_BADGE: Record<
 type TrendingMarketCardProps = {
   variant: TrendingMarketCardVariant
   value: string
+  /** Small colored companion stat rendered beside the value (e.g. growth rate) */
+  secondaryValue?: string
   marketName: string
   marketAddress: string
   chainId?: number
@@ -105,6 +111,7 @@ type TrendingMarketCardProps = {
 export const TrendingMarketCard = ({
   variant,
   value,
+  secondaryValue,
   marketName,
   marketAddress,
   chainId,
@@ -122,7 +129,7 @@ export const TrendingMarketCard = ({
   const badge = VARIANT_BADGE[variant]
 
   const statisticTitle = {
-    fastestGrowing: "Growth Rate",
+    fastestGrowing: "Fresh Capital",
     popular: "Lenders Joined",
     newest: "Launched",
     hotRate: "Best In Market APR",
@@ -202,57 +209,84 @@ export const TrendingMarketCard = ({
           >
             {statisticTitle}
           </Typography>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: { xs: "6px", md: "5px" },
-            }}
+          <Tooltip
+            title={variant === "fastestGrowing" ? GROWTH_TOOLTIP : ""}
+            placement="bottom-start"
+            enterTouchDelay={0}
+            leaveTouchDelay={4000}
           >
-            <Typography
+            <Box
               sx={{
-                color: COLORS.black,
-                fontSize: { xs: "24px", md: "20px" },
-                fontWeight: 500,
-                lineHeight: 1,
-                whiteSpace: "nowrap",
+                width: "fit-content",
+                display: "flex",
+                alignItems: "center",
+                gap: { xs: "6px", md: "5px" },
+                ...(variant === "fastestGrowing" && { cursor: "help" }),
               }}
             >
-              {value}
-            </Typography>
-            {variant === "topFunded" && (
-              <Box
+              <Typography
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  padding: {
-                    xs: "2px 8px 2px 6px",
-                    md: "2px 7px 2px 5px",
-                  },
-                  borderRadius: { xs: "12px", md: "10px" },
-                  backgroundColor: COLORS.whiteSmoke,
+                  color: COLORS.black,
+                  fontSize: { xs: "24px", md: "20px" },
+                  fontWeight: 500,
+                  lineHeight: 1,
+                  whiteSpace: "nowrap",
                 }}
               >
-                {chainId && (
-                  <NetworkIcon
-                    chainId={chainId as SupportedChainId}
-                    width={isMobile ? 12 : 11}
-                    height={isMobile ? 12 : 11}
-                  />
-                )}
-                <Typography
+                {value}
+              </Typography>
+              {variant === "topFunded" && (
+                <Box
                   sx={{
-                    color: COLORS.blackRock,
-                    fontSize: { xs: "13px", md: "10px" },
-                    lineHeight: { xs: "18px", md: "14px" },
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    padding: {
+                      xs: "2px 8px 2px 6px",
+                      md: "2px 7px 2px 5px",
+                    },
+                    borderRadius: { xs: "12px", md: "10px" },
+                    backgroundColor: COLORS.whiteSmoke,
                   }}
                 >
-                  {asset}
+                  {chainId && (
+                    <NetworkIcon
+                      chainId={chainId as SupportedChainId}
+                      width={isMobile ? 12 : 11}
+                      height={isMobile ? 12 : 11}
+                    />
+                  )}
+                  <Typography
+                    sx={{
+                      color: COLORS.blackRock,
+                      fontSize: { xs: "13px", md: "10px" },
+                      lineHeight: { xs: "18px", md: "14px" },
+                    }}
+                  >
+                    {asset}
+                  </Typography>
+                </Box>
+              )}
+              {secondaryValue && (
+                <Typography
+                  sx={{
+                    alignSelf: "flex-start",
+                    marginTop: { xs: "-3px", md: "-2px" },
+                    padding: { xs: "1px 6px", md: "1px 4px" },
+                    borderRadius: "20px",
+                    backgroundColor: COLORS.lightGreen,
+                    color: "#2ACA7C",
+                    fontSize: { xs: "10px", md: "8px" },
+                    fontWeight: 600,
+                    lineHeight: { xs: "14px", md: "11px" },
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  ↑{secondaryValue}
                 </Typography>
-              </Box>
-            )}
-          </Box>
+              )}
+            </Box>
+          </Tooltip>
         </Box>
 
         <TrendingMarketDetails

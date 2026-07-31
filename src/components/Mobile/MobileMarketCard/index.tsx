@@ -258,9 +258,9 @@ export const MobileMarketCard = ({
             minWidth: 0,
             overflow: "hidden",
             color: COLORS.blackRock,
-            fontSize: "18px",
+            fontSize: "16px",
             fontWeight: 500,
-            lineHeight: "24px",
+            lineHeight: "22px",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
           }}
