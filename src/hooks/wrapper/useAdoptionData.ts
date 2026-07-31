@@ -12,6 +12,14 @@ export type AdoptionData = {
 }
 
 /**
+ * Values below this are dust: they render as "0" everywhere, so counting them
+ * would report a position of "0 tokens" at "100%".
+ */
+const DUST_FLOOR = 0.00001
+
+const ignoreDust = (value: number) => (value < DUST_FLOOR ? 0 : value)
+
+/**
  fetches adoption data for the wrapper
  *
  * - lender: personal balances. Shares are converted to their underlying
@@ -57,8 +65,8 @@ export const useAdoptionData = (
         return {
           originalAmount: unwrapped,
           wrappedAmount: totalAssets,
-          originalAssetValue: unwrappedFloat,
-          wrappedAssetValue: wrappedFloat,
+          originalAssetValue: ignoreDust(unwrappedFloat),
+          wrappedAssetValue: ignoreDust(wrappedFloat),
         }
       }
 
@@ -87,8 +95,8 @@ export const useAdoptionData = (
       return {
         originalAmount: marketBalance,
         wrappedAmount: shareBalance,
-        originalAssetValue: marketFloat,
-        wrappedAssetValue: sharesAsAssetsFloat,
+        originalAssetValue: ignoreDust(marketFloat),
+        wrappedAssetValue: ignoreDust(sharesAsAssetsFloat),
       }
     },
     refetchOnMount: false,

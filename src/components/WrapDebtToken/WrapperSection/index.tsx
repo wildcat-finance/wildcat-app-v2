@@ -125,6 +125,7 @@ export const WrapperSection = ({
 
   const [unit, setUnit] = React.useState<AmountUnit>(AmountUnit.ASSETS)
   const [amount, setAmount] = React.useState<string>("")
+  const [exactAmount, setExactAmount] = React.useState<TokenAmount>()
 
   const [showSuccess, setShowSuccess] = React.useState(false)
   const [showError, setShowError] = React.useState(false)
@@ -180,8 +181,8 @@ export const WrapperSection = ({
       : wrapper.marketToken
 
   const inputAmount = React.useMemo(
-    () => parseAmountSafe(inputToken, amount),
-    [inputToken, amount],
+    () => exactAmount ?? parseAmountSafe(inputToken, amount),
+    [exactAmount, inputToken, amount],
   )
 
   const isInputZero = !inputAmount || (inputAmount && inputAmount.raw.isZero())
@@ -340,7 +341,12 @@ export const WrapperSection = ({
         })}`
       : undefined
 
-  const baseHelperText = maxError || balanceError
+  const tooSmallError =
+    !isInputZero && outputAmount && outputAmount.raw.isZero()
+      ? `Amount is too small to ${isWrapTab ? "wrap" : "unwrap"}`
+      : undefined
+
+  const baseHelperText = maxError || balanceError || tooSmallError
   const helperText = isSubmitTransitioning ? undefined : baseHelperText
 
   const hasPreviewRequired =
@@ -399,6 +405,7 @@ export const WrapperSection = ({
 
   const setMaxAmount = () => {
     if (!maxInputAmount) return
+    setExactAmount(maxInputAmount)
     setAmount(maxInputAmount.format(5))
   }
 
@@ -408,6 +415,7 @@ export const WrapperSection = ({
   ) => {
     dispatch(setActiveTab(newTab))
     setAmount("")
+    setExactAmount(undefined)
     setIsSubmitTransitioning(false)
     setSuccessSnapshot(null)
     setShowError(false)
@@ -421,6 +429,7 @@ export const WrapperSection = ({
   ) => {
     setUnit(checked ? AmountUnit.SHARES : AmountUnit.ASSETS)
     setAmount("")
+    setExactAmount(undefined)
     setIsSubmitTransitioning(false)
     setSuccessSnapshot(null)
     setShowError(false)
@@ -431,6 +440,7 @@ export const WrapperSection = ({
   const handleClose = () => {
     setShowSuccess(false)
     setAmount("")
+    setExactAmount(undefined)
     setIsSubmitTransitioning(false)
     setSuccessSnapshot(null)
   }
@@ -657,6 +667,7 @@ export const WrapperSection = ({
         ),
       })
       setAmount("")
+      setExactAmount(undefined)
       setShowSuccess(true)
     },
     onError: (error: Error) => {
@@ -853,9 +864,10 @@ export const WrapperSection = ({
 
                 <NumberTextField
                   value={amount}
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                    setExactAmount(undefined)
                     setAmount(event.target.value)
-                  }
+                  }}
                   size="medium"
                   label="Amount"
                   error={!!helperText}
