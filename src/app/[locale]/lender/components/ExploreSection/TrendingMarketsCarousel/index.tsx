@@ -495,6 +495,7 @@ export const TrendingMarketsCarousel = () => {
         marketAddress={market.address}
         chainId={market.chainId}
         borrowerName={borrowerName}
+        borrowerAddress={market.borrower}
         asset={market.underlyingToken.symbol}
         apr={market.annualInterestBips}
         supplied={formatTokenCompact(suppliedRaw, decimals)}
@@ -544,7 +545,7 @@ export const TrendingMarketsCarousel = () => {
                 (key, index) => (
                   <Skeleton
                     key={key}
-                    height="404px"
+                    height="370px"
                     sx={{
                       flex: "0 0 70%",
                       minWidth: "222px",
@@ -588,7 +589,7 @@ export const TrendingMarketsCarousel = () => {
               alignItems: "center",
               justifyContent: "center",
               gap: "6px",
-              padding: "16px 0 20px",
+              padding: "14px 0 8px",
             }}
           >
             {slots.map((slot, index) => {

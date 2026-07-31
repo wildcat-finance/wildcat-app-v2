@@ -92,6 +92,7 @@ type TrendingMarketCardProps = {
   marketAddress: string
   chainId?: number
   borrowerName: string
+  borrowerAddress: string
   asset: string
   apr: number
   supplied: string
@@ -108,6 +109,7 @@ export const TrendingMarketCard = ({
   marketAddress,
   chainId,
   borrowerName,
+  borrowerAddress,
   asset,
   apr,
   supplied,
@@ -187,7 +189,7 @@ export const TrendingMarketCard = ({
             display: "flex",
             flexDirection: "column",
             gap: { xs: "5px", md: "3px" },
-            paddingBottom: { xs: "14px", md: "11px" },
+            paddingBottom: { xs: "10px", md: "11px" },
             borderBottom: `1px solid ${COLORS.whiteLilac}`,
           }}
         >
@@ -256,6 +258,7 @@ export const TrendingMarketCard = ({
         <TrendingMarketDetails
           marketName={marketName}
           borrower={borrowerName}
+          borrowerAddress={borrowerAddress}
           asset={asset}
           chainId={chainId}
           suppliedPct={suppliedPct}
@@ -277,8 +280,9 @@ export const TrendingMarketCard = ({
             <Typography
               sx={{
                 color: COLORS.white,
-                fontSize: { xs: "18px", md: "11px" },
+                fontSize: { xs: "15px", md: "11px" },
                 fontWeight: 500,
+                whiteSpace: "nowrap",
               }}
             >
               Earn {formatBps(apr)}% APR
@@ -286,8 +290,9 @@ export const TrendingMarketCard = ({
             <Typography
               sx={{
                 color: COLORS.white,
-                fontSize: { xs: "18px", md: "11px" },
+                fontSize: { xs: "15px", md: "11px" },
                 fontWeight: 600,
+                whiteSpace: "nowrap",
               }}
             >
               Deposit

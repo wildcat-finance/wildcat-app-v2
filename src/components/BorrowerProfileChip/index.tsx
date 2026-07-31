@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { Box, SvgIcon, Typography } from "@mui/material"
+import { useRouter } from "next/navigation"
 
 import Avatar from "@/assets/icons/avatar_icon.svg"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -52,15 +53,27 @@ const CHIP_SIZE_STYLES = {
 export const BorrowerProfileChip = ({
   borrower,
   size = "default",
+  href,
 }: {
   borrower: string | undefined
   size?: "small" | "default" | "medium" | "large"
+  href?: string
 }) => {
   const isMobile = useMobileResolution()
+  const router = useRouter()
   const sizeStyles = CHIP_SIZE_STYLES[size]
 
   return (
     <Box
+      onClick={
+        href
+          ? (event: React.MouseEvent) => {
+              event.preventDefault()
+              event.stopPropagation()
+              router.push(href)
+            }
+          : undefined
+      }
       sx={{
         width: "fit-content",
         minWidth: 0,
@@ -70,6 +83,10 @@ export const BorrowerProfileChip = ({
         padding: sizeStyles.padding,
         borderRadius: sizeStyles.radius,
         bgcolor: COLORS.whiteSmoke,
+        ...(href && {
+          cursor: "pointer",
+          "&:hover": { bgcolor: COLORS.athensGrey },
+        }),
       }}
     >
       {borrower && borrower.startsWith("0") ? (

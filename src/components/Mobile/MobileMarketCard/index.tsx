@@ -207,7 +207,7 @@ export const MobileMarketCard = ({
         flexDirection: "column",
         gap: "10px",
         padding: "16px",
-        borderBottom: isLast ? "none" : `1px solid ${COLORS.athensGrey}`,
+        borderBottom: isLast ? "none" : `1px solid ${COLORS.iron}`,
         backgroundColor: COLORS.white,
         color: "inherit",
         cursor: "pointer",
@@ -247,9 +247,9 @@ export const MobileMarketCard = ({
             minWidth: 0,
             overflow: "hidden",
             color: COLORS.blackRock,
-            fontSize: "20px",
-            fontWeight: 600,
-            lineHeight: "26px",
+            fontSize: "18px",
+            fontWeight: 500,
+            lineHeight: "24px",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
           }}
@@ -296,6 +296,11 @@ export const MobileMarketCard = ({
             <BorrowerProfileChip
               borrower={marketItem.borrower ?? marketItem.borrowerAddress}
               size="medium"
+              href={
+                marketItem.borrowerAddress
+                  ? `${ROUTES.lender.profile}/${marketItem.borrowerAddress}`
+                  : undefined
+              }
             />
           )}
           <MarketAssetChip

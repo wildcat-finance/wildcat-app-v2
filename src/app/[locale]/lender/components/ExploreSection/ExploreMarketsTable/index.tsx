@@ -662,7 +662,7 @@ export const ExploreMarketsTable = () => {
         sx={{
           display: "flex",
           flexDirection: "column",
-          padding: "24px 8px 8px",
+          padding: "16px 8px 8px",
           backgroundColor: "transparent",
         }}
       >
@@ -775,13 +775,15 @@ export const ExploreMarketsTable = () => {
             }}
           />
         ) : (
-          rows.map((marketItem, index) => (
-            <MobileMarketCard
-              key={marketItem.id}
-              marketItem={marketItem}
-              isLast={index === rows.length - 1}
-            />
-          ))
+          rows
+            .slice(0, 5)
+            .map((marketItem, index, shownRows) => (
+              <MobileMarketCard
+                key={marketItem.id}
+                marketItem={marketItem}
+                isLast={index === shownRows.length - 1}
+              />
+            ))
         )}
       </Box>
     )

@@ -35,7 +35,7 @@ export const CardContentStyle = {
   flexGrow: 1,
   display: "flex",
   flexDirection: "column",
-  padding: { xs: "20px", md: "12px 14px" },
+  padding: { xs: "12px 20px 20px", md: "12px 14px" },
 }
 
 export const MarketContainerStyle = {
@@ -45,7 +45,8 @@ export const MarketContainerStyle = {
   width: "100%",
   minHeight: { xs: "56px", md: "36px" },
   marginTop: "auto",
-  padding: { xs: "12px 32px", md: "7px 12px" },
+  gap: "6px",
+  padding: { xs: "12px", md: "7px 12px" },
   borderRadius: { xs: "12px", md: "8px" },
   backgroundColor: COLORS.bunker,
   color: COLORS.white,

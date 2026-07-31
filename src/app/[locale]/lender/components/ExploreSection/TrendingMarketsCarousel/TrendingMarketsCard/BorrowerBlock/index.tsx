@@ -7,6 +7,7 @@ import { MarketStatusAndTermChip } from "@/components/@extended/MarketStatusAndT
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { NetworkIcon } from "@/components/NetworkIcon"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 
@@ -15,6 +16,7 @@ import { SupplyProgressFillStyle, SupplyProgressTrackStyle } from "../style"
 export type TrendingMarketDetailsProps = {
   marketName: string
   borrower: string
+  borrowerAddress: string
   asset: string
   chainId?: number
   suppliedPct: number
@@ -65,6 +67,7 @@ const AssetChip = ({
 export const TrendingMarketDetails = ({
   marketName,
   borrower,
+  borrowerAddress,
   asset,
   chainId,
   suppliedPct,
@@ -110,6 +113,7 @@ export const TrendingMarketDetails = ({
           <BorrowerProfileChip
             borrower={borrower}
             size={isMobile ? "medium" : "small"}
+            href={`${ROUTES.lender.profile}/${borrowerAddress}`}
           />
           <AssetChip asset={asset} chainId={chainId} isMobile={isMobile} />
         </Box>
