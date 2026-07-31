@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import * as React from "react"
 
 import { Box, Button, Dialog, Typography } from "@mui/material"
@@ -47,6 +47,14 @@ export const WithdrawModal = ({
   const [isDesktopOpen, setIsDesktopOpen] = useState(false)
   const [snapshotShares, setSnapshotShares] = useState<TokenAmount>()
 
+  /**
+   * The form is the tallest view. Remember its height and hold it for the rest
+   * of the flow so the dialog does not resize from step to step. Kept as a
+   * minimum (never a fixed height) so unusually long content can still grow.
+   */
+  const paperRef = useRef<HTMLDivElement>(null)
+  const [lockedHeight, setLockedHeight] = useState<number>()
+
   const routing = useWithdrawRouting({ marketAccount, wrapper, hasWrapper })
   const flow = useWithdrawFlow({ marketAccount, wrapper })
 
@@ -86,6 +94,7 @@ export const WithdrawModal = ({
     flow.reset()
     routing.reset()
     setSnapshotShares(undefined)
+    setLockedHeight(undefined)
     if (isMobile) {
       setIsMobileOpen?.(false)
     } else {
@@ -97,6 +106,7 @@ export const WithdrawModal = ({
     flow.reset()
     routing.reset()
     setSnapshotShares(undefined)
+    setLockedHeight(undefined)
     setIsDesktopOpen(true)
   }
 
@@ -109,6 +119,37 @@ export const WithdrawModal = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobileOpen])
+
+  /**
+   * Back to the amount form. Only offered before the first signature — once a
+   * leg is on-chain there is nothing to rewind to.
+   */
+  const canGoBackToForm =
+    view === "steps" && flow.currentLeg === 0 && !flow.busy
+
+  const handleBackToForm = () => {
+    flow.reset()
+    setSnapshotShares(undefined)
+  }
+
+  // Watch the form while it is on screen: its height can still grow after the
+  // wrapper balances resolve. Only ever raises the lock, so it converges.
+  useEffect(() => {
+    const el = paperRef.current
+    if (view !== "form" || !el) return undefined
+
+    const measure = () => {
+      const { height } = el.getBoundingClientRect()
+      setLockedHeight((prev) =>
+        prev === undefined || height > prev ? height : prev,
+      )
+    }
+    measure()
+
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [view])
 
   const handleConfirm = () => {
     setSnapshotShares(routing.sharesToUnwrap)
@@ -135,9 +176,7 @@ export const WithdrawModal = ({
       }
     }
 
-    const sharesLabel = snapshotShares
-      ? formatTokenWithCommas(snapshotShares)
-      : "…"
+    const sharesAmount = snapshotShares ?? routing.sharesToUnwrap
     const shareSymbol = wrapper?.shareToken.symbol ?? ""
     const totalLabel = formatTokenWithCommas(snapshot.amount)
 
@@ -148,12 +187,17 @@ export const WithdrawModal = ({
         return {
           n: leg.n,
           title: t(`${T}.steps.unwrap.title`),
-          detail: t(`${T}.steps.unwrap.detail`, {
-            shares: sharesLabel,
-            shareSymbol,
-            amount: formatTokenWithCommas(snapshot.fromWrapped),
-            symbol,
-          }),
+          detail: sharesAmount
+            ? t(`${T}.steps.unwrap.detail`, {
+                shares: formatTokenWithCommas(sharesAmount),
+                shareSymbol,
+                amount: formatTokenWithCommas(snapshot.fromWrapped),
+                symbol,
+              })
+            : t(`${T}.steps.unwrap.detailNoShares`, {
+                amount: formatTokenWithCommas(snapshot.fromWrapped),
+                symbol,
+              }),
           status,
           statusLabel: statusLabel(status),
         }
@@ -164,7 +208,7 @@ export const WithdrawModal = ({
           n: leg.n,
           title: t(`${T}.steps.batched.title`),
           detail: t(`${T}.steps.batched.detail`, {
-            shares: sharesLabel,
+            shares: sharesAmount ? formatTokenWithCommas(sharesAmount) : "",
             shareSymbol,
             amount: totalLabel,
             symbol,
@@ -184,7 +228,7 @@ export const WithdrawModal = ({
         statusLabel: statusLabel(status),
       }
     })
-  }, [flow, snapshotShares, wrapper, symbol, t])
+  }, [flow, snapshotShares, routing.sharesToUnwrap, wrapper, symbol, t])
 
   // ---- footer labels ----
   const confirmLabel = (() => {
@@ -338,7 +382,14 @@ export const WithdrawModal = ({
       >
         <TransactionHeader
           label={t(`${T}.modal.title`)}
-          arrowOnClick={view === "form" ? handleClose : null}
+          arrowOnClick={
+            // eslint-disable-next-line no-nested-ternary
+            view === "form"
+              ? handleClose
+              : canGoBackToForm
+                ? handleBackToForm
+                : null
+          }
           crossOnClick={handleClose}
           progress={view === "form" ? 50 : 100}
         />
@@ -376,10 +427,13 @@ export const WithdrawModal = ({
       <Dialog
         open={isOpen}
         onClose={flow.busy ? undefined : handleClose}
+        PaperProps={{ ref: paperRef }}
         sx={{
           "& .MuiDialog-paper": {
-            minHeight: "404px",
+            minHeight: lockedHeight ? `${lockedHeight}px` : "404px",
             width: "440px",
+            minWidth: "440px !important",
+            maxWidth: "440px",
             border: "none",
             borderRadius: "20px",
             margin: 0,
@@ -390,7 +444,7 @@ export const WithdrawModal = ({
         {(view === "form" || view === "steps") && (
           <TxModalHeader
             title={t(`${T}.modal.title`)}
-            arrowOnClick={null}
+            arrowOnClick={canGoBackToForm ? handleBackToForm : null}
             crossOnClick={flow.busy ? null : handleClose}
           />
         )}

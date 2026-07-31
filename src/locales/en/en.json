@@ -1174,7 +1174,8 @@
           "header": "Withdrawing",
           "unwrap": {
             "title": "Unwrap",
-            "detail": "{{shares}} {{shareSymbol}} to {{amount}} {{symbol}}"
+            "detail": "{{shares}} {{shareSymbol}} to {{amount}} {{symbol}}",
+            "detailNoShares": "Unwrap to {{amount}} {{symbol}}"
           },
           "queue": {
             "title": "Request Withdrawal",
@@ -1205,7 +1206,9 @@
         "proposed": {
           "title": "Transaction Proposed",
           "subtitle": "Your Safe needs {{count}} signatures before this withdrawal is queued."
-        }
+        },
+        "splitDirect": "{{amount}} direct",
+        "splitWrapped": "≈ {{amount}} wrapped"
       },
       "withdrawalsAlert": {
         "title": {

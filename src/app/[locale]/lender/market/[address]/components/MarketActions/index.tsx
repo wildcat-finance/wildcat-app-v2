@@ -23,7 +23,6 @@ import { TransactionBlock } from "@/components/TransactionBlock"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { useWrapperBalances } from "@/hooks/wrapper/useWrapperBalances"
 import { useWrapperLimits } from "@/hooks/wrapper/useWrapperLimits"
 import { useAppDispatch } from "@/store/hooks"
 import {
@@ -70,24 +69,22 @@ export const MarketActions = ({
   const { isTestnet } = useSelectedNetwork()
   const { address } = useAccount()
 
-  const { data: wrapperBalances } = useWrapperBalances(
-    market.chainId,
-    wrapper,
-    address,
-  )
-  const shareBalance = wrapperBalances?.shareBalance
-  const hasWrappedPosition =
-    !!hasWrapper && !!wrapper && !!shareBalance && !shareBalance.raw.isZero()
-
   // Authoritative wrapped ceiling — the same source the withdraw routing uses.
   const { data: wrapperLimits } = useWrapperLimits(
     market.chainId,
     wrapper,
     address,
   )
-  const wrappedAvailable = hasWrappedPosition
-    ? wrapperLimits?.maxWithdraw
-    : undefined
+  const wrappedCap =
+    hasWrapper && wrapper ? wrapperLimits?.maxWithdraw : undefined
+
+  // Only count the wrapped position when it is actually withdrawable: dust
+  // shares render as "0" and must not produce an "≈ 0 wrapped" breakdown.
+  const hasWrappedPosition =
+    !!wrappedCap &&
+    wrappedCap.gte(market.underlyingToken.parseAmount("0.00001"))
+
+  const wrappedAvailable = hasWrappedPosition ? wrappedCap : undefined
 
   /** Everything the lender can request, across both positions. */
   const combinedAvailable = wrappedAvailable
@@ -309,9 +306,14 @@ export const MarketActions = ({
                 tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
                 amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
                 asset={market.underlyingToken.symbol}
-                subtitle={t(
-                  "lenderMarketDetails.transactions.deposit.subtitle",
-                )}
+                subtitle={
+                  // the breakdown line drives both cards: when there is no
+                  // wrapped position neither card shows a sub-line, so their
+                  // dividers still line up
+                  hasWrappedPosition
+                    ? t("lenderMarketDetails.transactions.deposit.subtitle")
+                    : undefined
+                }
                 rows={depositRows}
               >
                 {!showFaucet && (
@@ -333,14 +335,12 @@ export const MarketActions = ({
                 }
                 asset={market.underlyingToken.symbol}
                 subtitle={
-                  hasWrappedPosition
+                  hasWrappedPosition && wrappedAvailable
                     ? t("lenderMarketDetails.transactions.withdraw.split", {
                         direct: formatTokenWithCommas(
                           marketAccount.marketBalance,
                         ),
-                        wrapped: wrappedAvailable
-                          ? formatTokenWithCommas(wrappedAvailable)
-                          : "…",
+                        wrapped: formatTokenWithCommas(wrappedAvailable),
                       })
                     : undefined
                 }

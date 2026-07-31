@@ -20,7 +20,6 @@ import Clock from "@/assets/icons/clock_icon.svg"
 import { TooltipButton } from "@/components/TooltipButton"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
-import { useWrapperBalances } from "@/hooks/wrapper/useWrapperBalances"
 import { useWrapperLimits } from "@/hooks/wrapper/useWrapperLimits"
 import { COLORS } from "@/theme/colors"
 import { hasManuallyDisabledMarketActions } from "@/utils/constants"
@@ -142,24 +141,22 @@ export const MobileMarketActions = ({
     includeAgreementStatus: false,
   })
 
-  const { data: wrapperBalances } = useWrapperBalances(
-    market.chainId,
-    wrapper,
-    address,
-  )
-  const shareBalance = wrapperBalances?.shareBalance
-  const hasWrappedPosition =
-    !!hasWrapper && !!wrapper && !!shareBalance && !shareBalance.raw.isZero()
-
   // Authoritative wrapped ceiling — the same source the withdraw routing uses.
   const { data: wrapperLimits } = useWrapperLimits(
     market.chainId,
     wrapper,
     address,
   )
-  const wrappedAvailable = hasWrappedPosition
-    ? wrapperLimits?.maxWithdraw
-    : undefined
+  const wrappedCap =
+    hasWrapper && wrapper ? wrapperLimits?.maxWithdraw : undefined
+
+  // Only count the wrapped position when it is actually withdrawable: dust
+  // shares render as "0" and must not produce an "≈ 0 wrapped" breakdown.
+  const hasWrappedPosition =
+    !!wrappedCap &&
+    wrappedCap.gte(market.underlyingToken.parseAmount("0.00001"))
+
+  const wrappedAvailable = hasWrappedPosition ? wrappedCap : undefined
 
   /** Everything the lender can request, across both positions. */
   const combinedAvailable = wrappedAvailable
@@ -313,9 +310,12 @@ export const MobileMarketActions = ({
 
         {!mlaRequiredAndUnsigned && !isDifferentChain && (
           <>
+            {/* both columns stretch and pin their button to the bottom, so the
+                two actions stay on one line however tall the text above is */}
             <Box
               sx={{
-                width: "100%",
+                flex: 1,
+                minWidth: 0,
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "flex-start",
@@ -329,41 +329,60 @@ export const MobileMarketActions = ({
                 asset={market.underlyingToken.symbol}
               />
 
-              {hasWrappedPosition && (
-                <Typography
-                  variant="mobText3"
-                  sx={{ color: COLORS.white06, marginTop: "4px" }}
-                >
-                  {t("lenderMarketDetails.transactions.withdraw.split", {
-                    direct: formatTokenWithCommas(marketAccount.marketBalance),
-                    wrapped: wrappedAvailable
-                      ? formatTokenWithCommas(wrappedAvailable)
-                      : "…",
-                  })}
-                </Typography>
+              {hasWrappedPosition && wrappedAvailable && (
+                <Box sx={{ marginTop: "4px" }}>
+                  {/* one per line: the combined string does not fit the column */}
+                  <Typography
+                    variant="mobText3"
+                    sx={{ color: COLORS.white06, display: "block" }}
+                  >
+                    {t(
+                      "lenderMarketDetails.transactions.withdraw.splitDirect",
+                      {
+                        amount: formatTokenWithCommas(
+                          marketAccount.marketBalance,
+                        ),
+                      },
+                    )}
+                  </Typography>
+                  <Typography
+                    variant="mobText3"
+                    sx={{ color: COLORS.white06, display: "block" }}
+                  >
+                    {t(
+                      "lenderMarketDetails.transactions.withdraw.splitWrapped",
+                      { amount: formatTokenWithCommas(wrappedAvailable) },
+                    )}
+                  </Typography>
+                </Box>
               )}
 
-              <Button
-                variant="contained"
-                color="secondary"
-                size="large"
-                fullWidth
-                onClick={() =>
-                  setIsMobileWithdrawalOpen(!isMobileWithdrawalOpen)
-                }
-                disabled={notMature}
-                sx={{ padding: "10px 20px", marginTop: "16px" }}
-              >
-                ↑{" "}
-                {notMature
-                  ? t("lenderMarketDetails.transactions.withdraw.buttonLocked")
-                  : t("lenderMarketDetails.transactions.withdraw.button")}
-              </Button>
+              <Box sx={{ width: "100%", marginTop: "auto" }}>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  size="large"
+                  fullWidth
+                  onClick={() =>
+                    setIsMobileWithdrawalOpen(!isMobileWithdrawalOpen)
+                  }
+                  disabled={notMature}
+                  sx={{ padding: "10px 20px", marginTop: "16px" }}
+                >
+                  ↑{" "}
+                  {notMature
+                    ? t(
+                        "lenderMarketDetails.transactions.withdraw.buttonLocked",
+                      )
+                    : t("lenderMarketDetails.transactions.withdraw.button")}
+                </Button>
+              </Box>
             </Box>
 
             <Box
               sx={{
-                width: "100%",
+                flex: 1,
+                minWidth: 0,
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "flex-end",
@@ -376,24 +395,40 @@ export const MobileMarketActions = ({
                 asset={market.underlyingToken.symbol}
               />
 
-              {showFaucet ? (
-                <MobileFaucetButton marketAccount={marketAccount} />
-              ) : (
-                <Button
-                  onClick={() => setIsMobileDepositOpen(!isMobileDepositOpen)}
-                  variant="contained"
-                  color="secondary"
-                  size="large"
-                  fullWidth
-                  disabled={
-                    marketActionsManuallyDisabled ||
-                    marketAccount.maximumDeposit.raw.isZero()
-                  }
-                  sx={{ padding: "10px 20px", marginTop: "16px" }}
+              {/* shown only alongside the direct/wrapped breakdown opposite */}
+              {hasWrappedPosition && wrappedAvailable && (
+                <Typography
+                  variant="mobText3"
+                  sx={{
+                    color: COLORS.white06,
+                    marginTop: "4px",
+                    textAlign: "right",
+                  }}
                 >
-                  ↓ {t("lenderMarketDetails.transactions.deposit.button")}
-                </Button>
+                  {t("lenderMarketDetails.transactions.deposit.subtitle")}
+                </Typography>
               )}
+
+              <Box sx={{ width: "100%", marginTop: "auto" }}>
+                {showFaucet ? (
+                  <MobileFaucetButton marketAccount={marketAccount} />
+                ) : (
+                  <Button
+                    onClick={() => setIsMobileDepositOpen(!isMobileDepositOpen)}
+                    variant="contained"
+                    color="secondary"
+                    size="large"
+                    fullWidth
+                    disabled={
+                      marketActionsManuallyDisabled ||
+                      marketAccount.maximumDeposit.raw.isZero()
+                    }
+                    sx={{ padding: "10px 20px", marginTop: "16px" }}
+                  >
+                    ↓ {t("lenderMarketDetails.transactions.deposit.button")}
+                  </Button>
+                )}
+              </Box>
             </Box>
           </>
         )}

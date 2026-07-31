@@ -108,22 +108,6 @@ export const WithdrawForm = ({
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-      <NumberTextField
-        size="medium"
-        style={{ width: "100%" }}
-        placeholder="0.00"
-        value={amountInput}
-        onChange={(evt: React.ChangeEvent<HTMLInputElement>) =>
-          handleAmountChange(evt.target.value)
-        }
-        endAdornment={<TextfieldChip text={symbol} size="small" />}
-        error={!!amountError}
-        helperText={amountError}
-        FormHelperTextProps={{
-          sx: { minHeight: "16px", whiteSpace: "normal" },
-        }}
-      />
-
       <Box sx={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
         {hasWrappedPosition && !isWrappedOnly && !direct.raw.isZero() && (
           <Button
@@ -155,6 +139,23 @@ export const WithdrawForm = ({
           </Button>
         )}
       </Box>
+
+      <NumberTextField
+        size="medium"
+        style={{ width: "100%" }}
+        sx={{ height: "auto" }}
+        placeholder="0.00"
+        value={amountInput}
+        onChange={(evt: React.ChangeEvent<HTMLInputElement>) =>
+          handleAmountChange(evt.target.value)
+        }
+        endAdornment={<TextfieldChip text={symbol} size="small" />}
+        error={!!amountError}
+        helperText={amountError ?? "\u00A0"}
+        FormHelperTextProps={{
+          sx: { minHeight: "16px", whiteSpace: "normal" },
+        }}
+      />
 
       {hasWrappedPosition && (
         <RoutingPanel

@@ -73,21 +73,7 @@ export const useWithdrawRouting = ({
 
   const shareBalance = balances?.shareBalance
 
-  const hasWrappedPosition =
-    !!hasWrapper && !!wrapper && !!shareBalance && !shareBalance.raw.isZero()
-
   const direct = marketAccount.marketBalance
-
-  /**
-   * The authoritative wrapped ceiling is the wrapper's own `maxWithdraw` — the
-   * EIP-4626 quantity guaranteed not to revert. A client-side
-   * `previewRedeem(shareBalance)` can sit above it and trip
-   * `WithdrawMoreThanMax()`.
-   */
-  const wrappedAvailable = useMemo(() => {
-    if (!hasWrappedPosition || !limits?.maxWithdraw) return undefined
-    return limits.maxWithdraw
-  }, [hasWrappedPosition, limits])
 
   const zero = useMemo(() => market.underlyingToken.getAmount(0), [market])
 
@@ -96,6 +82,23 @@ export const useWithdrawRouting = ({
     () => market.underlyingToken.parseAmount("0.00001"),
     [market],
   )
+
+  /**
+   * The authoritative wrapped ceiling is the wrapper's own `maxWithdraw` — the
+   * EIP-4626 quantity guaranteed not to revert. A client-side
+   * `previewRedeem(shareBalance)` can sit above it and trip
+   * `WithdrawMoreThanMax()`.
+   */
+  const wrappedCap = hasWrapper && wrapper ? limits?.maxWithdraw : undefined
+
+  /**
+   * Treat the wrapped position as present only when it is actually withdrawable.
+   * Dust shares round to "0" on screen, so gating on `shareBalance > 0` showed
+   * an "≈ 0 wrapped" breakdown and a Wrapped option that could do nothing.
+   */
+  const hasWrappedPosition = !!wrappedCap && wrappedCap.gte(dustFloor)
+
+  const wrappedAvailable = hasWrappedPosition ? wrappedCap : undefined
 
   const combinedMax = useMemo(
     () => (wrappedAvailable ? direct.add(wrappedAvailable) : direct),

@@ -46,7 +46,12 @@ export const TransactionBlock = ({
               variant="title3"
               sx={{
                 color: warning ? COLORS.carminePink : "",
+                minWidth: 0,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}
+              title={amount}
             >
               {amount}
             </Typography>
@@ -65,7 +70,7 @@ export const TransactionBlock = ({
         <Box sx={{ flex: "0 0 auto" }}>{children}</Box>
       </Box>
 
-      {subtitle && (
+      {subtitle !== undefined && (
         <Typography
           variant="text4"
           sx={{
@@ -75,7 +80,7 @@ export const TransactionBlock = ({
             whiteSpace: "nowrap",
           }}
         >
-          {subtitle}
+          {subtitle || "\u00A0"}
         </Typography>
       )}
     </Box>
@@ -87,12 +92,26 @@ export const TransactionBlock = ({
         <Box sx={RowsContainer}>
           {rows.map((row) => (
             <Box key={row.label} sx={RowContainer}>
-              <Typography variant="text4" sx={{ color: COLORS.manate }}>
+              <Typography
+                variant="text4"
+                sx={{
+                  color: COLORS.manate,
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
+                }}
+              >
                 {row.label}
               </Typography>
               <Typography
                 variant="text4"
-                sx={{ color: COLORS.blackRock, whiteSpace: "nowrap" }}
+                sx={{
+                  color: COLORS.blackRock,
+                  whiteSpace: "nowrap",
+                  minWidth: 0,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+                title={row.value}
               >
                 {row.value}
               </Typography>
