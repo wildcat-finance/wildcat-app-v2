@@ -718,9 +718,7 @@ export const ExploreMarketsTable = () => {
             gap: "6px",
             alignItems: "center",
             padding: "0 6px 12px",
-            borderBottom: isLoading
-              ? "none"
-              : `1px solid ${COLORS.iron}`,
+            borderBottom: isLoading ? "none" : `1px solid ${COLORS.iron}`,
           }}
         >
           {isLoading ? (

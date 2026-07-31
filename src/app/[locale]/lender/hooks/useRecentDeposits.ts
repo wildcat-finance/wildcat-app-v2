@@ -5,7 +5,7 @@ import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 
 import { QueryKeys } from "@/config/query-keys"
-import { RECENT_DEPOSITS } from "@/graphql/queries"
+import { RECENT_DEPOSITS, RECENT_WITHDRAWAL_REQUESTS } from "@/graphql/queries"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
@@ -20,6 +20,13 @@ type RecentDepositNode = {
   market: { id: string }
 }
 
+type RecentWithdrawalRequestNode = {
+  id: string
+  normalizedAmount: string
+  blockTimestamp: number
+  market: { id: string }
+}
+
 export type MarketDepositStats = {
   totalAssetAmount: bigint
   uniqueLenders: number
@@ -30,6 +37,9 @@ export type RecentDepositsData = Record<string, MarketDepositStats>
 export type RecentDepositsBuckets = {
   last7d: RecentDepositsData
   broad: RecentDepositsData
+  /** Per-market deposits minus withdrawal requests over the last 7 days
+   *  (underlying asset units; negative when outflows dominate) */
+  netInflow7d: Record<string, bigint>
 }
 
 const aggregate = (
@@ -65,28 +75,54 @@ export const useRecentDeposits = () => {
   const { data, isLoading, isError } = useQuery({
     queryKey: QueryKeys.Lender.GET_RECENT_DEPOSITS(targetChainId),
     queryFn: async (): Promise<RecentDepositsBuckets> => {
-      const { data: response } = await subgraphClient.query<{
-        deposits: RecentDepositNode[]
-      }>({
-        query: RECENT_DEPOSITS,
-        variables: { first: MAX_DEPOSITS },
-        fetchPolicy: "network-only",
+      const sevenDaysAgo = Math.floor(Date.now() / 1000) - SEVEN_DAYS_SECONDS
+
+      const [{ data: response }, { data: withdrawalsResponse }] =
+        await Promise.all([
+          subgraphClient.query<{ deposits: RecentDepositNode[] }>({
+            query: RECENT_DEPOSITS,
+            variables: { first: MAX_DEPOSITS },
+            fetchPolicy: "network-only",
+          }),
+          subgraphClient.query<{
+            withdrawalRequests: RecentWithdrawalRequestNode[]
+          }>({
+            query: RECENT_WITHDRAWAL_REQUESTS,
+            variables: {
+              first: MAX_DEPOSITS,
+              where: { blockTimestamp_gte: sevenDaysAgo },
+            },
+            fetchPolicy: "network-only",
+          }),
+        ])
+
+      const last7d = aggregate(
+        response.deposits,
+        (deposit) => deposit.blockTimestamp >= sevenDaysAgo,
+      )
+
+      const netInflow7d: Record<string, bigint> = {}
+      Object.entries(last7d).forEach(([marketId, stats]) => {
+        netInflow7d[marketId] = stats.totalAssetAmount
+      })
+      withdrawalsResponse.withdrawalRequests.forEach((request) => {
+        const marketId = request.market.id.toLowerCase()
+        netInflow7d[marketId] =
+          (netInflow7d[marketId] ?? BigInt(0)) -
+          BigInt(request.normalizedAmount)
       })
 
-      const sevenDaysAgo = Math.floor(Date.now() / 1000) - SEVEN_DAYS_SECONDS
       return {
-        last7d: aggregate(
-          response.deposits,
-          (deposit) => deposit.blockTimestamp >= sevenDaysAgo,
-        ),
+        last7d,
         broad: aggregate(response.deposits),
+        netInflow7d,
       }
     },
     staleTime: 60_000,
   })
 
   const empty = useMemo<RecentDepositsBuckets>(
-    () => ({ last7d: {}, broad: {} }),
+    () => ({ last7d: {}, broad: {}, netInflow7d: {} }),
     [],
   )
 

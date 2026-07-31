@@ -107,6 +107,24 @@ const formatWithdrawalCycle = (seconds: number) => {
   return hours > 0 ? `${hours}h` : "<1h"
 }
 
+const formatGrowthPct = (ratio: number): string => {
+  // Beyond +1000% a percentage stops being readable - show a multiplier
+  if (ratio >= 10) return `${compactFormat(Math.round(ratio))}x`
+  const pct = ratio * 100
+  return `+${pct >= 10 ? Math.round(pct).toString() : pct.toFixed(1)}%`
+}
+
+const formatMarketAge = (deployedTimestamp: number): string => {
+  const ageSeconds = Math.max(
+    0,
+    Math.floor(Date.now() / 1000) - deployedTimestamp,
+  )
+  const days = Math.floor(ageSeconds / 86400)
+  if (days >= 1) return `${days}d ago`
+  const hours = Math.floor(ageSeconds / 3600)
+  return hours >= 1 ? `${hours}h ago` : "just now"
+}
+
 const useDragScroll = () => {
   const ref = useRef<HTMLDivElement>(null)
   const drag = useRef({ active: false, startX: 0, scrollLeft: 0 })
@@ -321,28 +339,46 @@ export const TrendingMarketsCarousel = () => {
       return price != null ? human * price : human
     }
 
-    const inflow7dWinner = pickMax(eligible, (account) => {
-      const stats = recentDeposits.last7d[account.market.address.toLowerCase()]
-      return stats && stats.totalAssetAmount > ZERO
-        ? marketUsdScore(account, stats.totalAssetAmount)
-        : undefined
-    })
-    const inflowLifetimeWinner = pickMax(eligible, (account) => {
-      const raw = account.market.totalDeposited?.raw
-      if (!raw) return undefined
-      const big = raw.toBigInt()
-      return big > ZERO ? marketUsdScore(account, big) : undefined
-    })
+    // PO metric: 7-day net inflow / total debt at window start. Window-start
+    // debt is approximated as current supply minus the 7d net inflow (interest
+    // accrued inside the window slightly inflates it). Markets whose entire
+    // supply arrived inside the window are excluded - the ratio degenerates
+    // to infinity there, and the Newest Market slot is the home for them.
+    const growthScore = (account: MarketAccount): number | undefined => {
+      const net =
+        recentDeposits.netInflow7d[account.market.address.toLowerCase()]
+      if (net === undefined || net <= ZERO) return undefined
+      const startDebt = account.market.totalSupply.raw.toBigInt() - net
+      if (startDebt <= ZERO) return undefined
+      const { decimals } = account.market.underlyingToken
+      return toHuman(net, decimals) / toHuman(startDebt, decimals)
+    }
+    const fastestGrowingWinner = pickMax(eligible, growthScore)
+    const fastestGrowingRatio = fastestGrowingWinner
+      ? growthScore(fastestGrowingWinner)
+      : undefined
+    const fastestGrowingStat = fastestGrowingRatio
+      ? formatGrowthPct(fastestGrowingRatio)
+      : undefined
 
     const lenders7dWinner = pickLendersWinner(eligible, recentDeposits.last7d)
     const lendersBroadWinner = pickLendersWinner(eligible, recentDeposits.broad)
 
-    const interestPaidWinner = pickMax(eligible, (account) => {
-      const raw = account.market.totalBaseInterestAccrued?.raw
-      if (!raw) return undefined
-      const big = raw.toBigInt()
-      return big > ZERO ? marketUsdScore(account, big) : undefined
-    })
+    // Deliberately not gated on isMarketQualifying: a just-deployed market
+    // has no deposits yet, which is exactly what makes it the newest.
+    const newestEligible = marketAccounts.filter(
+      (a) =>
+        isExploreVisible(a.market) &&
+        a.market.maxTotalSupply.gt(0) &&
+        !penaltyBorrowers.has(a.market.borrower.toLowerCase()),
+    )
+    const newestWinner = pickMax(
+      newestEligible,
+      (account) => account.market.deployedEvent?.blockTimestamp || undefined,
+    )
+    const newestStat = newestWinner?.market.deployedEvent?.blockTimestamp
+      ? formatMarketAge(newestWinner.market.deployedEvent.blockTimestamp)
+      : undefined
 
     const healthyEligible = eligible.filter((a) => isMarketHealthy(a.market))
     const aprWinner = [...healthyEligible].sort(
@@ -353,41 +389,6 @@ export const TrendingMarketsCarousel = () => {
       const big = account.market.totalSupply.raw.toBigInt()
       return big > ZERO ? marketUsdScore(account, big) : undefined
     })
-
-    const tvlInflowAccount = inflow7dWinner ?? inflowLifetimeWinner
-    let tvlInflowStat: string | undefined
-    if (tvlInflowAccount) {
-      const addr = tvlInflowAccount.market.address.toLowerCase()
-      const { decimals } = tvlInflowAccount.market.underlyingToken
-      const stats7d = recentDeposits.last7d[addr]
-      if (stats7d && stats7d.totalAssetAmount > ZERO) {
-        tvlInflowStat = `+${formatTokenCompact(
-          stats7d.totalAssetAmount,
-          decimals,
-        )}`
-      } else {
-        const deposited = tvlInflowAccount.market.totalDeposited?.raw
-        if (deposited) {
-          const big = deposited.toBigInt()
-          if (big > ZERO)
-            tvlInflowStat = `+${formatTokenCompact(big, decimals)}`
-        }
-      }
-    }
-
-    let interestPaidStat: string | undefined
-    if (interestPaidWinner) {
-      const raw = interestPaidWinner.market.totalBaseInterestAccrued?.raw
-      if (raw) {
-        const big = raw.toBigInt()
-        if (big > ZERO) {
-          interestPaidStat = formatTokenCompact(
-            big,
-            interestPaidWinner.market.underlyingToken.decimals,
-          )
-        }
-      }
-    }
 
     let tvlStat: string | undefined
     if (tvlWinner) {
@@ -417,7 +418,12 @@ export const TrendingMarketsCarousel = () => {
     }
 
     const built: (Slot | null)[] = [
-      makeSlot("tvlInflow", "trending", tvlInflowAccount, tvlInflowStat),
+      makeSlot(
+        "fastestGrowing",
+        "fastestGrowing",
+        fastestGrowingWinner,
+        fastestGrowingStat,
+      ),
       makeSlot(
         "lenders",
         "popular",
@@ -432,12 +438,7 @@ export const TrendingMarketsCarousel = () => {
           ? `${formatBps(aprWinner.market.annualInterestBips)}%`
           : undefined,
       ),
-      makeSlot(
-        "interestPaid",
-        "trackRecord",
-        interestPaidWinner,
-        interestPaidStat,
-      ),
+      makeSlot("newest", "newest", newestWinner, newestStat),
       makeSlot("highestTvl", "topFunded", tvlWinner, tvlStat),
     ]
 

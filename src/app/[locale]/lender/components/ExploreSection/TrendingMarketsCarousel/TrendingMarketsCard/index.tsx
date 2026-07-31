@@ -26,9 +26,9 @@ import {
 } from "./style"
 
 export type TrendingMarketCardVariant =
-  | "trending"
+  | "fastestGrowing"
   | "popular"
-  | "trackRecord"
+  | "newest"
   | "hotRate"
   | "topFunded"
 
@@ -43,8 +43,8 @@ const VARIANT_BADGE: Record<
     Icon: typeof TrendingIcon
   }
 > = {
-  trending: {
-    label: "Trending",
+  fastestGrowing: {
+    label: "Fastest Growing",
     context: "Last 7 days",
     accent: "#CBD7FF",
     iconColor: "#B6C8FF",
@@ -59,9 +59,9 @@ const VARIANT_BADGE: Record<
     labelColor: "#2ACA7C",
     Icon: PopularIcon,
   },
-  trackRecord: {
-    label: "Total Paid Out",
-    context: "All Time",
+  newest: {
+    label: "Newest Market",
+    context: "",
     accent: "#D7C9FD",
     iconColor: "#7547F5",
     labelColor: "#7547F5",
@@ -122,9 +122,9 @@ export const TrendingMarketCard = ({
   const badge = VARIANT_BADGE[variant]
 
   const statisticTitle = {
-    trending: "Fresh Capital",
+    fastestGrowing: "Growth Rate",
     popular: "Lenders Joined",
-    trackRecord: "Paid In Total",
+    newest: "Launched",
     hotRate: "Best In Market APR",
     topFunded: "Total Value Locked",
   }[variant]
@@ -220,7 +220,7 @@ export const TrendingMarketCard = ({
             >
               {value}
             </Typography>
-            {variant !== "popular" && variant !== "hotRate" && (
+            {variant === "topFunded" && (
               <Box
                 sx={{
                   display: "flex",

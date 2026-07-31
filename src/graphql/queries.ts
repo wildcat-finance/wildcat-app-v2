@@ -229,6 +229,24 @@ export const RECENT_DEPOSITS = gql`
   }
 `
 
+export const RECENT_WITHDRAWAL_REQUESTS = gql`
+  query ($where: WithdrawalRequest_filter, $first: Int) {
+    withdrawalRequests(
+      where: $where
+      first: $first
+      orderBy: blockTimestamp
+      orderDirection: desc
+    ) {
+      id
+      normalizedAmount
+      blockTimestamp
+      market {
+        id
+      }
+    }
+  }
+`
+
 export const MARKET_TERMINATEDS = gql`
   query ($where: MarketClosed_filter) {
     marketCloseds(where: $where) {
