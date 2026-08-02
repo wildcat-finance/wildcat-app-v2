@@ -26,8 +26,8 @@ import {
 } from "./style"
 
 const GROWTH_TOOLTIP =
-  "New deposits minus withdrawals over the past 7 days. " +
-  "The badge shows how much that grew the market from where it started the week."
+  "Net new capital in the last 7 days. " +
+  "The % shows growth compared to the start of the week"
 
 export type TrendingMarketCardVariant =
   | "fastestGrowing"

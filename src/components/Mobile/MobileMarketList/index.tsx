@@ -76,7 +76,7 @@ export const MobileMarketList = ({
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
-          borderRadius: "0 0 14px 14px",
+          borderRadius: "14px",
           backgroundColor: COLORS.white,
         }}
       >

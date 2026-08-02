@@ -229,6 +229,19 @@ export const ExploreMarketsTable = () => {
   const [showSelfOnboard, setShowSelfOnboard] = useState(true)
   const [showOnboardByBorrower, setShowOnboardByBorrower] = useState(false)
 
+  const [visibleMobileRows, setVisibleMobileRows] = useState(EXPLORE_PAGE_SIZE)
+  useEffect(() => {
+    setVisibleMobileRows(EXPLORE_PAGE_SIZE)
+  }, [
+    sortMode,
+    search,
+    assets,
+    statuses,
+    withdrawalCycles,
+    showSelfOnboard,
+    showOnboardByBorrower,
+  ])
+
   const gridWrapRef = useRef<HTMLDivElement>(null)
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
@@ -777,7 +790,7 @@ export const ExploreMarketsTable = () => {
           />
         ) : (
           rows
-            .slice(0, 5)
+            .slice(0, visibleMobileRows)
             .map((marketItem, index, shownRows) => (
               <MobileMarketCard
                 key={marketItem.id}
@@ -786,6 +799,49 @@ export const ExploreMarketsTable = () => {
               />
             ))
         )}
+
+        {!isLoading &&
+          rows.length > 0 &&
+          (rows.length > visibleMobileRows ? (
+            <Box
+              component="button"
+              type="button"
+              onClick={() =>
+                setVisibleMobileRows((count) => count + EXPLORE_PAGE_SIZE)
+              }
+              sx={{
+                width: "100%",
+                padding: "16px 0 8px",
+                border: 0,
+                backgroundColor: "transparent",
+                color: COLORS.blackRock,
+                fontFamily: "inherit",
+                fontSize: "14px",
+                fontWeight: 500,
+                lineHeight: "20px",
+                cursor: "pointer",
+              }}
+            >
+              Show more markets
+            </Box>
+          ) : (
+            <Box
+              component={Link}
+              href={ROUTES.lender.allMarkets}
+              sx={{
+                width: "100%",
+                padding: "16px 0 8px",
+                textAlign: "center",
+                color: COLORS.blackRock,
+                fontSize: "14px",
+                fontWeight: 500,
+                lineHeight: "20px",
+                textDecoration: "none",
+              }}
+            >
+              Go to All Markets
+            </Box>
+          ))}
       </Box>
     )
 
