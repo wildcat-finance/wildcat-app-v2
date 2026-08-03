@@ -235,7 +235,7 @@ export const TrendingMarketCard = ({
               >
                 {value}
               </Typography>
-              {variant === "topFunded" && (
+              {(variant === "topFunded" || variant === "fastestGrowing") && (
                 <Box
                   sx={{
                     display: "flex",
@@ -270,15 +270,13 @@ export const TrendingMarketCard = ({
               {secondaryValue && (
                 <Typography
                   sx={{
-                    alignSelf: "flex-start",
-                    marginTop: { xs: "-3px", md: "-2px" },
-                    padding: { xs: "1px 6px", md: "1px 4px" },
+                    padding: { xs: "2px 8px", md: "2px 6px" },
                     borderRadius: "20px",
                     backgroundColor: COLORS.lightGreen,
                     color: "#2ACA7C",
-                    fontSize: { xs: "10px", md: "8px" },
+                    fontSize: { xs: "12px", md: "10px" },
                     fontWeight: 600,
-                    lineHeight: { xs: "14px", md: "11px" },
+                    lineHeight: { xs: "18px", md: "14px" },
                     whiteSpace: "nowrap",
                   }}
                 >
