@@ -108,6 +108,7 @@ export const ConfirmationForm = ({
   onClickSign,
   onDiscardSignature,
   signatureRequested,
+  paramsChangedSinceSigning,
   isSigning,
   isDeployReady,
   mlaSignature,
@@ -160,7 +161,11 @@ export const ConfirmationForm = ({
   /// signature was requested at this stage of the deployment process to prevent
   /// using a signature from a previous version of the market's parameters in case
   /// the user goes back and changes some settings.
-  const signed = signatureRequested && !isSigning && !!mlaSignature
+  const signed =
+    signatureRequested &&
+    !isSigning &&
+    !!mlaSignature &&
+    !paramsChangedSinceSigning
 
   const handleBackClick = () => {
     if (onDiscardSignature()) {
@@ -503,6 +508,23 @@ export const ConfirmationForm = ({
 
           <Typography variant="text3">
             {t("createNewMarket.confirm.alertReduction")}
+          </Typography>
+        </Box>
+      )}
+
+      {signatureRequested && paramsChangedSinceSigning && (
+        <Box sx={{ ...AlertContainer, marginTop: "12px" }}>
+          <SvgIcon
+            sx={{
+              fontSize: "18px",
+              "& path": { fill: COLORS.wildWatermelon },
+            }}
+          >
+            <Info />
+          </SvgIcon>
+
+          <Typography variant="text3" color={COLORS.dullRed}>
+            {t("createNewMarket.confirm.alertParamsChanged")}
           </Typography>
         </Box>
       )}

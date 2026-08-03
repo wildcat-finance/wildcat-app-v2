@@ -15,6 +15,7 @@ export type ConfirmationFormProps = {
   onClickSign: (args: SignMlaFromFormInputs) => void
   onDiscardSignature: () => boolean
   signatureRequested: boolean
+  paramsChangedSinceSigning: boolean
   isSigning: boolean
   isDeployReady: boolean
   mlaSignature?:

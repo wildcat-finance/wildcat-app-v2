@@ -79,6 +79,7 @@ import {
 import { useNewMarketForm } from "./hooks/useNewMarketForm"
 import { useNewMarketHooksData } from "./hooks/useNewMarketHooksData"
 import { useTokenMetadata } from "./hooks/useTokenMetadata"
+import { getCreateMarketFormFingerprint } from "./validation/deployFingerprint"
 import { getMlaFromForm } from "../hooks/mla/usePreviewMla"
 import {
   SignMlaFromFormInputs,
@@ -163,6 +164,7 @@ export default function CreateMarketPage() {
   const [draftToResumeId, setDraftToResumeId] = useState<string>()
   const [signatureRequested, setSignatureRequested] = useState(false)
   const [isValidatingSignature, setIsValidatingSignature] = useState(false)
+  const [signedFormFingerprint, setSignedFormFingerprint] = useState<string>()
 
   const [timeSigned, setTimeSigned] = useState(0)
   const [salt, setSalt] = useState<string>("")
@@ -172,7 +174,13 @@ export default function CreateMarketPage() {
     setActiveDraftId(undefined)
     setDraftToResumeId(undefined)
     setSignatureRequested(false)
+    setSignedFormFingerprint(undefined)
   }, [address, targetChainId])
+
+  const paramsChangedSinceSigning =
+    !!signedFormFingerprint &&
+    signedFormFingerprint !==
+      getCreateMarketFormFingerprint(newMarketForm.watch())
 
   const {
     data: mlaSignature,
@@ -265,6 +273,7 @@ export default function CreateMarketPage() {
   const startFreshSigningContext = useCallback(() => {
     resetMlaSignature()
     setSignatureRequested(false)
+    setSignedFormFingerprint(undefined)
     setActiveDraftId(undefined)
     setDraftToResumeId(undefined)
     setTimeSigned(Date.now())
@@ -298,6 +307,7 @@ export default function CreateMarketPage() {
       )
       resetMlaSignature()
       setSignatureRequested(false)
+      setSignedFormFingerprint(undefined)
       setActiveDraftId(nextDraftId)
       setDraftToResumeId(undefined)
       setTimeSigned(nextTimeSigned)
@@ -421,6 +431,9 @@ export default function CreateMarketPage() {
         : args.asset
 
       setSignatureRequested(true)
+      setSignedFormFingerprint(
+        getCreateMarketFormFingerprint(args.form.getValues()),
+      )
       if (!isSafeSigning) {
         signMla(args)
         return
@@ -541,6 +554,9 @@ export default function CreateMarketPage() {
     setActiveDraftId(signingDraft.id)
     setDraftToResumeId(signingDraft.id)
     setSignatureRequested(true)
+    setSignedFormFingerprint(
+      getCreateMarketFormFingerprint(signingDraft.formValues),
+    )
     dispatch(setCreatingStep(CreateMarketSteps.CONFIRM))
   }, [
     dispatch,
@@ -602,6 +618,7 @@ export default function CreateMarketPage() {
     if (assetData && tokenAsset && selectedHooksTemplate && mlaSignature) {
       const realParams: DeployNewV2MarketParams = {
         timeSigned,
+        deployFingerprint: getCreateMarketFormFingerprint(marketParams),
         mlaTemplateId:
           marketParams.mla !== undefined && marketParams.mla !== "noMLA"
             ? Number(marketParams.mla)
@@ -682,6 +699,14 @@ export default function CreateMarketPage() {
     }
     if (signer.chainId !== targetChainId) {
       toastError("Wallet network does not match selected network.")
+      return
+    }
+    if (paramsChangedSinceSigning) {
+      setFinalOpen(false)
+      toastError(
+        "Market settings changed after the agreement was signed. Review and sign the market agreement again.",
+      )
+      handleDiscardSignature()
       return
     }
 
@@ -929,6 +954,7 @@ export default function CreateMarketPage() {
             onClickSign={handleSignMla}
             onDiscardSignature={handleDiscardSignature}
             signatureRequested={signatureRequested}
+            paramsChangedSinceSigning={paramsChangedSinceSigning}
             isSigning={isSigning}
             isDeployReady={
               !!assetData &&
