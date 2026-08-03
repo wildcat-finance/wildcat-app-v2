@@ -746,7 +746,6 @@ export default function CreateMarketPage() {
       completeSafeMessage(mlaSignature?.pendingSafeMessageId)
       removeDraftRecords(activeDraftId)
       setActiveDraftId(undefined)
-      setSignatureRequested(false)
       setShowSuccessPopup(true)
     }
   }, [
@@ -936,6 +935,7 @@ export default function CreateMarketPage() {
               !!selectedHooksTemplate &&
               !isValidatingSignature
             }
+            isDeployDialogOpen={finalOpen}
             mlaSignature={mlaSignature}
           />
         )}

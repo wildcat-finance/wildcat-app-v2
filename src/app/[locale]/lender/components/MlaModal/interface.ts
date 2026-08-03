@@ -4,7 +4,7 @@ import { SxProps } from "@mui/system"
 export type MlaModalProps = {
   mla: { html: string } | undefined | null
   isLoading: boolean
-  onSign: () => void
+  onSign?: () => void
   showSignButton: boolean
   downloadPdfUrl?: string
   downloadSignedUrl?: string

@@ -17,6 +17,7 @@ export type ConfirmationFormProps = {
   signatureRequested: boolean
   isSigning: boolean
   isDeployReady: boolean
+  isDeployDialogOpen: boolean
   mlaSignature?:
     | {
         signature?: string
