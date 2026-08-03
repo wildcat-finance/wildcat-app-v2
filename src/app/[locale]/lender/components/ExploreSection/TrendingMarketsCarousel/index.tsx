@@ -528,7 +528,7 @@ export const TrendingMarketsCarousel = () => {
           flexDirection: "column",
           gap: "4px",
           backgroundColor: COLORS.white,
-          borderRadius: "14px",
+          borderRadius: "14px 14px 0 0",
           overflow: "hidden",
         }}
       >

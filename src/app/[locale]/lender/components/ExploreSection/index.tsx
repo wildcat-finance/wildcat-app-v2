@@ -62,7 +62,7 @@ export const ExploreSection = () => {
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: { xs: "4px", md: "32px" },
+          gap: { xs: 0, md: "32px" },
         }}
       >
         <TrendingMarketsCarousel />

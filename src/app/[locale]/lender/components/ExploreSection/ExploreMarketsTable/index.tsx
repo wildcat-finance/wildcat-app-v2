@@ -683,7 +683,7 @@ export const ExploreMarketsTable = () => {
         <Box
           sx={{
             backgroundColor: COLORS.white,
-            borderRadius: "14px",
+            borderRadius: "0 0 14px 14px",
             padding: "16px 0 12px",
           }}
         >
