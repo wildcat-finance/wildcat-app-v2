@@ -845,6 +845,11 @@
     "OpenTerm": "Open Term (no withdrawal constraints)",
     "FixedTerm": "Fixed Term (withdrawals post-maturity)"
   },
+  "policy": {
+    "lenders": {
+      "selfOnboardNotice": "Lenders onboard themselves to this policy, so there is no allowlist to edit."
+    }
+  },
   "editPolicy": {
     "title": "Edit Policy",
     "confirm": "Confirm Policy Edits",
