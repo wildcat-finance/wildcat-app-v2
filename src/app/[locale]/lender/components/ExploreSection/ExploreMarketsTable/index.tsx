@@ -675,129 +675,138 @@ export const ExploreMarketsTable = () => {
         sx={{
           display: "flex",
           flexDirection: "column",
-          padding: "16px 0 8px",
+          gap: "4px",
+          paddingBottom: "8px",
           backgroundColor: "transparent",
         }}
       >
         <Box
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "0 16px",
-            marginBottom: "12px",
+            backgroundColor: COLORS.white,
+            borderRadius: "14px",
+            padding: "16px 0 12px",
           }}
         >
-          <Typography
-            sx={{ fontSize: "20px", fontWeight: 500, lineHeight: "26px" }}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "0 16px",
+              marginBottom: "12px",
+            }}
           >
-            Top Markets
-          </Typography>
+            <Typography
+              sx={{ fontSize: "20px", fontWeight: 500, lineHeight: "26px" }}
+            >
+              Top Markets
+            </Typography>
 
-          <Box sx={{ display: "flex", gap: "4px" }}>
-            <MobileFilterButton
-              assetsOptions={
-                tokens?.map((token) => ({
-                  id: token.address,
-                  name: token.symbol,
-                })) ?? []
-              }
-              statusesOptions={statusFilterOptions}
-              withdrawalCycleOptions={withdrawalCycleOptions}
-              marketAssets={assets}
-              marketStatuses={statuses}
-              marketWithdrawalCycles={withdrawalCycles}
-              setMarketAssets={setAssets}
-              setMarketStatuses={setStatuses}
-              setMarketWithdrawalCycles={setWithdrawalCycles}
-              showSelfOnboard={showSelfOnboard}
-              showOnboardByBorrower={showOnboardByBorrower}
-              setShowSelfOnboard={setShowSelfOnboard}
-              setShowOnboardByBorrower={setShowOnboardByBorrower}
-            />
+            <Box sx={{ display: "flex", gap: "4px" }}>
+              <MobileFilterButton
+                assetsOptions={
+                  tokens?.map((token) => ({
+                    id: token.address,
+                    name: token.symbol,
+                  })) ?? []
+                }
+                statusesOptions={statusFilterOptions}
+                withdrawalCycleOptions={withdrawalCycleOptions}
+                marketAssets={assets}
+                marketStatuses={statuses}
+                marketWithdrawalCycles={withdrawalCycles}
+                setMarketAssets={setAssets}
+                setMarketStatuses={setStatuses}
+                setMarketWithdrawalCycles={setWithdrawalCycles}
+                showSelfOnboard={showSelfOnboard}
+                showOnboardByBorrower={showOnboardByBorrower}
+                setShowSelfOnboard={setShowSelfOnboard}
+                setShowOnboardByBorrower={setShowOnboardByBorrower}
+              />
 
-            <MobileSearchButton
-              marketAccounts={marketAccounts.filter((a) => !a.market.isClosed)}
-              marketSearch={search}
-              setMarketSearch={setSearch}
-              isExplorePage
-            />
+              <MobileSearchButton
+                marketAccounts={marketAccounts.filter(
+                  (a) => !a.market.isClosed,
+                )}
+                marketSearch={search}
+                setMarketSearch={setSearch}
+                isExplorePage
+              />
+            </Box>
           </Box>
-        </Box>
 
-        <Box
-          sx={{
-            display: "flex",
-            gap: "6px",
-            alignItems: "center",
-            padding: "0 6px 12px",
-            borderBottom: isLoading ? "none" : `1px solid ${COLORS.iron}`,
-          }}
-        >
-          {isLoading ? (
-            <RepeatingSkeletons
-              itemsLength={4}
-              skeletonSX={{
-                height: "24px",
-                width: "90px",
-                borderRadius: "20px",
-              }}
-            />
-          ) : (
-            SORT_OPTIONS.map((option) => (
-              <Box
-                key={option}
-                onClick={() => handleSortModeChange(option)}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: sortMode === option ? "2px 10px" : "2px",
+          <Box
+            sx={{
+              display: "flex",
+              gap: "6px",
+              alignItems: "center",
+              padding: "0 6px",
+            }}
+          >
+            {isLoading ? (
+              <RepeatingSkeletons
+                itemsLength={4}
+                skeletonSX={{
+                  height: "24px",
+                  width: "90px",
                   borderRadius: "20px",
-                  backgroundColor:
-                    sortMode === option ? COLORS.athensGrey : "transparent",
-                  cursor: "pointer",
-                  flexShrink: 0,
                 }}
-              >
-                <Typography
-                  variant="mobText3"
+              />
+            ) : (
+              SORT_OPTIONS.map((option) => (
+                <Box
+                  key={option}
+                  onClick={() => handleSortModeChange(option)}
                   sx={{
-                    color: COLORS.blackRock,
-                    fontWeight: sortMode === option ? 600 : 500,
-                    whiteSpace: "nowrap",
-                    lineHeight: "20px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: sortMode === option ? "2px 10px" : "2px",
+                    borderRadius: "20px",
+                    backgroundColor:
+                      sortMode === option ? COLORS.athensGrey : "transparent",
+                    cursor: "pointer",
+                    flexShrink: 0,
                   }}
                 >
-                  {option}
-                </Typography>
-              </Box>
-            ))
-          )}
+                  <Typography
+                    variant="mobText3"
+                    sx={{
+                      color: COLORS.blackRock,
+                      fontWeight: sortMode === option ? 600 : 500,
+                      whiteSpace: "nowrap",
+                      lineHeight: "20px",
+                    }}
+                  >
+                    {option}
+                  </Typography>
+                </Box>
+              ))
+            )}
+          </Box>
         </Box>
 
         {isLoading ? (
           <RepeatingSkeletons
             itemsLength={5}
             skeletonSX={{
-              height: "186px",
-              borderRadius: "12px",
-              margin: "0 8px 6px",
-              "&:last-of-type": {
-                marginBottom: "0",
-              },
+              height: "182px",
+              borderRadius: "14px",
+              backgroundColor: COLORS.white06,
             }}
           />
         ) : (
-          rows
-            .slice(0, visibleMobileRows)
-            .map((marketItem, index, shownRows) => (
-              <MobileMarketCard
-                key={marketItem.id}
-                marketItem={marketItem}
-                isLast={index === shownRows.length - 1}
-              />
-            ))
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "4px",
+            }}
+          >
+            {rows.slice(0, visibleMobileRows).map((marketItem) => (
+              <MobileMarketCard key={marketItem.id} marketItem={marketItem} />
+            ))}
+          </Box>
         )}
 
         {!isLoading &&
@@ -811,9 +820,10 @@ export const ExploreMarketsTable = () => {
               }
               sx={{
                 width: "100%",
-                padding: "16px 0 8px",
-                border: 0,
-                backgroundColor: "transparent",
+                padding: "14px",
+                border: `1px solid ${COLORS.whiteLilac}`,
+                borderRadius: "14px",
+                backgroundColor: COLORS.white,
                 color: COLORS.blackRock,
                 fontFamily: "inherit",
                 fontSize: "14px",
@@ -830,7 +840,10 @@ export const ExploreMarketsTable = () => {
               href={ROUTES.lender.allMarkets}
               sx={{
                 width: "100%",
-                padding: "16px 0 8px",
+                padding: "14px",
+                border: `1px solid ${COLORS.whiteLilac}`,
+                borderRadius: "14px",
+                backgroundColor: COLORS.white,
                 textAlign: "center",
                 color: COLORS.blackRock,
                 fontSize: "14px",

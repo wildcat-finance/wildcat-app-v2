@@ -162,12 +162,10 @@ const MarketPointsChip = ({
 
 export const MobileMarketCard = ({
   marketItem,
-  isLast = false,
   showBorrower = true,
   baseRoute = ROUTES.lender.market,
 }: {
   marketItem: LenderMobileMarketItem
-  isLast?: boolean
   showBorrower?: boolean
   baseRoute?: string
 }) => {
@@ -207,22 +205,12 @@ export const MobileMarketCard = ({
         flexDirection: "column",
         gap: "10px",
         padding: "16px",
-        position: "relative",
+        border: `1px solid ${COLORS.whiteLilac}`,
+        borderRadius: "14px",
         backgroundColor: COLORS.white,
         color: "inherit",
         cursor: "pointer",
         textDecoration: "none",
-        ...(!isLast && {
-          "&::after": {
-            content: '""',
-            position: "absolute",
-            left: "16px",
-            right: "16px",
-            bottom: 0,
-            height: "1px",
-            backgroundColor: COLORS.iron,
-          },
-        }),
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>

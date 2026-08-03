@@ -18,7 +18,7 @@ export const ExploreSection = () => {
         <Skeleton
           sx={{
             width: "100%",
-            height: "240px",
+            height: "420px",
             borderRadius: "14px",
             backgroundColor: { xs: COLORS.white06, md: "transparent" },
           }}
@@ -26,7 +26,23 @@ export const ExploreSection = () => {
         <Skeleton
           sx={{
             width: "100%",
-            height: "570px",
+            height: "100px",
+            borderRadius: "14px",
+            backgroundColor: { xs: COLORS.white06, md: "transparent" },
+          }}
+        />
+        <Skeleton
+          sx={{
+            width: "100%",
+            height: "182px",
+            borderRadius: "14px",
+            backgroundColor: { xs: COLORS.white06, md: "transparent" },
+          }}
+        />
+        <Skeleton
+          sx={{
+            width: "100%",
+            height: "182px",
             borderRadius: "14px",
             backgroundColor: { xs: COLORS.white06, md: "transparent" },
           }}
@@ -46,10 +62,7 @@ export const ExploreSection = () => {
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: { xs: 0, md: "32px" },
-          overflow: { xs: "hidden", md: "visible" },
-          borderRadius: { xs: "14px", md: 0 },
-          backgroundColor: { xs: COLORS.white, md: "transparent" },
+          gap: { xs: "4px", md: "32px" },
         }}
       >
         <TrendingMarketsCarousel />

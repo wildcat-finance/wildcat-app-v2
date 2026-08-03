@@ -73,19 +73,16 @@ export const MobileMarketList = ({
       <Box
         sx={{
           height: "100%",
-          overflow: "hidden",
           display: "flex",
           flexDirection: "column",
-          borderRadius: "14px",
-          backgroundColor: COLORS.white,
+          gap: "4px",
         }}
       >
         {!isLoading &&
-          currentItems.map((marketItem, index) => (
+          currentItems.map((marketItem) => (
             <MobileMarketCard
               key={marketItem.id}
               marketItem={marketItem}
-              isLast={index === currentItems.length - 1}
               showBorrower={showBorrowerInCard}
               baseRoute={baseRoute}
             />
@@ -95,7 +92,7 @@ export const MobileMarketList = ({
             <Skeleton
               sx={{
                 width: "100%",
-                height: "150px",
+                height: "182px",
                 backgroundColor: COLORS.white06,
                 borderRadius: "14px",
               }}
@@ -103,7 +100,7 @@ export const MobileMarketList = ({
             <Skeleton
               sx={{
                 width: "100%",
-                height: "150px",
+                height: "182px",
                 backgroundColor: COLORS.white06,
                 borderRadius: "14px",
               }}
@@ -111,7 +108,7 @@ export const MobileMarketList = ({
             <Skeleton
               sx={{
                 width: "100%",
-                height: "150px",
+                height: "182px",
                 backgroundColor: COLORS.white06,
                 borderRadius: "14px",
               }}

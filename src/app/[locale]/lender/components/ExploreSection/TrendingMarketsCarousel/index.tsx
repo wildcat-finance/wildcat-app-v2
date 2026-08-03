@@ -527,7 +527,8 @@ export const TrendingMarketsCarousel = () => {
           display: "flex",
           flexDirection: "column",
           gap: "4px",
-          backgroundColor: "transparent",
+          backgroundColor: COLORS.white,
+          borderRadius: "14px",
           overflow: "hidden",
         }}
       >
@@ -569,7 +570,7 @@ export const TrendingMarketsCarousel = () => {
                     sx={{
                       flex: "0 0 70%",
                       minWidth: "222px",
-                      borderRadius: "12px",
+                      borderRadius: "24px",
                       bgcolor: COLORS.athensGrey,
                       scrollSnapAlign: "center",
                       scrollSnapStop: "always",
