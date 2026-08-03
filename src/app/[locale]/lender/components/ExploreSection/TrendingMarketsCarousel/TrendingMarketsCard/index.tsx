@@ -132,7 +132,7 @@ export const TrendingMarketCard = ({
     fastestGrowing: "Fresh Capital",
     popular: "Lenders Joined",
     newest: "Launched",
-    hotRate: "Best In Market APR",
+    hotRate: "Best Market APR",
     topFunded: "Total Value Locked",
   }[variant]
 
