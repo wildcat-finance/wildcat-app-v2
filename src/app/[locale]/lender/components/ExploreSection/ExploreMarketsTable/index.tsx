@@ -856,11 +856,17 @@ export const ExploreMarketsTable = () => {
               type="button"
               variant="contained"
               color="secondary"
-              size="medium"
+              size="large"
+              fullWidth
               onClick={() =>
                 setVisibleMobileRows((count) => count + EXPLORE_PAGE_SIZE)
               }
-              sx={{ alignSelf: "center" }}
+              sx={{
+                alignSelf: "center",
+                bgcolor: COLORS.white03,
+                color: COLORS.white,
+                "&:hover": { bgcolor: COLORS.white06 },
+              }}
             >
               Show more markets
             </Button>
@@ -870,8 +876,14 @@ export const ExploreMarketsTable = () => {
               href={ROUTES.lender.allMarkets}
               variant="contained"
               color="secondary"
-              size="medium"
-              sx={{ alignSelf: "center" }}
+              size="large"
+              fullWidth
+              sx={{
+                alignSelf: "center",
+                bgcolor: COLORS.white03,
+                color: COLORS.white,
+                "&:hover": { bgcolor: COLORS.white06 },
+              }}
             >
               Go to All Markets
             </Button>
