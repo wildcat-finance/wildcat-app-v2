@@ -11,7 +11,7 @@ import {
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import {
-  toEthersTransactionRequest,
+  toSdkTransactionRequest,
   waitForSubmittedTransaction,
 } from "@/utils/transactions"
 
@@ -67,7 +67,7 @@ export const useAdjustAPR = (
             args: [aprBips],
           })
           const { hash } = await signer.sendTransaction(
-            toEthersTransactionRequest(tx),
+            toSdkTransactionRequest(tx),
           )
           return hash
         }

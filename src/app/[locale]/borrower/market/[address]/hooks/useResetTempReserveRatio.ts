@@ -11,7 +11,7 @@ import {
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import {
-  toEthersTransactionRequest,
+  toSdkTransactionRequest,
   waitForSubmittedTransaction,
 } from "@/utils/transactions"
 
@@ -46,7 +46,7 @@ export const useResetTempReserveRatio = (
           args: [market.annualInterestBips, market.reserveRatioBips],
         })
         const { hash } = await signer.sendTransaction(
-          toEthersTransactionRequest(tx),
+          toSdkTransactionRequest(tx),
         )
 
         if (!safeConnected) setTxHash(hash.toString())

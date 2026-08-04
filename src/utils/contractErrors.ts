@@ -1,11 +1,4 @@
-/**
- * The slice of a contract ABI interface this module needs. Typed structurally
- * so the util carries no ethers dependency - the SDK's contract wrappers
- * satisfy it as-is.
- */
-export type ContractErrorDecoder = {
-  parseError: (data: string) => { name: string }
-}
+import { decodeErrorResult, type Abi, type Hex } from "viem"
 
 /**
  * Human wording for the custom errors raised while managing policy lenders.
@@ -13,8 +6,11 @@ export type ContractErrorDecoder = {
  * "Something went wrong".
  */
 const CONTRACT_ERROR_MESSAGES: Record<string, string> = {
+  CallerNotBorrower: "Only the borrower of this policy can change its lenders.",
   ProviderNotFound:
     "This wallet is not a role provider on this policy, so it cannot grant or revoke lender credentials.",
+  InvalidCredentialTimestamp:
+    "The credential timestamp is ahead of the latest block. Refresh and try again.",
   GrantedCredentialExpired:
     "The credential timestamp is not accepted by the policy. Try again in a few seconds.",
   ProviderCanNotReplaceCredential:
@@ -23,7 +19,6 @@ const CONTRACT_ERROR_MESSAGES: Record<string, string> = {
     "This lender's credential was issued by another provider and cannot be revoked here.",
   NotApprovedLender: "This lender is not approved on the policy.",
   InvalidArrayLength: "The submitted lender list is malformed.",
-  NotBorrower: "Only the borrower of this policy can change its lenders.",
 }
 
 /**
@@ -78,16 +73,19 @@ const getErrorMessage = (error: unknown): string | undefined => {
  */
 export const describeContractError = (
   error: unknown,
-  contractInterface?: ContractErrorDecoder,
+  contractAbi?: Abi,
 ): string => {
   const named = (error as { errorName?: string } | null)?.errorName
   if (named) return CONTRACT_ERROR_MESSAGES[named] ?? `Reverted: ${named}`
 
   const data = extractRevertData(error)
-  if (data && contractInterface) {
+  if (data && contractAbi) {
     try {
-      const { name } = contractInterface.parseError(data)
-      return CONTRACT_ERROR_MESSAGES[name] ?? `Reverted: ${name}`
+      const { errorName } = decodeErrorResult({
+        abi: contractAbi,
+        data: data as Hex,
+      })
+      return CONTRACT_ERROR_MESSAGES[errorName] ?? `Reverted: ${errorName}`
     } catch {
       // Unknown selector - fall through to the provider's own message.
     }

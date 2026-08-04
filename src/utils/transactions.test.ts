@@ -1,3 +1,9 @@
+/** @jest-environment node */
+
+import type { PublicClient, WalletClient } from "viem"
+import { encodeErrorResult } from "viem"
+
+import { lenderPolicyErrorAbi } from "./lenderAccess"
 import {
   getSafeTransactionResolution,
   SafeTransactionTerminalError,
@@ -5,65 +11,90 @@ import {
   waitForSafeTransactionExecution,
 } from "./transactions"
 
-const lenderTx = { to: "0xpolicy", data: "0xgrantRole", value: "0" }
+const policyAddress = "0x0000000000000000000000000000000000000001"
+const borrowerAddress = "0x0000000000000000000000000000000000000002"
+const lenderTx = { to: policyAddress, data: "0x12345678", value: "0" }
 
-const submitted = () => ({
-  hash: "0xhash",
-  wait: jest.fn().mockResolvedValue({ status: "success" }),
-})
+const transactionHash = `0x${"1".repeat(64)}`
 
-const makeSigner = (provider: unknown, sendTransaction: jest.Mock) =>
-  ({
-    getAddress: jest.fn().mockResolvedValue("0xborrower"),
-    provider,
+const makeClients = (estimateGas: jest.Mock, sendTransaction: jest.Mock) => {
+  const waitForTransactionReceipt = jest
+    .fn()
+    .mockResolvedValue({ status: "success" })
+  const publicClient = {
+    estimateGas,
+    waitForTransactionReceipt,
+  } as unknown as PublicClient
+  const walletClient = {
+    account: borrowerAddress,
+    chain: { id: 1 },
     sendTransaction,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  }) as any
+  } as unknown as WalletClient
+  return { publicClient, walletClient, waitForTransactionReceipt }
+}
 
 describe("sendTransactionAndWait", () => {
   it("sends an explicit gas limit with headroom over the estimate", async () => {
     // Without a limit of our own the wallet picks one, and a wallet whose own
     // estimate fails falls back to a value the RPC refuses outright.
     const estimateGas = jest.fn().mockResolvedValue(BigInt(50268))
-    const sendTransaction = jest.fn().mockResolvedValue(submitted())
+    const sendTransaction = jest.fn().mockResolvedValue(transactionHash)
+    const { publicClient, walletClient, waitForTransactionReceipt } =
+      makeClients(estimateGas, sendTransaction)
 
-    await sendTransactionAndWait(
-      makeSigner({ estimateGas }, sendTransaction),
-      lenderTx,
-    )
+    await sendTransactionAndWait(publicClient, walletClient, lenderTx)
 
     expect(estimateGas).toHaveBeenCalledWith(
-      expect.objectContaining({ to: "0xpolicy", from: "0xborrower" }),
+      expect.objectContaining({
+        to: policyAddress,
+        account: borrowerAddress,
+      }),
     )
     expect(sendTransaction).toHaveBeenCalledWith(
       expect.objectContaining({ gas: BigInt(62835) }), // 50268 + 25%
     )
+    expect(waitForTransactionReceipt).toHaveBeenCalledWith({
+      hash: transactionHash,
+    })
   })
 
   it("reports the decoded reason and never sends when the estimate reverts", async () => {
-    const estimateGas = jest.fn().mockRejectedValue({ data: "0xb1cd0903" })
+    const data = encodeErrorResult({
+      abi: lenderPolicyErrorAbi,
+      errorName: "ProviderNotFound",
+    })
+    const estimateGas = jest.fn().mockRejectedValue({ data })
     const sendTransaction = jest.fn()
+    const { publicClient, walletClient } = makeClients(
+      estimateGas,
+      sendTransaction,
+    )
 
     await expect(
-      sendTransactionAndWait(
-        makeSigner({ estimateGas }, sendTransaction),
-        lenderTx,
-        {
-          errorInterface: { parseError: () => ({ name: "ProviderNotFound" }) },
-        },
-      ),
+      sendTransactionAndWait(publicClient, walletClient, lenderTx, {
+        errorAbi: lenderPolicyErrorAbi,
+      }),
     ).rejects.toThrow("not a role provider")
     expect(sendTransaction).not.toHaveBeenCalled()
   })
 
-  it("still sends when the signer cannot estimate", async () => {
-    const sendTransaction = jest.fn().mockResolvedValue(submitted())
-
-    await sendTransactionAndWait(makeSigner({}, sendTransaction), lenderTx)
-
-    expect(sendTransaction).toHaveBeenCalledWith(
-      expect.objectContaining({ gas: undefined }),
+  it("reports a decoded wallet rejection after successful estimation", async () => {
+    const data = encodeErrorResult({
+      abi: lenderPolicyErrorAbi,
+      errorName: "InvalidCredentialTimestamp",
+    })
+    const estimateGas = jest.fn().mockResolvedValue(BigInt(50000))
+    const sendTransaction = jest.fn().mockRejectedValue({ cause: { data } })
+    const { publicClient, walletClient } = makeClients(
+      estimateGas,
+      sendTransaction,
     )
+
+    await expect(
+      sendTransactionAndWait(publicClient, walletClient, lenderTx, {
+        errorAbi: lenderPolicyErrorAbi,
+      }),
+    ).rejects.toThrow("ahead of the latest block")
   })
 })
 

@@ -1,21 +1,22 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
-  FixedTermHooks,
   HooksInstance,
   MarketController,
-  OpenTermHooks,
   PartialTransaction,
-  PeriodicTermHooks,
 } from "@wildcatfi/wildcat-sdk"
 
 import { toastRequest, ToastRequestConfig } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
-import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { useWildcatClient } from "@/hooks/useEthersSigner"
 import { useAppDispatch } from "@/store/hooks"
 import { resetEditPolicyState } from "@/store/slices/editPolicySlice/editPolicySlice"
-import type { ContractErrorDecoder } from "@/utils/contractErrors"
+import {
+  isV2HooksInstance,
+  lenderPolicyErrorAbi,
+  prepareLenderRestoration,
+} from "@/utils/lenderAccess"
 import {
   sendTransactionAndWait,
   toSafeTransactions,
@@ -30,7 +31,7 @@ export type SubmitPolicyUpdatesInputs = {
 
 export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
   // const { t } = useTranslation
-  const signer = useEthersSigner()
+  const { publicClient, walletClient } = useWildcatClient()
   const client = useQueryClient()
   const { isTestnet, targetChainId } = useCurrentNetwork()
   const { connected: isConnectedToSafe, sdk: gnosisSafeSDK } = useSafeAppsSDK()
@@ -58,7 +59,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       setName,
       marketsToUpdate,
     }: SubmitPolicyUpdatesInputs) => {
-      if (!signer || !policy) {
+      if (!publicClient || !walletClient || !policy) {
         return
       }
 
@@ -66,29 +67,30 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         `useDeployMarket :: isTestnet: ${isTestnet} :: isConnectedToSafe: ${isConnectedToSafe} :: gnosisSafeSDK: ${!!gnosisSafeSDK}`,
       )
 
-      const credentialTimestamp = await signer.provider.getBlockTimestamp()
-      const { interface: errorInterface } = policy.contract as unknown as {
-        interface: ContractErrorDecoder
-      }
-
       const txs: Array<PartialTransaction & ToastRequestConfig> = []
       if (addLenders && addLenders.length) {
         console.log(`adding lenders`)
         console.log(addLenders)
-        if (
-          policy instanceof OpenTermHooks ||
-          policy instanceof FixedTermHooks ||
-          policy instanceof PeriodicTermHooks
-        ) {
+        if (isV2HooksInstance(policy)) {
           console.log(`adding lenders to v2 policy`)
-          const tx = policy.populateAddLenders(
-            addLenders.map((lender) => ({ lender, credentialTimestamp })),
+          const restoration = await prepareLenderRestoration(
+            publicClient,
+            policy,
+            addLenders,
           )
           txs.push({
-            ...tx,
+            ...restoration.transactions[0],
             pending: `Adding ${addLenders.length} lenders`,
             success: `Added ${addLenders.length} lenders`,
             error: `Failed to add ${addLenders.length} lenders`,
+          })
+          restoration.transactions.slice(1).forEach((transaction) => {
+            txs.push({
+              ...transaction,
+              pending: "Restoring lender deposit access",
+              success: "Restored lender deposit access",
+              error: "Failed to restore lender deposit access",
+            })
           })
         } else {
           console.log(`adding lenders to v1 policy`)
@@ -110,11 +112,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         console.log(`removing lenders`)
         console.log(removeLenders)
         console.log(`policy address: ${policy.address}`)
-        if (
-          policy instanceof OpenTermHooks ||
-          policy instanceof FixedTermHooks ||
-          policy instanceof PeriodicTermHooks
-        ) {
+        if (isV2HooksInstance(policy)) {
           const tx = policy.populateBlockLenders(removeLenders)
           txs.push({
             ...tx,
@@ -162,8 +160,16 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         for (const tx of txs) {
           // eslint-disable-next-line no-restricted-syntax, no-await-in-loop
           await toastRequest(
-            sendTransactionAndWait(signer, tx, { errorInterface }),
-            tx,
+            sendTransactionAndWait(publicClient, walletClient, tx, {
+              errorAbi: lenderPolicyErrorAbi,
+            }),
+            {
+              ...tx,
+              getErrorMessage: (error) =>
+                error instanceof Error
+                  ? error.message
+                  : tx.error || "Failed to update lenders",
+            },
           )
         }
       }

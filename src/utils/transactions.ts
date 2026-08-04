@@ -1,66 +1,66 @@
 import {
   PartialTransaction,
   SafeTransactionInput,
-  Signer,
   TransactionHashLike,
   toTransactionHashString,
   toSafeTransactionInput,
 } from "@wildcatfi/wildcat-sdk"
-import type { TransactionReceipt } from "viem"
+import type {
+  Abi,
+  Address,
+  Hex,
+  PublicClient,
+  TransactionReceipt,
+  WalletClient,
+} from "viem"
 
-import {
-  type ContractErrorDecoder,
-  describeContractError,
-} from "@/utils/contractErrors"
-
-type GasEstimatingProvider = {
-  estimateGas?: (transaction: {
-    to?: string
-    data?: string
-    from?: string
-  }) => Promise<bigint>
-}
+import { describeContractError } from "@/utils/contractErrors"
 
 export const toSafeTransactions = (
   txs: PartialTransaction[],
 ): SafeTransactionInput[] => txs.map(toSafeTransactionInput)
 
-export const toEthersTransactionRequest = (tx: PartialTransaction) => ({
+export const toSdkTransactionRequest = (tx: PartialTransaction) => ({
   to: tx.to,
   data: tx.data,
   value: (tx.value ?? BigInt(0)).toString(),
 })
 
+export const toViemTransactionRequest = (tx: PartialTransaction) => ({
+  to: tx.to as Address,
+  data: tx.data as Hex,
+  value: BigInt(tx.value ?? 0),
+})
+
 const GAS_LIMIT_BUFFER_PERCENT = BigInt(25)
 
 export const sendTransactionAndWait = async (
-  signer: Signer,
+  publicClient: PublicClient,
+  walletClient: WalletClient,
   tx: PartialTransaction,
-  options?: { errorInterface?: ContractErrorDecoder },
+  options?: { errorAbi?: Abi },
 ) => {
-  const request = toEthersTransactionRequest(tx)
-  const estimator = (signer as { provider?: GasEstimatingProvider }).provider
-  let gas: bigint | undefined
-  if (estimator?.estimateGas) {
-    try {
-      const estimated = await estimator.estimateGas({
-        ...request,
-        from: await signer.getAddress(),
-      })
-      gas = (estimated * (BigInt(100) + GAS_LIMIT_BUFFER_PERCENT)) / BigInt(100)
-    } catch (error) {
-      throw Error(describeContractError(error, options?.errorInterface))
-    }
+  const { account } = walletClient
+  const { chain } = walletClient
+  if (!account || !chain) {
+    throw Error("Wallet client is not connected to a chain account")
   }
 
-  const send = signer.sendTransaction as (
-    transaction: typeof request & { gas?: bigint },
-  ) => ReturnType<Signer["sendTransaction"]>
-  const submitted = await send({ ...request, gas })
-  if (!submitted.wait) {
-    throw Error("Submitted transaction does not expose a wait function")
+  const request = toViemTransactionRequest(tx)
+  try {
+    const estimated = await publicClient.estimateGas({ account, ...request })
+    const gas =
+      (estimated * (BigInt(100) + GAS_LIMIT_BUFFER_PERCENT)) / BigInt(100)
+    const hash = await walletClient.sendTransaction({
+      account,
+      chain,
+      ...request,
+      gas,
+    })
+    return publicClient.waitForTransactionReceipt({ hash })
+  } catch (error) {
+    throw Error(describeContractError(error, options?.errorAbi))
   }
-  return submitted.wait()
 }
 
 export type SafeTransactionDetails = {

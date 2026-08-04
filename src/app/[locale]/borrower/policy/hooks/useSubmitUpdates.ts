@@ -1,20 +1,21 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
-  FixedTermHooks,
   HooksInstance,
   MarketController,
-  OpenTermHooks,
   PartialTransaction,
-  PeriodicTermHooks,
 } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
-import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { useWildcatClient } from "@/hooks/useEthersSigner"
 import { useAppDispatch } from "@/store/hooks"
 import { resetPolicyLendersState } from "@/store/slices/policyLendersSlice/policyLendersSlice"
-import type { ContractErrorDecoder } from "@/utils/contractErrors"
+import {
+  isV2HooksInstance,
+  lenderPolicyErrorAbi,
+  prepareLenderRestoration,
+} from "@/utils/lenderAccess"
 import {
   sendTransactionAndWait,
   toSafeTransactions,
@@ -28,7 +29,7 @@ export type SubmitPolicyUpdatesInputs = {
 }
 
 export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
-  const signer = useEthersSigner()
+  const { publicClient, walletClient } = useWildcatClient()
   const client = useQueryClient()
   const { isTestnet, targetChainId } = useCurrentNetwork()
   const { connected: isConnectedToSafe, sdk: gnosisSafeSDK } = useSafeAppsSDK()
@@ -57,40 +58,33 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       setName,
       marketsToUpdate,
     }: SubmitPolicyUpdatesInputs) => {
-      if (!signer || !policy) return
-
-      const credentialTimestamp = await signer.provider.getBlockTimestamp()
-      const { interface: errorInterface } = policy.contract as unknown as {
-        interface: ContractErrorDecoder
-      }
+      if (!publicClient || !walletClient || !policy) return
 
       const txs: PartialTransaction[] = []
 
       if (addLenders?.length) {
-        const tx =
-          // eslint-disable-next-line no-nested-ternary
-          policy instanceof OpenTermHooks ||
-          policy instanceof FixedTermHooks ||
-          policy instanceof PeriodicTermHooks
-            ? policy.populateAddLenders(
-                addLenders.map((lender) => ({ lender, credentialTimestamp })),
+        if (isV2HooksInstance(policy)) {
+          const restoration = await prepareLenderRestoration(
+            publicClient,
+            policy,
+            addLenders,
+          )
+          txs.push(...restoration.transactions)
+        } else {
+          const tx = marketsToUpdate?.length
+            ? policy.populateAuthorizeLendersAndUpdateMarkets(
+                addLenders,
+                marketsToUpdate,
               )
-            : marketsToUpdate?.length
-              ? policy.populateAuthorizeLendersAndUpdateMarkets(
-                  addLenders,
-                  marketsToUpdate,
-                )
-              : policy.populateAuthorizeLenders(addLenders)
-
-        txs.push(tx)
+            : policy.populateAuthorizeLenders(addLenders)
+          txs.push(tx)
+        }
       }
 
       if (removeLenders?.length) {
         const tx =
           // eslint-disable-next-line no-nested-ternary
-          policy instanceof OpenTermHooks ||
-          policy instanceof FixedTermHooks ||
-          policy instanceof PeriodicTermHooks
+          isV2HooksInstance(policy)
             ? policy.populateBlockLenders(removeLenders)
             : marketsToUpdate?.length
               ? policy.populateDeauthorizeLendersAndUpdateMarkets(
@@ -141,7 +135,9 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
           // eslint-disable-next-line no-restricted-syntax
           for (const tx of txs) {
             // eslint-disable-next-line no-await-in-loop
-            await sendTransactionAndWait(signer, tx, { errorInterface })
+            await sendTransactionAndWait(publicClient, walletClient, tx, {
+              errorAbi: lenderPolicyErrorAbi,
+            })
           }
           return {
             status: "success",

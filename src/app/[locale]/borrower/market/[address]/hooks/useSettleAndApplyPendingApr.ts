@@ -14,7 +14,7 @@ import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import {
-  toEthersTransactionRequest,
+  toSdkTransactionRequest,
   toSafeTransactions,
   waitForSubmittedTransaction,
 } from "@/utils/transactions"
@@ -132,7 +132,7 @@ export const useSettleAndApplyPendingApr = (
           }
         }
         const submitted = await signer.sendTransaction(
-          toEthersTransactionRequest(planned.tx),
+          toSdkTransactionRequest(planned.tx),
         )
         setTxHash(submitted.hash)
         if (!submitted.wait) {
