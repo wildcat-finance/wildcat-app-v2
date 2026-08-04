@@ -14,6 +14,8 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useAppDispatch } from "@/store/hooks"
 import { resetEditPolicyState } from "@/store/slices/editPolicySlice/editPolicySlice"
+import { trimAddress } from "@/utils/formatters"
+import { getBlockedLenders } from "@/utils/lenderAccess"
 
 export type SubmitPolicyUpdatesInputs = {
   addLenders?: string[]
@@ -71,6 +73,23 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
           policy instanceof PeriodicTermHooks
         ) {
           console.log(`adding lenders to v2 policy`)
+
+          const policyContract = policy.contract
+          const blockedLenders = await getBlockedLenders(
+            addLenders,
+            "getLenderStatus" in policyContract
+              ? (lender) => policyContract.getLenderStatus(lender)
+              : undefined,
+          )
+          blockedLenders.forEach((lender) => {
+            txs.push({
+              ...policy.populateUnblockLender(lender),
+              pending: `Restoring deposit access for ${trimAddress(lender)}`,
+              success: `Restored deposit access for ${trimAddress(lender)}`,
+              error: `Failed to restore access for ${trimAddress(lender)}`,
+            })
+          })
+
           const tx = policy.populateAddLenders(
             addLenders.map((lender) => ({ lender })),
           )

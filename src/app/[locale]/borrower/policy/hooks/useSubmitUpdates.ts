@@ -13,6 +13,7 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useAppDispatch } from "@/store/hooks"
 import { resetPolicyLendersState } from "@/store/slices/policyLendersSlice/policyLendersSlice"
+import { getBlockedLenders } from "@/utils/lenderAccess"
 
 export type SubmitPolicyUpdatesInputs = {
   addLenders?: string[]
@@ -55,22 +56,35 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       const txs: PartialTransaction[] = []
 
       if (addLenders?.length) {
-        const tx =
-          // eslint-disable-next-line no-nested-ternary
+        if (
           policy instanceof OpenTermHooks ||
           policy instanceof FixedTermHooks ||
           policy instanceof PeriodicTermHooks
-            ? policy.populateAddLenders(
-                addLenders.map((lender) => ({ lender })),
-              )
-            : marketsToUpdate?.length
+        ) {
+          const policyContract = policy.contract
+          const blockedLenders = await getBlockedLenders(
+            addLenders,
+            "getLenderStatus" in policyContract
+              ? (lender) => policyContract.getLenderStatus(lender)
+              : undefined,
+          )
+          blockedLenders.forEach((lender) => {
+            txs.push(policy.populateUnblockLender(lender))
+          })
+
+          txs.push(
+            policy.populateAddLenders(addLenders.map((lender) => ({ lender }))),
+          )
+        } else {
+          txs.push(
+            marketsToUpdate?.length
               ? policy.populateAuthorizeLendersAndUpdateMarkets(
                   addLenders,
                   marketsToUpdate,
                 )
-              : policy.populateAuthorizeLenders(addLenders)
-
-        txs.push(tx)
+              : policy.populateAuthorizeLenders(addLenders),
+          )
+        }
       }
 
       if (removeLenders?.length) {
