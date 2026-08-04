@@ -68,7 +68,9 @@ export default function Header() {
     [side],
   )
 
-  const { data: protocolStats, isLoading: isTvlLoading } = useProtocolStats()
+  const { data: protocolStats, isLoading: isTvlLoading } = useProtocolStats(
+    mounted && !isMobile,
+  )
   const showTvlSkeleton = isTvlLoading && !protocolStats
 
   if (!mounted)

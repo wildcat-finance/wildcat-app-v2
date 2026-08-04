@@ -11,7 +11,6 @@ import ProvenIcon from "@/assets/icons/provenCard_icon.svg"
 import TopFundedIcon from "@/assets/icons/topFundedCard_icon.svg"
 import TrendingIcon from "@/assets/icons/trendingCard_icon.svg"
 import { NetworkIcon } from "@/components/NetworkIcon"
-import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 import { buildMarketHref, formatBps } from "@/utils/formatters"
@@ -106,6 +105,7 @@ type TrendingMarketCardProps = {
   suppliedPct: number
   status: ReturnType<typeof getMarketStatusChip>
   termLabel: string
+  isMobile: boolean
 }
 
 export const TrendingMarketCard = ({
@@ -124,8 +124,8 @@ export const TrendingMarketCard = ({
   suppliedPct,
   status,
   termLabel,
+  isMobile,
 }: TrendingMarketCardProps) => {
-  const isMobile = useMobileResolution()
   const badge = VARIANT_BADGE[variant]
 
   const statisticTitle = {
@@ -298,6 +298,7 @@ export const TrendingMarketCard = ({
           capacity={capacity}
           status={status}
           termLabel={termLabel}
+          isMobile={isMobile}
         />
 
         <Box

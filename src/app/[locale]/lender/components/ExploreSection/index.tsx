@@ -6,13 +6,15 @@ import { Box, Skeleton } from "@mui/material"
 
 import { ExploreMarketsTable } from "@/app/[locale]/lender/components/ExploreSection/ExploreMarketsTable"
 import { TrendingMarketsCarousel } from "@/app/[locale]/lender/components/ExploreSection/TrendingMarketsCarousel"
+import { useIsSelectedNetworkRehydrated } from "@/hooks/useSelectedNetwork"
 import { COLORS } from "@/theme/colors"
 
 export const ExploreSection = () => {
   const [mounted, setMounted] = useState(false)
+  const isSelectedNetworkRehydrated = useIsSelectedNetworkRehydrated()
   useEffect(() => setMounted(true), [])
 
-  if (!mounted)
+  if (!mounted || !isSelectedNetworkRehydrated)
     return (
       <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
         <Skeleton

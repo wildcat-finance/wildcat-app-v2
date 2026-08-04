@@ -21,6 +21,7 @@ import {
 } from "@mui/x-data-grid"
 import { DepositStatus, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
@@ -187,15 +188,33 @@ const ActionArrowIcon = (
   />
 )
 
-const MarketLinkRow = (props: GridRowProps) => (
-  <Link
-    href={buildMarketHref(props.row.id, props.row.chainId)}
-    style={{ display: "contents", color: "inherit" }}
-    tabIndex={-1}
-  >
-    <GridRow {...props} />
-  </Link>
-)
+const MarketClickableRow = (props: GridRowProps) => {
+  const router = useRouter()
+  const href = buildMarketHref(props.row.id, props.row.chainId)
+
+  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    props.onClick?.(event)
+    if (event.defaultPrevented) return
+
+    if (event.metaKey || event.ctrlKey || event.shiftKey) {
+      window.open(href, "_blank", "noopener,noreferrer")
+      return
+    }
+
+    router.push(href)
+  }
+
+  const handleAuxClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    props.onAuxClick?.(event)
+    if (!event.defaultPrevented && event.button === 1) {
+      window.open(href, "_blank", "noopener,noreferrer")
+    }
+  }
+
+  return (
+    <GridRow {...props} onClick={handleClick} onAuxClick={handleAuxClick} />
+  )
+}
 
 export const ExploreMarketsTable = () => {
   const isMobile = useMobileResolution()
@@ -283,7 +302,10 @@ export const ExploreMarketsTable = () => {
     return tokensRaw
   }, [tokensRaw, isTestnet])
 
-  const rows = useMemo((): GridRowsProp<LenderOtherMarketsTableModel> => {
+  const { rows, totalRows } = useMemo<{
+    rows: GridRowsProp<LenderOtherMarketsTableModel>
+    totalRows: number
+  }>(() => {
     const gateActive = search.trim() === ""
     const penaltyBorrowers = getPenaltyBorrowers(
       marketAccounts.map((a) => a.market),
@@ -338,50 +360,55 @@ export const ExploreMarketsTable = () => {
       return tokenAmountComparator(b.market.totalSupply, a.market.totalSupply)
     })
 
-    return sorted.map((account) => {
-      const { market } = account
-      const {
-        address,
-        name,
-        borrower: borrowerAddress,
-        underlyingToken,
-        annualInterestBips,
-        maxTotalSupply,
-        totalSupply,
-        withdrawalBatchDuration,
-        chainId,
-      } = market
+    const accountsToMap = isMobile ? sorted.slice(0, visibleMobileRows) : sorted
 
-      const borrower = (borrowers ?? []).find(
-        (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
-      )
-      const borrowerName = borrower
-        ? borrower.alias || borrower.name
-        : trimAddress(borrowerAddress)
+    return {
+      totalRows: sorted.length,
+      rows: accountsToMap.map((account) => {
+        const { market } = account
+        const {
+          address,
+          name,
+          borrower: borrowerAddress,
+          underlyingToken,
+          annualInterestBips,
+          maxTotalSupply,
+          totalSupply,
+          withdrawalBatchDuration,
+          chainId,
+        } = market
 
-      return {
-        id: address,
-        status: getMarketStatusChip(market),
-        term: getMarketTypeChip(market),
-        name,
-        borrower: borrowerName,
-        borrowerAddress,
-        asset: underlyingToken.symbol,
-        apr: annualInterestBips,
-        withdrawalBatchDuration,
-        debt: totalSupply,
-        capacity: maxTotalSupply,
-        capacityLeft: maxTotalSupply.sub(totalSupply),
-        onboardingMode: getKnownMarketOnboardingMode(
-          market.version,
-          market.address,
-          onboardingByMarket,
-        ),
-        depositStatus: account.depositAvailability,
-        button: address,
-        chainId,
-      }
-    })
+        const borrower = (borrowers ?? []).find(
+          (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
+        )
+        const borrowerName = borrower
+          ? borrower.alias || borrower.name
+          : trimAddress(borrowerAddress)
+
+        return {
+          id: address,
+          status: getMarketStatusChip(market),
+          term: getMarketTypeChip(market),
+          name,
+          borrower: borrowerName,
+          borrowerAddress,
+          asset: underlyingToken.symbol,
+          apr: annualInterestBips,
+          withdrawalBatchDuration,
+          debt: totalSupply,
+          capacity: maxTotalSupply,
+          capacityLeft: maxTotalSupply.sub(totalSupply),
+          onboardingMode: getKnownMarketOnboardingMode(
+            market.version,
+            market.address,
+            onboardingByMarket,
+          ),
+          depositStatus: account.depositAvailability,
+          button: address,
+          chainId,
+        }
+      }),
+    }
   }, [
     marketAccounts,
     borrowers,
@@ -395,6 +422,8 @@ export const ExploreMarketsTable = () => {
     onboardingByMarket,
     isLoadingUpdate,
     isMarketQualifying,
+    isMobile,
+    visibleMobileRows,
   ])
 
   const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
@@ -417,19 +446,30 @@ export const ExploreMarketsTable = () => {
             minWidth: 0,
           }}
         >
-          <Typography
-            variant="text3"
-            sx={{
-              display: "block",
+          <Link
+            href={buildMarketHref(params.row.id, params.row.chainId)}
+            onClick={(event) => event.stopPropagation()}
+            style={{
               width: "100%",
               minWidth: 0,
-              overflow: "hidden",
-              whiteSpace: "nowrap",
-              textOverflow: "ellipsis",
+              color: "inherit",
+              textDecoration: "none",
             }}
           >
-            {params.value}
-          </Typography>
+            <Typography
+              variant="text3"
+              sx={{
+                display: "block",
+                width: "100%",
+                minWidth: 0,
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {params.value}
+            </Typography>
+          </Link>
           {params.row.borrowerAddress ? (
             <Link
               href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
@@ -803,15 +843,15 @@ export const ExploreMarketsTable = () => {
               gap: "4px",
             }}
           >
-            {rows.slice(0, visibleMobileRows).map((marketItem) => (
+            {rows.map((marketItem) => (
               <MobileMarketCard key={marketItem.id} marketItem={marketItem} />
             ))}
           </Box>
         )}
 
         {!isLoading &&
-          rows.length > 0 &&
-          (rows.length > visibleMobileRows ? (
+          totalRows > 0 &&
+          (totalRows > visibleMobileRows ? (
             <Box
               component="button"
               type="button"
@@ -996,7 +1036,7 @@ export const ExploreMarketsTable = () => {
             rows={rows}
             columns={columns}
             columnHeaderHeight={GRID_HEADER_HEIGHT}
-            slots={{ row: MarketLinkRow }}
+            slots={{ row: MarketClickableRow }}
             loading={isLoading}
             sortModel={sortModel}
             onSortModelChange={setSortModel}

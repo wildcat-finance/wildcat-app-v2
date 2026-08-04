@@ -137,11 +137,6 @@ const useDragScroll = () => {
     setIsScrollable(el.scrollWidth > el.clientWidth)
   }, [])
 
-  // Content swaps (skeletons ↔ cards) change scrollWidth without resizing
-  // the container, so re-measure after every render; the observer covers
-  // container resizes that happen without one (e.g. window resizes)
-  useEffect(measure)
-
   useEffect(() => {
     const el = ref.current
     if (!el) return undefined
@@ -193,6 +188,7 @@ const useDragScroll = () => {
   return {
     ref,
     isScrollable,
+    measure,
     onMouseDown,
     onMouseMove,
     onMouseUp: stopDrag,
@@ -258,34 +254,54 @@ const usePeekOnFirstVisit = (
 }
 
 export const TrendingMarketsCarousel = () => {
-  const { marketAccounts, borrowers, isLoadingInitial, isLoadingUpdate } =
+  const { marketAccounts, borrowers, isLoadingInitial, hasMarketUpdates } =
     useLenderMarketsContext()
-  const { data: recentDeposits } = useRecentDeposits()
+  const isMarketStateReady = hasMarketUpdates
+  const { data: recentDeposits, isLoading: isRecentDepositsLoading } =
+    useRecentDeposits()
   const { isMarketQualifying, isLoading: isInflowLoading } =
     useMarketsWithRecentInflow()
   const dragScroll = useDragScroll()
+  const { measure: measureDragScroll } = dragScroll
   const [activeMobileSlot, setActiveMobileSlot] = useState(0)
+  const mobileScrollFrame = useRef<number>()
 
   const handleMobileScroll = useCallback(
     (event: React.UIEvent<HTMLDivElement>) => {
       const scroller = event.currentTarget
-      const viewportCenter = scroller.scrollLeft + scroller.clientWidth / 2
-      const cards = Array.from(
-        scroller.querySelectorAll<HTMLElement>("[data-carousel-index]"),
-      )
+      if (mobileScrollFrame.current !== undefined) return
 
-      let closestIndex = 0
-      let closestDistance = Number.POSITIVE_INFINITY
-      cards.forEach((card) => {
-        const distance = Math.abs(
-          card.offsetLeft + card.offsetWidth / 2 - viewportCenter,
+      mobileScrollFrame.current = window.requestAnimationFrame(() => {
+        mobileScrollFrame.current = undefined
+        const viewportCenter = scroller.scrollLeft + scroller.clientWidth / 2
+        const cards = Array.from(
+          scroller.querySelectorAll<HTMLElement>("[data-carousel-index]"),
         )
-        if (distance < closestDistance) {
-          closestDistance = distance
-          closestIndex = Number(card.dataset.carouselIndex)
-        }
+
+        let closestIndex = 0
+        let closestDistance = Number.POSITIVE_INFINITY
+        cards.forEach((card) => {
+          const distance = Math.abs(
+            card.offsetLeft + card.offsetWidth / 2 - viewportCenter,
+          )
+          if (distance < closestDistance) {
+            closestDistance = distance
+            closestIndex = Number(card.dataset.carouselIndex)
+          }
+        })
+        setActiveMobileSlot((current) =>
+          current === closestIndex ? current : closestIndex,
+        )
       })
-      setActiveMobileSlot(closestIndex)
+    },
+    [],
+  )
+
+  useEffect(
+    () => () => {
+      if (mobileScrollFrame.current !== undefined) {
+        window.cancelAnimationFrame(mobileScrollFrame.current)
+      }
     },
     [],
   )
@@ -317,7 +333,10 @@ export const TrendingMarketsCarousel = () => {
       ),
     [marketAccounts],
   )
-  const { data: priceMap } = useTrendingUsdPrices(chainId, tokenAddresses)
+  const { data: priceMap, isLoading: isPriceLoading } = useTrendingUsdPrices(
+    chainId,
+    tokenAddresses,
+  )
 
   const slots = useMemo<Slot[]>(() => {
     const penaltyBorrowers = getPenaltyBorrowers(
@@ -389,10 +408,12 @@ export const TrendingMarketsCarousel = () => {
       ? formatMarketAge(newestWinner.market.deployedEvent.blockTimestamp)
       : undefined
 
-    const healthyEligible = eligible.filter((a) => isMarketHealthy(a.market))
-    const aprWinner = [...healthyEligible].sort(
-      compareByCurrentAprBestInMarket,
-    )[0]
+    const healthyEligible = isMarketStateReady
+      ? eligible.filter((a) => isMarketHealthy(a.market))
+      : []
+    const aprWinner = healthyEligible.length
+      ? [...healthyEligible].sort(compareByCurrentAprBestInMarket)[0]
+      : undefined
 
     const tvlWinner = pickMax(eligible, (account) => {
       const big = account.market.totalSupply.raw.toBigInt()
@@ -458,13 +479,22 @@ export const TrendingMarketsCarousel = () => {
     marketAccounts,
     recentDeposits,
     priceMap,
-    isLoadingUpdate,
     isMarketQualifying,
+    isMarketStateReady,
   ])
 
-  const isLoading = isLoadingInitial || isLoadingUpdate || isInflowLoading
+  const isLoading =
+    isLoadingInitial ||
+    isInflowLoading ||
+    isRecentDepositsLoading ||
+    isPriceLoading ||
+    !isMarketStateReady
 
   const isMobile = useMobileResolution()
+
+  useEffect(() => {
+    measureDragScroll()
+  }, [measureDragScroll, isLoading, isMobile, slots.length])
 
   useEffect(() => {
     setActiveMobileSlot((index) =>
@@ -480,7 +510,8 @@ export const TrendingMarketsCarousel = () => {
   const renderCard = (slot: Slot) => {
     const { market } = slot.account
     const borrower = (borrowers ?? []).find(
-      (b) => b.address.toLowerCase() === market.borrower.toLowerCase(),
+      (candidate) =>
+        candidate.address.toLowerCase() === market.borrower.toLowerCase(),
     )
     const borrowerName = borrower
       ? borrower.alias || borrower.name || trimAddress(market.borrower)
@@ -516,6 +547,7 @@ export const TrendingMarketsCarousel = () => {
         suppliedPct={suppliedPct}
         status={getMarketStatusChip(market)}
         termLabel={termLabel}
+        isMobile={isMobile}
       />
     )
   }

@@ -5,7 +5,7 @@ import { fetchEthereumMainnetStats, fetchPlasmaMainnetStats } from "./queries"
 
 const STALE_TIME_MS = 5 * 60 * 1000
 
-export function useProtocolStats() {
+export function useProtocolStats(enabled = true) {
   return useQuery<ProtocolStats>({
     queryKey: ["protocol-stats"],
     queryFn: async () => {
@@ -17,5 +17,6 @@ export function useProtocolStats() {
     },
     staleTime: STALE_TIME_MS,
     refetchOnWindowFocus: false,
+    enabled,
   })
 }

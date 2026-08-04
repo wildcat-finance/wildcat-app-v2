@@ -237,11 +237,11 @@ export const MobileSearchButton = ({
         >
           {marketAccounts.map((market) => (
             <Link
+              key={market.market.address}
               href={`${ROUTES.lender.market}/${market.market.address}`}
               style={{ textDecoration: "none" }}
             >
               <MenuItem
-                key={market.market.address}
                 value={market.market.address}
                 sx={{
                   minHeight: "fit-content",

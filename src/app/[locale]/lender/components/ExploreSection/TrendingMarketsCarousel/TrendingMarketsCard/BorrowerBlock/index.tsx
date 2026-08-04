@@ -6,7 +6,6 @@ import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { MarketStatusAndTermChip } from "@/components/@extended/MarketStatusAndTermChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { NetworkIcon } from "@/components/NetworkIcon"
-import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { getMarketStatusChip } from "@/utils/marketStatus"
@@ -24,6 +23,7 @@ export type TrendingMarketDetailsProps = {
   capacity: string
   status: ReturnType<typeof getMarketStatusChip>
   termLabel: string
+  isMobile: boolean
 }
 
 const AssetChip = ({
@@ -75,9 +75,10 @@ export const TrendingMarketDetails = ({
   capacity,
   status,
   termLabel,
+  isMobile,
+  // Keeping an explicit block avoids re-indenting this large JSX tree.
+  // eslint-disable-next-line arrow-body-style
 }: TrendingMarketDetailsProps) => {
-  const isMobile = useMobileResolution()
-
   return (
     <Box
       sx={{

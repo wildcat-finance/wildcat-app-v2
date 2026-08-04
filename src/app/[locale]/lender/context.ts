@@ -10,6 +10,7 @@ import { MarketOnboardingByAddress } from "@/utils/marketOnboarding"
 
 export type LenderMarketsContextType = {
   marketAccounts: MarketAccount[]
+  hasMarketUpdates: boolean
   isLoadingInitial: boolean
   isLoadingUpdate: boolean
   onboardingByMarket: MarketOnboardingByAddress
@@ -19,6 +20,7 @@ export type LenderMarketsContextType = {
 
 const defaultContext: LenderMarketsContextType = {
   marketAccounts: [],
+  hasMarketUpdates: false,
   isLoadingInitial: false,
   isLoadingUpdate: false,
   onboardingByMarket: {},
