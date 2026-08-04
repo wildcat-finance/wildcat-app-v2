@@ -14,6 +14,7 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useAppDispatch } from "@/store/hooks"
 import { resetPolicyLendersState } from "@/store/slices/policyLendersSlice/policyLendersSlice"
+import type { ContractErrorDecoder } from "@/utils/contractErrors"
 import {
   sendTransactionAndWait,
   toSafeTransactions,
@@ -48,6 +49,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
     isPending: isSubmitting,
     isSuccess,
     isError,
+    error,
   } = useMutation({
     mutationFn: async ({
       addLenders,
@@ -56,6 +58,11 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       marketsToUpdate,
     }: SubmitPolicyUpdatesInputs) => {
       if (!signer || !policy) return
+
+      const credentialTimestamp = await signer.provider.getBlockTimestamp()
+      const { interface: errorInterface } = policy.contract as unknown as {
+        interface: ContractErrorDecoder
+      }
 
       const txs: PartialTransaction[] = []
 
@@ -66,7 +73,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
           policy instanceof FixedTermHooks ||
           policy instanceof PeriodicTermHooks
             ? policy.populateAddLenders(
-                addLenders.map((lender) => ({ lender })),
+                addLenders.map((lender) => ({ lender, credentialTimestamp })),
               )
             : marketsToUpdate?.length
               ? policy.populateAuthorizeLendersAndUpdateMarkets(
@@ -134,7 +141,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
           // eslint-disable-next-line no-restricted-syntax
           for (const tx of txs) {
             // eslint-disable-next-line no-await-in-loop
-            await sendTransactionAndWait(signer, tx)
+            await sendTransactionAndWait(signer, tx, { errorInterface })
           }
           return {
             status: "success",
@@ -151,8 +158,14 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       })
       dispatch(resetPolicyLendersState())
     },
-    onError: (error) => console.log(error),
+    onError: (mutationError) => console.log(mutationError),
   })
 
-  return { submitUpdates, isSubmitting, isSuccess, isError }
+  return {
+    submitUpdates,
+    isSubmitting,
+    isSuccess,
+    isError,
+    errorMessage: error?.message,
+  }
 }

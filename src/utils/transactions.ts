@@ -8,6 +8,19 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import type { TransactionReceipt } from "viem"
 
+import {
+  type ContractErrorDecoder,
+  describeContractError,
+} from "@/utils/contractErrors"
+
+type GasEstimatingProvider = {
+  estimateGas?: (transaction: {
+    to?: string
+    data?: string
+    from?: string
+  }) => Promise<bigint>
+}
+
 export const toSafeTransactions = (
   txs: PartialTransaction[],
 ): SafeTransactionInput[] => txs.map(toSafeTransactionInput)
@@ -18,11 +31,32 @@ export const toEthersTransactionRequest = (tx: PartialTransaction) => ({
   value: (tx.value ?? BigInt(0)).toString(),
 })
 
+const GAS_LIMIT_BUFFER_PERCENT = BigInt(25)
+
 export const sendTransactionAndWait = async (
   signer: Signer,
   tx: PartialTransaction,
+  options?: { errorInterface?: ContractErrorDecoder },
 ) => {
-  const submitted = await signer.sendTransaction(toEthersTransactionRequest(tx))
+  const request = toEthersTransactionRequest(tx)
+  const estimator = (signer as { provider?: GasEstimatingProvider }).provider
+  let gas: bigint | undefined
+  if (estimator?.estimateGas) {
+    try {
+      const estimated = await estimator.estimateGas({
+        ...request,
+        from: await signer.getAddress(),
+      })
+      gas = (estimated * (BigInt(100) + GAS_LIMIT_BUFFER_PERCENT)) / BigInt(100)
+    } catch (error) {
+      throw Error(describeContractError(error, options?.errorInterface))
+    }
+  }
+
+  const send = signer.sendTransaction as (
+    transaction: typeof request & { gas?: bigint },
+  ) => ReturnType<Signer["sendTransaction"]>
+  const submitted = await send({ ...request, gas })
   if (!submitted.wait) {
     throw Error("Submitted transaction does not expose a wait function")
   }

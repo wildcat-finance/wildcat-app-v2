@@ -38,6 +38,8 @@ export type ViemProviderLike = SdkProvider & {
   ) => Promise<Hex>
   getCode: (address: string) => Promise<Hex>
   getBlockNumber: () => Promise<number>
+  getBlockTimestamp: () => Promise<number>
+  estimateGas: (transaction: CallTransaction) => Promise<bigint>
   waitForTransaction: (hash: string) => Promise<TransactionReceipt>
 }
 
@@ -48,7 +50,7 @@ export type ViemSignerWithChainId = SdkSigner & {
   getAddress: () => Promise<Address>
   signMessage: (message: string) => Promise<Hex>
   sendTransaction: (
-    transaction: SendTransactionInput,
+    transaction: SendTransactionInput & { gas?: bigint },
   ) => Promise<{ hash: Hash; wait: () => Promise<TransactionReceipt> }>
 }
 
@@ -94,6 +96,14 @@ export const createViemProvider = (
     getCode: async (address) =>
       (await publicClient.getBytecode({ address: address as Address })) ?? "0x",
     getBlockNumber: async () => Number(await publicClient.getBlockNumber()),
+    getBlockTimestamp: async () =>
+      Number((await publicClient.getBlock()).timestamp),
+    estimateGas: ({ to, data, from }: CallTransaction) =>
+      publicClient.estimateGas({
+        account: from as Address | undefined,
+        to: to as Address | undefined,
+        data: data as Hex | undefined,
+      }),
     waitForTransaction: (hash) =>
       publicClient.waitForTransactionReceipt({ hash: hash as Hash }),
   }
@@ -125,13 +135,17 @@ export const createViemSigner = ({
         account,
         message,
       }),
-    sendTransaction: async ({ to, data, value }) => {
+    sendTransaction: async (transaction) => {
+      const { to, data, value, gas } = transaction as SendTransactionInput & {
+        gas?: bigint
+      }
       const hash = await walletClient.sendTransaction({
         account,
         chain,
         to: to as Address | undefined,
         data: data as Hex | undefined,
         value: normalizeValue(value),
+        gas,
       })
       return {
         hash,

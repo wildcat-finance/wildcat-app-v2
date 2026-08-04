@@ -22,6 +22,7 @@ export type FinalModalProps = {
   isLoading: boolean
   isSuccess: boolean
   isError: boolean
+  errorMessage?: string
   handleTryAgain: () => void
 }
 
@@ -29,6 +30,7 @@ export const FinalModal = ({
   isLoading,
   isSuccess,
   isError,
+  errorMessage,
   handleTryAgain,
 }: FinalModalProps) => {
   const [open, setIsOpen] = useState<boolean>(false)
@@ -95,10 +97,13 @@ export const FinalModal = ({
 
               <Box sx={DeployTypoBox}>
                 <Typography variant="title3">
-                  Oops! Something went wrong!
+                  {errorMessage
+                    ? "Transaction failed"
+                    : "Oops! Something went wrong!"}
                 </Typography>
                 <Typography variant="text3" sx={DeploySubtitle}>
-                  Can you reach out to us and tell us how you got here?
+                  {errorMessage ??
+                    "Can you reach out to us and tell us how you got here?"}
                 </Typography>
               </Box>
             </Box>

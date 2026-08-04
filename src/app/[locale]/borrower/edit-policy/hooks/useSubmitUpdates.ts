@@ -15,6 +15,7 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useAppDispatch } from "@/store/hooks"
 import { resetEditPolicyState } from "@/store/slices/editPolicySlice/editPolicySlice"
+import type { ContractErrorDecoder } from "@/utils/contractErrors"
 import {
   sendTransactionAndWait,
   toSafeTransactions,
@@ -65,6 +66,11 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         `useDeployMarket :: isTestnet: ${isTestnet} :: isConnectedToSafe: ${isConnectedToSafe} :: gnosisSafeSDK: ${!!gnosisSafeSDK}`,
       )
 
+      const credentialTimestamp = await signer.provider.getBlockTimestamp()
+      const { interface: errorInterface } = policy.contract as unknown as {
+        interface: ContractErrorDecoder
+      }
+
       const txs: Array<PartialTransaction & ToastRequestConfig> = []
       if (addLenders && addLenders.length) {
         console.log(`adding lenders`)
@@ -76,7 +82,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         ) {
           console.log(`adding lenders to v2 policy`)
           const tx = policy.populateAddLenders(
-            addLenders.map((lender) => ({ lender })),
+            addLenders.map((lender) => ({ lender, credentialTimestamp })),
           )
           txs.push({
             ...tx,
@@ -155,7 +161,10 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         // eslint-disable-next-line no-restricted-syntax, no-await-in-loop
         for (const tx of txs) {
           // eslint-disable-next-line no-restricted-syntax, no-await-in-loop
-          await toastRequest(sendTransactionAndWait(signer, tx), tx)
+          await toastRequest(
+            sendTransactionAndWait(signer, tx, { errorInterface }),
+            tx,
+          )
         }
       }
     },
