@@ -111,13 +111,10 @@ export const ConfirmationForm = ({
   paramsChangedSinceSigning,
   isSigning,
   isDeployReady,
+  isDeployDialogOpen,
   mlaSignature,
 }: ConfirmationFormProps) => {
   const { t } = useTranslation()
-
-  // const entityKind = mockedNaturesOptions.find(
-  // (option) => option.id === borrowerData?.entityKind,
-  // )
 
   const dispatch = useAppDispatch()
 
@@ -166,6 +163,8 @@ export const ConfirmationForm = ({
     !isSigning &&
     !!mlaSignature &&
     !paramsChangedSinceSigning
+
+  const actionsLocked = isDeployDialogOpen
 
   const handleBackClick = () => {
     if (onDiscardSignature()) {
@@ -278,12 +277,13 @@ export const ConfirmationForm = ({
               asset={tokenAsset}
               salt={salt}
               isSigning={false}
-              disabled={false}
+              disabled={actionsLocked}
               sx={{ width: "fit-content" }}
               modalButtonVariant="contained"
               modalButtonSize="small"
               buttonText={t("createNewMarket.buttons.viewMLA")}
               showSignButton={false}
+              isClosed={actionsLocked}
             />
           </Box>
 
@@ -542,6 +542,7 @@ export const ConfirmationForm = ({
           variant="text"
           sx={{ justifyContent: "flex-start", borderRadius: "12px" }}
           onClick={handleBackClick}
+          disabled={actionsLocked}
         >
           <SvgIcon
             fontSize="medium"
@@ -566,11 +567,11 @@ export const ConfirmationForm = ({
               salt={salt}
               onSign={handleSign}
               isSigning={isSigning}
-              disabled={signed || isSigning}
+              disabled={signed || isSigning || actionsLocked}
               sx={{ width: "168px", borderRadius: "12px" }}
               modalButtonVariant="contained"
               modalButtonSize="large"
-              isClosed={signed}
+              isClosed={signed || actionsLocked}
             />
           )}
           {!isMLA && (
@@ -578,7 +579,7 @@ export const ConfirmationForm = ({
               size="large"
               variant="contained"
               sx={{ width: "168px", borderRadius: "12px" }}
-              disabled={signed || isSigning}
+              disabled={signed || isSigning || actionsLocked}
               onClick={handleSign}
             >
               {t("createNewMarket.buttons.signMlaRefusal")}
@@ -589,7 +590,7 @@ export const ConfirmationForm = ({
             size="large"
             variant="contained"
             sx={{ width: "168px", borderRadius: "12px" }}
-            disabled={!signed || !isDeployReady}
+            disabled={!signed || !isDeployReady || actionsLocked}
             onClick={handleDeploy}
           >
             {t("createNewMarket.buttons.deploy")}

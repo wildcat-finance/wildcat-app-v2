@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { Box, Button, Modal } from "@mui/material"
 import { useTranslation } from "react-i18next"
@@ -25,6 +25,10 @@ export const MlaModal = ({
 }: MlaModalProps) => {
   const [isMlaOpen, setIsMlaOpen] = useState(false) // Add new state
   const { t } = useTranslation()
+  useEffect(() => {
+    if (isClosed) setIsMlaOpen(false)
+  }, [isClosed])
+
   return (
     <>
       <Button
