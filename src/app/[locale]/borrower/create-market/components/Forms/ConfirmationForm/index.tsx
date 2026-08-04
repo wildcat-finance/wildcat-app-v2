@@ -24,7 +24,7 @@ import {
   setCreatingStep,
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import { COLORS } from "@/theme/colors"
-import { timestampToDateFormatted } from "@/utils/formatters"
+import { formatUtcMaturity } from "@/utils/formatters"
 
 import { ConfirmationFormProps } from "./interface"
 import { AlertContainer, DividerStyle, SubtitleStyle } from "./style"
@@ -305,12 +305,7 @@ export const ConfirmationForm = ({
           >
             <ConfirmationFormItem
               label={t("createNewMarket.policy.expiration.label")}
-              value={
-                timestampToDateFormatted(
-                  Number(getValues("fixedTermEndTime")),
-                  "DD/MM/YYYY",
-                ) ?? ""
-              }
+              value={formatUtcMaturity(Number(getValues("fixedTermEndTime")))}
             />
 
             <ConfirmationFormItem
