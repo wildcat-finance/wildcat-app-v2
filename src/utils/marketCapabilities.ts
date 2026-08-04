@@ -33,3 +33,31 @@ export const hasActivePullRoleProvider = (
       pullProviderIndex >= 0 &&
       pullProviderIndex !== NULL_PROVIDER_INDEX,
   )
+
+/** The hooks data the market lens returns alongside every market. */
+export type LensHooksInstanceData = {
+  pullProviders?: readonly { pullProviderIndex: number }[]
+}
+
+/**
+ * Whether a market's policy lets lenders onboard themselves, read from the
+ * lens payload the dashboards already fetch.
+ *
+ * The lens builds this list from the policy's own pull list, so membership is
+ * the answer and every entry counts as approved - the same assumption the SDK
+ * makes in `HooksInstance.fromLensData`. The index is still checked, so a
+ * contradictory entry cannot pass.
+ *
+ * `pushProviders` is deliberately not consulted: a provider that pulls is in
+ * the pull list by construction, and scanning the push list would only add a
+ * branch that no real payload can reach.
+ */
+export const isSelfOnboardLensMarket = (
+  hooks: LensHooksInstanceData | undefined,
+): boolean =>
+  hasActivePullRoleProvider(
+    (hooks?.pullProviders ?? []).map(({ pullProviderIndex }) => ({
+      isApproved: true,
+      pullProviderIndex,
+    })),
+  )

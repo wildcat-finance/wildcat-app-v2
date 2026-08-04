@@ -1,7 +1,11 @@
 /* eslint-disable camelcase */
 import { useMemo } from "react"
 
-import { useQuery } from "@tanstack/react-query"
+import {
+  QueryObserverResult,
+  RefetchOptions,
+  useQuery,
+} from "@tanstack/react-query"
 import {
   SignerOrProvider,
   Market,
@@ -25,6 +29,7 @@ import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { EXCLUDED_MARKETS_FILTER, TOKENS_ADDRESSES } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
+import { isSelfOnboardLensMarket } from "@/utils/marketCapabilities"
 import { isFrontendVisibleMarket } from "@/utils/marketType"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
@@ -65,9 +70,26 @@ function getChunks<T extends Market | MarketAccount>(
   }
 }
 
+const EMPTY_SELF_ONBOARD_MARKETS: ReadonlySet<string> = new Set()
+
+type LenderUpdates = {
+  accounts: MarketAccount[]
+  selfOnboardMarkets: Set<string>
+}
+
+type LenderMarketsResult = Omit<
+  TwoStepQueryHookResult<MarketAccount[]>,
+  "refetchUpdate"
+> & {
+  refetchUpdate: (
+    options?: RefetchOptions,
+  ) => Promise<QueryObserverResult<LenderUpdates, Error>>
+  selfOnboardMarkets: ReadonlySet<string>
+}
+
 export function useLendersMarkets(
   filters: LenderMarketsQueryProps = {},
-): TwoStepQueryHookResult<MarketAccount[]> {
+): LenderMarketsResult {
   const { isWrongNetwork, provider, signer, address } = useEthersProvider()
   const { chainId, targetChainId } = useCurrentNetwork()
   const subgraphClient = useSubgraphClient()
@@ -139,6 +161,8 @@ export function useLendersMarkets(
       signerOrProvider as SignerOrProvider,
     )
 
+    const selfOnboardMarkets = new Set<string>()
+
     const { v1Chunks, v2Chunks } = getChunks(targetChainId, accounts)
     await Promise.all([
       ...(lens
@@ -176,6 +200,11 @@ export function useLendersMarkets(
         accountsChunk.forEach((account, i) => {
           let update = updates[i]
           account.market.updateWith(update.market)
+
+          if (isSelfOnboardLensMarket(update.market.hooks)) {
+            selfOnboardMarkets.add(account.market.address.toLowerCase())
+          }
+
           // If the lender account is not set, set the balances to 0 but still use
           // the credential, as that will tell us whether the market is open access.
           if (!lender) {
@@ -198,7 +227,7 @@ export function useLendersMarkets(
       throw e
     })
     console.log(`getLenderUpdates:: Got lender updates: ${accounts.length}`)
-    return accounts
+    return { accounts, selfOnboardMarkets }
   }
 
   const updateQueryKeys = useMemo(
@@ -225,7 +254,9 @@ export function useLendersMarkets(
   })
 
   return {
-    data: updatedLenders ?? accounts,
+    data: updatedLenders?.accounts ?? accounts,
+    selfOnboardMarkets:
+      updatedLenders?.selfOnboardMarkets ?? EMPTY_SELF_ONBOARD_MARKETS,
     isLoadingInitial,
     isErrorInitial,
     errorInitial: errorInitial as Error | null,

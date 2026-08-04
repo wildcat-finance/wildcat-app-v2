@@ -24,6 +24,7 @@ export type LenderOtherMarketsTableModel = {
 
 export type LenderOtherMarketsTableProps = {
   marketAccounts: MarketAccount[]
+  selfOnboardMarkets: ReadonlySet<string>
   borrowers: BorrowerWithName[]
   isLoading: boolean
   filters: {

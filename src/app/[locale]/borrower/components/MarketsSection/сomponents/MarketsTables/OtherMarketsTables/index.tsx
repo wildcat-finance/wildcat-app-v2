@@ -1,14 +1,9 @@
 import { useEffect, useRef } from "react"
 import * as React from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
-import {
-  DepositStatus,
-  MarketAccount,
-  MarketVersion,
-  TokenAmount,
-} from "@wildcatfi/wildcat-sdk"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -63,11 +58,16 @@ export type OtherMarketsTableModel = {
   borrowable: TokenAmount
 }
 
+export type OtherMarketsTablesProps = MarketsTablesProps & {
+  selfOnboardMarkets: ReadonlySet<string>
+}
+
 export const OtherMarketsTables = ({
   marketAccounts,
+  selfOnboardMarkets,
   isLoading,
   filters,
-}: MarketsTablesProps) => {
+}: OtherMarketsTablesProps) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
@@ -137,10 +137,7 @@ export const OtherMarketsTables = ({
         borrowable: borrowableAssets,
         debt: totalSupply,
         withdrawalBatchDuration,
-        isSelfOnboard:
-          !account.hasEverInteracted &&
-          market.version === MarketVersion.V2 &&
-          account.depositAvailability === DepositStatus.Ready,
+        isSelfOnboard: selfOnboardMarkets.has(address.toLowerCase()),
       }
     },
   )
