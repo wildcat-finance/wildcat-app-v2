@@ -53,8 +53,6 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
   if (isLoading)
     return <ProfilePageSkeleton isExternal={isExternal} isMobile={isMobile} />
 
-  console.log(accountName)
-
   if (isMobile)
     return (
       <Box sx={MobileContentContainer}>
