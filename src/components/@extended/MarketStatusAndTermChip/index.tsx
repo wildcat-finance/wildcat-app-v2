@@ -43,6 +43,7 @@ export const MarketStatusAndTermChip = ({
     </Box>
 
     <Typography
+      variant="mobText2"
       sx={{
         display: "flex",
         alignItems: "center",
@@ -59,7 +60,6 @@ export const MarketStatusAndTermChip = ({
         backgroundColor: COLORS.whiteSmoke,
         color: COLORS.blackRock,
         fontSize: { xs: "14px", md: "11px" },
-        fontWeight: 500,
         lineHeight: { xs: "20px", md: "16px" },
         whiteSpace: "nowrap",
       }}

@@ -19,7 +19,7 @@ export const CardHeaderStyle = {
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  padding: { xs: "9px 16px", md: "7px 14px" },
+  padding: { xs: "9px 20px", md: "7px 14px" },
   borderBottom: `1px solid ${COLORS.whiteLilac}`,
   backgroundColor: COLORS.hintOfRed,
 }
@@ -35,7 +35,7 @@ export const CardContentStyle = {
   flexGrow: 1,
   display: "flex",
   flexDirection: "column",
-  padding: { xs: "12px 16px", md: "12px 14px" },
+  padding: { xs: "12px 20px", md: "12px 14px" },
 }
 
 export const MarketContainerStyle = {
@@ -45,11 +45,11 @@ export const MarketContainerStyle = {
   width: "auto",
   minHeight: { xs: "48px", md: "36px" },
   marginTop: "auto",
-  marginLeft: { xs: "-8px", md: 0 },
-  marginRight: { xs: "-8px", md: 0 },
+  marginLeft: { xs: "-12px", md: 0 },
+  marginRight: { xs: "-12px", md: 0 },
   gap: "6px",
   padding: { xs: "12px", md: "7px 12px" },
-  borderRadius: { xs: "12px", md: "8px" },
+  borderRadius: { xs: "16px", md: "8px" },
   backgroundColor: COLORS.bunker,
   color: COLORS.white,
   textDecoration: "none",

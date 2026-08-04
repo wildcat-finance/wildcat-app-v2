@@ -75,7 +75,10 @@ const MarketAssetChip = ({
     }}
   >
     <NetworkIcon chainId={chainId as SupportedChainId} width={14} height={14} />
-    <Typography sx={{ fontSize: "13px", lineHeight: "18px" }}>
+    <Typography
+      variant="mobText3"
+      sx={{ fontSize: "13px", lineHeight: "18px" }}
+    >
       {asset}
     </Typography>
   </Box>
@@ -127,7 +130,10 @@ const MarketPointsChip = ({
         }}
       >
         {multiplier && (
-          <Typography sx={{ fontSize: "13px", lineHeight: "18px" }}>
+          <Typography
+            variant="mobText3"
+            sx={{ fontSize: "13px", lineHeight: "18px" }}
+          >
             +{multiplier}
           </Typography>
         )}
@@ -145,10 +151,10 @@ const MarketPointsChip = ({
             <ProposalIcon />
           </SvgIcon>
           <Typography
+            variant="mobText3"
             sx={{
               color: COLORS.white,
               fontSize: "13px",
-              fontWeight: 500,
               lineHeight: "18px",
             }}
           >
@@ -219,6 +225,7 @@ export const MobileMarketCard = ({
           termLabel={termLabel}
         />
         <Typography
+          variant="mobText2"
           sx={{
             minWidth: 0,
             overflow: "hidden",
@@ -242,12 +249,12 @@ export const MobileMarketCard = ({
         }}
       >
         <Typography
+          variant="mobText1"
           sx={{
             minWidth: 0,
             overflow: "hidden",
             color: COLORS.blackRock,
             fontSize: "16px",
-            fontWeight: 500,
             lineHeight: "22px",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -257,11 +264,13 @@ export const MobileMarketCard = ({
         </Typography>
         <Box sx={{ display: "flex", alignItems: "baseline", flexShrink: 0 }}>
           <Typography
-            sx={{ fontSize: "20px", fontWeight: 600, lineHeight: "26px" }}
+            variant="mobH2SemiBold"
+            sx={{ fontSize: "20px", lineHeight: "26px" }}
           >
             {formatBps(marketItem.apr)}%
           </Typography>
           <Typography
+            variant="mobText3"
             sx={{
               color: COLORS.matteSilver,
               fontSize: "12px",
@@ -347,6 +356,7 @@ export const MobileMarketCard = ({
         }}
       >
         <Typography
+          variant="mobText1"
           sx={{
             color: COLORS.blackRock,
             fontSize: "16px",
@@ -360,6 +370,7 @@ export const MobileMarketCard = ({
           </Box>
         </Typography>
         <Typography
+          variant="mobText1"
           sx={{
             overflow: "hidden",
             color: COLORS.matteSilver,

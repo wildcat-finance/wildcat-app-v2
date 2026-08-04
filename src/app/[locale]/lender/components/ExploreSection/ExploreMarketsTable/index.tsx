@@ -852,48 +852,29 @@ export const ExploreMarketsTable = () => {
         {!isLoading &&
           totalRows > 0 &&
           (totalRows > visibleMobileRows ? (
-            <Box
-              component="button"
+            <Button
               type="button"
+              variant="contained"
+              color="secondary"
+              size="medium"
               onClick={() =>
                 setVisibleMobileRows((count) => count + EXPLORE_PAGE_SIZE)
               }
-              sx={{
-                width: "100%",
-                padding: "14px",
-                border: `1px solid ${COLORS.whiteLilac}`,
-                borderRadius: "14px",
-                backgroundColor: COLORS.white,
-                color: COLORS.blackRock,
-                fontFamily: "inherit",
-                fontSize: "14px",
-                fontWeight: 500,
-                lineHeight: "20px",
-                cursor: "pointer",
-              }}
+              sx={{ alignSelf: "center" }}
             >
               Show more markets
-            </Box>
+            </Button>
           ) : (
-            <Box
+            <Button
               component={Link}
               href={ROUTES.lender.allMarkets}
-              sx={{
-                width: "100%",
-                padding: "14px",
-                border: `1px solid ${COLORS.whiteLilac}`,
-                borderRadius: "14px",
-                backgroundColor: COLORS.white,
-                textAlign: "center",
-                color: COLORS.blackRock,
-                fontSize: "14px",
-                fontWeight: 500,
-                lineHeight: "20px",
-                textDecoration: "none",
-              }}
+              variant="contained"
+              color="secondary"
+              size="medium"
+              sx={{ alignSelf: "center" }}
             >
               Go to All Markets
-            </Box>
+            </Button>
           ))}
       </Box>
     )

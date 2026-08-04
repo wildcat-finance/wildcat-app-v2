@@ -54,6 +54,7 @@ const AssetChip = ({
       />
     )}
     <Typography
+      variant="mobText3"
       sx={{
         fontSize: { xs: "12px", md: "10px" },
         lineHeight: { xs: "16px", md: "14px" },
@@ -99,6 +100,7 @@ export const TrendingMarketDetails = ({
         }}
       >
         <Typography
+          variant="mobText1"
           sx={{
             overflow: "hidden",
             fontSize: { xs: "16px", md: "13px" },
@@ -130,6 +132,7 @@ export const TrendingMarketDetails = ({
       </Box>
 
       <Typography
+        variant="mobText3"
         sx={{
           color: COLORS.matteSilver,
           fontSize: { xs: "13px", md: "10px" },

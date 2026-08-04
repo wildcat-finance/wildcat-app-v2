@@ -164,10 +164,10 @@ export const TrendingMarketCard = ({
             }}
           />
           <Typography
+            variant="text4Highlighted"
             sx={{
               color: { xs: COLORS.black, md: badge.labelColor },
               fontSize: { xs: "14px", md: pxToRem(11) },
-              fontWeight: 600,
               lineHeight: { xs: "20px", md: lh(14, 11) },
               whiteSpace: "nowrap",
             }}
@@ -178,6 +178,7 @@ export const TrendingMarketCard = ({
 
         {badge.context && (
           <Typography
+            variant="text4"
             sx={{
               color: COLORS.matteSilver,
               fontSize: { xs: "14px", md: pxToRem(10) },
@@ -201,6 +202,7 @@ export const TrendingMarketCard = ({
           }}
         >
           <Typography
+            variant="text4"
             sx={{
               color: COLORS.blackRock,
               fontSize: { xs: "14px", md: "11px" },
@@ -225,10 +227,10 @@ export const TrendingMarketCard = ({
               }}
             >
               <Typography
+                variant="mobH2"
                 sx={{
                   color: COLORS.black,
                   fontSize: { xs: "24px", md: "20px" },
-                  fontWeight: 500,
                   lineHeight: 1,
                   whiteSpace: "nowrap",
                 }}
@@ -257,6 +259,7 @@ export const TrendingMarketCard = ({
                     />
                   )}
                   <Typography
+                    variant="mobText3"
                     sx={{
                       color: COLORS.blackRock,
                       fontSize: { xs: "13px", md: "10px" },
@@ -269,13 +272,13 @@ export const TrendingMarketCard = ({
               )}
               {secondaryValue && (
                 <Typography
+                  variant="mobText3SemiBold"
                   sx={{
                     padding: { xs: "2px 8px", md: "2px 6px" },
                     borderRadius: "20px",
                     backgroundColor: COLORS.lightGreen,
                     color: "#2ACA7C",
                     fontSize: { xs: "12px", md: "10px" },
-                    fontWeight: 600,
                     lineHeight: { xs: "18px", md: "14px" },
                     whiteSpace: "nowrap",
                   }}
@@ -311,20 +314,22 @@ export const TrendingMarketCard = ({
         >
           <>
             <Typography
+              variant="text4"
               sx={{
                 color: COLORS.white,
                 fontSize: { xs: "15px", md: "11px" },
-                fontWeight: 500,
+                lineHeight: { xs: "20px", md: "16px" },
                 whiteSpace: "nowrap",
               }}
             >
               Earn {formatBps(apr)}% APR
             </Typography>
             <Typography
+              variant="text4Highlighted"
               sx={{
                 color: COLORS.white,
                 fontSize: { xs: "15px", md: "11px" },
-                fontWeight: 600,
+                lineHeight: { xs: "20px", md: "16px" },
                 whiteSpace: "nowrap",
               }}
             >
