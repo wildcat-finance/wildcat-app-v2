@@ -17,18 +17,12 @@ export const ExploreSection = () => {
   if (!mounted || !isSelectedNetworkRehydrated)
     return (
       <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+        {/* Carousel and Top Markets header render as one continuous card, so
+            they share a single skeleton with no divider between them */}
         <Skeleton
           sx={{
             width: "100%",
-            height: "420px",
-            borderRadius: "14px",
-            backgroundColor: { xs: COLORS.white06, md: "transparent" },
-          }}
-        />
-        <Skeleton
-          sx={{
-            width: "100%",
-            height: "100px",
+            height: "524px",
             borderRadius: "14px",
             backgroundColor: { xs: COLORS.white06, md: "transparent" },
           }}

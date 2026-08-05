@@ -1,4 +1,6 @@
 /* eslint-disable camelcase */
+import { useMemo } from "react"
+
 import { useQuery } from "@tanstack/react-query"
 import {
   SignerOrProvider,
@@ -18,6 +20,7 @@ import { BigNumber, constants } from "ethers"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
+import { HOOKS_INSTANCES_WITH_PROVIDERS } from "@/graphql/queries"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useIsSelectedNetworkRehydrated } from "@/hooks/useSelectedNetwork"
@@ -25,9 +28,11 @@ import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { EXCLUDED_MARKETS_FILTER, TOKENS_ADDRESSES } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
 import {
+  getSubgraphMarketOnboardingMode,
   getV2MarketOnboardingMode,
   MarketOnboardingByAddress,
   MarketOnboardingMode,
+  PullProvidersByHooksAddress,
 } from "@/utils/marketOnboarding"
 import { isFrontendVisibleMarket } from "@/utils/marketType"
 import { TwoStepQueryHookResult } from "@/utils/types"
@@ -44,12 +49,12 @@ type LenderMarketUpdates = {
 export type LenderMarketsOnboardingStatus = "loading" | "ready" | "error"
 
 const MARKET_CATALOG_POLLING_INTERVAL = 60_000
+const MAX_HOOKS_INSTANCES = 1000
 
 export type LenderMarketsResult = TwoStepQueryHookResult<
   MarketAccount[],
   LenderMarketUpdates
 > & {
-  hasMarketUpdates: boolean
   onboardingByMarket: MarketOnboardingByAddress
   onboardingStatus: LenderMarketsOnboardingStatus
 }
@@ -154,6 +159,38 @@ export function useLendersMarkets(
   })
 
   const accounts = data ?? []
+
+  // Pull-provider registry per hooks instance, fetched alongside the market
+  // catalogue. Lets gated V2 markets be classified as self-onboard vs
+  // borrower-approval from subgraph data alone, without waiting for the much
+  // slower on-chain lens sweep.
+  const { data: hasPullProviderByHooks } = useQuery({
+    queryKey: QueryKeys.Lender.GET_HOOKS_PULL_PROVIDERS(targetChainId),
+    queryFn: async (): Promise<PullProvidersByHooksAddress> => {
+      const { data: response } = await subgraphClient.query<{
+        hooksInstances: {
+          id: string
+          providers: { isPullProvider: boolean; isApproved: boolean }[]
+        }[]
+      }>({
+        query: HOOKS_INSTANCES_WITH_PROVIDERS,
+        variables: { first: MAX_HOOKS_INSTANCES },
+        fetchPolicy: "network-only",
+      })
+      return Object.fromEntries(
+        response.hooksInstances.map((instance) => [
+          instance.id.toLowerCase(),
+          instance.providers.some(
+            (roleProvider) =>
+              roleProvider.isPullProvider && roleProvider.isApproved,
+          ),
+        ]),
+      )
+    },
+    enabled: isSelectedNetworkRehydrated,
+    staleTime: MARKET_CATALOG_POLLING_INTERVAL,
+    refetchOnMount: false,
+  })
 
   async function getLenderUpdates() {
     logger.debug(`Getting lender updates...`)
@@ -277,10 +314,24 @@ export function useLendersMarkets(
   if (isErrorUpdate) onboardingStatus = "error"
   else if (updates) onboardingStatus = "ready"
 
+  // Classify markets from subgraph data so rows don't wait for the lens sweep;
+  // the lens-derived map still wins once it lands.
+  const onboardingByMarket = useMemo(() => {
+    const map: MarketOnboardingByAddress = {}
+    const source = updates?.marketAccounts ?? data ?? []
+    source.forEach(({ market }) => {
+      const mode = getSubgraphMarketOnboardingMode(
+        market,
+        hasPullProviderByHooks,
+      )
+      if (mode) map[market.address.toLowerCase()] = mode
+    })
+    return { ...map, ...updates?.onboardingByMarket }
+  }, [data, updates, hasPullProviderByHooks])
+
   return {
     data: updates?.marketAccounts ?? accounts,
-    hasMarketUpdates: !!updates,
-    onboardingByMarket: updates?.onboardingByMarket ?? {},
+    onboardingByMarket,
     onboardingStatus,
     isLoadingInitial: !isSelectedNetworkRehydrated || isLoadingInitial,
     isErrorInitial,

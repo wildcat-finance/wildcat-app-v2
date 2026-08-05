@@ -219,18 +219,13 @@ const MarketClickableRow = (props: GridRowProps) => {
 export const ExploreMarketsTable = () => {
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
-  const {
-    marketAccounts,
-    borrowers,
-    isLoadingInitial,
-    isLoadingUpdate,
-    onboardingByMarket,
-  } = useLenderMarketsContext()
+  const { marketAccounts, borrowers, isLoadingInitial, onboardingByMarket } =
+    useLenderMarketsContext()
   const { isTestnet } = useCurrentNetwork()
   const { isMarketQualifying, isLoading: isInflowLoading } =
     useMarketsWithRecentInflow()
 
-  const isLoading = isLoadingInitial || isLoadingUpdate || isInflowLoading
+  const isLoading = isLoadingInitial || isInflowLoading
 
   const [sortMode, setSortMode] = useState<SortOption>("Most Funded")
   const [sortModel, setSortModel] = useState<GridSortModel>([])
@@ -420,7 +415,6 @@ export const ExploreMarketsTable = () => {
     showSelfOnboard,
     showOnboardByBorrower,
     onboardingByMarket,
-    isLoadingUpdate,
     isMarketQualifying,
     isMobile,
     visibleMobileRows,
@@ -725,6 +719,10 @@ export const ExploreMarketsTable = () => {
             backgroundColor: COLORS.white,
             borderRadius: "0 0 14px 14px",
             padding: "16px 0 12px",
+            // Overlap the carousel card above by 1px: at fractional display
+            // scales the flush white-on-white edge otherwise renders as a
+            // hairline seam over the dark page background
+            marginTop: "-1px",
           }}
         >
           <Box

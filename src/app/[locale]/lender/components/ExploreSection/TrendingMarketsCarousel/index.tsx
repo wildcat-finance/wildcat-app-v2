@@ -254,9 +254,8 @@ const usePeekOnFirstVisit = (
 }
 
 export const TrendingMarketsCarousel = () => {
-  const { marketAccounts, borrowers, isLoadingInitial, hasMarketUpdates } =
+  const { marketAccounts, borrowers, isLoadingInitial } =
     useLenderMarketsContext()
-  const isMarketStateReady = hasMarketUpdates
   const { data: recentDeposits, isLoading: isRecentDepositsLoading } =
     useRecentDeposits()
   const { isMarketQualifying, isLoading: isInflowLoading } =
@@ -408,9 +407,7 @@ export const TrendingMarketsCarousel = () => {
       ? formatMarketAge(newestWinner.market.deployedEvent.blockTimestamp)
       : undefined
 
-    const healthyEligible = isMarketStateReady
-      ? eligible.filter((a) => isMarketHealthy(a.market))
-      : []
+    const healthyEligible = eligible.filter((a) => isMarketHealthy(a.market))
     const aprWinner = healthyEligible.length
       ? [...healthyEligible].sort(compareByCurrentAprBestInMarket)[0]
       : undefined
@@ -475,20 +472,13 @@ export const TrendingMarketsCarousel = () => {
     ]
 
     return built.filter((s): s is Slot => s !== null).slice(0, SLOT_COUNT)
-  }, [
-    marketAccounts,
-    recentDeposits,
-    priceMap,
-    isMarketQualifying,
-    isMarketStateReady,
-  ])
+  }, [marketAccounts, recentDeposits, priceMap, isMarketQualifying])
 
   const isLoading =
     isLoadingInitial ||
     isInflowLoading ||
     isRecentDepositsLoading ||
-    isPriceLoading ||
-    !isMarketStateReady
+    isPriceLoading
 
   const isMobile = useMobileResolution()
 
