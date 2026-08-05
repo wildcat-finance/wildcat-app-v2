@@ -159,6 +159,43 @@ const MarketAssetChip = ({
   </Box>
 )
 
+const PointsPill = ({
+  Icon,
+  label,
+}: {
+  Icon: React.ElementType
+  label?: string
+}) => (
+  <Box
+    sx={{
+      display: "flex",
+      alignItems: "center",
+      flexShrink: 0,
+      gap: label ? "6px" : 0,
+      padding: label ? "2px 10px 2px 2px" : "2px",
+      borderRadius: "12px",
+      backgroundColor: COLORS.bunker,
+    }}
+  >
+    <SvgIcon sx={{ width: "18px", height: "18px" }}>
+      <Icon />
+    </SvgIcon>
+    {label && (
+      <Typography
+        variant="mobText3"
+        sx={{
+          color: COLORS.white,
+          fontSize: "13px",
+          lineHeight: "18px",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {label}
+      </Typography>
+    )}
+  </Box>
+)
+
 const MarketPointsChip = ({
   chainId,
   marketAddress,
@@ -168,12 +205,41 @@ const MarketPointsChip = ({
   marketAddress: string
   apr: number
 }) => {
+  const containerRef = React.useRef<HTMLElement>(null)
+  const measureRef = React.useRef<HTMLElement>(null)
+  // The labelled pill wraps into a two-line blob when the row runs out of
+  // room. Once the full chip is measured not to fit, drop the label and keep
+  // the multiplier + icon; the tooltip still carries the full program info.
+  const [iconOnly, setIconOnly] = React.useState(false)
+
   const config = getAdsConfig(chainId, marketAddress)
+
+  React.useLayoutEffect(() => {
+    const container = containerRef.current
+    const measure = measureRef.current
+    if (!container || !measure) return undefined
+    const check = () => setIconOnly(measure.offsetWidth > container.clientWidth)
+    check()
+    const observer = new ResizeObserver(check)
+    observer.observe(container)
+    observer.observe(measure)
+    return () => observer.disconnect()
+  }, [chainId, marketAddress])
+
   if (!config) return null
 
   const multiplier = config.proposalText.match(/[\d.]+x/i)?.[0]
   const tooltip = getAdsTooltipComponent(chainId, marketAddress, formatBps(apr))
   const { ProposalIcon } = config
+
+  const multiplierText = multiplier && (
+    <Typography
+      variant="mobText3"
+      sx={{ fontSize: "13px", lineHeight: "18px", whiteSpace: "nowrap" }}
+    >
+      +{multiplier}
+    </Typography>
+  )
 
   return (
     <Tooltip
@@ -193,48 +259,46 @@ const MarketPointsChip = ({
       }}
     >
       <Box
+        ref={containerRef}
         onClick={(event) => {
           event.preventDefault()
           event.stopPropagation()
         }}
         sx={{
+          position: "relative",
+          // Claim the row's leftover space so the fit check compares the full
+          // chip against what the row can actually offer it
+          flexGrow: 1,
+          minWidth: 0,
+          overflow: "hidden",
           display: "flex",
           alignItems: "center",
+          justifyContent: "flex-end",
           gap: "5px",
           cursor: "help",
         }}
       >
-        {multiplier && (
-          <Typography
-            variant="mobText3"
-            sx={{ fontSize: "13px", lineHeight: "18px" }}
-          >
-            +{multiplier}
-          </Typography>
-        )}
+        {multiplierText}
+        <PointsPill
+          Icon={ProposalIcon}
+          label={iconOnly ? undefined : config.proposalChipLabel}
+        />
         <Box
+          ref={measureRef}
+          aria-hidden
           sx={{
+            position: "absolute",
+            right: 0,
+            top: 0,
+            visibility: "hidden",
+            pointerEvents: "none",
             display: "flex",
             alignItems: "center",
-            gap: "6px",
-            padding: "2px 10px 2px 2px",
-            borderRadius: "12px",
-            backgroundColor: COLORS.bunker,
+            gap: "5px",
           }}
         >
-          <SvgIcon sx={{ width: "18px", height: "18px" }}>
-            <ProposalIcon />
-          </SvgIcon>
-          <Typography
-            variant="mobText3"
-            sx={{
-              color: COLORS.white,
-              fontSize: "13px",
-              lineHeight: "18px",
-            }}
-          >
-            {config.proposalChipLabel}
-          </Typography>
+          {multiplierText}
+          <PointsPill Icon={ProposalIcon} label={config.proposalChipLabel} />
         </Box>
       </Box>
     </Tooltip>
