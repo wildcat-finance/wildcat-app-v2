@@ -50,6 +50,7 @@ import { lh, pxToRem } from "@/theme/units"
 import { isUSDTLikeToken } from "@/utils/constants"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
+import { getWrapperTransactionMethod } from "./transaction"
 import { ErrorWrapperAlert } from "../ErrorWrapperAlert"
 import { SuccessWrapperModal } from "../SuccessWrapperModal"
 import { WrapperExchangeBanner } from "../WrapperExchangeBanner"
@@ -287,6 +288,10 @@ export const WrapperSection = ({
     maxSharesFromBalance,
   ])
 
+  // Max unwraps redeem exact shares so preview rounding cannot strand dust.
+  const isMaxAssetUnwrap = !isWrapTab && isAssetsInput && !!exactAmount
+  const maxRedeemAmount = isMaxAssetUnwrap ? limits?.maxRedeem : undefined
+
   const maxActionLabel = React.useMemo(() => {
     if (isWrapTab) return isAssetsInput ? "deposit" : "mint"
     return isAssetsInput ? "withdraw" : "redeem"
@@ -377,6 +382,7 @@ export const WrapperSection = ({
     isInputZero ||
     !!helperText ||
     missingPreview ||
+    (isMaxAssetUnwrap && !maxRedeemAmount) ||
     (needsApproval && !safeConnected)
 
   const inputLabel = React.useMemo(() => {
@@ -567,6 +573,15 @@ export const WrapperSection = ({
         )
       }
       if (!inputAmount) throw new Error("No input amount")
+      if (isMaxAssetUnwrap && !maxRedeemAmount) {
+        throw new Error("No max redeem amount")
+      }
+      const transactionMethod = getWrapperTransactionMethod({
+        isWrapTab,
+        isAssetsInput,
+        isMaxAssetUnwrap,
+      })
+      const transactionAmount = maxRedeemAmount ?? inputAmount
 
       if (safeConnected) {
         if (!sdk) throw new Error("No Safe SDK")
@@ -597,14 +612,16 @@ export const WrapperSection = ({
           })
         }
 
-        if (isWrapTab && isAssetsInput) {
-          txs.push(wrapper.populateDeposit(inputAmount, address)) // market → share
-        } else if (isWrapTab && !isAssetsInput) {
-          txs.push(wrapper.populateMint(inputAmount, address)) // share → market (exact out)
-        } else if (!isWrapTab && isAssetsInput) {
-          txs.push(wrapper.populateWithdraw(inputAmount, address, address)) // market → share (exact out)
+        if (transactionMethod === "deposit") {
+          txs.push(wrapper.populateDeposit(transactionAmount, address)) // market → share
+        } else if (transactionMethod === "mint") {
+          txs.push(wrapper.populateMint(transactionAmount, address)) // share → market (exact out)
+        } else if (transactionMethod === "withdraw") {
+          txs.push(
+            wrapper.populateWithdraw(transactionAmount, address, address),
+          ) // market → share (exact out)
         } else {
-          txs.push(wrapper.populateRedeem(inputAmount, address, address)) // share → market
+          txs.push(wrapper.populateRedeem(transactionAmount, address, address)) // share → market
         }
 
         const { safeTxHash } = await sdk.txs.send({ txs })
@@ -613,25 +630,25 @@ export const WrapperSection = ({
         return hash
       }
 
-      if (isWrapTab && isAssetsInput) {
-        const tx = await wrapper.deposit(inputAmount, address)
+      if (transactionMethod === "deposit") {
+        const tx = await wrapper.deposit(transactionAmount, address)
         setTxHash(tx.hash)
         await tx.wait()
         return tx.hash
       }
-      if (isWrapTab && !isAssetsInput) {
-        const tx = await wrapper.mint(inputAmount, address)
+      if (transactionMethod === "mint") {
+        const tx = await wrapper.mint(transactionAmount, address)
         setTxHash(tx.hash)
         await tx.wait()
         return tx.hash
       }
-      if (!isWrapTab && isAssetsInput) {
-        const tx = await wrapper.withdraw(inputAmount, address, address)
+      if (transactionMethod === "withdraw") {
+        const tx = await wrapper.withdraw(transactionAmount, address, address)
         setTxHash(tx.hash)
         await tx.wait()
         return tx.hash
       }
-      const tx = await wrapper.redeem(inputAmount, address, address)
+      const tx = await wrapper.redeem(transactionAmount, address, address)
       setTxHash(tx.hash)
       await tx.wait()
       return tx.hash
