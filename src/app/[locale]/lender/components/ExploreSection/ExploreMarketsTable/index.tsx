@@ -282,8 +282,20 @@ export const ExploreMarketsTable = () => {
       )
     }
     recompute()
-    window.addEventListener("resize", recompute)
-    return () => window.removeEventListener("resize", recompute)
+    // Coalesce resize storms (window drags) to one recompute per frame
+    let frame: number | null = null
+    const onResize = () => {
+      if (frame !== null) return
+      frame = window.requestAnimationFrame(() => {
+        frame = null
+        recompute()
+      })
+    }
+    window.addEventListener("resize", onResize)
+    return () => {
+      window.removeEventListener("resize", onResize)
+      if (frame !== null) window.cancelAnimationFrame(frame)
+    }
   }, [isMobile, isLoading])
 
   const { data: tokensRaw } = useAllTokensWithMarkets()
@@ -420,288 +432,302 @@ export const ExploreMarketsTable = () => {
     visibleMobileRows,
   ])
 
-  const columns: TypeSafeColDef<LenderOtherMarketsTableModel>[] = [
-    {
-      field: "name",
-      headerName: "Market",
-      flex: 2.5,
-      minWidth: 200,
-      headerAlign: "left",
-      align: "left",
-      renderCell: (params) => (
-        <Box
-          sx={{
-            ...LinkCell,
-            paddingRight: "16px",
-            justifyContent: "center",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            gap: "6px",
-            minWidth: 0,
-          }}
-        >
-          <Link
-            href={buildMarketHref(params.row.id, params.row.chainId)}
-            onClick={(event) => event.stopPropagation()}
-            style={{
-              width: "100%",
+  // Stable identity: a fresh columns array makes the DataGrid rebuild column
+  // state and re-render every cell on each keystroke/filter/poll render
+  const columns = useMemo<TypeSafeColDef<LenderOtherMarketsTableModel>[]>(
+    () => [
+      {
+        field: "name",
+        headerName: "Market",
+        flex: 2.5,
+        minWidth: 200,
+        headerAlign: "left",
+        align: "left",
+        renderCell: (params) => (
+          <Box
+            sx={{
+              ...LinkCell,
+              paddingRight: "16px",
+              justifyContent: "center",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              gap: "6px",
               minWidth: 0,
-              color: "inherit",
-              textDecoration: "none",
             }}
           >
-            <Typography
-              variant="text3"
-              sx={{
-                display: "block",
+            <Link
+              href={buildMarketHref(params.row.id, params.row.chainId)}
+              onClick={(event) => event.stopPropagation()}
+              style={{
                 width: "100%",
                 minWidth: 0,
-                overflow: "hidden",
-                whiteSpace: "nowrap",
-                textOverflow: "ellipsis",
+                color: "inherit",
+                textDecoration: "none",
               }}
             >
-              {params.value}
-            </Typography>
-          </Link>
-          {params.row.borrowerAddress ? (
-            <Link
-              href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
-              prefetch={false}
-              onClick={(e: React.MouseEvent) => e.stopPropagation()}
-              style={{ display: "flex", textDecoration: "none" }}
-            >
-              <BorrowerProfileChip borrower={params.row.borrower} />
-            </Link>
-          ) : (
-            <BorrowerProfileChip borrower={params.row.borrower} />
-          )}
-        </Box>
-      ),
-    },
-    {
-      field: "status",
-      headerName: t("dashboard.markets.tables.header.status"),
-      minWidth: 100,
-      flex: 1,
-      headerAlign: "left",
-      align: "left",
-      sortComparator: statusComparator,
-      renderCell: (params) => (
-        <Box sx={{ ...LinkCell, justifyContent: "flex-start" }}>
-          <Box width="120px">
-            <MarketStatusChip status={params.value} />
-          </Box>
-        </Box>
-      ),
-    },
-    {
-      field: "term",
-      headerName: t("dashboard.markets.tables.header.term"),
-      minWidth: 100,
-      flex: 1,
-      headerAlign: "left",
-      align: "left",
-      sortComparator: typeComparator,
-      renderCell: (params) => (
-        <Box sx={{ ...LinkCell, justifyContent: "flex-start" }}>
-          <Box minWidth="170px">
-            <MarketTypeChip type="table" {...params.value} />
-          </Box>
-        </Box>
-      ),
-    },
-    {
-      field: "apr",
-      headerName: t("dashboard.markets.tables.header.apr"),
-      minWidth: 100,
-      flex: 1,
-      headerAlign: "right",
-      align: "right",
-      renderCell: (params) => {
-        const adsComponent = getAdsTooltipComponent(
-          params.row.chainId,
-          params.row.id,
-          formatBps(params.value),
-        )
-        const adsCellProps = getAdsCellProps(params.row.chainId, params.row.id)
-
-        return (
-          <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-            <AprChip
-              isBonus={!!adsCellProps}
-              baseApr={formatBps(params.value)}
-              icons={adsCellProps?.icons}
-              adsComponent={adsComponent}
-            />
-          </Box>
-        )
-      },
-    },
-    {
-      field: "withdrawalBatchDuration",
-      headerName: t("dashboard.markets.tables.header.withdrawal"),
-      minWidth: 100,
-      flex: 1,
-      headerAlign: "right",
-      align: "right",
-      renderCell: (params) => (
-        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-          {formatSecsToHours(params.value, true)}
-        </Box>
-      ),
-    },
-    {
-      field: "asset",
-      headerName: t("dashboard.markets.tables.header.asset"),
-      minWidth: 112,
-      flex: 0.5,
-      headerAlign: "right",
-      align: "right",
-      renderCell: (params) => (
-        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-          {params.value}
-        </Box>
-      ),
-    },
-    {
-      field: "debt",
-      headerName: "Total Debt / Remaining",
-      minWidth: 200,
-      flex: 1.5,
-      headerAlign: "right",
-      align: "right",
-      sortComparator: tokenAmountComparator,
-      renderCell: (
-        params: GridRenderCellParams<LenderOtherMarketsTableModel, TokenAmount>,
-      ) => {
-        const { capacityLeft } = params.row
-        const debtRaw = params.value ? params.value.raw.toBigInt() : BigInt(0)
-        // capacityLeft can go negative when a borrower shrinks capacity below
-        // the current supply, so clamp the fill to 0-100%
-        const totalRaw = debtRaw + capacityLeft.raw.toBigInt()
-        const debtPct =
-          totalRaw > BigInt(0)
-            ? Math.min(100, Number((debtRaw * BigInt(10000)) / totalRaw) / 100)
-            : 0
-
-        return (
-          <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-            {/* Shifted down by half the caption height so the bar sits on the
-                row centerline with the figures below it, per the design */}
-            <Box
-              sx={{
-                position: "relative",
-                top: "11px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-end",
-                gap: "6px",
-              }}
-            >
-              <Box
+              <Typography
+                variant="text3"
                 sx={{
-                  width: "120px",
-                  maxWidth: "100%",
-                  height: "4px",
-                  borderRadius: "2px",
-                  backgroundColor: COLORS.whiteLilac,
+                  display: "block",
+                  width: "100%",
+                  minWidth: 0,
                   overflow: "hidden",
+                  whiteSpace: "nowrap",
+                  textOverflow: "ellipsis",
                 }}
               >
-                <Box
-                  sx={{
-                    height: "100%",
-                    width: `${debtPct}%`,
-                    borderRadius: "inherit",
-                    backgroundColor: COLORS.blackRock,
-                  }}
-                />
-              </Box>
-              <Typography
-                variant="text4"
-                sx={{ color: "#595A65", whiteSpace: "nowrap" }}
-              >
-                {params.value
-                  ? formatTokenWithCommas(params.value, {
-                      withSymbol: false,
-                      fractionDigits: 2,
-                    })
-                  : "0"}{" "}
-                /{" "}
-                {capacityLeft.gt(0)
-                  ? formatTokenWithCommas(capacityLeft, {
-                      withSymbol: false,
-                      fractionDigits: 2,
-                    })
-                  : "0"}
+                {params.value}
               </Typography>
-            </Box>
-          </Box>
-        )
-      },
-    },
-    {
-      sortable: false,
-      field: "button",
-      headerName: "",
-      minWidth: 100,
-      flex: 1,
-      headerAlign: "right",
-      align: "right",
-      renderCell: (params) => {
-        const action = getLenderMarketAction(
-          params.row.onboardingMode,
-          params.row.depositStatus,
-        )
-
-        return (
-          <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
-            {action === LenderMarketAction.Deposit && (
-              <Button
-                size="small"
-                variant="contained"
-                color="secondary"
-                endIcon={ActionArrowIcon}
-              >
-                {t("dashboard.markets.tables.other.depositBTN")}
-              </Button>
-            )}
-            {action === LenderMarketAction.RequestAccess && (
+            </Link>
+            {params.row.borrowerAddress ? (
               <Link
                 href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
                 prefetch={false}
                 onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                style={{ textDecoration: "none" }}
+                style={{ display: "flex", textDecoration: "none" }}
               >
+                <BorrowerProfileChip borrower={params.row.borrower} />
+              </Link>
+            ) : (
+              <BorrowerProfileChip borrower={params.row.borrower} />
+            )}
+          </Box>
+        ),
+      },
+      {
+        field: "status",
+        headerName: t("dashboard.markets.tables.header.status"),
+        minWidth: 100,
+        flex: 1,
+        headerAlign: "left",
+        align: "left",
+        sortComparator: statusComparator,
+        renderCell: (params) => (
+          <Box sx={{ ...LinkCell, justifyContent: "flex-start" }}>
+            <Box width="120px">
+              <MarketStatusChip status={params.value} />
+            </Box>
+          </Box>
+        ),
+      },
+      {
+        field: "term",
+        headerName: t("dashboard.markets.tables.header.term"),
+        minWidth: 100,
+        flex: 1,
+        headerAlign: "left",
+        align: "left",
+        sortComparator: typeComparator,
+        renderCell: (params) => (
+          <Box sx={{ ...LinkCell, justifyContent: "flex-start" }}>
+            <Box minWidth="170px">
+              <MarketTypeChip type="table" {...params.value} />
+            </Box>
+          </Box>
+        ),
+      },
+      {
+        field: "apr",
+        headerName: t("dashboard.markets.tables.header.apr"),
+        minWidth: 100,
+        flex: 1,
+        headerAlign: "right",
+        align: "right",
+        renderCell: (params) => {
+          const adsComponent = getAdsTooltipComponent(
+            params.row.chainId,
+            params.row.id,
+            formatBps(params.value),
+          )
+          const adsCellProps = getAdsCellProps(
+            params.row.chainId,
+            params.row.id,
+          )
+
+          return (
+            <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
+              <AprChip
+                isBonus={!!adsCellProps}
+                baseApr={formatBps(params.value)}
+                icons={adsCellProps?.icons}
+                adsComponent={adsComponent}
+              />
+            </Box>
+          )
+        },
+      },
+      {
+        field: "withdrawalBatchDuration",
+        headerName: t("dashboard.markets.tables.header.withdrawal"),
+        minWidth: 100,
+        flex: 1,
+        headerAlign: "right",
+        align: "right",
+        renderCell: (params) => (
+          <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
+            {formatSecsToHours(params.value, true)}
+          </Box>
+        ),
+      },
+      {
+        field: "asset",
+        headerName: t("dashboard.markets.tables.header.asset"),
+        minWidth: 112,
+        flex: 0.5,
+        headerAlign: "right",
+        align: "right",
+        renderCell: (params) => (
+          <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
+            {params.value}
+          </Box>
+        ),
+      },
+      {
+        field: "debt",
+        headerName: "Total Debt / Remaining",
+        minWidth: 200,
+        flex: 1.5,
+        headerAlign: "right",
+        align: "right",
+        sortComparator: tokenAmountComparator,
+        renderCell: (
+          params: GridRenderCellParams<
+            LenderOtherMarketsTableModel,
+            TokenAmount
+          >,
+        ) => {
+          const { capacityLeft } = params.row
+          const debtRaw = params.value ? params.value.raw.toBigInt() : BigInt(0)
+          // capacityLeft can go negative when a borrower shrinks capacity below
+          // the current supply, so clamp the fill to 0-100%
+          const totalRaw = debtRaw + capacityLeft.raw.toBigInt()
+          const debtPct =
+            totalRaw > BigInt(0)
+              ? Math.min(
+                  100,
+                  Number((debtRaw * BigInt(10000)) / totalRaw) / 100,
+                )
+              : 0
+
+          return (
+            <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
+              {/* Shifted down by half the caption height so the bar sits on the
+                row centerline with the figures below it, per the design */}
+              <Box
+                sx={{
+                  position: "relative",
+                  top: "11px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-end",
+                  gap: "6px",
+                }}
+              >
+                <Box
+                  sx={{
+                    width: "120px",
+                    maxWidth: "100%",
+                    height: "4px",
+                    borderRadius: "2px",
+                    backgroundColor: COLORS.whiteLilac,
+                    overflow: "hidden",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      height: "100%",
+                      width: `${debtPct}%`,
+                      borderRadius: "inherit",
+                      backgroundColor: COLORS.blackRock,
+                    }}
+                  />
+                </Box>
+                <Typography
+                  variant="text4"
+                  sx={{ color: "#595A65", whiteSpace: "nowrap" }}
+                >
+                  {params.value
+                    ? formatTokenWithCommas(params.value, {
+                        withSymbol: false,
+                        fractionDigits: 2,
+                      })
+                    : "0"}{" "}
+                  /{" "}
+                  {capacityLeft.gt(0)
+                    ? formatTokenWithCommas(capacityLeft, {
+                        withSymbol: false,
+                        fractionDigits: 2,
+                      })
+                    : "0"}
+                </Typography>
+              </Box>
+            </Box>
+          )
+        },
+      },
+      {
+        sortable: false,
+        field: "button",
+        headerName: "",
+        minWidth: 100,
+        flex: 1,
+        headerAlign: "right",
+        align: "right",
+        renderCell: (params) => {
+          const action = getLenderMarketAction(
+            params.row.onboardingMode,
+            params.row.depositStatus,
+          )
+
+          return (
+            <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
+              {action === LenderMarketAction.Deposit && (
                 <Button
                   size="small"
                   variant="contained"
                   color="secondary"
                   endIcon={ActionArrowIcon}
                 >
-                  {t("dashboard.markets.tables.other.requestBTN")}
+                  {t("dashboard.markets.tables.other.depositBTN")}
                 </Button>
-              </Link>
-            )}
-            {(action === LenderMarketAction.DepositUnavailable ||
-              action === LenderMarketAction.Unavailable) && (
-              <Button
-                size="small"
-                variant="contained"
-                color="secondary"
-                disabled
-              >
-                {action === LenderMarketAction.DepositUnavailable
-                  ? t("dashboard.markets.tables.other.depositBTN")
-                  : "Unavailable"}
-              </Button>
-            )}
-          </Box>
-        )
+              )}
+              {action === LenderMarketAction.RequestAccess && (
+                <Link
+                  href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+                  prefetch={false}
+                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                  style={{ textDecoration: "none" }}
+                >
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="secondary"
+                    endIcon={ActionArrowIcon}
+                  >
+                    {t("dashboard.markets.tables.other.requestBTN")}
+                  </Button>
+                </Link>
+              )}
+              {(action === LenderMarketAction.DepositUnavailable ||
+                action === LenderMarketAction.Unavailable) && (
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="secondary"
+                  disabled
+                >
+                  {action === LenderMarketAction.DepositUnavailable
+                    ? t("dashboard.markets.tables.other.depositBTN")
+                    : "Unavailable"}
+                </Button>
+              )}
+            </Box>
+          )
+        },
       },
-    },
-  ]
+    ],
+    [t],
+  )
 
   if (isMobile)
     return (
