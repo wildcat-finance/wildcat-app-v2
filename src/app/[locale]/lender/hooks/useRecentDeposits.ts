@@ -9,8 +9,13 @@ import { RECENT_DEPOSITS, RECENT_WITHDRAWAL_REQUESTS } from "@/graphql/queries"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 
-const SEVEN_DAYS_SECONDS = 7 * 24 * 60 * 60
+const DAY_SECONDS = 24 * 60 * 60
+const SEVEN_DAYS_SECONDS = 7 * DAY_SECONDS
 const MAX_DEPOSITS = 1000
+// Explore qualification window: markets only surface in explore categories
+// once a lender deposit landed inside it.
+const QUALIFYING_WINDOW_DAYS_MAINNET = 30
+const QUALIFYING_WINDOW_DAYS_TESTNET = 3650
 
 type RecentDepositNode = {
   id: string
@@ -40,6 +45,10 @@ export type RecentDepositsBuckets = {
   /** Per-market deposits minus withdrawal requests over the last 7 days
    *  (underlying asset units; negative when outflows dominate) */
   netInflow7d: Record<string, bigint>
+  /** Markets with at least one deposit inside the explore qualification
+   *  window. Backs useMarketsWithRecentInflow so the explore page issues a
+   *  single deposits query instead of two. */
+  marketsWithRecentInflow: Set<string>
 }
 
 const aggregate = (
@@ -70,12 +79,17 @@ const aggregate = (
 
 export const useRecentDeposits = () => {
   const subgraphClient = useSubgraphClient()
-  const { targetChainId } = useCurrentNetwork()
+  const { targetChainId, isTestnet } = useCurrentNetwork()
 
   const { data, isLoading, isError } = useQuery({
     queryKey: QueryKeys.Lender.GET_RECENT_DEPOSITS(targetChainId),
     queryFn: async (): Promise<RecentDepositsBuckets> => {
-      const sevenDaysAgo = Math.floor(Date.now() / 1000) - SEVEN_DAYS_SECONDS
+      const now = Math.floor(Date.now() / 1000)
+      const sevenDaysAgo = now - SEVEN_DAYS_SECONDS
+      const qualifyingWindowDays = isTestnet
+        ? QUALIFYING_WINDOW_DAYS_TESTNET
+        : QUALIFYING_WINDOW_DAYS_MAINNET
+      const qualifyingWindowStart = now - qualifyingWindowDays * DAY_SECONDS
 
       const [{ data: response }, { data: withdrawalsResponse }] =
         await Promise.all([
@@ -112,17 +126,31 @@ export const useRecentDeposits = () => {
           BigInt(request.normalizedAmount)
       })
 
+      // Both windows read from the same newest-first page of deposits, so the
+      // in-window subset here matches what a dedicated windowed query returns.
+      const marketsWithRecentInflow = new Set(
+        response.deposits
+          .filter((deposit) => deposit.blockTimestamp > qualifyingWindowStart)
+          .map((deposit) => deposit.market.id.toLowerCase()),
+      )
+
       return {
         last7d,
         broad: aggregate(response.deposits),
         netInflow7d,
+        marketsWithRecentInflow,
       }
     },
     staleTime: 60_000,
   })
 
   const empty = useMemo<RecentDepositsBuckets>(
-    () => ({ last7d: {}, broad: {}, netInflow7d: {} }),
+    () => ({
+      last7d: {},
+      broad: {},
+      netInflow7d: {},
+      marketsWithRecentInflow: new Set<string>(),
+    }),
     [],
   )
 
