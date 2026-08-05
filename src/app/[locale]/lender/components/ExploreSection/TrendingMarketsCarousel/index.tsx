@@ -86,13 +86,20 @@ const pickLendersWinner = (
     return stats && stats.uniqueLenders > 0 ? stats.uniqueLenders : undefined
   })
 
-type Slot = {
+type ReadySlot = {
   key: string
+  pending?: false
   variant: TrendingMarketCardVariant
   account: MarketAccount
   value: string
   secondaryValue?: string
 }
+
+/** Slot whose winner can't be trusted yet - rendered as a skeleton card so
+ *  the carousel layout doesn't shift when it resolves. */
+type PendingSlot = { key: string; pending: true }
+
+type Slot = ReadySlot | PendingSlot
 
 const formatMaturityDate = (millisecondsFromNow: number) =>
   new Intl.DateTimeFormat("en-GB", {
@@ -254,7 +261,7 @@ const usePeekOnFirstVisit = (
 }
 
 export const TrendingMarketsCarousel = () => {
-  const { marketAccounts, borrowers, isLoadingInitial } =
+  const { marketAccounts, borrowers, isLoadingInitial, hasLiveData } =
     useLenderMarketsContext()
   const { data: recentDeposits, isLoading: isRecentDepositsLoading } =
     useRecentDeposits()
@@ -408,7 +415,13 @@ export const TrendingMarketsCarousel = () => {
       ? formatMarketAge(newestWinner.market.deployedEvent.blockTimestamp)
       : undefined
 
-    const healthyEligible = eligible.filter((a) => isMarketHealthy(a.market))
+    // Peak APR only ranks lens-refreshed markets: indexed capacity lags
+    // accrued supply, so a market that is actually full can transiently pass
+    // the below-capacity checks and win with a bogus rate. Until live data
+    // lands the slot renders as a pending skeleton instead.
+    const healthyEligible = hasLiveData
+      ? eligible.filter((a) => isMarketHealthy(a.market))
+      : []
     const aprWinner = healthyEligible.length
       ? [...healthyEligible].sort(compareByCurrentAprBestInMarket)[0]
       : undefined
@@ -446,6 +459,17 @@ export const TrendingMarketsCarousel = () => {
       return { key, variant, account, value, secondaryValue }
     }
 
+    const aprSlot: Slot | null = hasLiveData
+      ? makeSlot(
+          "highestApr",
+          "hotRate",
+          aprWinner,
+          aprWinner
+            ? `${formatBps(aprWinner.market.annualInterestBips)}%`
+            : undefined,
+        )
+      : { key: "highestApr", pending: true }
+
     const built: (Slot | null)[] = [
       makeSlot(
         "fastestGrowing",
@@ -460,20 +484,19 @@ export const TrendingMarketsCarousel = () => {
         lendersAccount,
         lendersCount > 0 ? lendersCount.toString() : undefined,
       ),
-      makeSlot(
-        "highestApr",
-        "hotRate",
-        aprWinner,
-        aprWinner
-          ? `${formatBps(aprWinner.market.annualInterestBips)}%`
-          : undefined,
-      ),
+      aprSlot,
       makeSlot("newest", "newest", newestWinner, newestStat),
       makeSlot("highestTvl", "topFunded", tvlWinner, tvlStat),
     ]
 
     return built.filter((s): s is Slot => s !== null).slice(0, SLOT_COUNT)
-  }, [marketAccounts, recentDeposits, priceMap, isMarketQualifying])
+  }, [
+    marketAccounts,
+    recentDeposits,
+    priceMap,
+    isMarketQualifying,
+    hasLiveData,
+  ])
 
   const isLoading =
     isLoadingInitial || isInflowLoading || isRecentDepositsLoading
@@ -495,7 +518,7 @@ export const TrendingMarketsCarousel = () => {
     !isMobile && !isLoading && slots.length > 0,
   )
 
-  const renderCard = (slot: Slot) => {
+  const renderCard = (slot: ReadySlot) => {
     const { market } = slot.account
     const borrower = (borrowers ?? []).find(
       (candidate) =>
@@ -600,25 +623,45 @@ export const TrendingMarketsCarousel = () => {
                   />
                 ),
               )
-            : slots.map((slot, index) => (
-                <Box
-                  key={slot.key}
-                  data-carousel-index={index}
-                  sx={{
-                    flex: "0 0 70%",
-                    minWidth: "222px",
-                    display: "flex",
-                    scrollSnapAlign: "center",
-                    scrollSnapStop: "always",
-                    ...(index === 0 && { marginLeft: "8px" }),
-                    ...(index === slots.length - 1 && {
-                      marginRight: "16px",
-                    }),
-                  }}
-                >
-                  {renderCard(slot)}
-                </Box>
-              ))}
+            : slots.map((slot, index) =>
+                slot.pending ? (
+                  <Skeleton
+                    key={slot.key}
+                    data-carousel-index={index}
+                    height="341px"
+                    sx={{
+                      flex: "0 0 70%",
+                      minWidth: "222px",
+                      borderRadius: "24px",
+                      bgcolor: COLORS.athensGrey,
+                      scrollSnapAlign: "center",
+                      scrollSnapStop: "always",
+                      ...(index === 0 && { marginLeft: "8px" }),
+                      ...(index === slots.length - 1 && {
+                        marginRight: "16px",
+                      }),
+                    }}
+                  />
+                ) : (
+                  <Box
+                    key={slot.key}
+                    data-carousel-index={index}
+                    sx={{
+                      flex: "0 0 70%",
+                      minWidth: "222px",
+                      display: "flex",
+                      scrollSnapAlign: "center",
+                      scrollSnapStop: "always",
+                      ...(index === 0 && { marginLeft: "8px" }),
+                      ...(index === slots.length - 1 && {
+                        marginRight: "16px",
+                      }),
+                    }}
+                  >
+                    {renderCard(slot)}
+                  </Box>
+                ),
+              )}
         </Box>
 
         {!isLoading && slots.length > 1 && (
@@ -704,20 +747,35 @@ export const TrendingMarketsCarousel = () => {
                 />
               ),
             )
-          : slots.map((slot, index) => (
-              <Box
-                key={slot.key}
-                sx={{
-                  flex: "1 0 222px",
-                  minWidth: "222px",
-                  display: "flex",
-                  ...(index === 0 && { marginLeft: "16px" }),
-                  ...(index === slots.length - 1 && { marginRight: "16px" }),
-                }}
-              >
-                {renderCard(slot)}
-              </Box>
-            ))}
+          : slots.map((slot, index) =>
+              slot.pending ? (
+                <Skeleton
+                  key={slot.key}
+                  height="297px"
+                  sx={{
+                    flex: "1 0 222px",
+                    minWidth: "222px",
+                    borderRadius: "12px",
+                    bgcolor: COLORS.athensGrey,
+                    ...(index === 0 && { marginLeft: "16px" }),
+                    ...(index === slots.length - 1 && { marginRight: "16px" }),
+                  }}
+                />
+              ) : (
+                <Box
+                  key={slot.key}
+                  sx={{
+                    flex: "1 0 222px",
+                    minWidth: "222px",
+                    display: "flex",
+                    ...(index === 0 && { marginLeft: "16px" }),
+                    ...(index === slots.length - 1 && { marginRight: "16px" }),
+                  }}
+                >
+                  {renderCard(slot)}
+                </Box>
+              ),
+            )}
       </Box>
     </Box>
   )
