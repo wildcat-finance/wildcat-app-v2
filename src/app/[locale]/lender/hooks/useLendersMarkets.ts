@@ -10,8 +10,8 @@ import {
   MarketVersion,
   SupportedChainId,
   getLensV2Contract,
-  SubgraphGetAllMarketsForLenderViewQueryVariables,
-  getLenderAccountsForAllMarkets,
+  SubgraphGetLenderMarketCatalogueQueryVariables,
+  getLenderMarketCatalogue,
   SubgraphMarket_Filter,
   hasDeploymentAddress,
 } from "@wildcatfi/wildcat-sdk"
@@ -19,7 +19,6 @@ import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 import { BigNumber, constants } from "ethers"
 
 import { QueryKeys } from "@/config/query-keys"
-import { HOOKS_INSTANCES_WITH_PROVIDERS } from "@/graphql/queries"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useIsSelectedNetworkRehydrated } from "@/hooks/useSelectedNetwork"
@@ -31,13 +30,14 @@ import {
   getV2MarketOnboardingMode,
   MarketOnboardingByAddress,
   MarketOnboardingMode,
-  PullProvidersByHooksAddress,
 } from "@/utils/marketOnboarding"
 import { isFrontendVisibleMarket } from "@/utils/marketType"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
-export type LenderMarketsQueryProps =
-  SubgraphGetAllMarketsForLenderViewQueryVariables
+export type LenderMarketsQueryProps = Omit<
+  SubgraphGetLenderMarketCatalogueQueryVariables,
+  "lender"
+>
 
 type LenderMarketUpdates = {
   marketAccounts: MarketAccount[]
@@ -51,7 +51,6 @@ const MARKET_CATALOG_POLLING_INTERVAL = 60_000
 // The lens sweep multicalls every market; 10s polling was pure overhead on a
 // page whose figures only need minute-level freshness.
 const MARKET_LIVE_REFRESH_INTERVAL = 60_000
-const MAX_HOOKS_INSTANCES = 1000
 
 export type LenderMarketsResult = TwoStepQueryHookResult<
   MarketAccount[],
@@ -59,6 +58,9 @@ export type LenderMarketsResult = TwoStepQueryHookResult<
 > & {
   onboardingByMarket: MarketOnboardingByAddress
   onboardingStatus: LenderMarketsOnboardingStatus
+  /** True once the current chain/lender's markets carry lens-refreshed state
+   *  (accurate capacity/supply) rather than indexed-only values. */
+  hasLiveData: boolean
 }
 
 function getChunks<T extends Market | MarketAccount>(
@@ -118,7 +120,10 @@ export function useLendersMarkets(
       { ...marketFilter },
       ...EXCLUDED_MARKETS_FILTER,
     ]) as SubgraphMarket_Filter
-    const lenderAccounts = await getLenderAccountsForAllMarkets(
+    // Catalogue query: current indexed state only, no raw event history.
+    // network-only because react-query owns freshness here - Apollo's cache
+    // would otherwise satisfy the 60s poll without hitting the subgraph.
+    const { accounts: lenderAccounts } = await getLenderMarketCatalogue(
       subgraphClient,
       {
         ...otherFilters,
@@ -162,38 +167,6 @@ export function useLendersMarkets(
   })
 
   const accounts = data ?? []
-
-  // Pull-provider registry per hooks instance, fetched alongside the market
-  // catalogue. Lets gated V2 markets be classified as self-onboard vs
-  // borrower-approval from subgraph data alone, without waiting for the much
-  // slower on-chain lens sweep.
-  const { data: hasPullProviderByHooks } = useQuery({
-    queryKey: QueryKeys.Lender.GET_HOOKS_PULL_PROVIDERS(targetChainId),
-    queryFn: async (): Promise<PullProvidersByHooksAddress> => {
-      const { data: response } = await subgraphClient.query<{
-        hooksInstances: {
-          id: string
-          providers: { isPullProvider: boolean; isApproved: boolean }[]
-        }[]
-      }>({
-        query: HOOKS_INSTANCES_WITH_PROVIDERS,
-        variables: { first: MAX_HOOKS_INSTANCES },
-        fetchPolicy: "network-only",
-      })
-      return Object.fromEntries(
-        response.hooksInstances.map((instance) => [
-          instance.id.toLowerCase(),
-          instance.providers.some(
-            (roleProvider) =>
-              roleProvider.isPullProvider && roleProvider.isApproved,
-          ),
-        ]),
-      )
-    },
-    enabled: isSelectedNetworkRehydrated,
-    staleTime: MARKET_CATALOG_POLLING_INTERVAL,
-    refetchOnMount: false,
-  })
 
   async function getLenderUpdates() {
     logger.debug(`Getting lender updates...`)
@@ -320,19 +293,17 @@ export function useLendersMarkets(
     const map: MarketOnboardingByAddress = {}
     const source = updates?.marketAccounts ?? data ?? []
     source.forEach(({ market }) => {
-      const mode = getSubgraphMarketOnboardingMode(
-        market,
-        hasPullProviderByHooks,
-      )
+      const mode = getSubgraphMarketOnboardingMode(market)
       if (mode) map[market.address.toLowerCase()] = mode
     })
     return { ...map, ...updates?.onboardingByMarket }
-  }, [data, updates, hasPullProviderByHooks])
+  }, [data, updates])
 
   return {
     data: updates?.marketAccounts ?? accounts,
     onboardingByMarket,
     onboardingStatus,
+    hasLiveData: !!updates,
     isLoadingInitial: !isSelectedNetworkRehydrated || isLoadingInitial,
     isErrorInitial,
     errorInitial: errorInitial as Error | null,

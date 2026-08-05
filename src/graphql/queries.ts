@@ -247,18 +247,6 @@ export const RECENT_WITHDRAWAL_REQUESTS = gql`
   }
 `
 
-export const HOOKS_INSTANCES_WITH_PROVIDERS = gql`
-  query ($first: Int) {
-    hooksInstances(first: $first) {
-      id
-      providers {
-        isPullProvider
-        isApproved
-      }
-    }
-  }
-`
-
 export const MARKET_TERMINATEDS = gql`
   query ($where: MarketClosed_filter) {
     marketCloseds(where: $where) {

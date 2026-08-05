@@ -45,17 +45,14 @@ export const getMarketOnboardingMode = (
 ): MarketOnboardingMode | undefined =>
   onboardingByMarket[marketAddress.toLowerCase()]
 
-/** Whether a hooks instance (keyed by lowercase address) has an approved pull
- *  provider, i.e. lenders can obtain a credential themselves. */
-export type PullProvidersByHooksAddress = Record<string, boolean>
-
 // Mirrors the lens-based getV2MarketOnboardingMode using only subgraph-derived
 // data, so markets can be classified before the on-chain lens sweep completes.
-// Returns undefined when the pull-provider set for a gated market isn't known
-// yet - callers should treat that as "pending" and let the lens result fill in.
+// market.canSelfOnboard covers approved pull providers only, so open-access
+// markets (deposit hook off or ungated) are classified first. Returns
+// undefined when the market's hooks instance isn't hydrated - callers should
+// treat that as "pending" and let the lens result fill in.
 export const getSubgraphMarketOnboardingMode = (
   market: Market,
-  hasPullProviderByHooks: PullProvidersByHooksAddress | undefined,
 ): MarketOnboardingMode | undefined => {
   if (market.version === MarketVersion.V1) {
     return MarketOnboardingMode.BorrowerApproval
@@ -68,11 +65,9 @@ export const getSubgraphMarketOnboardingMode = (
     return MarketOnboardingMode.SelfOnboard
   }
 
-  const hasPullProvider =
-    hasPullProviderByHooks?.[hooksConfig.hooksAddress.toLowerCase()]
-  if (hasPullProvider === undefined) return undefined
+  if (!market.hooksInstance) return undefined
 
-  return hasPullProvider
+  return market.canSelfOnboard
     ? MarketOnboardingMode.SelfOnboard
     : MarketOnboardingMode.BorrowerApproval
 }

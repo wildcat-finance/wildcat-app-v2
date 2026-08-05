@@ -313,8 +313,6 @@ const LENDER_QUERY_KEYS = {
   // GET_RECENT_DEPOSITS_KEY
   GET_RECENT_DEPOSITS: (chainId: number) =>
     k(["lender", "GET_RECENT_DEPOSITS", chainId]),
-  GET_HOOKS_PULL_PROVIDERS: (chainId: number) =>
-    k(["lender", "GET_HOOKS_PULL_PROVIDERS", chainId]),
 } as const
 
 const WRAPPER_QUERY_KEYS = {
