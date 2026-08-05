@@ -184,22 +184,39 @@ export const useNetworkGate = ({
 
   const requestSwitchNetwork = useCallback(async () => {
     if (typeof desiredChainId !== "number") return
-    if (desiredChainId === selectedChainId) return
 
     if (!address) {
-      dispatch(setSelectedNetwork(desiredChainId))
+      if (desiredChainId !== selectedChainId) {
+        dispatch(setSelectedNetwork(desiredChainId))
+      }
       return
     }
 
-    if (!switchChainAsync) return
+    // Compare against the wallet chain, not the selected one: when the app
+    // already targets the desired chain but the wallet is elsewhere, the
+    // switch prompt must still fire or the button is a no-op.
+    if (desiredChainId !== walletChainId) {
+      if (!switchChainAsync) return
 
-    try {
-      await switchChainAsync({ chainId: desiredChainId })
-      dispatch(setSelectedNetwork(desiredChainId))
-    } catch {
-      // User rejected or switch failed — do not update selected network
+      try {
+        await switchChainAsync({ chainId: desiredChainId })
+      } catch {
+        // User rejected or switch failed — do not update selected network
+        return
+      }
     }
-  }, [address, desiredChainId, dispatch, selectedChainId, switchChainAsync])
+
+    if (desiredChainId !== selectedChainId) {
+      dispatch(setSelectedNetwork(desiredChainId))
+    }
+  }, [
+    address,
+    desiredChainId,
+    dispatch,
+    selectedChainId,
+    switchChainAsync,
+    walletChainId,
+  ])
 
   const canInteract =
     isConnected &&
