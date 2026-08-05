@@ -1,5 +1,7 @@
 import { DepositStatus, Market, MarketVersion } from "@wildcatfi/wildcat-sdk"
 
+import { hasActivePullRoleProvider } from "./marketCapabilities"
+
 export enum MarketOnboardingMode {
   SelfOnboard = "self-onboard",
   BorrowerApproval = "borrower-approval",
@@ -20,12 +22,11 @@ export const getMarketOnboardingMode = (
 ): MarketOnboardingMode | undefined =>
   onboardingByMarket[marketAddress.toLowerCase()]
 
-// Mirrors the lens-based getV2MarketOnboardingMode using only subgraph-derived
-// data, so markets can be classified before the on-chain lens sweep completes.
-// market.canSelfOnboard covers approved pull providers only, so open-access
-// markets (deposit hook off or ungated) are classified first. Returns
-// undefined when the market's hooks instance isn't hydrated - callers should
-// treat that as "pending" and let the lens result fill in.
+// Classify markets from catalogue data without waiting for a lens sweep.
+// Open-access markets (deposit hook off or ungated) are classified first.
+// For gated markets, use provider indexes rather than `market.canSelfOnboard`:
+// the subgraph can mark the borrower-only push provider as `isPullProvider`,
+// while its negative pull index correctly means that lenders cannot self-onboard.
 export const getSubgraphMarketOnboardingMode = (
   market: Market,
 ): MarketOnboardingMode | undefined => {
@@ -42,7 +43,7 @@ export const getSubgraphMarketOnboardingMode = (
 
   if (!market.hooksInstance) return undefined
 
-  return market.canSelfOnboard
+  return hasActivePullRoleProvider(market.hooksInstance.roleProviders)
     ? MarketOnboardingMode.SelfOnboard
     : MarketOnboardingMode.BorrowerApproval
 }

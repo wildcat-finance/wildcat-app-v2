@@ -13,7 +13,6 @@ import { OtherMarketsTables } from "@/app/[locale]/borrower/components/MarketsSe
 import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/useBorrowerInvitationRedirect"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { FilterTextField } from "@/components/FilterTextfield"
-import { LeadBanner } from "@/components/LeadBanner"
 import { MarketsFilterSelect } from "@/components/MarketsFilterSelect"
 import { MarketsFilterSelectItem } from "@/components/MarketsFilterSelect/interface"
 import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
@@ -33,6 +32,7 @@ import {
 } from "@/utils/marketOnboarding"
 import { MarketStatus } from "@/utils/marketStatus"
 
+import { LeadBanner } from "../../../../../components/LeadBanner"
 import { useBorrowerNames } from "../../hooks/useBorrowerNames"
 
 export const MarketsSection = () => {
@@ -488,7 +488,7 @@ export const MarketsSection = () => {
           <Box padding="24px 24px 0">
             <LeadBanner
               title={bannerDisplayConfig.title}
-              text={bannerDisplayConfig.message}
+              subtitle={bannerDisplayConfig.message}
               buttonText={bannerDisplayConfig.button}
               buttonLink={bannerDisplayConfig.link}
             />

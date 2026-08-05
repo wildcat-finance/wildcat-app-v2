@@ -50,6 +50,7 @@ import { lh, pxToRem } from "@/theme/units"
 import { isUSDTLikeToken } from "@/utils/constants"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
+import { getWrapperTransactionMethod } from "./transaction"
 import { ErrorWrapperAlert } from "../ErrorWrapperAlert"
 import { SuccessWrapperModal } from "../SuccessWrapperModal"
 import { WrapperExchangeBanner } from "../WrapperExchangeBanner"
@@ -125,6 +126,7 @@ export const WrapperSection = ({
 
   const [unit, setUnit] = React.useState<AmountUnit>(AmountUnit.ASSETS)
   const [amount, setAmount] = React.useState<string>("")
+  const [exactAmount, setExactAmount] = React.useState<TokenAmount>()
 
   const [showSuccess, setShowSuccess] = React.useState(false)
   const [showError, setShowError] = React.useState(false)
@@ -180,8 +182,8 @@ export const WrapperSection = ({
       : wrapper.marketToken
 
   const inputAmount = React.useMemo(
-    () => parseAmountSafe(inputToken, amount),
-    [inputToken, amount],
+    () => exactAmount ?? parseAmountSafe(inputToken, amount),
+    [exactAmount, inputToken, amount],
   )
 
   const isInputZero = !inputAmount || (inputAmount && inputAmount.raw.isZero())
@@ -286,6 +288,10 @@ export const WrapperSection = ({
     maxSharesFromBalance,
   ])
 
+  // Max unwraps redeem exact shares so preview rounding cannot strand dust.
+  const isMaxAssetUnwrap = !isWrapTab && isAssetsInput && !!exactAmount
+  const maxRedeemAmount = isMaxAssetUnwrap ? limits?.maxRedeem : undefined
+
   const maxActionLabel = React.useMemo(() => {
     if (isWrapTab) return isAssetsInput ? "deposit" : "mint"
     return isAssetsInput ? "withdraw" : "redeem"
@@ -340,7 +346,12 @@ export const WrapperSection = ({
         })}`
       : undefined
 
-  const baseHelperText = maxError || balanceError
+  const tooSmallError =
+    !isInputZero && outputAmount && outputAmount.raw.isZero()
+      ? `Amount is too small to ${isWrapTab ? "wrap" : "unwrap"}`
+      : undefined
+
+  const baseHelperText = maxError || balanceError || tooSmallError
   const helperText = isSubmitTransitioning ? undefined : baseHelperText
 
   const hasPreviewRequired =
@@ -371,6 +382,7 @@ export const WrapperSection = ({
     isInputZero ||
     !!helperText ||
     missingPreview ||
+    (isMaxAssetUnwrap && !maxRedeemAmount) ||
     (needsApproval && !safeConnected)
 
   const inputLabel = React.useMemo(() => {
@@ -399,6 +411,7 @@ export const WrapperSection = ({
 
   const setMaxAmount = () => {
     if (!maxInputAmount) return
+    setExactAmount(maxInputAmount)
     setAmount(maxInputAmount.format(5))
   }
 
@@ -408,6 +421,7 @@ export const WrapperSection = ({
   ) => {
     dispatch(setActiveTab(newTab))
     setAmount("")
+    setExactAmount(undefined)
     setIsSubmitTransitioning(false)
     setSuccessSnapshot(null)
     setShowError(false)
@@ -421,6 +435,7 @@ export const WrapperSection = ({
   ) => {
     setUnit(checked ? AmountUnit.SHARES : AmountUnit.ASSETS)
     setAmount("")
+    setExactAmount(undefined)
     setIsSubmitTransitioning(false)
     setSuccessSnapshot(null)
     setShowError(false)
@@ -431,6 +446,7 @@ export const WrapperSection = ({
   const handleClose = () => {
     setShowSuccess(false)
     setAmount("")
+    setExactAmount(undefined)
     setIsSubmitTransitioning(false)
     setSuccessSnapshot(null)
   }
@@ -557,6 +573,15 @@ export const WrapperSection = ({
         )
       }
       if (!inputAmount) throw new Error("No input amount")
+      if (isMaxAssetUnwrap && !maxRedeemAmount) {
+        throw new Error("No max redeem amount")
+      }
+      const transactionMethod = getWrapperTransactionMethod({
+        isWrapTab,
+        isAssetsInput,
+        isMaxAssetUnwrap,
+      })
+      const transactionAmount = maxRedeemAmount ?? inputAmount
 
       if (safeConnected) {
         if (!sdk) throw new Error("No Safe SDK")
@@ -587,14 +612,16 @@ export const WrapperSection = ({
           })
         }
 
-        if (isWrapTab && isAssetsInput) {
-          txs.push(wrapper.populateDeposit(inputAmount, address)) // market → share
-        } else if (isWrapTab && !isAssetsInput) {
-          txs.push(wrapper.populateMint(inputAmount, address)) // share → market (exact out)
-        } else if (!isWrapTab && isAssetsInput) {
-          txs.push(wrapper.populateWithdraw(inputAmount, address, address)) // market → share (exact out)
+        if (transactionMethod === "deposit") {
+          txs.push(wrapper.populateDeposit(transactionAmount, address)) // market → share
+        } else if (transactionMethod === "mint") {
+          txs.push(wrapper.populateMint(transactionAmount, address)) // share → market (exact out)
+        } else if (transactionMethod === "withdraw") {
+          txs.push(
+            wrapper.populateWithdraw(transactionAmount, address, address),
+          ) // market → share (exact out)
         } else {
-          txs.push(wrapper.populateRedeem(inputAmount, address, address)) // share → market
+          txs.push(wrapper.populateRedeem(transactionAmount, address, address)) // share → market
         }
 
         const { safeTxHash } = await sdk.txs.send({ txs })
@@ -603,25 +630,25 @@ export const WrapperSection = ({
         return hash
       }
 
-      if (isWrapTab && isAssetsInput) {
-        const tx = await wrapper.deposit(inputAmount, address)
+      if (transactionMethod === "deposit") {
+        const tx = await wrapper.deposit(transactionAmount, address)
         setTxHash(tx.hash)
         await tx.wait()
         return tx.hash
       }
-      if (isWrapTab && !isAssetsInput) {
-        const tx = await wrapper.mint(inputAmount, address)
+      if (transactionMethod === "mint") {
+        const tx = await wrapper.mint(transactionAmount, address)
         setTxHash(tx.hash)
         await tx.wait()
         return tx.hash
       }
-      if (!isWrapTab && isAssetsInput) {
-        const tx = await wrapper.withdraw(inputAmount, address, address)
+      if (transactionMethod === "withdraw") {
+        const tx = await wrapper.withdraw(transactionAmount, address, address)
         setTxHash(tx.hash)
         await tx.wait()
         return tx.hash
       }
-      const tx = await wrapper.redeem(inputAmount, address, address)
+      const tx = await wrapper.redeem(transactionAmount, address, address)
       setTxHash(tx.hash)
       await tx.wait()
       return tx.hash
@@ -657,6 +684,7 @@ export const WrapperSection = ({
         ),
       })
       setAmount("")
+      setExactAmount(undefined)
       setShowSuccess(true)
     },
     onError: (error: Error) => {
@@ -853,9 +881,10 @@ export const WrapperSection = ({
 
                 <NumberTextField
                   value={amount}
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                    setExactAmount(undefined)
                     setAmount(event.target.value)
-                  }
+                  }}
                   size="medium"
                   label="Amount"
                   error={!!helperText}

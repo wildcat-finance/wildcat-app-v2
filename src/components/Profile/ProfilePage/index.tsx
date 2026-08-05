@@ -18,6 +18,7 @@ import { ProfilePageProps } from "./interface"
 import { PageContentContainer, MobileContentContainer } from "./style"
 import { OverallBlock } from "../components/OverallBlock"
 import { ToUStatusBlock } from "../components/ToUStatusBlock"
+import { BorrowerProfileVerificationDisclosure } from "../components/VerificationDisclosure"
 
 export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
   const { data: profileData, isLoading: isProfileLoading } =
@@ -56,6 +57,8 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
   if (isMobile)
     return (
       <Box sx={MobileContentContainer}>
+        <BorrowerProfileVerificationDisclosure showNote={false} />
+
         <MobileNamePageBlockWrapper
           section={section}
           setSection={setSection}
@@ -77,6 +80,10 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
         {section === "info" && (
           <>
             <OverallBlock {...profileData} marketsAmount={marketsAmount} />
+            <BorrowerProfileVerificationDisclosure
+              variant="inline"
+              showModal={false}
+            />
             <ToUStatusBlock
               address={profileAddress}
               status={touStatus}
@@ -103,7 +110,11 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
 
       <Divider sx={{ marginY: "32px" }} />
 
-      <OverallBlock {...profileData} marketsAmount={marketsAmount} isPage />
+      <Box sx={{ position: "relative" }}>
+        <OverallBlock {...profileData} marketsAmount={marketsAmount} isPage />
+
+        <BorrowerProfileVerificationDisclosure />
+      </Box>
 
       <Divider sx={{ marginY: "32px" }} />
 

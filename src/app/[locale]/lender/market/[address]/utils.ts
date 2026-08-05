@@ -27,3 +27,13 @@ export const shouldMarketTriggerBorrowerPenaltyWarning = (market: Market) =>
   !market.isClosed &&
   market.isIncurringPenalties &&
   getPenaltySecondsPastGrace(market) >= borrowerPenaltyWarningThresholdSeconds
+
+export const shouldShowLenderRequestBanner = ({
+  isConnected,
+  isDifferentChain,
+  authorizedInMarket,
+}: {
+  isConnected: boolean
+  isDifferentChain: boolean
+  authorizedInMarket: boolean | undefined
+}) => isConnected && !isDifferentChain && authorizedInMarket === false

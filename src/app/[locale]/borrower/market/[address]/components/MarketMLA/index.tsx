@@ -170,8 +170,7 @@ const ShowExistingMla = ({
     <MlaModal
       mla={mla}
       isLoading={false}
-      onSign={() => {}}
-      showSignButton
+      showSignButton={false}
       downloadPdfUrl={`/api/mla/${marketAccount.market.address}/pdf?chainId=${marketAccount.market.chainId}`}
       downloadSignedUrl={`/api/mla/${marketAccount.market.address}/signed?chainId=${marketAccount.market.chainId}`}
     />

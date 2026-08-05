@@ -297,7 +297,7 @@ export const MarketActions = ({
 
               return (
                 <>
-                  {!showFaucet && (
+                  {!showFaucet && !hideDeposit && (
                     <DepositModal
                       marketAccount={marketAccount}
                       showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
