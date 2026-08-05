@@ -24,7 +24,7 @@ import {
   setCreatingStep,
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import { COLORS } from "@/theme/colors"
-import { timestampToDateFormatted } from "@/utils/formatters"
+import { formatUtcMaturity } from "@/utils/formatters"
 
 import { ConfirmationFormProps } from "./interface"
 import { AlertContainer, DividerStyle, SubtitleStyle } from "./style"
@@ -108,15 +108,13 @@ export const ConfirmationForm = ({
   onClickSign,
   onDiscardSignature,
   signatureRequested,
+  paramsChangedSinceSigning,
   isSigning,
   isDeployReady,
+  isDeployDialogOpen,
   mlaSignature,
 }: ConfirmationFormProps) => {
   const { t } = useTranslation()
-
-  // const entityKind = mockedNaturesOptions.find(
-  // (option) => option.id === borrowerData?.entityKind,
-  // )
 
   const dispatch = useAppDispatch()
 
@@ -160,7 +158,13 @@ export const ConfirmationForm = ({
   /// signature was requested at this stage of the deployment process to prevent
   /// using a signature from a previous version of the market's parameters in case
   /// the user goes back and changes some settings.
-  const signed = signatureRequested && !isSigning && !!mlaSignature
+  const signed =
+    signatureRequested &&
+    !isSigning &&
+    !!mlaSignature &&
+    !paramsChangedSinceSigning
+
+  const actionsLocked = isDeployDialogOpen
 
   const handleBackClick = () => {
     if (onDiscardSignature()) {
@@ -273,12 +277,13 @@ export const ConfirmationForm = ({
               asset={tokenAsset}
               salt={salt}
               isSigning={false}
-              disabled={false}
+              disabled={actionsLocked}
               sx={{ width: "fit-content" }}
               modalButtonVariant="contained"
               modalButtonSize="small"
               buttonText={t("createNewMarket.buttons.viewMLA")}
               showSignButton={false}
+              isClosed={actionsLocked}
             />
           </Box>
 
@@ -300,12 +305,7 @@ export const ConfirmationForm = ({
           >
             <ConfirmationFormItem
               label={t("createNewMarket.policy.expiration.label")}
-              value={
-                timestampToDateFormatted(
-                  Number(getValues("fixedTermEndTime")),
-                  "DD/MM/YYYY",
-                ) ?? ""
-              }
+              value={formatUtcMaturity(Number(getValues("fixedTermEndTime")))}
             />
 
             <ConfirmationFormItem
@@ -507,6 +507,23 @@ export const ConfirmationForm = ({
         </Box>
       )}
 
+      {signatureRequested && paramsChangedSinceSigning && (
+        <Box sx={{ ...AlertContainer, marginTop: "12px" }}>
+          <SvgIcon
+            sx={{
+              fontSize: "18px",
+              "& path": { fill: COLORS.wildWatermelon },
+            }}
+          >
+            <Info />
+          </SvgIcon>
+
+          <Typography variant="text3" color={COLORS.dullRed}>
+            {t("createNewMarket.confirm.alertParamsChanged")}
+          </Typography>
+        </Box>
+      )}
+
       <Box
         sx={{
           width: "100%",
@@ -520,6 +537,7 @@ export const ConfirmationForm = ({
           variant="text"
           sx={{ justifyContent: "flex-start", borderRadius: "12px" }}
           onClick={handleBackClick}
+          disabled={actionsLocked}
         >
           <SvgIcon
             fontSize="medium"
@@ -544,11 +562,11 @@ export const ConfirmationForm = ({
               salt={salt}
               onSign={handleSign}
               isSigning={isSigning}
-              disabled={signed || isSigning}
+              disabled={signed || isSigning || actionsLocked}
               sx={{ width: "168px", borderRadius: "12px" }}
               modalButtonVariant="contained"
               modalButtonSize="large"
-              isClosed={signed}
+              isClosed={signed || actionsLocked}
             />
           )}
           {!isMLA && (
@@ -556,7 +574,7 @@ export const ConfirmationForm = ({
               size="large"
               variant="contained"
               sx={{ width: "168px", borderRadius: "12px" }}
-              disabled={signed || isSigning}
+              disabled={signed || isSigning || actionsLocked}
               onClick={handleSign}
             >
               {t("createNewMarket.buttons.signMlaRefusal")}
@@ -567,7 +585,7 @@ export const ConfirmationForm = ({
             size="large"
             variant="contained"
             sx={{ width: "168px", borderRadius: "12px" }}
-            disabled={!signed || !isDeployReady}
+            disabled={!signed || !isDeployReady || actionsLocked}
             onClick={handleDeploy}
           >
             {t("createNewMarket.buttons.deploy")}

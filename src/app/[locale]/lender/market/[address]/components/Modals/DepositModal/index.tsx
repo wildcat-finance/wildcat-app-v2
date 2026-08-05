@@ -38,14 +38,13 @@ import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useDepositAgreementGate } from "@/hooks/useDepositAgreementGate"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
-import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
 import {
   hasManuallyDisabledMarketActions,
   isUSDTLikeToken,
 } from "@/utils/constants"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
-import { formatTokenWithCommas } from "@/utils/formatters"
+import { formatTokenWithCommas, formatUtcMaturity } from "@/utils/formatters"
 
 import { EarningsProjection } from "./EarningsProjection"
 import { DepositModalProps } from "./interface"
@@ -758,7 +757,7 @@ export const DepositModal = ({
                           <Typography variant="mobText3">
                             This is a fixed-term market: funds are locked until{" "}
                             <span style={{ textDecoration: "underline" }}>
-                              {formatDate(fixedTermMaturity || 0)}
+                              {formatUtcMaturity(fixedTermMaturity || 0)}
                             </span>{" "}
                           </Typography>
                         }
@@ -1238,7 +1237,7 @@ export const DepositModal = ({
                               This is a fixed-term market: funds are locked
                               until{" "}
                               <span style={{ textDecoration: "underline" }}>
-                                {formatDate(fixedTermMaturity || 0)}
+                                {formatUtcMaturity(fixedTermMaturity || 0)}
                               </span>{" "}
                             </Typography>
                           }

@@ -2,7 +2,12 @@ import { Dispatch, SetStateAction } from "react"
 import * as React from "react"
 
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
-import { DepositStatus, HooksKind, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import {
+  DepositStatus,
+  HooksKind,
+  MarketAccount,
+  QueueWithdrawalStatus,
+} from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
@@ -170,6 +175,10 @@ export const MobileMarketActions = ({
     setIsMLAOpen(!isMLAOpen)
   }
 
+  const disableWithdraw =
+    marketAccount.marketBalance.raw.isZero() ||
+    marketAccount.withdrawalAvailability !== QueueWithdrawalStatus.Ready
+
   const handleClickDeposit = () => {
     if (touRetryAvailable) {
       toastError("Couldn't verify Terms of Use status — retrying")
@@ -327,7 +336,7 @@ export const MobileMarketActions = ({
                 onClick={() =>
                   setIsMobileWithdrawalOpen(!isMobileWithdrawalOpen)
                 }
-                disabled={notMature}
+                disabled={notMature || disableWithdraw}
                 sx={{ padding: "10px 20px", marginTop: "16px" }}
               >
                 ↑{" "}

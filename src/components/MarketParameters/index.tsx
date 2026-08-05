@@ -22,6 +22,7 @@ import {
   formatRayAsPercentage,
   formatSecsToHours,
   formatTokenWithCommas,
+  formatUtcMaturity,
   MARKET_PARAMS_DECIMALS,
   toTokenAmountProps,
   trimAddress,
@@ -510,9 +511,9 @@ export const MarketParameters = ({
                   <Divider sx={{ margin: "12px 0 12px" }} />
                   <ParametersItem
                     title={t("borrowerMarketDetails.parameters.marketExpiry")}
-                    value={`${formatDate(
+                    value={formatUtcMaturity(
                       market.hooksConfig.fixedTermEndTime,
-                    )} 00:00 UTC`}
+                    )}
                   />
                 </>
               )}
