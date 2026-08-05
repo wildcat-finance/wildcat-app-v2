@@ -14,31 +14,6 @@ export enum LenderMarketAction {
   Unavailable = "unavailable",
 }
 
-type V2MarketAccessData = {
-  hooksConfig: {
-    flags: {
-      useOnDeposit: boolean
-    }
-    depositRequiresAccess: boolean
-  }
-  hooks: {
-    pullProviders: readonly unknown[]
-  }
-}
-
-export const getV2MarketOnboardingMode = ({
-  hooksConfig,
-  hooks,
-}: V2MarketAccessData): MarketOnboardingMode => {
-  if (!hooksConfig.flags.useOnDeposit || !hooksConfig.depositRequiresAccess) {
-    return MarketOnboardingMode.SelfOnboard
-  }
-
-  return hooks.pullProviders.length > 0
-    ? MarketOnboardingMode.SelfOnboard
-    : MarketOnboardingMode.BorrowerApproval
-}
-
 export const getMarketOnboardingMode = (
   onboardingByMarket: MarketOnboardingByAddress,
   marketAddress: string,

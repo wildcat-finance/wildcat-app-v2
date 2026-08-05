@@ -6,17 +6,15 @@ import {
   SignerOrProvider,
   Market,
   MarketAccount,
-  getLensContract,
   MarketVersion,
   SupportedChainId,
-  getLensV2Contract,
   SubgraphGetLenderMarketCatalogueQueryVariables,
   getLenderMarketCatalogue,
+  refreshLenderAccountState,
   SubgraphMarket_Filter,
-  hasDeploymentAddress,
 } from "@wildcatfi/wildcat-sdk"
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
-import { BigNumber, constants } from "ethers"
+import { constants } from "ethers"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
@@ -27,9 +25,7 @@ import { EXCLUDED_MARKETS_FILTER, TOKENS_ADDRESSES } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
 import {
   getSubgraphMarketOnboardingMode,
-  getV2MarketOnboardingMode,
   MarketOnboardingByAddress,
-  MarketOnboardingMode,
 } from "@/utils/marketOnboarding"
 import { isFrontendVisibleMarket } from "@/utils/marketType"
 import { TwoStepQueryHookResult } from "@/utils/types"
@@ -41,15 +37,13 @@ export type LenderMarketsQueryProps = Omit<
 
 type LenderMarketUpdates = {
   marketAccounts: MarketAccount[]
-  onboardingByMarket: MarketOnboardingByAddress
   queryIdentity: string
 }
 
 export type LenderMarketsOnboardingStatus = "loading" | "ready" | "error"
 
 const MARKET_CATALOG_POLLING_INTERVAL = 60_000
-// The lens sweep multicalls every market; 10s polling was pure overhead on a
-// page whose figures only need minute-level freshness.
+// Lender-only live refresh cadence; market state rides the catalogue poll.
 const MARKET_LIVE_REFRESH_INTERVAL = 60_000
 
 export type LenderMarketsResult = TwoStepQueryHookResult<
@@ -58,9 +52,6 @@ export type LenderMarketsResult = TwoStepQueryHookResult<
 > & {
   onboardingByMarket: MarketOnboardingByAddress
   onboardingStatus: LenderMarketsOnboardingStatus
-  /** True once the current chain/lender's markets carry lens-refreshed state
-   *  (accurate capacity/supply) rather than indexed-only values. */
-  hasLiveData: boolean
 }
 
 function getChunks<T extends Market | MarketAccount>(
@@ -170,85 +161,29 @@ export function useLendersMarkets(
 
   async function getLenderUpdates() {
     logger.debug(`Getting lender updates...`)
-    const hasV1Lens = hasDeploymentAddress(targetChainId, "MarketLens")
-    const lens = hasV1Lens
-      ? getLensContract(targetChainId, signerOrProvider as SignerOrProvider)
-      : undefined
-    const lensV2 = getLensV2Contract(
-      targetChainId,
-      signerOrProvider as SignerOrProvider,
-    )
-
+    // Lender-only live refresh: balances, allowance, authorization and
+    // credential state. Market state stays subgraph-derived - the catalogue
+    // poll owns it - which keeps market encoding/decoding out of this loop.
+    // Chunking is preserved (including singleton WETH chunks on mainnet).
+    // `lender` is passed through as-is: when disconnected the SDK retains
+    // access state and zeroes wallet balances itself.
     const { v1Chunks, v2Chunks } = getChunks(targetChainId, accounts)
-    const onboardingByMarket: MarketOnboardingByAddress = Object.fromEntries(
-      accounts
-        .filter((account) => account.market.version === MarketVersion.V1)
-        .map((account) => [
-          account.market.address.toLowerCase(),
-          MarketOnboardingMode.BorrowerApproval,
-        ]),
+    await Promise.all(
+      [...v1Chunks, ...v2Chunks]
+        .filter((accountsChunk) => accountsChunk.length > 0)
+        .map((accountsChunk) =>
+          refreshLenderAccountState(
+            targetChainId,
+            signerOrProvider as SignerOrProvider,
+            lender,
+            accountsChunk,
+          ),
+        ),
     )
-    await Promise.all([
-      ...(lens
-        ? v1Chunks.map(async (accountsChunk) => {
-            const updates = await lens.getMarketsDataWithLenderStatus(
-              lender ?? constants.AddressZero,
-              accountsChunk.map((m) => m.market.address),
-            )
-            accountsChunk.forEach((account, i) => {
-              let update = updates[i]
-              account.market.updateWith(update.market)
-              // If the lender account is not set, set the balances to 0 but still use
-              // the credential, as that will tell us whether the market is open access.
-              if (!lender) {
-                update = {
-                  ...update,
-                  lenderStatus: {
-                    ...update.lenderStatus,
-                    normalizedBalance: BigNumber.from(0),
-                    scaledBalance: BigNumber.from(0),
-                    underlyingBalance: BigNumber.from(0),
-                    underlyingApproval: BigNumber.from(0),
-                  },
-                }
-              }
-              account.updateWith(update.lenderStatus)
-            })
-          })
-        : []),
-      ...v2Chunks.map(async (accountsChunk) => {
-        const updates = await lensV2.getMarketsDataWithLenderStatus(
-          lender ?? constants.AddressZero,
-          accountsChunk.map((m) => m.market.address),
-        )
-        accountsChunk.forEach((account, i) => {
-          let update = updates[i]
-          onboardingByMarket[account.market.address.toLowerCase()] =
-            getV2MarketOnboardingMode(update.market)
-          account.market.updateWith(update.market)
-          // If the lender account is not set, set the balances to 0 but still use
-          // the credential, as that will tell us whether the market is open access.
-          if (!lender) {
-            update = {
-              ...update,
-              lenderStatus: {
-                ...update.lenderStatus,
-                normalizedBalance: BigNumber.from(0),
-                scaledBalance: BigNumber.from(0),
-                underlyingBalance: BigNumber.from(0),
-                underlyingApproval: BigNumber.from(0),
-              },
-            }
-          }
-          account.updateWith(update.lenderStatus)
-        })
-      }),
-    ])
     return {
-      // Lens updates mutate the SDK objects in place. Publish a fresh collection
+      // Updates mutate the SDK objects in place. Publish a fresh collection
       // so downstream memoized sorting and card derivation observe every refresh.
       marketAccounts: [...accounts],
-      onboardingByMarket,
       queryIdentity: updateQueryIdentity,
     }
   }
@@ -287,8 +222,9 @@ export function useLendersMarkets(
   if (isErrorUpdate) onboardingStatus = "error"
   else if (updates) onboardingStatus = "ready"
 
-  // Classify markets from subgraph data so rows don't wait for the lens sweep;
-  // the lens-derived map still wins once it lands.
+  // Onboarding classification is fully subgraph-derived: the catalogue's
+  // hooksConfig + hooksInstance carry everything needed, and the lender-only
+  // live refresh no longer produces market-level data to merge over it.
   const onboardingByMarket = useMemo(() => {
     const map: MarketOnboardingByAddress = {}
     const source = updates?.marketAccounts ?? data ?? []
@@ -296,14 +232,13 @@ export function useLendersMarkets(
       const mode = getSubgraphMarketOnboardingMode(market)
       if (mode) map[market.address.toLowerCase()] = mode
     })
-    return { ...map, ...updates?.onboardingByMarket }
+    return map
   }, [data, updates])
 
   return {
     data: updates?.marketAccounts ?? accounts,
     onboardingByMarket,
     onboardingStatus,
-    hasLiveData: !!updates,
     isLoadingInitial: !isSelectedNetworkRehydrated || isLoadingInitial,
     isErrorInitial,
     errorInitial: errorInitial as Error | null,

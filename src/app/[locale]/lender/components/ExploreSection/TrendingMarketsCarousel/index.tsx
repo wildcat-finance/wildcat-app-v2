@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import * as React from "react"
 
 import { Box, Skeleton, Typography } from "@mui/material"
-import { HooksKind, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { HooksKind, Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { formatUnits } from "viem"
 
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
@@ -86,20 +86,42 @@ const pickLendersWinner = (
     return stats && stats.uniqueLenders > 0 ? stats.uniqueLenders : undefined
   })
 
-type ReadySlot = {
+type Slot = {
   key: string
-  pending?: false
   variant: TrendingMarketCardVariant
   account: MarketAccount
   value: string
   secondaryValue?: string
 }
 
-/** Slot whose winner can't be trusted yet - rendered as a skeleton card so
- *  the carousel layout doesn't shift when it resolves. */
-type PendingSlot = { key: string; pending: true }
+const SECONDS_IN_YEAR = BigInt(365 * 24 * 60 * 60)
+const BIPS = BigInt(10_000)
 
-type Slot = ReadySlot | PendingSlot
+// Subgraph market state is as-of the market's last on-chain interest accrual,
+// which for a dormant market can be days old. Project supply linearly to now
+// (mirroring the contract's between-update accrual) so a market that is
+// actually at capacity can't win Peak APR off a stale below-cap snapshot.
+// The lender-only live refresh doesn't carry market state, so this projection
+// is the only client-side capacity correction.
+const isBelowProjectedCapacity = (market: Market): boolean => {
+  const capacity = market.maxTotalSupply.raw.toBigInt()
+  const supply = market.totalSupply.raw.toBigInt()
+  const elapsed = BigInt(
+    Math.max(
+      0,
+      Math.floor(Date.now() / 1000) - market.lastInterestAccruedTimestamp,
+    ),
+  )
+  const rateBips = BigInt(
+    market.annualInterestBips +
+      (market.timeDelinquent > market.delinquencyGracePeriod
+        ? market.delinquencyFeeBips
+        : 0),
+  )
+  const projectedSupply =
+    supply + (supply * rateBips * elapsed) / (BIPS * SECONDS_IN_YEAR)
+  return projectedSupply < capacity
+}
 
 const formatMaturityDate = (millisecondsFromNow: number) =>
   new Intl.DateTimeFormat("en-GB", {
@@ -261,7 +283,7 @@ const usePeekOnFirstVisit = (
 }
 
 export const TrendingMarketsCarousel = () => {
-  const { marketAccounts, borrowers, isLoadingInitial, hasLiveData } =
+  const { marketAccounts, borrowers, isLoadingInitial } =
     useLenderMarketsContext()
   const { data: recentDeposits, isLoading: isRecentDepositsLoading } =
     useRecentDeposits()
@@ -415,13 +437,12 @@ export const TrendingMarketsCarousel = () => {
       ? formatMarketAge(newestWinner.market.deployedEvent.blockTimestamp)
       : undefined
 
-    // Peak APR only ranks lens-refreshed markets: indexed capacity lags
-    // accrued supply, so a market that is actually full can transiently pass
-    // the below-capacity checks and win with a bogus rate. Until live data
-    // lands the slot renders as a pending skeleton instead.
-    const healthyEligible = hasLiveData
-      ? eligible.filter((a) => isMarketHealthy(a.market))
-      : []
+    // Peak APR additionally requires projected supply below capacity: the
+    // indexed below-cap check alone lets an actually-full dormant market win
+    // with a bogus rate.
+    const healthyEligible = eligible.filter(
+      (a) => isMarketHealthy(a.market) && isBelowProjectedCapacity(a.market),
+    )
     const aprWinner = healthyEligible.length
       ? [...healthyEligible].sort(compareByCurrentAprBestInMarket)[0]
       : undefined
@@ -459,17 +480,6 @@ export const TrendingMarketsCarousel = () => {
       return { key, variant, account, value, secondaryValue }
     }
 
-    const aprSlot: Slot | null = hasLiveData
-      ? makeSlot(
-          "highestApr",
-          "hotRate",
-          aprWinner,
-          aprWinner
-            ? `${formatBps(aprWinner.market.annualInterestBips)}%`
-            : undefined,
-        )
-      : { key: "highestApr", pending: true }
-
     const built: (Slot | null)[] = [
       makeSlot(
         "fastestGrowing",
@@ -484,19 +494,20 @@ export const TrendingMarketsCarousel = () => {
         lendersAccount,
         lendersCount > 0 ? lendersCount.toString() : undefined,
       ),
-      aprSlot,
+      makeSlot(
+        "highestApr",
+        "hotRate",
+        aprWinner,
+        aprWinner
+          ? `${formatBps(aprWinner.market.annualInterestBips)}%`
+          : undefined,
+      ),
       makeSlot("newest", "newest", newestWinner, newestStat),
       makeSlot("highestTvl", "topFunded", tvlWinner, tvlStat),
     ]
 
     return built.filter((s): s is Slot => s !== null).slice(0, SLOT_COUNT)
-  }, [
-    marketAccounts,
-    recentDeposits,
-    priceMap,
-    isMarketQualifying,
-    hasLiveData,
-  ])
+  }, [marketAccounts, recentDeposits, priceMap, isMarketQualifying])
 
   const isLoading =
     isLoadingInitial || isInflowLoading || isRecentDepositsLoading
@@ -518,7 +529,7 @@ export const TrendingMarketsCarousel = () => {
     !isMobile && !isLoading && slots.length > 0,
   )
 
-  const renderCard = (slot: ReadySlot) => {
+  const renderCard = (slot: Slot) => {
     const { market } = slot.account
     const borrower = (borrowers ?? []).find(
       (candidate) =>
@@ -623,45 +634,25 @@ export const TrendingMarketsCarousel = () => {
                   />
                 ),
               )
-            : slots.map((slot, index) =>
-                slot.pending ? (
-                  <Skeleton
-                    key={slot.key}
-                    data-carousel-index={index}
-                    height="341px"
-                    sx={{
-                      flex: "0 0 70%",
-                      minWidth: "222px",
-                      borderRadius: "24px",
-                      bgcolor: COLORS.athensGrey,
-                      scrollSnapAlign: "center",
-                      scrollSnapStop: "always",
-                      ...(index === 0 && { marginLeft: "8px" }),
-                      ...(index === slots.length - 1 && {
-                        marginRight: "16px",
-                      }),
-                    }}
-                  />
-                ) : (
-                  <Box
-                    key={slot.key}
-                    data-carousel-index={index}
-                    sx={{
-                      flex: "0 0 70%",
-                      minWidth: "222px",
-                      display: "flex",
-                      scrollSnapAlign: "center",
-                      scrollSnapStop: "always",
-                      ...(index === 0 && { marginLeft: "8px" }),
-                      ...(index === slots.length - 1 && {
-                        marginRight: "16px",
-                      }),
-                    }}
-                  >
-                    {renderCard(slot)}
-                  </Box>
-                ),
-              )}
+            : slots.map((slot, index) => (
+                <Box
+                  key={slot.key}
+                  data-carousel-index={index}
+                  sx={{
+                    flex: "0 0 70%",
+                    minWidth: "222px",
+                    display: "flex",
+                    scrollSnapAlign: "center",
+                    scrollSnapStop: "always",
+                    ...(index === 0 && { marginLeft: "8px" }),
+                    ...(index === slots.length - 1 && {
+                      marginRight: "16px",
+                    }),
+                  }}
+                >
+                  {renderCard(slot)}
+                </Box>
+              ))}
         </Box>
 
         {!isLoading && slots.length > 1 && (
@@ -747,35 +738,20 @@ export const TrendingMarketsCarousel = () => {
                 />
               ),
             )
-          : slots.map((slot, index) =>
-              slot.pending ? (
-                <Skeleton
-                  key={slot.key}
-                  height="297px"
-                  sx={{
-                    flex: "1 0 222px",
-                    minWidth: "222px",
-                    borderRadius: "12px",
-                    bgcolor: COLORS.athensGrey,
-                    ...(index === 0 && { marginLeft: "16px" }),
-                    ...(index === slots.length - 1 && { marginRight: "16px" }),
-                  }}
-                />
-              ) : (
-                <Box
-                  key={slot.key}
-                  sx={{
-                    flex: "1 0 222px",
-                    minWidth: "222px",
-                    display: "flex",
-                    ...(index === 0 && { marginLeft: "16px" }),
-                    ...(index === slots.length - 1 && { marginRight: "16px" }),
-                  }}
-                >
-                  {renderCard(slot)}
-                </Box>
-              ),
-            )}
+          : slots.map((slot, index) => (
+              <Box
+                key={slot.key}
+                sx={{
+                  flex: "1 0 222px",
+                  minWidth: "222px",
+                  display: "flex",
+                  ...(index === 0 && { marginLeft: "16px" }),
+                  ...(index === slots.length - 1 && { marginRight: "16px" }),
+                }}
+              >
+                {renderCard(slot)}
+              </Box>
+            ))}
       </Box>
     </Box>
   )

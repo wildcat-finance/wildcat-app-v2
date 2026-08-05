@@ -22,7 +22,6 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
 
   const {
     data: marketAccounts,
-    hasLiveData,
     isLoadingInitial,
     isLoadingUpdate,
     onboardingByMarket,
@@ -188,7 +187,6 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
   const contextValue = useMemo(
     () => ({
       marketAccounts,
-      hasLiveData,
       isLoadingInitial,
       isLoadingUpdate,
       onboardingByMarket,
@@ -197,7 +195,6 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
     }),
     [
       marketAccounts,
-      hasLiveData,
       isLoadingInitial,
       isLoadingUpdate,
       onboardingByMarket,
