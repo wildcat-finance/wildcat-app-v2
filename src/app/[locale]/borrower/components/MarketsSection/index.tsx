@@ -176,6 +176,7 @@ export const MarketsSection = () => {
 
   const {
     data: marketAccounts,
+    selfOnboardMarkets,
     isLoadingInitial,
     isLoadingUpdate,
   } = useLendersMarkets()
@@ -521,6 +522,7 @@ export const MarketsSection = () => {
         !isWrongNetwork && (
           <OtherMarketsTables
             marketAccounts={filteredOtherMarketAccounts}
+            selfOnboardMarkets={selfOnboardMarkets}
             isLoading={isLoading}
             filters={filters}
           />

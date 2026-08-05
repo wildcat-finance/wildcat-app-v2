@@ -13,6 +13,10 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useAppDispatch } from "@/store/hooks"
 import { resetPolicyLendersState } from "@/store/slices/policyLendersSlice/policyLendersSlice"
+import {
+  getBlockedLenders,
+  getLenderUpdateSafeBatch,
+} from "@/utils/lenderAccess"
 
 export type SubmitPolicyUpdatesInputs = {
   addLenders?: string[]
@@ -24,7 +28,7 @@ export type SubmitPolicyUpdatesInputs = {
 export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
   const signer = useEthersSigner()
   const client = useQueryClient()
-  const { isTestnet, targetChainId } = useCurrentNetwork()
+  const { targetChainId } = useCurrentNetwork()
   const { connected: isConnectedToSafe, sdk: gnosisSafeSDK } = useSafeAppsSDK()
   const dispatch = useAppDispatch()
 
@@ -55,22 +59,35 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       const txs: PartialTransaction[] = []
 
       if (addLenders?.length) {
-        const tx =
-          // eslint-disable-next-line no-nested-ternary
+        if (
           policy instanceof OpenTermHooks ||
           policy instanceof FixedTermHooks ||
           policy instanceof PeriodicTermHooks
-            ? policy.populateAddLenders(
-                addLenders.map((lender) => ({ lender })),
-              )
-            : marketsToUpdate?.length
+        ) {
+          const policyContract = policy.contract
+          const blockedLenders = await getBlockedLenders(
+            addLenders,
+            "getLenderStatus" in policyContract
+              ? (lender) => policyContract.getLenderStatus(lender)
+              : undefined,
+          )
+          blockedLenders.forEach((lender) => {
+            txs.push(policy.populateUnblockLender(lender))
+          })
+
+          txs.push(
+            policy.populateAddLenders(addLenders.map((lender) => ({ lender }))),
+          )
+        } else {
+          txs.push(
+            marketsToUpdate?.length
               ? policy.populateAuthorizeLendersAndUpdateMarkets(
                   addLenders,
                   marketsToUpdate,
                 )
-              : policy.populateAuthorizeLenders(addLenders)
-
-        txs.push(tx)
+              : policy.populateAuthorizeLenders(addLenders),
+          )
+        }
       }
 
       if (removeLenders?.length) {
@@ -91,8 +108,9 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       }
 
       const send = async () => {
-        if (isConnectedToSafe && isTestnet && txs.length > 1) {
-          const tx = await gnosisSafeSDK.txs.send({ txs })
+        const safeBatch = getLenderUpdateSafeBatch(isConnectedToSafe, txs)
+        if (safeBatch) {
+          const tx = await gnosisSafeSDK.txs.send({ txs: safeBatch })
           console.log("Transaction sent, result:", tx)
 
           const checkTransaction = async (): Promise<string> => {

@@ -22,6 +22,7 @@ import {
   setShowFullFunctionality,
 } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
 import { COLORS } from "@/theme/colors"
+import { hasActivePullRoleProvider } from "@/utils/marketCapabilities"
 
 import { MarketsSection } from "./components/MarketsSection"
 import { PoliciesSection, PolicyDataT } from "./components/PoliciesSection"
@@ -63,8 +64,9 @@ export default function BorrowerPage() {
             )
             .map((market) => ({ name: market.name, address: market.address }))
         : [],
-      accessRequirements:
-        policy.roleProviders.length === 1 ? "Manual Approval" : "Self-Onboard",
+      accessRequirements: hasActivePullRoleProvider(policy.roleProviders)
+        ? "Self-Onboard"
+        : "Manual Approval",
     })) ?? []),
     ...(hooksData?.controller
       ? [
