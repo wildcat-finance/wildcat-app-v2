@@ -332,10 +332,11 @@ export const TrendingMarketsCarousel = () => {
       ),
     [marketAccounts],
   )
-  const { data: priceMap, isLoading: isPriceLoading } = useTrendingUsdPrices(
-    chainId,
-    tokenAddresses,
-  )
+  // Deliberately not part of the loading gate: prices can't start fetching
+  // until the market catalogue lands, so waiting on them chains a third
+  // request in front of first paint. They only weight the Top Funded ranking,
+  // which re-sorts via the slots memo when the price map arrives.
+  const { data: priceMap } = useTrendingUsdPrices(chainId, tokenAddresses)
 
   const slots = useMemo<Slot[]>(() => {
     const penaltyBorrowers = getPenaltyBorrowers(
@@ -475,10 +476,7 @@ export const TrendingMarketsCarousel = () => {
   }, [marketAccounts, recentDeposits, priceMap, isMarketQualifying])
 
   const isLoading =
-    isLoadingInitial ||
-    isInflowLoading ||
-    isRecentDepositsLoading ||
-    isPriceLoading
+    isLoadingInitial || isInflowLoading || isRecentDepositsLoading
 
   const isMobile = useMobileResolution()
 
