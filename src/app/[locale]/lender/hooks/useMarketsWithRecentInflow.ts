@@ -4,22 +4,30 @@ import { useCallback } from "react"
 
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
-import { useRecentDeposits } from "@/app/[locale]/lender/hooks/useRecentDeposits"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+
+const DAY_SECONDS = 24 * 60 * 60
+const MAINNET_WINDOW_DAYS = 30
+const TESTNET_WINDOW_DAYS = 3650
 
 export const useMarketsWithRecentInflow = () => {
-  // Shares the recent-deposits query rather than issuing its own windowed
-  // variant of the same 1000-row fetch - the explore page mounts both hooks.
-  const { data, isLoading, isError } = useRecentDeposits()
+  const { isTestnet } = useCurrentNetwork()
 
   // Qualification is strictly event-based: a market appears in explore
-  // categories only if a lender deposit landed inside the window. Fail open
-  // on subgraph errors so an indexer outage doesn't blank the explore page.
+  // categories only if a lender deposit landed inside the window. The market
+  // catalogue carries each market's latest deposit timestamp, so this needs
+  // no query of its own and can never lag behind the catalogue.
   const isMarketQualifying = useCallback(
-    (account: MarketAccount): boolean =>
-      isError ||
-      data.marketsWithRecentInflow.has(account.market.address.toLowerCase()),
-    [data, isError],
+    (account: MarketAccount): boolean => {
+      const latestDeposit = account.market.latestDepositTimestamp
+      if (latestDeposit === undefined) return false
+      const windowDays = isTestnet ? TESTNET_WINDOW_DAYS : MAINNET_WINDOW_DAYS
+      const windowStart =
+        Math.floor(Date.now() / 1000) - windowDays * DAY_SECONDS
+      return latestDeposit > windowStart
+    },
+    [isTestnet],
   )
 
-  return { isMarketQualifying, isLoading, isError }
+  return { isMarketQualifying, isLoading: false, isError: false }
 }
