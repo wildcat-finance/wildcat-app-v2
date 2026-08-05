@@ -21,3 +21,9 @@ export const getBlockedLenders = async (
 
   return lenders.filter((_, index) => isBlocked[index])
 }
+
+export const getLenderUpdateSafeBatch = <Transaction>(
+  isConnectedToSafe: boolean,
+  transactions: Transaction[],
+): Transaction[] | undefined =>
+  isConnectedToSafe && transactions.length > 1 ? transactions : undefined

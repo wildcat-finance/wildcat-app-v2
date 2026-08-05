@@ -15,7 +15,10 @@ import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useAppDispatch } from "@/store/hooks"
 import { resetEditPolicyState } from "@/store/slices/editPolicySlice/editPolicySlice"
 import { trimAddress } from "@/utils/formatters"
-import { getBlockedLenders } from "@/utils/lenderAccess"
+import {
+  getBlockedLenders,
+  getLenderUpdateSafeBatch,
+} from "@/utils/lenderAccess"
 
 export type SubmitPolicyUpdatesInputs = {
   addLenders?: string[]
@@ -58,7 +61,6 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         return
       }
 
-      const gnosisTransactions: PartialTransaction[] = []
       console.log(
         `useDeployMarket :: isTestnet: ${isTestnet} :: isConnectedToSafe: ${isConnectedToSafe} :: gnosisSafeSDK: ${!!gnosisSafeSDK}`,
       )
@@ -148,8 +150,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         }
       }
 
-      const useGnosisMultiSend =
-        isConnectedToSafe && isTestnet && txs.length > 1
+      const safeBatch = getLenderUpdateSafeBatch(isConnectedToSafe, txs)
       if (txs.length > 1) {
         txs.forEach((tx, i) => {
           tx.pending = `Step ${i + 1}/${txs.length}: ${tx.pending}`
@@ -158,8 +159,8 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         })
       }
 
-      if (useGnosisMultiSend) {
-        const tx = gnosisSafeSDK.txs.send({ txs: gnosisTransactions })
+      if (safeBatch) {
+        const tx = gnosisSafeSDK.txs.send({ txs: safeBatch })
         await toastRequest(tx, {
           pending: "Submitting gnosis transaction batch to update lenders...",
           success: "Lenders updated!",
