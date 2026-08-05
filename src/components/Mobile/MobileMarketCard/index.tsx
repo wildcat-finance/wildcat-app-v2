@@ -56,6 +56,81 @@ const formatFixedTermDate = (millisecondsFromNow: number) =>
     year: "numeric",
   }).format(Date.now() + millisecondsFromNow)
 
+const formatSecsToHoursCompact = (seconds: number) => {
+  const s = Math.max(0, Math.floor(seconds))
+  const days = Math.floor(s / 86400)
+  if (days >= 2) return `${days}d`
+  const hours = Math.floor(s / 3600)
+  if (hours > 0) return `${hours}h`
+  const minutes = Math.floor((s % 3600) / 60)
+  if (minutes > 0) return `${minutes}m`
+  return "<1m"
+}
+
+// "24 hours withdrawal" doesn't always fit next to a fixed-term chip on
+// narrow screens. Rather than ellipsizing mid-word, swap to a compact
+// "24h WD" once the full label is measured not to fit. A hidden replica of
+// the full label keeps the measurement stable in both directions.
+const WithdrawalCycleText = ({ seconds }: { seconds: number }) => {
+  const textRef = React.useRef<HTMLElement>(null)
+  const measureRef = React.useRef<HTMLElement>(null)
+  const [compact, setCompact] = React.useState(false)
+
+  const fullLabel = `• ${formatSecsToHours(seconds, true)} withdrawal`
+  // No bullet in the compact form: at the widths that force it, even those
+  // few pixels matter
+  const compactLabel = `${formatSecsToHoursCompact(seconds)} WD`
+
+  React.useLayoutEffect(() => {
+    const text = textRef.current
+    const measure = measureRef.current
+    if (!text || !measure) return undefined
+    const check = () => setCompact(measure.offsetWidth > text.clientWidth)
+    check()
+    const observer = new ResizeObserver(check)
+    observer.observe(text)
+    observer.observe(measure)
+    return () => observer.disconnect()
+  }, [fullLabel])
+
+  return (
+    <Typography
+      ref={textRef}
+      variant="mobText2"
+      sx={{
+        position: "relative",
+        // Claim the row's leftover space so the fit check compares the full
+        // label against the available width, not the rendered text's width
+        flexGrow: 1,
+        minWidth: 0,
+        overflow: "hidden",
+        color: COLORS.blackRock,
+        fontSize: "14px",
+        lineHeight: "20px",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {compact ? compactLabel : fullLabel}
+      <Box
+        ref={measureRef}
+        component="span"
+        aria-hidden
+        sx={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          visibility: "hidden",
+          pointerEvents: "none",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {fullLabel}
+      </Box>
+    </Typography>
+  )
+}
+
 const MarketAssetChip = ({
   asset,
   chainId,
@@ -195,10 +270,6 @@ export const MobileMarketCard = ({
   const termLabel = isOpenTerm
     ? "Open Term"
     : `Fixed Term: ${formatFixedTermDate(marketItem.term.fixedPeriod ?? 0)}`
-  const withdrawal = `${formatSecsToHours(
-    marketItem.withdrawalBatchDuration,
-    true,
-  )} withdrawal`
   const href = buildMarketHref(marketItem.id, marketItem.chainId, baseRoute)
 
   return (
@@ -224,20 +295,7 @@ export const MobileMarketCard = ({
           status={marketItem.status}
           termLabel={termLabel}
         />
-        <Typography
-          variant="mobText2"
-          sx={{
-            minWidth: 0,
-            overflow: "hidden",
-            color: COLORS.blackRock,
-            fontSize: "14px",
-            lineHeight: "20px",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          • {withdrawal}
-        </Typography>
+        <WithdrawalCycleText seconds={marketItem.withdrawalBatchDuration} />
       </Box>
 
       <Box
