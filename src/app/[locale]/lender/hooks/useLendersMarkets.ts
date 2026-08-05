@@ -18,7 +18,6 @@ import {
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 import { BigNumber, constants } from "ethers"
 
-import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { HOOKS_INSTANCES_WITH_PROVIDERS } from "@/graphql/queries"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
@@ -49,6 +48,9 @@ type LenderMarketUpdates = {
 export type LenderMarketsOnboardingStatus = "loading" | "ready" | "error"
 
 const MARKET_CATALOG_POLLING_INTERVAL = 60_000
+// The lens sweep multicalls every market; 10s polling was pure overhead on a
+// page whose figures only need minute-level freshness.
+const MARKET_LIVE_REFRESH_INTERVAL = 60_000
 const MAX_HOOKS_INSTANCES = 1000
 
 export type LenderMarketsResult = TwoStepQueryHookResult<
@@ -153,6 +155,7 @@ export function useLendersMarkets(
     ),
     queryFn: queryMarketsForLender,
     refetchInterval: MARKET_CATALOG_POLLING_INTERVAL,
+    staleTime: MARKET_CATALOG_POLLING_INTERVAL,
     enabled:
       isSelectedNetworkRehydrated && !!signerOrProvider && !isWrongNetwork,
     refetchOnMount: false,
@@ -267,11 +270,7 @@ export function useLendersMarkets(
           account.updateWith(update.lenderStatus)
         })
       }),
-    ]).catch((e) => {
-      console.log(e)
-      throw e
-    })
-    console.log(`getLenderUpdates:: Got lender updates: ${accounts.length}`)
+    ])
     return {
       // Lens updates mutate the SDK objects in place. Publish a fresh collection
       // so downstream memoized sorting and card derivation observe every refresh.
@@ -301,12 +300,13 @@ export function useLendersMarkets(
       !!signerOrProvider &&
       !isWrongNetwork,
     refetchOnMount: false,
-    refetchInterval: POLLING_INTERVAL,
+    refetchInterval: MARKET_LIVE_REFRESH_INTERVAL,
+    staleTime: MARKET_LIVE_REFRESH_INTERVAL,
     // Keep the last enriched catalogue visible only while refreshing the same
     // chain and lender. Never expose another chain/account's personalized data.
     placeholderData: (previous) =>
       previous?.queryIdentity === updateQueryIdentity ? previous : undefined,
-    gcTime: MARKET_CATALOG_POLLING_INTERVAL,
+    gcTime: MARKET_LIVE_REFRESH_INTERVAL,
     structuralSharing: false,
   })
 
