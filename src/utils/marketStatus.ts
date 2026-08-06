@@ -48,6 +48,23 @@ export const isMarketInPenalty = (market: Market): boolean =>
     market.isIncurringPenalties,
   ) === MarketStatus.PENALTY
 
+// Terms of Use 6.2: a market is considered in default once it has incurred the
+// penalty rate, as determined by the grace tracker, for a continuous period of
+// ninety days. `timeDelinquent` decrements while the market is healthy, so it
+// can only exceed the grace period by this margin on an unbroken penalised run.
+// Reads current state only: closeMarket() zeroes `timeDelinquent`, so a market
+// that defaulted and was later closed is not counted.
+export const TOU_DEFAULT_THRESHOLD_SECONDS = 90 * 24 * 60 * 60
+
+export const isMarketInTouDefault = (market: Market): boolean =>
+  !market.isClosed &&
+  market.timeDelinquent - market.delinquencyGracePeriod >=
+    TOU_DEFAULT_THRESHOLD_SECONDS
+
+export const countMarketsInTouDefault = (
+  markets: Market[] | undefined,
+): number | undefined => markets?.filter(isMarketInTouDefault).length
+
 export const getPenaltyBorrowers = (markets: Market[]): Set<string> =>
   new Set(
     markets
