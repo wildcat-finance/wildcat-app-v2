@@ -76,8 +76,8 @@
     }
   },
   "telegramBanner": {
-    "title": "Subscribe to our Telegram\u00a0Bot",
-    "subtitle": "Receive notifications for market\u00a0events",
+    "title": "Subscribe to our Telegram Bot",
+    "subtitle": "Receive notifications for market events",
     "button": "Subscribe"
   },
   "admin": {
@@ -1089,7 +1089,7 @@
       },
       "whoCanDeploy": {
         "question": "Who can deploy the wrapper?",
-        "answer": "Anyone can deploy the wrapper — not just the borrower."
+        "answer": "Anyone can deploy the wrapper, not just the borrower."
       },
       "whatHappensAfter": {
         "question": "What happens after deployment?",
