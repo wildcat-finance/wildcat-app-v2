@@ -167,15 +167,35 @@ describe("computeToUGateState", () => {
 
 describe("requiresBorrowerInvitationAcceptance", () => {
   it("requires the invitation flow for a borrower's first acceptance", () => {
-    expect(requiresBorrowerInvitationAcceptance("Borrower", false)).toBe(true)
+    expect(requiresBorrowerInvitationAcceptance("Borrower", false, true)).toBe(
+      true,
+    )
+  })
+
+  it("lets a borrower with no invitation sign on the ordinary path", () => {
+    // Guards the dead end: routing this account to /borrower/invitation shows
+    // "No invitation found" and leaves it with no way to sign at all.
+    expect(requiresBorrowerInvitationAcceptance("Borrower", false, false)).toBe(
+      false,
+    )
   })
 
   it("allows existing borrowers to use the generic re-acceptance flow", () => {
-    expect(requiresBorrowerInvitationAcceptance("Borrower", true)).toBe(false)
+    expect(requiresBorrowerInvitationAcceptance("Borrower", true, true)).toBe(
+      false,
+    )
+    expect(requiresBorrowerInvitationAcceptance("Borrower", true, false)).toBe(
+      false,
+    )
   })
 
   it("does not change lender onboarding", () => {
-    expect(requiresBorrowerInvitationAcceptance("Lender", false)).toBe(false)
+    expect(requiresBorrowerInvitationAcceptance("Lender", false, true)).toBe(
+      false,
+    )
+    expect(requiresBorrowerInvitationAcceptance("Lender", false, false)).toBe(
+      false,
+    )
   })
 })
 

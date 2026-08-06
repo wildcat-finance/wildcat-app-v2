@@ -14,6 +14,7 @@ import {
 import { usePathname, useRouter } from "next/navigation"
 import { useAccount } from "wagmi"
 
+import { useBorrowerInvitationExists } from "@/app/[locale]/borrower/hooks/useBorrowerInvitation"
 import { Loader } from "@/components/Loader"
 import { ServiceAgreementChip } from "@/components/ServiceAgreementVersionChip"
 import { TxModalFooterContainer } from "@/components/TxModalComponents/TxModalFooter/style"
@@ -74,6 +75,9 @@ export const ToUReacceptanceModal = () => {
     isAgreementFetching,
     refetchAgreementStatus,
   } = useNetworkGate()
+  const { data: invitationStatus } = useBorrowerInvitationExists(
+    touParty === "Borrower" ? address?.toLowerCase() : undefined,
+  )
   const accept = useAcceptToU(touParty)
   const decline = useDeclineToU(touParty)
 
@@ -224,6 +228,7 @@ export const ToUReacceptanceModal = () => {
   const needsBorrowerInvitation = requiresBorrowerInvitationAcceptance(
     touParty,
     isAgreementSigned,
+    invitationStatus !== undefined,
   )
   // Read-only status views: no sign/decline actions. The "stale" state
   // (newer version, no campaign) opens the normal sign/decline view.
