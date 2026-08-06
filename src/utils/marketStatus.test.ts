@@ -13,7 +13,14 @@ const market = (
   timeDelinquent: number,
   delinquencyGracePeriod = GRACE,
   isClosed = false,
-) => ({ timeDelinquent, delinquencyGracePeriod, isClosed }) as Market
+  unpaidWithdrawalBatchExpiries: number[] = [1735689600],
+) =>
+  ({
+    timeDelinquent,
+    delinquencyGracePeriod,
+    isClosed,
+    unpaidWithdrawalBatchExpiries,
+  }) as Market
 
 describe("isMarketInDefault", () => {
   it("is false inside the grace period", () => {
@@ -34,6 +41,16 @@ describe("isMarketInDefault", () => {
     const grace = 10 * DAY
     expect(isMarketInDefault(market(grace + 89 * DAY, grace))).toBe(false)
     expect(isMarketInDefault(market(grace + 90 * DAY, grace))).toBe(true)
+  })
+
+  it("is false with no unhonoured withdrawal request", () => {
+    // Delinquency from accrued protocol fees alone: penalty time accrues, but no
+    // lender is owed anything, so there is no default.
+    expect(
+      isMarketInDefault(
+        market(GRACE + PENALTY_DEFAULT_THRESHOLD_SECONDS, GRACE, false, []),
+      ),
+    ).toBe(false)
   })
 
   it("is false once the market is closed", () => {
