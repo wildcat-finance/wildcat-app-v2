@@ -9,7 +9,7 @@ import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/use
 import { Footer } from "@/components/Footer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { trimAddress } from "@/utils/formatters"
-import { countMarketsInTouDefault } from "@/utils/marketStatus"
+import { countMarketsInDefault } from "@/utils/marketStatus"
 
 import { MarketsBlock } from "./components/MarketsBlock"
 import { MobileNamePageBlockWrapper } from "./components/MobileNamePageBlockWrapper"
@@ -39,7 +39,7 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
   const isLoading = isMarketsLoading || isProfileLoading
   const activeMarkets = borrowerMarkets?.filter((market) => !market.isClosed)
   const marketsAmount = (activeMarkets ?? []).length
-  const defaults = countMarketsInTouDefault(borrowerMarkets)
+  const defaults = countMarketsInDefault(borrowerMarkets)
   const accountName = profileData?.name ?? trimAddress(profileAddress as string)
 
   // Mobile
