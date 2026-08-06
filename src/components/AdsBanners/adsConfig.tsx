@@ -1,8 +1,12 @@
 import React from "react"
 
+import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
+
 import Ethena from "@/assets/companies-icons/ethena_icon.svg"
 import EtherealWhite from "@/assets/companies-icons/ethereal-white_icon.svg"
 import Ethereal from "@/assets/companies-icons/ethereal_icon.svg"
+import TestPointsWhite from "@/assets/companies-icons/test-points-white_icon.svg"
+import TestPoints from "@/assets/companies-icons/test-points_icon.svg"
 import { proposalMarkets } from "@/utils/proposalMarkets"
 
 export type AdsConfig = {
@@ -36,15 +40,24 @@ const ETHENA_BASE_CONFIG: Omit<AdsConfig, "tokenAmount"> = {
   bannerHeadline: "{tokenAmount} weekly of",
   bannerChipLabel: "Ethereal Points",
   BannerIcon: EtherealWhite,
-  bannerDescription: "Receive pro-rate share of {tokenAmount} Ethereal points",
+  bannerDescription:
+    "Receive a pro-rata share of {tokenAmount} Ethereal points",
   cellIcons: [<Ethena key="ethena" />, <Ethereal key="ethereal" />],
   withdrawalAnyTime: true,
 }
 
-// Config of test Sepolia market
-const ADDITIONAL_APR_CONFIG: AdsConfig = {
-  ...ETHENA_BASE_CONFIG,
+const SEPOLIA_TEST_POINTS_CONFIG: AdsConfig = {
+  proposalText: "1x Multiplier",
+  proposalChipLabel: "Test Points",
+  ProposalIcon: TestPoints,
+  bannerHeadline: "{tokenAmount} weekly of",
+  bannerChipLabel: "Test Points",
+  BannerIcon: TestPointsWhite,
+  bannerDescription:
+    "Receive a pro-rata share of {tokenAmount} Sepolia test points",
   tokenAmount: "100k",
+  cellIcons: [<TestPoints key="test-points" />],
+  withdrawalAnyTime: true,
 }
 
 // Per-market overrides
@@ -58,17 +71,25 @@ const KAPPALAB_CONFIG: AdsConfig = {
   tokenAmount: "200k",
 }
 
-// Registry (marketAddress: config)
-const ADS_REGISTRY: Record<string, AdsConfig> = {
-  [proposalMarkets.sepolia.test.toLowerCase()]: ADDITIONAL_APR_CONFIG,
-  [proposalMarkets.ethena.auros.toLowerCase()]: AUROS_CONFIG,
-  [proposalMarkets.ethena.kappaLab.toLowerCase()]: KAPPALAB_CONFIG,
+// Registry (chainId -> marketAddress -> config)
+const ADS_REGISTRY: Record<number, Record<string, AdsConfig>> = {
+  [SupportedChainId.Mainnet]: {
+    [proposalMarkets.mainnet.ethena.auros.toLowerCase()]: AUROS_CONFIG,
+    [proposalMarkets.mainnet.ethena.kappaLab.toLowerCase()]: KAPPALAB_CONFIG,
+  },
+  [SupportedChainId.Sepolia]: {
+    [proposalMarkets.sepolia.testPoints.toLowerCase()]:
+      SEPOLIA_TEST_POINTS_CONFIG,
+  },
 }
 
 /**
- * Returns the ads configuration for a given market address,
+ * Returns the ads configuration for a market on a specific chain,
  * or `undefined` if the market has no active ad campaign.
  */
-export function getAdsConfig(marketAddress: string): AdsConfig | undefined {
-  return ADS_REGISTRY[marketAddress.toLowerCase()]
+export function getAdsConfig(
+  chainId: number,
+  marketAddress: string,
+): AdsConfig | undefined {
+  return ADS_REGISTRY[chainId]?.[marketAddress.toLowerCase()]
 }

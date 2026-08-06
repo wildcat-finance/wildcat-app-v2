@@ -1,5 +1,4 @@
 import { configureStore } from "@reduxjs/toolkit"
-import { persistStore } from "redux-persist"
 
 import borrowerDashboardAmountsSlice from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
 import borrowerDashboardSlice from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
@@ -66,8 +65,6 @@ export const makeStore = () => {
         },
       }),
   })
-
-  persistStore(store)
 
   return store
 }

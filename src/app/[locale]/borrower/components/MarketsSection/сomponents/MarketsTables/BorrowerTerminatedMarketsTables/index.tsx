@@ -38,7 +38,7 @@ import { MarketsTableAccordion } from "../../../../../../../../components/Market
 
 export type BorrowerTerminatedMarketsTableModel = {
   id: string
-  chainId?: number
+  chainId: number
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string
@@ -212,10 +212,11 @@ export const BorrowerTerminatedMarketsTables = ({
       align: "right",
       renderCell: (params) => {
         const adsComponent = getAdsTooltipComponent(
+          params.row.chainId,
           params.row.id,
           formatBps(params.value),
         )
-        const adsCellProps = getAdsCellProps(params.row.id)
+        const adsCellProps = getAdsCellProps(params.row.chainId, params.row.id)
 
         return (
           <Link
