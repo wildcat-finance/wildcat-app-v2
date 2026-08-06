@@ -39,12 +39,17 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import {
+  getKnownMarketOnboardingMode,
+  MarketOnboardingByAddress,
+  MarketOnboardingMode,
+} from "@/utils/marketOnboarding"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 export type OtherMarketsTableModel = {
   id: string
-  chainId?: number
+  chainId: number
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string
@@ -54,20 +59,18 @@ export type OtherMarketsTableModel = {
   debt: TokenAmount | undefined
   capacityLeft: TokenAmount
   withdrawalBatchDuration: number
-  isSelfOnboard: boolean
+  onboardingMode: MarketOnboardingMode | undefined
   borrowable: TokenAmount
-}
-
-export type OtherMarketsTablesProps = MarketsTablesProps & {
-  selfOnboardMarkets: ReadonlySet<string>
 }
 
 export const OtherMarketsTables = ({
   marketAccounts,
-  selfOnboardMarkets,
+  onboardingByMarket,
   isLoading,
   filters,
-}: OtherMarketsTablesProps) => {
+}: MarketsTablesProps & {
+  onboardingByMarket: MarketOnboardingByAddress
+}) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
@@ -137,7 +140,11 @@ export const OtherMarketsTables = ({
         borrowable: borrowableAssets,
         debt: totalSupply,
         withdrawalBatchDuration,
-        isSelfOnboard: selfOnboardMarkets.has(address.toLowerCase()),
+        onboardingMode: getKnownMarketOnboardingMode(
+          market.version,
+          market.address,
+          onboardingByMarket,
+        ),
       }
     },
   )
@@ -152,8 +159,12 @@ export const OtherMarketsTables = ({
     return !account?.market.isClosed
   })
 
-  const selfOnboard = activeRows.filter((market) => market.isSelfOnboard)
-  const manual = activeRows.filter((market) => !market.isSelfOnboard)
+  const selfOnboard = activeRows.filter(
+    (market) => market.onboardingMode === MarketOnboardingMode.SelfOnboard,
+  )
+  const manual = activeRows.filter(
+    (market) => market.onboardingMode === MarketOnboardingMode.BorrowerApproval,
+  )
 
   const columns: TypeSafeColDef<OtherMarketsTableModel>[] = [
     {
@@ -264,10 +275,11 @@ export const OtherMarketsTables = ({
       align: "right",
       renderCell: (params) => {
         const adsComponent = getAdsTooltipComponent(
+          params.row.chainId,
           params.row.id,
           formatBps(params.value),
         )
-        const adsCellProps = getAdsCellProps(params.row.id)
+        const adsCellProps = getAdsCellProps(params.row.chainId, params.row.id)
 
         return (
           <Link

@@ -346,7 +346,10 @@ export const MarketParameters = ({
     earlyMaturity = "no"
   }
 
-  const adsMarketParameter = getAdsMarketParameterComponent(market.address)
+  const adsMarketParameter = getAdsMarketParameterComponent(
+    market.chainId,
+    market.address,
+  )
 
   const [isMobileOpen, setIsMobileOpen] = React.useState(false)
 

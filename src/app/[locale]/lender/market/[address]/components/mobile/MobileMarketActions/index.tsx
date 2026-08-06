@@ -351,28 +351,32 @@ export const MobileMarketActions = ({
                 width: "100%",
                 display: "flex",
                 flexDirection: "column",
-                alignItems: mlaRequiredAndUnsigned ? "center" : "flex-end",
+                alignItems: "flex-end",
               }}
             >
               {mlaRequiredAndUnsigned ? (
                 <>
-                  <Typography
-                    variant="mobH3"
-                    color={COLORS.white}
-                    textAlign="center"
-                    marginTop="12px"
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      marginBottom: "2px",
+                    }}
                   >
-                    Master Loan Agreement
-                  </Typography>
+                    <Typography
+                      variant="mobText3"
+                      sx={{ color: COLORS.santasGrey }}
+                    >
+                      Master Loan Agreement
+                    </Typography>
+                  </Box>
 
                   <Box
                     sx={{
-                      width: "100%",
                       display: "flex",
-                      gap: "4px",
-                      justifyContent: "center",
                       alignItems: "center",
-                      marginTop: "8px",
+                      gap: "4px",
                     }}
                   >
                     <SvgIcon
@@ -383,7 +387,11 @@ export const MobileMarketActions = ({
                     >
                       <Clock />
                     </SvgIcon>
-                    <Typography variant="mobText3" color={COLORS.white06}>
+                    <Typography
+                      variant="mobText3"
+                      sx={{ lineHeight: "24px" }}
+                      color={COLORS.white06}
+                    >
                       Waiting for sign
                     </Typography>
                   </Box>
@@ -394,14 +402,7 @@ export const MobileMarketActions = ({
                     color="secondary"
                     size="large"
                     fullWidth
-                    sx={{
-                      marginTop: "24px",
-                      padding: "8px 12px",
-                      borderRadius: "10px",
-                      fontSize: "13px",
-                      fontWeight: 600,
-                      lineHeight: "20px",
-                    }}
+                    sx={{ padding: "10px 20px", marginTop: "16px" }}
                   >
                     {t("lenderMarketDetails.buttons.viewMla")}
                   </Button>
