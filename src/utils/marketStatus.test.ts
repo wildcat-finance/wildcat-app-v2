@@ -54,6 +54,10 @@ describe("countMarketsInTouDefault", () => {
     expect(countMarketsInTouDefault([])).toBe(0)
   })
 
+  it("does not count a market that has only just tipped delinquent", () => {
+    expect(countMarketsInTouDefault([market(0)])).toBe(0)
+  })
+
   it("counts only markets past the threshold", () => {
     expect(
       countMarketsInTouDefault([

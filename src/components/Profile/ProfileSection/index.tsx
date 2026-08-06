@@ -33,6 +33,7 @@ export const ProfileSection = ({
       <OverallBlock
         {...profileData}
         marketsAmount={marketsAmount}
+        defaults={defaults}
         externalChainId={externalChainId}
       />
 
