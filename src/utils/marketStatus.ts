@@ -48,13 +48,14 @@ export const isMarketInPenalty = (market: Market): boolean =>
     market.isIncurringPenalties,
   ) === MarketStatus.PENALTY
 
-// Ninety days at the penalty rate is a default. `timeDelinquent` counts up
-// while the market is delinquent and down while it is healthy, so the margin
-// over the grace period is net time at the penalty rate rather than an unbroken
-// run - a market that cured and relapsed can reach the threshold without ninety
-// continuous days. Separating those needs the event history; this is what
-// current state carries. closeMarket() zeroes `timeDelinquent`, so a market
-// that defaulted and was later closed is not counted.
+// Ninety days at the penalty rate is a default. `timeDelinquent` counts up while
+// the market is delinquent and down while it is healthy, so the margin over the
+// grace period is cumulative time at the penalty rate, which is the measure the
+// loan agreement uses. What this does not check is the agreement's other limb, an
+// unhonoured withdrawal request: a market can sit below its reserve ratio and
+// accrue penalty time with nothing queued, and is still counted here.
+// closeMarket() zeroes `timeDelinquent`, so a market that defaulted and was later
+// closed is not counted.
 export const PENALTY_DEFAULT_THRESHOLD_SECONDS = 90 * 24 * 60 * 60
 
 export const isMarketInDefault = (market: Market): boolean =>
