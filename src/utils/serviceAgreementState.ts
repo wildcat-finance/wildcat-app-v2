@@ -34,6 +34,29 @@ export const isToUBlockedState = (
 
 export type ToUGateState = "blocked" | "unblocked" | "unknown"
 
+export const remembersToUPromptDismissal = (
+  state: ToUAcceptanceState | undefined,
+  party: "Borrower" | "Lender",
+): boolean =>
+  state === "staleWithinGrace" ||
+  state === "declined" ||
+  (state === "neverSigned" && party === "Borrower")
+
+export const shouldAutoOpenToUPrompt = ({
+  state,
+  party,
+  dismissed,
+  pendingDismissed,
+}: {
+  state: ToUAcceptanceState | undefined
+  party: "Borrower" | "Lender"
+  dismissed: boolean
+  pendingDismissed: boolean
+}): boolean => {
+  if (state === "staleExpired") return !pendingDismissed
+  return remembersToUPromptDismissal(state, party) && !dismissed
+}
+
 export const requiresBorrowerInvitationAcceptance = (
   party: "Borrower" | "Lender",
   hasAnyAcceptance: boolean,

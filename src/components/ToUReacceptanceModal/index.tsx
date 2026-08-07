@@ -30,7 +30,11 @@ import {
   getServiceAgreementRouteForParty,
   isServiceAgreementPath,
 } from "@/utils/serviceAgreementParty"
-import { requiresBorrowerInvitationAcceptance } from "@/utils/serviceAgreementState"
+import {
+  remembersToUPromptDismissal,
+  requiresBorrowerInvitationAcceptance,
+  shouldAutoOpenToUPrompt,
+} from "@/utils/serviceAgreementState"
 import { formatServiceAgreementVersionLabel } from "@/utils/serviceAgreementVersions"
 
 const dismissKey = (
@@ -136,10 +140,7 @@ export const ToUReacceptanceModal = () => {
     }
     // Only stamp the session dismissal for states whose AUTO popup is
     // dismissible - a manual open of a read-only view never records one.
-    if (
-      storageKey &&
-      (touState === "staleWithinGrace" || touState === "declined")
-    ) {
+    if (storageKey && remembersToUPromptDismissal(touState, touParty)) {
       sessionStorage.setItem(storageKey, "1")
       setDismissed(true)
     }
@@ -234,8 +235,13 @@ export const ToUReacceptanceModal = () => {
   // (newer version, no campaign) opens the normal sign/decline view.
   const isReadOnly = isSignedCurrent || (isNeverSigned && touParty === "Lender")
 
-  const autoOpen =
-    (isExpired && !pendingDismissed) || ((isGrace || isDeclined) && !dismissed)
+  const needsFirstBorrowerAcceptance = isNeverSigned && touParty === "Borrower"
+  const autoOpen = shouldAutoOpenToUPrompt({
+    state: touState,
+    party: touParty,
+    dismissed,
+    pendingDismissed,
+  })
   if (!forcedOpen && !autoOpen) return null
 
   const deadlineLabel = touDeadline
@@ -274,6 +280,7 @@ export const ToUReacceptanceModal = () => {
     if (needsBorrowerInvitation) return "Borrower Invitation Required"
     if (isDeclined) return "Terms of Use Declined"
     if (isReadOnly) return "Terms of Use"
+    if (needsFirstBorrowerAcceptance) return "Terms of Use Signature Required"
     return "Updated Terms of Use"
   })()
 
