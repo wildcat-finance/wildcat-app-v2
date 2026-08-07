@@ -89,6 +89,15 @@ const cspReportingHeaders = [
   },
 ]
 
+const embedHeaders = [
+  {
+    // The landing stats are intentionally embedded by the public Webflow site.
+    key: 'Content-Security-Policy',
+    value:
+      "frame-ancestors 'self' https://*.webflow.io https://webflow.com https://wildcat.finance https://www.wildcat.finance;",
+  },
+]
+
 const manifestHeaders = [
   {
     key: 'Access-Control-Allow-Origin',
@@ -170,6 +179,12 @@ const nextConfig = {
         source:
             '/((?!api/|_next/static/|_next/image/|_next/data/|favicon.ico$|robots.txt$|sitemap.xml$|manifest.json$).*)',
         headers: cspReportingHeaders,
+      },
+
+      // /embed/* is public, read-only content rendered inside the Webflow site.
+      {
+        source: '/embed/:path*',
+        headers: embedHeaders,
       },
 
       // manifest.json — needs CORS + enforced CSP + also keep base + reporting
