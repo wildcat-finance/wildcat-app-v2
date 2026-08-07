@@ -304,7 +304,8 @@ export const ToUReacceptanceModal = () => {
       `restore access in this capacity.`
   } else if (isSignedCurrent) {
     description =
-      "You have accepted the current Wildcat Terms of Use - you are up to date."
+      `This account has accepted the current Wildcat Terms of Use as ` +
+      `${touParty} on this network - this capacity is up to date.`
   } else if (isNeverSigned) {
     description = `This account has not accepted the Wildcat Terms of Use as ${touParty} on this network yet.`
   } else if (isExpired) {
