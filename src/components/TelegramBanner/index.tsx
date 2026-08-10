@@ -12,6 +12,7 @@ import BannerBg from "@/assets/pictures/telegram_banner_bg.svg"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
+import { isServiceAgreementPath } from "@/utils/serviceAgreementParty"
 
 const STORAGE_KEY = "tg_banner_first_visit"
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
@@ -53,7 +54,7 @@ export const TelegramBanner = () => {
     !visible ||
     pathname.includes(ROUTES.lender.market) ||
     pathname.includes(ROUTES.borrower.market) ||
-    pathname.includes(ROUTES.agreement)
+    isServiceAgreementPath(pathname)
 
   if (hideBanner) return null
 

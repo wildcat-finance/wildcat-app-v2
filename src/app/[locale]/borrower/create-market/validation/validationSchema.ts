@@ -8,7 +8,10 @@ import { z } from "zod"
 
 import { ExtendedSelectOptionItem } from "@/components/@extended/ExtendedSelect/type"
 import { getMaxFixedTermDays } from "@/config/market-duration"
-import { dayjs } from "@/utils/dayjs"
+import {
+  pickerDateToUtcMaturity,
+  utcTodayAsPickerDate,
+} from "@/utils/formatters"
 import { isLetterNumber, isLetterNumberSpace } from "@/utils/validations"
 
 const DepositAccessOptions = ["Open", "RequiresCredential"] as const
@@ -144,10 +147,14 @@ export const createBaseMarketSchemaObject = (
       .optional()
       .refine((value) => {
         if (value !== undefined) {
-          const today = dayjs.unix(Date.now() / 1_000).startOf("day")
-          const tomorrow = today.add(1, "day")
-          const maxDate = today.add(maxDays, "days")
-          return value >= tomorrow.unix() && value <= maxDate.unix()
+          // Maturity is stored at 00:00 UTC of the chosen calendar day, so the
+          // bounds have to be measured on the UTC calendar too - measuring them
+          // locally rejects the first and last selectable day for anyone whose
+          // offset pushes local midnight into a different UTC day.
+          const today = utcTodayAsPickerDate()
+          const tomorrow = pickerDateToUtcMaturity(today.add(1, "day"))
+          const maxDate = pickerDateToUtcMaturity(today.add(maxDays, "days"))
+          return value >= tomorrow && value <= maxDate
         }
         return true
       }, `Must be between tomorrow and ${maxLabel} from now`),

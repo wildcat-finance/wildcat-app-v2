@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from "next/server"
 
+import {
+  ServiceAgreementGateResponse,
+  ServiceAgreementPartyInput,
+} from "@/app/api/service-agreement/interface"
 import { prisma } from "@/lib/db"
+import { getServiceAgreementGateStatus } from "@/lib/serviceAgreement"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
-/// GET /api/sla/[address]?chainId=<chainId>
+const getPartyParam = (
+  request: NextRequest,
+): ServiceAgreementPartyInput | undefined => {
+  const party = request.nextUrl.searchParams.get("party")
+  return party === "Borrower" || party === "Lender" ? party : undefined
+}
+
+/// GET /api/sla/[address]?chainId=<chainId>&party=<Borrower|Lender>
+/// Every status field is scoped to the requested account capacity.
 export async function GET(
   request: NextRequest,
   { params }: { params: { address: `0x${string}` } },
@@ -12,16 +25,37 @@ export async function GET(
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
   }
+  const party = getPartyParam(request)
+  if (!party) {
+    return NextResponse.json({ error: "Invalid party" }, { status: 400 })
+  }
   const address = params.address.toLowerCase()
-  const signature = await prisma.lenderServiceAgreementSignature.findFirst({
-    where: {
-      signer: address.toLowerCase(),
-      chainId,
+  const gate = await getServiceAgreementGateStatus(chainId, address, party)
+  const response: ServiceAgreementGateResponse = {
+    party,
+    isSigned: gate.hasAnyAcceptance,
+    state: gate.state,
+    currentVersion: {
+      version: gate.currentVersion.version,
+      plaintextSha256: gate.currentVersion.plaintextSha256,
+      effectiveDate: gate.currentVersion.effectiveDate.toISOString(),
+      reacceptanceDeadline:
+        gate.currentVersion.reacceptanceDeadline?.toISOString() ?? null,
     },
+    acceptedVersion: gate.acceptedVersion
+      ? {
+          version: gate.acceptedVersion.version,
+          plaintextSha256: gate.acceptedVersion.plaintextSha256,
+          effectiveDate: gate.acceptedVersion.effectiveDate.toISOString(),
+        }
+      : null,
+  }
+  return NextResponse.json(response, {
+    headers: { "Cache-Control": "no-store" },
   })
-
-  return NextResponse.json({ isSigned: !!signature })
 }
+
+export const dynamic = "force-dynamic"
 
 /// DELETE /api/sla/[address]?chainId=<chainId>
 export async function DELETE(
@@ -36,11 +70,28 @@ export async function DELETE(
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
   }
   const address = params.address.toLowerCase()
-  await prisma.lenderServiceAgreementSignature.deleteMany({
-    where: {
-      signer: address.toLowerCase(),
-      chainId,
-    },
-  })
+  // Clear both versioned snapshots and the legacy compatibility row.
+  await prisma.$transaction([
+    prisma.serviceAgreementSignature.deleteMany({
+      where: {
+        chainId,
+        address,
+        party: "Lender",
+      },
+    }),
+    prisma.serviceAgreementRefusal.deleteMany({
+      where: {
+        chainId,
+        address,
+        party: "Lender",
+      },
+    }),
+    prisma.lenderServiceAgreementSignature.deleteMany({
+      where: {
+        signer: address,
+        chainId,
+      },
+    }),
+  ])
   return NextResponse.json({ success: true })
 }

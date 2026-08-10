@@ -11,7 +11,11 @@ export const SignButton = () => {
   const { t } = useTranslation()
   const theme = useTheme()
 
-  const { mutate: signAgreement, isPending: isSignPending } = useSignAgreement()
+  const {
+    mutate: signAgreement,
+    isPending: isSignPending,
+    isAgreementLoading,
+  } = useSignAgreement()
 
   const [timeSigned, setTimeSigned] = useState<number>()
 
@@ -21,7 +25,7 @@ export const SignButton = () => {
     setTimeSigned(Date.now())
   }, [])
 
-  const isSigning = isSignPending
+  const isSigning = isSignPending || isAgreementLoading
 
   const handleSign = () => {
     signAgreement({
@@ -43,7 +47,7 @@ export const SignButton = () => {
         },
       }}
       onClick={handleSign}
-      disabled={isSigning}
+      disabled={isSigning || !timeSigned}
     >
       {isSigning
         ? t("agreement.signButton.signing")

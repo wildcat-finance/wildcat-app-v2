@@ -11,7 +11,7 @@ import {
   SetFixedTermEndTimePreview,
   SetFixedTermEndTimeStatus,
 } from "@wildcatfi/wildcat-sdk"
-import dayjs, { Dayjs } from "dayjs"
+import { Dayjs } from "dayjs"
 import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
@@ -28,8 +28,10 @@ import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 import {
-  formatTokenWithCommas,
-  remainingMillisecondsToDate,
+  formatUtcMaturity,
+  pickerDateToUtcMaturity,
+  utcMaturityToPickerDate,
+  utcTodayAsPickerDate,
 } from "@/utils/formatters"
 
 import { useSetFixedTermEndTime } from "../../../hooks/useSetFixedTermEndTime"
@@ -93,7 +95,7 @@ export const MaturityModal = ({
     setMaturity(value)
 
     const newPreview = value
-      ? marketAccount.previewSetFixedTermEndTime(value.unix())
+      ? marketAccount.previewSetFixedTermEndTime(pickerDateToUtcMaturity(value))
       : undefined
     setPreview(newPreview)
     if (newPreview && newPreview.status !== SetFixedTermEndTimeStatus.Ready) {
@@ -128,7 +130,7 @@ export const MaturityModal = ({
 
   const handleConfirm = () => {
     if (!maturity) throw Error("Maturity is required")
-    mutate(maturity.unix())
+    mutate(pickerDateToUtcMaturity(maturity))
   }
 
   const handleTryAgain = () => {
@@ -149,10 +151,11 @@ export const MaturityModal = ({
       ? market.hooksConfig
       : undefined
 
-  const fixedTerm =
-    hooksConfig && hooksConfig.fixedTermEndTime * 1000 - Date.now()
-
-  const today = dayjs.unix(Date.now() / 1_000).startOf("day")
+  // Bounds on the UTC calendar, matching what `handleConfirm` writes. The old
+  // `maxDate` came from a local-mode dayjs, so the current maturity could land
+  // on the previous or next day and the borrower was offered a date the chain
+  // rejects as an increase - or denied the one it would accept.
+  const today = utcTodayAsPickerDate()
 
   useEffect(() => {
     if (isError) {
@@ -192,7 +195,11 @@ export const MaturityModal = ({
           <Box sx={{ width: "100%", height: "100%", padding: "12px 24px" }}>
             <ModalDataItem
               title="Current Maturity"
-              value={remainingMillisecondsToDate(fixedTerm || 0)}
+              value={
+                hooksConfig
+                  ? formatUtcMaturity(hooksConfig.fixedTermEndTime)
+                  : "-"
+              }
               containerSx={{
                 marginBottom: "14px",
               }}
@@ -207,7 +214,7 @@ export const MaturityModal = ({
                   handleMaturityChange(v)
                 }}
                 minDate={today}
-                maxDate={dayjs.unix(hooksConfig!.fixedTermEndTime)}
+                maxDate={utcMaturityToPickerDate(hooksConfig!.fixedTermEndTime)}
                 slots={{
                   leftArrowIcon: DateCalendarArrowLeft,
                   rightArrowIcon: DateCalendarArrowRight,

@@ -86,6 +86,8 @@ export default function EditProfileForm({
 
   const token = useAuthToken()
   const { mutate: login } = useLogin()
+  const isAdminForChain =
+    !!isAdmin && token?.isAdmin && token.chainId === targetChainId
 
   const publicForm = useEditPublicForm()
   const privateForm = useEditPrivateForm()
@@ -388,7 +390,7 @@ export default function EditProfileForm({
             fullWidth
             placeholder={t("borrowerProfile.edit.public.name.placeholder")}
             error={Boolean(publicErrors.legalName)}
-            disabled={!isAdmin}
+            disabled={!isAdminForChain}
             // disabled={targetChainId === SupportedChainId.Mainnet}
             helperText={
               publicErrors.legalName?.message ??
@@ -413,7 +415,7 @@ export default function EditProfileForm({
             fullWidth
             placeholder={t("borrowerProfile.edit.public.alias.placeholder")}
             error={Boolean(publicErrors.alias)}
-            disabled={!isAdmin}
+            disabled={!isAdminForChain}
             // disabled={targetChainId === SupportedChainId.Mainnet}
             helperText={
               publicErrors.alias?.message ??
@@ -462,7 +464,7 @@ export default function EditProfileForm({
             placeholder={t("borrowerProfile.edit.public.founded.placeholder")}
             fullWidth
             error={Boolean(publicErrors.founded)}
-            disabled={!isAdmin}
+            disabled={!isAdminForChain}
             helperText={publicErrors.founded?.message}
             {...registerPublic("founded")}
             value={publicWatch("founded")}
@@ -702,7 +704,7 @@ export default function EditProfileForm({
             >
               <CountrySelector
                 value={countryWatch || null}
-                disabled={!isAdmin}
+                disabled={!isAdminForChain}
                 handleSelect={(country) => {
                   setPrivateValue("country", country?.id || "", {
                     shouldValidate: true,
@@ -736,7 +738,7 @@ export default function EditProfileForm({
               >
                 <JurisdictionSelector
                   options={subdivisions}
-                  disabled={!isAdmin}
+                  disabled={!isAdminForChain}
                   error={Boolean(privateErrors.jurisdiction)}
                   helperText={privateErrors.jurisdiction?.message}
                   handleSelect={(jurisdiction) => {
@@ -770,7 +772,7 @@ export default function EditProfileForm({
                 isLoading={isLoading}
               >
                 <EntityKindSelector
-                  disabled={!isAdmin}
+                  disabled={!isAdminForChain}
                   value={privateWatch("entityKind") || null}
                   error={Boolean(privateErrors.entityKind)}
                   helperText={privateErrors.entityKind?.message}
@@ -808,7 +810,7 @@ export default function EditProfileForm({
                   "borrowerProfile.edit.private.address.placeholder",
                 )}
                 fullWidth
-                disabled={!isAdmin}
+                disabled={!isAdminForChain}
                 error={Boolean(privateErrors.physicalAddress)}
                 helperText={
                   privateErrors.physicalAddress?.message ??

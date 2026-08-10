@@ -20,6 +20,41 @@ export const getMarketStatus = (
   return MarketStatus.HEALTHY
 }
 
+export const EXPLORE_ALLOWED_STATUSES = [
+  MarketStatus.HEALTHY,
+  MarketStatus.DELINQUENT,
+]
+
+export const isExploreVisible = (market: Market): boolean =>
+  EXPLORE_ALLOWED_STATUSES.includes(
+    getMarketStatus(
+      market.isClosed,
+      market.isDelinquent || market.willBeDelinquent,
+      market.isIncurringPenalties,
+    ),
+  ) && market.maxTotalSupply.gt(market.totalSupply)
+
+export const isMarketHealthy = (market: Market): boolean =>
+  getMarketStatus(
+    market.isClosed,
+    market.isDelinquent || market.willBeDelinquent,
+    market.isIncurringPenalties,
+  ) === MarketStatus.HEALTHY
+
+export const isMarketInPenalty = (market: Market): boolean =>
+  getMarketStatus(
+    market.isClosed,
+    market.isDelinquent || market.willBeDelinquent,
+    market.isIncurringPenalties,
+  ) === MarketStatus.PENALTY
+
+export const getPenaltyBorrowers = (markets: Market[]): Set<string> =>
+  new Set(
+    markets
+      .filter(isMarketInPenalty)
+      .map((market) => market.borrower.toLowerCase()),
+  )
+
 export const getMarketStatusChip = (market: Market) => {
   const delinquencyPeriod =
     market.timeDelinquent > market.delinquencyGracePeriod

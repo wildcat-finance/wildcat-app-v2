@@ -15,6 +15,11 @@ export const SkeletonStyle = {
   borderRadius: "12px",
 }
 
+export const LenderBannerWrapper: SxProps<Theme> = {
+  padding: "52px 32.3% 0 44px",
+  flex: "0 0 auto",
+}
+
 // Owns the viewport-height budget below the market header so the banner and the
 // section share it: the banner takes its natural (variable) height and the
 // section flex-grows into whatever remains.
