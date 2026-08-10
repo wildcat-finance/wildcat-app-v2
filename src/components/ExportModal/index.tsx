@@ -44,14 +44,19 @@ type SegmentedOption<T extends string> = { label: string; value: T }
 const sectionLabelSx = {
   color: COLORS.santasGrey,
   display: "block",
-  fontSize: "13px",
+  fontSize: "12px",
   fontWeight: 600,
-  lineHeight: "20px",
-  marginBottom: "10px",
+  lineHeight: "18px",
+  marginBottom: "6px",
 }
 
-const actionButtonSx = { borderRadius: "12px", minHeight: "48px" }
-const statusAlertSx = { borderRadius: "12px", padding: "8px 16px" }
+const actionButtonSx = { borderRadius: "10px", minHeight: "44px" }
+const statusAlertSx = {
+  borderRadius: "10px",
+  padding: "4px 12px",
+  "& .MuiAlert-icon": { padding: "6px 0" },
+  "& .MuiAlert-message": { padding: "6px 0" },
+}
 
 const SegmentedControl = <T extends string>({
   label,
@@ -75,21 +80,21 @@ const SegmentedControl = <T extends string>({
     }}
     sx={{
       backgroundColor: COLORS.athensGrey,
-      borderRadius: "12px",
+      borderRadius: "10px",
       display: "grid",
-      gap: "4px",
+      gap: "3px",
       gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`,
-      padding: "4px",
+      padding: "3px",
       width: "100%",
       "& .MuiToggleButtonGroup-grouped": {
         border: 0,
-        borderRadius: "9px !important",
+        borderRadius: "7px !important",
         color: COLORS.blackRock07,
-        fontSize: "14px",
+        fontSize: "13px",
         fontWeight: 600,
-        lineHeight: "20px",
+        lineHeight: "18px",
         minWidth: 0,
-        padding: { xs: "10px 6px", sm: "10px 12px" },
+        padding: { xs: "8px 5px", sm: "7px 10px" },
         textTransform: "none",
         "&.Mui-selected": {
           backgroundColor: COLORS.white,
@@ -582,11 +587,12 @@ export const ExportModal = ({
       PaperProps={{
         sx: {
           borderRadius: { xs: "16px", sm: "24px" },
+          maxHeight: "calc(100dvh - 24px)",
           maxWidth: "760px",
         },
       }}
     >
-      <DialogTitle sx={{ padding: { xs: "24px 24px 0", sm: "32px 40px 0" } }}>
+      <DialogTitle sx={{ padding: { xs: "20px 24px 0", sm: "24px 32px 0" } }}>
         <Box
           sx={{
             alignItems: "flex-start",
@@ -594,15 +600,21 @@ export const ExportModal = ({
             justifyContent: "space-between",
           }}
         >
-          <Box paddingRight="20px">
-            <Typography variant="title2" color={COLORS.bunker}>
+          <Box paddingRight="16px">
+            <Typography
+              color={COLORS.bunker}
+              fontSize={{ xs: "26px", sm: "28px" }}
+              fontWeight={600}
+              lineHeight="34px"
+            >
               Export market data
             </Typography>
             <Typography
               color={COLORS.santasGrey}
               display="block"
-              marginTop="4px"
-              variant="text2"
+              fontSize="14px"
+              lineHeight="20px"
+              marginTop="2px"
             >
               CSV data pack and manifest are always included. Statements are
               optional extras.
@@ -611,7 +623,7 @@ export const ExportModal = ({
           <IconButton
             onClick={onClose}
             aria-label="Close export dialog"
-            sx={{ color: COLORS.santasGrey, margin: "-6px -8px 0 0" }}
+            sx={{ color: COLORS.santasGrey, margin: "-5px -8px 0 0" }}
           >
             <SvgIcon fontSize="big">
               <Cross />
@@ -620,9 +632,9 @@ export const ExportModal = ({
         </Box>
       </DialogTitle>
       <DialogContent
-        sx={{ padding: { xs: "28px 24px 24px", sm: "28px 40px 28px" } }}
+        sx={{ padding: { xs: "18px 24px", sm: "18px 32px 20px" } }}
       >
-        <Stack gap={{ xs: "26px", sm: "30px" }}>
+        <Stack gap={{ xs: "18px", sm: "20px" }}>
           <Box>
             <FormLabel sx={sectionLabelSx}>Markets</FormLabel>
             <SegmentedControl
@@ -661,6 +673,7 @@ export const ExportModal = ({
                   <TextField
                     {...params}
                     label="Markets"
+                    size="small"
                     InputProps={{
                       ...params.InputProps,
                       endAdornment: (
@@ -696,6 +709,7 @@ export const ExportModal = ({
                   control={
                     <Switch
                       checked={statements.includes(statement)}
+                      size="small"
                       onChange={() => toggleStatement(statement)}
                     />
                   }
@@ -704,13 +718,13 @@ export const ExportModal = ({
                       index < 2 ? `1px solid ${COLORS.whiteLilac}` : 0,
                     justifyContent: "space-between",
                     margin: 0,
-                    padding: "12px 0",
+                    padding: "7px 0",
                     width: "100%",
                     "& .MuiFormControlLabel-label": {
                       color: COLORS.bunker,
-                      fontSize: "15px",
+                      fontSize: "14px",
                       fontWeight: 500,
-                      lineHeight: "24px",
+                      lineHeight: "20px",
                     },
                   }}
                 />
@@ -722,6 +736,7 @@ export const ExportModal = ({
                 fullWidth
                 multiline
                 minRows={2}
+                size="small"
                 value={addresses}
                 onChange={(event) => setAddresses(event.target.value)}
                 label="Position addresses (comma or space separated)"
@@ -731,71 +746,83 @@ export const ExportModal = ({
             )}
           </Box>
 
-          <Box>
-            <FormLabel sx={sectionLabelSx}>Statement period</FormLabel>
-            <SegmentedControl
-              label="Statement period"
-              value={dateSelection}
-              disabled={formDisabled}
-              onChange={setDateSelection}
-              options={[
-                { value: "full", label: "Full history" },
-                { value: "year", label: "Calendar year" },
-                { value: "custom", label: "Custom" },
-              ]}
-            />
-            {dateSelection === "year" && (
-              <TextField
+          <Box
+            sx={{
+              alignItems: "start",
+              display: "grid",
+              gap: { xs: "18px", sm: "20px" },
+              gridTemplateColumns: { xs: "1fr", sm: "minmax(0, 1fr) 240px" },
+            }}
+          >
+            <Box>
+              <FormLabel sx={sectionLabelSx}>Statement period</FormLabel>
+              <SegmentedControl
+                label="Statement period"
+                value={dateSelection}
                 disabled={formDisabled}
-                fullWidth
-                type="number"
-                label="Calendar year"
-                value={calendarYear}
-                onChange={(event) => setCalendarYear(event.target.value)}
-                inputProps={{ min: 2020, max: 9999 }}
-                sx={{ marginTop: "12px" }}
+                onChange={setDateSelection}
+                options={[
+                  { value: "full", label: "Full history" },
+                  { value: "year", label: "Calendar year" },
+                  { value: "custom", label: "Custom" },
+                ]}
               />
-            )}
-            {dateSelection === "custom" && (
-              <Stack
-                direction={{ xs: "column", sm: "row" }}
-                gap="12px"
-                marginTop="12px"
-              >
+              {dateSelection === "year" && (
                 <TextField
                   disabled={formDisabled}
                   fullWidth
-                  type="date"
-                  label="From"
-                  InputLabelProps={{ shrink: true }}
-                  value={dateFrom}
-                  onChange={(event) => setDateFrom(event.target.value)}
+                  type="number"
+                  label="Calendar year"
+                  size="small"
+                  value={calendarYear}
+                  onChange={(event) => setCalendarYear(event.target.value)}
+                  inputProps={{ min: 2020, max: 9999 }}
+                  sx={{ marginTop: "10px" }}
                 />
-                <TextField
-                  disabled={formDisabled}
-                  fullWidth
-                  type="date"
-                  label="To"
-                  InputLabelProps={{ shrink: true }}
-                  value={dateTo}
-                  onChange={(event) => setDateTo(event.target.value)}
-                />
-              </Stack>
-            )}
-          </Box>
+              )}
+              {dateSelection === "custom" && (
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  gap="10px"
+                  marginTop="10px"
+                >
+                  <TextField
+                    disabled={formDisabled}
+                    fullWidth
+                    type="date"
+                    label="From"
+                    size="small"
+                    InputLabelProps={{ shrink: true }}
+                    value={dateFrom}
+                    onChange={(event) => setDateFrom(event.target.value)}
+                  />
+                  <TextField
+                    disabled={formDisabled}
+                    fullWidth
+                    type="date"
+                    label="To"
+                    size="small"
+                    InputLabelProps={{ shrink: true }}
+                    value={dateTo}
+                    onChange={(event) => setDateTo(event.target.value)}
+                  />
+                </Stack>
+              )}
+            </Box>
 
-          <Box maxWidth={{ xs: "100%", sm: "340px" }}>
-            <FormLabel sx={sectionLabelSx}>Format</FormLabel>
-            <SegmentedControl
-              label="Statement format"
-              value={format}
-              disabled={formDisabled}
-              onChange={setFormat}
-              options={[
-                { value: "pdf", label: "PDF" },
-                { value: "xlsx", label: "XLSX" },
-              ]}
-            />
+            <Box>
+              <FormLabel sx={sectionLabelSx}>Format</FormLabel>
+              <SegmentedControl
+                label="Statement format"
+                value={format}
+                disabled={formDisabled}
+                onChange={setFormat}
+                options={[
+                  { value: "pdf", label: "PDF" },
+                  { value: "xlsx", label: "XLSX" },
+                ]}
+              />
+            </Box>
           </Box>
 
           {jobIsWorking && (
@@ -851,7 +878,7 @@ export const ExportModal = ({
             ))}
         </Stack>
       </DialogContent>
-      <DialogActions sx={{ padding: { xs: "0 24px 24px", sm: "0 40px 40px" } }}>
+      <DialogActions sx={{ padding: { xs: "0 24px 20px", sm: "0 32px 24px" } }}>
         {dialogAction}
       </DialogActions>
     </Dialog>
