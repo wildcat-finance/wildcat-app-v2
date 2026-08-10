@@ -3,10 +3,14 @@
 import { createHash } from "node:crypto"
 
 import ExcelJS from "exceljs"
-import { PDFDocument, PDFHexString } from "pdf-lib"
-import { Browser } from "puppeteer"
-
-import { launchPuppeteer } from "@/lib/puppeteer"
+import {
+  PDFDocument,
+  PDFFont,
+  PDFHexString,
+  PDFPage,
+  rgb,
+  StandardFonts,
+} from "pdf-lib"
 
 import {
   formatFixed,
@@ -758,101 +762,315 @@ export function positionStatement(
   }
 }
 
-const escapeHtml = (value: unknown) =>
-  String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
+const A4_WIDTH = 595.28
+const A4_HEIGHT = 841.89
+const PDF_MARGIN = 48
+const PDF_FOOTER_HEIGHT = 28
+const PDF_TEXT = rgb(0.09, 0.09, 0.11)
+const PDF_MUTED = rgb(0.37, 0.39, 0.44)
+const PDF_RULE = rgb(0.86, 0.87, 0.89)
+const PDF_PANEL = rgb(0.96, 0.96, 0.97)
 
-export function renderStatementHtml(model: StatementModel) {
-  const blockHtml = (block: StatementBlock) => {
-    if (block.type === "paragraph") {
-      return `<p${block.emphasis ? ' class="emphasis"' : ""}>${escapeHtml(
-        block.text,
-      )}</p>`
+const splitPdfWord = (
+  word: string,
+  font: PDFFont,
+  size: number,
+  maxWidth: number,
+) => {
+  const chunks: string[] = []
+  let chunk = ""
+  for (const character of word) {
+    const candidate = `${chunk}${character}`
+    if (chunk && font.widthOfTextAtSize(candidate, size) > maxWidth) {
+      chunks.push(chunk)
+      chunk = character
+    } else {
+      chunk = candidate
     }
-    return `<table><thead><tr>${block.headers
-      .map((header) => `<th>${escapeHtml(header)}</th>`)
-      .join("")}</tr></thead><tbody>${block.rows
-      .map(
-        (row) =>
-          `<tr>${row
-            .map((cell) => `<td>${escapeHtml(cell)}</td>`)
-            .join("")}</tr>`,
-      )
-      .join("")}</tbody></table>`
   }
-  return `<!doctype html><html><head><meta charset="utf-8"><style>
-@page { size:A4; margin:17mm; } body { color:#17171b; font:12px/1.45 Arial,sans-serif; }
-h1 { font-size:23px; margin:0 0 8px; } h2 { font-size:16px; margin:21px 0 7px; }
-.meta { color:#5f6370; margin-bottom:16px; } .lead { font-size:15px; padding:13px; background:#f4f5f7; border-radius:8px; }
-.emphasis { font-size:14px; font-weight:bold; } table { border-collapse:collapse; width:100%; margin:9px 0; }
-th,td { border-bottom:1px solid #ddd; padding:6px 5px; text-align:left; vertical-align:top; }
-th { font-size:10px; color:#5f6370; text-transform:uppercase; } .definitions { font-size:10px; color:#4d515c; }
-.disclaimer { border-top:1px solid #bbb; margin-top:22px; padding-top:9px; font-size:9px; color:#666; }
-</style><title>${escapeHtml(model.title)}</title></head><body><h1>${escapeHtml(
-    model.title,
-  )}</h1>
-<div class="meta">${model.metadata
-    .map(
-      ([label, value]) =>
-        `<strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}<br>`,
-    )
-    .join("")}</div>
-<p class="lead">${escapeHtml(model.lead)}</p>${model.sections
-    .map(
-      (section) =>
-        `<h2>${escapeHtml(section.title)}</h2>${section.blocks
-          .map(blockHtml)
-          .join("")}`,
-    )
-    .join("")}
-<h2>Definitions</h2><div class="definitions">${model.definitions
-    .map(
-      ([term, definition]) =>
-        `<p><strong>${escapeHtml(term)}:</strong> ${escapeHtml(
-          definition,
-        )}</p>`,
-    )
-    .join("")}</div>
-<p>Every figure uses the same ledger as the accompanying <code>data/</code> files.</p>
-<p class="disclaimer">This statement is an informational summary of public on-chain data. Wildcat does not provide tax, accounting, or investment advice; consult your own advisor.</p></body></html>`
+  if (chunk) chunks.push(chunk)
+  return chunks
 }
 
-export async function renderPdf(
-  model: StatementModel,
-  timestamp: number,
-  sharedBrowser?: Browser,
-) {
-  const html = renderStatementHtml(model)
-  const browser = sharedBrowser ?? (await launchPuppeteer())
-  try {
-    const page = await browser.newPage()
-    try {
-      await page.setContent(html, { waitUntil: "networkidle0" })
-      const generated = await page.pdf({ format: "A4", printBackground: true })
-      const document = await PDFDocument.load(generated)
-      const pinned = new Date(timestamp * 1_000)
-      document.setCreationDate(pinned)
-      document.setModificationDate(pinned)
-      document.setProducer("Wildcat Export")
-      document.setCreator("Wildcat Export")
-      const identifier = createHash("sha256")
-        .update(html)
-        .digest("hex")
-        .slice(0, 32)
-      document.context.trailerInfo.ID = document.context.obj([
-        PDFHexString.of(identifier),
-        PDFHexString.of(identifier),
-      ])
-      return Buffer.from(await document.save({ useObjectStreams: false }))
-    } finally {
-      await page.close()
+const wrapPdfText = (
+  text: string,
+  font: PDFFont,
+  size: number,
+  maxWidth: number,
+) =>
+  text.split("\n").flatMap((paragraph) => {
+    const lines: string[] = []
+    let line = ""
+    const words = paragraph
+      .split(/\s+/)
+      .filter(Boolean)
+      .flatMap((word) =>
+        font.widthOfTextAtSize(word, size) > maxWidth
+          ? splitPdfWord(word, font, size, maxWidth)
+          : [word],
+      )
+    for (const word of words) {
+      const candidate = line ? `${line} ${word}` : word
+      if (line && font.widthOfTextAtSize(candidate, size) > maxWidth) {
+        lines.push(line)
+        line = word
+      } else {
+        line = candidate
+      }
     }
-  } finally {
-    if (!sharedBrowser) await browser.close()
+    lines.push(line)
+    return lines
+  })
+
+export async function renderPdf(model: StatementModel, timestamp: number) {
+  const document = await PDFDocument.create()
+  const regular = await document.embedFont(StandardFonts.Helvetica)
+  const bold = await document.embedFont(StandardFonts.HelveticaBold)
+  const contentWidth = A4_WIDTH - PDF_MARGIN * 2
+  const pageBottom = PDF_MARGIN + PDF_FOOTER_HEIGHT
+  let page: PDFPage = document.addPage([A4_WIDTH, A4_HEIGHT])
+  let y = A4_HEIGHT - PDF_MARGIN
+
+  const addPage = () => {
+    page = document.addPage([A4_WIDTH, A4_HEIGHT])
+    y = A4_HEIGHT - PDF_MARGIN
   }
+  const ensureSpace = (height: number) => {
+    if (y - height < pageBottom) addPage()
+  }
+  const drawLines = (
+    lines: string[],
+    options: {
+      font: PDFFont
+      size: number
+      lineHeight: number
+      x?: number
+      color?: ReturnType<typeof rgb>
+      after?: number
+    },
+  ) => {
+    for (const line of lines) {
+      ensureSpace(options.lineHeight)
+      page.drawText(line, {
+        x: options.x ?? PDF_MARGIN,
+        y: y - options.size,
+        font: options.font,
+        size: options.size,
+        color: options.color ?? PDF_TEXT,
+      })
+      y -= options.lineHeight
+    }
+    y -= options.after ?? 0
+  }
+  const drawParagraph = (
+    text: string,
+    options: {
+      font?: PDFFont
+      size?: number
+      lineHeight?: number
+      width?: number
+      x?: number
+      color?: ReturnType<typeof rgb>
+      after?: number
+    } = {},
+  ) => {
+    const font = options.font ?? regular
+    const size = options.size ?? 10
+    const width = options.width ?? contentWidth
+    drawLines(wrapPdfText(text, font, size, width), {
+      font,
+      size,
+      lineHeight: options.lineHeight ?? size * 1.4,
+      x: options.x,
+      color: options.color,
+      after: options.after,
+    })
+  }
+  const drawHeading = (text: string) => {
+    // Keep a heading with enough room for the first paragraph or table rows.
+    ensureSpace(85)
+    y -= 8
+    drawParagraph(text, {
+      font: bold,
+      size: 15,
+      lineHeight: 18,
+      after: 5,
+    })
+  }
+  const drawTable = (headers: string[], rows: string[][]) => {
+    const columnWidth = contentWidth / headers.length
+    let fontSize = 6.5
+    if (headers.length <= 2) fontSize = 8.5
+    else if (headers.length <= 4) fontSize = 7.5
+    const headerSize = Math.max(6, fontSize - 0.5)
+    const padding = 4
+    const layoutRow = (cells: string[], header: boolean) => {
+      const font = header ? bold : regular
+      const size = header ? headerSize : fontSize
+      const lineHeight = size * 1.35
+      const lines = headers.map((_, index) =>
+        wrapPdfText(cells[index] ?? "", font, size, columnWidth - padding * 2),
+      )
+      return {
+        font,
+        size,
+        lineHeight,
+        lines,
+        height:
+          Math.max(...lines.map((cellLines) => cellLines.length)) * lineHeight +
+          padding * 2,
+      }
+    }
+    const drawRow = (
+      cells: string[],
+      row: ReturnType<typeof layoutRow>,
+      header: boolean,
+    ) => {
+      if (header) {
+        page.drawRectangle({
+          x: PDF_MARGIN,
+          y: y - row.height,
+          width: contentWidth,
+          height: row.height,
+          color: PDF_PANEL,
+        })
+      }
+      row.lines.forEach((cellLines, index) => {
+        cellLines.forEach((line, lineIndex) => {
+          page.drawText(line, {
+            x: PDF_MARGIN + index * columnWidth + padding,
+            y: y - padding - row.size - lineIndex * row.lineHeight,
+            font: row.font,
+            size: row.size,
+            color: header ? PDF_MUTED : PDF_TEXT,
+          })
+        })
+      })
+      page.drawLine({
+        start: { x: PDF_MARGIN, y: y - row.height },
+        end: { x: PDF_MARGIN + contentWidth, y: y - row.height },
+        thickness: 0.5,
+        color: PDF_RULE,
+      })
+      y -= row.height
+    }
+
+    const header = layoutRow(headers, true)
+    ensureSpace(header.height)
+    drawRow(headers, header, true)
+    for (const cells of rows) {
+      const row = layoutRow(cells, false)
+      if (y - row.height < pageBottom) {
+        addPage()
+        drawRow(headers, header, true)
+      }
+      drawRow(cells, row, false)
+    }
+    y -= 7
+  }
+
+  drawParagraph(model.title, {
+    font: bold,
+    size: 22,
+    lineHeight: 27,
+    after: 7,
+  })
+  model.metadata.forEach(([label, value]) =>
+    drawParagraph(`${label}: ${value}`, {
+      size: 9,
+      lineHeight: 12,
+      color: PDF_MUTED,
+    }),
+  )
+  y -= 10
+
+  const leadLines = wrapPdfText(model.lead, regular, 11.5, contentWidth - 20)
+  const leadHeight = leadLines.length * 16 + 20
+  ensureSpace(leadHeight)
+  page.drawRectangle({
+    x: PDF_MARGIN,
+    y: y - leadHeight,
+    width: contentWidth,
+    height: leadHeight,
+    color: PDF_PANEL,
+  })
+  drawLines(leadLines, {
+    font: regular,
+    size: 11.5,
+    lineHeight: 16,
+    x: PDF_MARGIN + 10,
+    after: 20,
+  })
+
+  model.sections.forEach((section) => {
+    drawHeading(section.title)
+    section.blocks.forEach((block) => {
+      if (block.type === "paragraph") {
+        drawParagraph(block.text, {
+          font: block.emphasis ? bold : regular,
+          size: block.emphasis ? 11 : 10,
+          lineHeight: block.emphasis ? 15 : 14,
+          after: 7,
+        })
+      } else {
+        drawTable(block.headers, block.rows)
+      }
+    })
+  })
+
+  drawHeading("Definitions")
+  model.definitions.forEach(([term, definition]) => {
+    drawParagraph(`${term}: ${definition}`, {
+      size: 8.5,
+      lineHeight: 12,
+      color: PDF_MUTED,
+      after: 4,
+    })
+  })
+  y -= 6
+  drawParagraph(
+    "Every figure uses the same ledger as the accompanying data/ files.",
+    { size: 9, lineHeight: 12, after: 8 },
+  )
+  ensureSpace(34)
+  page.drawLine({
+    start: { x: PDF_MARGIN, y },
+    end: { x: PDF_MARGIN + contentWidth, y },
+    thickness: 0.5,
+    color: PDF_RULE,
+  })
+  y -= 9
+  drawParagraph(
+    "This statement is an informational summary of public on-chain data. Wildcat does not provide tax, accounting, or investment advice; consult your own advisor.",
+    { size: 7.5, lineHeight: 10, color: PDF_MUTED },
+  )
+
+  const pages = document.getPages()
+  pages.forEach((pdfPage, index) => {
+    const label = `Page ${index + 1} of ${pages.length}`
+    pdfPage.drawText(label, {
+      x: A4_WIDTH - PDF_MARGIN - regular.widthOfTextAtSize(label, 7.5),
+      y: PDF_MARGIN - 2,
+      font: regular,
+      size: 7.5,
+      color: PDF_MUTED,
+    })
+  })
+
+  const pinned = new Date(timestamp * 1_000)
+  document.setCreationDate(pinned)
+  document.setModificationDate(pinned)
+  document.setProducer("Wildcat Export")
+  document.setCreator("Wildcat Export")
+  const identifier = createHash("sha256")
+    .update(JSON.stringify(model))
+    .digest("hex")
+    .slice(0, 32)
+  document.context.trailerInfo.ID = document.context.obj([
+    PDFHexString.of(identifier),
+    PDFHexString.of(identifier),
+  ])
+  return Buffer.from(await document.save({ useObjectStreams: false }))
 }
 
 export async function renderXlsx(

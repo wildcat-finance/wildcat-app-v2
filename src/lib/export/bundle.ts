@@ -2,8 +2,6 @@
 
 import JSZip from "jszip"
 
-import { launchPuppeteer } from "@/lib/puppeteer"
-
 import { formatUnits, RAY, rayDiv } from "./bigint"
 import { createCsv } from "./serialize/csv"
 import {
@@ -528,48 +526,40 @@ export async function buildExportBundle(
 
   await onProgress?.("creating_statements")
   const statementFiles = new Map<string, Buffer>()
-  const browser =
-    request.format === "pdf" && request.statements.length > 0
-      ? await launchPuppeteer()
-      : undefined
-  try {
-    for (const dataset of [...datasets].sort((a, b) =>
-      a.market.address.localeCompare(b.market.address),
-    )) {
-      const extension = request.format
-      const addStatement = async (filename: string, model: StatementModel) => {
-        const content =
-          extension === "pdf"
-            ? await renderPdf(model, dataset.snapshotTimestamp, browser)
-            : await renderXlsx(model, dataset)
-        statementFiles.set(`statements/${filename}.${extension}`, content)
-      }
-      if (request.statements.includes("market_condition")) {
+  for (const dataset of [...datasets].sort((a, b) =>
+    a.market.address.localeCompare(b.market.address),
+  )) {
+    const extension = request.format
+    const addStatement = async (filename: string, model: StatementModel) => {
+      const content =
+        extension === "pdf"
+          ? await renderPdf(model, dataset.snapshotTimestamp)
+          : await renderXlsx(model, dataset)
+      statementFiles.set(`statements/${filename}.${extension}`, content)
+    }
+    if (request.statements.includes("market_condition")) {
+      await addStatement(
+        `market_condition_${dataset.market.address}`,
+        marketConditionStatement(dataset),
+      )
+    }
+    if (request.statements.includes("borrower")) {
+      await addStatement(
+        `borrower_statement_${dataset.market.address}`,
+        borrowerStatement(dataset, request),
+      )
+    }
+    if (request.statements.includes("position")) {
+      for (const address of request.addresses) {
+        const position = dataset.positions[address.toLowerCase()]
         await addStatement(
-          `market_condition_${dataset.market.address}`,
-          marketConditionStatement(dataset),
+          `position_statement_${
+            dataset.market.address
+          }_${address.toLowerCase()}`,
+          positionStatement(dataset, position, request),
         )
-      }
-      if (request.statements.includes("borrower")) {
-        await addStatement(
-          `borrower_statement_${dataset.market.address}`,
-          borrowerStatement(dataset, request),
-        )
-      }
-      if (request.statements.includes("position")) {
-        for (const address of request.addresses) {
-          const position = dataset.positions[address.toLowerCase()]
-          await addStatement(
-            `position_statement_${
-              dataset.market.address
-            }_${address.toLowerCase()}`,
-            positionStatement(dataset, position, request),
-          )
-        }
       }
     }
-  } finally {
-    await browser?.close()
   }
 
   await onProgress?.("creating_zip")
