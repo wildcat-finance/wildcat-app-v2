@@ -10,14 +10,17 @@ import {
 } from "@mui/material"
 import humanizeDuration from "humanize-duration"
 import Link from "next/link"
+import { useAccount } from "wagmi"
 
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { useGetBorrowerProfile } from "@/app/[locale]/lender/profile/hooks/useGetBorrowerProfile"
 import Avatar from "@/assets/icons/avatar_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { ExportModal } from "@/components/ExportModal"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
 import { MobileMoreButton } from "@/components/Mobile/MobileMoreButton"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { ExportChainId } from "@/lib/export/types"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
@@ -37,6 +40,8 @@ export const MarketHeader = ({
 }: MarketHeaderProps) => {
   const theme = useTheme()
   const isMobile = useMobileResolution()
+  const { address: connectedAddress } = useAccount()
+  const [isExportOpen, setIsExportOpen] = React.useState(false)
 
   const [remainingTime, setRemainingTime] = React.useState<string>("")
 
@@ -280,6 +285,22 @@ export const MarketHeader = ({
           >
             Withdrawal Requests
           </Button>
+          <Button
+            variant="text"
+            size="small"
+            sx={{
+              minWidth: "fit-content",
+              padding: "6px 8px",
+              flexShrink: 0,
+              fontSize: 10,
+              fontWeight: 600,
+              lineHeight: "16px",
+              backgroundColor: COLORS.hintOfRed,
+            }}
+            onClick={() => setIsExportOpen(true)}
+          >
+            Export
+          </Button>
           {mla && !("noMLA" in mla) && (
             <Button
               variant="text"
@@ -300,6 +321,13 @@ export const MarketHeader = ({
             </Button>
           )}
         </Box>
+        <ExportModal
+          open={isExportOpen}
+          onClose={() => setIsExportOpen(false)}
+          chainId={market.chainId as ExportChainId}
+          marketAddress={market.address}
+          defaultAddress={connectedAddress}
+        />
       </Box>
     )
 
@@ -347,7 +375,21 @@ export const MarketHeader = ({
         {shouldShowCycleChip && (
           <MarketCycleChip status={marketStatus.status} time={remainingTime} />
         )}
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => setIsExportOpen(true)}
+        >
+          Export
+        </Button>
       </Box>
+      <ExportModal
+        open={isExportOpen}
+        onClose={() => setIsExportOpen(false)}
+        chainId={market.chainId as ExportChainId}
+        marketAddress={market.address}
+        defaultAddress={connectedAddress}
+      />
     </Box>
   )
 }

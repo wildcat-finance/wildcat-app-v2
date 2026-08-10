@@ -1,0 +1,192 @@
+/** @jest-environment node */
+
+import {
+  addEventToTransaction,
+  applyScaledSupplyEvent,
+  buildDelinquencyEpisodes,
+  buildInterestAccruals,
+  foreignTransferKind,
+  proportionalPrincipalReturned,
+  sanitizeTokenSymbol,
+} from "./buildMarketDataset"
+import { RAY, rayMul } from "../bigint"
+import {
+  DecodedMarketEvent,
+  InterestAccrualRow,
+  JsonRpcLog,
+  MarketMetadata,
+  TransactionLedgerRow,
+} from "../types"
+
+const event = (
+  name: string,
+  amountRaw: bigint,
+  args: Record<string, unknown> = {},
+) =>
+  ({
+    name,
+    amountRaw,
+    args,
+    transactionHash: "0x1",
+    logIndex: 1,
+  }) as DecodedMarketEvent
+
+const row = () =>
+  ({
+    depositedRaw: 0n,
+    borrowedRaw: 0n,
+    repaidRaw: 0n,
+    withdrawalQueuedRaw: 0n,
+    withdrawalExecutedRaw: 0n,
+    feesCollectedRaw: 0n,
+    escrowedOutRaw: 0n,
+    marketTokensTransferredRaw: 0n,
+    events: [],
+  }) as unknown as TransactionLedgerRow
+
+describe("protocol event semantics", () => {
+  it("does not double count sanctions companion events", () => {
+    const ledger = row()
+    addEventToTransaction(ledger, event("WithdrawalQueued", 100n))
+    addEventToTransaction(
+      ledger,
+      event("SanctionedAccountAssetsQueuedForWithdrawal", 100n),
+    )
+    addEventToTransaction(ledger, event("WithdrawalExecuted", 80n))
+    addEventToTransaction(
+      ledger,
+      event("SanctionedAccountWithdrawalSentToEscrow", 80n),
+    )
+    expect(ledger.withdrawalQueuedRaw).toBe(100n)
+    expect(ledger.withdrawalExecutedRaw).toBe(80n)
+    expect(ledger.escrowedOutRaw).toBe(0n)
+  })
+
+  it("burns supply on batch payment but not the cumulative expiry summary", () => {
+    const deposited = applyScaledSupplyEvent(
+      0n,
+      event("Deposit", 100n, { scaledAmount: "100" }),
+    )
+    const paid = applyScaledSupplyEvent(
+      deposited,
+      event("WithdrawalBatchPayment", 40n, { scaledAmountBurned: "40" }),
+    )
+    const expired = applyScaledSupplyEvent(
+      paid,
+      event("WithdrawalBatchExpired", 40n, { scaledAmountBurned: "40" }),
+    )
+    expect(expired).toBe(60n)
+  })
+
+  it("allocates principal across partial batch executions cumulatively", () => {
+    expect(proportionalPrincipalReturned(1_000n, 250n, 1_000n)).toBe(250n)
+    expect(proportionalPrincipalReturned(1_000n, 600n, 1_000n)).toBe(600n)
+  })
+
+  it("removes phishing links and control characters from foreign symbols", () => {
+    expect(sanitizeTokenSymbol("\u0000USDC https://evil.example/x\u0007")).toBe(
+      "USDC [link removed]",
+    )
+  })
+
+  it("distinguishes ERC-20, ERC-721, and malformed transfer logs", () => {
+    const log = (topics: string[], data: string) =>
+      ({ topics, data }) as JsonRpcLog
+    const topic = `0x${"0".repeat(64)}`
+    expect(foreignTransferKind(log([topic, topic, topic], topic))).toBe("erc20")
+    expect(foreignTransferKind(log([topic, topic, topic, topic], "0x"))).toBe(
+      "erc721",
+    )
+    expect(foreignTransferKind(log([topic, topic], "0x1234"))).toBe("unknown")
+  })
+
+  it("uses the deployment fee until an update event changes it", () => {
+    const baseInterestRay = 1_000_000_000_000_000_000n
+    const firstScaleFactor = RAY + rayMul(RAY, baseInterestRay)
+    const secondScaleFactor =
+      firstScaleFactor + rayMul(firstScaleFactor, baseInterestRay)
+    const accrual = (
+      logIndex: number,
+      fromTimestamp: number,
+      toTimestamp: number,
+      scaleFactor: bigint,
+    ) =>
+      ({
+        marketAddress: "0xmarket",
+        marketSymbol: "MARKET",
+        timestamp: toTimestamp,
+        name: "InterestAndFeesAccrued",
+        args: {
+          fromTimestamp,
+          toTimestamp,
+          baseInterestRay: String(baseInterestRay),
+          delinquencyFeeRay: "0",
+          protocolFees: "0",
+          scaleFactor: String(scaleFactor),
+        },
+        transactionHash: `0x${logIndex}`,
+        transactionIndex: 0,
+        logIndex,
+        blockNumber: logIndex,
+        transactionFrom: "0xsender",
+        transactionTo: "0xmarket",
+        method: "accrueInterest",
+        transactionStatus: "success",
+      }) satisfies DecodedMarketEvent
+    const rows = buildInterestAccruals(
+      { address: "0xmarket", symbol: "MARKET" } as MarketMetadata,
+      [
+        accrual(1, 0, 3_600, firstScaleFactor),
+        event("ProtocolFeeBipsUpdated", 0n, { protocolFeeBips: 250 }),
+        event("StateUpdated", 0n, { isDelinquent: true }),
+        accrual(3, 3_600, 7_200, secondScaleFactor),
+      ],
+      500,
+      { protocolFeeBips: 500, isDelinquent: false },
+    )
+
+    expect(rows.map(({ protocolFeeBips }) => protocolFeeBips)).toEqual([
+      500, 250,
+    ])
+    expect(rows.map(({ isDelinquent }) => isDelinquent)).toEqual([false, true])
+  })
+
+  it("keeps post-cure penalty in the episode and seeds the reserve ratio", () => {
+    const state = (timestamp: number, isDelinquent: boolean) =>
+      ({
+        ...event("StateUpdated", 0n, { isDelinquent }),
+        timestamp,
+        blockNumber: timestamp,
+        transactionHash: `0x${timestamp}`,
+      }) as DecodedMarketEvent
+    const penalty = (periodEnd: number, amount: bigint) =>
+      ({
+        periodStart: periodEnd - 10,
+        periodEnd,
+        delinquencyFeeRay: 1n,
+        penaltyInterestAssetsRaw: amount,
+      }) as InterestAccrualRow
+    const episodes = buildDelinquencyEpisodes(
+      [state(100, true), state(200, false), state(300, true)],
+      [penalty(180, 5n), penalty(240, 7n), penalty(350, 11n)],
+      50,
+      400,
+      250,
+    )
+
+    expect(episodes[0]).toMatchObject({
+      onsetTimestamp: 100,
+      cureTimestamp: 200,
+      penaltyEndTimestamp: 240,
+      penaltyInterestAssetsRaw: 12n,
+      reserveRatioBips: 250,
+      isOpen: false,
+    })
+    expect(episodes[1]).toMatchObject({
+      onsetTimestamp: 300,
+      penaltyInterestAssetsRaw: 11n,
+      reserveRatioBips: 250,
+      isOpen: true,
+    })
+  })
+})

@@ -38,3 +38,7 @@ next-env.d.ts
 
 /.idea
 .vscode
+
+# Workflow SDK local durable state
+/.workflow-data/
+/.swc
