@@ -55,7 +55,8 @@ bounded deterministic batches; later cron runs continue the backlog.
 
 Generation rejects requests that would render more than 100 statements, any
 single market dataset over 64 MB uncompressed, or an assembled dataset pack over
-256 MB. PDF statements share one Chromium process and close each page after use.
+256 MB. PDF and XLSX statements render directly from the same statement model;
+export assembly does not launch a browser or depend on native Chromium libraries.
 
 ## Fixture refresh
 

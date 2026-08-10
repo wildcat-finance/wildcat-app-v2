@@ -6,6 +6,7 @@ import path from "node:path"
 
 import ExcelJS from "exceljs"
 import JSZip from "jszip"
+import { PDFDocument } from "pdf-lib"
 
 import { buildExportBundle } from "./bundle"
 import {
@@ -235,5 +236,29 @@ describe("recorded reference market A", () => {
     const first = await renderPdf(model, dataset.snapshotTimestamp)
     const second = await renderPdf(model, dataset.snapshotTimestamp)
     expect(first).toEqual(second)
+    expect((await PDFDocument.load(first)).getPageCount()).toBeGreaterThan(0)
+  }, 120_000)
+
+  it("assembles PDF statements without a browser", async () => {
+    const bundle = await buildExportBundle(
+      {
+        ...request,
+        statements: ["market_condition", "borrower"],
+        addresses: [],
+        format: "pdf",
+      },
+      [dataset],
+      [],
+      "2026-08-01T00:00:00.000Z",
+    )
+    const zip = await JSZip.loadAsync(bundle)
+    const statements = Object.values(zip.files).filter(
+      (entry) => !entry.dir && entry.name.endsWith(".pdf"),
+    )
+    expect(statements).toHaveLength(2)
+    for (const statement of statements) {
+      const pdf = await PDFDocument.load(await statement.async("nodebuffer"))
+      expect(pdf.getPageCount()).toBeGreaterThan(0)
+    }
   }, 120_000)
 })
