@@ -25,7 +25,13 @@ import { MlaTemplateField } from "./mla"
 import { getProviderForServer } from "./provider"
 import { resolveRegisteredByMany, tryResolveRegisteredBy } from "./registrar"
 
-export const prisma = new PrismaClient()
+const globalForPrisma = globalThis as typeof globalThis & {
+  prisma?: PrismaClient
+}
+
+export const prisma = globalForPrisma.prisma ?? new PrismaClient()
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
 
 /// Legacy wrapper hashes of the seeded ServiceAgreement versions. Old-table
 /// rows with any other hash are not valid ToU acceptances.
