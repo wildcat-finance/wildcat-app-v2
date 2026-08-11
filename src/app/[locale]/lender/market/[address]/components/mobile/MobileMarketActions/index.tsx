@@ -206,7 +206,7 @@ export const MobileMarketActions = ({
   }
 
   const disableWithdraw =
-    marketAccount.marketBalance.raw.isZero() ||
+    combinedAvailable.raw.isZero() ||
     marketAccount.withdrawalAvailability !== QueueWithdrawalStatus.Ready
 
   const handleClickDeposit = () => {

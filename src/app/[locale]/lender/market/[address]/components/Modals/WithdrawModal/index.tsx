@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import * as React from "react"
 
 import { Box, Button, Dialog, Typography } from "@mui/material"
@@ -32,6 +32,9 @@ import { WithdrawModalProps } from "./interface"
 
 const T = "lenderMarketDetails.transactions.withdraw"
 
+/** Fixed dialog height: every view is laid out inside the same box. */
+const DIALOG_HEIGHT = "493px"
+
 export const WithdrawModal = ({
   marketAccount,
   wrapper,
@@ -47,13 +50,13 @@ export const WithdrawModal = ({
   const [isDesktopOpen, setIsDesktopOpen] = useState(false)
   const [snapshotShares, setSnapshotShares] = useState<TokenAmount>()
 
-  /**
-   * The form is the tallest view. Remember its height and hold it for the rest
-   * of the flow so the dialog does not resize from step to step. Kept as a
-   * minimum (never a fixed height) so unusually long content can still grow.
-   */
-  const paperRef = useRef<HTMLDivElement>(null)
-  const [lockedHeight, setLockedHeight] = useState<number>()
+  // /**
+  //  * The form is the tallest view. Remember its height and hold it for the rest
+  //  * of the flow so the dialog does not resize from step to step. Kept as a
+  //  * minimum (never a fixed height) so unusually long content can still grow.
+  //  */
+  // const paperRef = useRef<HTMLDivElement>(null)
+  // const [lockedHeight, setLockedHeight] = useState<number>()
 
   const routing = useWithdrawRouting({ marketAccount, wrapper, hasWrapper })
   const flow = useWithdrawFlow({ marketAccount, wrapper })
@@ -70,7 +73,7 @@ export const WithdrawModal = ({
       : undefined
 
   /** Transaction count for the current route, before the flow is started. */
-  const previewLegCount = useMemo(() => {
+  const previewLegCount = React.useMemo(() => {
     if (!routing.route.usesWrapped) return 1
     return flow.isBatched ? 1 : 2
   }, [routing.route.usesWrapped, flow.isBatched])
@@ -94,7 +97,6 @@ export const WithdrawModal = ({
     flow.reset()
     routing.reset()
     setSnapshotShares(undefined)
-    setLockedHeight(undefined)
     if (isMobile) {
       setIsMobileOpen?.(false)
     } else {
@@ -106,7 +108,6 @@ export const WithdrawModal = ({
     flow.reset()
     routing.reset()
     setSnapshotShares(undefined)
-    setLockedHeight(undefined)
     setIsDesktopOpen(true)
   }
 
@@ -132,32 +133,13 @@ export const WithdrawModal = ({
     setSnapshotShares(undefined)
   }
 
-  // Watch the form while it is on screen: its height can still grow after the
-  // wrapper balances resolve. Only ever raises the lock, so it converges.
-  useEffect(() => {
-    const el = paperRef.current
-    if (view !== "form" || !el) return undefined
-
-    const measure = () => {
-      const { height } = el.getBoundingClientRect()
-      setLockedHeight((prev) =>
-        prev === undefined || height > prev ? height : prev,
-      )
-    }
-    measure()
-
-    const observer = new ResizeObserver(measure)
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [view])
-
   const handleConfirm = () => {
     setSnapshotShares(routing.sharesToUnwrap)
     flow.begin(routing.route)
   }
 
   // ---- step rows ----
-  const stepRows: StepRow[] = useMemo(() => {
+  const stepRows: StepRow[] = React.useMemo(() => {
     const { snapshot } = flow
     if (!snapshot) return []
 
@@ -427,10 +409,11 @@ export const WithdrawModal = ({
       <Dialog
         open={isOpen}
         onClose={flow.busy ? undefined : handleClose}
-        PaperProps={{ ref: paperRef }}
         sx={{
           "& .MuiDialog-paper": {
-            minHeight: lockedHeight ? `${lockedHeight}px` : "404px",
+            height: DIALOG_HEIGHT,
+            minHeight: DIALOG_HEIGHT,
+            maxHeight: DIALOG_HEIGHT,
             width: "440px",
             minWidth: "440px !important",
             maxWidth: "440px",
@@ -457,7 +440,14 @@ export const WithdrawModal = ({
             view === "loading" || view === "error" ? "0 0 16px" : "0 24px 16px"
           }
           marginTop="16px"
-          sx={{ flex: 1, display: "flex", flexDirection: "column" }}
+          sx={{
+            flex: 1,
+            // fixed-height paper: a tall view scrolls instead of spilling out
+            minHeight: 0,
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+          }}
         >
           {body}
         </Box>
