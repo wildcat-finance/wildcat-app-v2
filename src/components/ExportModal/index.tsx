@@ -87,7 +87,7 @@ const SegmentedControl = <T extends string>({
       padding: "3px",
       width: "100%",
       "& .MuiToggleButtonGroup-grouped": {
-        border: 0,
+        border: "0 !important",
         borderRadius: "7px !important",
         color: COLORS.blackRock07,
         fontSize: "13px",
@@ -101,6 +101,13 @@ const SegmentedControl = <T extends string>({
           boxShadow: "0 2px 6px rgba(20, 20, 20, 0.08)",
           color: COLORS.bunker,
           "&:hover": { backgroundColor: COLORS.white },
+        },
+        "&.Mui-disabled": {
+          border: "0 !important",
+        },
+        "&.Mui-disabled.Mui-selected": {
+          backgroundColor: COLORS.white,
+          color: COLORS.blackRock07,
         },
         "&:hover": { backgroundColor: COLORS.blackRock006 },
       },
@@ -142,6 +149,13 @@ export const exportPhaseLabel = (phase: string) => {
     return `${label} — market ${current} of ${total}`
   }
   return phaseLabels[phase] ?? phase.replaceAll("_", " ")
+}
+
+export const exportErrorMessage = (message: string) => {
+  if (/RPC HTTP 429|rate limit/i.test(message)) {
+    return "Blockchain data providers are temporarily busy. Please try the export again shortly."
+  }
+  return message.replace(/^Step "[^"]+" failed after \d+ retries:\s*/i, "")
 }
 
 const requestOptionsKey = (request: ExportRequest | CanonicalExportRequest) =>
@@ -731,18 +745,42 @@ export const ExportModal = ({
               ))}
             </Stack>
             {statements.includes("position") && (
-              <TextField
-                disabled={formDisabled}
-                fullWidth
-                multiline
-                minRows={2}
-                size="small"
-                value={addresses}
-                onChange={(event) => setAddresses(event.target.value)}
-                label="Position addresses (comma or space separated)"
-                helperText="No wallet connection or signature is required; positions are public on chain."
-                sx={{ marginTop: "12px" }}
-              />
+              <Box marginTop="10px">
+                <FormLabel sx={sectionLabelSx}>Position addresses</FormLabel>
+                <TextField
+                  disabled={formDisabled}
+                  fullWidth
+                  multiline
+                  minRows={1}
+                  maxRows={3}
+                  size="small"
+                  value={addresses}
+                  onChange={(event) => setAddresses(event.target.value)}
+                  placeholder="0x… — separate multiple addresses with commas or spaces"
+                  inputProps={{ "aria-label": "Position addresses" }}
+                  sx={{
+                    height: "auto",
+                    "& .MuiInputBase-root": {
+                      alignItems: "flex-start",
+                      height: "auto",
+                      minHeight: "40px",
+                    },
+                    "& textarea": {
+                      lineHeight: "20px",
+                    },
+                  }}
+                />
+                <Typography
+                  color={COLORS.santasGrey}
+                  display="block"
+                  fontSize="11px"
+                  lineHeight="16px"
+                  marginTop="5px"
+                >
+                  No wallet connection or signature is required; positions are
+                  public on chain.
+                </Typography>
+              </Box>
             )}
           </Box>
 
@@ -849,7 +887,9 @@ export const ExportModal = ({
           )}
           {progress?.status === "failed" && (
             <Alert severity="error" sx={statusAlertSx}>
-              {progress.error ?? "Export failed"}
+              {progress.error
+                ? exportErrorMessage(progress.error)
+                : "Export failed"}
             </Alert>
           )}
           {progress?.status === "cancelled" && (

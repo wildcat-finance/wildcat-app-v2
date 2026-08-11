@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react"
 
 import { CanonicalExportRequest } from "@/lib/export/types"
 
-import { ExportModal, exportPhaseLabel } from "./index"
+import { ExportModal, exportErrorMessage, exportPhaseLabel } from "./index"
 
 jest.mock("@/assets/icons/cross_icon.svg", () => () => <svg />)
 
@@ -144,5 +144,20 @@ describe("ExportModal", () => {
       "Building transaction history — market 2 of 8",
     )
     expect(exportPhaseLabel("creating_statements")).toBe("Creating statements")
+  })
+
+  it("does not expose workflow internals for provider rate limits", () => {
+    expect(
+      exportErrorMessage(
+        'Step "step//resolveMarkets" failed after 3 retries: eth_getLogs failed on every configured provider: RPC HTTP 429',
+      ),
+    ).toBe(
+      "Blockchain data providers are temporarily busy. Please try the export again shortly.",
+    )
+    expect(
+      exportErrorMessage(
+        'Step "step//resolveMarkets" failed after 3 retries: Invalid market',
+      ),
+    ).toBe("Invalid market")
   })
 })
