@@ -114,17 +114,24 @@ export async function POST(request: NextRequest) {
       { status: admission.completed ? 200 : 202 },
     )
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unable to create export"
-    let status = 500
-    if (error instanceof ZodError) status = 400
-    if (error instanceof SyntaxError) status = 400
+    const message = error instanceof Error ? error.message : "Invalid request"
+    if (error instanceof ZodError || error instanceof SyntaxError) {
+      return NextResponse.json({ error: message }, { status: 400 })
+    }
     if (error instanceof ExportAdmissionError) {
       return NextResponse.json(
         { error: message },
-        { status: 429, headers: { "Retry-After": "60" } },
+        {
+          status: error.unavailable ? 503 : 429,
+          headers: { "Retry-After": error.unavailable ? "1" : "60" },
+        },
       )
     }
-    return NextResponse.json({ error: message }, { status })
+    // eslint-disable-next-line no-console
+    console.error("[Export API] Unable to create export", error)
+    return NextResponse.json(
+      { error: "Unable to start the export; please try again" },
+      { status: 500 },
+    )
   }
 }

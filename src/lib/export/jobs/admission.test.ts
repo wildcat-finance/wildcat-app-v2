@@ -1,7 +1,7 @@
 /** @jest-environment node */
 /* eslint-disable @typescript-eslint/no-explicit-any, arrow-body-style, import/first */
 
-import { ExportJobStatus } from "@prisma/client"
+import { ExportJobStatus, Prisma } from "@prisma/client"
 
 type Row = {
   id: string
@@ -15,12 +15,54 @@ type Row = {
 
 let rows: Row[] = []
 let transactionQueue = Promise.resolve()
+let transactionErrors: unknown[] = []
 
 const matchesStatus = (row: Row, statuses?: ExportJobStatus[]) =>
   !statuses || statuses.includes(row.status)
 
 const mockDatabase = {
   $executeRaw: jest.fn(async () => 1),
+  $queryRaw: jest.fn(
+    async (strings: TemplateStringsArray, ...values: unknown[]) => {
+      const paramsHash = values[0] as string
+      const requestIp = values[1] as string
+      const cutoff = values[3] as Date
+      const active = rows.find(
+        (row) =>
+          row.paramsHash === paramsHash &&
+          matchesStatus(row, [ExportJobStatus.Queued, ExportJobStatus.Running]),
+      )
+      return [
+        {
+          activeId: active?.id ?? null,
+          activeStatus: active?.status.toLowerCase() ?? null,
+          globalRunning: BigInt(
+            rows.filter((row) =>
+              matchesStatus(row, [
+                ExportJobStatus.Queued,
+                ExportJobStatus.Running,
+              ]),
+            ).length,
+          ),
+          ipRunning: BigInt(
+            rows.filter(
+              (row) =>
+                row.requestIp === requestIp &&
+                matchesStatus(row, [
+                  ExportJobStatus.Queued,
+                  ExportJobStatus.Running,
+                ]),
+            ).length,
+          ),
+          recent: BigInt(
+            rows.filter(
+              (row) => row.requestIp === requestIp && row.createdAt >= cutoff,
+            ).length,
+          ),
+        },
+      ]
+    },
+  ),
   exportJob: {
     findFirst: jest.fn(async ({ where }: any) => {
       return (
@@ -35,15 +77,6 @@ const mockDatabase = {
         ) ?? null
       )
     }),
-    count: jest.fn(
-      async ({ where }: any) =>
-        rows.filter(
-          (row) =>
-            (!where.requestIp || row.requestIp === where.requestIp) &&
-            matchesStatus(row, where.status?.in) &&
-            (!where.createdAt?.gte || row.createdAt >= where.createdAt.gte),
-        ).length,
-    ),
     create: jest.fn(async ({ data }: any) => {
       const row: Row = {
         id: data.id,
@@ -60,18 +93,32 @@ const mockDatabase = {
   },
 }
 
+const mockTransaction = jest.fn(
+  (callback: (database: typeof mockDatabase) => unknown, options?: unknown) => {
+    expect(options).toEqual({ maxWait: 5_000, timeout: 5_000 })
+    const transaction = transactionQueue.then(() => {
+      const error = transactionErrors.shift()
+      if (error) throw error
+      return callback(mockDatabase)
+    })
+    transactionQueue = transaction.then(
+      () => undefined,
+      () => undefined,
+    )
+    return transaction
+  },
+)
+
 jest.mock("@/lib/db", () => ({
   prisma: {
-    $transaction: jest.fn(
-      (callback: (database: typeof mockDatabase) => unknown) => {
-        const transaction = transactionQueue.then(() => callback(mockDatabase))
-        transactionQueue = transaction.then(
-          () => undefined,
-          () => undefined,
-        )
-        return transaction
-      },
-    ),
+    exportJob: {
+      findFirst: (...args: unknown[]) =>
+        mockDatabase.exportJob.findFirst(...(args as [any])),
+    },
+    $transaction: (...args: unknown[]) =>
+      mockTransaction(
+        ...(args as [(database: typeof mockDatabase) => unknown, unknown]),
+      ),
   },
 }))
 
@@ -88,10 +135,17 @@ const request: CanonicalExportRequest = {
   snapshotBlockHash: `0x${"1".repeat(64)}`,
 }
 
+const prismaError = (code: string) =>
+  new Prisma.PrismaClientKnownRequestError("database error", {
+    code,
+    clientVersion: "test",
+  })
+
 describe("export admission", () => {
   beforeEach(() => {
     rows = []
     transactionQueue = Promise.resolve()
+    transactionErrors = []
     jest.clearAllMocks()
   })
 
@@ -128,7 +182,7 @@ describe("export admission", () => {
     })
   })
 
-  it("returns a completed artifact without creating a new row", async () => {
+  it("returns a completed artifact without opening a transaction", async () => {
     rows.push({
       id: "complete",
       paramsHash: "same",
@@ -146,5 +200,38 @@ describe("export admission", () => {
         artifactKey: "bundle.zip",
       },
     )
+    expect(mockTransaction).not.toHaveBeenCalled()
+  })
+
+  it("uses explicit limits for the short admission transaction", async () => {
+    await admitExportJob(request, "new", "1.1.1.1")
+    expect(mockTransaction).toHaveBeenCalledTimes(1)
+    expect(mockTransaction).toHaveBeenLastCalledWith(expect.any(Function), {
+      maxWait: 5_000,
+      timeout: 5_000,
+    })
+  })
+
+  it("retries a closed transaction before reporting unavailability", async () => {
+    transactionErrors = [prismaError("P2028")]
+    await expect(
+      admitExportJob(request, "new", "1.1.1.1"),
+    ).resolves.toMatchObject({ created: true })
+    expect(mockTransaction).toHaveBeenCalledTimes(2)
+  })
+
+  it("returns a stable service error when transaction failures persist", async () => {
+    transactionErrors = [
+      prismaError("P2028"),
+      prismaError("P2028"),
+      prismaError("P2028"),
+    ]
+    await expect(
+      admitExportJob(request, "new", "1.1.1.1"),
+    ).rejects.toMatchObject({
+      unavailable: true,
+      message: "The export service is temporarily busy; please try again",
+    })
+    expect(rows).toHaveLength(0)
   })
 })
