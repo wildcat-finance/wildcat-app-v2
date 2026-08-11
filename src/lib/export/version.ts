@@ -1,1 +1,1 @@
-export const EXPORT_PIPELINE_VERSION = "7"
+export const EXPORT_PIPELINE_VERSION = "8"
