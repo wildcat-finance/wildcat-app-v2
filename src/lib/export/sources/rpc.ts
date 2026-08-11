@@ -1,6 +1,7 @@
 /* eslint-disable class-methods-use-this, max-classes-per-file, no-await-in-loop, no-plusplus, no-restricted-syntax, no-use-before-define */
 
 import { getExportRpcUrls } from "../config"
+import { waitForProviderSlot } from "../jobs/providerThrottle"
 import { ExportChainId, JsonRpcLog } from "../types"
 
 export type RpcCall = { method: string; params: unknown[] }
@@ -60,6 +61,7 @@ export class ExportRpcError extends Error {
     message: string,
     readonly retryable = true,
     readonly category: "transport" | "range" | "deterministic" = "transport",
+    readonly retryAfterMs = 0,
   ) {
     super(message)
   }
@@ -86,11 +88,27 @@ const rpcError = (method: string, error: { code: number; message: string }) => {
 
 const LOG_BLOCK_WINDOW = 50_000
 const LOG_CONCURRENCY = 3
+const RPC_MIN_REQUEST_INTERVAL_MS = 100
+const RPC_ATTEMPTS = 4
 
 const sleep = (milliseconds: number) =>
   new Promise((resolve) => {
     setTimeout(resolve, milliseconds)
   })
+
+const retryDelay = (attempt: number, error: unknown) =>
+  Math.max(
+    1_000 * 2 ** attempt,
+    error instanceof ExportRpcError ? error.retryAfterMs : 0,
+  )
+
+const retryAfterMs = (value: string | null) => {
+  if (!value) return 0
+  const seconds = Number(value)
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1_000)
+  const date = Date.parse(value)
+  return Number.isNaN(date) ? 0 : Math.max(0, date - Date.now())
+}
 
 const fixedHex = (value: unknown, bytes: number) =>
   typeof value === "string" &&
@@ -177,13 +195,24 @@ export class ExportRpcClient implements ExportRpc {
   }
 
   private async post<T>(url: string, payload: unknown): Promise<T> {
+    await waitForProviderSlot(
+      `rpc:${new URL(url).host}`,
+      RPC_MIN_REQUEST_INTERVAL_MS,
+    )
     const response = await fetch(url, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(120_000),
     })
-    if (!response.ok) throw new ExportRpcError(`RPC HTTP ${response.status}`)
+    if (!response.ok) {
+      throw new ExportRpcError(
+        `RPC HTTP ${response.status}`,
+        true,
+        "transport",
+        retryAfterMs(response.headers?.get("retry-after") ?? null),
+      )
+    }
     return response.json() as Promise<T>
   }
 
@@ -207,50 +236,74 @@ export class ExportRpcClient implements ExportRpc {
           "deterministic",
         )
       }
-    })()
+    })().catch((error) => {
+      this.providerValidations.delete(provider)
+      throw error
+    })
     this.providerValidations.set(provider, validation)
     return validation
   }
 
-  async call<T>(method: string, params: unknown[]): Promise<T> {
+  private async withProvider<T>(request: (provider: number) => Promise<T>) {
     let lastError: unknown
-    for (let offset = 0; offset < this.urls.length; offset += 1) {
-      const provider = (this.activeProvider + offset) % this.urls.length
-      for (let attempt = 0; attempt < 3; attempt += 1) {
-        const id = this.nextId++
+    for (let attempt = 0; attempt < RPC_ATTEMPTS; attempt += 1) {
+      let onlyRangeErrors = true
+      for (let offset = 0; offset < this.urls.length; offset += 1) {
+        const provider = (this.activeProvider + offset) % this.urls.length
         try {
           await this.ensureProvider(provider)
-          const raw = await this.post<unknown>(this.urls[provider], {
-            jsonrpc: "2.0",
-            id,
-            method,
-            params,
-          })
-          const response = validateRpcResponse<T>(raw, id, method)
-          if (response.error) {
-            throw rpcError(method, response.error)
-          }
+          const result = await request(provider)
           this.activeProvider = provider
           this.usedProviderHosts.add(this.providerHosts[provider])
-          return response.result as T
+          return result
         } catch (error) {
           lastError = error
           if (error instanceof ExportRpcError && !error.retryable) throw error
-          if (error instanceof ExportRpcError && error.category === "range") {
-            break
-          }
-          if (attempt < 2) await sleep(250 * 2 ** attempt)
+          if (!(error instanceof ExportRpcError) || error.category !== "range")
+            onlyRangeErrors = false
         }
       }
+      if (
+        onlyRangeErrors &&
+        lastError instanceof ExportRpcError &&
+        lastError.category === "range"
+      ) {
+        throw lastError
+      }
+      if (attempt < RPC_ATTEMPTS - 1) {
+        await sleep(retryDelay(attempt, lastError))
+      }
     }
-    if (lastError instanceof ExportRpcError && lastError.category === "range") {
-      throw lastError
+    throw lastError
+  }
+
+  async call<T>(method: string, params: unknown[]): Promise<T> {
+    try {
+      return await this.withProvider(async (provider) => {
+        const id = this.nextId++
+        const raw = await this.post<unknown>(this.urls[provider], {
+          jsonrpc: "2.0",
+          id,
+          method,
+          params,
+        })
+        const response = validateRpcResponse<T>(raw, id, method)
+        if (response.error) throw rpcError(method, response.error)
+        return response.result as T
+      })
+    } catch (error) {
+      if (
+        error instanceof ExportRpcError &&
+        (!error.retryable || error.category === "range")
+      ) {
+        throw error
+      }
+      throw new ExportRpcError(
+        `${method} failed on every configured provider: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      )
     }
-    throw new ExportRpcError(
-      `${method} failed on every configured provider: ${
-        lastError instanceof Error ? lastError.message : String(lastError)
-      }`,
-    )
   }
 
   async batch<T>(calls: RpcCall[], chunkSize = 40): Promise<T[]> {
@@ -264,12 +317,8 @@ export class ExportRpcClient implements ExportRpc {
         params,
       }))
       const byId = new Map(payload.map((item, index) => [item.id, index]))
-      let ordered: T[] | undefined
-      let lastError: unknown
-      for (let offset = 0; offset < this.urls.length && !ordered; offset += 1) {
-        const provider = (this.activeProvider + offset) % this.urls.length
-        try {
-          await this.ensureProvider(provider)
+      try {
+        const ordered = await this.withProvider(async (provider) => {
           const raw = await this.post<unknown>(this.urls[provider], payload)
           if (!Array.isArray(raw)) {
             throw new ExportRpcError("RPC batch returned a non-array response")
@@ -302,27 +351,21 @@ export class ExportRpcClient implements ExportRpc {
           if (seen.size !== chunk.length) {
             throw new ExportRpcError("RPC batch omitted a response")
           }
-          ordered = candidate
-          this.activeProvider = provider
-          this.usedProviderHosts.add(this.providerHosts[provider])
-        } catch (error) {
-          lastError = error
-        }
-      }
-      if (!ordered) {
+          return candidate
+        })
+        results.push(...ordered)
+      } catch (error) {
         if (
           chunk.length > 1 &&
-          lastError instanceof ExportRpcError &&
-          lastError.category === "range"
+          error instanceof ExportRpcError &&
+          error.category === "range"
         ) {
           const middle = Math.ceil(chunk.length / 2)
           results.push(...(await this.batch<T>(chunk.slice(0, middle), middle)))
           results.push(...(await this.batch<T>(chunk.slice(middle), middle)))
         } else {
-          throw lastError
+          throw error
         }
-      } else {
-        results.push(...ordered)
       }
     }
     return results

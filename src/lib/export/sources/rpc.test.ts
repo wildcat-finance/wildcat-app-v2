@@ -98,6 +98,42 @@ describe("export RPC boundary", () => {
     await expect(rpc.call("eth_blockNumber", [])).rejects.toThrow("wrong chain")
   })
 
+  it("fails over immediately when a provider returns HTTP 429", async () => {
+    const requests: string[] = []
+    jest.spyOn(global, "fetch").mockImplementation(async (input, init) => {
+      const url = String(input)
+      requests.push(url)
+      if (url === "https://limited.example") {
+        return {
+          ok: false,
+          status: 429,
+          headers: new Headers({ "retry-after": "1" }),
+          json: async () => ({}),
+        } as Response
+      }
+      const body = JSON.parse(String(init?.body)) as {
+        id: number
+        method: string
+      }
+      return response({
+        jsonrpc: "2.0",
+        id: body.id,
+        result: body.method === "eth_chainId" ? "0x1" : "0x123",
+      }) as never
+    })
+
+    const rpc = new ExportRpcClient(1, [
+      "https://limited.example",
+      "https://healthy.example",
+    ])
+    await expect(rpc.call("eth_blockNumber", [])).resolves.toBe("0x123")
+    expect(requests).toEqual([
+      "https://limited.example",
+      "https://healthy.example",
+      "https://healthy.example",
+    ])
+  })
+
   it("bisects only provider-declared range failures", async () => {
     let logCalls = 0
     jest.spyOn(global, "fetch").mockImplementation(async (_url, init) => {
