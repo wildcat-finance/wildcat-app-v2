@@ -69,7 +69,7 @@ async function discoverMetadata(
   chainId: ExportChainId,
   address: string,
   snapshotBlock: number,
-  registryData?: { controller: string; removedAtBlock?: number },
+  registryData?: { controller?: string; removedAtBlock?: number },
 ): Promise<MarketMetadata> {
   const [version, borrower, feeRecipient, name, symbol, assetAddress] =
     await Promise.all([
@@ -118,6 +118,79 @@ async function discoverMetadata(
     assetDecimals: Number(assetDecimals),
     deploymentBlock,
   }
+}
+
+async function loadMarketMetadata(
+  rpc: ExportRpc,
+  chainId: ExportChainId,
+  snapshotBlock: number,
+  addresses: string[],
+  registryData: Map<string, { controller?: string; removedAtBlock?: number }>,
+  marketAddedLayout: MarketUniverse["marketAddedLayout"],
+  allowV1Exclusion: boolean,
+): Promise<MarketUniverse> {
+  const metadata = await Promise.all(
+    addresses.map((address) =>
+      discoverMetadata(
+        rpc,
+        chainId,
+        address,
+        snapshotBlock,
+        registryData.get(address),
+      ),
+    ),
+  )
+  const excludedV1 = metadata
+    .filter((market) => /^1(?:\.0)?$/.test(market.version))
+    .map((market) => market.address)
+  const unknown = metadata.filter(
+    (market) => !/^[12](?:\.0)?$/.test(market.version),
+  )
+  if (unknown.length > 0) {
+    throw new Error(
+      `Unsupported market versions: ${unknown
+        .map((market) => `${market.address} (${market.version})`)
+        .join(", ")}`,
+    )
+  }
+  if (!allowV1Exclusion && excludedV1.length > 0) {
+    throw new Error(`V1 markets are not supported: ${excludedV1.join(", ")}`)
+  }
+  return {
+    markets: metadata.filter((market) => /^2(?:\.0)?$/.test(market.version)),
+    excludedV1,
+    marketAddedLayout,
+  }
+}
+
+async function areCurrentlyRegistered(
+  rpc: ExportRpc,
+  archController: string,
+  snapshotBlock: number,
+  addresses: string[],
+) {
+  const responses = await rpc.batch<string>(
+    addresses.map((address) => ({
+      method: "eth_call",
+      params: [
+        {
+          to: archController,
+          data: archControllerInterface.encodeFunctionData(
+            "isRegisteredMarket",
+            [address],
+          ),
+        },
+        toBlockHex(snapshotBlock),
+      ],
+    })),
+  )
+  return responses.every(
+    (response) =>
+      archControllerInterface.decodeFunctionResult(
+        "isRegisteredMarket",
+        response,
+      )[0] === true,
+  )
 }
 
 async function validateDeploymentSources(
@@ -201,6 +274,25 @@ export async function discoverMarketUniverse(
   if (!archController)
     throw new Error(`No ArchController deployment for chain ${chainId}`)
 
+  const selected =
+    selection === "all"
+      ? undefined
+      : [...new Set(selection.map(normalizeAddress))].sort()
+  if (
+    selected &&
+    (await areCurrentlyRegistered(rpc, archController, snapshotBlock, selected))
+  ) {
+    return loadMarketMetadata(
+      rpc,
+      chainId,
+      snapshotBlock,
+      selected,
+      new Map(),
+      "none",
+      false,
+    )
+  }
+
   const archDeploymentBlock = await rpc.findDeploymentBlock(
     archController,
     snapshotBlock,
@@ -222,7 +314,7 @@ export async function discoverMarketUniverse(
 
   const universe = new Map<
     string,
-    { controller: string; removedAtBlock?: number }
+    { controller?: string; removedAtBlock?: number }
   >()
   let marketAddedLayout: MarketUniverse["marketAddedLayout"] = "none"
   for (const log of addedLogs) {
@@ -272,9 +364,7 @@ export async function discoverMarketUniverse(
   )
 
   const requested =
-    selection === "all"
-      ? [...universe.keys()].sort()
-      : [...new Set(selection.map(normalizeAddress))].sort()
+    selection === "all" ? [...universe.keys()].sort() : selected!
   for (const address of requested) {
     if (!universe.has(address)) {
       throw new Error(
@@ -283,40 +373,15 @@ export async function discoverMarketUniverse(
     }
   }
 
-  const metadata = await Promise.all(
-    requested.map((address) =>
-      discoverMetadata(
-        rpc,
-        chainId,
-        address,
-        snapshotBlock,
-        universe.get(address),
-      ),
-    ),
-  )
-
-  const excludedV1 = metadata
-    .filter((market) => /^1(?:\.0)?$/.test(market.version))
-    .map((market) => market.address)
-  const unknown = metadata.filter(
-    (market) => !/^[12](?:\.0)?$/.test(market.version),
-  )
-  if (unknown.length > 0) {
-    throw new Error(
-      `Unsupported market versions: ${unknown
-        .map((market) => `${market.address} (${market.version})`)
-        .join(", ")}`,
-    )
-  }
-  if (selection !== "all" && excludedV1.length > 0) {
-    throw new Error(`V1 markets are not supported: ${excludedV1.join(", ")}`)
-  }
-
-  return {
-    markets: metadata.filter((market) => /^2(?:\.0)?$/.test(market.version)),
-    excludedV1,
+  return loadMarketMetadata(
+    rpc,
+    chainId,
+    snapshotBlock,
+    requested,
+    universe,
     marketAddedLayout,
-  }
+    selection === "all",
+  )
 }
 
 export async function resolveSnapshotBlock(rpc: ExportRpc, requested?: string) {
