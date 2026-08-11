@@ -42,11 +42,11 @@ const amount = (dataset: MarketDataset, value: bigint) =>
     dataset.market.assetSymbol
   }`
 
-const total = (
-  dataset: MarketDataset,
+const transactionTotal = (
+  transactions: MarketDataset["transactions"],
   field: keyof MarketDataset["transactions"][number],
 ) =>
-  dataset.transactions.reduce((sum, row) => {
+  transactions.reduce((sum, row) => {
     const value = row[field]
     return sum + (typeof value === "bigint" ? value : 0n)
   }, 0n)
@@ -73,11 +73,79 @@ const formatDateTime = (timestamp: number) =>
     timeZone: "UTC",
   }).format(new Date(timestamp * 1_000))} UTC`
 
+const isoDate = (timestamp: number) =>
+  new Date(timestamp * 1_000).toISOString().slice(0, 10)
+
+type ReportingPeriod = {
+  startDate: string
+  endDate: string
+  label: string
+  isFullHistory: boolean
+}
+
+const reportingPeriod = (
+  dataset: MarketDataset,
+  request: CanonicalExportRequest,
+): ReportingPeriod => {
+  const deploymentDate =
+    dataset.dailySeries[0]?.date_utc ??
+    isoDate(dataset.events[0]?.timestamp ?? dataset.snapshotTimestamp)
+  const snapshotDate = isoDate(dataset.snapshotTimestamp)
+  const startDate = [request.dateFrom ?? deploymentDate, deploymentDate]
+    .sort()
+    .at(-1)!
+  const endDate = [request.dateTo ?? snapshotDate, snapshotDate].sort()[0]
+  const isFullHistory = !request.dateFrom && !request.dateTo
+  const requestedCalendarYear = request.dateFrom?.match(/^(\d{4})-01-01$/)?.[1]
+  const isYearToDate =
+    requestedCalendarYear !== undefined &&
+    request.dateTo === `${requestedCalendarYear}-12-31` &&
+    snapshotDate.startsWith(`${requestedCalendarYear}-`) &&
+    request.dateTo > snapshotDate
+
+  return {
+    startDate,
+    endDate,
+    isFullHistory,
+    label: isFullHistory
+      ? "Full history"
+      : `${startDate} to ${endDate}${isYearToDate ? " (year to date)" : ""}`,
+  }
+}
+
+const timestampInPeriod = (timestamp: number, period: ReportingPeriod) => {
+  const date = isoDate(timestamp)
+  return date >= period.startDate && date <= period.endDate
+}
+
+const completeYearInPeriod = (
+  dataset: MarketDataset,
+  year: string,
+  period: ReportingPeriod,
+) => {
+  const datasetStart =
+    dataset.dailySeries[0]?.date_utc ??
+    isoDate(dataset.events[0]?.timestamp ?? dataset.snapshotTimestamp)
+  const availableStart = [datasetStart, `${year}-01-01`].sort().at(-1)!
+  const availableEnd = [
+    isoDate(dataset.snapshotTimestamp),
+    `${year}-12-31`,
+  ].sort()[0]
+  return period.startDate <= availableStart && period.endDate >= availableEnd
+}
+
+const episodeInPeriod = (
+  episode: MarketDataset["manifest"]["delinquencyEpisodes"][number],
+  period: ReportingPeriod,
+) =>
+  isoDate(episode.onsetTimestamp) <= period.endDate &&
+  (!episode.cureTimestamp || isoDate(episode.cureTimestamp) >= period.startDate)
+
 const formatHours = (seconds: number) =>
   `${formatFixed((BigInt(seconds) * 10n + 1_800n) / 3_600n, 1)} hours`
 
-const interestTotal = (dataset: MarketDataset) =>
-  dataset.interestAccruals.reduce(
+const interestTotal = (accruals: MarketDataset["interestAccruals"]) =>
+  accruals.reduce(
     (sum, row) =>
       sum + row.baseInterestAssetsRaw + row.penaltyInterestAssetsRaw,
     0n,
@@ -229,14 +297,36 @@ const commonDefinitions: [string, string][] = [
 
 export function marketConditionStatement(
   dataset: MarketDataset,
+  request: CanonicalExportRequest,
 ): StatementModel {
+  const period = reportingPeriod(dataset, request)
+  const transactions = dataset.transactions.filter((transaction) =>
+    timestampInPeriod(transaction.timestamp, period),
+  )
+  const accruals = dataset.interestAccruals.filter((accrual) =>
+    timestampInPeriod(accrual.periodEnd, period),
+  )
   const daily = latestDaily(dataset)
-  const episodes = dataset.manifest.delinquencyEpisodes
-  const overGrace = episodes.filter((episode) => episode.penaltyTriggered)
-  const withinGrace = episodes.length - overGrace.length
+  const episodes = dataset.manifest.delinquencyEpisodes.filter((episode) =>
+    episodeInPeriod(episode, period),
+  )
+  const exceededGrace = episodes.filter(
+    (episode) => episode.durationSeconds > episode.gracePeriodSeconds,
+  )
+  const withPenaltyInterest = episodes.filter(
+    (episode) => episode.penaltyInterestAssetsRaw > 0n,
+  )
+  const curedWithinGrace = episodes.filter(
+    (episode) =>
+      !episode.isOpen && episode.durationSeconds <= episode.gracePeriodSeconds,
+  )
+  const openWithinGrace = episodes.filter(
+    (episode) =>
+      episode.isOpen && episode.durationSeconds <= episode.gracePeriodSeconds,
+  )
   const lenders = lenderSummary(dataset)
-  const requested = total(dataset, "withdrawalQueuedRaw")
-  const paid = total(dataset, "withdrawalExecutedRaw")
+  const requested = transactionTotal(transactions, "withdrawalQueuedRaw")
+  const paid = transactionTotal(transactions, "withdrawalExecutedRaw")
   const reserves = BigInt(daily.total_assets_held_raw ?? "0")
   const owed = BigInt(daily.outstanding_principal_raw ?? "0")
   const reservePercent =
@@ -247,7 +337,7 @@ export function marketConditionStatement(
   const capacityChanges = dataset.events.filter(
     (event) => event.name === "MaxTotalSupplyUpdated",
   ).length
-  const servicingRepayment = dataset.transactions
+  const servicingRepayment = transactions
     .filter((transaction) =>
       transaction.events.some((event) =>
         event.startsWith("WithdrawalBatchPayment"),
@@ -260,7 +350,7 @@ export function marketConditionStatement(
     )
   return {
     title: "Market Condition Statement",
-    metadata: commonMetadata(dataset),
+    metadata: [...commonMetadata(dataset), ["Reporting period", period.label]],
     lead: `The market owes lenders ${daily.outstanding_principal} ${dataset.market.assetSymbol} and holds ${daily.total_assets_held} ${dataset.market.assetSymbol} in liquid reserves (${reservePercent}% of the amount owed).`,
     sections: [
       {
@@ -301,33 +391,44 @@ export function marketConditionStatement(
         ],
       },
       {
-        title: "History that matters",
+        title: period.isFullHistory
+          ? "History that matters"
+          : "History in the reporting period",
         blocks: [
           {
             type: "paragraph",
-            text: `Delinquency: ${
-              episodes.length
-            } episode(s). ${withinGrace} cured within the ${
+            text: `Delinquency: ${episodes.length} episode(s)${
+              period.isFullHistory ? "." : " overlapped the reporting period."
+            } ${curedWithinGrace.length} cured within the ${
               daily.grace_period_hours
-            }-hour grace period; ${overGrace.length} activated the ${
-              daily.penalty_apr_pct_nominal
-            }% penalty rate${
-              overGrace.length
-                ? ` (${overGrace
+            }-hour grace period; ${
+              exceededGrace.length
+            } ran longer than the grace period; ${
+              withPenaltyInterest.length
+            } included ${daily.penalty_apr_pct_nominal}% penalty-rate accrual${
+              withPenaltyInterest.length
+                ? ` (${withPenaltyInterest
                     .map((episode) => formatHours(episode.durationSeconds))
                     .join(", ")})`
                 : ""
-            }.`,
+            }.${
+              openWithinGrace.length
+                ? ` ${openWithinGrace.length} remained open within the grace period at the snapshot.`
+                : ""
+            }`,
           },
           {
             type: "paragraph",
-            text: `Withdrawals: lenders requested ${amount(
+            text: `Withdrawals${
+              period.isFullHistory ? "" : " during the reporting period"
+            }: lenders requested ${amount(
               dataset,
               requested,
-            )} and were paid ${amount(
-              dataset,
-              paid,
-            )}. The difference includes interest earned while requests waited and any still-unpaid requests.${
+            )} and were paid ${amount(dataset, paid)}.${
+              period.isFullHistory
+                ? " The difference includes interest earned while requests waited and any still-unpaid requests."
+                : " Period payments can settle earlier requests, and period requests can be paid later."
+            }${
               servicingRepayment > 0n
                 ? ` The largest repayment made while servicing a withdrawal batch was ${amount(
                     dataset,
@@ -338,30 +439,33 @@ export function marketConditionStatement(
           },
           {
             type: "table",
-            headers: ["Lifetime flow", dataset.market.assetSymbol],
+            headers: [
+              period.isFullHistory ? "Lifetime flow" : "Reporting-period flow",
+              dataset.market.assetSymbol,
+            ],
             rows: [
               [
                 "Deposits received",
-                amount(dataset, total(dataset, "depositedRaw")),
+                amount(dataset, transactionTotal(transactions, "depositedRaw")),
               ],
               [
                 "Drawn by borrower",
-                amount(dataset, total(dataset, "borrowedRaw")),
+                amount(dataset, transactionTotal(transactions, "borrowedRaw")),
               ],
               [
                 "Repaid by borrower",
-                amount(dataset, total(dataset, "repaidRaw")),
+                amount(dataset, transactionTotal(transactions, "repaidRaw")),
               ],
               ["Paid to lenders", amount(dataset, paid)],
               [
                 "Interest recorded at market updates",
-                amount(dataset, interestTotal(dataset)),
+                amount(dataset, interestTotal(accruals)),
               ],
             ],
           },
           {
             type: "paragraph",
-            text: `${dataset.manifest.excludedTransfers.length} unrelated foreign-token transfer(s) were quarantined and excluded from every figure; data/manifest.json lists each one.`,
+            text: `${dataset.manifest.excludedTransfers.length} unrelated foreign-token transfer(s) across the complete market history were quarantined and excluded from every figure; data/manifest.json lists each one.`,
           },
         ],
       },
@@ -388,24 +492,9 @@ export function marketConditionStatement(
 const monthKey = (timestamp: number) =>
   new Date(timestamp * 1_000).toISOString().slice(0, 7)
 
-function borrowerMonthlyRows(
-  dataset: MarketDataset,
-  request: CanonicalExportRequest,
-) {
-  const deploymentMonth = monthKey(
-    dataset.events[0]?.timestamp ?? dataset.snapshotTimestamp,
-  )
-  const snapshotMonth = monthKey(dataset.snapshotTimestamp)
-  const first = [
-    request.dateFrom?.slice(0, 7) ?? deploymentMonth,
-    deploymentMonth,
-  ]
-    .sort()
-    .at(-1)!
-  const last = [
-    request.dateTo?.slice(0, 7) ?? snapshotMonth,
-    snapshotMonth,
-  ].sort()[0]
+function borrowerMonthlyRows(dataset: MarketDataset, period: ReportingPeriod) {
+  const first = period.startDate.slice(0, 7)
+  const last = period.endDate.slice(0, 7)
   const months: string[] = []
   const cursor = new Date(`${first}-01T00:00:00Z`)
   const end = new Date(`${last}-01T00:00:00Z`)
@@ -415,10 +504,14 @@ function borrowerMonthlyRows(
   }
   return months.map((month) => {
     const transactions = dataset.transactions.filter(
-      (row) => monthKey(row.timestamp) === month,
+      (row) =>
+        monthKey(row.timestamp) === month &&
+        timestampInPeriod(row.timestamp, period),
     )
     const accruals = dataset.interestAccruals.filter(
-      (row) => monthKey(row.periodEnd) === month,
+      (row) =>
+        monthKey(row.periodEnd) === month &&
+        timestampInPeriod(row.periodEnd, period),
     )
     const flow = (field: keyof MarketDataset["transactions"][number]) =>
       transactions.reduce((sum, row) => {
@@ -447,16 +540,22 @@ function borrowerMonthlyRows(
   })
 }
 
-const borrowerAnnualRows = (dataset: MarketDataset) => {
+const borrowerAnnualRows = (
+  dataset: MarketDataset,
+  period: ReportingPeriod,
+) => {
+  const periodAccruals = dataset.interestAccruals.filter((row) =>
+    timestampInPeriod(row.periodEnd, period),
+  )
   const years = [
     ...new Set(
-      dataset.interestAccruals.map((row) =>
+      periodAccruals.map((row) =>
         String(new Date(row.periodEnd * 1_000).getUTCFullYear()),
       ),
     ),
   ].sort()
   return years.map((year) => {
-    const accruals = dataset.interestAccruals.filter(
+    const accruals = periodAccruals.filter(
       (row) =>
         String(new Date(row.periodEnd * 1_000).getUTCFullYear()) === year,
     )
@@ -482,31 +581,43 @@ export function borrowerStatement(
   dataset: MarketDataset,
   request: CanonicalExportRequest,
 ): StatementModel {
+  const period = reportingPeriod(dataset, request)
+  const transactions = dataset.transactions.filter((transaction) =>
+    timestampInPeriod(transaction.timestamp, period),
+  )
+  const accruals = dataset.interestAccruals.filter((accrual) =>
+    timestampInPeriod(accrual.periodEnd, period),
+  )
   const daily = latestDaily(dataset)
   const lenders = lenderSummary(dataset)
-  const fees = dataset.interestAccruals.reduce(
-    (sum, row) => sum + row.protocolFeesRaw,
-    0n,
+  const fees = accruals.reduce((sum, row) => sum + row.protocolFeesRaw, 0n)
+  const episodes = dataset.manifest.delinquencyEpisodes.filter((episode) =>
+    episodeInPeriod(episode, period),
   )
-  const episodes = dataset.manifest.delinquencyEpisodes
+  const excludedTransfers = dataset.manifest.excludedTransfers.filter((row) => {
+    const timestamp = row.timestamp_utc
+    return (
+      typeof timestamp === "string" &&
+      timestamp.slice(0, 10) >= period.startDate &&
+      timestamp.slice(0, 10) <= period.endDate
+    )
+  })
+  const failedTransactions = transactions.filter(
+    (row) => row.status === "failed",
+  )
   return {
     title: "Borrower Market Statement",
     metadata: [
       ...commonMetadata(dataset),
       ["Prepared for", "Borrower"],
-      [
-        "Period",
-        request.dateFrom || request.dateTo
-          ? `${request.dateFrom ?? "market creation"} to ${
-              request.dateTo ?? formatDate(dataset.snapshotTimestamp)
-            }`
-          : "Full history",
-      ],
+      ["Period", period.label],
     ],
     lead: `You currently owe lenders ${daily.outstanding_principal} ${dataset.market.assetSymbol}. The market holds ${daily.total_assets_held} ${dataset.market.assetSymbol} in liquid reserves.`,
     sections: [
       {
-        title: "Activity since market creation",
+        title: period.isFullHistory
+          ? "Activity since market creation"
+          : "Activity in the reporting period",
         blocks: [
           {
             type: "table",
@@ -514,21 +625,38 @@ export function borrowerStatement(
             rows: [
               [
                 "Deposits received",
-                amount(dataset, total(dataset, "depositedRaw")),
+                amount(dataset, transactionTotal(transactions, "depositedRaw")),
               ],
-              ["Loans drawn", amount(dataset, total(dataset, "borrowedRaw"))],
-              ["Repayments", amount(dataset, total(dataset, "repaidRaw"))],
+              [
+                "Loans drawn",
+                amount(dataset, transactionTotal(transactions, "borrowedRaw")),
+              ],
+              [
+                "Repayments",
+                amount(dataset, transactionTotal(transactions, "repaidRaw")),
+              ],
               [
                 "Paid to lenders",
-                amount(dataset, total(dataset, "withdrawalExecutedRaw")),
+                amount(
+                  dataset,
+                  transactionTotal(transactions, "withdrawalExecutedRaw"),
+                ),
               ],
               [
                 "Interest recorded at market updates",
-                amount(dataset, interestTotal(dataset)),
+                amount(dataset, interestTotal(accruals)),
               ],
               ["Protocol fees recorded", amount(dataset, fees)],
             ],
           },
+          ...(period.isFullHistory
+            ? []
+            : [
+                {
+                  type: "paragraph" as const,
+                  text: "Complete-history totals remain available in data/manifest.json and the full-history CSV files.",
+                },
+              ]),
         ],
       },
       {
@@ -545,12 +673,14 @@ export function borrowerStatement(
               "Interest recorded",
               "Time-weighted base APR",
             ],
-            rows: borrowerMonthlyRows(dataset, request),
+            rows: borrowerMonthlyRows(dataset, period),
           },
         ],
       },
       {
-        title: "Obligations by calendar year",
+        title: period.isFullHistory
+          ? "Obligations by calendar year"
+          : "Obligations in the reporting period",
         blocks: [
           {
             type: "table",
@@ -559,7 +689,7 @@ export function borrowerStatement(
               "Lender interest recorded",
               "Protocol fees recorded",
             ],
-            rows: borrowerAnnualRows(dataset),
+            rows: borrowerAnnualRows(dataset, period),
           },
         ],
       },
@@ -568,22 +698,26 @@ export function borrowerStatement(
         blocks: [
           {
             type: "paragraph",
-            text: `${episodes.length} delinquency episode(s); ${
-              episodes.filter((episode) => episode.penaltyTriggered).length
-            } exceeded the grace period and activated penalty interest.`,
+            text: `${episodes.length} delinquency episode(s)${
+              period.isFullHistory ? "" : " overlapped the reporting period"
+            }; ${
+              episodes.filter(
+                (episode) =>
+                  episode.durationSeconds > episode.gracePeriodSeconds,
+              ).length
+            } ran longer than the grace period and ${
+              episodes.filter(
+                (episode) => episode.penaltyInterestAssetsRaw > 0n,
+              ).length
+            } included penalty interest.`,
           },
           {
             type: "paragraph",
-            text: `${lenders.depositors} addresses deposited directly, ${lenders.holders} addresses held a position through a deposit or transfer, and ${lenders.active} currently hold market tokens.`,
+            text: `Across the market's complete history, ${lenders.depositors} addresses deposited directly and ${lenders.holders} addresses held a position through a deposit or transfer; ${lenders.active} currently hold market tokens.`,
           },
           {
             type: "paragraph",
-            text: `${
-              dataset.manifest.excludedTransfers.length
-            } unrelated foreign-token transfer(s) were excluded. ${
-              dataset.transactions.filter((row) => row.status === "failed")
-                .length
-            } reverted direct market call(s) remain visible with empty flow fields.`,
+            text: `${excludedTransfers.length} unrelated foreign-token transfer(s) in the reporting period were excluded. ${failedTransactions.length} reverted direct market call(s) in the reporting period remain visible with empty flow fields.`,
           },
           {
             type: "paragraph",
@@ -624,6 +758,7 @@ export function positionStatement(
   position: PositionSummary,
   request: CanonicalExportRequest,
 ): StatementModel {
+  const period = reportingPeriod(dataset, request)
   const daily = latestDaily(dataset)
   const totalSupply = BigInt(daily.outstanding_principal_raw ?? "0")
   const share =
@@ -644,11 +779,7 @@ export function positionStatement(
       (event) =>
         (event.participant === position.address ||
           event.counterparty === position.address) &&
-        (!request.dateFrom ||
-          event.timestamp >=
-            Date.parse(`${request.dateFrom}T00:00:00Z`) / 1_000) &&
-        (!request.dateTo ||
-          event.timestamp <= Date.parse(`${request.dateTo}T23:59:59Z`) / 1_000),
+        timestampInPeriod(event.timestamp, period),
     )
     .filter((event) =>
       [
@@ -668,6 +799,7 @@ export function positionStatement(
       event.amountRaw === undefined ? "" : amount(dataset, event.amountRaw),
     ])
   const annual = Object.entries(position.annualEarnings)
+    .filter(([year]) => completeYearInPeriod(dataset, year, period))
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([year, value]) => [year, amount(dataset, value)])
   const principalIn =
@@ -698,6 +830,7 @@ export function positionStatement(
         "Position opened",
         opened ? formatDate(opened.timestamp) : "No activity",
       ],
+      ["Reporting period", period.label],
     ],
     lead: `Your total position is currently worth ${amount(
       dataset,
@@ -724,7 +857,16 @@ export function positionStatement(
           {
             type: "table",
             headers: ["Calendar year", "Earnings"],
-            rows: annual.length ? annual : [["—", "No earnings activity"]],
+            rows: annual.length
+              ? annual
+              : [
+                  [
+                    "—",
+                    period.isFullHistory
+                      ? "No earnings activity"
+                      : "No complete calendar year in this reporting period",
+                  ],
+                ],
           },
           {
             type: "table",
@@ -763,7 +905,9 @@ export function positionStatement(
         ],
       },
       {
-        title: "Your activity",
+        title: period.isFullHistory
+          ? "Your activity"
+          : "Your activity in the reporting period",
         blocks: [
           {
             type: "table",

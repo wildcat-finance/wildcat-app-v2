@@ -19,6 +19,7 @@ import { fromHex } from "./sources/rpc"
 import {
   borrowerStatement,
   marketConditionStatement,
+  positionStatement,
   renderPdf,
 } from "./statements/render"
 import { CanonicalExportRequest, MarketDataset } from "./types"
@@ -251,8 +252,70 @@ describe("recorded reference market A", () => {
     }
   }, 120_000)
 
+  it("applies a calendar-year reporting period consistently", () => {
+    const yearToDateRequest: CanonicalExportRequest = {
+      ...request,
+      dateFrom: "2026-01-01",
+      dateTo: "2026-12-31",
+    }
+    const borrower = borrowerStatement(dataset, yearToDateRequest)
+    const condition = marketConditionStatement(dataset, yearToDateRequest)
+    const position = positionStatement(
+      dataset,
+      dataset.positions[POSITION],
+      yearToDateRequest,
+    )
+    const periodLabel = "2026-01-01 to 2026-07-28 (year to date)"
+
+    expect(borrower.metadata).toContainEqual(["Period", periodLabel])
+    expect(condition.metadata).toContainEqual(["Reporting period", periodLabel])
+    expect(position.metadata).toContainEqual(["Reporting period", periodLabel])
+
+    const borrowerActivity = borrower.sections.find(
+      (section) => section.title === "Activity in the reporting period",
+    )
+    const borrowerActivityRows = borrowerActivity?.blocks.flatMap((block) =>
+      block.type === "table" ? block.rows : [],
+    )
+    expect(borrowerActivityRows).toContainEqual(["Loans drawn", "2800000 USDC"])
+
+    const borrowerAnnual = borrower.sections.find(
+      (section) => section.title === "Obligations in the reporting period",
+    )
+    const borrowerAnnualRows = borrowerAnnual?.blocks.flatMap((block) =>
+      block.type === "table" ? block.rows : [],
+    )
+    expect(borrowerAnnualRows).toHaveLength(1)
+    expect(borrowerAnnualRows?.[0]?.[0]).toBe("2026")
+
+    const borrowerNotes = borrower.sections.find(
+      (section) => section.title === "Things worth knowing",
+    )
+    expect(
+      borrowerNotes?.blocks.find((block) => block.type === "paragraph"),
+    ).toMatchObject({
+      text: expect.stringContaining(
+        "3 delinquency episode(s) overlapped the reporting period",
+      ),
+    })
+
+    const conditionHistory = condition.sections.find(
+      (section) => section.title === "History in the reporting period",
+    )
+    const conditionRows = conditionHistory?.blocks.flatMap((block) =>
+      block.type === "table" ? block.rows : [],
+    )
+    expect(conditionRows).toContainEqual(["Drawn by borrower", "2800000 USDC"])
+
+    const positionAnnual = position.sections
+      .find((section) => section.title === "What you have earned")
+      ?.blocks.flatMap((block) => (block.type === "table" ? block.rows : []))
+      .filter((row) => /^20\d{2}$/.test(row[0]))
+    expect(positionAnnual?.map(([year]) => year)).toEqual(["2026"])
+  })
+
   it("renders the same PDF model to identical bytes twice", async () => {
-    const model = marketConditionStatement(dataset)
+    const model = marketConditionStatement(dataset, request)
     const first = await renderPdf(model, dataset.snapshotTimestamp)
     const second = await renderPdf(model, dataset.snapshotTimestamp)
     expect(first).toEqual(second)

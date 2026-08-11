@@ -566,7 +566,7 @@ export async function buildExportBundle(
     if (request.statements.includes("market_condition")) {
       await addStatement(
         `market_condition_${dataset.market.address}`,
-        marketConditionStatement(dataset),
+        marketConditionStatement(dataset, request),
       )
     }
     if (request.statements.includes("borrower")) {
