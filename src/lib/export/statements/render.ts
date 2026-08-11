@@ -151,7 +151,8 @@ const lenderSummary = (dataset: MarketDataset) => {
       : formatFixed((largest * 1_000n + totalScaled / 2n) / totalScaled, 1)
   return {
     active: active.length,
-    allTime: depositors.size,
+    holders: balances.size,
+    depositors: depositors.size,
     largestShare,
   }
 }
@@ -178,11 +179,15 @@ const commonDefinitions: [string, string][] = [
   ],
   ["Position value", "The current on-chain value of market tokens."],
   [
+    "Pending withdrawal value",
+    "The funded claim plus the current value of market tokens still waiting in a withdrawal batch.",
+  ],
+  [
     "Principal",
     "Deposited value before earned interest, allocated proportionally when money leaves.",
   ],
   [
-    "Interest accrued",
+    "Interest",
     "The increase in lender debt produced by the market scale factor.",
   ],
   ["Delinquent", "Liquid reserves are below the required reserve ratio."],
@@ -214,6 +219,11 @@ const commonDefinitions: [string, string][] = [
   [
     "Earnings",
     "Current value and payouts above acquired principal under the stated convention.",
+  ],
+  ["Depositor", "An address that supplied underlying assets directly."],
+  [
+    "Position holder",
+    "An address that held market tokens, whether by deposit or transfer.",
   ],
 ]
 
@@ -277,7 +287,7 @@ export function marketConditionStatement(
               ],
               [
                 "Lenders",
-                `${lenders.active} active, ${lenders.allTime} all-time; largest position ${lenders.largestShare}%`,
+                `${lenders.active} active; ${lenders.holders} addresses held a position and ${lenders.depositors} deposited directly; largest active position ${lenders.largestShare}%`,
               ],
             ],
           },
@@ -344,7 +354,7 @@ export function marketConditionStatement(
               ],
               ["Paid to lenders", amount(dataset, paid)],
               [
-                "Interest accrued to lenders",
+                "Interest recorded at market updates",
                 amount(dataset, interestTotal(dataset)),
               ],
             ],
@@ -356,7 +366,22 @@ export function marketConditionStatement(
         ],
       },
     ],
-    definitions: commonDefinitions,
+    definitions: commonDefinitions.filter(([term]) =>
+      [
+        "Owed to lenders",
+        "Liquid reserves",
+        "APR",
+        "Position value",
+        "Delinquent",
+        "Penalty rate",
+        "Grace period",
+        "Capacity",
+        "Withdrawal batch",
+        "Open withdrawal claims",
+        "Depositor",
+        "Position holder",
+      ].includes(term),
+    ),
   }
 }
 
@@ -497,8 +522,11 @@ export function borrowerStatement(
                 "Paid to lenders",
                 amount(dataset, total(dataset, "withdrawalExecutedRaw")),
               ],
-              ["Interest accrued", amount(dataset, interestTotal(dataset))],
-              ["Protocol fees accrued", amount(dataset, fees)],
+              [
+                "Interest recorded at market updates",
+                amount(dataset, interestTotal(dataset)),
+              ],
+              ["Protocol fees recorded", amount(dataset, fees)],
             ],
           },
         ],
@@ -514,7 +542,7 @@ export function borrowerStatement(
               "Repaid",
               "Lender deposits",
               "Paid to lenders",
-              "Interest accrued",
+              "Interest recorded",
               "Time-weighted base APR",
             ],
             rows: borrowerMonthlyRows(dataset, request),
@@ -528,8 +556,8 @@ export function borrowerStatement(
             type: "table",
             headers: [
               "Year",
-              "Lender interest accrued",
-              "Protocol fees accrued",
+              "Lender interest recorded",
+              "Protocol fees recorded",
             ],
             rows: borrowerAnnualRows(dataset),
           },
@@ -546,7 +574,7 @@ export function borrowerStatement(
           },
           {
             type: "paragraph",
-            text: `${lenders.allTime} addresses deposited over the market's life and ${lenders.active} currently hold a position.`,
+            text: `${lenders.depositors} addresses deposited directly, ${lenders.holders} addresses held a position through a deposit or transfer, and ${lenders.active} currently hold market tokens.`,
           },
           {
             type: "paragraph",
@@ -580,6 +608,10 @@ export function borrowerStatement(
         "Fees accrued to the protocol fee recipient rather than lenders.",
       ],
       [
+        "Recorded interest and fees",
+        "Amounts emitted by market accrual events. The current amount owed also includes interest accumulated after the latest event through the statement snapshot.",
+      ],
+      [
         "Time-weighted APR",
         "The annualised rate weighted by the seconds each rate applied during the period.",
       ],
@@ -602,7 +634,11 @@ export function positionStatement(
           1,
         )
   const interestPaid = position.payoutsRaw - position.principalReturnedRaw
-  const interestInvested = position.earningsRaw - interestPaid
+  const interestTransferred =
+    position.marketTokensTransferredOutRaw - position.principalTransferredOutRaw
+  const activeInterest = position.currentValueRaw - position.activePrincipalRaw
+  const pendingInterest =
+    position.pendingWithdrawalValueRaw - position.pendingWithdrawalPrincipalRaw
   const activities = dataset.events
     .filter(
       (event) =>
@@ -663,16 +699,16 @@ export function positionStatement(
         opened ? formatDate(opened.timestamp) : "No activity",
       ],
     ],
-    lead: `Your position is currently worth ${amount(
+    lead: `Your total position is currently worth ${amount(
       dataset,
-      position.currentValueRaw,
+      position.totalPositionValueRaw,
     )}: ${amount(
       dataset,
-      position.principalStillInvestedRaw,
-    )} of principal plus ${amount(
+      position.currentValueRaw,
+    )} in active market tokens and ${amount(
       dataset,
-      interestInvested,
-    )} of earnings still invested. You hold ${share}% of this market.`,
+      position.pendingWithdrawalValueRaw,
+    )} in pending withdrawal claims. Your active market tokens represent ${share}% of the current market-token supply.`,
     sections: [
       {
         title: "What you have earned",
@@ -694,8 +730,34 @@ export function positionStatement(
             type: "table",
             headers: ["Earnings split", dataset.market.assetSymbol],
             rows: [
-              ["Already paid out", amount(dataset, interestPaid)],
-              ["Still invested", amount(dataset, interestInvested)],
+              ["Paid out in cash", amount(dataset, interestPaid)],
+              [
+                "Transferred with market tokens",
+                amount(dataset, interestTransferred),
+              ],
+              [
+                "Still in active market tokens",
+                amount(dataset, activeInterest),
+              ],
+              [
+                "In pending withdrawal claims",
+                amount(dataset, pendingInterest),
+              ],
+            ],
+          },
+          {
+            type: "table",
+            headers: ["Principal status", dataset.market.assetSymbol],
+            rows: [
+              ["Active", amount(dataset, position.activePrincipalRaw)],
+              [
+                "Pending withdrawal",
+                amount(dataset, position.pendingWithdrawalPrincipalRaw),
+              ],
+              [
+                "Still invested in total",
+                amount(dataset, position.principalStillInvestedRaw),
+              ],
             ],
           },
         ],
@@ -747,8 +809,16 @@ export function positionStatement(
         "Withdrawal proceeds above the principal proportion allocated to that payout.",
       ],
       [
-        "Earnings still invested",
-        "Total earnings less the earnings proportion already paid out.",
+        "Earnings transferred",
+        "Value above allocated principal embodied in market tokens sent to another address; it is not a cash payment.",
+      ],
+      [
+        "Earnings still active",
+        "Current active market-token value above the principal allocated to those tokens.",
+      ],
+      [
+        "Earnings pending withdrawal",
+        "Current pending claim value above the principal allocated to that claim.",
       ],
       [
         "Transfer",
@@ -764,8 +834,8 @@ export function positionStatement(
 
 const A4_WIDTH = 595.28
 const A4_HEIGHT = 841.89
-const PDF_MARGIN = 48
-const PDF_FOOTER_HEIGHT = 28
+const PDF_MARGIN = 38
+const PDF_FOOTER_HEIGHT = 18
 const PDF_TEXT = rgb(0.09, 0.09, 0.11)
 const PDF_MUTED = rgb(0.37, 0.39, 0.44)
 const PDF_RULE = rgb(0.86, 0.87, 0.89)
@@ -888,13 +958,13 @@ export async function renderPdf(model: StatementModel, timestamp: number) {
   }
   const drawHeading = (text: string) => {
     // Keep a heading with enough room for the first paragraph or table rows.
-    ensureSpace(85)
-    y -= 8
+    ensureSpace(68)
+    y -= 4
     drawParagraph(text, {
       font: bold,
-      size: 15,
-      lineHeight: 18,
-      after: 5,
+      size: 14,
+      lineHeight: 17,
+      after: 3,
     })
   }
   const drawTable = (headers: string[], rows: string[][]) => {
@@ -903,7 +973,7 @@ export async function renderPdf(model: StatementModel, timestamp: number) {
     if (headers.length <= 2) fontSize = 8.5
     else if (headers.length <= 4) fontSize = 7.5
     const headerSize = Math.max(6, fontSize - 0.5)
-    const padding = 4
+    const padding = 3
     const layoutRow = (cells: string[], header: boolean) => {
       const font = header ? bold : regular
       const size = header ? headerSize : fontSize
@@ -966,26 +1036,26 @@ export async function renderPdf(model: StatementModel, timestamp: number) {
       }
       drawRow(cells, row, false)
     }
-    y -= 7
+    y -= 4
   }
 
   drawParagraph(model.title, {
     font: bold,
-    size: 22,
-    lineHeight: 27,
-    after: 7,
+    size: 20,
+    lineHeight: 24,
+    after: 5,
   })
   model.metadata.forEach(([label, value]) =>
     drawParagraph(`${label}: ${value}`, {
-      size: 9,
-      lineHeight: 12,
+      size: 8.5,
+      lineHeight: 10.5,
       color: PDF_MUTED,
     }),
   )
-  y -= 10
+  y -= 6
 
-  const leadLines = wrapPdfText(model.lead, regular, 11.5, contentWidth - 20)
-  const leadHeight = leadLines.length * 16 + 20
+  const leadLines = wrapPdfText(model.lead, regular, 10.5, contentWidth - 16)
+  const leadHeight = leadLines.length * 14 + 14
   ensureSpace(leadHeight)
   page.drawRectangle({
     x: PDF_MARGIN,
@@ -996,10 +1066,10 @@ export async function renderPdf(model: StatementModel, timestamp: number) {
   })
   drawLines(leadLines, {
     font: regular,
-    size: 11.5,
-    lineHeight: 16,
-    x: PDF_MARGIN + 10,
-    after: 20,
+    size: 10.5,
+    lineHeight: 14,
+    x: PDF_MARGIN + 8,
+    after: 14,
   })
 
   model.sections.forEach((section) => {
@@ -1008,9 +1078,9 @@ export async function renderPdf(model: StatementModel, timestamp: number) {
       if (block.type === "paragraph") {
         drawParagraph(block.text, {
           font: block.emphasis ? bold : regular,
-          size: block.emphasis ? 11 : 10,
-          lineHeight: block.emphasis ? 15 : 14,
-          after: 7,
+          size: block.emphasis ? 10.5 : 9.5,
+          lineHeight: block.emphasis ? 13.5 : 12.5,
+          after: 4,
         })
       } else {
         drawTable(block.headers, block.rows)
@@ -1021,28 +1091,28 @@ export async function renderPdf(model: StatementModel, timestamp: number) {
   drawHeading("Definitions")
   model.definitions.forEach(([term, definition]) => {
     drawParagraph(`${term}: ${definition}`, {
-      size: 8.5,
-      lineHeight: 12,
+      size: 7.8,
+      lineHeight: 10,
       color: PDF_MUTED,
-      after: 4,
+      after: 2,
     })
   })
-  y -= 6
+  y -= 3
   drawParagraph(
     "Every figure uses the same ledger as the accompanying data/ files.",
-    { size: 9, lineHeight: 12, after: 8 },
+    { size: 8.5, lineHeight: 11, after: 5 },
   )
-  ensureSpace(34)
+  ensureSpace(28)
   page.drawLine({
     start: { x: PDF_MARGIN, y },
     end: { x: PDF_MARGIN + contentWidth, y },
     thickness: 0.5,
     color: PDF_RULE,
   })
-  y -= 9
+  y -= 6
   drawParagraph(
     "This statement is an informational summary of public on-chain data. Wildcat does not provide tax, accounting, or investment advice; consult your own advisor.",
-    { size: 7.5, lineHeight: 10, color: PDF_MUTED },
+    { size: 7, lineHeight: 9, color: PDF_MUTED },
   )
 
   const pages = document.getPages()
@@ -1050,7 +1120,7 @@ export async function renderPdf(model: StatementModel, timestamp: number) {
     const label = `Page ${index + 1} of ${pages.length}`
     pdfPage.drawText(label, {
       x: A4_WIDTH - PDF_MARGIN - regular.widthOfTextAtSize(label, 7.5),
-      y: PDF_MARGIN - 2,
+      y: PDF_MARGIN - 5,
       font: regular,
       size: 7.5,
       color: PDF_MUTED,

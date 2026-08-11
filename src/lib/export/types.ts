@@ -153,11 +153,15 @@ export type PositionSummary = {
   address: string
   depositsRaw: bigint
   principalAcquiredByTransferRaw: bigint
+  activePrincipalRaw: bigint
+  pendingWithdrawalPrincipalRaw: bigint
   principalStillInvestedRaw: bigint
   principalReturnedRaw: bigint
   principalTransferredOutRaw: bigint
   marketTokensTransferredOutRaw: bigint
   currentValueRaw: bigint
+  pendingWithdrawalValueRaw: bigint
+  totalPositionValueRaw: bigint
   payoutsRaw: bigint
   earningsRaw: bigint
   scaledBalanceRaw: bigint

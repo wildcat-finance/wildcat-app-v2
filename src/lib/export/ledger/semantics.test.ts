@@ -85,8 +85,12 @@ describe("protocol event semantics", () => {
 
   it("removes phishing links and control characters from foreign symbols", () => {
     expect(sanitizeTokenSymbol("\u0000USDC https://evil.example/x\u0007")).toBe(
-      "USDC [link removed]",
+      "[unsafe symbol removed]",
     )
+    expect(sanitizeTokenSymbol("USDC ｖｉｓｉｔ evil . com")).toBe(
+      "[unsafe symbol removed]",
+    )
+    expect(sanitizeTokenSymbol("ＵＳＤＣ")).toBe("USDC")
   })
 
   it("distinguishes ERC-20, ERC-721, and malformed transfer logs", () => {

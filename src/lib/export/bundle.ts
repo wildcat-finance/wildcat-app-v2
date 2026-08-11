@@ -467,6 +467,18 @@ export async function buildExportBundle(
                 principal_acquired_by_transfer_raw: String(
                   position.principalAcquiredByTransferRaw,
                 ),
+                active_principal: formatUnits(
+                  position.activePrincipalRaw,
+                  dataset.market.assetDecimals,
+                ),
+                active_principal_raw: String(position.activePrincipalRaw),
+                pending_withdrawal_principal: formatUnits(
+                  position.pendingWithdrawalPrincipalRaw,
+                  dataset.market.assetDecimals,
+                ),
+                pending_withdrawal_principal_raw: String(
+                  position.pendingWithdrawalPrincipalRaw,
+                ),
                 principal_still_invested: formatUnits(
                   position.principalStillInvestedRaw,
                   dataset.market.assetDecimals,
@@ -498,6 +510,20 @@ export async function buildExportBundle(
                   dataset.market.assetDecimals,
                 ),
                 current_value_raw: String(position.currentValueRaw),
+                pending_withdrawal_value: formatUnits(
+                  position.pendingWithdrawalValueRaw,
+                  dataset.market.assetDecimals,
+                ),
+                pending_withdrawal_value_raw: String(
+                  position.pendingWithdrawalValueRaw,
+                ),
+                total_position_value: formatUnits(
+                  position.totalPositionValueRaw,
+                  dataset.market.assetDecimals,
+                ),
+                total_position_value_raw: String(
+                  position.totalPositionValueRaw,
+                ),
                 payouts: formatUnits(
                   position.payoutsRaw,
                   dataset.market.assetDecimals,

@@ -16,7 +16,11 @@ import {
 import { discoverMarketUniverse } from "./sources/discovery"
 import { decodeRecording } from "./sources/recording"
 import { fromHex } from "./sources/rpc"
-import { marketConditionStatement, renderPdf } from "./statements/render"
+import {
+  borrowerStatement,
+  marketConditionStatement,
+  renderPdf,
+} from "./statements/render"
 import { CanonicalExportRequest, MarketDataset } from "./types"
 
 const REFERENCE_MARKET_A = "0x14da929b9d44b74ce5937fb2527ba6abe5872b89"
@@ -139,11 +143,27 @@ describe("recorded reference market A", () => {
           position.principalTransferredOutRaw,
       )
       expect(position.earningsRaw).toBe(
-        position.currentValueRaw +
+        position.totalPositionValueRaw +
           position.payoutsRaw +
           position.marketTokensTransferredOutRaw -
           position.depositsRaw -
           position.principalAcquiredByTransferRaw,
+      )
+      expect(position.principalStillInvestedRaw).toBe(
+        position.activePrincipalRaw + position.pendingWithdrawalPrincipalRaw,
+      )
+      expect(position.totalPositionValueRaw).toBe(
+        position.currentValueRaw + position.pendingWithdrawalValueRaw,
+      )
+      expect(position.earningsRaw).toBe(
+        position.payoutsRaw -
+          position.principalReturnedRaw +
+          position.marketTokensTransferredOutRaw -
+          position.principalTransferredOutRaw +
+          position.currentValueRaw -
+          position.activePrincipalRaw +
+          position.pendingWithdrawalValueRaw -
+          position.pendingWithdrawalPrincipalRaw,
       )
     })
   })
@@ -236,7 +256,15 @@ describe("recorded reference market A", () => {
     const first = await renderPdf(model, dataset.snapshotTimestamp)
     const second = await renderPdf(model, dataset.snapshotTimestamp)
     expect(first).toEqual(second)
-    expect((await PDFDocument.load(first)).getPageCount()).toBeGreaterThan(0)
+    expect((await PDFDocument.load(first)).getPageCount()).toBe(1)
+
+    const borrower = await renderPdf(
+      borrowerStatement(dataset, request),
+      dataset.snapshotTimestamp,
+    )
+    expect(
+      (await PDFDocument.load(borrower)).getPageCount(),
+    ).toBeLessThanOrEqual(2)
   }, 120_000)
 
   it("assembles PDF statements without a browser", async () => {
@@ -259,6 +287,9 @@ describe("recorded reference market A", () => {
     for (const statement of statements) {
       const pdf = await PDFDocument.load(await statement.async("nodebuffer"))
       expect(pdf.getPageCount()).toBeGreaterThan(0)
+      expect(pdf.getPageCount()).toBeLessThanOrEqual(
+        statement.name.includes("market_condition") ? 1 : 2,
+      )
     }
   }, 120_000)
 })
