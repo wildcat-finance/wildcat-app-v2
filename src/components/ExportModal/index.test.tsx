@@ -10,6 +10,7 @@ jest.mock("@/assets/icons/cross_icon.svg", () => () => <svg />)
 const MARKET = "0x1111111111111111111111111111111111111111"
 const ORIGINAL_JOB = "original-job"
 const UPDATED_JOB = "updated-job"
+const FRESH_JOB = "fresh-job"
 const DOWNLOAD_URL = "https://storage.example/original.zip"
 
 const originalRequest: CanonicalExportRequest = {
@@ -137,6 +138,82 @@ describe("ExportModal", () => {
       "borrower",
       "market_condition",
     ])
+  })
+
+  it("can generate a fresh snapshot without discarding the completed ZIP", async () => {
+    window.sessionStorage.setItem("wildcat-export-job:1", ORIGINAL_JOB)
+    const fetchMock = jest.fn(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input)
+        if (url === `/api/export/jobs/${ORIGINAL_JOB}`) {
+          return response({
+            status: "completed",
+            progress: 100,
+            phase: "completed",
+            downloadUrl: DOWNLOAD_URL,
+            request: originalRequest,
+          })
+        }
+        if (url === "/api/export/jobs" && init?.method === "POST") {
+          return response(
+            {
+              jobId: FRESH_JOB,
+              status: "queued",
+              request: {
+                ...originalRequest,
+                snapshotBlock: "25632450",
+              },
+            },
+            202,
+          )
+        }
+        if (url === `/api/export/jobs/${FRESH_JOB}`) {
+          return response({
+            status: "queued",
+            progress: 0,
+            phase: "queued",
+            request: {
+              ...originalRequest,
+              snapshotBlock: "25632450",
+            },
+          })
+        }
+        throw new Error(`Unexpected fetch: ${url}`)
+      },
+    )
+    global.fetch = fetchMock
+
+    render(
+      <ExportModal
+        open
+        onClose={jest.fn()}
+        chainId={1}
+        marketAddress={MARKET}
+      />,
+    )
+
+    expect(
+      (await screen.findByRole("link", { name: "Download ZIP" })).getAttribute(
+        "href",
+      ),
+    ).toBe(DOWNLOAD_URL)
+    fireEvent.click(screen.getByRole("button", { name: "Generate fresh ZIP" }))
+
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some(
+          ([url, init]) =>
+            String(url) === "/api/export/jobs" && init?.method === "POST",
+        ),
+      ).toBe(true)
+    })
+    const submission = fetchMock.mock.calls.find(
+      ([url, init]) =>
+        String(url) === "/api/export/jobs" && init?.method === "POST",
+    )
+    const submitted = JSON.parse(String(submission?.[1]?.body))
+    expect(submitted.snapshotBlock).toBeUndefined()
+    expect(screen.queryByRole("link", { name: "Download ZIP" })).toBeNull()
   })
 
   it("shows human-readable progress stages", () => {

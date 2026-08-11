@@ -449,7 +449,7 @@ export const ExportModal = ({
     )
   }
 
-  const submit = async () => {
+  const submit = async (requestedSnapshot?: string) => {
     setError(undefined)
     if (marketSelection === "custom" && selectedMarkets.length === 0) {
       setError("Enter at least one market address")
@@ -462,7 +462,6 @@ export const ExportModal = ({
       setError("Enter at least one address for a position statement")
       return
     }
-    const requestedSnapshot = jobRequest?.snapshotBlock
     setIsSubmitting(true)
     try {
       const response = await fetch("/api/export/jobs", {
@@ -531,7 +530,7 @@ export const ExportModal = ({
 
   let dialogAction = (
     <Button
-      onClick={submit}
+      onClick={() => submit()}
       disabled={isWorking || isRestoringJob}
       variant="contained"
       fullWidth
@@ -562,7 +561,7 @@ export const ExportModal = ({
     dialogAction = hasRequestChanges ? (
       <Stack width="100%" gap="8px">
         <Button
-          onClick={submit}
+          onClick={() => submit(jobRequest?.snapshotBlock)}
           variant="contained"
           fullWidth
           sx={actionButtonSx}
@@ -580,15 +579,25 @@ export const ExportModal = ({
         </Button>
       </Stack>
     ) : (
-      <Button
-        component="a"
-        href={progress.downloadUrl}
-        variant="contained"
-        fullWidth
-        sx={actionButtonSx}
-      >
-        Download ZIP
-      </Button>
+      <Stack width="100%" gap="8px">
+        <Button
+          component="a"
+          href={progress.downloadUrl}
+          variant="contained"
+          fullWidth
+          sx={actionButtonSx}
+        >
+          Download ZIP
+        </Button>
+        <Button
+          onClick={() => submit()}
+          variant="outlined"
+          fullWidth
+          sx={actionButtonSx}
+        >
+          Generate fresh ZIP
+        </Button>
+      </Stack>
     )
   }
 
@@ -913,7 +922,8 @@ export const ExportModal = ({
                   color: "#168A4A",
                 }}
               >
-                Your export is ready to download.
+                Your export is ready. Download it, or generate a fresh ZIP from
+                the latest confirmed block.
               </Alert>
             ))}
         </Stack>
