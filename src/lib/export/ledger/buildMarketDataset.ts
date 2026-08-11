@@ -768,14 +768,24 @@ export function buildDelinquencyEpisodes(
   )
 }
 
-export const sanitizeTokenSymbol = (value: string) =>
-  value
-    // Token symbols are untrusted display data; remove C0/C1 controls and URLs.
+export const sanitizeTokenSymbol = (value: string) => {
+  const symbol = value
+    .normalize("NFKC")
+    // Token symbols are untrusted display data. Keep their shape visible while
+    // removing controls and Unicode lookalikes from a field consumers may show.
     // eslint-disable-next-line no-control-regex
     .replace(/[\u0000-\u001f\u007f-\u009f]/g, "")
-    .replace(/(?:https?:\/\/|www\.)\S+/gi, "[link removed]")
+    .replace(/[^\x20-\x7e]/g, "?")
     .trim()
-    .slice(0, 64)
+  if (
+    /(?:https?:\/\/|www\.)/i.test(symbol) ||
+    /[a-z0-9-]+\s*\.\s*(?:com|org|net|io|finance|xyz)\b/i.test(symbol) ||
+    /\b(?:visit|website|claim|reward|airdrop)\b/i.test(symbol)
+  ) {
+    return "[unsafe symbol removed]"
+  }
+  return symbol.slice(0, 64) || "unreadable"
+}
 
 export const foreignTransferKind = (log: JsonRpcLog) => {
   if (log.topics.length === 3 && /^0x[0-9a-f]{64}$/i.test(log.data)) {
@@ -1050,10 +1060,11 @@ export async function buildPositionSummaries(
   snapshotTimestamp: number,
   events: DecodedMarketEvent[],
   addresses: string[],
-) {
+): Promise<Record<string, PositionSummary>> {
   const normalized = [
     ...new Set(addresses.map((address) => address.toLowerCase())),
   ]
+  if (normalized.length === 0) return {}
   const batchScaledRemaining = new Map<number, bigint>()
   const batchNormalizedPaid = new Map<number, bigint>()
   for (const event of events) {
@@ -1087,6 +1098,7 @@ export async function buildPositionSummaries(
     let scaleFactor = RAY
     const queuedPrincipal = new Map<number, bigint>()
     const queuedScaled = new Map<number, bigint>()
+    const queuedInitialScaled = new Map<number, bigint>()
     const executedByBatch = new Map<number, bigint>()
     const returnedByBatch = new Map<number, bigint>()
     const remainingByBatch = new Map<number, bigint>()
@@ -1101,7 +1113,7 @@ export async function buildPositionSummaries(
           [...queuedScaled.values()].reduce((sum, value) => sum + value, 0n)
         const earned = rayMul(scaledEarningBalance, scaleDelta)
         const year = new Date(
-          Number(event.args.toTimestamp) * 1000,
+          Number(event.args.toTimestamp) * 1_000,
         ).getUTCFullYear()
         annualEarnings[String(year)] =
           (annualEarnings[String(year)] ?? 0n) + earned
@@ -1158,6 +1170,10 @@ export async function buildPositionSummaries(
           (queuedPrincipal.get(expiry) ?? 0n) + principalMoved,
         )
         queuedScaled.set(expiry, (queuedScaled.get(expiry) ?? 0n) + scaled)
+        queuedInitialScaled.set(
+          expiry,
+          (queuedInitialScaled.get(expiry) ?? 0n) + scaled,
+        )
       }
       if (event.name === "WithdrawalBatchPayment") {
         const expiry = Number(event.args.expiry)
@@ -1183,18 +1199,7 @@ export async function buildPositionSummaries(
         const cumulativeExecuted = (executedByBatch.get(expiry) ?? 0n) + value
         executedByBatch.set(expiry, cumulativeExecuted)
         const totalScaled = batchScaledRemaining.get(expiry) ?? 0n
-        const holderScaled = events
-          .filter(
-            (candidate) =>
-              candidate.name === "WithdrawalQueued" &&
-              candidate.participant === address &&
-              Number(candidate.args.expiry) === expiry,
-          )
-          .reduce(
-            (sum, candidate) =>
-              sum + BigInt(String(candidate.args.scaledAmount)),
-            0n,
-          )
+        const holderScaled = queuedInitialScaled.get(expiry) ?? 0n
         const entitlement =
           totalScaled > 0n
             ? ((batchNormalizedPaid.get(expiry) ?? 0n) * holderScaled) /
@@ -1245,10 +1250,8 @@ export async function buildPositionSummaries(
     ])
     const currentValue = asBigInt(balance)
     const currentScaledBalance = asBigInt(onchainScaledBalance)
-    const recomputedValue = rayMul(
-      currentScaledBalance,
-      asBigInt(snapshotState.scaleFactor),
-    )
+    const snapshotScaleFactor = asBigInt(snapshotState.scaleFactor)
+    const recomputedValue = rayMul(currentScaledBalance, snapshotScaleFactor)
     if (recomputedValue !== currentValue) {
       throw new Error(
         `Position balance reconciliation failed for ${address} in ${market.address}`,
@@ -1259,8 +1262,29 @@ export async function buildPositionSummaries(
         `Position scaled-balance walk failed for ${address} in ${market.address}`,
       )
     }
+    let pendingWithdrawalPrincipal = 0n
+    let pendingWithdrawalValue = 0n
+    for (const [expiry, originalPrincipal] of queuedPrincipal) {
+      const totalScaled = batchScaledRemaining.get(expiry) ?? 0n
+      const holderScaled = queuedInitialScaled.get(expiry) ?? 0n
+      const entitlement =
+        totalScaled > 0n
+          ? ((batchNormalizedPaid.get(expiry) ?? 0n) * holderScaled) /
+            totalScaled
+          : 0n
+      const executed = executedByBatch.get(expiry) ?? 0n
+      pendingWithdrawalPrincipal +=
+        originalPrincipal - (returnedByBatch.get(expiry) ?? 0n)
+      pendingWithdrawalValue +=
+        entitlement > executed ? entitlement - executed : 0n
+      pendingWithdrawalValue += rayMul(
+        queuedScaled.get(expiry) ?? 0n,
+        snapshotScaleFactor,
+      )
+    }
+    const totalPositionValue = currentValue + pendingWithdrawalValue
     const earnings =
-      currentValue + payouts + transferValueOut - deposits - acquired
+      totalPositionValue + payouts + transferValueOut - deposits - acquired
     const allocatedEarnings = Object.values(annualEarnings).reduce(
       (sum, value) => sum + value,
       0n,
@@ -1270,12 +1294,18 @@ export async function buildPositionSummaries(
       .toString()
     annualEarnings[currentYear] =
       (annualEarnings[currentYear] ?? 0n) + earnings - allocatedEarnings
-    const pendingPrincipal = [...queuedPrincipal.entries()].reduce(
-      (sum, [expiry, value]) =>
-        sum + value - (returnedByBatch.get(expiry) ?? 0n),
-      0n,
-    )
-    const principalStillInvested = principal + pendingPrincipal
+    const principalStillInvested = principal + pendingWithdrawalPrincipal
+    const splitEarnings =
+      payouts -
+      returned +
+      (transferValueOut - transferredOut) +
+      (currentValue - principal) +
+      (pendingWithdrawalValue - pendingWithdrawalPrincipal)
+    if (earnings !== splitEarnings) {
+      throw new Error(
+        `Position earnings reconciliation failed for ${address} in ${market.address}`,
+      )
+    }
     if (
       deposits + acquired !==
       principalStillInvested + returned + transferredOut
@@ -1288,11 +1318,15 @@ export async function buildPositionSummaries(
       address,
       depositsRaw: deposits,
       principalAcquiredByTransferRaw: acquired,
+      activePrincipalRaw: principal,
+      pendingWithdrawalPrincipalRaw: pendingWithdrawalPrincipal,
       principalStillInvestedRaw: principalStillInvested,
       principalReturnedRaw: returned,
       principalTransferredOutRaw: transferredOut,
       marketTokensTransferredOutRaw: transferValueOut,
       currentValueRaw: currentValue,
+      pendingWithdrawalValueRaw: pendingWithdrawalValue,
+      totalPositionValueRaw: totalPositionValue,
       payoutsRaw: payouts,
       earningsRaw: earnings,
       scaledBalanceRaw: currentScaledBalance,

@@ -27,7 +27,17 @@ LIFO, or tax cost basis. The generalized principal identity is:
 ```text
 deposits + principal acquired by transfer
   = principal still invested + principal returned + principal transferred out
+
+principal still invested = active principal + pending withdrawal principal
+
+total position value = active market-token value + pending withdrawal value
 ```
+
+Pending withdrawal value includes both funded-but-unclaimed assets and the
+snapshot value of scaled tokens still waiting in an unfunded batch. Position
+earnings are split into cash payouts, value transferred with market tokens,
+active market-token value, and pending withdrawal value; these categories
+reconcile exactly to total economic earnings.
 
 Sanctions companion events describe ordinary queue/execute flows and are not
 second movements. A direct sanctioned asset transfer to escrow is `escrowed_out`;
