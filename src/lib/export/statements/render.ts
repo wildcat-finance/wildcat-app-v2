@@ -12,13 +12,7 @@ import {
   StandardFonts,
 } from "pdf-lib"
 
-import {
-  formatFixed,
-  formatUnits,
-  percentFromRay,
-  RAY,
-  rayDiv,
-} from "../bigint"
+import { formatFixed, formatUnits, RAY, rayDiv } from "../bigint"
 import {
   CanonicalExportRequest,
   MarketDataset,
@@ -348,6 +342,13 @@ export function marketConditionStatement(
         transaction.repaidRaw > maximum ? transaction.repaidRaw : maximum,
       0n,
     )
+  let penaltyStatus = "Not active"
+  if (daily.penalty_active_eod === "true") {
+    penaltyStatus =
+      daily.is_delinquent_eod === "true"
+        ? "Active"
+        : "Active while the cured delinquency timer unwinds"
+  }
   return {
     title: "Market Condition Statement",
     metadata: [...commonMetadata(dataset), ["Reporting period", period.label]],
@@ -360,13 +361,14 @@ export function marketConditionStatement(
             type: "table",
             headers: ["Measure", "Reading"],
             rows: [
-              ["Interest rate", `${daily.effective_apr_pct_eod}% APR`],
+              ["Current lender rate", `${daily.effective_apr_pct_eod}% APR`],
               [
                 "Delinquency status",
                 daily.is_delinquent_eod === "true"
                   ? "Delinquent"
                   : "Not delinquent",
               ],
+              ["Penalty status", penaltyStatus],
               ["Capacity", `${daily.capacity} ${dataset.market.assetSymbol}`],
               [
                 "Open withdrawal claims",
@@ -492,6 +494,39 @@ export function marketConditionStatement(
 const monthKey = (timestamp: number) =>
   new Date(timestamp * 1_000).toISOString().slice(0, 7)
 
+const percentageMillionths = (value: string) => {
+  const [whole, fraction = ""] = value.split(".")
+  return (
+    BigInt(whole) * 1_000_000n + BigInt(fraction.padEnd(6, "0").slice(0, 6))
+  )
+}
+
+const weightedDailyPercentage = (
+  dataset: MarketDataset,
+  period: ReportingPeriod,
+  month: string,
+  field: string,
+) => {
+  const rows = dataset.dailySeries.filter(
+    (row) =>
+      row.date_utc.startsWith(month) &&
+      row.date_utc >= period.startDate &&
+      row.date_utc <= period.endDate,
+  )
+  const seconds = rows.reduce(
+    (sum, row) => sum + BigInt(row.period_elapsed_seconds),
+    0n,
+  )
+  if (seconds === 0n) return "0.000000"
+  const weighted = rows.reduce(
+    (sum, row) =>
+      sum +
+      percentageMillionths(row[field]) * BigInt(row.period_elapsed_seconds),
+    0n,
+  )
+  return formatFixed((weighted + seconds / 2n) / seconds, 6)
+}
+
 function borrowerMonthlyRows(dataset: MarketDataset, period: ReportingPeriod) {
   const first = period.startDate.slice(0, 7)
   const last = period.endDate.slice(0, 7)
@@ -523,11 +558,6 @@ function borrowerMonthlyRows(dataset: MarketDataset, period: ReportingPeriod) {
         sum + row.baseInterestAssetsRaw + row.penaltyInterestAssetsRaw,
       0n,
     )
-    const ray = accruals.reduce((sum, row) => sum + row.baseInterestRay, 0n)
-    const seconds = accruals.reduce(
-      (sum, row) => sum + row.periodEnd - row.periodStart,
-      0,
-    )
     return [
       month,
       amount(dataset, flow("borrowedRaw")),
@@ -535,7 +565,12 @@ function borrowerMonthlyRows(dataset: MarketDataset, period: ReportingPeriod) {
       amount(dataset, flow("depositedRaw")),
       amount(dataset, flow("withdrawalExecutedRaw")),
       amount(dataset, interest),
-      `${seconds ? percentFromRay(ray, seconds) : "0.000000"}%`,
+      `${weightedDailyPercentage(
+        dataset,
+        period,
+        month,
+        "base_apr_pct_time_weighted",
+      )}%`,
     ]
   })
 }
@@ -792,6 +827,14 @@ export function positionStatement(
         "SanctionedAccountAssetsSentToEscrow",
         "SanctionedAccountWithdrawalSentToEscrow",
       ].includes(event.name),
+    )
+    .filter(
+      (event) =>
+        event.name !== "Transfer" ||
+        (event.participant !== "0x0000000000000000000000000000000000000000" &&
+          event.counterparty !== "0x0000000000000000000000000000000000000000" &&
+          event.participant !== dataset.market.address &&
+          event.counterparty !== dataset.market.address),
     )
     .map((event) => [
       formatDate(event.timestamp),

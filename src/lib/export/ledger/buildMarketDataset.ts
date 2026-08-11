@@ -2,7 +2,11 @@
 
 import { BigNumber, constants, utils } from "ethers"
 
-import { aggregateAccrualsForDay } from "./dailyRates"
+import {
+  advanceRateState,
+  aggregateAccrualsForDay,
+  percentagesFromRateSeconds,
+} from "./dailyRates"
 import {
   erc20Interface,
   marketInterface,
@@ -13,7 +17,6 @@ import {
   BIPS,
   addPercentages,
   formatUnits,
-  multiplyPercentByBips,
   percentFromBips,
   percentFromRay,
   percentFromScaleFactors,
@@ -693,42 +696,70 @@ export function buildDelinquencyEpisodes(
   gracePeriod: number,
   snapshotTimestamp: number,
   initialReserveRatioBips: number,
+  initialTimerState: {
+    timestamp: number
+    isDelinquent: boolean
+    timeDelinquent: number
+  },
 ): DelinquencyEpisode[] {
   const transitions: {
     start: DecodedMarketEvent
+    onsetTimeDelinquent: number
     reserveRatioBips: number
     cure?: DecodedMarketEvent
+    cureTimeDelinquent?: number
   }[] = []
   let onset: DecodedMarketEvent | undefined
+  let onsetTimeDelinquent = 0
   let reserveRatioBips = initialReserveRatioBips
   let onsetReserveRatioBips = 0
+  const timerState = {
+    ...initialTimerState,
+    annualInterestBips: 0,
+    protocolFeeBips: 0,
+  }
   for (const event of events) {
     if (event.name === "ReserveRatioBipsUpdated") {
       reserveRatioBips = Number(event.args.reserveRatioBipsUpdated)
     }
     if (event.name !== "StateUpdated") continue
+    advanceRateState(timerState, event.timestamp, 0, gracePeriod)
     const delinquent = event.args.isDelinquent === true
     if (delinquent && !onset) {
       onset = event
+      onsetTimeDelinquent = timerState.timeDelinquent
       onsetReserveRatioBips = reserveRatioBips
     }
     if (!delinquent && onset) {
       transitions.push({
         start: onset,
+        onsetTimeDelinquent,
         reserveRatioBips: onsetReserveRatioBips,
         cure: event,
+        cureTimeDelinquent: timerState.timeDelinquent,
       })
       onset = undefined
     }
+    timerState.isDelinquent = delinquent
   }
   if (onset) {
     transitions.push({
       start: onset,
+      onsetTimeDelinquent,
       reserveRatioBips: onsetReserveRatioBips,
     })
   }
   return transitions.map(
-    ({ start, reserveRatioBips: reserve, cure }, index) => {
+    (
+      {
+        start,
+        onsetTimeDelinquent: timeAtOnset,
+        reserveRatioBips: reserve,
+        cure,
+        cureTimeDelinquent,
+      },
+      index,
+    ) => {
       const end = cure?.timestamp ?? snapshotTimestamp
       const nextOnset = transitions[index + 1]?.start.timestamp
       const penaltyAccruals = accruals.filter(
@@ -741,7 +772,18 @@ export function buildDelinquencyEpisodes(
         (sum, row) => sum + row.penaltyInterestAssetsRaw,
         0n,
       )
-      const penaltyEndTimestamp = penaltyAccruals.at(-1)?.periodEnd
+      const durationSeconds = Math.max(0, end - start.timestamp)
+      const projectedPenaltyEnd = cure
+        ? cure.timestamp + Math.max(0, (cureTimeDelinquent ?? 0) - gracePeriod)
+        : undefined
+      const penaltyEndTimestamp =
+        projectedPenaltyEnd !== undefined &&
+        cure !== undefined &&
+        projectedPenaltyEnd > cure.timestamp &&
+        projectedPenaltyEnd <= snapshotTimestamp &&
+        (nextOnset === undefined || projectedPenaltyEnd <= nextOnset)
+          ? projectedPenaltyEnd
+          : undefined
       return {
         onsetTimestamp: start.timestamp,
         onsetBlock: start.blockNumber,
@@ -756,10 +798,11 @@ export function buildDelinquencyEpisodes(
         ...(penaltyEndTimestamp && penaltyEndTimestamp > end
           ? { penaltyEndTimestamp }
           : {}),
-        durationSeconds: Math.max(0, end - start.timestamp),
+        durationSeconds,
         gracePeriodSeconds: gracePeriod,
         penaltyTriggered:
-          end - start.timestamp > gracePeriod || penaltyInterestAssetsRaw > 0n,
+          timeAtOnset + durationSeconds > gracePeriod ||
+          penaltyInterestAssetsRaw > 0n,
         penaltyInterestAssetsRaw,
         reserveRatioBips: reserve,
         isOpen: !cure,
@@ -845,6 +888,7 @@ async function buildDailySeries(
   snapshotTimestamp: number,
   transactions: TransactionLedgerRow[],
   accruals: InterestAccrualRow[],
+  deploymentState: CurrentState,
   delinquencyFeeBips: number,
   gracePeriod: number,
   withdrawalCycle: number,
@@ -895,6 +939,13 @@ async function buildDailySeries(
     ]),
   )
 
+  let previousRateState = {
+    timestamp: deploymentTimestamp,
+    annualInterestBips: asNumber(deploymentState.annualInterestBips),
+    protocolFeeBips: asNumber(deploymentState.protocolFeeBips),
+    isDelinquent: deploymentState.isDelinquent,
+    timeDelinquent: asNumber(deploymentState.timeDelinquent),
+  }
   let cumulativeBorrowed = 0n
   let cumulativeRepaid = 0n
   let previousTimestamp = deploymentTimestamp
@@ -925,30 +976,52 @@ async function buildDailySeries(
     )
     cumulativeBorrowed += borrowed
     cumulativeRepaid += repaid
-    const dailyAccruals = aggregateAccrualsForDay(accruals, day)
-    const {
-      baseRay,
-      penaltyRay,
-      protocolRay,
-      seconds: accrualSeconds,
-    } = dailyAccruals
     const rowTimestamp = fromHex(dayEndBlockData[index].timestamp)
     const elapsed = Math.max(1, rowTimestamp - previousTimestamp)
+    const fallbackState = { ...previousRateState }
+    const fallbackRates = percentagesFromRateSeconds(
+      advanceRateState(
+        fallbackState,
+        rowTimestamp,
+        delinquencyFeeBips,
+        gracePeriod,
+      ),
+      elapsed,
+    )
+    const dailyAccruals = aggregateAccrualsForDay(accruals, day)
+    const baseApr =
+      dailyAccruals.seconds > 0
+        ? percentFromRay(dailyAccruals.baseRay, dailyAccruals.seconds)
+        : fallbackRates.baseApr
+    const penaltyApr =
+      dailyAccruals.seconds > 0
+        ? percentFromRay(dailyAccruals.penaltyRay, dailyAccruals.seconds)
+        : fallbackRates.penaltyApr
+    const protocolFeeApr =
+      dailyAccruals.seconds > 0
+        ? percentFromRay(dailyAccruals.protocolRay, dailyAccruals.seconds)
+        : fallbackRates.protocolFeeApr
+    const effectiveApr = addPercentages(baseApr, penaltyApr)
     const annualBips = asNumber(state.annualInterestBips)
     const protocolBips = asNumber(state.protocolFeeBips)
-    const baseApr =
-      accrualSeconds > 0
-        ? percentFromRay(baseRay, accrualSeconds)
-        : percentFromBips(annualBips)
-    const penaltyApr =
-      accrualSeconds > 0
-        ? percentFromRay(penaltyRay, accrualSeconds)
-        : "0.000000"
-    const effectiveApr = addPercentages(baseApr, penaltyApr)
-    const protocolFeeApr =
-      accrualSeconds > 0
-        ? percentFromRay(protocolRay, accrualSeconds)
-        : multiplyPercentByBips(baseApr, protocolBips)
+    if (
+      dailyAccruals.events === 0 &&
+      (fallbackState.annualInterestBips !== annualBips ||
+        fallbackState.protocolFeeBips !== protocolBips ||
+        fallbackState.isDelinquent !== state.isDelinquent ||
+        fallbackState.timeDelinquent !== asNumber(state.timeDelinquent))
+    ) {
+      throw new Error(
+        `Daily rate-state reconciliation failed at block ${dayEndBlocks[index]}`,
+      )
+    }
+    previousRateState = {
+      timestamp: rowTimestamp,
+      annualInterestBips: annualBips,
+      protocolFeeBips: protocolBips,
+      isDelinquent: state.isDelinquent,
+      timeDelinquent: asNumber(state.timeDelinquent),
+    }
     const scaleFactor = asBigInt(state.scaleFactor)
     if (scaleFactor < previousScaleFactor) {
       throw new Error(
@@ -1100,7 +1173,6 @@ export async function buildPositionSummaries(
     const queuedScaled = new Map<number, bigint>()
     const queuedInitialScaled = new Map<number, bigint>()
     const executedByBatch = new Map<number, bigint>()
-    const returnedByBatch = new Map<number, bigint>()
     const remainingByBatch = new Map<number, bigint>()
     const annualEarnings: Record<string, bigint> = {}
     for (const event of events) {
@@ -1196,24 +1268,7 @@ export async function buildPositionSummaries(
         const value = event.amountRaw ?? 0n
         payouts += value
         const expiry = Number(event.args.expiry)
-        const cumulativeExecuted = (executedByBatch.get(expiry) ?? 0n) + value
-        executedByBatch.set(expiry, cumulativeExecuted)
-        const totalScaled = batchScaledRemaining.get(expiry) ?? 0n
-        const holderScaled = queuedInitialScaled.get(expiry) ?? 0n
-        const entitlement =
-          totalScaled > 0n
-            ? ((batchNormalizedPaid.get(expiry) ?? 0n) * holderScaled) /
-              totalScaled
-            : 0n
-        const originalPrincipal = queuedPrincipal.get(expiry) ?? 0n
-        const principalReturned = proportionalPrincipalReturned(
-          originalPrincipal,
-          cumulativeExecuted,
-          entitlement,
-        )
-        const priorReturned = returnedByBatch.get(expiry) ?? 0n
-        returned += principalReturned - priorReturned
-        returnedByBatch.set(expiry, principalReturned)
+        executedByBatch.set(expiry, (executedByBatch.get(expiry) ?? 0n) + value)
       }
       if (event.name === "ForceBuyBack" && event.participant === address) {
         const scaled = BigInt(String(event.args.scaledAmount))
@@ -1266,19 +1321,31 @@ export async function buildPositionSummaries(
     let pendingWithdrawalValue = 0n
     for (const [expiry, originalPrincipal] of queuedPrincipal) {
       const totalScaled = batchScaledRemaining.get(expiry) ?? 0n
-      const holderScaled = queuedInitialScaled.get(expiry) ?? 0n
+      const holderInitialScaled = queuedInitialScaled.get(expiry) ?? 0n
+      const holderRemainingScaled = queuedScaled.get(expiry) ?? 0n
       const entitlement =
         totalScaled > 0n
-          ? ((batchNormalizedPaid.get(expiry) ?? 0n) * holderScaled) /
+          ? ((batchNormalizedPaid.get(expiry) ?? 0n) * holderInitialScaled) /
             totalScaled
           : 0n
-      const executed = executedByBatch.get(expiry) ?? 0n
-      pendingWithdrawalPrincipal +=
-        originalPrincipal - (returnedByBatch.get(expiry) ?? 0n)
+      const holderBurnedScaled = holderInitialScaled - holderRemainingScaled
+      const fundedPrincipal =
+        holderInitialScaled > 0n
+          ? (originalPrincipal * holderBurnedScaled) / holderInitialScaled
+          : 0n
+      const totalExecuted = executedByBatch.get(expiry) ?? 0n
+      const executed = totalExecuted > entitlement ? entitlement : totalExecuted
+      const principalReturned = proportionalPrincipalReturned(
+        fundedPrincipal,
+        executed,
+        entitlement,
+      )
+      returned += principalReturned
+      pendingWithdrawalPrincipal += originalPrincipal - principalReturned
       pendingWithdrawalValue +=
         entitlement > executed ? entitlement - executed : 0n
       pendingWithdrawalValue += rayMul(
-        queuedScaled.get(expiry) ?? 0n,
+        holderRemainingScaled,
         snapshotScaleFactor,
       )
     }
@@ -1588,6 +1655,7 @@ export async function buildMarketDataset(
       snapshotTimestamp,
       transactions,
       interestAccruals,
+      deploymentState,
       delinquencyFeeBips,
       gracePeriod,
       withdrawalCycle,
@@ -1775,6 +1843,11 @@ export async function buildMarketDataset(
     gracePeriod,
     snapshotTimestamp,
     asNumber(deploymentState.reserveRatioBips),
+    {
+      timestamp: asNumber(deploymentState.lastInterestAccruedTimestamp),
+      isDelinquent: deploymentState.isDelinquent,
+      timeDelinquent: asNumber(deploymentState.timeDelinquent),
+    },
   )
   const protocolFeesByYearRaw = Object.fromEntries(
     [

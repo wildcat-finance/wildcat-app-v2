@@ -1,4 +1,4 @@
-import { BIPS } from "../bigint"
+import { BIPS, formatFixed } from "../bigint"
 import { InterestAccrualRow } from "../types"
 
 const utcDate = (timestamp: number) =>
@@ -30,4 +30,79 @@ export function aggregateAccrualsForDay(
         events: 0,
       },
     )
+}
+
+export type RateState = {
+  timestamp: number
+  annualInterestBips: number
+  protocolFeeBips: number
+  isDelinquent: boolean
+  timeDelinquent: number
+}
+
+export type RateSeconds = {
+  baseBipsSeconds: bigint
+  penaltyBipsSeconds: bigint
+  protocolBipsSquaredSeconds: bigint
+}
+
+// Mirrors FeeMath.updateTimeDelinquentAndGetPenaltyTime in v2-protocol.
+export function advanceRateState(
+  state: RateState,
+  timestamp: number,
+  delinquencyFeeBips: number,
+  gracePeriod: number,
+): RateSeconds {
+  const elapsed = Math.max(0, timestamp - state.timestamp)
+  const previousTimeDelinquent = state.timeDelinquent
+  let penaltySeconds: number
+  if (state.isDelinquent) {
+    state.timeDelinquent = previousTimeDelinquent + elapsed
+    penaltySeconds = Math.max(
+      0,
+      elapsed - Math.max(0, gracePeriod - previousTimeDelinquent),
+    )
+  } else {
+    state.timeDelinquent = Math.max(0, previousTimeDelinquent - elapsed)
+    penaltySeconds = Math.min(
+      elapsed,
+      Math.max(0, previousTimeDelinquent - gracePeriod),
+    )
+  }
+  state.timestamp = timestamp
+  return {
+    baseBipsSeconds: BigInt(state.annualInterestBips) * BigInt(elapsed),
+    penaltyBipsSeconds: BigInt(delinquencyFeeBips) * BigInt(penaltySeconds),
+    protocolBipsSquaredSeconds:
+      BigInt(state.annualInterestBips) *
+      BigInt(state.protocolFeeBips) *
+      BigInt(elapsed),
+  }
+}
+
+export function percentagesFromRateSeconds(
+  values: RateSeconds,
+  elapsed: number,
+) {
+  if (elapsed <= 0) {
+    return {
+      baseApr: "0.000000",
+      penaltyApr: "0.000000",
+      protocolFeeApr: "0.000000",
+    }
+  }
+  const seconds = BigInt(elapsed)
+  const rounded = (numerator: bigint, denominator: bigint) =>
+    (numerator + denominator / 2n) / denominator
+  return {
+    baseApr: formatFixed(rounded(values.baseBipsSeconds * 10_000n, seconds), 6),
+    penaltyApr: formatFixed(
+      rounded(values.penaltyBipsSeconds * 10_000n, seconds),
+      6,
+    ),
+    protocolFeeApr: formatFixed(
+      rounded(values.protocolBipsSquaredSeconds, seconds),
+      6,
+    ),
+  }
 }

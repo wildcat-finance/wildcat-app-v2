@@ -176,12 +176,13 @@ describe("protocol event semantics", () => {
       50,
       400,
       250,
+      { timestamp: 0, isDelinquent: false, timeDelinquent: 0 },
     )
 
     expect(episodes[0]).toMatchObject({
       onsetTimestamp: 100,
       cureTimestamp: 200,
-      penaltyEndTimestamp: 240,
+      penaltyEndTimestamp: 250,
       penaltyInterestAssetsRaw: 12n,
       reserveRatioBips: 250,
       isOpen: false,
@@ -192,5 +193,56 @@ describe("protocol event semantics", () => {
       reserveRatioBips: 250,
       isOpen: true,
     })
+  })
+
+  it("does not claim a post-cure penalty has ended before the snapshot", () => {
+    const state = (timestamp: number, isDelinquent: boolean) =>
+      ({
+        ...event("StateUpdated", 0n, { isDelinquent }),
+        timestamp,
+        blockNumber: timestamp,
+        transactionHash: `0x${timestamp}`,
+      }) as DecodedMarketEvent
+    const episodes = buildDelinquencyEpisodes(
+      [state(100, true), state(200, false)],
+      [],
+      50,
+      220,
+      0,
+      { timestamp: 0, isDelinquent: false, timeDelinquent: 0 },
+    )
+
+    expect(episodes[0]).toMatchObject({
+      cureTimestamp: 200,
+      penaltyTriggered: true,
+    })
+    expect(episodes[0].penaltyEndTimestamp).toBeUndefined()
+  })
+
+  it("carries the cooldown timer into a repeated delinquency", () => {
+    const state = (timestamp: number, isDelinquent: boolean) =>
+      ({
+        ...event("StateUpdated", 0n, { isDelinquent }),
+        timestamp,
+        blockNumber: timestamp,
+        transactionHash: `0x${timestamp}`,
+      }) as DecodedMarketEvent
+    const episodes = buildDelinquencyEpisodes(
+      [
+        state(100, true),
+        state(200, false),
+        state(220, true),
+        state(240, false),
+      ],
+      [],
+      50,
+      400,
+      0,
+      { timestamp: 0, isDelinquent: false, timeDelinquent: 0 },
+    )
+
+    expect(episodes[0].penaltyEndTimestamp).toBeUndefined()
+    expect(episodes[1].penaltyEndTimestamp).toBe(290)
+    expect(episodes[1].penaltyTriggered).toBe(true)
   })
 })

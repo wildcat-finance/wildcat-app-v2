@@ -120,10 +120,48 @@ describe("position summaries", () => {
     )
     const summary = summaries[address]
     expect(summary.activePrincipalRaw).toBe(600n)
-    expect(summary.pendingWithdrawalPrincipalRaw).toBe(320n)
+    expect(summary.pendingWithdrawalPrincipalRaw).toBe(380n)
+    expect(summary.principalReturnedRaw).toBe(20n)
     expect(summary.pendingWithdrawalValueRaw).toBe(410n)
     expect(summary.totalPositionValueRaw).toBe(1_070n)
     expect(summary.earningsRaw).toBe(90n)
+    expect(summary.payoutsRaw - summary.principalReturnedRaw).toBe(0n)
+    expect(
+      summary.pendingWithdrawalValueRaw - summary.pendingWithdrawalPrincipalRaw,
+    ).toBe(30n)
+  })
+
+  it("does not return principal from the unfunded half of a batch", async () => {
+    const scaleFactor = (RAY * 11n) / 10n
+    const events = [
+      event("Deposit", 1_000n, { scaledAmount: "1000" }, address),
+      event(
+        "WithdrawalQueued",
+        400n,
+        { scaledAmount: "400", expiry: "10" },
+        address,
+      ),
+      event("WithdrawalBatchPayment", 200n, {
+        expiry: "10",
+        normalizedAmountPaid: "200",
+        scaledAmountBurned: "200",
+      }),
+      event("WithdrawalExecuted", 200n, { expiry: "10" }, address),
+    ]
+    const summaries = await buildPositionSummaries(
+      rpcWithPosition(660n, 600n, scaleFactor),
+      market,
+      10,
+      1_700_000_000,
+      events,
+      [address],
+    )
+    const summary = summaries[address]
+
+    expect(summary.principalReturnedRaw).toBe(200n)
+    expect(summary.pendingWithdrawalPrincipalRaw).toBe(200n)
+    expect(summary.pendingWithdrawalValueRaw).toBe(220n)
+    expect(summary.payoutsRaw - summary.principalReturnedRaw).toBe(0n)
   })
 
   it("separates earnings transferred with market tokens from active earnings", async () => {
