@@ -169,18 +169,8 @@ export const MarketPolicyForm = ({
       dispatch(
         setIsDisabled({ steps: [CreateMarketSteps.BASIC], disabled: false }),
       )
-    } else {
-      const allStepsToDisable = [
-        CreateMarketSteps.BASIC,
-        CreateMarketSteps.CONFIRM,
-        CreateMarketSteps.LRESTRICTIONS,
-        CreateMarketSteps.FINANCIAL,
-        CreateMarketSteps.MLA,
-      ]
-
-      dispatch(setIsDisabled({ steps: allStepsToDisable, disabled: true }))
     }
-  }, [isFormValid, isFixedTerm, isPeriodicTerm])
+  }, [dispatch, isFormValid])
 
   return (
     <Box sx={FormContainer}>

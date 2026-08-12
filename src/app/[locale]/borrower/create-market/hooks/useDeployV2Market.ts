@@ -941,7 +941,7 @@ export const useDeployV2Market = () => {
       })
     },
     onError(error) {
-      console.log(error)
+      console.error("Market deployment failed", error)
     },
   })
 
@@ -959,5 +959,6 @@ export const useDeployV2Market = () => {
     isDeploying,
     isSuccess,
     isError,
+    deployError,
   }
 }

@@ -16,6 +16,7 @@ import {
   WithdrawalAccess,
 } from "@wildcatfi/wildcat-sdk"
 import { useRouter } from "next/navigation"
+import { FieldErrors } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { zeroAddress } from "viem"
 import { useAccount } from "wagmi"
@@ -89,6 +90,7 @@ import {
 import { useNewMarketForm } from "./hooks/useNewMarketForm"
 import { useNewMarketHooksData } from "./hooks/useNewMarketHooksData"
 import { useTokenMetadata } from "./hooks/useTokenMetadata"
+import { MarketValidationSchemaType } from "./validation/validationSchema"
 import { getMlaFromForm } from "../hooks/mla/usePreviewMla"
 import {
   SignMlaFromFormInputs,
@@ -138,6 +140,38 @@ const HOOKS_KIND_LABELS: Record<HooksKind, string> = {
   [HooksKind.FixedTerm]: "Fixed Term",
   [HooksKind.PeriodicTerm]: "Periodic Term",
   [HooksKind.Unknown]: "Unknown Term",
+}
+
+const FIELD_TO_STEP: Partial<
+  Record<keyof MarketValidationSchemaType, CreateMarketSteps>
+> = {
+  policy: CreateMarketSteps.POLICY,
+  policyName: CreateMarketSteps.POLICY,
+  implementationType: CreateMarketSteps.POLICY,
+  marketType: CreateMarketSteps.POLICY,
+  accessControl: CreateMarketSteps.POLICY,
+  fixedTermEndTime: CreateMarketSteps.POLICY,
+  firstWithdrawalWindowStart: CreateMarketSteps.POLICY,
+  periodDuration: CreateMarketSteps.POLICY,
+  withdrawalWindowDuration: CreateMarketSteps.POLICY,
+  marketName: CreateMarketSteps.BASIC,
+  namePrefix: CreateMarketSteps.BASIC,
+  symbolPrefix: CreateMarketSteps.BASIC,
+  asset: CreateMarketSteps.BASIC,
+  maxTotalSupply: CreateMarketSteps.FINANCIAL,
+  annualInterestBips: CreateMarketSteps.FINANCIAL,
+  delinquencyFeeBips: CreateMarketSteps.FINANCIAL,
+  reserveRatioBips: CreateMarketSteps.FINANCIAL,
+  commitmentFeePercent: CreateMarketSteps.FINANCIAL,
+  minimumDeposit: CreateMarketSteps.FINANCIAL,
+  delinquencyGracePeriod: CreateMarketSteps.FINANCIAL,
+  withdrawalBatchDuration: CreateMarketSteps.FINANCIAL,
+  depositRequiresAccess: CreateMarketSteps.LRESTRICTIONS,
+  withdrawalRequiresAccess: CreateMarketSteps.LRESTRICTIONS,
+  transferRequiresAccess: CreateMarketSteps.LRESTRICTIONS,
+  disableTransfers: CreateMarketSteps.LRESTRICTIONS,
+  deployWrapper: CreateMarketSteps.WRAPPER,
+  mla: CreateMarketSteps.MLA,
 }
 
 export default function CreateMarketPage() {
@@ -213,6 +247,7 @@ export default function CreateMarketPage() {
     isDeploying,
     isSuccess,
     isError,
+    deployError,
   } = useDeployV2Market()
 
   const [finalOpen, setFinalOpen] = useState<boolean>(false)
@@ -820,6 +855,36 @@ export default function CreateMarketPage() {
     signingDraft.walletKind === "Safe" &&
     signingDraft.id !== activeDraftId
 
+  const handleInvalidDeploy = (
+    errors: FieldErrors<MarketValidationSchemaType>,
+  ) => {
+    setFinalOpen(false)
+
+    const [field] = (
+      Object.keys(errors) as (keyof MarketValidationSchemaType)[]
+    ).filter((key) => FIELD_TO_STEP[key] !== undefined)
+
+    if (!field) {
+      toastError("Market parameters are incomplete. Review the earlier steps.")
+      return
+    }
+
+    const message = errors[field]?.message
+    toastError(
+      typeof message === "string" && message.length > 0
+        ? message
+        : `Check the ${String(field)} field before deploying.`,
+    )
+
+    dispatch(setCreatingStep(FIELD_TO_STEP[field] as CreateMarketSteps))
+
+    try {
+      newMarketForm.setFocus(field)
+    } catch {
+      // Fields wired through setValue instead of register carry no ref to focus.
+    }
+  }
+
   const handleDeployMarket = newMarketForm.handleSubmit(() => {
     const marketParams = newMarketForm.getValues()
     const deployRouting = getCreateMarketDeployRouting({
@@ -869,6 +934,7 @@ export default function CreateMarketPage() {
         mlaSignature: mlaSignature.signature as string,
         deployWrapper: marketParams.deployWrapper,
       }
+      setFinalOpen(true)
       if (activeSafeDraft.deployedMarket) {
         completeDeployedMarket(completionParams)
       } else {
@@ -949,12 +1015,14 @@ export default function CreateMarketPage() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any
 
-      // console.log(`--- MARKET PARAMS ---`)
-      // console.log(realParams)
-      // console.log(`--- END MARKET PARAMS ---`)
+      setFinalOpen(true)
       deployNewMarket(realParams)
+    } else {
+      toastError(
+        "Market deployment is not ready: the asset, policy template or signed agreement is missing.",
+      )
     }
-  })
+  }, handleInvalidDeploy)
 
   const handleClickDeploy = async () => {
     const activeSafeDraft =
@@ -969,6 +1037,7 @@ export default function CreateMarketPage() {
       ? activeSafeDraft
       : undefined
     if (touGateState !== "unblocked" && !activeCommittedDraft?.deployedMarket) {
+      toastError("Accept the current Terms of Use before creating a market.")
       return
     }
     if (
@@ -980,6 +1049,9 @@ export default function CreateMarketPage() {
       !address ||
       !effectiveMarketAddress
     ) {
+      toastError(
+        "Market deployment is not ready yet. Reload the step and sign the market agreement again.",
+      )
       return
     }
     if (signer.chainId !== targetChainId) {
@@ -1073,8 +1145,6 @@ export default function CreateMarketPage() {
         return
       }
 
-      console.log(`clicked deploy`)
-      setFinalOpen(true)
       handleDeployMarket()
     } catch {
       setFinalOpen(false)
@@ -1363,7 +1433,8 @@ export default function CreateMarketPage() {
                       {t("createNewMarket.deploy.error.title")}
                     </Typography>
                     <Typography variant="text3" sx={DeploySubtitle}>
-                      {t("createNewMarket.deploy.error.message")}
+                      {deployError?.message ||
+                        t("createNewMarket.deploy.error.message")}
                     </Typography>
                   </Box>
                 </Box>
@@ -1456,6 +1527,30 @@ export default function CreateMarketPage() {
                 <Typography variant="text3" sx={DeploySubtitle}>
                   {t("createNewMarket.deploy.loading.message")}
                 </Typography>
+              </Box>
+            </Box>
+          )}
+          {!isDeploying && !isError && !isSuccess && (
+            <Box padding="24px" sx={DeployContentContainer} rowGap="24px">
+              <Box sx={DeployTypoBox}>
+                <Typography variant="text1">
+                  Deployment did not start
+                </Typography>
+                <Typography variant="text3" sx={DeploySubtitle}>
+                  No transaction was sent. Review the highlighted field and try
+                  again.
+                </Typography>
+              </Box>
+
+              <Box sx={DeployButtonContainer}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  onClick={() => setFinalOpen(false)}
+                >
+                  Close
+                </Button>
               </Box>
             </Box>
           )}
