@@ -465,8 +465,9 @@ export const TrendingMarketsCarousel = () => {
 
     const lendersAccount = lenders7dWinner ?? lendersBroadWinner
     const lendersCount = lendersAccount
-      ? recentDeposits.last7d[lendersAccount.market.address.toLowerCase()]
-          ?.uniqueLenders ?? 0
+      ? (lenders7dWinner ? recentDeposits.last7d : recentDeposits.broad)[
+          lendersAccount.market.address.toLowerCase()
+        ]?.uniqueLenders ?? 0
       : 0
 
     const makeSlot = (
