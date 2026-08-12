@@ -92,6 +92,7 @@ type Slot = {
   account: MarketAccount
   value: string
   secondaryValue?: string
+  context?: string
 }
 
 const SECONDS_IN_YEAR = BigInt(365 * 24 * 60 * 60)
@@ -388,27 +389,41 @@ export const TrendingMarketsCarousel = () => {
       return price != null ? human * price : human
     }
 
-    // PO metric: 7-day net inflow / total debt at window start. Window-start
-    // debt is approximated as current supply minus the 7d net inflow (interest
-    // accrued inside the window slightly inflates it). Markets whose entire
-    // supply arrived inside the window are excluded - the ratio degenerates
-    // to infinity there, and the Newest Market slot is the home for them.
-    const growthScore = (account: MarketAccount): number | undefined => {
-      const net =
-        recentDeposits.netInflow7d[account.market.address.toLowerCase()]
+    // PO metric: net inflow / total debt at the start of the selected window.
+    // Window-start debt is approximated as current supply minus net inflow
+    // (interest accrued inside the window slightly inflates it). Markets whose
+    // entire supply arrived inside the window are excluded - the ratio
+    // degenerates to infinity there, and the Newest Market slot is their home.
+    const growthScore = (
+      account: MarketAccount,
+      netInflows: Record<string, bigint>,
+    ): number | undefined => {
+      const net = netInflows[account.market.address.toLowerCase()]
       if (net === undefined || net <= ZERO) return undefined
       const startDebt = account.market.totalSupply.raw.toBigInt() - net
       if (startDebt <= ZERO) return undefined
       const { decimals } = account.market.underlyingToken
       return toHuman(net, decimals) / toHuman(startDebt, decimals)
     }
-    const fastestGrowingWinner = pickMax(eligible, growthScore)
+    const growthWindow = [
+      { days: 7, netInflows: recentDeposits.netInflow7d },
+      { days: 30, netInflows: recentDeposits.netInflow30d },
+      { days: 90, netInflows: recentDeposits.netInflow90d },
+    ]
+      .map((window) => ({
+        ...window,
+        winner: pickMax(eligible, (account) =>
+          growthScore(account, window.netInflows),
+        ),
+      }))
+      .find((window) => window.winner !== undefined)
+    const fastestGrowingWinner = growthWindow?.winner
     const fastestGrowingRatio = fastestGrowingWinner
-      ? growthScore(fastestGrowingWinner)
+      ? growthScore(fastestGrowingWinner, growthWindow.netInflows)
       : undefined
     const fastestGrowingStat = fastestGrowingWinner
       ? `+${formatTokenCompact(
-          recentDeposits.netInflow7d[
+          growthWindow.netInflows[
             fastestGrowingWinner.market.address.toLowerCase()
           ] ?? ZERO,
           fastestGrowingWinner.market.underlyingToken.decimals,
@@ -476,9 +491,10 @@ export const TrendingMarketsCarousel = () => {
       account: MarketAccount | undefined,
       value: string | undefined,
       secondaryValue?: string,
+      context?: string,
     ): Slot | null => {
       if (!account || !value) return null
-      return { key, variant, account, value, secondaryValue }
+      return { key, variant, account, value, secondaryValue, context }
     }
 
     const built: (Slot | null)[] = [
@@ -488,12 +504,15 @@ export const TrendingMarketsCarousel = () => {
         fastestGrowingWinner,
         fastestGrowingStat,
         fastestGrowingRate,
+        growthWindow ? `Last ${growthWindow.days} days` : undefined,
       ),
       makeSlot(
         "lenders",
         "popular",
         lendersAccount,
         lendersCount > 0 ? lendersCount.toString() : undefined,
+        undefined,
+        lenders7dWinner ? "Last 7 days" : "Historical",
       ),
       makeSlot(
         "highestApr",
@@ -558,6 +577,7 @@ export const TrendingMarketsCarousel = () => {
         variant={slot.variant}
         value={slot.value}
         secondaryValue={slot.secondaryValue}
+        context={slot.context}
         marketName={market.name}
         marketAddress={market.address}
         chainId={market.chainId}
