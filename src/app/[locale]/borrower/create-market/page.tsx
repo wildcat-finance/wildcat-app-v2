@@ -1557,7 +1557,9 @@ export default function CreateMarketPage() {
         </Dialog>
       </Box>
 
-      {currentNumber && <GlossarySidebar items={glossaryItems} />}
+      {currentNumber && glossaryItems.length > 0 && (
+        <GlossarySidebar items={glossaryItems} />
+      )}
     </Box>
   )
 }
