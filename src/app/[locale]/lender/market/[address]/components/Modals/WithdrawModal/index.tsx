@@ -1,30 +1,23 @@
-import { ChangeEvent, useEffect, useMemo, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import * as React from "react"
 
+import { Box, Button, Dialog, Typography } from "@mui/material"
 import {
-  Box,
-  Button,
-  Dialog,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material"
-import { HooksKind, MarketVersion, TokenAmount } from "@wildcatfi/wildcat-sdk"
+  HooksKind,
+  QueueWithdrawalStatus,
+  TokenAmount,
+} from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
-import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
 import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
-import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import {
-  ModalSteps,
-  useApprovalModal,
-} from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
-import { TxModalDialog } from "@/app/[locale]/borrower/market/[address]/components/Modals/style"
-import { useWithdraw } from "@/app/[locale]/lender/market/[address]/hooks/useWithdraw"
+  LegStatus,
+  useWithdrawFlow,
+  WithdrawLegKind,
+} from "@/app/[locale]/lender/market/[address]/hooks/useWithdrawFlow"
+import { useWithdrawRouting } from "@/app/[locale]/lender/market/[address]/hooks/useWithdrawRouting"
 import { TransactionHeader } from "@/components/Mobile/TransactionHeader"
-import { NumberTextField } from "@/components/NumberTextfield"
-import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButton"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -32,410 +25,434 @@ import { COLORS } from "@/theme/colors"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
+import { WithdrawDone } from "./components/WithdrawDone"
+import { WithdrawForm } from "./components/WithdrawForm"
+import { StepRow, WithdrawSteps } from "./components/WithdrawSteps"
 import { WithdrawModalProps } from "./interface"
+
+const T = "lenderMarketDetails.transactions.withdraw"
+
+/** Fixed dialog height: every view is laid out inside the same box. */
+const DIALOG_HEIGHT = "493px"
 
 export const WithdrawModal = ({
   marketAccount,
+  wrapper,
+  hasWrapper,
   isMobileOpen,
   setIsMobileOpen,
 }: WithdrawModalProps) => {
-  const theme = useTheme()
   const isMobile = useMobileResolution()
-
   const { t } = useTranslation()
   const { market } = marketAccount
+  const { symbol } = market.underlyingToken
+
+  const [isDesktopOpen, setIsDesktopOpen] = useState(false)
+  const [snapshotShares, setSnapshotShares] = useState<TokenAmount>()
+
+  // /**
+  //  * The form is the tallest view. Remember its height and hold it for the rest
+  //  * of the flow so the dialog does not resize from step to step. Kept as a
+  //  * minimum (never a fixed height) so unusually long content can still grow.
+  //  */
+  // const paperRef = useRef<HTMLDivElement>(null)
+  // const [lockedHeight, setLockedHeight] = useState<number>()
+
+  const routing = useWithdrawRouting({ marketAccount, wrapper, hasWrapper })
+  const flow = useWithdrawFlow({ marketAccount, wrapper })
 
   const notMature =
     market.hooksConfig?.kind === HooksKind.FixedTerm &&
     market.hooksConfig?.fixedTermEndTime !== undefined &&
     market.hooksConfig.fixedTermEndTime * 1000 >= Date.now()
 
-  const [amount, setAmount] = useState("")
-  const [maxAmount, setMaxAmount] = useState<TokenAmount>()
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false)
-  const [showErrorPopup, setShowErrorPopup] = useState(false)
-  const [txHash, setTxHash] = useState<string | undefined>()
-  const [error, setError] = useState<string | undefined>()
+  const availability = marketAccount.withdrawalAvailability
+  const blockingError =
+    availability !== QueueWithdrawalStatus.Ready
+      ? SDK_ERRORS_MAPPING.queueWithdrawal[availability]
+      : undefined
 
-  const { mutate, isSuccess, isError, isPending } = useWithdraw(
-    marketAccount,
-    setTxHash,
-    !!maxAmount,
-  )
+  /** Transaction count for the current route, before the flow is started. */
+  const previewLegCount = React.useMemo(() => {
+    if (!routing.route.usesWrapped) return 1
+    return flow.isBatched ? 1 : 2
+  }, [routing.route.usesWrapped, flow.isBatched])
 
-  const modal = useApprovalModal(
-    setShowSuccessPopup,
-    setShowErrorPopup,
-    setAmount,
-    setTxHash,
-  )
+  // ---- view selection ----
+  /** A one-transaction flow gets no steps screen: sign straight from the form. */
+  const isSingleLeg = flow.legs.length === 1
 
-  const handleOpenModal = () => {
-    setMaxAmount(undefined)
-    modal.handleOpenModal()
-  }
+  const view = (() => {
+    if (!flow.snapshot) return "form" as const
+    if (flow.proposed) return "proposed" as const
+    if (flow.isComplete) return "done" as const
+    if (isSingleLeg)
+      return flow.failed ? ("error" as const) : ("loading" as const)
+    return "steps" as const
+  })()
 
-  const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
-    const { value } = evt.target
-    setAmount(value)
-    setMaxAmount(undefined)
-  }
+  const isOpen = isMobile ? !!isMobileOpen : isDesktopOpen
 
-  const handleClickMaxAmount = () => {
-    setAmount(parseFloat(marketAccount.marketBalance.format(5)).toString())
-    setMaxAmount(marketAccount.marketBalance)
-  }
-
-  const handleWithdraw = () => {
-    mutate(amount)
-  }
-
-  const handleTryAgain = () => {
-    handleWithdraw()
-    setShowErrorPopup(false)
-  }
-
-  const smallestTokenAmountValue = market.underlyingToken.parseAmount(
-    "0.00001".replace(/,/g, ""),
-  )
-
-  const isTooSmallMarketBalance: boolean =
-    marketAccount.marketBalance.lt(smallestTokenAmountValue) &&
-    !marketAccount.marketBalance.raw.isZero()
-
-  const underlyingWithdrawAmount = useMemo(
-    () =>
-      marketAccount.market.underlyingToken.parseAmount(
-        amount.replace(/,/g, "") || "0",
-      ),
-    [amount],
-  )
-
-  const handleClickTooSmallTextfield = () => {
-    if (isTooSmallMarketBalance && maxAmount) {
-      setMaxAmount(undefined)
+  const handleClose = () => {
+    flow.reset()
+    routing.reset()
+    setSnapshotShares(undefined)
+    if (isMobile) {
+      setIsMobileOpen?.(false)
+    } else {
+      setIsDesktopOpen(false)
     }
   }
 
-  const withdrawAmount = maxAmount || underlyingWithdrawAmount
+  const handleOpen = () => {
+    flow.reset()
+    routing.reset()
+    setSnapshotShares(undefined)
+    setIsDesktopOpen(true)
+  }
 
-  const showForm = !(isPending || showSuccessPopup || showErrorPopup)
-
-  const disableWithdraw =
-    !!error ||
-    marketAccount.marketBalance.eq(0) ||
-    withdrawAmount.gt(marketAccount.marketBalance) ||
-    withdrawAmount.eq(0)
-
-  const { status: withdrawStep } =
-    marketAccount.previewQueueWithdrawal(withdrawAmount)
-
-  useEffect(() => {
-    if (isError) {
-      setShowErrorPopup(true)
-    }
-    if (isSuccess) {
-      setShowSuccessPopup(true)
-    }
-  }, [isError, isSuccess])
-
-  useEffect(() => {
-    if (amount === "" || amount === "0" || withdrawStep === "Ready") {
-      setError(undefined)
-      return
-    }
-
-    setError(SDK_ERRORS_MAPPING.queueWithdrawal[withdrawStep])
-  }, [amount, withdrawStep])
-
-  const { open, closedModalStep } = modal
-
-  useEffect(() => {
-    setMaxAmount(undefined)
-  }, [open, closedModalStep])
-
+  // Reset when the mobile sheet is (re)opened from the page.
   useEffect(() => {
     if (isMobileOpen) {
-      modal.setFlowStep(ModalSteps.gettingValues)
+      flow.reset()
+      routing.reset()
+      setSnapshotShares(undefined)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobileOpen])
 
-  const handleModalArrowClick = () => {
-    if (modal.gettingValueStep && !!setIsMobileOpen) {
-      setIsMobileOpen(false)
+  /**
+   * Back to the amount form. Only offered before the first signature — once a
+   * leg is on-chain there is nothing to rewind to.
+   */
+  const canGoBackToForm =
+    view === "steps" && flow.currentLeg === 0 && !flow.busy
+
+  const handleBackToForm = () => {
+    flow.reset()
+    setSnapshotShares(undefined)
+  }
+
+  const handleConfirm = () => {
+    setSnapshotShares(routing.sharesToUnwrap)
+    flow.begin(routing.route)
+  }
+
+  // ---- step rows ----
+  const stepRows: StepRow[] = React.useMemo(() => {
+    const { snapshot } = flow
+    if (!snapshot) return []
+
+    const statusLabel = (status: LegStatus) => {
+      switch (status) {
+        case LegStatus.Done:
+          return t(`${T}.steps.status.done`)
+        case LegStatus.Failed:
+          return t(`${T}.steps.status.failed`)
+        case LegStatus.Busy:
+          return t(`${T}.steps.status.confirming`)
+        case LegStatus.Waiting:
+          return t(`${T}.steps.status.waiting`)
+        default:
+          return t(`${T}.steps.status.next`)
+      }
     }
-    modal.handleClickBack()
-  }
 
-  const handleCloseMobileModal = () => {
-    if (setIsMobileOpen) {
-      modal.handleCloseModal()
-      setIsMobileOpen(false)
+    const sharesAmount = snapshotShares ?? routing.sharesToUnwrap
+    const shareSymbol = wrapper?.shareToken.symbol ?? ""
+    const totalLabel = formatTokenWithCommas(snapshot.amount)
+
+    return flow.legs.map((leg, index) => {
+      const status = flow.legStatus(index)
+
+      if (leg.kind === WithdrawLegKind.Unwrap) {
+        return {
+          n: leg.n,
+          title: t(`${T}.steps.unwrap.title`),
+          detail: sharesAmount
+            ? t(`${T}.steps.unwrap.detail`, {
+                shares: formatTokenWithCommas(sharesAmount),
+                shareSymbol,
+                amount: formatTokenWithCommas(snapshot.fromWrapped),
+                symbol,
+              })
+            : t(`${T}.steps.unwrap.detailNoShares`, {
+                amount: formatTokenWithCommas(snapshot.fromWrapped),
+                symbol,
+              }),
+          status,
+          statusLabel: statusLabel(status),
+        }
+      }
+
+      if (leg.kind === WithdrawLegKind.Batched) {
+        return {
+          n: leg.n,
+          title: t(`${T}.steps.batched.title`),
+          detail: t(`${T}.steps.batched.detail`, {
+            shares: sharesAmount ? formatTokenWithCommas(sharesAmount) : "",
+            shareSymbol,
+            amount: totalLabel,
+            symbol,
+          }),
+          status,
+          statusLabel: statusLabel(status),
+        }
+      }
+
+      return {
+        n: leg.n,
+        title: t(`${T}.steps.queue.title`),
+        detail: snapshot.usesWrapped
+          ? t(`${T}.steps.queue.detail`, { amount: totalLabel, symbol })
+          : t(`${T}.steps.queue.detailDirect`, { amount: totalLabel, symbol }),
+        status,
+        statusLabel: statusLabel(status),
+      }
+    })
+  }, [flow, snapshotShares, routing.sharesToUnwrap, wrapper, symbol, t])
+
+  // ---- footer labels ----
+  const confirmLabel = (() => {
+    if (routing.overMax) return t(`${T}.confirm.exceeds`)
+    if (!routing.isValid || blockingError) return t(`${T}.confirm.enterAmount`)
+    return t(`${T}.confirm.withdraw`, {
+      amount: formatTokenWithCommas(routing.route.amount),
+      symbol,
+      count: previewLegCount,
+    })
+  })()
+
+  const signLabel = (() => {
+    if (flow.busy) return t(`${T}.steps.signBusy`)
+    const leg = stepRows[flow.currentLeg]
+    if (flow.failed && leg) {
+      return t(`${T}.steps.retry`, { title: leg.title })
     }
-  }
+    if (flow.legs.length <= 1) return t(`${T}.steps.signOne`)
+    return t(`${T}.steps.signMany`, {
+      current: flow.currentLeg + 1,
+      total: flow.legs.length,
+      title: leg?.title ?? "",
+    })
+  })()
 
-  const progressAmount = () => {
-    if (modal.gettingValueStep) return 50
-    if (showSuccessPopup) return 100
+  // ---- bodies ----
+  const formBody = (
+    <WithdrawForm
+      routing={routing}
+      marketAccount={marketAccount}
+      wrapper={wrapper}
+      legCount={previewLegCount}
+      isBatched={flow.isBatched}
+      isMultisig={flow.isMultisig}
+      safeThreshold={flow.safeThreshold}
+      blockingError={blockingError}
+    />
+  )
 
-    return 0
-  }
+  const stepsBody = (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      <WithdrawSteps
+        headerLabel={t(`${T}.steps.header`)}
+        amountLabel={`${formatTokenWithCommas(
+          flow.snapshot?.amount ?? routing.route.amount,
+        )} ${symbol}`}
+        rows={stepRows}
+      />
+      {flow.failed && !!flow.error && (
+        <Typography variant="text3" color={COLORS.dullRed}>
+          {flow.error}
+        </Typography>
+      )}
+    </Box>
+  )
 
-  if (isMobile && isMobileOpen)
+  const doneBody = (
+    <WithdrawDone
+      onClose={handleClose}
+      txHash={flow.result?.txHash}
+      title={t(`${T}.success.title`)}
+      subtitle={t(`${T}.success.subtitle`, {
+        amount: flow.result
+          ? formatTokenWithCommas(flow.result.queuedAmount)
+          : formatTokenWithCommas(
+              flow.snapshot?.amount ?? routing.route.amount,
+            ),
+        symbol,
+      })}
+    />
+  )
+
+  const proposedBody = (
+    <WithdrawDone
+      onClose={handleClose}
+      txHash={flow.txHash}
+      title={t(`${T}.proposed.title`)}
+      subtitle={t(`${T}.proposed.subtitle`, { count: flow.safeThreshold })}
+    />
+  )
+
+  const loadingBody = (
+    <LoadingModal txHash={flow.txHash} subtitle={stepRows[0]?.title} />
+  )
+
+  const errorBody = (
+    <ErrorModal
+      onTryAgain={() => {
+        flow.signCurrent()
+      }}
+      onClose={handleClose}
+      txHash={flow.txHash}
+      subtitle={flow.error}
+    />
+  )
+
+  const body = (() => {
+    if (view === "form") return formBody
+    if (view === "steps") return stepsBody
+    if (view === "loading") return loadingBody
+    if (view === "error") return errorBody
+    if (view === "done") return doneBody
+    return proposedBody
+  })()
+
+  const footer = (() => {
+    if (view === "form") {
+      return (
+        <TxModalFooter
+          mainBtnText={confirmLabel}
+          mainBtnOnClick={handleConfirm}
+          disableMainBtn={!routing.isValid || !!blockingError}
+        />
+      )
+    }
+    if (view === "loading" || view === "error") return null
+    if (view === "steps") {
+      return (
+        <TxModalFooter
+          mainBtnText={signLabel}
+          mainBtnOnClick={() => {
+            flow.signCurrent()
+          }}
+          disableMainBtn={flow.busy}
+        />
+      )
+    }
     return (
-      <>
+      <TxModalFooter
+        mainBtnText={t(`${T}.success.back`)}
+        mainBtnOnClick={handleClose}
+      />
+    )
+  })()
+
+  // ---- mobile ----
+  if (isMobile && isMobileOpen) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          width: "100%",
+          height: "100%",
+          backgroundColor: COLORS.white,
+          borderRadius: "14px",
+          paddingBottom: "12px",
+        }}
+      >
+        <TransactionHeader
+          label={t(`${T}.modal.title`)}
+          arrowOnClick={
+            // eslint-disable-next-line no-nested-ternary
+            view === "form"
+              ? handleClose
+              : canGoBackToForm
+                ? handleBackToForm
+                : null
+          }
+          crossOnClick={handleClose}
+          progress={view === "form" ? 50 : 100}
+        />
+
         <Box
           sx={{
+            padding: "24px 20px 16px",
+            width: "100%",
+            flex: 1,
             display: "flex",
             flexDirection: "column",
-            flex: 1,
-            width: "100%",
-            height: "100%",
-            backgroundColor: COLORS.white,
-            borderRadius: "14px",
-            paddingBottom: "12px",
           }}
         >
-          <TransactionHeader
-            label={t("lenderMarketDetails.transactions.withdraw.modal.title")}
-            arrowOnClick={
-              modal.hideArrowButton || !showForm ? null : handleModalArrowClick
-            }
-            crossOnClick={handleCloseMobileModal}
-            progress={progressAmount()}
-          />
-
-          <Box
-            sx={{
-              padding: "32px 20px 0",
-              width: "100%",
-              height: "100%",
-              backgroundColor: COLORS.white,
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <Typography variant="text2" lineHeight="24px">
-              Choose amount of tokens
-            </Typography>
-
-            <Typography
-              color={COLORS.santasGrey}
-              variant="text3"
-              lineHeight="24px"
-            >
-              Available to withdraw{" "}
-              <Typography
-                variant="text3"
-                lineHeight="24px"
-                color={COLORS.ultramarineBlue}
-              >
-                {isTooSmallMarketBalance
-                  ? `< 0.00001 ${market.underlyingToken.symbol}`
-                  : `${formatTokenWithCommas(marketAccount.marketBalance)} ${
-                      market.underlyingToken.symbol
-                    }`}
-              </Typography>
-            </Typography>
-
-            <Box>
-              <NumberTextField
-                label={`Up to ${formatTokenWithCommas(
-                  marketAccount.marketBalance,
-                )} ${market.underlyingToken.symbol}`}
-                size="medium"
-                style={{
-                  width: "100%",
-                  marginTop: "12px",
-                  marginBottom: "24px",
-                }}
-                value={amount}
-                onChange={handleAmountChange}
-                onClick={
-                  isTooSmallMarketBalance
-                    ? handleClickTooSmallTextfield
-                    : undefined
-                }
-                endAdornment={
-                  <TextfieldButton
-                    buttonText="Max"
-                    onClick={handleClickMaxAmount}
-                  />
-                }
-                error={!!error}
-                helperText={error}
-              />
-              {isTooSmallMarketBalance && !!maxAmount && (
-                <Box
-                  sx={{
-                    width: "fit-content",
-                    backgroundColor: COLORS.white,
-                    padding: "2px",
-                    position: "relative",
-                    bottom: "36.7px",
-                    left: "14px",
-                  }}
-                >
-                  <Typography variant="text2">{"< 0.00001"}</Typography>
-                </Box>
-              )}
-            </Box>
-          </Box>
-
-          <TxModalFooter
-            mainBtnText={t(
-              "lenderMarketDetails.transactions.withdraw.modal.buttons.confirm",
-            )}
-            mainBtnOnClick={handleWithdraw}
-            disableMainBtn={disableWithdraw}
-            hideButtons={!showForm}
-          />
+          {body}
         </Box>
 
-        <Dialog
-          open={isPending || showErrorPopup || showSuccessPopup}
-          sx={{
-            backdropFilter: "blur(10px)",
-
-            "& .MuiDialog-paper": {
-              height: "353px",
-              width: "100%",
-              border: "none",
-              borderRadius: "20px",
-              padding: "24px 0",
-              margin: "auto 0 4px",
-            },
-          }}
-        >
-          {isPending && <LoadingModal txHash={txHash} />}
-          {showErrorPopup && (
-            <ErrorModal
-              onTryAgain={handleTryAgain}
-              onClose={handleCloseMobileModal}
-              txHash={txHash}
-            />
-          )}
-          {showSuccessPopup && (
-            <SuccessModal onClose={handleCloseMobileModal} txHash={txHash} />
-          )}
-        </Dialog>
-      </>
+        {footer}
+      </Box>
     )
+  }
 
+  // ---- desktop ----
   return (
     <>
       <Button
         variant="contained"
         size="large"
         sx={{ width: "152px" }}
-        onClick={handleOpenModal}
+        onClick={handleOpen}
         disabled={notMature}
       >
-        {notMature
-          ? t("lenderMarketDetails.transactions.withdraw.buttonLocked")
-          : t("lenderMarketDetails.transactions.withdraw.button")}
+        {notMature ? t(`${T}.buttonLocked`) : t(`${T}.button`)}
       </Button>
 
       <Dialog
-        open={modal.isModalOpen}
-        onClose={isPending ? undefined : modal.handleCloseModal}
-        sx={TxModalDialog}
+        open={isOpen}
+        onClose={flow.busy ? undefined : handleClose}
+        sx={{
+          "& .MuiDialog-paper": {
+            height: DIALOG_HEIGHT,
+            minHeight: DIALOG_HEIGHT,
+            maxHeight: DIALOG_HEIGHT,
+            width: "440px",
+            minWidth: "440px !important",
+            maxWidth: "440px",
+            border: "none",
+            borderRadius: "20px",
+            margin: 0,
+            padding: "24px 0",
+          },
+        }}
       >
-        {showForm && (
-          <>
-            <TxModalHeader
-              title={t("lenderMarketDetails.transactions.withdraw.modal.title")}
-              arrowOnClick={
-                modal.hideArrowButton || !showForm
-                  ? null
-                  : modal.handleClickBack
-              }
-              crossOnClick={
-                modal.hideCrossButton ? null : modal.handleCloseModal
-              }
-            />
-
-            <Box width="100%" height="100%" padding="0 24px">
-              <ModalDataItem
-                title={t(
-                  "lenderMarketDetails.transactions.withdraw.modal.available",
-                )}
-                value={
-                  isTooSmallMarketBalance
-                    ? `< 0.00001 ${market.underlyingToken.symbol}`
-                    : `${formatTokenWithCommas(marketAccount.marketBalance)} ${
-                        market.underlyingToken.symbol
-                      }`
-                }
-                containerSx={{
-                  padding: "0 12px",
-                  margin: "16px 0 20px",
-                }}
-              />
-
-              <Box>
-                <NumberTextField
-                  label={`Up to ${formatTokenWithCommas(
-                    marketAccount.marketBalance,
-                  )} ${market.underlyingToken.symbol}`}
-                  size="medium"
-                  style={{ width: "100%" }}
-                  value={amount}
-                  onChange={handleAmountChange}
-                  onClick={
-                    isTooSmallMarketBalance
-                      ? handleClickTooSmallTextfield
-                      : undefined
-                  }
-                  endAdornment={
-                    <TextfieldButton
-                      buttonText="Max"
-                      onClick={handleClickMaxAmount}
-                    />
-                  }
-                  error={!!error}
-                  helperText={error}
-                />
-
-                {isTooSmallMarketBalance && !!maxAmount && (
-                  <Box
-                    sx={{
-                      width: "fit-content",
-                      backgroundColor: COLORS.white,
-                      padding: "2px",
-                      position: "relative",
-                      bottom: "36.7px",
-                      left: "14px",
-                    }}
-                  >
-                    <Typography variant="text2">{"< 0.00001"}</Typography>
-                  </Box>
-                )}
-              </Box>
-            </Box>
-          </>
-        )}
-
-        {isPending && <LoadingModal txHash={txHash} />}
-        {showErrorPopup && (
-          <ErrorModal
-            onTryAgain={handleTryAgain}
-            onClose={modal.handleCloseModal}
-            txHash={txHash}
+        {(view === "form" || view === "steps") && (
+          <TxModalHeader
+            title={t(`${T}.modal.title`)}
+            arrowOnClick={canGoBackToForm ? handleBackToForm : null}
+            crossOnClick={flow.busy ? null : handleClose}
           />
         )}
-        {showSuccessPopup && (
-          <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
-        )}
 
-        <TxModalFooter
-          mainBtnText={t(
-            "lenderMarketDetails.transactions.withdraw.modal.buttons.confirm",
-          )}
-          mainBtnOnClick={handleWithdraw}
-          disableMainBtn={disableWithdraw}
-          hideButtons={!showForm}
-        />
+        {/* flex:1 makes the body absorb the paper's spare height so the footer
+            is pinned to the bottom instead of leaving dead space under it */}
+        <Box
+          width="100%"
+          padding={
+            view === "loading" || view === "error" ? "0 0 16px" : "0 24px 16px"
+          }
+          marginTop="16px"
+          sx={{
+            flex: 1,
+            // fixed-height paper: a tall view scrolls instead of spilling out
+            minHeight: 0,
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {body}
+        </Box>
+
+        {footer}
       </Dialog>
     </>
   )
