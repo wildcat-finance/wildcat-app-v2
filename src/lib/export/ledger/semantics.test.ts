@@ -5,11 +5,15 @@ import {
   applyScaledSupplyEvent,
   buildDelinquencyEpisodes,
   buildInterestAccruals,
+  classifyTransfersMentioningMarket,
   foreignTransferKind,
   proportionalPrincipalReturned,
   sanitizeTokenSymbol,
+  verifyTransferCandidates,
 } from "./buildMarketDataset"
 import { RAY, rayMul } from "../bigint"
+import { EtherscanLog } from "../sources/etherscan"
+import { ExportRpc } from "../sources/rpc"
 import {
   DecodedMarketEvent,
   InterestAccrualRow,
@@ -102,6 +106,97 @@ describe("protocol event semantics", () => {
       "erc721",
     )
     expect(foreignTransferKind(log([topic, topic], "0x1234"))).toBe("unknown")
+  })
+
+  it("classifies one shared transfer scan into asset and excluded logs", () => {
+    const market = "0x1111111111111111111111111111111111111111"
+    const asset = "0x2222222222222222222222222222222222222222"
+    const foreign = "0x3333333333333333333333333333333333333333"
+    const rpcLog = (
+      address: string,
+      transactionHash: string,
+      blockNumber: number,
+      logIndex: number,
+    ) =>
+      ({
+        address,
+        transactionHash,
+        blockNumber: `0x${blockNumber.toString(16)}`,
+        logIndex: `0x${logIndex.toString(16)}`,
+      }) as JsonRpcLog
+    const assetLog = rpcLog(asset, "0xasset", 2, 1)
+    const foreignLog = rpcLog(foreign, "0xforeign", 1, 0)
+    const marketTokenLog = rpcLog(market, "0xmarket", 3, 2)
+
+    expect(
+      classifyTransfersMentioningMarket(
+        [assetLog, foreignLog, assetLog, marketTokenLog],
+        { address: market, assetAddress: asset },
+      ),
+    ).toEqual({
+      assetLogs: [assetLog],
+      excludedLogs: [foreignLog],
+    })
+  })
+
+  it("accepts indexed transfers only when the exact RPC receipt log matches", async () => {
+    const marketAddress = "0x1111111111111111111111111111111111111111"
+    const assetAddress = "0x2222222222222222222222222222222222222222"
+    const transactionHash = `0x${"3".repeat(64)}`
+    const blockHash = `0x${"4".repeat(64)}`
+    const transferTopic =
+      "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+    const topicAddress = (address: string) =>
+      `0x${address.slice(2).padStart(64, "0")}`
+    const candidate = {
+      address: assetAddress,
+      blockHash,
+      blockNumber: "0xa",
+      data: `0x${"0".repeat(63)}1`,
+      gasPrice: "0x1",
+      gasUsed: "0x1",
+      logIndex: "0x0",
+      timeStamp: "0x1",
+      topics: [
+        transferTopic,
+        topicAddress("0x0000000000000000000000000000000000000000"),
+        topicAddress(marketAddress),
+      ],
+      transactionHash,
+      transactionIndex: "0x0",
+    } satisfies EtherscanLog
+    const receipt = {
+      blockHash,
+      blockNumber: "0xa",
+      effectiveGasPrice: "0x1",
+      from: "0x5555555555555555555555555555555555555555",
+      gasUsed: "0x1",
+      logs: [{ ...candidate, removed: false }],
+      status: "0x1",
+      to: assetAddress,
+      transactionHash,
+      transactionIndex: "0x0",
+    }
+    const rpc = {
+      batch: jest.fn().mockResolvedValue([receipt]),
+    } as unknown as ExportRpc
+    const market = {
+      address: marketAddress,
+      assetAddress,
+      deploymentBlock: 1,
+    } as MarketMetadata
+
+    await expect(
+      verifyTransferCandidates(rpc, [candidate], market, 20),
+    ).resolves.toMatchObject({ assetLogs: [{ transactionHash }] })
+    await expect(
+      verifyTransferCandidates(
+        rpc,
+        [{ ...candidate, data: `0x${"0".repeat(63)}2` }],
+        market,
+        20,
+      ),
+    ).rejects.toThrow("payload mismatches 1")
   })
 
   it("uses the deployment fee until an update event changes it", () => {

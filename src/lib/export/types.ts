@@ -1,4 +1,6 @@
 export const EXPORT_CHAIN_IDS = [1, 11155111, 9745, 9746] as const
+export const MAX_EXPORT_MARKETS = 50
+export const MAX_EXPORT_ADDRESSES = 25
 export type ExportChainId = (typeof EXPORT_CHAIN_IDS)[number]
 
 export type ExportStatementType = "market_condition" | "position" | "borrower"

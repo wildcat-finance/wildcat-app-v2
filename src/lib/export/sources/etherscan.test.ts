@@ -3,6 +3,7 @@
 import {
   EtherscanLog,
   getEtherscanMarketLogs,
+  getEtherscanTransferLogsMentioningAddress,
   normalizeEtherscanLog,
 } from "./etherscan"
 
@@ -90,5 +91,33 @@ describe("Etherscan log normalization", () => {
 
     await expect(getEtherscanMarketLogs(1, address, 1, 2)).resolves.toEqual([])
     expect(fetchMock).toHaveBeenCalledTimes(3)
+  })
+
+  it("finds incoming and outgoing transfer logs and dedupes self-transfers", async () => {
+    process.env.ETHERSCAN_API_KEY = "test-key"
+    const transferTopic =
+      "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+    const accountTopic = `0x${address.slice(2).padStart(64, "0")}`
+    const transfer = {
+      ...rawLog,
+      topics: [transferTopic, accountTopic, accountTopic],
+    }
+    const fetchMock = jest.spyOn(global, "fetch").mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ status: "1", message: "OK", result: [transfer] }),
+    } as Response)
+
+    await expect(
+      getEtherscanTransferLogsMentioningAddress(1, address, 1, 2),
+    ).resolves.toEqual([normalizeEtherscanLog(transfer)])
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    const urls = fetchMock.mock.calls.map(([input]) => new URL(String(input)))
+    expect(
+      urls.some((url) => url.searchParams.get("topic1") === accountTopic),
+    ).toBe(true)
+    expect(
+      urls.some((url) => url.searchParams.get("topic2") === accountTopic),
+    ).toBe(true)
   })
 })

@@ -11,7 +11,6 @@ import {
   erc20Interface,
   marketInterface,
   supportedMarketTopics,
-  TRANSFER_TOPIC,
 } from "../abi/registry"
 import {
   BIPS,
@@ -25,12 +24,17 @@ import {
   rayMul,
   SECONDS_PER_YEAR,
 } from "../bigint"
-import { etherscanExplorer, ExportExplorer } from "../sources/etherscan"
+import {
+  EtherscanLog,
+  etherscanExplorer,
+  ExportExplorer,
+} from "../sources/etherscan"
 import {
   ExportRpc,
   fromHex,
   fromHexBigInt,
   normalizeRpcBlock,
+  normalizeRpcLog,
   toBlockHex,
 } from "../sources/rpc"
 import { contractRead, contractReadMany, erc20Read } from "../sources/state"
@@ -276,70 +280,74 @@ async function fetchTimestamps(rpc: ExportRpc, blocks: number[]) {
   )
 }
 
-const padAddressTopic = (address: string) =>
-  `0x${address.toLowerCase().slice(2).padStart(64, "0")}`
-
-async function fetchAssetTransfers(
-  rpc: ExportRpc,
-  market: MarketMetadata,
-  snapshotBlock: number,
+export function classifyTransfersMentioningMarket(
+  logs: JsonRpcLog[],
+  market: Pick<MarketMetadata, "address" | "assetAddress">,
 ) {
-  const marketTopic = padAddressTopic(market.address)
-  const [incoming, outgoing] = await Promise.all([
-    rpc.getLogs({
-      address: market.assetAddress,
-      fromBlock: market.deploymentBlock,
-      toBlock: snapshotBlock,
-      topics: [TRANSFER_TOPIC, null, marketTopic],
-    }),
-    rpc.getLogs({
-      address: market.assetAddress,
-      fromBlock: market.deploymentBlock,
-      toBlock: snapshotBlock,
-      topics: [TRANSFER_TOPIC, marketTopic],
-    }),
-  ])
   const deduped = new Map<string, JsonRpcLog>()
-  for (const log of [...incoming, ...outgoing]) {
+  for (const log of logs) {
     deduped.set(`${log.transactionHash}:${log.logIndex}`, log)
   }
-  return [...deduped.values()].sort(
+  const related = [...deduped.values()].sort(
     (a, b) =>
       fromHex(a.blockNumber) - fromHex(b.blockNumber) ||
       fromHex(a.logIndex) - fromHex(b.logIndex),
   )
+  const assetAddress = market.assetAddress.toLowerCase()
+  const allowed = new Set([market.address.toLowerCase(), assetAddress])
+  return {
+    assetLogs: related.filter(
+      (log) => log.address.toLowerCase() === assetAddress,
+    ),
+    excludedLogs: related.filter(
+      (log) => !allowed.has(log.address.toLowerCase()),
+    ),
+  }
 }
 
-async function fetchExcludedTransfers(
+export async function verifyTransferCandidates(
   rpc: ExportRpc,
+  candidates: EtherscanLog[],
   market: MarketMetadata,
   snapshotBlock: number,
 ) {
-  const marketTopic = padAddressTopic(market.address)
-  const [incoming, outgoing] = await Promise.all([
-    rpc.getLogs({
-      fromBlock: market.deploymentBlock,
-      toBlock: snapshotBlock,
-      topics: [TRANSFER_TOPIC, null, marketTopic],
-    }),
-    rpc.getLogs({
-      fromBlock: market.deploymentBlock,
-      toBlock: snapshotBlock,
-      topics: [TRANSFER_TOPIC, marketTopic],
-    }),
-  ])
-  const allowed = new Set([market.address, market.assetAddress])
-  const deduped = new Map<string, JsonRpcLog>()
-  for (const log of [...incoming, ...outgoing]) {
-    if (!allowed.has(log.address.toLowerCase())) {
-      deduped.set(`${log.transactionHash}:${log.logIndex}`, log)
-    }
-  }
-  return [...deduped.values()].sort(
-    (left, right) =>
-      fromHex(left.blockNumber) - fromHex(right.blockNumber) ||
-      fromHex(left.logIndex) - fromHex(right.logIndex),
+  const hashes = [
+    ...new Set(candidates.map((log) => log.transactionHash.toLowerCase())),
+  ]
+  const receipts = await rpc.batch<JsonRpcReceipt | null>(
+    hashes.map((hash) => ({
+      method: "eth_getTransactionReceipt",
+      params: [hash],
+    })),
   )
+  const receiptLogs = new Map<string, JsonRpcLog>()
+  receipts.forEach((receipt, index) => {
+    const hash = hashes[index]
+    assertRpcReceipt(receipt, hash)
+    const block = fromHex(receipt.blockNumber)
+    if (block < market.deploymentBlock || block > snapshotBlock) {
+      throw new Error(`Transfer candidate outside export snapshot ${hash}`)
+    }
+    receipt.logs.map(normalizeRpcLog).forEach((log) => {
+      receiptLogs.set(`${log.transactionHash}:${fromHex(log.logIndex)}`, log)
+    })
+  })
+  const verified = candidates.map((candidate) => {
+    const identity = `${candidate.transactionHash.toLowerCase()}:${fromHex(
+      candidate.logIndex,
+    )}`
+    const log = receiptLogs.get(identity)
+    if (!log) {
+      throw new Error(`Transfer candidate missing from RPC receipt ${identity}`)
+    }
+    return log
+  })
+  compareMarketLogSources(
+    `transfer candidates for ${market.address}`,
+    verified,
+    candidates,
+  )
+  return classifyTransfersMentioningMarket(verified, market)
 }
 
 const parseChainNumber = (value: string) => {
@@ -1418,7 +1426,10 @@ export async function buildMarketDataset(
   snapshotTimestamp: number,
   positionAddresses: string[],
   explorer?: ExportExplorer,
-  onProgress?: (stage: MarketDatasetBuildStage) => Promise<void>,
+  onProgress?: (
+    stage: MarketDatasetBuildStage,
+    stageProgress?: number,
+  ) => Promise<void>,
 ): Promise<MarketDataset> {
   const marketExplorer = explorer ?? etherscanExplorer
   const verifySnapshotBlock = async () => {
@@ -1431,22 +1442,64 @@ export async function buildMarketDataset(
   }
   await verifySnapshotBlock()
   await onProgress?.("reading_history")
-  const [marketLogs, assetLogs, excludedLogs, etherscanLogs] =
-    await Promise.all([
-      rpc.getLogs({
+  const historyProgress = [0, 0, 0]
+  let lastHistoryStep = 0
+  let historyProgressUpdates = Promise.resolve()
+  const reportHistoryProgress = (
+    source: number,
+    completed: number,
+    total: number,
+  ) => {
+    historyProgress[source] = total === 0 ? 1 : completed / total
+    const combined =
+      historyProgress[0] * 0.7 +
+      historyProgress[1] * 0.15 +
+      historyProgress[2] * 0.15
+    const step = Math.floor(combined * 20 + 1e-9)
+    if (step <= lastHistoryStep) return historyProgressUpdates
+    lastHistoryStep = step
+    historyProgressUpdates = historyProgressUpdates.then(
+      () => onProgress?.("reading_history", Math.min(step / 20, 1)),
+    )
+    return historyProgressUpdates
+  }
+  const [marketLogs, transfers, etherscanLogs] = await Promise.all([
+    rpc.getLogs(
+      {
         address: market.address,
         fromBlock: market.deploymentBlock,
         toBlock: snapshotBlock,
-      }),
-      fetchAssetTransfers(rpc, market, snapshotBlock),
-      fetchExcludedTransfers(rpc, market, snapshotBlock),
-      marketExplorer.getMarketLogs(
+      },
+      (completed, total) => reportHistoryProgress(0, completed, total),
+    ),
+    marketExplorer
+      .getTransferLogsMentioningAddress(
         market.chainId,
         market.address,
         market.deploymentBlock,
         snapshotBlock,
-      ),
-    ])
+      )
+      .then((logs) =>
+        verifyTransferCandidates(rpc, logs, market, snapshotBlock),
+      )
+      .then(async (result) => {
+        await reportHistoryProgress(1, 1, 1)
+        return result
+      }),
+    marketExplorer
+      .getMarketLogs(
+        market.chainId,
+        market.address,
+        market.deploymentBlock,
+        snapshotBlock,
+      )
+      .then(async (logs) => {
+        await reportHistoryProgress(2, 1, 1)
+        return logs
+      }),
+  ])
+  await historyProgressUpdates
+  const { assetLogs, excludedLogs } = transfers
   const logComparison = compareMarketLogSources(
     market.address,
     marketLogs,

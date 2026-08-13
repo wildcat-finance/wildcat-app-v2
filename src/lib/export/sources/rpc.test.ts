@@ -89,6 +89,42 @@ describe("export RPC boundary", () => {
     ).toHaveLength(3)
   })
 
+  it("uses 10,000-block Plasma windows and reports completed windows", async () => {
+    const logFilters: { fromBlock: string; toBlock: string }[] = []
+    const progress: [number, number][] = []
+    jest.spyOn(global, "fetch").mockImplementation(async (_url, init) => {
+      const body = JSON.parse(String(init?.body)) as {
+        id: number
+        method: string
+        params: [{ fromBlock: string; toBlock: string }]
+      }
+      if (body.method === "eth_getLogs") logFilters.push(body.params[0])
+      return response({
+        jsonrpc: "2.0",
+        id: body.id,
+        result: body.method === "eth_chainId" ? "0x2611" : [],
+      }) as never
+    })
+    const rpc = new ExportRpcClient(9745, ["https://rpc.example"])
+
+    await expect(
+      rpc.getLogs({ fromBlock: 0, toBlock: 20_000 }, (completed, total) => {
+        progress.push([completed, total])
+      }),
+    ).resolves.toEqual([])
+
+    expect(logFilters).toEqual([
+      { fromBlock: "0x0", toBlock: "0x270f" },
+      { fromBlock: "0x2710", toBlock: "0x4e1f" },
+      { fromBlock: "0x4e20", toBlock: "0x4e20" },
+    ])
+    expect(progress).toEqual([
+      [1, 3],
+      [2, 3],
+      [3, 3],
+    ])
+  })
+
   it("rejects a provider connected to another chain", async () => {
     jest.spyOn(global, "fetch").mockImplementation(async (_url, init) => {
       const body = JSON.parse(String(init?.body)) as { id: number }
@@ -142,7 +178,11 @@ describe("export RPC boundary", () => {
         method: string
       }
       if (body.method === "eth_chainId") {
-        return response({ jsonrpc: "2.0", id: body.id, result: "0x1" }) as never
+        return response({
+          jsonrpc: "2.0",
+          id: body.id,
+          result: "0x1",
+        }) as never
       }
       logCalls += 1
       return response(
@@ -162,6 +202,78 @@ describe("export RPC boundary", () => {
     expect(logCalls).toBe(3)
   })
 
+  it("bisects range failures returned with HTTP 400", async () => {
+    let logCalls = 0
+    jest.spyOn(global, "fetch").mockImplementation(async (_url, init) => {
+      const body = JSON.parse(String(init?.body)) as {
+        id: number
+        method: string
+      }
+      if (body.method === "eth_chainId") {
+        return response({
+          jsonrpc: "2.0",
+          id: body.id,
+          result: "0x1",
+        }) as never
+      }
+      logCalls += 1
+      if (logCalls === 1) {
+        return {
+          ok: false,
+          status: 400,
+          headers: new Headers(),
+          json: async () => ({
+            jsonrpc: "2.0",
+            id: body.id,
+            error: {
+              code: -32600,
+              message: "eth_getLogs supports up to a 10000 block range",
+            },
+          }),
+        } as Response
+      }
+      return response({ jsonrpc: "2.0", id: body.id, result: [] }) as never
+    })
+    const rpc = new ExportRpcClient(1, ["https://rpc.example"])
+    await expect(rpc.getLogs({ fromBlock: 0, toBlock: 10 })).resolves.toEqual(
+      [],
+    )
+    expect(logCalls).toBe(3)
+  })
+
+  it("does not bisect non-range failures returned with HTTP 400", async () => {
+    let logCalls = 0
+    jest.spyOn(global, "fetch").mockImplementation(async (_url, init) => {
+      const body = JSON.parse(String(init?.body)) as {
+        id: number
+        method: string
+      }
+      if (body.method === "eth_chainId") {
+        return response({
+          jsonrpc: "2.0",
+          id: body.id,
+          result: "0x1",
+        }) as never
+      }
+      logCalls += 1
+      return {
+        ok: false,
+        status: 400,
+        headers: new Headers(),
+        json: async () => ({
+          jsonrpc: "2.0",
+          id: body.id,
+          error: { code: -32602, message: "invalid argument" },
+        }),
+      } as Response
+    })
+    const rpc = new ExportRpcClient(1, ["https://rpc.example"])
+    await expect(rpc.getLogs({ fromBlock: 0, toBlock: 10 })).rejects.toThrow(
+      "invalid argument",
+    )
+    expect(logCalls).toBe(1)
+  })
+
   it("does not disguise invalid requests as range failures", async () => {
     let logCalls = 0
     jest.spyOn(global, "fetch").mockImplementation(async (_url, init) => {
@@ -170,7 +282,11 @@ describe("export RPC boundary", () => {
         method: string
       }
       if (body.method === "eth_chainId") {
-        return response({ jsonrpc: "2.0", id: body.id, result: "0x1" }) as never
+        return response({
+          jsonrpc: "2.0",
+          id: body.id,
+          result: "0x1",
+        }) as never
       }
       logCalls += 1
       return response({

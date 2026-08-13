@@ -5,5 +5,6 @@ export type ExportModalProps = {
   onClose: () => void
   chainId: ExportChainId
   marketAddress: string
+  borrowerAddress: string
   defaultAddress?: string
 }

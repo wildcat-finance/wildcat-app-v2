@@ -20,6 +20,7 @@ import {
 import { ExportChainId, MarketMetadata } from "../types"
 
 const addressPattern = /^0x[0-9a-f]{40}$/
+const MARKET_METADATA_CONCURRENCY = 4
 
 const normalizeAddress = (address: string) => {
   const normalized = address.toLowerCase()
@@ -129,15 +130,25 @@ async function loadMarketMetadata(
   marketAddedLayout: MarketUniverse["marketAddedLayout"],
   allowV1Exclusion: boolean,
 ): Promise<MarketUniverse> {
-  const metadata = await Promise.all(
-    addresses.map((address) =>
-      discoverMetadata(
-        rpc,
-        chainId,
-        address,
-        snapshotBlock,
-        registryData.get(address),
-      ),
+  const metadata: MarketMetadata[] = Array(addresses.length)
+  let cursor = 0
+  await Promise.all(
+    Array.from(
+      { length: Math.min(MARKET_METADATA_CONCURRENCY, addresses.length) },
+      async () => {
+        while (cursor < addresses.length) {
+          const index = cursor
+          cursor += 1
+          const address = addresses[index]
+          metadata[index] = await discoverMetadata(
+            rpc,
+            chainId,
+            address,
+            snapshotBlock,
+            registryData.get(address),
+          )
+        }
+      },
     ),
   )
   const excludedV1 = metadata

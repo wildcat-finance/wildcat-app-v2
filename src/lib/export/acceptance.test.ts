@@ -60,6 +60,7 @@ const worksheetText = async (value: Buffer) => {
 describe("recorded reference market A", () => {
   let dataset: MarketDataset
   const progressStages: string[] = []
+  const historyProgress: number[] = []
 
   beforeAll(async () => {
     const recording = decodeRecording(await readFile(fixturePath))
@@ -76,8 +77,9 @@ describe("recorded reference market A", () => {
       fromHex(snapshot.timestamp),
       [],
       recording.explorer,
-      async (stage) => {
+      async (stage, stageProgress = 0) => {
         progressStages.push(stage)
+        if (stage === "reading_history") historyProgress.push(stageProgress)
       },
     )
     dataset.positions = await buildPositionSummaries(
@@ -91,13 +93,20 @@ describe("recorded reference market A", () => {
   }, 120_000)
 
   it("matches the reference ledger, accrual, fee, APR, and quarantine checks", () => {
-    expect(progressStages).toEqual([
+    expect(
+      progressStages.filter(
+        (stage, index) => index === 0 || stage !== progressStages[index - 1],
+      ),
+    ).toEqual([
       "reading_history",
       "building_transactions",
       "building_daily_history",
       "checking_balances",
       "finalizing_market_data",
     ])
+    expect(historyProgress[0]).toBe(0)
+    expect(historyProgress.at(-1)).toBe(1)
+    expect(historyProgress).toEqual([...historyProgress].sort((a, b) => a - b))
     expect(dataset.transactions).toHaveLength(200)
     expect(dataset.events).toHaveLength(888)
     expect(dataset.interestAccruals).toHaveLength(219)

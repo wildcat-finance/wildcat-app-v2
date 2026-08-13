@@ -7,6 +7,7 @@ import { FatalError } from "workflow"
 
 import { prisma } from "@/lib/db"
 
+import { ProviderThrottleError } from "./providerThrottle"
 import {
   exportObjectExists,
   getExportObject,
@@ -66,13 +67,29 @@ const marketStageFraction: Record<MarketDatasetBuildStage, number> = {
   finalizing_market_data: 0.95,
 }
 
+const marketStageEndFraction: Record<MarketDatasetBuildStage, number> = {
+  reading_history: marketStageFraction.building_transactions,
+  building_transactions: marketStageFraction.building_daily_history,
+  building_daily_history: marketStageFraction.checking_balances,
+  checking_balances: marketStageFraction.finalizing_market_data,
+  finalizing_market_data: 1,
+}
+
 const marketProgress = (
   stage: MarketDatasetBuildStage,
   index: number,
   total: number,
+  stageProgress = 0,
 ) =>
   5 +
-  Math.floor(((index + marketStageFraction[stage]) / Math.max(total, 1)) * 75)
+  Math.floor(
+    ((index +
+      marketStageFraction[stage] +
+      (marketStageEndFraction[stage] - marketStageFraction[stage]) *
+        stageProgress) /
+      Math.max(total, 1)) *
+      75,
+  )
 
 async function mapWithConcurrency<T>(
   values: T[],
@@ -170,6 +187,7 @@ async function updateActiveJob(
 
 const deterministicError = (error: unknown) => {
   if (error instanceof FatalError) return error
+  if (error instanceof ProviderThrottleError) return error
   const message = error instanceof Error ? error.message : String(error)
   if (
     /HTTP \d+|timed? ?out|fetch failed|every configured provider|Failed to (upload|download|inspect)|Etherscan request failed/i.test(
@@ -234,9 +252,12 @@ async function buildPart(
 
   const key = partKey(request, market.address)
   try {
-    const reportProgress = async (stage: MarketDatasetBuildStage) => {
+    const reportProgress = async (
+      stage: MarketDatasetBuildStage,
+      stageProgress = 0,
+    ) => {
       await updateActiveJob(jobId, {
-        progress: marketProgress(stage, index, total),
+        progress: marketProgress(stage, index, total, stageProgress),
         phase: `${stage}_${index + 1}_of_${total}`,
       })
     }
