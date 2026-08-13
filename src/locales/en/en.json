@@ -1168,7 +1168,7 @@
           "txBatched": "1 transaction (batched)",
           "txMultisig": "1 Safe transaction · {{count}} signatures"
         },
-        "wrappedOnly": "Unwind the wrapped position only, leave my direct position untouched",
+        "wrappedOnly": "Use my wrapped position for this withdrawal",
         "confirm": {
           "enterAmount": "Enter An Amount",
           "exceeds": "Amount Exceeds Available",

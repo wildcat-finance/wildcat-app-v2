@@ -22,6 +22,7 @@ import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 
 import { WithdrawRoute } from "./useWithdrawRouting"
+import { resolveWithdrawalQueueRaw } from "./withdrawQueue"
 
 export enum WithdrawLegKind {
   /** ERC-4626 exact-out unwrap of the wrapped portion. */
@@ -271,21 +272,6 @@ export const useWithdrawFlow = ({
     [wrapper, address, market, bindWrapperSigner],
   )
 
-  const resolveQueueRaw = useCallback(
-    (route: WithdrawRoute, live: BigNumber): BigNumber => {
-      const intent = route.amount.raw
-      const clampedIntent = intent.lte(live) ? intent : live
-      if (!route.isMaxRequested) return clampedIntent
-      if (!route.keepsDirect) return live
-
-      const kept = directBeforeUnwrap.current
-      if (!kept) return clampedIntent
-      const swept = live.sub(kept)
-      return swept.gt(clampedIntent) ? swept : clampedIntent
-    },
-    [],
-  )
-
   const runQueue = useCallback(
     async (route: WithdrawRoute) => {
       if (!address || !signer) throw new Error("No signer")
@@ -301,7 +287,13 @@ export const useWithdrawFlow = ({
       // exceed the credited balance by a wei and revert — and a max request has
       // to pick up whatever accrued while the lender was signing.
       const live: BigNumber = await marketWrite.balanceOf(address)
-      const queueRaw = resolveQueueRaw(route, live)
+      const queueRaw = resolveWithdrawalQueueRaw({
+        intent: route.amount.raw,
+        live,
+        isMaxRequested: route.isMaxRequested,
+        keepsDirect: route.keepsDirect,
+        directBeforeUnwrap: directBeforeUnwrap.current,
+      })
       if (queueRaw.isZero()) {
         throw new Error("Nothing available to queue")
       }
@@ -338,7 +330,7 @@ export const useWithdrawFlow = ({
         txHash: tx.hash,
       })
     },
-    [address, signer, market, assertCanQueue, decodeQueued, resolveQueueRaw],
+    [address, signer, market, assertCanQueue, decodeQueued],
   )
 
   const runBatched = useCallback(
