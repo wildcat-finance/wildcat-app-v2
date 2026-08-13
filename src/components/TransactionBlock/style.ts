@@ -7,13 +7,24 @@ export const AmountContainer = {
 }
 
 export const BlockContainer = {
-  width: "395px",
+  width: "100%",
+  minWidth: 0,
   padding: "16px",
   display: "flex",
-  justifyContent: "space-between",
-  borderRadius: "12px",
+  flexDirection: "column",
+  gap: "14px",
+  borderRadius: "20px",
 
-  backgroundColor: COLORS.blackHaze,
+  backgroundColor: COLORS.white,
+  border: `1px solid ${COLORS.whiteLilac}`,
+}
+
+export const TopRowContainer = {
+  display: "flex",
+  alignItems: "flex-start",
+  justifyContent: "space-between",
+  gap: "16px",
+  minWidth: 0,
 }
 
 export const TitleContainer = {
@@ -21,4 +32,17 @@ export const TitleContainer = {
   alignItems: "center",
   gap: "6px",
   marginBottom: "2px",
+}
+
+export const RowsContainer = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "8px",
+}
+
+export const RowContainer = {
+  display: "flex",
+  alignItems: "baseline",
+  justifyContent: "space-between",
+  gap: "12px",
 }
