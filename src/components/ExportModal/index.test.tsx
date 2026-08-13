@@ -8,6 +8,9 @@ import { ExportModal, exportErrorMessage, exportPhaseLabel } from "./index"
 jest.mock("@/assets/icons/cross_icon.svg", () => () => <svg />)
 
 const MARKET = "0x1111111111111111111111111111111111111111"
+const BORROWER = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+const OTHER_MARKET = "0x2222222222222222222222222222222222222222"
+const OTHER_BORROWER = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 const ORIGINAL_JOB = "original-job"
 const UPDATED_JOB = "updated-job"
 const FRESH_JOB = "fresh-job"
@@ -87,6 +90,7 @@ describe("ExportModal", () => {
         onClose={jest.fn()}
         chainId={1}
         marketAddress={MARKET}
+        borrowerAddress={BORROWER}
       />,
     )
 
@@ -189,6 +193,7 @@ describe("ExportModal", () => {
         onClose={jest.fn()}
         chainId={1}
         marketAddress={MARKET}
+        borrowerAddress={BORROWER}
       />,
     )
 
@@ -214,6 +219,154 @@ describe("ExportModal", () => {
     const submitted = JSON.parse(String(submission?.[1]?.body))
     expect(submitted.snapshotBlock).toBeUndefined()
     expect(screen.queryByRole("link", { name: "Download ZIP" })).toBeNull()
+  })
+
+  it("loads the market catalogue when Selected is opened", async () => {
+    const fetchMock = jest.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url === "/api/export/markets?chainId=1") {
+        return response({
+          markets: [
+            {
+              address: MARKET,
+              name: "Test Market",
+              symbol: "wmUSDC",
+              borrower: BORROWER,
+              isActive: true,
+            },
+          ],
+          borrowers: [
+            {
+              address: BORROWER,
+              name: "Test Borrower",
+              marketAddresses: [MARKET],
+            },
+          ],
+        })
+      }
+      throw new Error(`Unexpected fetch: ${url}`)
+    })
+    global.fetch = fetchMock
+
+    render(
+      <ExportModal
+        open
+        onClose={jest.fn()}
+        chainId={1}
+        marketAddress={MARKET}
+        borrowerAddress={BORROWER}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Selected" }))
+
+    fireEvent.mouseDown(
+      await screen.findByRole("combobox", { name: "Selected markets" }),
+    )
+    expect(await screen.findByText("wmUSDC — Test Market")).toBeTruthy()
+    expect(screen.getByText(MARKET)).toBeTruthy()
+    expect(fetchMock).toHaveBeenCalledWith("/api/export/markets?chainId=1", {
+      signal: expect.any(AbortSignal),
+    })
+    expect(screen.queryByText("Loading…")).toBeNull()
+  })
+
+  it("defaults Borrower scope to the current borrower and submits the chosen borrower's active markets", async () => {
+    const borrowerMarkets = [MARKET, OTHER_MARKET]
+    const otherBorrowerMarket = "0x3333333333333333333333333333333333333333"
+    const fetchMock = jest.fn(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input)
+        if (url === "/api/export/markets?chainId=1&includeBorrowers=true") {
+          return response({
+            markets: borrowerMarkets.map((address, index) => ({
+              address,
+              name: `Market ${index + 1}`,
+              symbol: `M${index + 1}`,
+              borrower: BORROWER,
+              isActive: true,
+            })),
+            borrowers: [
+              {
+                address: OTHER_BORROWER,
+                name: "Other Borrower",
+                marketAddresses: [otherBorrowerMarket],
+              },
+              {
+                address: BORROWER,
+                name: "Current Borrower",
+                marketAddresses: borrowerMarkets,
+              },
+            ],
+          })
+        }
+        if (url === "/api/export/jobs" && init?.method === "POST") {
+          const submitted = JSON.parse(String(init.body))
+          return response(
+            {
+              jobId: "borrower-job",
+              status: "queued",
+              request: {
+                ...originalRequest,
+                markets: submitted.markets,
+              },
+            },
+            202,
+          )
+        }
+        if (url === "/api/export/jobs/borrower-job") {
+          return response({
+            status: "queued",
+            progress: 0,
+            phase: "queued",
+            request: { ...originalRequest, markets: [otherBorrowerMarket] },
+          })
+        }
+        throw new Error(`Unexpected fetch: ${url}`)
+      },
+    )
+    global.fetch = fetchMock
+
+    render(
+      <ExportModal
+        open
+        onClose={jest.fn()}
+        chainId={1}
+        marketAddress={MARKET}
+        borrowerAddress={BORROWER}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Borrower" }))
+    const borrowerInput = await screen.findByDisplayValue("Current Borrower")
+    expect(
+      screen.getByText("Includes 2 active V2 markets on this chain."),
+    ).toBeTruthy()
+
+    fireEvent.mouseDown(borrowerInput)
+    fireEvent.click(await screen.findByText("Other Borrower"))
+    expect(screen.getByDisplayValue("Other Borrower")).toBeTruthy()
+    expect(
+      screen.getByText("Includes 1 active V2 market on this chain."),
+    ).toBeTruthy()
+
+    fireEvent.click(screen.getByRole("button", { name: "Generate export" }))
+
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some(
+          ([url, init]) =>
+            String(url) === "/api/export/jobs" && init?.method === "POST",
+        ),
+      ).toBe(true)
+    })
+    const submission = fetchMock.mock.calls.find(
+      ([url, init]) =>
+        String(url) === "/api/export/jobs" && init?.method === "POST",
+    )
+    expect(JSON.parse(String(submission?.[1]?.body)).markets).toEqual([
+      otherBorrowerMarket,
+    ])
   })
 
   it("shows human-readable progress stages", () => {

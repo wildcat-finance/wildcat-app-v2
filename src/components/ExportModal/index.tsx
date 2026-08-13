@@ -7,7 +7,9 @@ import {
   Autocomplete,
   Box,
   Button,
+  Chip,
   CircularProgress,
+  createFilterOptions,
   Dialog,
   DialogActions,
   DialogContent,
@@ -31,15 +33,35 @@ import {
   ExportProgress,
   ExportRequest,
   ExportStatementType,
+  MAX_EXPORT_MARKETS,
 } from "@/lib/export/types"
 import { COLORS } from "@/theme/colors"
+import { trimAddress } from "@/utils/formatters"
 
 import { ExportModalProps } from "./interface"
 
-type MarketSelection = "current" | "all" | "custom"
+type MarketSelection = "current" | "borrower" | "all" | "custom"
 type DateSelection = "full" | "year" | "custom"
-type MarketOption = { address: string; name: string; symbol: string }
+type MarketOption = {
+  address: string
+  name: string
+  symbol: string
+  borrower: string
+  isActive: boolean
+}
+type BorrowerOption = {
+  address: string
+  name: string
+  marketAddresses: string[]
+}
 type SegmentedOption<T extends string> = { label: string; value: T }
+const MARKET_OPTIONS_TIMEOUT_MS = 15_000
+const borrowerFilter = createFilterOptions<BorrowerOption>({
+  stringify: (option) => `${option.name} ${option.address}`,
+})
+
+const borrowerOptionLabel = (option: BorrowerOption) =>
+  option.name === option.address ? trimAddress(option.address, 6) : option.name
 
 const sectionLabelSx = {
   color: COLORS.santasGrey,
@@ -83,7 +105,12 @@ const SegmentedControl = <T extends string>({
       borderRadius: "10px",
       display: "grid",
       gap: "3px",
-      gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`,
+      gridTemplateColumns: {
+        xs: `repeat(${
+          options.length > 3 ? 2 : options.length
+        }, minmax(0, 1fr))`,
+        sm: `repeat(${options.length}, minmax(0, 1fr))`,
+      },
       padding: "3px",
       width: "100%",
       "& .MuiToggleButtonGroup-grouped": {
@@ -93,9 +120,11 @@ const SegmentedControl = <T extends string>({
         fontSize: "13px",
         fontWeight: 600,
         lineHeight: "18px",
+        minHeight: "38px",
         minWidth: 0,
         padding: { xs: "8px 5px", sm: "7px 10px" },
         textTransform: "none",
+        whiteSpace: "nowrap",
         "&.Mui-selected": {
           backgroundColor: COLORS.white,
           boxShadow: "0 2px 6px rgba(20, 20, 20, 0.08)",
@@ -190,6 +219,7 @@ export const ExportModal = ({
   onClose,
   chainId,
   marketAddress,
+  borrowerAddress,
   defaultAddress,
 }: ExportModalProps) => {
   const [marketSelection, setMarketSelection] = useState<MarketSelection>("all")
@@ -197,6 +227,10 @@ export const ExportModal = ({
   const [selectedMarketOptions, setSelectedMarketOptions] = useState<
     MarketOption[]
   >([])
+  const [borrowerOptions, setBorrowerOptions] = useState<BorrowerOption[]>([])
+  const [selectedBorrower, setSelectedBorrower] =
+    useState<BorrowerOption | null>(null)
+  const [borrowerOptionsLoaded, setBorrowerOptionsLoaded] = useState(false)
   const [marketsLoading, setMarketsLoading] = useState(false)
   const [statements, setStatements] = useState<ExportStatementType[]>([
     "market_condition",
@@ -215,6 +249,7 @@ export const ExportModal = ({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isRestoringJob, setIsRestoringJob] = useState(false)
   const [error, setError] = useState<string>()
+  const [catalogError, setCatalogError] = useState<string>()
   const shouldHydrateRestoredJob = useRef(false)
   const storageKey = `wildcat-export-job:${chainId}`
 
@@ -236,6 +271,8 @@ export const ExportModal = ({
             address,
             name: address,
             symbol: "Market",
+            borrower: "",
+            isActive: false,
           })),
         )
       }
@@ -284,11 +321,44 @@ export const ExportModal = ({
     if (defaultAddress && !addresses) setAddresses(defaultAddress)
   }, [addresses, defaultAddress])
 
+  useEffect(() => {
+    setMarketOptions([])
+    setBorrowerOptions([])
+    setSelectedMarketOptions([])
+    setSelectedBorrower(null)
+    setBorrowerOptionsLoaded(false)
+    setCatalogError(undefined)
+  }, [chainId])
+
+  useEffect(() => {
+    if (borrowerOptions.length === 0) return
+    setSelectedBorrower(
+      borrowerOptions.find(
+        ({ address }) =>
+          address.toLowerCase() === borrowerAddress.toLowerCase(),
+      ) ?? null,
+    )
+  }, [borrowerAddress, borrowerOptions])
+
   const selectedMarkets = useMemo(() => {
     if (marketSelection === "all") return "all" as const
     if (marketSelection === "current") return [marketAddress.toLowerCase()]
+    if (marketSelection === "borrower") {
+      return selectedBorrower?.marketAddresses ?? []
+    }
     return selectedMarketOptions.map(({ address }) => address.toLowerCase())
-  }, [marketAddress, marketSelection, selectedMarketOptions])
+  }, [marketAddress, marketSelection, selectedBorrower, selectedMarketOptions])
+
+  const borrowerSelectionIssue = useMemo(() => {
+    if (marketSelection !== "borrower" || marketsLoading) return undefined
+    if (!selectedBorrower) return "Choose a borrower with active markets"
+    if (selectedBorrower.marketAddresses.length > MAX_EXPORT_MARKETS) {
+      return `${borrowerOptionLabel(selectedBorrower)} has ${
+        selectedBorrower.marketAddresses.length
+      } active markets; borrower exports currently support up to ${MAX_EXPORT_MARKETS}`
+    }
+    return undefined
+  }, [marketSelection, marketsLoading, selectedBorrower])
 
   const formRequest = useMemo<ExportRequest>(() => {
     const selectedDateFrom =
@@ -328,20 +398,51 @@ export const ExportModal = ({
   )
 
   useEffect(() => {
-    if (!open || marketSelection !== "custom" || marketOptions.length > 0)
+    const needsCatalog =
+      marketSelection === "custom" || marketSelection === "borrower"
+    const needsMarkets = marketOptions.length === 0
+    const needsBorrowers =
+      marketSelection === "borrower" && !borrowerOptionsLoaded
+    if (!open || !needsCatalog || (!needsMarkets && !needsBorrowers)) {
       return undefined
+    }
     let active = true
+    const controller = new AbortController()
+    const timeout = window.setTimeout(
+      () => controller.abort(),
+      MARKET_OPTIONS_TIMEOUT_MS,
+    )
     setMarketsLoading(true)
-    fetch(`/api/export/markets?chainId=${chainId}`, { cache: "no-store" })
+    setCatalogError(undefined)
+    const query = new URLSearchParams({ chainId: String(chainId) })
+    if (marketSelection === "borrower") query.set("includeBorrowers", "true")
+    fetch(`/api/export/markets?${query}`, {
+      signal: controller.signal,
+    })
       .then(async (response) => {
         const body = (await response.json()) as {
           markets?: MarketOption[]
+          borrowers?: BorrowerOption[]
           error?: string
         }
         if (!response.ok)
           throw new Error(body.error ?? "Unable to load markets")
         if (active) {
           setMarketOptions(body.markets ?? [])
+          if (body.borrowers) {
+            setBorrowerOptions(body.borrowers)
+            setBorrowerOptionsLoaded(true)
+            setSelectedBorrower((current) => {
+              const preferredAddress = (
+                current?.address ?? borrowerAddress
+              ).toLowerCase()
+              return (
+                body.borrowers?.find(
+                  ({ address }) => address.toLowerCase() === preferredAddress,
+                ) ?? null
+              )
+            })
+          }
           setSelectedMarketOptions((current) => {
             const selected = new Set(
               (current.length > 0
@@ -356,20 +457,34 @@ export const ExportModal = ({
         }
       })
       .catch((loadError) => {
-        if (active)
-          setError(
-            loadError instanceof Error
-              ? loadError.message
-              : "Unable to load markets",
-          )
+        if (active) {
+          let message = "Unable to load markets"
+          if (controller.signal.aborted) {
+            message = "The market list took too long to load. Please try again."
+          } else if (loadError instanceof Error) {
+            message = loadError.message
+          }
+          setCatalogError(message)
+        }
       })
       .finally(() => {
+        window.clearTimeout(timeout)
         if (active) setMarketsLoading(false)
       })
     return () => {
       active = false
+      controller.abort()
+      window.clearTimeout(timeout)
     }
-  }, [chainId, marketAddress, marketOptions.length, marketSelection, open])
+  }, [
+    borrowerAddress,
+    borrowerOptionsLoaded,
+    chainId,
+    marketAddress,
+    marketOptions.length,
+    marketSelection,
+    open,
+  ])
 
   const poll = useCallback(
     async (id: string) => {
@@ -449,9 +564,21 @@ export const ExportModal = ({
     )
   }
 
+  const selectMarketScope = (selection: MarketSelection) => {
+    setCatalogError(undefined)
+    setMarketSelection(selection)
+  }
+
   const submit = async (requestedSnapshot?: string) => {
     setError(undefined)
-    if (marketSelection === "custom" && selectedMarkets.length === 0) {
+    if (borrowerSelectionIssue) {
+      setError(borrowerSelectionIssue)
+      return
+    }
+    if (
+      (marketSelection === "custom" || marketSelection === "borrower") &&
+      selectedMarkets.length === 0
+    ) {
       setError("Enter at least one market address")
       return
     }
@@ -605,6 +732,8 @@ export const ExportModal = ({
     <Dialog
       open={open}
       onClose={onClose}
+      aria-describedby="export-dialog-description"
+      aria-labelledby="export-dialog-title"
       fullWidth
       maxWidth="md"
       PaperProps={{
@@ -615,7 +744,11 @@ export const ExportModal = ({
         },
       }}
     >
-      <DialogTitle sx={{ padding: { xs: "20px 24px 0", sm: "24px 32px 0" } }}>
+      <DialogTitle
+        component="div"
+        id="export-dialog-heading-container"
+        sx={{ padding: { xs: "20px 24px 0", sm: "24px 32px 0" } }}
+      >
         <Box
           sx={{
             alignItems: "flex-start",
@@ -625,6 +758,8 @@ export const ExportModal = ({
         >
           <Box paddingRight="16px">
             <Typography
+              component="h2"
+              id="export-dialog-title"
               color={COLORS.bunker}
               fontSize={{ xs: "26px", sm: "28px" }}
               fontWeight={600}
@@ -633,6 +768,7 @@ export const ExportModal = ({
               Export market data
             </Typography>
             <Typography
+              id="export-dialog-description"
               color={COLORS.santasGrey}
               display="block"
               fontSize="14px"
@@ -664,13 +800,132 @@ export const ExportModal = ({
               label="Markets"
               value={marketSelection}
               disabled={formDisabled}
-              onChange={setMarketSelection}
+              onChange={selectMarketScope}
               options={[
                 { value: "current", label: "This market" },
-                { value: "all", label: "All V2 on chain" },
+                { value: "borrower", label: "Borrower" },
+                { value: "all", label: "All V2" },
                 { value: "custom", label: "Selected" },
               ]}
             />
+            {marketSelection === "borrower" && (
+              <Box marginTop="12px">
+                <Autocomplete
+                  disabled={formDisabled}
+                  options={borrowerOptions}
+                  value={selectedBorrower}
+                  loading={marketsLoading}
+                  size="small"
+                  filterOptions={borrowerFilter}
+                  isOptionEqualToValue={(option, value) =>
+                    option.address === value.address
+                  }
+                  getOptionLabel={borrowerOptionLabel}
+                  onChange={(_event, value) => setSelectedBorrower(value)}
+                  ListboxProps={{
+                    sx: {
+                      maxHeight: "min(240px, calc(100dvh - 160px))",
+                      overflowY: "auto",
+                      padding: "4px",
+                    },
+                  }}
+                  componentsProps={{
+                    paper: {
+                      sx: {
+                        minWidth: "0 !important",
+                        overflow: "hidden",
+                      },
+                    },
+                    popper: {
+                      modifiers: [
+                        {
+                          name: "preventOverflow",
+                          options: { boundary: "viewport", padding: 12 },
+                        },
+                        { name: "flip", options: { padding: 12 } },
+                      ],
+                      sx: { maxWidth: "calc(100vw - 24px)" },
+                    },
+                  }}
+                  renderOption={(props, option) => (
+                    <li {...props}>
+                      <Box minWidth={0} padding="2px 0">
+                        <Typography
+                          fontSize="13px"
+                          fontWeight={600}
+                          lineHeight="18px"
+                          overflow="hidden"
+                          textOverflow="ellipsis"
+                          whiteSpace="nowrap"
+                        >
+                          {borrowerOptionLabel(option)}
+                        </Typography>
+                        <Typography
+                          color={COLORS.santasGrey}
+                          fontSize="11px"
+                          lineHeight="16px"
+                        >
+                          {trimAddress(option.address, 6)} ·{" "}
+                          {option.marketAddresses.length} active market
+                          {option.marketAddresses.length === 1 ? "" : "s"}
+                        </Typography>
+                      </Box>
+                    </li>
+                  )}
+                  renderInput={({ InputProps, inputProps, ...params }) => (
+                    <TextField
+                      {...params}
+                      label="Borrower"
+                      InputProps={{
+                        ...InputProps,
+                        inputProps: {
+                          ...inputProps,
+                          "aria-busy": marketsLoading,
+                        },
+                        endAdornment: (
+                          <>
+                            {marketsLoading ? (
+                              <CircularProgress
+                                aria-label="Loading borrowers"
+                                size={18}
+                              />
+                            ) : null}
+                            {InputProps.endAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                />
+                {selectedBorrower && !borrowerSelectionIssue && (
+                  <Typography
+                    color={COLORS.santasGrey}
+                    display="block"
+                    fontSize="11px"
+                    lineHeight="16px"
+                    marginTop="5px"
+                  >
+                    Includes {selectedBorrower.marketAddresses.length} active V2
+                    market
+                    {selectedBorrower.marketAddresses.length === 1
+                      ? ""
+                      : "s"}{" "}
+                    on this chain.
+                  </Typography>
+                )}
+                {borrowerSelectionIssue && (
+                  <Typography
+                    color="error"
+                    display="block"
+                    fontSize="11px"
+                    lineHeight="16px"
+                    marginTop="5px"
+                  >
+                    {borrowerSelectionIssue}
+                  </Typography>
+                )}
+              </Box>
+            )}
             {marketSelection === "custom" && (
               <Autocomplete
                 disabled={formDisabled}
@@ -678,6 +933,8 @@ export const ExportModal = ({
                 options={marketOptions}
                 value={selectedMarketOptions}
                 loading={marketsLoading}
+                limitTags={2}
+                size="small"
                 sx={{ marginTop: "12px" }}
                 isOptionEqualToValue={(option, value) =>
                   option.address === value.address
@@ -692,19 +949,95 @@ export const ExportModal = ({
                   )
                 }
                 onChange={(_event, value) => setSelectedMarketOptions(value)}
-                renderInput={(params) => (
+                ListboxProps={{
+                  sx: {
+                    maxHeight: "min(240px, calc(100dvh - 160px))",
+                    overflowY: "auto",
+                    padding: "4px",
+                  },
+                }}
+                componentsProps={{
+                  paper: {
+                    sx: {
+                      minWidth: "0 !important",
+                      overflow: "hidden",
+                    },
+                  },
+                  popper: {
+                    modifiers: [
+                      {
+                        name: "preventOverflow",
+                        options: { boundary: "viewport", padding: 12 },
+                      },
+                      { name: "flip", options: { padding: 12 } },
+                    ],
+                    sx: { maxWidth: "calc(100vw - 24px)" },
+                  },
+                }}
+                renderOption={(props, option) => (
+                  <li {...props}>
+                    <Box minWidth={0} padding="2px 0" width="100%">
+                      <Typography
+                        fontSize="13px"
+                        fontWeight={600}
+                        lineHeight="18px"
+                        overflow="hidden"
+                        textOverflow="ellipsis"
+                        whiteSpace="nowrap"
+                      >
+                        {option.symbol} — {option.name}
+                      </Typography>
+                      <Typography
+                        color={COLORS.santasGrey}
+                        fontSize="11px"
+                        lineHeight="16px"
+                      >
+                        {option.address}
+                      </Typography>
+                    </Box>
+                  </li>
+                )}
+                renderTags={(value, getTagProps) => [
+                  ...value
+                    .slice(0, 2)
+                    .map((option, index) => (
+                      <Chip
+                        {...getTagProps({ index })}
+                        key={option.address}
+                        label={option.symbol || option.name}
+                        size="small"
+                        sx={{ maxWidth: "120px" }}
+                      />
+                    )),
+                  ...(value.length > 2
+                    ? [
+                        <Chip
+                          key="additional-markets"
+                          label={`+${value.length - 2}`}
+                          size="small"
+                        />,
+                      ]
+                    : []),
+                ]}
+                renderInput={({ InputProps, inputProps, ...params }) => (
                   <TextField
                     {...params}
-                    label="Markets"
-                    size="small"
+                    label="Selected markets"
                     InputProps={{
-                      ...params.InputProps,
+                      ...InputProps,
+                      inputProps: {
+                        ...inputProps,
+                        "aria-busy": marketsLoading,
+                      },
                       endAdornment: (
                         <>
                           {marketsLoading ? (
-                            <CircularProgress size={20} />
+                            <CircularProgress
+                              aria-label="Loading markets"
+                              size={18}
+                            />
                           ) : null}
-                          {params.InputProps.endAdornment}
+                          {InputProps.endAdornment}
                         </>
                       ),
                     }}
@@ -873,7 +1206,7 @@ export const ExportModal = ({
           </Box>
 
           {jobIsWorking && (
-            <Box>
+            <Box aria-live="polite" role="status">
               <LinearProgress
                 variant={progress ? "determinate" : "indeterminate"}
                 value={progress?.progress ?? 0}
@@ -888,6 +1221,11 @@ export const ExportModal = ({
                 </Typography>
               )}
             </Box>
+          )}
+          {catalogError && (
+            <Alert severity="error" sx={statusAlertSx}>
+              {catalogError}
+            </Alert>
           )}
           {error && (
             <Alert severity="error" sx={statusAlertSx}>

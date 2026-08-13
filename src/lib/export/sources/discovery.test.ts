@@ -43,7 +43,7 @@ describe("market discovery", () => {
       }
       return iface.encodeFunctionResult(fragment, values[fragment.name])
     })
-    const batch = jest.fn(async () => [
+    const batch = jest.fn(async (_calls: unknown[]) => [
       archControllerInterface.encodeFunctionResult("isRegisteredMarket", [
         true,
       ]),

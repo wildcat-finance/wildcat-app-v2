@@ -4,7 +4,7 @@ import { createHash } from "node:crypto"
 import { gunzipSync, gzipSync } from "node:zlib"
 
 import { ExportExplorer } from "./etherscan"
-import { ExportRpc, hasCode, RpcCall, toBlockHex } from "./rpc"
+import { ExportRpc, hasCode, LogProgress, RpcCall, toBlockHex } from "./rpc"
 import { ExportChainId, JsonRpcLog } from "../types"
 
 type Recording = {
@@ -60,13 +60,20 @@ export class RecordingRpc implements ExportRpc {
     return this.record("getBlock", [block], value)
   }
 
-  getLogs(filter: {
-    address?: string
-    fromBlock: number
-    toBlock: number
-    topics?: (string | string[] | null)[]
-  }) {
-    return this.record("getLogs", [filter], this.source.getLogs(filter))
+  getLogs(
+    filter: {
+      address?: string
+      fromBlock: number
+      toBlock: number
+      topics?: (string | string[] | null)[]
+    },
+    onProgress?: LogProgress,
+  ) {
+    return this.record(
+      "getLogs",
+      [filter],
+      this.source.getLogs(filter, onProgress),
+    )
   }
 
   async findDeploymentBlock(
@@ -124,7 +131,7 @@ function compactRpcResult(method: string, value: unknown): unknown {
       transactionIndex: record.transactionIndex,
       from: record.from,
       to: record.to,
-      logs: [],
+      logs: record.logs,
     }
   }
   return value
@@ -158,13 +165,21 @@ export class ReplayRpc implements ExportRpc {
     )
   }
 
-  getLogs(filter: {
-    address?: string
-    fromBlock: number
-    toBlock: number
-    topics?: (string | string[] | null)[]
-  }): Promise<JsonRpcLog[]> {
-    return this.replay("getLogs", [filter])
+  getLogs(
+    filter: {
+      address?: string
+      fromBlock: number
+      toBlock: number
+      topics?: (string | string[] | null)[]
+    },
+    onProgress?: LogProgress,
+  ): Promise<JsonRpcLog[]> {
+    return this.replay<JsonRpcLog[]>("getLogs", [filter]).then(
+      async (result) => {
+        await onProgress?.(1, 1)
+        return result
+      },
+    )
   }
 
   async findDeploymentBlock(
@@ -279,6 +294,11 @@ export function recordingExplorer(source: ExportExplorer) {
       responses[key("logs", args)] = result
       return result
     },
+    async getTransferLogsMentioningAddress(...args) {
+      const result = await source.getTransferLogsMentioningAddress(...args)
+      responses[key("transfers", args)] = result
+      return result
+    },
   }
   return { explorer, responses }
 }
@@ -295,6 +315,7 @@ export function replayExplorer(
   return {
     getDirectFailedTransactionHashes: (...args) => replay("failed", args),
     getMarketLogs: (...args) => replay("logs", args),
+    getTransferLogsMentioningAddress: (...args) => replay("transfers", args),
   }
 }
 

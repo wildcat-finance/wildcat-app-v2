@@ -1,10 +1,17 @@
 /* eslint-disable class-methods-use-this, max-classes-per-file, no-await-in-loop, no-plusplus, no-restricted-syntax, no-use-before-define */
 
 import { getExportRpcUrls } from "../config"
-import { waitForProviderSlot } from "../jobs/providerThrottle"
+import {
+  ProviderThrottleError,
+  waitForProviderSlot,
+} from "../jobs/providerThrottle"
 import { ExportChainId, JsonRpcLog } from "../types"
 
 export type RpcCall = { method: string; params: unknown[] }
+export type LogProgress = (
+  completedWindows: number,
+  totalWindows: number,
+) => void | Promise<void>
 export type ExportRpc = {
   readonly usedProviderHosts: ReadonlySet<string>
   call<T>(method: string, params: unknown[]): Promise<T>
@@ -14,12 +21,15 @@ export type ExportRpc = {
     timestamp: string
     hash: string
   }>
-  getLogs(filter: {
-    address?: string
-    fromBlock: number
-    toBlock: number
-    topics?: (string | string[] | null)[]
-  }): Promise<JsonRpcLog[]>
+  getLogs(
+    filter: {
+      address?: string
+      fromBlock: number
+      toBlock: number
+      topics?: (string | string[] | null)[]
+    },
+    onProgress?: LogProgress,
+  ): Promise<JsonRpcLog[]>
   findDeploymentBlock(address: string, snapshotBlock: number): Promise<number>
   findBlockAtOrBefore(timestamp: number, highBlock: number): Promise<number>
   findBlocksAtOrBefore(
@@ -86,7 +96,8 @@ const rpcError = (method: string, error: { code: number; message: string }) => {
   )
 }
 
-const LOG_BLOCK_WINDOW = 50_000
+const DEFAULT_LOG_BLOCK_WINDOW = 50_000
+const PLASMA_LOG_BLOCK_WINDOW = 10_000
 const LOG_CONCURRENCY = 3
 const RPC_MIN_REQUEST_INTERVAL_MS = 100
 const RPC_ATTEMPTS = 4
@@ -198,6 +209,7 @@ export class ExportRpcClient implements ExportRpc {
     await waitForProviderSlot(
       `rpc:${new URL(url).host}`,
       RPC_MIN_REQUEST_INTERVAL_MS,
+      50,
     )
     const response = await fetch(url, {
       method: "POST",
@@ -206,11 +218,46 @@ export class ExportRpcClient implements ExportRpc {
       signal: AbortSignal.timeout(120_000),
     })
     if (!response.ok) {
+      const retryAfter = retryAfterMs(
+        response.headers?.get("retry-after") ?? null,
+      )
+      try {
+        const body = (await response.json()) as {
+          id?: unknown
+          error?: { code?: unknown; message?: unknown }
+        }
+        const requests = Array.isArray(payload) ? payload : [payload]
+        const request = requests.find(
+          (candidate) =>
+            candidate &&
+            typeof candidate === "object" &&
+            "id" in candidate &&
+            candidate.id === body.id,
+        ) as { method?: unknown } | undefined
+        if (
+          typeof request?.method === "string" &&
+          typeof body.error?.code === "number" &&
+          typeof body.error.message === "string"
+        ) {
+          const error = rpcError(request.method, {
+            code: body.error.code,
+            message: body.error.message,
+          })
+          throw new ExportRpcError(
+            `RPC HTTP ${response.status}: ${error.message}`,
+            error.retryable,
+            error.category,
+            retryAfter,
+          )
+        }
+      } catch (error) {
+        if (error instanceof ExportRpcError) throw error
+      }
       throw new ExportRpcError(
         `RPC HTTP ${response.status}`,
         true,
         "transport",
-        retryAfterMs(response.headers?.get("retry-after") ?? null),
+        retryAfter,
       )
     }
     return response.json() as Promise<T>
@@ -258,6 +305,7 @@ export class ExportRpcClient implements ExportRpc {
           return result
         } catch (error) {
           lastError = error
+          if (error instanceof ProviderThrottleError) throw error
           if (error instanceof ExportRpcError && !error.retryable) throw error
           if (!(error instanceof ExportRpcError) || error.category !== "range")
             onlyRangeErrors = false
@@ -292,6 +340,7 @@ export class ExportRpcClient implements ExportRpc {
         return response.result as T
       })
     } catch (error) {
+      if (error instanceof ProviderThrottleError) throw error
       if (
         error instanceof ExportRpcError &&
         (!error.retryable || error.category === "range")
@@ -382,27 +431,34 @@ export class ExportRpcClient implements ExportRpc {
     )
   }
 
-  async getLogs(filter: {
-    address?: string
-    fromBlock: number
-    toBlock: number
-    topics?: (string | string[] | null)[]
-  }): Promise<JsonRpcLog[]> {
+  async getLogs(
+    filter: {
+      address?: string
+      fromBlock: number
+      toBlock: number
+      topics?: (string | string[] | null)[]
+    },
+    onProgress?: LogProgress,
+  ): Promise<JsonRpcLog[]> {
     if (filter.fromBlock > filter.toBlock) return []
     const windows: { fromBlock: number; toBlock: number }[] = []
     const startBlock = filter.fromBlock
+    const blockWindow = [9745, 9746].includes(this.chainId)
+      ? PLASMA_LOG_BLOCK_WINDOW
+      : DEFAULT_LOG_BLOCK_WINDOW
     for (
       let fromBlock = startBlock;
       fromBlock <= filter.toBlock;
-      fromBlock += LOG_BLOCK_WINDOW
+      fromBlock += blockWindow
     ) {
       windows.push({
         fromBlock,
-        toBlock: Math.min(filter.toBlock, fromBlock + LOG_BLOCK_WINDOW - 1),
+        toBlock: Math.min(filter.toBlock, fromBlock + blockWindow - 1),
       })
     }
     const results: JsonRpcLog[][] = Array(windows.length)
     let cursor = 0
+    let completed = 0
     await Promise.all(
       Array.from(
         { length: Math.min(LOG_CONCURRENCY, windows.length) },
@@ -414,6 +470,8 @@ export class ExportRpcClient implements ExportRpc {
               ...filter,
               ...windows[index],
             })
+            completed += 1
+            await onProgress?.(completed, windows.length)
           }
         },
       ),

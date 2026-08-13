@@ -326,6 +326,7 @@ export const MarketHeader = ({
           onClose={() => setIsExportOpen(false)}
           chainId={market.chainId as ExportChainId}
           marketAddress={market.address}
+          borrowerAddress={market.borrower}
           defaultAddress={connectedAddress}
         />
       </Box>
@@ -388,6 +389,7 @@ export const MarketHeader = ({
         onClose={() => setIsExportOpen(false)}
         chainId={market.chainId as ExportChainId}
         marketAddress={market.address}
+        borrowerAddress={market.borrower}
         defaultAddress={connectedAddress}
       />
     </Box>

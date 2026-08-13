@@ -6,6 +6,8 @@ import {
   CanonicalExportRequest,
   EXPORT_CHAIN_IDS,
   ExportRequest,
+  MAX_EXPORT_ADDRESSES,
+  MAX_EXPORT_MARKETS,
 } from "./types"
 import { EXPORT_PIPELINE_VERSION } from "./version"
 
@@ -18,9 +20,6 @@ const isoDate = z
       new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value,
     "Invalid calendar date",
   )
-
-export const MAX_EXPORT_MARKETS = 50
-export const MAX_EXPORT_ADDRESSES = 25
 
 const exportRequestSchema = z
   .object({

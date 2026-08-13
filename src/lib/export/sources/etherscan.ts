@@ -56,6 +56,12 @@ export type ExportExplorer = {
     fromBlock: number,
     toBlock: number,
   ): Promise<EtherscanLog[]>
+  getTransferLogsMentioningAddress(
+    chainId: ExportChainId,
+    address: string,
+    fromBlock: number,
+    toBlock: number,
+  ): Promise<EtherscanLog[]>
 }
 
 const parseEtherscanQuantity = (value: string, field: string) => {
@@ -128,7 +134,7 @@ const retryDelay = (attempt: number, retryAfter: string | null) => {
 async function query<T>(params: URLSearchParams): Promise<T> {
   params.set("apikey", getEtherscanApiKey())
   for (let attempt = 0; attempt < 4; attempt += 1) {
-    await waitForProviderSlot("etherscan-v2", MIN_REQUEST_INTERVAL_MS)
+    await waitForProviderSlot("etherscan-v2", MIN_REQUEST_INTERVAL_MS, 10)
     const response = await fetch(`https://api.etherscan.io/v2/api?${params}`, {
       signal: AbortSignal.timeout(60_000),
     })
@@ -269,9 +275,9 @@ const numeric = (value: string) => parseEtherscanQuantity(value, "quantity")
 
 async function getLogsWindow(
   chainId: ExportChainId,
-  market: string,
   fromBlock: number,
   toBlock: number,
+  filters: Record<string, string>,
 ): Promise<EtherscanLog[]> {
   const fetchPage = async (page: number) =>
     (
@@ -280,9 +286,9 @@ async function getLogsWindow(
           chainid: String(chainId),
           module: "logs",
           action: "getLogs",
-          address: market,
           fromBlock: String(fromBlock),
           toBlock: String(toBlock),
+          ...filters,
           page: String(page),
           offset: String(PAGE_SIZE),
         }),
@@ -295,16 +301,16 @@ async function getLogsWindow(
     if (!(error instanceof EtherscanRangeError) || fromBlock === toBlock)
       throw error
     const middle = Math.floor((fromBlock + toBlock) / 2)
-    const left = await getLogsWindow(chainId, market, fromBlock, middle)
-    const right = await getLogsWindow(chainId, market, middle + 1, toBlock)
+    const left = await getLogsWindow(chainId, fromBlock, middle, filters)
+    const right = await getLogsWindow(chainId, middle + 1, toBlock, filters)
     return [...left, ...right]
   }
   if (first.length < PAGE_SIZE) return first
   if (fromBlock < toBlock) {
     const middle = Math.floor((fromBlock + toBlock) / 2)
     const [left, right] = await Promise.all([
-      getLogsWindow(chainId, market, fromBlock, middle),
-      getLogsWindow(chainId, market, middle + 1, toBlock),
+      getLogsWindow(chainId, fromBlock, middle, filters),
+      getLogsWindow(chainId, middle + 1, toBlock, filters),
     ])
     return [...left, ...right]
   }
@@ -337,22 +343,32 @@ async function getLogsWindow(
   return result
 }
 
-export async function getEtherscanMarketLogs(
-  chainId: ExportChainId,
-  market: string,
-  fromBlock: number,
-  toBlock: number,
-) {
-  const logs = await getLogsWindow(chainId, market, fromBlock, toBlock)
+const TRANSFER_TOPIC =
+  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+
+const addressTopic = (address: string) =>
+  `0x${normalizeFixedHex(address, 20, "transfer address")
+    .slice(2)
+    .padStart(64, "0")}`
+
+const uniqueSortedLogs = (
+  logs: EtherscanLog[],
+  allowExactDuplicates = false,
+) => {
   const deduped = new Map<string, EtherscanLog>()
   logs.forEach((log) => {
     const identity = `${log.transactionHash.toLowerCase()}:${numeric(
       log.logIndex,
     )}`
-    if (deduped.has(identity)) {
+    const existing = deduped.get(identity)
+    if (
+      existing &&
+      (!allowExactDuplicates ||
+        JSON.stringify(existing) !== JSON.stringify(log))
+    ) {
       throw new Error(`Etherscan returned duplicate log ${identity}`)
     }
-    deduped.set(identity, log)
+    if (!existing) deduped.set(identity, log)
   })
   return [...deduped.values()].sort(
     (left, right) =>
@@ -361,8 +377,56 @@ export async function getEtherscanMarketLogs(
   )
 }
 
+export async function getEtherscanMarketLogs(
+  chainId: ExportChainId,
+  market: string,
+  fromBlock: number,
+  toBlock: number,
+) {
+  const logs = await getLogsWindow(chainId, fromBlock, toBlock, {
+    address: market,
+  })
+  return uniqueSortedLogs(logs)
+}
+
+export async function getEtherscanTransferLogsMentioningAddress(
+  chainId: ExportChainId,
+  address: string,
+  fromBlock: number,
+  toBlock: number,
+) {
+  const topic = addressTopic(address)
+  const [outgoing, incoming] = await Promise.all([
+    getLogsWindow(chainId, fromBlock, toBlock, {
+      topic0: TRANSFER_TOPIC,
+      topic1: topic,
+      topic0_1_opr: "and",
+    }),
+    getLogsWindow(chainId, fromBlock, toBlock, {
+      topic0: TRANSFER_TOPIC,
+      topic2: topic,
+      topic0_2_opr: "and",
+    }),
+  ])
+  const logs = uniqueSortedLogs(
+    [...uniqueSortedLogs(outgoing), ...uniqueSortedLogs(incoming)],
+    true,
+  )
+  if (
+    logs.some(
+      (log) =>
+        log.topics[0] !== TRANSFER_TOPIC ||
+        (log.topics[1] !== topic && log.topics[2] !== topic),
+    )
+  ) {
+    throw new Error("Etherscan returned an unrelated transfer candidate")
+  }
+  return logs
+}
+
 export const etherscanExplorer: ExportExplorer = {
   getDirectFailedTransactionHashes,
   getMarketLogs: getEtherscanMarketLogs,
+  getTransferLogsMentioningAddress: getEtherscanTransferLogsMentioningAddress,
 }
 /* eslint-disable no-await-in-loop */

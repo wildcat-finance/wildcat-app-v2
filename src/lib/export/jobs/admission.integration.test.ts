@@ -8,7 +8,7 @@ import { randomUUID } from "node:crypto"
 import { PrismaClient } from "@prisma/client"
 
 import { admitExportJobWithClient, ExportAdmissionError } from "./admission"
-import { reserveProviderSlot } from "./providerThrottle"
+import { reserveProviderSlots } from "./providerThrottle"
 import { CanonicalExportRequest } from "../types"
 
 const databaseUrl = process.env.EXPORT_TEST_DATABASE_URL
@@ -63,7 +63,7 @@ describeWithDatabase("export job coordination against Postgres", () => {
   it("reserves ordered provider slots atomically", async () => {
     const slots = await Promise.all(
       Array.from({ length: 6 }, () =>
-        reserveProviderSlot(prisma, `${testId}-provider`, 100),
+        reserveProviderSlots(prisma, `${testId}-provider`, 100, 1),
       ),
     )
     const times = slots.map((slot) => slot.getTime()).sort((a, b) => a - b)
