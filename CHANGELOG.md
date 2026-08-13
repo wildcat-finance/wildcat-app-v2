@@ -1,5 +1,55 @@
 # Changelog
 
+## [2.18.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.17.0...v2.18.0) (2026-08-13)
+
+
+### Features
+
+* **calculator:** add earnings calculator to desktop ([c9705b2](https://github.com/wildcat-finance/wildcat-app-v2/commit/c9705b20a1d6357bf302d5c11e12839ad4c86011))
+* **calculator:** add earnings calculator to desktop  ([e98451a](https://github.com/wildcat-finance/wildcat-app-v2/commit/e98451a082382a662c57ba569d83ad5019603f32))
+* **explore:** explore markets dashboard ([9515399](https://github.com/wildcat-finance/wildcat-app-v2/commit/951539953bff6c77c8d703a040512c94a7e5bbc2))
+* **explore:** explore markets dashboard ([fccf358](https://github.com/wildcat-finance/wildcat-app-v2/commit/fccf35849545ff19a064fced708e252d91919fd2))
+* **naming:** add legal name to deposit modal ([214680c](https://github.com/wildcat-finance/wildcat-app-v2/commit/214680c6906f0dbc39ef4b52fe60591a476c5a5a))
+* **naming:** add legal name to deposit modal ([3167f58](https://github.com/wildcat-finance/wildcat-app-v2/commit/3167f584031bb8fa3756e5cfc78a78848d56d583))
+* **ToU:** ToU hardening and make admin and mla chainId-scoped ([6800475](https://github.com/wildcat-finance/wildcat-app-v2/commit/6800475b615f720e6bd8364c8f341d178870d683))
+* **ToU:** ToU hardening and make admin and mla chainId-scoped  ([776a91c](https://github.com/wildcat-finance/wildcat-app-v2/commit/776a91cca5c3852a7cb6a0bcd704e900adf0690d))
+* **verification:** temporary and persisted details on borrower info ([c606d3e](https://github.com/wildcat-finance/wildcat-app-v2/commit/c606d3e83c08b90b66e56e6fed3f97a8cce4c309))
+* **verification:** temporary and persisted details on borrower info ([a6029a8](https://github.com/wildcat-finance/wildcat-app-v2/commit/a6029a823fa8551fa7aca33bc196ce6ef097c10a))
+* warnings ([8a9a77f](https://github.com/wildcat-finance/wildcat-app-v2/commit/8a9a77f839e164224906ceeff6f13224f298225e))
+
+
+### Bug Fixes
+
+* added dev borrower address to constants.ts ([47eb2cb](https://github.com/wildcat-finance/wildcat-app-v2/commit/47eb2cb7447c2a3855effda59d4f71e0e2979362))
+* border-box ([5a0900c](https://github.com/wildcat-finance/wildcat-app-v2/commit/5a0900c7c8b9233c98b633b0922d389057423a84))
+* **button:** button disables to mainnet ([9a0569e](https://github.com/wildcat-finance/wildcat-app-v2/commit/9a0569eec3c86c984cc8cc67f08e6f5b874fab7e))
+* copy, header height management ([f02ed64](https://github.com/wildcat-finance/wildcat-app-v2/commit/f02ed6421a362f9ce440a5e4cb292584003d6e86))
+* css is dumb ([02142a3](https://github.com/wildcat-finance/wildcat-app-v2/commit/02142a39b59f67180c4c510ac08e83cabee8b3cb))
+* cta, wrong-wallet, typo ([d7ffa41](https://github.com/wildcat-finance/wildcat-app-v2/commit/d7ffa4164f196d75f595cd5fc3e5417a3eb9373e))
+* disable buttons ([81b2b28](https://github.com/wildcat-finance/wildcat-app-v2/commit/81b2b286ffe9eedd4a2c1aad662711de3ef48783))
+* disable buttons ([65dcf7f](https://github.com/wildcat-finance/wildcat-app-v2/commit/65dcf7fe8381abe14d9cea7a44f6dab95cb0a734))
+* filter variable overwrite ([85dc404](https://github.com/wildcat-finance/wildcat-app-v2/commit/85dc404d7502e4a632e3c80d4213a3b28eafcf2e))
+* hide periodic markets fron prod testnet ([7c8a0de](https://github.com/wildcat-finance/wildcat-app-v2/commit/7c8a0de3852d723d769906c096394030bd21e58d))
+* **layout:** contain market table scrollbars and width transitions ([d526eaa](https://github.com/wildcat-finance/wildcat-app-v2/commit/d526eaab7bd5e50235979409375ffd07307fbeb6))
+* **layout:** contain market table scrollbars and width transitions ([e7381e4](https://github.com/wildcat-finance/wildcat-app-v2/commit/e7381e4e0e5cbb693a9ab9241048c776119d2ba3))
+* **layout:** contain market table scrollbars and width transitions ([fb3650c](https://github.com/wildcat-finance/wildcat-app-v2/commit/fb3650ca9a035967543bc0a0835ec434d6153c69))
+* lint.  thanks prettier ([8a6502b](https://github.com/wildcat-finance/wildcat-app-v2/commit/8a6502b0b374cbfa50f3928c8ef69fe5afe8c49d))
+* max-width ([81e0a50](https://github.com/wildcat-finance/wildcat-app-v2/commit/81e0a506289939ff94dccf1b8f62346f9674c507))
+* **mobile:** market header row clipping ([7bc6ce4](https://github.com/wildcat-finance/wildcat-app-v2/commit/7bc6ce4962e5f23f098fc71e34a4398ee1878066))
+* **mobile:** market header row clipping ([84dde2f](https://github.com/wildcat-finance/wildcat-app-v2/commit/84dde2f8e664fa304f06e3a8fe1d7d0878ce17c1))
+* **modal:** legal name offset vertical scrollbar and whitespace ([43b3bc0](https://github.com/wildcat-finance/wildcat-app-v2/commit/43b3bc07322e0be69e89a25699449b67c1231f45))
+* no upper in addresses ([5c9391b](https://github.com/wildcat-finance/wildcat-app-v2/commit/5c9391b0d4aae14b5f9087bf024e0f71dd252cf5))
+* periodic hook sdk compat ([ce4a872](https://github.com/wildcat-finance/wildcat-app-v2/commit/ce4a872a9348a619c8c93b4f78349f28bf8028e3))
+* prod critical bugs  ([f517988](https://github.com/wildcat-finance/wildcat-app-v2/commit/f517988d701c323d3b94597fc546265c9eaf3c74))
+* production critical bugs and wrapper amount accuracy ([362dc9c](https://github.com/wildcat-finance/wildcat-app-v2/commit/362dc9c79ea3d3f7cb82d93500aa2986fc9b24c5))
+* sdk 3.1.4-beta ([f8b26d0](https://github.com/wildcat-finance/wildcat-app-v2/commit/f8b26d07988348d73694f5387a1a46a92f75105a))
+* sdk 3.1.4-beta (fix for periodic term hook existence) ([7c940f6](https://github.com/wildcat-finance/wildcat-app-v2/commit/7c940f6eed2d7f8fd6aad411f40b1045f0bae67a))
+* **subgraph:** hinterlight to goldsky ([d1dc977](https://github.com/wildcat-finance/wildcat-app-v2/commit/d1dc97702529292e9ba24a9ac2ab984e55f10deb))
+* **subgraph:** hinterlight to goldsky ([19590df](https://github.com/wildcat-finance/wildcat-app-v2/commit/19590df4b49c395994488104602e1ed2843283c5))
+* ui fixes for report [#721](https://github.com/wildcat-finance/wildcat-app-v2/issues/721) ([bfffd5c](https://github.com/wildcat-finance/wildcat-app-v2/commit/bfffd5c8ef13994023da682609223d91c5503d59))
+* ui-fixes-721 ([eba67b9](https://github.com/wildcat-finance/wildcat-app-v2/commit/eba67b9d11dd533853b7b177479aebe579b68ce8))
+* **wrapper:** make max wrap/unwrap exact and stop reporting dust as a position ([f72eedd](https://github.com/wildcat-finance/wildcat-app-v2/commit/f72eedd464af873d9fc79b5600c8e8915b7a44c8))
+
 ## [2.17.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.16.1...v2.17.0) (2026-05-01)
 
 
