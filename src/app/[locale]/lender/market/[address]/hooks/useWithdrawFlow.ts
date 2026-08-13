@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { BaseTransaction } from "@safe-global/safe-apps-sdk"
@@ -122,6 +122,7 @@ export const useWithdrawFlow = ({
   const [result, setResult] = useState<WithdrawResult>()
   /** Safe transaction proposed but not yet executed (threshold > 1). */
   const [proposed, setProposed] = useState(false)
+  const directBeforeUnwrap = useRef<BigNumber>()
 
   const legs: WithdrawLeg[] = useMemo(
     () => (snapshot ? buildLegs(snapshot, isBatched) : []),
@@ -245,12 +246,44 @@ export const useWithdrawFlow = ({
     async (route: WithdrawRoute) => {
       if (!wrapper || !address) throw new Error("No wrapper")
       bindWrapperSigner()
+
+      directBeforeUnwrap.current = route.keepsDirect
+        ? await market.contract.balanceOf(address)
+        : undefined
+
+      if (route.isFullWrapped) {
+        const shares = wrapper.shareToken.getAmount(
+          await wrapper.shareToken.contract.balanceOf(address),
+        )
+        if (!shares.raw.isZero()) {
+          const redeemTx = await wrapper.redeem(shares, address, address)
+          setTxHash(redeemTx.hash)
+          await redeemTx.wait()
+          return
+        }
+      }
+
       // Exact-out: produces exactly `fromWrapped` market tokens to self.
       const tx = await wrapper.withdraw(route.fromWrapped, address, address)
       setTxHash(tx.hash)
       await tx.wait()
     },
-    [wrapper, address, bindWrapperSigner],
+    [wrapper, address, market, bindWrapperSigner],
+  )
+
+  const resolveQueueRaw = useCallback(
+    (route: WithdrawRoute, live: BigNumber): BigNumber => {
+      const intent = route.amount.raw
+      const clampedIntent = intent.lte(live) ? intent : live
+      if (!route.isMaxRequested) return clampedIntent
+      if (!route.keepsDirect) return live
+
+      const kept = directBeforeUnwrap.current
+      if (!kept) return clampedIntent
+      const swept = live.sub(kept)
+      return swept.gt(clampedIntent) ? swept : clampedIntent
+    },
+    [],
   )
 
   const runQueue = useCallback(
@@ -263,12 +296,12 @@ export const useWithdrawFlow = ({
         signer,
       )
 
-      // Clamp to the LIVE balance: the direct part and the just-unwrapped part
-      // are scaled independently, so the intended sum can exceed the credited
-      // balance by a wei and revert.
+      // Measure against the LIVE balance: the direct part and the
+      // just-unwrapped part are scaled independently, so the intended sum can
+      // exceed the credited balance by a wei and revert — and a max request has
+      // to pick up whatever accrued while the lender was signing.
       const live: BigNumber = await marketWrite.balanceOf(address)
-      const intent = route.amount.raw
-      const queueRaw = intent.lte(live) ? intent : live
+      const queueRaw = resolveQueueRaw(route, live)
       if (queueRaw.isZero()) {
         throw new Error("Nothing available to queue")
       }
@@ -305,7 +338,7 @@ export const useWithdrawFlow = ({
         txHash: tx.hash,
       })
     },
-    [address, signer, market, assertCanQueue, decodeQueued],
+    [address, signer, market, assertCanQueue, decodeQueued, resolveQueueRaw],
   )
 
   const runBatched = useCallback(
@@ -319,7 +352,11 @@ export const useWithdrawFlow = ({
 
       if (route.usesWrapped) {
         if (!wrapper) throw new Error("No wrapper")
-        txs.push(wrapper.populateWithdraw(route.fromWrapped, address, address))
+        txs.push(
+          route.isFullWrapped && route.sharesToRedeem
+            ? wrapper.populateRedeem(route.sharesToRedeem, address, address)
+            : wrapper.populateWithdraw(route.fromWrapped, address, address),
+        )
       }
 
       const useFullWithdrawal =
@@ -395,6 +432,7 @@ export const useWithdrawFlow = ({
   )
 
   const start = useCallback((route: WithdrawRoute) => {
+    directBeforeUnwrap.current = undefined
     setSnapshot(route)
     setCurrentLeg(0)
     setBusy(false)
@@ -458,6 +496,7 @@ export const useWithdrawFlow = ({
   )
 
   const reset = useCallback(() => {
+    directBeforeUnwrap.current = undefined
     setSnapshot(undefined)
     setCurrentLeg(0)
     setBusy(false)
