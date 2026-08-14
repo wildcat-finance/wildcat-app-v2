@@ -9,7 +9,10 @@ import {
   MAX_EXPORT_ADDRESSES,
   MAX_EXPORT_MARKETS,
 } from "./types"
-import { EXPORT_PIPELINE_VERSION } from "./version"
+import {
+  EXPORT_BUNDLE_FORMAT_VERSION,
+  EXPORT_PIPELINE_VERSION,
+} from "./version"
 
 const address = z.string().regex(/^0x[0-9a-fA-F]{40}$/)
 const isoDate = z
@@ -92,7 +95,11 @@ export function canonicalizeExportRequest(
 export function hashExportRequest(request: CanonicalExportRequest) {
   return createHash("sha256")
     .update(
-      JSON.stringify({ ...request, pipelineVersion: EXPORT_PIPELINE_VERSION }),
+      JSON.stringify({
+        ...request,
+        pipelineVersion: EXPORT_PIPELINE_VERSION,
+        bundleFormatVersion: EXPORT_BUNDLE_FORMAT_VERSION,
+      }),
     )
     .digest("hex")
 }

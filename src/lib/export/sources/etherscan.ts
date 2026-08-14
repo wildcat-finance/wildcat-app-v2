@@ -161,10 +161,15 @@ async function query<T>(params: URLSearchParams): Promise<T> {
       }
       return body.result as T
     }
+    const emptyResult =
+      (Array.isArray(body.result) && body.result.length === 0) ||
+      (typeof body.result === "string" &&
+        (body.result.trim() === "" ||
+          /no transactions found|no records found/i.test(body.result)))
     if (
       body.status === "0" &&
-      typeof body.result === "string" &&
-      /no transactions found|no records found/i.test(body.result)
+      emptyResult &&
+      /no transactions found|no records found/i.test(body.message)
     ) {
       return [] as T
     }

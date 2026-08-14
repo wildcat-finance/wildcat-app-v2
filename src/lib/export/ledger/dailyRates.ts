@@ -55,19 +55,24 @@ export function advanceRateState(
 ): RateSeconds {
   const elapsed = Math.max(0, timestamp - state.timestamp)
   const previousTimeDelinquent = state.timeDelinquent
-  let penaltySeconds: number
-  if (state.isDelinquent) {
-    state.timeDelinquent = previousTimeDelinquent + elapsed
-    penaltySeconds = Math.max(
-      0,
-      elapsed - Math.max(0, gracePeriod - previousTimeDelinquent),
-    )
-  } else {
-    state.timeDelinquent = Math.max(0, previousTimeDelinquent - elapsed)
-    penaltySeconds = Math.min(
-      elapsed,
-      Math.max(0, previousTimeDelinquent - gracePeriod),
-    )
+  let penaltySeconds = 0
+  // FeeMath only updates the delinquency timer when a market has a non-zero
+  // penalty rate. A zero-penalty market can be liquidity-delinquent while its
+  // stored timer remains unchanged indefinitely.
+  if (delinquencyFeeBips > 0) {
+    if (state.isDelinquent) {
+      state.timeDelinquent = previousTimeDelinquent + elapsed
+      penaltySeconds = Math.max(
+        0,
+        elapsed - Math.max(0, gracePeriod - previousTimeDelinquent),
+      )
+    } else {
+      state.timeDelinquent = Math.max(0, previousTimeDelinquent - elapsed)
+      penaltySeconds = Math.min(
+        elapsed,
+        Math.max(0, previousTimeDelinquent - gracePeriod),
+      )
+    }
   }
   state.timestamp = timestamp
   return {

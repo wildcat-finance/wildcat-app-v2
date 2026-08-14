@@ -702,6 +702,7 @@ export function buildDelinquencyEpisodes(
   events: DecodedMarketEvent[],
   accruals: InterestAccrualRow[],
   gracePeriod: number,
+  delinquencyFeeBips: number,
   snapshotTimestamp: number,
   initialReserveRatioBips: number,
   initialTimerState: {
@@ -731,7 +732,12 @@ export function buildDelinquencyEpisodes(
       reserveRatioBips = Number(event.args.reserveRatioBipsUpdated)
     }
     if (event.name !== "StateUpdated") continue
-    advanceRateState(timerState, event.timestamp, 0, gracePeriod)
+    advanceRateState(
+      timerState,
+      event.timestamp,
+      delinquencyFeeBips,
+      gracePeriod,
+    )
     const delinquent = event.args.isDelinquent === true
     if (delinquent && !onset) {
       onset = event
@@ -900,10 +906,20 @@ async function buildDailySeries(
   delinquencyFeeBips: number,
   gracePeriod: number,
   withdrawalCycle: number,
+  checkpoint?: MarketDataset,
 ) {
   const deployment = await rpc.getBlock(market.deploymentBlock)
   const deploymentTimestamp = fromHex(deployment.timestamp)
-  const startDate = isoDate(deploymentTimestamp)
+  // A checkpoint's final date is partial by definition. Preserve earlier
+  // complete dates and rebuild that final UTC date through the new snapshot.
+  const preservedRows = checkpoint
+    ? checkpoint.dailySeries.filter(
+        (row) => row.date_utc < isoDate(checkpoint.snapshotTimestamp),
+      )
+    : []
+  const startDate = checkpoint
+    ? isoDate(checkpoint.snapshotTimestamp)
+    : isoDate(deploymentTimestamp)
   const endDate = isoDate(snapshotTimestamp)
   const days: string[] = []
   for (
@@ -958,6 +974,30 @@ async function buildDailySeries(
   let cumulativeRepaid = 0n
   let previousTimestamp = deploymentTimestamp
   let previousScaleFactor = RAY
+  if (preservedRows.length > 0) {
+    const previousRow = preservedRows[preservedRows.length - 1]
+    const previousBlock = Number(previousRow.snapshot_block)
+    const previousState = await contractRead<CurrentState>(
+      rpc,
+      market.address,
+      "currentState",
+      [],
+      previousBlock,
+    )
+    previousTimestamp = Math.floor(
+      Date.parse(previousRow.snapshot_timestamp_utc) / 1_000,
+    )
+    previousScaleFactor = asBigInt(previousState.scaleFactor)
+    cumulativeBorrowed = BigInt(previousRow.cumulative_borrowed_raw)
+    cumulativeRepaid = BigInt(previousRow.cumulative_repaid_raw)
+    previousRateState = {
+      timestamp: previousTimestamp,
+      annualInterestBips: asNumber(previousState.annualInterestBips),
+      protocolFeeBips: asNumber(previousState.protocolFeeBips),
+      isDelinquent: previousState.isDelinquent,
+      timeDelinquent: asNumber(previousState.timeDelinquent),
+    }
+  }
   const rows: Record<string, string>[] = []
   for (const [
     index,
@@ -1020,7 +1060,7 @@ async function buildDailySeries(
         fallbackState.timeDelinquent !== asNumber(state.timeDelinquent))
     ) {
       throw new Error(
-        `Daily rate-state reconciliation failed at block ${dayEndBlocks[index]}`,
+        `Daily rate-state reconciliation failed for ${market.address} at block ${dayEndBlocks[index]}`,
       )
     }
     previousRateState = {
@@ -1131,7 +1171,7 @@ async function buildDailySeries(
     previousTimestamp = rowTimestamp
     previousScaleFactor = scaleFactor
   }
-  return rows
+  return [...preservedRows, ...rows]
 }
 
 export async function buildPositionSummaries(
@@ -1418,6 +1458,39 @@ export type MarketDatasetBuildStage =
   | "checking_balances"
   | "finalizing_market_data"
 
+const checkpointMarketFields: (keyof MarketMetadata)[] = [
+  "chainId",
+  "address",
+  "controller",
+  "removedAtBlock",
+  "version",
+  "borrower",
+  "feeRecipient",
+  "name",
+  "symbol",
+  "assetAddress",
+  "assetName",
+  "assetSymbol",
+  "assetDecimals",
+  "deploymentBlock",
+]
+
+export const isCompatibleMarketDatasetCheckpoint = (
+  checkpoint: MarketDataset,
+  market: MarketMetadata,
+  targetBlock: number,
+) =>
+  checkpoint.pipelineVersion === EXPORT_PIPELINE_VERSION &&
+  checkpoint.snapshotBlock < targetBlock &&
+  checkpointMarketFields.every((field) => {
+    const checkpointValue = checkpoint.market[field]
+    const marketValue = market[field]
+    return typeof checkpointValue === "string" &&
+      typeof marketValue === "string"
+      ? checkpointValue.toLowerCase() === marketValue.toLowerCase()
+      : checkpointValue === marketValue
+  })
+
 export async function buildMarketDataset(
   rpc: ExportRpc,
   market: MarketMetadata,
@@ -1430,6 +1503,7 @@ export async function buildMarketDataset(
     stage: MarketDatasetBuildStage,
     stageProgress?: number,
   ) => Promise<void>,
+  checkpoint?: MarketDataset,
 ): Promise<MarketDataset> {
   const marketExplorer = explorer ?? etherscanExplorer
   const verifySnapshotBlock = async () => {
@@ -1440,7 +1514,26 @@ export async function buildMarketDataset(
       )
     }
   }
-  await verifySnapshotBlock()
+  const verifyCheckpointBlock = async () => {
+    if (!checkpoint) return
+    const block = await rpc.getBlock(checkpoint.snapshotBlock)
+    if (
+      block.hash.toLowerCase() !== checkpoint.snapshotBlockHash.toLowerCase() ||
+      fromHex(block.timestamp) !== checkpoint.snapshotTimestamp
+    ) {
+      throw new Error(
+        `Market-data checkpoint block ${checkpoint.snapshotBlock} is no longer canonical`,
+      )
+    }
+  }
+  if (checkpoint) {
+    if (
+      !isCompatibleMarketDatasetCheckpoint(checkpoint, market, snapshotBlock)
+    ) {
+      throw new Error(`Invalid market-data checkpoint for ${market.address}`)
+    }
+  }
+  await Promise.all([verifyCheckpointBlock(), verifySnapshotBlock()])
   await onProgress?.("reading_history")
   const historyProgress = [0, 0, 0]
   let lastHistoryStep = 0
@@ -1463,11 +1556,14 @@ export async function buildMarketDataset(
     )
     return historyProgressUpdates
   }
+  const historyFromBlock = checkpoint
+    ? checkpoint.snapshotBlock + 1
+    : market.deploymentBlock
   const [marketLogs, transfers, etherscanLogs] = await Promise.all([
     rpc.getLogs(
       {
         address: market.address,
-        fromBlock: market.deploymentBlock,
+        fromBlock: historyFromBlock,
         toBlock: snapshotBlock,
       },
       (completed, total) => reportHistoryProgress(0, completed, total),
@@ -1476,7 +1572,7 @@ export async function buildMarketDataset(
       .getTransferLogsMentioningAddress(
         market.chainId,
         market.address,
-        market.deploymentBlock,
+        historyFromBlock,
         snapshotBlock,
       )
       .then((logs) =>
@@ -1490,7 +1586,7 @@ export async function buildMarketDataset(
       .getMarketLogs(
         market.chainId,
         market.address,
-        market.deploymentBlock,
+        historyFromBlock,
         snapshotBlock,
       )
       .then(async (logs) => {
@@ -1520,7 +1616,8 @@ export async function buildMarketDataset(
       fromHex(log.blockNumber),
     ),
   )
-  const events = decodeEvents(market, marketLogs, timestamps, context).sort(
+  const newEvents = decodeEvents(market, marketLogs, timestamps, context)
+  const events = [...(checkpoint?.events ?? []), ...newEvents].sort(
     (a, b) => a.blockNumber - b.blockNumber || a.logIndex - b.logIndex,
   )
 
@@ -1537,7 +1634,7 @@ export async function buildMarketDataset(
       ),
     )
   }
-  for (const event of events)
+  for (const event of newEvents)
     addEventToTransaction(rows.get(event.transactionHash)!, event)
 
   const actualAssetFlow = new Map<
@@ -1573,7 +1670,7 @@ export async function buildMarketDataset(
   const failedHashes = await marketExplorer.getDirectFailedTransactionHashes(
     market.chainId,
     market.address,
-    market.deploymentBlock,
+    historyFromBlock,
     snapshotBlock,
   )
   const [failedTransactions, failedReceipts] = await Promise.all([
@@ -1628,7 +1725,7 @@ export async function buildMarketDataset(
     })
   }
 
-  const transactions = [...rows.values()]
+  const transactions = [...(checkpoint?.transactions ?? []), ...rows.values()]
     .map((row) => ({
       ...row,
       events: [...new Set(row.events)].map((event) => {
@@ -1712,6 +1809,7 @@ export async function buildMarketDataset(
       delinquencyFeeBips,
       gracePeriod,
       withdrawalCycle,
+      checkpoint,
     ),
     buildPositionSummaries(
       rpc,
@@ -1824,11 +1922,17 @@ export async function buildMarketDataset(
 
   await onProgress?.("finalizing_market_data")
 
+  const priorExcludedTransfers = checkpoint?.manifest.excludedTransfers ?? []
   const foreignErc20Logs = excludedLogs.filter(
     (log) => foreignTransferKind(log) === "erc20",
   )
   const foreignTokens = [
-    ...new Set(foreignErc20Logs.map((log) => log.address.toLowerCase())),
+    ...new Set([
+      ...foreignErc20Logs.map((log) => log.address.toLowerCase()),
+      ...priorExcludedTransfers
+        .filter((transfer) => transfer.transfer_standard === "erc20")
+        .map((transfer) => String(transfer.token_contract).toLowerCase()),
+    ]),
   ]
   const foreignMetadata = new Map(
     await Promise.all(
@@ -1841,7 +1945,7 @@ export async function buildMarketDataset(
       ),
     ),
   )
-  const excludedTransfers = excludedLogs.map((log) => {
+  const newExcludedTransfers = excludedLogs.map((log) => {
     const token = log.address.toLowerCase()
     const kind = foreignTransferKind(log)
     const common = {
@@ -1890,10 +1994,30 @@ export async function buildMarketDataset(
       exclusion_reason: "malformed_transfer_event",
     }
   })
+  const excludedTransfers = [
+    ...priorExcludedTransfers,
+    ...newExcludedTransfers,
+  ].map((transfer) => {
+    if (transfer.transfer_standard !== "erc20") return transfer
+    const record = transfer as Record<string, unknown>
+    const token = String(record.token_contract).toLowerCase()
+    const metadata = foreignMetadata.get(token)!
+    const raw = BigInt(String(record.claimed_amount_raw))
+    return {
+      ...transfer,
+      token_symbol_sanitized: metadata.symbol,
+      claimed_amount: formatUnits(raw, metadata.decimals),
+      exclusion_reason:
+        metadata.symbol.toLowerCase() === market.assetSymbol.toLowerCase()
+          ? "spoofed_token"
+          : "airdrop_spam",
+    }
+  })
   const delinquencyEpisodes = buildDelinquencyEpisodes(
     events,
     interestAccruals,
     gracePeriod,
+    delinquencyFeeBips,
     snapshotTimestamp,
     asNumber(deploymentState.reserveRatioBips),
     {
@@ -1933,7 +2057,7 @@ export async function buildMarketDataset(
     0n,
   )
 
-  await verifySnapshotBlock()
+  await Promise.all([verifyCheckpointBlock(), verifySnapshotBlock()])
   return {
     pipelineVersion: EXPORT_PIPELINE_VERSION,
     snapshotBlock,
@@ -1966,10 +2090,19 @@ export async function buildMarketDataset(
         snapshotState.normalizedUnclaimedWithdrawals,
       ),
       revertedTransactionCoverage: "direct_only",
-      rpcProviders: [...rpc.usedProviderHosts].sort(),
+      rpcProviders: [
+        ...new Set([
+          ...(checkpoint?.manifest.rpcProviders ?? []),
+          ...rpc.usedProviderHosts,
+        ]),
+      ].sort(),
       crossChecks: {
-        etherscanLogCount: logComparison.explorerCount,
-        rpcLogCount: logComparison.rpcCount,
+        etherscanLogCount:
+          (checkpoint?.manifest.crossChecks.etherscanLogCount ?? 0) +
+          logComparison.explorerCount,
+        rpcLogCount:
+          (checkpoint?.manifest.crossChecks.rpcLogCount ?? 0) +
+          logComparison.rpcCount,
         logSetsEqual: true,
         marketClosedEventCount: marketClosedEvents.length,
         ...(marketClosedEvents[0]

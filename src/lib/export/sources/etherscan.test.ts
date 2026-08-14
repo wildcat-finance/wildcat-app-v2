@@ -2,6 +2,7 @@
 
 import {
   EtherscanLog,
+  getDirectFailedTransactionHashes,
   getEtherscanMarketLogs,
   getEtherscanTransferLogsMentioningAddress,
   normalizeEtherscanLog,
@@ -91,6 +92,38 @@ describe("Etherscan log normalization", () => {
 
     await expect(getEtherscanMarketLogs(1, address, 1, 2)).resolves.toEqual([])
     expect(fetchMock).toHaveBeenCalledTimes(3)
+  })
+
+  it("accepts Etherscan's empty-array no-records response", async () => {
+    process.env.ETHERSCAN_API_KEY = "test-key"
+    jest.spyOn(global, "fetch").mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        status: "0",
+        message: "No records found",
+        result: [],
+      }),
+    } as Response)
+
+    await expect(getEtherscanMarketLogs(1, address, 1, 2)).resolves.toEqual([])
+  })
+
+  it("accepts Etherscan's empty failed-transaction response", async () => {
+    process.env.ETHERSCAN_API_KEY = "test-key"
+    jest.spyOn(global, "fetch").mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        status: "0",
+        message: "No transactions found",
+        result: [],
+      }),
+    } as Response)
+
+    await expect(
+      getDirectFailedTransactionHashes(1, address, 1, 2),
+    ).resolves.toEqual([])
   })
 
   it("finds incoming and outgoing transfer logs and dedupes self-transfers", async () => {
