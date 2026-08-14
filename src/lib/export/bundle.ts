@@ -374,7 +374,7 @@ const accrualRows = (dataset: MarketDataset) =>
     protocol_fee_bips: row.protocolFeeBips,
   }))
 
-const readme = `Wildcat export bundle.
+const singleMarketReadme = `Wildcat export bundle.
 README.txt describes this bundle.
 statements/ contains the requested informational summaries.
 data/transactions.csv contains one row per market-touching transaction.
@@ -384,6 +384,26 @@ data/daily_series.csv contains end-of-day market state.
 data/manifest.json records provenance, filters and reconciliation.
 All times are UTC and all values come from public on-chain data.
 This export is informational and is not tax, accounting or investment advice.`
+
+const multiMarketReadme = `Wildcat multi-market export bundle.
+README.txt describes this bundle.
+markets/ contains one folder per market, named with its symbol and address.
+Each market folder contains its requested statements/ summaries.
+Each market folder contains data/transactions.csv and data/events.csv.
+Each market folder contains data/interest_accrual.csv and data/daily_series.csv.
+Each market folder contains data/manifest.json with provenance and reconciliation.
+No market's rows are combined with another market's data files.
+All times are UTC and all values come from public on-chain data.
+This export is informational and is not tax, accounting or investment advice.`
+
+const marketFolderName = (dataset: MarketDataset) => {
+  const symbol =
+    dataset.market.symbol
+      .trim()
+      .replace(/[^a-z0-9._-]+/gi, "-")
+      .replace(/^[-.]+|[-.]+$/g, "") || "market"
+  return `${symbol}_${dataset.market.address.toLowerCase()}`
+}
 
 export async function buildExportBundle(
   request: CanonicalExportRequest,
@@ -398,59 +418,49 @@ export async function buildExportBundle(
     Math.max(...datasets.map((item) => item.snapshotTimestamp)) * 1000,
   )
   const options = { date: pinned, createFolders: false }
-  const transactions = datasets.flatMap(transactionRows)
-  const events = datasets.flatMap(eventRows)
-  const accruals = datasets.flatMap(accrualRows)
-  const daily = datasets.flatMap((dataset) => dataset.dailySeries)
-  const dataFiles = new Map<string, string | Buffer>([
-    ["data/daily_series.csv", createCsv(Object.keys(daily[0] ?? {}), daily)],
-    ["data/events.csv", createCsv(eventHeaders, events)],
-    ["data/interest_accrual.csv", createCsv(accrualHeaders, accruals)],
-    [
-      "data/manifest.json",
-      `${JSON.stringify(
-        {
-          schema_version: "1.0",
-          pipeline_version: datasets[0]?.pipelineVersion,
-          generated_at_utc: generatedAt,
-          scope: "full_market",
-          snapshot_block: request.snapshotBlock,
-          snapshot_block_hash: request.snapshotBlockHash,
-          snapshot_timestamp_utc: datasets[0]
-            ? iso(datasets[0].snapshotTimestamp)
-            : null,
-          chain_id: request.chainId,
-          filters_applied: {
-            markets: request.markets,
-            statements: request.statements,
-            addresses: request.addresses,
-            date_from: request.dateFrom ?? null,
-            date_to: request.dateTo ?? null,
-            date_scope: "statements_only",
-            statement_format: request.format,
-          },
-          markets: datasets
-            .map(marketAggregate)
-            .sort((left, right) => left.address.localeCompare(right.address)),
-          excluded_v1_markets: excludedV1,
-          reverted_tx_coverage: "direct_only",
-          rpc_providers: [
-            ...new Set(
-              datasets.flatMap((dataset) => dataset.manifest.rpcProviders),
-            ),
-          ],
-          excluded_transfers: datasets
-            .flatMap((dataset) => dataset.manifest.excludedTransfers)
-            .sort(
+  const dataFilesFor = (dataset: MarketDataset, root: string) => {
+    const transactions = transactionRows(dataset)
+    const events = eventRows(dataset)
+    const accruals = accrualRows(dataset)
+    const daily = dataset.dailySeries
+    return new Map<string, string | Buffer>([
+      [
+        `${root}/daily_series.csv`,
+        createCsv(Object.keys(daily[0] ?? {}), daily),
+      ],
+      [`${root}/events.csv`, createCsv(eventHeaders, events)],
+      [`${root}/interest_accrual.csv`, createCsv(accrualHeaders, accruals)],
+      [
+        `${root}/manifest.json`,
+        `${JSON.stringify(
+          {
+            schema_version: "1.0",
+            pipeline_version: dataset.pipelineVersion,
+            generated_at_utc: generatedAt,
+            scope: "full_market",
+            snapshot_block: request.snapshotBlock,
+            snapshot_block_hash: request.snapshotBlockHash,
+            snapshot_timestamp_utc: iso(dataset.snapshotTimestamp),
+            chain_id: request.chainId,
+            filters_applied: {
+              markets: request.markets,
+              statements: request.statements,
+              addresses: request.addresses,
+              date_from: request.dateFrom ?? null,
+              date_to: request.dateTo ?? null,
+              date_scope: "statements_only",
+              statement_format: request.format,
+            },
+            markets: [marketAggregate(dataset)],
+            excluded_v1_markets: excludedV1,
+            reverted_tx_coverage: "direct_only",
+            rpc_providers: [...new Set(dataset.manifest.rpcProviders)],
+            excluded_transfers: [...dataset.manifest.excludedTransfers].sort(
               (left, right) =>
-                String(left.market_address).localeCompare(
-                  String(right.market_address),
-                ) ||
                 Number(left.block_number) - Number(right.block_number) ||
                 Number(left.log_index) - Number(right.log_index),
             ),
-          position_summaries: datasets.flatMap((dataset) =>
-            Object.values(dataset.positions)
+            position_summaries: Object.values(dataset.positions)
               .sort((left, right) => left.address.localeCompare(right.address))
               .map((position) => ({
                 market_address: dataset.market.address,
@@ -541,14 +551,24 @@ export async function buildExportBundle(
                   ),
                 ),
               })),
-          ),
-        },
-        null,
-        2,
-      )}\n`,
-    ],
-    ["data/transactions.csv", createCsv(transactionHeaders, transactions)],
-  ])
+          },
+          null,
+          2,
+        )}\n`,
+      ],
+      [`${root}/transactions.csv`, createCsv(transactionHeaders, transactions)],
+    ])
+  }
+  const isMultiMarket = datasets.length > 1
+  const dataFiles = new Map<string, string | Buffer>()
+  datasets.forEach((dataset) => {
+    const root = isMultiMarket
+      ? `markets/${marketFolderName(dataset)}/data`
+      : "data"
+    dataFilesFor(dataset, root).forEach((content, name) =>
+      dataFiles.set(name, content),
+    )
+  })
 
   await onProgress?.("creating_statements")
   const statementFiles = new Map<string, Buffer>()
@@ -556,22 +576,29 @@ export async function buildExportBundle(
     a.market.address.localeCompare(b.market.address),
   )) {
     const extension = request.format
+    const statementRoot = isMultiMarket
+      ? `markets/${marketFolderName(dataset)}/statements`
+      : "statements"
     const addStatement = async (filename: string, model: StatementModel) => {
       const content =
         extension === "pdf"
           ? await renderPdf(model, dataset.snapshotTimestamp)
           : await renderXlsx(model, dataset)
-      statementFiles.set(`statements/${filename}.${extension}`, content)
+      statementFiles.set(`${statementRoot}/${filename}.${extension}`, content)
     }
     if (request.statements.includes("market_condition")) {
       await addStatement(
-        `market_condition_${dataset.market.address}`,
+        isMultiMarket
+          ? "market_condition"
+          : `market_condition_${dataset.market.address}`,
         marketConditionStatement(dataset, request),
       )
     }
     if (request.statements.includes("borrower")) {
       await addStatement(
-        `borrower_statement_${dataset.market.address}`,
+        isMultiMarket
+          ? "borrower_statement"
+          : `borrower_statement_${dataset.market.address}`,
         borrowerStatement(dataset, request),
       )
     }
@@ -579,9 +606,11 @@ export async function buildExportBundle(
       for (const address of request.addresses) {
         const position = dataset.positions[address.toLowerCase()]
         await addStatement(
-          `position_statement_${
-            dataset.market.address
-          }_${address.toLowerCase()}`,
+          isMultiMarket
+            ? `position_statement_${address.toLowerCase()}`
+            : `position_statement_${
+                dataset.market.address
+              }_${address.toLowerCase()}`,
           positionStatement(dataset, position, request),
         )
       }
@@ -590,7 +619,11 @@ export async function buildExportBundle(
 
   await onProgress?.("creating_zip")
 
-  zip.file("README.txt", readme, options)
+  zip.file(
+    "README.txt",
+    isMultiMarket ? multiMarketReadme : singleMarketReadme,
+    options,
+  )
   for (const [name, content] of [...statementFiles].sort(([left], [right]) =>
     left.localeCompare(right),
   )) {

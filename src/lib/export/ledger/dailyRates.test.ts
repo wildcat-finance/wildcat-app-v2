@@ -62,6 +62,30 @@ describe("daily rate accounting", () => {
     expect(state.timeDelinquent).toBe(3_600)
   })
 
+  it("does not advance delinquency time when the market has no penalty rate", () => {
+    const state = {
+      timestamp: 0,
+      annualInterestBips: 1_850,
+      protocolFeeBips: 500,
+      isDelinquent: true,
+      timeDelinquent: 0,
+    }
+    const rates = advanceRateState(state, 86_400, 0, 345_600)
+
+    expect(percentagesFromRateSeconds(rates, 86_400)).toEqual({
+      baseApr: "18.500000",
+      penaltyApr: "0.000000",
+      protocolFeeApr: "0.925000",
+    })
+    expect(state).toEqual({
+      timestamp: 86_400,
+      annualInterestBips: 1_850,
+      protocolFeeBips: 500,
+      isDelinquent: true,
+      timeDelinquent: 0,
+    })
+  })
+
   it("weights grace-boundary and rate changes by elapsed seconds", () => {
     const state = {
       timestamp: 0,

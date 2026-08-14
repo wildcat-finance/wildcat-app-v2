@@ -261,6 +261,100 @@ describe("recorded reference market A", () => {
     }
   }, 120_000)
 
+  it("packages every multi-market dataset and statement in its own folder", async () => {
+    const secondAddress = "0x1111111111111111111111111111111111111111"
+    const secondSymbol = "COPY/USDC"
+    const secondDataset: MarketDataset = {
+      ...dataset,
+      market: {
+        ...dataset.market,
+        address: secondAddress,
+        symbol: secondSymbol,
+      },
+      events: dataset.events.map((event) => ({
+        ...event,
+        marketAddress: secondAddress,
+        marketSymbol: secondSymbol,
+      })),
+      transactions: dataset.transactions.map((transaction) => ({
+        ...transaction,
+        marketAddress: secondAddress,
+        marketSymbol: secondSymbol,
+      })),
+      interestAccruals: dataset.interestAccruals.map((accrual) => ({
+        ...accrual,
+        marketAddress: secondAddress,
+        marketSymbol: secondSymbol,
+      })),
+      dailySeries: dataset.dailySeries.map((row) => ({
+        ...row,
+        market_address: secondAddress,
+        market_symbol: secondSymbol,
+      })),
+      manifest: {
+        ...dataset.manifest,
+        excludedTransfers: dataset.manifest.excludedTransfers.map((row) => ({
+          ...row,
+          market_address: secondAddress,
+        })),
+      },
+    }
+    const multiMarketRequest: CanonicalExportRequest = {
+      ...request,
+      markets: "all",
+      statements: ["market_condition"],
+      addresses: [],
+    }
+    const bundle = await buildExportBundle(
+      multiMarketRequest,
+      [dataset, secondDataset],
+      [],
+      "2026-08-01T00:00:00.000Z",
+    )
+    const zip = await JSZip.loadAsync(bundle)
+    const firstRoot = `markets/${dataset.market.symbol}_${dataset.market.address}`
+    const secondRoot = `markets/COPY-USDC_${secondAddress}`
+    const marketFiles = [
+      "data/daily_series.csv",
+      "data/events.csv",
+      "data/interest_accrual.csv",
+      "data/manifest.json",
+      "data/transactions.csv",
+      "statements/market_condition.xlsx",
+    ]
+
+    expect(Object.keys(zip.files).sort()).toEqual(
+      [
+        "README.txt",
+        ...marketFiles.map((name) => `${firstRoot}/${name}`),
+        ...marketFiles.map((name) => `${secondRoot}/${name}`),
+      ].sort(),
+    )
+    expect(zip.file("data/transactions.csv")).toBeNull()
+    expect(zip.file("statements/market_condition.xlsx")).toBeNull()
+
+    for (const [root, ownAddress] of [
+      [firstRoot, dataset.market.address],
+      [secondRoot, secondAddress],
+    ]) {
+      const manifest = JSON.parse(
+        await zip.file(`${root}/data/manifest.json`)!.async("string"),
+      )
+      expect(manifest.markets).toHaveLength(1)
+      expect(manifest.markets[0].address).toBe(ownAddress)
+
+      const transactions = await zip
+        .file(`${root}/data/transactions.csv`)!
+        .async("string")
+      const marketAddresses = transactions
+        .trim()
+        .split("\n")
+        .slice(1)
+        .map((row) => row.split(",")[0])
+      expect(new Set(marketAddresses)).toEqual(new Set([ownAddress]))
+    }
+  }, 120_000)
+
   it("applies a calendar-year reporting period consistently", () => {
     const yearToDateRequest: CanonicalExportRequest = {
       ...request,

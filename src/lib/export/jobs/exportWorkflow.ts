@@ -1,4 +1,4 @@
-/* eslint-disable no-await-in-loop */
+/* eslint-disable no-await-in-loop, no-continue, no-restricted-syntax */
 
 import { createHash } from "node:crypto"
 
@@ -19,6 +19,7 @@ import { getExportStorageNamespace } from "../config"
 import {
   buildMarketDataset,
   buildPositionSummaries,
+  isCompatibleMarketDatasetCheckpoint,
   MarketDatasetBuildStage,
 } from "../ledger/buildMarketDataset"
 import {
@@ -42,6 +43,30 @@ const partKey = (request: CanonicalExportRequest, market: string) =>
   }/${request.snapshotBlock}/${request.snapshotBlockHash.slice(
     2,
   )}/${market}.json.gz`
+
+const partKeyPrefix = (chainId: number) =>
+  `${getExportStorageNamespace()}/parts/v${EXPORT_PIPELINE_VERSION}/${chainId}/`
+
+const parsePartIdentity = (key: string, chainId: number, market: string) => {
+  const prefix = partKeyPrefix(chainId)
+  const suffix = `/${market.toLowerCase()}.json.gz`
+  if (!key.startsWith(prefix) || !key.toLowerCase().endsWith(suffix)) {
+    return undefined
+  }
+  const identity = key.slice(prefix.length, -suffix.length)
+  const [snapshotBlock, snapshotBlockHash, ...remainder] = identity.split("/")
+  if (
+    remainder.length > 0 ||
+    !/^\d+$/.test(snapshotBlock) ||
+    !/^[0-9a-f]{64}$/i.test(snapshotBlockHash)
+  ) {
+    return undefined
+  }
+  return {
+    snapshotBlock: Number(snapshotBlock),
+    snapshotBlockHash: `0x${snapshotBlockHash.toLowerCase()}`,
+  }
+}
 const bundleKey = (
   jobId: string,
   request: CanonicalExportRequest,
@@ -123,6 +148,95 @@ const validateDataset = (
   ) {
     throw new FatalError(`Cached export part has the wrong identity: ${market}`)
   }
+}
+
+const isCheckpointDataset = (
+  dataset: MarketDataset,
+  request: CanonicalExportRequest,
+  market: MarketMetadata,
+  identity: { snapshotBlock: number; snapshotBlockHash: string },
+) =>
+  isCompatibleMarketDatasetCheckpoint(
+    dataset,
+    market,
+    Number(request.snapshotBlock),
+  ) &&
+  dataset.snapshotBlock === identity.snapshotBlock &&
+  dataset.snapshotBlockHash.toLowerCase() ===
+    identity.snapshotBlockHash.toLowerCase()
+
+async function loadLatestCheckpoint(
+  rpc: ExportRpcClient,
+  request: CanonicalExportRequest,
+  market: MarketMetadata,
+) {
+  // Part keys are the durable checkpoint index: they identify the pipeline,
+  // chain, block/hash, and market without introducing a second cache schema.
+  const targetBlock = Number(request.snapshotBlock)
+  const artifacts = await prisma.exportArtifact.findMany({
+    where: {
+      kind: ExportArtifactKind.Part,
+      environment: getExportStorageNamespace(),
+      pipelineVersion: EXPORT_PIPELINE_VERSION,
+      key: {
+        startsWith: partKeyPrefix(request.chainId),
+        endsWith: `/${market.address.toLowerCase()}.json.gz`,
+      },
+    },
+    select: { key: true, checksum: true, byteLength: true },
+  })
+  const candidates = artifacts
+    .map((artifact) => ({
+      artifact,
+      identity: parsePartIdentity(
+        artifact.key,
+        request.chainId,
+        market.address,
+      ),
+    }))
+    .filter(
+      (
+        candidate,
+      ): candidate is {
+        artifact: (typeof artifacts)[number]
+        identity: { snapshotBlock: number; snapshotBlockHash: string }
+      } =>
+        candidate.identity !== undefined &&
+        candidate.identity.snapshotBlock >= market.deploymentBlock &&
+        candidate.identity.snapshotBlock < targetBlock,
+    )
+    .sort((a, b) => b.identity.snapshotBlock - a.identity.snapshotBlock)
+
+  for (const { artifact, identity } of candidates) {
+    if (!(await exportObjectExists(artifact.key))) continue
+    const value = await getExportObject(artifact.key)
+    if (
+      value.byteLength !== artifact.byteLength ||
+      checksum(value) !== artifact.checksum
+    ) {
+      continue
+    }
+    let dataset: MarketDataset
+    try {
+      dataset = deserializeDataset(value)
+    } catch {
+      continue
+    }
+    if (!isCheckpointDataset(dataset, request, market, identity)) continue
+    const block = await rpc.getBlock(identity.snapshotBlock)
+    if (
+      block.hash.toLowerCase() !== identity.snapshotBlockHash ||
+      Number.parseInt(block.timestamp, 16) !== dataset.snapshotTimestamp
+    ) {
+      continue
+    }
+    await prisma.exportArtifact.update({
+      where: { key: artifact.key },
+      data: { lastAccessedAt: new Date() },
+    })
+    return dataset
+  }
+  return undefined
 }
 
 async function recordArtifact(
@@ -282,7 +396,10 @@ async function buildPart(
       await recordArtifact(key, ExportArtifactKind.Part, part)
     } else {
       const rpc = new ExportRpcClient(request.chainId)
-      const snapshot = await rpc.getBlock(Number(request.snapshotBlock))
+      const [snapshot, checkpoint] = await Promise.all([
+        rpc.getBlock(Number(request.snapshotBlock)),
+        loadLatestCheckpoint(rpc, request, market),
+      ])
       const dataset = await buildMarketDataset(
         rpc,
         market,
@@ -292,6 +409,7 @@ async function buildPart(
         [],
         undefined,
         reportProgress,
+        checkpoint,
       )
       part = serializeDataset(dataset)
       await recordArtifact(key, ExportArtifactKind.Part, part)
