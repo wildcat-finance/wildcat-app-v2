@@ -608,6 +608,7 @@ export default function LenderMarketDetails({
               subtitle="Connect a wallet to deposit into this market, view your position, and manage withdrawals."
               buttonText="Connect Wallet"
               buttonOnClick={openConnectDialog}
+              compact
             />
           </Box>
         )}
