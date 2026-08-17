@@ -1,5 +1,4 @@
 import {
-  BatchStatus,
   LenderWithdrawalStatus,
   PartialTransaction,
   prepareTransaction,
@@ -20,19 +19,9 @@ const withdrawalClaimErrorAbi = [
 
 type WithdrawalClaim = Pick<LenderWithdrawalStatus, "lender" | "expiry">
 
-type WithdrawalWithExecutability = LenderWithdrawalStatus & {
-  readonly isExecutable?: boolean
-}
-
 export const isWithdrawalExecutable = (
   withdrawal: LenderWithdrawalStatus,
-): boolean => {
-  const sdkResult = (withdrawal as WithdrawalWithExecutability).isExecutable
-  return typeof sdkResult === "boolean"
-    ? sdkResult
-    : withdrawal.status !== BatchStatus.Pending &&
-        withdrawal.availableWithdrawalAmount.gt(0)
-}
+): boolean => withdrawal.isExecutable
 
 export const prepareWithdrawalClaim = (
   marketAddress: string,

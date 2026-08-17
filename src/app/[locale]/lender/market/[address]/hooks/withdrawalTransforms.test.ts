@@ -41,6 +41,7 @@ const withdrawal = ({
     effectiveStatus: completed ? BatchStatus.Complete : BatchStatus.Pending,
     isCompleted: completed,
     isConcluded: concluded,
+    isExecutable: status !== BatchStatus.Pending && claimable > 0n,
     normalizedAmountWithdrawn: amount(withdrawn),
     normalizedUnpaidAmount: amount(unpaid),
     requests: [{ normalizedAmount: amount(requested) }],
