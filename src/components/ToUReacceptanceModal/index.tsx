@@ -79,8 +79,15 @@ export const ToUReacceptanceModal = () => {
     isAgreementFetching,
     refetchAgreementStatus,
   } = useNetworkGate()
-  const { data: invitationStatus } = useBorrowerInvitationExists(
-    touParty === "Borrower" ? address?.toLowerCase() : undefined,
+  const shouldCheckBorrowerInvitation =
+    touParty === "Borrower" && touState === "neverSigned"
+  const {
+    data: invitationStatus,
+    isSuccess: isInvitationResolved,
+    isFetching: isInvitationFetching,
+    refetch: refetchInvitation,
+  } = useBorrowerInvitationExists(
+    shouldCheckBorrowerInvitation ? address?.toLowerCase() : undefined,
   )
   const accept = useAcceptToU(touParty)
   const decline = useDeclineToU(touParty)
@@ -155,12 +162,19 @@ export const ToUReacceptanceModal = () => {
   // with this prompt.
   if (isServiceAgreementPath(pathname)) return null
   if (!address) return null
-  if (!touState || !touCurrentVersion) {
+  const isStatusResolved =
+    !!touState &&
+    !!touCurrentVersion &&
+    (!shouldCheckBorrowerInvitation || isInvitationResolved)
+  if (!isStatusResolved) {
     // Status not resolved. Auto-open never fires here, but a manual open
     // must respond immediately - silently waiting would make the click a
     // no-op and then pop the modal open unprompted whenever the query
     // eventually resolves.
     if (!forcedOpen) return null
+    const isStatusFetching =
+      isAgreementFetching ||
+      (shouldCheckBorrowerInvitation && isInvitationFetching)
     return (
       <Dialog
         open
@@ -194,7 +208,7 @@ export const ToUReacceptanceModal = () => {
             gap: "16px",
           }}
         >
-          {isAgreementFetching ? (
+          {isStatusFetching ? (
             <>
               <Loader />
               <Typography variant="text3" color={COLORS.santasGrey}>
@@ -210,7 +224,10 @@ export const ToUReacceptanceModal = () => {
               <Button
                 variant="contained"
                 size="large"
-                onClick={() => refetchAgreementStatus()}
+                onClick={() => {
+                  refetchAgreementStatus()
+                  if (shouldCheckBorrowerInvitation) refetchInvitation()
+                }}
               >
                 Retry
               </Button>

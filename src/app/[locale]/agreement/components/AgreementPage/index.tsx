@@ -32,25 +32,31 @@ export const AgreementPage = ({
 
   const isBorrower = party === "Borrower"
   const { address } = useAccount()
-  const { data: invitationStatus, isPending: isInvitationPending } =
-    useBorrowerInvitationExists(isBorrower ? address?.toLowerCase() : undefined)
+  const shouldCheckBorrowerInvitation = isBorrower && touState === "neverSigned"
+  const {
+    data: invitationStatus,
+    isSuccess: isInvitationResolved,
+    isError: isInvitationError,
+    refetch: refetchInvitation,
+  } = useBorrowerInvitationExists(
+    shouldCheckBorrowerInvitation ? address?.toLowerCase() : undefined,
+  )
   const hasPendingInvitation = invitationStatus !== undefined
-  const isInvitationResolved = !isBorrower || !isInvitationPending
 
   // Lenders retain their initial onboarding flow. A borrower's first
   // acceptance belongs to the invitation flow only while an invitation is
   // waiting there - otherwise that route dead-ends and they sign here.
   const isReview = touState === "signedCurrent"
   const needsBorrowerInvitation =
-    !!touState &&
+    shouldCheckBorrowerInvitation &&
+    isInvitationResolved &&
     requiresBorrowerInvitationAcceptance(
       party,
       isAgreementSigned,
       hasPendingInvitation,
     )
   const needsBorrowerFirstAcceptance =
-    isBorrower &&
-    touState === "neverSigned" &&
+    shouldCheckBorrowerInvitation &&
     isInvitationResolved &&
     !hasPendingInvitation
   const needsReacceptance =
@@ -193,6 +199,22 @@ export const AgreementPage = ({
             }}
           >
             Complete Invitation
+          </Button>
+        )}
+        {shouldCheckBorrowerInvitation && isInvitationError && (
+          <Button
+            variant="contained"
+            size="large"
+            onClick={() => refetchInvitation()}
+            sx={{
+              width: "168.63px",
+              height: "44px",
+              [theme.breakpoints.down("md")]: {
+                width: "100%",
+              },
+            }}
+          >
+            Retry
           </Button>
         )}
         {(needsReacceptance || needsBorrowerFirstAcceptance) && (
