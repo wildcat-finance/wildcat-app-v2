@@ -36,6 +36,7 @@ export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
     isPending: isLoading,
     isSuccess,
     isError,
+    error,
   } = useClaim(market, withdrawals.expiredPendingWithdrawals, setTxHash)
 
   const handleToggleModal = () => {
@@ -101,6 +102,7 @@ export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
               onTryAgain={handleTryAgain}
               onClose={handleToggleModal}
               txHash={txHash}
+              subtitle={error instanceof Error ? error.message : undefined}
             />
           )}
           {showSuccessPopup && (
@@ -118,7 +120,7 @@ export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
           size="small"
           sx={{ width: "fit-content" }}
           onClick={handleClaim}
-          disabled={!signer}
+          disabled={withdrawals.totalClaimableAmount.eq(0) || !signer}
         >
           {t("lenderMarketDetails.transactions.withdrawalsAlert.buttons.claim")}
         </Button>
@@ -143,6 +145,7 @@ export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
               onTryAgain={handleTryAgain}
               onClose={handleToggleModal}
               txHash={txHash}
+              subtitle={error instanceof Error ? error.message : undefined}
             />
           )}
           {showSuccessPopup && (

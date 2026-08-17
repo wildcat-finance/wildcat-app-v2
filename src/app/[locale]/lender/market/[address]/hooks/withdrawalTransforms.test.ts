@@ -16,6 +16,7 @@ const amount = (raw: bigint): TokenAmount =>
   ({
     raw,
     add: (other: TokenAmount) => amount(raw + other.raw),
+    gt: (other: bigint) => raw > other,
   }) as TokenAmount
 
 const withdrawal = ({
@@ -23,6 +24,7 @@ const withdrawal = ({
   completed = false,
   concluded,
   requested = 0n,
+  status = BatchStatus.Unpaid,
   unpaid = 0n,
   withdrawn = 0n,
 }: {
@@ -30,6 +32,7 @@ const withdrawal = ({
   completed?: boolean
   concluded: boolean
   requested?: bigint
+  status?: BatchStatus
   unpaid?: bigint
   withdrawn?: bigint
 }): LenderWithdrawalStatus =>
@@ -41,6 +44,7 @@ const withdrawal = ({
     normalizedAmountWithdrawn: amount(withdrawn),
     normalizedUnpaidAmount: amount(unpaid),
     requests: [{ normalizedAmount: amount(requested) }],
+    status,
   }) as LenderWithdrawalStatus
 
 describe("lender withdrawal transforms", () => {
@@ -50,6 +54,12 @@ describe("lender withdrawal transforms", () => {
       claimable: 3n,
       concluded: true,
       unpaid: 7n,
+    })
+    const pendingClosedMarketWithdrawal = withdrawal({
+      claimable: 5n,
+      concluded: true,
+      status: BatchStatus.Pending,
+      unpaid: 5n,
     })
     const completed = withdrawal({
       claimable: 20n,
@@ -64,13 +74,17 @@ describe("lender withdrawal transforms", () => {
     const result = summarizeIncompleteLenderWithdrawals(market, [
       active,
       expired,
+      pendingClosedMarketWithdrawal,
       completed,
     ])
 
     expect(result.activeWithdrawal).toBe(active)
-    expect(result.expiredPendingWithdrawals).toEqual([expired])
+    expect(result.expiredPendingWithdrawals).toEqual([
+      expired,
+      pendingClosedMarketWithdrawal,
+    ])
     expect(result.activeTotalPendingAmount.raw).toBe(12n)
-    expect(result.expiredTotalPendingAmount.raw).toBe(7n)
+    expect(result.expiredTotalPendingAmount.raw).toBe(12n)
     expect(result.totalClaimableAmount.raw).toBe(3n)
   })
 
