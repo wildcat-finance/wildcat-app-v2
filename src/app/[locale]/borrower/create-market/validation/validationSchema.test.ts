@@ -1,4 +1,7 @@
-import { createMarketValidationSchema } from "./validationSchema"
+import {
+  createMarketValidationSchema,
+  getPeriodicTermIssues,
+} from "./validationSchema"
 
 const schema = createMarketValidationSchema(false)
 
@@ -129,5 +132,138 @@ describe("create market validation schema", () => {
           "A wrapper cannot be deployed when market transfers are disabled",
       }),
     )
+  })
+})
+
+describe("periodic term validation", () => {
+  const now = 1_700_000_000
+  const validPeriodicTerms = {
+    marketType: "periodicTerm",
+    firstWithdrawalWindowStart: now,
+    periodDuration: 360,
+    withdrawalWindowDuration: 60,
+  }
+
+  beforeEach(() => {
+    jest.spyOn(Date, "now").mockReturnValue(now * 1_000)
+  })
+
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
+  it("accepts the exact protocol minimums", () => {
+    expect(getPeriodicTermIssues(validPeriodicTerms)).toEqual([])
+  })
+
+  it("rejects a withdrawal period below six minutes", () => {
+    expect(
+      getPeriodicTermIssues({
+        ...validPeriodicTerms,
+        periodDuration: 359,
+      }),
+    ).toContainEqual({
+      path: "periodDuration",
+      message: "Withdrawal period must be at least 6 minutes",
+    })
+  })
+
+  it("rejects a withdrawal window below one minute", () => {
+    expect(
+      getPeriodicTermIssues({
+        ...validPeriodicTerms,
+        withdrawalWindowDuration: 59,
+      }),
+    ).toContainEqual({
+      path: "withdrawalWindowDuration",
+      message: "Withdrawal window must be at least 1 minute",
+    })
+  })
+
+  it("accepts the exact maximum period and initial delay", () => {
+    expect(
+      getPeriodicTermIssues({
+        ...validPeriodicTerms,
+        firstWithdrawalWindowStart: now + 31_536_000,
+        periodDuration: 31_536_000,
+      }),
+    ).toEqual([])
+  })
+
+  it("rejects values above the maximum period and initial delay", () => {
+    expect(
+      getPeriodicTermIssues({
+        ...validPeriodicTerms,
+        firstWithdrawalWindowStart: now + 31_536_001,
+        periodDuration: 31_536_001,
+      }),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: "firstWithdrawalWindowStart" }),
+        expect.objectContaining({ path: "periodDuration" }),
+      ]),
+    )
+  })
+
+  it.each([360, 361])(
+    "rejects a withdrawal window of %i seconds against a 360-second period",
+    (withdrawalWindowDuration) => {
+      expect(
+        getPeriodicTermIssues({
+          ...validPeriodicTerms,
+          withdrawalWindowDuration,
+        }),
+      ).toContainEqual({
+        path: "withdrawalWindowDuration",
+        message: "Withdrawal window must be shorter than the withdrawal period",
+      })
+    },
+  )
+
+  it("compares values after display units have been normalized to seconds", () => {
+    const oneDay = 24 * 60 * 60
+    const twentyFiveHours = 25 * 60 * 60
+
+    expect(
+      getPeriodicTermIssues({
+        ...validPeriodicTerms,
+        periodDuration: oneDay,
+        withdrawalWindowDuration: twentyFiveHours,
+      }),
+    ).toContainEqual(
+      expect.objectContaining({ path: "withdrawalWindowDuration" }),
+    )
+  })
+
+  it("allows a past timestamp to anchor the recurring schedule", () => {
+    expect(
+      getPeriodicTermIssues({
+        ...validPeriodicTerms,
+        firstWithdrawalWindowStart: now - 31_536_000,
+      }),
+    ).toEqual([])
+  })
+
+  it("requires all schedule values during full-form validation", () => {
+    expect(
+      getPeriodicTermIssues(
+        { marketType: "periodicTerm" },
+        { requireValues: true },
+      ).map(({ path }) => path),
+    ).toEqual([
+      "firstWithdrawalWindowStart",
+      "periodDuration",
+      "withdrawalWindowDuration",
+    ])
+  })
+
+  it("does not apply periodic constraints to another market type", () => {
+    expect(
+      getPeriodicTermIssues({
+        marketType: "openTerm",
+        periodDuration: 1,
+        withdrawalWindowDuration: 1,
+      }),
+    ).toEqual([])
   })
 })

@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
@@ -125,6 +125,17 @@ export const useNewMarketForm = (isTestnet: boolean): NewMarketFormType => {
     resolver: withPeriodicTermIssues(zodResolver(validationSchemaAsync)),
     mode: "onBlur",
   })
+
+  const { trigger, watch } = form
+  const [marketType, periodDuration, withdrawalWindowDuration] = watch([
+    "marketType",
+    "periodDuration",
+    "withdrawalWindowDuration",
+  ])
+
+  useEffect(() => {
+    trigger(["periodDuration", "withdrawalWindowDuration"])
+  }, [marketType, periodDuration, trigger, withdrawalWindowDuration])
 
   return form
 }
