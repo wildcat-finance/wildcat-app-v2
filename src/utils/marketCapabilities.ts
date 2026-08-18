@@ -1,9 +1,25 @@
-import { type RoleProvider } from "@wildcatfi/wildcat-sdk"
+import {
+  getDeploymentAddress,
+  HooksKind,
+  type Market,
+  type RoleProvider,
+  type SupportedChainId,
+} from "@wildcatfi/wildcat-sdk"
 
 // The hooks contract stores "this provider holds no slot in the pull list" as
 // the maximum uint24. The on-chain lens surfaces that raw value; the subgraph
 // reports the same absence as -1. Both mean "not a pull provider".
 const NULL_PROVIDER_INDEX = 2 ** 24 - 1
+
+type PullRoleProvider = Pick<RoleProvider, "isApproved" | "pullProviderIndex">
+
+const isActivePullRoleProvider = ({
+  isApproved,
+  pullProviderIndex,
+}: PullRoleProvider): boolean =>
+  isApproved &&
+  pullProviderIndex >= 0 &&
+  pullProviderIndex !== NULL_PROVIDER_INDEX
 
 /**
  * Whether a policy has a role provider lenders can pull a credential from - the
@@ -22,17 +38,79 @@ const NULL_PROVIDER_INDEX = 2 ** 24 - 1
  * with `isApproved: false`.
  */
 export const hasActivePullRoleProvider = (
+  roleProviders: readonly PullRoleProvider[],
+): boolean => roleProviders.some(isActivePullRoleProvider)
+
+const hasActiveOpenAccessRoleProvider = (
+  chainId: SupportedChainId,
   roleProviders: readonly Pick<
     RoleProvider,
-    "isApproved" | "pullProviderIndex"
+    "providerAddress" | "isApproved" | "pullProviderIndex"
   >[],
-): boolean =>
-  roleProviders.some(
-    ({ isApproved, pullProviderIndex }) =>
-      isApproved &&
-      pullProviderIndex >= 0 &&
-      pullProviderIndex !== NULL_PROVIDER_INDEX,
+): boolean => {
+  const openAccessRoleProvider = getDeploymentAddress(
+    chainId,
+    "OpenAccessRoleProvider",
   )
+
+  return roleProviders.some(
+    (provider) =>
+      isActivePullRoleProvider(provider) &&
+      provider.providerAddress.toLowerCase() ===
+        openAccessRoleProvider.toLowerCase(),
+  )
+}
+
+type EffectiveMarketAccess = {
+  depositAccess: "open" | "restricted"
+  withdrawalAccess: "open" | "restricted"
+  transferAccess: "open" | "restricted" | "disabled"
+}
+
+export const getEffectiveMarketAccess = (
+  market: Pick<Market, "chainId" | "hooksConfig" | "hooksInstance">,
+): EffectiveMarketAccess => {
+  const { hooksConfig } = market
+  if (!hooksConfig) {
+    return {
+      depositAccess: "restricted",
+      withdrawalAccess: "restricted",
+      transferAccess: "open",
+    }
+  }
+
+  const hasOpenAccessProvider = hasActiveOpenAccessRoleProvider(
+    market.chainId,
+    market.hooksInstance?.roleProviders ?? [],
+  )
+  const depositRequiresCredential =
+    hooksConfig.flags.useOnDeposit && hooksConfig.depositRequiresAccess
+  const withdrawalRequiresCredential =
+    hooksConfig.flags.useOnQueueWithdrawal &&
+    (hooksConfig.kind === HooksKind.OpenTerm ||
+      hooksConfig.queueWithdrawalRequiresAccess)
+  const transferRequiresCredential =
+    hooksConfig.flags.useOnTransfer && hooksConfig.transferRequiresAccess
+
+  let transferAccess: EffectiveMarketAccess["transferAccess"] = "open"
+  if (hooksConfig.transfersDisabled) {
+    transferAccess = "disabled"
+  } else if (transferRequiresCredential && !hasOpenAccessProvider) {
+    transferAccess = "restricted"
+  }
+
+  return {
+    depositAccess:
+      depositRequiresCredential && !hasOpenAccessProvider
+        ? "restricted"
+        : "open",
+    withdrawalAccess:
+      withdrawalRequiresCredential && !hasOpenAccessProvider
+        ? "restricted"
+        : "open",
+    transferAccess,
+  }
+}
 
 /** The hooks data the market lens returns alongside every market. */
 export type LensHooksInstanceData = {
