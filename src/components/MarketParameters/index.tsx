@@ -501,7 +501,7 @@ export const MarketParameters = ({
           <ParametersItem
             title={t("borrowerMarketDetails.parameters.marketTokenName")}
             value={market.marketToken.name}
-            copy={getTokenUrl(market.marketToken.address)}
+            copy={market.marketToken.address}
             link={getTokenUrl(market.marketToken.address)}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
