@@ -86,7 +86,7 @@ describe("getLenderMarketLoadingState", () => {
     ).toBe(true)
   })
 
-  it("renders the market shell while live market data loads", () => {
+  it("renders indexed account data while keeping market actions unavailable", () => {
     expect(
       getLenderMarketLoadingState({
         ...readyState,
@@ -94,8 +94,9 @@ describe("getLenderMarketLoadingState", () => {
       }),
     ).toEqual({
       isPageLoading: false,
-      isTransactionsLoading: true,
-      isBarChartsLoading: true,
+      isTransactionsLoading: false,
+      isBarChartsLoading: false,
+      isMarketActionsLoading: true,
     })
   })
 
@@ -110,6 +111,7 @@ describe("getLenderMarketLoadingState", () => {
       isPageLoading: false,
       isTransactionsLoading: true,
       isBarChartsLoading: true,
+      isMarketActionsLoading: false,
     })
   })
 
@@ -124,6 +126,7 @@ describe("getLenderMarketLoadingState", () => {
       isPageLoading: false,
       isTransactionsLoading: false,
       isBarChartsLoading: true,
+      isMarketActionsLoading: false,
     })
   })
 })

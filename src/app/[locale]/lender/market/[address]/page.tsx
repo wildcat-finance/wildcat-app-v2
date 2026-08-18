@@ -168,6 +168,7 @@ export default function LenderMarketDetails({
     isPageLoading: isLoading,
     isTransactionsLoading,
     isBarChartsLoading,
+    isMarketActionsLoading,
   } = getLenderMarketLoadingState({
     isMarketReady: !!market,
     hasLiveMarket,
@@ -431,8 +432,7 @@ export default function LenderMarketDetails({
           setIsMobileDescriptionOpen={setIsMobileDescriptionOpen}
         />
 
-        {hasLiveMarket &&
-          marketAccount &&
+        {marketAccount &&
           !isWithdrawalsLoading &&
           (authorizedInMarket || isDifferentChain) && (
             <MobileMarketActions
@@ -440,6 +440,7 @@ export default function LenderMarketDetails({
               withdrawals={withdrawals}
               wrapper={wrapper}
               hasWrapper={hasWrapper}
+              isLiveMarketReady={!isMarketActionsLoading}
               isMobileWithdrawalOpen={isMobileWithdrawalOpen}
               setIsMobileDepositOpen={setIsMobileDepositOpen}
               setIsMobileAckOpen={setIsMobileAckOpen}
@@ -461,8 +462,7 @@ export default function LenderMarketDetails({
           setIsMobileHistoryOpen={setIsMobileHistoryOpen}
         />
 
-        {hasLiveMarket &&
-          marketAccount &&
+        {marketAccount &&
           !isWithdrawalsLoading &&
           (authorizedInMarket || isDifferentChain) && (
             <MobileMarketActions
@@ -470,6 +470,7 @@ export default function LenderMarketDetails({
               withdrawals={withdrawals}
               wrapper={wrapper}
               hasWrapper={hasWrapper}
+              isLiveMarketReady={!isMarketActionsLoading}
               isMobileWithdrawalOpen={isMobileWithdrawalOpen}
               setIsMobileDepositOpen={setIsMobileDepositOpen}
               setIsMobileAckOpen={setIsMobileAckOpen}
@@ -615,8 +616,7 @@ export default function LenderMarketDetails({
             />
           )}
 
-          {hasLiveMarket &&
-            marketAccount &&
+          {marketAccount &&
             !isWithdrawalsLoading &&
             (authorizedInMarket || isDifferentChain) && (
               <MobileMarketActions
@@ -624,6 +624,7 @@ export default function LenderMarketDetails({
                 withdrawals={withdrawals}
                 wrapper={wrapper}
                 hasWrapper={hasWrapper}
+                isLiveMarketReady={!isMarketActionsLoading}
                 isMobileWithdrawalOpen={isMobileWithdrawalOpen}
                 setIsMobileDepositOpen={setIsMobileDepositOpen}
                 setIsMobileAckOpen={setIsMobileAckOpen}
@@ -698,6 +699,7 @@ export default function LenderMarketDetails({
                       showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
                       wrapper={wrapper}
                       hasWrapper={hasWrapper}
+                      isLiveMarketReady={!isMarketActionsLoading}
                     />
                   )}
                   <CapacityBarChart

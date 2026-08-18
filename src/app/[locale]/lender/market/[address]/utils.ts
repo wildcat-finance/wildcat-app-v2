@@ -59,9 +59,8 @@ export const getLenderMarketLoadingState = ({
 }) => ({
   isPageLoading: !isMarketReady || apiLoading || isDiscoveringChainId,
   isTransactionsLoading:
-    !hasLiveMarket ||
     !hasMarketAccount ||
     (authorizedInMarket && !isDifferentChain && isWithdrawalsLoading),
-  isBarChartsLoading:
-    !hasLiveMarket || !hasMarketAccount || isWithdrawalsLoading,
+  isBarChartsLoading: !hasMarketAccount || isWithdrawalsLoading,
+  isMarketActionsLoading: !hasLiveMarket,
 })
