@@ -126,7 +126,10 @@ export const TrendingMarketCard = ({
 }: TrendingMarketCardProps) => {
   const badge = VARIANT_BADGE[variant]
   const badgeContext = context ?? badge.context
-  const growthTooltip = `Net new capital in the ${badgeContext.toLowerCase()}. The % shows growth compared to the start of that period`
+  const growthTooltip =
+    badgeContext === "Unavailable"
+      ? "Recent capital activity is temporarily unavailable"
+      : `Net new capital in the ${badgeContext.toLowerCase()}. The % shows growth compared to the start of that period`
 
   const statisticTitle = {
     fastestGrowing: "Fresh Capital",

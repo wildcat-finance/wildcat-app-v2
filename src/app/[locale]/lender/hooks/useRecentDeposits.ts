@@ -120,6 +120,9 @@ export const useRecentDeposits = () => {
 
       const [{ data: broadResponse }, recentDeposits, recentWithdrawals] =
         await Promise.all([
+          // TODO(sdk): replace this capped client-side aggregation with an
+          // SDK/subgraph historical lender-count summary. Fetching the full
+          // deposit history here would make page load grow without bound.
           subgraphClient.query<{ deposits: RecentDepositNode[] }>({
             query: RECENT_DEPOSITS,
             variables: { first: MAX_ACTIVITY_PAGE_SIZE, skip: 0 },
