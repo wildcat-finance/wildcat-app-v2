@@ -1,7 +1,7 @@
 import { decodeErrorResult, type Abi, type Hex } from "viem"
 
 /**
- * Human wording for the custom errors raised while managing policy lenders.
+ * Human wording for custom errors raised by user-facing contract interactions.
  * Anything unlisted still surfaces by name, which is far more actionable than
  * "Something went wrong".
  */
@@ -19,6 +19,9 @@ const CONTRACT_ERROR_MESSAGES: Record<string, string> = {
     "This lender's credential was issued by another provider and cannot be revoked here.",
   NotApprovedLender: "This lender is not approved on the policy.",
   InvalidArrayLength: "The submitted lender list is malformed.",
+  WithdrawalBatchNotExpired:
+    "This withdrawal batch is still pending. Wait for the next block and try again.",
+  NullWithdrawalAmount: "No assets are currently available to claim.",
 }
 
 /**
@@ -66,6 +69,27 @@ const getErrorMessage = (error: unknown): string | undefined => {
   return undefined
 }
 
+export const getContractErrorName = (
+  error: unknown,
+  contractAbi?: Abi,
+): string | undefined => {
+  const named = (error as { errorName?: string } | null)?.errorName
+  if (named) return named
+
+  const data = extractRevertData(error)
+  if (data && contractAbi) {
+    try {
+      return decodeErrorResult({
+        abi: contractAbi,
+        data: data as Hex,
+      }).errorName
+    } catch {
+      return undefined
+    }
+  }
+  return undefined
+}
+
 /**
  * Turn a failed contract interaction into something a borrower can act on.
  * Decodes the custom error against the contract's own ABI when revert data is
@@ -75,21 +99,8 @@ export const describeContractError = (
   error: unknown,
   contractAbi?: Abi,
 ): string => {
-  const named = (error as { errorName?: string } | null)?.errorName
+  const named = getContractErrorName(error, contractAbi)
   if (named) return CONTRACT_ERROR_MESSAGES[named] ?? `Reverted: ${named}`
-
-  const data = extractRevertData(error)
-  if (data && contractAbi) {
-    try {
-      const { errorName } = decodeErrorResult({
-        abi: contractAbi,
-        data: data as Hex,
-      })
-      return CONTRACT_ERROR_MESSAGES[errorName] ?? `Reverted: ${errorName}`
-    } catch {
-      // Unknown selector - fall through to the provider's own message.
-    }
-  }
 
   return getErrorMessage(error) ?? "Transaction failed"
 }

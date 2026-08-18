@@ -7,7 +7,14 @@ import { useAccount } from "wagmi"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { useWildcatClient } from "@/hooks/useEthersSigner"
 import { waitForSubmittedTransaction } from "@/utils/transactions"
+
+import {
+  isWithdrawalExecutable,
+  prepareWithdrawalClaim,
+  preflightWithdrawalClaim,
+} from "./withdrawalClaim"
 
 export const useClaim = (
   market: Market,
@@ -17,6 +24,7 @@ export const useClaim = (
   const client = useQueryClient()
   const { address } = useAccount()
   const { targetChainId } = useCurrentNetwork()
+  const { publicClient } = useWildcatClient({ chainId: market.chainId })
 
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
@@ -29,10 +37,19 @@ export const useClaim = (
             ` Target ${targetChainId}`,
         )
       }
-      const claimableWithdrawals = withdrawals.filter((w) =>
-        w.availableWithdrawalAmount.gt(0),
+      const claimableWithdrawals = withdrawals.filter(isWithdrawalExecutable)
+      if (!claimableWithdrawals.length || !address || !publicClient) throw Error
+
+      const transaction = prepareWithdrawalClaim(
+        market.address,
+        claimableWithdrawals,
       )
-      if (!market || !claimableWithdrawals.length || !address) throw Error
+      await preflightWithdrawalClaim({
+        publicClient,
+        account: address,
+        transaction,
+        expiries: claimableWithdrawals.map(({ expiry }) => expiry),
+      })
 
       const claim = async () => {
         const hash =

@@ -21,6 +21,8 @@ import { cloneSdkObject } from "@/lib/sdk-object"
 import { TwoStepQueryHookResult } from "@/utils/types"
 import { applyLatestLensWithdrawalBatchUpdate } from "@/utils/withdrawalBatch"
 
+import { isWithdrawalExecutable } from "./withdrawalClaim"
+
 export type LenderWithdrawalsForMarketResult = {
   expiredPendingWithdrawals: LenderWithdrawalStatus[]
   activeWithdrawal: LenderWithdrawalStatus | undefined
@@ -68,7 +70,10 @@ export const summarizeIncompleteLenderWithdrawals = (
     zeroAmount,
   )
   const totalClaimableAmount = expiredPendingWithdrawals.reduce(
-    (total, withdrawal) => total.add(withdrawal.availableWithdrawalAmount),
+    (total, withdrawal) =>
+      isWithdrawalExecutable(withdrawal)
+        ? total.add(withdrawal.availableWithdrawalAmount)
+        : total,
     zeroAmount,
   )
 
