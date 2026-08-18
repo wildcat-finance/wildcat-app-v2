@@ -27,7 +27,6 @@ import {
   toTokenAmountProps,
   trimAddress,
 } from "@/utils/formatters"
-import { getEffectiveMarketAccess } from "@/utils/marketCapabilities"
 
 import { MarketParametersProps } from "./interface"
 import {
@@ -293,8 +292,35 @@ export const MarketParameters = ({
   })()
 
   const { hooksConfig } = market
-  const { depositAccess, withdrawalAccess, transferAccess } =
-    getEffectiveMarketAccess(market)
+  const depositAccess =
+    hooksConfig?.depositRequiresAccess === false ? "open" : "restricted"
+
+  let withdrawalAccess: "open" | "restricted"
+  if (hooksConfig) {
+    if (
+      hooksConfig.flags.useOnQueueWithdrawal &&
+      (hooksConfig.kind === HooksKind.OpenTerm ||
+        hooksConfig.queueWithdrawalRequiresAccess)
+    ) {
+      withdrawalAccess = "restricted"
+    } else {
+      withdrawalAccess = "open"
+    }
+  } else {
+    withdrawalAccess = "restricted"
+  }
+  let transferAccess: "open" | "restricted" | "disabled"
+  if (hooksConfig) {
+    if (hooksConfig.transfersDisabled) {
+      transferAccess = "disabled"
+    } else if (hooksConfig.transferRequiresAccess) {
+      transferAccess = "restricted"
+    } else {
+      transferAccess = "open"
+    }
+  } else {
+    transferAccess = "open"
+  }
   let earlyClosure: "yes" | "no" | "na" = "no"
   if (hooksConfig) {
     if (hooksConfig.kind !== HooksKind.FixedTerm) {

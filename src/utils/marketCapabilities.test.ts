@@ -1,14 +1,6 @@
-import {
-  HooksKind,
-  Market,
-  RoleProvider,
-  SupportedChainId,
-} from "@wildcatfi/wildcat-sdk"
+import { RoleProvider } from "@wildcatfi/wildcat-sdk"
 
-import {
-  getEffectiveMarketAccess,
-  hasActivePullRoleProvider,
-} from "./marketCapabilities"
+import { hasActivePullRoleProvider } from "./marketCapabilities"
 
 /**
  * Fixtures are copied verbatim from the Sepolia subgraph. `borrowerFromSubgraph`
@@ -48,46 +40,6 @@ const openAccessFromSubgraph: RoleProvider = {
   pullProviderIndex: 0,
   pushProviderIndex: 2 ** 24 - 1,
   timeToLive: 7_776_000,
-}
-
-const mainnetOpenAccessFromSubgraph: RoleProvider = {
-  ...openAccessFromSubgraph,
-  providerAddress: "0x5620553d8881335f74ad19259daacd1d9b373101",
-}
-
-type HooksConfigOverrides = {
-  flags?: Partial<{
-    useOnDeposit: boolean
-    useOnQueueWithdrawal: boolean
-    useOnTransfer: boolean
-  }>
-  transfersDisabled?: boolean
-}
-
-const makeMarket = (
-  roleProviders: readonly RoleProvider[],
-  overrides: HooksConfigOverrides = {},
-) => {
-  const { flags, ...configOverrides } = overrides
-
-  return {
-    chainId: SupportedChainId.Mainnet,
-    hooksConfig: {
-      kind: HooksKind.OpenTerm,
-      depositRequiresAccess: true,
-      queueWithdrawalRequiresAccess: true,
-      transferRequiresAccess: true,
-      transfersDisabled: false,
-      ...configOverrides,
-      flags: {
-        useOnDeposit: true,
-        useOnQueueWithdrawal: true,
-        useOnTransfer: true,
-        ...flags,
-      },
-    },
-    hooksInstance: { roleProviders },
-  } as unknown as Pick<Market, "chainId" | "hooksConfig" | "hooksInstance">
 }
 
 describe("hasActivePullRoleProvider", () => {
@@ -132,67 +84,5 @@ describe("hasActivePullRoleProvider", () => {
     // whether the borrower entry is enumerated depends on the data source.
     expect(hasActivePullRoleProvider([openAccessFromSubgraph])).toBe(true)
     expect(hasActivePullRoleProvider([borrowerFromSubgraph])).toBe(false)
-  })
-})
-
-describe("getEffectiveMarketAccess", () => {
-  it("reports open access when credential checks use the open provider", () => {
-    expect(
-      getEffectiveMarketAccess(makeMarket([mainnetOpenAccessFromSubgraph])),
-    ).toEqual({
-      depositAccess: "open",
-      withdrawalAccess: "open",
-      transferAccess: "open",
-    })
-  })
-
-  it("keeps borrower allowlists restricted", () => {
-    expect(
-      getEffectiveMarketAccess(makeMarket([borrowerFromSubgraph])),
-    ).toEqual({
-      depositAccess: "restricted",
-      withdrawalAccess: "restricted",
-      transferAccess: "restricted",
-    })
-  })
-
-  it("does not treat arbitrary or revoked pull providers as open access", () => {
-    expect(
-      getEffectiveMarketAccess(makeMarket([openAccessFromSubgraph]))
-        .depositAccess,
-    ).toBe("restricted")
-    expect(
-      getEffectiveMarketAccess(
-        makeMarket([{ ...mainnetOpenAccessFromSubgraph, isApproved: false }]),
-      ).depositAccess,
-    ).toBe("restricted")
-  })
-
-  it("reports access as open when the relevant checks are disabled", () => {
-    expect(
-      getEffectiveMarketAccess(
-        makeMarket([borrowerFromSubgraph], {
-          flags: {
-            useOnDeposit: false,
-            useOnQueueWithdrawal: false,
-            useOnTransfer: false,
-          },
-        }),
-      ),
-    ).toEqual({
-      depositAccess: "open",
-      withdrawalAccess: "open",
-      transferAccess: "open",
-    })
-  })
-
-  it("keeps disabled transfers distinct from restricted transfers", () => {
-    expect(
-      getEffectiveMarketAccess(
-        makeMarket([mainnetOpenAccessFromSubgraph], {
-          transfersDisabled: true,
-        }),
-      ).transferAccess,
-    ).toBe("disabled")
   })
 })
