@@ -1261,7 +1261,7 @@
         "entityKind": "Entity Legal Form",
         "defaults": {
           "title": "Defaults",
-          "tooltip": "The number of markets owned by this borrower in which a penalty fee has applied for more than 90 days."
+          "tooltip": "The number of markets owned by this borrower that have incurred the penalty rate continuously for at least 90 days."
         }
       },
       "verification": {
