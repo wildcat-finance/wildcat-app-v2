@@ -192,9 +192,14 @@ export const buildMarketHref = (
 export const buildBorrowerProfileHref = (
   borrowerAddress: string,
   chainId?: number,
+  from?: "borrower",
 ) => {
   const base = `${ROUTES.profile.borrower}/${borrowerAddress}`
-  return chainId ? `${base}?chainId=${chainId}` : base
+  const query = new URLSearchParams()
+  if (chainId) query.set("chainId", String(chainId))
+  if (from) query.set("from", from)
+  const search = query.toString()
+  return search ? `${base}?${search}` : base
 }
 
 // <---- TOKEN PARAMETERS FORMATTERS ---->

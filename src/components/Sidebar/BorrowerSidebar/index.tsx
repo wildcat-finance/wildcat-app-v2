@@ -1,5 +1,5 @@
 import { Box, Button } from "@mui/material"
-import { usePathname } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 
 import { BackButton } from "@/components/BackButton"
 import {
@@ -54,12 +54,14 @@ const ProfileTabList = ({
 
 export const BorrowerSidebar = () => {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const isLenderProfile = pathname.includes(ROUTES.lender.profile)
   const isEditProfile = pathname.includes(ROUTES.borrower.editProfile)
 
-  const backLink = isBorrowerContextPath(pathname)
-    ? ROUTES.borrower.root
-    : ROUTES.lender.root
+  const backLink =
+    isBorrowerContextPath(pathname) || searchParams.get("from") === "borrower"
+      ? ROUTES.borrower.root
+      : ROUTES.lender.root
 
   const resolved = resolveProfileTabs(pathname)
   const { chainId } = useSelectedNetwork()

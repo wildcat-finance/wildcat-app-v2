@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react"
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react"
 
 import { Box, Button, Divider, Skeleton, Typography } from "@mui/material"
 import { LenderRole, MarketAccount } from "@wildcatfi/wildcat-sdk"
@@ -342,19 +342,21 @@ export const MarketsSection = () => {
 
   useEffect(() => {
     dispatch(setShowFullFunctionality(!noMarketsAtAll))
-
-    if (noMarketsAtAll) {
-      dispatch(setMarketSection(LenderMarketDashboardSections.OTHER))
-    } else {
-      dispatch(setMarketSection(LenderMarketDashboardSections.ACTIVE))
-    }
   }, [noMarketsAtAll, dispatch])
 
+  const forcedOtherRef = useRef(false)
+
   useEffect(() => {
-    if (!isConnected) {
+    if (isLoading) return
+
+    if (!isConnected || noMarketsAtAll) {
+      forcedOtherRef.current = true
       dispatch(setMarketSection(LenderMarketDashboardSections.OTHER))
+    } else if (forcedOtherRef.current) {
+      forcedOtherRef.current = false
+      dispatch(setMarketSection(LenderMarketDashboardSections.ACTIVE))
     }
-  }, [isConnected, dispatch])
+  }, [isConnected, isLoading, noMarketsAtAll, dispatch])
 
   if (!mounted)
     return (

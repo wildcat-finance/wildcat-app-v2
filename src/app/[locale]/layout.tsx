@@ -88,7 +88,9 @@ export default async function RootLayout({
                         <Header />
                         <Box sx={PageContainer}>
                           <Box sx={ContentContainer}>
-                            <Sidebar />
+                            <Suspense>
+                              <Sidebar />
+                            </Suspense>
                             <Box sx={ContentArea}>{children}</Box>
                             <Suspense>
                               <HotjarConsent />

@@ -2,7 +2,7 @@ import * as React from "react"
 
 import { Box, Button, Divider, SvgIcon } from "@mui/material"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
@@ -29,9 +29,11 @@ export const MobileNamePageBlockWrapper = ({
   const { t } = useTranslation()
 
   const pathname = usePathname()
-  const backLink = isBorrowerContextPath(pathname)
-    ? ROUTES.borrower.root
-    : ROUTES.lender.root
+  const searchParams = useSearchParams()
+  const backLink =
+    isBorrowerContextPath(pathname) || searchParams.get("from") === "borrower"
+      ? ROUTES.borrower.root
+      : ROUTES.lender.root
 
   const handleChangeSection = (sectionTab: "markets" | "info") => {
     setSection(sectionTab)

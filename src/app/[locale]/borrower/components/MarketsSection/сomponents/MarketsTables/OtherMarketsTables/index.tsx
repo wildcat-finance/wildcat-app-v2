@@ -208,6 +208,7 @@ export const OtherMarketsTables = ({
             href={buildBorrowerProfileHref(
               params.row.borrowerAddress,
               params.row.chainId,
+              "borrower",
             )}
             style={{ display: "flex", textDecoration: "none" }}
           >
