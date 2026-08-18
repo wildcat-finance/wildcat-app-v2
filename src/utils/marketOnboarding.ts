@@ -7,6 +7,25 @@ export enum LenderMarketAction {
   Unavailable = "unavailable",
 }
 
+export enum MarketAccessType {
+  SelfOnboard = "selfOnboard",
+  BorrowerAllowlist = "borrowerAllowlist",
+  Unknown = "unknown",
+}
+
+export const getMarketAccessType = (
+  onboardingMode: MarketOnboardingMode | undefined,
+): MarketAccessType => {
+  switch (onboardingMode) {
+    case MarketOnboardingMode.SelfOnboard:
+      return MarketAccessType.SelfOnboard
+    case MarketOnboardingMode.BorrowerApproval:
+      return MarketAccessType.BorrowerAllowlist
+    default:
+      return MarketAccessType.Unknown
+  }
+}
+
 /**
  * Resolve the lender-specific action separately from the market's stable
  * onboarding policy.

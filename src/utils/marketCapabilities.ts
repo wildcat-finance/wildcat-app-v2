@@ -9,6 +9,9 @@ type MarketHooksConfigLike = {
   kind?: HooksKind
   hooksAddress?: string
   fixedTermEndTime?: number
+  depositRequiresAccess?: boolean
+  queueWithdrawalRequiresAccess?: boolean
+  flags?: { useOnQueueWithdrawal?: boolean }
 }
 
 type MarketLike = {
@@ -48,3 +51,31 @@ export const isFixedTermMarket = (market: MarketLike): boolean =>
 export const isSelfOnboardMarketAccount = (
   account: MarketAccountLike,
 ): boolean => account.market.onboardingMode === MarketOnboardingMode.SelfOnboard
+
+export enum CredentialRequirement {
+  Required = "required",
+  NotRequired = "notRequired",
+}
+
+export const getDepositCredentialRequirement = (
+  market: MarketLike,
+): CredentialRequirement =>
+  market.hooksConfig?.depositRequiresAccess === false
+    ? CredentialRequirement.NotRequired
+    : CredentialRequirement.Required
+
+export const getWithdrawalCredentialRequirement = (
+  market: MarketLike,
+): CredentialRequirement => {
+  const { hooksConfig } = market
+  if (!hooksConfig) return CredentialRequirement.Required
+
+  const checksCredential =
+    hooksConfig.flags?.useOnQueueWithdrawal === true &&
+    (hooksConfig.kind === HooksKind.OpenTerm ||
+      hooksConfig.queueWithdrawalRequiresAccess === true)
+
+  return checksCredential
+    ? CredentialRequirement.Required
+    : CredentialRequirement.NotRequired
+}

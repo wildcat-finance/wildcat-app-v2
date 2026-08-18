@@ -28,9 +28,14 @@ import {
 } from "@/utils/formatters"
 import { getMarketAprDisplayBips } from "@/utils/marketApr"
 import {
+  getDepositCredentialRequirement,
+  getWithdrawalCredentialRequirement,
+} from "@/utils/marketCapabilities"
+import {
   getMarketImplementationConfig,
   getMarketImplementationType,
 } from "@/utils/marketImplementation"
+import { getMarketAccessType } from "@/utils/marketOnboarding"
 import { getPendingPeriodicAprChange } from "@/utils/periodicApr"
 import {
   formatCompactDuration,
@@ -321,23 +326,10 @@ export const MarketParameters = ({
   const implementationConfig = getMarketImplementationConfig(implementationType)
   const fixedTermHooksConfig =
     hooksConfig?.kind === HooksKind.FixedTerm ? hooksConfig : undefined
-  const depositAccess =
-    hooksConfig?.depositRequiresAccess === false ? "open" : "restricted"
+  const lenderAccess = getMarketAccessType(market.onboardingMode)
+  const depositAccess = getDepositCredentialRequirement(market)
+  const withdrawalAccess = getWithdrawalCredentialRequirement(market)
 
-  let withdrawalAccess: "open" | "restricted"
-  if (hooksConfig) {
-    if (
-      hooksConfig.flags.useOnQueueWithdrawal &&
-      (hooksConfig.kind === HooksKind.OpenTerm ||
-        hooksConfig.queueWithdrawalRequiresAccess)
-    ) {
-      withdrawalAccess = "restricted"
-    } else {
-      withdrawalAccess = "open"
-    }
-  } else {
-    withdrawalAccess = "restricted"
-  }
   let transferAccess: "open" | "restricted" | "disabled"
   if (hooksConfig) {
     if (hooksConfig.transfersDisabled) {
@@ -663,6 +655,16 @@ export const MarketParameters = ({
                   )}
                 </>
               )}
+              <Divider sx={{ margin: "12px 0 12px" }} />
+              <ParametersItem
+                title={t("borrowerMarketDetails.parameters.lenderAccess.label")}
+                value={t(
+                  `borrowerMarketDetails.parameters.lenderAccess.${lenderAccess}.text`,
+                )}
+                valueTooltipText={t(
+                  `borrowerMarketDetails.parameters.lenderAccess.${lenderAccess}.tooltip`,
+                )}
+              />
               <Divider sx={{ margin: "12px 0 12px" }} />
               <ParametersItem
                 title={t(

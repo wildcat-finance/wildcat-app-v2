@@ -508,26 +508,41 @@
           "tooltip": "Borrower can elect to shorten Fixed Term duration."
         }
       },
+      "lenderAccess": {
+        "label": "Lender Access",
+        "selfOnboard": {
+          "text": "Self-Onboarding",
+          "tooltip": "Lenders can obtain the credential this market requires without borrower approval, in the same transaction as their deposit. The borrower can still block individual addresses."
+        },
+        "borrowerAllowlist": {
+          "text": "Borrower Allowlist",
+          "tooltip": "This market has no self-onboarding provider, so lenders must be approved before they can deposit."
+        },
+        "unknown": {
+          "text": "Unknown",
+          "tooltip": "This market's access policy could not be read."
+        }
+      },
       "depositAccess": {
         "label": "Deposit Access",
-        "open": {
-          "text": "Open Deposits",
-          "tooltip": "Anyone can lend to this market."
+        "required": {
+          "text": "Credential Required",
+          "tooltip": "Deposits are rejected unless the lender holds a valid credential. See Lender Access for how a credential is obtained."
         },
-        "restricted": {
-          "text": "Restricted",
-          "tooltip": "Lenders must meet specific criteria to lend to this market."
+        "notRequired": {
+          "text": "No Credential Required",
+          "tooltip": "Deposits are not checked for a credential. A minimum deposit may still apply, and the borrower can block individual addresses."
         }
       },
       "withdrawalAccess": {
         "label": "Withdrawal Access",
-        "open": {
-          "text": "Open Withdrawals",
-          "tooltip": "Anyone can request withdrawals."
+        "required": {
+          "text": "Credential Required",
+          "tooltip": "Withdrawal requests are rejected unless the lender holds a valid credential or has already deposited into this market."
         },
-        "restricted": {
-          "text": "Restricted",
-          "tooltip": "Lenders who have not directly deposited must meet specific criteria to withdraw."
+        "notRequired": {
+          "text": "No Credential Required",
+          "tooltip": "Withdrawal requests are not checked for a credential. Fixed and periodic term markets still only accept requests at maturity or during a withdrawal window."
         }
       },
       "transferAccess": {
