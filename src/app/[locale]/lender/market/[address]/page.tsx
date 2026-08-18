@@ -105,8 +105,8 @@ export default function LenderMarketDetails({
     : undefined
 
   const {
-    data: market,
-    isLoading: isMarketLoading,
+    data: liveMarket,
+    indexedMarket,
     apiError,
     apiLoading,
     isDiscoveringChainId,
@@ -114,6 +114,8 @@ export default function LenderMarketDetails({
     address,
     chainId: marketChainId,
   })
+  const market = liveMarket ?? indexedMarket
+  const hasLiveMarket = !!liveMarket
 
   const { isWrongNetwork, isSelectionMismatch, selectedChainId } =
     useNetworkGate({
@@ -166,9 +168,10 @@ export default function LenderMarketDetails({
     isPageLoading: isLoading,
     isTransactionsLoading,
     isBarChartsLoading,
+    isMarketActionsLoading,
   } = getLenderMarketLoadingState({
     isMarketReady: !!market,
-    isMarketLoading,
+    hasLiveMarket,
     apiLoading,
     isDiscoveringChainId,
     hasMarketAccount: !!marketAccount,
@@ -437,6 +440,7 @@ export default function LenderMarketDetails({
               withdrawals={withdrawals}
               wrapper={wrapper}
               hasWrapper={hasWrapper}
+              isLiveMarketReady={!isMarketActionsLoading}
               isMobileWithdrawalOpen={isMobileWithdrawalOpen}
               setIsMobileDepositOpen={setIsMobileDepositOpen}
               setIsMobileAckOpen={setIsMobileAckOpen}
@@ -466,6 +470,7 @@ export default function LenderMarketDetails({
               withdrawals={withdrawals}
               wrapper={wrapper}
               hasWrapper={hasWrapper}
+              isLiveMarketReady={!isMarketActionsLoading}
               isMobileWithdrawalOpen={isMobileWithdrawalOpen}
               setIsMobileDepositOpen={setIsMobileDepositOpen}
               setIsMobileAckOpen={setIsMobileAckOpen}
@@ -619,6 +624,7 @@ export default function LenderMarketDetails({
                 withdrawals={withdrawals}
                 wrapper={wrapper}
                 hasWrapper={hasWrapper}
+                isLiveMarketReady={!isMarketActionsLoading}
                 isMobileWithdrawalOpen={isMobileWithdrawalOpen}
                 setIsMobileDepositOpen={setIsMobileDepositOpen}
                 setIsMobileAckOpen={setIsMobileAckOpen}
@@ -693,6 +699,7 @@ export default function LenderMarketDetails({
                       showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
                       wrapper={wrapper}
                       hasWrapper={hasWrapper}
+                      isLiveMarketReady={!isMarketActionsLoading}
                     />
                   )}
                   <CapacityBarChart
