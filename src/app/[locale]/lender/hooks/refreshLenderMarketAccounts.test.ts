@@ -84,4 +84,54 @@ describe("refreshLenderMarketAccounts", () => {
       ),
     ).toBe(MarketStatus.PENALTY)
   })
+
+  it("bounds large market refreshes without splitting the lender-state read", async () => {
+    const provider = {} as SignerOrProvider
+    const marketAccounts = Array.from({ length: 85 }, (_, index) => {
+      const address = `0x${(index + 1).toString(16).padStart(40, "0")}`
+      return {
+        market: {
+          address,
+          version: MarketVersion.V2,
+          underlyingToken: {
+            address: "0x0000000000000000000000000000000000000002",
+          },
+          updateWith: jest.fn(),
+        },
+      } as unknown as MarketAccount
+    })
+    let inFlight = 0
+    let maxInFlight = 0
+    const getMarketsData = jest.fn(async (addresses: string[]) => {
+      inFlight += 1
+      maxInFlight = Math.max(maxInFlight, inFlight)
+      await Promise.resolve()
+      inFlight -= 1
+      return addresses.map(() => ({}))
+    })
+
+    getLensV2ContractMock.mockReturnValue({
+      getMarketsData,
+    } as unknown as ReturnType<typeof getLensV2Contract>)
+    refreshLenderAccountStateMock.mockResolvedValue(marketAccounts)
+
+    await refreshLenderMarketAccounts(
+      SupportedChainId.Sepolia,
+      provider,
+      undefined,
+      marketAccounts,
+    )
+
+    expect(
+      getMarketsData.mock.calls.map(([addresses]) => addresses.length),
+    ).toEqual([40, 40, 5])
+    expect(maxInFlight).toBe(2)
+    expect(refreshLenderAccountStateMock).toHaveBeenCalledTimes(1)
+    expect(refreshLenderAccountStateMock).toHaveBeenCalledWith(
+      SupportedChainId.Sepolia,
+      provider,
+      undefined,
+      marketAccounts,
+    )
+  })
 })

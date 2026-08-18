@@ -271,8 +271,6 @@ const LENDER_QUERY_KEYS = {
     marketAddress?: string,
     lenderAddress?: string,
   ) => k(["lender", "GET_SIGNED_MLA", chainId, marketAddress, lenderAddress]),
-  GET_BORROWER_PENALTY_WARNING: (chainId: number, borrowerAddress?: string) =>
-    k(["lender", "GET_BORROWER_PENALTY_WARNING", chainId, borrowerAddress]),
   GET_NON_MLA_ACKNOWLEDGEMENT: (
     chainId: number,
     marketAddress?: string,
@@ -385,20 +383,8 @@ const MARKET_QUERY_KEYS = {
   GET_MARKET_LENDERS: (chainId: number, marketAddress?: string) =>
     k(["markets", "GET_MARKET_LENDERS", chainId, marketAddress]),
   // GET_MARKET_MLA_KEY
-  GET_MARKET_MLA: (
-    chainId: number,
-    marketAddress?: string,
-    userAddress?: string,
-    token?: string,
-  ) =>
-    k([
-      "markets",
-      "GET_MARKET_MLA",
-      chainId,
-      marketAddress,
-      userAddress,
-      token,
-    ]),
+  GET_MARKET_MLA: (chainId: number, marketAddress?: string) =>
+    k(["markets", "GET_MARKET_MLA", chainId, marketAddress]),
   // GET_MARKET_RECORDS_KEY
   GET_MARKET_RECORDS: (
     chainId: number,

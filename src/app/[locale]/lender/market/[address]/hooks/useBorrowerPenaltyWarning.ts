@@ -1,20 +1,8 @@
-import { useQuery } from "@tanstack/react-query"
-import {
-  getMarketsForBorrower,
-  getSubgraphClient,
-  Market,
-  SignerOrProvider,
-  SupportedChainId,
-} from "@wildcatfi/wildcat-sdk"
+import { useMemo } from "react"
 
-import { updateMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/updateMarkets"
-import { NETWORKS_BY_ID } from "@/config/network"
-import { POLLING_INTERVAL } from "@/config/polling"
-import { QueryKeys } from "@/config/query-keys"
-import { useEthersProvider } from "@/hooks/useEthersSigner"
-import { EXCLUDED_MARKETS_FILTER } from "@/utils/constants"
-import { combineFilters } from "@/utils/filters"
-import { isFrontendVisibleMarket } from "@/utils/marketType"
+import { Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
+
+import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
 
 import { shouldMarketTriggerBorrowerPenaltyWarning } from "../utils"
 
@@ -28,57 +16,43 @@ const emptyBorrowerPenaltyWarningResult: BorrowerPenaltyWarningResult = {
   triggeringMarkets: [],
 }
 
-export const useBorrowerPenaltyWarning = (market: Market | undefined) => {
-  const chainId = market?.chainId as SupportedChainId | undefined
-  const borrowerAddress = market?.borrower.toLowerCase()
-  const network = chainId ? NETWORKS_BY_ID[chainId] : undefined
-  const { provider, signer } = useEthersProvider({ chainId })
-  const signerOrProvider = signer ?? provider
+export const getBorrowerPenaltyWarning = (
+  currentMarket: Market | undefined,
+  marketAccounts: MarketAccount[],
+): BorrowerPenaltyWarningResult => {
+  if (!currentMarket) return emptyBorrowerPenaltyWarningResult
 
-  const query = useQuery<BorrowerPenaltyWarningResult>({
-    queryKey: QueryKeys.Lender.GET_BORROWER_PENALTY_WARNING(
-      chainId ?? 0,
-      borrowerAddress,
-    ),
-    queryFn: async () => {
-      if (!chainId || !borrowerAddress || !signerOrProvider || !network) {
-        return emptyBorrowerPenaltyWarningResult
-      }
+  const borrower = currentMarket.borrower.toLowerCase()
+  const marketsByAddress = new Map<string, Market>()
 
-      const subgraphClient = getSubgraphClient(chainId)
-      const borrowerMarkets = await getMarketsForBorrower(subgraphClient, {
-        borrower: borrowerAddress,
-        chainId,
-        signerOrProvider: signerOrProvider as SignerOrProvider,
-        fetchPolicy: "network-only",
-        marketFilter: combineFilters([
-          { borrower: borrowerAddress },
-          ...EXCLUDED_MARKETS_FILTER,
-        ]),
-        shouldSkipRecords: true,
-      })
-      const updatedMarkets = await updateMarkets(
-        borrowerMarkets.filter(isFrontendVisibleMarket),
-        signerOrProvider,
-        network,
-      )
-      const triggeringMarkets = updatedMarkets.filter(
-        shouldMarketTriggerBorrowerPenaltyWarning,
-      )
-
-      return {
-        shouldWarn: triggeringMarkets.length > 0,
-        triggeringMarkets,
-      }
-    },
-    refetchInterval: POLLING_INTERVAL,
-    enabled: !!chainId && !!borrowerAddress && !!signerOrProvider && !!network,
-    refetchOnMount: false,
+  marketAccounts.forEach(({ market }) => {
+    if (
+      market.chainId === currentMarket.chainId &&
+      market.borrower.toLowerCase() === borrower
+    ) {
+      marketsByAddress.set(market.address.toLowerCase(), market)
+    }
   })
 
+  // The detail query refreshes every ten seconds, so prefer its copy of the
+  // current market over the shared catalogue's sixty-second snapshot.
+  marketsByAddress.set(currentMarket.address.toLowerCase(), currentMarket)
+
+  const triggeringMarkets = Array.from(marketsByAddress.values()).filter(
+    shouldMarketTriggerBorrowerPenaltyWarning,
+  )
+
   return {
-    ...query,
-    shouldWarn: query.data?.shouldWarn ?? false,
-    triggeringMarkets: query.data?.triggeringMarkets ?? [],
+    shouldWarn: triggeringMarkets.length > 0,
+    triggeringMarkets,
   }
+}
+
+export const useBorrowerPenaltyWarning = (market: Market | undefined) => {
+  const { marketAccounts } = useLenderMarketsContext()
+
+  return useMemo(
+    () => getBorrowerPenaltyWarning(market, marketAccounts),
+    [market, marketAccounts],
+  )
 }

@@ -446,6 +446,7 @@ export const ExploreMarketsTable = () => {
           >
             <Link
               href={buildMarketHref(params.row.id, params.row.chainId)}
+              prefetch={false}
               onClick={(event) => event.stopPropagation()}
               style={{
                 width: "100%",

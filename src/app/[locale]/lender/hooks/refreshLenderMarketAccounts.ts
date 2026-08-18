@@ -11,6 +11,9 @@ import {
 
 import { TOKENS_ADDRESSES } from "@/utils/constants"
 
+const MARKET_REFRESH_CHUNK_SIZE = 40
+const MARKET_REFRESH_CONCURRENCY = 2
+
 function getChunks(
   chainId: SupportedChainId,
   marketAccounts: MarketAccount[],
@@ -43,6 +46,42 @@ function getChunks(
   }
 }
 
+function splitMarketRefreshChunks(accountsChunks: MarketAccount[][]) {
+  return accountsChunks.flatMap((accountsChunk) => {
+    const chunks: MarketAccount[][] = []
+    for (
+      let start = 0;
+      start < accountsChunk.length;
+      start += MARKET_REFRESH_CHUNK_SIZE
+    ) {
+      chunks.push(accountsChunk.slice(start, start + MARKET_REFRESH_CHUNK_SIZE))
+    }
+    return chunks
+  })
+}
+
+async function refreshChunks(
+  accountsChunks: MarketAccount[][],
+  refresh: (accountsChunk: MarketAccount[]) => Promise<void>,
+) {
+  let nextChunk = 0
+  const refreshNextChunk = async (): Promise<void> => {
+    const accountsChunk = accountsChunks[nextChunk]
+    nextChunk += 1
+    if (accountsChunk) {
+      await refresh(accountsChunk)
+      await refreshNextChunk()
+    }
+  }
+  const workers = Array.from(
+    {
+      length: Math.min(MARKET_REFRESH_CONCURRENCY, accountsChunks.length),
+    },
+    refreshNextChunk,
+  )
+  await Promise.all(workers)
+}
+
 export async function refreshLenderMarketAccounts(
   chainId: SupportedChainId,
   provider: SignerOrProvider,
@@ -64,27 +103,33 @@ export async function refreshLenderMarketAccounts(
     nonEmptyV2Chunks.length > 0
       ? getLensV2Contract(chainId, provider)
       : undefined
+  const v1MarketChunks = splitMarketRefreshChunks(nonEmptyV1Chunks)
+  const v2MarketChunks = splitMarketRefreshChunks(nonEmptyV2Chunks)
 
   await Promise.all([
     ...(lens
-      ? nonEmptyV1Chunks.map(async (accountsChunk) => {
-          const updates = await lens.getMarketsData(
-            accountsChunk.map(({ market }) => market.address),
-          )
-          accountsChunk.forEach(({ market }, index) => {
-            market.updateWith(updates[index])
-          })
-        })
+      ? [
+          refreshChunks(v1MarketChunks, async (accountsChunk) => {
+            const updates = await lens.getMarketsData(
+              accountsChunk.map(({ market }) => market.address),
+            )
+            accountsChunk.forEach(({ market }, index) => {
+              market.updateWith(updates[index])
+            })
+          }),
+        ]
       : []),
     ...(lensV2
-      ? nonEmptyV2Chunks.map(async (accountsChunk) => {
-          const updates = await lensV2.getMarketsData(
-            accountsChunk.map(({ market }) => market.address),
-          )
-          accountsChunk.forEach(({ market }, index) => {
-            market.updateWith(updates[index])
-          })
-        })
+      ? [
+          refreshChunks(v2MarketChunks, async (accountsChunk) => {
+            const updates = await lensV2.getMarketsData(
+              accountsChunk.map(({ market }) => market.address),
+            )
+            accountsChunk.forEach(({ market }, index) => {
+              market.updateWith(updates[index])
+            })
+          }),
+        ]
       : []),
     ...[...nonEmptyV1Chunks, ...nonEmptyV2Chunks].map((accountsChunk) =>
       refreshLenderAccountState(chainId, provider, lender, accountsChunk),

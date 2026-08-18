@@ -88,6 +88,15 @@ describe("query keys", () => {
     expect(client.getQueryState(unrelated)?.isInvalidated).toBe(false)
   })
 
+  it("keys market MLA data only by its public resource identity", () => {
+    expect(QueryKeys.Markets.GET_MARKET_MLA(CHAIN_ID, MARKET)).toEqual([
+      "markets",
+      "GET_MARKET_MLA",
+      CHAIN_ID,
+      MARKET,
+    ])
+  })
+
   it("invalidates both borrower withdrawal phases through their prefix", async () => {
     const client = new QueryClient()
     const initial = QueryKeys.Borrower.GET_WITHDRAWALS.INITIAL(CHAIN_ID, MARKET)

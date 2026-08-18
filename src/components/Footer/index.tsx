@@ -219,6 +219,7 @@ export const Footer = ({
             <Link
               href="/api/service-agreement/current/download"
               target="_blank"
+              prefetch={false}
               style={{
                 display: "flex",
                 textDecoration: "none",

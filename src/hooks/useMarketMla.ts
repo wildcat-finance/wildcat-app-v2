@@ -1,20 +1,16 @@
 import { useQuery } from "@tanstack/react-query"
-import { useAccount } from "wagmi"
 
 import { MasterLoanAgreementResponse } from "@/app/api/mla/interface"
 import { QueryKeys } from "@/config/query-keys"
 
-import { useAuthToken } from "./useApiAuth"
 import { useSelectedNetwork } from "./useSelectedNetwork"
 
 export const useMarketMla = (
   marketAddress: string | undefined,
   marketChainId?: number,
 ) => {
-  const { address } = useAccount()
   const { chainId: selectedChainId } = useSelectedNetwork()
   const chainId = marketChainId ?? selectedChainId
-  const token = useAuthToken(chainId)
   const chainKey = chainId ?? 0
   const getMarketMla = async () => {
     if (!marketAddress || !chainId) return undefined
@@ -36,12 +32,7 @@ export const useMarketMla = (
   }
   return useQuery({
     enabled: !!marketAddress && !!chainId,
-    queryKey: QueryKeys.Markets.GET_MARKET_MLA(
-      chainKey,
-      marketAddress,
-      address,
-      token?.token,
-    ),
+    queryKey: QueryKeys.Markets.GET_MARKET_MLA(chainKey, marketAddress),
     queryFn: getMarketMla,
     refetchOnMount: false,
   })

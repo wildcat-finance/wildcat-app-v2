@@ -310,6 +310,7 @@ export const TrendingMarketCard = ({
         <Box
           component={Link}
           href={buildMarketHref(marketAddress, chainId)}
+          prefetch={false}
           sx={{
             ...MarketContainerStyle,
             justifyContent: "space-between",

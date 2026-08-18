@@ -340,6 +340,7 @@ export const MobileMarketCard = ({
     <Box
       component={Link}
       href={href}
+      prefetch={false}
       sx={{
         width: "100%",
         display: "flex",
