@@ -48,6 +48,20 @@ export const isMarketInPenalty = (market: Market): boolean =>
     market.isIncurringPenalties,
   ) === MarketStatus.PENALTY
 
+// `timeDelinquent` counts up while the market is delinquent and back down while
+// it's healthy, so anything over the grace period is continuous penalty time.
+// `closeMarket()` resets it to zero, so closed markets don't count here.
+export const PENALTY_DEFAULT_THRESHOLD_SECONDS = 90 * 24 * 60 * 60
+
+export const isMarketInDefault = (market: Market): boolean =>
+  !market.isClosed &&
+  market.timeDelinquent - market.delinquencyGracePeriod >=
+    PENALTY_DEFAULT_THRESHOLD_SECONDS
+
+export const countMarketsInDefault = (
+  markets: Market[] | undefined,
+): number | undefined => markets?.filter(isMarketInDefault).length
+
 export const getPenaltyBorrowers = (markets: Market[]): Set<string> =>
   new Set(
     markets
