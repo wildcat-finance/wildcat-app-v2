@@ -10,6 +10,7 @@ import AscIcon from "@/assets/icons/tableSort-ascSort_icon.svg"
 import DescIcon from "@/assets/icons/tableSort-descSort_icon.svg"
 import UnsortedIcon from "@/assets/icons/tableSort-unsorted_icon.svg"
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
+import { BREAKPOINTS } from "@/theme/breakpoints"
 import { COLORS } from "@/theme/colors"
 import {
   largeContainedButton,
@@ -202,13 +203,7 @@ declare module "@mui/material/Typography" {
 
 export const theme = createTheme({
   breakpoints: {
-    values: {
-      xs: 0,
-      sm: 600,
-      md: 1000,
-      lg: 1200,
-      xl: 1536,
-    },
+    values: BREAKPOINTS,
   },
   palette: PALETTE,
   typography: TYPOGRAPHY,
@@ -310,6 +305,10 @@ export const theme = createTheme({
     MuiButton: {
       defaultProps: {
         disableRipple: true,
+        // The design system has no button elevation anywhere (every variant
+        // override sets boxShadow: none for rest/hover) - this also removes
+        // MUI's built-in :active / focus-visible shadows those miss.
+        disableElevation: true,
       },
       styleOverrides: {
         root: ({ ownerState }) => ({

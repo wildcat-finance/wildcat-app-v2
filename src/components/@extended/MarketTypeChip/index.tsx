@@ -5,7 +5,7 @@ import humanizeDuration from "humanize-duration"
 
 import Clock from "@/assets/icons/clock_icon.svg"
 import { COLORS } from "@/theme/colors"
-import { remainingMillisecondsToDate } from "@/utils/formatters"
+import { formatUtcMaturityDate } from "@/utils/formatters"
 
 import { MarketTypeChipProps } from "./interface"
 
@@ -19,6 +19,7 @@ export const MarketTypeChip = ({
   type,
   kind,
   fixedPeriod,
+  fixedTermEndTime,
   isMobile,
 }: MarketTypeChipProps) => {
   const daysLeft = Number(
@@ -32,7 +33,7 @@ export const MarketTypeChip = ({
   const suffix = fixedPeriod && fixedPeriod > 0 ? "left" : "ago"
   const chipTimeLabel =
     daysLeft > 7
-      ? remainingMillisecondsToDate(fixedPeriod || 0)
+      ? formatUtcMaturityDate(fixedTermEndTime ?? 0)
       : `${humanizeDuration(fixedPeriod || 0, {
           round: true,
           largest: 1,

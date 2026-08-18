@@ -11,10 +11,11 @@ export const useAllBorrowerProfiles = () => {
   const token = useAuthToken()
   const { chainId } = useSelectedNetwork()
   const { mutate: removeBadToken } = useRemoveBadApiToken()
+  const isAdminForChain = token?.isAdmin && token.chainId === chainId
   return useQuery({
     queryKey: QueryKeys.Admin.GET_ALL_BORROWER_PROFILES(
       chainId,
-      token?.isAdmin,
+      isAdminForChain,
       token?.address,
     ),
     queryFn: async () => {
@@ -29,7 +30,7 @@ export const useAllBorrowerProfiles = () => {
       }
       return (await response.json()) as BorrowerProfileForAdminView[]
     },
-    enabled: token?.isAdmin,
+    enabled: !!isAdminForChain,
     refetchInterval: 10_000,
   })
 }

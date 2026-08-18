@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { findBorrowerWithPendingInvitation } from "@/lib/db"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
-import { verifyApiToken } from "../../auth/verify-header"
+import { isAdminForChain, verifyApiToken } from "../../auth/verify-header"
 
 /// GET /api/invite/[address]?chainId=<chainId>
 /// Route to get an invitation for a borrower.
@@ -25,7 +25,10 @@ export async function GET(
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-  if (!token.isAdmin && token.address.toLowerCase() !== address) {
+  const isSameChainAdmin = await isAdminForChain(token, chainId)
+  const isSameChainSelf =
+    token.chainId === chainId && token.address.toLowerCase() === address
+  if (!isSameChainAdmin && !isSameChainSelf) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
   const invitation = await findBorrowerWithPendingInvitation(address, chainId)

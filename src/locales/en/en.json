@@ -845,6 +845,11 @@
     "OpenTerm": "Open Term (no withdrawal constraints)",
     "FixedTerm": "Fixed Term (withdrawals post-maturity)"
   },
+  "policy": {
+    "lenders": {
+      "selfOnboardNotice": "Lenders onboard themselves to this policy, so there is no allowlist to edit."
+    }
+  },
   "editPolicy": {
     "title": "Edit Policy",
     "confirm": "Confirm Policy Edits",
@@ -1095,6 +1100,11 @@
       "deposit": {
         "button": "Deposit",
         "title": "Available To Deposit",
+        "subtitle": "Held in your connected wallet",
+        "rows": {
+          "walletBalance": "Wallet balance",
+          "minimumDeposit": "Minimum deposit"
+        },
         "tooltip": "The amount of the underlying asset held by the address you are connected with.",
         "modal": {
           "title": "Deposit",
@@ -1133,7 +1143,77 @@
           "buttons": {
             "confirm": "Confirm"
           }
-        }
+        },
+        "wrappedLine": "Wrapped position: {{shares}} {{shareSymbol}} (≈ {{assets}} {{symbol}})",
+        "split": "{{direct}} direct · ≈ {{wrapped}} wrapped",
+        "rows": {
+          "cycle": "Withdrawal cycle",
+          "gracePeriod": "Grace period"
+        },
+        "errors": {
+          "exceeds": "Above the {{amount}} {{symbol}} available from this source",
+          "tooSmall": "Amount is below the {{amount}} {{symbol}} minimum"
+        },
+        "chips": {
+          "directOnly": "Direct only · {{amount}}",
+          "all": "All · {{amount}}",
+          "max": "Max · {{amount}}"
+        },
+        "routing": {
+          "unwrapping": "Unwrapping {{shares}} {{symbol}}",
+          "wrappedOnly": "Wrapped position only",
+          "directOnlyUpTo": "Direct only up to {{amount}}",
+          "tx_one": "1 transaction",
+          "tx_other": "{{count}} transactions",
+          "txBatched": "1 transaction (batched)",
+          "txMultisig": "1 Safe transaction · {{count}} signatures"
+        },
+        "wrappedOnly": "Use my wrapped position for this withdrawal",
+        "confirm": {
+          "enterAmount": "Enter An Amount",
+          "exceeds": "Amount Exceeds Available",
+          "withdraw_one": "Withdraw {{amount}} {{symbol}} · 1 step",
+          "withdraw_other": "Withdraw {{amount}} {{symbol}} · {{count}} steps"
+        },
+        "steps": {
+          "header": "Withdrawing",
+          "unwrap": {
+            "title": "Unwrap",
+            "detail": "{{shares}} {{shareSymbol}} to {{amount}} {{symbol}}",
+            "detailNoShares": "Unwrap to {{amount}} {{symbol}}"
+          },
+          "queue": {
+            "title": "Request Withdrawal",
+            "detail": "{{amount}} {{symbol}} queued for the next cycle",
+            "detailDirect": "{{amount}} {{symbol}} from your direct position"
+          },
+          "batched": {
+            "title": "Unwrap And Request Withdrawal",
+            "detail": "{{shares}} {{shareSymbol}} unwrapped, {{amount}} {{symbol}} requested — one batched transaction"
+          },
+          "status": {
+            "done": "Done",
+            "confirming": "Confirm in wallet…",
+            "next": "Next",
+            "waiting": "Waiting",
+            "failed": "Failed"
+          },
+          "signOne": "Confirm In Wallet",
+          "signMany": "Confirm Step {{current}} Of {{total}} · {{title}}",
+          "signBusy": "Waiting For Wallet…",
+          "retry": "Retry · {{title}}"
+        },
+        "success": {
+          "title": "Withdrawal Requested",
+          "subtitle": "{{amount}} {{symbol}} queued. Claimable when the current withdrawal cycle ends.",
+          "back": "Back To Market"
+        },
+        "proposed": {
+          "title": "Transaction Proposed",
+          "subtitle": "Your Safe needs {{count}} signatures before this withdrawal is queued."
+        },
+        "splitDirect": "{{amount}} direct",
+        "splitWrapped": "≈ {{amount}} wrapped"
       },
       "withdrawalsAlert": {
         "title": {
@@ -1195,11 +1275,13 @@
   "agreement": {
     "signButton": {
       "signing": "Signing...",
-      "sign": "Sign And Continue"
+      "sign": "Sign And Continue",
+      "reaccept": "Sign Terms of Use"
     },
     "page": {
       "title": "Wildcat Terms Of Use",
-      "download": "Download"
+      "download": "Download",
+      "cancel": "Cancel"
     }
   },
   "txModal": {
@@ -1254,8 +1336,43 @@
         "entityKind": "Entity Legal Form",
         "defaults": {
           "title": "Defaults",
-          "tooltip": "The number of markets owned by this borrower in which a penalty fee has applied for more than 90 days."
+          "tooltip": "The number of markets owned by this borrower that have incurred the penalty rate continuously for at least 90 days."
         }
+      },
+      "verification": {
+        "title": "Profile Verification",
+        "noteIntro": "Wildcat checks a defined subset of this profile during the KYB process completed as part of borrower onboarding. The rest is supplied by the borrower.",
+        "verifiedHeading": "Checked by Wildcat",
+        "unverifiedHeading": "Not checked",
+        "noEndorsement": "Borrower-supplied fields are shown for information only. Wildcat makes no claim as to their accuracy and does not endorse linked destinations.",
+        "detailsLink": "View more details",
+        "modalTitle": "How Wildcat checks this profile",
+        "modalIntro": "To help you assess this borrower, Wildcat checks a defined subset of profile data during the KYB process completed as part of onboarding. Everything else on the profile is supplied by the borrower and is not checked by Wildcat.",
+        "modalNoEndorsement": "Wildcat makes no claim as to the accuracy of unchecked fields and does not endorse any linked destinations. Review independently before depositing.",
+        "acknowledge": "I understand",
+        "fields": {
+          "verified": {
+            "legalName": "Legal Name",
+            "borrowerAddress": "Borrower Ethereum Address",
+            "headquarters": "Headquarters",
+            "entityLegalForm": "Entity Legal Form",
+            "founded": "Founded (Year)"
+          },
+          "unverified": {
+            "alias": "Alias / trading name",
+            "profileDescription": "Profile description",
+            "outgoingLinks": "Outgoing links (contact, social channels)",
+            "marketDescription": "Market descriptions"
+          }
+        }
+      },
+      "touStatus": {
+        "title": "Terms of Use",
+        "acceptedVersion": "Accepted Version",
+        "acceptedOn": "Accepted On (UTC)",
+        "currentVersion": "Current Live Version",
+        "notAccepted": "Not accepted",
+        "download": "Download Acceptance Certificate"
       },
       "emptyStates": {
         "external": {
@@ -1556,6 +1673,7 @@
       "alert": "Once created, the only adjustable market parameters are Base APR, Minimum Deposit and Maximum Capacity.",
       "alertFee": "A protocol fee will be in place on this market, currently defined as a 5% additional rate on your Base APR, whatever you set it as.\n\nPlease factor this in, and be prepared to maintain sufficient market reserves over time: failure to do so can result in delinquency.",
       "alertReduction": "You have enabled Permit Maturity Reduction on this market. You will be able to reduce the time until withdrawal requests are permitted.",
+      "alertParamsChanged": "Market settings changed after you signed the market agreement, so the signature no longer covers them. Sign the agreement again to deploy, or restore the previous settings.",
       "legalInfo": {
         "title": "Legal Information",
         "legalName": "Legal Entity Name",
