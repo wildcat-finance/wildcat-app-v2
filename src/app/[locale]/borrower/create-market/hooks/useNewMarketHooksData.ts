@@ -13,6 +13,8 @@ import {
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { hasActivePullRoleProvider } from "@/utils/marketCapabilities"
 
+import { hasActivePullRoleProvider } from "@/utils/marketCapabilities"
+
 import { NewMarketFormType } from "./useNewMarketForm"
 import { useGetBorrowerHooksData } from "../../hooks/useGetBorrowerHooksData"
 

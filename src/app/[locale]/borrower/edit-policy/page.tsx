@@ -58,6 +58,10 @@ export default function EditPolicyPage() {
   const [accessControl, setAccessControl] = React.useState<string | undefined>()
   const markets = data?.markets ?? []
 
+  const canEditLenders = !hasActivePullRoleProvider(
+    data?.hooksInstance?.roleProviders ?? [],
+  )
+
   useEffect(() => {
     if (data) {
       // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -306,9 +310,14 @@ export default function EditPolicyPage() {
       </Box>
       <Typography variant="title2">{t("editPolicy.lenders")}</Typography>
 
-      {step === "edit" && <EditLendersForm isLoading={isLoading} />}
+      {step === "edit" && (
+        <EditLendersForm
+          isLoading={isLoading}
+          canEditLenders={canEditLenders}
+        />
+      )}
 
-      {step === "confirm" && (
+      {step === "confirm" && canEditLenders && (
         <ConfirmLendersForm
           originalPolicyName={originalPolicyName}
           pendingPolicyName={pendingPolicyName}

@@ -4,7 +4,7 @@ import humanizeDuration from "humanize-duration"
 
 import {
   formatTokenWithCommas,
-  timestampToDateFormatted,
+  formatUtcMaturity,
   trimAddress,
 } from "@/utils/formatters"
 
@@ -85,7 +85,7 @@ export const getRecordText = (
     return `Protocol fee updated to ${record.newProtocolFeeBips / 100}%`
   }
   if (record.__typename === "FixedTermUpdated") {
-    const time = timestampToDateFormatted(record.newFixedTermEndTime)
+    const time = formatUtcMaturity(record.newFixedTermEndTime)
 
     return `Market maturity updated to ${time}`
   }

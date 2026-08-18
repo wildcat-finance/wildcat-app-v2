@@ -182,8 +182,11 @@ export const ToUReacceptanceModal = () => {
         sx={{
           "& .MuiDialog-paper": {
             width: "440px",
-            maxWidth: "min(440px, calc(100vw - 32px))",
-            minWidth: 0,
+            maxWidth: "min(440px, calc(100% - 32px))",
+            // The theme forces MuiPaper to `minWidth: fit-content !important`,
+            // which beats maxWidth and lets the 440px content stop the paper
+            // shrinking on narrow screens - counter it with equal weight
+            minWidth: "0 !important",
             border: "none",
             borderRadius: "20px",
             margin: 0,
@@ -352,8 +355,11 @@ export const ToUReacceptanceModal = () => {
       sx={{
         "& .MuiDialog-paper": {
           width: "440px",
-          maxWidth: "min(440px, calc(100vw - 32px))",
-          minWidth: 0,
+          maxWidth: "min(440px, calc(100% - 32px))",
+          // The theme forces MuiPaper to `minWidth: fit-content !important`,
+          // which beats maxWidth and lets the 440px content stop the paper
+          // shrinking on narrow screens - counter it with equal weight
+          minWidth: "0 !important",
           border: "none",
           borderRadius: "20px",
           margin: 0,
