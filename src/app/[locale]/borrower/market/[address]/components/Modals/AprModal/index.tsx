@@ -9,15 +9,7 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material"
-import {
-  BIP,
-  Market,
-  MarketVersion,
-  ProposeAnnualInterestBipsStatus,
-  SetAprPreview,
-  type MarketAccount,
-  type ProposeAnnualInterestBipsPreview,
-} from "@wildcatfi/wildcat-sdk"
+import { BIP, Market, SetAprPreview } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -40,7 +32,6 @@ import {
 } from "@/utils/formatters"
 import { getMarketAprDisplayBips } from "@/utils/marketApr"
 import { getPendingPeriodicAprChange } from "@/utils/periodicApr"
-import { getPeriodicWindowTiming } from "@/utils/periodicWithdrawalWindow"
 
 import { DifferenceChip } from "./components/DifferenceChip"
 import { AprModalProps } from "./interface"
@@ -99,37 +90,6 @@ const parseAprBips = (value: string) => {
   return Number.isFinite(parsed) ? Math.round(parsed * 100) : undefined
 }
 
-const previewProposeAnnualInterestBips = (
-  marketAccount: MarketAccount,
-  annualInterestBips: number,
-): ProposeAnnualInterestBipsPreview => {
-  const { market } = marketAccount
-  const timing = getPeriodicWindowTiming(market)
-
-  if (!marketAccount.isBorrower) {
-    return { status: ProposeAnnualInterestBipsStatus.NotBorrower }
-  }
-  if (market.version !== MarketVersion.V2) {
-    return { status: ProposeAnnualInterestBipsStatus.NotV2Market }
-  }
-  if (!market.periodicHooksConfig || !timing) {
-    return {
-      status: ProposeAnnualInterestBipsStatus.NotPeriodicTermMarket,
-    }
-  }
-  if (!(annualInterestBips > 0 && annualInterestBips <= 10_000)) {
-    return { status: ProposeAnnualInterestBipsStatus.InvalidApr }
-  }
-  if (annualInterestBips >= market.annualInterestBips) {
-    return { status: ProposeAnnualInterestBipsStatus.NotReduction }
-  }
-  if (timing.isOpen) {
-    return { status: ProposeAnnualInterestBipsStatus.WithdrawalWindowOpen }
-  }
-
-  return { status: ProposeAnnualInterestBipsStatus.Ready }
-}
-
 export const AprModal = ({ marketAccount }: AprModalProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
@@ -182,10 +142,13 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     setTxHash,
   )
 
-  const { mutate, isPending, isSuccess, isError } = useAdjustAPR(
-    marketAccount,
-    setTxHash,
-  )
+  const {
+    mutate,
+    isPending,
+    isSuccess,
+    isError,
+    reset: resetAdjustMutation,
+  } = useAdjustAPR(marketAccount, setTxHash)
 
   const {
     mutate: resetMutate,
@@ -194,7 +157,13 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     isError: isResetError,
   } = useResetTempReserveRatio(marketAccount, setResetTxHash)
 
+  const handleOpen = () => {
+    resetAdjustMutation()
+    modal.handleOpenModal()
+  }
+
   const handleClose = () => {
+    resetAdjustMutation()
     modal.handleCloseModal()
     setAprPreview(undefined)
     setAprError(undefined)
@@ -221,10 +190,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     }
 
     if (isPeriodicTerm && parsedNewApr < currentConfiguredAprBips) {
-      const preview = previewProposeAnnualInterestBips(
-        marketAccount,
-        parsedNewApr,
-      )
+      const preview =
+        marketAccount.previewProposeAnnualInterestBips(parsedNewApr)
       if (preview.status !== "Ready") {
         setAprError(SDK_ERRORS_MAPPING.proposeApr[preview.status])
         return
@@ -270,12 +237,22 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
   const handleAdjust = () => {
     if (aprBips === undefined) return
+
+    if (aprChangeMode === "propose") {
+      const preview = marketAccount.previewProposeAnnualInterestBips(aprBips)
+      if (preview.status !== "Ready") {
+        setAprError(SDK_ERRORS_MAPPING.proposeApr[preview.status])
+        modal.setFlowStep(ModalSteps.gettingValues)
+        return
+      }
+    }
+
     mutate({ apr: aprBips / 100, mode: aprChangeMode })
   }
 
   const handleTryAgain = () => {
-    handleAdjust()
     setShowErrorPopup(false)
+    handleAdjust()
   }
 
   const minimumApr = (() => {
@@ -423,7 +400,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
         variant="outlined"
         color="secondary"
         size="small"
-        onClick={modal.handleOpenModal}
+        onClick={handleOpen}
         disabled={market.isClosed}
       >
         {adjustAprLabel}
@@ -819,7 +796,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
         {showErrorPopup && (
           <ErrorModal
             onTryAgain={handleTryAgain}
-            onClose={modal.handleCloseModal}
+            onClose={handleClose}
             txHash={txHash}
             title={
               isPeriodicAprReduction

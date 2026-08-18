@@ -2,18 +2,11 @@ import { Dispatch } from "react"
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import {
-  iPeriodicTermHooksAbi,
-  MarketAccount,
-  prepareTransaction,
-} from "@wildcatfi/wildcat-sdk"
+import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
-import {
-  toSdkTransactionRequest,
-  waitForSubmittedTransaction,
-} from "@/utils/transactions"
+import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export type AdjustAprMode = "set" | "propose"
 
@@ -53,27 +46,9 @@ export const useAdjustAPR = (
       const submitAprChange = async () => {
         const { apr, mode } = normalizeAdjustAprInput(input)
         const aprBips = Math.round(apr * 100)
-        const proposeAnnualInterestBips = async () => {
-          const hooksAddress =
-            marketAccount.market.periodicHooksConfig?.hooksAddress
-          if (!hooksAddress) {
-            throw Error("Market does not have periodic term hooks")
-          }
-
-          const tx = prepareTransaction({
-            to: hooksAddress,
-            abi: iPeriodicTermHooksAbi,
-            functionName: "proposeAnnualInterestBips",
-            args: [aprBips],
-          })
-          const { hash } = await signer.sendTransaction(
-            toSdkTransactionRequest(tx),
-          )
-          return hash
-        }
         const hash =
           mode === "propose"
-            ? await proposeAnnualInterestBips()
+            ? await marketAccount.proposeAnnualInterestBips(aprBips)
             : await marketAccount.setAnnualInterestBips(aprBips)
 
         if (!safeConnected) setTxHash(hash.toString())
