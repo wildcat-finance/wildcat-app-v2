@@ -79,6 +79,9 @@ export const getEffectiveMarketAccess = (
     }
   }
 
+  // TODO: Show lender onboarding separately from the raw hook requirements.
+  // Calling this "open" matches what lenders can do, but hides that the hook
+  // still requires a credential for deposits and withdrawals.
   const hasOpenAccessProvider = hasActiveOpenAccessRoleProvider(
     market.chainId,
     market.hooksInstance?.roleProviders ?? [],
