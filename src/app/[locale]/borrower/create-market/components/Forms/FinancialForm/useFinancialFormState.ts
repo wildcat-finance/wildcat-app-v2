@@ -65,16 +65,9 @@ export const useFinancialFormState = (
       dispatch(
         setIsDisabled({
           steps: [CreateMarketSteps.LRESTRICTIONS],
-          disabled: !isFormValid,
+          disabled: false,
         }),
       )
-    } else {
-      const allStepsToDisable = [
-        CreateMarketSteps.CONFIRM,
-        CreateMarketSteps.LRESTRICTIONS,
-      ]
-
-      dispatch(setIsDisabled({ steps: allStepsToDisable, disabled: true }))
     }
   }, [dispatch, isFormValid])
 

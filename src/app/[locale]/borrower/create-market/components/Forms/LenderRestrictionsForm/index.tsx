@@ -40,11 +40,11 @@ export const LenderRestrictionsForm = ({
     dispatch(setIsValid({ step: CreateMarketSteps.LRESTRICTIONS, valid: true }))
     dispatch(
       setIsDisabled({
-        steps: [],
+        steps: [CreateMarketSteps.WRAPPER],
         disabled: false,
       }),
     )
-  }, [])
+  }, [dispatch])
 
   useEffect(() => {
     if (
