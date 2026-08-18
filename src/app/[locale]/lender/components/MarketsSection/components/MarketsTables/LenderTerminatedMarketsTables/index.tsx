@@ -284,6 +284,7 @@ export const LenderTerminatedMarketsTables = ({
               ? formatTokenWithCommas(params.value, {
                   withSymbol: false,
                   fractionDigits: 2,
+                  compact: true,
                 })
               : "0"}
           </LiveMarketDataValue>
@@ -310,6 +311,7 @@ export const LenderTerminatedMarketsTables = ({
               ? formatTokenWithCommas(params.value, {
                   withSymbol: false,
                   fractionDigits: 2,
+                  compact: true,
                 })
               : "0"}
           </LiveMarketDataValue>

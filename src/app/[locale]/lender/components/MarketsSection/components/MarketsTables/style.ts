@@ -72,6 +72,9 @@ export const clickableGridSx = {
     overflow: "visible",
     position: "static" as const,
   },
+  "& .MuiDataGrid-cell--textRight": {
+    overflow: "hidden",
+  },
 }
 
 // Applied to the primary row anchor (rendered inside the name cell). The
