@@ -1100,6 +1100,11 @@
       "deposit": {
         "button": "Deposit",
         "title": "Available To Deposit",
+        "subtitle": "Held in your connected wallet",
+        "rows": {
+          "walletBalance": "Wallet balance",
+          "minimumDeposit": "Minimum deposit"
+        },
         "tooltip": "The amount of the underlying asset held by the address you are connected with.",
         "modal": {
           "title": "Deposit",
@@ -1138,7 +1143,77 @@
           "buttons": {
             "confirm": "Confirm"
           }
-        }
+        },
+        "wrappedLine": "Wrapped position: {{shares}} {{shareSymbol}} (≈ {{assets}} {{symbol}})",
+        "split": "{{direct}} direct · ≈ {{wrapped}} wrapped",
+        "rows": {
+          "cycle": "Withdrawal cycle",
+          "gracePeriod": "Grace period"
+        },
+        "errors": {
+          "exceeds": "Above the {{amount}} {{symbol}} available from this source",
+          "tooSmall": "Amount is below the {{amount}} {{symbol}} minimum"
+        },
+        "chips": {
+          "directOnly": "Direct only · {{amount}}",
+          "all": "All · {{amount}}",
+          "max": "Max · {{amount}}"
+        },
+        "routing": {
+          "unwrapping": "Unwrapping {{shares}} {{symbol}}",
+          "wrappedOnly": "Wrapped position only",
+          "directOnlyUpTo": "Direct only up to {{amount}}",
+          "tx_one": "1 transaction",
+          "tx_other": "{{count}} transactions",
+          "txBatched": "1 transaction (batched)",
+          "txMultisig": "1 Safe transaction · {{count}} signatures"
+        },
+        "wrappedOnly": "Use my wrapped position for this withdrawal",
+        "confirm": {
+          "enterAmount": "Enter An Amount",
+          "exceeds": "Amount Exceeds Available",
+          "withdraw_one": "Withdraw {{amount}} {{symbol}} · 1 step",
+          "withdraw_other": "Withdraw {{amount}} {{symbol}} · {{count}} steps"
+        },
+        "steps": {
+          "header": "Withdrawing",
+          "unwrap": {
+            "title": "Unwrap",
+            "detail": "{{shares}} {{shareSymbol}} to {{amount}} {{symbol}}",
+            "detailNoShares": "Unwrap to {{amount}} {{symbol}}"
+          },
+          "queue": {
+            "title": "Request Withdrawal",
+            "detail": "{{amount}} {{symbol}} queued for the next cycle",
+            "detailDirect": "{{amount}} {{symbol}} from your direct position"
+          },
+          "batched": {
+            "title": "Unwrap And Request Withdrawal",
+            "detail": "{{shares}} {{shareSymbol}} unwrapped, {{amount}} {{symbol}} requested — one batched transaction"
+          },
+          "status": {
+            "done": "Done",
+            "confirming": "Confirm in wallet…",
+            "next": "Next",
+            "waiting": "Waiting",
+            "failed": "Failed"
+          },
+          "signOne": "Confirm In Wallet",
+          "signMany": "Confirm Step {{current}} Of {{total}} · {{title}}",
+          "signBusy": "Waiting For Wallet…",
+          "retry": "Retry · {{title}}"
+        },
+        "success": {
+          "title": "Withdrawal Requested",
+          "subtitle": "{{amount}} {{symbol}} queued. Claimable when the current withdrawal cycle ends.",
+          "back": "Back To Market"
+        },
+        "proposed": {
+          "title": "Transaction Proposed",
+          "subtitle": "Your Safe needs {{count}} signatures before this withdrawal is queued."
+        },
+        "splitDirect": "{{amount}} direct",
+        "splitWrapped": "≈ {{amount}} wrapped"
       },
       "withdrawalsAlert": {
         "title": {
@@ -1261,7 +1336,7 @@
         "entityKind": "Entity Legal Form",
         "defaults": {
           "title": "Defaults",
-          "tooltip": "The number of markets owned by this borrower in which a penalty fee has applied for more than 90 days."
+          "tooltip": "The number of markets owned by this borrower that have incurred the penalty rate continuously for at least 90 days."
         }
       },
       "verification": {

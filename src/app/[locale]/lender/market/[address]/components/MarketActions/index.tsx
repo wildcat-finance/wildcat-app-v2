@@ -6,8 +6,10 @@ import {
   MarketAccount,
   QueueWithdrawalStatus,
 } from "@wildcatfi/wildcat-sdk"
+import humanizeDuration from "humanize-duration"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
 import { LenderMlaModal } from "@/app/[locale]/lender/market/[address]/components/MarketActions/LenderMlaModal"
@@ -22,6 +24,7 @@ import { TransactionBlock } from "@/components/TransactionBlock"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { useWrapperLimits } from "@/hooks/wrapper/useWrapperLimits"
 import { useAppDispatch } from "@/store/hooks"
 import {
   LenderMarketSections,
@@ -70,10 +73,35 @@ export const MarketActions = ({
   marketAccount,
   withdrawals,
   showBorrowerPenaltyWarning,
+  wrapper,
+  hasWrapper,
 }: MarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
   const { isTestnet } = useSelectedNetwork()
+  const { address } = useAccount()
+
+  // Authoritative wrapped ceiling — the same source the withdraw routing uses.
+  const { data: wrapperLimits } = useWrapperLimits(
+    market.chainId,
+    wrapper,
+    address,
+  )
+  const wrappedCap =
+    hasWrapper && wrapper ? wrapperLimits?.maxWithdraw : undefined
+
+  // Only count the wrapped position when it is actually withdrawable: dust
+  // shares render as "0" and must not produce an "≈ 0 wrapped" breakdown.
+  const hasWrappedPosition =
+    !!wrappedCap &&
+    wrappedCap.gte(market.underlyingToken.parseAmount("0.00001"))
+
+  const wrappedAvailable = hasWrappedPosition ? wrappedCap : undefined
+
+  /** Everything the lender can request, across both positions. */
+  const combinedAvailable = wrappedAvailable
+    ? marketAccount.marketBalance.add(wrappedAvailable)
+    : marketAccount.marketBalance
 
   const {
     data: mla,
@@ -106,10 +134,6 @@ export const MarketActions = ({
     isTestnet &&
     market.underlyingToken.isMock &&
     marketAccount.underlyingBalance.raw.isZero()
-
-  const hideWithdraw =
-    marketAccount.marketBalance.raw.isZero() ||
-    marketAccount.withdrawalAvailability !== QueueWithdrawalStatus.Ready
 
   const ongoingCount = (
     withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
@@ -184,6 +208,41 @@ export const MarketActions = ({
     marketAccount.marketBalance.lt(smallestTokenAmountValue) &&
     !marketAccount.marketBalance.raw.isZero()
 
+  const humanizeDays = (seconds: number) =>
+    humanizeDuration(seconds * 1000, { largest: 1, round: true })
+
+  const depositRows = [
+    {
+      label: t("lenderMarketDetails.transactions.deposit.rows.walletBalance"),
+      value: `${formatTokenWithCommas(marketAccount.underlyingBalance)} ${
+        market.underlyingToken.symbol
+      }`,
+    },
+    ...(market.hooksConfig?.minimumDeposit
+      ? [
+          {
+            label: t(
+              "lenderMarketDetails.transactions.deposit.rows.minimumDeposit",
+            ),
+            value: `${formatTokenWithCommas(
+              market.hooksConfig.minimumDeposit,
+            )} ${market.underlyingToken.symbol}`,
+          },
+        ]
+      : []),
+  ]
+
+  const withdrawRows = [
+    {
+      label: t("lenderMarketDetails.transactions.withdraw.rows.cycle"),
+      value: humanizeDays(market.withdrawalBatchDuration),
+    },
+    {
+      label: t("lenderMarketDetails.transactions.withdraw.rows.gracePeriod"),
+      value: humanizeDays(market.delinquencyGracePeriod),
+    },
+  ]
+
   return (
     <>
       <Box display="flex" columnGap="6px" flexWrap="wrap" rowGap="6px">
@@ -245,6 +304,14 @@ export const MarketActions = ({
             tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
             amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
             asset={market.underlyingToken.symbol}
+            subtitle={
+              // the breakdown line drives both cards: when there is no wrapped
+              // position neither card shows a sub-line, so their dividers align
+              hasWrappedPosition
+                ? t("lenderMarketDetails.transactions.deposit.subtitle")
+                : undefined
+            }
+            rows={depositRows}
           >
             {(() => {
               if (mlaLoading || signedMlaLoading) {
@@ -313,13 +380,30 @@ export const MarketActions = ({
             title={t("lenderMarketDetails.transactions.withdraw.title")}
             tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
             amount={
-              isTooSmallMarketBalance
+              isTooSmallMarketBalance && !hasWrappedPosition
                 ? `< 0.00001`
-                : formatTokenWithCommas(marketAccount.marketBalance)
+                : formatTokenWithCommas(combinedAvailable)
             }
             asset={market.underlyingToken.symbol}
+            subtitle={
+              hasWrappedPosition && wrappedAvailable
+                ? t("lenderMarketDetails.transactions.withdraw.split", {
+                    direct: formatTokenWithCommas(marketAccount.marketBalance),
+                    wrapped: formatTokenWithCommas(wrappedAvailable),
+                  })
+                : undefined
+            }
+            rows={withdrawRows}
           >
-            {!hideWithdraw && <WithdrawModal marketAccount={marketAccount} />}
+            {!combinedAvailable.raw.isZero() &&
+              marketAccount.withdrawalAvailability ===
+                QueueWithdrawalStatus.Ready && (
+                <WithdrawModal
+                  marketAccount={marketAccount}
+                  wrapper={wrapper}
+                  hasWrapper={hasWrapper}
+                />
+              )}
           </TransactionBlock>
         </Box>
       </Box>

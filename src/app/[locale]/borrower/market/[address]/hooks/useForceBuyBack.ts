@@ -2,8 +2,7 @@ import { Dispatch } from "react"
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
-import { parseUnits } from "ethers/lib/utils"
+import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
@@ -12,7 +11,7 @@ export const useForceBuyBack = (
   marketAccount: MarketAccount,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
 ) => {
-  const { signer, address, targetChainId } = useEthersProvider()
+  const { signer, targetChainId } = useEthersProvider()
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
@@ -35,10 +34,6 @@ export const useForceBuyBack = (
         )
       }
 
-      // const tokenAmount = new TokenAmount(
-      //   parseUnits(amount, marketAccount.market.underlyingToken.decimals),
-      //   marketAccount.market.underlyingToken,
-      // )
       const tokenAmount =
         marketAccount.market.underlyingToken.parseAmount(amount)
 
@@ -67,9 +62,14 @@ export const useForceBuyBack = (
     },
     onSuccess() {
       client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_BORROWER_MARKET_ACCOUNT_LEGACY(
+        queryKey: QueryKeys.Markets.GET_MARKET(
           marketAccount.market.chainId,
-          address,
+          marketAccount.market.address,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
+          marketAccount.market.chainId,
           marketAccount.market.address,
         ),
       })
