@@ -166,6 +166,14 @@ export const formatTokenWithCommas = (
   }`
 }
 
+export const formatNumberWithCommas = (
+  value: number | undefined,
+  fractionDigits: number = TOKEN_FORMAT_DECIMALS,
+) =>
+  (value ?? 0).toLocaleString("en-US", {
+    maximumFractionDigits: fractionDigits,
+  })
+
 export const formatBps = (bps: number, fixed?: number) => {
   const fixedNum = (bps / 100).toFixed(fixed || 2)
 

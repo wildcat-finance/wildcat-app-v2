@@ -1,6 +1,8 @@
 import { Box, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
+import { formatNumberWithCommas } from "@/utils/formatters"
+
 import { ConfirmationFormProps } from "./interface"
 import {
   ConfirmationFinancialSectionProps,
@@ -32,7 +34,9 @@ const LegacyFinancialSection = ({
       >
         <ConfirmationFormItem
           label={t("createNewMarket.financial.maxCapacity.label")}
-          value={`${getValues("maxTotalSupply")} ${tokenAsset?.symbol}`}
+          value={`${formatNumberWithCommas(
+            getValues("maxTotalSupply"),
+          )} ${tokenAsset?.symbol}`}
         />
 
         <ConfirmationFormItem
@@ -43,7 +47,10 @@ const LegacyFinancialSection = ({
         <ConfirmationFormItem
           label={t("createNewMarket.financial.protocolFee.label")}
           /* dev: hardcoded for now, need to grab protocol fee from template */
-          value={`${(getValues("annualInterestBips") * 5) / 100}%`}
+          value={`${formatNumberWithCommas(
+            (getValues("annualInterestBips") * 5) / 100,
+            4,
+          )}%`}
         />
 
         <ConfirmationFormItem
@@ -67,7 +74,9 @@ const LegacyFinancialSection = ({
 
         <ConfirmationFormItem
           label={t("createNewMarket.financial.minDeposit.label")}
-          value={`${getValues("minimumDeposit") ?? 0} ${tokenAsset?.symbol}`}
+          value={`${formatNumberWithCommas(
+            getValues("minimumDeposit"),
+          )} ${tokenAsset?.symbol}`}
         />
       </Box>
     </>
