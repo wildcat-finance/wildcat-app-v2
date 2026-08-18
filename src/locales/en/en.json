@@ -9,6 +9,8 @@
       "wrongNetwork": "Wrong Network",
       "switchNetwork": "Switch To",
       "connectedWith": "Connected Via",
+      "viewBorrowerProfile": "View Borrower Profile",
+      "viewLenderProfile": "View Lender Profile",
       "disconnect": "Disconnect"
     },
     "switchChain": {
