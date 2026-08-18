@@ -106,12 +106,9 @@ type Slot = {
 const SECONDS_IN_YEAR = BigInt(365 * 24 * 60 * 60)
 const BIPS = BigInt(10_000)
 
-// Subgraph market state is as-of the market's last on-chain interest accrual,
-// which for a dormant market can be days old. Project supply linearly to now
-// (mirroring the contract's between-update accrual) so a market that is
-// actually at capacity can't win Peak APR off a stale below-cap snapshot.
-// The lender-only live refresh doesn't carry market state, so this projection
-// is the only client-side capacity correction.
+// Market state is hydrated from the lens on the live refresh, but it can still
+// age between polls. Project supply linearly from that block so a market that
+// crosses capacity between refreshes can't win Peak APR.
 const isBelowProjectedCapacity = (market: Market): boolean => {
   const capacity = market.maxTotalSupply.raw.toBigInt()
   const supply = market.totalSupply.raw.toBigInt()
