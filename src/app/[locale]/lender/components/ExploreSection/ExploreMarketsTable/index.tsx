@@ -27,7 +27,6 @@ import { useTranslation } from "react-i18next"
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
-import { useMarketsWithRecentInflow } from "@/app/[locale]/lender/hooks/useMarketsWithRecentInflow"
 import ArrowRightIcon from "@/assets/icons/arrowRight_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
@@ -222,10 +221,7 @@ export const ExploreMarketsTable = () => {
   const { marketAccounts, borrowers, isLoadingInitial, onboardingByMarket } =
     useLenderMarketsContext()
   const { isTestnet } = useCurrentNetwork()
-  const { isMarketQualifying, isLoading: isInflowLoading } =
-    useMarketsWithRecentInflow()
-
-  const isLoading = isLoadingInitial || isInflowLoading
+  const isLoading = isLoadingInitial
 
   const [sortMode, setSortMode] = useState<SortOption>("Most Funded")
   const [sortModel, setSortModel] = useState<GridSortModel>([])
@@ -313,7 +309,6 @@ export const ExploreMarketsTable = () => {
     rows: GridRowsProp<LenderOtherMarketsTableModel>
     totalRows: number
   }>(() => {
-    const gateActive = search.trim() === ""
     const penaltyBorrowers = getPenaltyBorrowers(
       marketAccounts.map((a) => a.market),
     )
@@ -324,18 +319,13 @@ export const ExploreMarketsTable = () => {
       assets,
       borrowers,
       withdrawalCycles,
-    ).filter((a) => {
-      if (!gateActive) return !a.market.isClosed
-      return (
+    ).filter(
+      (a) =>
         isExploreVisible(a.market) &&
-        isMarketQualifying(a) &&
-        !penaltyBorrowers.has(a.market.borrower.toLowerCase())
-      )
-    })
+        !penaltyBorrowers.has(a.market.borrower.toLowerCase()),
+    )
 
     const onboardFiltered = filtered.filter((account) => {
-      if (!gateActive) return true
-
       const onboardingMode = getKnownMarketOnboardingMode(
         account.market.version,
         account.market.address,
@@ -427,7 +417,6 @@ export const ExploreMarketsTable = () => {
     showSelfOnboard,
     showOnboardByBorrower,
     onboardingByMarket,
-    isMarketQualifying,
     isMobile,
     visibleMobileRows,
   ])

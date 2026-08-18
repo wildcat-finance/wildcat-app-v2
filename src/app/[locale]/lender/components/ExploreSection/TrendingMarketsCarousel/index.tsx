@@ -8,7 +8,6 @@ import { HooksKind, Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { formatUnits } from "viem"
 
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
-import { useMarketsWithRecentInflow } from "@/app/[locale]/lender/hooks/useMarketsWithRecentInflow"
 import {
   RecentDepositsData,
   useRecentDeposits,
@@ -27,6 +26,7 @@ import {
 } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
+import { getActivityEligibleMarkets } from "./activitySelection"
 import {
   TrendingMarketCard,
   TrendingMarketCardVariant,
@@ -36,6 +36,8 @@ import { useTrendingUsdPrices } from "./useTrendingUsdPrices"
 const SLOT_COUNT = 5
 
 const ZERO = BigInt(0)
+const ACTIVITY_UNAVAILABLE = "Unavailable"
+const ACTIVITY_UNAVAILABLE_VALUE = "—"
 
 const compactFormat = (num: number): string =>
   new Intl.NumberFormat("en-US", {
@@ -45,6 +47,12 @@ const compactFormat = (num: number): string =>
 
 const formatTokenCompact = (raw: bigint, decimals: number): string =>
   compactFormat(parseFloat(formatUnits(raw, decimals)))
+
+const formatSignedTokenCompact = (raw: bigint, decimals: number): string => {
+  if (raw > ZERO) return `+${formatTokenCompact(raw, decimals)}`
+  if (raw < ZERO) return `-${formatTokenCompact(-raw, decimals)}`
+  return "0"
+}
 
 const pickMax = <T,>(
   items: T[],
@@ -92,6 +100,7 @@ type Slot = {
   account: MarketAccount
   value: string
   secondaryValue?: string
+  context?: string
 }
 
 const SECONDS_IN_YEAR = BigInt(365 * 24 * 60 * 60)
@@ -285,10 +294,11 @@ const usePeekOnFirstVisit = (
 export const TrendingMarketsCarousel = () => {
   const { marketAccounts, borrowers, isLoadingInitial } =
     useLenderMarketsContext()
-  const { data: recentDeposits, isLoading: isRecentDepositsLoading } =
-    useRecentDeposits()
-  const { isMarketQualifying, isLoading: isInflowLoading } =
-    useMarketsWithRecentInflow()
+  const {
+    data: recentDeposits,
+    isLoading: isRecentDepositsLoading,
+    isError: isRecentDepositsError,
+  } = useRecentDeposits()
   const dragScroll = useDragScroll()
   const { measure: measureDragScroll } = dragScroll
   const [activeMobileSlot, setActiveMobileSlot] = useState(0)
@@ -372,14 +382,36 @@ export const TrendingMarketsCarousel = () => {
       marketAccounts.map((a) => a.market),
     )
 
-    const eligible = marketAccounts.filter(
+    const exploreMarkets = marketAccounts.filter(
       (a) =>
         isExploreVisible(a.market) &&
         a.market.maxTotalSupply.gt(0) &&
-        !penaltyBorrowers.has(a.market.borrower.toLowerCase()) &&
-        isMarketQualifying(a),
+        !penaltyBorrowers.has(a.market.borrower.toLowerCase()),
     )
-    if (eligible.length === 0) return []
+    if (exploreMarkets.length === 0) return []
+
+    const healthyMarkets = exploreMarkets.filter(
+      (account) =>
+        isMarketHealthy(account.market) &&
+        isBelowProjectedCapacity(account.market),
+    )
+    const rankableMarkets =
+      healthyMarkets.length > 0 ? healthyMarkets : exploreMarkets
+
+    const eligible = getActivityEligibleMarkets(
+      rankableMarkets,
+      chainId,
+      Math.floor(Date.now() / 1000),
+    )
+
+    const newestWinner =
+      pickMax(
+        rankableMarkets,
+        (account) => account.market.deployedEvent?.blockTimestamp ?? 0,
+      ) ?? rankableMarkets[0]
+    const newestStat = newestWinner.market.deployedEvent?.blockTimestamp
+      ? formatMarketAge(newestWinner.market.deployedEvent.blockTimestamp)
+      : "Unknown"
 
     const marketUsdScore = (account: MarketAccount, raw: bigint): number => {
       const { address, decimals } = account.market.underlyingToken
@@ -388,129 +420,151 @@ export const TrendingMarketsCarousel = () => {
       return price != null ? human * price : human
     }
 
-    // PO metric: 7-day net inflow / total debt at window start. Window-start
-    // debt is approximated as current supply minus the 7d net inflow (interest
-    // accrued inside the window slightly inflates it). Markets whose entire
-    // supply arrived inside the window are excluded - the ratio degenerates
-    // to infinity there, and the Newest Market slot is the home for them.
-    const growthScore = (account: MarketAccount): number | undefined => {
-      const net =
-        recentDeposits.netInflow7d[account.market.address.toLowerCase()]
+    // PO metric: net inflow / total debt at the start of the selected window.
+    // Window-start debt is approximated as current supply minus net inflow
+    // (interest accrued inside the window slightly inflates it). Markets whose
+    // entire supply arrived inside the window are excluded - the ratio
+    // degenerates to infinity there, and the Newest Market slot is their home.
+    const growthScore = (
+      account: MarketAccount,
+      netInflows: Record<string, bigint>,
+    ): number | undefined => {
+      const net = netInflows[account.market.address.toLowerCase()]
       if (net === undefined || net <= ZERO) return undefined
       const startDebt = account.market.totalSupply.raw.toBigInt() - net
       if (startDebt <= ZERO) return undefined
       const { decimals } = account.market.underlyingToken
       return toHuman(net, decimals) / toHuman(startDebt, decimals)
     }
-    const fastestGrowingWinner = pickMax(eligible, growthScore)
-    const fastestGrowingRatio = fastestGrowingWinner
-      ? growthScore(fastestGrowingWinner)
-      : undefined
-    const fastestGrowingStat = fastestGrowingWinner
-      ? `+${formatTokenCompact(
-          recentDeposits.netInflow7d[
+    const positiveGrowthWindow = isRecentDepositsError
+      ? undefined
+      : [
+          { days: 7, netInflows: recentDeposits.netInflow7d },
+          { days: 30, netInflows: recentDeposits.netInflow30d },
+          { days: 90, netInflows: recentDeposits.netInflow90d },
+        ]
+          .map((window) => ({
+            ...window,
+            winner: pickMax(eligible, (account) =>
+              growthScore(account, window.netInflows),
+            ),
+          }))
+          .find((window) => window.winner !== undefined)
+    // Keep the original Fastest Growing card even when the network has no
+    // positive net inflow. Ninety days is the terminal window; in that case
+    // the winner is the market with the highest (possibly zero/negative) flow.
+    const growthWindow =
+      positiveGrowthWindow ??
+      ({
+        days: 90,
+        netInflows: recentDeposits.netInflow90d,
+        winner: pickMax(
+          eligible,
+          (account) =>
+            recentDeposits.netInflow90d[account.market.address.toLowerCase()] ??
+            ZERO,
+        ),
+      } as const)
+    const fastestGrowingWinner = growthWindow.winner ?? eligible[0]
+    const fastestGrowingRatio = isRecentDepositsError
+      ? undefined
+      : growthScore(fastestGrowingWinner, growthWindow.netInflows)
+    const fastestGrowingStat = isRecentDepositsError
+      ? ACTIVITY_UNAVAILABLE_VALUE
+      : formatSignedTokenCompact(
+          growthWindow.netInflows[
             fastestGrowingWinner.market.address.toLowerCase()
           ] ?? ZERO,
           fastestGrowingWinner.market.underlyingToken.decimals,
-        )}`
-      : undefined
+        )
     const fastestGrowingRate = fastestGrowingRatio
       ? formatGrowthPct(fastestGrowingRatio)
       : undefined
 
-    const lenders7dWinner = pickLendersWinner(eligible, recentDeposits.last7d)
-    const lendersBroadWinner = pickLendersWinner(eligible, recentDeposits.broad)
+    const lenders7dWinner = isRecentDepositsError
+      ? undefined
+      : pickLendersWinner(eligible, recentDeposits.last7d)
+    const lendersBroadWinner = isRecentDepositsError
+      ? undefined
+      : pickLendersWinner(eligible, recentDeposits.broad)
 
-    // Deliberately not gated on isMarketQualifying: a just-deployed market
-    // has no deposits yet, which is exactly what makes it the newest.
-    const newestEligible = marketAccounts.filter(
-      (a) =>
-        isExploreVisible(a.market) &&
-        a.market.maxTotalSupply.gt(0) &&
-        !penaltyBorrowers.has(a.market.borrower.toLowerCase()),
+    // Prefer funded markets so an unused market cannot win while a funded
+    // alternative exists. Fall back to the catalogue to preserve the slot.
+    const fundedMarkets = eligible.filter(
+      (account) => account.market.totalSupply.raw.toBigInt() > ZERO,
     )
-    const newestWinner = pickMax(
-      newestEligible,
-      (account) => account.market.deployedEvent?.blockTimestamp || undefined,
+    const aprWinner = [
+      ...(fundedMarkets.length > 0 ? fundedMarkets : eligible),
+    ].sort(compareByCurrentAprBestInMarket)[0]
+
+    const tvlWinner =
+      pickMax(eligible, (account) => {
+        const big = account.market.totalSupply.raw.toBigInt()
+        return marketUsdScore(account, big)
+      }) ?? eligible[0]
+
+    const tvlStat = formatTokenCompact(
+      tvlWinner.market.totalSupply.raw.toBigInt(),
+      tvlWinner.market.underlyingToken.decimals,
     )
-    const newestStat = newestWinner?.market.deployedEvent?.blockTimestamp
-      ? formatMarketAge(newestWinner.market.deployedEvent.blockTimestamp)
-      : undefined
 
-    // Peak APR additionally requires projected supply below capacity: the
-    // indexed below-cap check alone lets an actually-full dormant market win
-    // with a bogus rate.
-    const healthyEligible = eligible.filter(
-      (a) => isMarketHealthy(a.market) && isBelowProjectedCapacity(a.market),
-    )
-    const aprWinner = healthyEligible.length
-      ? [...healthyEligible].sort(compareByCurrentAprBestInMarket)[0]
-      : undefined
+    const lendersAccount = lenders7dWinner ?? lendersBroadWinner ?? eligible[0]
+    const lendersCount =
+      lenders7dWinner || lendersBroadWinner
+        ? (lenders7dWinner ? recentDeposits.last7d : recentDeposits.broad)[
+            lendersAccount.market.address.toLowerCase()
+          ]?.uniqueLenders ?? 0
+        : 0
 
-    const tvlWinner = pickMax(eligible, (account) => {
-      const big = account.market.totalSupply.raw.toBigInt()
-      return big > ZERO ? marketUsdScore(account, big) : undefined
-    })
+    let lendersContext = "No deposits yet"
+    if (isRecentDepositsError) lendersContext = ACTIVITY_UNAVAILABLE
+    else if (lenders7dWinner) lendersContext = "Last 7 days"
+    else if (lendersBroadWinner) lendersContext = "Historical"
 
-    let tvlStat: string | undefined
-    if (tvlWinner) {
-      const big = tvlWinner.market.totalSupply.raw.toBigInt()
-      if (big > ZERO) {
-        tvlStat = formatTokenCompact(
-          big,
-          tvlWinner.market.underlyingToken.decimals,
-        )
-      }
-    }
-
-    const lendersAccount = lenders7dWinner ?? lendersBroadWinner
-    const lendersCount = lendersAccount
-      ? recentDeposits.last7d[lendersAccount.market.address.toLowerCase()]
-          ?.uniqueLenders ?? 0
-      : 0
-
-    const makeSlot = (
-      key: string,
-      variant: TrendingMarketCardVariant,
-      account: MarketAccount | undefined,
-      value: string | undefined,
-      secondaryValue?: string,
-    ): Slot | null => {
-      if (!account || !value) return null
-      return { key, variant, account, value, secondaryValue }
-    }
-
-    const built: (Slot | null)[] = [
-      makeSlot(
-        "fastestGrowing",
-        "fastestGrowing",
-        fastestGrowingWinner,
-        fastestGrowingStat,
-        fastestGrowingRate,
-      ),
-      makeSlot(
-        "lenders",
-        "popular",
-        lendersAccount,
-        lendersCount > 0 ? lendersCount.toString() : undefined,
-      ),
-      makeSlot(
-        "highestApr",
-        "hotRate",
-        aprWinner,
-        aprWinner
-          ? `${formatBps(aprWinner.market.annualInterestBips)}%`
-          : undefined,
-      ),
-      makeSlot("newest", "newest", newestWinner, newestStat),
-      makeSlot("highestTvl", "topFunded", tvlWinner, tvlStat),
+    const built: Slot[] = [
+      {
+        key: "fastestGrowing",
+        variant: "fastestGrowing",
+        account: fastestGrowingWinner,
+        value: fastestGrowingStat,
+        secondaryValue: fastestGrowingRate,
+        context: isRecentDepositsError
+          ? ACTIVITY_UNAVAILABLE
+          : `Last ${growthWindow.days} days`,
+      },
+      {
+        key: "lenders",
+        variant: "popular",
+        account: lendersAccount,
+        value: isRecentDepositsError
+          ? ACTIVITY_UNAVAILABLE_VALUE
+          : lendersCount.toString(),
+        context: lendersContext,
+      },
+      {
+        key: "highestApr",
+        variant: "hotRate",
+        account: aprWinner,
+        value: `${formatBps(aprWinner.market.annualInterestBips)}%`,
+      },
+      {
+        key: "newest",
+        variant: "newest",
+        account: newestWinner,
+        value: newestStat,
+      },
+      {
+        key: "highestTvl",
+        variant: "topFunded",
+        account: tvlWinner,
+        value: tvlStat,
+      },
     ]
 
-    return built.filter((s): s is Slot => s !== null).slice(0, SLOT_COUNT)
-  }, [marketAccounts, recentDeposits, priceMap, isMarketQualifying])
+    return built.slice(0, SLOT_COUNT)
+  }, [chainId, marketAccounts, recentDeposits, priceMap, isRecentDepositsError])
 
-  const isLoading =
-    isLoadingInitial || isInflowLoading || isRecentDepositsLoading
+  const isLoading = isLoadingInitial || isRecentDepositsLoading
 
   const isMobile = useMobileResolution()
 
@@ -557,6 +611,7 @@ export const TrendingMarketsCarousel = () => {
         variant={slot.variant}
         value={slot.value}
         secondaryValue={slot.secondaryValue}
+        context={slot.context}
         marketName={market.name}
         marketAddress={market.address}
         chainId={market.chainId}
