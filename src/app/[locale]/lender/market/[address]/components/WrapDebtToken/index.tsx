@@ -10,7 +10,6 @@ import {
   TokenWrapper,
   WrapperFactory,
 } from "@wildcatfi/wildcat-sdk"
-import { constants } from "ethers"
 
 import { toastRequest } from "@/components/Toasts"
 import { NoWrapperState } from "@/components/WrapDebtToken/NoWrapperState"
@@ -48,8 +47,6 @@ export const WrapDebtToken = ({
   const { signer } = useEthersProvider({ chainId: market?.chainId })
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
   const client = useQueryClient()
-
-  const wrapperAddress = wrapper?.address
 
   const waitForSafeTransaction = async (safeTxHash: string) => {
     if (!sdk) throw new Error("No Safe SDK")
@@ -108,14 +105,6 @@ export const WrapDebtToken = ({
           market?.address,
         ),
       })
-      if (wrapperAddress && wrapperAddress !== constants.AddressZero) {
-        client.invalidateQueries({
-          queryKey: QueryKeys.Wrapper.GET_WRAPPER(
-            market?.chainId ?? 0,
-            wrapperAddress,
-          ),
-        })
-      }
     },
   })
 

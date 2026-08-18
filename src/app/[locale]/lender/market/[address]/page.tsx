@@ -31,6 +31,7 @@ import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
 import { useGetMarket } from "@/hooks/useGetMarket"
+import { useMarketAccount } from "@/hooks/useMarketAccount"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -61,7 +62,6 @@ import { MarketSummary } from "./components/MarketSummary"
 import { WrapDebtToken } from "./components/WrapDebtToken"
 import { useBorrowerPenaltyWarning } from "./hooks/useBorrowerPenaltyWarning"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
-import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { LenderStatus } from "./interface"
 import {
   LenderBannerWrapper,
@@ -108,7 +108,7 @@ export default function LenderMarketDetails({
     })
 
   const { data: marketAccount, isLoadingInitial: isMarketAccountLoading } =
-    useLenderMarketAccount(market)
+    useMarketAccount(market)
   const { data: withdrawals, isLoadingInitial: isWithdrawalsLoading } =
     useGetLenderWithdrawals(market)
   const { data: marketSummary, isLoading: isLoadingSummary } = useMarketSummary(

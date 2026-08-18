@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect } from "react"
+import React, { ChangeEvent } from "react"
 
 import {
   Box,
@@ -65,12 +65,6 @@ const TabStyle = {
   maxWidth: "100%",
   width: "50%",
   borderColor: COLORS.athensGrey,
-}
-
-const UnitTabStyle = {
-  ...TabStyle,
-  width: "auto",
-  minWidth: "100px",
 }
 
 enum AmountUnit {
@@ -655,6 +649,9 @@ export const WrapperSection = ({
     },
     onSuccess: () => {
       client.invalidateQueries({
+        queryKey: QueryKeys.Wrapper.PREVIEW(wrapper.address),
+      })
+      client.invalidateQueries({
         queryKey: QueryKeys.Wrapper.GET_BALANCES(
           market?.chainId ?? 0,
           wrapper.address,
@@ -679,10 +676,17 @@ export const WrapperSection = ({
         queryKey: QueryKeys.Wrapper.GET_ADOPTION(
           market?.chainId ?? 0,
           wrapper.address,
-          "lender",
-          address,
         ),
       })
+      if (market) {
+        client.invalidateQueries({
+          queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
+            market.chainId,
+            market.address,
+            address,
+          ),
+        })
+      }
       setAmount("")
       setExactAmount(undefined)
       setShowSuccess(true)

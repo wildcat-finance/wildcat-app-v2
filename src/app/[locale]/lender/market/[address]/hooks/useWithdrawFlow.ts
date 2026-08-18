@@ -143,24 +143,35 @@ export const useWithdrawFlow = ({
 
   const invalidate = useCallback(() => {
     const { chainId, address: marketAddress } = market
+    const accountAddress = marketAccount.account.toLowerCase()
+
     client.invalidateQueries({
       queryKey: QueryKeys.Markets.GET_MARKET(chainId, marketAddress),
     })
     client.invalidateQueries({
-      queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
+      queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
         chainId,
-        "initial",
+        marketAddress,
+        accountAddress,
+      ),
+    })
+    client.invalidateQueries({
+      queryKey: QueryKeys.Lender.GET_WITHDRAWALS.PREFIX(
+        chainId,
+        accountAddress,
         marketAddress,
       ),
     })
     client.invalidateQueries({
-      queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
+      queryKey: QueryKeys.Borrower.GET_WITHDRAWALS.PREFIX(
         chainId,
-        "update",
         marketAddress,
       ),
     })
     if (wrapper) {
+      client.invalidateQueries({
+        queryKey: QueryKeys.Wrapper.PREVIEW(wrapper.address),
+      })
       client.invalidateQueries({
         queryKey: QueryKeys.Wrapper.GET_BALANCES(
           chainId,
@@ -184,7 +195,7 @@ export const useWithdrawFlow = ({
         ),
       })
     }
-  }, [client, market, wrapper, address])
+  }, [client, market, marketAccount.account, wrapper, address])
 
   const assertReady = useCallback(() => {
     if (!address) throw new Error("No account")
