@@ -64,7 +64,7 @@ describe("shouldShowLenderRequestBanner", () => {
 describe("getLenderMarketLoadingState", () => {
   const readyState = {
     isMarketReady: true,
-    isMarketLoading: false,
+    hasLiveMarket: true,
     apiLoading: false,
     isDiscoveringChainId: false,
     hasMarketAccount: true,
@@ -75,10 +75,6 @@ describe("getLenderMarketLoadingState", () => {
 
   it.each([
     { state: "market data is missing", changes: { isMarketReady: false } },
-    {
-      state: "the market query is loading",
-      changes: { isMarketLoading: true },
-    },
     { state: "the API query is loading", changes: { apiLoading: true } },
     {
       state: "the chain is being discovered",
@@ -88,6 +84,19 @@ describe("getLenderMarketLoadingState", () => {
     expect(
       getLenderMarketLoadingState({ ...readyState, ...changes }).isPageLoading,
     ).toBe(true)
+  })
+
+  it("renders the market shell while live market data loads", () => {
+    expect(
+      getLenderMarketLoadingState({
+        ...readyState,
+        hasLiveMarket: false,
+      }),
+    ).toEqual({
+      isPageLoading: false,
+      isTransactionsLoading: true,
+      isBarChartsLoading: true,
+    })
   })
 
   it("renders the market shell while account and withdrawal data load", () => {

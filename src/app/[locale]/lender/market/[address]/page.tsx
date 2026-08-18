@@ -105,8 +105,8 @@ export default function LenderMarketDetails({
     : undefined
 
   const {
-    data: market,
-    isLoading: isMarketLoading,
+    data: liveMarket,
+    indexedMarket,
     apiError,
     apiLoading,
     isDiscoveringChainId,
@@ -114,6 +114,8 @@ export default function LenderMarketDetails({
     address,
     chainId: marketChainId,
   })
+  const market = liveMarket ?? indexedMarket
+  const hasLiveMarket = !!liveMarket
 
   const { isWrongNetwork, isSelectionMismatch, selectedChainId } =
     useNetworkGate({
@@ -168,7 +170,7 @@ export default function LenderMarketDetails({
     isBarChartsLoading,
   } = getLenderMarketLoadingState({
     isMarketReady: !!market,
-    isMarketLoading,
+    hasLiveMarket,
     apiLoading,
     isDiscoveringChainId,
     hasMarketAccount: !!marketAccount,
@@ -429,7 +431,8 @@ export default function LenderMarketDetails({
           setIsMobileDescriptionOpen={setIsMobileDescriptionOpen}
         />
 
-        {marketAccount &&
+        {hasLiveMarket &&
+          marketAccount &&
           !isWithdrawalsLoading &&
           (authorizedInMarket || isDifferentChain) && (
             <MobileMarketActions
@@ -458,7 +461,8 @@ export default function LenderMarketDetails({
           setIsMobileHistoryOpen={setIsMobileHistoryOpen}
         />
 
-        {marketAccount &&
+        {hasLiveMarket &&
+          marketAccount &&
           !isWithdrawalsLoading &&
           (authorizedInMarket || isDifferentChain) && (
             <MobileMarketActions
@@ -611,7 +615,8 @@ export default function LenderMarketDetails({
             />
           )}
 
-          {marketAccount &&
+          {hasLiveMarket &&
+            marketAccount &&
             !isWithdrawalsLoading &&
             (authorizedInMarket || isDifferentChain) && (
               <MobileMarketActions
