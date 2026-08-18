@@ -28,11 +28,14 @@ export const useBorrowerInvitationRedirect = (): BannerConfigType => {
   const {
     data: borrowerData,
     isLoading: isLoadingBorrowerData,
-    isSuccess,
+    isSuccess: isBorrowerDataResolved,
   } = useGetBasicBorrowerData(address as string)
 
-  const { isLoading: isLoadingInvitation, data: invitationStatus } =
-    useBorrowerInvitationExists(address)
+  const {
+    isLoading: isLoadingInvitation,
+    isSuccess: isInvitationResolved,
+    data: invitationStatus,
+  } = useBorrowerInvitationExists(address)
 
   const isRegisteredBorrower = borrowerData?.isRegisteredBorrower
 
@@ -52,7 +55,7 @@ export const useBorrowerInvitationRedirect = (): BannerConfigType => {
     }
   }
 
-  if (isLoading || !isSuccess) {
+  if (isLoading || !isBorrowerDataResolved || !isInvitationResolved) {
     return {
       hideCreateMarket: true,
       hideBanner: true,

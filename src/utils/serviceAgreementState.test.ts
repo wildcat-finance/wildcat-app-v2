@@ -3,7 +3,10 @@ import {
   computeToUAcceptanceState,
   computeToUGateState,
   isToUBlockedState,
+  remembersToUPromptDismissal,
   requiresBorrowerInvitationAcceptance,
+  shouldAutoOpenToUPrompt,
+  type ToUAcceptanceState,
 } from "./serviceAgreementState"
 
 const NOW = new Date("2026-07-01T12:00:00Z")
@@ -167,15 +170,95 @@ describe("computeToUGateState", () => {
 
 describe("requiresBorrowerInvitationAcceptance", () => {
   it("requires the invitation flow for a borrower's first acceptance", () => {
-    expect(requiresBorrowerInvitationAcceptance("Borrower", false)).toBe(true)
+    expect(requiresBorrowerInvitationAcceptance("Borrower", false, true)).toBe(
+      true,
+    )
+  })
+
+  it("lets a borrower with no invitation sign on the ordinary path", () => {
+    // Guards the dead end: routing this account to /borrower/invitation shows
+    // "No invitation found" and leaves it with no way to sign at all.
+    expect(requiresBorrowerInvitationAcceptance("Borrower", false, false)).toBe(
+      false,
+    )
   })
 
   it("allows existing borrowers to use the generic re-acceptance flow", () => {
-    expect(requiresBorrowerInvitationAcceptance("Borrower", true)).toBe(false)
+    expect(requiresBorrowerInvitationAcceptance("Borrower", true, true)).toBe(
+      false,
+    )
+    expect(requiresBorrowerInvitationAcceptance("Borrower", true, false)).toBe(
+      false,
+    )
   })
 
   it("does not change lender onboarding", () => {
-    expect(requiresBorrowerInvitationAcceptance("Lender", false)).toBe(false)
+    expect(requiresBorrowerInvitationAcceptance("Lender", false, true)).toBe(
+      false,
+    )
+    expect(requiresBorrowerInvitationAcceptance("Lender", false, false)).toBe(
+      false,
+    )
+  })
+})
+
+describe("shouldAutoOpenToUPrompt", () => {
+  const open = (over: Partial<Parameters<typeof shouldAutoOpenToUPrompt>[0]>) =>
+    shouldAutoOpenToUPrompt({
+      state: "neverSigned",
+      party: "Borrower",
+      dismissed: false,
+      pendingDismissed: false,
+      ...over,
+    })
+
+  it("prompts a borrower who has never accepted", () => {
+    expect(open({})).toBe(true)
+    expect(open({ dismissed: true })).toBe(false)
+  })
+
+  it("leaves a first-time lender to the agreement-page redirect", () => {
+    expect(open({ party: "Lender" })).toBe(false)
+  })
+
+  it("keeps the existing prompts unchanged", () => {
+    expect(open({ state: "staleWithinGrace" })).toBe(true)
+    expect(open({ state: "declined" })).toBe(true)
+    expect(open({ state: "staleExpired" })).toBe(true)
+    expect(open({ state: "staleWithinGrace", dismissed: true })).toBe(false)
+  })
+
+  it("only a pending Safe action puts the expired state aside", () => {
+    expect(open({ state: "staleExpired", dismissed: true })).toBe(true)
+    expect(open({ state: "staleExpired", pendingDismissed: true })).toBe(false)
+  })
+
+  it("stays quiet where nothing is enforced", () => {
+    // "stale" is a newer version with no campaign: not blocked, not nagged.
+    expect(open({ state: "stale" })).toBe(false)
+    expect(open({ state: "signedCurrent" })).toBe(false)
+    expect(open({ state: undefined })).toBe(false)
+  })
+
+  it("never auto-opens a state whose dismissal is not remembered", () => {
+    // Otherwise the prompt reopens on every navigation.
+    const states: ToUAcceptanceState[] = [
+      "signedCurrent",
+      "stale",
+      "staleWithinGrace",
+      "staleExpired",
+      "neverSigned",
+      "declined",
+    ]
+    const parties: ("Borrower" | "Lender")[] = ["Borrower", "Lender"]
+    parties.forEach((party) => {
+      states.forEach((state) => {
+        if (state === "staleExpired") return
+        if (open({ state, party })) {
+          expect(remembersToUPromptDismissal(state, party)).toBe(true)
+        }
+      })
+    })
   })
 })
 

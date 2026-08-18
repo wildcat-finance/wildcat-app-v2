@@ -2,7 +2,11 @@ import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
 import { AcceptServiceAgreementInput } from "@/app/api/service-agreement/interface"
-import { getBorrowerAcceptanceTimes, prisma } from "@/lib/db"
+import {
+  findBorrowerWithPendingInvitation,
+  getBorrowerAcceptanceTimes,
+  prisma,
+} from "@/lib/db"
 import {
   getCurrentServiceAgreement,
   isServiceAgreementTimeSignedInBounds,
@@ -63,8 +67,16 @@ export async function POST(request: NextRequest) {
     const priorAcceptances = await getBorrowerAcceptanceTimes(chainId, [
       address,
     ])
+    const hasPriorAcceptance = priorAcceptances.has(address)
+    const hasPendingInvitation =
+      !hasPriorAcceptance &&
+      !!(await findBorrowerWithPendingInvitation(address, chainId))
     if (
-      requiresBorrowerInvitationAcceptance(party, priorAcceptances.has(address))
+      requiresBorrowerInvitationAcceptance(
+        party,
+        hasPriorAcceptance,
+        hasPendingInvitation,
+      )
     ) {
       return NextResponse.json(
         {
