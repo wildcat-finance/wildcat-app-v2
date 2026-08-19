@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next"
 
 import Avatar from "@/assets/icons/avatar_icon.svg"
 import Edit from "@/assets/icons/edit_icon.svg"
+import { useBorrowerRestriction } from "@/hooks/useBorrowerRestriction"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { pxToRem } from "@/theme/units"
@@ -34,6 +35,8 @@ export const ProfileNamePageBlock = ({
   isExternal,
   isMobile,
 }: ProfileNamePageBlockProps) => {
+  // Restricted borrowers lose the profile edit entry point. (product#789)
+  const { restricted } = useBorrowerRestriction()
   const { t } = useTranslation()
 
   const hasNoMarkets = marketsAmount === 0
@@ -178,7 +181,7 @@ export const ProfileNamePageBlock = ({
           ))}
         </Box>
 
-        {!isExternal && !showEmptyAlert && (
+        {!isExternal && !showEmptyAlert && !restricted && (
           <Link href={ROUTES.borrower.editProfile}>
             <Button variant="text" size="small" sx={{ gap: "4px" }}>
               <SvgIcon

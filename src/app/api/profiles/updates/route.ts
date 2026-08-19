@@ -6,6 +6,7 @@ import {
   BorrowerAdditionalUrl,
   BorrowerProfileInput,
 } from "@/app/api/profiles/interface"
+import { getBorrowerRestriction } from "@/lib/borrowerRestriction"
 import { getBorrowerProfileUpdates, prisma } from "@/lib/db"
 import { uploadProfilePicture } from "@/lib/upload-profile-picture"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
@@ -108,6 +109,17 @@ export async function POST(request: NextRequest) {
       { error: `Borrower ${address} not found` },
       { status: 404 },
     )
+  }
+  // Removed or manually restricted borrowers cannot edit their profile;
+  // admins stay exempt so override tooling keeps working. (product#789)
+  if (!adminForChain) {
+    const restriction = await getBorrowerRestriction(chainId, address)
+    if (restriction.restricted) {
+      return NextResponse.json(
+        { error: "Borrower is restricted" },
+        { status: 403 },
+      )
+    }
   }
   const [, updateRequest] = await prisma.$transaction([
     prisma.borrowerProfileUpdateRequest.deleteMany({

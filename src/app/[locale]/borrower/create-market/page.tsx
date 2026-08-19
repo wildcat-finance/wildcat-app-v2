@@ -31,6 +31,7 @@ import { Loader } from "@/components/Loader"
 import { toastError } from "@/components/Toasts"
 import { DECLINE_MLA_ASSIGNMENT_MESSAGE } from "@/config/mla-rejection"
 import { NETWORKS_BY_ID } from "@/config/network"
+import { useBorrowerRestriction } from "@/hooks/useBorrowerRestriction"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
@@ -120,6 +121,7 @@ export default function CreateMarketPage() {
   // ToU re-acceptance lockout (staleExpired / declined): no new markets.
   const { touGateState, isAgreementFetching, refetchAgreementStatus } =
     useNetworkGate()
+  const { restricted: borrowerRestricted } = useBorrowerRestriction()
   const { chainId: targetChainId } = useAppSelector(
     (state) => state.selectedNetwork,
   )
@@ -688,6 +690,7 @@ export default function CreateMarketPage() {
   const handleClickDeploy = async () => {
     if (
       touGateState !== "unblocked" ||
+      borrowerRestricted ||
       !assetData ||
       !tokenAsset ||
       !selectedHooksTemplate ||
@@ -826,6 +829,69 @@ export default function CreateMarketPage() {
             </Button>
           </>
         )}
+      </Box>
+    )
+  }
+
+  if (borrowerRestricted) {
+    return (
+      <Box sx={PageContainer}>
+        <Box
+          sx={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "24px",
+            padding: "40px",
+            paddingRight: "307px",
+            paddingBottom: "160px",
+          }}
+        >
+          <Box
+            sx={{
+              width: "52px",
+              height: "52px",
+              borderRadius: "14px",
+              backgroundColor: COLORS.glitter,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <SvgIcon
+              sx={{
+                fontSize: "26px",
+                "& path": { stroke: COLORS.ultramarineBlue },
+              }}
+            >
+              <Docs />
+            </SvgIcon>
+          </Box>
+          <Typography variant="title2" fontWeight={600} textAlign="center">
+            Market creation is restricted
+          </Typography>
+          <Typography
+            variant="text2"
+            color={COLORS.santasGrey}
+            textAlign="center"
+            sx={{ maxWidth: "440px", marginTop: "-8px" }}
+          >
+            This account is restricted from creating new markets. Repayment and
+            market termination remain fully available for your existing markets.
+            Contact the Wildcat team if you believe this is an error.
+          </Typography>
+          <Button
+            variant="contained"
+            size="large"
+            onClick={handleGoToMarkets}
+            sx={{ minWidth: "220px" }}
+          >
+            Back to markets
+          </Button>
+        </Box>
       </Box>
     )
   }
