@@ -294,6 +294,91 @@ describe("useLendersMarkets", () => {
     expect(second.generation).toBe("indexed-2")
   })
 
+  it("keeps the last live generation visible while new indexed data hydrates", async () => {
+    const first = createIndexedAccount(LENDER_A, "indexed-1")
+    const second = createIndexedAccount(LENDER_A, "indexed-2")
+    const secondLiveGate = createDeferred<void>()
+
+    getLenderAccountsForAllMarketsMock
+      .mockResolvedValueOnce([first])
+      .mockResolvedValueOnce([second])
+    refreshMarketAccountsV2LiveDataSafeMock.mockImplementation(
+      async (_chainId, _provider, _lender, accounts: TestMarketAccount[]) => {
+        if (accounts[0].generation === "indexed-2") {
+          await secondLiveGate.promise
+        }
+        accounts[0].stateSource = "live"
+        accounts[0].generation = accounts[0].generation.replace(
+          "indexed",
+          "live",
+        )
+        return accounts
+      },
+    )
+
+    const { result } = renderHook(() => useLendersMarkets(), {
+      wrapper: createWrapper(),
+    })
+
+    await waitFor(() =>
+      expect(asTestAccount(result.current.data[0]).generation).toBe("live-1"),
+    )
+
+    await new Promise((resolve) => {
+      setTimeout(resolve, 2)
+    })
+    await act(async () => {
+      await result.current.refetchInitial()
+    })
+
+    await waitFor(() =>
+      expect(refreshMarketAccountsV2LiveDataSafeMock).toHaveBeenCalledTimes(2),
+    )
+    expect(asTestAccount(result.current.data[0]).generation).toBe("live-1")
+
+    await act(async () => secondLiveGate.resolve())
+    await waitFor(() =>
+      expect(asTestAccount(result.current.data[0]).generation).toBe("live-2"),
+    )
+  })
+
+  it("keeps the last live generation when new indexed data fails to hydrate", async () => {
+    const first = createIndexedAccount(LENDER_A, "indexed-1")
+    const second = createIndexedAccount(LENDER_A, "indexed-2")
+
+    getLenderAccountsForAllMarketsMock
+      .mockResolvedValueOnce([first])
+      .mockResolvedValueOnce([second])
+    refreshMarketAccountsV2LiveDataSafeMock
+      .mockImplementationOnce(
+        async (_chainId, _provider, _lender, accounts: TestMarketAccount[]) => {
+          accounts[0].stateSource = "live"
+          accounts[0].generation = "live-1"
+          return accounts
+        },
+      )
+      .mockRejectedValueOnce(new Error("RPC unavailable"))
+
+    const { result } = renderHook(() => useLendersMarkets(), {
+      wrapper: createWrapper(),
+    })
+
+    await waitFor(() =>
+      expect(asTestAccount(result.current.data[0]).generation).toBe("live-1"),
+    )
+
+    await new Promise((resolve) => {
+      setTimeout(resolve, 2)
+    })
+    await act(async () => {
+      await result.current.refetchInitial()
+    })
+
+    await waitFor(() => expect(result.current.isErrorUpdate).toBe(true))
+    expect(asTestAccount(result.current.data[0]).generation).toBe("live-1")
+    expect(result.current.hasLiveData).toBe(true)
+  })
+
   it("keeps indexed rows visible when live hydration fails", async () => {
     const indexed = createIndexedAccount(LENDER_A, "indexed-1")
     getLenderAccountsForAllMarketsMock.mockResolvedValue([indexed])
