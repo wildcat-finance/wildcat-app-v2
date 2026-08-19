@@ -2,7 +2,7 @@ import * as React from "react"
 
 import { Box, Button, Divider, SvgIcon } from "@mui/material"
 import Link from "next/link"
-import { usePathname, useSearchParams } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
@@ -28,6 +28,7 @@ export const MobileNamePageBlockWrapper = ({
 }: MobileNamePageBlockWrapperProps) => {
   const { t } = useTranslation()
 
+  const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const backLink =
@@ -35,13 +36,23 @@ export const MobileNamePageBlockWrapper = ({
       ? ROUTES.borrower.root
       : ROUTES.lender.root
 
+  const handleBack = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault()
+
+    if (window.history.length > 1) {
+      router.back()
+    } else {
+      router.push(backLink)
+    }
+  }
+
   const handleChangeSection = (sectionTab: "markets" | "info") => {
     setSection(sectionTab)
   }
 
   return (
     <Box sx={MobileNameBlockContainer}>
-      <Link href={backLink} style={MobileBackButton}>
+      <Link href={backLink} onClick={handleBack} style={MobileBackButton}>
         <SvgIcon sx={MobileBackButtonIcon}>
           <Arrow />
         </SvgIcon>

@@ -74,7 +74,7 @@ export const BorrowerSidebar = () => {
 
   return (
     <Box sx={ContentContainer}>
-      <BackButton title="Back" link={backLink} />
+      <BackButton title="Back" link={backLink} back />
 
       {showTabs && resolved ? (
         <ProfileTabList resolved={resolved} />
