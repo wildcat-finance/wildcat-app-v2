@@ -4,10 +4,10 @@
     "missingKey": 0,
     "dynamicKey": 0,
     "defaultValue": 0,
-    "legacySection": 24,
+    "legacySection": 23,
     "attrLiteral": 192,
-    "depth": 17,
-    "duplicateValue": 158,
-    "orphanKey": 297
+    "depth": 3,
+    "duplicateValue": 103,
+    "orphanKey": 0
   }
 }

@@ -12,9 +12,7 @@
       "disconnect": "Disconnect"
     },
     "switchChain": {
-      "title": "Choose Deployment Chain",
-      "mainnet": "Mainnet",
-      "testnets": "Testnets"
+      "title": "Choose Deployment Chain"
     },
     "modal": {
       "title": "Connect Wallet",
@@ -53,17 +51,9 @@
         "subtitle": "Stay ahead of the curve. Follow our bot for real-time market insights delivered instantly.",
         "botButton": "Get updates from Telegram"
       },
-      "bug": {
-        "title": "Report a Bug",
-        "subtitle": "Found something broken? Tell us what happened and we'll fix it fast."
-      },
       "question": {
         "title": "Ask a Question",
         "subtitle": "Not sure how something works? We'll get you a clear answer, quickly."
-      },
-      "feature": {
-        "title": "Suggest a Feature",
-        "subtitle": "Got an idea that would make this better? We're all ears, your feedback shapes what we build."
       },
       "faq": {
         "title": "Check the FAQ",
@@ -85,15 +75,7 @@
       "button": "Invite Borrower",
       "title": "Invite New Borrower",
       "description": "Enter borrower's details to send them an invitation.",
-      "nameLabel": "Borrower Name",
       "addressLabel": "Wallet Address",
-      "descriptionLabel": "Description",
-      "foundedLabel": "Founded",
-      "headquartersLabel": "Headquarters",
-      "jurisdictionLabel": "Jurisdiction",
-      "physicalAddressLabel": "Physical Address",
-      "entityKindLabel": "Entity Kind",
-      "submit": "Send Invitation",
       "cancel": "Cancel",
       "loading": {
         "title": "Sending Invitation...",
@@ -116,8 +98,7 @@
     "editBorrower": {
       "button": "Edit",
       "title": "Edit Borrower Profile",
-      "description": "Edit borrower's profile details.",
-      "submit": "Save Changes"
+      "description": "Edit borrower's profile details."
     }
   },
   "dashboard": {
@@ -128,10 +109,8 @@
       "docsLink": "Learn More (Documentation)",
       "liveDataUnavailable": "Live market data is temporarily unavailable. Market links remain available.",
       "borrowerTitleButton": "+ Create New Market",
-      "lenderTitleButton": "+ Observe New Markets",
       "filters": {
         "name": "Search",
-        "borrower": "Search",
         "assets": "Asset",
         "statuses": "Status"
       },
@@ -154,19 +133,15 @@
           "manual": "Onboard by Borrower",
           "terminated": "Terminated",
           "depositBTN": "Deposit",
-          "requestBTN": "Request",
-          "unavailableBTN": "Unavailable"
+          "requestBTN": "Request"
         },
         "header": {
           "status": "Status",
-          "type": "Type",
           "term": "Term",
           "name": "Market Name",
-          "borrower": "Borrower Name",
           "asset": "Asset",
           "debt": "Total Debt",
           "capacity": "Remaining",
-          "borrowable": "Borrowable",
           "loan": "Your Loan",
           "apr": "APR",
           "withdrawal": "Withdrawal"
@@ -174,14 +149,8 @@
       },
       "noMarkets": {
         "wrongNetwork": "No Wildcat Markets On This Network",
-        "lenderAlert": {
-          "title": "No active markets",
-          "subtitle": "You don’t have any active markets now. See the Other Markets list to join one.",
-          "button": "Go to Other Markets"
-        },
         "active": {
           "title": "No Active Markets.",
-          "borrowerSubtitle": "Create a new market, or check your terminated ones.",
           "lenderSubtitle": "Join a suitable self-onboarding market, or reach out to a borrower (see their profile) for access to restricted ones."
         },
         "closed": {
@@ -190,41 +159,12 @@
         },
         "filter": {
           "beginning": "No",
-          "type": {
-            "active": "active",
-            "terminated": "terminated",
-            "other": "other"
-          },
           "ending": "markets found."
         }
       }
     }
   },
   "borrowerMarketList": {
-    "title": {
-      "allMarkets": "All Markets",
-      "mla": "MLA",
-      "lenders": "Lenders",
-      "policies": "Policies"
-    },
-    "button": {
-      "newMarket": "Create Market",
-      "newPolicy": "Create Policy"
-    },
-    "sidebar": {
-      "searchPlaceholder": "Search By Market Name",
-      "marketTypes": "Market Terms",
-      "activeMarketStatus": "Active Market Status",
-      "clear": "Clear",
-      "resetAll": "Reset Filters",
-      "title": {
-        "status": "Market Status",
-        "asset": "Underlying Asset"
-      },
-      "radio": {
-        "all": "All"
-      }
-    },
     "table": {
       "title": {
         "active": "Your Active Markets",
@@ -257,11 +197,6 @@
         },
         "filter": {
           "beginning": "No",
-          "type": {
-            "active": "active",
-            "terminated": "terminated",
-            "other": "other"
-          },
           "ending": "markets found."
         }
       }
@@ -279,7 +214,6 @@
         "cancel": "Cancel"
       },
       "states": {
-        "loading": "Loading market description...",
         "noDescription": "No market description found."
       }
     },
@@ -297,8 +231,7 @@
     },
     "mla": {
       "template": {
-        "label": "Select MLA Template",
-        "loading": "Loading templates..."
+        "label": "Select MLA Template"
       },
       "buttons": {
         "set": "Set MLA",
@@ -318,25 +251,17 @@
     },
     "header": {
       "parameters": "Parameters",
-      "ongoingCycle": "Ongoing Cycle",
-      "hooks": "Hooks"
+      "ongoingCycle": "Ongoing Cycle"
     },
     "buttons": {
-      "kyc": "KYC Preferences",
-      "mla": "View MLA",
-      "capacity": "Adjust Capacity",
-      "apr": "Adjust Base APR",
-      "repay": "Repay",
-      "borrow": "Borrow"
+      "capacity": "Adjust Capacity"
     },
     "sidebar": {
       "backToMarkets": "Back to My Markets",
       "borrowRepay": "Borrow and Repay",
       "statusDetails": "Status and Details",
-      "description": "Market Description",
       "withdrawalRequests": "Withdrawal Requests",
       "authorisedLenders": "Lenders",
-      "terminateMarket": "Terminate Market",
       "mla": "MLA",
       "marketHistory": "Market History"
     },
@@ -420,16 +345,9 @@
       "protocolAPR": "Protocol Fee APR",
       "effectiveAPR": "Effective Lender APR",
       "maximumGracePeriod": "Maximum Grace Period",
-      "availableGracePeriod": "Available Grace Period",
       "withdrawalCycleDuration": "Withdrawal Cycle Duration",
       "marketImplementation": {
-        "label": "Type",
-        "legacy": {
-          "text": "Standard"
-        },
-        "revolving": {
-          "text": "Revolving"
-        }
+        "label": "Type"
       },
       "marketTerm": {
         "label": "Term",
@@ -554,14 +472,11 @@
       "notSigned": "Not Yet Signed",
       "noLendersTitle": "No Lenders",
       "noLendersSubtitle": "Your market doesn't have any onboarded lenders.",
-      "editList": "Edit List",
-      "editPolicy": "Edit Policy",
       "noActiveLenders": "No active lenders yet – you can approve specific addresses in your market policy.",
       "header": "Lender List",
       "buttons": {
         "view": "View",
         "download": "Download",
-        "editList": "Edit List",
         "editPolicy": "Edit Policy"
       },
       "tableHeaders": {
@@ -599,7 +514,6 @@
         "proposeReduction": "Propose Reduction",
         "proposeReductionTitle": "Propose APR Reduction",
         "pendingProposalReplaceNotice": "A reduction to {{proposedApr}}% is already pending (lenders can respond until {{readyAt}}). Submitting a new proposal replaces it and restarts the response window.",
-        "proposalAffects": "Effects Of APR Reduction Proposal",
         "periodicProposalNotice": "This proposes an APR reduction for lenders to review. The APR will not change until the lender response window has closed.",
         "proposalLoadingTitle": "Proposing APR Reduction...",
         "proposalLoadingSubtitle": "Submitting proposal transaction...",
@@ -641,7 +555,6 @@
         "daysSubtitle": " Number of additional days to cover interest and fees",
         "repay": "Repay",
         "repaySum": "Amount To Repay",
-        "needToRepay": "Need To Repay",
         "afterTransaction": " After This",
         "approve": "Approve",
         "approved": "Approved"
@@ -658,7 +571,6 @@
         "repayRemaining": "You need to repay all outstanding debt before/when terminating a market.",
         "learnMore": "Learn More",
         "totalAssets": "Total Assets In Market",
-        "totalDebt": "Total Debt",
         "remainingDebt": "Remaining Debt",
         "debts": "Debts",
         "total": "Total"
@@ -668,249 +580,11 @@
   "createMarket": {
     "forms": {
       "marketDescription": {
-        "title": "Create New Market",
         "block": {
-          "title": {
-            "definition": "Definition",
-            "policy": "Policy",
-            "amountDuties": "Amount and Duties",
-            "restrictions": "Lender Restrictions",
-            "graceWithdrawals": "Grace And Withdrawals"
-          },
-          "fixedTermEndTime": {
-            "title": "Fixed Term Maturity Date [00:00 UTC]",
-            "subtitle": "The date after which lenders can request withdrawals.",
-            "tooltip": ""
-          },
-          "allowClosureBeforeTerm": {
-            "title": "Allow Early Closure",
-            "subtitle": "Allows you to close the market before it reaches maturity.",
-            "tooltip": ""
-          },
-          "allowTermReduction": {
-            "title": "Allow Term Reduction",
-            "subtitle": "Allows you to reduce the market's maturity date.",
-            "tooltip": ""
-          },
-          "depositAccess": {
-            "title": "Deposit Restrictions",
-            "subtitle": "Defines access level required for deposits",
-            "placeholder": "Select a deposit access level",
-            "tooltip": ""
-          },
-          "withdrawalAccess": {
-            "title": "Withdrawal Restrictions",
-            "subtitle": "Defines access level required for withdrawals",
-            "placeholder": "Select a withdrawal access level",
-            "tooltip": ""
-          },
-          "disableTransfers": {
-            "title": "Disable Transfers",
-            "subtitle": "Disables transfers of the market token",
-            "tooltip": ""
-          },
-          "transferRequiresAccess": {
-            "title": "Restrict Transfers",
-            "subtitle": "Transfer recipients will need to meet your policy's access requirements"
-          },
-          "depositRequiresAccess": {
-            "title": "Restrict Deposits",
-            "subtitle": "Depositors will need to meet your policy's access requirements"
-          },
-          "withdrawalRequiresAccess": {
-            "title": "Restrict Withdrawals",
-            "subtitle": "Lenders will need to meet your policy's access requirements to request withdrawals"
-          },
-          "transferAccess": {
-            "title": "Transfer Restrictions",
-            "subtitle": "Defines access level required for transfers",
-            "placeholder": "Select a transfer access level",
-            "tooltip": ""
-          },
-          "policy": {
-            "title": "Market Policy",
-            "subtitle": "Rules defining loan type (open or fixed) and access requirements.",
-            "placeholder": "Please Select",
-            "tooltip": "Defines the loan type (open or fixed term) and participant approval criteria. Shared across similar markets, with unique settings like loan maturity or transaction restrictions."
-          },
-          "marketName": {
-            "title": "Market Name",
-            "placeholder": "Use a distinct prefix, such as wldct for Wildcat.",
-            "tooltip": ""
-          },
           "policyName": {
-            "title": "Policy Name",
-            "placeholder": "Enter Policy Name",
-            "tooltip": "The name of the market’s rule set."
-          },
-          "mla": {
-            "title": "Master Loan Agreement",
-            "placeholder": "Please Select",
-            "tooltip": "A legally binding document that defines the terms, obligations, and penalties for borrowers and lenders in the market.",
-            "options": {
-              "wildcat": "Wildcat Template MLA",
-              "noMLA": "No MLA"
-            }
-          },
-          "accessControl": {
-            "title": "Access Controls",
-            "subtitle": "How lenders gain deposit credentials for markets under this policy.",
-            "placeholder": "Please Select",
-            "tooltip": "Determine the way in which would-be lenders can be onboarded to this market.",
-            "options": {
-              "share": "Borrower Operated Allowlist",
-              "notShare": "Lender Self-Onboarding"
-            }
-          },
-          "marketType": {
-            "title": "Market Term",
-            "placeholder": "Please Select",
-            "subtitle": "",
-            "tooltip": "Select the nature of the market: open, fixed, or periodic withdrawal windows.",
-            "options": {
-              "standard": "Open Term Loan",
-              "fixedTerm": "Fixed Term Loan",
-              "periodicTerm": "Periodic Term Loan"
-            }
-          },
-          "marketAsset": {
-            "title": "Underlying Asset",
-            "placeholder": "Search Name",
-            "tooltip": "The underlying asset refers to the specific ERC-20 token used in the market for lending, borrowing, and repayments. This asset defines the unit of value for all transactions, influencing the risk profile and appeal of participating in the market.",
-            "loading": "Loading...",
-            "dropdownPlaceholder": "Enter Token Name"
-          },
-          "marketTokenName": {
-            "title": "Market Token Name",
-            "subtitle": "A descriptive name for the tokens lenders receive, representing their share in the market.",
-            "placeholder": "e.g. Alpha Beta Charlie",
-            "tooltip": "The market token name is the full descriptive title for tokens issued by the market. These tokens are given to lenders when they deposit assets and indicate their claims on the market’s funds, including the principal and interest. For example, a token name like \"Wildcat Wrapped Ether\" reflects its association with WETH deposits in a specific market named “Wildcat”.",
-            "chip": "Asset Name"
-          },
-          "marketTokenSymbol": {
-            "title": "Market Token Symbol",
-            "subtitle": "A short identifier, like \"xyz\" for \"xyzWETH\", for the tokens lenders receive in the market.",
-            "placeholder": "e.g. whc",
-            "tooltip": "A short identifier, like \"xyz\" for \"xyzWETH\", for the tokens lenders receive in the market.",
-            "chip": "Asset Symbol"
-          },
-          "capacity": {
-            "title": "Maximum Borrow Capacity",
-            "subtitle": "The maximum amount of the asset you want to borrow. This can be adjusted up or down later.",
-            "placeholder": "1,000,000",
-            "tooltip": "The maximum limit of funds that borrowers can access in the market.",
-            "chip": "Token Symbol"
-          },
-          "baseAPR": {
-            "title": "Base APR",
-            "placeholder": "0 - 100",
-            "tooltip": "The fixed annual percentage rate (excluding any protocol fees) that borrowers pay for assets within the market.",
-            "chip": "%"
-          },
-          "protocolFee": {
-            "title": "Protocol Fee APR"
-          },
-          "penaltyAPR": {
-            "title": "Penalty APR",
-            "placeholder": "0 - 100",
-            "subtitle": "An additional interest rate charged if the market remains delinquent—failing to maintain required reserves—after the grace period has elapsed.",
-            "chip": "%"
-          },
-          "ratio": {
-            "title": "Reserve Ratio",
-            "placeholder": "0 - 100",
-            "tooltip": "A required percentage of market funds that must remain liquid and unavailable for borrowing.",
-            "chip": "%"
-          },
-          "deposit": {
-            "title": "Minimum Deposit",
-            "subtitle": "Optional: default value is 0.",
-            "tooltip": "The minimum amount of the underlying asset required in a single deposit by a lender.",
-            "chip": "Token Symbol"
-          },
-          "gracePeriod": {
-            "title": "Grace Period",
-            "placeholder": "0 - 2160",
-            "tooltip": "A buffer period during which a delinquent market—one failing to maintain required reserves—can return to compliance without penalties being imposed.",
-            "chip": "Hours"
-          },
-          "withdrawalCycle": {
-            "title": "Withdrawal Cycle Duration",
-            "placeholder": "0 - 2160",
-            "tooltip": "A fixed period during which withdrawal requests are grouped and processed.",
-            "chip": "Hours"
+            "placeholder": "Enter Policy Name"
           }
         }
-      },
-      "legalInfo": {
-        "title": "Borrowing Entity Legal Information",
-        "subtitle": "Entity details used to pre-populate template loan agreements for markets you create.",
-        "block": {
-          "legalName": {
-            "title": "Full Legal Name",
-            "placeholder": "Use more than 1 character",
-            "tooltip": ""
-          },
-          "jurisdiction": {
-            "title": "Jurisdiction",
-            "placeholder": "Use country code [e.g. USA, GBR]",
-            "tooltip": "The country in which the borrowing entity is incorporated."
-          },
-          "nature": {
-            "title": "Legal Nature Of Borrower",
-            "placeholder": "Please Select",
-            "tooltip": "Select the 'type' of entity that best describes the borrower.",
-            "options": {
-              "pi": "Private Individual",
-              "llc": "Private Company Limited by Shares",
-              "fnd": "Foundation Company Limited by Guarantee",
-              "plc": "Public Limited Company",
-              "lp": "Limited Partnership",
-              "gp": "General Partnership",
-              "dao": "Decentralised Autonomous Organisation"
-            }
-          },
-          "address": {
-            "title": "Address",
-            "placeholder": "Enter a location",
-            "tooltip": "Enter the address of the headquarters/place of business of the borrower."
-          },
-          "email": {
-            "title": "Email",
-            "placeholder": "example@domain.com",
-            "tooltip": "Enter a contact email address for the borrower."
-          }
-        }
-      }
-    },
-    "modal": {
-      "button": {
-        "signMLA": "Sign MLA",
-        "viewMLA": "View MLA",
-        "deploy": "Deploy Market",
-        "back": "Back to Review Step",
-        "tryAgain": "Try Again",
-        "downloadMla": "View/Download MLA",
-        "toMarkets": "Go To Markets"
-      },
-      "confirmation": {
-        "title": "Review Market Details",
-        "mlaTitle": "Market Master Loan Agreement",
-        "borrowerInfo": "BORROWER INFO",
-        "legalNameJurisdiction": "Legal Name and Jurisdiction",
-        "note": "Once your market is created, the only adjustable parameters are Base APR and maximum capacity."
-      },
-      "error": {
-        "title": "Oops! Something went wrong!",
-        "message": "Can you reach out to us and tell us how you got here?"
-      },
-      "success": {
-        "title": "Market created!",
-        "message": "Market successfully created: the rest is up to you!"
-      },
-      "loading": {
-        "title": "Wait a second...",
-        "message": "Transaction in process."
       }
     },
     "sidebar": {
@@ -918,11 +592,6 @@
       "marketDescription": "Market Description",
       "legalInfo": "Legal Info",
       "confirm": "Confirmation"
-    },
-    "buttons": {
-      "back": "Back",
-      "next": "Next",
-      "confirm": "Confirm"
     }
   },
   "roleProviders": {
@@ -941,7 +610,6 @@
     }
   },
   "editPolicy": {
-    "title": "Edit Policy",
     "confirm": "Confirm Policy Edits",
     "deauthorized": "Deauthorized",
     "editing": "Editing Policy",
@@ -956,8 +624,7 @@
     },
     "sidebar": {
       "back": "To Markets",
-      "edit": "Editing Policy",
-      "confirm": "Confirmation"
+      "edit": "Editing Policy"
     },
     "roleProviders": {
       "manualApproval": "Borrower Operated Allowlist",
@@ -966,9 +633,7 @@
     "for": " for",
     "forms": {
       "policyName": {
-        "title": "Policy Name",
-        "placeholder": "Wildcat Demo Policy",
-        "tooltip": "A unique name identifying the rules governing a market’s structure and participant eligibility."
+        "title": "Policy Name"
       },
       "edit": {
         "submit": "Submit",
@@ -992,26 +657,16 @@
       "edit": {
         "submit": "Submit",
         "noLenders": "No Lenders",
-        "title": "Editing Lender List For",
         "table": {
           "addName": "Add Name",
           "undo": "Undo",
           "noLenders": "No Matching Lenders",
           "resetFilters": "Reset Filters",
-          "name": "Name",
-          "address": "Wallet Address",
-          "markets": "Assigned To Markets",
-          "noRows": "No Lenders",
-          "noFilteredRows": "No Matching Lenders",
           "reset": "Reset"
         },
         "undo": "Undo",
         "noLendersFilter": "No Matching Lenders",
-        "resetFilters": "Reset Filters",
-        "placeholders": {
-          "lenderSearch": "Search",
-          "marketSearch": "Search By Name"
-        }
+        "resetFilters": "Reset Filters"
       }
     },
     "modals": {
@@ -1029,32 +684,7 @@
         "cancel": "Cancel",
         "delete": "Remove"
       }
-    },
-    "sidebar": {
-      "edit": "Editing Lender List",
-      "confirm": "Confirmation"
     }
-  },
-  "modals": {
-    "addLender": {
-      "title": "Add a new lender",
-      "addressPlaceholder": "Wallet Address",
-      "namePlaceholder": "Enter Name",
-      "marketsPlaceholder": "Add this lender to at least one market.",
-      "addButton": "Add"
-    },
-    "deleteLender": {
-      "title": "Are you sure you want to remove",
-      "subtitle": "By removing this lender from all markets, you will delete them from your policy.",
-      "cancelButton": "Cancel",
-      "removeButton": "Remove"
-    }
-  },
-  "buttons": {
-    "add": "Add Lender",
-    "undo": "Undo",
-    "submit": "Submit",
-    "confirm": "Confirm"
   },
   "notifications": {
     "viewOnEtherscan": "View on Explorer",
@@ -1140,8 +770,6 @@
     }
   },
   "lenderMarketList": {
-    "allMarkets": "All Markets",
-    "mla": "MLA",
     "sidebar": {
       "back": "Back",
       "editingLenders": "Editing Lender List",
@@ -1153,10 +781,6 @@
     "borrowerPenaltyWarning": "At least one market deployed by this borrower has not honoured withdrawal requests at least thirty days past their self-imposed grace period.",
     "borrowerPenaltyWarningUnavailable": "We couldn't verify whether another market deployed by this borrower has withdrawal requests at least thirty days past its grace period.",
     "access": {
-      "checking": {
-        "title": "Checking lender access",
-        "subtitle": "Confirming this wallet's market permissions with the blockchain."
-      },
       "error": {
         "title": "Unable to verify lender access",
         "subtitle": "We couldn't confirm this wallet's market permissions from the blockchain. No access decision has been made.",
@@ -1173,12 +797,10 @@
       "requests": "Withdrawal Requests",
       "marketHistory": "Market History",
       "borrowerProfile": "About Borrower",
-      "description": "Market Description",
       "wrapDebtToken": "Wrapped Debt Token"
     },
     "buttons": {
       "addToken": "Add Debt Token To Wallet",
-      "statement": "Download Statement",
       "viewMla": "View/Sign MLA",
       "mlaNotSet": "Borrower Has Not Configured An MLA",
       "mlaRefused": "Borrower Declined to Set An MLA"
@@ -1206,20 +828,10 @@
       "deposit": {
         "button": "Deposit",
         "title": "Available To Deposit",
-        "subtitle": "Held in your connected wallet",
-        "rows": {
-          "walletBalance": "Wallet balance",
-          "minimumDeposit": "Minimum deposit"
-        },
         "tooltip": "The amount of the underlying asset held by the address you are connected with.",
         "periodicWindowNotice": "This is a periodic market: withdrawal requests are only available during scheduled withdrawal windows.",
         "modal": {
           "title": "Deposit",
-          "available": "Available to deposit",
-          "minimumDeposit": "Minimum deposit",
-          "depositSum": "Deposit Sum",
-          "confirm": "Deposit Amount",
-          "youDepositTo": "You deposit to",
           "checkingBorrowerHistory": "Checking borrower withdrawal history...",
           "gate": {
             "heading": "Before you deposit into this market",
@@ -1264,18 +876,9 @@
           "nextStart": "Next window opens {{date}} ({{countdown}})"
         },
         "modal": {
-          "title": "Withdraw",
-          "available": "Available For Withdraw Requests",
-          "buttons": {
-            "confirm": "Confirm"
-          }
+          "title": "Withdraw"
         },
-        "wrappedLine": "Wrapped position: {{shares}} {{shareSymbol}} (≈ {{assets}} {{symbol}})",
         "split": "{{direct}} direct · ≈ {{wrapped}} wrapped",
-        "rows": {
-          "cycle": "Withdrawal cycle",
-          "gracePeriod": "Grace period"
-        },
         "errors": {
           "exceeds": "Above the {{amount}} {{symbol}} available from this source",
           "tooSmall": "Amount is below the {{amount}} {{symbol}} minimum"
@@ -1371,9 +974,7 @@
         "dailyFlowsDesc": "Deposits above axis; withdrawals below (requested vs executed)",
         "cumulativeNetFlow": "Cumulative Net Flow",
         "cumulativeNetFlowDesc": "Running total: deposits − withdrawals",
-        "delinquencyHistory": "Delinquency History",
-        "expand": "Expand chart",
-        "close": "Close"
+        "delinquencyHistory": "Delinquency History"
       }
     },
     "barchart": {
@@ -1403,7 +1004,6 @@
     "description": {
       "title": "Market Description",
       "states": {
-        "loading": "Loading market description...",
         "noDescription": "No market description found."
       }
     },
@@ -1463,15 +1063,9 @@
     "openWithdrawals": "Open Withdrawals",
     "total": "Total",
     "noOutstanding": "No outstanding withdrawals from previous cycles.",
-    "noOngoing": "No ongoing withdrawals in the current cycle.",
-    "noClaimable": "No claimable withdrawals from previous cycles."
+    "noOngoing": "No ongoing withdrawals in the current cycle."
   },
   "borrowerProfile": {
-    "sidebar": {
-      "profile": "Borrower Profile",
-      "edit": "Edit Borrower Profile",
-      "events": "Market Events"
-    },
     "profile": {
       "buttons": {
         "website": "Website",
@@ -1500,8 +1094,6 @@
         "markets": "Markets",
         "address": "Borrower Address",
         "borrowed": "Total Amount Borrowed",
-        "country": "Country",
-        "jurisdiction": "Jurisdiction",
         "entityKind": "Entity Legal Form",
         "defaults": {
           "title": "Defaults",
@@ -1595,21 +1187,12 @@
           "placeholder": "Year that the borrowing entity was created.",
           "tooltip": ""
         },
-        "headquarters": {
-          "title": "Headquarters",
-          "placeholder": "Location of entity headquarters/main place of business.",
-          "tooltip": ""
-        },
         "country": {
           "title": "Country",
-          "placeholder": "Please Select",
-          "tooltip": "",
           "noOptions": "No countries found"
         },
         "jurisdiction": {
           "title": "Jurisdiction",
-          "placeholder": "Please Select",
-          "tooltip": "",
           "noOptions": "No jurisdictions found"
         },
         "website": {
@@ -1634,7 +1217,6 @@
         },
         "entityKind": {
           "title": "Entity Legal Form",
-          "placeholder": "Please Select",
           "tooltip": "The kind of legal entity that is registered in the selected jurisdiction.",
           "noOptions": "No legal forms found"
         }
@@ -1642,16 +1224,6 @@
       "private": {
         "title": "Borrower Legal Information",
         "subtitle": "Entity details used to pre-populate template loan agreements for markets you create.",
-        "jurisdiction": {
-          "title": "Jurisdiction",
-          "placeholder": "Please Enter",
-          "tooltip": ""
-        },
-        "nature": {
-          "title": "Nature Of Legal Entity",
-          "placeholder": "Please Select",
-          "tooltip": ""
-        },
         "address": {
           "title": "Entity Registered Address",
           "placeholder": "Enter Location",
@@ -1681,7 +1253,6 @@
       "back": "Back",
       "next": "Next",
       "viewMLA": "View MLA",
-      "signMLA": "Sign MLA",
       "signMlaRefusal": "Sign MLA Refusal",
       "deploy": "Deploy Market"
     },
@@ -1705,14 +1276,9 @@
         "label": "Market Term",
         "placeholder": "Please Select"
       },
-      "kyc": {
-        "label": "Onboarding Preferences",
-        "placeholder": "Select the mechanism enabling lenders to join your market."
-      },
       "access": {
         "label": "Access Control",
-        "placeholder": "Please Select",
-        "glossary": "[TO FILL IN]"
+        "placeholder": "Please Select"
       },
       "expiration": {
         "label": "Fixed Term Maturity Date [00:00 UTC]",
@@ -1728,13 +1294,11 @@
         "periodDuration": {
           "label": "Withdrawal Period",
           "placeholder": "Input Period Duration",
-          "chip": "Hours",
           "glossary": "How often a withdrawal window recurs — the gap from the start of one window to the start of the next. Must be longer than the withdrawal window."
         },
         "withdrawalWindowDuration": {
           "label": "Withdrawal Window",
           "placeholder": "Input Window Duration",
-          "chip": "Hours",
           "glossary": "How long each withdrawal window stays open. Lenders can only queue withdrawals while a window is open; it must be shorter than the withdrawal period."
         }
       },
@@ -1820,7 +1384,6 @@
         "label": "Commitment Fee",
         "placeholder": "0 - 100",
         "chip": "%",
-        "explainer": "Charged on undrawn capacity for revolving markets.",
         "glossary": "A recurring fee charged on undrawn borrowing capacity in a revolving market. Lenders continue to earn this fee even when capital has been committed but not yet borrowed."
       },
       "minDeposit": {
@@ -1833,11 +1396,6 @@
     },
     "lenderRestrictions": {
       "title": "Lender Restrictions",
-      "restrictDeposits": {
-        "label": "Restrict Deposits",
-        "explainer": "Restricts deposits to approved participants based on eligibility criteria.",
-        "glossary": "Restrict Deposits limits who can contribute assets to the market. Eligibility criteria, such as identity verification, membership, or specific approvals, ensure that only qualified participants are allowed to deposit funds."
-      },
       "disableTransfers": {
         "label": "Disable Transfers",
         "explainer": "Blocks the transfer of market tokens between participants, keeping them tied to their original holder.",
@@ -1856,7 +1414,6 @@
     },
     "periods": {
       "title": "Grace And Withdrawal Periods",
-      "sidebar": "Grace/Withdrawal Periods",
       "grace": {
         "label": "Grace Period Duration",
         "placeholder": "0 - 2160",
