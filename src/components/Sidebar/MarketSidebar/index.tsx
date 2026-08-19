@@ -28,6 +28,7 @@ import {
   setSidebarHighlightState,
 } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
+import { showBorrowRepayTab } from "@/utils/borrowerMarketSections"
 
 export const MarketSidebar = () => {
   const { t } = useTranslation()
@@ -73,7 +74,10 @@ export const MarketSidebar = () => {
         <BackButton title={t("borrowerMarketDetails.sidebar.backToMarkets")} />
 
         <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
-          {canInteract && (
+          {showBorrowRepayTab({
+            canInteract,
+            isClosed: !!market?.isClosed,
+          }) && (
             <Button
               variant="text"
               size="medium"

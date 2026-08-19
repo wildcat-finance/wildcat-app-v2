@@ -32,6 +32,10 @@ import {
   setWithdrawalsCount,
 } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
+import {
+  borrowerMarketFallbackSection,
+  showBorrowRepayTab,
+} from "@/utils/borrowerMarketSections"
 import { pageCalcHeights } from "@/utils/constants"
 
 import { BorrowerMarketSummary } from "./components/BorrowerMarketSummary"
@@ -172,8 +176,16 @@ export default function MarketDetails({
   const isLoadingMarket = isMarketLoading || apiLoading || isDiscoveringChainId
   useEffect(() => {
     if (isLoadingMarket || !market || !marketAccount) return
-    if (!canInteract && checked === 1) {
-      dispatch(setCheckBlock(2))
+    // Terminated markets have nothing to borrow or repay, so they land on
+    // Status and Details; non-interactable viewers fall back as before.
+    // (product#442, product#443)
+    const fallback = borrowerMarketFallbackSection({
+      canInteract,
+      isClosed: market.isClosed,
+      checked,
+    })
+    if (fallback !== null) {
+      dispatch(setCheckBlock(fallback))
     }
   }, [canInteract, checked, dispatch, isLoadingMarket, market, marketAccount])
 
@@ -277,7 +289,10 @@ export default function MarketDetails({
           {/* </Slide> */}
           {checked === 1 && (
             <Box sx={SlideContentContainer}>
-              {canInteract && (
+              {showBorrowRepayTab({
+                canInteract,
+                isClosed: market.isClosed,
+              }) && (
                 <MarketTransactions
                   market={market}
                   marketAccount={marketAccount}
@@ -285,7 +300,10 @@ export default function MarketDetails({
                   holdTheMarket={holdTheMarket}
                 />
               )}
-              {canInteract && <Divider sx={{ margin: "32px 0" }} />}
+              {showBorrowRepayTab({
+                canInteract,
+                isClosed: market.isClosed,
+              }) && <Divider sx={{ margin: "32px 0" }} />}
               <MarketStatusChart market={market} />
             </Box>
           )}
