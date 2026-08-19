@@ -32,19 +32,19 @@ import {
 const ACKNOWLEDGEMENT_STORAGE_KEY =
   "borrower_profile_verification_acknowledged_v1"
 
-const VERIFIED_FIELDS = [
-  "legalName",
-  "borrowerAddress",
-  "headquarters",
-  "entityLegalForm",
-  "founded",
+const VERIFIED_FIELD_KEYS = [
+  "borrowerProfile.profile.verification.fields.verified.legalName",
+  "borrowerProfile.profile.verification.fields.verified.borrowerAddress",
+  "borrowerProfile.profile.verification.fields.verified.headquarters",
+  "borrowerProfile.profile.verification.fields.verified.entityLegalForm",
+  "borrowerProfile.profile.verification.fields.verified.founded",
 ] as const
 
-const UNVERIFIED_FIELDS = [
-  "alias",
-  "profileDescription",
-  "outgoingLinks",
-  "marketDescription",
+const UNVERIFIED_FIELD_KEYS = [
+  "borrowerProfile.profile.verification.fields.unverified.alias",
+  "borrowerProfile.profile.verification.fields.unverified.profileDescription",
+  "borrowerProfile.profile.verification.fields.unverified.outgoingLinks",
+  "borrowerProfile.profile.verification.fields.unverified.marketDescription",
 ] as const
 
 type BorrowerProfileVerificationDisclosureProps = {
@@ -55,17 +55,11 @@ type BorrowerProfileVerificationDisclosureProps = {
 
 type FieldListProps = {
   fieldKeys: readonly string[]
-  translationPrefix: string
   color: string
   compact?: boolean
 }
 
-const FieldList = ({
-  fieldKeys,
-  translationPrefix,
-  color,
-  compact,
-}: FieldListProps) => {
+const FieldList = ({ fieldKeys, color, compact }: FieldListProps) => {
   const { t } = useTranslation()
 
   return (
@@ -86,7 +80,7 @@ const FieldList = ({
               : {}),
           }}
         >
-          {t(`${translationPrefix}.${fieldKey}`)}
+          {t(fieldKey)}
         </Typography>
       ))}
     </Box>
@@ -166,7 +160,6 @@ export const BorrowerProfileVerificationDisclosure = ({
     setIsModalOpen(false)
   }
 
-  const fieldsTranslationPrefix = "borrowerProfile.profile.verification.fields"
   const compactNote = variant !== "inline"
   const noteBodyTextSx = compactNote
     ? {
@@ -214,8 +207,7 @@ export const BorrowerProfileVerificationDisclosure = ({
               {t("borrowerProfile.profile.verification.verifiedHeading")}
             </VerificationGroupHeading>
             <FieldList
-              fieldKeys={VERIFIED_FIELDS}
-              translationPrefix={`${fieldsTranslationPrefix}.verified`}
+              fieldKeys={VERIFIED_FIELD_KEYS}
               color="#1B9B16"
               compact={compactNote}
             />
@@ -228,8 +220,7 @@ export const BorrowerProfileVerificationDisclosure = ({
               {t("borrowerProfile.profile.verification.unverifiedHeading")}
             </VerificationGroupHeading>
             <FieldList
-              fieldKeys={UNVERIFIED_FIELDS}
-              translationPrefix={`${fieldsTranslationPrefix}.unverified`}
+              fieldKeys={UNVERIFIED_FIELD_KEYS}
               color={COLORS.greySuit}
               compact={compactNote}
             />
@@ -304,11 +295,7 @@ export const BorrowerProfileVerificationDisclosure = ({
               <VerificationGroupHeading verified>
                 {t("borrowerProfile.profile.verification.verifiedHeading")}
               </VerificationGroupHeading>
-              <FieldList
-                fieldKeys={VERIFIED_FIELDS}
-                translationPrefix={`${fieldsTranslationPrefix}.verified`}
-                color="#1B9B16"
-              />
+              <FieldList fieldKeys={VERIFIED_FIELD_KEYS} color="#1B9B16" />
             </Box>
 
             <Box sx={VerificationModalFieldGroup}>
@@ -316,8 +303,7 @@ export const BorrowerProfileVerificationDisclosure = ({
                 {t("borrowerProfile.profile.verification.unverifiedHeading")}
               </VerificationGroupHeading>
               <FieldList
-                fieldKeys={UNVERIFIED_FIELDS}
-                translationPrefix={`${fieldsTranslationPrefix}.unverified`}
+                fieldKeys={UNVERIFIED_FIELD_KEYS}
                 color={COLORS.greySuit}
               />
             </Box>

@@ -33,8 +33,6 @@ import { WithdrawForm } from "./components/WithdrawForm"
 import { StepRow, WithdrawSteps } from "./components/WithdrawSteps"
 import { WithdrawModalProps } from "./interface"
 
-const T = "lenderMarketDetails.transactions.withdraw"
-
 /** Fixed dialog height: every view is laid out inside the same box. */
 const DIALOG_HEIGHT = "493px"
 
@@ -74,7 +72,9 @@ export const WithdrawModal = ({
   const availability = marketAccount.withdrawalAvailability
   let blockingError: string | undefined
   if (periodicWindowClosed) {
-    blockingError = t(`${T}.periodicWindow.closed`)
+    blockingError = t(
+      "lenderMarketDetails.transactions.withdraw.periodicWindow.closed",
+    )
   } else if (availability !== QueueWithdrawalStatus.Ready) {
     blockingError = SDK_ERRORS_MAPPING.queueWithdrawal[availability]
   }
@@ -153,15 +153,25 @@ export const WithdrawModal = ({
     const statusLabel = (status: LegStatus) => {
       switch (status) {
         case LegStatus.Done:
-          return t(`${T}.steps.status.done`)
+          return t(
+            "lenderMarketDetails.transactions.withdraw.steps.status.done",
+          )
         case LegStatus.Failed:
-          return t(`${T}.steps.status.failed`)
+          return t(
+            "lenderMarketDetails.transactions.withdraw.steps.status.failed",
+          )
         case LegStatus.Busy:
-          return t(`${T}.steps.status.confirming`)
+          return t(
+            "lenderMarketDetails.transactions.withdraw.steps.status.confirming",
+          )
         case LegStatus.Waiting:
-          return t(`${T}.steps.status.waiting`)
+          return t(
+            "lenderMarketDetails.transactions.withdraw.steps.status.waiting",
+          )
         default:
-          return t(`${T}.steps.status.next`)
+          return t(
+            "lenderMarketDetails.transactions.withdraw.steps.status.next",
+          )
       }
     }
 
@@ -175,18 +185,26 @@ export const WithdrawModal = ({
       if (leg.kind === WithdrawLegKind.Unwrap) {
         return {
           n: leg.n,
-          title: t(`${T}.steps.unwrap.title`),
+          title: t(
+            "lenderMarketDetails.transactions.withdraw.steps.unwrap.title",
+          ),
           detail: sharesAmount
-            ? t(`${T}.steps.unwrap.detail`, {
-                shares: formatTokenWithCommas(sharesAmount),
-                shareSymbol,
-                amount: formatTokenWithCommas(snapshot.fromWrapped),
-                symbol,
-              })
-            : t(`${T}.steps.unwrap.detailNoShares`, {
-                amount: formatTokenWithCommas(snapshot.fromWrapped),
-                symbol,
-              }),
+            ? t(
+                "lenderMarketDetails.transactions.withdraw.steps.unwrap.detail",
+                {
+                  shares: formatTokenWithCommas(sharesAmount),
+                  shareSymbol,
+                  amount: formatTokenWithCommas(snapshot.fromWrapped),
+                  symbol,
+                },
+              )
+            : t(
+                "lenderMarketDetails.transactions.withdraw.steps.unwrap.detailNoShares",
+                {
+                  amount: formatTokenWithCommas(snapshot.fromWrapped),
+                  symbol,
+                },
+              ),
           status,
           statusLabel: statusLabel(status),
         }
@@ -195,13 +213,18 @@ export const WithdrawModal = ({
       if (leg.kind === WithdrawLegKind.Batched) {
         return {
           n: leg.n,
-          title: t(`${T}.steps.batched.title`),
-          detail: t(`${T}.steps.batched.detail`, {
-            shares: sharesAmount ? formatTokenWithCommas(sharesAmount) : "",
-            shareSymbol,
-            amount: totalLabel,
-            symbol,
-          }),
+          title: t(
+            "lenderMarketDetails.transactions.withdraw.steps.batched.title",
+          ),
+          detail: t(
+            "lenderMarketDetails.transactions.withdraw.steps.batched.detail",
+            {
+              shares: sharesAmount ? formatTokenWithCommas(sharesAmount) : "",
+              shareSymbol,
+              amount: totalLabel,
+              symbol,
+            },
+          ),
           status,
           statusLabel: statusLabel(status),
         }
@@ -209,10 +232,16 @@ export const WithdrawModal = ({
 
       return {
         n: leg.n,
-        title: t(`${T}.steps.queue.title`),
+        title: t("lenderMarketDetails.transactions.withdraw.steps.queue.title"),
         detail: snapshot.usesWrapped
-          ? t(`${T}.steps.queue.detail`, { amount: totalLabel, symbol })
-          : t(`${T}.steps.queue.detailDirect`, { amount: totalLabel, symbol }),
+          ? t("lenderMarketDetails.transactions.withdraw.steps.queue.detail", {
+              amount: totalLabel,
+              symbol,
+            })
+          : t(
+              "lenderMarketDetails.transactions.withdraw.steps.queue.detailDirect",
+              { amount: totalLabel, symbol },
+            ),
         status,
         statusLabel: statusLabel(status),
       }
@@ -221,9 +250,11 @@ export const WithdrawModal = ({
 
   // ---- footer labels ----
   const confirmLabel = (() => {
-    if (routing.overMax) return t(`${T}.confirm.exceeds`)
-    if (!routing.isValid || blockingError) return t(`${T}.confirm.enterAmount`)
-    return t(`${T}.confirm.withdraw`, {
+    if (routing.overMax)
+      return t("lenderMarketDetails.transactions.withdraw.confirm.exceeds")
+    if (!routing.isValid || blockingError)
+      return t("lenderMarketDetails.transactions.withdraw.confirm.enterAmount")
+    return t("lenderMarketDetails.transactions.withdraw.confirm.withdraw", {
       amount: formatTokenWithCommas(routing.route.amount),
       symbol,
       count: previewLegCount,
@@ -231,13 +262,17 @@ export const WithdrawModal = ({
   })()
 
   const signLabel = (() => {
-    if (flow.busy) return t(`${T}.steps.signBusy`)
+    if (flow.busy)
+      return t("lenderMarketDetails.transactions.withdraw.steps.signBusy")
     const leg = stepRows[flow.currentLeg]
     if (flow.failed && leg) {
-      return t(`${T}.steps.retry`, { title: leg.title })
+      return t("lenderMarketDetails.transactions.withdraw.steps.retry", {
+        title: leg.title,
+      })
     }
-    if (flow.legs.length <= 1) return t(`${T}.steps.signOne`)
-    return t(`${T}.steps.signMany`, {
+    if (flow.legs.length <= 1)
+      return t("lenderMarketDetails.transactions.withdraw.steps.signOne")
+    return t("lenderMarketDetails.transactions.withdraw.steps.signMany", {
       current: flow.currentLeg + 1,
       total: flow.legs.length,
       title: leg?.title ?? "",
@@ -264,7 +299,9 @@ export const WithdrawModal = ({
   const stepsBody = (
     <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
       <WithdrawSteps
-        headerLabel={t(`${T}.steps.header`)}
+        headerLabel={t(
+          "lenderMarketDetails.transactions.withdraw.steps.header",
+        )}
         amountLabel={`${formatTokenWithCommas(
           flow.snapshot?.amount ?? routing.route.amount,
         )} ${symbol}`}
@@ -282,15 +319,18 @@ export const WithdrawModal = ({
     <WithdrawDone
       onClose={handleClose}
       txHash={flow.result?.txHash}
-      title={t(`${T}.success.title`)}
-      subtitle={t(`${T}.success.subtitle`, {
-        amount: flow.result
-          ? formatTokenWithCommas(flow.result.queuedAmount)
-          : formatTokenWithCommas(
-              flow.snapshot?.amount ?? routing.route.amount,
-            ),
-        symbol,
-      })}
+      title={t("lenderMarketDetails.transactions.withdraw.success.title")}
+      subtitle={t(
+        "lenderMarketDetails.transactions.withdraw.success.subtitle",
+        {
+          amount: flow.result
+            ? formatTokenWithCommas(flow.result.queuedAmount)
+            : formatTokenWithCommas(
+                flow.snapshot?.amount ?? routing.route.amount,
+              ),
+          symbol,
+        },
+      )}
     />
   )
 
@@ -298,8 +338,11 @@ export const WithdrawModal = ({
     <WithdrawDone
       onClose={handleClose}
       txHash={flow.txHash}
-      title={t(`${T}.proposed.title`)}
-      subtitle={t(`${T}.proposed.subtitle`, { count: flow.safeThreshold })}
+      title={t("lenderMarketDetails.transactions.withdraw.proposed.title")}
+      subtitle={t(
+        "lenderMarketDetails.transactions.withdraw.proposed.subtitle",
+        { count: flow.safeThreshold },
+      )}
     />
   )
 
@@ -351,7 +394,9 @@ export const WithdrawModal = ({
     }
     return (
       <TxModalFooter
-        mainBtnText={t(`${T}.success.back`)}
+        mainBtnText={t(
+          "lenderMarketDetails.transactions.withdraw.success.back",
+        )}
         mainBtnOnClick={handleClose}
       />
     )
@@ -373,7 +418,7 @@ export const WithdrawModal = ({
         }}
       >
         <TransactionHeader
-          label={t(`${T}.modal.title`)}
+          label={t("lenderMarketDetails.transactions.withdraw.modal.title")}
           arrowOnClick={
             // eslint-disable-next-line no-nested-ternary
             view === "form"
@@ -413,7 +458,9 @@ export const WithdrawModal = ({
         onClick={handleOpen}
         disabled={notMature}
       >
-        {notMature ? t(`${T}.buttonLocked`) : t(`${T}.button`)}
+        {notMature
+          ? t("lenderMarketDetails.transactions.withdraw.buttonLocked")
+          : t("lenderMarketDetails.transactions.withdraw.button")}
       </Button>
 
       <Dialog
@@ -436,7 +483,7 @@ export const WithdrawModal = ({
       >
         {(view === "form" || view === "steps") && (
           <TxModalHeader
-            title={t(`${T}.modal.title`)}
+            title={t("lenderMarketDetails.transactions.withdraw.modal.title")}
             arrowOnClick={canGoBackToForm ? handleBackToForm : null}
             crossOnClick={flow.busy ? null : handleClose}
           />
