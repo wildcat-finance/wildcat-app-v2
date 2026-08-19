@@ -46,6 +46,7 @@ import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
+import { useWagmiHydrated } from "@/hooks/useWagmiHydrated"
 import { useWrapperAccountState } from "@/hooks/wrapper/useWrapperAccountState"
 import { useWrapperForMarket } from "@/hooks/wrapper/useWrapperForMarket"
 import { ROUTES } from "@/routes"
@@ -90,10 +91,9 @@ import {
 } from "./style"
 import {
   getEffectiveLenderRole,
-  getLenderSurfaceState,
+  getLenderBannerState,
   resolveLenderAccessState,
   shouldShowLenderTransactions,
-  shouldShowLenderRequestBanner,
 } from "./utils"
 
 const LenderFlowCharts = dynamic(
@@ -115,7 +115,13 @@ export default function LenderMarketDetails({
   const theme = useTheme()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
-  const { address: connectedAddress, isConnected } = useAccount()
+  const {
+    address: connectedAddress,
+    isConnected,
+    isConnecting,
+    isReconnecting,
+  } = useAccount()
+  const isWalletHydrated = useWagmiHydrated()
   const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false)
 
   const searchParams = useSearchParams()
@@ -295,11 +301,6 @@ export default function LenderMarketDetails({
       ? getEffectiveLenderRole(authoritativeAccount)
       : undefined,
   })
-  const lenderSurfaceState = getLenderSurfaceState({
-    isConnected,
-    isDifferentChain,
-    accessState: lenderAccessState,
-  })
   const authorizedInMarket = lenderAccessState === "authorized"
   const hasWrappedMarketPosition =
     wrapperAccountState?.balances?.shareBalance.gt(0) ?? false
@@ -321,17 +322,21 @@ export default function LenderMarketDetails({
 
   const isLoadingMarket = isMarketLoading || apiLoading || isDiscoveringChainId
   const isLoading = !marketError && (isLoadingMarket || !market)
-  const showLenderRequestBanner = shouldShowLenderRequestBanner({
+  const lenderBannerState = getLenderBannerState({
+    isWalletHydrated,
     isConnected,
+    isConnecting,
+    isReconnecting,
     isDifferentChain,
     accessState: lenderAccessState,
     hasLenderTransactions: showLenderTransactions,
     isWithdrawalActivityLoading:
       isWithdrawalsLoading || isWrapperPositionLoading,
   })
-  const showLenderAccessLoading = lenderSurfaceState === "authorization-loading"
-  const showLenderAccessError = lenderSurfaceState === "authorization-error"
-  const showLenderBlocked = lenderSurfaceState === "blocked"
+  const showConnectWalletBanner = lenderBannerState === "connect"
+  const showLenderAccessError = lenderBannerState === "authorization-error"
+  const showLenderBlocked = lenderBannerState === "blocked"
+  const showLenderRequestBanner = lenderBannerState === "request-access"
   const isTransactionsLoading =
     !marketAccount ||
     (showLenderTransactions && !isDifferentChain && isWithdrawalsLoading)
@@ -346,6 +351,8 @@ export default function LenderMarketDetails({
   }, [isLoading])
 
   useEffect(() => {
+    if (!isWalletHydrated || isConnecting || isReconnecting) return
+
     if (!isConnected || isDifferentChain) {
       dispatch(setIsLender(false))
       return
@@ -366,7 +373,10 @@ export default function LenderMarketDetails({
   }, [
     dispatch,
     isConnected,
+    isConnecting,
     isDifferentChain,
+    isReconnecting,
+    isWalletHydrated,
     lenderAccessState,
     showLenderTransactions,
   ])
@@ -791,19 +801,12 @@ export default function LenderMarketDetails({
             />
           )}
 
-          {!isConnected && (
+          {showConnectWalletBanner && (
             <MobileLenderBanner
               title="Connect Your Wallet"
               subtitle="Connect a wallet to deposit into this market, view your position, and manage withdrawals."
               buttonText="Connect Wallet"
               onButtonClick={() => setIsConnectDialogOpen(true)}
-            />
-          )}
-
-          {showLenderAccessLoading && (
-            <MobileLenderBanner
-              title={t("lenderMarketDetails.access.checking.title")}
-              subtitle={t("lenderMarketDetails.access.checking.subtitle")}
             />
           )}
 
@@ -887,7 +890,7 @@ export default function LenderMarketDetails({
       )}
 
       <Box sx={MarketContentColumn(theme, isConnected && isDifferentChain)}>
-        {!isConnected && (
+        {showConnectWalletBanner && (
           <Box sx={LenderBannerWrapper}>
             <LeadBanner
               title="Connect Your Wallet"
@@ -895,15 +898,6 @@ export default function LenderMarketDetails({
               buttonText="Connect Wallet"
               buttonOnClick={() => setIsConnectDialogOpen(true)}
               compact
-            />
-          </Box>
-        )}
-
-        {showLenderAccessLoading && (
-          <Box sx={LenderBannerWrapper}>
-            <LeadBanner
-              title={t("lenderMarketDetails.access.checking.title")}
-              subtitle={t("lenderMarketDetails.access.checking.subtitle")}
             />
           </Box>
         )}

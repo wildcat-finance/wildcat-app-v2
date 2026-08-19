@@ -7,6 +7,7 @@ import {
   getSubgraphClient,
 } from "@wildcatfi/wildcat-sdk"
 import { zeroAddress } from "viem"
+import { useAccount } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
@@ -140,7 +141,8 @@ export function useLenderMarketAccountQuery({
 }
 
 export const useLenderMarketAccount = (market: Market | undefined) => {
-  const { address, signer, provider, isWrongNetwork } = useEthersProvider({
+  const { address } = useAccount()
+  const { signer, provider, isWrongNetwork } = useEthersProvider({
     chainId: market?.chainId,
   })
   const signerOrProvider = signer ?? provider

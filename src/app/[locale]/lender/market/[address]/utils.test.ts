@@ -2,6 +2,7 @@ import { QueueWithdrawalStatus } from "@wildcatfi/wildcat-sdk"
 
 import { LenderStatus } from "./interface"
 import {
+  getLenderBannerState,
   getLenderSurfaceState,
   resolveLenderActionState,
   resolveLenderAccessState,
@@ -9,6 +10,72 @@ import {
   shouldShowLenderTransactions,
   shouldShowLenderRequestBanner,
 } from "./utils"
+
+describe("getLenderBannerState", () => {
+  const base = {
+    isWalletHydrated: true,
+    isConnected: true,
+    isConnecting: false,
+    isReconnecting: false,
+    isDifferentChain: false,
+    accessState: "authorized" as const,
+    hasLenderTransactions: true,
+    isWithdrawalActivityLoading: false,
+  }
+
+  it.each([
+    {
+      state: "wallet state is hydrating",
+      input: { isWalletHydrated: false, isConnected: false },
+      expected: "none",
+    },
+    {
+      state: "wallet connection is starting",
+      input: { isConnected: false, isConnecting: true },
+      expected: "none",
+    },
+    {
+      state: "wallet connection is being restored",
+      input: { isConnected: false, isReconnecting: true },
+      expected: "none",
+    },
+    {
+      state: "wallet is disconnected",
+      input: { isConnected: false },
+      expected: "connect",
+    },
+    {
+      state: "lender access is resolving",
+      input: { accessState: "resolving" as const },
+      expected: "none",
+    },
+    {
+      state: "lender access failed to resolve",
+      input: { accessState: "error" as const },
+      expected: "authorization-error",
+    },
+    {
+      state: "lender is blocked",
+      input: { accessState: "blocked" as const },
+      expected: "blocked",
+    },
+    {
+      state: "lender is confirmed unauthorized",
+      input: {
+        accessState: "unauthorized" as const,
+        hasLenderTransactions: false,
+      },
+      expected: "request-access",
+    },
+    {
+      state: "lender is authorized",
+      input: {},
+      expected: "none",
+    },
+  ])("$state", ({ input, expected }) => {
+    expect(getLenderBannerState({ ...base, ...input })).toBe(expected)
+  })
+})
 
 describe("resolveLenderAccessState", () => {
   it.each([
