@@ -34,6 +34,13 @@ export default async function initTranslations(
     fallbackNS: namespaces[0],
     ns: namespaces,
     preload: resources ? [] : i18nConfig.locales,
+    // React escapes text nodes on render, so i18next's own HTML escaping is
+    // pure damage here: it turns an interpolated token symbol like "ETH/USD"
+    // into the literal "ETH&#x2F;USD" on screen. Verified against this repo's
+    // i18next/react-i18next: with escaping off, a hostile value stays inert
+    // through both t() and <Trans>, and no translated string is ever fed to
+    // dangerouslySetInnerHTML.
+    interpolation: { escapeValue: false },
     // Surfaces a key that only breaks on a specific runtime path, which neither
     // i18n:check nor i18n:verify can reach.
     saveMissing: isDev,
