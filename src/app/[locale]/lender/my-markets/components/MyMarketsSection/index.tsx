@@ -57,7 +57,6 @@ export const MyMarketsSection = () => {
   const {
     marketAccounts,
     isLoadingInitial: isLoading,
-    liveDataStatus,
     borrowers,
   } = useLenderMarketsContext()
 
@@ -443,7 +442,6 @@ export const MyMarketsSection = () => {
             marketAccounts={filteredActiveMarkets}
             borrowers={borrowers ?? []}
             isLoading={isLoading}
-            liveDataStatus={liveDataStatus}
             filters={filters}
           />
         )}
