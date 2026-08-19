@@ -11,11 +11,11 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useAppDispatch } from "@/store/hooks"
 import { setLendersSectionAmount } from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
+import { getMarketLiveDataStatus } from "@/utils/marketLiveData"
 import {
   getKnownMarketOnboardingMode,
   MarketOnboardingMode,
 } from "@/utils/marketOnboarding"
-import { getMarketLiveDataStatus } from "@/utils/marketLiveData"
 
 export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
   const dispatch = useAppDispatch()

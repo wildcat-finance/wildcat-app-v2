@@ -25,6 +25,7 @@ type OverviewTabProps = {
   type: "external" | "internal"
   accountName: string
   marketsAmount: number
+  defaults: number | undefined
   borrowerMarkets: Parameters<typeof MarketsBlock>[0]["markets"]
   analytics?: BorrowerProfileAnalytics
   isAnalyticsLoading: boolean
@@ -40,6 +41,7 @@ export const OverviewTab = ({
   type,
   accountName,
   marketsAmount,
+  defaults,
   borrowerMarkets,
   analytics,
   isAnalyticsLoading,
@@ -101,6 +103,7 @@ export const OverviewTab = ({
         <OverallBlock
           {...profileData}
           marketsAmount={marketsAmount}
+          defaults={defaults}
           isPage
           borrowed={
             analyticsAvailable

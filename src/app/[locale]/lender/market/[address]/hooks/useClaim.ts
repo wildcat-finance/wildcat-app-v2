@@ -8,6 +8,7 @@ import { useAccount } from "wagmi"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useWildcatClient } from "@/hooks/useEthersSigner"
+import { invalidateMarketAccountQueries } from "@/utils/marketAccountQueries"
 import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 import {
@@ -79,17 +80,22 @@ export const useClaim = (
       client.invalidateQueries({
         queryKey: QueryKeys.Markets.GET_MARKET(market.chainId, market.address),
       })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Lender.GET_MARKET_ACCOUNT_PREFIX(
-          market.chainId,
-          marketAddress,
-          lender,
-        ),
+      invalidateMarketAccountQueries({
+        client,
+        chainId: market.chainId,
+        marketAddress,
+        accountAddress: lender,
       })
       client.invalidateQueries({
         queryKey: QueryKeys.Lender.GET_WITHDRAWALS.PREFIX(
           market.chainId,
           lender,
+          marketAddress,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS.PREFIX(
+          market.chainId,
           marketAddress,
         ),
       })

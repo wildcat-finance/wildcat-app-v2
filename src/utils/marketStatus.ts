@@ -2,6 +2,11 @@ import { Market } from "@wildcatfi/wildcat-sdk"
 
 import { secondsToDays } from "@/utils/formatters"
 
+type DefaultMarketState = Pick<
+  Market,
+  "isClosed" | "timeDelinquent" | "delinquencyGracePeriod"
+>
+
 export enum MarketStatus {
   HEALTHY = "Healthy",
   DELINQUENT = "Pending",
@@ -53,13 +58,13 @@ export const isMarketInPenalty = (market: Market): boolean =>
 // `closeMarket()` resets it to zero, so closed markets don't count here.
 export const PENALTY_DEFAULT_THRESHOLD_SECONDS = 90 * 24 * 60 * 60
 
-export const isMarketInDefault = (market: Market): boolean =>
+export const isMarketInDefault = (market: DefaultMarketState): boolean =>
   !market.isClosed &&
   market.timeDelinquent - market.delinquencyGracePeriod >=
     PENALTY_DEFAULT_THRESHOLD_SECONDS
 
 export const countMarketsInDefault = (
-  markets: Market[] | undefined,
+  markets: DefaultMarketState[] | undefined,
 ): number | undefined => markets?.filter(isMarketInDefault).length
 
 export const getPenaltyBorrowers = (markets: Market[]): Set<string> =>

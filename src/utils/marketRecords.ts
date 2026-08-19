@@ -5,6 +5,7 @@ import humanizeDuration from "humanize-duration"
 import {
   formatTokenWithCommas,
   formatUtcMaturity,
+  timestampToDateFormatted,
   trimAddress,
 } from "@/utils/formatters"
 

@@ -108,6 +108,7 @@ describe("lender market navigation loading", () => {
       isLoadingUpdate: true,
       onboardingByMarket: {},
       onboardingStatus: "loading",
+      liveDataStatus: "loading",
       borrowers: [],
     })
   })

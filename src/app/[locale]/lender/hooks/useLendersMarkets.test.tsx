@@ -256,11 +256,7 @@ describe("useLendersMarkets", () => {
           LENDER_A,
         ),
       })
-      .find(
-        (query) =>
-          Array.isArray(query.queryKey[0]) &&
-          query.queryKey[0].includes("update"),
-      )
+      .find((query) => query.queryKey.includes("update"))
 
     const initialQueryOptions = initialQuery?.options as
       | { refetchInterval?: unknown }
@@ -316,6 +312,36 @@ describe("useLendersMarkets", () => {
     expect(result.current.data).toEqual([indexed])
     expect(result.current.isLoadingInitial).toBe(false)
     expect(result.current.hasLiveData).toBe(false)
+  })
+
+  it("derives indexed onboarding from provider indexes, not a bad pull-provider boolean", async () => {
+    const indexed = createIndexedAccount(LENDER_A, "indexed-1")
+    Object.assign(indexed.market, {
+      hooksConfig: {
+        kind: actualSdk.HooksKind.OpenTerm,
+        hooksAddress: "0x4444444444444444444444444444444444444444",
+        depositRequiresAccess: true,
+        flags: { useOnDeposit: true },
+      },
+      roleProviders: [
+        {
+          isApproved: true,
+          isPullProvider: true,
+          pullProviderIndex: -1,
+        },
+      ],
+    })
+    getLenderAccountsForAllMarketsMock.mockResolvedValue([indexed])
+    refreshMarketAccountsV2LiveDataSafeMock.mockResolvedValue([indexed])
+
+    const { result } = renderHook(() => useLendersMarkets(), {
+      wrapper: createWrapper(),
+    })
+
+    await waitFor(() => expect(result.current.onboardingStatus).toBe("ready"))
+    expect(result.current.onboardingByMarket[MARKET_ADDRESS]).toBe(
+      actualSdk.MarketOnboardingMode.BorrowerApproval,
+    )
   })
 
   it("retains the last live snapshot when a background refresh fails", async () => {

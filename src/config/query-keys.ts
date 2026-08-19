@@ -20,12 +20,11 @@ const normalizeKeyPart = (value: unknown): unknown => {
   return value
 }
 
-// Build query keys, trimming only trailing `undefined` items and normalising inputs.
-export const k = <T extends readonly unknown[]>(
-  ...args: T
-): readonly unknown[] => {
-  const normalizedArgs = args.map(normalizeKeyPart)
-  const arr = [...normalizedArgs]
+// Build a flat query key, normalising inputs and trimming trailing `undefined`
+// so a factory called with omitted optional arguments forms a prefix of its
+// fully-specified key.
+export const k = (parts: readonly unknown[]): readonly unknown[] => {
+  const arr = parts.map(normalizeKeyPart)
   while (arr.length && arr[arr.length - 1] === undefined) arr.pop()
   return arr
 }

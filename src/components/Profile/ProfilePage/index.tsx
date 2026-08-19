@@ -21,6 +21,7 @@ import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { isSubgraphPricingConfigured } from "@/lib/subgraphCapabilities"
 import { pageCalcHeights } from "@/utils/constants"
 import { trimAddress } from "@/utils/formatters"
+import { countMarketsInDefault } from "@/utils/marketStatus"
 
 import { BorrowerChartsTab } from "./components/BorrowerChartsTab"
 import { MarketsBlock } from "./components/MarketsBlock"
@@ -59,6 +60,7 @@ const AnalyticsProfilePage = ({
   const activeMarkets =
     borrowerMarkets?.filter((market) => !market.isClosed) ?? []
   const marketsAmount = borrowerMarkets?.length ?? 0
+  const defaults = countMarketsInDefault(borrowerMarkets)
   const accountName = profileData?.name ?? trimAddress(profileAddress ?? "")
 
   if (isProfileLoading || isMarketsLoading) {
@@ -99,6 +101,7 @@ const AnalyticsProfilePage = ({
           type={type}
           accountName={accountName}
           marketsAmount={marketsAmount}
+          defaults={defaults}
           borrowerMarkets={activeMarkets}
           analytics={borrowerAnalyticsQuery.data}
           isAnalyticsLoading={
@@ -161,6 +164,7 @@ const CoreProfilePage = ({
   const isLoading = isMarketsLoading || isProfileLoading
   const activeMarkets = borrowerMarkets?.filter((market) => !market.isClosed)
   const marketsAmount = (activeMarkets ?? []).length
+  const defaults = countMarketsInDefault(borrowerMarkets)
   const accountName = profileData?.name ?? trimAddress(profileAddress ?? "")
 
   const [section, setSection] = useState<"markets" | "info">("markets")
@@ -201,6 +205,7 @@ const CoreProfilePage = ({
             <OverallBlock
               {...profileData}
               marketsAmount={marketsAmount}
+              defaults={defaults}
               externalChainId={chainId}
             />
             <BorrowerProfileVerificationDisclosure
@@ -239,6 +244,7 @@ const CoreProfilePage = ({
         <OverallBlock
           {...profileData}
           marketsAmount={marketsAmount}
+          defaults={defaults}
           externalChainId={chainId}
           isPage
         />

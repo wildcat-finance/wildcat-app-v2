@@ -13,7 +13,10 @@ import {
   PERIODIC_TERM_LIMITS,
 } from "@/config/market-duration"
 import { WRAPPER_TRANSFERS_DISABLED_ERROR } from "@/utils/createMarketDeploy"
-import { dayjs } from "@/utils/dayjs"
+import {
+  pickerDateToUtcMaturity,
+  utcTodayAsPickerDate,
+} from "@/utils/formatters"
 import { isLetterNumber, isLetterNumberSpace } from "@/utils/validations"
 
 import { PERIODIC_DURATION_UNITS } from "../utils/units"
@@ -324,10 +327,12 @@ export const createBaseMarketSchemaObject = (
       .optional()
       .refine((value) => {
         if (value !== undefined) {
-          const today = dayjs.unix(Date.now() / 1_000).startOf("day")
-          const tomorrow = today.add(1, "day")
-          const maxDate = today.add(maxDays, "days")
-          return value >= tomorrow.unix() && value <= maxDate.unix()
+          // The picker stores 00:00 UTC for the selected calendar day, so its
+          // validation bounds must use that same calendar rather than local time.
+          const today = utcTodayAsPickerDate()
+          const tomorrow = pickerDateToUtcMaturity(today.add(1, "day"))
+          const maxDate = pickerDateToUtcMaturity(today.add(maxDays, "days"))
+          return value >= tomorrow && value <= maxDate
         }
         return true
       }, `Must be between tomorrow and ${maxLabel} from now`),

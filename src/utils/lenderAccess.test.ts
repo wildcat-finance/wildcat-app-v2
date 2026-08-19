@@ -1,7 +1,10 @@
 import type { PublicClient } from "viem"
 
 import type { LenderRestorationPolicy } from "./lenderAccess"
-import { prepareLenderRestoration } from "./lenderAccess"
+import {
+  getLenderUpdateSafeBatch,
+  prepareLenderRestoration,
+} from "./lenderAccess"
 
 const policyAddress = "0x0000000000000000000000000000000000000010"
 const lenderA = "0x0000000000000000000000000000000000000011"
@@ -106,5 +109,20 @@ describe("prepareLenderRestoration", () => {
       prepareLenderRestoration(publicClient, policy, [lenderA]),
     ).rejects.toThrow("RPC unavailable")
     expect(populateAddLenders).not.toHaveBeenCalled()
+  })
+})
+
+describe("getLenderUpdateSafeBatch", () => {
+  it("batches multiple Safe transactions on any network", () => {
+    const transactions = [{ id: 1 }, { id: 2 }]
+
+    expect(getLenderUpdateSafeBatch(true, transactions)).toBe(transactions)
+  })
+
+  it("does not batch a single transaction or a non-Safe flow", () => {
+    expect(getLenderUpdateSafeBatch(true, [{ id: 1 }])).toBeUndefined()
+    expect(
+      getLenderUpdateSafeBatch(false, [{ id: 1 }, { id: 2 }]),
+    ).toBeUndefined()
   })
 })

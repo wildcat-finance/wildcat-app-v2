@@ -6,6 +6,7 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { invalidateMarketAccountQueries } from "@/utils/marketAccountQueries"
 import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export const useTerminateMarket = (
@@ -47,11 +48,11 @@ export const useTerminateMarket = (
           marketAccount.market.address,
         ),
       })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
-          marketAccount.market.chainId,
-          marketAccount.market.address,
-        ),
+      invalidateMarketAccountQueries({
+        client,
+        chainId: marketAccount.market.chainId,
+        marketAddress: marketAccount.market.address,
+        accountAddress: marketAccount.account,
       })
       client.invalidateQueries({
         queryKey: QueryKeys.Borrower.GET_WITHDRAWALS.PREFIX(

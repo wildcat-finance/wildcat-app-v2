@@ -6,6 +6,7 @@ import { MarketAccount, Signer, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { invalidateMarketAccountQueries } from "@/utils/marketAccountQueries"
 import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export const useProcessUnpaidWithdrawalBatch = (
@@ -64,11 +65,11 @@ export const useProcessUnpaidWithdrawalBatch = (
           marketAccount.market.address,
         ),
       })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
-          marketAccount.market.chainId,
-          marketAccount.market.address,
-        ),
+      invalidateMarketAccountQueries({
+        client,
+        chainId: marketAccount.market.chainId,
+        marketAddress: marketAccount.market.address,
+        accountAddress: marketAccount.account,
       })
       client.invalidateQueries({
         queryKey: QueryKeys.Borrower.GET_WITHDRAWALS.PREFIX(

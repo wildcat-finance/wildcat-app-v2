@@ -5,7 +5,7 @@ import { UseFormReturn } from "react-hook-form"
 import { getCreateMarketFormFingerprint } from "@/app/[locale]/borrower/create-market/validation/deployFingerprint"
 import { MarketValidationSchemaType } from "@/app/[locale]/borrower/create-market/validation/validationSchema"
 
-import { ConfirmationForm } from "."
+import { LegacyConfirmationForm } from "./LegacyConfirmationForm"
 
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -61,7 +61,7 @@ describe("ConfirmationForm access-control signature guard", () => {
     const onClickSign = jest.fn()
 
     const renderForm = (paramsChangedSinceSigning: boolean) => (
-      <ConfirmationForm
+      <LegacyConfirmationForm
         form={form}
         tokenAsset={undefined}
         borrowerProfile={undefined}
@@ -75,7 +75,10 @@ describe("ConfirmationForm access-control signature guard", () => {
         isSigning={false}
         isDeployReady
         isDeployDialogOpen={false}
-        mlaSignature={{ message: "signed refusal" }}
+        mlaSignature={{
+          message: "signed refusal",
+          signature: "0xsigned-refusal",
+        }}
       />
     )
 

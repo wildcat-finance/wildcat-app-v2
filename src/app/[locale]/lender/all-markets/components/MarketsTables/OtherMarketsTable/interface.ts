@@ -6,11 +6,11 @@ import {
 
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
 import {
   MarketOnboardingByAddress,
   MarketOnboardingMode,
 } from "@/utils/marketOnboarding"
-import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 

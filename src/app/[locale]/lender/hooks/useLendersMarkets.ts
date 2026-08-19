@@ -21,8 +21,11 @@ import { cloneSdkObject } from "@/lib/sdk-object"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TOKENS_ADDRESSES } from "@/utils/constants"
 import { isNotExcludedMarket } from "@/utils/filters"
+import {
+  getSubgraphMarketOnboardingMode,
+  MarketOnboardingByAddress,
+} from "@/utils/marketOnboarding"
 import { refreshMarketAccountsV2LiveDataSafe } from "@/utils/marketV2Reads"
-import { MarketOnboardingByAddress } from "@/utils/marketOnboarding"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export const LENDER_DASHBOARD_INDEXED_REFRESH_INTERVAL = 60_000
@@ -154,8 +157,9 @@ export function useLendersMarkets(): UseLendersMarketsResult {
   const onboardingByMarket = useMemo(() => {
     const result: MarketOnboardingByAddress = {}
     accounts.forEach(({ market }) => {
-      if (market.onboardingMode) {
-        result[market.address.toLowerCase()] = market.onboardingMode
+      const onboardingMode = getSubgraphMarketOnboardingMode(market)
+      if (onboardingMode) {
+        result[market.address.toLowerCase()] = onboardingMode
       }
     })
     return result
@@ -236,11 +240,15 @@ export function useLendersMarkets(): UseLendersMarketsResult {
     refetchOnWindowFocus: true,
   })
 
+  let onboardingStatus: LenderMarketsOnboardingStatus = "loading"
+  if (isErrorInitial) onboardingStatus = "error"
+  else if (data) onboardingStatus = "ready"
+
   return {
     data: updatedLenders ?? accounts,
     hasLiveData: updatedLenders !== undefined,
     onboardingByMarket,
-    onboardingStatus: isErrorInitial ? "error" : data ? "ready" : "loading",
+    onboardingStatus,
     isLoadingInitial,
     isErrorInitial,
     errorInitial: errorInitial as Error | null,

@@ -64,13 +64,14 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import { getDisplayLenderAprBips } from "@/utils/marketApr"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
 import {
   getLenderMarketAction,
   getKnownMarketOnboardingMode,
   LenderMarketAction,
   MarketOnboardingMode,
 } from "@/utils/marketOnboarding"
-import { getMarketImplementationType } from "@/utils/marketImplementation"
 import {
   compareByHighestYield,
   compareByShortestCycle,
@@ -370,7 +371,6 @@ export const ExploreMarketsTable = () => {
           name,
           borrower: borrowerAddress,
           underlyingToken,
-          annualInterestBips,
           maxTotalSupply,
           totalSupply,
           withdrawalBatchDuration,
@@ -393,7 +393,7 @@ export const ExploreMarketsTable = () => {
           borrower: borrowerName,
           borrowerAddress,
           asset: underlyingToken.symbol,
-          apr: annualInterestBips,
+          apr: getDisplayLenderAprBips(market),
           withdrawalBatchDuration,
           debt: totalSupply,
           capacity: maxTotalSupply,

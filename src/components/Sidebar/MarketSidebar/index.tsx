@@ -21,7 +21,7 @@ import {
   MenuItemButton,
 } from "@/components/Sidebar/MarketSidebar/style"
 import { useGetMarket } from "@/hooks/useGetMarket"
-import { useMarketAccount } from "@/hooks/useMarketAccount"
+import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
@@ -50,7 +50,7 @@ export const MarketSidebar = () => {
   })
   const prefetchMarketHistory = usePrefetchMarketRecords(market)
   const { address: walletAddress } = useAccount()
-  const { data: marketAccount } = useMarketAccount(market)
+  const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
 
   const sidebarState = useAppSelector(
     (state) => state.highlightSidebar.sidebarState,

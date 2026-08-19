@@ -15,6 +15,7 @@ import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { isUSDTLikeToken } from "@/utils/constants"
+import { invalidateMarketAccountQueries } from "@/utils/marketAccountQueries"
 import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export const useDeposit = (
@@ -136,12 +137,11 @@ export const useDeposit = (
           marketAccount.market.address,
         ),
       })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Lender.GET_MARKET_ACCOUNT_PREFIX(
-          marketAccount.market.chainId,
-          marketAccount.market.address,
-          marketAccount.account,
-        ),
+      invalidateMarketAccountQueries({
+        client,
+        chainId: marketAccount.market.chainId,
+        marketAddress: marketAccount.market.address,
+        accountAddress: marketAccount.account,
       })
     },
     onError(error) {

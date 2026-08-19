@@ -1,6 +1,7 @@
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { tokenAmountComparator } from "@/utils/comparators"
+import { getDisplayLenderAprBips } from "@/utils/marketApr"
 
 export type MarketAccountComparator = (
   a: MarketAccount,
@@ -8,7 +9,7 @@ export type MarketAccountComparator = (
 ) => number
 
 const byAprDesc: MarketAccountComparator = (a, b) =>
-  b.market.annualInterestBips - a.market.annualInterestBips
+  getDisplayLenderAprBips(b.market) - getDisplayLenderAprBips(a.market)
 
 const byWithdrawalCycleAsc: MarketAccountComparator = (a, b) =>
   a.market.withdrawalBatchDuration - b.market.withdrawalBatchDuration

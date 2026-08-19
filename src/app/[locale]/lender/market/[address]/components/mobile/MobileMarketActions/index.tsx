@@ -2,9 +2,14 @@ import { Dispatch, SetStateAction } from "react"
 import * as React from "react"
 
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
-import { DepositStatus, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import {
+  DepositStatus,
+  MarketAccount,
+  TokenWrapper,
+} from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
@@ -19,8 +24,10 @@ import Clock from "@/assets/icons/clock_icon.svg"
 import { toastError } from "@/components/Toasts"
 import { TooltipButton } from "@/components/TooltipButton"
 import { useDepositAgreementGate } from "@/hooks/useDepositAgreementGate"
+import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useLivePeriodicNowSeconds } from "@/hooks/useLiveNowSeconds"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
+import { useWrapperAccountState } from "@/hooks/wrapper/useWrapperAccountState"
 import { COLORS } from "@/theme/colors"
 import { hasManuallyDisabledMarketActions } from "@/utils/constants"
 import { formatTokenWithCommas } from "@/utils/formatters"
@@ -34,6 +41,8 @@ export type MobileMarketActionsProps = {
   marketAccount: MarketAccount
   withdrawals: LenderWithdrawalsForMarketResult
   accessState: LenderAccessState
+  wrapper?: TokenWrapper
+  hasWrapper?: boolean
   isMobileWithdrawalOpen: boolean
   setIsMobileDepositOpen: Dispatch<SetStateAction<boolean>>
   setIsMobileAcknowledgementOpen: Dispatch<SetStateAction<boolean>>
@@ -154,6 +163,8 @@ export const MobileMarketActions = ({
   marketAccount,
   withdrawals,
   accessState,
+  wrapper,
+  hasWrapper,
   isMobileWithdrawalOpen,
   setIsMobileWithdrawalOpen,
   setIsMobileDepositOpen,
@@ -163,6 +174,23 @@ export const MobileMarketActions = ({
 }: MobileMarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
+  const { address } = useAccount()
+  const { publicClient } = useEthersProvider({ chainId: market.chainId })
+  const { data: wrapperAccountState } = useWrapperAccountState(
+    market.chainId,
+    wrapper,
+    address,
+    publicClient,
+  )
+  const wrappedCap =
+    hasWrapper && wrapper ? wrapperAccountState?.limits?.maxWithdraw : undefined
+  const hasWrappedPosition =
+    !!wrappedCap &&
+    wrappedCap.gte(market.underlyingToken.parseAmount("0.00001"))
+  const wrappedAvailable = hasWrappedPosition ? wrappedCap : undefined
+  const combinedAvailable = wrappedAvailable
+    ? marketAccount.marketBalance.add(wrappedAvailable)
+    : marketAccount.marketBalance
   const {
     isTestnet,
     isConnected,
@@ -248,7 +276,7 @@ export const MobileMarketActions = ({
   const withdrawalActionState = resolveLenderWithdrawalActionState({
     accessState,
     hasMarketAccount: true,
-    hasMarketBalance: marketAccount.marketBalance.gt(0),
+    hasMarketBalance: combinedAvailable.gt(0),
     withdrawalAvailability: marketAccount.withdrawalAvailability,
     periodicWindowClosed,
   })
@@ -374,7 +402,7 @@ export const MobileMarketActions = ({
     actionState.surface === "actions" ||
     accessState === "resolving" ||
     accessState === "error" ||
-    marketAccount.marketBalance.gt(0)
+    combinedAvailable.gt(0)
   const showActionContainer =
     actionState.surface === "switch-network" ||
     actionState.surface === "actions" ||
@@ -453,9 +481,36 @@ export const MobileMarketActions = ({
                 <MobileMarketTransactionItem
                   title={t("lenderMarketDetails.transactions.withdraw.title")}
                   tooltip={withdrawTooltip}
-                  amount={formatTokenWithCommas(marketAccount.marketBalance)}
+                  amount={formatTokenWithCommas(combinedAvailable)}
                   asset={market.underlyingToken.symbol}
                 />
+
+                {hasWrappedPosition && wrappedAvailable && (
+                  <Box sx={{ marginTop: "4px" }}>
+                    <Typography
+                      variant="mobText3"
+                      sx={{ color: COLORS.white06, display: "block" }}
+                    >
+                      {t(
+                        "lenderMarketDetails.transactions.withdraw.splitDirect",
+                        {
+                          amount: formatTokenWithCommas(
+                            marketAccount.marketBalance,
+                          ),
+                        },
+                      )}
+                    </Typography>
+                    <Typography
+                      variant="mobText3"
+                      sx={{ color: COLORS.white06, display: "block" }}
+                    >
+                      {t(
+                        "lenderMarketDetails.transactions.withdraw.splitWrapped",
+                        { amount: formatTokenWithCommas(wrappedAvailable) },
+                      )}
+                    </Typography>
+                  </Box>
+                )}
 
                 <Button
                   variant="contained"

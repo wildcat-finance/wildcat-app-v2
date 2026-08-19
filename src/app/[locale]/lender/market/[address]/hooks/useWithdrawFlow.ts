@@ -24,6 +24,7 @@ import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
+import { invalidateMarketAccountQueries } from "@/utils/marketAccountQueries"
 import { toViemTransactionRequest } from "@/utils/transactions"
 
 import { WithdrawRoute } from "./useWithdrawRouting"
@@ -161,12 +162,11 @@ export const useWithdrawFlow = ({
     client.invalidateQueries({
       queryKey: QueryKeys.Markets.GET_MARKET(chainId, marketAddress),
     })
-    client.invalidateQueries({
-      queryKey: QueryKeys.Lender.GET_MARKET_ACCOUNT_PREFIX(
-        chainId,
-        marketAddress,
-        accountAddress,
-      ),
+    invalidateMarketAccountQueries({
+      client,
+      chainId,
+      marketAddress,
+      accountAddress,
     })
     client.invalidateQueries({
       queryKey: QueryKeys.Lender.GET_WITHDRAWALS.PREFIX(

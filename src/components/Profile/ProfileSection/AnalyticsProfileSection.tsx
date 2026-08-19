@@ -12,6 +12,7 @@ import { buildBorrowerSummaryItems } from "@/components/Profile/shared/borrowerS
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { isSubgraphPricingConfigured } from "@/lib/subgraphCapabilities"
 import { buildBorrowerProfileHref } from "@/utils/formatters"
+import { countMarketsInDefault } from "@/utils/marketStatus"
 
 import { BorrowerMarketsTreemap } from "./components/BorrowerMarketsTreemap"
 import { ProfileSectionNameBlock } from "./components/ProfileSectionNameBlock"
@@ -36,6 +37,7 @@ export const AnalyticsProfileSection = ({
 
   const activeMarkets = borrowerMarkets?.filter((market) => !market.isClosed)
   const marketsAmount = (activeMarkets ?? []).length
+  const defaults = countMarketsInDefault(borrowerMarkets)
   const summaryItems = buildBorrowerSummaryItems(borrowerAnalyticsQuery.data)
   const profileHref = profileAddress
     ? buildBorrowerProfileHref(profileAddress, chainId)
@@ -72,6 +74,7 @@ export const AnalyticsProfileSection = ({
       <OverallBlock
         {...profileData}
         marketsAmount={marketsAmount}
+        defaults={defaults}
         externalChainId={chainId}
         borrowed={
           analyticsAvailable

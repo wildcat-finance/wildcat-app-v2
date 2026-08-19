@@ -17,6 +17,7 @@ import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { toHuman } from "@/lib/protocol-stats/format"
 import { COLORS } from "@/theme/colors"
 import { formatBps, trimAddress } from "@/utils/formatters"
+import { getDisplayLenderAprBips } from "@/utils/marketApr"
 import { compareByCurrentAprBestInMarket } from "@/utils/marketSort"
 import {
   getMarketStatusChip,
@@ -543,7 +544,7 @@ export const TrendingMarketsCarousel = () => {
         key: "highestApr",
         variant: "hotRate",
         account: aprWinner,
-        value: `${formatBps(aprWinner.market.annualInterestBips)}%`,
+        value: `${formatBps(getDisplayLenderAprBips(aprWinner.market))}%`,
       },
       {
         key: "newest",
@@ -616,7 +617,7 @@ export const TrendingMarketsCarousel = () => {
         borrowerName={borrowerName}
         borrowerAddress={market.borrower}
         asset={market.underlyingToken.symbol}
-        apr={market.annualInterestBips}
+        apr={getDisplayLenderAprBips(market)}
         supplied={formatTokenCompact(suppliedRaw, decimals)}
         capacity={formatTokenCompact(capacityRaw, decimals)}
         suppliedPct={suppliedPct}

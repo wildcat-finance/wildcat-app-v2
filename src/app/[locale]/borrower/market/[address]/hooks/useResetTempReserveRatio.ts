@@ -10,6 +10,7 @@ import {
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { invalidateMarketAccountQueries } from "@/utils/marketAccountQueries"
 import {
   toSdkTransactionRequest,
   waitForSubmittedTransaction,
@@ -71,11 +72,11 @@ export const useResetTempReserveRatio = (
           marketAccount.market.address,
         ),
       })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
-          marketAccount.market.chainId,
-          marketAccount.market.address,
-        ),
+      invalidateMarketAccountQueries({
+        client,
+        chainId: marketAccount.market.chainId,
+        marketAddress: marketAccount.market.address,
+        accountAddress: marketAccount.account,
       })
     },
     onError(error) {

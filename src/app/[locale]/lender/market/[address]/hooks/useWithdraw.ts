@@ -15,6 +15,7 @@ import { useAccount } from "wagmi"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { invalidateMarketAccountQueries } from "@/utils/marketAccountQueries"
 import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export const useWithdraw = (
@@ -95,12 +96,11 @@ export const useWithdraw = (
           marketAddress,
         ),
       })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Lender.GET_MARKET_ACCOUNT_PREFIX(
-          marketAccount.market.chainId,
-          marketAddress,
-          lender,
-        ),
+      invalidateMarketAccountQueries({
+        client,
+        chainId: marketAccount.market.chainId,
+        marketAddress,
+        accountAddress: lender,
       })
       client.invalidateQueries({
         queryKey: QueryKeys.Lender.GET_WITHDRAWALS.PREFIX(
@@ -110,16 +110,8 @@ export const useWithdraw = (
         ),
       })
       client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
+        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS.PREFIX(
           marketAccount.market.chainId,
-          "initial",
-          marketAddress,
-        ),
-      })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
-          marketAccount.market.chainId,
-          "update",
           marketAddress,
         ),
       })
