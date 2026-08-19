@@ -1,14 +1,23 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { render, screen } from "@testing-library/react"
-import { MarketAccount, SupportedChainId } from "@wildcatfi/wildcat-sdk"
+import {
+  HooksKind,
+  MarketAccount,
+  SupportedChainId,
+} from "@wildcatfi/wildcat-sdk"
 
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
 import { useRecentDeposits } from "@/app/[locale]/lender/hooks/useRecentDeposits"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { isMarketHealthy } from "@/utils/marketStatus"
+import { getMarketTypeChip } from "@/utils/marketType"
 
-import { TrendingMarketsCarousel } from "."
+import {
+  getTrendingMarketTermLabel,
+  isBelowProjectedCapacity,
+  TrendingMarketsCarousel,
+} from "."
 import { useTrendingUsdPrices } from "./useTrendingUsdPrices"
 
 jest.mock("@/app/[locale]/lender/context", () => ({
@@ -72,8 +81,10 @@ const amount = (value: bigint) => ({
 
 const makeMarketAccount = ({
   totalSupply = BigInt(100),
+  maxTotalSupply = BigInt(1_000_000),
 }: {
   totalSupply?: bigint
+  maxTotalSupply?: bigint
 } = {}): MarketAccount =>
   ({
     market: {
@@ -88,7 +99,7 @@ const makeMarketAccount = ({
         decimals: 6,
       },
       totalSupply: amount(totalSupply),
-      maxTotalSupply: amount(BigInt(1_000_000)),
+      maxTotalSupply: amount(maxTotalSupply),
       annualInterestBips: 1_000,
       lastInterestAccruedTimestamp: Math.floor(Date.now() / 1000),
       timeDelinquent: 0,
@@ -203,5 +214,31 @@ describe("TrendingMarketsCarousel", () => {
     render(<TrendingMarketsCarousel />)
 
     expect(screen.getAllByTestId(/^trending-/)).toHaveLength(5)
+  })
+
+  it("labels periodic markets without treating them as fixed term", () => {
+    jest.mocked(getMarketTypeChip).mockReturnValue({
+      kind: HooksKind.PeriodicTerm,
+    })
+
+    const { market } = makeMarketAccount()
+
+    expect(getTrendingMarketTermLabel(market)).toBe("Periodic Term")
+  })
+
+  it("projects revolving capacity with the displayed effective APR", () => {
+    const { market } = makeMarketAccount({
+      totalSupply: BigInt(1_000),
+      maxTotalSupply: BigInt(1_050),
+    })
+    market.lastInterestAccruedTimestamp = 0
+    Object.defineProperty(market, "currentAprDisplayBips", {
+      configurable: true,
+      value: {
+        currentEffectiveLenderAprBips: 100,
+      },
+    })
+
+    expect(isBelowProjectedCapacity(market, 365 * 24 * 60 * 60)).toBe(true)
   })
 })

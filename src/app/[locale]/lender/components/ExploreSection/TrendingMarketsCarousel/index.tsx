@@ -110,21 +110,16 @@ const BIPS = BigInt(10_000)
 // Market state is hydrated from the lens on the live refresh, but it can still
 // age between polls. Project supply linearly from that block so a market that
 // crosses capacity between refreshes can't win Peak APR.
-const isBelowProjectedCapacity = (market: Market): boolean => {
+export const isBelowProjectedCapacity = (
+  market: Market,
+  nowSeconds = Math.floor(Date.now() / 1000),
+): boolean => {
   const capacity = market.maxTotalSupply.raw
   const supply = market.totalSupply.raw
   const elapsed = BigInt(
-    Math.max(
-      0,
-      Math.floor(Date.now() / 1000) - market.lastInterestAccruedTimestamp,
-    ),
+    Math.max(0, nowSeconds - market.lastInterestAccruedTimestamp),
   )
-  const rateBips = BigInt(
-    market.annualInterestBips +
-      (market.timeDelinquent > market.delinquencyGracePeriod
-        ? market.delinquencyFeeBips
-        : 0),
-  )
+  const rateBips = BigInt(getDisplayLenderAprBips(market))
   const projectedSupply =
     supply + (supply * rateBips * elapsed) / (BIPS * SECONDS_IN_YEAR)
   return projectedSupply < capacity
@@ -142,6 +137,16 @@ const formatMaturityDate = (millisecondsFromNow: number) =>
 const formatWithdrawalCycle = (seconds: number) => {
   const hours = Math.floor(seconds / 3600)
   return hours > 0 ? `${hours}h` : "<1h"
+}
+
+export const getTrendingMarketTermLabel = (market: Market): string => {
+  const term = getMarketTypeChip(market)
+
+  if (term.kind === HooksKind.PeriodicTerm) return "Periodic Term"
+  if (term.kind === HooksKind.FixedTerm) {
+    return `Fixed Term • ${formatMaturityDate(term.fixedPeriod ?? 0)}`
+  }
+  return `Open Term • ${formatWithdrawalCycle(market.withdrawalBatchDuration)}`
 }
 
 const formatGrowthPct = (ratio: number): string => {
@@ -599,11 +604,7 @@ export const TrendingMarketsCarousel = () => {
       capacityRaw > ZERO
         ? Number((suppliedRaw * BigInt(10000)) / capacityRaw) / 100
         : 0
-    const term = getMarketTypeChip(market)
-    const isOpenTerm = term.kind === HooksKind.OpenTerm
-    const termLabel = isOpenTerm
-      ? `Open Term • ${formatWithdrawalCycle(market.withdrawalBatchDuration)}`
-      : `Fixed Term • ${formatMaturityDate(term.fixedPeriod ?? 0)}`
+    const termLabel = getTrendingMarketTermLabel(market)
 
     return (
       <TrendingMarketCard
