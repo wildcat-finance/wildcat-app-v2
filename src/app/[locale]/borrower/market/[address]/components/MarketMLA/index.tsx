@@ -146,11 +146,14 @@ const SetMarketMLAForm = ({
 }
 
 const NoExistingMla = ({ marketAccount }: { marketAccount: MarketAccount }) => {
+  const { t } = useTranslation()
   const { data: borrowerProfile } = useBorrowerProfileTmp(
     marketAccount.market.borrower,
   )
-  if (!borrowerProfile) return <Box>No Borrower Profile</Box>
-  if (!marketAccount.isBorrower) return <Box>No Market MLA</Box>
+  if (!borrowerProfile)
+    return <Box>{t("marketDetails.borrower.mla.status.noBorrowerProfile")}</Box>
+  if (!marketAccount.isBorrower)
+    return <Box>{t("marketDetails.borrower.mla.status.noMarketMla")}</Box>
   return (
     <SetMarketMLAForm
       borrowerProfile={borrowerProfile as unknown as BasicBorrowerInfo}
@@ -184,6 +187,7 @@ export const MarketMLA = ({
 }: {
   marketAccount: MarketAccount
 }) => {
+  const { t } = useTranslation()
   const { data: borrowerProfile, isLoading: isLoadingBorrowerProfile } =
     useBorrowerProfileTmp(marketAccount.market.borrower)
   const { data: marketMla, isLoading: isLoadingMarketMla } = useMarketMla(
@@ -193,9 +197,16 @@ export const MarketMLA = ({
   if (isLoadingMarketMla || isLoadingBorrowerProfile)
     return <div>Loading...</div>
 
-  if (!borrowerProfile) return <Box>No Borrower Profile</Box>
-  if (!marketAccount.isBorrower) return <Box>Wrong Borrower Address</Box>
-  if (marketMla && "noMLA" in marketMla) return <Box>Borrower Declined MLA</Box>
+  if (!borrowerProfile)
+    return <Box>{t("marketDetails.borrower.mla.status.noBorrowerProfile")}</Box>
+  if (!marketAccount.isBorrower)
+    return (
+      <Box>{t("marketDetails.borrower.mla.status.wrongBorrowerAddress")}</Box>
+    )
+  if (marketMla && "noMLA" in marketMla)
+    return (
+      <Box>{t("marketDetails.borrower.mla.status.borrowerDeclinedMla")}</Box>
+    )
   if (marketMla)
     return (
       <ShowExistingMla

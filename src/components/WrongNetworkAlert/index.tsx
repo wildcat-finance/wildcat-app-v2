@@ -29,7 +29,7 @@ export const WrongNetworkAlert = () => {
           color="#8A8C9F"
           sx={{ marginBottom: "24px" }}
         >
-          Switch to {name} to explore the markets.
+          {t("auth.switchNetworkToExplore", { network: name })}
         </Typography>
 
         <Button

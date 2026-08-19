@@ -34,7 +34,7 @@ export const MarketCycleChip = ({ status, time }: MarketCycleChipProps) => (
             : COLORS.carminePink,
       }}
     >
-      {time} left
+      <Trans i18nKey="common.labels.timeLeft" values={{ time }} />
     </Typography>
   </Box>
 )

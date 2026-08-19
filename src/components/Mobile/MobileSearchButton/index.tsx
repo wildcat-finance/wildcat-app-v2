@@ -266,7 +266,7 @@ export const MobileSearchButton = ({
             color="secondary"
             fullWidth
           >
-            {t("common.buttons.reset2")}
+            {t("common.buttons.reset")}
           </Button>
 
           <Button

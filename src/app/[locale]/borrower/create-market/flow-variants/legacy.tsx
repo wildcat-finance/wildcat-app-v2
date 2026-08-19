@@ -22,7 +22,7 @@ const getGlossaryItems = (
       description: t("borrower.createMarket.financial.maxCapacity.glossary"),
     },
     {
-      title: t("borrower.createMarket.financial.baseAPR.label"),
+      title: t("common.fields.baseApr"),
       description: t("borrower.createMarket.financial.baseAPR.glossary"),
     },
     {

@@ -83,10 +83,10 @@ export const AcceptInvitationForm = ({
           />
         </Box>
         <Typography variant="text3" sx={BorrowerNameNote}>
-          This name is appended to the signed Terms of Use acknowledgement and
-          recorded as the{" "}
-          <strong>{t("borrower.invitation.borrowerOrganization")}</strong>{" "}
-          accepting the invitation.
+          <Trans
+            i18nKey="borrower.invitation.nameHelper"
+            components={{ 1: <strong /> }}
+          />
         </Typography>
 
         <Box sx={TermsPanel}>

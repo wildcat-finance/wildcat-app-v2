@@ -224,7 +224,11 @@ export const Footer = ({
               }}
             >
               <Typography variant="text4" sx={{ display: "flex", gap: "2px" }}>
-                {t("footer.agreement")} <Box sx={{ rotate: "270deg" }}>⇤</Box>
+                {t("footer.agreement")}{" "}
+                {/* eslint-disable-next-line i18next/no-literal-string */}
+                <Box sx={{ rotate: "270deg" }} aria-hidden="true">
+                  ⇤
+                </Box>
               </Typography>
             </Link>
 

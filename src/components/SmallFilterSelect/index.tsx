@@ -406,7 +406,7 @@ export const SmallFilterSelect = ({
           color="secondary"
           sx={{ width: "100%", marginTop: "12px" }}
         >
-          {t("common.buttons.reset2")}
+          {t("common.buttons.reset")}
         </Button>
       </Select>
     </FormControl>

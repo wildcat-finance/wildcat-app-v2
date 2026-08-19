@@ -11,6 +11,7 @@ import {
 } from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
 import Link from "next/link"
+import { Trans, useTranslation } from "react-i18next"
 
 import { LenderAnalyticsSummary } from "@/app/[locale]/lender/market/[address]/components/LenderAnalyticsSummary"
 import {
@@ -324,6 +325,7 @@ export const ActivityCashFlowTab = ({
   positionsData,
   isPositionsLoading,
 }: ActivityCashFlowTabProps) => {
+  const { t } = useTranslation()
   const { getTxUrl } = useBlockExplorer()
   const [cashFlowPeriod, setCashFlowPeriod] =
     React.useState<ChartPeriod>("Cumulative")
@@ -509,7 +511,7 @@ export const ActivityCashFlowTab = ({
           }}
         >
           <Typography variant="text2" color={COLORS.dullRed}>
-            Failed to load cash flow analytics.
+            {t("profile.lender.cashFlow.error")}
           </Typography>
         </Box>
       )
@@ -527,8 +529,8 @@ export const ActivityCashFlowTab = ({
     if (hasCashFlow) {
       return (
         <AnalyticsChartCard
-          title="Cumulative Capital Flow"
-          description="Historical/indexed USD daily totals for deposits, executed withdrawals, and net flow."
+          title={t("profile.lender.cashFlow.cumulative.title")}
+          description={t("profile.lender.cashFlow.cumulative.description")}
           actions={
             <ChartPeriodSelector
               value={cashFlowPeriod}
@@ -557,7 +559,7 @@ export const ActivityCashFlowTab = ({
         }}
       >
         <Typography variant="text2" color={COLORS.santasGrey}>
-          Not enough historical activity to chart cash flow yet.
+          {t("profile.lender.cashFlow.empty")}
         </Typography>
       </Box>
     )
@@ -572,8 +574,8 @@ export const ActivityCashFlowTab = ({
       }}
     >
       <ProfileSectionPanel
-        title="Deposit & Withdrawal Activity"
-        subtitle="Activity rows and batch amounts use latest available token prices unless an indexed USD daily total is shown."
+        title={t("profile.lender.cashFlow.activity.title")}
+        subtitle={t("profile.lender.cashFlow.activity.subtitle")}
       >
         {renderCashFlow()}
 
@@ -641,7 +643,9 @@ export const ActivityCashFlowTab = ({
         </Box>
       </ProfileSectionPanel>
 
-      <ProfileSectionPanel title="Withdrawal batch status">
+      <ProfileSectionPanel
+        title={t("profile.lender.cashFlow.batchStatus.title")}
+      >
         <LenderAnalyticsSummary
           isLoading={batchesQuery.isLoading}
           items={[
@@ -709,7 +713,10 @@ export const ActivityCashFlowTab = ({
                   title={row.marketName}
                   titleSub={
                     <Typography variant="text4" color={COLORS.santasGrey}>
-                      Expires {row.expiry}
+                      <Trans
+                        i18nKey="profile.lender.cashFlow.expires"
+                        values={{ expiry: row.expiry }}
+                      />
                     </Typography>
                   }
                   headerRight={

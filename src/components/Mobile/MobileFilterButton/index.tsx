@@ -443,7 +443,7 @@ export const MobileFilterButton = ({
             color="secondary"
             fullWidth
           >
-            {t("common.buttons.reset2")}
+            {t("common.buttons.reset")}
           </Button>
         </Box>
       </Dialog>

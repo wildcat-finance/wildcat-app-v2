@@ -1,7 +1,7 @@
 import React from "react"
 
 import { Box, Button, Typography } from "@mui/material"
-import { useTranslation } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 
 import { NETWORKS } from "@/config/network"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -65,11 +65,13 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
           >
             {t("marketDetails.lender.currentlyCanOnlyViewGeneral")}
             <br />
-            To interact with it, please change the network to{" "}
-            <span style={{ fontWeight: 600, color: COLORS.white }}>
-              {desiredChainName}
-            </span>
-            .
+            <Trans
+              i18nKey="marketDetails.shared.switchChain.instruction"
+              values={{ network: desiredChainName }}
+              components={{
+                1: <span style={{ fontWeight: 600, color: COLORS.white }} />,
+              }}
+            />
           </Typography>
         </Box>
 
@@ -104,11 +106,13 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
           <Typography variant="text3" color="#8A8C9F">
             {t("marketDetails.lender.currentlyCanOnlyViewGeneral")}
             <br />
-            To interact with it, please change the network to{" "}
-            <span style={{ fontWeight: 600, color: COLORS.bunker }}>
-              {desiredChainName}
-            </span>
-            .
+            <Trans
+              i18nKey="marketDetails.shared.switchChain.instruction"
+              values={{ network: desiredChainName }}
+              components={{
+                1: <span style={{ fontWeight: 600, color: COLORS.bunker }} />,
+              }}
+            />
           </Typography>
         </Box>
 

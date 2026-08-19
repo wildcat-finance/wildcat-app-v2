@@ -52,10 +52,7 @@ export const ProposalMarketParameter = ({
           </Typography>
 
           <TooltipButton
-            value="Lenders may receive additional incentives distributed by external
-          partners or protocol initiatives. These incentives are optional,
-          variable, and not part of the core lending terms. Wildcat does not
-          guarantee the program and accepts no liability."
+            value={t("marketDetails.shared.banners.apr.incentivesDisclaimer")}
           />
         </Box>
 

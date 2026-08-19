@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { Box, Divider, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { COLORS } from "@/theme/colors"
 
@@ -63,55 +64,59 @@ export const RoutingPanel = ({
   hint,
   hintWarn,
   txSummary,
-}: RoutingPanelProps) => (
-  <Box
-    sx={{
-      display: "flex",
-      flexDirection: "column",
-      gap: "10px",
-      padding: "14px 16px",
-      border: `1px solid ${COLORS.whiteLilac}`,
-      borderRadius: "12px",
-      backgroundColor: COLORS.hintOfRed,
-    }}
-  >
-    <Row
-      label="Direct"
-      used={directUsed}
-      available={directAvailable}
-      symbol={symbol}
-    />
-    <Row
-      label="Wrapped"
-      used={wrappedUsed}
-      available={wrappedAvailable}
-      symbol={symbol}
-    />
+}: RoutingPanelProps) => {
+  const { t } = useTranslation()
 
-    <Divider sx={{ borderColor: COLORS.whiteLilac }} />
-
+  return (
     <Box
       sx={{
         display: "flex",
-        alignItems: "baseline",
-        justifyContent: "space-between",
-        gap: "12px",
+        flexDirection: "column",
+        gap: "10px",
+        padding: "14px 16px",
+        border: `1px solid ${COLORS.whiteLilac}`,
+        borderRadius: "12px",
+        backgroundColor: COLORS.hintOfRed,
       }}
     >
-      <Typography
-        variant="text3"
-        color={hintWarn ? COLORS.butteredRum : COLORS.santasGrey}
+      <Row
+        label={t("marketDetails.lender.transactions.withdraw.routing.direct")}
+        used={directUsed}
+        available={directAvailable}
+        symbol={symbol}
+      />
+      <Row
+        label={t("marketDetails.lender.transactions.withdraw.routing.wrapped")}
+        used={wrappedUsed}
+        available={wrappedAvailable}
+        symbol={symbol}
+      />
+
+      <Divider sx={{ borderColor: COLORS.whiteLilac }} />
+
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          gap: "12px",
+        }}
       >
-        {hint}
-      </Typography>
-      <Typography
-        variant="text3"
-        fontWeight={600}
-        color={COLORS.blackRock}
-        whiteSpace="nowrap"
-      >
-        {txSummary}
-      </Typography>
+        <Typography
+          variant="text3"
+          color={hintWarn ? COLORS.butteredRum : COLORS.santasGrey}
+        >
+          {hint}
+        </Typography>
+        <Typography
+          variant="text3"
+          fontWeight={600}
+          color={COLORS.blackRock}
+          whiteSpace="nowrap"
+        >
+          {txSummary}
+        </Typography>
+      </Box>
     </Box>
-  </Box>
-)
+  )
+}

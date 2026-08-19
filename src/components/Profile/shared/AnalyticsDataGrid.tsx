@@ -9,6 +9,7 @@ import {
   GridRowsProp,
   GridValidRowModel,
 } from "@mui/x-data-grid"
+import { useTranslation } from "react-i18next"
 
 import { TableStyles } from "@/app/[locale]/borrower/edit-lenders-list/components/ConfirmLendersForm/style"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -138,6 +139,8 @@ const MobilePagination = ({
   totalPages: number
   onChange: (next: number) => void
 }) => {
+  const { t } = useTranslation()
+
   const items = buildPageRange(page, totalPages)
   return (
     <Box
@@ -160,7 +163,7 @@ const MobilePagination = ({
           borderRadius: "8px",
         }}
       >
-        <Typography variant="text3">Prev</Typography>
+        <Typography variant="text3">{t("common.buttons.prev")}</Typography>
       </Button>
       <Box sx={{ display: "flex", gap: "4px", alignItems: "center" }}>
         {items.map((item, idx) =>
@@ -218,7 +221,7 @@ const MobilePagination = ({
           borderRadius: "8px",
         }}
       >
-        <Typography variant="text3">Next</Typography>
+        <Typography variant="text3">{t("common.buttons.next")}</Typography>
       </Button>
     </Box>
   )

@@ -12,7 +12,7 @@ import {
 } from "@mui/material"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
-import { useTranslation } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
@@ -812,10 +812,21 @@ export const DepositModal = ({
                       <DepositAlert
                         text={
                           <Typography variant="mobText3">
-                            This is a fixed-term market: funds are locked until{" "}
-                            <span style={{ textDecoration: "underline" }}>
-                              {formatUtcMaturity(fixedTermMaturity || 0)}
-                            </span>{" "}
+                            <Trans
+                              i18nKey="marketDetails.lender.modals.deposit.fixedTermLock"
+                              values={{
+                                maturity: formatUtcMaturity(
+                                  fixedTermMaturity || 0,
+                                ),
+                              }}
+                              components={{
+                                1: (
+                                  <span
+                                    style={{ textDecoration: "underline" }}
+                                  />
+                                ),
+                              }}
+                            />{" "}
                           </Typography>
                         }
                         icon={
@@ -887,18 +898,15 @@ export const DepositModal = ({
                       <DepositAlert
                         text={
                           <Typography variant="mobText3">
-                            You have an existing allowance of{" "}
-                            {market.underlyingToken
-                              .getAmount(marketAccount.underlyingApproval)
-                              .format(
-                                market.underlyingToken.decimals,
-                                true,
-                              )}{" "}
-                            for this market.
+                            {t("modals.shared.allowanceReset.existing", {
+                              amount: market.underlyingToken
+                                .getAmount(marketAccount.underlyingApproval)
+                                .format(market.underlyingToken.decimals, true),
+                            })}
                             <br />
-                            {market.underlyingToken.symbol} requires that
-                            allowances be reset to zero prior to being
-                            increased.
+                            {t("modals.shared.allowanceReset.mustReset", {
+                              token: market.underlyingToken.symbol,
+                            })}
                             <br />
                             {t("common.labels.willPromptedExecuteTwoApproval")}
                           </Typography>
@@ -1313,11 +1321,21 @@ export const DepositModal = ({
                         <DepositAlert
                           text={
                             <Typography variant="mobText3">
-                              This is a fixed-term market: funds are locked
-                              until{" "}
-                              <span style={{ textDecoration: "underline" }}>
-                                {formatUtcMaturity(fixedTermMaturity || 0)}
-                              </span>{" "}
+                              <Trans
+                                i18nKey="marketDetails.lender.modals.deposit.fixedTermLock"
+                                values={{
+                                  maturity: formatUtcMaturity(
+                                    fixedTermMaturity || 0,
+                                  ),
+                                }}
+                                components={{
+                                  1: (
+                                    <span
+                                      style={{ textDecoration: "underline" }}
+                                    />
+                                  ),
+                                }}
+                              />{" "}
                             </Typography>
                           }
                           icon={
@@ -1389,18 +1407,18 @@ export const DepositModal = ({
                         <DepositAlert
                           text={
                             <Typography variant="mobText3">
-                              You have an existing allowance of{" "}
-                              {market.underlyingToken
-                                .getAmount(marketAccount.underlyingApproval)
-                                .format(
-                                  market.underlyingToken.decimals,
-                                  true,
-                                )}{" "}
-                              for this market.
+                              {t("modals.shared.allowanceReset.existing", {
+                                amount: market.underlyingToken
+                                  .getAmount(marketAccount.underlyingApproval)
+                                  .format(
+                                    market.underlyingToken.decimals,
+                                    true,
+                                  ),
+                              })}
                               <br />
-                              {market.underlyingToken.symbol} requires that
-                              allowances be reset to zero prior to being
-                              increased.
+                              {t("modals.shared.allowanceReset.mustReset", {
+                                token: market.underlyingToken.symbol,
+                              })}
                               <br />
                               {t(
                                 "common.labels.willPromptedExecuteTwoApproval",

@@ -10,7 +10,7 @@ import {
   Link as MuiLink,
 } from "@mui/material"
 import Link from "next/link"
-import { useTranslation } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 import { Connector, CreateConnectorFn, useConnect } from "wagmi"
 
 import CoinBase from "@/assets/icons/coinbase_icon.svg"
@@ -118,17 +118,20 @@ export const MobileConnectWallet = ({
         ))}
       </Box>
       <Typography variant="text3" sx={Terms}>
-        By connecting your wallet, you consent to the{" "}
-        <MuiLink
-          component={Link}
-          href="https://docs.wildcat.finance/legal/protocol-ui-privacy-policy"
-          variant="inherit"
-          underline="always"
-          color="inherit"
-        >
-          {t("auth.wildcatPrivacyPolicy")}
-        </MuiLink>
-        .
+        <Trans
+          i18nKey="header.modal.mobileNote"
+          components={{
+            1: (
+              <MuiLink
+                component={Link}
+                href="https://docs.wildcat.finance/legal/protocol-ui-privacy-policy"
+                variant="inherit"
+                underline="always"
+                color="inherit"
+              />
+            ),
+          }}
+        />
       </Typography>
     </Dialog>
   )

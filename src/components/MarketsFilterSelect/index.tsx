@@ -164,7 +164,7 @@ export const MarketsFilterSelect = ({
         variant="text"
         sx={{ width: "100%", paddingY: "7px", borderRadius: "0 0 8px 8px" }}
       >
-        {t("common.buttons.reset2")}
+        {t("common.buttons.reset")}
       </Button>
     </Select>
   )

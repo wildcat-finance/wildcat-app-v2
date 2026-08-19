@@ -482,7 +482,10 @@ export function PaginatedMarketRecordsTable({
         {startEventIndex !== undefined && (
           <Typography variant="text3">
             {t("marketDetails.shared.records.showingRecentRecords")}{" "}
-            {startEventIndex} to {endEventIndex}
+            {t("marketDetails.shared.records.range", {
+              from: startEventIndex,
+              to: endEventIndex,
+            })}
           </Typography>
         )}
         {/*      <div className="flex gap-x-4 items-center flex-row">

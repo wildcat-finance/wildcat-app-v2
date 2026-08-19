@@ -301,9 +301,13 @@ export const MarketsInterestTab = ({
               sx={{ lineHeight: 1.45 }}
             >
               {t("profile.lender.slicesUseCurrentPricePosition")}{" "}
-              {formatUsd(displayTotalInterest, { compact: true })} earned across{" "}
-              {interestRows.length} positions with realized interest.{" "}
-              {activePositionCount} positions are still open with balance.
+              {t("profile.lender.interest.earnedAcross", {
+                amount: formatUsd(displayTotalInterest, { compact: true }),
+                positions: interestRows.length,
+              })}{" "}
+              {t("profile.lender.interest.openWithBalance", {
+                positions: activePositionCount,
+              })}
             </Typography>
 
             <Box

@@ -36,7 +36,7 @@ const LegacyFinancialSection = ({
         />
 
         <ConfirmationFormItem
-          label={t("borrower.createMarket.financial.baseAPR.label")}
+          label={t("common.fields.baseApr")}
           value={`${getValues("annualInterestBips")}%`}
         />
 

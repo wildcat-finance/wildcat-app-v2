@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import { MarketStatusAndTermChip } from "@/components/@extended/MarketStatusAndTermChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
@@ -80,6 +81,8 @@ export const TrendingMarketDetails = ({
   // Keeping an explicit block avoids re-indenting this large JSX tree.
   // eslint-disable-next-line arrow-body-style
 }: TrendingMarketDetailsProps) => {
+  const { t } = useTranslation()
+
   return (
     <Box
       sx={{
@@ -139,7 +142,11 @@ export const TrendingMarketDetails = ({
           lineHeight: { xs: "18px", md: "14px" },
         }}
       >
-        {supplied} {asset} / {capacity} {asset} supplied
+        {t("marketList.shared.cards.supplied", {
+          supplied,
+          asset,
+          capacity,
+        })}
       </Typography>
     </Box>
   )

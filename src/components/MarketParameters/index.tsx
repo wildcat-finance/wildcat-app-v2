@@ -153,29 +153,33 @@ const AdoptionStats = ({
   sharesAsset: string
   marketPct: string
   sharesPct: string
-}) => (
-  <Box
-    sx={{
-      display: "flex",
-      flexDirection: "column",
-      gap: "6px",
-      width: "100%",
-    }}
-  >
-    <AdoptionStatsRow
-      label="Original Token"
-      amount={marketAmount}
-      asset={marketAsset}
-      pct={marketPct}
-    />
-    <AdoptionStatsRow
-      label="Wrapped Token"
-      amount={sharesAmount}
-      asset={sharesAsset}
-      pct={sharesPct}
-    />
-  </Box>
-)
+}) => {
+  const { t } = useTranslation()
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "6px",
+        width: "100%",
+      }}
+    >
+      <AdoptionStatsRow
+        label={t("marketParameters.originalToken")}
+        amount={marketAmount}
+        asset={marketAsset}
+        pct={marketPct}
+      />
+      <AdoptionStatsRow
+        label={t("marketParameters.wrappedToken")}
+        amount={sharesAmount}
+        asset={sharesAsset}
+        pct={sharesPct}
+      />
+    </Box>
+  )
+}
 
 export const MarketParameters = ({
   market,
@@ -425,8 +429,8 @@ export const MarketParameters = ({
     if (!periodicWindowTiming || periodicWindowTiming.isTermClosed)
       return undefined
     if (periodicWindowTiming.isOpen && periodicWindowTiming.currentWindowEnd) {
-      return t("marketParameters.periodicTerm.windowStatus.closesIn", {
-        duration: formatCompactDuration(
+      return t("common.labels.timeLeft", {
+        time: formatCompactDuration(
           periodicWindowTiming.currentWindowEnd - nowSec,
         ),
       })

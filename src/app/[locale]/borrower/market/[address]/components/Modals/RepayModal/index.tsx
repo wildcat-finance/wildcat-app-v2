@@ -592,14 +592,15 @@ export const RepayModal = ({
         {mustResetAllowance && (
           <Box width="100%" height="100%" padding="0 24px">
             <Typography variant="text3" color={COLORS.dullRed}>
-              You have an existing allowance of{" "}
-              {market.underlyingToken
-                .getAmount(marketAccount.underlyingApproval)
-                .format(market.underlyingToken.decimals, true)}{" "}
-              for this market.
+              {t("modals.shared.allowanceReset.existing", {
+                amount: market.underlyingToken
+                  .getAmount(marketAccount.underlyingApproval)
+                  .format(market.underlyingToken.decimals, true),
+              })}
               <br />
-              {market.underlyingToken.symbol} requires that allowances be reset
-              to zero prior to being increased.
+              {t("modals.shared.allowanceReset.mustReset", {
+                token: market.underlyingToken.symbol,
+              })}
               <br />
               {t("common.labels.willPromptedExecuteTwoApproval")}
             </Typography>

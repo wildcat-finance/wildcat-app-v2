@@ -1,85 +1,17 @@
 {
   "stats": {
-    "distinctStrings": 203,
-    "keyedSites": 237,
-    "totalSites": 264,
-    "reuse": 36,
-    "override": 7,
-    "common": 15,
-    "scoped": 145,
+    "distinctStrings": 53,
+    "keyedSites": 55,
+    "totalSites": 82,
+    "reuse": 11,
+    "override": 2,
+    "common": 2,
+    "scoped": 38,
     "keysDeeperThan6": 0,
     "deferredFragments": 26,
     "excluded": 1
   },
   "proposal": [
-    {
-      "text": "% APR",
-      "key": "marketList.lender.explore.apr",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/lender/components/ExploreSection/TrendingMarketsCarousel/TrendingMarketsCard/index.tsx",
-          "line": 328,
-          "column": 36,
-          "endLine": 329,
-          "endColumn": 13,
-          "raw": "% APR\n            ",
-          "text": "% APR"
-        }
-      ]
-    },
-    {
-      "text": "+ Add market token",
-      "key": "marketDetails.lender.wrapDebtToken.addMarketToken",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/WrapDebtToken/WrapperHeader/index.tsx",
-          "line": 137,
-          "column": 14,
-          "endLine": 139,
-          "endColumn": 13,
-          "raw": "\n              + Add market token\n            ",
-          "text": "+ Add market token"
-        }
-      ]
-    },
-    {
-      "text": "+ Add wrapped token",
-      "key": "marketDetails.lender.wrapDebtToken.addWrappedToken",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/WrapDebtToken/WrapperHeader/index.tsx",
-          "line": 147,
-          "column": 14,
-          "endLine": 149,
-          "endColumn": 13,
-          "raw": "\n              + Add wrapped token\n            ",
-          "text": "+ Add wrapped token"
-        }
-      ]
-    },
-    {
-      "text": "Accept Borrower Invitation",
-      "key": "borrower.invitation.acceptBorrowerInvitation",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/invitation/components/AcceptInvitationForm/index.tsx",
-          "line": 63,
-          "column": 76,
-          "endLine": 65,
-          "endColumn": 11,
-          "raw": "\n            Accept Borrower Invitation\n          ",
-          "text": "Accept Borrower Invitation"
-        }
-      ]
-    },
     {
       "text": "Access Requirements",
       "key": "borrower.editPolicy.accessControl",
@@ -96,38 +28,6 @@
       ]
     },
     {
-      "text": "Active markets",
-      "key": "common.labels.activeMarkets",
-      "origin": "common",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Profile/ProfilePage/components/OverviewTab/index.tsx",
-          "line": 174,
-          "column": 10,
-          "endLine": 176,
-          "endColumn": 9,
-          "raw": "\n          Active markets\n        ",
-          "text": "Active markets"
-        }
-      ]
-    },
-    {
-      "text": "Active positions",
-      "key": "profile.lender.activePositions",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/LenderProfilePage/components/LenderOverviewTab/index.tsx",
-          "line": 356,
-          "attr": "title",
-          "whole": "title=\"Active positions\"",
-          "text": "Active positions"
-        }
-      ]
-    },
-    {
       "text": "Activity rows and batch amounts use latest available token prices unless an indexed USD daily total is shown.",
       "key": "profile.lender.activityRowsBatchAmountsUse",
       "origin": "scoped",
@@ -139,147 +39,6 @@
           "attr": "subtitle",
           "whole": "subtitle=\"Activity rows and batch amounts use latest available token prices unless an indexed USD daily total is shown.\"",
           "text": "Activity rows and batch amounts use latest available token prices unless an indexed USD daily total is shown."
-        }
-      ]
-    },
-    {
-      "text": "Add markets",
-      "key": "marketList.borrower.addMarkets",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/components/AuthorizedLendersTable/index.tsx",
-          "line": 110,
-          "column": 16,
-          "endLine": 112,
-          "endColumn": 15,
-          "raw": "\n                Add markets\n              ",
-          "text": "Add markets"
-        }
-      ]
-    },
-    {
-      "text": "Admin Panel",
-      "key": "admin.title",
-      "origin": "override",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/admin/page.tsx",
-          "line": 24,
-          "attr": "title",
-          "whole": "title=\"Admin Panel\"",
-          "text": "Admin Panel"
-        }
-      ]
-    },
-    {
-      "text": "Aggregate KPIs unavailable on this network",
-      "key": "common.labels.aggregateKpisUnavailableNetwork",
-      "origin": "common",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/ProfilePage/components/OverviewTab/index.tsx",
-          "line": 90,
-          "attr": "title",
-          "whole": "title=\"Aggregate KPIs unavailable on this network\"",
-          "text": "Aggregate KPIs unavailable on this network"
-        },
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/ProfileSection/AnalyticsProfileSection.tsx",
-          "line": 69,
-          "attr": "title",
-          "whole": "title=\"Aggregate KPIs unavailable on this network\"",
-          "text": "Aggregate KPIs unavailable on this network"
-        }
-      ]
-    },
-    {
-      "text": "Aggregate batch stats",
-      "key": "profile.borrower.aggregateBatchStats",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Profile/ProfilePage/components/WithdrawalsDelinquencyTab/index.tsx",
-          "line": 658,
-          "column": 52,
-          "endLine": 660,
-          "endColumn": 13,
-          "raw": "\n              Aggregate batch stats\n            ",
-          "text": "Aggregate batch stats"
-        }
-      ]
-    },
-    {
-      "text": "All",
-      "key": "common.buttons.all",
-      "origin": "common",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Mobile/MobileMarketList/index.tsx",
-          "line": 266,
-          "column": 37,
-          "endLine": 266,
-          "endColumn": 40,
-          "raw": "All",
-          "text": "All"
-        },
-        {
-          "kind": "jsxText",
-          "file": "src/components/Mobile/MobileMarketList/index.tsx",
-          "line": 283,
-          "column": 37,
-          "endLine": 283,
-          "endColumn": 40,
-          "raw": "All",
-          "text": "All"
-        }
-      ]
-    },
-    {
-      "text": "Allow",
-      "key": "common.consent.allow",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/CookieBanner/index.tsx",
-          "line": 83,
-          "column": 10,
-          "endLine": 85,
-          "endColumn": 9,
-          "raw": "\n          Allow\n        ",
-          "text": "Allow"
-        },
-        {
-          "kind": "jsxText",
-          "file": "src/components/HotjarConsent/index.tsx",
-          "line": 163,
-          "column": 10,
-          "endLine": 165,
-          "endColumn": 9,
-          "raw": "\n          Allow\n        ",
-          "text": "Allow"
-        }
-      ]
-    },
-    {
-      "text": "Amount",
-      "key": "common.fields.amount",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/WrapDebtToken/WrapperSection/index.tsx",
-          "line": 899,
-          "attr": "label",
-          "whole": "label=\"Amount\"",
-          "text": "Amount"
         }
       ]
     },
@@ -336,26 +95,6 @@
       "origin": "reuse",
       "sites": [
         {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/policy/components/LendersTab/components/Modals/FinalModal/index.tsx",
-          "line": 118,
-          "column": 16,
-          "endLine": 120,
-          "endColumn": 15,
-          "raw": "\n                Back\n              ",
-          "text": "Back"
-        },
-        {
-          "kind": "jsxText",
-          "file": "src/components/ToUReacceptanceModal/index.tsx",
-          "line": 596,
-          "column": 14,
-          "endLine": 598,
-          "endColumn": 13,
-          "raw": "\n              Back\n            ",
-          "text": "Back"
-        },
-        {
           "kind": "attr",
           "file": "src/components/Sidebar/BorrowerSidebar/index.tsx",
           "line": 75,
@@ -370,36 +109,6 @@
           "attr": "title",
           "whole": "title=\"Back\"",
           "text": "Back"
-        }
-      ]
-    },
-    {
-      "text": "Balance of market (debt) tokens in your wallet.",
-      "key": "marketDetails.lender.wrapDebtToken.balanceMarketDebtTokensWallet",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/WrapDebtToken/WrapperExchangeBanner/index.tsx",
-          "line": 118,
-          "attr": "tooltip",
-          "whole": "tooltip=\"Balance of market (debt) tokens in your wallet.\"",
-          "text": "Balance of market (debt) tokens in your wallet."
-        }
-      ]
-    },
-    {
-      "text": "Balance of wrapped (ERC-4626 share) tokens in your wallet.",
-      "key": "marketDetails.lender.wrapDebtToken.balanceWrappedErc4626Share",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/WrapDebtToken/WrapperExchangeBanner/index.tsx",
-          "line": 133,
-          "attr": "tooltip",
-          "whole": "tooltip=\"Balance of wrapped (ERC-4626 share) tokens in your wallet.\"",
-          "text": "Balance of wrapped (ERC-4626 share) tokens in your wallet."
         }
       ]
     },
@@ -421,21 +130,6 @@
       ]
     },
     {
-      "text": "Batch outcomes",
-      "key": "profile.borrower.batchOutcomes",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/ProfilePage/components/WithdrawalsDelinquencyTab/index.tsx",
-          "line": 574,
-          "attr": "title",
-          "whole": "title=\"Batch outcomes\"",
-          "text": "Batch outcomes"
-        }
-      ]
-    },
-    {
       "text": "Borrower Declined MLA",
       "key": "marketDetails.borrower.borrowerDeclinedMla",
       "origin": "scoped",
@@ -453,95 +147,6 @@
       ]
     },
     {
-      "text": "Borrower charts",
-      "key": "profile.borrower.borrowerCharts",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/ProfilePage/components/BorrowerChartsTab/index.tsx",
-          "line": 688,
-          "attr": "title",
-          "whole": "title=\"Borrower charts\"",
-          "text": "Borrower charts"
-        }
-      ]
-    },
-    {
-      "text": "Borrower exposure",
-      "key": "profile.lender.borrowerExposure",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/LenderProfilePage/components/LenderOverviewTab/index.tsx",
-          "line": 401,
-          "attr": "title",
-          "whole": "title=\"Borrower exposure\"",
-          "text": "Borrower exposure"
-        }
-      ]
-    },
-    {
-      "text": "Borrower market map",
-      "key": "profile.borrowerMarketMap",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/ProfileSection/components/BorrowerMarketsTreemap/index.tsx",
-          "line": 348,
-          "attr": "title",
-          "whole": "title=\"Borrower market map\"",
-          "text": "Borrower market map"
-        }
-      ]
-    },
-    {
-      "text": "Borrower name",
-      "key": "common.labels.borrowerName",
-      "origin": "common",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/invitation/components/AcceptInvitationForm/index.tsx",
-          "line": 73,
-          "column": 12,
-          "endLine": 75,
-          "endColumn": 11,
-          "raw": "\n            Borrower name\n          ",
-          "text": "Borrower name"
-        }
-      ]
-    },
-    {
-      "text": "Cancel",
-      "key": "common.buttons.cancel2",
-      "origin": "common",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/lender/market/[address]/components/Modals/NonMlaAcknowledgementModal/index.tsx",
-          "line": 185,
-          "column": 12,
-          "endLine": 187,
-          "endColumn": 11,
-          "raw": "\n            Cancel\n          ",
-          "text": "Cancel"
-        },
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/lender/market/[address]/components/Modals/NonMlaAcknowledgementModal/index.tsx",
-          "line": 256,
-          "column": 10,
-          "endLine": 258,
-          "endColumn": 9,
-          "raw": "\n          Cancel\n        ",
-          "text": "Cancel"
-        }
-      ]
-    },
-    {
       "text": "Capacity",
       "key": "common.fields.capacity",
       "origin": "reuse",
@@ -549,204 +154,12 @@
         {
           "kind": "jsxText",
           "file": "src/components/Profile/ProfileSection/components/BorrowerMarketsTreemap/index.tsx",
-          "line": 273,
+          "line": 274,
           "column": 66,
-          "endLine": 275,
+          "endLine": 276,
           "endColumn": 5,
           "raw": "\n      Capacity\n    ",
           "text": "Capacity"
-        }
-      ]
-    },
-    {
-      "text": "Capital-at-risk timeline",
-      "key": "profile.lender.capitalRiskTimeline",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/LenderProfilePage/components/LenderOverviewTab/CapitalAtRiskTimeline.tsx",
-          "line": 336,
-          "attr": "title",
-          "whole": "title=\"Capital-at-risk timeline\"",
-          "text": "Capital-at-risk timeline"
-        }
-      ]
-    },
-    {
-      "text": "Change selected filters or check other sections",
-      "key": "marketList.shared.changeSelectedFiltersCheckOther",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Mobile/MobileMarketList/index.tsx",
-          "line": 414,
-          "column": 66,
-          "endLine": 416,
-          "endColumn": 9,
-          "raw": "\n          Change selected filters or check other sections\n        ",
-          "text": "Change selected filters or check other sections"
-        }
-      ]
-    },
-    {
-      "text": "Checking whether this wallet has an active borrower invitation.",
-      "key": "borrower.invitation.checkingWhetherWalletHasActive",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/borrower/invitation/page.tsx",
-          "line": 58,
-          "attr": "description",
-          "whole": "description=\"Checking whether this wallet has an active borrower invitation.\"",
-          "text": "Checking whether this wallet has an active borrower invitation."
-        }
-      ]
-    },
-    {
-      "text": "Close expanded chart",
-      "key": "profile.closeExpandedChart",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/shared/AnalyticsChartCard.tsx",
-          "line": 198,
-          "attr": "aria-label",
-          "whole": "aria-label=\"Close expanded chart\"",
-          "text": "Close expanded chart"
-        }
-      ]
-    },
-    {
-      "text": "Close",
-      "key": "common.buttons.close",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/ToUReacceptanceModal/index.tsx",
-          "line": 531,
-          "column": 12,
-          "endLine": 533,
-          "endColumn": 11,
-          "raw": "\n            Close\n          ",
-          "text": "Close"
-        }
-      ]
-    },
-    {
-      "text": "Complete Borrower Invitation",
-      "key": "agreement.reacceptance.completeBorrowerInvitation",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/ToUReacceptanceModal/index.tsx",
-          "line": 556,
-          "column": 12,
-          "endLine": 558,
-          "endColumn": 11,
-          "raw": "\n            Complete Borrower Invitation\n          ",
-          "text": "Complete Borrower Invitation"
-        }
-      ]
-    },
-    {
-      "text": "Complete Invitation",
-      "key": "agreement.completeInvitation",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/agreement/components/AgreementPage/index.tsx",
-          "line": 200,
-          "column": 12,
-          "endLine": 202,
-          "endColumn": 11,
-          "raw": "\n            Complete Invitation\n          ",
-          "text": "Complete Invitation"
-        }
-      ]
-    },
-    {
-      "text": "Connect the invited wallet to review and accept your borrower invitation.",
-      "key": "borrower.invitation.connectInvitedWalletReviewAccept",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/borrower/invitation/page.tsx",
-          "line": 50,
-          "attr": "description",
-          "whole": "description=\"Connect the invited wallet to review and accept your borrower invitation.\"",
-          "text": "Connect the invited wallet to review and accept your borrower invitation."
-        }
-      ]
-    },
-    {
-      "text": "Connect wallet",
-      "key": "common.labels.connectWallet",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/borrower/invitation/page.tsx",
-          "line": 49,
-          "attr": "title",
-          "whole": "title=\"Connect wallet\"",
-          "text": "Connect wallet"
-        }
-      ]
-    },
-    {
-      "text": "Connect your wallet to continue",
-      "key": "auth.connectWalletContinue",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/AuthWrapper/index.tsx",
-          "line": 78,
-          "column": 37,
-          "endLine": 78,
-          "endColumn": 68,
-          "raw": "Connect your wallet to continue",
-          "text": "Connect your wallet to continue"
-        }
-      ]
-    },
-    {
-      "text": "Cost of capital and APR drift",
-      "key": "profile.borrower.costCapitalAprDrift",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/ProfilePage/components/BorrowerChartsTab/index.tsx",
-          "line": 659,
-          "attr": "title",
-          "whole": "title=\"Cost of capital and APR drift\"",
-          "text": "Cost of capital and APR drift"
-        }
-      ]
-    },
-    {
-      "text": "Couldn’t verify your Terms of Use status. Check your connection and selected network, then retry.",
-      "key": "agreement.reacceptance.couldnTVerifyTermsUse",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/ToUReacceptanceModal/index.tsx",
-          "line": 223,
-          "column": 69,
-          "endLine": 226,
-          "endColumn": 15,
-          "raw": "\n                Couldn&apos;t verify your Terms of Use status. Check your\n                connection and selected network, then retry.\n              ",
-          "text": "Couldn’t verify your Terms of Use status. Check your connection and selected network, then retry."
         }
       ]
     },
@@ -766,162 +179,6 @@
       ]
     },
     {
-      "text": "Cure speed and realized capital cost across this borrower.",
-      "key": "profile.borrower.cureSpeedRealizedCapitalCost",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/ProfilePage/components/BorrowerChartsTab/index.tsx",
-          "line": 689,
-          "attr": "subtitle",
-          "whole": "subtitle=\"Cure speed and realized capital cost across this borrower.\"",
-          "text": "Cure speed and realized capital cost across this borrower."
-        }
-      ]
-    },
-    {
-      "text": "Currency",
-      "key": "common.fields.currency",
-      "origin": "override",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Mobile/MobileFilterButton/index.tsx",
-          "line": 388,
-          "attr": "label",
-          "whole": "label=\"Currency\"",
-          "text": "Currency"
-        }
-      ]
-    },
-    {
-      "text": "Current queue",
-      "key": "profile.borrower.currentQueue",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Profile/ProfilePage/components/WithdrawalsDelinquencyTab/index.tsx",
-          "line": 701,
-          "column": 52,
-          "endLine": 701,
-          "endColumn": 65,
-          "raw": "Current queue",
-          "text": "Current queue"
-        }
-      ]
-    },
-    {
-      "text": "Currently, you can only view general information about the market.",
-      "key": "marketDetails.lender.currentlyCanOnlyViewGeneral",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/lender/market/[address]/components/SwitchChainAlert/index.tsx",
-          "line": 62,
-          "column": 12,
-          "endLine": 64,
-          "endColumn": 13,
-          "raw": "\n            Currently, you can only view general information about the market.\n            ",
-          "text": "Currently, you can only view general information about the market."
-        },
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/lender/market/[address]/components/SwitchChainAlert/index.tsx",
-          "line": 101,
-          "column": 55,
-          "endLine": 103,
-          "endColumn": 13,
-          "raw": "\n            Currently, you can only view general information about the market.\n            ",
-          "text": "Currently, you can only view general information about the market."
-        }
-      ]
-    },
-    {
-      "text": "Decline",
-      "key": "common.buttons.decline",
-      "origin": "common",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/CookieBanner/index.tsx",
-          "line": 91,
-          "column": 10,
-          "endLine": 93,
-          "endColumn": 9,
-          "raw": "\n          Decline\n        ",
-          "text": "Decline"
-        },
-        {
-          "kind": "jsxText",
-          "file": "src/components/HotjarConsent/index.tsx",
-          "line": 171,
-          "column": 10,
-          "endLine": 173,
-          "endColumn": 9,
-          "raw": "\n          Decline\n        ",
-          "text": "Decline"
-        },
-        {
-          "kind": "jsxText",
-          "file": "src/components/ToUReacceptanceModal/index.tsx",
-          "line": 580,
-          "column": 16,
-          "endLine": 582,
-          "endColumn": 15,
-          "raw": "\n                Decline\n              ",
-          "text": "Decline"
-        }
-      ]
-    },
-    {
-      "text": "Delinquency cure velocity",
-      "key": "profile.borrower.delinquencyCureVelocity",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/ProfilePage/components/BorrowerChartsTab/index.tsx",
-          "line": 621,
-          "attr": "title",
-          "whole": "title=\"Delinquency cure velocity\"",
-          "text": "Delinquency cure velocity"
-        }
-      ]
-    },
-    {
-      "text": "Delinquency track record",
-      "key": "profile.borrower.delinquencyTrackRecord",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/ProfilePage/components/WithdrawalsDelinquencyTab/index.tsx",
-          "line": 749,
-          "attr": "title",
-          "whole": "title=\"Delinquency track record\"",
-          "text": "Delinquency track record"
-        }
-      ]
-    },
-    {
-      "text": "Delinquent hours by market",
-      "key": "profile.borrower.delinquentHoursMarket",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/ProfilePage/components/WithdrawalsDelinquencyTab/index.tsx",
-          "line": 491,
-          "attr": "title",
-          "whole": "title=\"Delinquent hours by market\"",
-          "text": "Delinquent hours by market"
-        }
-      ]
-    },
-    {
       "text": "Deposit & Withdrawal Activity",
       "key": "profile.lender.depositWithdrawalActivity",
       "origin": "scoped",
@@ -933,38 +190,6 @@
           "attr": "title",
           "whole": "title=\"Deposit & Withdrawal Activity\"",
           "text": "Deposit & Withdrawal Activity"
-        }
-      ]
-    },
-    {
-      "text": "Deposit",
-      "key": "common.labels.deposit",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/lender/components/ExploreSection/TrendingMarketsCarousel/TrendingMarketsCard/index.tsx",
-          "line": 338,
-          "column": 14,
-          "endLine": 340,
-          "endColumn": 13,
-          "raw": "\n              Deposit\n            ",
-          "text": "Deposit"
-        }
-      ]
-    },
-    {
-      "text": "Description",
-      "key": "common.fields.description",
-      "origin": "common",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/lender/market/[address]/components/Modals/MobileMarketDescriptionModal/index.tsx",
-          "line": 48,
-          "attr": "label",
-          "whole": "label=\"Description\"",
-          "text": "Description"
         }
       ]
     },
@@ -984,40 +209,6 @@
       ]
     },
     {
-      "text": "Download PDF",
-      "key": "common.buttons.downloadPdf",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/lender/market/[address]/components/mobile/MobileMlaModal/MobileMlaModal.tsx",
-          "line": 122,
-          "column": 12,
-          "endLine": 124,
-          "endColumn": 11,
-          "raw": "\n            Download PDF\n          ",
-          "text": "Download PDF"
-        }
-      ]
-    },
-    {
-      "text": "Download Signed MLA",
-      "key": "common.buttons.downloadSignedMla",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/lender/market/[address]/components/mobile/MobileMlaModal/MobileMlaModal.tsx",
-          "line": 135,
-          "column": 12,
-          "endLine": 137,
-          "endColumn": 11,
-          "raw": "\n            Download Signed MLA\n          ",
-          "text": "Download Signed MLA"
-        }
-      ]
-    },
-    {
       "text": "Duration of the longest single delinquency event.",
       "key": "marketDetails.lender.durationLongestSingleDelinquencyEvent",
       "origin": "scoped",
@@ -1029,23 +220,6 @@
           "attr": "tooltip",
           "whole": "tooltip=\"Duration of the longest single delinquency event.\"",
           "text": "Duration of the longest single delinquency event."
-        }
-      ]
-    },
-    {
-      "text": "Earn",
-      "key": "marketList.lender.explore.earn",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/lender/components/ExploreSection/TrendingMarketsCarousel/TrendingMarketsCard/index.tsx",
-          "line": 327,
-          "column": 14,
-          "endLine": 328,
-          "endColumn": 20,
-          "raw": "\n              Earn ",
-          "text": "Earn"
         }
       ]
     },
@@ -1067,85 +241,6 @@
       ]
     },
     {
-      "text": "Edit Lenders List",
-      "key": "marketList.borrower.editLendersList",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/components/LendersSection/index.tsx",
-          "line": 163,
-          "column": 16,
-          "endLine": 165,
-          "endColumn": 15,
-          "raw": "\n                Edit Lenders List\n              ",
-          "text": "Edit Lenders List"
-        }
-      ]
-    },
-    {
-      "text": "Estimates may change with the current conversion rate.",
-      "key": "marketDetails.lender.wrapDebtToken.estimatesMayChangeCurrentConversion",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/WrapDebtToken/WrapperSection/index.tsx",
-          "line": 954,
-          "column": 20,
-          "endLine": 956,
-          "endColumn": 19,
-          "raw": "\n                    Estimates may change with the current conversion rate.\n                  ",
-          "text": "Estimates may change with the current conversion rate."
-        }
-      ]
-    },
-    {
-      "text": "Expand chart",
-      "key": "profile.expandChart",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/shared/AnalyticsChartCard.tsx",
-          "line": 126,
-          "attr": "aria-label",
-          "whole": "aria-label=\"Expand chart\"",
-          "text": "Expand chart"
-        }
-      ]
-    },
-    {
-      "text": "Expired batch outcomes and current withdrawal queue.",
-      "key": "profile.borrower.expiredBatchOutcomesCurrentWithdrawal",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/ProfilePage/components/WithdrawalsDelinquencyTab/index.tsx",
-          "line": 778,
-          "attr": "subtitle",
-          "whole": "subtitle=\"Expired batch outcomes and current withdrawal queue.\"",
-          "text": "Expired batch outcomes and current withdrawal queue."
-        }
-      ]
-    },
-    {
-      "text": "Expired withdrawal batches split by paid, late-paid, and unpaid value.",
-      "key": "profile.borrower.expiredWithdrawalBatchesSplitPaid",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/ProfilePage/components/WithdrawalsDelinquencyTab/index.tsx",
-          "line": 575,
-          "attr": "description",
-          "whole": "description=\"Expired withdrawal batches split by paid, late-paid, and unpaid value.\"",
-          "text": "Expired withdrawal batches split by paid, late-paid, and unpaid value."
-        }
-      ]
-    },
-    {
       "text": "Expires",
       "key": "profile.lender.expires",
       "origin": "scoped",
@@ -1159,21 +254,6 @@
           "endColumn": 31,
           "raw": "\n                      Expires ",
           "text": "Expires"
-        }
-      ]
-    },
-    {
-      "text": "Exposure by market state, queued withdrawals, and penalty fees earned.",
-      "key": "profile.lender.exposureMarketStateQueuedWithdrawals",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/LenderProfilePage/components/LenderOverviewTab/CapitalAtRiskTimeline.tsx",
-          "line": 337,
-          "attr": "description",
-          "whole": "description=\"Exposure by market state, queued withdrawals, and penalty fees earned.\"",
-          "text": "Exposure by market state, queued withdrawals, and penalty fees earned."
         }
       ]
     },
@@ -1195,26 +275,9 @@
       ]
     },
     {
-      "text": "Failed to load lender profile analytics for this address.",
-      "key": "profile.lender.failedLoadLenderProfileAnalytics",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Profile/LenderProfilePage/index.tsx",
-          "line": 65,
-          "column": 10,
-          "endLine": 67,
-          "endColumn": 9,
-          "raw": "\n          Failed to load lender profile analytics for this address.\n        ",
-          "text": "Failed to load lender profile analytics for this address."
-        }
-      ]
-    },
-    {
       "text": "Filters",
       "key": "common.labels.filters",
-      "origin": "override",
+      "origin": "reuse",
       "sites": [
         {
           "kind": "jsxText",
@@ -1225,63 +288,6 @@
           "endColumn": 9,
           "raw": "\n          Filters\n        ",
           "text": "Filters"
-        },
-        {
-          "kind": "jsxText",
-          "file": "src/components/Mobile/MobileFilterButton/index.tsx",
-          "line": 230,
-          "column": 70,
-          "endLine": 232,
-          "endColumn": 13,
-          "raw": "\n              Filters\n            ",
-          "text": "Filters"
-        }
-      ]
-    },
-    {
-      "text": "Fire icon",
-      "key": "common.labels.fireIconAlt",
-      "origin": "override",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/@extended/MarketStatusChip/index.tsx",
-          "line": 62,
-          "attr": "alt",
-          "whole": "alt=\"Fire icon\"",
-          "text": "Fire icon"
-        }
-      ]
-    },
-    {
-      "text": "Fixed",
-      "key": "marketList.shared.fixed",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Mobile/MobileMarketList/index.tsx",
-          "line": 285,
-          "column": 39,
-          "endLine": 285,
-          "endColumn": 44,
-          "raw": "Fixed",
-          "text": "Fixed"
-        }
-      ]
-    },
-    {
-      "text": "Go to MLA Settings",
-      "key": "marketDetails.borrower.goMlaSettings",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/borrower/market/[address]/page.tsx",
-          "line": 280,
-          "attr": "buttonText",
-          "whole": "buttonText=\"Go to MLA Settings\"",
-          "text": "Go to MLA Settings"
         }
       ]
     },
@@ -1303,31 +309,6 @@
       ]
     },
     {
-      "text": "Healthy",
-      "key": "common.labels.healthy",
-      "origin": "override",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Mobile/MobileMarketList/index.tsx",
-          "line": 267,
-          "column": 41,
-          "endLine": 267,
-          "endColumn": 48,
-          "raw": "Healthy",
-          "text": "Healthy"
-        },
-        {
-          "kind": "attr",
-          "file": "src/components/@extended/MarketStatusChip/HealthyStatusChip/index.tsx",
-          "line": 51,
-          "attr": "label",
-          "whole": "label=\"Healthy\"",
-          "text": "Healthy"
-        }
-      ]
-    },
-    {
       "text": "Hide terminated markets",
       "key": "profile.hideTerminatedMarkets",
       "origin": "scoped",
@@ -1335,7 +316,7 @@
         {
           "kind": "attr",
           "file": "src/components/Profile/ProfileSection/components/BorrowerMarketsTreemap/index.tsx",
-          "line": 294,
+          "line": 295,
           "attr": "aria-label",
           "whole": "aria-label=\"Hide terminated markets\"",
           "text": "Hide terminated markets"
@@ -1350,27 +331,12 @@
         {
           "kind": "jsxText",
           "file": "src/components/Profile/ProfileSection/components/BorrowerMarketsTreemap/index.tsx",
-          "line": 311,
+          "line": 312,
           "column": 4,
-          "endLine": 313,
+          "endLine": 314,
           "endColumn": 3,
           "raw": "\n    Hide terminated\n  ",
           "text": "Hide terminated"
-        }
-      ]
-    },
-    {
-      "text": "Historical Borrower Exposure",
-      "key": "profile.lender.historicalBorrowerExposure",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/LenderProfilePage/components/LenderOverviewTab/index.tsx",
-          "line": 432,
-          "attr": "title",
-          "whole": "title=\"Historical Borrower Exposure\"",
-          "text": "Historical Borrower Exposure"
         }
       ]
     },
@@ -1390,183 +356,6 @@
       ]
     },
     {
-      "text": "Hop on a desktop or laptop instead: we are aiming to sort this out in time.",
-      "key": "marketList.borrower.hopDesktopLaptopInsteadWe",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/page.tsx",
-          "line": 116,
-          "column": 66,
-          "endLine": 119,
-          "endColumn": 9,
-          "raw": "\n          Hop on a desktop or laptop instead: we are aiming to sort this out in\n          time.\n        ",
-          "text": "Hop on a desktop or laptop instead: we are aiming to sort this out in time."
-        }
-      ]
-    },
-    {
-      "text": "How often markets fell delinquent and how long they took to recover.",
-      "key": "profile.borrower.howOftenMarketsFellDelinquent",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/ProfilePage/components/WithdrawalsDelinquencyTab/index.tsx",
-          "line": 750,
-          "attr": "subtitle",
-          "whole": "subtitle=\"How often markets fell delinquent and how long they took to recover.\"",
-          "text": "How often markets fell delinquent and how long they took to recover."
-        }
-      ]
-    },
-    {
-      "text": "Interest breakdown",
-      "key": "profile.lender.interestBreakdown",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/LenderProfilePage/components/MarketsInterestTab/index.tsx",
-          "line": 274,
-          "attr": "title",
-          "whole": "title=\"Interest breakdown\"",
-          "text": "Interest breakdown"
-        }
-      ]
-    },
-    {
-      "text": "Interest by position",
-      "key": "profile.lender.interestPosition",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Profile/LenderProfilePage/components/MarketsInterestTab/index.tsx",
-          "line": 290,
-          "column": 52,
-          "endLine": 292,
-          "endColumn": 13,
-          "raw": "\n              Interest by position\n            ",
-          "text": "Interest by position"
-        }
-      ]
-    },
-    {
-      "text": "Interest earned alongside deposit activity and withdrawal pressure.",
-      "key": "profile.lender.interestEarnedAlongsideDepositActivity",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/LenderProfilePage/components/LenderOverviewTab/RiskReturnsChart.tsx",
-          "line": 461,
-          "attr": "description",
-          "whole": "description=\"Interest earned alongside deposit activity and withdrawal pressure.\"",
-          "text": "Interest earned alongside deposit activity and withdrawal pressure."
-        }
-      ]
-    },
-    {
-      "text": "Interest, protocol fees, delinquency fees, and effective APR.",
-      "key": "profile.borrower.interestProtocolFeesDelinquencyFees",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/ProfilePage/components/BorrowerChartsTab/index.tsx",
-          "line": 660,
-          "attr": "description",
-          "whole": "description=\"Interest, protocol fees, delinquency fees, and effective APR.\"",
-          "text": "Interest, protocol fees, delinquency fees, and effective APR."
-        }
-      ]
-    },
-    {
-      "text": "Issues",
-      "key": "marketList.shared.issues",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Mobile/MobileMarketList/index.tsx",
-          "line": 268,
-          "column": 40,
-          "endLine": 268,
-          "endColumn": 46,
-          "raw": "Issues",
-          "text": "Issues"
-        }
-      ]
-    },
-    {
-      "text": "Learn more",
-      "key": "common.buttons.learnMore",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/components/LendersSection/index.tsx",
-          "line": 179,
-          "column": 12,
-          "endLine": 181,
-          "endColumn": 11,
-          "raw": "\n            Learn more\n          ",
-          "text": "Learn more"
-        }
-      ]
-    },
-    {
-      "text": "Lender Profile",
-      "key": "profile.lender.lenderProfile",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Profile/LenderProfilePage/components/LenderOverviewTab/LenderOverviewHeader.tsx",
-          "line": 149,
-          "column": 10,
-          "endLine": 151,
-          "endColumn": 9,
-          "raw": "\n          Lender Profile\n        ",
-          "text": "Lender Profile"
-        }
-      ]
-    },
-    {
-      "text": "Lender analytics unavailable on this network",
-      "key": "profile.lender.lenderAnalyticsUnavailableNetwork",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/LenderProfilePage/index.tsx",
-          "line": 124,
-          "attr": "title",
-          "whole": "title=\"Lender analytics unavailable on this network\"",
-          "text": "Lender analytics unavailable on this network"
-        }
-      ]
-    },
-    {
-      "text": "Lender",
-      "key": "common.fields.lender",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Profile/LenderProfilePage/components/LenderOverviewTab/LenderOverviewHeader.tsx",
-          "line": 197,
-          "column": 69,
-          "endLine": 199,
-          "endColumn": 15,
-          "raw": "\n                Lender\n              ",
-          "text": "Lender"
-        }
-      ]
-    },
-    {
       "text": "Lenders may receive additional incentives distributed by external partners or protocol initiatives. These incentives are optional, variable, and not part of the core lending terms. Wildcat does not guarantee the program and accepts no liability.",
       "key": "marketDetails.shared.banners.lendersMayReceiveAdditionalIncentives",
       "origin": "scoped",
@@ -1580,114 +369,6 @@
           "endColumn": 5,
           "raw": "\n      Lenders may receive additional incentives distributed by external partners\n      or protocol initiatives. These incentives are optional, variable, and not\n      part of the core lending terms. Wildcat does not guarantee the program and\n      accepts no liability.\n    ",
           "text": "Lenders may receive additional incentives distributed by external partners or protocol initiatives. These incentives are optional, variable, and not part of the core lending terms. Wildcat does not guarantee the program and accepts no liability."
-        }
-      ]
-    },
-    {
-      "text": "Lenders were edited!",
-      "key": "borrower.policies.lendersWereEdited",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/policy/components/LendersTab/components/Modals/FinalModal/index.tsx",
-          "line": 153,
-          "column": 44,
-          "endLine": 153,
-          "endColumn": 64,
-          "raw": "Lenders were edited!",
-          "text": "Lenders were edited!"
-        }
-      ]
-    },
-    {
-      "text": "Lenders were successfully edited: the rest is up to you!",
-      "key": "borrower.policies.lendersWereSuccessfullyEditedRest",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/policy/components/LendersTab/components/Modals/FinalModal/index.tsx",
-          "line": 154,
-          "column": 63,
-          "endLine": 156,
-          "endColumn": 15,
-          "raw": "\n                Lenders were successfully edited: the rest is up to you!\n              ",
-          "text": "Lenders were successfully edited: the rest is up to you!"
-        }
-      ]
-    },
-    {
-      "text": "Lenders",
-      "key": "common.placeholders.lenders",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/components/LendersSection/index.tsx",
-          "line": 149,
-          "column": 69,
-          "endLine": 151,
-          "endColumn": 11,
-          "raw": "\n            Lenders\n          ",
-          "text": "Lenders"
-        },
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/borrower/components/LendersSection/index.tsx",
-          "line": 199,
-          "attr": "placeholder",
-          "whole": "placeholder=\"Lenders\"",
-          "text": "Lenders"
-        }
-      ]
-    },
-    {
-      "text": "List of lenders that’s applied to your markets.",
-      "key": "marketList.borrower.listLendersSAppliedMarkets",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/components/LendersSection/index.tsx",
-          "line": 173,
-          "column": 10,
-          "endLine": 174,
-          "endColumn": 58,
-          "raw": "\n          List of lenders that’s applied to your markets.",
-          "text": "List of lenders that’s applied to your markets."
-        }
-      ]
-    },
-    {
-      "text": "Loading invitation",
-      "key": "borrower.invitation.loadingInvitation",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/borrower/invitation/page.tsx",
-          "line": 57,
-          "attr": "title",
-          "whole": "title=\"Loading invitation\"",
-          "text": "Loading invitation"
-        }
-      ]
-    },
-    {
-      "text": "Loading market details…",
-      "key": "common.labels.loadingMarketDetails",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/market/[address]/page.tsx",
-          "line": 216,
-          "column": 10,
-          "endLine": 218,
-          "endColumn": 9,
-          "raw": "\n          Loading market details…\n        ",
-          "text": "Loading market details…"
         }
       ]
     },
@@ -1724,65 +405,8 @@
       ]
     },
     {
-      "text": "Manage Tracking",
-      "key": "common.consent.manageTracking",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/HotjarConsent/index.tsx",
-          "line": 151,
-          "column": 71,
-          "endLine": 153,
-          "endColumn": 7,
-          "raw": "\n        Manage Tracking\n      ",
-          "text": "Manage Tracking"
-        }
-      ]
-    },
-    {
-      "text": "Market Description",
-      "key": "common.fields.marketDescription",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/MarketHeader/index.tsx",
-          "line": 257,
-          "column": 14,
-          "endLine": 259,
-          "endColumn": 13,
-          "raw": "\n              Market Description\n            ",
-          "text": "Market Description"
-        }
-      ]
-    },
-    {
-      "text": "Market Lending Agreement",
-      "key": "common.fields.marketLendingAgreement",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/lender/market/[address]/components/mobile/MobileMlaModal/MobileMlaModal.tsx",
-          "line": 90,
-          "attr": "label",
-          "whole": "label=\"Market Lending Agreement\"",
-          "text": "Market Lending Agreement"
-        },
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/lender/market/[address]/components/mobile/MobileMlaModal/MobileMlaModal.tsx",
-          "line": 108,
-          "attr": "title",
-          "whole": "title=\"Market Lending Agreement\"",
-          "text": "Market Lending Agreement"
-        }
-      ]
-    },
-    {
       "text": "Market Term",
-      "key": "borrower.createMarket.confirm.typeTerms",
+      "key": "common.fields.marketTerm",
       "origin": "reuse",
       "sites": [
         {
@@ -1796,120 +420,10 @@
       ]
     },
     {
-      "text": "Market history",
-      "key": "common.labels.marketHistory",
-      "origin": "common",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/LenderProfilePage/components/MarketsInterestTab/index.tsx",
-          "line": 430,
-          "attr": "title",
-          "whole": "title=\"Market history\"",
-          "text": "Market history"
-        }
-      ]
-    },
-    {
-      "text": "Market tokens",
-      "key": "marketDetails.lender.wrapDebtToken.marketTokens",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/WrapDebtToken/WrapperExchangeBanner/index.tsx",
-          "line": 117,
-          "attr": "title",
-          "whole": "title=\"Market tokens\"",
-          "text": "Market tokens"
-        }
-      ]
-    },
-    {
-      "text": "Market",
-      "key": "profile.lender.market",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Profile/LenderProfilePage/components/LenderOverviewTab/RiskReturnsChart.tsx",
-          "line": 482,
-          "column": 12,
-          "endLine": 484,
-          "endColumn": 11,
-          "raw": "\n            Market\n          ",
-          "text": "Market"
-        }
-      ]
-    },
-    {
-      "text": "Markets ranked by total time spent delinquent.",
-      "key": "profile.borrower.marketsRankedTotalTimeSpent",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/ProfilePage/components/WithdrawalsDelinquencyTab/index.tsx",
-          "line": 492,
-          "attr": "description",
-          "whole": "description=\"Markets ranked by total time spent delinquent.\"",
-          "text": "Markets ranked by total time spent delinquent."
-        }
-      ]
-    },
-    {
-      "text": "Markets",
-      "key": "common.placeholders.markets2",
-      "origin": "common",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/borrower/components/LendersSection/index.tsx",
-          "line": 192,
-          "attr": "placeholder",
-          "whole": "placeholder=\"Markets\"",
-          "text": "Markets"
-        },
-        {
-          "kind": "attr",
-          "file": "src/components/Mobile/MobileFilterButton/index.tsx",
-          "line": 293,
-          "attr": "label",
-          "whole": "label=\"Markets\"",
-          "text": "Markets"
-        }
-      ]
-    },
-    {
-      "text": "Max",
-      "key": "common.buttons.max",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/WrapDebtToken/WrapperSection/index.tsx",
-          "line": 910,
-          "attr": "buttonText",
-          "whole": "buttonText=\"Max\"",
-          "text": "Max"
-        }
-      ]
-    },
-    {
       "text": "Next",
       "key": "common.buttons.next",
       "origin": "reuse",
       "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Mobile/MobileMarketList/index.tsx",
-          "line": 634,
-          "column": 12,
-          "endLine": 636,
-          "endColumn": 11,
-          "raw": "\n            Next\n          ",
-          "text": "Next"
-        },
         {
           "kind": "jsxText",
           "file": "src/components/Profile/shared/AnalyticsDataGrid.tsx",
@@ -1967,180 +481,6 @@
       ]
     },
     {
-      "text": "No Markets Here",
-      "key": "marketList.shared.noMarketsHere",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Mobile/MobileMarketList/index.tsx",
-          "line": 413,
-          "column": 37,
-          "endLine": 413,
-          "endColumn": 52,
-          "raw": "No Markets Here",
-          "text": "No Markets Here"
-        }
-      ]
-    },
-    {
-      "text": "No Master Loan Agreement",
-      "key": "marketDetails.lender.noMasterLoanAgreement",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/lender/market/[address]/components/Modals/NonMlaAcknowledgementModal/index.tsx",
-          "line": 145,
-          "attr": "label",
-          "whole": "label=\"No Master Loan Agreement\"",
-          "text": "No Master Loan Agreement"
-        },
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/lender/market/[address]/components/Modals/NonMlaAcknowledgementModal/index.tsx",
-          "line": 220,
-          "attr": "title",
-          "whole": "title=\"No Master Loan Agreement\"",
-          "text": "No Master Loan Agreement"
-        }
-      ]
-    },
-    {
-      "text": "No active markets found for this borrower on the selected network.",
-      "key": "profile.borrower.noActiveMarketsFoundBorrower",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Profile/ProfilePage/components/OverviewTab/index.tsx",
-          "line": 180,
-          "column": 65,
-          "endLine": 182,
-          "endColumn": 11,
-          "raw": "\n            No active markets found for this borrower on the selected network.\n          ",
-          "text": "No active markets found for this borrower on the selected network."
-        }
-      ]
-    },
-    {
-      "text": "No claimable withdrawals.",
-      "key": "common.labels.noClaimableWithdrawals",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/ClaimableTable/index.tsx",
-          "line": 228,
-          "column": 65,
-          "endLine": 230,
-          "endColumn": 11,
-          "raw": "\n            No claimable withdrawals.\n          ",
-          "text": "No claimable withdrawals."
-        }
-      ]
-    },
-    {
-      "text": "No daily risk and return history found for this market.",
-      "key": "profile.lender.noDailyRiskReturnHistory",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Profile/LenderProfilePage/components/LenderOverviewTab/RiskReturnsChart.tsx",
-          "line": 429,
-          "column": 10,
-          "endLine": 431,
-          "endColumn": 9,
-          "raw": "\n          No daily risk and return history found for this market.\n        ",
-          "text": "No daily risk and return history found for this market."
-        }
-      ]
-    },
-    {
-      "text": "No interest earned yet for this lender.",
-      "key": "profile.lender.noInterestEarnedYetLender",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Profile/LenderProfilePage/components/MarketsInterestTab/index.tsx",
-          "line": 386,
-          "column": 67,
-          "endLine": 388,
-          "endColumn": 13,
-          "raw": "\n              No interest earned yet for this lender.\n            ",
-          "text": "No interest earned yet for this lender."
-        }
-      ]
-    },
-    {
-      "text": "No invitation found",
-      "key": "borrower.invitation.noInvitationFound",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/borrower/invitation/page.tsx",
-          "line": 65,
-          "attr": "title",
-          "whole": "title=\"No invitation found\"",
-          "text": "No invitation found"
-        }
-      ]
-    },
-    {
-      "text": "No markets found for this borrower on the selected network.",
-      "key": "profile.noMarketsFoundBorrowerSelected",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Profile/ProfileSection/components/BorrowerMarketsTreemap/index.tsx",
-          "line": 340,
-          "column": 61,
-          "endLine": 342,
-          "endColumn": 7,
-          "raw": "\n        No markets found for this borrower on the selected network.\n      ",
-          "text": "No markets found for this borrower on the selected network."
-        }
-      ]
-    },
-    {
-      "text": "No markets match the current filters.",
-      "key": "marketList.shared.noMarketsMatchCurrentFilters",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Mobile/MobileMarketList/index.tsx",
-          "line": 451,
-          "column": 70,
-          "endLine": 453,
-          "endColumn": 13,
-          "raw": "\n              No markets match the current filters.\n            ",
-          "text": "No markets match the current filters."
-        }
-      ]
-    },
-    {
-      "text": "No markets yet",
-      "key": "marketList.borrower.noMarketsYet",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/components/AuthorizedLendersTable/index.tsx",
-          "line": 101,
-          "column": 67,
-          "endLine": 103,
-          "endColumn": 13,
-          "raw": "\n              No markets yet\n            ",
-          "text": "No markets yet"
-        }
-      ]
-    },
-    {
       "text": "Not enough historical activity to chart cash flow yet.",
       "key": "profile.lender.notEnoughHistoricalActivityChart",
       "origin": "scoped",
@@ -2188,72 +528,6 @@
       ]
     },
     {
-      "text": "Onboard by Borrower",
-      "key": "marketList.shared.tables.other.manual",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Mobile/MobileFilterButton/index.tsx",
-          "line": 277,
-          "attr": "label",
-          "whole": "label=\"Onboard by Borrower\"",
-          "text": "Onboard by Borrower"
-        }
-      ]
-    },
-    {
-      "text": "Only authorized lenders can access the wrapper.",
-      "key": "marketDetails.lender.onlyAuthorizedLendersCanAccess",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/lender/market/[address]/components/WrapDebtToken/index.tsx",
-          "line": 137,
-          "column": 59,
-          "endLine": 139,
-          "endColumn": 9,
-          "raw": "\n          Only authorized lenders can access the wrapper.\n        ",
-          "text": "Only authorized lenders can access the wrapper."
-        }
-      ]
-    },
-    {
-      "text": "Oops! Something goes wrong.",
-      "key": "marketDetails.lender.wrapDebtToken.oopsSomethingGoesWrong",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/WrapDebtToken/ErrorWrapperAlert/index.tsx",
-          "line": 51,
-          "column": 58,
-          "endLine": 52,
-          "endColumn": 37,
-          "raw": "\n        Oops! Something goes wrong. ",
-          "text": "Oops! Something goes wrong."
-        }
-      ]
-    },
-    {
-      "text": "Open",
-      "key": "common.buttons.open",
-      "origin": "common",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Mobile/MobileMarketList/index.tsx",
-          "line": 284,
-          "column": 38,
-          "endLine": 284,
-          "endColumn": 42,
-          "raw": "Open",
-          "text": "Open"
-        }
-      ]
-    },
-    {
       "text": "Original Token",
       "key": "marketParameters.originalToken",
       "origin": "scoped",
@@ -2285,7 +559,7 @@
     },
     {
       "text": "Policy Name",
-      "key": "borrower.createMarket.policy.name.label",
+      "key": "common.fields.policyName",
       "origin": "reuse",
       "sites": [
         {
@@ -2299,37 +573,10 @@
       ]
     },
     {
-      "text": "Portfolio overview and position details for this lender",
-      "key": "profile.lender.portfolioOverviewPositionDetailsLender",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Profile/LenderProfilePage/components/LenderOverviewTab/LenderOverviewHeader.tsx",
-          "line": 152,
-          "column": 79,
-          "endLine": 154,
-          "endColumn": 9,
-          "raw": "\n          Portfolio overview and position details for this lender\n        ",
-          "text": "Portfolio overview and position details for this lender"
-        }
-      ]
-    },
-    {
       "text": "Prev",
       "key": "common.buttons.prev",
       "origin": "reuse",
       "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Mobile/MobileMarketList/index.tsx",
-          "line": 558,
-          "column": 12,
-          "endLine": 560,
-          "endColumn": 11,
-          "raw": "\n            Prev\n          ",
-          "text": "Prev"
-        },
         {
           "kind": "jsxText",
           "file": "src/components/Profile/shared/AnalyticsDataGrid.tsx",
@@ -2360,21 +607,6 @@
       ]
     },
     {
-      "text": "Reason (optional)",
-      "key": "agreement.reacceptance.reasonOptional",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/ToUReacceptanceModal/index.tsx",
-          "line": 501,
-          "attr": "label",
-          "whole": "label=\"Reason (optional)\"",
-          "text": "Reason (optional)"
-        }
-      ]
-    },
-    {
       "text": "Request withdrawal at any time",
       "key": "marketDetails.shared.banners.requestWithdrawalAnyTime",
       "origin": "scoped",
@@ -2393,19 +625,9 @@
     },
     {
       "text": "Reset",
-      "key": "common.buttons.reset2",
-      "origin": "common",
+      "key": "common.buttons.reset",
+      "origin": "reuse",
       "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/MarketsFilterSelect/index.tsx",
-          "line": 163,
-          "column": 8,
-          "endLine": 165,
-          "endColumn": 7,
-          "raw": "\n        Reset\n      ",
-          "text": "Reset"
-        },
         {
           "kind": "jsxText",
           "file": "src/components/Mobile/MarketAssetsStatusesFilter/index.tsx",
@@ -2415,316 +637,6 @@
           "endColumn": 42,
           "raw": "Reset",
           "text": "Reset"
-        },
-        {
-          "kind": "jsxText",
-          "file": "src/components/Mobile/MobileFilterButton/index.tsx",
-          "line": 442,
-          "column": 12,
-          "endLine": 444,
-          "endColumn": 11,
-          "raw": "\n            Reset\n          ",
-          "text": "Reset"
-        },
-        {
-          "kind": "jsxText",
-          "file": "src/components/Mobile/MobileSearchButton/index.tsx",
-          "line": 265,
-          "column": 12,
-          "endLine": 267,
-          "endColumn": 11,
-          "raw": "\n            Reset\n          ",
-          "text": "Reset"
-        },
-        {
-          "kind": "jsxText",
-          "file": "src/components/SmallFilterSelect/index.tsx",
-          "line": 405,
-          "column": 10,
-          "endLine": 407,
-          "endColumn": 9,
-          "raw": "\n          Reset\n        ",
-          "text": "Reset"
-        }
-      ]
-    },
-    {
-      "text": "Retry",
-      "key": "common.buttons.retry",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/agreement/components/AgreementPage/index.tsx",
-          "line": 216,
-          "column": 12,
-          "endLine": 218,
-          "endColumn": 11,
-          "raw": "\n            Retry\n          ",
-          "text": "Retry"
-        },
-        {
-          "kind": "jsxText",
-          "file": "src/components/ToUReacceptanceModal/index.tsx",
-          "line": 234,
-          "column": 16,
-          "endLine": 236,
-          "endColumn": 15,
-          "raw": "\n                Retry\n              ",
-          "text": "Retry"
-        }
-      ]
-    },
-    {
-      "text": "Review Terms of Use",
-      "key": "common.buttons.reviewTermsUse",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/ToUReacceptanceModal/index.tsx",
-          "line": 542,
-          "column": 12,
-          "endLine": 544,
-          "endColumn": 11,
-          "raw": "\n            Review Terms of Use\n          ",
-          "text": "Review Terms of Use"
-        }
-      ]
-    },
-    {
-      "text": "Rewards APR",
-      "key": "marketDetails.shared.banners.rewardsApr",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/AdsBanners/Common/ProposalMarketParameter/index.tsx",
-          "line": 47,
-          "column": 12,
-          "endLine": 49,
-          "endColumn": 11,
-          "raw": "\n            Rewards APR\n          ",
-          "text": "Rewards APR"
-        }
-      ]
-    },
-    {
-      "text": "Search by Name",
-      "key": "common.placeholders.searchByName",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/borrower/components/LendersSection/index.tsx",
-          "line": 188,
-          "attr": "placeholder",
-          "whole": "placeholder=\"Search by Name\"",
-          "text": "Search by Name"
-        },
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/borrower/edit-lenders-list/components/MarketSelect/index.tsx",
-          "line": 141,
-          "attr": "placeholder",
-          "whole": "placeholder=\"Search by Name\"",
-          "text": "Search by Name"
-        },
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/borrower/policy/components/PolicySelect/index.tsx",
-          "line": 148,
-          "attr": "placeholder",
-          "whole": "placeholder=\"Search by Name\"",
-          "text": "Search by Name"
-        },
-        {
-          "kind": "attr",
-          "file": "src/components/Mobile/MobileSearchButton/index.tsx",
-          "line": 198,
-          "attr": "placeholder",
-          "whole": "placeholder=\"Search by Name\"",
-          "text": "Search by Name"
-        }
-      ]
-    },
-    {
-      "text": "Search",
-      "key": "common.buttons.search",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Mobile/MobileSearchButton/index.tsx",
-          "line": 274,
-          "column": 12,
-          "endLine": 276,
-          "endColumn": 11,
-          "raw": "\n            Search\n          ",
-          "text": "Search"
-        },
-        {
-          "kind": "attr",
-          "file": "src/components/SmallFilterSelect/index.tsx",
-          "line": 340,
-          "attr": "placeholder",
-          "whole": "placeholder=\"Search\"",
-          "text": "Search"
-        }
-      ]
-    },
-    {
-      "text": "See More",
-      "key": "marketList.shared.seeMore",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Mobile/SeeMoreButton/index.tsx",
-          "line": 73,
-          "column": 6,
-          "endLine": 75,
-          "endColumn": 5,
-          "raw": "\n      See More\n    ",
-          "text": "See More"
-        }
-      ]
-    },
-    {
-      "text": "Select MLA Settings",
-      "key": "marketDetails.borrower.selectMlaSettings",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/borrower/market/[address]/page.tsx",
-          "line": 278,
-          "attr": "title",
-          "whole": "title=\"Select MLA Settings\"",
-          "text": "Select MLA Settings"
-        }
-      ]
-    },
-    {
-      "text": "Select Network",
-      "key": "auth.selectNetwork",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/MobileSelectNetwork/index.tsx",
-          "line": 62,
-          "column": 56,
-          "endLine": 64,
-          "endColumn": 9,
-          "raw": "\n          Select Network\n        ",
-          "text": "Select Network"
-        }
-      ]
-    },
-    {
-      "text": "Self-Onboard",
-      "key": "marketList.shared.tables.other.selfOnboard",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Mobile/MobileFilterButton/index.tsx",
-          "line": 260,
-          "attr": "label",
-          "whole": "label=\"Self-Onboard\"",
-          "text": "Self-Onboard"
-        }
-      ]
-    },
-    {
-      "text": "Show in Shares",
-      "key": "marketDetails.lender.wrapDebtToken.showShares",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/WrapDebtToken/WrapperSection/index.tsx",
-          "line": 848,
-          "column": 22,
-          "endLine": 850,
-          "endColumn": 21,
-          "raw": "\n                      Show in Shares\n                    ",
-          "text": "Show in Shares"
-        }
-      ]
-    },
-    {
-      "text": "Sign in required",
-      "key": "borrower.invitation.signRequired",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/borrower/invitation/page.tsx",
-          "line": 73,
-          "attr": "title",
-          "whole": "title=\"Sign in required\"",
-          "text": "Sign in required"
-        }
-      ]
-    },
-    {
-      "text": "Sign in with the invited wallet to view and accept your borrower invitation.",
-      "key": "borrower.invitation.signInvitedWalletViewAccept",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/borrower/invitation/page.tsx",
-          "line": 74,
-          "attr": "description",
-          "whole": "description=\"Sign in with the invited wallet to view and accept your borrower invitation.\"",
-          "text": "Sign in with the invited wallet to view and accept your borrower invitation."
-        }
-      ]
-    },
-    {
-      "text": "Sign this acknowledgement before opening the deposit window.",
-      "key": "marketDetails.lender.signAcknowledgementBeforeOpeningDeposit",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/lender/market/[address]/components/Modals/NonMlaAcknowledgementModal/index.tsx",
-          "line": 162,
-          "column": 68,
-          "endLine": 164,
-          "endColumn": 11,
-          "raw": "\n            Sign this acknowledgement before opening the deposit window.\n          ",
-          "text": "Sign this acknowledgement before opening the deposit window."
-        },
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/lender/market/[address]/components/Modals/NonMlaAcknowledgementModal/index.tsx",
-          "line": 236,
-          "column": 63,
-          "endLine": 238,
-          "endColumn": 9,
-          "raw": "\n          Sign this acknowledgement before opening the deposit window.\n        ",
-          "text": "Sign this acknowledgement before opening the deposit window."
-        }
-      ]
-    },
-    {
-      "text": "Signing as:",
-      "key": "agreement.reacceptance.signingAs",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/ToUReacceptanceModal/index.tsx",
-          "line": 396,
-          "column": 23,
-          "endLine": 396,
-          "endColumn": 34,
-          "raw": "Signing as:",
-          "text": "Signing as:"
         }
       ]
     },
@@ -2736,7 +648,7 @@
         {
           "kind": "attr",
           "file": "src/components/Profile/ProfileSection/components/BorrowerMarketsTreemap/index.tsx",
-          "line": 273,
+          "line": 274,
           "attr": "aria-label",
           "whole": "aria-label=\"Size by capacity\"",
           "text": "Size by capacity"
@@ -2751,44 +663,10 @@
         {
           "kind": "attr",
           "file": "src/components/Profile/ProfileSection/components/BorrowerMarketsTreemap/index.tsx",
-          "line": 276,
+          "line": 277,
           "attr": "aria-label",
           "whole": "aria-label=\"Size by supply\"",
           "text": "Size by supply"
-        }
-      ]
-    },
-    {
-      "text": "Slices use current-price position estimates; the center total uses historical USD when profile aggregates are available.",
-      "key": "profile.lender.slicesUseCurrentPricePosition",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Profile/LenderProfilePage/components/MarketsInterestTab/index.tsx",
-          "line": 299,
-          "column": 14,
-          "endLine": 301,
-          "endColumn": 68,
-          "raw": "\n              Slices use current-price position estimates; the center total uses\n              historical USD when profile aggregates are available.",
-          "text": "Slices use current-price position estimates; the center total uses historical USD when profile aggregates are available."
-        }
-      ]
-    },
-    {
-      "text": "Status",
-      "key": "common.fields.status",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/MarketHeader/index.tsx",
-          "line": 239,
-          "column": 12,
-          "endLine": 241,
-          "endColumn": 11,
-          "raw": "\n            Status\n          ",
-          "text": "Status"
         }
       ]
     },
@@ -2817,76 +695,12 @@
         {
           "kind": "jsxText",
           "file": "src/components/Profile/ProfileSection/components/BorrowerMarketsTreemap/index.tsx",
-          "line": 276,
+          "line": 277,
           "column": 62,
-          "endLine": 278,
+          "endLine": 279,
           "endColumn": 5,
           "raw": "\n      Supply\n    ",
           "text": "Supply"
-        }
-      ]
-    },
-    {
-      "text": "Switch to the Lenders",
-      "key": "marketList.borrower.switchLenders",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/page.tsx",
-          "line": 129,
-          "column": 71,
-          "endLine": 131,
-          "endColumn": 11,
-          "raw": "\n            Switch to the Lenders\n          ",
-          "text": "Switch to the Lenders"
-        }
-      ]
-    },
-    {
-      "text": "Terms of Use",
-      "key": "common.labels.termsUse",
-      "origin": "common",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/ToUReacceptanceModal/index.tsx",
-          "line": 198,
-          "attr": "title",
-          "whole": "title=\"Terms of Use\"",
-          "text": "Terms of Use"
-        }
-      ]
-    },
-    {
-      "text": "Testnet",
-      "key": "header.testnet",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Header/HeaderNetworkButton/index.tsx",
-          "line": 56,
-          "attr": "label",
-          "whole": "label=\"Testnet\"",
-          "text": "Testnet"
-        }
-      ]
-    },
-    {
-      "text": "The Borrower UI is not configured for mobile, sorry!",
-      "key": "marketList.borrower.borrowerUiNotConfiguredMobile",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/page.tsx",
-          "line": 113,
-          "column": 37,
-          "endLine": 115,
-          "endColumn": 9,
-          "raw": "\n          The Borrower UI is not configured for mobile, sorry!\n        ",
-          "text": "The Borrower UI is not configured for mobile, sorry!"
         }
       ]
     },
@@ -2908,83 +722,6 @@
       ]
     },
     {
-      "text": "This network does not provide the indexed analytics and pricing required for aggregate profile KPIs.",
-      "key": "profile.borrower.networkDoesNotProvideIndexed",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/ProfilePage/components/OverviewTab/index.tsx",
-          "line": 91,
-          "attr": "description",
-          "whole": "description=\"This network does not provide the indexed analytics and pricing required for aggregate profile KPIs.\"",
-          "text": "This network does not provide the indexed analytics and pricing required for aggregate profile KPIs."
-        }
-      ]
-    },
-    {
-      "text": "This network does not provide the indexed analytics and pricing required for borrower KPIs.",
-      "key": "profile.networkDoesNotProvideIndexed",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/ProfileSection/AnalyticsProfileSection.tsx",
-          "line": 70,
-          "attr": "description",
-          "whole": "description=\"This network does not provide the indexed analytics and pricing required for borrower KPIs.\"",
-          "text": "This network does not provide the indexed analytics and pricing required for borrower KPIs."
-        }
-      ]
-    },
-    {
-      "text": "This network does not provide the indexed analytics and pricing required for lender positions, cash flow, and interest metrics.",
-      "key": "profile.lender.networkDoesNotProvideIndexed",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/LenderProfilePage/index.tsx",
-          "line": 125,
-          "attr": "description",
-          "whole": "description=\"This network does not provide the indexed analytics and pricing required for lender positions, cash flow, and interest metrics.\"",
-          "text": "This network does not provide the indexed analytics and pricing required for lender positions, cash flow, and interest metrics."
-        }
-      ]
-    },
-    {
-      "text": "This wallet does not currently have a borrower invitation.",
-      "key": "borrower.invitation.walletDoesNotCurrentlyHave",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/borrower/invitation/page.tsx",
-          "line": 66,
-          "attr": "description",
-          "whole": "description=\"This wallet does not currently have a borrower invitation.\"",
-          "text": "This wallet does not currently have a borrower invitation."
-        }
-      ]
-    },
-    {
-      "text": "Tokens again",
-      "key": "marketDetails.lender.wrapDebtToken.tokensAgain",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/WrapDebtToken/ErrorWrapperAlert/index.tsx",
-          "line": 52,
-          "column": 69,
-          "endLine": 54,
-          "endColumn": 7,
-          "raw": " Tokens\n        again\n      ",
-          "text": "Tokens again"
-        }
-      ]
-    },
-    {
       "text": "Total Events",
       "key": "marketDetails.lender.totalEvents",
       "origin": "scoped",
@@ -2996,241 +733,6 @@
           "attr": "label",
           "whole": "label=\"Total Events\"",
           "text": "Total Events"
-        }
-      ]
-    },
-    {
-      "text": "Transaction in process.",
-      "key": "borrower.policies.transactionProcess",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/policy/components/LendersTab/components/Modals/FinalModal/index.tsx",
-          "line": 168,
-          "column": 61,
-          "endLine": 170,
-          "endColumn": 13,
-          "raw": "\n              Transaction in process.\n            ",
-          "text": "Transaction in process."
-        }
-      ]
-    },
-    {
-      "text": "Trending Markets",
-      "key": "marketList.lender.explore.trendingMarkets",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/lender/components/ExploreSection/TrendingMarketsCarousel/index.tsx",
-          "line": 651,
-          "column": 10,
-          "endLine": 653,
-          "endColumn": 9,
-          "raw": "\n          Trending Markets\n        ",
-          "text": "Trending Markets"
-        },
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/lender/components/ExploreSection/TrendingMarketsCarousel/index.tsx",
-          "line": 759,
-          "column": 8,
-          "endLine": 761,
-          "endColumn": 7,
-          "raw": "\n        Trending Markets\n      ",
-          "text": "Trending Markets"
-        }
-      ]
-    },
-    {
-      "text": "Trending market position",
-      "key": "marketList.lender.explore.trendingMarketPosition",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/lender/components/ExploreSection/TrendingMarketsCarousel/index.tsx",
-          "line": 716,
-          "attr": "aria-label",
-          "whole": "aria-label=\"Trending market position\"",
-          "text": "Trending market position"
-        }
-      ]
-    },
-    {
-      "text": "Try Again",
-      "key": "borrower.createMarket.deploy.error.again",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/policy/components/LendersTab/components/Modals/FinalModal/index.tsx",
-          "line": 129,
-          "column": 16,
-          "endLine": 131,
-          "endColumn": 15,
-          "raw": "\n                Try Again\n              ",
-          "text": "Try Again"
-        }
-      ]
-    },
-    {
-      "text": "Unable to load market details.",
-      "key": "common.labels.unableLoadMarketDetails",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/market/[address]/page.tsx",
-          "line": 231,
-          "column": 10,
-          "endLine": 233,
-          "endColumn": 9,
-          "raw": "\n          Unable to load market details.\n        ",
-          "text": "Unable to load market details."
-        }
-      ]
-    },
-    {
-      "text": "Unwrap",
-      "key": "marketDetails.lender.transactions.withdraw.steps.unwrapTitle",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/WrapDebtToken/WrapperSection/index.tsx",
-          "line": 1082,
-          "column": 12,
-          "endLine": 1084,
-          "endColumn": 11,
-          "raw": "\n            Unwrap\n          ",
-          "text": "Unwrap"
-        },
-        {
-          "kind": "attr",
-          "file": "src/components/WrapDebtToken/WrapperSection/index.tsx",
-          "line": 791,
-          "attr": "label",
-          "whole": "label=\"Unwrap\"",
-          "text": "Unwrap"
-        }
-      ]
-    },
-    {
-      "text": "View full borrower profile",
-      "key": "profile.viewFullBorrowerProfile",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Profile/ProfileSection/AnalyticsProfileSection.tsx",
-          "line": 55,
-          "column": 70,
-          "endLine": 57,
-          "endColumn": 13,
-          "raw": "\n              View full borrower profile\n            ",
-          "text": "View full borrower profile"
-        }
-      ]
-    },
-    {
-      "text": "View full terms",
-      "key": "agreement.reacceptance.viewFullTerms",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/ToUReacceptanceModal/index.tsx",
-          "line": 493,
-          "column": 14,
-          "endLine": 495,
-          "endColumn": 13,
-          "raw": "\n              View full terms\n            ",
-          "text": "View full terms"
-        }
-      ]
-    },
-    {
-      "text": "View on Etherscan",
-      "key": "marketDetails.lender.wrapDebtToken.viewEtherscan",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/WrapDebtToken/ErrorWrapperAlert/index.tsx",
-          "line": 72,
-          "column": 20,
-          "endLine": 74,
-          "endColumn": 13,
-          "raw": "\n              View on Etherscan\n            ",
-          "text": "View on Etherscan"
-        }
-      ]
-    },
-    {
-      "text": "We use Hotjar for anonymous analytics. Allow tracking?",
-      "key": "common.consent.weUseHotjarAnonymousAnalytics",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/HotjarConsent/index.tsx",
-          "line": 154,
-          "column": 72,
-          "endLine": 156,
-          "endColumn": 7,
-          "raw": "\n        We use Hotjar for anonymous analytics. Allow tracking?\n      ",
-          "text": "We use Hotjar for anonymous analytics. Allow tracking?"
-        }
-      ]
-    },
-    {
-      "text": "We use Matomo for anonymous analytics. Allow tracking?",
-      "key": "common.consent.weUseMatomoAnonymousAnalytics",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/CookieBanner/index.tsx",
-          "line": 74,
-          "column": 50,
-          "endLine": 76,
-          "endColumn": 7,
-          "raw": "\n        We use Matomo for anonymous analytics. Allow tracking?\n      ",
-          "text": "We use Matomo for anonymous analytics. Allow tracking?"
-        }
-      ]
-    },
-    {
-      "text": "Withdrawal Cycle",
-      "key": "common.placeholders.withdrawalCycle",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Mobile/MobileFilterButton/index.tsx",
-          "line": 339,
-          "attr": "label",
-          "whole": "label=\"Withdrawal Cycle\"",
-          "text": "Withdrawal Cycle"
-        }
-      ]
-    },
-    {
-      "text": "Withdrawal Requests",
-      "key": "marketDetails.borrower.sidebar.withdrawalRequests",
-      "origin": "reuse",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/MarketHeader/index.tsx",
-          "line": 275,
-          "column": 12,
-          "endLine": 277,
-          "endColumn": 11,
-          "raw": "\n            Withdrawal Requests\n          ",
-          "text": "Withdrawal Requests"
         }
       ]
     },
@@ -3250,46 +752,6 @@
       ]
     },
     {
-      "text": "Withdrawal processing",
-      "key": "profile.borrower.withdrawalProcessing",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/ProfilePage/components/WithdrawalsDelinquencyTab/index.tsx",
-          "line": 777,
-          "attr": "title",
-          "whole": "title=\"Withdrawal processing\"",
-          "text": "Withdrawal processing"
-        }
-      ]
-    },
-    {
-      "text": "Wrap",
-      "key": "marketDetails.lender.wrapDebtToken.wrap",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/WrapDebtToken/WrapperSection/index.tsx",
-          "line": 1073,
-          "column": 12,
-          "endLine": 1075,
-          "endColumn": 11,
-          "raw": "\n            Wrap\n          ",
-          "text": "Wrap"
-        },
-        {
-          "kind": "attr",
-          "file": "src/components/WrapDebtToken/WrapperSection/index.tsx",
-          "line": 790,
-          "attr": "label",
-          "whole": "label=\"Wrap\"",
-          "text": "Wrap"
-        }
-      ]
-    },
-    {
       "text": "Wrapped Token",
       "key": "marketParameters.wrappedToken",
       "origin": "scoped",
@@ -3305,38 +767,6 @@
       ]
     },
     {
-      "text": "Wrapped holdings value: ~",
-      "key": "marketDetails.lender.wrapDebtToken.wrappedHoldingsValue",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/WrapDebtToken/WrapperExchangeBanner/index.tsx",
-          "line": 158,
-          "column": 10,
-          "endLine": 159,
-          "endColumn": 37,
-          "raw": "\n          Wrapped holdings value: ~ ",
-          "text": "Wrapped holdings value: ~"
-        }
-      ]
-    },
-    {
-      "text": "Wrapped tokens",
-      "key": "marketDetails.lender.wrapDebtToken.wrappedTokens",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/WrapDebtToken/WrapperExchangeBanner/index.tsx",
-          "line": 132,
-          "attr": "title",
-          "whole": "title=\"Wrapped tokens\"",
-          "text": "Wrapped tokens"
-        }
-      ]
-    },
-    {
       "text": "Wrapped",
       "key": "marketDetails.lender.wrapped",
       "origin": "scoped",
@@ -3348,31 +778,6 @@
           "attr": "label",
           "whole": "label=\"Wrapped\"",
           "text": "Wrapped"
-        }
-      ]
-    },
-    {
-      "text": "Wrapper contract",
-      "key": "common.fields.wrapperContract",
-      "origin": "common",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/WrapDebtToken/WrapperHeader/index.tsx",
-          "line": 48,
-          "column": 10,
-          "endLine": 50,
-          "endColumn": 9,
-          "raw": "\n          Wrapper contract\n        ",
-          "text": "Wrapper contract"
-        },
-        {
-          "kind": "attr",
-          "file": "src/components/WrapDebtToken/WrapperSection/index.tsx",
-          "line": 752,
-          "attr": "label",
-          "whole": "label=\"Wrapper contract\"",
-          "text": "Wrapper contract"
         }
       ]
     },
@@ -3394,97 +799,6 @@
       ]
     },
     {
-      "text": "Wrong Market Network",
-      "key": "marketDetails.lender.wrongMarketNetwork",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/lender/market/[address]/components/SwitchChainAlert/index.tsx",
-          "line": 44,
-          "column": 10,
-          "endLine": 46,
-          "endColumn": 9,
-          "raw": "\n          Wrong Market Network\n        ",
-          "text": "Wrong Market Network"
-        },
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/lender/market/[address]/components/SwitchChainAlert/index.tsx",
-          "line": 97,
-          "column": 68,
-          "endLine": 99,
-          "endColumn": 11,
-          "raw": "\n            Wrong Market Network\n          ",
-          "text": "Wrong Market Network"
-        }
-      ]
-    },
-    {
-      "text": "Yield vs Withdrawal pressure",
-      "key": "profile.lender.yieldVsWithdrawalPressure",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/components/Profile/LenderProfilePage/components/LenderOverviewTab/RiskReturnsChart.tsx",
-          "line": 460,
-          "attr": "title",
-          "whole": "title=\"Yield vs Withdrawal pressure\"",
-          "text": "Yield vs Withdrawal pressure"
-        }
-      ]
-    },
-    {
-      "text": "You are not an admin",
-      "key": "auth.notAdmin",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/AuthWrapper/index.tsx",
-          "line": 120,
-          "column": 37,
-          "endLine": 120,
-          "endColumn": 57,
-          "raw": "You are not an admin",
-          "text": "You are not an admin"
-        }
-      ]
-    },
-    {
-      "text": "You can close the modal window.",
-      "key": "marketDetails.lender.wrapDebtToken.canCloseModalWindow",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/WrapDebtToken/SuccessWrapperModal/index.tsx",
-          "line": 95,
-          "column": 8,
-          "endLine": 97,
-          "endColumn": 7,
-          "raw": "\n        You can close the modal window.\n      ",
-          "text": "You can close the modal window."
-        }
-      ]
-    },
-    {
-      "text": "Your MLA selection was not successfully uploaded. Please try again.",
-      "key": "marketDetails.borrower.mlaSelectionWasNotSuccessfully",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "attr",
-          "file": "src/app/[locale]/borrower/market/[address]/page.tsx",
-          "line": 279,
-          "attr": "subtitle",
-          "whole": "subtitle=\"Your MLA selection was not successfully uploaded. Please try again.\"",
-          "text": "Your MLA selection was not successfully uploaded. Please try again."
-        }
-      ]
-    },
-    {
       "text": "available to lend",
       "key": "marketList.shared.availableLend",
       "origin": "scoped",
@@ -3498,23 +812,6 @@
           "endColumn": 9,
           "raw": "\n          available to lend\n        ",
           "text": "available to lend"
-        }
-      ]
-    },
-    {
-      "text": "borrower organization",
-      "key": "borrower.invitation.borrowerOrganization",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/app/[locale]/borrower/invitation/components/AcceptInvitationForm/index.tsx",
-          "line": 85,
-          "column": 35,
-          "endLine": 85,
-          "endColumn": 56,
-          "raw": "borrower organization",
-          "text": "borrower organization"
         }
       ]
     },
@@ -3547,23 +844,6 @@
           "attr": "aria-label",
           "whole": "aria-label=\"dismiss notice\"",
           "text": "dismiss notice"
-        }
-      ]
-    },
-    {
-      "text": "· since",
-      "key": "profile.lender.since",
-      "origin": "scoped",
-      "sites": [
-        {
-          "kind": "jsxText",
-          "file": "src/components/Profile/LenderProfilePage/components/MarketsInterestTab/index.tsx",
-          "line": 450,
-          "column": 58,
-          "endLine": 450,
-          "endColumn": 66,
-          "raw": " · since",
-          "text": "· since"
         }
       ]
     },
@@ -3606,22 +886,22 @@
     {
       "kind": "jsxText",
       "file": "src/app/[locale]/borrower/invitation/components/AcceptInvitationForm/index.tsx",
-      "line": 83,
+      "line": 85,
       "column": 59,
-      "endLine": 85,
-      "endColumn": 27,
-      "raw": "\n          This name is appended to the signed Terms of Use acknowledgement and\n          recorded as the ",
+      "endLine": 87,
+      "endColumn": 26,
+      "raw": "\n          This name is appended to the signed Terms of Use acknowledgement and\n          recorded as the",
       "text": "This name is appended to the signed Terms of Use acknowledgement and recorded as the",
       "reason": "sentence fragment: needs <Trans>"
     },
     {
       "kind": "jsxText",
       "file": "src/app/[locale]/borrower/invitation/components/AcceptInvitationForm/index.tsx",
-      "line": 85,
-      "column": 65,
-      "endLine": 87,
+      "line": 88,
+      "column": 80,
+      "endLine": 90,
       "endColumn": 9,
-      "raw": " accepting the\n          invitation.\n        ",
+      "raw": "\n          accepting the invitation.\n        ",
       "text": "accepting the invitation.",
       "reason": "sentence fragment: needs <Trans>"
     },
@@ -3771,9 +1051,9 @@
     {
       "kind": "jsxText",
       "file": "src/app/[locale]/lender/market/[address]/components/SwitchChainAlert/index.tsx",
-      "line": 64,
+      "line": 67,
       "column": 19,
-      "endLine": 65,
+      "endLine": 68,
       "endColumn": 62,
       "raw": "\n            To interact with it, please change the network to",
       "text": "To interact with it, please change the network to",
@@ -3782,9 +1062,9 @@
     {
       "kind": "jsxText",
       "file": "src/app/[locale]/lender/market/[address]/components/SwitchChainAlert/index.tsx",
-      "line": 103,
+      "line": 106,
       "column": 19,
-      "endLine": 104,
+      "endLine": 107,
       "endColumn": 62,
       "raw": "\n            To interact with it, please change the network to",
       "text": "To interact with it, please change the network to",
@@ -3837,9 +1117,9 @@
     {
       "kind": "jsxText",
       "file": "src/components/Profile/LenderProfilePage/components/MarketsInterestTab/index.tsx",
-      "line": 302,
+      "line": 304,
       "column": 67,
-      "endLine": 302,
+      "endLine": 304,
       "endColumn": 81,
       "raw": " earned across",
       "text": "earned across",
@@ -3848,9 +1128,9 @@
     {
       "kind": "jsxText",
       "file": "src/components/Profile/LenderProfilePage/components/MarketsInterestTab/index.tsx",
-      "line": 303,
+      "line": 305,
       "column": 36,
-      "endLine": 303,
+      "endLine": 305,
       "endColumn": 70,
       "raw": " positions with realized interest.",
       "text": "positions with realized interest.",
@@ -3859,9 +1139,9 @@
     {
       "kind": "jsxText",
       "file": "src/components/Profile/LenderProfilePage/components/MarketsInterestTab/index.tsx",
-      "line": 304,
+      "line": 306,
       "column": 36,
-      "endLine": 305,
+      "endLine": 307,
       "endColumn": 13,
       "raw": " positions are still open with balance.\n            ",
       "text": "positions are still open with balance.",

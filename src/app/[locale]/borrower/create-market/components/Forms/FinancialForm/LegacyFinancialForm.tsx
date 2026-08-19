@@ -41,10 +41,7 @@ export const LegacyFinancialForm = ({
         }}
       >
         <CapacityField form={form} tokenAsset={tokenAsset} />
-        <BaseAprField
-          form={form}
-          label={t("borrower.createMarket.financial.baseAPR.label")}
-        />
+        <BaseAprField form={form} label={t("common.fields.baseApr")} />
         <PenaltyAprField form={form} />
         <ReserveRatioField form={form} />
         <GracePeriodField form={form} />

@@ -5,7 +5,7 @@ import { useCallback, useMemo, useRef, useState } from "react"
 import { Box, Skeleton, Typography } from "@mui/material"
 import { Market } from "@wildcatfi/wildcat-sdk"
 import type { ECharts } from "echarts/core"
-import { useTranslation } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import {
@@ -593,6 +593,7 @@ const DelinquencyHistoryContent = ({
   gracePeriodHours: number
   isExpanded: boolean
 }) => {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const penaltyEvents = data.filter((point) => point.isPenalized).length
   const longestDuration = data.reduce(
@@ -619,7 +620,7 @@ const DelinquencyHistoryContent = ({
         }}
       >
         <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-          This market has never been delinquent.
+          {t("marketDetails.lender.delinquency.neverDelinquent")}
         </Typography>
       </Box>
     )
@@ -627,33 +628,35 @@ const DelinquencyHistoryContent = ({
 
   const caption = (
     <Typography sx={ChartDescriptionStyle}>
-      Grace period: {formatDuration(gracePeriodHours)}. Yellow shows time before
-      penalties; pink shows time after penalties began.
+      <Trans
+        i18nKey="marketDetails.lender.delinquency.gracePeriod.legend"
+        values={{ duration: formatDuration(gracePeriodHours) }}
+      />
     </Typography>
   )
 
   const metricCards = (
     <>
       <MetricCard
-        label="Total Events"
+        label={t("marketDetails.lender.delinquency.totalEvents.label")}
         value={String(data.length)}
-        tooltip="Number of times this market has entered a delinquent state."
+        tooltip={t("marketDetails.lender.delinquency.totalEvents.tooltip")}
       />
       <MetricCard
-        label="Longest"
+        label={t("marketDetails.lender.delinquency.longest.label")}
         value={formatDuration(longestDuration)}
-        tooltip="Duration of the longest single delinquency event."
+        tooltip={t("marketDetails.lender.delinquency.longest.tooltip")}
       />
       <MetricCard
-        label="Average Cure"
+        label={t("marketDetails.lender.delinquency.averageCure.label")}
         value={formatDuration(avgDuration)}
-        tooltip="Average time taken to resolve a delinquency event."
+        tooltip={t("marketDetails.lender.delinquency.averageCure.tooltip")}
       />
       <MetricCard
-        label="Penalty Events"
+        label={t("marketDetails.lender.delinquency.penaltyEvents.label")}
         value={String(penaltyEvents)}
         tone={penaltyEvents > 0 ? "danger" : "default"}
-        tooltip="Number of delinquency events that exceeded the grace period and incurred penalty interest."
+        tooltip={t("marketDetails.lender.delinquency.penaltyEvents.tooltip")}
       />
     </>
   )
