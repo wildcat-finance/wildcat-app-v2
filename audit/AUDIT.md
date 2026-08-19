@@ -36,3 +36,21 @@ Leads not pursued: two concurrent first syncs can each fire the Slack
 notification (duplicate message, no state harm); the sync route has no rate
 limit, consistent with every other route in the repo. Both accepted for the
 prototype.
+
+## Step 3, round 1 — 2026-08-19
+
+Suite: waived (no Solidity); bundled lints ran (all exit 0); jest 41 passed
+across 4 suites; eslint 0 errors; tsc --noEmit exit 0.
+
+| id | severity | file | finding | status |
+| --- | --- | --- | --- | --- |
+
+Findings: 0. Manual review: fail-closed gate covered by tests (restricted
+sticks through backend downtime via the persisted cache); market deployment
+is also enforced onchain by the factory's registration check, so the UI gate
+is UX rather than the security boundary; profile and description writes are
+enforced server-side from step 2. Carve-out pinned mechanically.
+
+Leads not pursued: a removed borrower whose first-ever restriction read
+fails (no cache) sees the default banner until a read succeeds; accepted,
+the chain and API remain the enforcement.
