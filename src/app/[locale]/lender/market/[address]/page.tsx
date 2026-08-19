@@ -565,7 +565,7 @@ export default function LenderMarketDetails({
       <Box sx={{ padding: "52px 20px 0 44px" }}>
         <Box sx={{ width: "69%" }}>
           <Typography variant="text2">
-            {t("borrowerMarketDetails.noDataAvailable")}
+            {t("lenderMarketDetails.noDataAvailable")}
           </Typography>
         </Box>
       </Box>

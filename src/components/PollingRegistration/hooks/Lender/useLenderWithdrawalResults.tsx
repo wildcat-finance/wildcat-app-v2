@@ -37,8 +37,8 @@ export const useLenderWithdrawalResults = (
             const key: string =
               withdrawalBatchExpired.scaledAmountBurned ===
               withdrawalBatchExpired.scaledTotalAmount
-                ? "notifications.lenderWithdrawalSuccess.description"
-                : "notifications.lenderWithdrawalFailed.description"
+                ? "notifications.withdrawalSuccess.description"
+                : "notifications.withdrawalFailed.description"
             dispatch(
               addNotification({
                 description: (

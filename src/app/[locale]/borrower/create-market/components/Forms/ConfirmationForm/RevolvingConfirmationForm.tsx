@@ -57,7 +57,7 @@ const RevolvingFinancialSection = ({
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.policy.commitmentFee.label")}
+          label={t("createNewMarket.financial.commitmentFee.label")}
           value={`${getValues("commitmentFeePercent")}%`}
         />
 
