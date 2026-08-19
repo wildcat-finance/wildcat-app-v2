@@ -137,7 +137,7 @@ export const ConfirmLendersForm = () => {
           </Box>
         ) : (
           <Typography variant="text3">
-            {t("editLendersList.forms.confirm.all")}
+            {t("borrower.editLenders.forms.confirm.all")}
           </Typography>
         ),
     },

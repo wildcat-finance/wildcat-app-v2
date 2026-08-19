@@ -218,10 +218,13 @@ export default function EditPolicyPage() {
       <Box sx={{ display: "flex", gap: "6px", marginBottom: "25px" }}>
         {step === "edit" ? (
           <Typography variant="title2">
-            {t("editPolicy.editing")} {!isLoading && t("editPolicy.for")}
+            {t("borrower.editPolicy.editing")}{" "}
+            {!isLoading && t("borrower.editPolicy.for")}
           </Typography>
         ) : (
-          <Typography variant="title2">{t("editPolicy.confirm")}</Typography>
+          <Typography variant="title2">
+            {t("borrower.editPolicy.confirm")}
+          </Typography>
         )}
 
         {!isLoading && step === "edit" && (
@@ -230,7 +233,9 @@ export default function EditPolicyPage() {
           </Typography>
         )}
       </Box>
-      <Typography variant="title2">{t("editPolicy.policyDetails")}</Typography>
+      <Typography variant="title2">
+        {t("borrower.editPolicy.policyDetails")}
+      </Typography>
       <Box
         marginBottom="20px"
         width="600px"
@@ -248,7 +253,9 @@ export default function EditPolicyPage() {
               </Box>
             </Box>
             <Typography marginTop="0px" variant="text3" sx={InputLabelSubtitle}>
-              {originalPolicyName ? "" : t("editPolicy.unnamedPolicy.subtitle")}
+              {originalPolicyName
+                ? ""
+                : t("borrower.editPolicy.unnamedPolicy.subtitle")}
             </Typography>
           </Box>
           <Box>
@@ -259,9 +266,7 @@ export default function EditPolicyPage() {
                 value={pendingPolicyName}
                 onChange={(e) => setPendingPolicyName(e.target.value)}
                 label={t("borrower.editPolicy.forms.policyName.title")}
-                placeholder={t(
-                  "createMarket.forms.marketDescription.block.policyName.placeholder",
-                )}
+                placeholder={t("borrower.createMarket.policyName.placeholder")}
               />
             )}
           </Box>
@@ -313,7 +318,9 @@ export default function EditPolicyPage() {
           isOpen
         />
       </Box>
-      <Typography variant="title2">{t("editPolicy.lenders")}</Typography>
+      <Typography variant="title2">
+        {t("borrower.editPolicy.lenders")}
+      </Typography>
 
       {step === "edit" && (
         <EditLendersForm

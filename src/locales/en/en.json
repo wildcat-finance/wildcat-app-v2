@@ -56,6 +56,7 @@
           "placeholder": "Alpha Beta Charlie"
         },
         "tokenSymbol": {
+          "chip": "Token Symbol",
           "glossary": "A short identifier prefix, such as \"abcWETH\" for the tokens lenders receive in the market.",
           "label": "Market Token Symbol",
           "placeholder": "abc"
@@ -70,6 +71,7 @@
       "confirm": {
         "alert": "Once created, the only adjustable market parameters are Base APR, Minimum Deposit and Maximum Capacity.",
         "alertFee": "A protocol fee will be in place on this market, currently defined as a 5% additional rate on your Base APR, whatever you set it as.\n\nPlease factor this in, and be prepared to maintain sufficient market reserves over time: failure to do so can result in delinquency.",
+        "alertParamsChanged": "Market settings changed after you signed the market agreement, so the signature no longer covers them. Sign the agreement again to deploy, or restore the previous settings.",
         "alertReduction": "You have enabled Permit Maturity Reduction on this market. You will be able to reduce the time until withdrawal requests are permitted.",
         "legalInfo": {
           "address": "Address",
@@ -101,13 +103,24 @@
       "financial": {
         "baseAPR": {
           "glossary": "The fixed annual percentage rate (excluding any protocol fees) that borrowers pay for assets within the market.",
-          "label": "Base APR"
+          "glossaryRevolving": "The additional annual percentage rate charged on borrowed capital in a revolving market. Undrawn capacity does not accrue this rate; it accrues the separate commitment fee instead.",
+          "label": "Base APR",
+          "labelRevolving": "Utilization APR"
+        },
+        "commitmentFee": {
+          "chip": "%",
+          "glossary": "A recurring fee charged on undrawn borrowing capacity in a revolving market. Lenders continue to earn this fee even when capital has been committed but not yet borrowed.",
+          "label": "Commitment Fee",
+          "placeholder": "0 - 100"
         },
         "maxCapacity": {
+          "chip": "Token Symbol",
+          "glossary": "The maximum limit of funds that borrowers can access in the market.",
           "label": "Maximum Borrowing Capacity",
           "placeholder": "e.g. 1,000,000"
         },
         "minDeposit": {
+          "chip": "Token Symbol",
           "explainer": "Optional parameter: default value 0.",
           "glossary": "The minimum amount of the underlying asset required to participate as a lender in the market.",
           "label": "Minimum Deposit",
@@ -128,6 +141,21 @@
       },
       "glossary": "Glossary",
       "lenderRestrictions": {
+        "disableTransfers": {
+          "explainer": "Blocks the transfer of market tokens between participants, keeping them tied to their original holder.",
+          "glossary": "Disable Transfers stops the movement of tokens representing deposits or loans within the market. This ensures that tokens remain with their original holders and are not traded or moved between accounts, maintaining control and security. Transfers to the market starting withdrawal requests are not disabled.",
+          "label": "Disable Transfers"
+        },
+        "restrictTransfers": {
+          "explainer": "Allows transfers of market tokens only to users who satisfy the market’s policy-defined access conditions, such as holding valid credentials or being on an approved list.",
+          "glossary": "Restrict Transfers ensures that market tokens can only be transferred between participants who meet the specific access requirements set by the market’s policy. These conditions may include holding approved deposit credentials or satisfying other borrower-defined qualifications. This restriction helps maintain compliance with the policy and supports secure market operations​​.",
+          "label": "Restrict Transfers"
+        },
+        "restrictWithdrawals": {
+          "explainer": "[RECOMMENDED] Restricts withdrawals to users who meet the defined market access criteria, such as holding valid credentials or being on an approved list of participants.",
+          "glossary": "Restricts the ability to withdraw funds to users who meet market access criteria. These criteria include possession of valid deposit credentials, approval through a role provider, or other borrower-defined conditions. By enforcing such restrictions, the market ensures only eligible participants can withdraw, maintaining order and compliance with its operational framework​.",
+          "label": "Restrict Withdrawals"
+        },
         "title": "Lender Restrictions"
       },
       "mla": {
@@ -163,12 +191,35 @@
           "label": "Permit Early Termination"
         },
         "expiration": {
+          "glossary": "The date the fixed loan term ends. Lenders cannot queue withdrawals until this maturity date passes.",
           "label": "Fixed Term Maturity Date [00:00 UTC]"
+        },
+        "implementation": {
+          "label": "Market Type",
+          "placeholder": "Please Select"
         },
         "name": {
           "glossary": "Unique identifier for this reusable market rule-set.",
           "label": "Policy Name",
           "placeholder": "Input Policy Name"
+        },
+        "periodic": {
+          "firstWindowStart": {
+            "glossary": "The exact UTC date and time of the first withdrawal window. Every later window recurs on this anchor.",
+            "label": "First Withdrawal Window [UTC]",
+            "placeholder": "e.g. 25/12/2024 14:30 UTC"
+          },
+          "periodDuration": {
+            "glossary": "How often a withdrawal window recurs — the gap from the start of one window to the start of the next. Must be longer than the withdrawal window.",
+            "label": "Withdrawal Period",
+            "placeholder": "Input Period Duration"
+          },
+          "sectionTitle": "Withdrawal Schedule",
+          "withdrawalWindowDuration": {
+            "glossary": "How long each withdrawal window stays open. Lenders can only queue withdrawals while a window is open; it must be shorter than the withdrawal period.",
+            "label": "Withdrawal Window",
+            "placeholder": "Input Window Duration"
+          }
         },
         "policy": {
           "glossary": "Rules defining loan type (open/fixed term) and access requirements.",
@@ -176,12 +227,16 @@
           "placeholder": "Choose Option"
         },
         "reduceExpiration": {
+          "explainer": "Allows you to reduce the maturity of a fixed term market.",
           "label": "Permit Maturity Reduction"
         },
         "title": "Market Policy",
         "type": {
           "label": "Market Term"
         }
+      },
+      "policyName": {
+        "placeholder": "Enter Policy Name"
       },
       "sidebar": {
         "back": "To Markets",
@@ -192,7 +247,8 @@
       "wrapper": {
         "deploy": {
           "explainer": "If you don’t deploy now, anyone can deploy later. Deploying now makes the wrapper ready for lenders immediately.",
-          "label": "Deploy wrapper contract for this market"
+          "label": "Deploy wrapper contract for this market",
+          "unavailableWhenTransfersDisabled": "A wrapper requires transferable market tokens. Enable transfers to deploy a wrapper."
         },
         "title": "Wrapper Contract"
       }
@@ -205,6 +261,7 @@
       "forms": {
         "confirm": {
           "addName": "Add name",
+          "all": "All",
           "keepInMind": "Submitting this change involves an on-chain transaction.",
           "payGas": "--"
         },
@@ -232,7 +289,10 @@
     },
     "editPolicy": {
       "accessControl": "Access Requirements",
+      "confirm": "Confirm Policy Edits",
       "deauthorized": "Deauthorized",
+      "editing": "Editing Policy",
+      "for": " for",
       "forms": {
         "edit": {
           "noLenders": "No lenders yet"
@@ -241,7 +301,9 @@
           "title": "Policy Name"
         }
       },
+      "lenders": "Policy Lenders",
       "markets": "Policy Markets",
+      "policyDetails": "Policy Details",
       "policyType": "Policy Type",
       "roleProviders": {
         "defaulPullProvider": "Lender Self-Onboarding",
@@ -252,7 +314,13 @@
         "edit": "Editing Policy"
       },
       "unnamedPolicy": {
-        "label": "Unnamed Policy"
+        "label": "Unnamed Policy",
+        "subtitle": "Please give a unique name to your policy."
+      }
+    },
+    "policies": {
+      "lenders": {
+        "selfOnboardNotice": "Lenders onboard themselves to this policy, so there is no allowlist to edit."
       }
     },
     "profile": {
@@ -265,11 +333,14 @@
       "form": {
         "additionalUrls": {
           "add": "Add URL",
+          "labelPlaceholder": "Label",
           "subtitle": "Additional links that lenders may find useful.",
-          "title": "Additional Links"
+          "title": "Additional Links",
+          "urlPlaceholder": "URL"
         },
         "address": {
           "helperText": "This address will not be private even prior to market deployment.",
+          "placeholder": "Enter Location",
           "title": "Entity Registered Address",
           "tooltip": ""
         },
@@ -282,13 +353,15 @@
         "avatar": {
           "edit": "Change Image",
           "generated": "Automatically Generated",
-          "title": "Avatar"
+          "title": "Avatar",
+          "tooltip": ""
         },
         "country": {
           "noOptions": "No countries found",
           "title": "Country"
         },
         "description": {
+          "placeholder": "Description of your business operations, what you aim to borrow for, any external dashboards/information that lenders would find useful etc.",
           "title": "Description",
           "tooltip": ""
         },
@@ -312,6 +385,7 @@
           "noOptions": "No jurisdictions found"
         },
         "linkedin": {
+          "placeholder": "borrower_page",
           "title": "LinkedIn",
           "tooltip": "Enter a LinkedIn company page for the borrower (e.g. wildcat-labs), where applicable."
         },
@@ -326,14 +400,17 @@
         "publicSubtitle": "Details Of Borrowing Entity",
         "publicTitle": "Basic Profile Information",
         "telegram": {
+          "placeholder": "borrower_profile",
           "title": "Telegram",
           "tooltip": "Enter a Telegram username for the borrower (no @), where applicable."
         },
         "twitter": {
+          "placeholder": "borrower_profile",
           "title": "Twitter/X",
           "tooltip": "Enter a Twitter/X username for the borrower (no @), where applicable."
         },
         "website": {
+          "placeholder": "borrower-profile.com",
           "title": "Website",
           "tooltip": ""
         }
@@ -367,328 +444,49 @@
           "subtitle": "You can't expect anyone to extend credit to you if they don't know who you are.",
           "title": "Add Borrower Description"
         },
-        "title": "Overall Info"
-      }
-    }
-  },
-  "borrowerMarketDetails": {
-    "authorisedLenders": {
-      "buttons": {
-        "view": "View"
-      },
-      "tableHeaders": {
-        "accessExpiry": "Credential Expiry",
-        "accessLevel": "Access Level",
-        "dateAdded": "Date Added",
-        "name": "Name",
-        "signDate": "Sign Date",
-        "signedMLA": "Signed MLA",
-        "walletAddress": "Wallet Address"
-      }
-    },
-    "hooks": {
-      "useOnBorrow": "Hook on Borrow?",
-      "useOnCloseMarket": "Hook on Market Termination?",
-      "useOnDeposit": "Hook on Deposit?",
-      "useOnExecutePendingAnnualInterestBipsReduction": "Hook on Pending APR Reduction Execution?",
-      "useOnExecuteWithdrawal": "Hook on Claiming Assets?",
-      "useOnNukeFromOrbit": "Hook on Sanction Block?",
-      "useOnQueueWithdrawal": "Hook on Queuing Withdrawal?",
-      "useOnRepay": "Hook on Repayment?",
-      "useOnSetAnnualInterestAndReserveRatioBips": "Hook on APR/CRR Shift?",
-      "useOnSetMaxTotalSupply": "Hook on Max Capacity Shift?",
-      "useOnSetProtocolFeeBips": "Hook on Protocol Fee Shift?",
-      "useOnTransfer": "Hook on Token Transfer?"
-    },
-    "modals": {
-      "apr": {
-        "adjustUtilization": "Adjust Utilization APR",
-        "alreadyUpdatedUtilization": "Utilization APR Recently Adjusted",
-        "collateralObligation": "Collateral Obligation",
-        "currentUtilizationApr": "Current Utilization APR",
-        "expiredTempRatioNotice": "The temporary reserve ratio has expired. You must reset it before lowering the APR.",
-        "newCollateralObligation": "New Collateral Obligation",
-        "newReservedRatio": "New Reserve Ratio",
-        "newUtilizationApr": "New Utilization APR",
-        "pendingProposalReplaceNotice": "A reduction to {{proposedApr}}% is already pending (lenders can respond until {{readyAt}}). Submitting a new proposal replaces it and restarts the response window.",
-        "periodicProposalNotice": "This proposes an APR reduction for lenders to review. The APR will not change until the lender response window has closed.",
-        "proposalErrorSubtitle": "The proposal transaction did not complete. Check your wallet and try again.",
-        "proposalErrorTitle": "APR Reduction Proposal Failed",
-        "proposalLoadingSubtitle": "Submitting proposal transaction...",
-        "proposalLoadingTitle": "Proposing APR Reduction...",
-        "proposalSuccessSubtitle": "The APR can be updated after the lender response window closes.",
-        "proposalSuccessTitle": "APR Reduction Proposed",
-        "proposeReduction": "Propose Reduction",
-        "proposeReductionTitle": "Propose APR Reduction",
-        "setTemporarily": "set temporarily until",
-        "willSetTemporarily": "Temporary reserve ratio in force until"
-      },
-      "error": {
-        "wait": "Oops! Something went wrong!"
-      }
-    },
-    "parameters": {
-      "commitmentAPR": "Commitment APR",
-      "depositAccess": {
-        "label": "Deposit Access",
-        "open": {
-          "text": "Open Deposits",
-          "tooltip": "Anyone can lend to this market."
-        },
-        "restricted": {
-          "text": "Restricted",
-          "tooltip": "Lenders must meet specific criteria to lend to this market."
-        }
-      },
-      "marketEarlyClosure": {
-        "label": "Fixed Term Closure Permitted",
-        "na": {
-          "text": "N/A",
-          "tooltip": "This setting applies only to Fixed Term markets."
-        },
-        "no": {
-          "text": "No",
-          "tooltip": "Market can only be terminated after fixed duration maturity."
-        },
-        "yes": {
-          "text": "Yes",
-          "tooltip": "Borrower can elect to terminate the market at any time."
-        }
-      },
-      "marketImplementation": {
-        "label": "Type"
-      },
-      "marketMaturityReduction": {
-        "label": "Fixed Term Maturity Reduction Permitted",
-        "na": {
-          "text": "N/A",
-          "tooltip": "This setting applies only to Fixed Term markets."
-        },
-        "no": {
-          "text": "No",
-          "tooltip": "Maturity cannot be shortened from current value."
-        },
-        "yes": {
-          "text": "Yes",
-          "tooltip": "Borrower can elect to shorten Fixed Term duration."
-        }
-      },
-      "marketTerm": {
-        "FixedTerm": {
-          "text": "Fixed Term",
-          "tooltip": "Withdrawal requests are possible only after a fixed maturity date."
-        },
-        "label": "Term",
-        "OpenTerm": {
-          "text": "Open Term",
-          "tooltip": "Withdrawal requests are possible at any time."
-        },
-        "PeriodicTerm": {
-          "text": "Periodic Term",
-          "tooltip": "Withdrawal requests are possible during scheduled withdrawal windows."
-        },
-        "Unknown": {
-          "text": "Unknown",
-          "tooltip": "Market hook type could not be determined."
-        }
-      },
-      "minimumDeposit": {
-        "label": "Minimum Deposit",
-        "none": "None"
-      },
-      "pendingPeriodicApr": {
-        "appliedNotice": "The base APR is now {{currentApr}}%.",
-        "appliedNoticeTitle": "Base APR change applied",
-        "bannerTitle": "Pending base APR reduction: {{currentApr}}% → {{proposedApr}}%",
-        "blockedNotice": "The response window has closed, but the reduction cannot be applied yet: {{reason}}",
-        "cancelProposalWarning": "Increasing the APR will cancel your pending reduction proposal to {{proposedApr}}%.",
-        "execute": "Apply APR",
-        "executing": "Applying...",
-        "executionNotEnabled": "This market was not deployed with the V2.5 APR-reduction execution hook enabled.",
-        "label": "Pending Base APR",
-        "pendingNotice": "Lenders can respond until {{readyAt}}. The reduction can be applied once the response window closes.",
-        "processBatches": "Process Unpaid Batches",
-        "processBatchesProgress": "Process Unpaid Batches ({{perPass}} of {{total}})",
-        "readyNotice": "The lender response window has closed — the reduction is ready to apply.",
-        "settleAndApply": "Settle and Apply",
-        "settlementNotice": "{{amount}} {{symbol}} is needed to settle withdrawal and reserve obligations before the reduction can be applied.",
-        "settlementNoticeMultiPass": "{{totalBatches}} unpaid withdrawal batches must be processed (up to {{perPass}} per transaction) before the reduction can be applied. No additional repayment is required.",
-        "settlementNoticeZero": "Stale unpaid withdrawal batches must be processed before the reduction can be applied. No additional repayment is required.",
-        "settling": "Settling...",
-        "tooltip": "A periodic APR reduction has been proposed and can be applied after the lender response window closes."
-      },
-      "periodicTerm": {
-        "currentWindowStart": "Current Window Start",
-        "firstWindowStart": "First Withdrawal Window",
-        "firstWindowStartTooltip": "The exact UTC date and time of the first withdrawal window. Every later window recurs on this anchor.",
-        "nextWindowStart": "Next Withdrawal Window",
-        "periodDuration": "Withdrawal Period",
-        "periodDurationTooltip": "How often a withdrawal window recurs — the gap from the start of one window to the start of the next. This is separate from the Withdrawal Cycle Duration, which controls how long a queued withdrawal batch stays open.",
-        "windowStatus": {
-          "closed": {
-            "text": "Ended",
-            "tooltip": "This periodic market has been closed; withdrawal requests are now open permanently."
+        "overallInfo": {
+          "borrowed": "Total Amount Borrowed",
+          "defaults": {
+            "title": "Defaults"
           },
-          "closesIn": "{{duration}} left",
-          "label": "Window Status",
-          "open": {
-            "text": "Open",
-            "tooltip": "Lenders can request withdrawals during the current scheduled withdrawal window."
-          },
-          "opensIn": "in {{duration}}",
-          "scheduled": {
-            "text": "Scheduled",
-            "tooltip": "The next scheduled withdrawal window has not opened yet. Lenders can request withdrawals once it opens."
-          }
+          "entityKind": "Entity Legal Form",
+          "founded": "Founded",
+          "markets": "Markets"
         },
-        "withdrawalWindowDuration": "Withdrawal Window",
-        "withdrawalWindowDurationTooltip": "How long each withdrawal window stays open. Lenders can only queue withdrawals while a window is open. This is separate from the Withdrawal Cycle Duration, which controls how long a queued withdrawal batch stays open."
-      },
-      "tempReserveRatio": {
-        "badgeLabel": "{{currentRatio}}% in force until {{expiry}}",
-        "bannerHeading": "Reserve ratio (temporary protection active).",
-        "borrowerActiveNotice": "Reserve ratio elevated from {{originalRatio}}% to {{currentRatio}}% until {{expiry}} after a recent APR reduction. You can reset it after that.",
-        "borrowerActiveTooltip": "You reduced APR recently. Reserve ratio is temporarily elevated to {{currentRatio}}% until {{expiry}}. After that you can reset it back to {{originalRatio}}%.",
-        "borrowerBannerBody": "Elevated from {{originalRatio}}% to {{currentRatio}}% until {{expiry}} after a recent APR reduction. You can reset it after that.",
-        "borrowerExpiredNotice": "Reserve ratio was temporarily elevated to {{currentRatio}}% but the protection period has expired. Reset it to restore the base ratio of {{originalRatio}}%.",
-        "borrowerExpiredTooltip": "The temporary reserve ratio of {{currentRatio}}% has expired. Open the APR modal to reset it back to {{originalRatio}}%.",
-        "lenderActiveTooltip": "Temporarily elevated to {{currentRatio}}% due to a recent APR reduction. After {{expiry}}, the borrower can reset it back to {{originalRatio}}%.",
-        "lenderBannerBody": "Elevated from {{originalRatio}}% to {{currentRatio}}% until {{expiry}} after a recent APR reduction. The borrower can reset it after that.",
-        "lenderExpiredTooltip": "This market has an expired temporary reserve ratio of {{currentRatio}}% which will revert to {{originalRatio}}% when the borrower next updates market parameters."
-      },
-      "transferAccess": {
-        "disabled": {
-          "text": "Disabled",
-          "tooltip": "The market token cannot be transferred."
+        "title": "Overall Info",
+        "touStatus": {
+          "acceptedOn": "Accepted On (UTC)",
+          "acceptedVersion": "Accepted Version",
+          "currentVersion": "Current Live Version",
+          "download": "Download Acceptance Certificate",
+          "notAccepted": "Not accepted",
+          "title": "Terms of Use"
         },
-        "open": {
-          "text": "Open Transfers",
-          "tooltip": "The market token can be transferred to any non-sanctioned address."
-        },
-        "restricted": {
-          "text": "Restricted",
-          "tooltip": "The market token can only be transferred to addresses that meet specific criteria."
-        }
-      },
-      "utilizationAPR": "Utilization APR",
-      "withdrawalAccess": {
-        "label": "Withdrawal Access",
-        "open": {
-          "text": "Open Withdrawals",
-          "tooltip": "Anyone can request withdrawals."
-        },
-        "restricted": {
-          "text": "Restricted",
-          "tooltip": "Lenders who have not directly deposited must meet specific criteria to withdraw."
-        }
-      },
-      "withdrawalCycleDuration": "Withdrawal Cycle Duration"
-    },
-    "statusChart": {
-      "totalDebt": "Total Debt"
-    }
-  },
-  "borrowerMarketList": {
-    "table": {
-      "header": {
-        "term": "Term",
-        "type": "Type"
-      },
-      "noMarkets": {
-        "active": {
-          "subtitle": "Create a new market, or check your terminated ones.",
-          "title": "No Active Markets."
-        },
-        "filter": {
-          "beginning": "No"
-        },
-        "terminated": {
-          "subtitle": "Have you got any active markets?",
-          "title": "You don’t have any terminated markets"
-        }
-      },
-      "title": {
-        "active": "Your Active Markets",
-        "loading": "Loading..."
-      }
-    }
-  },
-  "borrowerProfile": {
-    "edit": {
-      "private": {
-        "address": {
-          "placeholder": "Enter Location"
-        }
-      },
-      "public": {
-        "additionalUrls": {
-          "labelPlaceholder": "Label",
-          "urlPlaceholder": "URL"
-        },
-        "avatar": {
-          "tooltip": ""
-        },
-        "description": {
-          "placeholder": "Description of your business operations, what you aim to borrow for, any external dashboards/information that lenders would find useful etc."
-        },
-        "linkedin": {
-          "placeholder": "borrower_page"
-        },
-        "telegram": {
-          "placeholder": "borrower_profile"
-        },
-        "twitter": {
-          "placeholder": "borrower_profile"
-        },
-        "website": {
-          "placeholder": "borrower-profile.com"
-        }
-      }
-    },
-    "profile": {
-      "overallInfo": {
-        "borrowed": "Total Amount Borrowed",
-        "defaults": {
-          "title": "Defaults"
-        },
-        "entityKind": "Entity Legal Form",
-        "founded": "Founded",
-        "markets": "Markets"
-      },
-      "touStatus": {
-        "acceptedOn": "Accepted On (UTC)",
-        "acceptedVersion": "Accepted Version",
-        "currentVersion": "Current Live Version",
-        "download": "Download Acceptance Certificate",
-        "notAccepted": "Not accepted",
-        "title": "Terms of Use"
-      },
-      "verification": {
-        "acknowledge": "I understand",
-        "detailsLink": "View more details",
-        "fields": {
+        "verification": {
+          "acknowledge": "I understand",
+          "detailsLink": "View more details",
+          "modalIntro": "To help you assess this borrower, Wildcat checks a defined subset of profile data during the KYB process completed as part of onboarding. Everything else on the profile is supplied by the borrower and is not checked by Wildcat.",
+          "modalNoEndorsement": "Wildcat makes no claim as to the accuracy of unchecked fields and does not endorse any linked destinations. Review independently before depositing.",
+          "modalTitle": "How Wildcat checks this profile",
+          "noEndorsement": "Borrower-supplied fields are shown for information only. Wildcat makes no claim as to their accuracy and does not endorse linked destinations.",
+          "noteIntro": "Wildcat checks a defined subset of this profile during the KYB process completed as part of borrower onboarding. The rest is supplied by the borrower.",
+          "title": "Profile Verification",
           "unverified": {
             "alias": "Alias / trading name",
             "marketDescription": "Market descriptions",
             "outgoingLinks": "Outgoing links (contact, social channels)",
             "profileDescription": "Profile description"
           },
+          "unverifiedHeading": "Not checked",
           "verified": {
             "borrowerAddress": "Borrower Ethereum Address",
             "entityLegalForm": "Entity Legal Form",
             "founded": "Founded (Year)",
             "headquarters": "Headquarters",
             "legalName": "Legal Name"
-          }
-        },
-        "modalIntro": "To help you assess this borrower, Wildcat checks a defined subset of profile data during the KYB process completed as part of onboarding. Everything else on the profile is supplied by the borrower and is not checked by Wildcat.",
-        "modalNoEndorsement": "Wildcat makes no claim as to the accuracy of unchecked fields and does not endorse any linked destinations. Review independently before depositing.",
-        "modalTitle": "How Wildcat checks this profile",
-        "noEndorsement": "Borrower-supplied fields are shown for information only. Wildcat makes no claim as to their accuracy and does not endorse linked destinations.",
-        "noteIntro": "Wildcat checks a defined subset of this profile during the KYB process completed as part of borrower onboarding. The rest is supplied by the borrower.",
-        "title": "Profile Verification",
-        "unverifiedHeading": "Not checked",
-        "verifiedHeading": "Checked by Wildcat"
+          },
+          "verifiedHeading": "Checked by Wildcat"
+        }
       }
     }
   },
@@ -750,134 +548,6 @@
       "percent": "%"
     }
   },
-  "createMarket": {
-    "forms": {
-      "marketDescription": {
-        "block": {
-          "policyName": {
-            "placeholder": "Enter Policy Name"
-          }
-        }
-      }
-    }
-  },
-  "createNewMarket": {
-    "basic": {
-      "tokenSymbol": {
-        "chip": "Token Symbol"
-      }
-    },
-    "confirm": {
-      "alertParamsChanged": "Market settings changed after you signed the market agreement, so the signature no longer covers them. Sign the agreement again to deploy, or restore the previous settings."
-    },
-    "financial": {
-      "baseAPR": {
-        "glossaryRevolving": "The additional annual percentage rate charged on borrowed capital in a revolving market. Undrawn capacity does not accrue this rate; it accrues the separate commitment fee instead.",
-        "labelRevolving": "Utilization APR"
-      },
-      "commitmentFee": {
-        "chip": "%",
-        "glossary": "A recurring fee charged on undrawn borrowing capacity in a revolving market. Lenders continue to earn this fee even when capital has been committed but not yet borrowed.",
-        "label": "Commitment Fee",
-        "placeholder": "0 - 100"
-      },
-      "maxCapacity": {
-        "chip": "Token Symbol",
-        "glossary": "The maximum limit of funds that borrowers can access in the market."
-      },
-      "minDeposit": {
-        "chip": "Token Symbol"
-      }
-    },
-    "lenderRestrictions": {
-      "disableTransfers": {
-        "explainer": "Blocks the transfer of market tokens between participants, keeping them tied to their original holder.",
-        "glossary": "Disable Transfers stops the movement of tokens representing deposits or loans within the market. This ensures that tokens remain with their original holders and are not traded or moved between accounts, maintaining control and security. Transfers to the market starting withdrawal requests are not disabled.",
-        "label": "Disable Transfers"
-      },
-      "restrictTransfers": {
-        "explainer": "Allows transfers of market tokens only to users who satisfy the market’s policy-defined access conditions, such as holding valid credentials or being on an approved list.",
-        "glossary": "Restrict Transfers ensures that market tokens can only be transferred between participants who meet the specific access requirements set by the market’s policy. These conditions may include holding approved deposit credentials or satisfying other borrower-defined qualifications. This restriction helps maintain compliance with the policy and supports secure market operations​​.",
-        "label": "Restrict Transfers"
-      },
-      "restrictWithdrawals": {
-        "explainer": "[RECOMMENDED] Restricts withdrawals to users who meet the defined market access criteria, such as holding valid credentials or being on an approved list of participants.",
-        "glossary": "Restricts the ability to withdraw funds to users who meet market access criteria. These criteria include possession of valid deposit credentials, approval through a role provider, or other borrower-defined conditions. By enforcing such restrictions, the market ensures only eligible participants can withdraw, maintaining order and compliance with its operational framework​.",
-        "label": "Restrict Withdrawals"
-      }
-    },
-    "policy": {
-      "expiration": {
-        "glossary": "The date the fixed loan term ends. Lenders cannot queue withdrawals until this maturity date passes."
-      },
-      "implementation": {
-        "label": "Market Type",
-        "placeholder": "Please Select"
-      },
-      "periodic": {
-        "firstWindowStart": {
-          "glossary": "The exact UTC date and time of the first withdrawal window. Every later window recurs on this anchor.",
-          "label": "First Withdrawal Window [UTC]",
-          "placeholder": "e.g. 25/12/2024 14:30 UTC"
-        },
-        "periodDuration": {
-          "glossary": "How often a withdrawal window recurs — the gap from the start of one window to the start of the next. Must be longer than the withdrawal window.",
-          "label": "Withdrawal Period",
-          "placeholder": "Input Period Duration"
-        },
-        "sectionTitle": "Withdrawal Schedule",
-        "withdrawalWindowDuration": {
-          "glossary": "How long each withdrawal window stays open. Lenders can only queue withdrawals while a window is open; it must be shorter than the withdrawal period.",
-          "label": "Withdrawal Window",
-          "placeholder": "Input Window Duration"
-        }
-      },
-      "reduceExpiration": {
-        "explainer": "Allows you to reduce the maturity of a fixed term market."
-      }
-    },
-    "wrapper": {
-      "deploy": {
-        "unavailableWhenTransfersDisabled": "A wrapper requires transferable market tokens. Enable transfers to deploy a wrapper."
-      }
-    }
-  },
-  "dashboard": {
-    "markets": {
-      "liveDataUnavailable": "Live market data is temporarily unavailable. Market links remain available.",
-      "noMarkets": {
-        "active": {
-          "borrowerSubtitle": "Create a new market, or check your terminated ones.",
-          "lenderSubtitle": "Join a suitable self-onboarding market, or reach out to a borrower (see their profile) for access to restricted ones."
-        },
-        "filter": {
-          "beginning": "No"
-        }
-      },
-      "tables": {
-        "header": {
-          "type": "Type"
-        }
-      }
-    }
-  },
-  "editLendersList": {
-    "forms": {
-      "confirm": {
-        "all": "All"
-      }
-    }
-  },
-  "editPolicy": {
-    "confirm": "Confirm Policy Edits",
-    "editing": "Editing Policy",
-    "for": " for",
-    "lenders": "Policy Lenders",
-    "policyDetails": "Policy Details",
-    "unnamedPolicy": {
-      "subtitle": "Please give a unique name to your policy."
-    }
-  },
   "footer": {
     "agreement": "Download Terms Of Use",
     "rights": "Wildcat Foundation 2026"
@@ -916,185 +586,13 @@
       "title": "Subscribe to our Telegram Bot"
     }
   },
-  "lenderMarketDetails": {
-    "access": {
-      "blocked": {
-        "subtitle": "The market's onchain access check reports this wallet as blocked. Claimable withdrawals remain available below.",
-        "title": "Lender access blocked"
-      },
-      "error": {
-        "retry": "Retry",
-        "subtitle": "We couldn't confirm this wallet's market permissions from the blockchain. No access decision has been made.",
-        "title": "Unable to verify lender access"
-      }
-    },
-    "analytics": {
-      "charts": {
-        "cumulativeNetFlow": "Cumulative Net Flow",
-        "cumulativeNetFlowDesc": "Running total: deposits − withdrawals",
-        "dailyFlows": "Daily Deposits & Withdrawals",
-        "dailyFlowsDesc": "Deposits above axis; withdrawals below (requested vs executed)",
-        "delinquencyHistory": "Delinquency History"
-      },
-      "interestEarned": "Interest Earned",
-      "interestEarnedTooltip": "Total interest accrued to your position in this market.",
-      "lifetimeDeposited": "Lifetime Deposited",
-      "lifetimeDepositedTooltip": "Total amount you have deposited into this market across all transactions, including amounts since withdrawn.",
-      "totalLenders": "Total Lenders",
-      "totalLendersTooltip": "Number of lenders with an active balance in this market.",
-      "totalWithdrawalsExecuted": "Total Withdrawals Executed",
-      "totalWithdrawalsExecutedTooltip": "Total amount you have successfully withdrawn from this market, including claimed and partially executed batches."
-    },
-    "borrowerPenaltyWarning": "At least one market deployed by this borrower has not honoured withdrawal requests at least thirty days past their self-imposed grace period.",
-    "borrowerPenaltyWarningUnavailable": "We couldn't verify whether another market deployed by this borrower has withdrawal requests at least thirty days past its grace period.",
-    "noDataAvailable": "No Data Available",
-    "pendingAprReduction": {
-      "elapsed": {
-        "body": "The lender response window has passed; the borrower can apply the reduction at any time.",
-        "title": "Base APR reduction pending: {{currentApr}}% → {{proposedApr}}%"
-      },
-      "exitNow": {
-        "body": "Request a withdrawal before {{windowEnd}} ({{countdown}} left) if you do not wish to lend at the reduced rate.",
-        "title": "Base APR drops from {{currentApr}}% to {{proposedApr}}% after this window"
-      },
-      "proposed": {
-        "body": "You can request a withdrawal during the response window ({{windowStart}} – {{windowEnd}}) before the change can take effect.",
-        "title": "Base APR reduction proposed: {{currentApr}}% → {{proposedApr}}%"
-      }
-    },
-    "transactions": {
-      "deposit": {
-        "modal": {
-          "checkingBorrowerHistory": "Checking borrower withdrawal history...",
-          "gate": {
-            "button": "Deposit Anyway",
-            "checkbox": "I agree to deposit with a full understanding of the consequences",
-            "heading": "Before you deposit into this market",
-            "tooltip": "This borrower has previously failed to honour withdrawal requests beyond their self-imposed grace period. Confirm you understand the risk before proceeding.",
-            "unavailableButton": "Continue",
-            "unavailableCheckbox": "I understand that this borrower's withdrawal history could not be verified",
-            "unavailableTooltip": "The borrower's withdrawal history could not be verified. Confirm you understand that this status is unavailable before proceeding."
-          },
-          "projection": {
-            "disclaimer": "Estimates only.",
-            "periods": {
-              "ninetyDays": "In 90 days",
-              "oneYear": "In 1 year",
-              "thirtyDays": "In 30 days"
-            },
-            "subtitle": "Projected interest at the current base APR of",
-            "title": "Earning Calculator",
-            "tooltip": "Estimated interest your deposit would earn at the current base APR."
-          }
-        },
-        "periodicWindowNotice": "This is a periodic market: withdrawal requests are only available during scheduled withdrawal windows."
-      },
-      "withdraw": {
-        "chips": {
-          "all": "All · {{amount}}",
-          "directOnly": "Direct only · {{amount}}",
-          "max": "Max · {{amount}}"
-        },
-        "confirm": {
-          "enterAmount": "Enter An Amount",
-          "exceeds": "Amount Exceeds Available",
-          "withdraw_one": "Withdraw {{amount}} {{symbol}} · 1 step",
-          "withdraw_other": "Withdraw {{amount}} {{symbol}} · {{count}} steps"
-        },
-        "errors": {
-          "exceeds": "Above the {{amount}} {{symbol}} available from this source",
-          "tooSmall": "Amount is below the {{amount}} {{symbol}} minimum"
-        },
-        "periodicTooltip": "The amount of underlying asset debt that the connected address can request for withdrawal. Periodic markets accept withdrawal requests only during scheduled withdrawal windows.",
-        "periodicWindow": {
-          "closed": "Withdrawals are only available during this market's withdrawal window.",
-          "nextStart": "Next window opens {{date}} ({{countdown}})"
-        },
-        "proposed": {
-          "subtitle": "Your Safe needs {{count}} signatures before this withdrawal is queued.",
-          "title": "Transaction Proposed"
-        },
-        "routing": {
-          "directOnlyUpTo": "Direct only up to {{amount}}",
-          "tx_one": "1 transaction",
-          "tx_other": "{{count}} transactions",
-          "txBatched": "1 transaction (batched)",
-          "txMultisig": "1 Safe transaction · {{count}} signatures",
-          "unwrapping": "Unwrapping {{shares}} {{symbol}}",
-          "wrappedOnly": "Wrapped position only"
-        },
-        "split": "{{direct}} direct · ≈ {{wrapped}} wrapped",
-        "splitDirect": "{{amount}} direct",
-        "splitWrapped": "≈ {{amount}} wrapped",
-        "steps": {
-          "batched": {
-            "detail": "{{shares}} {{shareSymbol}} unwrapped, {{amount}} {{symbol}} requested — one batched transaction",
-            "title": "Unwrap And Request Withdrawal"
-          },
-          "header": "Withdrawing",
-          "queue": {
-            "detail": "{{amount}} {{symbol}} queued for the next cycle",
-            "detailDirect": "{{amount}} {{symbol}} from your direct position",
-            "title": "Request Withdrawal"
-          },
-          "retry": "Retry · {{title}}",
-          "signBusy": "Waiting For Wallet…",
-          "signMany": "Confirm Step {{current}} Of {{total}} · {{title}}",
-          "signOne": "Confirm In Wallet",
-          "status": {
-            "confirming": "Confirm in wallet…",
-            "done": "Done",
-            "failed": "Failed",
-            "next": "Next",
-            "waiting": "Waiting"
-          },
-          "unwrap": {
-            "detail": "{{shares}} {{shareSymbol}} to {{amount}} {{symbol}}",
-            "detailNoShares": "Unwrap to {{amount}} {{symbol}}",
-            "title": "Unwrap"
-          }
-        },
-        "success": {
-          "back": "Back To Market",
-          "subtitle": "{{amount}} {{symbol}} queued. Claimable when the current withdrawal cycle ends.",
-          "title": "Withdrawal Requested"
-        },
-        "tooltip": "The amount of underlying asset debt that the address you are connected with is able to request a withdrawal for. Note that if this market is still in a Fixed Term state (see maturity below), you are unable to make withdrawal requests.",
-        "unavailable": {
-          "fixed-term": "Withdrawal requests open when the fixed term ends.",
-          "insufficient-balance": "The market-token balance is insufficient for this withdrawal.",
-          "insufficient-role": "This wallet does not have permission to request a withdrawal.",
-          "no-balance": "No market tokens are available to withdraw.",
-          "requires-access": "A valid lender credential is required to request a withdrawal.",
-          "resolution-error": "Withdrawal access could not be verified. Retry the blockchain check above.",
-          "resolving": "Checking withdrawal availability…",
-          "withdrawal-window-closed": "Withdrawal requests are available only during the scheduled window."
-        },
-        "wrappedOnly": "Use my wrapped position for this withdrawal"
-      },
-      "withdrawalsAlert": {
-        "buttons": {
-          "withdrawals": "Go to Withdrawals"
-        },
-        "title": {
-          "noClaim": "You have nothing to claim right now.",
-          "outstanding_one": "{{count}} withdrawal outstanding",
-          "outstanding_other": "{{count}} withdrawals outstanding"
-        }
-      }
-    },
-    "wrapDebtToken": {
-      "whatHappensAfter": {
-        "question": "What happens after deployment?"
-      }
-    }
-  },
   "marketDetails": {
     "borrower": {
       "authorisedLenders": {
         "buttons": {
           "download": "Download",
-          "editPolicy": "Edit Policy"
+          "editPolicy": "Edit Policy",
+          "view": "View"
         },
         "header": "Lender List",
         "noActiveLenders": "No active lenders yet – you can approve specific addresses in your market policy.",
@@ -1102,7 +600,14 @@
         "noLendersTitle": "No Lenders",
         "notSigned": "Not Yet Signed",
         "tableHeaders": {
-          "balance": "Balance"
+          "accessExpiry": "Credential Expiry",
+          "accessLevel": "Access Level",
+          "balance": "Balance",
+          "dateAdded": "Date Added",
+          "name": "Name",
+          "signDate": "Sign Date",
+          "signedMLA": "Signed MLA",
+          "walletAddress": "Wallet Address"
         }
       },
       "buttons": {
@@ -1116,15 +621,35 @@
         "apr": {
           "adjust": "Adjust",
           "adjustBase": "Adjust Base APR",
+          "adjustUtilization": "Adjust Utilization APR",
           "alreadyUpdated": "Base APR Recently Adjusted",
+          "alreadyUpdatedUtilization": "Utilization APR Recently Adjusted",
           "approveNotified": "I understand that adjusting this APR impacts all lenders.",
           "aprAffects": "Effects Of APR Adjustment",
+          "collateralObligation": "Collateral Obligation",
           "confirmed": "Confirmed",
           "currentBaseApr": "Current Base APR",
+          "currentUtilizationApr": "Current Utilization APR",
+          "expiredTempRatioNotice": "The temporary reserve ratio has expired. You must reset it before lowering the APR.",
           "learnMore": "Learn More",
           "newBaseApr": "New Base APR",
+          "newCollateralObligation": "New Collateral Obligation",
+          "newReservedRatio": "New Reserve Ratio",
+          "newUtilizationApr": "New Utilization APR",
+          "pendingProposalReplaceNotice": "A reduction to {{proposedApr}}% is already pending (lenders can respond until {{readyAt}}). Submitting a new proposal replaces it and restarts the response window.",
+          "periodicProposalNotice": "This proposes an APR reduction for lenders to review. The APR will not change until the lender response window has closed.",
+          "proposalErrorSubtitle": "The proposal transaction did not complete. Check your wallet and try again.",
+          "proposalErrorTitle": "APR Reduction Proposal Failed",
+          "proposalLoadingSubtitle": "Submitting proposal transaction...",
+          "proposalLoadingTitle": "Proposing APR Reduction...",
+          "proposalSuccessSubtitle": "The APR can be updated after the lender response window closes.",
+          "proposalSuccessTitle": "APR Reduction Proposed",
+          "proposeReduction": "Propose Reduction",
+          "proposeReductionTitle": "Propose APR Reduction",
           "reservedRatio": "Reserve Ratio",
-          "resetTempRatio": "Reset Temporary Reserve Ratio"
+          "resetTempRatio": "Reset Temporary Reserve Ratio",
+          "setTemporarily": "set temporarily until",
+          "willSetTemporarily": "Temporary reserve ratio in force until"
         },
         "borrow": {
           "afterTransaction": " after this transaction",
@@ -1138,7 +663,8 @@
         },
         "error": {
           "subtitle": "Can you reach out to us and tell us how you got here?",
-          "tryAgain": "Try Again"
+          "tryAgain": "Try Again",
+          "wait": "Oops! Something went wrong!"
         },
         "loading": {
           "subtitle": "Transaction pending...",
@@ -1182,6 +708,9 @@
         "statusDetails": "Status and Details",
         "withdrawalRequests": "Withdrawal Requests"
       },
+      "statusChart": {
+        "totalDebt": "Total Debt"
+      },
       "tooltip": {
         "delinquencyContinues": "The delinquency timer will continue to increase until this market is returned to a healthy state.",
         "delinquencyFeesApply": "This market is not currently delinquent, but delinquency fees still apply until the timer is below the grace period.",
@@ -1205,11 +734,41 @@
       }
     },
     "lender": {
+      "access": {
+        "blocked": {
+          "subtitle": "The market's onchain access check reports this wallet as blocked. Claimable withdrawals remain available below.",
+          "title": "Lender access blocked"
+        },
+        "error": {
+          "retry": "Retry",
+          "subtitle": "We couldn't confirm this wallet's market permissions from the blockchain. No access decision has been made.",
+          "title": "Unable to verify lender access"
+        }
+      },
+      "analytics": {
+        "charts": {
+          "cumulativeNetFlow": "Cumulative Net Flow",
+          "cumulativeNetFlowDesc": "Running total: deposits − withdrawals",
+          "dailyFlows": "Daily Deposits & Withdrawals",
+          "dailyFlowsDesc": "Deposits above axis; withdrawals below (requested vs executed)",
+          "delinquencyHistory": "Delinquency History"
+        },
+        "interestEarned": "Interest Earned",
+        "interestEarnedTooltip": "Total interest accrued to your position in this market.",
+        "lifetimeDeposited": "Lifetime Deposited",
+        "lifetimeDepositedTooltip": "Total amount you have deposited into this market across all transactions, including amounts since withdrawn.",
+        "totalLenders": "Total Lenders",
+        "totalLendersTooltip": "Number of lenders with an active balance in this market.",
+        "totalWithdrawalsExecuted": "Total Withdrawals Executed",
+        "totalWithdrawalsExecutedTooltip": "Total amount you have successfully withdrawn from this market, including claimed and partially executed batches."
+      },
       "barchart": {
         "withdrawals": {
           "title": "Your Withdrawals"
         }
       },
+      "borrowerPenaltyWarning": "At least one market deployed by this borrower has not honoured withdrawal requests at least thirty days past their self-imposed grace period.",
+      "borrowerPenaltyWarningUnavailable": "We couldn't verify whether another market deployed by this borrower has withdrawal requests at least thirty days past its grace period.",
       "buttons": {
         "addToken": "Add Debt Token To Wallet",
         "mlaNotSet": "Borrower Has Not Configured An MLA",
@@ -1223,10 +782,44 @@
       },
       "modals": {
         "deposit": {
+          "checkingBorrowerHistory": "Checking borrower withdrawal history...",
+          "gate": {
+            "button": "Deposit Anyway",
+            "checkbox": "I agree to deposit with a full understanding of the consequences",
+            "heading": "Before you deposit into this market",
+            "tooltip": "This borrower has previously failed to honour withdrawal requests beyond their self-imposed grace period. Confirm you understand the risk before proceeding.",
+            "unavailableButton": "Continue",
+            "unavailableCheckbox": "I understand that this borrower's withdrawal history could not be verified",
+            "unavailableTooltip": "The borrower's withdrawal history could not be verified. Confirm you understand that this status is unavailable before proceeding."
+          },
+          "projection": {
+            "disclaimer": "Estimates only.",
+            "ninetyDays": "In 90 days",
+            "oneYear": "In 1 year",
+            "subtitle": "Projected interest at the current base APR of",
+            "thirtyDays": "In 30 days",
+            "title": "Earning Calculator",
+            "tooltip": "Estimated interest your deposit would earn at the current base APR."
+          },
           "title": "Deposit"
         },
         "withdraw": {
           "title": "Withdraw"
+        }
+      },
+      "noDataAvailable": "No Data Available",
+      "pendingAprReduction": {
+        "elapsed": {
+          "body": "The lender response window has passed; the borrower can apply the reduction at any time.",
+          "title": "Base APR reduction pending: {{currentApr}}% → {{proposedApr}}%"
+        },
+        "exitNow": {
+          "body": "Request a withdrawal before {{windowEnd}} ({{countdown}} left) if you do not wish to lend at the reduced rate.",
+          "title": "Base APR drops from {{currentApr}}% to {{proposedApr}}% after this window"
+        },
+        "proposed": {
+          "body": "You can request a withdrawal during the response window ({{windowStart}} – {{windowEnd}}) before the change can take effect.",
+          "title": "Base APR reduction proposed: {{currentApr}}% → {{proposedApr}}%"
         }
       },
       "requests": {
@@ -1246,24 +839,102 @@
       "transactions": {
         "deposit": {
           "button": "Deposit",
+          "periodicWindowNotice": "This is a periodic market: withdrawal requests are only available during scheduled withdrawal windows.",
           "title": "Available To Deposit",
           "tooltip": "The amount of the underlying asset held by the address you are connected with."
         },
         "withdraw": {
           "button": "Withdraw",
           "buttonLocked": "Fixed Term",
-          "title": "Available For Withdraw Requests"
+          "chips": {
+            "all": "All · {{amount}}",
+            "directOnly": "Direct only · {{amount}}",
+            "max": "Max · {{amount}}"
+          },
+          "confirm": {
+            "enterAmount": "Enter An Amount",
+            "exceeds": "Amount Exceeds Available",
+            "withdraw_one": "Withdraw {{amount}} {{symbol}} · 1 step",
+            "withdraw_other": "Withdraw {{amount}} {{symbol}} · {{count}} steps"
+          },
+          "errors": {
+            "exceeds": "Above the {{amount}} {{symbol}} available from this source",
+            "tooSmall": "Amount is below the {{amount}} {{symbol}} minimum"
+          },
+          "periodicTooltip": "The amount of underlying asset debt that the connected address can request for withdrawal. Periodic markets accept withdrawal requests only during scheduled withdrawal windows.",
+          "periodicWindow": {
+            "closed": "Withdrawals are only available during this market's withdrawal window.",
+            "nextStart": "Next window opens {{date}} ({{countdown}})"
+          },
+          "proposed": {
+            "subtitle": "Your Safe needs {{count}} signatures before this withdrawal is queued.",
+            "title": "Transaction Proposed"
+          },
+          "routing": {
+            "directOnlyUpTo": "Direct only up to {{amount}}",
+            "tx_one": "1 transaction",
+            "tx_other": "{{count}} transactions",
+            "txBatched": "1 transaction (batched)",
+            "txMultisig": "1 Safe transaction · {{count}} signatures",
+            "unwrapping": "Unwrapping {{shares}} {{symbol}}",
+            "wrappedOnly": "Wrapped position only"
+          },
+          "split": "{{direct}} direct · ≈ {{wrapped}} wrapped",
+          "splitDirect": "{{amount}} direct",
+          "splitWrapped": "≈ {{amount}} wrapped",
+          "steps": {
+            "batchedDetail": "{{shares}} {{shareSymbol}} unwrapped, {{amount}} {{symbol}} requested — one batched transaction",
+            "batchedTitle": "Unwrap And Request Withdrawal",
+            "header": "Withdrawing",
+            "queueDetail": "{{amount}} {{symbol}} queued for the next cycle",
+            "queueDetailDirect": "{{amount}} {{symbol}} from your direct position",
+            "queueTitle": "Request Withdrawal",
+            "retry": "Retry · {{title}}",
+            "signBusy": "Waiting For Wallet…",
+            "signMany": "Confirm Step {{current}} Of {{total}} · {{title}}",
+            "signOne": "Confirm In Wallet",
+            "statusConfirming": "Confirm in wallet…",
+            "statusDone": "Done",
+            "statusFailed": "Failed",
+            "statusNext": "Next",
+            "statusWaiting": "Waiting",
+            "unwrapDetail": "{{shares}} {{shareSymbol}} to {{amount}} {{symbol}}",
+            "unwrapDetailNoShares": "Unwrap to {{amount}} {{symbol}}",
+            "unwrapTitle": "Unwrap"
+          },
+          "success": {
+            "back": "Back To Market",
+            "subtitle": "{{amount}} {{symbol}} queued. Claimable when the current withdrawal cycle ends.",
+            "title": "Withdrawal Requested"
+          },
+          "title": "Available For Withdraw Requests",
+          "tooltip": "The amount of underlying asset debt that the address you are connected with is able to request a withdrawal for. Note that if this market is still in a Fixed Term state (see maturity below), you are unable to make withdrawal requests.",
+          "unavailable": {
+            "fixed-term": "Withdrawal requests open when the fixed term ends.",
+            "insufficient-balance": "The market-token balance is insufficient for this withdrawal.",
+            "insufficient-role": "This wallet does not have permission to request a withdrawal.",
+            "no-balance": "No market tokens are available to withdraw.",
+            "requires-access": "A valid lender credential is required to request a withdrawal.",
+            "resolution-error": "Withdrawal access could not be verified. Retry the blockchain check above.",
+            "resolving": "Checking withdrawal availability…",
+            "withdrawal-window-closed": "Withdrawal requests are available only during the scheduled window."
+          },
+          "wrappedOnly": "Use my wrapped position for this withdrawal"
         }
       },
       "withdrawalsAlert": {
         "buttons": {
-          "claim": "Claim Assets"
+          "claim": "Claim Assets",
+          "withdrawals": "Go to Withdrawals"
         },
         "subtitle": "No assets available to claim from this market.",
         "title": {
           "claim": "{{claimableAmount}} ready to claim",
+          "noClaim": "You have nothing to claim right now.",
           "ongoing_one": "{{count}} withdrawal in progress",
-          "ongoing_other": "{{count}} withdrawals in progress"
+          "ongoing_other": "{{count}} withdrawals in progress",
+          "outstanding_one": "{{count}} withdrawal outstanding",
+          "outstanding_other": "{{count}} withdrawals outstanding"
         }
       },
       "wrapDebtToken": {
@@ -1273,7 +944,8 @@
         "subtitle": "This market doesn't have a wrapper contract yet.",
         "title": "No wrapper deployed",
         "whatHappensAfter": {
-          "answer": "Once deployed, the wrapper is available to everyone."
+          "answer": "Once deployed, the wrapper is available to everyone.",
+          "question": "What happens after deployment?"
         },
         "whatIsWrapping": {
           "answer": "Wrapping converts rebasing market tokens into a transferable ERC-4626-style token, making them easier to use across DeFi.",
@@ -1349,6 +1021,23 @@
         "prevActive": "Previously Active",
         "title": "Your Terminated Markets"
       },
+      "header": {
+        "term": "Term",
+        "type": "Type"
+      },
+      "noMarkets": {
+        "active": {
+          "subtitle": "Create a new market, or check your terminated ones.",
+          "title": "No Active Markets."
+        },
+        "filter": {
+          "beginning": "No"
+        },
+        "terminated": {
+          "subtitle": "Have you got any active markets?",
+          "title": "You don’t have any terminated markets"
+        }
+      },
       "noMarketsFilterEnding": "markets found.",
       "table": {
         "header": {
@@ -1366,6 +1055,10 @@
           "other": "Other Markets",
           "terminated": "Your Terminated Markets"
         }
+      },
+      "title": {
+        "active": "Your Active Markets",
+        "loading": "Loading..."
       }
     },
     "lender": {
@@ -1382,8 +1075,11 @@
         "assets": "Asset"
       },
       "lenderSubtitle": "All markets you have a position in or are potentially eligible for.",
+      "liveDataUnavailable": "Live market data is temporarily unavailable. Market links remain available.",
       "noMarkets": {
         "active": {
+          "borrowerSubtitle": "Create a new market, or check your terminated ones.",
+          "lenderSubtitle": "Join a suitable self-onboarding market, or reach out to a borrower (see their profile) for access to restricted ones.",
           "title": "No Active Markets."
         },
         "closed": {
@@ -1391,6 +1087,7 @@
           "title": "No Terminated Market Positions"
         },
         "filter": {
+          "beginning": "No",
           "ending": "markets found."
         },
         "wrongNetwork": "No Wildcat Markets On This Network"
@@ -1402,6 +1099,7 @@
           "capacity": "Remaining",
           "loan": "Your Loan",
           "term": "Term",
+          "type": "Type",
           "withdrawal": "Withdrawal"
         },
         "other": {
@@ -1418,22 +1116,160 @@
   },
   "marketParameters": {
     "baseAPR": "Base Lender APR",
+    "commitmentAPR": "Commitment APR",
+    "depositAccess": {
+      "label": "Deposit Access",
+      "open": {
+        "text": "Open Deposits",
+        "tooltip": "Anyone can lend to this market."
+      },
+      "restricted": {
+        "text": "Restricted",
+        "tooltip": "Lenders must meet specific criteria to lend to this market."
+      }
+    },
     "effectiveAPR": "Effective Lender APR",
     "hooks": {
       "hooksAddress": "Policy (Hook Instance) Address",
-      "title": "Market Hooks"
+      "title": "Market Hooks",
+      "useOnBorrow": "Hook on Borrow?",
+      "useOnCloseMarket": "Hook on Market Termination?",
+      "useOnDeposit": "Hook on Deposit?",
+      "useOnExecutePendingAnnualInterestBipsReduction": "Hook on Pending APR Reduction Execution?",
+      "useOnExecuteWithdrawal": "Hook on Claiming Assets?",
+      "useOnNukeFromOrbit": "Hook on Sanction Block?",
+      "useOnQueueWithdrawal": "Hook on Queuing Withdrawal?",
+      "useOnRepay": "Hook on Repayment?",
+      "useOnSetAnnualInterestAndReserveRatioBips": "Hook on APR/CRR Shift?",
+      "useOnSetMaxTotalSupply": "Hook on Max Capacity Shift?",
+      "useOnSetProtocolFeeBips": "Hook on Protocol Fee Shift?",
+      "useOnTransfer": "Hook on Token Transfer?"
     },
     "marketAddress": "Market Address",
+    "marketEarlyClosure": {
+      "label": "Fixed Term Closure Permitted",
+      "na": {
+        "text": "N/A",
+        "tooltip": "This setting applies only to Fixed Term markets."
+      },
+      "no": {
+        "text": "No",
+        "tooltip": "Market can only be terminated after fixed duration maturity."
+      },
+      "yes": {
+        "text": "Yes",
+        "tooltip": "Borrower can elect to terminate the market at any time."
+      }
+    },
     "marketExpiry": "Loan Maturity",
+    "marketImplementation": {
+      "label": "Type"
+    },
+    "marketMaturityReduction": {
+      "label": "Fixed Term Maturity Reduction Permitted",
+      "na": {
+        "text": "N/A",
+        "tooltip": "This setting applies only to Fixed Term markets."
+      },
+      "no": {
+        "text": "No",
+        "tooltip": "Maturity cannot be shortened from current value."
+      },
+      "yes": {
+        "text": "Yes",
+        "tooltip": "Borrower can elect to shorten Fixed Term duration."
+      }
+    },
+    "marketTerm": {
+      "FixedTerm": {
+        "text": "Fixed Term",
+        "tooltip": "Withdrawal requests are possible only after a fixed maturity date."
+      },
+      "label": "Term",
+      "OpenTerm": {
+        "text": "Open Term",
+        "tooltip": "Withdrawal requests are possible at any time."
+      },
+      "PeriodicTerm": {
+        "text": "Periodic Term",
+        "tooltip": "Withdrawal requests are possible during scheduled withdrawal windows."
+      },
+      "Unknown": {
+        "text": "Unknown",
+        "tooltip": "Market hook type could not be determined."
+      }
+    },
     "marketTokenName": "Market Token",
     "marketTokenPrefix": "Market Token Symbol",
+    "marketTypeChip": {
+      "FixedTerm": "Fixed Term",
+      "OpenTerm": "Open Term",
+      "PeriodicTerm": "Periodic Term",
+      "Unknown": "Unknown Term",
+      "windowOpen": "Window open",
+      "windowOpensIn": "Opens in {{duration}}"
+    },
     "maxBorrowingCapacity": "Max. Borrowing Capacity",
     "maximumGracePeriod": "Maximum Grace Period",
+    "minimumDeposit": {
+      "label": "Minimum Deposit",
+      "none": "None"
+    },
     "minimumReserveRatio": "Minimum Reserve Ratio",
     "penaltyAPR": "Penalty APR",
+    "pendingPeriodicApr": {
+      "appliedNotice": "The base APR is now {{currentApr}}%.",
+      "appliedNoticeTitle": "Base APR change applied",
+      "bannerTitle": "Pending base APR reduction: {{currentApr}}% → {{proposedApr}}%",
+      "blockedNotice": "The response window has closed, but the reduction cannot be applied yet: {{reason}}",
+      "cancelProposalWarning": "Increasing the APR will cancel your pending reduction proposal to {{proposedApr}}%.",
+      "execute": "Apply APR",
+      "executing": "Applying...",
+      "executionNotEnabled": "This market was not deployed with the V2.5 APR-reduction execution hook enabled.",
+      "label": "Pending Base APR",
+      "pendingNotice": "Lenders can respond until {{readyAt}}. The reduction can be applied once the response window closes.",
+      "processBatches": "Process Unpaid Batches",
+      "processBatchesProgress": "Process Unpaid Batches ({{perPass}} of {{total}})",
+      "readyNotice": "The lender response window has closed — the reduction is ready to apply.",
+      "settleAndApply": "Settle and Apply",
+      "settlementNotice": "{{amount}} {{symbol}} is needed to settle withdrawal and reserve obligations before the reduction can be applied.",
+      "settlementNoticeMultiPass": "{{totalBatches}} unpaid withdrawal batches must be processed (up to {{perPass}} per transaction) before the reduction can be applied. No additional repayment is required.",
+      "settlementNoticeZero": "Stale unpaid withdrawal batches must be processed before the reduction can be applied. No additional repayment is required.",
+      "settling": "Settling...",
+      "tooltip": "A periodic APR reduction has been proposed and can be applied after the lender response window closes."
+    },
+    "periodicTerm": {
+      "currentWindowStart": "Current Window Start",
+      "firstWindowStart": "First Withdrawal Window",
+      "firstWindowStartTooltip": "The exact UTC date and time of the first withdrawal window. Every later window recurs on this anchor.",
+      "nextWindowStart": "Next Withdrawal Window",
+      "periodDuration": "Withdrawal Period",
+      "periodDurationTooltip": "How often a withdrawal window recurs — the gap from the start of one window to the start of the next. This is separate from the Withdrawal Cycle Duration, which controls how long a queued withdrawal batch stays open.",
+      "windowStatus": {
+        "closed": {
+          "text": "Ended",
+          "tooltip": "This periodic market has been closed; withdrawal requests are now open permanently."
+        },
+        "closesIn": "{{duration}} left",
+        "label": "Window Status",
+        "open": {
+          "text": "Open",
+          "tooltip": "Lenders can request withdrawals during the current scheduled withdrawal window."
+        },
+        "opensIn": "in {{duration}}",
+        "scheduled": {
+          "text": "Scheduled",
+          "tooltip": "The next scheduled withdrawal window has not opened yet. Lenders can request withdrawals once it opens."
+        }
+      },
+      "withdrawalWindowDuration": "Withdrawal Window",
+      "withdrawalWindowDurationTooltip": "How long each withdrawal window stays open. Lenders can only queue withdrawals while a window is open. This is separate from the Withdrawal Cycle Duration, which controls how long a queued withdrawal batch stays open."
+    },
     "policyType": {
       "fixedTerm": "Fixed Term (withdrawals post-maturity)",
-      "openTerm": "Open Term (no withdrawal constraints)"
+      "openTerm": "Open Term (no withdrawal constraints)",
+      "PeriodicTerm": "Periodic Term (scheduled withdrawal windows)",
+      "Unknown": "Unknown Term"
     },
     "protocolAPR": "Protocol Fee APR",
     "roleProviders": {
@@ -1441,22 +1277,47 @@
       "manualApproval": "Borrower Operated Allowlist"
     },
     "tempReserveRatio": {
+      "badgeLabel": "{{currentRatio}}% in force until {{expiry}}",
+      "bannerHeading": "Reserve ratio (temporary protection active).",
+      "borrowerActiveNotice": "Reserve ratio elevated from {{originalRatio}}% to {{currentRatio}}% until {{expiry}} after a recent APR reduction. You can reset it after that.",
+      "borrowerActiveTooltip": "You reduced APR recently. Reserve ratio is temporarily elevated to {{currentRatio}}% until {{expiry}}. After that you can reset it back to {{originalRatio}}%.",
+      "borrowerBannerBody": "Elevated from {{originalRatio}}% to {{currentRatio}}% until {{expiry}} after a recent APR reduction. You can reset it after that.",
+      "borrowerExpiredNotice": "Reserve ratio was temporarily elevated to {{currentRatio}}% but the protection period has expired. Reset it to restore the base ratio of {{originalRatio}}%.",
+      "borrowerExpiredTooltip": "The temporary reserve ratio of {{currentRatio}}% has expired. Open the APR modal to reset it back to {{originalRatio}}%.",
+      "lenderActiveTooltip": "Temporarily elevated to {{currentRatio}}% due to a recent APR reduction. After {{expiry}}, the borrower can reset it back to {{originalRatio}}%.",
+      "lenderBannerBody": "Elevated from {{originalRatio}}% to {{currentRatio}}% until {{expiry}} after a recent APR reduction. The borrower can reset it after that.",
+      "lenderExpiredTooltip": "This market has an expired temporary reserve ratio of {{currentRatio}}% which will revert to {{originalRatio}}% when the borrower next updates market parameters.",
       "title": "Reserve Ratio (temporary protection active)"
     },
     "totalInterestAccrued": "Total Interest Accrued",
     "transferAccess": {
-      "label": "Transfer Access"
-    }
-  },
-  "marketTypeChip": {
-    "kind": {
-      "FixedTerm": "Fixed Term",
-      "OpenTerm": "Open Term",
-      "PeriodicTerm": "Periodic Term",
-      "Unknown": "Unknown Term"
+      "disabled": {
+        "text": "Disabled",
+        "tooltip": "The market token cannot be transferred."
+      },
+      "label": "Transfer Access",
+      "open": {
+        "text": "Open Transfers",
+        "tooltip": "The market token can be transferred to any non-sanctioned address."
+      },
+      "restricted": {
+        "text": "Restricted",
+        "tooltip": "The market token can only be transferred to addresses that meet specific criteria."
+      }
     },
-    "windowOpen": "Window open",
-    "windowOpensIn": "Opens in {{duration}}"
+    "utilizationAPR": "Utilization APR",
+    "withdrawalAccess": {
+      "label": "Withdrawal Access",
+      "open": {
+        "text": "Open Withdrawals",
+        "tooltip": "Anyone can request withdrawals."
+      },
+      "restricted": {
+        "text": "Restricted",
+        "tooltip": "Lenders who have not directly deposited must meet specific criteria to withdraw."
+      }
+    },
+    "withdrawalCycleDuration": "Withdrawal Cycle Duration"
   },
   "modals": {
     "shared": {
@@ -1566,14 +1427,5 @@
     "withdrawalSuccess": {
       "description": "Withdrawal cycle for <strong>{{marketName}}</strong> completed successfully."
     }
-  },
-  "policy": {
-    "lenders": {
-      "selfOnboardNotice": "Lenders onboard themselves to this policy, so there is no allowlist to edit."
-    }
-  },
-  "policyType": {
-    "PeriodicTerm": "Periodic Term (scheduled withdrawal windows)",
-    "Unknown": "Unknown Term"
   }
 }

@@ -47,9 +47,7 @@ export const AvatarProfileItem = ({
         <Typography variant="text3">
           {t("borrower.profile.form.avatar.title")}
         </Typography>
-        <TooltipButton
-          value={t("borrowerProfile.edit.public.avatar.tooltip")}
-        />
+        <TooltipButton value={t("borrower.profile.form.avatar.tooltip")} />
       </Box>
 
       <Box sx={AvatarContainer}>

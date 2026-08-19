@@ -66,13 +66,13 @@ export const WithdrawForm = ({
 
   const amountError = (() => {
     if (overMax) {
-      return t("lenderMarketDetails.transactions.withdraw.errors.exceeds", {
+      return t("marketDetails.lender.transactions.withdraw.errors.exceeds", {
         amount: formatTokenWithCommas(maxForMode),
         symbol,
       })
     }
     if (isBelowDustInWrappedOnly) {
-      return t("lenderMarketDetails.transactions.withdraw.errors.tooSmall", {
+      return t("marketDetails.lender.transactions.withdraw.errors.tooSmall", {
         amount: formatTokenWithCommas(dustFloor),
         symbol,
       })
@@ -83,29 +83,35 @@ export const WithdrawForm = ({
   const txSummary = (() => {
     if (!routing.isValid) return "—"
     if (isMultisig) {
-      return t("lenderMarketDetails.transactions.withdraw.routing.txMultisig", {
-        count: safeThreshold,
-      })
+      return t(
+        "marketDetails.lender.transactions.withdraw.routing.txMultisig",
+        {
+          count: safeThreshold,
+        },
+      )
     }
     if (isBatched && route.usesWrapped) {
-      return t("lenderMarketDetails.transactions.withdraw.routing.txBatched")
+      return t("marketDetails.lender.transactions.withdraw.routing.txBatched")
     }
-    return t("lenderMarketDetails.transactions.withdraw.routing.tx", {
+    return t("marketDetails.lender.transactions.withdraw.routing.tx", {
       count: legCount,
     })
   })()
 
   const hint = (() => {
     if (route.usesWrapped) {
-      return t("lenderMarketDetails.transactions.withdraw.routing.unwrapping", {
-        shares: sharesToUnwrap ? formatTokenWithCommas(sharesToUnwrap) : "…",
-        symbol: wrapper?.shareToken.symbol ?? "",
-      })
+      return t(
+        "marketDetails.lender.transactions.withdraw.routing.unwrapping",
+        {
+          shares: sharesToUnwrap ? formatTokenWithCommas(sharesToUnwrap) : "…",
+          symbol: wrapper?.shareToken.symbol ?? "",
+        },
+      )
     }
     if (isWrappedOnly)
-      return t("lenderMarketDetails.transactions.withdraw.routing.wrappedOnly")
+      return t("marketDetails.lender.transactions.withdraw.routing.wrappedOnly")
     return t(
-      "lenderMarketDetails.transactions.withdraw.routing.directOnlyUpTo",
+      "marketDetails.lender.transactions.withdraw.routing.directOnlyUpTo",
       {
         amount: formatTokenWithCommas(direct),
       },
@@ -122,7 +128,7 @@ export const WithdrawForm = ({
             size="small"
             onClick={fillDirect}
           >
-            {t("lenderMarketDetails.transactions.withdraw.chips.directOnly", {
+            {t("marketDetails.lender.transactions.withdraw.chips.directOnly", {
               amount: formatTokenWithCommas(direct),
             })}
           </Button>
@@ -136,10 +142,10 @@ export const WithdrawForm = ({
             onClick={fillMax}
           >
             {hasWrappedPosition
-              ? t("lenderMarketDetails.transactions.withdraw.chips.all", {
+              ? t("marketDetails.lender.transactions.withdraw.chips.all", {
                   amount: formatTokenWithCommas(maxForMode),
                 })
-              : t("lenderMarketDetails.transactions.withdraw.chips.max", {
+              : t("marketDetails.lender.transactions.withdraw.chips.max", {
                   amount: formatTokenWithCommas(maxForMode),
                 })}
           </Button>
@@ -193,7 +199,7 @@ export const WithdrawForm = ({
           }
           label={
             <Typography variant="text3" color={COLORS.blackRock}>
-              {t("lenderMarketDetails.transactions.withdraw.wrappedOnly")}
+              {t("marketDetails.lender.transactions.withdraw.wrappedOnly")}
             </Typography>
           }
           sx={{

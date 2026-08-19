@@ -173,12 +173,9 @@ export const MarketActions = ({
 
     if (!isOutstandingZero) {
       parts.push(
-        t(
-          "lenderMarketDetails.transactions.withdrawalsAlert.title.outstanding",
-          {
-            count: outstandingCount,
-          },
-        ),
+        t("marketDetails.lender.withdrawalsAlert.title.outstanding", {
+          count: outstandingCount,
+        }),
       )
     }
 
@@ -193,12 +190,9 @@ export const MarketActions = ({
     }
 
     if (parts.length === 0) {
-      return t(
-        "lenderMarketDetails.transactions.withdrawalsAlert.title.noClaim",
-        {
-          claim: "nothing",
-        },
-      )
+      return t("marketDetails.lender.withdrawalsAlert.title.noClaim", {
+        claim: "nothing",
+      })
     }
 
     return parts.join(" · ")
@@ -351,8 +345,8 @@ export const MarketActions = ({
             title={t("marketDetails.lender.transactions.withdraw.title")}
             tooltip={t(
               market.periodicHooksConfig
-                ? "lenderMarketDetails.transactions.withdraw.periodicTooltip"
-                : "lenderMarketDetails.transactions.withdraw.tooltip",
+                ? "marketDetails.lender.transactions.withdraw.periodicTooltip"
+                : "marketDetails.lender.transactions.withdraw.tooltip",
             )}
             amount={
               isTooSmallMarketBalance
@@ -362,7 +356,7 @@ export const MarketActions = ({
             asset={market.underlyingToken.symbol}
             subtitle={
               hasWrappedPosition && wrappedAvailable
-                ? t("lenderMarketDetails.transactions.withdraw.split", {
+                ? t("marketDetails.lender.transactions.withdraw.split", {
                     direct: formatTokenWithCommas(marketAccount.marketBalance),
                     wrapped: formatTokenWithCommas(wrappedAvailable),
                   })
@@ -420,9 +414,7 @@ export const MarketActions = ({
                 sx={{ width: "fit-content" }}
                 onClick={handleChangeSection}
               >
-                {t(
-                  "lenderMarketDetails.transactions.withdrawalsAlert.buttons.withdrawals",
-                )}
+                {t("marketDetails.lender.withdrawalsAlert.buttons.withdrawals")}
               </Button>
             )}
 

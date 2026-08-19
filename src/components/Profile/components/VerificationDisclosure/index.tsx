@@ -33,18 +33,18 @@ const ACKNOWLEDGEMENT_STORAGE_KEY =
   "borrower_profile_verification_acknowledged_v1"
 
 const VERIFIED_FIELD_KEYS = [
-  "borrowerProfile.profile.verification.fields.verified.legalName",
-  "borrowerProfile.profile.verification.fields.verified.borrowerAddress",
-  "borrowerProfile.profile.verification.fields.verified.headquarters",
-  "borrowerProfile.profile.verification.fields.verified.entityLegalForm",
-  "borrowerProfile.profile.verification.fields.verified.founded",
+  "borrower.profile.view.verification.verified.legalName",
+  "borrower.profile.view.verification.verified.borrowerAddress",
+  "borrower.profile.view.verification.verified.headquarters",
+  "borrower.profile.view.verification.verified.entityLegalForm",
+  "borrower.profile.view.verification.verified.founded",
 ] as const
 
 const UNVERIFIED_FIELD_KEYS = [
-  "borrowerProfile.profile.verification.fields.unverified.alias",
-  "borrowerProfile.profile.verification.fields.unverified.profileDescription",
-  "borrowerProfile.profile.verification.fields.unverified.outgoingLinks",
-  "borrowerProfile.profile.verification.fields.unverified.marketDescription",
+  "borrower.profile.view.verification.unverified.alias",
+  "borrower.profile.view.verification.unverified.profileDescription",
+  "borrower.profile.view.verification.unverified.outgoingLinks",
+  "borrower.profile.view.verification.unverified.marketDescription",
 ] as const
 
 type BorrowerProfileVerificationDisclosureProps = {
@@ -190,7 +190,7 @@ export const BorrowerProfileVerificationDisclosure = ({
                 : undefined
             }
           >
-            {t("borrowerProfile.profile.verification.title")}
+            {t("borrower.profile.view.verification.title")}
           </Typography>
 
           <Typography
@@ -199,12 +199,12 @@ export const BorrowerProfileVerificationDisclosure = ({
             marginTop={compactNote ? "10px" : "16px"}
             sx={noteBodyTextSx}
           >
-            {t("borrowerProfile.profile.verification.noteIntro")}
+            {t("borrower.profile.view.verification.noteIntro")}
           </Typography>
 
           <Box marginTop={compactNote ? "12px" : "18px"}>
             <VerificationGroupHeading verified compact={compactNote}>
-              {t("borrowerProfile.profile.verification.verifiedHeading")}
+              {t("borrower.profile.view.verification.verifiedHeading")}
             </VerificationGroupHeading>
             <FieldList
               fieldKeys={VERIFIED_FIELD_KEYS}
@@ -217,7 +217,7 @@ export const BorrowerProfileVerificationDisclosure = ({
 
           <Box>
             <VerificationGroupHeading verified={false} compact={compactNote}>
-              {t("borrowerProfile.profile.verification.unverifiedHeading")}
+              {t("borrower.profile.view.verification.unverifiedHeading")}
             </VerificationGroupHeading>
             <FieldList
               fieldKeys={UNVERIFIED_FIELD_KEYS}
@@ -233,7 +233,7 @@ export const BorrowerProfileVerificationDisclosure = ({
             marginTop={compactNote ? "10px" : "14px"}
             sx={noteBodyTextSx}
           >
-            {t("borrowerProfile.profile.verification.noEndorsement")}
+            {t("borrower.profile.view.verification.noEndorsement")}
           </Typography>
 
           <Button
@@ -259,7 +259,7 @@ export const BorrowerProfileVerificationDisclosure = ({
               },
             }}
           >
-            {t("borrowerProfile.profile.verification.detailsLink")}
+            {t("borrower.profile.view.verification.detailsLink")}
             <SvgIcon
               sx={{
                 fontSize: "11px",
@@ -283,24 +283,24 @@ export const BorrowerProfileVerificationDisclosure = ({
             variant="title2"
             color={COLORS.bunker}
           >
-            {t("borrowerProfile.profile.verification.modalTitle")}
+            {t("borrower.profile.view.verification.modalTitle")}
           </Typography>
 
           <Typography variant="text2" color={COLORS.blackRock} marginTop="16px">
-            {t("borrowerProfile.profile.verification.modalIntro")}
+            {t("borrower.profile.view.verification.modalIntro")}
           </Typography>
 
           <Box sx={VerificationModalLists} marginTop="20px">
             <Box sx={VerificationModalFieldGroup}>
               <VerificationGroupHeading verified>
-                {t("borrowerProfile.profile.verification.verifiedHeading")}
+                {t("borrower.profile.view.verification.verifiedHeading")}
               </VerificationGroupHeading>
               <FieldList fieldKeys={VERIFIED_FIELD_KEYS} color="#1B9B16" />
             </Box>
 
             <Box sx={VerificationModalFieldGroup}>
               <VerificationGroupHeading verified={false}>
-                {t("borrowerProfile.profile.verification.unverifiedHeading")}
+                {t("borrower.profile.view.verification.unverifiedHeading")}
               </VerificationGroupHeading>
               <FieldList
                 fieldKeys={UNVERIFIED_FIELD_KEYS}
@@ -314,7 +314,7 @@ export const BorrowerProfileVerificationDisclosure = ({
             color={COLORS.matteSilver}
             marginTop="20px"
           >
-            {t("borrowerProfile.profile.verification.modalNoEndorsement")}
+            {t("borrower.profile.view.verification.modalNoEndorsement")}
           </Typography>
 
           <Button
@@ -324,7 +324,7 @@ export const BorrowerProfileVerificationDisclosure = ({
             onClick={acknowledgeDisclosure}
             sx={{ marginTop: "24px" }}
           >
-            {t("borrowerProfile.profile.verification.acknowledge")}
+            {t("borrower.profile.view.verification.acknowledge")}
           </Button>
         </Dialog>
       )}

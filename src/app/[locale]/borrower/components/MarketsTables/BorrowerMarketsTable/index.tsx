@@ -133,7 +133,7 @@ export const BorrowerMarketsTable = ({
     },
     {
       field: "implementationType",
-      headerName: t("borrowerMarketList.table.header.type"),
+      headerName: t("marketList.borrower.header.type"),
       maxWidth: 146,
       minWidth: 120,
       flex: 1.5,
@@ -161,7 +161,7 @@ export const BorrowerMarketsTable = ({
     },
     {
       field: "term",
-      headerName: t("borrowerMarketList.table.header.term"),
+      headerName: t("marketList.borrower.header.term"),
       maxWidth: 146,
       minWidth: 130,
       flex: 2,
@@ -373,9 +373,7 @@ export const BorrowerMarketsTable = ({
             {label}
           </Typography>
           <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-            {isLoading
-              ? t("borrowerMarketList.table.title.loading")
-              : rows.length}
+            {isLoading ? t("marketList.borrower.title.loading") : rows.length}
           </Typography>
         </Box>
       </AccordionSummary>
@@ -419,7 +417,7 @@ export const BorrowerMarketsTable = ({
       {tableData.length === 0 && !isLoading && !defaultFilters && (
         <Box display="flex" flexDirection="column" padding="24px 16px 12px">
           <Typography variant="text2" color={COLORS.santasGrey}>
-            {t("borrowerMarketList.table.noMarkets.filter.beginning")} {type}{" "}
+            {t("marketList.borrower.noMarkets.filter.beginning")} {type}{" "}
             {statusFilter?.length !== 0 &&
               statusFilter?.map((status) => ` ${status.toLowerCase()}`)}{" "}
             {nameFilter === "" ? "" : nameFilter}{" "}

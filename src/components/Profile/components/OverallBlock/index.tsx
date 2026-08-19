@@ -90,25 +90,25 @@ export const OverallBlock = ({
       { verified: true },
     ),
     makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.entityKind"),
+      t("borrower.profile.view.overallInfo.entityKind"),
       entityKindText,
       { verified: true },
     ),
     makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.founded"),
+      t("borrower.profile.view.overallInfo.founded"),
       founded,
       { verified: true },
     ),
     makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.markets"),
+      t("borrower.profile.view.overallInfo.markets"),
       normalizedMarkets,
     ),
     makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.borrowed"),
+      t("borrower.profile.view.overallInfo.borrowed"),
       borrowed ?? "[Coming Soon]",
     ),
     makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.defaults.title"),
+      t("borrower.profile.view.overallInfo.defaults.title"),
       normalizedDefaults,
       {
         tooltipText: t("borrower.profile.view.defaults.tooltip"),

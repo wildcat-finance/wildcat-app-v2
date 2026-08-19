@@ -246,7 +246,7 @@ export const OtherMarketsTables = ({
     },
     {
       field: "implementationType",
-      headerName: t("dashboard.markets.tables.header.type"),
+      headerName: t("marketList.shared.tables.header.type"),
       minWidth: 110,
       flex: 1,
       headerAlign: "left",

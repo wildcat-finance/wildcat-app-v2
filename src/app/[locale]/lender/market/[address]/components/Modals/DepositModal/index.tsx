@@ -684,7 +684,7 @@ export const DepositModal = ({
               {isBorrowerPenaltyCheckPending && (
                 <Typography variant="mobText3" color={COLORS.santasGrey}>
                   {t(
-                    "lenderMarketDetails.transactions.deposit.modal.checkingBorrowerHistory",
+                    "marketDetails.lender.modals.deposit.checkingBorrowerHistory",
                   )}
                 </Typography>
               )}
@@ -692,8 +692,8 @@ export const DepositModal = ({
                 <FormControlLabel
                   label={t(
                     borrowerPenaltyVerificationUnavailable
-                      ? "lenderMarketDetails.transactions.deposit.modal.gate.unavailableCheckbox"
-                      : "lenderMarketDetails.transactions.deposit.modal.gate.checkbox",
+                      ? "marketDetails.lender.modals.deposit.gate.unavailableCheckbox"
+                      : "marketDetails.lender.modals.deposit.gate.checkbox",
                   )}
                   sx={{
                     alignItems: "flex-start",
@@ -933,8 +933,8 @@ export const DepositModal = ({
               <TxModalFooter
                 mainBtnText={t(
                   borrowerPenaltyVerificationUnavailable
-                    ? "lenderMarketDetails.transactions.deposit.modal.gate.unavailableButton"
-                    : "lenderMarketDetails.transactions.deposit.modal.gate.button",
+                    ? "marketDetails.lender.modals.deposit.gate.unavailableButton"
+                    : "marketDetails.lender.modals.deposit.gate.button",
                 )}
                 mainBtnOnClick={gate.accept}
                 disableMainBtn={!gate.acknowledged}
@@ -1143,16 +1143,14 @@ export const DepositModal = ({
                       }}
                     >
                       <Typography variant="text1">
-                        {t(
-                          "lenderMarketDetails.transactions.deposit.modal.gate.heading",
-                        )}
+                        {t("marketDetails.lender.modals.deposit.gate.heading")}
                       </Typography>
 
                       <TooltipButton
                         value={t(
                           borrowerPenaltyVerificationUnavailable
-                            ? "lenderMarketDetails.transactions.deposit.modal.gate.unavailableTooltip"
-                            : "lenderMarketDetails.transactions.deposit.modal.gate.tooltip",
+                            ? "marketDetails.lender.modals.deposit.gate.unavailableTooltip"
+                            : "marketDetails.lender.modals.deposit.gate.tooltip",
                         )}
                       />
                     </Box>
@@ -1160,8 +1158,8 @@ export const DepositModal = ({
                     <FormControlLabel
                       label={t(
                         borrowerPenaltyVerificationUnavailable
-                          ? "lenderMarketDetails.transactions.deposit.modal.gate.unavailableCheckbox"
-                          : "lenderMarketDetails.transactions.deposit.modal.gate.checkbox",
+                          ? "marketDetails.lender.modals.deposit.gate.unavailableCheckbox"
+                          : "marketDetails.lender.modals.deposit.gate.checkbox",
                       )}
                       sx={{ marginBottom: "30px" }}
                       control={
@@ -1459,8 +1457,8 @@ export const DepositModal = ({
                 <TxModalFooter
                   mainBtnText={t(
                     borrowerPenaltyVerificationUnavailable
-                      ? "lenderMarketDetails.transactions.deposit.modal.gate.unavailableButton"
-                      : "lenderMarketDetails.transactions.deposit.modal.gate.button",
+                      ? "marketDetails.lender.modals.deposit.gate.unavailableButton"
+                      : "marketDetails.lender.modals.deposit.gate.button",
                   )}
                   mainBtnOnClick={gate.accept}
                   disableMainBtn={!gate.acknowledged}

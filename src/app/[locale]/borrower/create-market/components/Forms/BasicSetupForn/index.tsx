@@ -144,7 +144,7 @@ export const BasicSetupForm = ({
                   <TextfieldChip
                     text={
                       tokenAsset?.symbol ||
-                      `${t("createNewMarket.basic.tokenSymbol.chip")}`
+                      `${t("borrower.createMarket.basic.tokenSymbol.chip")}`
                     }
                   />
                 </InputAdornment>

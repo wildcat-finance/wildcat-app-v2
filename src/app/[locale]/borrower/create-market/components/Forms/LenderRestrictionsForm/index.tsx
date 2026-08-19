@@ -77,10 +77,10 @@ export const LenderRestrictionsForm = ({
       >
         <HorizontalInputLabel
           label={t(
-            "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
+            "borrower.createMarket.lenderRestrictions.restrictWithdrawals.label",
           )}
           explainer={t(
-            "createNewMarket.lenderRestrictions.restrictWithdrawals.explainer",
+            "borrower.createMarket.lenderRestrictions.restrictWithdrawals.explainer",
           )}
         >
           <Switch
@@ -101,10 +101,10 @@ export const LenderRestrictionsForm = ({
 
         <HorizontalInputLabel
           label={t(
-            "createNewMarket.lenderRestrictions.restrictTransfers.label",
+            "borrower.createMarket.lenderRestrictions.restrictTransfers.label",
           )}
           explainer={t(
-            "createNewMarket.lenderRestrictions.restrictTransfers.explainer",
+            "borrower.createMarket.lenderRestrictions.restrictTransfers.explainer",
           )}
         >
           <Switch
@@ -119,9 +119,11 @@ export const LenderRestrictionsForm = ({
         </HorizontalInputLabel>
 
         <HorizontalInputLabel
-          label={t("createNewMarket.lenderRestrictions.disableTransfers.label")}
+          label={t(
+            "borrower.createMarket.lenderRestrictions.disableTransfers.label",
+          )}
           explainer={t(
-            "createNewMarket.lenderRestrictions.disableTransfers.explainer",
+            "borrower.createMarket.lenderRestrictions.disableTransfers.explainer",
           )}
         >
           <Switch

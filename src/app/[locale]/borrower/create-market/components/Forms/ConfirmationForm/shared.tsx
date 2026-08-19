@@ -229,7 +229,7 @@ export const SharedConfirmationForm = ({
           value={policyNameValue}
         />
         <ConfirmationFormItem
-          label={t("createNewMarket.policy.implementation.label")}
+          label={t("borrower.createMarket.policy.implementation.label")}
           value={implementationTypeValue || ""}
         />
         <ConfirmationFormItem
@@ -391,20 +391,22 @@ export const SharedConfirmationForm = ({
       >
         <ConfirmationFormItem
           label={t(
-            "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
+            "borrower.createMarket.lenderRestrictions.restrictWithdrawals.label",
           )}
           value={withdrawalRequiresAccess ? "Yes" : "No"}
         />
 
         <ConfirmationFormItem
           label={t(
-            "createNewMarket.lenderRestrictions.restrictTransfers.label",
+            "borrower.createMarket.lenderRestrictions.restrictTransfers.label",
           )}
           value={transferRequiresAccess ? "Yes" : "No"}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.lenderRestrictions.disableTransfers.label")}
+          label={t(
+            "borrower.createMarket.lenderRestrictions.disableTransfers.label",
+          )}
           value={disableTransfers ? "Yes" : "No"}
         />
       </Box>
@@ -502,7 +504,7 @@ export const SharedConfirmationForm = ({
           </SvgIcon>
 
           <Typography variant="text3" color={COLORS.dullRed}>
-            {t("createNewMarket.confirm.alertParamsChanged")}
+            {t("borrower.createMarket.confirm.alertParamsChanged")}
           </Typography>
         </Box>
       )}

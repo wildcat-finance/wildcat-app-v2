@@ -489,7 +489,7 @@ export const MarketsSection = () => {
       {mounted && !isWrongNetwork && marketAccounts.length > 0 && (
         <MarketLiveDataNotice
           status={liveDataStatus}
-          message={t("dashboard.markets.liveDataUnavailable")}
+          message={t("marketList.shared.liveDataUnavailable")}
         />
       )}
 

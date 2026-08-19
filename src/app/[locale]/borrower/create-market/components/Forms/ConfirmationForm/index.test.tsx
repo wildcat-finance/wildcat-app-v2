@@ -100,7 +100,7 @@ describe("ConfirmationForm access-control signature guard", () => {
 
     expect(screen.getByText("Borrower Operated Allowlist")).toBeTruthy()
     expect(
-      screen.getByText("createNewMarket.confirm.alertParamsChanged"),
+      screen.getByText("borrower.createMarket.confirm.alertParamsChanged"),
     ).toBeTruthy()
 
     const deployButton = screen.getByRole("button", {

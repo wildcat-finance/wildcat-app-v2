@@ -142,9 +142,7 @@ export const MarketTransactions = ({
   const pendingAprExecutionError =
     pendingAprExecutionErrorStatus ===
     PeriodicAprSettlementStatus.ExecutionNotEnabled
-      ? t(
-          "borrowerMarketDetails.parameters.pendingPeriodicApr.executionNotEnabled",
-        )
+      ? t("marketParameters.pendingPeriodicApr.executionNotEnabled")
       : pendingAprExecutionErrorStatus
   const aprDisplay = getMarketAprDisplayBips(market)
   const currentAprFormatted = formatBps(
@@ -169,20 +167,20 @@ export const MarketTransactions = ({
   const pendingAprNoticeKey = (() => {
     if (!pendingPeriodicAprChange) return undefined
     if (!pendingPeriodicAprChange.isResponseWindowElapsed) {
-      return "borrowerMarketDetails.parameters.pendingPeriodicApr.pendingNotice"
+      return "marketParameters.pendingPeriodicApr.pendingNotice"
     }
     if (pendingAprNeedsSettlement) {
       if (pendingAprSettlementQuote?.needsRepayment) {
-        return "borrowerMarketDetails.parameters.pendingPeriodicApr.settlementNotice"
+        return "marketParameters.pendingPeriodicApr.settlementNotice"
       }
       return (pendingAprSettlementQuote?.remainingBatchesAfterThisPass ?? 0) > 0
-        ? "borrowerMarketDetails.parameters.pendingPeriodicApr.settlementNoticeMultiPass"
-        : "borrowerMarketDetails.parameters.pendingPeriodicApr.settlementNoticeZero"
+        ? "marketParameters.pendingPeriodicApr.settlementNoticeMultiPass"
+        : "marketParameters.pendingPeriodicApr.settlementNoticeZero"
     }
     if (pendingAprExecutionError) {
-      return "borrowerMarketDetails.parameters.pendingPeriodicApr.blockedNotice"
+      return "marketParameters.pendingPeriodicApr.blockedNotice"
     }
-    return "borrowerMarketDetails.parameters.pendingPeriodicApr.readyNotice"
+    return "marketParameters.pendingPeriodicApr.readyNotice"
   })()
   const pendingAprNotice =
     pendingAprNoticeKey && pendingAprFormatted
@@ -314,13 +312,10 @@ export const MarketTransactions = ({
           }}
         >
           <Typography variant="text3" sx={{ color: COLORS.butteredRum }}>
-            {t(
-              "borrowerMarketDetails.parameters.tempReserveRatio.borrowerExpiredNotice",
-              {
-                currentRatio: currentRatioFormatted,
-                originalRatio: originalRatioFormatted,
-              },
-            )}{" "}
+            {t("marketParameters.tempReserveRatio.borrowerExpiredNotice", {
+              currentRatio: currentRatioFormatted,
+              originalRatio: originalRatioFormatted,
+            })}{" "}
             <Link
               href={EXTERNAL_LINKS.DOCS_REDUCING_APR}
               target="_blank"
@@ -345,14 +340,11 @@ export const MarketTransactions = ({
           }}
         >
           <Typography variant="text3" sx={{ color: COLORS.blackRock }}>
-            {t(
-              "borrowerMarketDetails.parameters.tempReserveRatio.borrowerActiveNotice",
-              {
-                currentRatio: currentRatioFormatted,
-                originalRatio: originalRatioFormatted,
-                expiry: tempReserveRatioExpiry,
-              },
-            )}{" "}
+            {t("marketParameters.tempReserveRatio.borrowerActiveNotice", {
+              currentRatio: currentRatioFormatted,
+              originalRatio: originalRatioFormatted,
+              expiry: tempReserveRatioExpiry,
+            })}{" "}
             <Link
               href={EXTERNAL_LINKS.DOCS_REDUCING_APR}
               target="_blank"
@@ -370,13 +362,10 @@ export const MarketTransactions = ({
         dismissedAprNoticeKey !== aprNoticeDismissKey && (
           <PeriodicNoticeBanner
             tone="info"
-            title={t(
-              "borrowerMarketDetails.parameters.pendingPeriodicApr.bannerTitle",
-              {
-                currentApr: currentAprFormatted,
-                proposedApr: pendingAprFormatted,
-              },
-            )}
+            title={t("marketParameters.pendingPeriodicApr.bannerTitle", {
+              currentApr: currentAprFormatted,
+              proposedApr: pendingAprFormatted,
+            })}
             body={pendingAprNotice}
             onClose={() => setDismissedAprNoticeKey(aprNoticeDismissKey)}
             sx={{ mb: "24px" }}
@@ -392,16 +381,14 @@ export const MarketTransactions = ({
                 >
                   {(() => {
                     if (isPendingAprSettlement) {
-                      return t(
-                        "borrowerMarketDetails.parameters.pendingPeriodicApr.settling",
-                      )
+                      return t("marketParameters.pendingPeriodicApr.settling")
                     }
                     if (
                       (pendingAprSettlementQuote?.remainingBatchesAfterThisPass ??
                         0) > 0
                     ) {
                       return t(
-                        "borrowerMarketDetails.parameters.pendingPeriodicApr.processBatchesProgress",
+                        "marketParameters.pendingPeriodicApr.processBatchesProgress",
                         {
                           perPass: pendingAprSettlementQuote?.maxBatches,
                           total: pendingAprSettlementQuote?.unpaidBatchCount,
@@ -409,12 +396,8 @@ export const MarketTransactions = ({
                       )
                     }
                     return pendingAprSettlementQuote?.needsRepayment
-                      ? t(
-                          "borrowerMarketDetails.parameters.pendingPeriodicApr.settleAndApply",
-                        )
-                      : t(
-                          "borrowerMarketDetails.parameters.pendingPeriodicApr.processBatches",
-                        )
+                      ? t("marketParameters.pendingPeriodicApr.settleAndApply")
+                      : t("marketParameters.pendingPeriodicApr.processBatches")
                   })()}
                 </Button>
               ) : (
@@ -426,12 +409,8 @@ export const MarketTransactions = ({
                   onClick={handleExecutePendingAprChange}
                 >
                   {isPendingAprSettlement
-                    ? t(
-                        "borrowerMarketDetails.parameters.pendingPeriodicApr.executing",
-                      )
-                    : t(
-                        "borrowerMarketDetails.parameters.pendingPeriodicApr.execute",
-                      )}
+                    ? t("marketParameters.pendingPeriodicApr.executing")
+                    : t("marketParameters.pendingPeriodicApr.execute")}
                 </Button>
               ))
             }
@@ -441,13 +420,10 @@ export const MarketTransactions = ({
       {showAppliedAprNotice && (
         <PeriodicNoticeBanner
           tone="success"
-          title={t(
-            "borrowerMarketDetails.parameters.pendingPeriodicApr.appliedNoticeTitle",
-          )}
-          body={t(
-            "borrowerMarketDetails.parameters.pendingPeriodicApr.appliedNotice",
-            { currentApr: currentAprFormatted },
-          )}
+          title={t("marketParameters.pendingPeriodicApr.appliedNoticeTitle")}
+          body={t("marketParameters.pendingPeriodicApr.appliedNotice", {
+            currentApr: currentAprFormatted,
+          })}
           onClose={() => setIsAppliedNoticeDismissed(true)}
           sx={{ mb: "24px" }}
         />

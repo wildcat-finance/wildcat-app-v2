@@ -63,7 +63,7 @@ export const WrapperForm = ({
         label={t("borrower.createMarket.wrapper.deploy.label")}
         explainer={t(
           disableTransfers
-            ? "createNewMarket.wrapper.deploy.unavailableWhenTransfersDisabled"
+            ? "borrower.createMarket.wrapper.deploy.unavailableWhenTransfersDisabled"
             : "borrower.createMarket.wrapper.deploy.explainer",
         )}
       >

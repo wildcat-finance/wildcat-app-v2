@@ -136,7 +136,9 @@ export const NoWrapperState = ({
 
           <Box sx={QuestionItem}>
             <Typography variant={isMobile ? "mobText2SemiBold" : "text2"}>
-              {t("lenderMarketDetails.wrapDebtToken.whatHappensAfter.question")}
+              {t(
+                "marketDetails.lender.wrapDebtToken.whatHappensAfter.question",
+              )}
             </Typography>
 
             <Typography

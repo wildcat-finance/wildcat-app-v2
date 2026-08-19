@@ -180,7 +180,7 @@ export const MarketAuthorisedLenders = ({
       sortable: false,
       field: "name",
       headerName: t(
-        "borrowerMarketDetails.authorisedLenders.tableHeaders.name",
+        "marketDetails.borrower.authorisedLenders.tableHeaders.name",
       ),
       minWidth: 146,
       headerAlign: "left",
@@ -192,7 +192,7 @@ export const MarketAuthorisedLenders = ({
       sortable: false,
       field: "walletAddress",
       headerName: t(
-        "borrowerMarketDetails.authorisedLenders.tableHeaders.walletAddress",
+        "marketDetails.borrower.authorisedLenders.tableHeaders.walletAddress",
       ),
       minWidth: 146,
       headerAlign: "left",
@@ -257,7 +257,7 @@ export const MarketAuthorisedLenders = ({
       sortable: false,
       field: "accessLevel",
       headerName: t(
-        "borrowerMarketDetails.authorisedLenders.tableHeaders.accessLevel",
+        "marketDetails.borrower.authorisedLenders.tableHeaders.accessLevel",
       ),
       minWidth: 104,
       headerAlign: "left",
@@ -347,7 +347,7 @@ export const MarketAuthorisedLenders = ({
       sortable: false,
       field: "accessExpiry",
       headerName: t(
-        "borrowerMarketDetails.authorisedLenders.tableHeaders.accessExpiry",
+        "marketDetails.borrower.authorisedLenders.tableHeaders.accessExpiry",
       ),
       minWidth: 110,
       headerAlign: "left",
@@ -358,7 +358,7 @@ export const MarketAuthorisedLenders = ({
       sortable: false,
       field: "dateAdded",
       headerName: t(
-        "borrowerMarketDetails.authorisedLenders.tableHeaders.dateAdded",
+        "marketDetails.borrower.authorisedLenders.tableHeaders.dateAdded",
       ),
       minWidth: 110,
       headerAlign: hasMLA ? "left" : "right",
@@ -372,7 +372,7 @@ export const MarketAuthorisedLenders = ({
       sortable: false,
       field: "signedMLA",
       headerName: t(
-        "borrowerMarketDetails.authorisedLenders.tableHeaders.signedMLA",
+        "marketDetails.borrower.authorisedLenders.tableHeaders.signedMLA",
       ),
       width: 96,
       headerAlign: "left",
@@ -383,7 +383,7 @@ export const MarketAuthorisedLenders = ({
       sortable: false,
       field: "signDate",
       headerName: t(
-        "borrowerMarketDetails.authorisedLenders.tableHeaders.signDate",
+        "marketDetails.borrower.authorisedLenders.tableHeaders.signDate",
       ),
       minWidth: 80,
       headerAlign: "left",
@@ -402,7 +402,7 @@ export const MarketAuthorisedLenders = ({
         value ? (
           <Box sx={MarketLendersMLA}>
             <Button sx={MLATableButton}>
-              {t("borrowerMarketDetails.authorisedLenders.buttons.view")}
+              {t("marketDetails.borrower.authorisedLenders.buttons.view")}
             </Button>
             <Box
               sx={{

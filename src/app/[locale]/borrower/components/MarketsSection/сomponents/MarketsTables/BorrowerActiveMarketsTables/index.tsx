@@ -209,7 +209,7 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "implementationType",
-      headerName: t("dashboard.markets.tables.header.type"),
+      headerName: t("marketList.shared.tables.header.type"),
       minWidth: 110,
       flex: 1,
       headerAlign: "left",
@@ -428,7 +428,7 @@ export const BorrowerActiveMarketsTables = ({
           isOpen
           noMarketsTitle={t("marketList.shared.noMarkets.active.title")}
           noMarketsSubtitle={t(
-            "dashboard.markets.noMarkets.active.borrowerSubtitle",
+            "marketList.shared.noMarkets.active.borrowerSubtitle",
           )}
           nameFilter={filters.nameFilter}
           assetFilter={filters.assetFilter}
@@ -454,7 +454,7 @@ export const BorrowerActiveMarketsTables = ({
           isOpen
           noMarketsTitle={t("marketList.shared.noMarkets.active.title")}
           noMarketsSubtitle={t(
-            "dashboard.markets.noMarkets.active.borrowerSubtitle",
+            "marketList.shared.noMarkets.active.borrowerSubtitle",
           )}
           marketsLength={nonDepositedMarkets.length}
           nameFilter={filters.nameFilter}

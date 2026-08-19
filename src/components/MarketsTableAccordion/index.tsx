@@ -102,7 +102,7 @@ export const MarketsTableAccordion = ({
         !defaultFilters && (
           <Box display="flex" flexDirection="column" padding="24px 16px 12px">
             <Typography variant="text2" color={COLORS.santasGrey}>
-              {t("dashboard.markets.noMarkets.filter.beginning")} {type}{" "}
+              {t("marketList.shared.noMarkets.filter.beginning")} {type}{" "}
               {statusFilter?.length !== 0 &&
                 statusFilter?.map((status) => ` ${status.toLowerCase()}`)}{" "}
               {nameFilter === "" ? "" : nameFilter}{" "}

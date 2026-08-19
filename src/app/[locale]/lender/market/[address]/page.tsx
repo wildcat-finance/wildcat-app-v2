@@ -225,10 +225,10 @@ export default function LenderMarketDetails({
     const totalWithdrawalsExecuted = analytics.totalWithdrawalsExecuted ?? zero
     return [
       {
-        label: t("lenderMarketDetails.analytics.lifetimeDeposited"),
+        label: t("marketDetails.lender.analytics.lifetimeDeposited"),
         value: formatTokenWithCommas(totalDeposited),
         symbol: assetSymbol,
-        tooltip: t("lenderMarketDetails.analytics.lifetimeDepositedTooltip"),
+        tooltip: t("marketDetails.lender.analytics.lifetimeDepositedTooltip"),
         description: METRIC_BASIS.liveToken,
         fullPrecisionValue: totalDeposited.format(
           totalDeposited.decimals,
@@ -236,10 +236,10 @@ export default function LenderMarketDetails({
         ),
       },
       {
-        label: t("lenderMarketDetails.analytics.interestEarned"),
+        label: t("marketDetails.lender.analytics.interestEarned"),
         value: formatTokenWithCommas(totalInterestEarned),
         symbol: assetSymbol,
-        tooltip: t("lenderMarketDetails.analytics.interestEarnedTooltip"),
+        tooltip: t("marketDetails.lender.analytics.interestEarnedTooltip"),
         description: METRIC_BASIS.liveToken,
         fullPrecisionValue: totalInterestEarned.format(
           totalInterestEarned.decimals,
@@ -247,11 +247,11 @@ export default function LenderMarketDetails({
         ),
       },
       {
-        label: t("lenderMarketDetails.analytics.totalWithdrawalsExecuted"),
+        label: t("marketDetails.lender.analytics.totalWithdrawalsExecuted"),
         value: formatTokenWithCommas(totalWithdrawalsExecuted),
         symbol: assetSymbol,
         tooltip: t(
-          "lenderMarketDetails.analytics.totalWithdrawalsExecutedTooltip",
+          "marketDetails.lender.analytics.totalWithdrawalsExecutedTooltip",
         ),
         description: METRIC_BASIS.indexedToken,
         fullPrecisionValue: totalWithdrawalsExecuted.format(
@@ -268,17 +268,17 @@ export default function LenderMarketDetails({
       marketAccount.totalInterestEarned ?? market.underlyingToken.getAmount(0)
     return [
       {
-        title: t("lenderMarketDetails.analytics.interestEarned"),
+        title: t("marketDetails.lender.analytics.interestEarned"),
         value: formatTokenWithCommas(interestEarned, { withSymbol: true }),
-        tooltipText: t("lenderMarketDetails.analytics.interestEarnedTooltip"),
+        tooltipText: t("marketDetails.lender.analytics.interestEarnedTooltip"),
       },
       {
-        title: t("lenderMarketDetails.analytics.totalLenders"),
+        title: t("marketDetails.lender.analytics.totalLenders"),
         value:
           analytics.activeLendersCount !== undefined
             ? analytics.activeLendersCount
             : "-",
-        tooltipText: t("lenderMarketDetails.analytics.totalLendersTooltip"),
+        tooltipText: t("marketDetails.lender.analytics.totalLendersTooltip"),
       },
     ]
   }, [market, marketAccount, analytics.activeLendersCount, t])
@@ -565,7 +565,7 @@ export default function LenderMarketDetails({
       <Box sx={{ padding: "52px 20px 0 44px" }}>
         <Box sx={{ width: "69%" }}>
           <Typography variant="text2">
-            {t("lenderMarketDetails.noDataAvailable")}
+            {t("marketDetails.lender.noDataAvailable")}
           </Typography>
         </Box>
       </Box>
@@ -812,9 +812,9 @@ export default function LenderMarketDetails({
 
           {showLenderAccessError && (
             <MobileLenderBanner
-              title={t("lenderMarketDetails.access.error.title")}
-              subtitle={t("lenderMarketDetails.access.error.subtitle")}
-              buttonText={t("lenderMarketDetails.access.error.retry")}
+              title={t("marketDetails.lender.access.error.title")}
+              subtitle={t("marketDetails.lender.access.error.subtitle")}
+              buttonText={t("marketDetails.lender.access.error.retry")}
               onButtonClick={() => {
                 refetchLenderAccess().catch(() => undefined)
               }}
@@ -823,8 +823,8 @@ export default function LenderMarketDetails({
 
           {showLenderBlocked && (
             <MobileLenderBanner
-              title={t("lenderMarketDetails.access.blocked.title")}
-              subtitle={t("lenderMarketDetails.access.blocked.subtitle")}
+              title={t("marketDetails.lender.access.blocked.title")}
+              subtitle={t("marketDetails.lender.access.blocked.subtitle")}
             />
           )}
 
@@ -905,9 +905,9 @@ export default function LenderMarketDetails({
         {showLenderAccessError && (
           <Box sx={LenderBannerWrapper}>
             <LeadBanner
-              title={t("lenderMarketDetails.access.error.title")}
-              subtitle={t("lenderMarketDetails.access.error.subtitle")}
-              buttonText={t("lenderMarketDetails.access.error.retry")}
+              title={t("marketDetails.lender.access.error.title")}
+              subtitle={t("marketDetails.lender.access.error.subtitle")}
+              buttonText={t("marketDetails.lender.access.error.retry")}
               buttonOnClick={() => {
                 refetchLenderAccess().catch(() => undefined)
               }}
@@ -918,8 +918,8 @@ export default function LenderMarketDetails({
         {showLenderBlocked && (
           <Box sx={LenderBannerWrapper}>
             <LeadBanner
-              title={t("lenderMarketDetails.access.blocked.title")}
-              subtitle={t("lenderMarketDetails.access.blocked.subtitle")}
+              title={t("marketDetails.lender.access.blocked.title")}
+              subtitle={t("marketDetails.lender.access.blocked.subtitle")}
             />
           </Box>
         )}

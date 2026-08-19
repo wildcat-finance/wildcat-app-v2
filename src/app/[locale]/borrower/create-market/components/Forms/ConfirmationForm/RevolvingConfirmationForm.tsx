@@ -36,7 +36,7 @@ const RevolvingFinancialSection = ({
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.baseAPR.labelRevolving")}
+          label={t("borrower.createMarket.financial.baseAPR.labelRevolving")}
           value={`${getValues("annualInterestBips")}%`}
         />
 
@@ -57,7 +57,7 @@ const RevolvingFinancialSection = ({
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.commitmentFee.label")}
+          label={t("borrower.createMarket.financial.commitmentFee.label")}
           value={`${getValues("commitmentFeePercent")}%`}
         />
 

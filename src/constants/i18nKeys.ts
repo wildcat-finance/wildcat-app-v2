@@ -18,39 +18,31 @@ import { LenderWithdrawalActionState } from "@/app/[locale]/lender/market/[addre
  */
 
 export const POLICY_TYPE_KEY: Record<HooksKind, string> = {
-  [HooksKind.Unknown]: "policyType.Unknown",
+  [HooksKind.Unknown]: "marketParameters.policyType.Unknown",
   [HooksKind.OpenTerm]: "marketParameters.policyType.openTerm",
   [HooksKind.FixedTerm]: "marketParameters.policyType.fixedTerm",
-  [HooksKind.PeriodicTerm]: "policyType.PeriodicTerm",
+  [HooksKind.PeriodicTerm]: "marketParameters.policyType.PeriodicTerm",
 }
 
 export const MARKET_TYPE_CHIP_KEY: Record<HooksKind, string> = {
-  [HooksKind.Unknown]: "marketTypeChip.kind.Unknown",
-  [HooksKind.OpenTerm]: "marketTypeChip.kind.OpenTerm",
-  [HooksKind.FixedTerm]: "marketTypeChip.kind.FixedTerm",
-  [HooksKind.PeriodicTerm]: "marketTypeChip.kind.PeriodicTerm",
+  [HooksKind.Unknown]: "marketParameters.marketTypeChip.Unknown",
+  [HooksKind.OpenTerm]: "marketParameters.marketTypeChip.OpenTerm",
+  [HooksKind.FixedTerm]: "marketParameters.marketTypeChip.FixedTerm",
+  [HooksKind.PeriodicTerm]: "marketParameters.marketTypeChip.PeriodicTerm",
 }
 
 export const MARKET_TERM_TEXT_KEY: Record<HooksKind, string> = {
-  [HooksKind.Unknown]:
-    "borrowerMarketDetails.parameters.marketTerm.Unknown.text",
-  [HooksKind.OpenTerm]:
-    "borrowerMarketDetails.parameters.marketTerm.OpenTerm.text",
-  [HooksKind.FixedTerm]:
-    "borrowerMarketDetails.parameters.marketTerm.FixedTerm.text",
-  [HooksKind.PeriodicTerm]:
-    "borrowerMarketDetails.parameters.marketTerm.PeriodicTerm.text",
+  [HooksKind.Unknown]: "marketParameters.marketTerm.Unknown.text",
+  [HooksKind.OpenTerm]: "marketParameters.marketTerm.OpenTerm.text",
+  [HooksKind.FixedTerm]: "marketParameters.marketTerm.FixedTerm.text",
+  [HooksKind.PeriodicTerm]: "marketParameters.marketTerm.PeriodicTerm.text",
 }
 
 export const MARKET_TERM_TOOLTIP_KEY: Record<HooksKind, string> = {
-  [HooksKind.Unknown]:
-    "borrowerMarketDetails.parameters.marketTerm.Unknown.tooltip",
-  [HooksKind.OpenTerm]:
-    "borrowerMarketDetails.parameters.marketTerm.OpenTerm.tooltip",
-  [HooksKind.FixedTerm]:
-    "borrowerMarketDetails.parameters.marketTerm.FixedTerm.tooltip",
-  [HooksKind.PeriodicTerm]:
-    "borrowerMarketDetails.parameters.marketTerm.PeriodicTerm.tooltip",
+  [HooksKind.Unknown]: "marketParameters.marketTerm.Unknown.tooltip",
+  [HooksKind.OpenTerm]: "marketParameters.marketTerm.OpenTerm.tooltip",
+  [HooksKind.FixedTerm]: "marketParameters.marketTerm.FixedTerm.tooltip",
+  [HooksKind.PeriodicTerm]: "marketParameters.marketTerm.PeriodicTerm.tooltip",
 }
 
 export type AccessMode = "open" | "restricted"
@@ -61,124 +53,109 @@ export type PeriodicWindowStartLabel = "currentWindowStart" | "nextWindowStart"
 export type TempReserveRatioViewer = "borrower" | "lender"
 
 export const DEPOSIT_ACCESS_TEXT_KEY: Record<AccessMode, string> = {
-  open: "borrowerMarketDetails.parameters.depositAccess.open.text",
-  restricted: "borrowerMarketDetails.parameters.depositAccess.restricted.text",
+  open: "marketParameters.depositAccess.open.text",
+  restricted: "marketParameters.depositAccess.restricted.text",
 }
 
 export const DEPOSIT_ACCESS_TOOLTIP_KEY: Record<AccessMode, string> = {
-  open: "borrowerMarketDetails.parameters.depositAccess.open.tooltip",
-  restricted:
-    "borrowerMarketDetails.parameters.depositAccess.restricted.tooltip",
+  open: "marketParameters.depositAccess.open.tooltip",
+  restricted: "marketParameters.depositAccess.restricted.tooltip",
 }
 
 export const WITHDRAWAL_ACCESS_TEXT_KEY: Record<AccessMode, string> = {
-  open: "borrowerMarketDetails.parameters.withdrawalAccess.open.text",
-  restricted:
-    "borrowerMarketDetails.parameters.withdrawalAccess.restricted.text",
+  open: "marketParameters.withdrawalAccess.open.text",
+  restricted: "marketParameters.withdrawalAccess.restricted.text",
 }
 
 export const WITHDRAWAL_ACCESS_TOOLTIP_KEY: Record<AccessMode, string> = {
-  open: "borrowerMarketDetails.parameters.withdrawalAccess.open.tooltip",
-  restricted:
-    "borrowerMarketDetails.parameters.withdrawalAccess.restricted.tooltip",
+  open: "marketParameters.withdrawalAccess.open.tooltip",
+  restricted: "marketParameters.withdrawalAccess.restricted.tooltip",
 }
 
 export const TRANSFER_ACCESS_TEXT_KEY: Record<TransferAccessMode, string> = {
-  open: "borrowerMarketDetails.parameters.transferAccess.open.text",
-  restricted: "borrowerMarketDetails.parameters.transferAccess.restricted.text",
-  disabled: "borrowerMarketDetails.parameters.transferAccess.disabled.text",
+  open: "marketParameters.transferAccess.open.text",
+  restricted: "marketParameters.transferAccess.restricted.text",
+  disabled: "marketParameters.transferAccess.disabled.text",
 }
 
 export const TRANSFER_ACCESS_TOOLTIP_KEY: Record<TransferAccessMode, string> = {
-  open: "borrowerMarketDetails.parameters.transferAccess.open.tooltip",
-  restricted:
-    "borrowerMarketDetails.parameters.transferAccess.restricted.tooltip",
-  disabled: "borrowerMarketDetails.parameters.transferAccess.disabled.tooltip",
+  open: "marketParameters.transferAccess.open.tooltip",
+  restricted: "marketParameters.transferAccess.restricted.tooltip",
+  disabled: "marketParameters.transferAccess.disabled.tooltip",
 }
 
 export const EARLY_CLOSURE_TEXT_KEY: Record<TernaryFlag, string> = {
-  yes: "borrowerMarketDetails.parameters.marketEarlyClosure.yes.text",
-  no: "borrowerMarketDetails.parameters.marketEarlyClosure.no.text",
-  na: "borrowerMarketDetails.parameters.marketEarlyClosure.na.text",
+  yes: "marketParameters.marketEarlyClosure.yes.text",
+  no: "marketParameters.marketEarlyClosure.no.text",
+  na: "marketParameters.marketEarlyClosure.na.text",
 }
 
 export const EARLY_CLOSURE_TOOLTIP_KEY: Record<TernaryFlag, string> = {
-  yes: "borrowerMarketDetails.parameters.marketEarlyClosure.yes.tooltip",
-  no: "borrowerMarketDetails.parameters.marketEarlyClosure.no.tooltip",
-  na: "borrowerMarketDetails.parameters.marketEarlyClosure.na.tooltip",
+  yes: "marketParameters.marketEarlyClosure.yes.tooltip",
+  no: "marketParameters.marketEarlyClosure.no.tooltip",
+  na: "marketParameters.marketEarlyClosure.na.tooltip",
 }
 
 export const MATURITY_REDUCTION_TEXT_KEY: Record<TernaryFlag, string> = {
-  yes: "borrowerMarketDetails.parameters.marketMaturityReduction.yes.text",
-  no: "borrowerMarketDetails.parameters.marketMaturityReduction.no.text",
-  na: "borrowerMarketDetails.parameters.marketMaturityReduction.na.text",
+  yes: "marketParameters.marketMaturityReduction.yes.text",
+  no: "marketParameters.marketMaturityReduction.no.text",
+  na: "marketParameters.marketMaturityReduction.na.text",
 }
 
 export const MATURITY_REDUCTION_TOOLTIP_KEY: Record<TernaryFlag, string> = {
-  yes: "borrowerMarketDetails.parameters.marketMaturityReduction.yes.tooltip",
-  no: "borrowerMarketDetails.parameters.marketMaturityReduction.no.tooltip",
-  na: "borrowerMarketDetails.parameters.marketMaturityReduction.na.tooltip",
+  yes: "marketParameters.marketMaturityReduction.yes.tooltip",
+  no: "marketParameters.marketMaturityReduction.no.tooltip",
+  na: "marketParameters.marketMaturityReduction.na.tooltip",
 }
 
 export const PERIODIC_WINDOW_STATUS_TEXT_KEY: Record<
   PeriodicWindowStatus,
   string
 > = {
-  open: "borrowerMarketDetails.parameters.periodicTerm.windowStatus.open.text",
-  scheduled:
-    "borrowerMarketDetails.parameters.periodicTerm.windowStatus.scheduled.text",
-  closed:
-    "borrowerMarketDetails.parameters.periodicTerm.windowStatus.closed.text",
+  open: "marketParameters.periodicTerm.windowStatus.open.text",
+  scheduled: "marketParameters.periodicTerm.windowStatus.scheduled.text",
+  closed: "marketParameters.periodicTerm.windowStatus.closed.text",
 }
 
 export const PERIODIC_WINDOW_STATUS_TOOLTIP_KEY: Record<
   PeriodicWindowStatus,
   string
 > = {
-  open: "borrowerMarketDetails.parameters.periodicTerm.windowStatus.open.tooltip",
-  scheduled:
-    "borrowerMarketDetails.parameters.periodicTerm.windowStatus.scheduled.tooltip",
-  closed:
-    "borrowerMarketDetails.parameters.periodicTerm.windowStatus.closed.tooltip",
+  open: "marketParameters.periodicTerm.windowStatus.open.tooltip",
+  scheduled: "marketParameters.periodicTerm.windowStatus.scheduled.tooltip",
+  closed: "marketParameters.periodicTerm.windowStatus.closed.tooltip",
 }
 
 export const PERIODIC_WINDOW_START_KEY: Record<
   PeriodicWindowStartLabel,
   string
 > = {
-  currentWindowStart:
-    "borrowerMarketDetails.parameters.periodicTerm.currentWindowStart",
-  nextWindowStart:
-    "borrowerMarketDetails.parameters.periodicTerm.nextWindowStart",
+  currentWindowStart: "marketParameters.periodicTerm.currentWindowStart",
+  nextWindowStart: "marketParameters.periodicTerm.nextWindowStart",
 }
 
 export const TEMP_RATIO_ACTIVE_TOOLTIP_KEY: Record<
   TempReserveRatioViewer,
   string
 > = {
-  borrower:
-    "borrowerMarketDetails.parameters.tempReserveRatio.borrowerActiveTooltip",
-  lender:
-    "borrowerMarketDetails.parameters.tempReserveRatio.lenderActiveTooltip",
+  borrower: "marketParameters.tempReserveRatio.borrowerActiveTooltip",
+  lender: "marketParameters.tempReserveRatio.lenderActiveTooltip",
 }
 
 export const TEMP_RATIO_EXPIRED_TOOLTIP_KEY: Record<
   TempReserveRatioViewer,
   string
 > = {
-  borrower:
-    "borrowerMarketDetails.parameters.tempReserveRatio.borrowerExpiredTooltip",
-  lender:
-    "borrowerMarketDetails.parameters.tempReserveRatio.lenderExpiredTooltip",
+  borrower: "marketParameters.tempReserveRatio.borrowerExpiredTooltip",
+  lender: "marketParameters.tempReserveRatio.lenderExpiredTooltip",
 }
 
 export const TEMP_RATIO_BANNER_BODY_KEY: Record<
   TempReserveRatioViewer,
   string
 > = {
-  borrower:
-    "borrowerMarketDetails.parameters.tempReserveRatio.borrowerBannerBody",
-  lender: "borrowerMarketDetails.parameters.tempReserveRatio.lenderBannerBody",
+  borrower: "marketParameters.tempReserveRatio.borrowerBannerBody",
+  lender: "marketParameters.tempReserveRatio.lenderBannerBody",
 }
 
 /**
@@ -186,44 +163,44 @@ export const TEMP_RATIO_BANNER_BODY_KEY: Record<
  * with the flag name so neither list can drift from the locale file.
  */
 export const HOOK_FLAG_KEYS_PRIMARY = [
-  { flag: "useOnDeposit", key: "borrowerMarketDetails.hooks.useOnDeposit" },
+  { flag: "useOnDeposit", key: "marketParameters.hooks.useOnDeposit" },
   {
     flag: "useOnQueueWithdrawal",
-    key: "borrowerMarketDetails.hooks.useOnQueueWithdrawal",
+    key: "marketParameters.hooks.useOnQueueWithdrawal",
   },
   {
     flag: "useOnExecuteWithdrawal",
-    key: "borrowerMarketDetails.hooks.useOnExecuteWithdrawal",
+    key: "marketParameters.hooks.useOnExecuteWithdrawal",
   },
-  { flag: "useOnTransfer", key: "borrowerMarketDetails.hooks.useOnTransfer" },
-  { flag: "useOnBorrow", key: "borrowerMarketDetails.hooks.useOnBorrow" },
+  { flag: "useOnTransfer", key: "marketParameters.hooks.useOnTransfer" },
+  { flag: "useOnBorrow", key: "marketParameters.hooks.useOnBorrow" },
 ] as const
 
 export const HOOK_FLAG_KEYS_SECONDARY = [
-  { flag: "useOnRepay", key: "borrowerMarketDetails.hooks.useOnRepay" },
+  { flag: "useOnRepay", key: "marketParameters.hooks.useOnRepay" },
   {
     flag: "useOnCloseMarket",
-    key: "borrowerMarketDetails.hooks.useOnCloseMarket",
+    key: "marketParameters.hooks.useOnCloseMarket",
   },
   {
     flag: "useOnNukeFromOrbit",
-    key: "borrowerMarketDetails.hooks.useOnNukeFromOrbit",
+    key: "marketParameters.hooks.useOnNukeFromOrbit",
   },
   {
     flag: "useOnSetMaxTotalSupply",
-    key: "borrowerMarketDetails.hooks.useOnSetMaxTotalSupply",
+    key: "marketParameters.hooks.useOnSetMaxTotalSupply",
   },
   {
     flag: "useOnSetAnnualInterestAndReserveRatioBips",
-    key: "borrowerMarketDetails.hooks.useOnSetAnnualInterestAndReserveRatioBips",
+    key: "marketParameters.hooks.useOnSetAnnualInterestAndReserveRatioBips",
   },
   {
     flag: "useOnSetProtocolFeeBips",
-    key: "borrowerMarketDetails.hooks.useOnSetProtocolFeeBips",
+    key: "marketParameters.hooks.useOnSetProtocolFeeBips",
   },
   {
     flag: "useOnExecutePendingAnnualInterestBipsReduction",
-    key: "borrowerMarketDetails.hooks.useOnExecutePendingAnnualInterestBipsReduction",
+    key: "marketParameters.hooks.useOnExecutePendingAnnualInterestBipsReduction",
   },
 ] as const
 
@@ -237,21 +214,21 @@ export const WITHDRAWAL_UNAVAILABLE_KEY: Record<
   Exclude<LenderWithdrawalActionState, "ready">,
   string
 > = {
-  resolving: "lenderMarketDetails.transactions.withdraw.unavailable.resolving",
+  resolving: "marketDetails.lender.transactions.withdraw.unavailable.resolving",
   "resolution-error":
-    "lenderMarketDetails.transactions.withdraw.unavailable.resolution-error",
+    "marketDetails.lender.transactions.withdraw.unavailable.resolution-error",
   "no-balance":
-    "lenderMarketDetails.transactions.withdraw.unavailable.no-balance",
+    "marketDetails.lender.transactions.withdraw.unavailable.no-balance",
   "requires-access":
-    "lenderMarketDetails.transactions.withdraw.unavailable.requires-access",
+    "marketDetails.lender.transactions.withdraw.unavailable.requires-access",
   "fixed-term":
-    "lenderMarketDetails.transactions.withdraw.unavailable.fixed-term",
+    "marketDetails.lender.transactions.withdraw.unavailable.fixed-term",
   "withdrawal-window-closed":
-    "lenderMarketDetails.transactions.withdraw.unavailable.withdrawal-window-closed",
+    "marketDetails.lender.transactions.withdraw.unavailable.withdrawal-window-closed",
   "insufficient-balance":
-    "lenderMarketDetails.transactions.withdraw.unavailable.insufficient-balance",
+    "marketDetails.lender.transactions.withdraw.unavailable.insufficient-balance",
   "insufficient-role":
-    "lenderMarketDetails.transactions.withdraw.unavailable.insufficient-role",
+    "marketDetails.lender.transactions.withdraw.unavailable.insufficient-role",
 }
 
 export type EarningsProjectionPeriod = "thirtyDays" | "ninetyDays" | "oneYear"
@@ -260,12 +237,9 @@ export const EARNINGS_PROJECTION_PERIOD_KEY: Record<
   EarningsProjectionPeriod,
   string
 > = {
-  thirtyDays:
-    "lenderMarketDetails.transactions.deposit.modal.projection.periods.thirtyDays",
-  ninetyDays:
-    "lenderMarketDetails.transactions.deposit.modal.projection.periods.ninetyDays",
-  oneYear:
-    "lenderMarketDetails.transactions.deposit.modal.projection.periods.oneYear",
+  thirtyDays: "marketDetails.lender.modals.deposit.projection.thirtyDays",
+  ninetyDays: "marketDetails.lender.modals.deposit.projection.ninetyDays",
+  oneYear: "marketDetails.lender.modals.deposit.projection.oneYear",
 }
 
 export type PendingAprReductionPhase = "proposed" | "exitNow" | "elapsed"
@@ -274,16 +248,16 @@ export const PENDING_APR_REDUCTION_TITLE_KEY: Record<
   PendingAprReductionPhase,
   string
 > = {
-  proposed: "lenderMarketDetails.pendingAprReduction.proposed.title",
-  exitNow: "lenderMarketDetails.pendingAprReduction.exitNow.title",
-  elapsed: "lenderMarketDetails.pendingAprReduction.elapsed.title",
+  proposed: "marketDetails.lender.pendingAprReduction.proposed.title",
+  exitNow: "marketDetails.lender.pendingAprReduction.exitNow.title",
+  elapsed: "marketDetails.lender.pendingAprReduction.elapsed.title",
 }
 
 export const PENDING_APR_REDUCTION_BODY_KEY: Record<
   PendingAprReductionPhase,
   string
 > = {
-  proposed: "lenderMarketDetails.pendingAprReduction.proposed.body",
-  exitNow: "lenderMarketDetails.pendingAprReduction.exitNow.body",
-  elapsed: "lenderMarketDetails.pendingAprReduction.elapsed.body",
+  proposed: "marketDetails.lender.pendingAprReduction.proposed.body",
+  exitNow: "marketDetails.lender.pendingAprReduction.exitNow.body",
+  elapsed: "marketDetails.lender.pendingAprReduction.elapsed.body",
 }

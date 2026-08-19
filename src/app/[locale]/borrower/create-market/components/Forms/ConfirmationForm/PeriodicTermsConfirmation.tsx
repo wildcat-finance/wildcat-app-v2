@@ -38,14 +38,18 @@ export const PeriodicTermsConfirmation = ({
         }}
       >
         <ConfirmationFormItem
-          label={t("createNewMarket.policy.periodic.firstWindowStart.label")}
+          label={t(
+            "borrower.createMarket.policy.periodic.firstWindowStart.label",
+          )}
           value={formatUtcTimestamp(
             Number(getValues("firstWithdrawalWindowStart")),
           )}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.policy.periodic.periodDuration.label")}
+          label={t(
+            "borrower.createMarket.policy.periodic.periodDuration.label",
+          )}
           value={`${formatDuration(
             Number(getValues("periodDuration")),
             unitSeconds,
@@ -54,7 +58,7 @@ export const PeriodicTermsConfirmation = ({
 
         <ConfirmationFormItem
           label={t(
-            "createNewMarket.policy.periodic.withdrawalWindowDuration.label",
+            "borrower.createMarket.policy.periodic.withdrawalWindowDuration.label",
           )}
           value={`${formatDuration(
             Number(getValues("withdrawalWindowDuration")),

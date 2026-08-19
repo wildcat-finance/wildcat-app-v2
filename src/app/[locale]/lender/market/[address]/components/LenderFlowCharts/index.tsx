@@ -788,9 +788,9 @@ export const LenderFlowCharts = ({
       {!isLoading && dailyFlows.length > 0 && (
         <>
           <AnalyticsChartCard
-            title={t("lenderMarketDetails.analytics.charts.dailyFlows")}
+            title={t("marketDetails.lender.analytics.charts.dailyFlows")}
             description={t(
-              "lenderMarketDetails.analytics.charts.dailyFlowsDesc",
+              "marketDetails.lender.analytics.charts.dailyFlowsDesc",
             )}
             descriptionPosition="bottom"
             actions={rangeSelector}
@@ -800,7 +800,9 @@ export const LenderFlowCharts = ({
                 data={filtered}
                 series={FLOWS_SERIES}
                 tooltipFormatter={flowsTooltip}
-                ariaLabel={t("lenderMarketDetails.analytics.charts.dailyFlows")}
+                ariaLabel={t(
+                  "marketDetails.lender.analytics.charts.dailyFlows",
+                )}
                 showLegend={isExpanded}
                 showDataZoom={isExpanded}
                 showExportActions={isExpanded}
@@ -814,9 +816,9 @@ export const LenderFlowCharts = ({
           </AnalyticsChartCard>
 
           <AnalyticsChartCard
-            title={t("lenderMarketDetails.analytics.charts.cumulativeNetFlow")}
+            title={t("marketDetails.lender.analytics.charts.cumulativeNetFlow")}
             description={t(
-              "lenderMarketDetails.analytics.charts.cumulativeNetFlowDesc",
+              "marketDetails.lender.analytics.charts.cumulativeNetFlowDesc",
             )}
             descriptionPosition="bottom"
             actions={rangeSelector}
@@ -827,7 +829,7 @@ export const LenderFlowCharts = ({
                 series={NET_FLOW_SERIES}
                 tooltipFormatter={netFlowTooltip}
                 ariaLabel={t(
-                  "lenderMarketDetails.analytics.charts.cumulativeNetFlow",
+                  "marketDetails.lender.analytics.charts.cumulativeNetFlow",
                 )}
                 showLegend={isExpanded}
                 showDataZoom={isExpanded}
@@ -855,7 +857,7 @@ export const LenderFlowCharts = ({
         />
       ) : (
         <AnalyticsChartCard
-          title={t("lenderMarketDetails.analytics.charts.delinquencyHistory")}
+          title={t("marketDetails.lender.analytics.charts.delinquencyHistory")}
           actions={
             marketStatus ? (
               <MarketStatusChip status={marketStatus} withPeriod={false} />

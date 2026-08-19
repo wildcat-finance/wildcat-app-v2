@@ -437,9 +437,7 @@ export default function EditProfileForm({
           isLoading={isLoading}
         >
           <TextField
-            placeholder={t(
-              "borrowerProfile.edit.public.description.placeholder",
-            )}
+            placeholder={t("borrower.profile.form.description.placeholder")}
             sx={DescriptionField}
             error={Boolean(publicErrors.description)}
             helperText={publicErrors.description?.message}
@@ -498,9 +496,7 @@ export default function EditProfileForm({
               isLoading={isLoading}
             >
               <TextField
-                placeholder={t(
-                  "borrowerProfile.edit.public.website.placeholder",
-                )}
+                placeholder={t("borrower.profile.form.website.placeholder")}
                 fullWidth
                 error={Boolean(publicErrors.website)}
                 helperText={publicErrors.website?.message}
@@ -518,9 +514,7 @@ export default function EditProfileForm({
               isLoading={isLoading}
             >
               <TextField
-                placeholder={t(
-                  "borrowerProfile.edit.public.twitter.placeholder",
-                )}
+                placeholder={t("borrower.profile.form.twitter.placeholder")}
                 fullWidth
                 error={Boolean(publicErrors.twitter)}
                 helperText={publicErrors.twitter?.message}
@@ -538,9 +532,7 @@ export default function EditProfileForm({
               isLoading={isLoading}
             >
               <TextField
-                placeholder={t(
-                  "borrowerProfile.edit.public.telegram.placeholder",
-                )}
+                placeholder={t("borrower.profile.form.telegram.placeholder")}
                 fullWidth
                 error={Boolean(publicErrors.telegram)}
                 helperText={publicErrors.telegram?.message}
@@ -558,9 +550,7 @@ export default function EditProfileForm({
               isLoading={isLoading}
             >
               <TextField
-                placeholder={t(
-                  "borrowerProfile.edit.public.linkedin.placeholder",
-                )}
+                placeholder={t("borrower.profile.form.linkedin.placeholder")}
                 fullWidth
                 error={Boolean(publicErrors.linkedin)}
                 helperText={publicErrors.linkedin?.message}
@@ -590,7 +580,7 @@ export default function EditProfileForm({
             <Box key={index.toString()} sx={{ display: "flex", gap: 2, mb: 2 }}>
               <TextField
                 placeholder={t(
-                  "borrowerProfile.edit.public.additionalUrls.labelPlaceholder",
+                  "borrower.profile.form.additionalUrls.labelPlaceholder",
                 )}
                 value={url.label}
                 onChange={(e) =>
@@ -604,7 +594,7 @@ export default function EditProfileForm({
               />
               <TextField
                 placeholder={t(
-                  "borrowerProfile.edit.public.additionalUrls.urlPlaceholder",
+                  "borrower.profile.form.additionalUrls.urlPlaceholder",
                 )}
                 value={url.url}
                 onChange={(e) => handleUrlChange(index, "url", e.target.value)}
@@ -806,9 +796,7 @@ export default function EditProfileForm({
               isLoading={isLoading}
             >
               <TextField
-                placeholder={t(
-                  "borrowerProfile.edit.private.address.placeholder",
-                )}
+                placeholder={t("borrower.profile.form.address.placeholder")}
                 fullWidth
                 disabled={!isAdminForChain}
                 error={Boolean(privateErrors.physicalAddress)}

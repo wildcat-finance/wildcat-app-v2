@@ -51,7 +51,7 @@ export const ErrorModal = ({
           <Box sx={FinalModalTypoBox}>
             <Typography variant="title3">
               {title ?? (
-                <Trans i18nKey="borrowerMarketDetails.modals.error.wait" />
+                <Trans i18nKey="marketDetails.borrower.modals.error.wait" />
               )}
             </Typography>
             <Typography variant="text3" sx={FinalModalSubtitle}>

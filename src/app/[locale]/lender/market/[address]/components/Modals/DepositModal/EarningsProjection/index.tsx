@@ -72,15 +72,11 @@ export const EarningsProjection = ({
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
           <Typography variant={isMobile ? "mobText2" : "text1"}>
-            {t(
-              "lenderMarketDetails.transactions.deposit.modal.projection.title",
-            )}
+            {t("marketDetails.lender.modals.deposit.projection.title")}
           </Typography>
 
           <TooltipButton
-            value={t(
-              "lenderMarketDetails.transactions.deposit.modal.projection.tooltip",
-            )}
+            value={t("marketDetails.lender.modals.deposit.projection.tooltip")}
           />
         </Box>
 
@@ -89,9 +85,7 @@ export const EarningsProjection = ({
           color={isMobile ? COLORS.manate : COLORS.blackRock}
           sx={{ opacity: isMobile ? 0.8 : 1 }}
         >
-          {t(
-            "lenderMarketDetails.transactions.deposit.modal.projection.subtitle",
-          )}{" "}
+          {t("marketDetails.lender.modals.deposit.projection.subtitle")}{" "}
           <span style={{ textDecoration: "underline" }}>{aprFormatted}%</span>.
         </Typography>
       </Box>
@@ -157,9 +151,7 @@ export const EarningsProjection = ({
         variant={isMobile ? "mobText4" : "text4"}
         sx={{ color: COLORS.manate }}
       >
-        {`* ${t(
-          "lenderMarketDetails.transactions.deposit.modal.projection.disclaimer",
-        )}`}
+        {`* ${t("marketDetails.lender.modals.deposit.projection.disclaimer")}`}
       </Typography>
     </Box>
   )

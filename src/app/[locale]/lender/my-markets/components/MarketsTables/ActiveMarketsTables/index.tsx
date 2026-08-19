@@ -377,7 +377,7 @@ export const ActiveMarketsTables = ({
           isOpen
           noMarketsTitle={t("marketList.shared.noMarkets.active.title")}
           noMarketsSubtitle={t(
-            "dashboard.markets.noMarkets.active.lenderSubtitle",
+            "marketList.shared.noMarkets.active.lenderSubtitle",
           )}
           nameFilter={filters.nameFilter}
           assetFilter={filters.assetFilter}
@@ -403,7 +403,7 @@ export const ActiveMarketsTables = ({
           isOpen
           noMarketsTitle={t("marketList.shared.noMarkets.active.title")}
           noMarketsSubtitle={t(
-            "dashboard.markets.noMarkets.active.lenderSubtitle",
+            "marketList.shared.noMarkets.active.lenderSubtitle",
           )}
           marketsLength={nonDepositedMarkets.length}
           nameFilter={filters.nameFilter}

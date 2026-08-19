@@ -24,23 +24,27 @@ export const getSharedGlossaryItems = (
       if (marketType === "periodicTerm") {
         items.push(
           {
-            title: t("createNewMarket.policy.periodic.firstWindowStart.label"),
-            description: t(
-              "createNewMarket.policy.periodic.firstWindowStart.glossary",
+            title: t(
+              "borrower.createMarket.policy.periodic.firstWindowStart.label",
             ),
-          },
-          {
-            title: t("createNewMarket.policy.periodic.periodDuration.label"),
             description: t(
-              "createNewMarket.policy.periodic.periodDuration.glossary",
+              "borrower.createMarket.policy.periodic.firstWindowStart.glossary",
             ),
           },
           {
             title: t(
-              "createNewMarket.policy.periodic.withdrawalWindowDuration.label",
+              "borrower.createMarket.policy.periodic.periodDuration.label",
             ),
             description: t(
-              "createNewMarket.policy.periodic.withdrawalWindowDuration.glossary",
+              "borrower.createMarket.policy.periodic.periodDuration.glossary",
+            ),
+          },
+          {
+            title: t(
+              "borrower.createMarket.policy.periodic.withdrawalWindowDuration.label",
+            ),
+            description: t(
+              "borrower.createMarket.policy.periodic.withdrawalWindowDuration.glossary",
             ),
           },
         )
@@ -48,7 +52,7 @@ export const getSharedGlossaryItems = (
         items.push(
           {
             title: t("borrower.createMarket.policy.expiration.label"),
-            description: t("createNewMarket.policy.expiration.glossary"),
+            description: t("borrower.createMarket.policy.expiration.glossary"),
           },
           {
             title: t("borrower.createMarket.policy.earlyClose.label"),
@@ -56,7 +60,9 @@ export const getSharedGlossaryItems = (
           },
           {
             title: t("borrower.createMarket.policy.reduceExpiration.label"),
-            description: t("createNewMarket.policy.reduceExpiration.explainer"),
+            description: t(
+              "borrower.createMarket.policy.reduceExpiration.explainer",
+            ),
           },
         )
       }
@@ -90,24 +96,26 @@ export const getSharedGlossaryItems = (
       return [
         {
           title: t(
-            "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
+            "borrower.createMarket.lenderRestrictions.restrictWithdrawals.label",
           ),
           description: t(
-            "createNewMarket.lenderRestrictions.restrictWithdrawals.glossary",
+            "borrower.createMarket.lenderRestrictions.restrictWithdrawals.glossary",
           ),
         },
         {
           title: t(
-            "createNewMarket.lenderRestrictions.restrictTransfers.label",
+            "borrower.createMarket.lenderRestrictions.restrictTransfers.label",
           ),
           description: t(
-            "createNewMarket.lenderRestrictions.restrictTransfers.glossary",
+            "borrower.createMarket.lenderRestrictions.restrictTransfers.glossary",
           ),
         },
         {
-          title: t("createNewMarket.lenderRestrictions.disableTransfers.label"),
+          title: t(
+            "borrower.createMarket.lenderRestrictions.disableTransfers.label",
+          ),
           description: t(
-            "createNewMarket.lenderRestrictions.disableTransfers.glossary",
+            "borrower.createMarket.lenderRestrictions.disableTransfers.glossary",
           ),
         },
       ]

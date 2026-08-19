@@ -69,13 +69,13 @@ export const MarketTypeChip = ({
     const timing = getPeriodicScheduleTiming(periodicWindow, nowSec)
     periodicChipConfig = timing.isOpen
       ? {
-          label: t("marketTypeChip.windowOpen"),
+          label: t("marketParameters.marketTypeChip.windowOpen"),
           backgroundColor: COLORS.oasis,
           color: COLORS.butteredRum,
         }
       : {
           // Compact ("5m") — verbose units overflow the table type column.
-          label: t("marketTypeChip.windowOpensIn", {
+          label: t("marketParameters.marketTypeChip.windowOpensIn", {
             duration: formatCompactDuration(timing.nextWindowStart - nowSec, 1),
           }),
           backgroundColor: COLORS.whiteSmoke,

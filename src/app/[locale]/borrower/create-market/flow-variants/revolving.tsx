@@ -19,11 +19,13 @@ const getGlossaryItems = (
   return [
     {
       title: t("borrower.createMarket.financial.maxCapacity.label"),
-      description: t("createNewMarket.financial.maxCapacity.glossary"),
+      description: t("borrower.createMarket.financial.maxCapacity.glossary"),
     },
     {
-      title: t("createNewMarket.financial.baseAPR.labelRevolving"),
-      description: t("createNewMarket.financial.baseAPR.glossaryRevolving"),
+      title: t("borrower.createMarket.financial.baseAPR.labelRevolving"),
+      description: t(
+        "borrower.createMarket.financial.baseAPR.glossaryRevolving",
+      ),
     },
     {
       title: t("borrower.createMarket.financial.penaltyAPR.label"),
@@ -34,8 +36,8 @@ const getGlossaryItems = (
       description: t("borrower.createMarket.financial.ratio.glossary"),
     },
     {
-      title: t("createNewMarket.financial.commitmentFee.label"),
-      description: t("createNewMarket.financial.commitmentFee.glossary"),
+      title: t("borrower.createMarket.financial.commitmentFee.label"),
+      description: t("borrower.createMarket.financial.commitmentFee.glossary"),
     },
     {
       title: t("borrower.createMarket.periods.grace.label"),

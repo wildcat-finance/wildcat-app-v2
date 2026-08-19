@@ -208,7 +208,9 @@ export const MarketPolicyForm = ({
           />
         </InputLabel>
 
-        <InputLabel label={t("createNewMarket.policy.implementation.label")}>
+        <InputLabel
+          label={t("borrower.createMarket.policy.implementation.label")}
+        >
           <ExtendedSelect
             selectSX={{
               "& .MuiSelect-icon": {
@@ -221,7 +223,7 @@ export const MarketPolicyForm = ({
             }}
             control={control}
             name="implementationType"
-            label={t("createNewMarket.policy.implementation.placeholder")}
+            label={t("borrower.createMarket.policy.implementation.placeholder")}
             options={marketImplementationOptions}
             optionSX={{ width: "360px" }}
           />
@@ -388,7 +390,7 @@ export const MarketPolicyForm = ({
               <HorizontalInputLabel
                 label={t("borrower.createMarket.policy.reduceExpiration.label")}
                 explainer={t(
-                  "createNewMarket.policy.reduceExpiration.explainer",
+                  "borrower.createMarket.policy.reduceExpiration.explainer",
                 )}
               >
                 <Switch

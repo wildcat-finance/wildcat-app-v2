@@ -20,7 +20,7 @@ const RevolvingExtraParametersSection = ({
   return (
     <>
       <ParametersItem
-        title={t("borrowerMarketDetails.parameters.commitmentAPR")}
+        title={t("marketParameters.commitmentAPR")}
         value={
           aprDisplay.commitmentAprBips !== undefined
             ? `${formatBps(
@@ -40,7 +40,7 @@ export const revolvingMarketImplementationVariant: MarketImplementationVariant =
   {
     key: "revolving",
     aprCopy: {
-      configuredAprLabelKey: "borrowerMarketDetails.parameters.utilizationAPR",
+      configuredAprLabelKey: "marketParameters.utilizationAPR",
       configuredAprTooltip:
         "The annual percentage rate charged on drawn capital in a revolving market. Undrawn deposited capital accrues the separate commitment APR instead.",
       protocolAprTooltip:
@@ -54,12 +54,12 @@ export const revolvingMarketImplementationVariant: MarketImplementationVariant =
               MARKET_PARAMS_DECIMALS.reserveRatioBips,
             )}% of deposited capital is drawn.`
           : undefined,
-      adjustAprLabelKey: "borrowerMarketDetails.modals.apr.adjustUtilization",
+      adjustAprLabelKey: "marketDetails.borrower.modals.apr.adjustUtilization",
       alreadyUpdatedLabelKey:
-        "borrowerMarketDetails.modals.apr.alreadyUpdatedUtilization",
+        "marketDetails.borrower.modals.apr.alreadyUpdatedUtilization",
       currentAprLabelKey:
-        "borrowerMarketDetails.modals.apr.currentUtilizationApr",
-      newAprLabelKey: "borrowerMarketDetails.modals.apr.newUtilizationApr",
+        "marketDetails.borrower.modals.apr.currentUtilizationApr",
+      newAprLabelKey: "marketDetails.borrower.modals.apr.newUtilizationApr",
     },
     ExtraParametersSection: RevolvingExtraParametersSection,
     MarketCard: RevolvingMarketCard,

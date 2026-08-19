@@ -47,7 +47,7 @@ export const CapacityField = ({
             size="regular"
             text={
               tokenAsset?.symbol ||
-              `${t("createNewMarket.financial.maxCapacity.chip")}`
+              `${t("borrower.createMarket.financial.maxCapacity.chip")}`
             }
           />
         }
@@ -155,18 +155,20 @@ export const CommitmentFeeField = ({ form }: FinancialFieldProps) => {
   } = form
 
   return (
-    <InputLabel label={t("createNewMarket.financial.commitmentFee.label")}>
+    <InputLabel
+      label={t("borrower.createMarket.financial.commitmentFee.label")}
+    >
       <NumberTextField
         min={0}
         max={100}
         decimalScale={2}
-        label={t("createNewMarket.financial.commitmentFee.placeholder")}
+        label={t("borrower.createMarket.financial.commitmentFee.placeholder")}
         value={getValues("commitmentFeePercent")}
         error={Boolean(errors.commitmentFeePercent)}
         helperText={errors.commitmentFeePercent?.message}
         endAdornment={
           <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-            {t("createNewMarket.financial.commitmentFee.chip")}
+            {t("borrower.createMarket.financial.commitmentFee.chip")}
           </Typography>
         }
         onValueChange={(v) => {
@@ -270,7 +272,7 @@ export const MinimumDepositField = ({
             size="regular"
             text={
               tokenAsset?.symbol ||
-              `${t("createNewMarket.financial.minDeposit.chip")}`
+              `${t("borrower.createMarket.financial.minDeposit.chip")}`
             }
           />
         }

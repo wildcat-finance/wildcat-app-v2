@@ -363,7 +363,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     if (needsReset) return t("marketDetails.borrower.modals.apr.resetTempRatio")
     if (aprFixedReduction) return "Forbidden [Fixed-Term]"
     if (isPeriodicAprReduction) {
-      return t("borrowerMarketDetails.modals.apr.proposeReduction")
+      return t("marketDetails.borrower.modals.apr.proposeReduction")
     }
     return t("marketDetails.borrower.modals.apr.adjust")
   }
@@ -415,7 +415,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
           <TxModalHeader
             title={
               isPeriodicAprReduction
-                ? t("borrowerMarketDetails.modals.apr.proposeReductionTitle")
+                ? t("marketDetails.borrower.modals.apr.proposeReductionTitle")
                 : adjustAprLabel
             }
             arrowOnClick={
@@ -451,7 +451,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                     sx={{ display: "block", marginBottom: "12px" }}
                   >
                     {t(
-                      "borrowerMarketDetails.modals.apr.pendingProposalReplaceNotice",
+                      "marketDetails.borrower.modals.apr.pendingProposalReplaceNotice",
                       {
                         proposedApr: formatBps(
                           existingPendingProposal.proposedAprBips,
@@ -506,7 +506,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                     sx={{ display: "block", marginTop: "12px" }}
                   >
                     {t(
-                      "borrowerMarketDetails.modals.apr.periodicProposalNotice",
+                      "marketDetails.borrower.modals.apr.periodicProposalNotice",
                     )}
                   </Typography>
                 )}
@@ -521,7 +521,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                       sx={{ display: "block", marginTop: "12px" }}
                     >
                       {t(
-                        "borrowerMarketDetails.parameters.pendingPeriodicApr.cancelProposalWarning",
+                        "marketParameters.pendingPeriodicApr.cancelProposalWarning",
                         {
                           proposedApr: formatBps(
                             existingPendingProposal.proposedAprBips,
@@ -543,7 +543,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
                     <ModalDataItem
                       title={t(
-                        "borrowerMarketDetails.modals.apr.collateralObligation",
+                        "marketDetails.borrower.modals.apr.collateralObligation",
                       )}
                       value={
                         newCollateralObligations ?? currentCollateralObligations
@@ -602,7 +602,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                         }}
                       >
                         {`${t(
-                          "borrowerMarketDetails.modals.apr.willSetTemporarily",
+                          "marketDetails.borrower.modals.apr.willSetTemporarily",
                         )} ${twoWeeksTime}`}
                       </Typography>
                     )}
@@ -617,7 +617,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                         }}
                       >
                         {`${t(
-                          "borrowerMarketDetails.modals.apr.setTemporarily",
+                          "marketDetails.borrower.modals.apr.setTemporarily",
                         )} ${reserveRatioExpiry}`}
                       </Typography>
                     )}
@@ -629,7 +629,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                     text={
                       <Typography variant="mobText3">
                         {t(
-                          "borrowerMarketDetails.modals.apr.expiredTempRatioNotice",
+                          "marketDetails.borrower.modals.apr.expiredTempRatioNotice",
                         )}
                       </Typography>
                     }
@@ -668,7 +668,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
                 <ModalDataItem
                   title={t(
-                    "borrowerMarketDetails.modals.apr.newCollateralObligation",
+                    "marketDetails.borrower.modals.apr.newCollateralObligation",
                   )}
                   value={
                     newCollateralObligations ?? currentCollateralObligations
@@ -693,7 +693,9 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                 </ModalDataItem>
 
                 <ModalDataItem
-                  title={t("borrowerMarketDetails.modals.apr.newReservedRatio")}
+                  title={t(
+                    "marketDetails.borrower.modals.apr.newReservedRatio",
+                  )}
                   value={`${newReserveRatio ?? currentReserveRatio}%`}
                   valueColor={
                     !aprError &&
@@ -724,7 +726,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                     }}
                   >
                     {`${t(
-                      "borrowerMarketDetails.modals.apr.willSetTemporarily",
+                      "marketDetails.borrower.modals.apr.willSetTemporarily",
                     )} ${twoWeeksTime}`}
                   </Typography>
                 )}
@@ -740,7 +742,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                     }}
                   >
                     {`${t(
-                      "borrowerMarketDetails.modals.apr.setTemporarily",
+                      "marketDetails.borrower.modals.apr.setTemporarily",
                     )} ${reserveRatioExpiry}`}
                   </Typography>
                 )}
@@ -755,7 +757,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                     }}
                   >
                     {t(
-                      "borrowerMarketDetails.modals.apr.periodicProposalNotice",
+                      "marketDetails.borrower.modals.apr.periodicProposalNotice",
                     )}
                   </Typography>
                 )}
@@ -782,12 +784,12 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
             txHash={txHash}
             title={
               isPeriodicAprReduction
-                ? t("borrowerMarketDetails.modals.apr.proposalLoadingTitle")
+                ? t("marketDetails.borrower.modals.apr.proposalLoadingTitle")
                 : undefined
             }
             subtitle={
               isPeriodicAprReduction
-                ? t("borrowerMarketDetails.modals.apr.proposalLoadingSubtitle")
+                ? t("marketDetails.borrower.modals.apr.proposalLoadingSubtitle")
                 : undefined
             }
           />
@@ -800,12 +802,12 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
             txHash={txHash}
             title={
               isPeriodicAprReduction
-                ? t("borrowerMarketDetails.modals.apr.proposalErrorTitle")
+                ? t("marketDetails.borrower.modals.apr.proposalErrorTitle")
                 : undefined
             }
             subtitle={
               isPeriodicAprReduction
-                ? t("borrowerMarketDetails.modals.apr.proposalErrorSubtitle")
+                ? t("marketDetails.borrower.modals.apr.proposalErrorSubtitle")
                 : undefined
             }
           />
@@ -826,12 +828,12 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
             txHash={txHash}
             title={
               isPeriodicAprReduction
-                ? t("borrowerMarketDetails.modals.apr.proposalSuccessTitle")
+                ? t("marketDetails.borrower.modals.apr.proposalSuccessTitle")
                 : undefined
             }
             subtitle={
               isPeriodicAprReduction
-                ? t("borrowerMarketDetails.modals.apr.proposalSuccessSubtitle")
+                ? t("marketDetails.borrower.modals.apr.proposalSuccessSubtitle")
                 : undefined
             }
           />

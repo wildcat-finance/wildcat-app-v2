@@ -19,7 +19,7 @@ const getGlossaryItems = (
   return [
     {
       title: t("borrower.createMarket.financial.maxCapacity.label"),
-      description: t("createNewMarket.financial.maxCapacity.glossary"),
+      description: t("borrower.createMarket.financial.maxCapacity.glossary"),
     },
     {
       title: t("borrower.createMarket.financial.baseAPR.label"),

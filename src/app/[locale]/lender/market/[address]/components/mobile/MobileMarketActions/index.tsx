@@ -216,18 +216,18 @@ export const MobileMarketActions = ({
     periodicTiming && !periodicTiming.isTermClosed
       ? periodicTiming.nextWindowStart
       : undefined
-  let withdrawTooltip = t("lenderMarketDetails.transactions.withdraw.tooltip")
+  let withdrawTooltip = t("marketDetails.lender.transactions.withdraw.tooltip")
 
   if (market.periodicHooksConfig) {
     withdrawTooltip = t(
-      "lenderMarketDetails.transactions.withdraw.periodicTooltip",
+      "marketDetails.lender.transactions.withdraw.periodicTooltip",
     )
   }
 
   if (periodicWindowClosed) {
     const nextWindowStartText = nextPeriodicWindowStart
       ? t(
-          "lenderMarketDetails.transactions.withdraw.periodicWindow.nextStart",
+          "marketDetails.lender.transactions.withdraw.periodicWindow.nextStart",
           {
             date: formatPeriodicWithdrawalWindowStart(nextPeriodicWindowStart),
             countdown: humanizeDuration(
@@ -239,7 +239,7 @@ export const MobileMarketActions = ({
       : undefined
 
     withdrawTooltip = [
-      t("lenderMarketDetails.transactions.withdraw.periodicWindow.closed"),
+      t("marketDetails.lender.transactions.withdraw.periodicWindow.closed"),
       nextWindowStartText,
     ]
       .filter(Boolean)
@@ -491,7 +491,7 @@ export const MobileMarketActions = ({
                       sx={{ color: COLORS.white06, display: "block" }}
                     >
                       {t(
-                        "lenderMarketDetails.transactions.withdraw.splitDirect",
+                        "marketDetails.lender.transactions.withdraw.splitDirect",
                         {
                           amount: formatTokenWithCommas(
                             marketAccount.marketBalance,
@@ -504,7 +504,7 @@ export const MobileMarketActions = ({
                       sx={{ color: COLORS.white06, display: "block" }}
                     >
                       {t(
-                        "lenderMarketDetails.transactions.withdraw.splitWrapped",
+                        "marketDetails.lender.transactions.withdraw.splitWrapped",
                         { amount: formatTokenWithCommas(wrappedAvailable) },
                       )}
                     </Typography>

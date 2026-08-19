@@ -172,7 +172,7 @@ export const LendersTab = ({
         {isSelfOnboardPolicy ? (
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Typography variant="text3" color={COLORS.santasGrey}>
-              {t("policy.lenders.selfOnboardNotice")}
+              {t("borrower.policies.lenders.selfOnboardNotice")}
             </Typography>
           </Box>
         ) : (
