@@ -15,6 +15,7 @@ import {
   InputLabelSubtitle,
   InputLabelTypo,
 } from "@/components/InputLabel/style"
+import { POLICY_TYPE_KEY } from "@/constants/i18nKeys"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   resetEditPolicyState,
@@ -275,7 +276,7 @@ export default function EditPolicyPage() {
           </Box>
           <Box>
             <Typography variant="text1">
-              {t(`policyType.${hooksKind ?? HooksKind.OpenTerm}`)}
+              {t(POLICY_TYPE_KEY[hooksKind ?? HooksKind.OpenTerm])}
             </Typography>
           </Box>
         </Box>

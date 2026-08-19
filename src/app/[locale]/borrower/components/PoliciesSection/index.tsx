@@ -20,6 +20,7 @@ import Cross from "@/assets/icons/cross_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
 import { FilterTextField } from "@/components/FilterTextfield"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
+import { POLICY_TYPE_KEY } from "@/constants/i18nKeys"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
@@ -109,7 +110,7 @@ export const PoliciesSection = ({
           style={{ ...LinkCell, justifyContent: "flex-start" }}
         >
           <Typography variant="text3">
-            {t(`policyType.${params.row.type}`)}
+            {t(POLICY_TYPE_KEY[params.row.type as HooksKind])}
           </Typography>
         </Link>
       ),

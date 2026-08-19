@@ -23,6 +23,7 @@ import {
 import Clock from "@/assets/icons/clock_icon.svg"
 import { toastError } from "@/components/Toasts"
 import { TooltipButton } from "@/components/TooltipButton"
+import { WITHDRAWAL_UNAVAILABLE_KEY } from "@/constants/i18nKeys"
 import { useDepositAgreementGate } from "@/hooks/useDepositAgreementGate"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useLivePeriodicNowSeconds } from "@/hooks/useLiveNowSeconds"
@@ -283,9 +284,7 @@ export const MobileMarketActions = ({
   const withdrawalUnavailableText =
     withdrawalActionState === "ready"
       ? undefined
-      : t(
-          `lenderMarketDetails.transactions.withdraw.unavailable.${withdrawalActionState}`,
-        )
+      : t(WITHDRAWAL_UNAVAILABLE_KEY[withdrawalActionState])
   const actionState = resolveLenderActionState({
     isConnected,
     isDifferentChain,

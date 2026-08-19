@@ -17,6 +17,7 @@ import { PeriodicWithdrawalWindowNotice } from "@/components/PeriodicWithdrawalW
 import { toastError } from "@/components/Toasts"
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
+import { WITHDRAWAL_UNAVAILABLE_KEY } from "@/constants/i18nKeys"
 import { useDepositAgreementGate } from "@/hooks/useDepositAgreementGate"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useLivePeriodicNowSeconds } from "@/hooks/useLiveNowSeconds"
@@ -136,9 +137,7 @@ export const MarketActions = ({
   const withdrawalUnavailableText =
     withdrawalActionState === "ready"
       ? undefined
-      : t(
-          `lenderMarketDetails.transactions.withdraw.unavailable.${withdrawalActionState}`,
-        )
+      : t(WITHDRAWAL_UNAVAILABLE_KEY[withdrawalActionState])
 
   const ongoingCount = (
     withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []

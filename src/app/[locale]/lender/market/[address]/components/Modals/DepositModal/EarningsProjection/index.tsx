@@ -7,6 +7,7 @@ import { Token, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { TooltipButton } from "@/components/TooltipButton"
+import { EARNINGS_PROJECTION_PERIOD_KEY } from "@/constants/i18nKeys"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import {
@@ -132,9 +133,9 @@ export const EarningsProjection = ({
                 textOverflow: "ellipsis",
               }}
             >
-              {`${t(
-                `lenderMarketDetails.transactions.deposit.modal.projection.periods.${key}`,
-              )}・${underlyingToken.symbol}`}
+              {`${t(EARNINGS_PROJECTION_PERIOD_KEY[key])}・${
+                underlyingToken.symbol
+              }`}
             </Typography>
 
             <Typography

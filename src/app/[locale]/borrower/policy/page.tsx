@@ -16,6 +16,7 @@ import { LendersTab } from "@/app/[locale]/borrower/policy/components/LendersTab
 import { EditLenderFlowStatuses } from "@/app/[locale]/borrower/policy/components/LendersTab/interface"
 import { MarketsTab } from "@/app/[locale]/borrower/policy/components/MarketsTab"
 import { PolicySelect } from "@/app/[locale]/borrower/policy/components/PolicySelect"
+import { POLICY_TYPE_KEY } from "@/constants/i18nKeys"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { CreateMarketSteps } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import {
@@ -223,7 +224,9 @@ export default function PolicyPage() {
             <DetailsTab
               name={policyName}
               type={t(
-                `policyType.${data?.hooksInstance?.kind ?? HooksKind.OpenTerm}`,
+                POLICY_TYPE_KEY[
+                  data?.hooksInstance?.kind ?? HooksKind.OpenTerm
+                ],
               )}
               access={accessControl}
               isLoading={isLoading}
