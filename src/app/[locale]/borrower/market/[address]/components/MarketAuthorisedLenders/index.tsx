@@ -191,9 +191,7 @@ export const MarketAuthorisedLenders = ({
     {
       sortable: false,
       field: "walletAddress",
-      headerName: t(
-        "marketDetails.borrower.authorisedLenders.tableHeaders.walletAddress",
-      ),
+      headerName: t("common.fields.walletAddress"),
       minWidth: 146,
       headerAlign: "left",
       align: "left",
@@ -411,9 +409,7 @@ export const MarketAuthorisedLenders = ({
       renderCell: ({ value }) =>
         value ? (
           <Box sx={MarketLendersMLA}>
-            <Button sx={MLATableButton}>
-              {t("marketDetails.borrower.authorisedLenders.buttons.view")}
-            </Button>
+            <Button sx={MLATableButton}>{t("common.labels.view")}</Button>
             <Box
               sx={{
                 border: "1px solid",

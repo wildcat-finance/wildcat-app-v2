@@ -293,7 +293,7 @@ export const MobileFilterButton = ({
           )}
 
           <FormControlLabel
-            label={t("common.placeholders.markets2")}
+            label={t("common.placeholders.markets")}
             control={
               <ExtendedCheckbox
                 checked={allStatusesSelected}

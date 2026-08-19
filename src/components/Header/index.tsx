@@ -232,7 +232,7 @@ export default function Header() {
                 variant="text2Highlighted"
                 sx={{ color: COLORS.white, cursor: "pointer" }}
               >
-                {t("header.role.borrower")}
+                {t("common.labels.borrower")}
               </Typography>
             </Link>
           </Box>

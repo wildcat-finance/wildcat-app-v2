@@ -86,7 +86,7 @@ const SetMarketMLAForm = ({
                 e.target.value === "noMLA" ? "noMLA" : Number(e.target.value),
               )
             }
-            label={t("borrower.createMarket.mla.mla.label")}
+            label={t("common.labels.masterLoanAgreement")}
           >
             {options?.map((option) => (
               <MenuItem key={option.id} value={option.value}>

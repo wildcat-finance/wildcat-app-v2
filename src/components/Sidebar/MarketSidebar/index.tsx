@@ -261,7 +261,7 @@ export const MarketSidebar = () => {
             <SvgIcon sx={{ marginRight: "10px" }}>
               <LenderBorrowerIcon />
             </SvgIcon>
-            {t("marketDetails.borrower.sidebar.authorisedLenders")}
+            {t("common.placeholders.lenders")}
           </Button>
           {canInteract && (
             <Button

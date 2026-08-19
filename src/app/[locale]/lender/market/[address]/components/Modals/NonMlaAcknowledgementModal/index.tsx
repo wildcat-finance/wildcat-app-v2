@@ -186,7 +186,7 @@ export const NonMlaAcknowledgementModal = ({
             disabled={isPending}
             fullWidth
           >
-            {t("common.buttons.cancel2")}
+            {t("common.buttons.cancel")}
           </Button>
 
           <Button
@@ -257,7 +257,7 @@ export const NonMlaAcknowledgementModal = ({
           disabled={isPending}
           fullWidth
         >
-          {t("common.buttons.cancel2")}
+          {t("common.buttons.cancel")}
         </Button>
 
         <Button

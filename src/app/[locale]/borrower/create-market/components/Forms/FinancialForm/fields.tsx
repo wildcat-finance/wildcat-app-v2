@@ -159,7 +159,7 @@ export const CommitmentFeeField = ({ form }: FinancialFieldProps) => {
         min={0}
         max={100}
         decimalScale={2}
-        label={t("borrower.createMarket.financial.commitmentFee.placeholder")}
+        label={t("common.placeholders.range0to100")}
         value={getValues("commitmentFeePercent")}
         error={Boolean(errors.commitmentFeePercent)}
         helperText={errors.commitmentFeePercent?.message}

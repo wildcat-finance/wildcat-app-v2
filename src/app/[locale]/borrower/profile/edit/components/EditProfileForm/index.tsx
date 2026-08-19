@@ -428,7 +428,7 @@ export default function EditProfileForm({
         </EditProfileItem>
 
         <EditProfileItem
-          title={t("borrower.profile.form.description.title")}
+          title={t("common.fields.description")}
           tooltip={t("borrower.profile.form.description.tooltip")}
           form={publicForm}
           field="description"

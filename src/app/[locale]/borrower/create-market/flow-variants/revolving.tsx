@@ -19,7 +19,7 @@ const getGlossaryItems = (
   return [
     {
       title: t("borrower.createMarket.financial.maxCapacity.label"),
-      description: t("borrower.createMarket.financial.maxCapacity.glossary"),
+      description: t("common.labels.maximumLimitFundsBorrowersCan"),
     },
     {
       title: t("common.fields.utilizationApr"),
@@ -33,7 +33,7 @@ const getGlossaryItems = (
     },
     {
       title: t("common.fields.reserveRatio"),
-      description: t("borrower.createMarket.financial.ratio.glossary"),
+      description: t("common.labels.requiredPercentageMarketFundsMust"),
     },
     {
       title: t("borrower.createMarket.financial.commitmentFee.label"),
@@ -41,11 +41,11 @@ const getGlossaryItems = (
     },
     {
       title: t("borrower.createMarket.periods.grace.label"),
-      description: t("borrower.createMarket.periods.grace.glossary"),
+      description: t("common.labels.durationBorrowersHaveResolveReserve"),
     },
     {
       title: t("common.fields.withdrawalCycleDuration"),
-      description: t("borrower.createMarket.periods.wdCycle.glossary"),
+      description: t("common.labels.fixedPeriodDuringWhichWithdrawal"),
     },
     {
       title: t("common.fields.minimumDeposit"),

@@ -223,7 +223,7 @@ export const MarketPolicyForm = ({
             }}
             control={control}
             name="implementationType"
-            label={t("borrower.createMarket.policy.implementation.placeholder")}
+            label={t("common.placeholders.pleaseSelect")}
             options={marketImplementationOptions}
             optionSX={{ width: "360px" }}
           />

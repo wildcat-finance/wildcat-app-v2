@@ -76,7 +76,7 @@ export default function Notifications() {
         </Box>
         <Box sx={HeaderStatusContainer}>
           <TextField
-            placeholder={t("common.placeholders.search")}
+            placeholder={t("common.buttons.search")}
             value={searchValue}
             onChange={handleSearchChange}
             size="small"

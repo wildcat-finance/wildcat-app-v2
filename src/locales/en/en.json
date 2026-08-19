@@ -37,7 +37,6 @@
   "agreement": {
     "completeInvitation": "Complete Invitation",
     "page": {
-      "cancel": "Cancel",
       "title": "Wildcat Terms Of Use"
     },
     "reacceptance": {
@@ -65,7 +64,6 @@
       "basic": {
         "asset": {
           "dropdownPlaceholder": "Type Token Symbol",
-          "glossary": "The ERC-20 token used for all transactions in the market, such as Wrapped Ether (WETH) or USDC.",
           "placeholder": "Search Name Or Paste Address"
         },
         "title": "Basic Market Setup",
@@ -123,11 +121,9 @@
         "commitmentFee": {
           "chip": "%",
           "glossary": "A recurring fee charged on undrawn borrowing capacity in a revolving market. Lenders continue to earn this fee even when capital has been committed but not yet borrowed.",
-          "label": "Commitment Fee",
-          "placeholder": "0 - 100"
+          "label": "Commitment Fee"
         },
         "maxCapacity": {
-          "glossary": "The maximum limit of funds that borrowers can access in the market.",
           "label": "Maximum Borrowing Capacity",
           "placeholder": "e.g. 1,000,000"
         },
@@ -138,9 +134,6 @@
         },
         "penaltyAPR": {
           "glossary": "An additional interest rate charged if the market remains delinquent - failing to maintain required reserves - after the grace period has elapsed."
-        },
-        "ratio": {
-          "glossary": "A required percentage of market funds that must remain liquid and unavailable for borrowing."
         },
         "title": "Basic Market Terms"
       },
@@ -167,22 +160,17 @@
       "mla": {
         "mla": {
           "explainer": "Explainer",
-          "glossary": "A legally binding document that defines the terms, obligations, and penalties for borrowers and lenders in the market.",
-          "label": "Master Loan Agreement"
+          "glossary": "A legally binding document that defines the terms, obligations, and penalties for borrowers and lenders in the market."
         },
         "title": "Loan Agreement"
       },
       "noTransactionWasSentReview": "No transaction was sent. Review the highlighted field and try again.",
       "periods": {
         "grace": {
-          "glossary": "The duration borrowers have to resolve reserve deficiencies or correct delinquency in the market before penalties take effect.",
           "label": "Grace Period Duration"
         },
         "graceVsWithdrawalWarning": "Warning: Grace Period is shorter than Withdrawal Cycle Duration. This can cause unintended penalty states and cannot be changed after market creation. Please ensure this is intentional.",
-        "title": "Grace And Withdrawal Periods",
-        "wdCycle": {
-          "glossary": "A fixed period during which withdrawal requests are grouped and processed."
-        }
+        "title": "Grace And Withdrawal Periods"
       },
       "policy": {
         "access": {
@@ -197,8 +185,7 @@
           "label": "Fixed Term Maturity Date [00:00 UTC]"
         },
         "implementation": {
-          "label": "Market Type",
-          "placeholder": "Please Select"
+          "label": "Market Type"
         },
         "name": {
           "glossary": "Unique identifier for this reusable market rule-set.",
@@ -254,7 +241,6 @@
       "for": " for",
       "forms": {
         "confirm": {
-          "all": "All",
           "keepInMind": "Submitting this change involves an on-chain transaction.",
           "payGas": "--"
         }
@@ -262,7 +248,6 @@
       "modals": {
         "add": {
           "addLender": "+ Add Lender",
-          "allMarkets": "All Markets",
           "atLeastOne": "Add this lender to at least one market."
         },
         "delete": {
@@ -355,7 +340,6 @@
         },
         "description": {
           "placeholder": "Description of your business operations, what you aim to borrow for, any external dashboards/information that lenders would find useful etc.",
-          "title": "Description",
           "tooltip": ""
         },
         "email": {
@@ -430,8 +414,7 @@
           "acceptedVersion": "Accepted Version",
           "currentVersion": "Current Live Version",
           "download": "Download Acceptance Certificate",
-          "notAccepted": "Not accepted",
-          "title": "Terms of Use"
+          "notAccepted": "Not accepted"
         },
         "verification": {
           "acknowledge": "I understand",
@@ -462,11 +445,9 @@
     "buttons": {
       "add": "Add",
       "addName": "Add Name",
-      "all": "All",
       "apply": "Apply",
       "back": "Back",
       "cancel": "Cancel",
-      "cancel2": "Cancel",
       "clear": "Clear",
       "close": "Close",
       "confirm": "Confirm",
@@ -481,7 +462,6 @@
       "learnMore": "Learn More",
       "max": "Max",
       "next": "Next",
-      "open": "Open",
       "prev": "Prev",
       "profile": "Profile",
       "remove": "Remove",
@@ -613,11 +593,9 @@
       "dateExampleHint": "e.g. 25/12/2024",
       "lenders": "Lenders",
       "markets": "Markets",
-      "markets2": "Markets",
       "pleaseSelect": "Please Select",
       "range0to100": "0 - 100",
       "range0to2160": "0 - 2160",
-      "search": "Search",
       "searchByName": "Search By Name",
       "withdrawalCycle": "Withdrawal Cycle"
     },
@@ -673,9 +651,6 @@
       "viewAll": "View All",
       "viewEarlier": "View Earlier"
     },
-    "role": {
-      "borrower": "Borrower"
-    },
     "switchAccount": "Switch Account",
     "switchChain": {
       "title": "Choose Deployment Chain"
@@ -696,8 +671,7 @@
       "adjustMinimumDeposit": "Adjust Minimum Deposit",
       "authorisedLenders": {
         "buttons": {
-          "editPolicy": "Edit Policy",
-          "view": "View"
+          "editPolicy": "Edit Policy"
         },
         "header": "Lender List",
         "noActiveLenders": "No active lenders yet – you can approve specific addresses in your market policy.",
@@ -710,8 +684,7 @@
           "dateAdded": "Date Added",
           "name": "Name",
           "signDate": "Sign Date",
-          "signedMLA": "Signed MLA",
-          "walletAddress": "Wallet Address"
+          "signedMLA": "Signed MLA"
         }
       },
       "blockedDeposits": "Blocked From Deposits",
@@ -783,9 +756,6 @@
         "capacity": {
           "current": "Current Capacity"
         },
-        "error": {
-          "wait": "Oops! Something went wrong!"
-        },
         "loading": {
           "subtitle": "Transaction pending...",
           "title": "Wait A Moment..."
@@ -823,12 +793,8 @@
       "repayType": "repay type",
       "selectMlaSettings": "Select MLA Settings",
       "sidebar": {
-        "authorisedLenders": "Lenders",
         "backToMarkets": "Back to My Markets",
         "borrowRepay": "Borrow and Repay"
-      },
-      "statusChart": {
-        "totalDebt": "Total Debt"
       },
       "sum": "Sum",
       "tooltip": {
@@ -858,7 +824,6 @@
           "title": "Lender access blocked"
         },
         "error": {
-          "retry": "Retry",
           "subtitle": "We couldn't confirm this wallet's market permissions from the blockchain. No access decision has been made.",
           "title": "Unable to verify lender access"
         }
@@ -1053,7 +1018,6 @@
             "statusConfirming": "Confirm in wallet…",
             "statusDone": "Done",
             "statusFailed": "Failed",
-            "statusNext": "Next",
             "statusWaiting": "Waiting",
             "unwrapDetail": "{{shares}} {{shareSymbol}} to {{amount}} {{symbol}}",
             "unwrapDetailNoShares": "Unwrap to {{amount}} {{symbol}}",
@@ -1233,8 +1197,7 @@
       },
       "terminatedTitle": "Your Terminated Markets",
       "title": {
-        "active": "Your Active Markets",
-        "loading": "Loading..."
+        "active": "Your Active Markets"
       }
     },
     "lender": {
@@ -1282,6 +1245,7 @@
       },
       "noMarketsHere": "No Markets Here",
       "noMarketsMatchCurrentFilters": "No markets match the current filters.",
+      "open": "Open",
       "seeMore": "See More",
       "tables": {
         "header": {

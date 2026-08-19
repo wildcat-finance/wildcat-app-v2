@@ -68,7 +68,7 @@ export const getSharedGlossaryItems = (
       return [
         {
           title: t("common.fields.underlyingAsset"),
-          description: t("borrower.createMarket.basic.asset.glossary"),
+          description: t("common.labels.erc20TokenUsedAll"),
         },
         {
           title: t("borrower.createMarket.basic.tokenName.label"),
@@ -82,7 +82,7 @@ export const getSharedGlossaryItems = (
     case CreateMarketSteps.MLA:
       return [
         {
-          title: t("borrower.createMarket.mla.mla.label"),
+          title: t("common.labels.masterLoanAgreement"),
           description: t("borrower.createMarket.mla.mla.glossary"),
         },
       ]

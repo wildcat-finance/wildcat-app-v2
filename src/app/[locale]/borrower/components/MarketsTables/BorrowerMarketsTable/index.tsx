@@ -373,7 +373,7 @@ export const BorrowerMarketsTable = ({
             {label}
           </Typography>
           <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-            {isLoading ? t("marketList.borrower.title.loading") : rows.length}
+            {isLoading ? t("common.states.loading") : rows.length}
           </Typography>
         </Box>
       </AccordionSummary>

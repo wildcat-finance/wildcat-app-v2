@@ -76,9 +76,7 @@ export const MarketStatusChart = ({
   return (
     <Box marginTop="12px">
       <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography variant="title3">
-          {t("marketDetails.borrower.statusChart.totalDebt")}
-        </Typography>
+        <Typography variant="title3">{t("common.fields.totalDebt")}</Typography>
 
         <Box
           sx={{

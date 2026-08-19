@@ -192,7 +192,7 @@ export const LendersSection = ({
           />
 
           <SmallFilterSelect
-            placeholder={t("common.placeholders.markets2")}
+            placeholder={t("common.placeholders.markets")}
             options={marketsOptions ?? []}
             selected={marketsFilter}
             setSelected={setMarketsFilter}

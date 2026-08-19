@@ -266,7 +266,7 @@ export const MobileMarketList = ({
           }}
           sx={segmentedSx}
         >
-          <ToggleButton value="all">{t("common.buttons.all")}</ToggleButton>
+          <ToggleButton value="all">{t("common.filters.all")}</ToggleButton>
           <ToggleButton value="healthy">
             {t("common.labels.healthy")}
           </ToggleButton>
@@ -287,8 +287,10 @@ export const MobileMarketList = ({
           }}
           sx={segmentedSx}
         >
-          <ToggleButton value="all">{t("common.buttons.all")}</ToggleButton>
-          <ToggleButton value="open">{t("common.buttons.open")}</ToggleButton>
+          <ToggleButton value="all">{t("common.filters.all")}</ToggleButton>
+          <ToggleButton value="open">
+            {t("marketList.shared.open")}
+          </ToggleButton>
           <ToggleButton value="fixed">
             {t("marketList.shared.fixed")}
           </ToggleButton>

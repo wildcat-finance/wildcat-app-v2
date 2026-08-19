@@ -169,9 +169,7 @@ export const WithdrawModal = ({
             "marketDetails.lender.transactions.withdraw.steps.statusWaiting",
           )
         default:
-          return t(
-            "marketDetails.lender.transactions.withdraw.steps.statusNext",
-          )
+          return t("common.buttons.next")
       }
     }
 

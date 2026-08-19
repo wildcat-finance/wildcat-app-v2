@@ -184,7 +184,7 @@ export const AgreementPage = ({
               },
             }}
           >
-            <Trans i18nKey="agreement.page.cancel" />
+            <Trans i18nKey="common.buttons.cancel" />
           </Button>
         )}
         {needsBorrowerInvitation && (

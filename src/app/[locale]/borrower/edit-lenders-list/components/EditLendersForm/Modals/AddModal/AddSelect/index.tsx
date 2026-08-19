@@ -194,7 +194,7 @@ export const AddSelect = ({
 
         <Box sx={VariantsContainer}>
           <FormControlLabel
-            label={t("borrower.editLenders.modals.add.allMarkets")}
+            label={t("common.fields.allMarkets")}
             control={
               <ExtendedCheckbox
                 onChange={handleSelectAllMarkets}

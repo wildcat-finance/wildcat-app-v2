@@ -48,7 +48,7 @@ export const ToUStatusBlock = ({
     return (
       <Box sx={containerSx}>
         <Typography variant={getTitleVariant()} sx={titleSx}>
-          {t("borrower.profile.view.touStatus.title")}
+          {t("common.labels.termsUse")}
         </Typography>
         <Box sx={{ marginTop: isPage ? "24px" : "16px" }}>
           {[0, 1, 2].map((row) => (
@@ -111,7 +111,7 @@ export const ToUStatusBlock = ({
   return (
     <Box sx={containerSx}>
       <Typography variant={getTitleVariant()} sx={titleSx}>
-        {t("borrower.profile.view.touStatus.title")}
+        {t("common.labels.termsUse")}
       </Typography>
 
       <Box sx={{ marginTop: isPage ? "24px" : "16px" }}>

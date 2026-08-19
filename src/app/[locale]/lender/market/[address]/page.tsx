@@ -816,7 +816,7 @@ export default function LenderMarketDetails({
             <MobileLenderBanner
               title={t("marketDetails.lender.access.error.title")}
               subtitle={t("marketDetails.lender.access.error.subtitle")}
-              buttonText={t("marketDetails.lender.access.error.retry")}
+              buttonText={t("common.buttons.retry")}
               onButtonClick={() => {
                 refetchLenderAccess().catch(() => undefined)
               }}
@@ -913,7 +913,7 @@ export default function LenderMarketDetails({
             <LeadBanner
               title={t("marketDetails.lender.access.error.title")}
               subtitle={t("marketDetails.lender.access.error.subtitle")}
-              buttonText={t("marketDetails.lender.access.error.retry")}
+              buttonText={t("common.buttons.retry")}
               buttonOnClick={() => {
                 refetchLenderAccess().catch(() => undefined)
               }}

@@ -37,6 +37,17 @@ await i18n.init({
   defaultNS: "en",
   fallbackNS: "en",
   ns: ["en"],
+  // Mirror src/app/i18n.ts exactly, including the tag-only escape. It does not
+  // change whether a key resolves, but a harness that claims to reproduce the
+  // app's config and quietly omits part of it is the kind of gap that makes a
+  // green run mean less than it looks.
+  interpolation: {
+    escapeValue: true,
+    escape: (value) =>
+      typeof value === "string"
+        ? value.replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        : String(value),
+  },
 })
 
 function blankComments(src) {
@@ -127,11 +138,21 @@ const BARE = /"([A-Za-z][A-Za-z0-9_\-]*(?:\.[A-Za-z0-9_\-]+){2,})"/g
 const SECTIONS = new Set(Object.keys(en))
 
 const findings = { unresolved: [], objectValue: [], missingInterp: [], htmlInT: [] }
+const unreadable = []
 let checked = 0
 
 for (const file of files) {
   let raw
-  try { raw = fs.readFileSync(file, "utf8") } catch { continue }
+  try {
+    raw = fs.readFileSync(file, "utf8")
+  } catch (e) {
+    // A skipped file means its call sites were never resolved, so a PASS here
+    // would be a claim about code this run never looked at. Fail loudly instead
+    // of continuing quietly.
+    console.error(`verify-rendered-keys: cannot read ${file} (${e.code}) -- NOT CHECKED`)
+    unreadable.push(file)
+    continue
+  }
   const src = blankComments(raw)
   const lineAt = (idx) => src.slice(0, idx).split("\n").length
 
@@ -215,5 +236,13 @@ for (const [name, label] of [
 }
 
 const problems = Object.values(findings).reduce((n, rows) => n + rows.length, 0)
-if (problems === 0) console.log("PASS - every key resolves and every placeholder is supplied")
-process.exitCode = problems === 0 ? 0 : 1
+if (unreadable.length) {
+  console.error(
+    `\n${unreadable.length} file(s) could not be read, so their call sites were ` +
+      "never resolved. Refusing to pass on incomplete coverage.",
+  )
+}
+if (problems === 0 && !unreadable.length) {
+  console.log("PASS - every key resolves and every placeholder is supplied")
+}
+process.exitCode = problems === 0 && !unreadable.length ? 0 : 1

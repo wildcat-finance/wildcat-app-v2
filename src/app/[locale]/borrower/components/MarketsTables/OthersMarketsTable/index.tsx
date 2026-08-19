@@ -427,7 +427,7 @@ export const OthersMarketsTable = ({
             {t("marketList.shared.tables.other.title")}
           </Typography>
           <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-            {isLoading ? t("marketList.borrower.title.loading") : rows.length}
+            {isLoading ? t("common.states.loading") : rows.length}
           </Typography>
         </Box>
       </AccordionSummary>

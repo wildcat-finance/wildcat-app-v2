@@ -19,11 +19,13 @@
  *   legacySection  ERROR  top-level section outside the documented convention
  *   attrLiteral    ERROR  user-visible JSX attribute holding a hardcoded string
  *   depth          ERROR  key deeper than MAX_DEPTH
- *   duplicateValue ERROR  identical wording outside common.* that is NOT a
- *                         deliberate homonym listed in KNOWN_HOMONYMS below
+ *   duplicateValue ERROR  the same wording under more than one key, unless that
+ *                         exact key set is declared in KNOWN_DUPLICATES below.
+ *                         Scans common.* too: skipping it hid both duplicates
+ *                         inside common.* and feature keys restating an atom.
  *   orphanKey      ERROR  an en.json key no call site references
- *   staleHomonym   WARN   a KNOWN_HOMONYMS entry that no longer duplicates --
- *                         someone collapsed it, so prune the list
+ *   staleHomonym   WARN   a KNOWN_DUPLICATES entry that stopped duplicating, or
+ *                         lost one of its declared keys -- prune or update it
  *
  * A false positive on attrLiteral is fixed by widening NON_TRANSLATABLE or
  * SKIP_UI_RE in this file, with a comment saying why. Do not silence the rule.
@@ -64,32 +66,287 @@ const ALLOWED_TOP_LEVEL = new Set([
 const MAX_DEPTH = 6
 
 /**
- * Wording that is duplicated outside common.* ON PURPOSE, normalised the way the
- * duplicateValue rule normalises (trimmed, lowercased). Each entry is copy that
- * two surfaces happen to spell the same in English and that must stay free to
- * diverge without a translator having to split a key first. Anything NOT listed
- * here is a real duplicate and fails the build.
+ * Wording that appears under more than one key ON PURPOSE, normalised the way the
+ * duplicateValue rule normalises (trimmed, lowercased).
  *
- * Reasons live in docs/i18n-conventions.md under "Deliberate duplicates". Adding
- * an entry is a decision, not a workaround: if the two sites would always change
- * together, collapse them into common.* instead.
+ * Each entry declares the EXACT key set that is allowed to carry the wording. That
+ * matters: keying the allowlist on the value alone let one sanctioned wording
+ * authorise an unlimited number of new duplicate keys anywhere outside common.*.
+ * With the key set spelled out, a new key holding allowlisted wording still fails.
+ *
+ * kind "homonym"  two surfaces that happen to spell the same thing in English and
+ *                 must stay free to diverge without a translator splitting a key.
+ * kind "casing"   the SAME wording in two capitalisations, inherited from before
+ *                 the refactor. Not a homonym and not sanctioned copy -- it is a
+ *                 real inconsistency parked here so the rule can see it. Resolving
+ *                 one means changing what a user reads, so it needs a copy
+ *                 decision; collapsing the keys is the easy half.
+ *
+ * Reasons live in docs/i18n-conventions.md under "Deliberate duplicates". Adding a
+ * homonym entry is a decision: if the two sites would always change together,
+ * collapse them into common.* instead.
  */
-const KNOWN_HOMONYMS = new Map([
-  ["deposit", "modal title vs the market page button vs the market-list row action"],
-  ["withdraw", "modal title vs the page button"],
-  ["connect wallet", "header button vs the dialog title it opens"],
-  ["cancel invitation", "modal title vs the button that confirms it"],
-  ["notifications", "header menu label vs the history page title"],
-  ["markets", "a profile stat label vs the market-list page title"],
-  ["fixed term", "withdraw buttonLocked vs marketTerm enum vs marketTypeChip enum"],
-  ["open term", "marketTerm enum vs marketTypeChip enum"],
-  ["periodic term", "marketTerm enum vs marketTypeChip enum"],
-  ["unknown term", "marketTypeChip enum vs policyType enum"],
-  ["open withdrawals", "the withdrawalAccess parameter value vs the section heading"],
-  ["no", "two noMarkets.filter.beginning sentence fragments, not the yes/no atom"],
-  ["for", "a sentence fragment used by two different assemblies"],
-  ["edit borrower profile", "a borrower editing their own profile vs an admin editing someone else's record"],
-  ["lender profile", "sidebar nav label vs the profile page heading"],
+const KNOWN_DUPLICATES = new Map([
+  [
+    "active markets",
+    {
+      kind: "casing",
+      reason:
+        "'Active markets' vs 'Active Markets' -- inherited from before the refactor; needs a copy decision, not a key decision",
+      keys: [
+      "borrower.profile.view.activeMarkets.title",
+      "common.fields.activeMarkets",
+      "common.labels.activeMarkets",
+      ],
+    },
+  ],
+  [
+    "borrower name",
+    {
+      kind: "casing",
+      reason:
+        "'Borrower name' vs 'Borrower Name' -- inherited; needs a copy decision",
+      keys: [
+      "common.labels.borrowerName",
+      "marketList.borrower.table.header.borrowerName",
+      ],
+    },
+  ],
+  [
+    "cancel invitation",
+    {
+      kind: "homonym",
+      reason:
+        "modal title vs the button that confirms it",
+      keys: [
+      "admin.invites.cancelModal.confirm",
+      "admin.invites.cancelModal.title",
+      ],
+    },
+  ],
+  [
+    "connect wallet",
+    {
+      kind: "homonym",
+      reason:
+        "the common atom, the header button and the dialog title it opens",
+      keys: [
+      "common.labels.connectWallet",
+      "header.button.connectWallet",
+      "header.modal.title",
+      ],
+    },
+  ],
+  [
+    "deposit",
+    {
+      kind: "homonym",
+      reason:
+        "the common atom, the modal title, the market page button and the market-list row action",
+      keys: [
+      "common.labels.deposit",
+      "marketDetails.lender.modals.deposit.title",
+      "marketDetails.lender.transactions.deposit.button",
+      "marketList.shared.tables.other.depositBTN",
+      ],
+    },
+  ],
+  [
+    "edit borrower profile",
+    {
+      kind: "homonym",
+      reason:
+        "a borrower editing their own profile vs an admin editing someone else's record",
+      keys: [
+      "admin.editBorrower.title",
+      "nav.editBorrowerProfile",
+      ],
+    },
+  ],
+  [
+    "fixed term",
+    {
+      kind: "homonym",
+      reason:
+        "withdraw buttonLocked vs marketTerm enum vs marketTypeChip enum",
+      keys: [
+      "marketDetails.lender.transactions.withdraw.buttonLocked",
+      "marketParameters.marketTerm.FixedTerm.text",
+      "marketParameters.marketTypeChip.FixedTerm",
+      ],
+    },
+  ],
+  [
+    "for",
+    {
+      kind: "homonym",
+      reason:
+        "a sentence fragment used by two different assemblies",
+      keys: [
+      "borrower.editLenders.for",
+      "borrower.editPolicy.for",
+      ],
+    },
+  ],
+  [
+    "lender profile",
+    {
+      kind: "homonym",
+      reason:
+        "sidebar nav label vs the profile page heading",
+      keys: [
+      "nav.lenderProfile",
+      "profile.lender.lenderProfile",
+      ],
+    },
+  ],
+  [
+    "market history",
+    {
+      kind: "casing",
+      reason:
+        "'Market history' vs 'Market History' -- inherited; needs a copy decision",
+      keys: [
+      "common.labels.marketHistory",
+      "marketDetails.shared.sidebar.marketHistory",
+      ],
+    },
+  ],
+  [
+    "markets",
+    {
+      kind: "homonym",
+      reason:
+        "a profile stat label, a filter placeholder and the market-list page title",
+      keys: [
+      "borrower.profile.view.overallInfo.markets",
+      "common.placeholders.markets",
+      "marketList.shared.title",
+      ],
+    },
+  ],
+  [
+    "minimum deposit",
+    {
+      kind: "casing",
+      reason:
+        "'Minimum deposit' vs 'Minimum Deposit' -- inherited; needs a copy decision",
+      keys: [
+      "common.fields.minimumDeposit",
+      "common.labels.minimumDeposit",
+      ],
+    },
+  ],
+  [
+    "no",
+    {
+      kind: "homonym",
+      reason:
+        "the yes/no atom vs two noMarkets.filter.beginning sentence fragments",
+      keys: [
+      "common.yesNo.no",
+      "marketList.borrower.noMarkets.filter.beginning",
+      "marketList.shared.noMarkets.filter.beginning",
+      ],
+    },
+  ],
+  [
+    "notifications",
+    {
+      kind: "homonym",
+      reason:
+        "header menu label vs the history page title",
+      keys: [
+      "header.notifications.notifications",
+      "notifications.history.title",
+      ],
+    },
+  ],
+  [
+    "open",
+    {
+      kind: "homonym",
+      reason:
+        "the market-term filter value (sibling of marketList.shared.fixed) vs the periodic window-status value (sibling of scheduled/closed) -- two enums in different domains",
+      keys: [
+      "marketList.shared.open",
+      "marketParameters.periodicTerm.windowStatus.open.text",
+      ],
+    },
+  ],
+  [
+    "open term",
+    {
+      kind: "homonym",
+      reason:
+        "marketTerm enum vs marketTypeChip enum",
+      keys: [
+      "marketParameters.marketTerm.OpenTerm.text",
+      "marketParameters.marketTypeChip.OpenTerm",
+      ],
+    },
+  ],
+  [
+    "open withdrawals",
+    {
+      kind: "homonym",
+      reason:
+        "the withdrawalAccess parameter value vs the section heading",
+      keys: [
+      "marketDetails.shared.withdrawalRequests.openWithdrawals",
+      "marketParameters.withdrawalAccess.open.text",
+      ],
+    },
+  ],
+  [
+    "periodic term",
+    {
+      kind: "homonym",
+      reason:
+        "marketTerm enum vs marketTypeChip enum",
+      keys: [
+      "marketParameters.marketTerm.PeriodicTerm.text",
+      "marketParameters.marketTypeChip.PeriodicTerm",
+      ],
+    },
+  ],
+  [
+    "unknown term",
+    {
+      kind: "homonym",
+      reason:
+        "marketTypeChip enum vs policyType enum",
+      keys: [
+      "marketParameters.marketTypeChip.Unknown",
+      "marketParameters.policyType.Unknown",
+      ],
+    },
+  ],
+  [
+    "withdraw",
+    {
+      kind: "homonym",
+      reason:
+        "the common atom, the modal title and the page button",
+      keys: [
+      "common.buttons.withdraw",
+      "marketDetails.lender.modals.withdraw.title",
+      "marketDetails.lender.transactions.withdraw.button",
+      ],
+    },
+  ],
+  [
+    "wrapper contract",
+    {
+      kind: "casing",
+      reason:
+        "'Wrapper contract' vs 'Wrapper Contract' -- inherited; needs a copy decision",
+      keys: [
+      "borrower.createMarket.wrapper.title",
+      "common.fields.wrapperContract",
+      ],
+    },
+  ],
 ])
 
 const PLURAL_SUFFIXES = ["zero", "one", "two", "few", "many", "other"]
@@ -311,7 +568,10 @@ if (unreadable.length) {
     `\n${unreadable.length} file(s) could not be read, so their keys are invisible. ` +
       "Refusing to report counts that are known to be wrong.",
   )
-  process.exitCode = 1
+  // The exit code is set at the bottom, from `failed`. Setting process.exitCode
+  // here instead would be silently overwritten by it, which is how this guard
+  // sat inert: the message printed and the run still said PASS. Do NOT use
+  // process.exit() either -- it races the --json report write and buffered stdout.
 }
 
 // ------------------------------------------------------------- locale shape
@@ -331,24 +591,53 @@ for (const v of violations.legacySection) {
 }
 violations.legacySection.sort((a, b) => b.keys - a.keys)
 
-/** Atom rule: identical wording twice outside common.* should be one key. */
+/**
+ * Atom rule: identical wording under more than one key should be one key.
+ *
+ * This scans EVERY key, common.* included. Skipping common.* on both sides -- the
+ * earlier shape of this rule -- made it blind to two real cases: duplicates inside
+ * common.* (which is how two "cancel2"-style codemod leftovers survived), and a
+ * feature key restating a common.* atom instead of pointing at it.
+ */
 const byValue = new Map()
 for (const [key, value] of Object.entries(locale)) {
-  if (typeof value !== "string" || key.startsWith("common.")) continue
+  if (typeof value !== "string") continue
   const normalized = value.trim().toLowerCase()
   if (normalized.length < 2) continue
   if (!byValue.has(normalized)) byValue.set(normalized, [])
   byValue.get(normalized).push(key)
 }
-const stillDuplicated = new Set()
+const seenDuplicates = new Set()
 for (const [value, keys] of byValue) {
   if (keys.length < 2) continue
-  if (KNOWN_HOMONYMS.has(value)) { stillDuplicated.add(value); continue }
-  violations.duplicateValue.push({ value, keys: keys.sort() })
+  const allowed = KNOWN_DUPLICATES.get(value)
+  if (!allowed) {
+    violations.duplicateValue.push({ value, keys: keys.sort() })
+    continue
+  }
+  seenDuplicates.add(value)
+  const expected = new Set(allowed.keys)
+  const unexpected = keys.filter((k) => !expected.has(k)).sort()
+  if (unexpected.length) {
+    violations.duplicateValue.push({
+      value,
+      keys: keys.sort(),
+      unexpected,
+      note: `allowlisted as ${allowed.kind}, but these keys are not in its declared set`,
+    })
+  }
 }
 violations.duplicateValue.sort((a, b) => b.keys.length - a.keys.length)
-for (const [value, reason] of KNOWN_HOMONYMS) {
-  if (!stillDuplicated.has(value)) violations.staleHomonym.push({ value, reason })
+for (const [value, allowed] of KNOWN_DUPLICATES) {
+  const observed = byValue.get(value) ?? []
+  if (observed.length < 2) {
+    violations.staleHomonym.push({ value, kind: allowed.kind, reason: allowed.reason })
+    continue
+  }
+  const gone = allowed.keys.filter((k) => !observed.includes(k))
+  if (gone.length) {
+    violations.staleHomonym.push({ value, kind: allowed.kind, gone, reason: allowed.reason })
+  }
 }
 
 /**
@@ -387,7 +676,9 @@ if (writeBaseline) {
   )
   console.log(`wrote ${path.relative(rootDir, baselineFile)}`)
   console.log(JSON.stringify(counts, null, 2))
-  process.exitCode = 0
+  // Same reason as above: a baseline written from incomplete counts is worse
+  // than no baseline, because every later run ratchets against it.
+  process.exitCode = unreadable.length ? 1 : 0
 } else {
   if (asJson) {
     // A file, not stdout: the payload is large enough that piping it races
@@ -401,7 +692,8 @@ if (writeBaseline) {
     baseline = JSON.parse(fs.readFileSync(baselineFile, "utf8")).counts
   }
 
-  let failed = false
+  // An unreadable file makes every count a lower bound, so the run cannot pass.
+  let failed = unreadable.length > 0
   const lines = []
   for (const [rule, items] of Object.entries(violations)) {
     const severity = SEVERITY[rule]

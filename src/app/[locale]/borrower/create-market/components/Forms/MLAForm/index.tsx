@@ -120,7 +120,7 @@ export const MlaForm = ({ form }: MLAFormProps) => {
       </Typography>
 
       <HorizontalInputLabel
-        label={t("borrower.createMarket.mla.mla.label")}
+        label={t("common.labels.masterLoanAgreement")}
         explainer={t("borrower.createMarket.mla.mla.explainer")}
       >
         <RadioGroup
