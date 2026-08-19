@@ -59,6 +59,7 @@ import {
 import { removePendingSafeMessage } from "@/store/slices/pendingSafeMessagesSlice/pendingSafeMessagesSlice"
 import { COLORS } from "@/theme/colors"
 import {
+  canDismissCreateMarketDeployDialog,
   getCreateMarketDeployRouting,
   hasCreateMarketDeploymentTarget,
 } from "@/utils/createMarketDeploy"
@@ -250,6 +251,10 @@ export default function CreateMarketPage() {
     isError,
     deployError,
   } = useDeployV2Market()
+  const canDismissFinalDialog = canDismissCreateMarketDeployDialog({
+    isDeploying,
+    isSuccess,
+  })
 
   const [finalOpen, setFinalOpen] = useState<boolean>(false)
   const [activeDraftId, setActiveDraftId] = useState<string>()
@@ -1435,14 +1440,8 @@ export default function CreateMarketPage() {
 
         <Dialog
           open={finalOpen}
-          onClose={
-            isDeploying
-              ? undefined
-              : () => {
-                  setFinalOpen(false)
-                  if (isSuccess) handleGoToMarkets()
-                }
-          }
+          onClose={canDismissFinalDialog ? handleClickClose : undefined}
+          disableEscapeKeyDown={!canDismissFinalDialog}
           sx={FinalDialogContainer}
         >
           {isError && !isDeploying && (
