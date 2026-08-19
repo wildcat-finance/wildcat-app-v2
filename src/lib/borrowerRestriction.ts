@@ -74,7 +74,10 @@ export async function applyRemovalTransition(
   chainId: SupportedChainId,
   address: string,
   isRegisteredOnChain: boolean,
-): Promise<{ removedFromArchController: boolean; notifyRestriction: boolean } | null> {
+): Promise<{
+  removedFromArchController: boolean
+  notifyRestriction: boolean
+} | null> {
   const row = await getBorrowerRestrictionRow(chainId, address)
   if (!row.exists) return null
   const transition = computeRemovalTransition({ ...row, isRegisteredOnChain })
