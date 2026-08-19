@@ -3,6 +3,7 @@
  * instead of vibes-based.
  *
  *   npm run i18n:check                    # the gate; any violation is fatal
+ *   npm run i18n:check -- --staged        # read the Git index, for pre-commit
  *   npm run i18n:check -- --json          # scripts/i18n/check-report.json
  *   npm run i18n:check -- --write-baseline
  *
@@ -12,17 +13,17 @@
  * write a baseline, drop --strict, and the run fails only when a count goes UP.
  * Delete the file again when the counts are back to zero.
  *
- * Rules -- all fatal except staleHomonym
+ * Rules -- all fatal except duplicateValue and staleHomonym
  *   missingKey     ERROR  a key referenced in code that en.json does not define
  *   dynamicKey     ERROR  a key built by interpolation or concatenation
  *   defaultValue   ERROR  t("key", "fallback") -- masks a missing key
  *   legacySection  ERROR  top-level section outside the documented convention
  *   attrLiteral    ERROR  user-visible JSX attribute holding a hardcoded string
  *   depth          ERROR  key deeper than MAX_DEPTH
- *   duplicateValue ERROR  the same wording under more than one key, unless that
- *                         exact key set is declared in KNOWN_DUPLICATES below.
- *                         Scans common.* too: skipping it hid both duplicates
- *                         inside common.* and feature keys restating an atom.
+ *   duplicateValue WARN   the same English wording under more than one key,
+ *                         unless its exact key set is declared below. Useful for
+ *                         spotting reusable atoms, but not proof that keys share
+ *                         translation context.
  *   orphanKey      ERROR  an en.json key no call site references
  *   staleHomonym   WARN   a KNOWN_DUPLICATES entry that stopped duplicating, or
  *                         lost one of its declared keys -- prune or update it
@@ -42,11 +43,12 @@ import { fileURLToPath } from "node:url"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootDir = path.resolve(__dirname, "..", "..")
-const localeFile = path.join(rootDir, "src/locales/en/en.json")
+const localePath = "src/locales/en/en.json"
 const baselineFile = path.join(__dirname, "i18n-baseline.json")
 const reportFile = path.join(__dirname, "check-report.json")
 
 const strict = process.argv.includes("--strict")
+const staged = process.argv.includes("--staged")
 const writeBaseline = process.argv.includes("--write-baseline")
 const asJson = process.argv.includes("--json")
 
@@ -82,9 +84,9 @@ const MAX_DEPTH = 6
  *                 one means changing what a user reads, so it needs a copy
  *                 decision; collapsing the keys is the easy half.
  *
- * Reasons live in docs/i18n-conventions.md under "Deliberate duplicates". Adding a
- * homonym entry is a decision: if the two sites would always change together,
- * collapse them into common.* instead.
+ * The duplicate check is advisory because equal English strings can require
+ * different grammatical or product context in another locale. An entry here only
+ * suppresses known noise; it is not required to make the gate pass.
  */
 const KNOWN_DUPLICATES = new Map([
   [
@@ -406,6 +408,25 @@ function git(args) {
   })
 }
 
+function readRepoFile(file) {
+  const relative = path.isAbsolute(file) ? path.relative(rootDir, file) : file
+  return staged
+    ? git(["show", `:${relative}`])
+    : fs.readFileSync(path.join(rootDir, relative), "utf8")
+}
+
+function repoFileExists(file) {
+  const relative = path.isAbsolute(file) ? path.relative(rootDir, file) : file
+  if (!staged) return fs.existsSync(path.join(rootDir, relative))
+
+  try {
+    git(["cat-file", "-e", `:${relative}`])
+    return true
+  } catch {
+    return false
+  }
+}
+
 /**
  * Blank out comments, preserving byte offsets so reported line numbers stay
  * accurate. Commented-out JSX is common here, and a `t("…")` inside `{/* … *​/}`
@@ -467,7 +488,7 @@ function canonicalKey(key) {
   return base
 }
 
-const locale = flatten(JSON.parse(fs.readFileSync(localeFile, "utf8")))
+const locale = flatten(JSON.parse(readRepoFile(localePath)))
 const localeKeys = new Set(Object.keys(locale))
 /**
  * i18next resolves t("a.b.count", { count }) against a.b.count_one / _other, so a
@@ -484,9 +505,18 @@ const localeTopLevel = new Set([...localeKeys].map((k) => k.split(".")[0]))
 // non-ASCII bytes (this repo has 7, e.g. a directory spelled with a Cyrillic
 // "\u0441omponents"). A quoted path fails to open, and a silent `continue` then
 // hides every key and every hardcoded string in those files.
-const allSourceFiles = git([
-  "ls-files", "-z", "--cached", "--others", "--exclude-standard", "src",
-])
+const allSourceFiles = git(
+  staged
+    ? ["ls-files", "-z", "--cached", "src"]
+    : [
+        "ls-files",
+        "-z",
+        "--cached",
+        "--others",
+        "--exclude-standard",
+        "src",
+      ],
+)
   .split("\0")
   .filter((f) => /\.(tsx?|jsx?)$/.test(f))
   .filter((f) => !/(\.test\.[tj]sx?|\.stories\.[tj]sx?|\.d\.ts)$/.test(f))
@@ -506,7 +536,7 @@ const dynamicPrefixes = new Set()
 for (const file of allSourceFiles) {
   let source
   try {
-    source = fs.readFileSync(path.join(rootDir, file), "utf8")
+    source = readRepoFile(file)
   } catch (e) {
     // Never swallow this: an unreadable path means the file is not scanned, and a
     // silent skip understates every count.
@@ -658,7 +688,7 @@ violations.orphanKey.sort((a, b) => a.key.localeCompare(b.key))
 const SEVERITY = {
   missingKey: "error", dynamicKey: "error", defaultValue: "error",
   legacySection: "error", attrLiteral: "error", depth: "error",
-  duplicateValue: "error", orphanKey: "error", staleHomonym: "warn",
+  duplicateValue: "warn", orphanKey: "error", staleHomonym: "warn",
 }
 const counts = Object.fromEntries(
   Object.entries(violations).map(([k, v]) => [k, v.length]),
@@ -688,8 +718,8 @@ if (writeBaseline) {
   }
 
   let baseline = null
-  if (!strict && fs.existsSync(baselineFile)) {
-    baseline = JSON.parse(fs.readFileSync(baselineFile, "utf8")).counts
+  if (!strict && repoFileExists(baselineFile)) {
+    baseline = JSON.parse(readRepoFile(baselineFile)).counts
   }
 
   // An unreadable file makes every count a lower bound, so the run cannot pass.

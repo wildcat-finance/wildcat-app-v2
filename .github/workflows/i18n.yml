@@ -11,10 +11,10 @@ name: i18n
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    branches: ['**']
+    branches: ["**"]
   push:
-    branches: ['**']
-    tags-ignore: ['**']
+    branches: ["**"]
+    tags-ignore: ["**"]
 
 permissions:
   contents: read
@@ -30,7 +30,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ".nvmrc"
 
       - name: Pin npm
         run: npm install -g npm@11.12.0 --ignore-scripts --audit=false --fund=false
@@ -38,11 +38,16 @@ jobs:
       - name: Install deps
         run: npm ci --ignore-scripts --audit=false --fund=false
         env:
-          HUSKY: '0'
+          HUSKY: "0"
+
+      # eslint-plugin-i18next catches literal JSX text. The structural checker
+      # below handles user-visible JSX attributes, which the plugin misses.
+      - name: Check hardcoded JSX text
+        run: npm run lint:errors
 
       # Structure: missing keys, dynamically built keys, t() fallbacks, sections
       # outside the convention, hardcoded user-visible attributes, key depth,
-      # duplicate wording that is not a listed homonym, and orphaned keys.
+      # orphaned keys, plus an advisory report for duplicate English wording.
       # --json also writes scripts/i18n/check-report.json, uploaded below when the
       # run fails, so the full violation list is available without reproducing
       # locally. It does not weaken the gate: the exit code is unchanged.

@@ -4,6 +4,7 @@
  * "en"). Offline, deterministic, no browser.
  *
  *   node scripts/i18n/verify-rendered-keys.mjs
+ *   node scripts/i18n/verify-rendered-keys.mjs --staged
  *
  * This answers a different question from check-i18n.mjs. That script asks "is the
  * key present in en.json". This one asks "what does the user actually see", and so
@@ -25,7 +26,20 @@ import { createInstance } from "i18next"
 import { execFileSync } from "node:child_process"
 import fs from "node:fs"
 
-const en = JSON.parse(fs.readFileSync("src/locales/en/en.json", "utf8"))
+const staged = process.argv.includes("--staged")
+
+function git(args) {
+  return execFileSync("git", args, {
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+  })
+}
+
+function readRepoFile(file) {
+  return staged ? git(["show", `:${file}`]) : fs.readFileSync(file, "utf8")
+}
+
+const en = JSON.parse(readRepoFile("src/locales/en/en.json"))
 
 // Same shape as src/app/i18n.ts: language "en", namespace "en".
 const i18n = createInstance()
@@ -127,7 +141,18 @@ function optionKeys(text) {
 // non-ASCII bytes (this repo has 7, e.g. a directory spelled with a Cyrillic
 // "\u0441omponents"). A quoted path fails to open, and a silent `continue` then
 // hides every key and every hardcoded string in those files.
-const files = execFileSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard", "src"], { encoding: "utf8" })
+const files = git(
+  staged
+    ? ["ls-files", "-z", "--cached", "src"]
+    : [
+        "ls-files",
+        "-z",
+        "--cached",
+        "--others",
+        "--exclude-standard",
+        "src",
+      ],
+)
   .split("\0").filter((f) => /\.(tsx?|jsx?)$/.test(f) && !/\.(test|stories)\./.test(f))
 
 const CALL = /\bt\(\s*"([A-Za-z0-9_.\-]+)"/g
@@ -144,7 +169,7 @@ let checked = 0
 for (const file of files) {
   let raw
   try {
-    raw = fs.readFileSync(file, "utf8")
+    raw = readRepoFile(file)
   } catch (e) {
     // A skipped file means its call sites were never resolved, so a PASS here
     // would be a claim about code this run never looked at. Fail loudly instead
