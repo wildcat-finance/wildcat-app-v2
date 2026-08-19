@@ -10,6 +10,7 @@ import {
 } from "@mui/material"
 import humanizeDuration from "humanize-duration"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { useGetBorrowerProfile } from "@/app/[locale]/lender/profile/hooks/useGetBorrowerProfile"
@@ -21,6 +22,7 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { buildBorrowerProfileHref, trimAddress } from "@/utils/formatters"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
+import { isBorrowerContextPath } from "@/utils/profileRoutes"
 
 import { MarketHeaderProps } from "./interface"
 import {
@@ -39,6 +41,7 @@ export const MarketHeader = ({
 
   const theme = useTheme()
   const isMobile = useMobileResolution()
+  const pathname = usePathname()
 
   const [remainingTime, setRemainingTime] = React.useState<string>("")
 
@@ -161,7 +164,11 @@ export const MarketHeader = ({
             }}
           >
             <Link
-              href={buildBorrowerProfileHref(market.borrower, market.chainId)}
+              href={buildBorrowerProfileHref(
+                market.borrower,
+                market.chainId,
+                isBorrowerContextPath(pathname) ? "borrower" : undefined,
+              )}
               style={{ display: "flex", textDecoration: "none" }}
             >
               <Box

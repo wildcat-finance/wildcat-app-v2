@@ -12,6 +12,9 @@ jest.mock("humanize-duration", () => ({
   __esModule: true,
   default: jest.fn(() => "1 hour"),
 }))
+jest.mock("next/navigation", () => ({
+  usePathname: () => "/lender/market/0xmarket",
+}))
 
 jest.mock(
   "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals",

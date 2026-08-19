@@ -1,5 +1,5 @@
 import { Box, Button } from "@mui/material"
-import { usePathname } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { BackButton } from "@/components/BackButton"
@@ -56,12 +56,14 @@ const ProfileTabList = ({
 export const BorrowerSidebar = () => {
   const { t } = useTranslation()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const isLenderProfile = pathname.includes(ROUTES.lender.profile)
   const isEditProfile = pathname.includes(ROUTES.borrower.editProfile)
 
-  const backLink = isBorrowerContextPath(pathname)
-    ? ROUTES.borrower.root
-    : ROUTES.lender.root
+  const backLink =
+    isBorrowerContextPath(pathname) || searchParams.get("from") === "borrower"
+      ? ROUTES.borrower.root
+      : ROUTES.lender.root
 
   const resolved = resolveProfileTabs(pathname)
   const { chainId } = useSelectedNetwork()
@@ -74,7 +76,7 @@ export const BorrowerSidebar = () => {
 
   return (
     <Box sx={ContentContainer}>
-      <BackButton title={t("common.buttons.back")} link={backLink} />
+      <BackButton title={t("common.buttons.back")} link={backLink} back />
 
       {showTabs && resolved ? (
         <ProfileTabList resolved={resolved} />

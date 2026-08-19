@@ -17,6 +17,8 @@ import {
   EARLY_CLOSURE_TOOLTIP_KEY,
   HOOK_FLAG_KEYS_PRIMARY,
   HOOK_FLAG_KEYS_SECONDARY,
+  LENDER_ONBOARDING_TEXT_KEY,
+  LENDER_ONBOARDING_TOOLTIP_KEY,
   MARKET_TERM_TEXT_KEY,
   MARKET_TERM_TOOLTIP_KEY,
   MATURITY_REDUCTION_TEXT_KEY,
@@ -49,10 +51,12 @@ import {
   trimAddress,
 } from "@/utils/formatters"
 import { getMarketAprDisplayBips } from "@/utils/marketApr"
+import { getEffectiveMarketAccess } from "@/utils/marketCapabilities"
 import {
   getMarketImplementationConfig,
   getMarketImplementationType,
 } from "@/utils/marketImplementation"
+import { getLenderOnboardingType } from "@/utils/marketOnboarding"
 import { getPendingPeriodicAprChange } from "@/utils/periodicApr"
 import {
   formatCompactDuration,
@@ -341,23 +345,9 @@ export const MarketParameters = ({
   const implementationConfig = getMarketImplementationConfig(implementationType)
   const fixedTermHooksConfig =
     hooksConfig?.kind === HooksKind.FixedTerm ? hooksConfig : undefined
-  const depositAccess =
-    hooksConfig?.depositRequiresAccess === false ? "open" : "restricted"
+  const lenderOnboarding = getLenderOnboardingType(market.onboardingMode)
+  const { depositAccess, withdrawalAccess } = getEffectiveMarketAccess(market)
 
-  let withdrawalAccess: "open" | "restricted"
-  if (hooksConfig) {
-    if (
-      hooksConfig.flags.useOnQueueWithdrawal &&
-      (hooksConfig.kind === HooksKind.OpenTerm ||
-        hooksConfig.queueWithdrawalRequiresAccess)
-    ) {
-      withdrawalAccess = "restricted"
-    } else {
-      withdrawalAccess = "open"
-    }
-  } else {
-    withdrawalAccess = "restricted"
-  }
   let transferAccess: "open" | "restricted" | "disabled"
   if (hooksConfig) {
     if (hooksConfig.transfersDisabled) {
@@ -518,7 +508,7 @@ export const MarketParameters = ({
           <ParametersItem
             title={t("marketParameters.marketTokenName")}
             value={market.marketToken.name}
-            copy={getTokenUrl(market.marketToken.address)}
+            copy={market.marketToken.address}
             link={getTokenUrl(market.marketToken.address)}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
@@ -670,6 +660,14 @@ export const MarketParameters = ({
                   )}
                 </>
               )}
+              <Divider sx={{ margin: "12px 0 12px" }} />
+              <ParametersItem
+                title={t("marketParameters.lenderOnboarding.label")}
+                value={t(LENDER_ONBOARDING_TEXT_KEY[lenderOnboarding])}
+                valueTooltipText={t(
+                  LENDER_ONBOARDING_TOOLTIP_KEY[lenderOnboarding],
+                )}
+              />
               <Divider sx={{ margin: "12px 0 12px" }} />
               <ParametersItem
                 title={t("marketParameters.depositAccess.label")}

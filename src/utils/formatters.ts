@@ -183,22 +183,41 @@ export const toTokenAmountProps = (
   valueTooltip: tokenAmount?.format(tokenAmount.decimals, true),
 })
 
+export const COMPACT_TOKEN_THRESHOLD = 1e9
+
 export const formatTokenWithCommas = (
   tokenAmount: TokenAmount,
   params?: {
     withSymbol?: boolean
     fractionDigits?: number
+    compact?: boolean
   },
 ) => {
   const parsedAmount = parseFloat(tokenAmount.format(tokenAmount.decimals))
-  const parsedAmountWithComma = parsedAmount.toLocaleString("en-US", {
-    maximumFractionDigits: params?.fractionDigits || TOKEN_FORMAT_DECIMALS,
-  })
+  const useCompact =
+    params?.compact && Math.abs(parsedAmount) >= COMPACT_TOKEN_THRESHOLD
+  const parsedAmountWithComma = parsedAmount.toLocaleString(
+    "en-US",
+    useCompact
+      ? { notation: "compact", maximumFractionDigits: 2 }
+      : {
+          maximumFractionDigits:
+            params?.fractionDigits || TOKEN_FORMAT_DECIMALS,
+        },
+  )
 
   return `${parsedAmountWithComma}${
     params?.withSymbol ? ` ${tokenAmount.symbol}` : ""
   }`
 }
+
+export const formatNumberWithCommas = (
+  value: number | undefined,
+  fractionDigits: number = TOKEN_FORMAT_DECIMALS,
+) =>
+  (value ?? 0).toLocaleString("en-US", {
+    maximumFractionDigits: fractionDigits,
+  })
 
 export const formatBps = (bps: number, fixed?: number) => {
   const fixedNum = (bps / 100).toFixed(fixed || 2)
@@ -237,9 +256,14 @@ export const buildMarketHref = (
 export const buildBorrowerProfileHref = (
   borrowerAddress: string,
   chainId?: number,
+  from?: "borrower",
 ) => {
   const base = `${ROUTES.profile.borrower}/${borrowerAddress}`
-  return chainId ? `${base}?chainId=${chainId}` : base
+  const query = new URLSearchParams()
+  if (chainId) query.set("chainId", String(chainId))
+  if (from) query.set("from", from)
+  const search = query.toString()
+  return search ? `${base}?${search}` : base
 }
 
 // <---- TOKEN PARAMETERS FORMATTERS ---->

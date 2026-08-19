@@ -208,6 +208,7 @@ export const OtherMarketsTables = ({
             href={buildBorrowerProfileHref(
               params.row.borrowerAddress,
               params.row.chainId,
+              "borrower",
             )}
             style={{ display: "flex", textDecoration: "none" }}
           >
@@ -403,6 +404,7 @@ export const OtherMarketsTables = ({
               ? formatTokenWithCommas(params.value, {
                   withSymbol: false,
                   fractionDigits: 2,
+                  compact: true,
                 })
               : "0"}
           </LiveMarketDataValue>
@@ -441,6 +443,7 @@ export const OtherMarketsTables = ({
               ? formatTokenWithCommas(params.value, {
                   withSymbol: false,
                   fractionDigits: 2,
+                  compact: true,
                 })
               : "0"}
           </LiveMarketDataValue>
@@ -469,6 +472,7 @@ export const OtherMarketsTables = ({
               ? formatTokenWithCommas(params.value, {
                   withSymbol: false,
                   fractionDigits: 2,
+                  compact: true,
                 })
               : "0"}
           </LiveMarketDataValue>

@@ -1,6 +1,7 @@
 import { HooksKind } from "@wildcatfi/wildcat-sdk"
 
 import { LenderWithdrawalActionState } from "@/app/[locale]/lender/market/[address]/utils"
+import { LenderOnboardingType } from "@/utils/marketOnboarding"
 
 /**
  * Explicit i18n key lookups for values that vary at runtime.
@@ -51,6 +52,28 @@ export type TernaryFlag = "yes" | "no" | "na"
 export type PeriodicWindowStatus = "open" | "scheduled" | "closed"
 export type PeriodicWindowStartLabel = "currentWindowStart" | "nextWindowStart"
 export type TempReserveRatioViewer = "borrower" | "lender"
+
+export const LENDER_ONBOARDING_TEXT_KEY: Record<LenderOnboardingType, string> =
+  {
+    [LenderOnboardingType.SelfOnboard]:
+      "marketParameters.lenderOnboarding.selfOnboard.text",
+    [LenderOnboardingType.BorrowerAllowlist]:
+      "marketParameters.lenderOnboarding.borrowerAllowlist.text",
+    [LenderOnboardingType.Unknown]:
+      "marketParameters.lenderOnboarding.unknown.text",
+  }
+
+export const LENDER_ONBOARDING_TOOLTIP_KEY: Record<
+  LenderOnboardingType,
+  string
+> = {
+  [LenderOnboardingType.SelfOnboard]:
+    "marketParameters.lenderOnboarding.selfOnboard.tooltip",
+  [LenderOnboardingType.BorrowerAllowlist]:
+    "marketParameters.lenderOnboarding.borrowerAllowlist.tooltip",
+  [LenderOnboardingType.Unknown]:
+    "marketParameters.lenderOnboarding.unknown.tooltip",
+}
 
 export const DEPOSIT_ACCESS_TEXT_KEY: Record<AccessMode, string> = {
   open: "marketParameters.depositAccess.open.text",

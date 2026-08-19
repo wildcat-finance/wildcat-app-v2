@@ -39,6 +39,7 @@ import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { analyticsUiEnabled } from "@/config/featureFlags"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { useGetIsRegisteredBorrower } from "@/hooks/useIsRegisteredBorrower"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
@@ -70,7 +71,10 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
   const profileRoute = isBorrowerContext
     ? ROUTES.borrower.profile
     : ROUTES.lender.profile
-  const shouldShowProfileLink = isBorrowerContext || analyticsUiEnabled
+  const { data: isRegisteredBorrower } = useGetIsRegisteredBorrower()
+  const shouldShowProfileLink = isBorrowerContext
+    ? !!isRegisteredBorrower
+    : analyticsUiEnabled
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
@@ -358,7 +362,9 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                       }}
                       fullWidth
                     >
-                      {t("common.buttons.viewProfile")}
+                      {isBorrowerContext
+                        ? t("header.button.viewBorrowerProfile")
+                        : t("header.button.viewLenderProfile")}
                     </Button>
                   )}
                   <Button

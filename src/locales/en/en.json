@@ -634,6 +634,8 @@
       "connectedWith": "Connected Via",
       "disconnect": "Disconnect",
       "switchNetwork": "Switch To",
+      "viewBorrowerProfile": "View Borrower Profile",
+      "viewLenderProfile": "View Lender Profile",
       "wrongNetwork": "Wrong Network"
     },
     "connect": "Connect",
@@ -1310,6 +1312,21 @@
       }
     },
     "marketExpiry": "Loan Maturity",
+    "lenderOnboarding": {
+      "borrowerAllowlist": {
+        "text": "Borrower Operated Allowlist",
+        "tooltip": "Lenders must be approved through the borrower's configured access provider."
+      },
+      "label": "Lender Onboarding",
+      "selfOnboard": {
+        "text": "Lender Self-Onboarding",
+        "tooltip": "Lenders can onboard automatically without borrower approval. Standard sanctions screening still applies."
+      },
+      "unknown": {
+        "text": "Unknown",
+        "tooltip": "This market's access policy could not be read."
+      }
+    },
     "marketMaturityReduction": {
       "label": "Fixed Term Maturity Reduction Permitted",
       "no": {

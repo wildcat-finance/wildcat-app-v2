@@ -7,8 +7,10 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 
 import {
+  getLenderOnboardingType,
   getLenderMarketAction,
   getSubgraphMarketOnboardingMode,
+  LenderOnboardingType,
   LenderMarketAction,
 } from "./marketOnboarding"
 
@@ -45,6 +47,26 @@ describe("marketOnboarding", () => {
         ],
       } as unknown as Market),
     ).toBe(MarketOnboardingMode.SelfOnboard)
+  })
+
+  it.each([
+    {
+      label: "lender self-onboarding",
+      onboardingMode: MarketOnboardingMode.SelfOnboard,
+      expected: LenderOnboardingType.SelfOnboard,
+    },
+    {
+      label: "borrower-operated allowlist",
+      onboardingMode: MarketOnboardingMode.BorrowerApproval,
+      expected: LenderOnboardingType.BorrowerAllowlist,
+    },
+    {
+      label: "unresolved onboarding policy",
+      onboardingMode: undefined,
+      expected: LenderOnboardingType.Unknown,
+    },
+  ])("labels $label", ({ onboardingMode, expected }) => {
+    expect(getLenderOnboardingType(onboardingMode)).toBe(expected)
   })
 
   it("shows deposit whenever the lender is currently eligible", () => {
