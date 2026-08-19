@@ -9,8 +9,8 @@ import {
 import { useAccount } from "wagmi"
 
 import { QueryKeys } from "@/config/query-keys"
-import { useWrapperBalances } from "@/hooks/wrapper/useWrapperBalances"
-import { useWrapperLimits } from "@/hooks/wrapper/useWrapperLimits"
+import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useWrapperAccountState } from "@/hooks/wrapper/useWrapperAccountState"
 
 /** Decimal places shown in the amount field (matches NumberTextField). */
 export const AMOUNT_DISPLAY_DECIMALS = 5
@@ -70,7 +70,7 @@ export type WithdrawRoute = {
  * decides how much comes from the directly-held market tokens and how much has
  * to be unwrapped from the ERC-4626 wrapper first.
  *
- * All arithmetic is done on TokenAmount/BigNumber. Nothing is ever derived from
+ * All arithmetic is done on TokenAmount/bigint. Nothing is ever derived from
  * a formatted string: a chip fill carries the exact TokenAmount alongside the
  * text it puts in the field, because `toFixed`-style rounding can round UP over
  * the real balance and would either block the max chip or revert on-chain.
@@ -86,6 +86,7 @@ export const useWithdrawRouting = ({
 }) => {
   const { market } = marketAccount
   const { address } = useAccount()
+  const { publicClient } = useEthersProvider({ chainId: market.chainId })
 
   const [amountInput, setAmountInput] = useState("")
   const [mode, setMode] = useState<WithdrawRouteMode>(WithdrawRouteMode.Auto)
@@ -101,14 +102,14 @@ export const useWithdrawRouting = ({
 
   const isMaxIntent = fill !== AmountFill.None
 
-  const { data: balances } = useWrapperBalances(
+  const { data: accountState } = useWrapperAccountState(
     market.chainId,
     wrapper,
     address,
+    publicClient,
   )
-  const { data: limits } = useWrapperLimits(market.chainId, wrapper, address)
 
-  const shareBalance = balances?.shareBalance
+  const shareBalance = accountState?.balances?.shareBalance
 
   const direct = marketAccount.marketBalance
 
@@ -126,7 +127,8 @@ export const useWithdrawRouting = ({
    * `previewRedeem(shareBalance)` can sit above it and trip
    * `WithdrawMoreThanMax()`.
    */
-  const wrappedCap = hasWrapper && wrapper ? limits?.maxWithdraw : undefined
+  const wrappedCap =
+    hasWrapper && wrapper ? accountState?.limits?.maxWithdraw : undefined
 
   /**
    * Treat the wrapped position as present only when it is actually withdrawable.

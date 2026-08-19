@@ -1,11 +1,9 @@
-import { BigNumber } from "ethers"
-
 export type ResolveWithdrawalQueueRawArgs = {
-  intent: BigNumber
-  live: BigNumber
+  intent: bigint
+  live: bigint
   isMaxRequested: boolean
   keepsDirect: boolean
-  directBeforeUnwrap?: BigNumber
+  directBeforeUnwrap?: bigint
 }
 
 /**
@@ -23,16 +21,16 @@ export const resolveWithdrawalQueueRaw = ({
   isMaxRequested,
   keepsDirect,
   directBeforeUnwrap,
-}: ResolveWithdrawalQueueRawArgs): BigNumber => {
-  const clampedIntent = intent.lte(live) ? intent : live
+}: ResolveWithdrawalQueueRawArgs): bigint => {
+  const clampedIntent = intent <= live ? intent : live
   if (!isMaxRequested) return clampedIntent
   if (!keepsDirect) return live
   if (!directBeforeUnwrap) return clampedIntent
 
-  const swept = live.sub(directBeforeUnwrap)
+  const swept = live - directBeforeUnwrap
 
   // Take the larger amount. `swept` picks up anything that accrued while the
   // lender was signing; `clampedIntent` covers the one-unit rounding case. Max
   // should not leave a tiny market-token balance behind.
-  return swept.gt(clampedIntent) ? swept : clampedIntent
+  return swept > clampedIntent ? swept : clampedIntent
 }

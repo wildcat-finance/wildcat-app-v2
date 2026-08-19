@@ -30,6 +30,42 @@ export const k = <T extends readonly unknown[]>(
   return arr
 }
 
+const GET_BORROWER_WITHDRAWALS = Object.assign(
+  (
+    chainId: number,
+    kind: "initial" | "update",
+    marketAddress?: string,
+    updateQueryKeys?: unknown,
+  ) =>
+    k([
+      "borrower",
+      "GET_WITHDRAWALS",
+      chainId,
+      marketAddress,
+      kind,
+      updateQueryKeys,
+    ]),
+  {
+    PREFIX: (chainId: number, marketAddress?: string) =>
+      k(["borrower", "GET_WITHDRAWALS", chainId, marketAddress]),
+    INITIAL: (chainId: number, marketAddress?: string) =>
+      k(["borrower", "GET_WITHDRAWALS", chainId, marketAddress, "initial"]),
+    UPDATE: (
+      chainId: number,
+      marketAddress?: string,
+      updateQueryKeys?: unknown,
+    ) =>
+      k([
+        "borrower",
+        "GET_WITHDRAWALS",
+        chainId,
+        marketAddress,
+        "update",
+        updateQueryKeys,
+      ]),
+  },
+)
+
 const BORROWER_QUERY_KEYS = {
   // GET_ALL_LENDERS
   GET_ALL_LENDERS: (chainId: number) =>
@@ -111,20 +147,7 @@ const BORROWER_QUERY_KEYS = {
   GET_POLICY: (chainId: number, policyAddress?: string) =>
     k(["borrower", "GET_POLICY", chainId, policyAddress]),
   // GET_WITHDRAWALS_KEY
-  GET_WITHDRAWALS: (
-    chainId: number,
-    kind: "initial" | "update",
-    marketAddress?: string,
-    updateQueryKeys?: unknown,
-  ) =>
-    k([
-      "borrower",
-      "GET_WITHDRAWALS",
-      chainId,
-      marketAddress,
-      kind,
-      updateQueryKeys,
-    ]),
+  GET_WITHDRAWALS: GET_BORROWER_WITHDRAWALS,
   // PREVIEW_MLA_KEY
   PREVIEW_MLA: {
     FROM_FORM: (

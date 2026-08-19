@@ -2,24 +2,29 @@
 import { useCallback, useMemo, useRef, useState } from "react"
 
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
-import { BaseTransaction } from "@safe-global/safe-apps-sdk"
 import { useQueryClient } from "@tanstack/react-query"
 import {
   MarketAccount,
   MarketVersion,
+  PartialTransaction,
+  prepareTransaction,
   QueueWithdrawalStatus,
+  SafeTransactionInput,
   Signer,
   TokenAmount,
   TokenWrapper,
-  typechain,
+  toSafeTransactionInput,
+  wildcatMarketAbi,
+  wildcatMarketV2Abi,
 } from "@wildcatfi/wildcat-sdk"
-import { BigNumber } from "ethers"
+import { decodeEventLog, Hex } from "viem"
 import { useAccount } from "wagmi"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
+import { toViemTransactionRequest } from "@/utils/transactions"
 
 import { WithdrawRoute } from "./useWithdrawRouting"
 import { resolveWithdrawalQueueRaw } from "./withdrawQueue"
@@ -54,6 +59,11 @@ export type WithdrawResult = {
   txHash?: string
 }
 
+type TransactionLog = {
+  data: string
+  topics: readonly string[]
+}
+
 /**
  * A few wei of head-room for the statically-encoded Safe batch.
  *
@@ -64,7 +74,7 @@ export type WithdrawResult = {
  * interest accrual to absorb that. Queueing a hair less always succeeds; the
  * shaved dust stays in the position.
  */
-const SAFE_QUEUE_MARGIN_WEI = BigNumber.from(8)
+const SAFE_QUEUE_MARGIN_WEI = BigInt(8)
 
 const sleep = (ms: number) =>
   new Promise<void>((resolve) => {
@@ -108,7 +118,9 @@ export const useWithdrawFlow = ({
   const { address } = useAccount()
   const client = useQueryClient()
   const { targetChainId } = useCurrentNetwork()
-  const { signer } = useEthersProvider({ chainId: market.chainId })
+  const { signer, publicClient, walletClient } = useEthersProvider({
+    chainId: market.chainId,
+  })
   const { connected: safeConnected, sdk, safe } = useSafeAppsSDK()
 
   const isBatched = safeConnected
@@ -123,7 +135,8 @@ export const useWithdrawFlow = ({
   const [result, setResult] = useState<WithdrawResult>()
   /** Safe transaction proposed but not yet executed (threshold > 1). */
   const [proposed, setProposed] = useState(false)
-  const directBeforeUnwrap = useRef<BigNumber>()
+  const directBeforeUnwrap = useRef<bigint>()
+  const unwrapSubmitted = useRef(false)
 
   const legs: WithdrawLeg[] = useMemo(
     () => (snapshot ? buildLegs(snapshot, isBatched) : []),
@@ -149,7 +162,7 @@ export const useWithdrawFlow = ({
       queryKey: QueryKeys.Markets.GET_MARKET(chainId, marketAddress),
     })
     client.invalidateQueries({
-      queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
+      queryKey: QueryKeys.Lender.GET_MARKET_ACCOUNT_PREFIX(
         chainId,
         marketAddress,
         accountAddress,
@@ -173,14 +186,7 @@ export const useWithdrawFlow = ({
         queryKey: QueryKeys.Wrapper.PREVIEW(wrapper.address),
       })
       client.invalidateQueries({
-        queryKey: QueryKeys.Wrapper.GET_BALANCES(
-          chainId,
-          wrapper.address,
-          address,
-        ),
-      })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Wrapper.GET_LIMITS(
+        queryKey: QueryKeys.Wrapper.GET_ACCOUNT_STATE(
           chainId,
           wrapper.address,
           address,
@@ -230,74 +236,111 @@ export const useWithdrawFlow = ({
 
   const decodeQueued = useCallback(
     (
-      logs: { topics: string[]; data: string }[],
-    ): { queuedAmount: TokenAmount; expiry: number } | undefined => {
-      const iface = market.contract.interface
-      const topic = iface.getEventTopic("WithdrawalQueued")
-      const log = logs.find((l) => l.topics[0] === topic)
-      if (!log) return undefined
-      const parsed = iface.parseLog(log)
-      return {
-        queuedAmount: market.underlyingToken.getAmount(
-          parsed.args.normalizedAmount,
-        ),
-        expiry: BigNumber.from(parsed.args.expiry).toNumber(),
-      }
-    },
+      logs: readonly TransactionLog[],
+    ): { queuedAmount: TokenAmount; expiry: number } | undefined =>
+      logs.reduce<{ queuedAmount: TokenAmount; expiry: number } | undefined>(
+        (queued, log) => {
+          if (queued) return queued
+          try {
+            const parsed = decodeEventLog({
+              abi: wildcatMarketAbi,
+              eventName: "WithdrawalQueued",
+              data: log.data as Hex,
+              topics: log.topics as [Hex, ...Hex[]],
+            })
+            return {
+              queuedAmount: market.underlyingToken.getAmount(
+                parsed.args.normalizedAmount,
+              ),
+              expiry: Number(parsed.args.expiry),
+            }
+          } catch {
+            // Ignore unrelated logs in the transaction receipt.
+            return undefined
+          }
+        },
+        undefined,
+      ),
     [market],
   )
 
   /** Static queue amount for a Safe batch (see SAFE_QUEUE_MARGIN_WEI). */
   const staticQueueRaw = useCallback((route: WithdrawRoute) => {
     if (!route.usesWrapped) return route.amount.raw
-    const shaved = route.amount.raw.sub(SAFE_QUEUE_MARGIN_WEI)
-    return shaved.gt(0) ? shaved : route.amount.raw
+    const shaved = route.amount.raw - SAFE_QUEUE_MARGIN_WEI
+    return shaved > BigInt(0) ? shaved : route.amount.raw
   }, [])
 
   const runUnwrap = useCallback(
     async (route: WithdrawRoute) => {
-      if (!wrapper || !address) throw new Error("No wrapper")
+      if (!wrapper || !address || !signer) throw new Error("No wrapper signer")
       bindWrapperSigner()
 
-      directBeforeUnwrap.current = route.keepsDirect
-        ? await market.contract.balanceOf(address)
-        : undefined
+      if (route.keepsDirect && directBeforeUnwrap.current === undefined) {
+        directBeforeUnwrap.current = (
+          await market.marketToken.balanceOf(address)
+        ).raw
+      }
 
       if (route.isFullWrapped) {
-        const shares = wrapper.shareToken.getAmount(
-          await wrapper.shareToken.contract.balanceOf(address),
-        )
-        if (!shares.raw.isZero()) {
-          const redeemTx = await wrapper.redeem(shares, address, address)
-          setTxHash(redeemTx.hash)
-          await redeemTx.wait()
-          return
+        const shares = await wrapper.shareToken.balanceOf(address)
+        if (shares.raw.isZero()) {
+          if (unwrapSubmitted.current) return
+          throw new Error("No wrapped balance available to withdraw")
         }
+        const hash = await wrapper.redeem(shares, address, address)
+        unwrapSubmitted.current = true
+        setTxHash(hash.toString())
+        await hash.wait()
+        return
       }
 
       // Exact-out: produces exactly `fromWrapped` market tokens to self.
-      const tx = await wrapper.withdraw(route.fromWrapped, address, address)
-      setTxHash(tx.hash)
-      await tx.wait()
+      const hash = await wrapper.withdraw(route.fromWrapped, address, address)
+      unwrapSubmitted.current = true
+      setTxHash(hash.toString())
+      await hash.wait()
     },
-    [wrapper, address, market, bindWrapperSigner],
+    [wrapper, address, signer, market, bindWrapperSigner],
+  )
+
+  const submitQueueTransaction = useCallback(
+    async (transaction: PartialTransaction) => {
+      const account = walletClient?.account
+      const chain = walletClient?.chain
+      if (!account || !chain || !publicClient) {
+        throw new Error("No wallet client")
+      }
+
+      const request = toViemTransactionRequest(transaction)
+      const estimatedGas = await publicClient.estimateGas({
+        account,
+        ...request,
+      })
+      const gas = (estimatedGas * BigInt(3)) / BigInt(2)
+      const hash = await walletClient.sendTransaction({
+        account,
+        chain,
+        ...request,
+        gas,
+      })
+      setTxHash(hash)
+      const receipt = await publicClient.waitForTransactionReceipt({ hash })
+      return { hash, receipt }
+    },
+    [publicClient, walletClient],
   )
 
   const runQueue = useCallback(
     async (route: WithdrawRoute) => {
-      if (!address || !signer) throw new Error("No signer")
+      if (!address) throw new Error("No account")
       assertCanQueue()
-
-      const marketWrite = typechain.WildcatMarket__factory.connect(
-        market.address,
-        signer,
-      )
 
       // Measure against the LIVE balance: the direct part and the
       // just-unwrapped part are scaled independently, so the intended sum can
       // exceed the credited balance by a wei and revert — and a max request has
       // to pick up whatever accrued while the lender was signing.
-      const live: BigNumber = await marketWrite.balanceOf(address)
+      const live = (await market.marketToken.balanceOf(address)).raw
       const queueRaw = resolveWithdrawalQueueRaw({
         intent: route.amount.raw,
         live,
@@ -305,43 +348,38 @@ export const useWithdrawFlow = ({
         keepsDirect: route.keepsDirect,
         directBeforeUnwrap: directBeforeUnwrap.current,
       })
-      if (queueRaw.isZero()) {
+      if (queueRaw === BigInt(0)) {
         throw new Error("Nothing available to queue")
       }
 
       const useFullWithdrawal =
         market.version === MarketVersion.V2 && route.isFullMax
 
-      let tx
-      if (useFullWithdrawal) {
-        const marketV2 = typechain.WildcatMarketV2__factory.connect(
-          market.address,
-          signer,
-        )
-        const gas = await marketV2.estimateGas.queueFullWithdrawal()
-        tx = await marketV2.queueFullWithdrawal({
-          gasLimit: gas.mul(3).div(2),
-        })
-      } else {
-        // queueWithdrawal opens a new withdrawal batch / processes market
-        // state; ethers' exact estimate can under-provision it, so buffer 50%.
-        const gas = await marketWrite.estimateGas.queueWithdrawal(queueRaw)
-        tx = await marketWrite.queueWithdrawal(queueRaw, {
-          gasLimit: gas.mul(3).div(2),
-        })
-      }
+      const transaction = useFullWithdrawal
+        ? prepareTransaction({
+            to: market.address,
+            abi: wildcatMarketV2Abi,
+            functionName: "queueFullWithdrawal",
+          })
+        : prepareTransaction({
+            to: market.address,
+            abi: wildcatMarketAbi,
+            functionName: "queueWithdrawal",
+            args: [queueRaw],
+          })
 
-      setTxHash(tx.hash)
-      const receipt = await tx.wait()
+      // Queueing can open a batch and process market state. Keep develop's 50%
+      // gas headroom rather than relying on the exact simulation estimate.
+      const { hash, receipt } = await submitQueueTransaction(transaction)
       const queued = decodeQueued(receipt.logs)
       setResult({
         queuedAmount:
           queued?.queuedAmount ?? market.underlyingToken.getAmount(queueRaw),
         expiry: queued?.expiry ?? 0,
-        txHash: tx.hash,
+        txHash: hash,
       })
     },
-    [address, signer, market, assertCanQueue, decodeQueued],
+    [address, market, assertCanQueue, submitQueueTransaction, decodeQueued],
   )
 
   const runBatched = useCallback(
@@ -351,14 +389,16 @@ export const useWithdrawFlow = ({
       assertCanQueue()
       bindWrapperSigner()
 
-      const txs: BaseTransaction[] = []
+      const txs: SafeTransactionInput[] = []
 
       if (route.usesWrapped) {
         if (!wrapper) throw new Error("No wrapper")
         txs.push(
-          route.isFullWrapped && route.sharesToRedeem
-            ? wrapper.populateRedeem(route.sharesToRedeem, address, address)
-            : wrapper.populateWithdraw(route.fromWrapped, address, address),
+          toSafeTransactionInput(
+            route.isFullWrapped && route.sharesToRedeem
+              ? wrapper.populateRedeem(route.sharesToRedeem, address, address)
+              : wrapper.populateWithdraw(route.fromWrapped, address, address),
+          ),
         )
       }
 
@@ -366,23 +406,26 @@ export const useWithdrawFlow = ({
         market.version === MarketVersion.V2 && route.isFullMax
 
       if (useFullWithdrawal) {
-        // market.contract is built from the V1 ABI, which has no
-        // queueFullWithdrawal — encode from the V2 interface.
-        const v2Interface = typechain.WildcatMarketV2__factory.createInterface()
-        txs.push({
-          to: market.address,
-          data: v2Interface.encodeFunctionData("queueFullWithdrawal"),
-          value: "0",
-        })
-      } else {
-        txs.push({
-          to: market.address,
-          data: market.contract.interface.encodeFunctionData(
-            "queueWithdrawal",
-            [staticQueueRaw(route)],
+        txs.push(
+          toSafeTransactionInput(
+            prepareTransaction({
+              to: market.address,
+              abi: wildcatMarketV2Abi,
+              functionName: "queueFullWithdrawal",
+            }),
           ),
-          value: "0",
-        })
+        )
+      } else {
+        txs.push(
+          toSafeTransactionInput(
+            prepareTransaction({
+              to: market.address,
+              abi: wildcatMarketAbi,
+              functionName: "queueWithdrawal",
+              args: [staticQueueRaw(route)],
+            }),
+          ),
+        )
       }
 
       const { safeTxHash } = await sdk.txs.send({ txs })
@@ -414,9 +457,13 @@ export const useWithdrawFlow = ({
 
       setTxHash(resolvedHash)
       const receipt = await sdk.eth.getTransactionReceipt([resolvedHash])
-      const queued = receipt?.logs ? decodeQueued(receipt.logs) : undefined
+      const queued = receipt?.logs
+        ? decodeQueued(receipt.logs as TransactionLog[])
+        : undefined
       setResult({
-        queuedAmount: queued?.queuedAmount ?? route.amount,
+        queuedAmount:
+          queued?.queuedAmount ??
+          market.underlyingToken.getAmount(staticQueueRaw(route)),
         expiry: queued?.expiry ?? 0,
         txHash: resolvedHash,
       })
@@ -436,6 +483,7 @@ export const useWithdrawFlow = ({
 
   const start = useCallback((route: WithdrawRoute) => {
     directBeforeUnwrap.current = undefined
+    unwrapSubmitted.current = false
     setSnapshot(route)
     setCurrentLeg(0)
     setBusy(false)
@@ -500,6 +548,7 @@ export const useWithdrawFlow = ({
 
   const reset = useCallback(() => {
     directBeforeUnwrap.current = undefined
+    unwrapSubmitted.current = false
     setSnapshot(undefined)
     setCurrentLeg(0)
     setBusy(false)

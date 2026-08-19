@@ -1,8 +1,6 @@
-import { BigNumber } from "ethers"
-
 import { resolveWithdrawalQueueRaw } from "./withdrawQueue"
 
-const bn = (value: number | string) => BigNumber.from(value)
+const bn = (value: number | string) => BigInt(value)
 
 describe("resolveWithdrawalQueueRaw", () => {
   it("queues accrued value above the pre-unwrap direct balance for wrapped-only Max", () => {
@@ -18,11 +16,9 @@ describe("resolveWithdrawalQueueRaw", () => {
       directBeforeUnwrap,
     })
 
-    expect(queued.eq(53)).toBe(true)
-    expect(queued.gt(previewedWrappedAmount)).toBe(true)
-    expect(liveAfterUnwrapAndAccrual.sub(queued).eq(directBeforeUnwrap)).toBe(
-      true,
-    )
+    expect(queued).toBe(bn(53))
+    expect(queued > previewedWrappedAmount).toBe(true)
+    expect(liveAfterUnwrapAndAccrual - queued).toBe(directBeforeUnwrap)
   })
 
   it("uses the previewed Max as a rounding floor instead of leaving a residual", () => {
@@ -40,8 +36,8 @@ describe("resolveWithdrawalQueueRaw", () => {
       directBeforeUnwrap,
     })
 
-    expect(queued.eq(previewedWrappedAmount)).toBe(true)
-    expect(queued.gte(liveAfterUnwrap.sub(directBeforeUnwrap))).toBe(true)
+    expect(queued).toBe(previewedWrappedAmount)
+    expect(queued >= liveAfterUnwrap - directBeforeUnwrap).toBe(true)
   })
 
   it.each([
@@ -84,6 +80,6 @@ describe("resolveWithdrawalQueueRaw", () => {
           : bn(args.directBeforeUnwrap),
     })
 
-    expect(queued.eq(expected)).toBe(true)
+    expect(queued).toBe(bn(expected))
   })
 })
