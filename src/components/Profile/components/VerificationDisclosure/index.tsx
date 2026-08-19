@@ -33,10 +33,10 @@ const ACKNOWLEDGEMENT_STORAGE_KEY =
   "borrower_profile_verification_acknowledged_v1"
 
 const VERIFIED_FIELD_KEYS = [
-  "borrower.profile.view.verification.verified.legalName",
+  "common.fields.legalName",
   "borrower.profile.view.verification.verified.borrowerAddress",
-  "borrower.profile.view.verification.verified.headquarters",
-  "borrower.profile.view.verification.verified.entityLegalForm",
+  "common.fields.headquarters",
+  "common.fields.entityLegalForm",
   "borrower.profile.view.verification.verified.founded",
 ] as const
 

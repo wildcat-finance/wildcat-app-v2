@@ -96,12 +96,12 @@ export const WithdrawalRequests = ({
         }}
       >
         <Typography variant={isMobile ? "mobH3" : "title3"}>
-          {t("marketDetails.lender.requests.title")}
+          {t("marketDetails.shared.withdrawalRequests.openWithdrawals")}
         </Typography>
 
         <Box sx={TotalAccordionSummary(theme)}>
           <Typography variant={isMobile ? "mobText3" : "text2"}>
-            {t("marketDetails.lender.requests.total")}
+            {t("common.labels.total")}
           </Typography>
 
           <TextfieldChip

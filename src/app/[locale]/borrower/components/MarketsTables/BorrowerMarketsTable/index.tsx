@@ -133,7 +133,7 @@ export const BorrowerMarketsTable = ({
     },
     {
       field: "implementationType",
-      headerName: t("marketList.borrower.header.type"),
+      headerName: t("common.fields.type"),
       maxWidth: 146,
       minWidth: 120,
       flex: 1.5,
@@ -161,7 +161,7 @@ export const BorrowerMarketsTable = ({
     },
     {
       field: "term",
-      headerName: t("marketList.borrower.header.term"),
+      headerName: t("common.fields.term"),
       maxWidth: 146,
       minWidth: 130,
       flex: 2,
@@ -206,7 +206,7 @@ export const BorrowerMarketsTable = ({
     },
     {
       field: "lenderAPR",
-      headerName: t("marketList.borrower.table.header.apr"),
+      headerName: t("common.fields.lenderApr"),
       minWidth: 102,
       flex: 1,
       headerAlign: "right",
@@ -280,7 +280,7 @@ export const BorrowerMarketsTable = ({
     },
     {
       field: "borrowable",
-      headerName: t("marketList.borrower.table.header.borrowable"),
+      headerName: t("common.fields.borrowable"),
       minWidth: 106,
       flex: 1.6,
       headerAlign: "right",
@@ -423,7 +423,7 @@ export const BorrowerMarketsTable = ({
             {nameFilter === "" ? "" : nameFilter}{" "}
             {assetFilter?.length !== 0 &&
               `${assetFilter?.map((asset) => ` ${asset.name}`)}`}{" "}
-            {t("marketList.borrower.noMarketsFilterEnding")}
+            {t("marketList.shared.noMarkets.filter.ending")}
           </Typography>
         </Box>
       )}

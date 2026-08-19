@@ -242,7 +242,7 @@ export const AddSelect = ({
           color="secondary"
           sx={{ width: "100%", marginTop: "24px" }}
         >
-          {t("borrower.editLenders.modals.add.reset")}
+          {t("common.buttons.reset")}
         </Button>
       </Select>
     </FormControl>

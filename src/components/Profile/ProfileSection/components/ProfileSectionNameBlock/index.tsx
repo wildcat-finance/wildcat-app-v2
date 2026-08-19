@@ -32,23 +32,23 @@ export const ProfileSectionNameBlock = ({
 
   const links = [
     {
-      name: t("borrower.profile.view.buttons.website"),
+      name: t("common.fields.website"),
       hasLink: !!website,
       url:
         website && website.startsWith("http") ? website : `https://${website}`,
     },
     {
-      name: t("borrower.profile.view.buttons.twitter"),
+      name: t("common.fields.twitter"),
       hasLink: !!twitter,
       url: `https://x.com/${twitter}`,
     },
     {
-      name: t("borrower.profile.view.buttons.telegram"),
+      name: t("common.fields.telegram"),
       hasLink: !!telegram,
       url: `https://t.me/${telegram}`,
     },
     {
-      name: t("borrower.profile.view.buttons.linkedin"),
+      name: t("common.fields.linkedin"),
       hasLink: !!linkedin,
       url: `https://www.linkedin.com/company/${linkedin}`,
     },

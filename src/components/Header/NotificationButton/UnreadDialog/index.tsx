@@ -98,7 +98,7 @@ export const UnreadDialog = ({ open, handleClose }: UnreadDialogProps) => {
               variant="text3"
               color={value === 1 ? COLORS.black : COLORS.greySuit}
             >
-              {t("header.notifications.marketActivity")}
+              {t("notifications.sidebar.marketActivity")}
             </Typography>
           }
         />
@@ -110,7 +110,7 @@ export const UnreadDialog = ({ open, handleClose }: UnreadDialogProps) => {
               variant="text3"
               color={value === 2 ? COLORS.black : COLORS.greySuit}
             >
-              {t("header.notifications.newLenders")}
+              {t("notifications.sidebar.newLenders")}
             </Typography>
           }
         />

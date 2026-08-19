@@ -69,13 +69,13 @@ const BorrowerIdentityDisclosure = ({
 
   const items = [
     {
-      label: t("borrower.profile.view.name"),
+      label: t("common.fields.legalName"),
       value: legalName,
     },
     ...(alias
       ? [
           {
-            label: t("borrower.profile.view.alias"),
+            label: t("common.fields.alias"),
             value: alias,
           },
         ]

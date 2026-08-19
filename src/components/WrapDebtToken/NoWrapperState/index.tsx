@@ -163,7 +163,7 @@ export const NoWrapperState = ({
             size="medium"
             fullWidth={isMobile}
           >
-            {t("marketDetails.lender.wrapDebtToken.learnMore")}
+            {t("common.buttons.learnMore")}
           </Button>
         </Link>
       )}

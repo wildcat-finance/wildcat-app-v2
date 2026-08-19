@@ -118,7 +118,7 @@ export default function EditLendersListPage() {
       <Box sx={{ display: "flex", gap: "6px", marginBottom: "25px" }}>
         {step === "edit" ? (
           <Typography variant="title2">
-            {t("borrower.editLenders.editing")}
+            {t("borrower.editLenders.sidebar.editing")}
             {!isLoading && t("borrower.editLenders.for")}
           </Typography>
         ) : (

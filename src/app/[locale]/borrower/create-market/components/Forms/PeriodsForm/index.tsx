@@ -82,28 +82,28 @@ export const PeriodsForm = ({ form }: PeriodsFormProps) => {
       >
         <InputLabel label={t("borrower.createMarket.periods.grace.label")}>
           <NumberTextField
-            label={t("borrower.createMarket.periods.grace.placeholder")}
+            label={t("common.placeholders.range0to2160")}
             value={delinquencyGracePeriodWatch}
             error={Boolean(errors.delinquencyGracePeriod)}
             helperText={errors.delinquencyGracePeriod?.message}
             endAdornment={
               <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-                {t("borrower.createMarket.periods.grace.chip")}
+                {t("common.units.hours")}
               </Typography>
             }
             {...register("delinquencyGracePeriod")}
           />
         </InputLabel>
 
-        <InputLabel label={t("borrower.createMarket.periods.wdCycle.label")}>
+        <InputLabel label={t("common.fields.withdrawalCycleDuration")}>
           <NumberTextField
-            label={t("borrower.createMarket.periods.wdCycle.placeholder")}
+            label={t("common.placeholders.range0to2160")}
             value={withdrawalBatchDurationWatch}
             error={Boolean(errors.withdrawalBatchDuration)}
             helperText={errors.withdrawalBatchDuration?.message}
             endAdornment={
               <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-                {t("borrower.createMarket.periods.wdCycle.chip")}
+                {t("common.units.hours")}
               </Typography>
             }
             {...register("withdrawalBatchDuration")}

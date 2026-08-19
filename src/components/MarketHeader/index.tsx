@@ -276,7 +276,7 @@ export const MarketHeader = ({
             component="a"
             href="#requests"
           >
-            {t("marketDetails.borrower.sidebar.withdrawalRequests")}
+            {t("nav.withdrawalRequests")}
           </Button>
           {mla && !("noMLA" in mla) && (
             <Button

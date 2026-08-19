@@ -123,7 +123,7 @@ export const ConfirmLendersForm = ({
             }}
           >
             {!lendersName[params.row.address.toLowerCase()]
-              ? t("borrower.editLenders.forms.confirm.addName")
+              ? t("common.buttons.addName")
               : lendersName[params.row.address.toLowerCase()]}
           </Typography>
         </>

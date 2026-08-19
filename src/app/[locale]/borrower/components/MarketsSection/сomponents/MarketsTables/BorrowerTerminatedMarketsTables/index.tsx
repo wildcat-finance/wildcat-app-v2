@@ -200,7 +200,7 @@ export const BorrowerTerminatedMarketsTables = ({
     },
     {
       field: "implementationType",
-      headerName: t("marketList.shared.tables.header.type"),
+      headerName: t("common.fields.type"),
       minWidth: 110,
       flex: 1,
       headerAlign: "left",
@@ -229,7 +229,7 @@ export const BorrowerTerminatedMarketsTables = ({
     },
     {
       field: "term",
-      headerName: t("marketList.shared.tables.header.term"),
+      headerName: t("common.fields.term"),
       minWidth: 100,
       flex: 1,
       headerAlign: "left",
@@ -255,7 +255,7 @@ export const BorrowerTerminatedMarketsTables = ({
     },
     {
       field: "asset",
-      headerName: t("marketList.shared.tables.header.asset"),
+      headerName: t("common.fields.asset"),
       minWidth: 200,
       flex: 2,
       headerAlign: "right",

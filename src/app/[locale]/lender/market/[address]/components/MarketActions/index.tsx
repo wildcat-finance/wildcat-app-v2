@@ -415,7 +415,7 @@ export const MarketActions = ({
                 sx={{ width: "fit-content" }}
                 onClick={handleChangeSection}
               >
-                {t("marketDetails.lender.withdrawalsAlert.buttons.withdrawals")}
+                {t("common.buttons.goToWithdrawals")}
               </Button>
             )}
 

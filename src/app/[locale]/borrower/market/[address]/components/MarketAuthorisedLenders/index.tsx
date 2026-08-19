@@ -421,9 +421,7 @@ export const MarketAuthorisedLenders = ({
                 borderColor: COLORS.athensGrey,
               }}
             />
-            <Button sx={MLATableButton}>
-              {t("marketDetails.borrower.authorisedLenders.buttons.download")}
-            </Button>
+            <Button sx={MLATableButton}>{t("common.buttons.download")}</Button>
           </Box>
         ) : (
           <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
@@ -463,7 +461,7 @@ export const MarketAuthorisedLenders = ({
       {lendersRows.length === 0 && marketAccount?.isBorrower && (
         <Box display="flex" flexDirection="column">
           <Typography variant="title3" sx={{ marginBottom: "8px" }}>
-            {t("marketDetails.borrower.authorisedLenders.noLendersTitle")}
+            {t("common.states.noLenders")}
           </Typography>
           <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
             {t("marketDetails.borrower.authorisedLenders.noLendersSubtitle")}

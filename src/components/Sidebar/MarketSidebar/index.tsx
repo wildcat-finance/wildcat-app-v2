@@ -141,7 +141,7 @@ export const MarketSidebar = () => {
             <SvgIcon sx={{ marginRight: "10px" }}>
               <StatusAndDetailsIcon />
             </SvgIcon>
-            {t("marketDetails.borrower.sidebar.statusDetails")}
+            {t("nav.marketStatusDetails")}
           </Button>
           {!hideDescriptionSection && (
             <Button
@@ -207,7 +207,7 @@ export const MarketSidebar = () => {
             <SvgIcon sx={{ marginRight: "10px" }}>
               <WithdrawalAndRequestsIcon />
             </SvgIcon>
-            {t("marketDetails.borrower.sidebar.withdrawalRequests")}
+            {t("nav.withdrawalRequests")}
 
             {!!withdrawalsCount && (
               <Box

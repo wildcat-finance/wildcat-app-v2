@@ -106,7 +106,7 @@ export const BorrowerMarketSummary = ({
   ) {
     return (
       <Typography variant="text2" color={COLORS.santasGrey}>
-        {t("marketDetails.shared.description.states.noDescription")}
+        {t("common.states.noMarketDescription")}
       </Typography>
     )
   }

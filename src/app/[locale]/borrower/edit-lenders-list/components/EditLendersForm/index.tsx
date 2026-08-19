@@ -237,7 +237,7 @@ export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
             }}
           >
             <Typography variant="text3" color={COLORS.santasGrey}>
-              {t("borrower.editLenders.forms.noLenders")}
+              {t("common.states.noLenders")}
             </Typography>
           </Box>
         </Box>

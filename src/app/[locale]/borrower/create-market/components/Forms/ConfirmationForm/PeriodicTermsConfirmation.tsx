@@ -28,7 +28,7 @@ export const PeriodicTermsConfirmation = ({
   return (
     <>
       <Typography variant="text4" sx={SubtitleStyle}>
-        {t("borrower.createMarket.confirm.typeTerms")}
+        {t("common.fields.marketTerm")}
       </Typography>
 
       <Box
@@ -47,9 +47,7 @@ export const PeriodicTermsConfirmation = ({
         />
 
         <ConfirmationFormItem
-          label={t(
-            "borrower.createMarket.policy.periodic.periodDuration.label",
-          )}
+          label={t("common.fields.withdrawalPeriod")}
           value={`${formatDuration(
             Number(getValues("periodDuration")),
             unitSeconds,
@@ -57,9 +55,7 @@ export const PeriodicTermsConfirmation = ({
         />
 
         <ConfirmationFormItem
-          label={t(
-            "borrower.createMarket.policy.periodic.withdrawalWindowDuration.label",
-          )}
+          label={t("common.fields.withdrawalWindow")}
           value={`${formatDuration(
             Number(getValues("withdrawalWindowDuration")),
             unitSeconds,

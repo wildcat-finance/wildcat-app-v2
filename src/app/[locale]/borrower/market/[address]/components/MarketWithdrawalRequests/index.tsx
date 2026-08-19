@@ -144,9 +144,7 @@ export const MarketWithdrawalRequests = ({
       </Box>
 
       <Box sx={TotalAccordionSummary(theme)}>
-        <Typography variant="text2">
-          {t("marketDetails.shared.withdrawalRequests.total")}
-        </Typography>
+        <Typography variant="text2">{t("common.labels.total")}</Typography>
 
         <TextfieldChip
           text={formatTokenWithCommas(totalAmount, { withSymbol: true })}

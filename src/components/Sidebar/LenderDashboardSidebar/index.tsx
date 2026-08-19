@@ -119,7 +119,7 @@ export const LenderDashboardSidebar = () => {
 
         {showFullFunctionality && (
           <DashboardSectionAccordion
-            label={t("marketList.borrower.closed.title")}
+            label={t("marketList.borrower.terminatedTitle")}
             amount={closedMarketsAmount}
             open={marketSection === LenderMarketDashboardSections.TERMINATED}
             onClick={() =>

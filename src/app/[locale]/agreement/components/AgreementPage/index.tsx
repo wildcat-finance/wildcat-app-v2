@@ -237,7 +237,7 @@ export const AgreementPage = ({
             },
           }}
         >
-          <Trans i18nKey="agreement.page.download" />
+          <Trans i18nKey="common.buttons.download" />
         </Button>
       </Box>
     </Box>

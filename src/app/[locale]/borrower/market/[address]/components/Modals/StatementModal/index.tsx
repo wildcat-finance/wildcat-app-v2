@@ -80,7 +80,7 @@ export const StatementModal = ({ isOpen, setIsOpen }: StatementModalProps) => {
         }}
         fullWidth
       >
-        {t("marketDetails.borrower.modals.statement.download")}
+        {t("common.buttons.download")}
       </Button>
     </Dialog>
   )

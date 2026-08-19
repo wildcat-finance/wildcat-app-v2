@@ -378,7 +378,7 @@ export default function EditProfileForm({
 
       <Box sx={{ ...FieldsContainer, marginTop: "32px" }}>
         <EditProfileItem
-          title={t("borrower.profile.form.name.title")}
+          title={t("common.fields.legalName")}
           tooltip={t("borrower.profile.form.name.tooltip")}
           form={publicForm}
           field="legalName"
@@ -395,7 +395,7 @@ export default function EditProfileForm({
             helperText={
               publicErrors.legalName?.message ??
               (targetChainId === SupportedChainId.Mainnet
-                ? t("borrower.profile.form.name.helperText")
+                ? t("borrower.profile.form.contactSupportHelper")
                 : undefined)
             }
             {...registerPublic("legalName")}
@@ -403,7 +403,7 @@ export default function EditProfileForm({
         </EditProfileItem>
 
         <EditProfileItem
-          title={t("borrower.profile.form.alias.title")}
+          title={t("common.fields.alias")}
           tooltip={t("borrower.profile.form.alias.tooltip")}
           form={publicForm}
           field="alias"
@@ -420,7 +420,7 @@ export default function EditProfileForm({
             helperText={
               publicErrors.alias?.message ??
               (targetChainId === SupportedChainId.Mainnet
-                ? t("borrower.profile.form.alias.helperText")
+                ? t("borrower.profile.form.contactSupportHelper")
                 : undefined)
             }
             {...registerPublic("alias")}
@@ -450,7 +450,7 @@ export default function EditProfileForm({
         </EditProfileItem>
 
         <EditProfileItem
-          title={t("borrower.profile.form.founded.title")}
+          title={t("common.fields.founded")}
           tooltip={t("borrower.profile.form.founded.tooltip")}
           form={publicForm}
           field="founded"
@@ -487,7 +487,7 @@ export default function EditProfileForm({
         {!hideExternalLinks && (
           <>
             <EditProfileItem
-              title={t("borrower.profile.form.website.title")}
+              title={t("common.fields.website")}
               tooltip={t("borrower.profile.form.website.tooltip")}
               form={publicForm}
               field="website"
@@ -505,7 +505,7 @@ export default function EditProfileForm({
             </EditProfileItem>
 
             <EditProfileItem
-              title={t("borrower.profile.form.twitter.title")}
+              title={t("common.fields.twitter")}
               tooltip={t("borrower.profile.form.twitter.tooltip")}
               form={publicForm}
               field="twitter"
@@ -514,7 +514,7 @@ export default function EditProfileForm({
               isLoading={isLoading}
             >
               <TextField
-                placeholder={t("borrower.profile.form.twitter.placeholder")}
+                placeholder={t("common.placeholders.borrowerHandle")}
                 fullWidth
                 error={Boolean(publicErrors.twitter)}
                 helperText={publicErrors.twitter?.message}
@@ -523,7 +523,7 @@ export default function EditProfileForm({
             </EditProfileItem>
 
             <EditProfileItem
-              title={t("borrower.profile.form.telegram.title")}
+              title={t("common.fields.telegram")}
               tooltip={t("borrower.profile.form.telegram.tooltip")}
               form={publicForm}
               field="telegram"
@@ -532,7 +532,7 @@ export default function EditProfileForm({
               isLoading={isLoading}
             >
               <TextField
-                placeholder={t("borrower.profile.form.telegram.placeholder")}
+                placeholder={t("common.placeholders.borrowerHandle")}
                 fullWidth
                 error={Boolean(publicErrors.telegram)}
                 helperText={publicErrors.telegram?.message}
@@ -541,7 +541,7 @@ export default function EditProfileForm({
             </EditProfileItem>
 
             <EditProfileItem
-              title={t("borrower.profile.form.linkedin.title")}
+              title={t("common.fields.linkedin")}
               tooltip={t("borrower.profile.form.linkedin.tooltip")}
               form={publicForm}
               field="linkedin"
@@ -748,7 +748,7 @@ export default function EditProfileForm({
 
             {entityCategory === "Registered Legal Entity" && countryWatch && (
               <EditProfileItem
-                title={t("borrower.profile.form.entityKind.title")}
+                title={t("common.fields.entityLegalForm")}
                 tooltip={t("borrower.profile.form.entityKind.tooltip")}
                 form={privateForm}
                 field="entityKind"
@@ -811,7 +811,7 @@ export default function EditProfileForm({
         )}
 
         <EditProfileItem
-          title={t("borrower.profile.form.email.title")}
+          title={t("common.fields.email")}
           tooltip={t("borrower.profile.form.email.tooltip")}
           form={privateForm}
           field="email"

@@ -144,7 +144,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     },
     {
       field: "term",
-      headerName: t("borrower.profile.view.activeMarkets.term"),
+      headerName: t("common.fields.term"),
       minWidth: 100,
       flex: 1,
       headerAlign: "left",
@@ -166,7 +166,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     },
     {
       field: "asset",
-      headerName: t("borrower.profile.view.activeMarkets.asset"),
+      headerName: t("common.fields.asset"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -206,7 +206,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     },
     {
       field: "apr",
-      headerName: t("borrower.profile.view.activeMarkets.apr"),
+      headerName: t("common.fields.lenderApr"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",

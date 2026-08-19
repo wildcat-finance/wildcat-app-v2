@@ -40,7 +40,7 @@ export const revolvingMarketImplementationVariant: MarketImplementationVariant =
   {
     key: "revolving",
     aprCopy: {
-      configuredAprLabelKey: "marketParameters.utilizationAPR",
+      configuredAprLabelKey: "common.fields.utilizationApr",
       configuredAprTooltip:
         "The annual percentage rate charged on drawn capital in a revolving market. Undrawn deposited capital accrues the separate commitment APR instead.",
       protocolAprTooltip:

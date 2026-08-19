@@ -114,7 +114,7 @@ export const EditLendersTable = ({
             >
               {lendersNames[params.row.address.toLowerCase()] === "" ||
               undefined
-                ? t("borrower.editLenders.addName")
+                ? t("common.buttons.addName")
                 : lendersNames[params.row.address.toLowerCase()]}
             </Typography>
           )}
@@ -227,7 +227,7 @@ export const EditLendersTable = ({
               variant="text"
               onClick={() => handleRestoreLender(params.row.address)}
             >
-              {t("borrower.editLenders.undo")}
+              {t("common.buttons.undo")}
             </Button>
           )}
         </>
@@ -255,7 +255,7 @@ export const EditLendersTable = ({
         <Box sx={{ height: "100%", display: "flex" }}>
           <Box sx={NoLendersBox}>
             <Typography variant="text3" color={COLORS.santasGrey}>
-              {t("borrower.editLenders.noLenders")}
+              {t("common.states.noMatchingLenders")}
             </Typography>
             {/* <Button */}
             {/*  onClick={() => dispatch(resetPolicyFilters())} */}

@@ -13,11 +13,11 @@ export const getSharedGlossaryItems = (
     case CreateMarketSteps.POLICY: {
       const items = [
         {
-          title: t("borrower.createMarket.policy.policy.label"),
+          title: t("borrower.createMarket.policy.title"),
           description: t("borrower.createMarket.policy.policy.glossary"),
         },
         {
-          title: t("borrower.createMarket.policy.name.label"),
+          title: t("common.fields.policyName"),
           description: t("borrower.createMarket.policy.name.glossary"),
         },
       ]
@@ -28,21 +28,17 @@ export const getSharedGlossaryItems = (
               "borrower.createMarket.policy.periodic.firstWindowStart.label",
             ),
             description: t(
-              "borrower.createMarket.policy.periodic.firstWindowStart.glossary",
+              "marketParameters.periodicTerm.firstWindowStartTooltip",
             ),
           },
           {
-            title: t(
-              "borrower.createMarket.policy.periodic.periodDuration.label",
-            ),
+            title: t("common.fields.withdrawalPeriod"),
             description: t(
               "borrower.createMarket.policy.periodic.periodDuration.glossary",
             ),
           },
           {
-            title: t(
-              "borrower.createMarket.policy.periodic.withdrawalWindowDuration.label",
-            ),
+            title: t("common.fields.withdrawalWindow"),
             description: t(
               "borrower.createMarket.policy.periodic.withdrawalWindowDuration.glossary",
             ),
@@ -79,7 +75,7 @@ export const getSharedGlossaryItems = (
           description: t("borrower.createMarket.basic.tokenName.glossary"),
         },
         {
-          title: t("borrower.createMarket.basic.tokenSymbol.label"),
+          title: t("common.fields.marketTokenSymbol"),
           description: t("borrower.createMarket.basic.tokenSymbol.glossary"),
         },
       ]

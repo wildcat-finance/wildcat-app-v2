@@ -47,10 +47,7 @@ export const RevolvingFinancialForm = ({
         }}
       >
         <CapacityField form={form} tokenAsset={tokenAsset} />
-        <BaseAprField
-          form={form}
-          label={t("borrower.createMarket.financial.baseAPR.labelRevolving")}
-        />
+        <BaseAprField form={form} label={t("common.fields.utilizationApr")} />
         <PenaltyAprField form={form} />
         <ReserveRatioField form={form} />
         <CommitmentFeeField form={form} />

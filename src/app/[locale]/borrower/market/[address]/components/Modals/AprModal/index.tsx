@@ -433,7 +433,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                 style={{ textDecoration: "none", display: "flex" }}
               >
                 <Typography variant="text3" color={COLORS.blueRibbon}>
-                  {t("marketDetails.borrower.modals.apr.learnMore")}
+                  {t("common.buttons.learnMore")}
                 </Typography>
               </Link>
             </Box>
@@ -569,9 +569,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                     </ModalDataItem>
 
                     <ModalDataItem
-                      title={t(
-                        "marketDetails.borrower.modals.apr.reservedRatio",
-                      )}
+                      title={t("common.fields.reserveRatio")}
                       value={`${newReserveRatio ?? currentReserveRatio}%`}
                       valueColor={
                         !aprError &&

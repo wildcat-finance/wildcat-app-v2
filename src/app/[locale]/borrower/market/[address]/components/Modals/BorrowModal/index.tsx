@@ -219,7 +219,7 @@ export const BorrowModal = ({
 
             <Box sx={TxModalInfoItem} marginBottom="8px">
               <Typography variant="text3" sx={TxModalInfoTitle}>
-                {t("marketDetails.borrower.modals.borrow.availableToBorrow")}
+                {t("common.fields.availableToBorrow")}
                 {modal.approvedStep &&
                   t("marketDetails.borrower.modals.borrow.afterTransaction")}
               </Typography>

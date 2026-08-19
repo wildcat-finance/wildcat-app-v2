@@ -519,7 +519,7 @@ export const MarketParameters = ({
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <ParametersItem
-            title={t("marketParameters.marketTokenPrefix")}
+            title={t("common.fields.marketTokenSymbol")}
             value={market.marketToken.symbol}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
@@ -553,14 +553,14 @@ export const MarketParameters = ({
             <>
               <Divider sx={{ margin: "12px 0 12px" }} />
               <ParametersItem
-                title={t("marketParameters.marketImplementation.label")}
+                title={t("common.fields.type")}
                 value={implementationConfig.label}
               />
               <Divider sx={{ margin: "12px 0 12px" }} />
               {market.version === MarketVersion.V2 && market.hooksKind && (
                 <>
                   <ParametersItem
-                    title={t("marketParameters.marketTerm.label")}
+                    title={t("common.fields.term")}
                     value={t(MARKET_TERM_TEXT_KEY[market.hooksKind])}
                     valueTooltipText={t(
                       MARKET_TERM_TOOLTIP_KEY[market.hooksKind],
@@ -570,7 +570,7 @@ export const MarketParameters = ({
                 </>
               )}
               <ParametersItem
-                title={t("marketParameters.minimumDeposit.label")}
+                title={t("common.fields.minimumDeposit")}
                 // value={t(
                 // `borrowerMarketDetails.parameters.minimumDeposit.${market.hooksConfig?.minimumDeposit ? "none" : "none"}`,
                 // )}
@@ -605,7 +605,7 @@ export const MarketParameters = ({
                   />
                   <Divider sx={{ margin: "12px 0 12px" }} />
                   <ParametersItem
-                    title={t("marketParameters.periodicTerm.periodDuration")}
+                    title={t("common.fields.withdrawalPeriod")}
                     value={formatPeriodicDuration(
                       periodicHooksConfig.periodDuration,
                     )}
@@ -615,9 +615,7 @@ export const MarketParameters = ({
                   />
                   <Divider sx={{ margin: "12px 0 12px" }} />
                   <ParametersItem
-                    title={t(
-                      "marketParameters.periodicTerm.withdrawalWindowDuration",
-                    )}
+                    title={t("common.fields.withdrawalWindow")}
                     value={formatPeriodicDuration(
                       periodicHooksConfig.withdrawalWindowDuration,
                     )}
@@ -729,7 +727,7 @@ export const MarketParameters = ({
                     target="_blank"
                     style={{ color: COLORS.butteredRum, fontWeight: 600 }}
                   >
-                    {t("marketDetails.borrower.modals.apr.learnMore")}
+                    {t("common.buttons.learnMore")}
                   </Link>
                 </Typography>
               </Box>
@@ -826,7 +824,7 @@ export const MarketParameters = ({
               </>
             )}
             <ParametersItem
-              title={t("marketParameters.protocolAPR")}
+              title={t("common.fields.protocolFeeApr")}
               value={protocolAprDisplayValue}
               tooltipText={aprCopy.protocolAprTooltip}
             />
@@ -838,7 +836,7 @@ export const MarketParameters = ({
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t("marketParameters.penaltyAPR")}
+              title={t("common.fields.penaltyApr")}
               value={`${formatBps(
                 market.delinquencyFeeBips,
                 MARKET_PARAMS_DECIMALS.delinquencyFeeBips,
@@ -869,7 +867,7 @@ export const MarketParameters = ({
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t("marketParameters.withdrawalCycleDuration")}
+              title={t("common.fields.withdrawalCycleDuration")}
               value={`${formatSecsToHours(market.withdrawalBatchDuration)}`}
               tooltipText={t("common.labels.fixedPeriodDuringWhichWithdrawal")}
             />

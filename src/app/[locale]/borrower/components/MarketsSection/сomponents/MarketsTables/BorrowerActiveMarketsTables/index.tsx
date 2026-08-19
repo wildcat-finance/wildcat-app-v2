@@ -209,7 +209,7 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "implementationType",
-      headerName: t("marketList.shared.tables.header.type"),
+      headerName: t("common.fields.type"),
       minWidth: 110,
       flex: 1,
       headerAlign: "left",
@@ -238,7 +238,7 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "term",
-      headerName: t("marketList.shared.tables.header.term"),
+      headerName: t("common.fields.term"),
       minWidth: 100,
       flex: 1,
       headerAlign: "left",
@@ -298,7 +298,7 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "asset",
-      headerName: t("marketList.shared.tables.header.asset"),
+      headerName: t("common.fields.asset"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -344,7 +344,7 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "borrowable",
-      headerName: t("marketList.shared.tables.header.borrowable"),
+      headerName: t("common.fields.borrowable"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -426,7 +426,7 @@ export const BorrowerActiveMarketsTables = ({
           marketsLength={depositedMarkets.length}
           isLoading={isLoading}
           isOpen
-          noMarketsTitle={t("marketList.shared.noMarkets.active.title")}
+          noMarketsTitle={t("common.states.noActiveMarkets")}
           noMarketsSubtitle={t(
             "marketList.shared.noMarkets.active.borrowerSubtitle",
           )}
@@ -452,7 +452,7 @@ export const BorrowerActiveMarketsTables = ({
           label={t("marketList.borrower.active.nonDeposited")}
           isLoading={isLoading}
           isOpen
-          noMarketsTitle={t("marketList.shared.noMarkets.active.title")}
+          noMarketsTitle={t("common.states.noActiveMarkets")}
           noMarketsSubtitle={t(
             "marketList.shared.noMarkets.active.borrowerSubtitle",
           )}

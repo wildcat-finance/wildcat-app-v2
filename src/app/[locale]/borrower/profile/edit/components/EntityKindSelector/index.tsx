@@ -131,7 +131,7 @@ export const EntityKindSelector = ({
         renderInput={(params) => (
           <TextField
             {...params}
-            label={t("borrower.profile.form.entityKind.title")}
+            label={t("common.fields.entityLegalForm")}
             error={error}
             helperText={helperText}
           />

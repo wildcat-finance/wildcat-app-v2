@@ -75,7 +75,7 @@ export const LenderListSidebar = () => {
           sx={step === "edit" ? MenuItemButtonSelected : MenuItemButton}
           // onClick={handleClickEdit}
         >
-          {t("marketList.lender.sidebar.editingLenders")}
+          {t("borrower.editLenders.sidebar.editing")}
         </Button>
 
         <Button
@@ -84,7 +84,7 @@ export const LenderListSidebar = () => {
           sx={step === "confirm" ? MenuItemButtonSelected : MenuItemButton}
           // onClick={handleClickConfirm}
         >
-          {t("marketList.lender.sidebar.confirm")}
+          {t("common.labels.confirmation")}
         </Button>
       </Box>
     </Box>

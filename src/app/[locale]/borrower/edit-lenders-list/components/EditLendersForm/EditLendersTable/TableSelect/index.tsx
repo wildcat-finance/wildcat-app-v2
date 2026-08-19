@@ -437,7 +437,7 @@ export const TableSelect = ({
             color="secondary"
             sx={{ width: "100%", marginTop: "12px" }}
           >
-            {t("borrower.editLenders.reset")}
+            {t("common.buttons.reset")}
           </Button>
         </Select>
       </FormControl>

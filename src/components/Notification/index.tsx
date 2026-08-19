@@ -71,7 +71,7 @@ export const Notification = ({
                 <SvgIcon fontSize="small" sx={{ margin: "auto" }}>
                   <LinkIcon />
                 </SvgIcon>
-                {t("notifications.viewOnEtherscan")}
+                {t("common.links.viewOnEtherscan")}
               </Button>
             </Link>
           )}

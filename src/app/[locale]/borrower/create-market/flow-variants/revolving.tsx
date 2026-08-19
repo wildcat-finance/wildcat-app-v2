@@ -22,17 +22,17 @@ const getGlossaryItems = (
       description: t("borrower.createMarket.financial.maxCapacity.glossary"),
     },
     {
-      title: t("borrower.createMarket.financial.baseAPR.labelRevolving"),
+      title: t("common.fields.utilizationApr"),
       description: t(
         "borrower.createMarket.financial.baseAPR.glossaryRevolving",
       ),
     },
     {
-      title: t("borrower.createMarket.financial.penaltyAPR.label"),
+      title: t("common.fields.penaltyApr"),
       description: t("borrower.createMarket.financial.penaltyAPR.glossary"),
     },
     {
-      title: t("borrower.createMarket.financial.ratio.label"),
+      title: t("common.fields.reserveRatio"),
       description: t("borrower.createMarket.financial.ratio.glossary"),
     },
     {
@@ -44,11 +44,11 @@ const getGlossaryItems = (
       description: t("borrower.createMarket.periods.grace.glossary"),
     },
     {
-      title: t("borrower.createMarket.periods.wdCycle.label"),
+      title: t("common.fields.withdrawalCycleDuration"),
       description: t("borrower.createMarket.periods.wdCycle.glossary"),
     },
     {
-      title: t("borrower.createMarket.financial.minDeposit.label"),
+      title: t("common.fields.minimumDeposit"),
       description: t("borrower.createMarket.financial.minDeposit.glossary"),
     },
   ]

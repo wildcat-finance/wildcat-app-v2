@@ -45,10 +45,7 @@ export const CapacityField = ({
         endAdornment={
           <TextfieldChip
             size="regular"
-            text={
-              tokenAsset?.symbol ||
-              `${t("borrower.createMarket.financial.maxCapacity.chip")}`
-            }
+            text={tokenAsset?.symbol || `${t("common.fields.tokenSymbol")}`}
           />
         }
       />
@@ -97,7 +94,7 @@ export const PenaltyAprField = ({ form }: FinancialFieldProps) => {
   } = form
 
   return (
-    <InputLabel label={t("borrower.createMarket.financial.penaltyAPR.label")}>
+    <InputLabel label={t("common.fields.penaltyApr")}>
       <NumberTextField
         min={0}
         max={100}
@@ -126,7 +123,7 @@ export const ReserveRatioField = ({ form }: FinancialFieldProps) => {
   } = form
 
   return (
-    <InputLabel label={t("borrower.createMarket.financial.ratio.label")}>
+    <InputLabel label={t("common.fields.reserveRatio")}>
       <NumberTextField
         label={t("common.placeholders.range0to100")}
         min={0}
@@ -195,13 +192,13 @@ export const GracePeriodField = ({ form }: FinancialFieldProps) => {
     <InputLabel label={t("borrower.createMarket.periods.grace.label")}>
       <NumberTextField
         decimalScale={2}
-        label={t("borrower.createMarket.periods.grace.placeholder")}
+        label={t("common.placeholders.range0to2160")}
         value={delinquencyGracePeriod}
         error={Boolean(errors.delinquencyGracePeriod)}
         helperText={errors.delinquencyGracePeriod?.message}
         endAdornment={
           <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-            {t("borrower.createMarket.periods.grace.chip")}
+            {t("common.units.hours")}
           </Typography>
         }
         {...register("delinquencyGracePeriod")}
@@ -220,16 +217,16 @@ export const WithdrawalCycleField = ({ form }: FinancialFieldProps) => {
   const withdrawalBatchDuration = watch("withdrawalBatchDuration")
 
   return (
-    <InputLabel label={t("borrower.createMarket.periods.wdCycle.label")}>
+    <InputLabel label={t("common.fields.withdrawalCycleDuration")}>
       <NumberTextField
         decimalScale={2}
-        label={t("borrower.createMarket.periods.wdCycle.placeholder")}
+        label={t("common.placeholders.range0to2160")}
         value={withdrawalBatchDuration}
         error={Boolean(errors.withdrawalBatchDuration)}
         helperText={errors.withdrawalBatchDuration?.message}
         endAdornment={
           <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-            {t("borrower.createMarket.periods.wdCycle.chip")}
+            {t("common.units.hours")}
           </Typography>
         }
         {...register("withdrawalBatchDuration")}
@@ -251,7 +248,7 @@ export const MinimumDepositField = ({
 
   return (
     <InputLabel
-      label={t("borrower.createMarket.financial.minDeposit.label")}
+      label={t("common.fields.minimumDeposit")}
       subtitle={t("borrower.createMarket.financial.minDeposit.explainer")}
       margin="36px 0 0 0"
     >
@@ -270,10 +267,7 @@ export const MinimumDepositField = ({
         endAdornment={
           <TextfieldChip
             size="regular"
-            text={
-              tokenAsset?.symbol ||
-              `${t("borrower.createMarket.financial.minDeposit.chip")}`
-            }
+            text={tokenAsset?.symbol || `${t("common.fields.tokenSymbol")}`}
           />
         }
       />

@@ -136,7 +136,7 @@ export const PeriodicTermsSection = ({
             "borrower.createMarket.policy.periodic.firstWindowStart.label",
           )}
           tooltipText={t(
-            "borrower.createMarket.policy.periodic.firstWindowStart.glossary",
+            "marketParameters.periodicTerm.firstWindowStartTooltip",
           )}
         >
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -231,9 +231,7 @@ export const PeriodicTermsSection = ({
         </InputLabel>
 
         <InputLabel
-          label={t(
-            "borrower.createMarket.policy.periodic.periodDuration.label",
-          )}
+          label={t("common.fields.withdrawalPeriod")}
           tooltipText={t(
             "borrower.createMarket.policy.periodic.periodDuration.glossary",
           )}
@@ -265,9 +263,7 @@ export const PeriodicTermsSection = ({
         </InputLabel>
 
         <InputLabel
-          label={t(
-            "borrower.createMarket.policy.periodic.withdrawalWindowDuration.label",
-          )}
+          label={t("common.fields.withdrawalWindow")}
           tooltipText={t(
             "borrower.createMarket.policy.periodic.withdrawalWindowDuration.glossary",
           )}

@@ -41,18 +41,18 @@ const LegacyFinancialSection = ({
         />
 
         <ConfirmationFormItem
-          label={t("borrower.createMarket.financial.protocolFee.label")}
+          label={t("common.fields.protocolFeeApr")}
           /* dev: hardcoded for now, need to grab protocol fee from template */
           value={`${(getValues("annualInterestBips") * 5) / 100}%`}
         />
 
         <ConfirmationFormItem
-          label={t("borrower.createMarket.financial.penaltyAPR.label")}
+          label={t("common.fields.penaltyApr")}
           value={`${getValues("delinquencyFeeBips")}%`}
         />
 
         <ConfirmationFormItem
-          label={t("borrower.createMarket.financial.ratio.label")}
+          label={t("common.fields.reserveRatio")}
           value={`${getValues("reserveRatioBips")}%`}
         />
 
@@ -61,12 +61,12 @@ const LegacyFinancialSection = ({
           value={`${getValues("delinquencyGracePeriod")} hours`}
         />
         <ConfirmationFormItem
-          label={t("borrower.createMarket.periods.wdCycle.label")}
+          label={t("common.fields.withdrawalCycleDuration")}
           value={`${getValues("withdrawalBatchDuration")} hours`}
         />
 
         <ConfirmationFormItem
-          label={t("borrower.createMarket.financial.minDeposit.label")}
+          label={t("common.fields.minimumDeposit")}
           value={`${getValues("minimumDeposit") ?? 0} ${tokenAsset?.symbol}`}
         />
       </Box>

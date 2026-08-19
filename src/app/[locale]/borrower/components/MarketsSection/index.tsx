@@ -438,7 +438,7 @@ export const MarketsSection = () => {
           >
             <Box sx={{ display: "flex", gap: "6px" }}>
               <MarketsFilterSelect
-                placeholder={t("marketList.shared.filters.assets")}
+                placeholder={t("common.fields.asset")}
                 options={
                   tokens?.map((token) => ({
                     id: token.address,

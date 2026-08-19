@@ -53,5 +53,5 @@ export const getDisplayLenderAprBips = (market: Market): number =>
 
 export const getConfiguredAprLabelKey = (market: Market): string =>
   getMarketAprDisplayBips(market).configuredAprKind === "utilization"
-    ? "marketParameters.utilizationAPR"
+    ? "common.fields.utilizationApr"
     : "marketParameters.baseAPR"

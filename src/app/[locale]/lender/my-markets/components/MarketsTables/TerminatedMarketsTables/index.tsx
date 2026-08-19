@@ -206,7 +206,7 @@ export const TerminatedMarketsTables = ({
     },
     {
       field: "asset",
-      headerName: t("marketList.shared.tables.header.asset"),
+      headerName: t("common.fields.asset"),
       minWidth: 200,
       flex: 2,
       headerAlign: "right",

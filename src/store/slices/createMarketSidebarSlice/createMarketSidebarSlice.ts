@@ -70,7 +70,7 @@ const initialState: CreateMarketSidebarSliceType = {
     },
     {
       number: undefined,
-      title: "borrower.createMarket.confirm.title",
+      title: "common.labels.confirmation",
       disabled: true,
       valid: false,
       step: CreateMarketSteps.CONFIRM,

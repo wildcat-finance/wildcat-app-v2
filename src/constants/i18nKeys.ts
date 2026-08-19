@@ -54,7 +54,7 @@ export type TempReserveRatioViewer = "borrower" | "lender"
 
 export const DEPOSIT_ACCESS_TEXT_KEY: Record<AccessMode, string> = {
   open: "marketParameters.depositAccess.open.text",
-  restricted: "marketParameters.depositAccess.restricted.text",
+  restricted: "common.labels.restricted",
 }
 
 export const DEPOSIT_ACCESS_TOOLTIP_KEY: Record<AccessMode, string> = {
@@ -64,7 +64,7 @@ export const DEPOSIT_ACCESS_TOOLTIP_KEY: Record<AccessMode, string> = {
 
 export const WITHDRAWAL_ACCESS_TEXT_KEY: Record<AccessMode, string> = {
   open: "marketParameters.withdrawalAccess.open.text",
-  restricted: "marketParameters.withdrawalAccess.restricted.text",
+  restricted: "common.labels.restricted",
 }
 
 export const WITHDRAWAL_ACCESS_TOOLTIP_KEY: Record<AccessMode, string> = {
@@ -74,7 +74,7 @@ export const WITHDRAWAL_ACCESS_TOOLTIP_KEY: Record<AccessMode, string> = {
 
 export const TRANSFER_ACCESS_TEXT_KEY: Record<TransferAccessMode, string> = {
   open: "marketParameters.transferAccess.open.text",
-  restricted: "marketParameters.transferAccess.restricted.text",
+  restricted: "common.labels.restricted",
   disabled: "marketParameters.transferAccess.disabled.text",
 }
 
@@ -85,27 +85,27 @@ export const TRANSFER_ACCESS_TOOLTIP_KEY: Record<TransferAccessMode, string> = {
 }
 
 export const EARLY_CLOSURE_TEXT_KEY: Record<TernaryFlag, string> = {
-  yes: "marketParameters.marketEarlyClosure.yes.text",
-  no: "marketParameters.marketEarlyClosure.no.text",
-  na: "marketParameters.marketEarlyClosure.na.text",
+  yes: "common.yesNo.yes",
+  no: "common.yesNo.no",
+  na: "common.yesNo.na",
 }
 
 export const EARLY_CLOSURE_TOOLTIP_KEY: Record<TernaryFlag, string> = {
   yes: "marketParameters.marketEarlyClosure.yes.tooltip",
   no: "marketParameters.marketEarlyClosure.no.tooltip",
-  na: "marketParameters.marketEarlyClosure.na.tooltip",
+  na: "marketParameters.fixedTermOnlyTooltip",
 }
 
 export const MATURITY_REDUCTION_TEXT_KEY: Record<TernaryFlag, string> = {
-  yes: "marketParameters.marketMaturityReduction.yes.text",
-  no: "marketParameters.marketMaturityReduction.no.text",
-  na: "marketParameters.marketMaturityReduction.na.text",
+  yes: "common.yesNo.yes",
+  no: "common.yesNo.no",
+  na: "common.yesNo.na",
 }
 
 export const MATURITY_REDUCTION_TOOLTIP_KEY: Record<TernaryFlag, string> = {
   yes: "marketParameters.marketMaturityReduction.yes.tooltip",
   no: "marketParameters.marketMaturityReduction.no.tooltip",
-  na: "marketParameters.marketMaturityReduction.na.tooltip",
+  na: "marketParameters.fixedTermOnlyTooltip",
 }
 
 export const PERIODIC_WINDOW_STATUS_TEXT_KEY: Record<

@@ -71,10 +71,10 @@ export const OverallBlock = ({
   const normalizedDefaults = defaults !== undefined ? String(defaults) : "—"
 
   const profileInfo: ProfileItem[] = [
-    makeInformationItem(t("borrower.profile.view.name"), name, {
+    makeInformationItem(t("common.fields.legalName"), name, {
       verified: true,
     }),
-    makeInformationItem(t("borrower.profile.view.alias"), alias),
+    makeInformationItem(t("common.fields.alias"), alias),
     makeInformationItem(
       t("borrower.profile.view.address"),
       address ? trimAddress(address) : undefined,
@@ -84,21 +84,15 @@ export const OverallBlock = ({
         verified: true,
       },
     ),
-    makeInformationItem(
-      t("borrower.profile.view.headquarters"),
-      jurisdictionText,
-      { verified: true },
-    ),
-    makeInformationItem(
-      t("borrower.profile.view.overallInfo.entityKind"),
-      entityKindText,
-      { verified: true },
-    ),
-    makeInformationItem(
-      t("borrower.profile.view.overallInfo.founded"),
-      founded,
-      { verified: true },
-    ),
+    makeInformationItem(t("common.fields.headquarters"), jurisdictionText, {
+      verified: true,
+    }),
+    makeInformationItem(t("common.fields.entityLegalForm"), entityKindText, {
+      verified: true,
+    }),
+    makeInformationItem(t("common.fields.founded"), founded, {
+      verified: true,
+    }),
     makeInformationItem(
       t("borrower.profile.view.overallInfo.markets"),
       normalizedMarkets,

@@ -79,7 +79,7 @@ export const ConfirmModal = ({
             >
               {lendersNames[params.row.address.toLowerCase()] ===
               ("" || undefined)
-                ? t("borrower.editLenders.addName")
+                ? t("common.buttons.addName")
                 : lendersNames[params.row.address.toLowerCase()]}
             </Typography>
           )}

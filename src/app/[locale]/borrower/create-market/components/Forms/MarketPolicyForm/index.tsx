@@ -188,7 +188,7 @@ export const MarketPolicyForm = ({
           gap: "38px 10px",
         }}
       >
-        <InputLabel label={t("borrower.createMarket.policy.policy.label")}>
+        <InputLabel label={t("borrower.createMarket.policy.title")}>
           <ExtendedSelect
             control={control}
             name="policy"
@@ -198,7 +198,7 @@ export const MarketPolicyForm = ({
           />
         </InputLabel>
 
-        <InputLabel label={t("borrower.createMarket.policy.name.label")}>
+        <InputLabel label={t("common.fields.policyName")}>
           <TextField
             placeholder={t("borrower.createMarket.policy.name.placeholder")}
             error={Boolean(errors.policyName)}
@@ -229,7 +229,7 @@ export const MarketPolicyForm = ({
           />
         </InputLabel>
 
-        <InputLabel label={t("borrower.createMarket.policy.type.label")}>
+        <InputLabel label={t("common.fields.marketTerm")}>
           <ExtendedSelect
             selectSX={{
               "& .MuiSelect-icon": {

@@ -251,7 +251,7 @@ export const OtherMarketsTable = ({
     },
     {
       field: "term",
-      headerName: t("marketList.shared.tables.header.term"),
+      headerName: t("common.fields.term"),
       minWidth: 100,
       flex: 1,
       headerAlign: "left",
@@ -317,7 +317,7 @@ export const OtherMarketsTable = ({
     },
     {
       field: "asset",
-      headerName: t("marketList.shared.tables.header.asset"),
+      headerName: t("common.fields.asset"),
       minWidth: 112,
       flex: 0.5,
       headerAlign: "right",

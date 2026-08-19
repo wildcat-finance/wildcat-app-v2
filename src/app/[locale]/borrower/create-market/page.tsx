@@ -1465,8 +1465,7 @@ export default function CreateMarketPage() {
                       {t("common.states.error")}
                     </Typography>
                     <Typography variant="text3" sx={DeploySubtitle}>
-                      {deployError?.message ||
-                        t("borrower.createMarket.deploy.error.message")}
+                      {deployError?.message || t("common.errors.reachOut")}
                     </Typography>
                   </Box>
                 </Box>
@@ -1493,7 +1492,7 @@ export default function CreateMarketPage() {
                       handleDeployMarket()
                     }}
                   >
-                    {t("borrower.createMarket.deploy.error.again")}
+                    {t("common.buttons.tryAgain")}
                   </Button>
                 </Box>
               </Box>

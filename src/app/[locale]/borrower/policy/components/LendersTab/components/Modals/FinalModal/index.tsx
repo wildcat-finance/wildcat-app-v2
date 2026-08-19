@@ -130,7 +130,7 @@ export const FinalModal = ({
                   handleTryAgain()
                 }}
               >
-                {t("borrower.createMarket.deploy.error.again")}
+                {t("common.buttons.tryAgain")}
               </Button>
             </Box>
           </Box>

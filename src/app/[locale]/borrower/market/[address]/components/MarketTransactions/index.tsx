@@ -321,7 +321,7 @@ export const MarketTransactions = ({
               target="_blank"
               style={{ color: COLORS.butteredRum, fontWeight: 600 }}
             >
-              {t("marketDetails.borrower.modals.apr.learnMore")}
+              {t("common.buttons.learnMore")}
             </Link>
           </Typography>
         </Box>
@@ -350,7 +350,7 @@ export const MarketTransactions = ({
               target="_blank"
               style={{ color: COLORS.blackRock, fontWeight: 600 }}
             >
-              {t("marketDetails.borrower.modals.apr.learnMore")}
+              {t("common.buttons.learnMore")}
             </Link>
           </Typography>
         </Box>
@@ -450,7 +450,7 @@ export const MarketTransactions = ({
         </TransactionBlock>
 
         <TransactionBlock
-          title={t("marketDetails.borrower.transactions.toBorrow.title")}
+          title={t("common.fields.availableToBorrow")}
           tooltip={t("marketDetails.borrower.transactions.toBorrow.tooltip")}
           amount={formatTokenWithCommas(marketAccount.market.borrowableAssets)}
           asset={market.underlyingToken.symbol}
@@ -483,7 +483,7 @@ export const MarketTransactions = ({
               sx={{ width: "fit-content" }}
               onClick={handleClickWithdrawals}
             >
-              {t("marketDetails.borrower.transactions.ongoingWDs.button")}
+              {t("common.buttons.goToWithdrawals")}
             </Button>
           </Box>
         </>

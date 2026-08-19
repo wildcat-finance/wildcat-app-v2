@@ -504,7 +504,7 @@ export const ExploreMarketsTable = () => {
       },
       {
         field: "term",
-        headerName: t("marketList.shared.tables.header.term"),
+        headerName: t("common.fields.term"),
         minWidth: 100,
         flex: 1,
         headerAlign: "left",
@@ -563,7 +563,7 @@ export const ExploreMarketsTable = () => {
       },
       {
         field: "asset",
-        headerName: t("marketList.shared.tables.header.asset"),
+        headerName: t("common.fields.asset"),
         minWidth: 112,
         flex: 0.5,
         headerAlign: "right",
@@ -1009,7 +1009,7 @@ export const ExploreMarketsTable = () => {
           />
 
           <MarketsFilterSelect
-            placeholder={t("marketList.shared.filters.assets")}
+            placeholder={t("common.fields.asset")}
             options={
               tokens?.map((token) => ({
                 id: token.address,

@@ -133,7 +133,7 @@ export const BasicSetupForm = ({
           />
         </InputLabel>
 
-        <InputLabel label={t("borrower.createMarket.basic.tokenSymbol.label")}>
+        <InputLabel label={t("common.fields.marketTokenSymbol")}>
           <TextField
             label={t("borrower.createMarket.basic.tokenSymbol.placeholder")}
             error={Boolean(errors.symbolPrefix)}
@@ -143,8 +143,7 @@ export const BasicSetupForm = ({
                 <InputAdornment position="end">
                   <TextfieldChip
                     text={
-                      tokenAsset?.symbol ||
-                      `${t("borrower.createMarket.basic.tokenSymbol.chip")}`
+                      tokenAsset?.symbol || `${t("common.fields.tokenSymbol")}`
                     }
                   />
                 </InputAdornment>

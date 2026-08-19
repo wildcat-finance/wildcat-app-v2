@@ -120,7 +120,7 @@ export const AcceptInvitationForm = ({
             size="large"
             sx={ActionButton}
           >
-            <Trans i18nKey="agreement.page.download" />
+            <Trans i18nKey="common.buttons.download" />
           </Button>
 
           <Button

@@ -206,7 +206,7 @@ export const SharedConfirmationForm = ({
   return (
     <Box sx={{ ...FormContainer, width: "71.5%", paddingBottom: "24px" }}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("borrower.createMarket.confirm.title")}
+        {t("common.labels.confirmation")}
       </Typography>
 
       <Typography variant="text4" sx={SubtitleStyle}>
@@ -220,12 +220,12 @@ export const SharedConfirmationForm = ({
         }}
       >
         <ConfirmationFormItem
-          label={t("borrower.createMarket.policy.policy.label")}
+          label={t("borrower.createMarket.policy.title")}
           value={isNewPolicy ? "NEW POLICY" : "EXISTING POLICY"}
         />
 
         <ConfirmationFormItem
-          label={t("borrower.createMarket.policy.name.label")}
+          label={t("common.fields.policyName")}
           value={policyNameValue}
         />
         <ConfirmationFormItem
@@ -233,7 +233,7 @@ export const SharedConfirmationForm = ({
           value={implementationTypeValue || ""}
         />
         <ConfirmationFormItem
-          label={t("borrower.createMarket.policy.type.label")}
+          label={t("common.fields.marketTerm")}
           value={marketTypeValue || ""}
         />
 
@@ -266,7 +266,7 @@ export const SharedConfirmationForm = ({
         />
 
         <ConfirmationFormItem
-          label={t("borrower.createMarket.basic.tokenSymbol.label")}
+          label={t("common.fields.marketTokenSymbol")}
           value={`${getValues("symbolPrefix")}${tokenAsset?.symbol}`}
         />
       </Box>
@@ -320,7 +320,7 @@ export const SharedConfirmationForm = ({
       {isFixedTerm && (
         <>
           <Typography variant="text4" sx={SubtitleStyle}>
-            {t("borrower.createMarket.confirm.typeTerms")}
+            {t("common.fields.marketTerm")}
           </Typography>
 
           <Box
@@ -451,7 +451,7 @@ export const SharedConfirmationForm = ({
             />
 
             <ConfirmationFormItem
-              label={t("borrower.createMarket.confirm.legalInfo.email")}
+              label={t("common.fields.email")}
               value={borrowerData?.email || ""}
             />
           </Box>

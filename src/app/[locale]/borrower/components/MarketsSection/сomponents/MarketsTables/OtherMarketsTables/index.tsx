@@ -246,7 +246,7 @@ export const OtherMarketsTables = ({
     },
     {
       field: "implementationType",
-      headerName: t("marketList.shared.tables.header.type"),
+      headerName: t("common.fields.type"),
       minWidth: 110,
       flex: 1,
       headerAlign: "left",
@@ -275,7 +275,7 @@ export const OtherMarketsTables = ({
     },
     {
       field: "term",
-      headerName: t("marketList.shared.tables.header.term"),
+      headerName: t("common.fields.term"),
       minWidth: 100,
       flex: 1,
       headerAlign: "left",
@@ -335,7 +335,7 @@ export const OtherMarketsTables = ({
     },
     {
       field: "asset",
-      headerName: t("marketList.shared.tables.header.asset"),
+      headerName: t("common.fields.asset"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -381,7 +381,7 @@ export const OtherMarketsTables = ({
     },
     {
       field: "borrowable",
-      headerName: t("marketList.shared.tables.header.borrowable"),
+      headerName: t("common.fields.borrowable"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",

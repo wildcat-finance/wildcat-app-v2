@@ -96,8 +96,8 @@ export default function EditPolicyPage() {
             const { lastProvider } = credential
             if (lastProvider) {
               credentialSource = lastProvider.isPushProvider
-                ? t("borrower.editPolicy.roleProviders.manualApproval")
-                : t("borrower.editPolicy.roleProviders.defaulPullProvider")
+                ? t("marketParameters.roleProviders.manualApproval")
+                : t("marketParameters.roleProviders.defaultPullProvider")
               credentialExpiry =
                 lastProvider.timeToLive === maxTimeToLive
                   ? maxTimeToLive
@@ -114,7 +114,7 @@ export default function EditPolicyPage() {
           if (lender.isAuthorizedOnController) {
             credentialExpiry = undefined
             credentialSource = t(
-              "borrower.editPolicy.roleProviders.manualApproval",
+              "marketParameters.roleProviders.manualApproval",
             )
           } else {
             credentialExpiry = maxTimeToLive
@@ -218,7 +218,7 @@ export default function EditPolicyPage() {
       <Box sx={{ display: "flex", gap: "6px", marginBottom: "25px" }}>
         {step === "edit" ? (
           <Typography variant="title2">
-            {t("borrower.editPolicy.editing")}{" "}
+            {t("borrower.editPolicy.sidebar.editing")}{" "}
             {!isLoading && t("borrower.editPolicy.for")}
           </Typography>
         ) : (
@@ -248,7 +248,7 @@ export default function EditPolicyPage() {
             <Box sx={InputLabelContainer} marginBottom="2px">
               <Box sx={InputLabelTypo}>
                 <Typography variant="text1">
-                  {t("borrower.editPolicy.forms.policyName.title")}
+                  {t("common.fields.policyName")}
                 </Typography>
               </Box>
             </Box>
@@ -265,7 +265,7 @@ export default function EditPolicyPage() {
               <TextField
                 value={pendingPolicyName}
                 onChange={(e) => setPendingPolicyName(e.target.value)}
-                label={t("borrower.editPolicy.forms.policyName.title")}
+                label={t("common.fields.policyName")}
                 placeholder={t("borrower.createMarket.policyName.placeholder")}
               />
             )}

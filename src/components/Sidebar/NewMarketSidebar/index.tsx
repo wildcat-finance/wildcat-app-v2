@@ -50,7 +50,7 @@ export const NewMarketSidebar = () => {
 
   return (
     <Box sx={ContentContainer}>
-      <BackButton title={t("borrower.createMarket.sidebar.back")} />
+      <BackButton title={t("nav.toMarkets")} />
 
       <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
         <Button
@@ -78,7 +78,7 @@ export const NewMarketSidebar = () => {
           sx={checkButtonStyle(STEPS_NAME.confirmation)}
           disabled={disableConfirmationStepButton}
         >
-          {t("borrower.createMarket.sidebar.confirm")}
+          {t("common.labels.confirmation")}
         </Button>
       </Box>
     </Box>
