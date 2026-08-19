@@ -2,6 +2,7 @@ import { Box, Divider, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { dayjs } from "@/utils/dayjs"
+import { formatNumberWithCommas } from "@/utils/formatters"
 
 import { ConfirmationFormProps } from "./interface"
 import { DividerStyle, SubtitleStyle } from "./style"
@@ -12,7 +13,7 @@ import { SectionGrid } from "../style"
 const DURATION_DECIMAL_SCALE = 2
 
 const formatDuration = (seconds: number, unitSeconds: number) =>
-  `${Number((seconds / unitSeconds).toFixed(DURATION_DECIMAL_SCALE))}`
+  formatNumberWithCommas(seconds / unitSeconds, DURATION_DECIMAL_SCALE)
 
 const formatUtcTimestamp = (timestamp: number) =>
   timestamp ? dayjs.unix(timestamp).utc().format("DD/MM/YYYY HH:mm [UTC]") : ""
