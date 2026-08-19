@@ -32,6 +32,7 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -113,6 +114,7 @@ export const TerminatedMarketsTables = ({
 
       return {
         id: address,
+        implementationType: getMarketImplementationType(market),
         status: getMarketStatusChip(market),
         term: getMarketTypeChip(market),
         name,

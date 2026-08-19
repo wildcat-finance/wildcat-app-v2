@@ -76,6 +76,9 @@ type TestMarketAccount = MarketAccount & {
   generation: string
 }
 
+const asTestAccount = (account: MarketAccount): TestMarketAccount =>
+  account as TestMarketAccount
+
 const createIndexedAccount = (
   lender: string,
   generation: string,
@@ -203,7 +206,7 @@ describe("useLendersMarkets", () => {
     await act(async () => liveGate.resolve())
 
     await waitFor(() =>
-      expect(result.current.data[0].generation).toBe("live-1"),
+      expect(asTestAccount(result.current.data[0]).generation).toBe("live-1"),
     )
     expect(result.current.data[0]).toBe(liveAccount)
     expect(result.current.hasLiveData).toBe(true)
@@ -235,7 +238,7 @@ describe("useLendersMarkets", () => {
     })
 
     await waitFor(() =>
-      expect(result.current.data[0].generation).toBe("live-1"),
+      expect(asTestAccount(result.current.data[0]).generation).toBe("live-1"),
     )
 
     const initialQuery = queryClient.getQueryCache().find({
@@ -259,10 +262,17 @@ describe("useLendersMarkets", () => {
           query.queryKey[0].includes("update"),
       )
 
-    expect(initialQuery?.options.refetchInterval).toBe(
+    const initialQueryOptions = initialQuery?.options as
+      | { refetchInterval?: unknown }
+      | undefined
+    const liveQueryOptions = liveQuery?.options as
+      | { refetchInterval?: unknown }
+      | undefined
+
+    expect(initialQueryOptions?.refetchInterval).toBe(
       LENDER_DASHBOARD_INDEXED_REFRESH_INTERVAL,
     )
-    expect(liveQuery?.options.refetchInterval).toBe(
+    expect(liveQueryOptions?.refetchInterval).toBe(
       LENDER_DASHBOARD_LIVE_REFRESH_INTERVAL,
     )
 
@@ -277,7 +287,7 @@ describe("useLendersMarkets", () => {
       expect(refreshMarketAccountsV2LiveDataSafeMock).toHaveBeenCalledTimes(2),
     )
     await waitFor(() =>
-      expect(result.current.data[0].generation).toBe("live-2"),
+      expect(asTestAccount(result.current.data[0]).generation).toBe("live-2"),
     )
 
     const secondLiveAccount =
@@ -326,7 +336,7 @@ describe("useLendersMarkets", () => {
     })
 
     await waitFor(() =>
-      expect(result.current.data[0].generation).toBe("live-1"),
+      expect(asTestAccount(result.current.data[0]).generation).toBe("live-1"),
     )
 
     await act(async () => {
@@ -334,7 +344,7 @@ describe("useLendersMarkets", () => {
     })
 
     await waitFor(() => expect(result.current.isErrorUpdate).toBe(true))
-    expect(result.current.data[0].generation).toBe("live-1")
+    expect(asTestAccount(result.current.data[0]).generation).toBe("live-1")
     expect(result.current.hasLiveData).toBe(true)
   })
 

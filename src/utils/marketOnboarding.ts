@@ -1,10 +1,30 @@
-import { DepositStatus, MarketOnboardingMode } from "@wildcatfi/wildcat-sdk"
+import {
+  DepositStatus,
+  MarketOnboardingMode,
+  MarketVersion,
+} from "@wildcatfi/wildcat-sdk"
+
+export { MarketOnboardingMode }
+
+export type MarketOnboardingByAddress = Record<string, MarketOnboardingMode>
 
 export enum LenderMarketAction {
   Deposit = "deposit",
   RequestAccess = "request-access",
   DepositUnavailable = "deposit-unavailable",
   Unavailable = "unavailable",
+}
+
+export const getKnownMarketOnboardingMode = (
+  version: MarketVersion,
+  marketAddress: string,
+  onboardingByMarket: MarketOnboardingByAddress,
+): MarketOnboardingMode | undefined => {
+  if (version === MarketVersion.V1) {
+    return MarketOnboardingMode.BorrowerApproval
+  }
+
+  return onboardingByMarket[marketAddress.toLowerCase()]
 }
 
 /**

@@ -70,6 +70,7 @@ import {
   LenderMarketAction,
   MarketOnboardingMode,
 } from "@/utils/marketOnboarding"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
 import {
   compareByHighestYield,
   compareByShortestCycle,
@@ -160,6 +161,7 @@ export const DataGridSx = {
 
 export type LenderOtherMarketsTableModel = {
   id: string
+  implementationType: ReturnType<typeof getMarketImplementationType>
   chainId: number
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
@@ -384,6 +386,7 @@ export const ExploreMarketsTable = () => {
 
         return {
           id: address,
+          implementationType: getMarketImplementationType(market),
           status: getMarketStatusChip(market),
           term: getMarketTypeChip(market),
           name,
@@ -586,10 +589,10 @@ export const ExploreMarketsTable = () => {
           >,
         ) => {
           const { capacityLeft } = params.row
-          const debtRaw = params.value ? params.value.raw.toBigInt() : BigInt(0)
+          const debtRaw = params.value ? params.value.raw : BigInt(0)
           // capacityLeft can go negative when a borrower shrinks capacity below
           // the current supply, so clamp the fill to 0-100%
-          const totalRaw = debtRaw + capacityLeft.raw.toBigInt()
+          const totalRaw = debtRaw + capacityLeft.raw
           const debtPct =
             totalRaw > BigInt(0)
               ? Math.min(

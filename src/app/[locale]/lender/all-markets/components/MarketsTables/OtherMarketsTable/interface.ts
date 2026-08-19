@@ -10,11 +10,13 @@ import {
   MarketOnboardingByAddress,
   MarketOnboardingMode,
 } from "@/utils/marketOnboarding"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 export type OtherMarketsTableModel = {
   id: string
+  implementationType: ReturnType<typeof getMarketImplementationType>
   chainId: number
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>

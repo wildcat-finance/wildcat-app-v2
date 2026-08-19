@@ -37,11 +37,23 @@ export type RecentDepositsData = Record<string, MarketDepositStats>
 export type RecentDepositsBuckets = {
   last7d: RecentDepositsData
   broad: RecentDepositsData
+  latestDepositTimestampByMarket: Record<string, number>
   /** Per-market deposits minus withdrawal requests over each activity window
    *  (underlying asset units; negative when outflows dominate). */
   netInflow7d: Record<string, bigint>
   netInflow30d: Record<string, bigint>
   netInflow90d: Record<string, bigint>
+}
+
+const getLatestDepositTimestamps = (
+  deposits: RecentDepositNode[],
+): Record<string, number> => {
+  const result: Record<string, number> = {}
+  deposits.forEach((deposit) => {
+    const marketId = deposit.market.id.toLowerCase()
+    result[marketId] = Math.max(result[marketId] ?? 0, deposit.blockTimestamp)
+  })
+  return result
 }
 
 const fetchAllPages = async <T>(
@@ -166,6 +178,8 @@ export const useRecentDeposits = () => {
       return {
         last7d,
         broad: aggregate(broadResponse.deposits),
+        latestDepositTimestampByMarket:
+          getLatestDepositTimestamps(recentDeposits),
         netInflow7d: aggregateNetInflow(
           recentDeposits,
           recentWithdrawals,
@@ -190,6 +204,7 @@ export const useRecentDeposits = () => {
     () => ({
       last7d: {},
       broad: {},
+      latestDepositTimestampByMarket: {},
       netInflow7d: {},
       netInflow30d: {},
       netInflow90d: {},

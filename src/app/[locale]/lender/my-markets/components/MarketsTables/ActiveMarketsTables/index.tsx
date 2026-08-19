@@ -42,6 +42,7 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -71,6 +72,7 @@ export const ActiveMarketsTables = ({
   marketAccounts,
   borrowers,
   isLoading,
+  liveDataStatus,
   filters,
 }: ActiveMarketsTableProps) => {
   const isMobile = useMobileResolution()
@@ -120,6 +122,7 @@ export const ActiveMarketsTables = ({
 
       return {
         id: address,
+        implementationType: getMarketImplementationType(market),
         status: getMarketStatusChip(market),
         term: getMarketTypeChip(market),
         name,
@@ -342,12 +345,17 @@ export const ActiveMarketsTables = ({
     return (
       <>
         {scrollTargetId === "deposited" && (
-          <MobileMarketList markets={depositedMarkets} isLoading={isLoading} />
+          <MobileMarketList
+            markets={depositedMarkets}
+            isLoading={isLoading}
+            liveDataStatus={liveDataStatus}
+          />
         )}
         {scrollTargetId === "non-deposited" && (
           <MobileMarketList
             markets={nonDepositedMarkets}
             isLoading={isLoading}
+            liveDataStatus={liveDataStatus}
           />
         )}
       </>

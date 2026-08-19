@@ -48,6 +48,7 @@ import {
   LenderMarketAction,
   MarketOnboardingMode,
 } from "@/utils/marketOnboarding"
+import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -137,6 +138,7 @@ export const OtherMarketsTable = ({
 
       return {
         id: address,
+        implementationType: getMarketImplementationType(market),
         status: marketStatus,
         term: marketType,
         name,

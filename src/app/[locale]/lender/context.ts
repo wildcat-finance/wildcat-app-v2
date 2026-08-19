@@ -7,6 +7,7 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { LenderMarketsOnboardingStatus } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { MarketOnboardingByAddress } from "@/utils/marketOnboarding"
+import { MarketLiveDataStatus } from "@/utils/marketLiveData"
 
 export type LenderMarketsContextType = {
   marketAccounts: MarketAccount[]
@@ -14,6 +15,7 @@ export type LenderMarketsContextType = {
   isLoadingUpdate: boolean
   onboardingByMarket: MarketOnboardingByAddress
   onboardingStatus: LenderMarketsOnboardingStatus
+  liveDataStatus: MarketLiveDataStatus
   borrowers: BorrowerWithName[] | undefined
 }
 
@@ -23,6 +25,7 @@ const defaultContext: LenderMarketsContextType = {
   isLoadingUpdate: false,
   onboardingByMarket: {},
   onboardingStatus: "loading",
+  liveDataStatus: "loading",
   borrowers: undefined,
 }
 

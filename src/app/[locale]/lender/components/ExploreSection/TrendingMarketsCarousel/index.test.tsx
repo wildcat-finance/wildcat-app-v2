@@ -59,22 +59,21 @@ jest.mock("./TrendingMarketsCard", () => ({
 const emptyActivity = {
   last7d: {},
   broad: {},
+  latestDepositTimestampByMarket: {},
   netInflow7d: {},
   netInflow30d: {},
   netInflow90d: {},
 }
 
 const amount = (value: bigint) => ({
-  raw: { toBigInt: () => value },
+  raw: value,
   gt: (other: number) => value > BigInt(other),
 })
 
 const makeMarketAccount = ({
   totalSupply = BigInt(100),
-  latestDepositTimestamp,
 }: {
   totalSupply?: bigint
-  latestDepositTimestamp?: number
 } = {}): MarketAccount =>
   ({
     market: {
@@ -82,7 +81,6 @@ const makeMarketAccount = ({
       name: "Test Market",
       borrower: "0x0000000000000000000000000000000000000002",
       chainId: SupportedChainId.Mainnet,
-      latestDepositTimestamp,
       deployedEvent: { blockTimestamp: 1_700_000_000 },
       underlyingToken: {
         address: "0x0000000000000000000000000000000000000003",
@@ -99,6 +97,15 @@ const makeMarketAccount = ({
       withdrawalBatchDuration: 3_600,
     },
   }) as unknown as MarketAccount
+
+const lenderContextDefaults = {
+  borrowers: [],
+  isLoadingInitial: false,
+  isLoadingUpdate: false,
+  onboardingByMarket: {},
+  onboardingStatus: "ready" as const,
+  liveDataStatus: "ready" as const,
+}
 
 describe("TrendingMarketsCarousel", () => {
   beforeEach(() => {
@@ -123,10 +130,9 @@ describe("TrendingMarketsCarousel", () => {
 
   it("keeps all five slots when activity data is unavailable", () => {
     jest.mocked(useLenderMarketsContext).mockReturnValue({
+      ...lenderContextDefaults,
       marketAccounts: [makeMarketAccount()],
-      borrowers: [],
-      isLoadingInitial: false,
-    } as ReturnType<typeof useLenderMarketsContext>)
+    })
     jest.mocked(useRecentDeposits).mockReturnValue({
       data: emptyActivity,
       isLoading: false,
@@ -151,10 +157,9 @@ describe("TrendingMarketsCarousel", () => {
 
   it("keeps all five slots when mainnet has no activity in 30 days", () => {
     jest.mocked(useLenderMarketsContext).mockReturnValue({
-      marketAccounts: [makeMarketAccount({ latestDepositTimestamp: 1 })],
-      borrowers: [],
-      isLoadingInitial: false,
-    } as ReturnType<typeof useLenderMarketsContext>)
+      ...lenderContextDefaults,
+      marketAccounts: [makeMarketAccount()],
+    })
     jest.mocked(useRecentDeposits).mockReturnValue({
       data: emptyActivity,
       isLoading: false,
@@ -168,10 +173,9 @@ describe("TrendingMarketsCarousel", () => {
 
   it("keeps the Peak APR slot when every market is unfunded", () => {
     jest.mocked(useLenderMarketsContext).mockReturnValue({
+      ...lenderContextDefaults,
       marketAccounts: [makeMarketAccount({ totalSupply: BigInt(0) })],
-      borrowers: [],
-      isLoadingInitial: false,
-    } as ReturnType<typeof useLenderMarketsContext>)
+    })
     jest.mocked(useRecentDeposits).mockReturnValue({
       data: emptyActivity,
       isLoading: false,
@@ -187,10 +191,9 @@ describe("TrendingMarketsCarousel", () => {
   it("keeps all five slots when only non-healthy explore markets remain", () => {
     jest.mocked(isMarketHealthy).mockReturnValue(false)
     jest.mocked(useLenderMarketsContext).mockReturnValue({
+      ...lenderContextDefaults,
       marketAccounts: [makeMarketAccount()],
-      borrowers: [],
-      isLoadingInitial: false,
-    } as ReturnType<typeof useLenderMarketsContext>)
+    })
     jest.mocked(useRecentDeposits).mockReturnValue({
       data: emptyActivity,
       isLoading: false,

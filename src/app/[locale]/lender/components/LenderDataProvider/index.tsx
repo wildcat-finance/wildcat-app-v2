@@ -15,6 +15,7 @@ import {
   getKnownMarketOnboardingMode,
   MarketOnboardingMode,
 } from "@/utils/marketOnboarding"
+import { getMarketLiveDataStatus } from "@/utils/marketLiveData"
 
 export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
   const dispatch = useAppDispatch()
@@ -26,7 +27,14 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
     isLoadingUpdate,
     onboardingByMarket,
     onboardingStatus,
+    hasLiveData,
+    isErrorUpdate,
   } = useLendersMarkets()
+
+  const liveDataStatus = getMarketLiveDataStatus({
+    hasLiveData,
+    hasError: isErrorUpdate,
+  })
 
   const { data: borrowers } = useBorrowerNames()
 
@@ -191,6 +199,7 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
       isLoadingUpdate,
       onboardingByMarket,
       onboardingStatus,
+      liveDataStatus,
       borrowers,
     }),
     [
@@ -199,6 +208,7 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
       isLoadingUpdate,
       onboardingByMarket,
       onboardingStatus,
+      liveDataStatus,
       borrowers,
     ],
   )

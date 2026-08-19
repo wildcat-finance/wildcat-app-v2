@@ -110,8 +110,8 @@ const BIPS = BigInt(10_000)
 // age between polls. Project supply linearly from that block so a market that
 // crosses capacity between refreshes can't win Peak APR.
 const isBelowProjectedCapacity = (market: Market): boolean => {
-  const capacity = market.maxTotalSupply.raw.toBigInt()
-  const supply = market.totalSupply.raw.toBigInt()
+  const capacity = market.maxTotalSupply.raw
+  const supply = market.totalSupply.raw
   const elapsed = BigInt(
     Math.max(
       0,
@@ -399,6 +399,7 @@ export const TrendingMarketsCarousel = () => {
       rankableMarkets,
       chainId,
       Math.floor(Date.now() / 1000),
+      recentDeposits.latestDepositTimestampByMarket,
     )
 
     const newestWinner =
@@ -428,7 +429,7 @@ export const TrendingMarketsCarousel = () => {
     ): number | undefined => {
       const net = netInflows[account.market.address.toLowerCase()]
       if (net === undefined || net <= ZERO) return undefined
-      const startDebt = account.market.totalSupply.raw.toBigInt() - net
+      const startDebt = account.market.totalSupply.raw - net
       if (startDebt <= ZERO) return undefined
       const { decimals } = account.market.underlyingToken
       return toHuman(net, decimals) / toHuman(startDebt, decimals)
@@ -488,7 +489,7 @@ export const TrendingMarketsCarousel = () => {
     // Prefer funded markets so an unused market cannot win while a funded
     // alternative exists. Fall back to the catalogue to preserve the slot.
     const fundedMarkets = eligible.filter(
-      (account) => account.market.totalSupply.raw.toBigInt() > ZERO,
+      (account) => account.market.totalSupply.raw > ZERO,
     )
     const aprWinner = [
       ...(fundedMarkets.length > 0 ? fundedMarkets : eligible),
@@ -496,12 +497,12 @@ export const TrendingMarketsCarousel = () => {
 
     const tvlWinner =
       pickMax(eligible, (account) => {
-        const big = account.market.totalSupply.raw.toBigInt()
+        const big = account.market.totalSupply.raw
         return marketUsdScore(account, big)
       }) ?? eligible[0]
 
     const tvlStat = formatTokenCompact(
-      tvlWinner.market.totalSupply.raw.toBigInt(),
+      tvlWinner.market.totalSupply.raw,
       tvlWinner.market.underlyingToken.decimals,
     )
 
@@ -591,8 +592,8 @@ export const TrendingMarketsCarousel = () => {
       : trimAddress(market.borrower)
 
     const { decimals } = market.underlyingToken
-    const suppliedRaw = market.totalSupply.raw.toBigInt()
-    const capacityRaw = market.maxTotalSupply.raw.toBigInt()
+    const suppliedRaw = market.totalSupply.raw
+    const capacityRaw = market.maxTotalSupply.raw
     const suppliedPct =
       capacityRaw > ZERO
         ? Number((suppliedRaw * BigInt(10000)) / capacityRaw) / 100

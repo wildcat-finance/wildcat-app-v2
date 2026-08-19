@@ -1,3 +1,5 @@
+import { useMemo } from "react"
+
 import { useQuery } from "@tanstack/react-query"
 import {
   SignerOrProvider,
@@ -20,6 +22,7 @@ import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TOKENS_ADDRESSES } from "@/utils/constants"
 import { isNotExcludedMarket } from "@/utils/filters"
 import { refreshMarketAccountsV2LiveDataSafe } from "@/utils/marketV2Reads"
+import { MarketOnboardingByAddress } from "@/utils/marketOnboarding"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export const LENDER_DASHBOARD_INDEXED_REFRESH_INTERVAL = 60_000
@@ -61,8 +64,12 @@ function getChunks<T extends Market | MarketAccount>(
 
 type LenderStatusUpdate = Parameters<MarketAccount["updateWith"]>[0]
 
+export type LenderMarketsOnboardingStatus = "loading" | "ready" | "error"
+
 type UseLendersMarketsResult = TwoStepQueryHookResult<MarketAccount[]> & {
   hasLiveData: boolean
+  onboardingByMarket: MarketOnboardingByAddress
+  onboardingStatus: LenderMarketsOnboardingStatus
 }
 
 function zeroLenderBalances(lenderStatus: LenderStatusUpdate) {
@@ -144,6 +151,15 @@ export function useLendersMarkets(): UseLendersMarketsResult {
   })
 
   const accounts = data ?? []
+  const onboardingByMarket = useMemo(() => {
+    const result: MarketOnboardingByAddress = {}
+    accounts.forEach(({ market }) => {
+      if (market.onboardingMode) {
+        result[market.address.toLowerCase()] = market.onboardingMode
+      }
+    })
+    return result
+  }, [accounts, indexedDataUpdatedAt])
 
   async function getLenderUpdates() {
     logger.debug(`Getting lender updates...`)
@@ -223,6 +239,8 @@ export function useLendersMarkets(): UseLendersMarketsResult {
   return {
     data: updatedLenders ?? accounts,
     hasLiveData: updatedLenders !== undefined,
+    onboardingByMarket,
+    onboardingStatus: isErrorInitial ? "error" : data ? "ready" : "loading",
     isLoadingInitial,
     isErrorInitial,
     errorInitial: errorInitial as Error | null,

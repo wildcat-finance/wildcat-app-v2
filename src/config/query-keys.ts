@@ -358,6 +358,8 @@ const LENDER_QUERY_KEYS = {
       marketAddress,
       lenderAddress,
     ]),
+  GET_RECENT_DEPOSITS: (chainId: number) =>
+    k(["lender", "GET_RECENT_DEPOSITS", chainId]),
 } as const
 
 const WRAPPER_QUERY_KEYS = {
