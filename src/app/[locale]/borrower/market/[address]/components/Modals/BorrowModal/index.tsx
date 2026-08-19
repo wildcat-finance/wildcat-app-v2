@@ -196,7 +196,7 @@ export const BorrowModal = ({
       >
         {showForm && (
           <TxModalHeader
-            title="Borrow"
+            title={t("marketDetails.borrower.modals.borrow.borrow")}
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }

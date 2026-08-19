@@ -149,7 +149,7 @@ export const DateRange = ({ dates, setDates }: DateRangeProps) => {
             </Typography>
             <TextField
               sx={DateCalendarTextField}
-              placeholder="01/02/1980"
+              placeholder={t("common.placeholders.dateExample")}
               value={starting}
               onChange={(evt) => {
                 onInputChange(evt, "starting")
@@ -186,7 +186,7 @@ export const DateRange = ({ dates, setDates }: DateRangeProps) => {
             </Typography>
             <TextField
               sx={DateCalendarTextField}
-              placeholder="01/02/1980"
+              placeholder={t("common.placeholders.dateExample")}
               value={ending}
               onChange={(evt) => {
                 onInputChange(evt, "ending")

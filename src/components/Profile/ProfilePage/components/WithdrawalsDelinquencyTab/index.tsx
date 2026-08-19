@@ -9,6 +9,7 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import {
   BorrowerWithdrawalBatchSummary,
@@ -335,6 +336,8 @@ export const WithdrawalsDelinquencyTab = ({
   isAnalyticsLoading,
   analyticsAvailable,
 }: WithdrawalsDelinquencyTabProps) => {
+  const { t } = useTranslation()
+
   const isMobile = useMobileResolution()
   const [delinquencySort, setDelinquencySort] =
     React.useState<DelinquencySort>("hours")
@@ -488,8 +491,8 @@ export const WithdrawalsDelinquencyTab = ({
 
     return (
       <AnalyticsChartCard
-        title="Delinquent hours by market"
-        description="Markets ranked by total time spent delinquent."
+        title={t("profile.borrower.delinquentHoursMarket")}
+        description={t("profile.borrower.marketsRankedTotalTimeSpent")}
         actions={
           <ChartToggleGroup
             value={delinquencySort}
@@ -571,8 +574,10 @@ export const WithdrawalsDelinquencyTab = ({
           <EmptyPanel message="No expired withdrawal batches for this borrower." />
         ) : (
           <AnalyticsChartCard
-            title="Batch outcomes"
-            description="Expired withdrawal batches split by paid, late-paid, and unpaid value."
+            title={t("profile.borrower.batchOutcomes")}
+            description={t(
+              "profile.borrower.expiredWithdrawalBatchesSplitPaid",
+            )}
             actions={
               <Box
                 sx={{
@@ -656,7 +661,7 @@ export const WithdrawalsDelinquencyTab = ({
             }}
           >
             <Typography variant="text2Highlighted">
-              Aggregate batch stats
+              {t("profile.borrower.aggregateBatchStats")}
             </Typography>
             <Box
               sx={{
@@ -698,7 +703,9 @@ export const WithdrawalsDelinquencyTab = ({
               padding: "20px",
             }}
           >
-            <Typography variant="text2Highlighted">Current queue</Typography>
+            <Typography variant="text2Highlighted">
+              {t("profile.borrower.currentQueue")}
+            </Typography>
             <Box
               sx={{
                 display: "flex",
@@ -746,8 +753,8 @@ export const WithdrawalsDelinquencyTab = ({
       }}
     >
       <AnalyticsSectionCard
-        title="Delinquency track record"
-        subtitle="How often markets fell delinquent and how long they took to recover."
+        title={t("profile.borrower.delinquencyTrackRecord")}
+        subtitle={t("profile.borrower.howOftenMarketsFellDelinquent")}
       >
         <LenderAnalyticsSummary
           isLoading={isAnalyticsLoading || delinquencyQuery.isLoading}
@@ -774,8 +781,8 @@ export const WithdrawalsDelinquencyTab = ({
       </AnalyticsSectionCard>
 
       <AnalyticsSectionCard
-        title="Withdrawal processing"
-        subtitle="Expired batch outcomes and current withdrawal queue."
+        title={t("profile.borrower.withdrawalProcessing")}
+        subtitle={t("profile.borrower.expiredBatchOutcomesCurrentWithdrawal")}
       >
         {renderBatches()}
       </AnalyticsSectionCard>

@@ -126,7 +126,7 @@ export const MobileConnectWallet = ({
           underline="always"
           color="inherit"
         >
-          Wildcat Privacy Policy
+          {t("auth.wildcatPrivacyPolicy")}
         </MuiLink>
         .
       </Typography>

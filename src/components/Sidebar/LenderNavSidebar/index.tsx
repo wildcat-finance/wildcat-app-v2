@@ -98,7 +98,7 @@ export const LenderNavSidebar = () => {
           <SvgIcon sx={{ marginRight: "10px" }}>
             <ExploreIcon />
           </SvgIcon>
-          <Typography variant="text2">Explore</Typography>
+          <Typography variant="text2">{t("nav.explore")}</Typography>
         </Box>
       </Box>
 
@@ -115,7 +115,7 @@ export const LenderNavSidebar = () => {
               <MyMarketsIcon />
             </SvgIcon>
             <Typography variant="text2" sx={{ marginRight: "6px" }}>
-              My Markets
+              {t("common.labels.myMarkets")}
             </Typography>
             <Typography variant="text2" color={COLORS.santasGrey}>
               {myMarketsCount !== 0 ? activeMarketsAmount : null}
@@ -134,7 +134,7 @@ export const LenderNavSidebar = () => {
               }}
             >
               <DashboardSectionAccordion
-                label="Active Markets"
+                label={t("common.fields.activeMarkets")}
                 amount={activeMarketsAmount}
                 open={marketSection === LenderMarketDashboardSections.ACTIVE}
                 onClick={() =>
@@ -156,7 +156,7 @@ export const LenderNavSidebar = () => {
               </DashboardSectionAccordion>
 
               <DashboardSectionAccordion
-                label="Terminated Markets"
+                label={t("common.fields.terminatedMarkets")}
                 amount={closedMarketsAmount}
                 open={
                   marketSection === LenderMarketDashboardSections.TERMINATED
@@ -195,7 +195,7 @@ export const LenderNavSidebar = () => {
             <AllMarketsIcon />
           </SvgIcon>
           <Typography variant="text2" sx={{ marginRight: "6px" }}>
-            All Markets
+            {t("common.fields.allMarkets")}
           </Typography>
           <Typography variant="text2" color={COLORS.santasGrey}>
             {allMarketsCount !== 0 ? allMarketsCount : null}

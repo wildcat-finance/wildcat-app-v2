@@ -481,7 +481,7 @@ export default function LenderMarketDetails({
           variant="text3"
           color={COLORS.santasGrey}
         >
-          Loading market details…
+          {t("common.labels.loadingMarketDetails")}
         </Typography>
       </Box>
     )
@@ -495,7 +495,7 @@ export default function LenderMarketDetails({
           variant="text3"
           color={COLORS.santasGrey}
         >
-          Unable to load market details.
+          {t("common.labels.unableLoadMarketDetails")}
         </Typography>
       </Box>
     )
@@ -803,9 +803,11 @@ export default function LenderMarketDetails({
 
           {showConnectWalletBanner && (
             <MobileLenderBanner
-              title="Connect Your Wallet"
-              subtitle="Connect a wallet to deposit into this market, view your position, and manage withdrawals."
-              buttonText="Connect Wallet"
+              title={t("marketDetails.lender.connectWallet")}
+              subtitle={t(
+                "marketDetails.lender.connectWalletDepositIntoMarket",
+              )}
+              buttonText={t("common.labels.connectWallet")}
               onButtonClick={() => setIsConnectDialogOpen(true)}
             />
           )}
@@ -830,9 +832,11 @@ export default function LenderMarketDetails({
 
           {showLenderRequestBanner && (
             <MobileLenderBanner
-              title="Lend through Wildcat"
-              subtitle="Interested in lending through Wildcat? Connect with this borrower to request access."
-              buttonText="Leave a Request"
+              title={t("marketDetails.lender.lendThroughWildcat")}
+              subtitle={t(
+                "marketDetails.lender.interestedLendingThroughWildcatConnect",
+              )}
+              buttonText={t("marketDetails.lender.leaveRequest")}
               href={buildBorrowerProfileHref(market.borrower, market.chainId)}
             />
           )}
@@ -893,9 +897,11 @@ export default function LenderMarketDetails({
         {showConnectWalletBanner && (
           <Box sx={LenderBannerWrapper}>
             <LeadBanner
-              title="Connect Your Wallet"
-              subtitle="Connect a wallet to deposit into this market, view your position, and manage withdrawals."
-              buttonText="Connect Wallet"
+              title={t("marketDetails.lender.connectWallet")}
+              subtitle={t(
+                "marketDetails.lender.connectWalletDepositIntoMarket",
+              )}
+              buttonText={t("common.labels.connectWallet")}
               buttonOnClick={() => setIsConnectDialogOpen(true)}
               compact
             />
@@ -927,9 +933,11 @@ export default function LenderMarketDetails({
         {showLenderRequestBanner && (
           <Box sx={LenderBannerWrapper}>
             <LeadBanner
-              title="Lend through Wildcat"
-              subtitle="Interested in lending through Wildcat? Connect with this borrower to request access."
-              buttonText="Leave a Request"
+              title={t("marketDetails.lender.lendThroughWildcat")}
+              subtitle={t(
+                "marketDetails.lender.interestedLendingThroughWildcatConnect",
+              )}
+              buttonText={t("marketDetails.lender.leaveRequest")}
               buttonLink={{
                 isExternal: false,
                 url: buildBorrowerProfileHref(market.borrower, market.chainId),

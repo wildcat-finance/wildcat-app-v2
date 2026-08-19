@@ -4,6 +4,7 @@ import * as React from "react"
 
 import { Box, SvgIcon, Tooltip, Typography } from "@mui/material"
 import Image from "next/image"
+import { useTranslation } from "react-i18next"
 
 import { LenderAnalyticsSummary } from "@/app/[locale]/lender/market/[address]/components/LenderAnalyticsSummary"
 import {
@@ -53,6 +54,8 @@ export const LenderOverviewHeader = ({
   activity,
   isLoading,
 }: LenderOverviewHeaderProps) => {
+  const { t } = useTranslation()
+
   const { chainId } = useSelectedNetwork()
   const { data: profile } = useGetBorrowerProfile(chainId, lenderAddress)
 
@@ -147,10 +150,10 @@ export const LenderOverviewHeader = ({
           display="block"
           sx={{ marginBottom: "6px" }}
         >
-          Lender Profile
+          {t("profile.lender.lenderProfile")}
         </Typography>
         <Typography variant="text3" color={COLORS.santasGrey} display="block">
-          Portfolio overview and position details for this lender
+          {t("profile.lender.portfolioOverviewPositionDetailsLender")}
         </Typography>
       </Box>
 
@@ -195,7 +198,7 @@ export const LenderOverviewHeader = ({
                 </Typography>
               </Tooltip>
               <Typography variant="text4" color={COLORS.santasGrey}>
-                Lender
+                {t("common.fields.lender")}
               </Typography>
             </Box>
           </Box>

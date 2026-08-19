@@ -41,7 +41,7 @@ export const TerminateFlow = ({
     >
       {showForm && (
         <TxModalHeader
-          title="Terminate Market"
+          title={t("marketDetails.borrower.modals.terminate.terminateMarket")}
           arrowOnClick={onClose}
           crossOnClick={null}
         />

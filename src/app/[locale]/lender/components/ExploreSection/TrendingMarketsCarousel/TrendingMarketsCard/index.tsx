@@ -3,6 +3,7 @@
 import { Box, SvgIcon, Tooltip, Typography } from "@mui/material"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import { TrendingMarketDetails } from "@/app/[locale]/lender/components/ExploreSection/TrendingMarketsCarousel/TrendingMarketsCard/BorrowerBlock"
 import HotRateIcon from "@/assets/icons/hotRateCard_icon.svg"
@@ -124,6 +125,8 @@ export const TrendingMarketCard = ({
   termLabel,
   isMobile,
 }: TrendingMarketCardProps) => {
+  const { t } = useTranslation()
+
   const badge = VARIANT_BADGE[variant]
   const badgeContext = context ?? badge.context
   const growthTooltip =
@@ -325,7 +328,8 @@ export const TrendingMarketCard = ({
                 whiteSpace: "nowrap",
               }}
             >
-              Earn {formatBps(apr)}% APR
+              {t("marketList.lender.explore.earn")} {formatBps(apr)}
+              {t("marketList.lender.explore.apr")}
             </Typography>
             <Typography
               variant="text4Highlighted"
@@ -336,7 +340,7 @@ export const TrendingMarketCard = ({
                 whiteSpace: "nowrap",
               }}
             >
-              Deposit
+              {t("common.labels.deposit")}
             </Typography>
           </>
         </Box>

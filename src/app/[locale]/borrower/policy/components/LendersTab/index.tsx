@@ -122,7 +122,7 @@ export const LendersTab = ({
           value={lendersFilter}
           onChange={handleChangeLendersFilter}
           size="small"
-          placeholder="Search"
+          placeholder={t("common.buttons.search")}
           sx={{
             width: "220px",
 

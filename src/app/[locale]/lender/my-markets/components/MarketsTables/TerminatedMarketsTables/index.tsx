@@ -287,7 +287,7 @@ export const TerminatedMarketsTables = ({
             disabled={!params.row.hasEverInteracted}
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
-            Withdraw
+            {t("common.buttons.withdraw")}
           </Button>
         </Box>
       ),

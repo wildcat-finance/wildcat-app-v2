@@ -146,7 +146,7 @@ export default function Header() {
               }}
             >
               <Typography variant="text3" fontWeight={500} color={COLORS.white}>
-                Total Value Locked
+                {t("header.totalValueLocked")}
               </Typography>
               <Box
                 sx={{

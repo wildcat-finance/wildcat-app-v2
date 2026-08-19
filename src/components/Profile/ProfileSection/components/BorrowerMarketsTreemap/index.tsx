@@ -10,6 +10,7 @@ import {
   Typography,
 } from "@mui/material"
 import { Market } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import {
   CHART_PALETTE,
@@ -318,6 +319,8 @@ export const BorrowerMarketsTreemap = ({
   priceMap,
   isLoading,
 }: BorrowerMarketsTreemapProps) => {
+  const { t } = useTranslation()
+
   const [sizeMode, setSizeMode] = React.useState<TreemapSizeMode>("capacity")
   const [showTerminated, setShowTerminated] = React.useState(true)
   const visibleMarkets = React.useMemo(
@@ -338,14 +341,14 @@ export const BorrowerMarketsTreemap = ({
   if (!isLoading && data.length === 0) {
     return (
       <Typography variant="text2" color={COLORS.santasGrey}>
-        No markets found for this borrower on the selected network.
+        {t("profile.noMarketsFoundBorrowerSelected")}
       </Typography>
     )
   }
 
   return (
     <AnalyticsChartCard
-      title="Borrower market map"
+      title={t("profile.borrowerMarketMap")}
       actions={
         <>
           <TerminatedToggle

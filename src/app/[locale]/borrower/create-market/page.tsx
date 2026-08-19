@@ -1238,14 +1238,14 @@ export default function CreateMarketPage() {
         ) : (
           <>
             <Typography variant="text2" color={COLORS.santasGrey}>
-              Couldn&apos;t verify your Terms of Use status.
+              {t("borrower.createMarket.couldnTVerifyTermsUse")}
             </Typography>
             <Button
               variant="contained"
               size="large"
               onClick={() => refetchAgreementStatus()}
             >
-              Retry
+              {t("common.buttons.retry")}
             </Button>
           </>
         )}
@@ -1291,7 +1291,7 @@ export default function CreateMarketPage() {
             </SvgIcon>
           </Box>
           <Typography variant="title2" fontWeight={600} textAlign="center">
-            Terms of Use update required
+            {t("borrower.createMarket.termsUseUpdateRequired")}
           </Typography>
           <Typography
             variant="text2"
@@ -1299,8 +1299,7 @@ export default function CreateMarketPage() {
             textAlign="center"
             sx={{ maxWidth: "440px", marginTop: "-8px" }}
           >
-            Creating new markets is paused until you accept the current Terms of
-            Use. Your existing markets and withdrawals are unaffected.
+            {t("borrower.createMarket.creatingNewMarketsPausedUntil")}
           </Typography>
           <Button
             variant="contained"
@@ -1308,7 +1307,7 @@ export default function CreateMarketPage() {
             onClick={() => router.push(ROUTES.borrower.agreement)}
             sx={{ minWidth: "220px" }}
           >
-            Review Terms of Use
+            {t("common.buttons.reviewTermsUse")}
           </Button>
         </Box>
       </Box>
@@ -1404,11 +1403,11 @@ export default function CreateMarketPage() {
             }}
           >
             <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <Typography variant="title3">Resume market signing?</Typography>
+              <Typography variant="title3">
+                {t("borrower.createMarket.resumeMarketSigning")}
+              </Typography>
               <Typography variant="text3" color={COLORS.santasGrey}>
-                A signing draft exists for this Safe and network. Resume the
-                exact market settings and signing request, or discard it and
-                start again.
+                {t("borrower.createMarket.signingDraftExistsSafeNetwork")}
               </Typography>
             </Box>
             <Box sx={{ display: "flex", gap: "8px" }}>
@@ -1419,7 +1418,7 @@ export default function CreateMarketPage() {
                 fullWidth
                 onClick={handleDiscardSavedDraft}
               >
-                Discard
+                {t("common.buttons.discard")}
               </Button>
               <Button
                 variant="contained"
@@ -1427,7 +1426,7 @@ export default function CreateMarketPage() {
                 fullWidth
                 onClick={handleResumeSavedDraft}
               >
-                Resume
+                {t("borrower.createMarket.resume")}
               </Button>
             </Box>
           </Box>
@@ -1567,11 +1566,10 @@ export default function CreateMarketPage() {
             <Box padding="24px" sx={DeployContentContainer} rowGap="24px">
               <Box sx={DeployTypoBox}>
                 <Typography variant="text1">
-                  Deployment did not start
+                  {t("borrower.createMarket.deploymentDidNotStart")}
                 </Typography>
                 <Typography variant="text3" sx={DeploySubtitle}>
-                  No transaction was sent. Review the highlighted field and try
-                  again.
+                  {t("borrower.createMarket.noTransactionWasSentReview")}
                 </Typography>
               </Box>
 
@@ -1582,7 +1580,7 @@ export default function CreateMarketPage() {
                   fullWidth
                   onClick={() => setFinalOpen(false)}
                 >
-                  Close
+                  {t("common.buttons.close")}
                 </Button>
               </Box>
             </Box>

@@ -1,5 +1,9 @@
 {
   "admin": {
+    "borrowers": {
+      "pendingRegistration": "Pending Registration",
+      "registeredTitle": "Registered Borrowers"
+    },
     "editBorrower": {
       "description": "Edit borrower's profile details.",
       "title": "Edit Borrower Profile"
@@ -25,20 +29,37 @@
         "confirm": "Cancel Invitation",
         "description": "Are you sure you want to cancel the invitation for {{name}} ({{address}})? This action cannot be undone.",
         "title": "Cancel Invitation"
-      }
-    }
+      },
+      "pendingTitle": "Pending Invitations"
+    },
+    "title": "Admin Panel"
   },
   "agreement": {
+    "completeInvitation": "Complete Invitation",
     "page": {
       "cancel": "Cancel",
       "download": "Download",
       "title": "Wildcat Terms Of Use"
+    },
+    "reacceptance": {
+      "completeBorrowerInvitation": "Complete Borrower Invitation",
+      "couldnTVerifyTermsUse": "Couldn’t verify your Terms of Use status. Check your connection and selected network, then retry.",
+      "reasonOptional": "Reason (optional)",
+      "signingAs": "Signing as:",
+      "viewFullTerms": "View full terms"
     },
     "signButton": {
       "reaccept": "Sign Terms of Use",
       "sign": "Sign And Continue",
       "signing": "Signing..."
     }
+  },
+  "auth": {
+    "connectWalletContinue": "Connect your wallet to continue",
+    "notAdmin": "You are not an admin",
+    "selectNetwork": "Select Network",
+    "switchNetwork": "Switch Network",
+    "wildcatPrivacyPolicy": "Wildcat Privacy Policy"
   },
   "borrower": {
     "createMarket": {
@@ -83,6 +104,8 @@
         "title": "Confirmation",
         "typeTerms": "Market Term"
       },
+      "couldnTVerifyTermsUse": "Couldn’t verify your Terms of Use status.",
+      "creatingNewMarketsPausedUntil": "Creating new markets is paused until you accept the current Terms of Use. Your existing markets and withdrawals are unaffected.",
       "deploy": {
         "error": {
           "again": "Try Again",
@@ -100,6 +123,7 @@
           "title": "Market created!"
         }
       },
+      "deploymentDidNotStart": "Deployment did not start",
       "financial": {
         "baseAPR": {
           "glossary": "The fixed annual percentage rate (excluding any protocol fees) that borrowers pay for assets within the market.",
@@ -158,6 +182,7 @@
         },
         "title": "Lender Restrictions"
       },
+      "loadingTemplates": "Loading templates...",
       "mla": {
         "mla": {
           "explainer": "Explainer",
@@ -166,6 +191,7 @@
         },
         "title": "Loan Agreement"
       },
+      "noTransactionWasSentReview": "No transaction was sent. Review the highlighted field and try again.",
       "periods": {
         "grace": {
           "chip": "Hours",
@@ -238,11 +264,15 @@
       "policyName": {
         "placeholder": "Enter Policy Name"
       },
+      "resume": "Resume",
+      "resumeMarketSigning": "Resume market signing?",
       "sidebar": {
         "back": "To Markets",
         "confirm": "Confirmation",
         "legalInfo": "Legal Info"
       },
+      "signingDraftExistsSafeNetwork": "A signing draft exists for this Safe and network. Resume the exact market settings and signing request, or discard it and start again.",
+      "termsUseUpdateRequired": "Terms of Use update required",
       "title": "Creating a New Market",
       "wrapper": {
         "deploy": {
@@ -318,10 +348,26 @@
         "subtitle": "Please give a unique name to your policy."
       }
     },
+    "invitation": {
+      "acceptBorrowerInvitation": "Accept Borrower Invitation",
+      "borrowerOrganization": "borrower organization",
+      "checkingWhetherWalletHasActive": "Checking whether this wallet has an active borrower invitation.",
+      "connectInvitedWalletReviewAccept": "Connect the invited wallet to review and accept your borrower invitation.",
+      "loadingInvitation": "Loading invitation",
+      "noInvitationFound": "No invitation found",
+      "signInvitedWalletViewAccept": "Sign in with the invited wallet to view and accept your borrower invitation.",
+      "signRequired": "Sign in required",
+      "walletDoesNotCurrentlyHave": "This wallet does not currently have a borrower invitation."
+    },
     "policies": {
       "lenders": {
         "selfOnboardNotice": "Lenders onboard themselves to this policy, so there is no allowlist to edit."
-      }
+      },
+      "lendersEdits": "Lenders Edits",
+      "lendersWereEdited": "Lenders were edited!",
+      "lendersWereSuccessfullyEditedRest": "Lenders were successfully edited: the rest is up to you!",
+      "policyInfo": "Policy Info",
+      "transactionProcess": "Transaction in process."
     },
     "profile": {
       "edit": {
@@ -415,6 +461,7 @@
           "tooltip": ""
         }
       },
+      "subDivisionCountry": "Sub-division of country",
       "view": {
         "activeMarkets": {
           "apr": "Lender APR",
@@ -493,50 +540,123 @@
   "common": {
     "buttons": {
       "add": "Add",
+      "all": "All",
       "back": "Back",
       "cancel": "Cancel",
+      "cancel2": "Cancel",
       "clear": "Clear",
+      "close": "Close",
       "confirm": "Confirm",
+      "cookiesSettings": "Cookies Settings",
+      "decline": "Decline",
+      "discard": "Discard",
+      "downloadPdf": "Download PDF",
+      "downloadSignedMla": "Download Signed MLA",
       "edit": "Edit",
+      "learnMore": "Learn more",
+      "max": "Max",
       "next": "Next",
+      "open": "Open",
+      "prev": "Prev",
+      "profile": "Profile",
       "remove": "Remove",
+      "reset": "Reset",
+      "reset2": "Reset",
+      "retry": "Retry",
+      "reviewTermsUse": "Review Terms of Use",
       "save": "Save",
       "search": "Search",
-      "submit": "Submit"
+      "signMla": "Sign MLA",
+      "submit": "Submit",
+      "termsUseStatus": "Terms of Use status",
+      "viewProfile": "View Profile",
+      "withdraw": "Withdraw"
+    },
+    "consent": {
+      "allow": "Allow",
+      "manageTracking": "Manage Tracking",
+      "weUseHotjarAnonymousAnalytics": "We use Hotjar for anonymous analytics. Allow tracking?",
+      "weUseMatomoAnonymousAnalytics": "We use Matomo for anonymous analytics. Allow tracking?"
     },
     "dateRange": {
       "dueDate": "End Date",
       "startDate": "Start Date"
     },
     "fields": {
+      "activeMarkets": "Active Markets",
+      "allMarkets": "All Markets",
       "amount": "Amount",
       "apr": "APR",
       "capacity": "Capacity",
+      "currency": "Currency",
       "dateSubmitted": "Date Submitted",
+      "description": "Description",
+      "details": "Details",
       "jurisdiction": "Jurisdiction",
       "lender": "Lender",
       "marketDescription": "Market Description",
+      "marketLendingAgreement": "Market Lending Agreement",
       "marketName": "Market Name",
       "mla": "MLA",
+      "policies": "Policies",
       "status": "Status",
+      "terminatedMarkets": "Terminated Markets",
       "totalDebt": "Total Debt",
       "transactionId": "Transaction ID",
       "underlyingAsset": "Underlying Asset",
-      "walletAddress": "Wallet Address"
+      "walletAddress": "Wallet Address",
+      "wrapperContract": "Wrapper contract"
     },
     "filters": {
       "all": "All"
     },
+    "labels": {
+      "activeMarkets": "Active markets",
+      "addMarket": "Add market",
+      "addNewLender": "Add a new lender",
+      "aggregateKpisUnavailableNetwork": "Aggregate KPIs unavailable on this network",
+      "annualPercentageRateChargedUndrawn": "The annual percentage rate charged on undrawn deposited capital in a revolving market.",
+      "borrower": "Borrower",
+      "borrowerName": "Borrower name",
+      "connectWallet": "Connect Wallet",
+      "deposit": "Deposit",
+      "durationBorrowersHaveResolveReserve": "The duration borrowers have to resolve reserve deficiencies or correct delinquency in the market before penalties take effect.",
+      "erc20TokenUsedAll": "The ERC-20 token used for all transactions in the market, such as Wrapped Ether (WETH) or USDC.",
+      "filters": "Filters",
+      "fireIconAlt": "Fire icon",
+      "fixedPeriodDuringWhichWithdrawal": "A fixed period during which withdrawal requests are grouped and processed.",
+      "healthy": "Healthy",
+      "loadingMarketDetails": "Loading market details…",
+      "marketHistory": "Market history",
+      "masterLoanAgreement": "Master Loan Agreement",
+      "maximumLimitFundsBorrowersCan": "The maximum limit of funds that borrowers can access in the market.",
+      "minimumDeposit": "Minimum deposit",
+      "myMarkets": "My Markets",
+      "noClaimableWithdrawals": "No claimable withdrawals.",
+      "requiredPercentageMarketFundsMust": "A required percentage of market funds that must remain liquid and unavailable for borrowing.",
+      "termsUse": "Terms of Use",
+      "unableLoadMarketDetails": "Unable to load market details.",
+      "view": "View",
+      "willPromptedExecuteTwoApproval": "You will be prompted to execute two approval transactions to first reset and then increase the allowance for this market."
+    },
     "links": {
+      "privacyPolicy": "Privacy Policy",
       "viewOnEtherscan": "View on Explorer"
     },
     "placeholders": {
+      "dateExample": "01/02/1980",
+      "dateExampleHint": "e.g. 25/12/2024",
+      "lenders": "Lenders",
+      "markets": "Markets",
+      "markets2": "Markets",
       "pleaseSelect": "Please Select",
       "range0to100": "0 - 100",
       "search": "Search",
-      "searchByName": "Search By Name"
+      "searchByName": "Search By Name",
+      "withdrawalCycle": "Withdrawal Cycle"
     },
     "states": {
+      "copied": "Copied",
       "error": "Oops! Something went wrong!",
       "loading": "Loading...",
       "time": {
@@ -553,6 +673,7 @@
     "rights": "Wildcat Foundation 2026"
   },
   "header": {
+    "agreement": "Agreement",
     "button": {
       "connectedWith": "Connected Via",
       "connectWallet": "Connect Wallet",
@@ -560,6 +681,8 @@
       "switchNetwork": "Switch To",
       "wrongNetwork": "Wrong Network"
     },
+    "connect": "Connect",
+    "help": "Help",
     "modal": {
       "note": "By connecting your wallet, you consent to the Wildcat Privacy Policy.",
       "title": "Connect Wallet"
@@ -577,6 +700,7 @@
     "role": {
       "borrower": "Borrower"
     },
+    "switchAccount": "Switch Account",
     "switchChain": {
       "title": "Choose Deployment Chain"
     },
@@ -584,10 +708,16 @@
       "button": "Subscribe",
       "subtitle": "Receive notifications for market events",
       "title": "Subscribe to our Telegram Bot"
-    }
+    },
+    "testnet": "Testnet",
+    "totalValueLocked": "Total Value Locked",
+    "version": "Version",
+    "wildcatAllRightsReserved2025": "Wildcat © All Rights reserved. 2025"
   },
   "marketDetails": {
     "borrower": {
+      "adjustMaturity": "Adjust Maturity",
+      "adjustMinimumDeposit": "Adjust Minimum Deposit",
       "authorisedLenders": {
         "buttons": {
           "download": "Download",
@@ -610,13 +740,26 @@
           "walletAddress": "Wallet Address"
         }
       },
+      "blockedDeposits": "Blocked From Deposits",
       "buttons": {
         "capacity": "Adjust Capacity"
       },
+      "credentialExpired": "Credential Expired",
+      "currentMaturity": "Current Maturity",
+      "currentMinimumDeposit": "Current Minimum Deposit",
+      "days": "Days*",
+      "deletedLenders": "Deleted Lenders",
+      "enterNewCapacity": "Enter a new capacity",
+      "enterNewMinimumDepositAmount": "Enter New Minimum Deposit Amount",
+      "goMlaSettings": "Go to MLA Settings",
+      "increaseDecreaseMaximumAmountCredit": "Increase or decrease the maximum amount of credit extendable within this market.",
+      "insufficientBalanceRepayRemainingDebts": "Insufficient balance to repay remaining debts.",
       "label": {
         "availableGracePeriod": "Available Grace Period",
         "remainingTime": "Remaining Time With Delinquency Fees"
       },
+      "lendersCurrentlyMarket": "Lenders Currently in the Market",
+      "mlaSelectionWasNotSuccessfully": "Your MLA selection was not successfully uploaded. Please try again.",
       "modals": {
         "apr": {
           "adjust": "Adjust",
@@ -701,6 +844,10 @@
           "totalAssets": "Total Assets In Market"
         }
       },
+      "numberLenders": "Number of Lenders",
+      "providerRemoved": "Provider Removed",
+      "repayType": "repay type",
+      "selectMlaSettings": "Select MLA Settings",
       "sidebar": {
         "authorisedLenders": "Lenders",
         "backToMarkets": "Back to My Markets",
@@ -711,6 +858,7 @@
       "statusChart": {
         "totalDebt": "Total Debt"
       },
+      "sum": "Sum",
       "tooltip": {
         "delinquencyContinues": "The delinquency timer will continue to increase until this market is returned to a healthy state.",
         "delinquencyFeesApply": "This market is not currently delinquent, but delinquency fees still apply until the timer is below the grace period.",
@@ -745,6 +893,7 @@
           "title": "Unable to verify lender access"
         }
       },
+      "agreementSelectionRequired": "Agreement Selection Required",
       "analytics": {
         "charts": {
           "cumulativeNetFlow": "Cumulative Net Flow",
@@ -762,11 +911,13 @@
         "totalWithdrawalsExecuted": "Total Withdrawals Executed",
         "totalWithdrawalsExecutedTooltip": "Total amount you have successfully withdrawn from this market, including claimed and partially executed batches."
       },
+      "availableClaim": "Available To Claim",
       "barchart": {
         "withdrawals": {
           "title": "Your Withdrawals"
         }
       },
+      "borrowerMustCompleteMarketS": "The borrower must complete this market’s agreement selection before deposits can begin.",
       "borrowerPenaltyWarning": "At least one market deployed by this borrower has not honoured withdrawal requests at least thirty days past their self-imposed grace period.",
       "borrowerPenaltyWarningUnavailable": "We couldn't verify whether another market deployed by this borrower has withdrawal requests at least thirty days past its grace period.",
       "buttons": {
@@ -775,11 +926,23 @@
         "mlaRefused": "Borrower Declined to Set An MLA",
         "viewMla": "View/Sign MLA"
       },
+      "chooseDepositAmount": "Choose deposit amount",
+      "connectWallet": "Connect Your Wallet",
+      "connectWalletDepositIntoMarket": "Connect a wallet to deposit into this market, view your position, and manage withdrawals.",
+      "couldnTLoadAgreementData": "Couldn’t load agreement data",
+      "currentlyCanOnlyViewGeneral": "Currently, you can only view general information about the market.",
+      "depositingFollowingBorrower": "Depositing to the following Borrower:",
       "description": {
         "states": {
           "noDescription": "No market description found."
         }
       },
+      "interestedLendingThroughWildcatConnect": "Interested in lending through Wildcat? Connect with this borrower to request access.",
+      "leaveRequest": "Leave a Request",
+      "lendThroughWildcat": "Lend through Wildcat",
+      "loanAgreementSignatureRequired": "Loan Agreement Signature Required",
+      "marketCanRepaidEarlyClose": "The market can be repaid early to close",
+      "marketSDurationCanShorten": "The market’s duration can be shorten",
       "modals": {
         "deposit": {
           "checkingBorrowerHistory": "Checking borrower withdrawal history...",
@@ -808,6 +971,10 @@
         }
       },
       "noDataAvailable": "No Data Available",
+      "noMasterLoanAgreement": "No Master Loan Agreement",
+      "noOngoingWithdrawals": "No ongoing withdrawals.",
+      "noWithdrawalRequestsPreviousCycles": "No withdrawal requests from previous cycles.",
+      "onlyAuthorizedLendersCanAccess": "Only authorized lenders can access the wrapper.",
       "pendingAprReduction": {
         "elapsed": {
           "body": "The lender response window has passed; the borrower can apply the reduction at any time.",
@@ -829,6 +996,7 @@
         "title": "Open Withdrawals",
         "total": "Total"
       },
+      "retryAgreementData": "Retry agreement data",
       "sidebar": {
         "actions": "Deposit & Withdraw",
         "borrowerProfile": "About Borrower",
@@ -836,6 +1004,9 @@
         "status": "Status and Details",
         "wrapDebtToken": "Wrapped Debt Token"
       },
+      "signAcknowledgementBeforeOpeningDeposit": "Sign this acknowledgement before opening the deposit window.",
+      "signed": "Signed:",
+      "signMlaBeforeDepositingInto": "Sign the MLA before depositing into this market.",
       "transactions": {
         "deposit": {
           "button": "Deposit",
@@ -938,11 +1109,23 @@
         }
       },
       "wrapDebtToken": {
+        "addMarketToken": "+ Add market token",
+        "addWrappedToken": "+ Add wrapped token",
+        "balanceMarketDebtTokensWallet": "Balance of market (debt) tokens in your wallet.",
+        "balanceWrappedErc4626Share": "Balance of wrapped (ERC-4626 share) tokens in your wallet.",
+        "canCloseModalWindow": "You can close the modal window.",
         "commonQuestions": "Common Questions",
         "deployButton": "Deploy Wrapper",
+        "estimatesMayChangeCurrentConversion": "Estimates may change with the current conversion rate.",
         "learnMore": "Learn more",
+        "marketTokens": "Market tokens",
+        "oopsSomethingGoesWrong": "Oops! Something goes wrong.",
+        "see": "See",
+        "showShares": "Show in Shares",
         "subtitle": "This market doesn't have a wrapper contract yet.",
         "title": "No wrapper deployed",
+        "tokensAgain": "Tokens again",
+        "viewEtherscan": "View on Etherscan",
         "whatHappensAfter": {
           "answer": "Once deployed, the wrapper is available to everyone.",
           "question": "What happens after deployment?"
@@ -954,10 +1137,17 @@
         "whoCanDeploy": {
           "answer": "Anyone can deploy the wrapper — not just the borrower.",
           "question": "Who can deploy the wrapper?"
-        }
-      }
+        },
+        "wrap": "Wrap",
+        "wrappedHoldingsValue": "Wrapped holdings value: ~",
+        "wrappedTokens": "Wrapped tokens"
+      },
+      "wrongMarketNetwork": "Wrong Market Network"
     },
     "shared": {
+      "banners": {
+        "rewardsApr": "Rewards APR"
+      },
       "description": {
         "buttons": {
           "login": "Log in to change the description",
@@ -982,10 +1172,14 @@
         }
       },
       "records": {
+        "allTypes": "All types",
         "columns": {
           "event": "Event",
           "time": "Time"
-        }
+        },
+        "noMatchingRecentEvents": "No matching recent events",
+        "searchId": "Search by ID",
+        "showingRecentRecords": "Showing recent records"
       },
       "sidebar": {
         "marketHistory": "Market History"
@@ -1016,15 +1210,21 @@
         "nonDeposited": "Non-Deposited",
         "title": "Your Markets"
       },
+      "addMarkets": "Add markets",
+      "borrowerUiNotConfiguredMobile": "The Borrower UI is not configured for mobile, sorry!",
       "closed": {
         "neverActive": "Never Active",
         "prevActive": "Previously Active",
         "title": "Your Terminated Markets"
       },
+      "commonAgreementSeveralMarkets": "Common agreement for several markets.",
+      "editLendersList": "Edit Lenders List",
       "header": {
         "term": "Term",
         "type": "Type"
       },
+      "hopDesktopLaptopInsteadWe": "Hop on a desktop or laptop instead: we are aiming to sort this out in time.",
+      "listLendersSAppliedMarkets": "List of lenders that’s applied to your markets.",
       "noMarkets": {
         "active": {
           "subtitle": "Create a new market, or check your terminated ones.",
@@ -1039,6 +1239,8 @@
         }
       },
       "noMarketsFilterEnding": "markets found.",
+      "noMarketsYet": "No markets yet",
+      "switchLenders": "Switch to the Lenders",
       "table": {
         "header": {
           "apr": "Lender APR",
@@ -1062,18 +1264,32 @@
       }
     },
     "lender": {
+      "allMarketsHavePosition": "All markets you have a position in.",
+      "explore": {
+        "apr": "% APR",
+        "earn": "Earn",
+        "goAllMarkets": "Go to All Markets",
+        "showMoreMarkets": "Show more markets",
+        "topMarkets": "Top Markets",
+        "trendingMarketPosition": "Trending market position",
+        "trendingMarkets": "Trending Markets"
+      },
       "sidebar": {
         "confirm": "Confirmation",
         "editingLenders": "Editing Lender List"
       }
     },
     "shared": {
+      "addDebtTokenWalletPlease": "To add debt token to wallet please copy the token address and add it manually.",
       "borrowerSubtitle": "All markets you’ve previously created.",
       "borrowerTitleButton": "+ Create New Market",
+      "changeSelectedFiltersCheckOther": "Change selected filters or check other sections",
       "docsLink": "Learn More (Documentation)",
       "filters": {
         "assets": "Asset"
       },
+      "fixed": "Fixed",
+      "issues": "Issues",
       "lenderSubtitle": "All markets you have a position in or are potentially eligible for.",
       "liveDataUnavailable": "Live market data is temporarily unavailable. Market links remain available.",
       "noMarkets": {
@@ -1092,6 +1308,9 @@
         },
         "wrongNetwork": "No Wildcat Markets On This Network"
       },
+      "noMarketsHere": "No Markets Here",
+      "noMarketsMatchCurrentFilters": "No markets match the current filters.",
+      "seeMore": "See More",
       "tables": {
         "header": {
           "asset": "Asset",
@@ -1111,10 +1330,13 @@
           "title": "Other Markets"
         }
       },
-      "title": "Markets"
+      "title": "Markets",
+      "walletActions": "Wallet Actions"
     }
   },
   "marketParameters": {
+    "additionalInterestRateChargedIf": "An additional interest rate charged if the market remains delinquent—failing to maintain required reserves—after the grace period has elapsed.",
+    "adoptionStatus": "Adoption Status",
     "baseAPR": "Base Lender APR",
     "commitmentAPR": "Commitment APR",
     "depositAccess": {
@@ -1271,6 +1493,7 @@
       "PeriodicTerm": "Periodic Term (scheduled withdrawal windows)",
       "Unknown": "Unknown Term"
     },
+    "portionGracePeriodLeftBorrowers": "The portion of the grace period left for borrowers to fix non-compliance issues, such as restoring reserves.",
     "protocolAPR": "Protocol Fee APR",
     "roleProviders": {
       "defaultPullProvider": "Lender Self-Onboarding",
@@ -1317,7 +1540,9 @@
         "tooltip": "Lenders who have not directly deposited must meet specific criteria to withdraw."
       }
     },
-    "withdrawalCycleDuration": "Withdrawal Cycle Duration"
+    "withdrawalCycleDuration": "Withdrawal Cycle Duration",
+    "wrapper": "Wrapper",
+    "wrapperAddress": "Wrapper Address"
   },
   "modals": {
     "shared": {
@@ -1347,6 +1572,11 @@
         "viewOnEtherscan": "View on Explorer"
       }
     }
+  },
+  "nav": {
+    "backMarkets": "Back To Markets",
+    "explore": "Explore",
+    "new": "New"
   },
   "notifications": {
     "aprChange": {
@@ -1427,5 +1657,53 @@
     "withdrawalSuccess": {
       "description": "Withdrawal cycle for <strong>{{marketName}}</strong> completed successfully."
     }
+  },
+  "profile": {
+    "borrower": {
+      "aggregateBatchStats": "Aggregate batch stats",
+      "batchOutcomes": "Batch outcomes",
+      "borrowerCharts": "Borrower charts",
+      "costCapitalAprDrift": "Cost of capital and APR drift",
+      "cureSpeedRealizedCapitalCost": "Cure speed and realized capital cost across this borrower.",
+      "currentQueue": "Current queue",
+      "delinquencyCureVelocity": "Delinquency cure velocity",
+      "delinquencyTrackRecord": "Delinquency track record",
+      "delinquentHoursMarket": "Delinquent hours by market",
+      "expiredBatchOutcomesCurrentWithdrawal": "Expired batch outcomes and current withdrawal queue.",
+      "expiredWithdrawalBatchesSplitPaid": "Expired withdrawal batches split by paid, late-paid, and unpaid value.",
+      "howOftenMarketsFellDelinquent": "How often markets fell delinquent and how long they took to recover.",
+      "interestProtocolFeesDelinquencyFees": "Interest, protocol fees, delinquency fees, and effective APR.",
+      "marketsRankedTotalTimeSpent": "Markets ranked by total time spent delinquent.",
+      "networkDoesNotProvideIndexed": "This network does not provide the indexed analytics and pricing required for aggregate profile KPIs.",
+      "noActiveMarketsFoundBorrower": "No active markets found for this borrower on the selected network.",
+      "withdrawalProcessing": "Withdrawal processing"
+    },
+    "borrowerMarketMap": "Borrower market map",
+    "closeExpandedChart": "Close expanded chart",
+    "expandChart": "Expand chart",
+    "lender": {
+      "activePositions": "Active positions",
+      "borrowerExposure": "Borrower exposure",
+      "capitalRiskTimeline": "Capital-at-risk timeline",
+      "exposureMarketStateQueuedWithdrawals": "Exposure by market state, queued withdrawals, and penalty fees earned.",
+      "failedLoadLenderProfileAnalytics": "Failed to load lender profile analytics for this address.",
+      "historicalBorrowerExposure": "Historical Borrower Exposure",
+      "interestBreakdown": "Interest breakdown",
+      "interestEarnedAlongsideDepositActivity": "Interest earned alongside deposit activity and withdrawal pressure.",
+      "interestPosition": "Interest by position",
+      "lenderAnalyticsUnavailableNetwork": "Lender analytics unavailable on this network",
+      "lenderProfile": "Lender Profile",
+      "market": "Market",
+      "networkDoesNotProvideIndexed": "This network does not provide the indexed analytics and pricing required for lender positions, cash flow, and interest metrics.",
+      "noDailyRiskReturnHistory": "No daily risk and return history found for this market.",
+      "noInterestEarnedYetLender": "No interest earned yet for this lender.",
+      "portfolioOverviewPositionDetailsLender": "Portfolio overview and position details for this lender",
+      "since": "· since",
+      "slicesUseCurrentPricePosition": "Slices use current-price position estimates; the center total uses historical USD when profile aggregates are available.",
+      "yieldVsWithdrawalPressure": "Yield vs Withdrawal pressure"
+    },
+    "networkDoesNotProvideIndexed": "This network does not provide the indexed analytics and pricing required for borrower KPIs.",
+    "noMarketsFoundBorrowerSelected": "No markets found for this borrower on the selected network.",
+    "viewFullBorrowerProfile": "View full borrower profile"
   }
 }

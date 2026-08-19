@@ -1,6 +1,7 @@
 import React from "react"
 
 import { Box, Button, Divider, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { LinkGroup } from "@/components/LinkComponent"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
@@ -28,6 +29,8 @@ export const WrapperHeader = ({
   disableAddMarketToken,
   disableAddWrappedToken,
 }: WrapperFormHeaderProps) => {
+  const { t } = useTranslation()
+
   const { getAddressUrl } = useBlockExplorer()
   const isMobile = useMobileResolution()
   const isMobileOpenState = useAppSelector(
@@ -46,7 +49,7 @@ export const WrapperHeader = ({
           color={COLORS.manate}
           sx={{ marginBottom: "6px" }}
         >
-          Wrapper contract
+          {t("common.fields.wrapperContract")}
         </Typography>
       )}
 
@@ -135,7 +138,7 @@ export const WrapperHeader = ({
               onClick={onAddMarketToken}
               disabled={!onAddMarketToken || disableAddMarketToken}
             >
-              + Add market token
+              {t("marketDetails.lender.wrapDebtToken.addMarketToken")}
             </Button>
 
             <Button
@@ -145,7 +148,7 @@ export const WrapperHeader = ({
               onClick={onAddWrappedToken}
               disabled={!onAddWrappedToken || disableAddWrappedToken}
             >
-              + Add wrapped token
+              {t("marketDetails.lender.wrapDebtToken.addWrappedToken")}
             </Button>
           </Box>
         )}

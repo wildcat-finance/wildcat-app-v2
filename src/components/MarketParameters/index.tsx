@@ -506,7 +506,7 @@ export const MarketParameters = ({
             value={`${market.underlyingToken.name} (${trimAddress(
               market.underlyingToken.address,
             )})`}
-            tooltipText="The ERC-20 token used for all transactions in the market, such as Wrapped Ether (WETH) or USDC."
+            tooltipText={t("common.labels.erc20TokenUsedAll")}
             copy={market.underlyingToken.address}
             link={getTokenUrl(market.underlyingToken.address)}
           />
@@ -528,7 +528,7 @@ export const MarketParameters = ({
             value={`${formatTokenWithCommas(market.maxTotalSupply, {
               fractionDigits: market.maxTotalSupply.token.decimals,
             })} ${market.underlyingToken.symbol}`}
-            tooltipText="The maximum limit of funds that borrowers can access in the market."
+            tooltipText={t("common.labels.maximumLimitFundsBorrowersCan")}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <ParametersItem
@@ -745,7 +745,7 @@ export const MarketParameters = ({
                   ? originalRatioFormatted
                   : currentRatioFormatted
               }%`}
-              tooltipText="A required percentage of market funds that must remain liquid and unavailable for borrowing."
+              tooltipText={t("common.labels.requiredPercentageMarketFundsMust")}
               valueComponent={tempRatioValueComponent}
             />
             {hasTempReserveRatio && (
@@ -843,7 +843,9 @@ export const MarketParameters = ({
                 market.delinquencyFeeBips,
                 MARKET_PARAMS_DECIMALS.delinquencyFeeBips,
               )}%`}
-              tooltipText="An additional interest rate charged if the market remains delinquent—failing to maintain required reserves—after the grace period has elapsed."
+              tooltipText={t(
+                "marketParameters.additionalInterestRateChargedIf",
+              )}
               alarmState={market.isIncurringPenalties}
               valueTooltipText={penaltyAprTooltipValue}
             />
@@ -851,13 +853,17 @@ export const MarketParameters = ({
             <ParametersItem
               title={t("marketParameters.maximumGracePeriod")}
               value={`${formatSecsToHours(market.delinquencyGracePeriod)}`}
-              tooltipText="The duration borrowers have to resolve reserve deficiencies or correct delinquency in the market before penalties take effect."
+              tooltipText={t(
+                "common.labels.durationBorrowersHaveResolveReserve",
+              )}
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
               title={gracePeriodLabel}
               value={gracePeriodTimer}
-              tooltipText="The portion of the grace period left for borrowers to fix non-compliance issues, such as restoring reserves."
+              tooltipText={t(
+                "marketParameters.portionGracePeriodLeftBorrowers",
+              )}
               alarmState={timeDelinquent > delinquencyGracePeriod}
               valueTooltipText={gracePeriodTooltip}
             />
@@ -865,7 +871,7 @@ export const MarketParameters = ({
             <ParametersItem
               title={t("marketParameters.withdrawalCycleDuration")}
               value={`${formatSecsToHours(market.withdrawalBatchDuration)}`}
-              tooltipText="A fixed period during which withdrawal requests are grouped and processed."
+              tooltipText={t("common.labels.fixedPeriodDuringWhichWithdrawal")}
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
@@ -922,7 +928,7 @@ export const MarketParameters = ({
               }}
             >
               <ParametersItem
-                title="Wrapper"
+                title={t("marketParameters.wrapper")}
                 value=""
                 valueComponent={<WrapperChip hasWrapper={hasWrapper} />}
               />
@@ -930,7 +936,7 @@ export const MarketParameters = ({
                 <>
                   <Divider sx={{ margin: "12px 0" }} />
                   <ParametersItem
-                    title="Wrapper Address"
+                    title={t("marketParameters.wrapperAddress")}
                     value={trimAddress(wrapper.address.toLowerCase())}
                     copy={wrapper.address}
                     link={getAddressUrl(wrapper.address.toLowerCase())}
@@ -965,7 +971,7 @@ export const MarketParameters = ({
                     variant={isMobile ? "mobText3" : "text3"}
                     sx={{ color: COLORS.santasGrey }}
                   >
-                    Adoption Status
+                    {t("marketParameters.adoptionStatus")}
                   </Typography>
                   <TooltipButton value={adoptionStatsTooltip} />
                 </Box>

@@ -103,7 +103,7 @@ export const MobileHeader = ({ children }: { children: ReactNode }) => {
         }}
       >
         <Typography variant="mobH2" marginLeft="12px">
-          All Markets
+          {t("common.fields.allMarkets")}
         </Typography>
         {children}
       </Box>

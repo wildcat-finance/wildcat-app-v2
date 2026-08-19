@@ -3,6 +3,7 @@
 import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { BorrowerProfileAnalytics } from "@/app/[locale]/borrower/profile/hooks/analytics/types"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
@@ -50,6 +51,8 @@ export const OverviewTab = ({
   touStatus,
   isTouStatusLoading,
 }: OverviewTabProps) => {
+  const { t } = useTranslation()
+
   const { data: profileData } = useGetBorrowerProfile(profileAddress, chainId)
   const activeBorrowerMarkets = borrowerMarkets ?? []
 
@@ -87,8 +90,8 @@ export const OverviewTab = ({
         />
       ) : (
         <AnalyticsUnavailableNotice
-          title="Aggregate KPIs unavailable on this network"
-          description="This network does not provide the indexed analytics and pricing required for aggregate profile KPIs."
+          title={t("common.labels.aggregateKpisUnavailableNetwork")}
+          description={t("profile.borrower.networkDoesNotProvideIndexed")}
         />
       )}
 
@@ -172,13 +175,13 @@ export const OverviewTab = ({
           display="block"
           sx={{ marginBottom: "16px" }}
         >
-          Active markets
+          {t("common.labels.activeMarkets")}
         </Typography>
         {activeBorrowerMarkets.length > 0 ? (
           <MarketsBlock markets={activeBorrowerMarkets} isLoading={false} />
         ) : (
           <Typography variant="text2" color={COLORS.santasGrey}>
-            No active markets found for this borrower on the selected network.
+            {t("profile.borrower.noActiveMarketsFoundBorrower")}
           </Typography>
         )}
       </Box>

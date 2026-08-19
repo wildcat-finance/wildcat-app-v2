@@ -57,7 +57,7 @@ export const MobileMlaAlert = ({
         }}
       >
         <Typography variant="mobH3" textAlign="center" marginTop="12px">
-          Master Loan Agreement
+          {t("common.labels.masterLoanAgreement")}
         </Typography>
 
         <Box
@@ -76,7 +76,8 @@ export const MobileMlaAlert = ({
             <Check />
           </SvgIcon>
           <Typography variant="mobText3" color={COLORS.santasGrey}>
-            Signed: {formatDate(signedMla.timeSigned)}
+            {t("marketDetails.lender.signed")}{" "}
+            {formatDate(signedMla.timeSigned)}
           </Typography>
         </Box>
 

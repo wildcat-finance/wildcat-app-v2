@@ -38,7 +38,7 @@ export const WrongNetworkAlert = () => {
           sx={ButtonStyle}
           onClick={handleSwitchChain}
         >
-          Switch Network
+          {t("auth.switchNetwork")}
         </Button>
       </Box>
     </Box>

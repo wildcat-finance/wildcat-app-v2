@@ -345,7 +345,7 @@ export const AllMarketsSection = () => {
                 setSelected={setMarketStatuses}
               />
               <MarketsFilterSelect
-                placeholder="Withdrawal Cycle"
+                placeholder={t("common.placeholders.withdrawalCycle")}
                 options={withdrawalCycleOptions}
                 selected={marketWithdrawalCycles}
                 setSelected={setMarketWithdrawalCycles}

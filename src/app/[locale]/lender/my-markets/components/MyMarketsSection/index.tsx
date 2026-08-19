@@ -281,10 +281,12 @@ export const MyMarketsSection = () => {
               padding: "28px 16px 0",
             }}
           >
-            <Typography variant="title2">My Markets</Typography>
+            <Typography variant="title2">
+              {t("common.labels.myMarkets")}
+            </Typography>
 
             <Typography variant="text3" color={COLORS.santasGrey}>
-              All markets you have a position in.{" "}
+              {t("marketList.lender.allMarketsHavePosition")}{" "}
               <Link
                 href="https://docs.wildcat.finance/using-wildcat/day-to-day-usage/lenders"
                 style={{ color: COLORS.santasGrey }}
@@ -333,7 +335,7 @@ export const MyMarketsSection = () => {
                           : "transparent",
                     }}
                   >
-                    Active Markets
+                    {t("common.fields.activeMarkets")}
                     {activeCount > 0 && (
                       <Typography
                         variant="text3"
@@ -369,7 +371,7 @@ export const MyMarketsSection = () => {
                           : "transparent",
                     }}
                   >
-                    Terminated Markets
+                    {t("common.fields.terminatedMarkets")}
                     {terminatedCount > 0 && (
                       <Typography
                         variant="text3"
@@ -419,7 +421,7 @@ export const MyMarketsSection = () => {
                 setSelected={setMarketStatuses}
               />
               <MarketsFilterSelect
-                placeholder="Withdrawal Cycle"
+                placeholder={t("common.placeholders.withdrawalCycle")}
                 options={withdrawalCycleOptions}
                 selected={marketWithdrawalCycles}
                 setSelected={setMarketWithdrawalCycles}

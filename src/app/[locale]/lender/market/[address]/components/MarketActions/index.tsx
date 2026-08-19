@@ -284,7 +284,7 @@ export const MarketActions = ({
                   return (
                     <Box sx={DepositStatusContainer}>
                       <Typography variant="text3" color={COLORS.santasGrey}>
-                        Couldn&apos;t load agreement data
+                        {t("marketDetails.lender.couldnTLoadAgreementData")}
                       </Typography>
                       <Button
                         variant="contained"
@@ -295,7 +295,7 @@ export const MarketActions = ({
                           agreementGate.retry().catch(() => undefined)
                         }}
                       >
-                        Retry agreement data
+                        {t("marketDetails.lender.retryAgreementData")}
                       </Button>
                     </Box>
                   )
@@ -305,11 +305,10 @@ export const MarketActions = ({
                   return (
                     <Box sx={DepositStatusContainer}>
                       <Typography variant="text3" sx={{ fontWeight: 600 }}>
-                        Agreement Selection Required
+                        {t("marketDetails.lender.agreementSelectionRequired")}
                       </Typography>
                       <Typography variant="text4" color={COLORS.santasGrey}>
-                        The borrower must complete this market&apos;s agreement
-                        selection before deposits can begin.
+                        {t("marketDetails.lender.borrowerMustCompleteMarketS")}
                       </Typography>
                     </Box>
                   )
@@ -319,10 +318,12 @@ export const MarketActions = ({
                   return (
                     <Box sx={DepositStatusContainer}>
                       <Typography variant="text3" sx={{ fontWeight: 600 }}>
-                        Loan Agreement Signature Required
+                        {t(
+                          "marketDetails.lender.loanAgreementSignatureRequired",
+                        )}
                       </Typography>
                       <Typography variant="text4" color={COLORS.santasGrey}>
-                        Sign the MLA before depositing into this market.
+                        {t("marketDetails.lender.signMlaBeforeDepositingInto")}
                       </Typography>
                     </Box>
                   )

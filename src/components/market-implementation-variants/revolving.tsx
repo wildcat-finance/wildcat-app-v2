@@ -29,7 +29,7 @@ const RevolvingExtraParametersSection = ({
               )}%`
             : "..."
         }
-        tooltipText="The annual percentage rate charged on undrawn deposited capital in a revolving market."
+        tooltipText={t("common.labels.annualPercentageRateChargedUndrawn")}
       />
       <Divider sx={{ margin: "12px 0 12px" }} />
     </>

@@ -288,7 +288,7 @@ export const MarketPolicyForm = ({
             <Box sx={{ display: "flex", flexDirection: "column", gap: "2px" }}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DesktopDatePicker
-                  label="e.g. 25/12/2024"
+                  label={t("common.placeholders.dateExampleHint")}
                   format="DD/MM/YYYY"
                   value={
                     fixedTermEndTimeWatch

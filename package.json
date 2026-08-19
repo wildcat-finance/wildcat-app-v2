@@ -21,6 +21,9 @@
     "i18n:check": "node scripts/i18n/check-i18n.mjs",
     "i18n:extract-mapping": "node scripts/i18n/extract-legacy-mapping.mjs",
     "i18n:apply-rename": "node scripts/i18n/apply-key-rename.mjs",
+    "i18n:inventory": "node scripts/i18n/build-hardcoded-inventory.mjs",
+    "i18n:propose": "node scripts/i18n/propose-hardcoded-keys.mjs",
+    "i18n:apply-hardcoded": "node scripts/i18n/apply-hardcoded-keys.mjs",
     "i18n:verify": "node scripts/i18n/verify-rendered-keys.mjs",
     "prepare": "husky"
   },

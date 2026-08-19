@@ -379,7 +379,7 @@ export const MarketSidebar = () => {
                 }}
               >
                 <Typography variant="text4" color={COLORS.ultramarineBlue}>
-                  New
+                  {t("nav.new")}
                 </Typography>
               </Box>
             </Button>

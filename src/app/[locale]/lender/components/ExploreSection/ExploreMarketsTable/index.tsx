@@ -755,7 +755,7 @@ export const ExploreMarketsTable = () => {
             <Typography
               sx={{ fontSize: "20px", fontWeight: 500, lineHeight: "26px" }}
             >
-              Top Markets
+              {t("marketList.lender.explore.topMarkets")}
             </Typography>
 
             <Box sx={{ display: "flex", gap: "4px" }}>
@@ -884,7 +884,7 @@ export const ExploreMarketsTable = () => {
                 "&:hover": { bgcolor: COLORS.white06 },
               }}
             >
-              Show more markets
+              {t("marketList.lender.explore.showMoreMarkets")}
             </Button>
           ) : (
             <Button
@@ -901,7 +901,7 @@ export const ExploreMarketsTable = () => {
                 "&:hover": { bgcolor: COLORS.white06 },
               }}
             >
-              Go to All Markets
+              {t("marketList.lender.explore.goAllMarkets")}
             </Button>
           ))}
       </Box>
@@ -917,7 +917,7 @@ export const ExploreMarketsTable = () => {
           marginTop: "16px",
         }}
       >
-        Top Markets
+        {t("marketList.lender.explore.topMarkets")}
       </Typography>
 
       <Box
@@ -963,7 +963,7 @@ export const ExploreMarketsTable = () => {
 
         <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
           <FormControlLabel
-            label="Self-Onboard"
+            label={t("marketList.shared.tables.other.selfOnboard")}
             control={
               <ExtendedCheckbox
                 checked={showSelfOnboard}
@@ -986,7 +986,7 @@ export const ExploreMarketsTable = () => {
           />
 
           <FormControlLabel
-            label="Onboard by Borrower"
+            label={t("marketList.shared.tables.other.manual")}
             control={
               <ExtendedCheckbox
                 checked={showOnboardByBorrower}
@@ -1021,7 +1021,7 @@ export const ExploreMarketsTable = () => {
           />
 
           <MarketsFilterSelect
-            placeholder="Withdrawal Cycle"
+            placeholder={t("common.placeholders.withdrawalCycle")}
             options={withdrawalCycleOptions}
             selected={withdrawalCycles}
             setSelected={setWithdrawalCycles}
@@ -1077,7 +1077,7 @@ export const ExploreMarketsTable = () => {
             variant="contained"
             color="secondary"
           >
-            Go to All Markets
+            {t("marketList.lender.explore.goAllMarkets")}
           </Button>
         )}
       </Box>

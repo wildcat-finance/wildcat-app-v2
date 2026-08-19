@@ -10,6 +10,7 @@ import {
 } from "@mui/material"
 import humanizeDuration from "humanize-duration"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import { useGetBorrowerProfile } from "@/app/[locale]/lender/profile/hooks/useGetBorrowerProfile"
 import Avatar from "@/assets/icons/avatar_icon.svg"
@@ -34,6 +35,8 @@ export const MarketHeader = ({
   mla,
   hasMarketDescription,
 }: MarketHeaderProps) => {
+  const { t } = useTranslation()
+
   const theme = useTheme()
   const isMobile = useMobileResolution()
 
@@ -237,7 +240,7 @@ export const MarketHeader = ({
             component="a"
             href="#status"
           >
-            Status
+            {t("common.fields.status")}
           </Button>
           {hasMarketDescription && (
             <Button
@@ -255,7 +258,7 @@ export const MarketHeader = ({
               component="a"
               href="#marketDescription"
             >
-              Market Description
+              {t("common.fields.marketDescription")}
             </Button>
           )}
           <Button
@@ -273,7 +276,7 @@ export const MarketHeader = ({
             component="a"
             href="#requests"
           >
-            Withdrawal Requests
+            {t("marketDetails.borrower.sidebar.withdrawalRequests")}
           </Button>
           {mla && !("noMLA" in mla) && (
             <Button

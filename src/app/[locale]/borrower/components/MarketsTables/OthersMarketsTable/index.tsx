@@ -182,7 +182,7 @@ export const OthersMarketsTable = ({
             padding: "0 12px",
           }}
         >
-          Borrower
+          {t("common.labels.borrower")}
         </Typography>
       ),
       renderCell: (params) => (

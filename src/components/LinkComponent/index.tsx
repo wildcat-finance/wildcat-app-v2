@@ -51,7 +51,7 @@ export const LinkGroup = ({
               disableFocusListener
               disableHoverListener
               disableTouchListener
-              title="Copied"
+              title={t("common.states.copied")}
               slotProps={{
                 popper: {
                   disablePortal: true,

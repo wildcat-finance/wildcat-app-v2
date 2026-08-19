@@ -85,7 +85,7 @@ const BorrowerIdentityDisclosure = ({
   return (
     <Box>
       <Typography variant={isMobile ? "mobText2" : "text1"}>
-        Depositing to the following Borrower:
+        {t("marketDetails.lender.depositingFollowingBorrower")}
       </Typography>
 
       <Box
@@ -719,7 +719,7 @@ export const DepositModal = ({
                   {modal.gettingValueStep && (
                     <>
                       <Typography variant="mobText2">
-                        Choose deposit amount
+                        {t("marketDetails.lender.chooseDepositAmount")}
                       </Typography>
 
                       {minimumDeposit && (
@@ -727,7 +727,7 @@ export const DepositModal = ({
                           color={COLORS.santasGrey}
                           variant="mobText3"
                         >
-                          Minimum deposit{" "}
+                          {t("common.labels.minimumDeposit")}{" "}
                           <Typography
                             variant="mobText3"
                             color={COLORS.ultramarineBlue}
@@ -740,7 +740,7 @@ export const DepositModal = ({
                       )}
 
                       <Typography color={COLORS.santasGrey} variant="mobText3">
-                        Available to deposit{" "}
+                        {t("marketDetails.lender.transactions.deposit.title")}{" "}
                         <Typography
                           variant="mobText3"
                           color={COLORS.ultramarineBlue}
@@ -836,7 +836,9 @@ export const DepositModal = ({
                       <DepositAlert
                         text={
                           <Typography variant="mobText3">
-                            The market can be repaid early to close
+                            {t(
+                              "marketDetails.lender.marketCanRepaidEarlyClose",
+                            )}
                           </Typography>
                         }
                         icon={
@@ -857,7 +859,9 @@ export const DepositModal = ({
                       <DepositAlert
                         text={
                           <Typography variant="mobText3">
-                            The market’s duration can be shorten
+                            {t(
+                              "marketDetails.lender.marketSDurationCanShorten",
+                            )}
                           </Typography>
                         }
                         icon={
@@ -896,9 +900,7 @@ export const DepositModal = ({
                             allowances be reset to zero prior to being
                             increased.
                             <br />
-                            You will be prompted to execute two approval
-                            transactions to first reset and then increase the
-                            allowance for this market.
+                            {t("common.labels.willPromptedExecuteTwoApproval")}
                           </Typography>
                         }
                         icon={
@@ -1188,7 +1190,7 @@ export const DepositModal = ({
                         flexDirection="column"
                       >
                         <Typography variant="text1" sx={{ mb: "6px" }}>
-                          Choose deposit amount
+                          {t("marketDetails.lender.chooseDepositAmount")}
                         </Typography>
 
                         {minimumDeposit && (
@@ -1198,7 +1200,7 @@ export const DepositModal = ({
                             variant="text3"
                             lineHeight="24px"
                           >
-                            Minimum deposit{" "}
+                            {t("common.labels.minimumDeposit")}{" "}
                             <Typography
                               variant="text3"
                               lineHeight="24px"
@@ -1216,7 +1218,7 @@ export const DepositModal = ({
                           variant="text3"
                           lineHeight="24px"
                         >
-                          Available to deposit{" "}
+                          {t("marketDetails.lender.transactions.deposit.title")}{" "}
                           <Typography
                             variant="text3"
                             lineHeight="24px"
@@ -1336,7 +1338,9 @@ export const DepositModal = ({
                         <DepositAlert
                           text={
                             <Typography variant="mobText3">
-                              The market can be repaid early to close
+                              {t(
+                                "marketDetails.lender.marketCanRepaidEarlyClose",
+                              )}
                             </Typography>
                           }
                           icon={
@@ -1357,7 +1361,9 @@ export const DepositModal = ({
                         <DepositAlert
                           text={
                             <Typography variant="mobText3">
-                              The market’s duration can be shorten
+                              {t(
+                                "marketDetails.lender.marketSDurationCanShorten",
+                              )}
                             </Typography>
                           }
                           icon={
@@ -1396,9 +1402,9 @@ export const DepositModal = ({
                               allowances be reset to zero prior to being
                               increased.
                               <br />
-                              You will be prompted to execute two approval
-                              transactions to first reset and then increase the
-                              allowance for this market.
+                              {t(
+                                "common.labels.willPromptedExecuteTwoApproval",
+                              )}
                             </Typography>
                           }
                           icon={

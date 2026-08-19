@@ -196,7 +196,7 @@ export const NoWrapperState = ({
           >
             <UpArrow />
           </SvgIcon>
-          See {open ? "less" : "more"}
+          {t("marketDetails.lender.wrapDebtToken.see")} {open ? "less" : "more"}
         </Button>
       )}
     </Box>

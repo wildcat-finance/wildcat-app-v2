@@ -76,7 +76,9 @@ const SetMarketMLAForm = ({
         sx={{ display: "flex", flexDirection: "row", gap: 2, width: "100%" }}
       >
         <FormControl sx={{ mb: 2, width: "200px" }}>
-          <InputLabel>Select MLA Template</InputLabel>
+          <InputLabel>
+            {t("marketDetails.shared.mla.template.label")}
+          </InputLabel>
           <Select
             value={selectedTemplateId || ""}
             onChange={(e) =>

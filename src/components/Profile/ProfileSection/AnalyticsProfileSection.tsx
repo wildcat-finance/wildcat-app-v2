@@ -2,6 +2,7 @@
 
 import { Box, Button } from "@mui/material"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useBorrowerAggregateStats } from "@/app/[locale]/borrower/profile/hooks/analytics/useBorrowerAggregateStats"
@@ -24,6 +25,8 @@ export const AnalyticsProfileSection = ({
   profileAddress,
   externalChainId,
 }: ProfileSectionProps) => {
+  const { t } = useTranslation()
+
   const { chainId: selectedChainId } = useSelectedNetwork()
   const chainId = externalChainId ?? selectedChainId
   const analyticsAvailable = isSubgraphPricingConfigured(chainId)
@@ -53,7 +56,7 @@ export const AnalyticsProfileSection = ({
         <Box>
           <Link href={profileHref}>
             <Button size="small" variant="contained" color="primary">
-              View full borrower profile
+              {t("profile.viewFullBorrowerProfile")}
             </Button>
           </Link>
         </Box>
@@ -66,8 +69,8 @@ export const AnalyticsProfileSection = ({
         />
       ) : (
         <AnalyticsUnavailableNotice
-          title="Aggregate KPIs unavailable on this network"
-          description="This network does not provide the indexed analytics and pricing required for borrower KPIs."
+          title={t("common.labels.aggregateKpisUnavailableNetwork")}
+          description={t("profile.networkDoesNotProvideIndexed")}
         />
       )}
 

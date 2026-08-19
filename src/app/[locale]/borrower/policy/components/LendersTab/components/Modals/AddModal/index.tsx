@@ -123,7 +123,7 @@ export const AddModal = ({ disabled }: { disabled: boolean }) => {
         }}
       >
         <TxModalHeader
-          title="Add a new lender"
+          title={t("common.labels.addNewLender")}
           crossOnClick={null}
           arrowOnClick={handleClose}
         />
@@ -141,7 +141,7 @@ export const AddModal = ({ disabled }: { disabled: boolean }) => {
           <TextField
             fullWidth
             size="medium"
-            label="Wallet Address"
+            label={t("common.fields.walletAddress")}
             {...register("address")}
             error={!!errors.address}
           />

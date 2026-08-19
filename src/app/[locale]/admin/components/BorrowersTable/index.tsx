@@ -154,7 +154,7 @@ export const BorrowersTable = () => {
               color="error"
               onClick={() => setSelectedBorrower(params.row)}
             >
-              View Profile
+              {t("common.buttons.viewProfile")}
             </Button>
           )
         }

@@ -236,7 +236,7 @@ export const RepayAndTerminateFlow = ({
     >
       {(showTerminateForm || showRepayedPopup) && (
         <TxModalHeader
-          title="Terminate Market"
+          title={t("marketDetails.borrower.modals.terminate.terminateMarket")}
           arrowOnClick={modal.hideArrowButton ? null : handleHeaderBackClick}
           crossOnClick={modal.hideCrossButton ? null : onClose}
         />
@@ -345,7 +345,11 @@ export const RepayAndTerminateFlow = ({
                   paddingRight: "16px",
                 }}
               >
-                <Typography variant="text1">Balance</Typography>
+                <Typography variant="text1">
+                  {t(
+                    "marketDetails.borrower.authorisedLenders.tableHeaders.balance",
+                  )}
+                </Typography>
                 <Typography variant="text1" noWrap color={COLORS.blueRibbon}>
                   {formatTokenWithCommas(marketAccount.underlyingBalance, {
                     withSymbol: true,
@@ -354,7 +358,9 @@ export const RepayAndTerminateFlow = ({
               </Box>
 
               <Typography variant="text1">
-                Insufficient balance to repay remaining debts.
+                {t(
+                  "marketDetails.borrower.insufficientBalanceRepayRemainingDebts",
+                )}
               </Typography>
             </Box>
           )}

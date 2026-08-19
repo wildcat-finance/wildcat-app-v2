@@ -438,7 +438,7 @@ export const MobileMarketActions = ({
           >
             <Box>
               <MobileMarketTransactionItem
-                title="Available To Claim"
+                title={t("marketDetails.lender.availableClaim")}
                 amount={formatTokenWithCommas(withdrawals.totalClaimableAmount)}
                 asset={market.underlyingToken.symbol}
               />

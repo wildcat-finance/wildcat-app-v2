@@ -181,11 +181,11 @@ export const ConfirmModal = ({
         }}
       >
         <Typography variant="title3">
-          Confirm{" "}
+          {t("common.buttons.confirm")}{" "}
           <Typography variant="title3" color={COLORS.ultramarineBlue}>
             {policyName}
           </Typography>{" "}
-          Lenders Edits
+          {t("borrower.policies.lendersEdits")}
         </Typography>
 
         <Box
@@ -259,7 +259,7 @@ export const ConfirmModal = ({
             <SvgIcon>
               <Arrow />
             </SvgIcon>
-            Back
+            {t("common.buttons.back")}
           </Button>
           <Button
             variant="contained"
@@ -267,7 +267,7 @@ export const ConfirmModal = ({
             onClick={handleClickSubmit}
             sx={{ width: "144px" }}
           >
-            Confirm
+            {t("common.buttons.confirm")}
           </Button>
         </Box>
       </Dialog>

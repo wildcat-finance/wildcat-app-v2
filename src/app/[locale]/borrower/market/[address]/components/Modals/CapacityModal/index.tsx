@@ -95,8 +95,10 @@ export const CapacityModal = ({
       >
         {showForm && (
           <TxModalHeader
-            title="Adjust Capacity"
-            tooltip="Increase or decrease the maximum amount of credit extendable within this market."
+            title={t("marketDetails.borrower.buttons.capacity")}
+            tooltip={t(
+              "marketDetails.borrower.increaseDecreaseMaximumAmountCredit",
+            )}
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
@@ -116,7 +118,7 @@ export const CapacityModal = ({
             </Box>
 
             <NumberTextField
-              label="Enter a new capacity"
+              label={t("marketDetails.borrower.enterNewCapacity")}
               size="medium"
               style={{ width: "100%" }}
               value={amount}

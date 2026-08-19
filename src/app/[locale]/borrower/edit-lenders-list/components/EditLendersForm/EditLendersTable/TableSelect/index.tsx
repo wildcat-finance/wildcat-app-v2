@@ -312,7 +312,9 @@ export const TableSelect = ({
   return (
     <>
       <FormControl fullWidth>
-        <InputLabel sx={InputLabelStyle}>Add market</InputLabel>
+        <InputLabel sx={InputLabelStyle}>
+          {t("common.labels.addMarket")}
+        </InputLabel>
 
         <Select
           value={lenderMarkets}
@@ -369,7 +371,7 @@ export const TableSelect = ({
               onChange={handleChangeMarketName}
               fullWidth
               size="small"
-              placeholder="Search by Name"
+              placeholder={t("common.placeholders.searchByName")}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -390,7 +392,7 @@ export const TableSelect = ({
 
           <Box sx={VariantsContainer}>
             <FormControlLabel
-              label="All Markets"
+              label={t("common.fields.allMarkets")}
               control={
                 <ExtendedCheckbox
                   onChange={(event) => handleChangeAllMarkets(event)}

@@ -164,7 +164,9 @@ export const ProfileDialog = ({
                   variant="text2"
                   sx={{ width: "100%", fontWeight: 600, textAlign: "left" }}
                 >
-                  View {useLenderProfile ? "Lender" : "Borrower"} Profile
+                  {t("common.labels.view")}{" "}
+                  {useLenderProfile ? "Lender" : "Borrower"}{" "}
+                  {t("common.buttons.profile")}
                 </Typography>
               </Button>
             </Link>

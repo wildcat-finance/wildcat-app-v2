@@ -148,7 +148,7 @@ export const MobileHeader = ({ children }: { children: ReactNode }) => {
         }}
       >
         <Typography variant="mobH2" marginLeft="12px">
-          My Markets
+          {t("common.labels.myMarkets")}
         </Typography>
         {children}
       </Box>
@@ -164,12 +164,12 @@ export const MobileHeader = ({ children }: { children: ReactNode }) => {
         }}
       >
         <MobileSwitcherButton
-          label="Active Markets"
+          label={t("common.fields.activeMarkets")}
           amount={activeMarketsAmount}
           section={LenderMarketDashboardSections.ACTIVE}
         />
         <MobileSwitcherButton
-          label="Terminated Markets"
+          label={t("common.fields.terminatedMarkets")}
           amount={closedMarketsAmount}
           section={LenderMarketDashboardSections.TERMINATED}
         />

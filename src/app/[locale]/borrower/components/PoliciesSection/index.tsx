@@ -178,14 +178,16 @@ export const PoliciesSection = ({
         }}
       >
         <Box sx={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          <Typography variant="title2">Policies</Typography>
+          <Typography variant="title2">
+            {t("common.fields.policies")}
+          </Typography>
           <Typography variant="text3" color={COLORS.santasGrey}>
-            Common agreement for several markets.{" "}
+            {t("marketList.borrower.commonAgreementSeveralMarkets")}{" "}
             <Link
               href="https://docs.wildcat.finance/"
               style={{ color: COLORS.santasGrey }}
             >
-              Learn more
+              {t("common.buttons.learnMore")}
             </Link>
           </Typography>
         </Box>
@@ -203,11 +205,11 @@ export const PoliciesSection = ({
         <FilterTextField
           value={policyName}
           setValue={setPolicyName}
-          placeholder="Search by Name"
+          placeholder={t("common.placeholders.searchByName")}
         />
 
         <SmallFilterSelect
-          placeholder="Markets"
+          placeholder={t("common.placeholders.markets")}
           options={marketsOptions ?? []}
           selected={marketsFilter}
           setSelected={setMarketsFilter}
@@ -223,7 +225,9 @@ export const PoliciesSection = ({
           }}
         >
           <Box display="flex" columnGap="4px">
-            <Typography variant="text3">Policies</Typography>
+            <Typography variant="text3">
+              {t("common.fields.policies")}
+            </Typography>
             <Typography variant="text3" color={COLORS.santasGrey}>
               {isPoliciesLoading ? "Are Loading..." : rows.length}
             </Typography>

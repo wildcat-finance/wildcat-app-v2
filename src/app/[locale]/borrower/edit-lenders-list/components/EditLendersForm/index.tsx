@@ -151,7 +151,7 @@ export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
           value={lenderNameOrAddress}
           onChange={handleChangeLender}
           size="small"
-          placeholder="Search"
+          placeholder={t("common.buttons.search")}
           sx={{
             width: "320px",
             marginRight: "6px",

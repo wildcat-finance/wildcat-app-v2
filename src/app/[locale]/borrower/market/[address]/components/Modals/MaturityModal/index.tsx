@@ -175,7 +175,7 @@ export const MaturityModal = ({
         onClick={handleOpen}
         disabled={disableAdjustMaturity}
       >
-        Adjust Maturity
+        {t("marketDetails.borrower.adjustMaturity")}
       </Button>
 
       <Dialog
@@ -185,7 +185,7 @@ export const MaturityModal = ({
       >
         {showForm && (
           <TxModalHeader
-            title="Adjust Maturity"
+            title={t("marketDetails.borrower.adjustMaturity")}
             arrowOnClick={modal.handleCloseModal}
             crossOnClick={null}
           />
@@ -194,7 +194,7 @@ export const MaturityModal = ({
         {showForm && (
           <Box sx={{ width: "100%", height: "100%", padding: "12px 24px" }}>
             <ModalDataItem
-              title="Current Maturity"
+              title={t("marketDetails.borrower.currentMaturity")}
               value={
                 hooksConfig
                   ? formatUtcMaturity(hooksConfig.fixedTermEndTime)
@@ -207,7 +207,7 @@ export const MaturityModal = ({
 
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DesktopDatePicker
-                label="e.g. 25/12/2024"
+                label={t("common.placeholders.dateExampleHint")}
                 format="DD/MM/YYYY"
                 value={maturity}
                 onChange={(v) => {

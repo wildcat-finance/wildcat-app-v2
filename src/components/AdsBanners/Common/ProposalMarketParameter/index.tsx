@@ -2,6 +2,7 @@ import * as React from "react"
 import { ReactNode } from "react"
 
 import { Box, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { TooltipButton } from "@/components/TooltipButton"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -14,6 +15,8 @@ export const ProposalMarketParameter = ({
   proposal: ReactNode
   banner: ReactNode
 }) => {
+  const { t } = useTranslation()
+
   const isMobile = useMobileResolution()
 
   return (
@@ -45,7 +48,7 @@ export const ProposalMarketParameter = ({
             variant={isMobile ? "mobText3" : "text3"}
             color={COLORS.santasGrey}
           >
-            Rewards APR
+            {t("marketDetails.shared.banners.rewardsApr")}
           </Typography>
 
           <TooltipButton

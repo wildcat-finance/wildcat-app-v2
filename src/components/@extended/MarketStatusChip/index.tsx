@@ -1,6 +1,7 @@
 import { Box, Chip } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import Image from "next/image"
+import { useTranslation } from "react-i18next"
 
 import Clock from "@/assets/icons/clock_icon.svg"
 import Fire from "@/assets/icons/fire_icon.png"
@@ -16,6 +17,8 @@ export const MarketStatusChip = ({
   withPeriod = true,
   status,
 }: MarketStatusChipProps) => {
+  const { t } = useTranslation()
+
   let chipConfig
 
   switch (status.status) {
@@ -59,7 +62,12 @@ export const MarketStatusChip = ({
   const chipIcon =
     // eslint-disable-next-line no-nested-ternary
     status.status === "Penalty" ? (
-      <Image src={Fire} alt="Fire icon" height={12} width={12} />
+      <Image
+        src={Fire}
+        alt={t("common.labels.fireIconAlt")}
+        height={12}
+        width={12}
+      />
     ) : chipConfig.icon === undefined ? undefined : (
       <SvgIcon
         fontSize="tiny"

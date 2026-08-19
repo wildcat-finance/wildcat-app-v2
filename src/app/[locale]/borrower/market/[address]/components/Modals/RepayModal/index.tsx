@@ -286,7 +286,10 @@ export const RepayModal = ({
       market.underlyingToken.symbol
     }`}</Typography>
   ) : (
-    <TextfieldButton buttonText="Max" onClick={handleClickMaxAmount} />
+    <TextfieldButton
+      buttonText={t("common.buttons.max")}
+      onClick={handleClickMaxAmount}
+    />
   )
 
   useEffect(() => {
@@ -407,7 +410,7 @@ export const RepayModal = ({
       >
         {showForm && (
           <TxModalHeader
-            title="Repay"
+            title={t("marketDetails.borrower.modals.repay.repay")}
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
@@ -421,7 +424,7 @@ export const RepayModal = ({
               <Tabs
                 value={type}
                 onChange={handleChangeTabs}
-                aria-label="repay type"
+                aria-label={t("marketDetails.borrower.repayType")}
                 className="contained"
                 sx={{
                   width: "100%",
@@ -429,13 +432,13 @@ export const RepayModal = ({
               >
                 <Tab
                   value="sum"
-                  label="Sum"
+                  label={t("marketDetails.borrower.sum")}
                   className="contained"
                   sx={{ width: "196px" }}
                 />
                 <Tab
                   value="days"
-                  label="Days*"
+                  label={t("marketDetails.borrower.days")}
                   className="contained"
                   sx={{ width: "196px" }}
                 />
@@ -598,8 +601,7 @@ export const RepayModal = ({
               {market.underlyingToken.symbol} requires that allowances be reset
               to zero prior to being increased.
               <br />
-              You will be prompted to execute two approval transactions to first
-              reset and then increase the allowance for this market.
+              {t("common.labels.willPromptedExecuteTwoApproval")}
             </Typography>
           </Box>
         )}

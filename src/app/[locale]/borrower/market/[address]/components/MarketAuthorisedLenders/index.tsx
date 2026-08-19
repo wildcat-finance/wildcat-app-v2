@@ -285,7 +285,9 @@ export const MarketAuthorisedLenders = ({
                 bgcolor: COLORS.blackHaze,
               }}
             >
-              <Typography variant="text4">Deposit</Typography>
+              <Typography variant="text4">
+                {t("common.labels.deposit")}
+              </Typography>
             </Box>
           )}
           {value === ("Deposit & Withdraw" || "Withdraw Only") && (
@@ -298,7 +300,9 @@ export const MarketAuthorisedLenders = ({
                 bgcolor: COLORS.blackHaze,
               }}
             >
-              <Typography variant="text4">Withdraw</Typography>
+              <Typography variant="text4">
+                {t("common.buttons.withdraw")}
+              </Typography>
             </Box>
           )}
           {value === "Blocked From Deposits" && (
@@ -311,7 +315,9 @@ export const MarketAuthorisedLenders = ({
                 bgcolor: COLORS.blackHaze,
               }}
             >
-              <Typography variant="text4">Blocked From Deposits</Typography>
+              <Typography variant="text4">
+                {t("marketDetails.borrower.blockedDeposits")}
+              </Typography>
             </Box>
           )}
           {value === "Credential Expired" && (
@@ -324,7 +330,9 @@ export const MarketAuthorisedLenders = ({
                 bgcolor: COLORS.blackHaze,
               }}
             >
-              <Typography variant="text4">Credential Expired</Typography>
+              <Typography variant="text4">
+                {t("marketDetails.borrower.credentialExpired")}
+              </Typography>
             </Box>
           )}
           {value === "Provider Removed" && (
@@ -337,7 +345,9 @@ export const MarketAuthorisedLenders = ({
                 bgcolor: COLORS.blackHaze,
               }}
             >
-              <Typography variant="text4">Provider Removed</Typography>
+              <Typography variant="text4">
+                {t("marketDetails.borrower.providerRemoved")}
+              </Typography>
             </Box>
           )}
         </Box>
@@ -537,14 +547,14 @@ export const MarketAuthorisedLenders = ({
           <Box sx={{ width: "100%", display: "flex", gap: "11px" }}>
             <Box sx={NumberOfLenders}>
               <Typography variant="text4" color={COLORS.santasGrey}>
-                Number of Lenders
+                {t("marketDetails.borrower.numberLenders")}
               </Typography>
               <Typography variant="text1">{authorizedRows.length}</Typography>
             </Box>
 
             <Box sx={NumberOfLenders}>
               <Typography variant="text4" color={COLORS.santasGrey}>
-                Lenders Currently in the Market
+                {t("marketDetails.borrower.lendersCurrentlyMarket")}
               </Typography>
               <Typography variant="text1" color={COLORS.ultramarineBlue}>
                 {lendersInMarket}
@@ -586,7 +596,7 @@ export const MarketAuthorisedLenders = ({
             }}
             summarySx={{ color: COLORS.blueRibbon }}
             iconColor={COLORS.blueRibbon}
-            title="Deleted Lenders"
+            title={t("marketDetails.borrower.deletedLenders")}
           >
             <DataGrid
               sx={{

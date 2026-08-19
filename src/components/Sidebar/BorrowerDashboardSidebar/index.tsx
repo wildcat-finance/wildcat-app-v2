@@ -189,7 +189,7 @@ export const BorrowerDashboardSidebar = () => {
 
       {showFullFunctionality && (
         <DashboardPageAccordion
-          label="Policies"
+          label={t("common.fields.policies")}
           amount={policiesAmount}
           open={section === BorrowerDashboardSections.POLICIES}
           onClick={() =>

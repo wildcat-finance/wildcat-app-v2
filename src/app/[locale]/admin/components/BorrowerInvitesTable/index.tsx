@@ -177,7 +177,7 @@ export const BorrowerInvitesTable = () => {
           }
           return (
             <Typography variant="text3" color={COLORS.blackRock07}>
-              Pending Registration
+              {t("admin.borrowers.pendingRegistration")}
             </Typography>
           )
         }

@@ -17,6 +17,7 @@ import {
 } from "@mui/material"
 import { HooksKind } from "@wildcatfi/wildcat-sdk"
 import { usePathname } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 import FilterIcon from "@/assets/icons/filter_icon.svg"
 import SortAscIcon from "@/assets/icons/tableSort-ascSort_icon.svg"
@@ -148,6 +149,8 @@ export const MobileMarketList = ({
   groupByAsset?: boolean
   enableToolbar?: boolean
 }) => {
+  const { t } = useTranslation()
+
   const [page, setPage] = useState(0)
   const [sortField, setSortField] = useState<SortField>(
     variant === "borrower-context" ? "debt" : "name",
@@ -263,9 +266,13 @@ export const MobileMarketList = ({
           }}
           sx={segmentedSx}
         >
-          <ToggleButton value="all">All</ToggleButton>
-          <ToggleButton value="healthy">Healthy</ToggleButton>
-          <ToggleButton value="issues">Issues</ToggleButton>
+          <ToggleButton value="all">{t("common.buttons.all")}</ToggleButton>
+          <ToggleButton value="healthy">
+            {t("common.labels.healthy")}
+          </ToggleButton>
+          <ToggleButton value="issues">
+            {t("marketList.shared.issues")}
+          </ToggleButton>
         </ToggleButtonGroup>
 
         <ToggleButtonGroup
@@ -280,9 +287,11 @@ export const MobileMarketList = ({
           }}
           sx={segmentedSx}
         >
-          <ToggleButton value="all">All</ToggleButton>
-          <ToggleButton value="open">Open</ToggleButton>
-          <ToggleButton value="fixed">Fixed</ToggleButton>
+          <ToggleButton value="all">{t("common.buttons.all")}</ToggleButton>
+          <ToggleButton value="open">{t("common.buttons.open")}</ToggleButton>
+          <ToggleButton value="fixed">
+            {t("marketList.shared.fixed")}
+          </ToggleButton>
         </ToggleButtonGroup>
       </Box>
 
@@ -410,9 +419,11 @@ export const MobileMarketList = ({
           alignItems: "center",
         }}
       >
-        <Typography variant="mobH3">No Markets Here</Typography>
+        <Typography variant="mobH3">
+          {t("marketList.shared.noMarketsHere")}
+        </Typography>
         <Typography variant="mobText3" color={COLORS.santasGrey}>
-          Change selected filters or check other sections
+          {t("marketList.shared.changeSelectedFiltersCheckOther")}
         </Typography>
       </Box>
     )
@@ -449,7 +460,7 @@ export const MobileMarketList = ({
             }}
           >
             <Typography variant="mobText3" color={COLORS.santasGrey}>
-              No markets match the current filters.
+              {t("marketList.shared.noMarketsMatchCurrentFilters")}
             </Typography>
           </Box>
         )}
@@ -556,7 +567,7 @@ export const MobileMarketList = ({
               borderRadius: "8px",
             }}
           >
-            Prev
+            {t("common.buttons.prev")}
           </Button>
 
           <Box sx={{ display: "flex", gap: "8px" }}>
@@ -632,7 +643,7 @@ export const MobileMarketList = ({
               borderRadius: "8px",
             }}
           >
-            Next
+            {t("common.buttons.next")}
           </Button>
         </Box>
       )}

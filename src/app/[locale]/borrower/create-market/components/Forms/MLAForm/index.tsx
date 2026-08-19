@@ -146,7 +146,7 @@ export const MlaForm = ({ form }: MLAFormProps) => {
           {isLoadingTemplates && (
             <FormControlLabel
               key="loading"
-              label="Loading templates..."
+              label={t("borrower.createMarket.loadingTemplates")}
               control={
                 <ExtendedRadio
                   value="loading"
