@@ -17,13 +17,32 @@
       "files": [
         "src/**/*.{ts,js,tsx,jsx}"
       ]
+    },
+    {
+      "files": [
+        "src/**/*.stories.{ts,tsx}",
+        "src/**/*.test.{ts,tsx}",
+        "src/**/*.d.ts",
+        "src/lib/**",
+        "src/store/**",
+        "src/providers/**",
+        "src/utils/**",
+        "src/hooks/**",
+        "src/app/api/**",
+        "src/theme/**",
+        "**/agreement/components/AgreementText/**"
+      ],
+      "rules": {
+        "i18next/no-literal-string": "off"
+      }
     }
   ],
   "plugins": [
     "react",
     "prettier",
     "@typescript-eslint",
-    "import"
+    "import",
+    "i18next"
   ],
   "ignorePatterns": [
     "node_modules/",
@@ -73,7 +92,11 @@
     "import/order": [
       "error",
       {
-        "groups": ["builtin", "external", "internal"],
+        "groups": [
+          "builtin",
+          "external",
+          "internal"
+        ],
         "pathGroups": [
           {
             "pattern": "react",
@@ -81,12 +104,44 @@
             "position": "before"
           }
         ],
-        "pathGroupsExcludedImportTypes": ["react"],
+        "pathGroupsExcludedImportTypes": [
+          "react"
+        ],
         "newlines-between": "always",
         "alphabetize": {
           "order": "asc",
           "caseInsensitive": true
         }
+      }
+    ],
+    "i18next/no-literal-string": [
+      "warn",
+      {
+        "markupOnly": true,
+        "ignoreAttribute": [
+          "data-testid",
+          "data-test",
+          "data-cy",
+          "type",
+          "className",
+          "id",
+          "role",
+          "href",
+          "src",
+          "name",
+          "key",
+          "to",
+          "as",
+          "sx",
+          "variant",
+          "color",
+          "size",
+          "align",
+          "component",
+          "direction",
+          "justifyContent",
+          "alignItems"
+        ]
       }
     ]
   },

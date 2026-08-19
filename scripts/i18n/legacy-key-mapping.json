@@ -14,7 +14,7 @@
     }
   },
   "stats": {
-    "confident": 830,
+    "confident": 832,
     "conflicting": 0,
     "corrections": 1,
     "rejected": 2
@@ -821,6 +821,8 @@
     "link.viewOnEtherscan": "common.links.viewOnEtherscan",
     "marketParameters.marketType.fixedTerm.text": "marketParameters.marketType.FixedTerm.text",
     "marketParameters.marketType.openTerm.text": "marketParameters.marketType.OpenTerm.text",
+    "marketParameters.policyType.fixedTerm": "marketParameters.policyType.FixedTerm",
+    "marketParameters.policyType.openTerm": "marketParameters.policyType.OpenTerm",
     "marketRecords.table.header.event": "marketDetails.shared.records.columns.event",
     "marketRecords.table.header.time": "marketDetails.shared.records.columns.time",
     "marketRecords.table.header.transactionHash": "common.fields.transactionId",
@@ -865,6 +867,7 @@
     "method": "Grouped all live mappings by target. Inspected every many-to-one collapse (23) and every cross-role move (0). All 23 collapses had identical source wording, so each is a genuine rule-4 atom. Two were mis-homed and are recorded in `corrections`/`rejected`.",
     "notes": "The six cross-section traps this review was warned about (editPolicy.title, admin.inviteBorrower.*Label, *.allMarkets) are all moot: their source keys were deleted as orphans in Task 6, so the bad mappings can never fire.",
     "task9Batch1": "236 mappings added 2026-08-19 for borrowerMarketDetails.* and lenderMarketDetails.*, by the prefix rules in the plan. Two flattenings applied to respect the depth-6 rule: `projection.periods.oneYear` -> `projection.oneYear` (periods repeats its parent), and `steps.<group>.<leaf>` -> `steps.<group><Leaf>` for the withdraw flow, which is already four segments deep before `steps`.",
-    "task9Batch2": "105 mappings added 2026-08-19 for the ten remaining legacy sections. Two flattenings for the depth-6 rule: `verification.fields.verified.X` -> `verification.verified.X` (`fields` repeats the group), and the lone surviving createMarket key dropped its `forms.marketDescription.block` scaffolding, which was structure inherited from the section deleted in Task 6."
+    "task9Batch2": "105 mappings added 2026-08-19 for the ten remaining legacy sections. Two flattenings for the depth-6 rule: `verification.fields.verified.X` -> `verification.verified.X` (`fields` repeats the group), and the lone surviving createMarket key dropped its `forms.marketDescription.block` scaffolding, which was structure inherited from the section deleted in Task 6.",
+    "policyTypeCasing": "The recovered mapping lower-cased two of the four policyType enum segments (OpenTerm/FixedTerm) while leaving Unknown/PeriodicTerm PascalCase. Since these segments name HooksKind *values*, and the sibling families (marketTerm, marketTypeChip) are PascalCase, the two were normalised back. Convention rule 2."
   }
 }

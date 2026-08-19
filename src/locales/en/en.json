@@ -1266,8 +1266,8 @@
       "withdrawalWindowDurationTooltip": "How long each withdrawal window stays open. Lenders can only queue withdrawals while a window is open. This is separate from the Withdrawal Cycle Duration, which controls how long a queued withdrawal batch stays open."
     },
     "policyType": {
-      "fixedTerm": "Fixed Term (withdrawals post-maturity)",
-      "openTerm": "Open Term (no withdrawal constraints)",
+      "FixedTerm": "Fixed Term (withdrawals post-maturity)",
+      "OpenTerm": "Open Term (no withdrawal constraints)",
       "PeriodicTerm": "Periodic Term (scheduled withdrawal windows)",
       "Unknown": "Unknown Term"
     },
