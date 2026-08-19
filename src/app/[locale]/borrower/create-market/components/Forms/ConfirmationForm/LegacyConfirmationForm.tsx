@@ -41,7 +41,10 @@ const LegacyFinancialSection = ({
 
         <ConfirmationFormItem
           label={t("createNewMarket.financial.baseAPR.label")}
-          value={`${getValues("annualInterestBips")}%`}
+          value={`${formatNumberWithCommas(
+            getValues("annualInterestBips"),
+            2,
+          )}%`}
         />
 
         <ConfirmationFormItem
@@ -55,21 +58,30 @@ const LegacyFinancialSection = ({
 
         <ConfirmationFormItem
           label={t("createNewMarket.financial.penaltyAPR.label")}
-          value={`${getValues("delinquencyFeeBips")}%`}
+          value={`${formatNumberWithCommas(
+            getValues("delinquencyFeeBips"),
+            2,
+          )}%`}
         />
 
         <ConfirmationFormItem
           label={t("createNewMarket.financial.ratio.label")}
-          value={`${getValues("reserveRatioBips")}%`}
+          value={`${formatNumberWithCommas(getValues("reserveRatioBips"), 2)}%`}
         />
 
         <ConfirmationFormItem
           label={t("createNewMarket.periods.grace.label")}
-          value={`${getValues("delinquencyGracePeriod")} hours`}
+          value={`${formatNumberWithCommas(
+            getValues("delinquencyGracePeriod"),
+            2,
+          )} hours`}
         />
         <ConfirmationFormItem
           label={t("createNewMarket.periods.wdCycle.label")}
-          value={`${getValues("withdrawalBatchDuration")} hours`}
+          value={`${formatNumberWithCommas(
+            getValues("withdrawalBatchDuration"),
+            2,
+          )} hours`}
         />
 
         <ConfirmationFormItem
