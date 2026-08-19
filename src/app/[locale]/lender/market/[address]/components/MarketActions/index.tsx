@@ -4,8 +4,9 @@ import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
 import { DepositStatus, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
-import { LenderMlaModal } from "@/app/[locale]/lender/components/LenderMlaModal"
+import { LenderMlaModal } from "@/app/[locale]/lender/market/[address]/components/MarketActions/LenderMlaModal"
 import { TransactionsContainer } from "@/app/[locale]/lender/market/[address]/components/MarketActions/styles"
 import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
@@ -17,9 +18,11 @@ import { toastError } from "@/components/Toasts"
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useDepositAgreementGate } from "@/hooks/useDepositAgreementGate"
+import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useLivePeriodicNowSeconds } from "@/hooks/useLiveNowSeconds"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { useWrapperAccountState } from "@/hooks/wrapper/useWrapperAccountState"
 import { useAppDispatch } from "@/store/hooks"
 import {
   LenderMarketSections,
@@ -67,12 +70,32 @@ export const MarketActions = ({
   marketAccount,
   withdrawals,
   accessState,
+  wrapper,
+  hasWrapper,
   borrowerPenaltyWarningState,
   refreshBorrowerPenaltyWarning,
 }: MarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
   const { isTestnet } = useSelectedNetwork()
+  const { address } = useAccount()
+  const { publicClient } = useEthersProvider({ chainId: market.chainId })
+  const { data: wrapperAccountState } = useWrapperAccountState(
+    market.chainId,
+    wrapper,
+    address,
+    publicClient,
+  )
+
+  const smallestTokenAmountValue = market.underlyingToken.parseAmount("0.00001")
+  const wrappedCap =
+    hasWrapper && wrapper ? wrapperAccountState?.limits?.maxWithdraw : undefined
+  const hasWrappedPosition =
+    !!wrappedCap && wrappedCap.gte(smallestTokenAmountValue)
+  const wrappedAvailable = hasWrappedPosition ? wrappedCap : undefined
+  const combinedAvailable = wrappedAvailable
+    ? marketAccount.marketBalance.add(wrappedAvailable)
+    : marketAccount.marketBalance
 
   const { data: mla, isLoading: mlaLoading } = useMarketMla(
     market.address,
@@ -106,7 +129,7 @@ export const MarketActions = ({
   const withdrawalActionState = resolveLenderWithdrawalActionState({
     accessState,
     hasMarketAccount: true,
-    hasMarketBalance: marketAccount.marketBalance.gt(0),
+    hasMarketBalance: combinedAvailable.gt(0),
     withdrawalAvailability: marketAccount.withdrawalAvailability,
     periodicWindowClosed,
   })
@@ -182,13 +205,8 @@ export const MarketActions = ({
     return parts.join(" · ")
   }
 
-  const smallestTokenAmountValue = market.underlyingToken.parseAmount(
-    "0.00001".replace(/,/g, ""),
-  )
-
   const isTooSmallMarketBalance: boolean =
-    marketAccount.marketBalance.lt(smallestTokenAmountValue) &&
-    !marketAccount.marketBalance.eq(0)
+    combinedAvailable.lt(smallestTokenAmountValue) && !combinedAvailable.eq(0)
 
   return (
     <>
@@ -340,12 +358,24 @@ export const MarketActions = ({
             amount={
               isTooSmallMarketBalance
                 ? `< 0.00001`
-                : formatTokenWithCommas(marketAccount.marketBalance)
+                : formatTokenWithCommas(combinedAvailable)
             }
             asset={market.underlyingToken.symbol}
+            subtitle={
+              hasWrappedPosition && wrappedAvailable
+                ? t("lenderMarketDetails.transactions.withdraw.split", {
+                    direct: formatTokenWithCommas(marketAccount.marketBalance),
+                    wrapped: formatTokenWithCommas(wrappedAvailable),
+                  })
+                : undefined
+            }
           >
             {withdrawalActionState === "ready" ? (
-              <WithdrawModal marketAccount={marketAccount} />
+              <WithdrawModal
+                marketAccount={marketAccount}
+                wrapper={wrapper}
+                hasWrapper={hasWrapper}
+              />
             ) : (
               <Box sx={DepositStatusContainer}>
                 <Typography variant="text4" color={COLORS.santasGrey}>
@@ -356,7 +386,7 @@ export const MarketActions = ({
           </TransactionBlock>
         </Box>
 
-        {periodicWindowClosed && !marketAccount.marketBalance.raw.isZero() && (
+        {periodicWindowClosed && !combinedAvailable.raw.isZero() && (
           <PeriodicWithdrawalWindowNotice
             market={market}
             sx={{ marginTop: "12px" }}

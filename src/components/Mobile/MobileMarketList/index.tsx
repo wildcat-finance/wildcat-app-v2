@@ -535,7 +535,10 @@ export const MobileMarketList = ({
                   </Typography>
                 )}
                 <MarketCard
-                  adsComponent={getAdsMobileContent(marketItem.id)}
+                  adsComponent={getAdsMobileContent(
+                    marketItem.chainId ?? 0,
+                    marketItem.id,
+                  )}
                   marketItem={marketItem}
                   buttonText={buttonText}
                   buttonIcon={

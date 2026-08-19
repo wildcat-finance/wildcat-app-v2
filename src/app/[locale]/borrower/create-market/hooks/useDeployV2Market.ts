@@ -51,6 +51,8 @@ import {
   waitForSafeTransactionExecution,
 } from "@/utils/transactions"
 
+import { getCreateMarketFormFingerprint } from "../validation/deployFingerprint"
+
 export type DeployNewV2MarketParams = (
   | (Omit<
       FixedTermMarketDeploymentArgs,
@@ -86,6 +88,7 @@ export type DeployNewV2MarketParams = (
   mlaSignature: string
   deployWrapper?: boolean
   draftId?: string
+  deployFingerprint: string
 }
 
 export type CompleteDeployedV2MarketParams = {
@@ -162,7 +165,12 @@ export const useDeployV2Market = () => {
   }
 
   const [deployed, setDeployed] = useState<
-    | { salt: string; marketKind: "standard" | "revolving"; market: string }
+    | {
+        salt: string
+        marketKind: "standard" | "revolving"
+        fingerprint: string
+        market: string
+      }
     | undefined
   >()
   const dispatch = useAppDispatch()
@@ -515,6 +523,7 @@ export const useDeployV2Market = () => {
       mlaSignature,
       deployWrapper,
       draftId,
+      deployFingerprint,
       ...marketParams
     } = params
     if (!hooksTemplate) throw Error("No hooks template")
@@ -561,13 +570,29 @@ export const useDeployV2Market = () => {
       hooksTemplate: hooksTemplate.hooksTemplate,
     })
 
+    const throwParamsChangedAfterDeployment = () => {
+      throw Error(
+        "A market was already deployed for this signature with different settings. Restore those settings to complete its agreement, or start a new market.",
+      )
+    }
+
     let marketAddress: string | undefined
     if (
       deployed?.salt === marketParams.salt &&
       deployed.marketKind === marketParams.marketKind
     ) {
+      if (deployed.fingerprint !== deployFingerprint) {
+        throwParamsChangedAfterDeployment()
+      }
       marketAddress = deployed.market
     } else if (persistedMarket) {
+      if (
+        persistedDraft &&
+        getCreateMarketFormFingerprint(persistedDraft.formValues) !==
+          deployFingerprint
+      ) {
+        throwParamsChangedAfterDeployment()
+      }
       marketAddress = persistedMarket
     } else if (
       (await activeSigner.provider.getCode(predictedMarket)) !== "0x"
@@ -579,6 +604,7 @@ export const useDeployV2Market = () => {
       setDeployed({
         salt: marketParams.salt,
         marketKind: marketParams.marketKind,
+        fingerprint: deployFingerprint,
         market: marketAddress,
       })
       if (persistedDraft) {
@@ -775,6 +801,7 @@ export const useDeployV2Market = () => {
       setDeployed({
         salt: marketParams.salt,
         marketKind: marketParams.marketKind,
+        fingerprint: deployFingerprint,
         market: marketAddress,
       })
       if (persistedDraft) {

@@ -155,8 +155,15 @@ describe("useLenderMarketAccountQuery", () => {
       exact: true,
     })
 
-    expect(initialQuery?.options.refetchInterval).toBe(60_000)
-    expect(updateQuery?.options.refetchInterval).toBe(POLLING_INTERVAL)
+    const initialQueryOptions = initialQuery?.options as
+      | { refetchInterval?: unknown }
+      | undefined
+    const updateQueryOptions = updateQuery?.options as
+      | { refetchInterval?: unknown }
+      | undefined
+
+    expect(initialQueryOptions?.refetchInterval).toBe(60_000)
+    expect(updateQueryOptions?.refetchInterval).toBe(POLLING_INTERVAL)
   })
 
   it("keeps an indexed-only account in resolving state", async () => {

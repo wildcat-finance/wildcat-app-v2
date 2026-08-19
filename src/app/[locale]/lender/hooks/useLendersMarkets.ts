@@ -1,3 +1,5 @@
+import { useMemo } from "react"
+
 import { useQuery } from "@tanstack/react-query"
 import {
   SignerOrProvider,
@@ -19,6 +21,10 @@ import { cloneSdkObject } from "@/lib/sdk-object"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TOKENS_ADDRESSES } from "@/utils/constants"
 import { isNotExcludedMarket } from "@/utils/filters"
+import {
+  getSubgraphMarketOnboardingMode,
+  MarketOnboardingByAddress,
+} from "@/utils/marketOnboarding"
 import { refreshMarketAccountsV2LiveDataSafe } from "@/utils/marketV2Reads"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
@@ -61,8 +67,12 @@ function getChunks<T extends Market | MarketAccount>(
 
 type LenderStatusUpdate = Parameters<MarketAccount["updateWith"]>[0]
 
+export type LenderMarketsOnboardingStatus = "loading" | "ready" | "error"
+
 type UseLendersMarketsResult = TwoStepQueryHookResult<MarketAccount[]> & {
   hasLiveData: boolean
+  onboardingByMarket: MarketOnboardingByAddress
+  onboardingStatus: LenderMarketsOnboardingStatus
 }
 
 function zeroLenderBalances(lenderStatus: LenderStatusUpdate) {
@@ -144,6 +154,16 @@ export function useLendersMarkets(): UseLendersMarketsResult {
   })
 
   const accounts = data ?? []
+  const onboardingByMarket = useMemo(() => {
+    const result: MarketOnboardingByAddress = {}
+    accounts.forEach(({ market }) => {
+      const onboardingMode = getSubgraphMarketOnboardingMode(market)
+      if (onboardingMode) {
+        result[market.address.toLowerCase()] = onboardingMode
+      }
+    })
+    return result
+  }, [accounts, indexedDataUpdatedAt])
 
   async function getLenderUpdates() {
     logger.debug(`Getting lender updates...`)
@@ -220,9 +240,15 @@ export function useLendersMarkets(): UseLendersMarketsResult {
     refetchOnWindowFocus: true,
   })
 
+  let onboardingStatus: LenderMarketsOnboardingStatus = "loading"
+  if (isErrorInitial) onboardingStatus = "error"
+  else if (data) onboardingStatus = "ready"
+
   return {
     data: updatedLenders ?? accounts,
     hasLiveData: updatedLenders !== undefined,
+    onboardingByMarket,
+    onboardingStatus,
     isLoadingInitial,
     isErrorInitial,
     errorInitial: errorInitial as Error | null,

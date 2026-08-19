@@ -39,12 +39,14 @@ import { PendingAprReductionBanner } from "@/components/PendingAprReductionBanne
 import { ProfileSection } from "@/components/Profile/ProfileSection"
 import { METRIC_BASIS } from "@/components/Profile/shared/metricBasis"
 import { analyticsUiEnabled } from "@/config/featureFlags"
+import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketDetailPerformanceMark } from "@/hooks/useMarketDetailPerformance"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
+import { useWrapperAccountState } from "@/hooks/wrapper/useWrapperAccountState"
 import { useWrapperForMarket } from "@/hooks/wrapper/useWrapperForMarket"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -163,6 +165,23 @@ export default function LenderMarketDetails({
   } = useLenderMarketAccount(market)
   const { data: withdrawals, isLoadingInitial: isWithdrawalsLoading } =
     useGetLenderWithdrawals(market)
+  const {
+    wrapper,
+    hasWrapper,
+    hasFactory,
+    isLoading: isWrapperLookupLoading,
+    isError: isWrapperError,
+  } = useWrapperForMarket(market)
+  const { publicClient: marketPublicClient } = useEthersProvider({
+    chainId: market?.chainId,
+  })
+  const { data: wrapperAccountState, isLoading: isWrapperAccountStateLoading } =
+    useWrapperAccountState(
+      market?.chainId,
+      wrapper,
+      connectedAddress,
+      marketPublicClient,
+    )
   useMarketDetailPerformanceMark(
     "account-ready",
     performanceContext,
@@ -282,7 +301,10 @@ export default function LenderMarketDetails({
     accessState: lenderAccessState,
   })
   const authorizedInMarket = lenderAccessState === "authorized"
-  const hasMarketPosition = marketAccount?.marketBalance.gt(0) ?? false
+  const hasWrappedMarketPosition =
+    wrapperAccountState?.balances?.shareBalance.gt(0) ?? false
+  const hasMarketPosition =
+    (marketAccount?.marketBalance.gt(0) ?? false) || hasWrappedMarketPosition
   const hasWithdrawalActivity =
     !!withdrawals.activeWithdrawal ||
     withdrawals.expiredPendingWithdrawals.length > 0
@@ -291,15 +313,11 @@ export default function LenderMarketDetails({
     hasMarketPosition,
     hasWithdrawalActivity,
   })
-
-  const {
-    wrapper,
-    hasWrapper,
-    hasFactory,
-    isLoading: isWrapperLookupLoading,
-    isError: isWrapperError,
-  } = useWrapperForMarket(market)
   const isWrapperLoading = isWrapperLookupLoading
+  const isWrapperPositionLoading =
+    isConnected &&
+    hasFactory &&
+    (isWrapperLookupLoading || (hasWrapper && isWrapperAccountStateLoading))
 
   const isLoadingMarket = isMarketLoading || apiLoading || isDiscoveringChainId
   const isLoading = !marketError && (isLoadingMarket || !market)
@@ -308,7 +326,8 @@ export default function LenderMarketDetails({
     isDifferentChain,
     accessState: lenderAccessState,
     hasLenderTransactions: showLenderTransactions,
-    isWithdrawalActivityLoading: isWithdrawalsLoading,
+    isWithdrawalActivityLoading:
+      isWithdrawalsLoading || isWrapperPositionLoading,
   })
   const showLenderAccessLoading = lenderSurfaceState === "authorization-loading"
   const showLenderAccessError = lenderSurfaceState === "authorization-error"
@@ -574,6 +593,8 @@ export default function LenderMarketDetails({
     return (
       <WithdrawModal
         marketAccount={marketAccount}
+        wrapper={wrapper}
+        hasWrapper={hasWrapper}
         isMobileOpen={isMobileWithdrawalOpen}
         setIsMobileOpen={setIsMobileWithdrawalOpen}
       />
@@ -606,6 +627,8 @@ export default function LenderMarketDetails({
               marketAccount={marketAccount}
               withdrawals={withdrawals}
               accessState={lenderAccessState}
+              wrapper={wrapper}
+              hasWrapper={hasWrapper}
               isMobileWithdrawalOpen={isMobileWithdrawalOpen}
               setIsMobileDepositOpen={setIsMobileDepositOpen}
               setIsMobileAcknowledgementOpen={setIsMobileAcknowledgementOpen}
@@ -634,6 +657,8 @@ export default function LenderMarketDetails({
               marketAccount={marketAccount}
               withdrawals={withdrawals}
               accessState={lenderAccessState}
+              wrapper={wrapper}
+              hasWrapper={hasWrapper}
               isMobileWithdrawalOpen={isMobileWithdrawalOpen}
               setIsMobileDepositOpen={setIsMobileDepositOpen}
               setIsMobileAcknowledgementOpen={setIsMobileAcknowledgementOpen}
@@ -823,6 +848,8 @@ export default function LenderMarketDetails({
                 marketAccount={marketAccount}
                 withdrawals={withdrawals}
                 accessState={lenderAccessState}
+                wrapper={wrapper}
+                hasWrapper={hasWrapper}
                 isMobileWithdrawalOpen={isMobileWithdrawalOpen}
                 setIsMobileDepositOpen={setIsMobileDepositOpen}
                 setIsMobileAcknowledgementOpen={setIsMobileAcknowledgementOpen}
@@ -867,6 +894,7 @@ export default function LenderMarketDetails({
               subtitle="Connect a wallet to deposit into this market, view your position, and manage withdrawals."
               buttonText="Connect Wallet"
               buttonOnClick={() => setIsConnectDialogOpen(true)}
+              compact
             />
           </Box>
         )}
@@ -943,6 +971,8 @@ export default function LenderMarketDetails({
                         marketAccount={marketAccount}
                         withdrawals={withdrawals}
                         accessState={lenderAccessState}
+                        wrapper={wrapper}
+                        hasWrapper={hasWrapper}
                         borrowerPenaltyWarningState={
                           borrowerPenaltyWarning.state
                         }
