@@ -68,7 +68,7 @@ export const OverallBlock = ({
   const normalizedMarkets =
     marketsAmount !== undefined ? String(marketsAmount) : "0"
 
-  const normalizedDefaults = defaults !== undefined ? String(defaults) : "0"
+  const normalizedDefaults = defaults !== undefined ? String(defaults) : "—"
 
   const profileInfo: ProfileItem[] = [
     makeInformationItem(t("borrowerProfile.profile.overallInfo.name"), name, {

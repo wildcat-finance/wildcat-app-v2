@@ -13,6 +13,7 @@ import {
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { invalidateMarketAccountQueries } from "@/utils/marketAccountQueries"
 import {
   toSdkTransactionRequest,
   toSafeTransactions,
@@ -146,30 +147,15 @@ export const useSettleAndApplyPendingApr = (
       client.invalidateQueries({
         queryKey: [PERIODIC_APR_SETTLEMENT_QUOTE_KEY],
       })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
-          marketAccount.market.chainId,
-          marketAccount.market.address,
-        ),
+      invalidateMarketAccountQueries({
+        client,
+        chainId: marketAccount.market.chainId,
+        marketAddress: marketAccount.market.address,
+        accountAddress: marketAccount.account,
       })
       client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_BORROWER_MARKET_ACCOUNT_LEGACY(
+        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS.PREFIX(
           marketAccount.market.chainId,
-          marketAccount.account,
-          marketAccount.market.address,
-        ),
-      })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
-          marketAccount.market.chainId,
-          "initial",
-          marketAccount.market.address,
-        ),
-      })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
-          marketAccount.market.chainId,
-          "update",
           marketAccount.market.address,
         ),
       })

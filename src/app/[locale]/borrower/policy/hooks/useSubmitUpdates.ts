@@ -12,6 +12,7 @@ import { useWildcatClient } from "@/hooks/useEthersSigner"
 import { useAppDispatch } from "@/store/hooks"
 import { resetPolicyLendersState } from "@/store/slices/policyLendersSlice/policyLendersSlice"
 import {
+  getLenderUpdateSafeBatch,
   isV2HooksInstance,
   lenderPolicyErrorAbi,
   prepareLenderRestoration,
@@ -31,7 +32,7 @@ export type SubmitPolicyUpdatesInputs = {
 export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
   const { publicClient, walletClient } = useWildcatClient()
   const client = useQueryClient()
-  const { isTestnet, targetChainId } = useCurrentNetwork()
+  const { targetChainId } = useCurrentNetwork()
   const { connected: isConnectedToSafe, sdk: gnosisSafeSDK } = useSafeAppsSDK()
   const dispatch = useAppDispatch()
 
@@ -97,9 +98,10 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       }
 
       const send = async () => {
-        if (isConnectedToSafe && isTestnet && txs.length > 1) {
+        const safeBatch = getLenderUpdateSafeBatch(isConnectedToSafe, txs)
+        if (safeBatch) {
           const tx = await gnosisSafeSDK.txs.send({
-            txs: toSafeTransactions(txs),
+            txs: toSafeTransactions(safeBatch),
           })
           console.log("Transaction sent, result:", tx)
 

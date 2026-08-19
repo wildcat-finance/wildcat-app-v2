@@ -1,8 +1,10 @@
 import {
   FixedTermHooksConfig,
+  getDeploymentAddress,
   HooksKind,
   MarketOnboardingMode,
   type RoleProvider,
+  type SupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
 
 type MarketHooksConfigLike = {
@@ -11,24 +13,41 @@ type MarketHooksConfigLike = {
   fixedTermEndTime?: number
   depositRequiresAccess?: boolean
   queueWithdrawalRequiresAccess?: boolean
-  flags?: { useOnQueueWithdrawal?: boolean }
+  flags?: {
+    useOnDeposit?: boolean
+    useOnQueueWithdrawal?: boolean
+  }
 }
 
 type MarketLike = {
   controller?: string
   hooksConfig?: MarketHooksConfigLike
   onboardingMode?: MarketOnboardingMode
+  roleProviders?: readonly Pick<
+    RoleProvider,
+    "isApproved" | "pullProviderIndex"
+  >[]
 }
 
 type MarketAccountLike = {
   market: MarketLike
 }
 
+// The hooks contract stores "no pull-provider slot" as max uint24, while the
+// subgraph serializes the same sentinel as -1.
+const NULL_PROVIDER_INDEX = 2 ** 24 - 1
+
 export const hasActivePullRoleProvider = (
-  roleProviders: readonly Pick<RoleProvider, "isApproved" | "isPullProvider">[],
+  roleProviders: readonly Pick<
+    RoleProvider,
+    "isApproved" | "pullProviderIndex"
+  >[],
 ): boolean =>
   roleProviders.some(
-    ({ isApproved, isPullProvider }) => isApproved && isPullProvider,
+    ({ isApproved, pullProviderIndex }) =>
+      isApproved &&
+      pullProviderIndex >= 0 &&
+      pullProviderIndex !== NULL_PROVIDER_INDEX,
   )
 
 export const isHooksManagedMarket = (market: MarketLike): boolean =>
@@ -50,32 +69,85 @@ export const isFixedTermMarket = (market: MarketLike): boolean =>
 
 export const isSelfOnboardMarketAccount = (
   account: MarketAccountLike,
-): boolean => account.market.onboardingMode === MarketOnboardingMode.SelfOnboard
+): boolean => {
+  const { market } = account
+  const { hooksConfig } = market
 
-export enum CredentialRequirement {
-  Required = "required",
-  NotRequired = "notRequired",
+  if (!hooksConfig) {
+    return market.onboardingMode === MarketOnboardingMode.SelfOnboard
+  }
+
+  if (
+    hooksConfig.depositRequiresAccess === false ||
+    hooksConfig.flags?.useOnDeposit === false
+  ) {
+    return true
+  }
+
+  if (market.roleProviders) {
+    return hasActivePullRoleProvider(market.roleProviders)
+  }
+
+  return market.onboardingMode === MarketOnboardingMode.SelfOnboard
 }
 
-export const getDepositCredentialRequirement = (
-  market: MarketLike,
-): CredentialRequirement =>
-  market.hooksConfig?.depositRequiresAccess === false
-    ? CredentialRequirement.NotRequired
-    : CredentialRequirement.Required
+type MarketAccessLike = {
+  chainId: SupportedChainId
+  hooksConfig?: MarketHooksConfigLike
+  roleProviders?: readonly Pick<
+    RoleProvider,
+    "providerAddress" | "isApproved" | "pullProviderIndex"
+  >[]
+}
 
-export const getWithdrawalCredentialRequirement = (
-  market: MarketLike,
-): CredentialRequirement => {
+export type EffectiveMarketAccess = {
+  depositAccess: "open" | "restricted"
+  withdrawalAccess: "open" | "restricted"
+}
+
+const hasActiveOpenAccessRoleProvider = (market: MarketAccessLike): boolean => {
+  const openAccessProvider = getDeploymentAddress(
+    market.chainId,
+    "OpenAccessRoleProvider",
+  ).toLowerCase()
+
+  return (market.roleProviders ?? []).some(
+    ({ providerAddress, isApproved, pullProviderIndex }) =>
+      isApproved &&
+      pullProviderIndex >= 0 &&
+      pullProviderIndex !== NULL_PROVIDER_INDEX &&
+      providerAddress.toLowerCase() === openAccessProvider,
+  )
+}
+
+export const getEffectiveMarketAccess = (
+  market: MarketAccessLike,
+): EffectiveMarketAccess => {
   const { hooksConfig } = market
-  if (!hooksConfig) return CredentialRequirement.Required
+  if (!hooksConfig) {
+    return {
+      depositAccess: "restricted",
+      withdrawalAccess: "restricted",
+    }
+  }
 
-  const checksCredential =
+  const depositRequiresCredential = hooksConfig.depositRequiresAccess !== false
+  const withdrawalRequiresCredential =
     hooksConfig.flags?.useOnQueueWithdrawal === true &&
     (hooksConfig.kind === HooksKind.OpenTerm ||
       hooksConfig.queueWithdrawalRequiresAccess === true)
+  // The open-access provider still issues a credential under the hood, but it
+  // does not require borrower approval. Other role providers stay restricted.
+  const hasOpenAccessProvider = hasActiveOpenAccessRoleProvider(market)
 
-  return checksCredential
-    ? CredentialRequirement.Required
-    : CredentialRequirement.NotRequired
+  return {
+    depositAccess:
+      depositRequiresCredential && !hasOpenAccessProvider
+        ? "restricted"
+        : "open",
+    withdrawalAccess:
+      withdrawalRequiresCredential && !hasOpenAccessProvider
+        ? "restricted"
+        : "open",
+  }
 }

@@ -3,7 +3,9 @@
 import { Box, Button, Typography, useTheme } from "@mui/material"
 import { useRouter } from "next/navigation"
 import { Trans } from "react-i18next"
+import { useAccount } from "wagmi"
 
+import { useBorrowerInvitationExists } from "@/app/[locale]/borrower/hooks/useBorrowerInvitation"
 import type { ServiceAgreementPartyInput } from "@/app/api/service-agreement/interface"
 import { ServiceAgreementVersionChip } from "@/components/ServiceAgreementVersionChip"
 import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
@@ -28,12 +30,35 @@ export const AgreementPage = ({
     agreementParty: party,
   })
 
+  const isBorrower = party === "Borrower"
+  const { address } = useAccount()
+  const shouldCheckBorrowerInvitation = isBorrower && touState === "neverSigned"
+  const {
+    data: invitationStatus,
+    isSuccess: isInvitationResolved,
+    isError: isInvitationError,
+    refetch: refetchInvitation,
+  } = useBorrowerInvitationExists(
+    shouldCheckBorrowerInvitation ? address?.toLowerCase() : undefined,
+  )
+  const hasPendingInvitation = invitationStatus !== undefined
+
   // Lenders retain their initial onboarding flow. A borrower's first
-  // acceptance belongs to the invitation flow; this page only reviews or
-  // re-accepts terms for borrowers with an existing acceptance.
+  // acceptance belongs to the invitation flow only while an invitation is
+  // waiting there - otherwise that route dead-ends and they sign here.
   const isReview = touState === "signedCurrent"
   const needsBorrowerInvitation =
-    !!touState && requiresBorrowerInvitationAcceptance(party, isAgreementSigned)
+    shouldCheckBorrowerInvitation &&
+    isInvitationResolved &&
+    requiresBorrowerInvitationAcceptance(
+      party,
+      isAgreementSigned,
+      hasPendingInvitation,
+    )
+  const needsBorrowerFirstAcceptance =
+    shouldCheckBorrowerInvitation &&
+    isInvitationResolved &&
+    !hasPendingInvitation
   const needsReacceptance =
     !needsBorrowerInvitation &&
     (touState === "stale" ||
@@ -176,7 +201,25 @@ export const AgreementPage = ({
             Complete Invitation
           </Button>
         )}
-        {needsReacceptance && <ReacceptButton party={party} />}
+        {shouldCheckBorrowerInvitation && isInvitationError && (
+          <Button
+            variant="contained"
+            size="large"
+            onClick={() => refetchInvitation()}
+            sx={{
+              width: "168.63px",
+              height: "44px",
+              [theme.breakpoints.down("md")]: {
+                width: "100%",
+              },
+            }}
+          >
+            Retry
+          </Button>
+        )}
+        {(needsReacceptance || needsBorrowerFirstAcceptance) && (
+          <ReacceptButton party={party} />
+        )}
         {needsLenderSignature && <SignButton />}
 
         <Button

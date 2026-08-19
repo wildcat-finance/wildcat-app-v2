@@ -21,16 +21,9 @@ import { usePathname } from "next/navigation"
 import FilterIcon from "@/assets/icons/filter_icon.svg"
 import SortAscIcon from "@/assets/icons/tableSort-ascSort_icon.svg"
 import SortDescIcon from "@/assets/icons/tableSort-descSort_icon.svg"
-import { getAdsMobileContent } from "@/components/AdsBanners/adsHelpers"
 import { getMarketImplementationVariantForType } from "@/components/market-implementation-variants"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-import { buildBorrowerProfileHref } from "@/utils/formatters"
-import { MarketLiveDataStatus } from "@/utils/marketLiveData"
-import {
-  getLenderMarketAction,
-  LenderMarketAction,
-} from "@/utils/marketOnboarding"
 import { MarketStatus } from "@/utils/marketStatus"
 import { getPaginationRange } from "@/utils/pagination"
 
@@ -148,16 +141,12 @@ export const MobileMarketList = ({
   variant = "lender-action",
   groupByAsset = false,
   enableToolbar = false,
-  liveDataStatus = "ready",
-  showOnboardingAction = false,
 }: {
   markets: MobileMarketItem[]
   isLoading: boolean
   variant?: MobileMarketCardVariant
   groupByAsset?: boolean
   enableToolbar?: boolean
-  liveDataStatus?: MarketLiveDataStatus
-  showOnboardingAction?: boolean
 }) => {
   const [page, setPage] = useState(0)
   const [sortField, setSortField] = useState<SortField>(
@@ -176,6 +165,9 @@ export const MobileMarketList = ({
   const isLenderProfilePage = pathname.includes(ROUTES.lender.profile)
 
   const showBorrowerInCard = !isBorrowerProfilePage && !isLenderProfilePage
+  const baseRoute = isBorrowerProfilePage
+    ? ROUTES.borrower.market
+    : ROUTES.lender.market
 
   const uniqueAssets = useMemo(
     () => Array.from(new Set(markets.map((m) => m.asset))).sort(),
@@ -443,7 +435,7 @@ export const MobileMarketList = ({
           overflowY: "auto",
           display: "flex",
           flexDirection: "column",
-          gap: "8px",
+          gap: "4px",
         }}
       >
         {!isLoading && currentItems.length === 0 && (
@@ -481,42 +473,6 @@ export const MobileMarketList = ({
             const { MarketCard } = getMarketImplementationVariantForType(
               marketItem.implementationType,
             )
-            const action =
-              marketItem.depositStatus === undefined
-                ? LenderMarketAction.Unavailable
-                : getLenderMarketAction(
-                    marketItem.onboardingMode,
-                    marketItem.depositStatus,
-                  )
-            const actionDataReady =
-              !showOnboardingAction || liveDataStatus === "ready"
-            let buttonText = variant === "lender-action" ? "Deposit" : undefined
-            let buttonHref: string | undefined
-            let buttonDisabled = false
-
-            if (showOnboardingAction && actionDataReady) {
-              if (
-                action === LenderMarketAction.RequestAccess &&
-                marketItem.borrowerAddress
-              ) {
-                buttonText = "Request"
-                buttonHref = buildBorrowerProfileHref(
-                  marketItem.borrowerAddress,
-                  marketItem.chainId,
-                )
-              } else if (action === LenderMarketAction.RequestAccess) {
-                buttonText = "Unavailable"
-                buttonDisabled = true
-              } else if (action === LenderMarketAction.DepositUnavailable) {
-                buttonText = "Deposit"
-                buttonDisabled = true
-              } else if (action === LenderMarketAction.Unavailable) {
-                buttonText = "Unavailable"
-                buttonDisabled = true
-              }
-            } else if (showOnboardingAction) {
-              buttonText = undefined
-            }
 
             return (
               <React.Fragment key={marketItem.id}>
@@ -535,23 +491,10 @@ export const MobileMarketList = ({
                   </Typography>
                 )}
                 <MarketCard
-                  adsComponent={getAdsMobileContent(marketItem.id)}
                   marketItem={marketItem}
-                  buttonText={buttonText}
-                  buttonIcon={
-                    variant === "lender-action" &&
-                    (!showOnboardingAction ||
-                      action === LenderMarketAction.Deposit)
-                  }
-                  buttonHref={buttonHref}
-                  buttonDisabled={buttonDisabled}
-                  buttonLoading={
-                    showOnboardingAction && liveDataStatus === "loading"
-                  }
                   showBorrower={showBorrowerInCard}
-                  variant={variant}
+                  baseRoute={baseRoute}
                   displayName={displayName}
-                  liveDataStatus={liveDataStatus}
                 />
               </React.Fragment>
             )
@@ -561,7 +504,7 @@ export const MobileMarketList = ({
             <Skeleton
               sx={{
                 width: "100%",
-                height: "155px",
+                height: "182px",
                 backgroundColor: COLORS.white06,
                 borderRadius: "14px",
               }}
@@ -569,7 +512,7 @@ export const MobileMarketList = ({
             <Skeleton
               sx={{
                 width: "100%",
-                height: "155px",
+                height: "182px",
                 backgroundColor: COLORS.white06,
                 borderRadius: "14px",
               }}
@@ -577,7 +520,7 @@ export const MobileMarketList = ({
             <Skeleton
               sx={{
                 width: "100%",
-                height: "155px",
+                height: "182px",
                 backgroundColor: COLORS.white06,
                 borderRadius: "14px",
               }}

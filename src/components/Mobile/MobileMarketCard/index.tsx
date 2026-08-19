@@ -1,70 +1,50 @@
 import * as React from "react"
 
-import {
-  Box,
-  Button,
-  Divider,
-  Skeleton,
-  SvgIcon,
-  Typography,
-} from "@mui/material"
+import { Box, SvgIcon, Tooltip, Typography } from "@mui/material"
 import {
   DepositStatus,
   HooksKind,
   MarketOnboardingMode,
+  SupportedChainId,
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 
-import Arrow from "@/assets/icons/arrowLeft_icon.svg"
-import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
-import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { MarketStatusAndTermChip } from "@/components/@extended/MarketStatusAndTermChip"
+import { getAdsConfig } from "@/components/AdsBanners/adsConfig"
+import { getAdsTooltipComponent } from "@/components/AdsBanners/adsHelpers"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
-import { LiveMarketDataValue } from "@/components/MarketLiveData"
+import { NetworkIcon } from "@/components/NetworkIcon"
+import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import {
-  buildBorrowerProfileHref,
   buildMarketHref,
   formatBps,
   formatSecsToHours,
-  formatTokenWithCommas,
 } from "@/utils/formatters"
 import { MarketImplementationType } from "@/utils/marketImplementation"
-import { MarketLiveDataStatus } from "@/utils/marketLiveData"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
-
-import {
-  AprWithdrawalChipContainer,
-  AprWithdrawalContainer,
-  AprWithdrawalItemContainer,
-  CardContainer,
-  CardFooterButtonContainer,
-  CardFooterButtonsContainer,
-  CardFooterContainer,
-  MainInfoColumnContainer,
-  MainInfoContainer,
-  StatusAndTermContainer,
-} from "./style"
 
 export type MobileMarketItem = {
   id: string
   implementationType: MarketImplementationType
+  chainId: number
   status: ReturnType<typeof getMarketStatusChip>
-  apr: number
-  withdrawalBatchDuration: number
   term: ReturnType<typeof getMarketTypeChip>
   name: string
+  borrower?: string
+  borrowerAddress?: string
+  asset: string
+  apr: number
+  withdrawalBatchDuration: number
+  debt?: TokenAmount
+  deposited?: TokenAmount
+  loan?: TokenAmount
   capacity?: TokenAmount
   capacityLeft?: TokenAmount
-  borrower: string | undefined
-  borrowerAddress: string | undefined
-  loan?: TokenAmount | undefined
-  asset: string
   onboardingMode?: MarketOnboardingMode
   depositStatus?: DepositStatus
-  chainId?: number
-  debt?: TokenAmount
   utilisation?: number
 }
 
@@ -72,425 +52,480 @@ export type MobileMarketCardVariant = "lender-action" | "borrower-context"
 
 export type MobileMarketCardProps = {
   marketItem: MobileMarketItem
-  buttonText?: string
-  buttonIcon?: boolean
-  buttonHref?: string
-  buttonDisabled?: boolean
-  buttonLoading?: boolean
   showBorrower?: boolean
-  adsComponent?: React.ReactNode
-  variant?: MobileMarketCardVariant
+  baseRoute?: string
   displayName?: string
-  liveDataStatus?: MarketLiveDataStatus
 }
 
-export const DepositArrow = () => (
-  <SvgIcon
+const compactFormat = (value: number) =>
+  new Intl.NumberFormat("en-US", {
+    notation: "compact",
+    maximumFractionDigits: 2,
+  }).format(value)
+
+const formatCompactToken = (amount: TokenAmount | undefined) =>
+  amount ? compactFormat(parseFloat(amount.format(amount.decimals))) : "0"
+
+const formatFixedTermDate = (millisecondsFromNow: number) =>
+  new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(Date.now() + millisecondsFromNow)
+
+const formatSecsToHoursCompact = (seconds: number) => {
+  const s = Math.max(0, Math.floor(seconds))
+  const days = Math.floor(s / 86400)
+  if (days >= 2) return `${days}d`
+  const hours = Math.floor(s / 3600)
+  if (hours > 0) return `${hours}h`
+  const minutes = Math.floor((s % 3600) / 60)
+  if (minutes > 0) return `${minutes}m`
+  return "<1m"
+}
+
+// "24 hours withdrawal" doesn't always fit next to a fixed-term chip on
+// narrow screens. Rather than ellipsizing mid-word, swap to a compact
+// "24h WD" once the full label is measured not to fit. A hidden replica of
+// the full label keeps the measurement stable in both directions.
+const WithdrawalCycleText = ({ seconds }: { seconds: number }) => {
+  const textRef = React.useRef<HTMLElement>(null)
+  const measureRef = React.useRef<HTMLElement>(null)
+  const [compact, setCompact] = React.useState(false)
+
+  const fullLabel = `• ${formatSecsToHours(seconds, true)} withdrawal`
+  // No bullet in the compact form: at the widths that force it, even those
+  // few pixels matter
+  const compactLabel = `${formatSecsToHoursCompact(seconds)} WD`
+
+  React.useLayoutEffect(() => {
+    const text = textRef.current
+    const measure = measureRef.current
+    if (!text || !measure) return undefined
+    const check = () => setCompact(measure.offsetWidth > text.clientWidth)
+    check()
+    const observer = new ResizeObserver(check)
+    observer.observe(text)
+    observer.observe(measure)
+    return () => observer.disconnect()
+  }, [fullLabel])
+
+  return (
+    <Typography
+      ref={textRef}
+      variant="mobText2"
+      sx={{
+        position: "relative",
+        // Claim the row's leftover space so the fit check compares the full
+        // label against the available width, not the rendered text's width
+        flexGrow: 1,
+        minWidth: 0,
+        overflow: "hidden",
+        color: COLORS.blackRock,
+        fontSize: "14px",
+        lineHeight: "20px",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {compact ? compactLabel : fullLabel}
+      <Box
+        ref={measureRef}
+        component="span"
+        aria-hidden
+        sx={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          visibility: "hidden",
+          pointerEvents: "none",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {fullLabel}
+      </Box>
+    </Typography>
+  )
+}
+
+const MarketAssetChip = ({
+  asset,
+  chainId,
+}: {
+  asset: string
+  chainId: number
+}) => (
+  <Box
     sx={{
-      fontSize: "11px",
-      transform: "rotate(180deg)",
-      "& path": { fill: COLORS.white },
+      width: "fit-content",
+      display: "flex",
+      alignItems: "center",
+      gap: "4px",
+      padding: "2px 9px 2px 7px",
+      borderRadius: "12px",
+      backgroundColor: COLORS.whiteSmoke,
     }}
   >
-    <Arrow />
-  </SvgIcon>
+    <NetworkIcon chainId={chainId as SupportedChainId} width={14} height={14} />
+    <Typography
+      variant="mobText3"
+      sx={{ fontSize: "13px", lineHeight: "18px" }}
+    >
+      {asset}
+    </Typography>
+  </Box>
 )
 
-const tokenToNumber = (amount?: TokenAmount): number => {
-  if (!amount) return 0
-  return parseFloat(amount.format(amount.decimals))
-}
-
-const formatCompact = (value: number): string => {
-  if (value === 0) return "0"
-  const abs = Math.abs(value)
-  if (abs >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(2)}B`
-  if (abs >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`
-  if (abs >= 10_000) return `${(value / 1_000).toFixed(1)}K`
-  if (abs >= 1_000) return `${(value / 1_000).toFixed(2)}K`
-  if (abs >= 1) return value.toFixed(2)
-  if (abs < 0.0001) return "<0.0001"
-  return value.toFixed(4).replace(/0+$/, "").replace(/\.$/, "")
-}
-
-const formatLoan = (amount?: TokenAmount) => {
-  if (!amount || amount.eq(0)) return "0"
-  const formatted = Number(formatTokenWithCommas(amount, { fractionDigits: 2 }))
-  if (formatted < 0.00001) return "< 0.00001"
-  return formatTokenWithCommas(amount, { fractionDigits: 2 })
-}
-
-const utilisationFill = (pct: number) => {
-  if (pct <= 0) return { fill: COLORS.iron, label: COLORS.santasGrey }
-  if (pct > 100) return { fill: COLORS.dullRed, label: COLORS.dullRed }
-  if (pct >= 80) return { fill: COLORS.galliano, label: COLORS.butteredRum }
-  return { fill: COLORS.ultramarineBlue, label: COLORS.ultramarineBlue }
-}
-
-const UtilisationBar = ({
-  utilisation,
-  capacity,
-  asset,
+const PointsPill = ({
+  Icon,
+  label,
 }: {
-  utilisation: number
-  capacity?: TokenAmount
-  asset: string
+  Icon: React.ElementType
+  label?: string
+}) => (
+  <Box
+    sx={{
+      display: "flex",
+      alignItems: "center",
+      flexShrink: 0,
+      gap: label ? "6px" : 0,
+      padding: label ? "2px 10px 2px 2px" : "2px",
+      borderRadius: "12px",
+      backgroundColor: COLORS.bunker,
+    }}
+  >
+    <SvgIcon sx={{ width: "18px", height: "18px" }}>
+      <Icon />
+    </SvgIcon>
+    {label && (
+      <Typography
+        variant="mobText3"
+        sx={{
+          color: COLORS.white,
+          fontSize: "13px",
+          lineHeight: "18px",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {label}
+      </Typography>
+    )}
+  </Box>
+)
+
+const MarketPointsChip = ({
+  chainId,
+  marketAddress,
+  apr,
+}: {
+  chainId: number
+  marketAddress: string
+  apr: number
 }) => {
-  const clamped = Math.max(0, Math.min(100, utilisation))
-  const colors = utilisationFill(utilisation)
-  const capValue = tokenToNumber(capacity)
-  const capLabel =
-    capValue > 0 ? `${formatCompact(capValue)} ${asset} Cap` : "No cap set"
-  const pctLabel = `${utilisation.toFixed(
-    utilisation >= 10 || utilisation === 0 ? 0 : 1,
-  )}% utilisation`
+  const containerRef = React.useRef<HTMLElement>(null)
+  const measureRef = React.useRef<HTMLElement>(null)
+  // The labelled pill wraps into a two-line blob when the row runs out of
+  // room. Once the full chip is measured not to fit, drop the label and keep
+  // the multiplier + icon; the tooltip still carries the full program info.
+  const [iconOnly, setIconOnly] = React.useState(false)
+
+  const config = getAdsConfig(chainId, marketAddress)
+
+  React.useLayoutEffect(() => {
+    const container = containerRef.current
+    const measure = measureRef.current
+    if (!container || !measure) return undefined
+    const check = () => setIconOnly(measure.offsetWidth > container.clientWidth)
+    check()
+    const observer = new ResizeObserver(check)
+    observer.observe(container)
+    observer.observe(measure)
+    return () => observer.disconnect()
+  }, [chainId, marketAddress])
+
+  if (!config) return null
+
+  const multiplier = config.proposalText.match(/[\d.]+x/i)?.[0]
+  const tooltip = getAdsTooltipComponent(chainId, marketAddress, formatBps(apr))
+  const { ProposalIcon } = config
+
+  const multiplierText = multiplier && (
+    <Typography
+      variant="mobText3"
+      sx={{ fontSize: "13px", lineHeight: "18px", whiteSpace: "nowrap" }}
+    >
+      +{multiplier}
+    </Typography>
+  )
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+    <Tooltip
+      placement="bottom-end"
+      arrow={false}
+      title={tooltip}
+      componentsProps={{
+        tooltip: {
+          sx: {
+            p: 0,
+            bgcolor: "transparent",
+            boxShadow: "none",
+            borderRadius: 0,
+            maxWidth: "none",
+          },
+        },
+      }}
+    >
       <Box
+        ref={containerRef}
+        onClick={(event) => {
+          event.preventDefault()
+          event.stopPropagation()
+        }}
         sx={{
-          width: "100%",
-          height: "4px",
-          borderRadius: "2px",
-          backgroundColor: COLORS.athensGrey,
-          overflow: "hidden",
           position: "relative",
-        }}
-      >
-        <Box
-          sx={{
-            width: `${clamped}%`,
-            height: "100%",
-            backgroundColor: colors.fill,
-            borderRadius: "2px",
-            transition: "width 0.2s ease",
-          }}
-        />
-      </Box>
-      <Box
-        sx={{
+          // Claim the row's leftover space so the fit check compares the full
+          // chip against what the row can actually offer it
+          flexGrow: 1,
+          minWidth: 0,
+          overflow: "hidden",
           display: "flex",
-          justifyContent: "space-between",
           alignItems: "center",
+          justifyContent: "flex-end",
+          gap: "5px",
+          cursor: "help",
         }}
       >
-        <Typography variant="mobText4" color={COLORS.santasGrey}>
-          {capLabel}
-        </Typography>
-        <Typography
-          variant="mobText4"
-          sx={{ color: colors.label, fontWeight: utilisation > 0 ? 600 : 400 }}
+        {multiplierText}
+        <PointsPill
+          Icon={ProposalIcon}
+          label={iconOnly ? undefined : config.proposalChipLabel}
+        />
+        <Box
+          ref={measureRef}
+          aria-hidden
+          sx={{
+            position: "absolute",
+            right: 0,
+            top: 0,
+            visibility: "hidden",
+            pointerEvents: "none",
+            display: "flex",
+            alignItems: "center",
+            gap: "5px",
+          }}
         >
-          {pctLabel}
-        </Typography>
+          {multiplierText}
+          <PointsPill Icon={ProposalIcon} label={config.proposalChipLabel} />
+        </Box>
       </Box>
-    </Box>
+    </Tooltip>
   )
 }
 
-const StatusAndTermRow = ({
-  marketItem,
-  variant,
-  liveDataStatus,
-}: {
-  marketItem: MobileMarketItem
-  variant: MobileMarketCardVariant
-  liveDataStatus: MarketLiveDataStatus
-}) => {
-  const isHealthy = marketItem.status.status === MarketStatus.HEALTHY
-  const isOpenTerm = marketItem.term.kind === HooksKind.OpenTerm
-
-  if (variant === "borrower-context") {
-    const showStatus =
-      liveDataStatus !== "ready" ||
-      !isHealthy ||
-      Boolean(marketItem.status.healthyPeriod)
-    const showTerm = !isOpenTerm
-    if (!showStatus && !showTerm) return null
-    return (
-      <Box sx={StatusAndTermContainer}>
-        {showStatus ? (
-          <LiveMarketDataValue status={liveDataStatus} width={96} height={24}>
-            <MarketStatusChip status={marketItem.status} withPeriod />
-          </LiveMarketDataValue>
-        ) : (
-          <Box />
-        )}
-        {showTerm && (
-          <MarketTypeChip type="table" {...marketItem.term} isMobile />
-        )}
-      </Box>
-    )
+export const getMobileMarketTermLabel = (marketItem: MobileMarketItem) => {
+  if (marketItem.term.kind === HooksKind.PeriodicTerm) return "Periodic Term"
+  if (marketItem.term.kind === HooksKind.FixedTerm) {
+    return `Fixed Term: ${formatFixedTermDate(
+      marketItem.term.fixedPeriod ?? 0,
+    )}`
   }
-
-  return (
-    <Box sx={StatusAndTermContainer}>
-      <LiveMarketDataValue status={liveDataStatus} width={80} height={24}>
-        <MarketStatusChip status={marketItem.status} withPeriod={false} />
-      </LiveMarketDataValue>
-      <MarketTypeChip type="table" {...marketItem.term} isMobile />
-    </Box>
-  )
+  return "Open Term"
 }
 
 export const MobileMarketCard = ({
   marketItem,
-  buttonText,
-  buttonIcon,
-  buttonHref,
-  buttonDisabled = false,
-  buttonLoading = false,
   showBorrower = true,
-  adsComponent,
-  variant = "lender-action",
+  baseRoute = ROUTES.lender.market,
   displayName,
-  liveDataStatus = "ready",
 }: MobileMarketCardProps) => {
-  const isBorrowerContext = variant === "borrower-context"
-  const renderedName = displayName ?? marketItem.name
-  const utilisation = marketItem.utilisation ?? 0
-  const debtValue = tokenToNumber(marketItem.debt)
+  const deposited = marketItem.deposited ?? marketItem.debt
+  const capacity =
+    marketItem.capacity ??
+    (deposited && marketItem.capacityLeft
+      ? deposited.add(marketItem.capacityLeft)
+      : undefined)
+  const depositedRaw = deposited?.raw ?? BigInt(0)
+  const capacityRaw = capacity?.raw ?? BigInt(0)
+  const depositedPct =
+    capacityRaw > BigInt(0)
+      ? Math.min(
+          100,
+          Number((depositedRaw * BigInt(10000)) / capacityRaw) / 100,
+        )
+      : 0
 
-  const cardBody = (
-    <Box sx={CardContainer}>
-      <StatusAndTermRow
-        marketItem={marketItem}
-        variant={variant}
-        liveDataStatus={liveDataStatus}
-      />
+  const termLabel = getMobileMarketTermLabel(marketItem)
+  const href = buildMarketHref(marketItem.id, marketItem.chainId, baseRoute)
 
-      <Box sx={MainInfoContainer}>
-        <Box sx={{ ...MainInfoColumnContainer, minWidth: 0 }}>
-          <Typography
-            variant="mobText2"
-            sx={
-              isBorrowerContext
-                ? {
-                    display: "block",
-                    width: "100%",
-                    overflow: "hidden",
-                    whiteSpace: "nowrap",
-                    textOverflow: "ellipsis",
-                    fontWeight: 600,
-                  }
-                : undefined
-            }
-          >
-            {renderedName}
-          </Typography>
-
-          {showBorrower && marketItem.borrowerAddress && (
-            <Link
-              href={buildBorrowerProfileHref(
-                marketItem.borrowerAddress,
-                marketItem.chainId,
-              )}
-              style={{
-                display: "flex",
-                width: "fit-content",
-                textDecoration: "none",
-              }}
-            >
-              <BorrowerProfileChip
-                borrower={marketItem.borrower ?? marketItem.borrowerAddress}
-              />
-            </Link>
-          )}
-        </Box>
-
-        <Box
-          sx={{
-            ...MainInfoColumnContainer,
-            alignItems: "flex-end",
-            width: "fit-content",
-            flexShrink: 0,
-          }}
-        >
-          {isBorrowerContext ? (
-            <>
-              <Typography
-                variant="mobText2"
-                sx={{
-                  fontWeight: 700,
-                  color: debtValue > 0 ? COLORS.blackRock : COLORS.santasGrey,
-                }}
-              >
-                <LiveMarketDataValue
-                  status={liveDataStatus}
-                  width={92}
-                  height={20}
-                >
-                  {formatCompact(debtValue)} {marketItem.asset}
-                </LiveMarketDataValue>
-              </Typography>
-              <Typography variant="mobText4" color={COLORS.santasGrey}>
-                Debt
-              </Typography>
-            </>
-          ) : (
-            <>
-              <Typography variant="mobText2">
-                <LiveMarketDataValue
-                  status={liveDataStatus}
-                  width={92}
-                  height={20}
-                >
-                  {marketItem.capacityLeft && marketItem.capacityLeft.gt(0)
-                    ? formatTokenWithCommas(marketItem.capacityLeft, {
-                        withSymbol: false,
-                        fractionDigits: 2,
-                      })
-                    : "0"}{" "}
-                  {marketItem.asset}
-                </LiveMarketDataValue>
-              </Typography>
-
-              <Typography variant="mobText4" color={COLORS.manate}>
-                Available to lend
-              </Typography>
-            </>
-          )}
-        </Box>
+  return (
+    <Box
+      component={Link}
+      href={href}
+      sx={{
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+        padding: "16px",
+        border: `1px solid ${COLORS.whiteLilac}`,
+        borderRadius: "14px",
+        backgroundColor: COLORS.white,
+        color: "inherit",
+        cursor: "pointer",
+        textDecoration: "none",
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <MarketStatusAndTermChip
+          status={marketItem.status}
+          termLabel={termLabel}
+        />
+        <WithdrawalCycleText seconds={marketItem.withdrawalBatchDuration} />
       </Box>
 
-      {isBorrowerContext && (
-        <LiveMarketDataValue status={liveDataStatus} width="100%" height={32}>
-          <UtilisationBar
-            utilisation={utilisation}
-            capacity={marketItem.capacity}
-            asset={marketItem.asset}
-          />
-        </LiveMarketDataValue>
-      )}
-
-      <Divider />
-
-      <Box sx={AprWithdrawalContainer}>
-        <Box sx={AprWithdrawalItemContainer}>
-          <Typography variant="mobText4">Base APR</Typography>
-
-          <Box sx={AprWithdrawalChipContainer}>
-            <Typography variant="mobText4">{`${formatBps(
-              marketItem.apr,
-            )}%`}</Typography>
-          </Box>
-        </Box>
-
-        <Box sx={AprWithdrawalItemContainer}>
-          <Typography variant="mobText4">Withdrawal</Typography>
-
-          <Box sx={AprWithdrawalChipContainer}>
-            <Typography variant="mobText4">
-              {formatSecsToHours(marketItem.withdrawalBatchDuration, true)}
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
-
-      {adsComponent && <Box sx={{ marginTop: "-4px" }}>{adsComponent}</Box>}
-
-      {!isBorrowerContext && (
-        <>
-          <Divider />
-
-          <Box sx={CardFooterContainer}>
-            <Typography
-              variant="mobText4"
-              color={
-                marketItem.loan && !marketItem.loan.eq(0)
-                  ? COLORS.blackRock
-                  : COLORS.manate
-              }
-            >
-              <LiveMarketDataValue
-                status={liveDataStatus}
-                width={112}
-                height={18}
-              >
-                {formatLoan(marketItem.loan)} {marketItem.asset} deposited
-              </LiveMarketDataValue>
-            </Typography>
-
-            <Box sx={CardFooterButtonsContainer}>
-              <Link
-                href={buildMarketHref(marketItem.id, marketItem.chainId)}
-                style={{ textDecoration: "none" }}
-              >
-                <Button
-                  variant="outlined"
-                  size="small"
-                  color="secondary"
-                  sx={CardFooterButtonContainer}
-                >
-                  More
-                </Button>
-              </Link>
-              {buttonLoading && (
-                <Skeleton variant="rounded" width={88} height={32} />
-              )}
-              {!buttonLoading &&
-                buttonText &&
-                (buttonDisabled ? (
-                  <Button
-                    variant="contained"
-                    size="small"
-                    disabled
-                    sx={{
-                      ...CardFooterButtonContainer,
-                      height: "100%",
-                      display: "flex",
-                      gap: "2px",
-                    }}
-                  >
-                    {buttonText}
-
-                    {buttonIcon && <DepositArrow />}
-                  </Button>
-                ) : (
-                  <Link
-                    href={
-                      buttonHref ??
-                      buildMarketHref(marketItem.id, marketItem.chainId)
-                    }
-                    style={{ textDecoration: "none" }}
-                  >
-                    <Button
-                      variant="contained"
-                      size="small"
-                      sx={{
-                        ...CardFooterButtonContainer,
-                        height: "100%",
-                        display: "flex",
-                        gap: "2px",
-                      }}
-                    >
-                      {buttonText}
-
-                      {buttonIcon && <DepositArrow />}
-                    </Button>
-                  </Link>
-                ))}
-            </Box>
-          </Box>
-        </>
-      )}
-    </Box>
-  )
-
-  if (isBorrowerContext) {
-    return (
-      <Link
-        href={buildMarketHref(marketItem.id, marketItem.chainId)}
-        style={{
-          textDecoration: "none",
-          color: "inherit",
-          display: "block",
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          gap: "12px",
         }}
       >
-        {cardBody}
-      </Link>
-    )
-  }
+        <Typography
+          variant="mobText1"
+          sx={{
+            minWidth: 0,
+            overflow: "hidden",
+            color: COLORS.blackRock,
+            fontSize: "16px",
+            lineHeight: "22px",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {displayName ?? marketItem.name}
+        </Typography>
+        <Box sx={{ display: "flex", alignItems: "baseline", flexShrink: 0 }}>
+          <Typography
+            variant="mobH2SemiBold"
+            sx={{ fontSize: "20px", lineHeight: "26px" }}
+          >
+            {formatBps(marketItem.apr)}%
+          </Typography>
+          <Typography
+            variant="mobText3"
+            sx={{
+              color: COLORS.matteSilver,
+              fontSize: "12px",
+              lineHeight: "16px",
+              marginLeft: "4px",
+            }}
+          >
+            APR
+          </Typography>
+        </Box>
+      </Box>
 
-  return cardBody
+      <Box
+        sx={{
+          minWidth: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "8px",
+        }}
+      >
+        <Box
+          sx={{
+            minWidth: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+          }}
+        >
+          {showBorrower && (
+            <BorrowerProfileChip
+              borrower={marketItem.borrower ?? marketItem.borrowerAddress}
+              size="medium"
+              href={
+                marketItem.borrowerAddress
+                  ? `${ROUTES.lender.profile}/${marketItem.borrowerAddress}`
+                  : undefined
+              }
+            />
+          )}
+          <MarketAssetChip
+            asset={marketItem.asset}
+            chainId={marketItem.chainId}
+          />
+        </Box>
+
+        <MarketPointsChip
+          chainId={marketItem.chainId}
+          marketAddress={marketItem.id}
+          apr={marketItem.apr}
+        />
+      </Box>
+
+      <Box
+        sx={{
+          width: "100%",
+          height: "6px",
+          overflow: "hidden",
+          marginTop: "14px",
+          borderRadius: "3px",
+          backgroundColor: COLORS.athensGrey,
+        }}
+      >
+        <Box
+          sx={{
+            width: `${depositedPct}%`,
+            height: "100%",
+            borderRadius: "inherit",
+            backgroundColor:
+              marketItem.status.status === MarketStatus.HEALTHY
+                ? COLORS.blueRibbon
+                : COLORS.greySuit,
+          }}
+        />
+      </Box>
+
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          gap: "12px",
+        }}
+      >
+        <Typography
+          variant="mobText1"
+          sx={{
+            color: COLORS.blackRock,
+            fontSize: "16px",
+            lineHeight: "22px",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {formatCompactToken(deposited)} {marketItem.asset}{" "}
+          <Box component="span" sx={{ color: COLORS.matteSilver }}>
+            deposited
+          </Box>
+        </Typography>
+        <Typography
+          variant="mobText1"
+          sx={{
+            overflow: "hidden",
+            color: COLORS.matteSilver,
+            fontSize: "16px",
+            lineHeight: "22px",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          out of {formatCompactToken(capacity)} {marketItem.asset}
+        </Typography>
+      </Box>
+    </Box>
+  )
 }

@@ -5,6 +5,7 @@ import {
   stripTrailingZeroes,
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
+import { Dayjs } from "dayjs"
 import duration from "dayjs/plugin/duration"
 import { formatUnits } from "viem"
 
@@ -15,6 +16,50 @@ import { dayjs } from "@/utils/dayjs"
 
 export const DATE_FORMAT_WITH_TIME = "DD-MMM-YYYY HH:mm"
 export const DATE_FORMAT = "DD-MMM-YYYY"
+
+// <---- FIXED TERM MATURITY (UTC) ---->
+
+/**
+ * A fixed term maturity is a calendar date, not an instant: the UI asks the
+ * borrower which day the term ends and labels that day 00:00 UTC. Every place
+ * that writes or renders it has to share that convention - otherwise the same
+ * on-chain timestamp reads as a different day depending on the viewer's offset,
+ * which is exactly how the adjust-maturity dialog and the status & details tab
+ * came to disagree.
+ *
+ * The date pickers stay in the local dayjs mode MUI drives them with; these
+ * helpers convert through the plain calendar date, so the day the borrower
+ * clicked is the day that goes on chain regardless of their offset.
+ */
+export const MATURITY_DATE_FORMAT = "DD MMM YYYY"
+
+const CALENDAR_DATE_FORMAT = "YYYY-MM-DD"
+
+/** Unix seconds at 00:00 UTC of the calendar date a date picker is showing. */
+export const pickerDateToUtcMaturity = (value: Dayjs): number =>
+  dayjs.utc(value.format(CALENDAR_DATE_FORMAT)).unix()
+
+/** The stored maturity as a picker value for the same calendar date. */
+export const utcMaturityToPickerDate = (unixSeconds: number): Dayjs =>
+  dayjs(dayjs.unix(unixSeconds).utc().format(CALENDAR_DATE_FORMAT))
+
+/** Today in UTC, as a picker value - use for picker bounds so that the bounds
+ *  and the value that gets stored are measured on the same calendar. */
+export const utcTodayAsPickerDate = (): Dayjs =>
+  dayjs(dayjs.utc().format(CALENDAR_DATE_FORMAT))
+
+/** Compact maturity for chips and tables, e.g. "05 Aug 2026". */
+export const formatUtcMaturityDate = (unixSeconds: number): string =>
+  dayjs.unix(unixSeconds).utc().format(MATURITY_DATE_FORMAT)
+
+/**
+ * Maturity with its time of day, e.g. "05 Aug 2026 00:00 UTC". The time is
+ * always shown rather than hard-coded to 00:00: markets deployed before this
+ * convention was enforced sit at the borrower's local midnight, so their real
+ * maturity is not midnight UTC and claiming otherwise would keep lying.
+ */
+export const formatUtcMaturity = (unixSeconds: number): string =>
+  `${dayjs.unix(unixSeconds).utc().format(`${MATURITY_DATE_FORMAT} HH:mm`)} UTC`
 
 export const formatUnixMsAsDate = (unixMs: number) =>
   dayjs(unixMs).utc().format("MMMM DD, YYYY")

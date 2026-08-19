@@ -1,6 +1,12 @@
-import { HooksKind, MarketOnboardingMode } from "@wildcatfi/wildcat-sdk"
+import {
+  getDeploymentAddress,
+  HooksKind,
+  MarketOnboardingMode,
+  SupportedChainId,
+} from "@wildcatfi/wildcat-sdk"
 
 import {
+  getEffectiveMarketAccess,
   getFixedTermHooksConfig,
   getMarketPolicyAddress,
   hasActivePullRoleProvider,
@@ -13,15 +19,20 @@ describe("marketCapabilities", () => {
   it("classifies self-onboarding from active pull-provider metadata", () => {
     const borrowerPushProvider = {
       isApproved: true,
-      isPullProvider: false,
+      // This is how the legacy subgraph actually reports the borrower-only
+      // provider: the boolean is wrong, but the missing index is reliable.
+      isPullProvider: true,
+      pullProviderIndex: -1,
     }
     const removedPullProvider = {
       isApproved: false,
       isPullProvider: true,
+      pullProviderIndex: 0,
     }
     const activePullProvider = {
       isApproved: true,
       isPullProvider: true,
+      pullProviderIndex: 0,
     }
 
     expect(hasActivePullRoleProvider([borrowerPushProvider])).toBe(false)
@@ -31,6 +42,14 @@ describe("marketCapabilities", () => {
     expect(
       hasActivePullRoleProvider([borrowerPushProvider, activePullProvider]),
     ).toBe(true)
+    expect(
+      hasActivePullRoleProvider([
+        {
+          ...borrowerPushProvider,
+          pullProviderIndex: 2 ** 24 - 1,
+        },
+      ]),
+    ).toBe(false)
   })
 
   it("prefers hooks policy addresses when present", () => {
@@ -91,6 +110,27 @@ describe("marketCapabilities", () => {
     expect(isSelfOnboardMarketAccount(deniedLender)).toBe(true)
   })
 
+  it("does not trust a bad subgraph pull-provider boolean", () => {
+    expect(
+      isSelfOnboardMarketAccount({
+        market: {
+          onboardingMode: MarketOnboardingMode.SelfOnboard,
+          hooksConfig: {
+            kind: HooksKind.OpenTerm,
+            depositRequiresAccess: true,
+            flags: { useOnDeposit: true },
+          },
+          roleProviders: [
+            {
+              isApproved: true,
+              pullProviderIndex: -1,
+            },
+          ],
+        },
+      }),
+    ).toBe(false)
+  })
+
   it("does not treat borrower-approval or unknown markets as self-onboard", () => {
     const account = {
       market: {
@@ -109,5 +149,91 @@ describe("marketCapabilities", () => {
         },
       }),
     ).toBe(false)
+  })
+
+  it("reports credential-gated actions as open with the open-access provider", () => {
+    const openAccessProvider = getDeploymentAddress(
+      SupportedChainId.Sepolia,
+      "OpenAccessRoleProvider",
+    )
+
+    expect(
+      getEffectiveMarketAccess({
+        chainId: SupportedChainId.Sepolia,
+        hooksConfig: {
+          kind: HooksKind.OpenTerm,
+          depositRequiresAccess: true,
+          flags: { useOnQueueWithdrawal: true },
+        },
+        roleProviders: [
+          {
+            providerAddress: openAccessProvider,
+            isApproved: true,
+            pullProviderIndex: 0,
+          },
+        ],
+      }),
+    ).toEqual({ depositAccess: "open", withdrawalAccess: "open" })
+  })
+
+  it("keeps borrower-configured access requirements restricted", () => {
+    expect(
+      getEffectiveMarketAccess({
+        chainId: SupportedChainId.Sepolia,
+        hooksConfig: {
+          kind: HooksKind.OpenTerm,
+          depositRequiresAccess: true,
+          queueWithdrawalRequiresAccess: true,
+          flags: { useOnQueueWithdrawal: true },
+        },
+        roleProviders: [
+          {
+            providerAddress: "0x0000000000000000000000000000000000000001",
+            isApproved: true,
+            pullProviderIndex: -1,
+          },
+        ],
+      }),
+    ).toEqual({ depositAccess: "restricted", withdrawalAccess: "restricted" })
+  })
+
+  it("does not treat an arbitrary pull provider as open access", () => {
+    expect(
+      getEffectiveMarketAccess({
+        chainId: SupportedChainId.Sepolia,
+        hooksConfig: {
+          kind: HooksKind.OpenTerm,
+          depositRequiresAccess: true,
+          queueWithdrawalRequiresAccess: true,
+          flags: { useOnQueueWithdrawal: true },
+        },
+        roleProviders: [
+          {
+            providerAddress: "0x0000000000000000000000000000000000000001",
+            isApproved: true,
+            pullProviderIndex: 0,
+          },
+        ],
+      }),
+    ).toEqual({ depositAccess: "restricted", withdrawalAccess: "restricted" })
+  })
+
+  it("reports actions as open when their credential checks are disabled", () => {
+    expect(
+      getEffectiveMarketAccess({
+        chainId: SupportedChainId.Sepolia,
+        hooksConfig: {
+          kind: HooksKind.OpenTerm,
+          depositRequiresAccess: false,
+          flags: { useOnQueueWithdrawal: false },
+        },
+      }),
+    ).toEqual({ depositAccess: "open", withdrawalAccess: "open" })
+  })
+
+  it("keeps legacy markets restricted without hooks metadata", () => {
+    expect(
+      getEffectiveMarketAccess({ chainId: SupportedChainId.Sepolia }),
+    ).toEqual({ depositAccess: "restricted", withdrawalAccess: "restricted" })
   })
 })

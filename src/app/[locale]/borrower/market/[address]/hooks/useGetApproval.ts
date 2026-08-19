@@ -4,9 +4,9 @@ import { Market, Signer, Token, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
 import { toastRequest } from "@/components/Toasts"
-import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { invalidateMarketAccountQueries } from "@/utils/marketAccountQueries"
 import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export const useApprove = (
@@ -82,18 +82,11 @@ export const useApprove = (
       await approve()
     },
     onSuccess() {
-      client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
-          market.chainId,
-          market.address,
-        ),
-      })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_BORROWER_MARKET_ACCOUNT_LEGACY(
-          market.chainId,
-          address,
-          market.address,
-        ),
+      invalidateMarketAccountQueries({
+        client,
+        chainId: market.chainId,
+        marketAddress: market.address,
+        accountAddress: address,
       })
     },
   })

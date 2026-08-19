@@ -12,7 +12,7 @@ export type ProfileItem = {
 export type OverallBlockProps = Partial<BorrowerProfile> & {
   marketsAmount?: number
   externalChainId?: number
-  defaults?: string
+  defaults?: number
   borrowed?: string
   extraItems?: ProfileItem[]
   isPage?: boolean

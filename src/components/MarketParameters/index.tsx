@@ -27,15 +27,12 @@ import {
   trimAddress,
 } from "@/utils/formatters"
 import { getMarketAprDisplayBips } from "@/utils/marketApr"
-import {
-  getDepositCredentialRequirement,
-  getWithdrawalCredentialRequirement,
-} from "@/utils/marketCapabilities"
+import { getEffectiveMarketAccess } from "@/utils/marketCapabilities"
 import {
   getMarketImplementationConfig,
   getMarketImplementationType,
 } from "@/utils/marketImplementation"
-import { getMarketAccessType } from "@/utils/marketOnboarding"
+import { getLenderOnboardingType } from "@/utils/marketOnboarding"
 import { getPendingPeriodicAprChange } from "@/utils/periodicApr"
 import {
   formatCompactDuration,
@@ -326,9 +323,8 @@ export const MarketParameters = ({
   const implementationConfig = getMarketImplementationConfig(implementationType)
   const fixedTermHooksConfig =
     hooksConfig?.kind === HooksKind.FixedTerm ? hooksConfig : undefined
-  const lenderAccess = getMarketAccessType(market.onboardingMode)
-  const depositAccess = getDepositCredentialRequirement(market)
-  const withdrawalAccess = getWithdrawalCredentialRequirement(market)
+  const lenderOnboarding = getLenderOnboardingType(market.onboardingMode)
+  const { depositAccess, withdrawalAccess } = getEffectiveMarketAccess(market)
 
   let transferAccess: "open" | "restricted" | "disabled"
   if (hooksConfig) {
@@ -420,7 +416,10 @@ export const MarketParameters = ({
     )
   })()
 
-  const adsMarketParameter = getAdsMarketParameterComponent(market.address)
+  const adsMarketParameter = getAdsMarketParameterComponent(
+    market.chainId,
+    market.address,
+  )
 
   const [isMobileOpen, setIsMobileOpen] = React.useState(false)
 
@@ -657,12 +656,14 @@ export const MarketParameters = ({
               )}
               <Divider sx={{ margin: "12px 0 12px" }} />
               <ParametersItem
-                title={t("borrowerMarketDetails.parameters.lenderAccess.label")}
+                title={t(
+                  "borrowerMarketDetails.parameters.lenderOnboarding.label",
+                )}
                 value={t(
-                  `borrowerMarketDetails.parameters.lenderAccess.${lenderAccess}.text`,
+                  `borrowerMarketDetails.parameters.lenderOnboarding.${lenderOnboarding}.text`,
                 )}
                 valueTooltipText={t(
-                  `borrowerMarketDetails.parameters.lenderAccess.${lenderAccess}.tooltip`,
+                  `borrowerMarketDetails.parameters.lenderOnboarding.${lenderOnboarding}.tooltip`,
                 )}
               />
               <Divider sx={{ margin: "12px 0 12px" }} />

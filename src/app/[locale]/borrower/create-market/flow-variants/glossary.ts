@@ -112,15 +112,6 @@ export const getSharedGlossaryItems = (
         },
       ]
     default:
-      return [
-        {
-          title: t("createNewMarket.policy.policy.label"),
-          description: t("createNewMarket.policy.policy.glossary"),
-        },
-        {
-          title: t("createNewMarket.policy.name.label"),
-          description: t("createNewMarket.policy.name.glossary"),
-        },
-      ]
+      return []
   }
 }

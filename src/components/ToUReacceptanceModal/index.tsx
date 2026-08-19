@@ -14,6 +14,7 @@ import {
 import { usePathname, useRouter } from "next/navigation"
 import { useAccount } from "wagmi"
 
+import { useBorrowerInvitationExists } from "@/app/[locale]/borrower/hooks/useBorrowerInvitation"
 import { Loader } from "@/components/Loader"
 import { ServiceAgreementChip } from "@/components/ServiceAgreementVersionChip"
 import { TxModalFooterContainer } from "@/components/TxModalComponents/TxModalFooter/style"
@@ -29,7 +30,11 @@ import {
   getServiceAgreementRouteForParty,
   isServiceAgreementPath,
 } from "@/utils/serviceAgreementParty"
-import { requiresBorrowerInvitationAcceptance } from "@/utils/serviceAgreementState"
+import {
+  remembersToUPromptDismissal,
+  requiresBorrowerInvitationAcceptance,
+  shouldAutoOpenToUPrompt,
+} from "@/utils/serviceAgreementState"
 import { formatServiceAgreementVersionLabel } from "@/utils/serviceAgreementVersions"
 
 const dismissKey = (
@@ -74,6 +79,16 @@ export const ToUReacceptanceModal = () => {
     isAgreementFetching,
     refetchAgreementStatus,
   } = useNetworkGate()
+  const shouldCheckBorrowerInvitation =
+    touParty === "Borrower" && touState === "neverSigned"
+  const {
+    data: invitationStatus,
+    isSuccess: isInvitationResolved,
+    isFetching: isInvitationFetching,
+    refetch: refetchInvitation,
+  } = useBorrowerInvitationExists(
+    shouldCheckBorrowerInvitation ? address?.toLowerCase() : undefined,
+  )
   const accept = useAcceptToU(touParty)
   const decline = useDeclineToU(touParty)
 
@@ -132,10 +147,7 @@ export const ToUReacceptanceModal = () => {
     }
     // Only stamp the session dismissal for states whose AUTO popup is
     // dismissible - a manual open of a read-only view never records one.
-    if (
-      storageKey &&
-      (touState === "staleWithinGrace" || touState === "declined")
-    ) {
+    if (storageKey && remembersToUPromptDismissal(touState, touParty)) {
       sessionStorage.setItem(storageKey, "1")
       setDismissed(true)
     }
@@ -150,12 +162,19 @@ export const ToUReacceptanceModal = () => {
   // with this prompt.
   if (isServiceAgreementPath(pathname)) return null
   if (!address) return null
-  if (!touState || !touCurrentVersion) {
+  const isStatusResolved =
+    !!touState &&
+    !!touCurrentVersion &&
+    (!shouldCheckBorrowerInvitation || isInvitationResolved)
+  if (!isStatusResolved) {
     // Status not resolved. Auto-open never fires here, but a manual open
     // must respond immediately - silently waiting would make the click a
     // no-op and then pop the modal open unprompted whenever the query
     // eventually resolves.
     if (!forcedOpen) return null
+    const isStatusFetching =
+      isAgreementFetching ||
+      (shouldCheckBorrowerInvitation && isInvitationFetching)
     return (
       <Dialog
         open
@@ -163,8 +182,11 @@ export const ToUReacceptanceModal = () => {
         sx={{
           "& .MuiDialog-paper": {
             width: "440px",
-            maxWidth: "min(440px, calc(100vw - 32px))",
-            minWidth: 0,
+            maxWidth: "min(440px, calc(100% - 32px))",
+            // The theme forces MuiPaper to `minWidth: fit-content !important`,
+            // which beats maxWidth and lets the 440px content stop the paper
+            // shrinking on narrow screens - counter it with equal weight
+            minWidth: "0 !important",
             border: "none",
             borderRadius: "20px",
             margin: 0,
@@ -189,7 +211,7 @@ export const ToUReacceptanceModal = () => {
             gap: "16px",
           }}
         >
-          {isAgreementFetching ? (
+          {isStatusFetching ? (
             <>
               <Loader />
               <Typography variant="text3" color={COLORS.santasGrey}>
@@ -205,7 +227,10 @@ export const ToUReacceptanceModal = () => {
               <Button
                 variant="contained"
                 size="large"
-                onClick={() => refetchAgreementStatus()}
+                onClick={() => {
+                  refetchAgreementStatus()
+                  if (shouldCheckBorrowerInvitation) refetchInvitation()
+                }}
               >
                 Retry
               </Button>
@@ -224,13 +249,19 @@ export const ToUReacceptanceModal = () => {
   const needsBorrowerInvitation = requiresBorrowerInvitationAcceptance(
     touParty,
     isAgreementSigned,
+    invitationStatus !== undefined,
   )
   // Read-only status views: no sign/decline actions. The "stale" state
   // (newer version, no campaign) opens the normal sign/decline view.
   const isReadOnly = isSignedCurrent || (isNeverSigned && touParty === "Lender")
 
-  const autoOpen =
-    (isExpired && !pendingDismissed) || ((isGrace || isDeclined) && !dismissed)
+  const needsFirstBorrowerAcceptance = isNeverSigned && touParty === "Borrower"
+  const autoOpen = shouldAutoOpenToUPrompt({
+    state: touState,
+    party: touParty,
+    dismissed,
+    pendingDismissed,
+  })
   if (!forcedOpen && !autoOpen) return null
 
   const deadlineLabel = touDeadline
@@ -269,6 +300,7 @@ export const ToUReacceptanceModal = () => {
     if (needsBorrowerInvitation) return "Borrower Invitation Required"
     if (isDeclined) return "Terms of Use Declined"
     if (isReadOnly) return "Terms of Use"
+    if (needsFirstBorrowerAcceptance) return "Terms of Use Signature Required"
     return "Updated Terms of Use"
   })()
 
@@ -292,7 +324,8 @@ export const ToUReacceptanceModal = () => {
       `restore access in this capacity.`
   } else if (isSignedCurrent) {
     description =
-      "You have accepted the current Wildcat Terms of Use - you are up to date."
+      `This account has accepted the current Wildcat Terms of Use as ` +
+      `${touParty} on this network - this capacity is up to date.`
   } else if (isNeverSigned) {
     description = `This account has not accepted the Wildcat Terms of Use as ${touParty} on this network yet.`
   } else if (isExpired) {
@@ -322,8 +355,11 @@ export const ToUReacceptanceModal = () => {
       sx={{
         "& .MuiDialog-paper": {
           width: "440px",
-          maxWidth: "min(440px, calc(100vw - 32px))",
-          minWidth: 0,
+          maxWidth: "min(440px, calc(100% - 32px))",
+          // The theme forces MuiPaper to `minWidth: fit-content !important`,
+          // which beats maxWidth and lets the 440px content stop the paper
+          // shrinking on narrow screens - counter it with equal weight
+          minWidth: "0 !important",
           border: "none",
           borderRadius: "20px",
           margin: 0,

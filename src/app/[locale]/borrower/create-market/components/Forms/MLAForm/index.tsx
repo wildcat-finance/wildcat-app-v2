@@ -97,12 +97,12 @@ export const MlaForm = ({ form }: MLAFormProps) => {
     if (mlaWatch) {
       dispatch(
         setIsDisabled({
-          steps: [CreateMarketSteps.MLA],
-          disabled: !mlaWatch,
+          steps: [CreateMarketSteps.MLA, CreateMarketSteps.CONFIRM],
+          disabled: false,
         }),
       )
     }
-  }, [mlaWatch])
+  }, [dispatch, mlaWatch])
 
   useEffect(() => {
     if (isLoadingTemplates || !mlaWatch) return

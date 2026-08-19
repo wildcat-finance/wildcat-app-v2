@@ -6,6 +6,7 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { invalidateMarketAccountQueries } from "@/utils/marketAccountQueries"
 import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export type AdjustAprMode = "set" | "propose"
@@ -26,7 +27,7 @@ export const useAdjustAPR = (
   marketAccount: MarketAccount,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
 ) => {
-  const { signer, address, targetChainId } = useEthersProvider()
+  const { signer, targetChainId } = useEthersProvider()
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
@@ -68,11 +69,16 @@ export const useAdjustAPR = (
     },
     onSuccess() {
       client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_BORROWER_MARKET_ACCOUNT_LEGACY(
+        queryKey: QueryKeys.Markets.GET_MARKET(
           marketAccount.market.chainId,
-          address,
           marketAccount.market.address,
         ),
+      })
+      invalidateMarketAccountQueries({
+        client,
+        chainId: marketAccount.market.chainId,
+        marketAddress: marketAccount.market.address,
+        accountAddress: marketAccount.account,
       })
     },
     onError(error) {

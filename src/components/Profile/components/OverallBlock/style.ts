@@ -1,14 +1,18 @@
 import { COLORS } from "@/theme/colors"
 
-export const MobileInfoContainer = {
+export const MobileInfoSectionContainer = {
   display: "flex",
   flexDirection: "column",
   width: "100%",
-  height: "100%",
   backgroundColor: COLORS.white,
   borderRadius: "14px",
   padding: "12px 16px 24px",
   marginTop: "4px",
+}
+
+export const MobileInfoContainer = {
+  ...MobileInfoSectionContainer,
+  height: "100%",
 }
 
 export const MobileInfoGrid = {

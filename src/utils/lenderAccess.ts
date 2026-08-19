@@ -47,6 +47,12 @@ export type LenderRestorationPolicy = Pick<
   "address" | "populateAddLenders" | "populateUnblockLender"
 >
 
+export const getLenderUpdateSafeBatch = <Transaction>(
+  isConnectedToSafe: boolean,
+  transactions: Transaction[],
+): Transaction[] | undefined =>
+  isConnectedToSafe && transactions.length > 1 ? transactions : undefined
+
 const toCredentialTimestamp = (timestamp: bigint): number => {
   const value = Number(timestamp)
   if (!Number.isSafeInteger(value) || value <= 0 || value > 0xffffffff) {

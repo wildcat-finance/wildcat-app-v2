@@ -116,9 +116,8 @@ export function useGetWithdrawals(
     isError: isErrorInitial,
     failureReason: errorInitial,
   } = useQuery({
-    queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
+    queryKey: QueryKeys.Borrower.GET_WITHDRAWALS.INITIAL(
       targetChainId ?? 0,
-      "initial",
       address,
     ),
     queryFn: getIncompleteWithdrawalBatches,
@@ -197,9 +196,8 @@ export function useGetWithdrawals(
     isError: isErrorUpdate,
     failureReason: errorUpdate,
   } = useQuery({
-    queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
+    queryKey: QueryKeys.Borrower.GET_WITHDRAWALS.UPDATE(
       targetChainId ?? 0,
-      "update",
       address,
       updateQueryKeys,
     ),

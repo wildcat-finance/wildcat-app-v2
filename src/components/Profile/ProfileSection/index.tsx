@@ -6,6 +6,7 @@ import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHo
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { analyticsUiEnabled } from "@/config/featureFlags"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { countMarketsInDefault } from "@/utils/marketStatus"
 
 import { ProfileSectionNameBlock } from "./components/ProfileSectionNameBlock"
 import type { ProfileSectionProps } from "./interface"
@@ -26,6 +27,7 @@ const CoreProfileSection = ({
 
   const activeMarkets = borrowerMarkets?.filter((market) => !market.isClosed)
   const marketsAmount = (activeMarkets ?? []).length
+  const defaults = countMarketsInDefault(borrowerMarkets)
 
   return (
     <>
@@ -34,6 +36,7 @@ const CoreProfileSection = ({
       <OverallBlock
         {...profileData}
         marketsAmount={marketsAmount}
+        defaults={defaults}
         externalChainId={chainId}
       />
 

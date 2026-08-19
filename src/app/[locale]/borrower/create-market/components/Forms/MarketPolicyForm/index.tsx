@@ -38,7 +38,11 @@ import {
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
-import { dayjs } from "@/utils/dayjs"
+import {
+  pickerDateToUtcMaturity,
+  utcMaturityToPickerDate,
+  utcTodayAsPickerDate,
+} from "@/utils/formatters"
 import { marketImplementationOptions } from "@/utils/marketImplementation"
 
 import { MarketPolicyFormProps } from "./interface"
@@ -74,7 +78,7 @@ export const MarketPolicyForm = ({
   const dispatch = useAppDispatch()
   const router = useRouter()
 
-  const today = dayjs.unix(Date.now() / 1_000).startOf("day")
+  const today = utcTodayAsPickerDate()
   const tomorrow = today.add(1, "day")
   const maxDays = getMaxFixedTermDays(isTestnet)
   const maxDate = today.add(maxDays, "days")
@@ -169,18 +173,8 @@ export const MarketPolicyForm = ({
       dispatch(
         setIsDisabled({ steps: [CreateMarketSteps.BASIC], disabled: false }),
       )
-    } else {
-      const allStepsToDisable = [
-        CreateMarketSteps.BASIC,
-        CreateMarketSteps.CONFIRM,
-        CreateMarketSteps.LRESTRICTIONS,
-        CreateMarketSteps.FINANCIAL,
-        CreateMarketSteps.MLA,
-      ]
-
-      dispatch(setIsDisabled({ steps: allStepsToDisable, disabled: true }))
     }
-  }, [isFormValid, isFixedTerm, isPeriodicTerm])
+  }, [dispatch, isFormValid])
 
   return (
     <Box sx={FormContainer}>
@@ -296,12 +290,12 @@ export const MarketPolicyForm = ({
                   format="DD/MM/YYYY"
                   value={
                     fixedTermEndTimeWatch
-                      ? dayjs.unix(fixedTermEndTimeWatch)
+                      ? utcMaturityToPickerDate(fixedTermEndTimeWatch)
                       : null
                   }
                   onChange={(v) => {
                     if (v && v.isValid()) {
-                      setValue("fixedTermEndTime", v.unix(), {
+                      setValue("fixedTermEndTime", pickerDateToUtcMaturity(v), {
                         shouldTouch: true,
                         shouldValidate: true,
                       })
