@@ -23,6 +23,7 @@ export const TransactionBlock = ({
   asset,
   children,
   subtitle,
+  status,
   rows,
 }: TransactionBlockProps) => (
   <Box sx={BlockContainer}>
@@ -81,6 +82,19 @@ export const TransactionBlock = ({
           }}
         >
           {subtitle || "\u00A0"}
+        </Typography>
+      )}
+
+      {status && (
+        <Typography
+          variant="text4"
+          sx={{
+            color: COLORS.santasGrey,
+            marginTop: "8px",
+            display: "block",
+          }}
+        >
+          {status}
         </Typography>
       )}
     </Box>
