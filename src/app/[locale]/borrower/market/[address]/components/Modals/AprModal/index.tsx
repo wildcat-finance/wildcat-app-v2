@@ -28,6 +28,7 @@ import {
   formatBps,
   formatTokenWithCommas,
   MARKET_PARAMS_DECIMALS,
+  TOKEN_FORMAT_DECIMALS,
 } from "@/utils/formatters"
 import { getMarketAprDisplayBips } from "@/utils/marketApr"
 import { getPendingPeriodicAprChange } from "@/utils/periodicApr"
@@ -206,9 +207,10 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
     if (preview.status === "InsufficientReserves") {
       setAprError(
-        `Missing Reserves – ${formatTokenWithCommas(preview.missingReserves, {
-          withSymbol: true,
-        })} for collateral obligation. Increase percent.`,
+        `Missing Reserves – ${preview.missingReserves.format(
+          TOKEN_FORMAT_DECIMALS,
+          true,
+        )} for collateral obligation. Increase percent.`,
       )
       return
     }
@@ -266,9 +268,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
       ) {
         return undefined
       }
-      return formatTokenWithCommas(aprPreview.newCoverageLiquidity, {
-        withSymbol: true,
-      })
+      return aprPreview.newCoverageLiquidity.format(TOKEN_FORMAT_DECIMALS, true)
     }
     return undefined
   }

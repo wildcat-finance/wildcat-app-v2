@@ -9,7 +9,6 @@
 .obligations__value {
     display: flex;
     justify-content: space-between;
-    column-gap: 8px;
 }
 
 .obligations__divider {
