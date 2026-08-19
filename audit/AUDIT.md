@@ -54,3 +54,18 @@ enforced server-side from step 2. Carve-out pinned mechanically.
 Leads not pursued: a removed borrower whose first-ever restriction read
 fails (no cache) sees the default banner until a read succeeds; accepted,
 the chain and API remain the enforcement.
+
+## Step 4, round 1 — 2026-08-19
+
+Suite: waived (no Solidity); bundled lints ran (all exit 0); jest 43 passed
+across 5 suites; eslint 0 errors; tsc --noEmit exit 0.
+
+| id | severity | file | finding | status |
+| --- | --- | --- | --- | --- |
+
+Findings: 0. Manual review: the admin mutation refuses client-side without
+an admin token for the selected chain and the server re-checks with
+isAdminForChain regardless; the override buttons disable while pending; the
+bearer token is sent only to the app's own origin-relative API path.
+
+Leads not pursued: none
