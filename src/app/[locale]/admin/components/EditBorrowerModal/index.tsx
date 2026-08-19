@@ -8,15 +8,27 @@ import EditProfileForm from "@/app/[locale]/borrower/profile/edit/components/Edi
 import { BorrowerProfileInput } from "@/app/api/profiles/interface"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { useBorrowerRestriction } from "@/hooks/useBorrowerRestriction"
 import { COLORS } from "@/theme/colors"
 
 import { ErrorModal } from "../../../borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
 import { LoadingModal } from "../../../borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
 import { SuccessModal } from "../../../borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
+import { useSetBorrowerRestrictionOverride } from "../../hooks/useSetBorrowerRestrictionOverride"
 
 export const EditBorrowerModal = ({ address }: { address: `0x${string}` }) => {
   const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
+  const { state: restrictionState, refetch: refetchRestriction } =
+    useBorrowerRestriction(address)
+  const { mutate: setOverride, isPending: isOverridePending } =
+    useSetBorrowerRestrictionOverride(address)
+  const restricted = restrictionState?.restricted ?? false
+  const overridden = restrictionState?.source === "override"
+
+  const handleOverride = (override: "restricted" | "cleared" | null) => {
+    setOverride(override, { onSettled: () => refetchRestriction() })
+  }
 
   const handleClose = () => {
     setIsOpen(false)
@@ -71,6 +83,60 @@ export const EditBorrowerModal = ({ address }: { address: `0x${string}` }) => {
                 </Typography>
               </Box>
             </TxModalHeader>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+                padding: "16px 24px 0",
+              }}
+            >
+              <Typography variant="text2" fontWeight={600}>
+                {t("admin.restriction.title")}:{" "}
+                {restricted
+                  ? t("admin.restriction.stateRestricted", {
+                      source: restrictionState?.source,
+                    })
+                  : t("admin.restriction.stateUnrestricted")}
+              </Typography>
+              <Typography variant="text4" color={COLORS.santasGrey}>
+                {t("admin.restriction.hint")}
+              </Typography>
+              <Box sx={{ display: "flex", gap: "8px" }}>
+                {!restricted && (
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    size="small"
+                    disabled={isOverridePending}
+                    onClick={() => handleOverride("restricted")}
+                  >
+                    {t("admin.restriction.restrict")}
+                  </Button>
+                )}
+                {restricted && (
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    size="small"
+                    disabled={isOverridePending}
+                    onClick={() => handleOverride("cleared")}
+                  >
+                    {t("admin.restriction.forceClear")}
+                  </Button>
+                )}
+                {overridden && (
+                  <Button
+                    variant="text"
+                    size="small"
+                    disabled={isOverridePending}
+                    onClick={() => handleOverride(null)}
+                  >
+                    {t("admin.restriction.removeOverride")}
+                  </Button>
+                )}
+              </Box>
+            </Box>
             <Box width="100%" padding="24px">
               <EditProfileForm
                 address={address as `0x${string}`}

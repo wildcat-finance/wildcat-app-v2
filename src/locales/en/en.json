@@ -76,8 +76,8 @@
     }
   },
   "telegramBanner": {
-    "title": "Subscribe to our Telegram\u00a0Bot",
-    "subtitle": "Receive notifications for market\u00a0events",
+    "title": "Subscribe to our Telegram Bot",
+    "subtitle": "Receive notifications for market events",
     "button": "Subscribe"
   },
   "admin": {
@@ -118,6 +118,15 @@
       "title": "Edit Borrower Profile",
       "description": "Edit borrower's profile details.",
       "submit": "Save Changes"
+    },
+    "restriction": {
+      "title": "Restriction",
+      "stateRestricted": "Restricted ({{source}})",
+      "stateUnrestricted": "Not restricted",
+      "restrict": "Restrict",
+      "forceClear": "Force clear",
+      "removeOverride": "Remove override",
+      "hint": "Manual overrides take precedence over the onchain-derived removal flag."
     }
   },
   "dashboard": {
