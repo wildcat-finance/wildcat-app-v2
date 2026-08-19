@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useMemo, useRef } from "react"
 
 import { useQuery } from "@tanstack/react-query"
 import {
@@ -240,13 +240,36 @@ export function useLendersMarkets(): UseLendersMarketsResult {
     refetchOnWindowFocus: true,
   })
 
+  const lastLiveSnapshot = useRef<{
+    chainId: SupportedChainId
+    lender: string | undefined
+    accounts: MarketAccount[]
+  }>()
+
+  // An indexed refresh starts a new live query. Keep the last hydrated rows on
+  // screen while it runs, but never carry them across a chain or wallet change.
+  if (updatedLenders !== undefined) {
+    lastLiveSnapshot.current = {
+      chainId: targetChainId,
+      lender,
+      accounts: updatedLenders,
+    }
+  }
+
+  const retainedLiveLenders =
+    lastLiveSnapshot.current?.chainId === targetChainId &&
+    lastLiveSnapshot.current.lender === lender
+      ? lastLiveSnapshot.current.accounts
+      : undefined
+  const liveLenders = updatedLenders ?? retainedLiveLenders
+
   let onboardingStatus: LenderMarketsOnboardingStatus = "loading"
   if (isErrorInitial) onboardingStatus = "error"
   else if (data) onboardingStatus = "ready"
 
   return {
-    data: updatedLenders ?? accounts,
-    hasLiveData: updatedLenders !== undefined,
+    data: liveLenders ?? accounts,
+    hasLiveData: liveLenders !== undefined,
     onboardingByMarket,
     onboardingStatus,
     isLoadingInitial,

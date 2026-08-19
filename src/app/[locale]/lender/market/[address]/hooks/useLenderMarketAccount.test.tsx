@@ -12,11 +12,16 @@ import type {
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 
-import { useLenderMarketAccountQuery } from "./useLenderMarketAccount"
+import {
+  useLenderMarketAccount,
+  useLenderMarketAccountQuery,
+} from "./useLenderMarketAccount"
 
 const getIndexedLenderAccountSummaryForMarketMock = jest.fn()
 const getMarketAccountMock = jest.fn()
 const useSelectedNetworkMock = jest.fn()
+const useEthersProviderMock = jest.fn()
+const useAccountMock = jest.fn()
 
 jest.mock("@wildcatfi/wildcat-sdk", () => ({
   getIndexedLenderAccountSummaryForMarket: (...args: unknown[]) =>
@@ -32,7 +37,11 @@ jest.mock("@/hooks/useSelectedNetwork", () => ({
 }))
 
 jest.mock("@/hooks/useEthersSigner", () => ({
-  useEthersProvider: jest.fn(),
+  useEthersProvider: () => useEthersProviderMock(),
+}))
+
+jest.mock("wagmi", () => ({
+  useAccount: () => useAccountMock(),
 }))
 
 const SEPOLIA_CHAIN_ID = 11155111
@@ -81,6 +90,13 @@ describe("useLenderMarketAccountQuery", () => {
       chainId: SEPOLIA_CHAIN_ID,
       isTestnet: true,
     })
+    useEthersProviderMock.mockReturnValue({
+      address: undefined,
+      signer: undefined,
+      provider,
+      isWrongNetwork: false,
+    })
+    useAccountMock.mockReturnValue({ address: LENDER_A })
   })
 
   it("starts the authoritative read without waiting for the indexed account", async () => {
@@ -269,5 +285,29 @@ describe("useLenderMarketAccountQuery", () => {
       expect(result.current.authoritativeStatus).toBe("resolved"),
     )
     expect(result.current.authoritativeAccount).toBe(authoritative)
+  })
+
+  it("uses the connected account while the wallet client is still hydrating", async () => {
+    const indexed = createAccount(LENDER_A, "indexed")
+    const authoritative = createAccount(LENDER_A, "live")
+    getIndexedLenderAccountSummaryForMarketMock.mockResolvedValue(indexed)
+    getMarketAccountMock.mockResolvedValue(authoritative)
+
+    renderHook(() => useLenderMarketAccount(market), {
+      wrapper: createWrapper(),
+    })
+
+    await waitFor(() =>
+      expect(getMarketAccountMock).toHaveBeenCalledWith(
+        SEPOLIA_CHAIN_ID,
+        provider,
+        LENDER_A,
+        MARKET_ADDRESS,
+      ),
+    )
+    expect(getIndexedLenderAccountSummaryForMarketMock).toHaveBeenCalledWith(
+      { chainId: SEPOLIA_CHAIN_ID },
+      expect.objectContaining({ lender: LENDER_A }),
+    )
   })
 })
