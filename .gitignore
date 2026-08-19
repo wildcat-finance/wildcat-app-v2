@@ -43,6 +43,5 @@ next-env.d.ts
 /output/
 /performance-profiles/
 
-# i18n tooling scratch output
+# i18n checker scratch output (npm run i18n:check -- --json)
 /scripts/i18n/check-report.json
-/scripts/i18n/rename-report.json

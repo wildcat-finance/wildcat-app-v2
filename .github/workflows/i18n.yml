@@ -1,0 +1,64 @@
+name: i18n
+
+# Triggers mirror commitlint.yml on purpose: every branch, every push, so a key
+# cannot reach the remote broken. Both gates together run in about a second --
+# installing deps is the only real cost, and i18n:verify needs node_modules
+# because it resolves keys through a real i18next instance.
+#
+# Deliberately not filtered by `paths`. A required check that is skipped on some
+# PRs reads as "never ran" to branch protection, and the runtime saved is noise
+# next to the install step.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: ['**']
+  push:
+    branches: ['**']
+    tags-ignore: ['**']
+
+permissions:
+  contents: read
+
+jobs:
+  i18n:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Pin npm
+        run: npm install -g npm@11.12.0 --ignore-scripts --audit=false --fund=false
+
+      - name: Install deps
+        run: npm ci --ignore-scripts --audit=false --fund=false
+        env:
+          HUSKY: '0'
+
+      # Structure: missing keys, dynamically built keys, t() fallbacks, sections
+      # outside the convention, hardcoded user-visible attributes, key depth,
+      # duplicate wording that is not a listed homonym, and orphaned keys.
+      # --json also writes scripts/i18n/check-report.json, uploaded below when the
+      # run fails, so the full violation list is available without reproducing
+      # locally. It does not weaken the gate: the exit code is unchanged.
+      - name: Check locale structure
+        run: npm run i18n:check -- --json
+
+      # Rendering: resolves every call site through a real i18next instance, so a
+      # key that exists but renders as an object, or a placeholder the call site
+      # never supplies, fails here rather than in front of a user.
+      - name: Check keys resolve
+        run: npm run i18n:verify
+
+      - name: Upload violation report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: i18n-check-report
+          path: scripts/i18n/check-report.json
+          if-no-files-found: ignore

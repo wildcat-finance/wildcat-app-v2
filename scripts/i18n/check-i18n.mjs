@@ -2,25 +2,31 @@
  * i18n invariant checker. The gate that makes the locales refactor verifiable
  * instead of vibes-based.
  *
- *   npm run i18n:check                    # compare against the baseline
- *   npm run i18n:check -- --strict        # any violation is fatal (end state)
- *   npm run i18n:check -- --write-baseline
+ *   npm run i18n:check                    # the gate; any violation is fatal
  *   npm run i18n:check -- --json          # scripts/i18n/check-report.json
+ *   npm run i18n:check -- --write-baseline
  *
- * While scripts/i18n/i18n-baseline.json exists and --strict is absent, each count
- * is compared against it and the run fails only when one goes UP. That is what
- * lets the refactor land over many commits without CI being red for a week. When
- * every count reaches zero, switch to --strict and delete the baseline.
+ * The refactor landed, so every rule is now enforced at zero and the ratcheting
+ * baseline is gone. --write-baseline and the baseline comparison are kept for the
+ * next multi-commit refactor that needs to land over a red-for-a-week period:
+ * write a baseline, drop --strict, and the run fails only when a count goes UP.
+ * Delete the file again when the counts are back to zero.
  *
- * Rules
+ * Rules -- all fatal except staleHomonym
  *   missingKey     ERROR  a key referenced in code that en.json does not define
  *   dynamicKey     ERROR  a key built by interpolation or concatenation
  *   defaultValue   ERROR  t("key", "fallback") -- masks a missing key
  *   legacySection  ERROR  top-level section outside the documented convention
- *   attrLiteral    WARN   user-visible JSX attribute holding a hardcoded string
- *   depth          WARN   key deeper than MAX_DEPTH
- *   duplicateValue WARN   identical wording defined outside common.* more than once
- *   orphanKey      WARN   an en.json key no call site references
+ *   attrLiteral    ERROR  user-visible JSX attribute holding a hardcoded string
+ *   depth          ERROR  key deeper than MAX_DEPTH
+ *   duplicateValue ERROR  identical wording outside common.* that is NOT a
+ *                         deliberate homonym listed in KNOWN_HOMONYMS below
+ *   orphanKey      ERROR  an en.json key no call site references
+ *   staleHomonym   WARN   a KNOWN_HOMONYMS entry that no longer duplicates --
+ *                         someone collapsed it, so prune the list
+ *
+ * A false positive on attrLiteral is fixed by widening NON_TRANSLATABLE or
+ * SKIP_UI_RE in this file, with a comment saying why. Do not silence the rule.
  *
  * On attrLiteral: eslint-plugin-i18next's no-literal-string inspects JSX *text*
  * only in v6 (`markupOnly` is inert), so it never sees `placeholder="Enter amount"`.
@@ -56,6 +62,35 @@ const ALLOWED_TOP_LEVEL = new Set([
  * still a smell -- that is a redundant grouping level.
  */
 const MAX_DEPTH = 6
+
+/**
+ * Wording that is duplicated outside common.* ON PURPOSE, normalised the way the
+ * duplicateValue rule normalises (trimmed, lowercased). Each entry is copy that
+ * two surfaces happen to spell the same in English and that must stay free to
+ * diverge without a translator having to split a key first. Anything NOT listed
+ * here is a real duplicate and fails the build.
+ *
+ * Reasons live in docs/i18n-conventions.md under "Deliberate duplicates". Adding
+ * an entry is a decision, not a workaround: if the two sites would always change
+ * together, collapse them into common.* instead.
+ */
+const KNOWN_HOMONYMS = new Map([
+  ["deposit", "modal title vs the market page button vs the market-list row action"],
+  ["withdraw", "modal title vs the page button"],
+  ["connect wallet", "header button vs the dialog title it opens"],
+  ["cancel invitation", "modal title vs the button that confirms it"],
+  ["notifications", "header menu label vs the history page title"],
+  ["markets", "a profile stat label vs the market-list page title"],
+  ["fixed term", "withdraw buttonLocked vs marketTerm enum vs marketTypeChip enum"],
+  ["open term", "marketTerm enum vs marketTypeChip enum"],
+  ["periodic term", "marketTerm enum vs marketTypeChip enum"],
+  ["unknown term", "marketTypeChip enum vs policyType enum"],
+  ["open withdrawals", "the withdrawalAccess parameter value vs the section heading"],
+  ["no", "two noMarkets.filter.beginning sentence fragments, not the yes/no atom"],
+  ["for", "a sentence fragment used by two different assemblies"],
+  ["edit borrower profile", "a borrower editing their own profile vs an admin editing someone else's record"],
+  ["lender profile", "sidebar nav label vs the profile page heading"],
+])
 
 const PLURAL_SUFFIXES = ["zero", "one", "two", "few", "many", "other"]
 const CONTEXT_SUFFIX_RE = /_(male|female)$/
@@ -101,7 +136,6 @@ const NON_PROSE_RE = /^(?:[a-z0-9_-]+|[A-Za-z0-9_.\-]*\.[A-Za-z0-9_.\-]+|[#/{$].
  * Deliberately never translated -- file-format acronyms and network proper nouns
  * read identically in every locale. Keeping this list makes the count mean
  * "strings that ought to be keys", not "strings already ruled out".
- * Mirrored by scripts/i18n/propose-hardcoded-keys.mjs when that exists.
  */
 const NON_TRANSLATABLE = new Set([
   "CSV", "PDF", "PNG", "SVG", "JSON", "XLSX", "Ethereum", "Plasma", "True", "False",
@@ -204,6 +238,7 @@ const uiFiles = new Set(allSourceFiles.filter((f) => !SKIP_UI_RE.test(f)))
 const violations = {
   missingKey: [], dynamicKey: [], defaultValue: [], legacySection: [],
   attrLiteral: [], depth: [], duplicateValue: [], orphanKey: [],
+  staleHomonym: [],
 }
 
 const unreadable = []
@@ -305,10 +340,16 @@ for (const [key, value] of Object.entries(locale)) {
   if (!byValue.has(normalized)) byValue.set(normalized, [])
   byValue.get(normalized).push(key)
 }
+const stillDuplicated = new Set()
 for (const [value, keys] of byValue) {
-  if (keys.length > 1) violations.duplicateValue.push({ value, keys: keys.sort() })
+  if (keys.length < 2) continue
+  if (KNOWN_HOMONYMS.has(value)) { stillDuplicated.add(value); continue }
+  violations.duplicateValue.push({ value, keys: keys.sort() })
 }
 violations.duplicateValue.sort((a, b) => b.keys.length - a.keys.length)
+for (const [value, reason] of KNOWN_HOMONYMS) {
+  if (!stillDuplicated.has(value)) violations.staleHomonym.push({ value, reason })
+}
 
 /**
  * Orphans: defined but never referenced. A key counts as used when it appears as
@@ -327,8 +368,8 @@ violations.orphanKey.sort((a, b) => a.key.localeCompare(b.key))
 // ----------------------------------------------------------------- reporting
 const SEVERITY = {
   missingKey: "error", dynamicKey: "error", defaultValue: "error",
-  legacySection: "error", attrLiteral: "warn", depth: "warn",
-  duplicateValue: "warn", orphanKey: "warn",
+  legacySection: "error", attrLiteral: "error", depth: "error",
+  duplicateValue: "error", orphanKey: "error", staleHomonym: "warn",
 }
 const counts = Object.fromEntries(
   Object.entries(violations).map(([k, v]) => [k, v.length]),
