@@ -179,7 +179,7 @@ export const MarketPolicyForm = ({
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("createNewMarket.policy.title")}
+        {t("borrower.createMarket.policy.title")}
       </Typography>
 
       <Box
@@ -188,19 +188,19 @@ export const MarketPolicyForm = ({
           gap: "38px 10px",
         }}
       >
-        <InputLabel label={t("createNewMarket.policy.policy.label")}>
+        <InputLabel label={t("borrower.createMarket.policy.policy.label")}>
           <ExtendedSelect
             control={control}
             name="policy"
-            label={t("createNewMarket.policy.policy.placeholder")}
+            label={t("borrower.createMarket.policy.policy.placeholder")}
             options={policyOptions}
             optionSX={{ width: "360px" }}
           />
         </InputLabel>
 
-        <InputLabel label={t("createNewMarket.policy.name.label")}>
+        <InputLabel label={t("borrower.createMarket.policy.name.label")}>
           <TextField
-            placeholder={t("createNewMarket.policy.name.placeholder")}
+            placeholder={t("borrower.createMarket.policy.name.placeholder")}
             error={Boolean(errors.policyName)}
             helperText={errors.policyName?.message}
             {...register("policyName")}
@@ -227,7 +227,7 @@ export const MarketPolicyForm = ({
           />
         </InputLabel>
 
-        <InputLabel label={t("createNewMarket.policy.type.label")}>
+        <InputLabel label={t("borrower.createMarket.policy.type.label")}>
           <ExtendedSelect
             selectSX={{
               "& .MuiSelect-icon": {
@@ -240,14 +240,14 @@ export const MarketPolicyForm = ({
             }}
             control={control}
             name="marketType"
-            label={t("createNewMarket.policy.type.placeholder")}
+            label={t("common.placeholders.pleaseSelect")}
             options={mockedMarketTypesOptions}
             optionSX={{ width: "360px" }}
             disabled={disableFields}
           />
         </InputLabel>
 
-        <InputLabel label={t("createNewMarket.policy.access.label")}>
+        <InputLabel label={t("borrower.createMarket.policy.access.label")}>
           <ExtendedSelect
             selectSX={{
               "& .MuiSelect-icon": {
@@ -260,7 +260,7 @@ export const MarketPolicyForm = ({
             }}
             control={control}
             name="accessControl"
-            label={t("createNewMarket.policy.access.placeholder")}
+            label={t("common.placeholders.pleaseSelect")}
             options={mockedAccessControlOptions}
             optionSX={{ width: "360px" }}
             disabled={disableFields}
@@ -273,7 +273,7 @@ export const MarketPolicyForm = ({
           <Divider sx={{ margin: "28px 0" }} />
 
           <Typography variant="text3">
-            {t("createNewMarket.policy.expiration.label")}
+            {t("borrower.createMarket.policy.expiration.label")}
           </Typography>
           <Box
             sx={{
@@ -373,8 +373,8 @@ export const MarketPolicyForm = ({
             </Box>
 
             <HorizontalInputLabel
-              label={t("createNewMarket.policy.earlyClose.label")}
-              explainer={t("createNewMarket.policy.earlyClose.explainer")}
+              label={t("borrower.createMarket.policy.earlyClose.label")}
+              explainer={t("borrower.createMarket.policy.earlyClose.explainer")}
             >
               <Switch
                 checked={allowClosureBeforeTermWatch}
@@ -386,7 +386,7 @@ export const MarketPolicyForm = ({
 
             <Box sx={{ width: "100%", gridArea: "2/2/-2/-2" }}>
               <HorizontalInputLabel
-                label={t("createNewMarket.policy.reduceExpiration.label")}
+                label={t("borrower.createMarket.policy.reduceExpiration.label")}
                 explainer={t(
                   "createNewMarket.policy.reduceExpiration.explainer",
                 )}

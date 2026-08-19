@@ -86,7 +86,7 @@ export const UnreadDialog = ({ open, handleClose }: UnreadDialogProps) => {
               variant="text3"
               color={value === 0 ? COLORS.black : COLORS.greySuit}
             >
-              {t("header.notifications.all")}
+              {t("common.filters.all")}
             </Typography>
           }
         />

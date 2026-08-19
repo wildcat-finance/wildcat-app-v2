@@ -20,7 +20,7 @@ const RevolvingFinancialSection = ({
   return (
     <>
       <Typography variant="text4" sx={SubtitleStyle}>
-        {t("createNewMarket.financial.title")}
+        {t("borrower.createMarket.financial.title")}
       </Typography>
 
       <Box
@@ -31,7 +31,7 @@ const RevolvingFinancialSection = ({
         }}
       >
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.maxCapacity.label")}
+          label={t("borrower.createMarket.financial.maxCapacity.label")}
           value={`${getValues("maxTotalSupply")} ${tokenAsset?.symbol}`}
         />
 
@@ -41,18 +41,18 @@ const RevolvingFinancialSection = ({
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.protocolFee.label")}
+          label={t("borrower.createMarket.financial.protocolFee.label")}
           /* dev: hardcoded for now, need to grab protocol fee from template */
           value={`${(getValues("annualInterestBips") * 5) / 100}%`}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.penaltyAPR.label")}
+          label={t("borrower.createMarket.financial.penaltyAPR.label")}
           value={`${getValues("delinquencyFeeBips")}%`}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.ratio.label")}
+          label={t("borrower.createMarket.financial.ratio.label")}
           value={`${getValues("reserveRatioBips")}%`}
         />
 
@@ -62,16 +62,16 @@ const RevolvingFinancialSection = ({
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.periods.grace.label")}
+          label={t("borrower.createMarket.periods.grace.label")}
           value={`${getValues("delinquencyGracePeriod")} hours`}
         />
         <ConfirmationFormItem
-          label={t("createNewMarket.periods.wdCycle.label")}
+          label={t("borrower.createMarket.periods.wdCycle.label")}
           value={`${getValues("withdrawalBatchDuration")} hours`}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.minDeposit.label")}
+          label={t("borrower.createMarket.financial.minDeposit.label")}
           value={`${getValues("minimumDeposit") ?? 0} ${tokenAsset?.symbol}`}
         />
       </Box>

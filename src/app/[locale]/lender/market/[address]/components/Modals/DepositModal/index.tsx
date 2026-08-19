@@ -69,13 +69,13 @@ const BorrowerIdentityDisclosure = ({
 
   const items = [
     {
-      label: t("borrowerProfile.profile.overallInfo.name"),
+      label: t("borrower.profile.view.name"),
       value: legalName,
     },
     ...(alias
       ? [
           {
-            label: t("borrowerProfile.profile.overallInfo.alias"),
+            label: t("borrower.profile.view.alias"),
             value: alias,
           },
         ]
@@ -643,7 +643,7 @@ export const DepositModal = ({
           }}
         >
           <TransactionHeader
-            label={t("lenderMarketDetails.transactions.deposit.modal.title")}
+            label={t("marketDetails.lender.modals.deposit.title")}
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : handleModalArrowClick
             }
@@ -944,7 +944,7 @@ export const DepositModal = ({
             {!gate.gateActive && !isBorrowerPenaltyCheckPending && (
               <TxModalFooter
                 mainBtnText={t(
-                  "lenderMarketDetails.transactions.deposit.button",
+                  "marketDetails.lender.transactions.deposit.button",
                 )}
                 secondBtnText={
                   // eslint-disable-next-line no-nested-ternary
@@ -1038,7 +1038,7 @@ export const DepositModal = ({
               >
                 {isBorrowerPenaltyCheckPending
                   ? "Checking..."
-                  : t("lenderMarketDetails.transactions.deposit.button")}
+                  : t("marketDetails.lender.transactions.deposit.button")}
               </Button>
             </Box>
           </Tooltip>
@@ -1059,7 +1059,7 @@ export const DepositModal = ({
           >
             {isBorrowerPenaltyCheckPending
               ? "Checking..."
-              : t("lenderMarketDetails.transactions.deposit.button")}
+              : t("marketDetails.lender.transactions.deposit.button")}
           </Button>
         )}
 
@@ -1096,9 +1096,7 @@ export const DepositModal = ({
                 }}
               >
                 <TxModalHeader
-                  title={t(
-                    "lenderMarketDetails.transactions.deposit.modal.title",
-                  )}
+                  title={t("marketDetails.lender.modals.deposit.title")}
                   arrowOnClick={
                     modal.hideArrowButton || !showForm
                       ? null
@@ -1471,7 +1469,7 @@ export const DepositModal = ({
               ) : (
                 <TxModalFooter
                   mainBtnText={t(
-                    "lenderMarketDetails.transactions.deposit.button",
+                    "marketDetails.lender.transactions.deposit.button",
                   )}
                   secondBtnText={
                     // eslint-disable-next-line no-nested-ternary

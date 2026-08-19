@@ -75,13 +75,13 @@ export const CountrySelector = ({
     <div>
       <Autocomplete
         PopperComponent={MyPopper}
-        noOptionsText={t("borrowerProfile.edit.public.country.noOptions")}
+        noOptionsText={t("borrower.profile.form.country.noOptions")}
         filterOptions={filterOptions}
         disabled={disabled}
         renderInput={(params) => (
           <TextField
             {...params}
-            label={t("borrowerProfile.edit.public.country.title")}
+            label={t("borrower.profile.form.country.title")}
             error={error}
             helperText={helperText}
           />

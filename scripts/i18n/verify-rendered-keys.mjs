@@ -112,8 +112,12 @@ function optionKeys(text) {
   ].map((m) => m[1])
 }
 
-const files = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "src"], { encoding: "utf8" })
-  .split("\n").filter((f) => /\.(tsx?|jsx?)$/.test(f) && !/\.(test|stories)\./.test(f))
+// `-z` and a NUL split, never a newline split: git QUOTES paths containing
+// non-ASCII bytes (this repo has 7, e.g. a directory spelled with a Cyrillic
+// "\u0441omponents"). A quoted path fails to open, and a silent `continue` then
+// hides every key and every hardcoded string in those files.
+const files = execFileSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard", "src"], { encoding: "utf8" })
+  .split("\0").filter((f) => /\.(tsx?|jsx?)$/.test(f) && !/\.(test|stories)\./.test(f))
 
 const CALL = /\bt\(\s*"([A-Za-z0-9_.\-]+)"/g
 const TRANS = /i18nKey=\s*"([A-Za-z0-9_.\-]+)"/g

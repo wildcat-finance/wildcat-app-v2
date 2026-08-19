@@ -37,7 +37,7 @@ export const MobileMarketHistoryModal = ({
       }}
     >
       <TransactionHeader
-        label={t("lenderMarketDetails.sidebar.marketHistory")}
+        label={t("marketDetails.shared.sidebar.marketHistory")}
         subLabel={market.name}
         arrowOnClick={() => setIsMobileHistoryOpen(false)}
         crossOnClick={null}

@@ -64,7 +64,7 @@ export const LenderRestrictionsForm = ({
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("createNewMarket.lenderRestrictions.title")}
+        {t("borrower.createMarket.lenderRestrictions.title")}
       </Typography>
 
       <Box

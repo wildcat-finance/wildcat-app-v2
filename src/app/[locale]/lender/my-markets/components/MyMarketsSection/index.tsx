@@ -291,7 +291,7 @@ export const MyMarketsSection = () => {
                 target="_blank"
                 rel="noreferrer"
               >
-                {t("dashboard.markets.docsLink")}
+                {t("marketList.shared.docsLink")}
               </Link>
             </Typography>
 
@@ -402,7 +402,7 @@ export const MyMarketsSection = () => {
           >
             <Box sx={{ display: "flex", gap: "6px" }}>
               <MarketsFilterSelect
-                placeholder={t("dashboard.markets.filters.assets")}
+                placeholder={t("marketList.shared.filters.assets")}
                 options={
                   tokens?.map((token) => ({
                     id: token.address,
@@ -413,7 +413,7 @@ export const MyMarketsSection = () => {
                 setSelected={setMarketAssets}
               />
               <MarketsFilterSelect
-                placeholder={t("dashboard.markets.filters.statuses")}
+                placeholder={t("common.fields.status")}
                 options={marketStatusesMock}
                 selected={marketStatuses}
                 setSelected={setMarketStatuses}
@@ -429,7 +429,7 @@ export const MyMarketsSection = () => {
             <FilterTextField
               value={marketSearch}
               setValue={setMarketSearch}
-              placeholder={t("dashboard.markets.filters.name")}
+              placeholder={t("common.buttons.search")}
               width="264px"
             />
           </Box>

@@ -213,7 +213,7 @@ export const EditLendersForm = ({
                 fontWeight: 600,
               }}
             >
-              {t("editPolicy.forms.edit.submit")}
+              {t("common.buttons.submit")}
             </Button>
           </Box>
         ) : (
@@ -241,7 +241,7 @@ export const EditLendersForm = ({
             }}
           >
             <Typography variant="text3" color={COLORS.santasGrey}>
-              {t("editPolicy.forms.edit.noLenders")}
+              {t("borrower.editPolicy.forms.edit.noLenders")}
             </Typography>
           </Box>
         </Box>

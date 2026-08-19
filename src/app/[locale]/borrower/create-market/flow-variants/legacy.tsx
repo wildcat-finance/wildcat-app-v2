@@ -18,32 +18,32 @@ const getGlossaryItems = (
 
   return [
     {
-      title: t("createNewMarket.financial.maxCapacity.label"),
+      title: t("borrower.createMarket.financial.maxCapacity.label"),
       description: t("createNewMarket.financial.maxCapacity.glossary"),
     },
     {
-      title: t("createNewMarket.financial.baseAPR.label"),
-      description: t("createNewMarket.financial.baseAPR.glossary"),
+      title: t("borrower.createMarket.financial.baseAPR.label"),
+      description: t("borrower.createMarket.financial.baseAPR.glossary"),
     },
     {
-      title: t("createNewMarket.financial.penaltyAPR.label"),
-      description: t("createNewMarket.financial.penaltyAPR.glossary"),
+      title: t("borrower.createMarket.financial.penaltyAPR.label"),
+      description: t("borrower.createMarket.financial.penaltyAPR.glossary"),
     },
     {
-      title: t("createNewMarket.financial.ratio.label"),
-      description: t("createNewMarket.financial.ratio.glossary"),
+      title: t("borrower.createMarket.financial.ratio.label"),
+      description: t("borrower.createMarket.financial.ratio.glossary"),
     },
     {
-      title: t("createNewMarket.periods.grace.label"),
-      description: t("createNewMarket.periods.grace.glossary"),
+      title: t("borrower.createMarket.periods.grace.label"),
+      description: t("borrower.createMarket.periods.grace.glossary"),
     },
     {
-      title: t("createNewMarket.periods.wdCycle.label"),
-      description: t("createNewMarket.periods.wdCycle.glossary"),
+      title: t("borrower.createMarket.periods.wdCycle.label"),
+      description: t("borrower.createMarket.periods.wdCycle.glossary"),
     },
     {
-      title: t("createNewMarket.financial.minDeposit.label"),
-      description: t("createNewMarket.financial.minDeposit.glossary"),
+      title: t("borrower.createMarket.financial.minDeposit.label"),
+      description: t("borrower.createMarket.financial.minDeposit.glossary"),
     },
   ]
 }

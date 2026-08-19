@@ -78,13 +78,13 @@ export default function EditPolicyPage() {
         )
         setAccessControl(
           hasPullProvider
-            ? t("roleProviders.defaultPullProvider")
-            : t("roleProviders.manualApproval"),
+            ? t("marketParameters.roleProviders.defaultPullProvider")
+            : t("marketParameters.roleProviders.manualApproval"),
         )
         // @todo update when we have provider names
       } else {
         policyName = "V1 Markets"
-        setAccessControl(t("roleProviders.manualApproval"))
+        setAccessControl(t("marketParameters.roleProviders.manualApproval"))
       }
       const lendersData =
         data.lenders?.map((lender) => {
@@ -96,14 +96,14 @@ export default function EditPolicyPage() {
             const { lastProvider } = credential
             if (lastProvider) {
               credentialSource = lastProvider.isPushProvider
-                ? t("editPolicy.roleProviders.manualApproval")
-                : t("editPolicy.roleProviders.defaulPullProvider")
+                ? t("borrower.editPolicy.roleProviders.manualApproval")
+                : t("borrower.editPolicy.roleProviders.defaulPullProvider")
               credentialExpiry =
                 lastProvider.timeToLive === maxTimeToLive
                   ? maxTimeToLive
                   : credential.lastApprovalTimestamp + lastProvider.timeToLive
             } else {
-              credentialSource = t("editPolicy.deauthorized")
+              credentialSource = t("borrower.editPolicy.deauthorized")
             }
             return {
               ...lender,
@@ -113,10 +113,12 @@ export default function EditPolicyPage() {
           }
           if (lender.isAuthorizedOnController) {
             credentialExpiry = undefined
-            credentialSource = t("editPolicy.roleProviders.manualApproval")
+            credentialSource = t(
+              "borrower.editPolicy.roleProviders.manualApproval",
+            )
           } else {
             credentialExpiry = maxTimeToLive
-            credentialSource = t("editPolicy.deauthorized")
+            credentialSource = t("borrower.editPolicy.deauthorized")
           }
           return {
             ...lender,
@@ -224,7 +226,7 @@ export default function EditPolicyPage() {
 
         {!isLoading && step === "edit" && (
           <Typography variant="title2">
-            {originalPolicyName || t("editPolicy.unnamedPolicy.label")}
+            {originalPolicyName || t("borrower.editPolicy.unnamedPolicy.label")}
           </Typography>
         )}
       </Box>
@@ -241,7 +243,7 @@ export default function EditPolicyPage() {
             <Box sx={InputLabelContainer} marginBottom="2px">
               <Box sx={InputLabelTypo}>
                 <Typography variant="text1">
-                  {t("editPolicy.forms.policyName.title")}
+                  {t("borrower.editPolicy.forms.policyName.title")}
                 </Typography>
               </Box>
             </Box>
@@ -256,7 +258,7 @@ export default function EditPolicyPage() {
               <TextField
                 value={pendingPolicyName}
                 onChange={(e) => setPendingPolicyName(e.target.value)}
-                label={t("editPolicy.forms.policyName.title")}
+                label={t("borrower.editPolicy.forms.policyName.title")}
                 placeholder={t(
                   "createMarket.forms.marketDescription.block.policyName.placeholder",
                 )}
@@ -269,7 +271,7 @@ export default function EditPolicyPage() {
             <Box sx={InputLabelContainer} marginBottom="2px">
               <Box sx={InputLabelTypo}>
                 <Typography variant="text1">
-                  {t("editPolicy.policyType")}
+                  {t("borrower.editPolicy.policyType")}
                 </Typography>
               </Box>
             </Box>
@@ -285,7 +287,7 @@ export default function EditPolicyPage() {
             <Box sx={InputLabelContainer} marginBottom="2px">
               <Box sx={InputLabelTypo}>
                 <Typography variant="text1">
-                  {t("editPolicy.accessControl")}
+                  {t("borrower.editPolicy.accessControl")}
                 </Typography>
               </Box>
             </Box>
@@ -296,10 +298,12 @@ export default function EditPolicyPage() {
         </Box>
       </Box>
 
-      <Typography variant="title2">{t("editPolicy.markets")}</Typography>
+      <Typography variant="title2">
+        {t("borrower.editPolicy.markets")}
+      </Typography>
       <Box>
         <BorrowerMarketsTable
-          label={t("editPolicy.markets")}
+          label={t("borrower.editPolicy.markets")}
           // type="active"
           usePagination
           noMarketsTitle=""

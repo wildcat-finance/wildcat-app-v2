@@ -488,7 +488,7 @@ export const ExploreMarketsTable = () => {
       },
       {
         field: "status",
-        headerName: t("dashboard.markets.tables.header.status"),
+        headerName: t("common.fields.status"),
         minWidth: 100,
         flex: 1,
         headerAlign: "left",
@@ -504,7 +504,7 @@ export const ExploreMarketsTable = () => {
       },
       {
         field: "term",
-        headerName: t("dashboard.markets.tables.header.term"),
+        headerName: t("marketList.shared.tables.header.term"),
         minWidth: 100,
         flex: 1,
         headerAlign: "left",
@@ -520,7 +520,7 @@ export const ExploreMarketsTable = () => {
       },
       {
         field: "apr",
-        headerName: t("dashboard.markets.tables.header.apr"),
+        headerName: t("common.fields.apr"),
         minWidth: 100,
         flex: 1,
         headerAlign: "right",
@@ -550,7 +550,7 @@ export const ExploreMarketsTable = () => {
       },
       {
         field: "withdrawalBatchDuration",
-        headerName: t("dashboard.markets.tables.header.withdrawal"),
+        headerName: t("marketList.shared.tables.header.withdrawal"),
         minWidth: 100,
         flex: 1,
         headerAlign: "right",
@@ -563,7 +563,7 @@ export const ExploreMarketsTable = () => {
       },
       {
         field: "asset",
-        headerName: t("dashboard.markets.tables.header.asset"),
+        headerName: t("marketList.shared.tables.header.asset"),
         minWidth: 112,
         flex: 0.5,
         headerAlign: "right",
@@ -680,7 +680,7 @@ export const ExploreMarketsTable = () => {
                   color="secondary"
                   endIcon={ActionArrowIcon}
                 >
-                  {t("dashboard.markets.tables.other.depositBTN")}
+                  {t("marketList.shared.tables.other.depositBTN")}
                 </Button>
               )}
               {action === LenderMarketAction.RequestAccess && (
@@ -696,7 +696,7 @@ export const ExploreMarketsTable = () => {
                     color="secondary"
                     endIcon={ActionArrowIcon}
                   >
-                    {t("dashboard.markets.tables.other.requestBTN")}
+                    {t("marketList.shared.tables.other.requestBTN")}
                   </Button>
                 </Link>
               )}
@@ -709,7 +709,7 @@ export const ExploreMarketsTable = () => {
                   disabled
                 >
                   {action === LenderMarketAction.DepositUnavailable
-                    ? t("dashboard.markets.tables.other.depositBTN")
+                    ? t("marketList.shared.tables.other.depositBTN")
                     : "Unavailable"}
                 </Button>
               )}
@@ -1009,7 +1009,7 @@ export const ExploreMarketsTable = () => {
           />
 
           <MarketsFilterSelect
-            placeholder={t("dashboard.markets.filters.assets")}
+            placeholder={t("marketList.shared.filters.assets")}
             options={
               tokens?.map((token) => ({
                 id: token.address,

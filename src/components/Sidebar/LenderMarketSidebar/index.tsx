@@ -123,7 +123,7 @@ export const LenderMarketSidebar = () => {
                 <SvgIcon sx={{ marginRight: "10px" }}>
                   <BorrowAndRepayIcon />
                 </SvgIcon>
-                {t("lenderMarketDetails.sidebar.actions")}
+                {t("marketDetails.lender.sidebar.actions")}
               </Button>
             )}
 
@@ -142,7 +142,7 @@ export const LenderMarketSidebar = () => {
               <SvgIcon sx={{ marginRight: "10px" }}>
                 <StatusAndDetailsIcon />
               </SvgIcon>
-              {t("lenderMarketDetails.sidebar.status")}
+              {t("marketDetails.lender.sidebar.status")}
             </Button>
 
             {!hideDescriptionSection && (
@@ -167,7 +167,7 @@ export const LenderMarketSidebar = () => {
                 >
                   <SummaryIcon />
                 </SvgIcon>
-                {t("lenderMarketDetails.description.title")}
+                {t("common.fields.marketDescription")}
               </Button>
             )}
 
@@ -189,7 +189,7 @@ export const LenderMarketSidebar = () => {
                 <SvgIcon sx={{ marginRight: "10px" }}>
                   <WithdrawalAndRequestsIcon />
                 </SvgIcon>
-                {t("lenderMarketDetails.sidebar.requests")}
+                {t("marketDetails.lender.sidebar.requests")}
                 {!!withdrawalsCount && (
                   <Box
                     sx={{
@@ -233,7 +233,7 @@ export const LenderMarketSidebar = () => {
               <SvgIcon sx={{ marginRight: "10px" }}>
                 <LenderBorrowerIcon />
               </SvgIcon>
-              {t("lenderMarketDetails.sidebar.borrowerProfile")}
+              {t("marketDetails.lender.sidebar.borrowerProfile")}
             </Button>
 
             <Button
@@ -255,7 +255,7 @@ export const LenderMarketSidebar = () => {
               <SvgIcon sx={{ marginRight: "10px" }}>
                 <MarketEventsIcon />
               </SvgIcon>
-              {t("lenderMarketDetails.sidebar.marketHistory")}
+              {t("marketDetails.shared.sidebar.marketHistory")}
             </Button>
 
             {isLender && (
@@ -284,7 +284,7 @@ export const LenderMarketSidebar = () => {
                   >
                     <TokenWrapIcon />
                   </SvgIcon>
-                  {t("lenderMarketDetails.sidebar.wrapDebtToken")}
+                  {t("marketDetails.lender.sidebar.wrapDebtToken")}
 
                   <Box
                     sx={{

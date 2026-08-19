@@ -49,10 +49,10 @@ export const LenderMlaModal = ({
   const buttonText =
     // eslint-disable-next-line no-nested-ternary
     mla === null
-      ? t("lenderMarketDetails.buttons.mlaNotSet")
+      ? t("marketDetails.lender.buttons.mlaNotSet")
       : mlaInput && "noMLA" in mlaInput
-        ? t("lenderMarketDetails.buttons.mlaRefused")
-        : t("lenderMarketDetails.buttons.viewMla")
+        ? t("marketDetails.lender.buttons.mlaRefused")
+        : t("marketDetails.lender.buttons.viewMla")
 
   return (
     <>

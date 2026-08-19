@@ -165,7 +165,7 @@ export const MarketActions = ({
 
     if (!isOngoingWDsZero) {
       parts.push(
-        t("lenderMarketDetails.transactions.withdrawalsAlert.title.ongoing", {
+        t("marketDetails.lender.withdrawalsAlert.title.ongoing", {
           count: ongoingCount,
         }),
       )
@@ -184,7 +184,7 @@ export const MarketActions = ({
 
     if (!isClaimableZero) {
       parts.push(
-        t("lenderMarketDetails.transactions.withdrawalsAlert.title.claim", {
+        t("marketDetails.lender.withdrawalsAlert.title.claim", {
           claimableAmount: `${formatTokenWithCommas(
             withdrawals.totalClaimableAmount,
           )} ${market.underlyingToken.symbol}`,
@@ -218,7 +218,7 @@ export const MarketActions = ({
           onClick={() => handleAddToken()}
           disabled={isAddingToken && canAddToken}
         >
-          {t("lenderMarketDetails.buttons.addToken")}
+          {t("marketDetails.lender.buttons.addToken")}
         </Button>
 
         <LenderMlaModal mla={mla} isLoading={mlaLoading} />
@@ -255,7 +255,7 @@ export const MarketActions = ({
             <TelegramIcon />
           </SvgIcon>
 
-          {t("helpModal.items.telegram.botButton")}
+          {t("modals.shared.help.telegram.botButton")}
         </Button>
       </Box>
 
@@ -265,8 +265,8 @@ export const MarketActions = ({
         <Box sx={TransactionsContainer}>
           {accessState === "authorized" && (
             <TransactionBlock
-              title={t("lenderMarketDetails.transactions.deposit.title")}
-              tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
+              title={t("marketDetails.lender.transactions.deposit.title")}
+              tooltip={t("marketDetails.lender.transactions.deposit.tooltip")}
               amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
               asset={market.underlyingToken.symbol}
             >
@@ -348,7 +348,7 @@ export const MarketActions = ({
           )}
 
           <TransactionBlock
-            title={t("lenderMarketDetails.transactions.withdraw.title")}
+            title={t("marketDetails.lender.transactions.withdraw.title")}
             tooltip={t(
               market.periodicHooksConfig
                 ? "lenderMarketDetails.transactions.withdraw.periodicTooltip"
@@ -399,7 +399,7 @@ export const MarketActions = ({
         <Typography variant="title3">{getWithdrawalsStatus()}</Typography>
         {isClaimableZero && (
           <Typography variant="text3" color={COLORS.santasGrey} marginTop="8px">
-            {t("lenderMarketDetails.transactions.withdrawalsAlert.subtitle")}
+            {t("marketDetails.lender.withdrawalsAlert.subtitle")}
           </Typography>
         )}
 

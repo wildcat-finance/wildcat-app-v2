@@ -31,7 +31,7 @@ export const LegacyFinancialForm = ({
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("createNewMarket.financial.title")}
+        {t("borrower.createMarket.financial.title")}
       </Typography>
 
       <Box
@@ -43,7 +43,7 @@ export const LegacyFinancialForm = ({
         <CapacityField form={form} tokenAsset={tokenAsset} />
         <BaseAprField
           form={form}
-          label={t("createNewMarket.financial.baseAPR.label")}
+          label={t("borrower.createMarket.financial.baseAPR.label")}
         />
         <PenaltyAprField form={form} />
         <ReserveRatioField form={form} />

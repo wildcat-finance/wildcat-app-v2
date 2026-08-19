@@ -28,7 +28,7 @@ export const PeriodicTermsConfirmation = ({
   return (
     <>
       <Typography variant="text4" sx={SubtitleStyle}>
-        {t("createNewMarket.confirm.typeTerms")}
+        {t("borrower.createMarket.confirm.typeTerms")}
       </Typography>
 
       <Box

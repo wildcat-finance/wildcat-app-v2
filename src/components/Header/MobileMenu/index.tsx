@@ -414,7 +414,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
               {/* Telegram Banner */}
               <Box
                 component="aside"
-                aria-label={t("telegramBanner.title")}
+                aria-label={t("header.telegramBanner.title")}
                 sx={{
                   width: "100%",
                   borderRadius: "20px",
@@ -452,7 +452,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     textAlign="center"
                     color={COLORS.white}
                   >
-                    {t("telegramBanner.title")}
+                    {t("header.telegramBanner.title")}
                   </Typography>
                   <Typography
                     variant="text4"
@@ -460,7 +460,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     color={COLORS.white}
                     sx={{ opacity: 0.8 }}
                   >
-                    {t("telegramBanner.subtitle")}
+                    {t("header.telegramBanner.subtitle")}
                   </Typography>
                 </Box>
                 <Button
@@ -481,7 +481,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     "&:hover": { bgcolor: COLORS.whiteLilac },
                   }}
                 >
-                  {t("telegramBanner.button")}
+                  {t("header.telegramBanner.button")}
                 </Button>
               </Box>
 
@@ -721,10 +721,10 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                 }}
               >
                 <Typography variant="mobText1">
-                  {t("helpModal.title")}
+                  {t("modals.shared.help.title")}
                 </Typography>
                 <Typography variant="mobText3" color={COLORS.manate}>
-                  {t("helpModal.subtitle")}
+                  {t("modals.shared.help.subtitle")}
                 </Typography>
               </Box>
 

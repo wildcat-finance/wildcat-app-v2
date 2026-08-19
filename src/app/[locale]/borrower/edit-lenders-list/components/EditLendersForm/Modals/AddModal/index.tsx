@@ -174,7 +174,7 @@ export const AddModal = () => {
           fontWeight: 600,
         }}
       >
-        {t("editLendersList.modals.add.addLender")}
+        {t("borrower.editLenders.modals.add.addLender")}
       </Button>
 
       <Dialog
@@ -286,7 +286,7 @@ export const AddModal = () => {
           type="submit"
           sx={{ margin: "24px 24px 0" }}
         >
-          {t("editLendersList.modals.add.add")}
+          {t("common.buttons.add")}
         </Button>
       </Dialog>
     </>

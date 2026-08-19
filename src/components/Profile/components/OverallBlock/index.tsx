@@ -71,12 +71,12 @@ export const OverallBlock = ({
   const normalizedDefaults = defaults !== undefined ? String(defaults) : "—"
 
   const profileInfo: ProfileItem[] = [
-    makeInformationItem(t("borrowerProfile.profile.overallInfo.name"), name, {
+    makeInformationItem(t("borrower.profile.view.name"), name, {
       verified: true,
     }),
-    makeInformationItem(t("borrowerProfile.profile.overallInfo.alias"), alias),
+    makeInformationItem(t("borrower.profile.view.alias"), alias),
     makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.address"),
+      t("borrower.profile.view.address"),
       address ? trimAddress(address) : undefined,
       {
         link: address ? getAddressUrl(address) : undefined,
@@ -85,7 +85,7 @@ export const OverallBlock = ({
       },
     ),
     makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.headquarters"),
+      t("borrower.profile.view.headquarters"),
       jurisdictionText,
       { verified: true },
     ),
@@ -111,7 +111,7 @@ export const OverallBlock = ({
       t("borrowerProfile.profile.overallInfo.defaults.title"),
       normalizedDefaults,
       {
-        tooltipText: t("borrowerProfile.profile.overallInfo.defaults.tooltip"),
+        tooltipText: t("borrower.profile.view.defaults.tooltip"),
       },
     ),
     ...(additionalUrls ?? []).map((url) =>
@@ -133,7 +133,7 @@ export const OverallBlock = ({
     return (
       <Box sx={MobileInfoContainer}>
         <Typography variant="mobH3" marginTop="12px">
-          {t("borrowerProfile.profile.overallInfo.title")}
+          {t("borrower.profile.view.title")}
         </Typography>
         <Box sx={MobileInfoGrid}>
           {existingData.map((item, index) => (
@@ -163,7 +163,7 @@ export const OverallBlock = ({
         display="block"
         sx={isPage ? { marginBottom: "24px" } : undefined}
       >
-        {t("borrowerProfile.profile.overallInfo.title")}
+        {t("borrower.profile.view.title")}
       </Typography>
 
       <Box sx={{ ...InfoContainer, marginTop: isPage ? "0" : "16px" }}>

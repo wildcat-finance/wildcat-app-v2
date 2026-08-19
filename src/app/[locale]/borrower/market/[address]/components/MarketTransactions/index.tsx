@@ -250,10 +250,10 @@ export const MarketTransactions = ({
       {holdTheMarket && (
         <Box sx={MarketTxUpperButtonsContainer}>
           {/* <Button variant="outlined" color="secondary" size="small"> */}
-          {/*  {t("borrowerMarketDetails.buttons.kyc")} */}
+          {/*  {t("marketDetails.borrower.buttons.kyc")} */}
           {/* </Button> */}
           {/* <Button variant="outlined" color="secondary" size="small"> */}
-          {/*  {t("borrowerMarketDetails.buttons.mla")} */}
+          {/*  {t("marketDetails.borrower.buttons.mla")} */}
           {/* </Button> */}
           <CapacityModal marketAccount={marketAccount} />
           <AprModal marketAccount={marketAccount} />
@@ -294,7 +294,7 @@ export const MarketTransactions = ({
               <TelegramIcon />
             </SvgIcon>
 
-            {t("helpModal.items.telegram.botButton")}
+            {t("modals.shared.help.telegram.botButton")}
           </Button>
         </Box>
       )}
@@ -326,7 +326,7 @@ export const MarketTransactions = ({
               target="_blank"
               style={{ color: COLORS.butteredRum, fontWeight: 600 }}
             >
-              {t("borrowerMarketDetails.modals.apr.learnMore")}
+              {t("marketDetails.borrower.modals.apr.learnMore")}
             </Link>
           </Typography>
         </Box>
@@ -358,7 +358,7 @@ export const MarketTransactions = ({
               target="_blank"
               style={{ color: COLORS.blackRock, fontWeight: 600 }}
             >
-              {t("borrowerMarketDetails.modals.apr.learnMore")}
+              {t("marketDetails.borrower.modals.apr.learnMore")}
             </Link>
           </Typography>
         </Box>
@@ -455,8 +455,8 @@ export const MarketTransactions = ({
 
       <Box sx={MarketTxContainer}>
         <TransactionBlock
-          title={t("borrowerMarketDetails.transactions.toRepay.title")}
-          tooltip={t("borrowerMarketDetails.transactions.toRepay.tooltip")}
+          title={t("marketDetails.borrower.transactions.toRepay.title")}
+          tooltip={t("marketDetails.borrower.transactions.toRepay.tooltip")}
           amount={
             isTooSmallOutstandingDebt
               ? "< 0.00001"
@@ -474,8 +474,8 @@ export const MarketTransactions = ({
         </TransactionBlock>
 
         <TransactionBlock
-          title={t("borrowerMarketDetails.transactions.toBorrow.title")}
-          tooltip={t("borrowerMarketDetails.transactions.toBorrow.tooltip")}
+          title={t("marketDetails.borrower.transactions.toBorrow.title")}
+          tooltip={t("marketDetails.borrower.transactions.toBorrow.tooltip")}
           amount={formatTokenWithCommas(marketAccount.market.borrowableAssets)}
           asset={market.underlyingToken.symbol}
         >
@@ -495,7 +495,7 @@ export const MarketTransactions = ({
 
           <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             <Typography variant="title3">
-              {t("borrowerMarketDetails.transactions.ongoingWDs.title", {
+              {t("marketDetails.borrower.transactions.ongoingWDs.title", {
                 count: ongoingWDs,
               })}
             </Typography>
@@ -507,7 +507,7 @@ export const MarketTransactions = ({
               sx={{ width: "fit-content" }}
               onClick={handleClickWithdrawals}
             >
-              {t("borrowerMarketDetails.transactions.ongoingWDs.button")}
+              {t("marketDetails.borrower.transactions.ongoingWDs.button")}
             </Button>
           </Box>
         </>

@@ -144,16 +144,12 @@ export const LenderNavSidebar = () => {
                 }
               >
                 <DashboardButton
-                  label={t(
-                    "dashboard.markets.tables.borrower.active.deposited",
-                  )}
+                  label={t("marketList.borrower.active.deposited")}
                   amount={depositedAmount}
                   onClick={() => dispatch(setScrollTarget("deposited"))}
                 />
                 <DashboardButton
-                  label={t(
-                    "dashboard.markets.tables.borrower.active.nonDeposited",
-                  )}
+                  label={t("marketList.borrower.active.nonDeposited")}
                   amount={nonDepositedAmount}
                   onClick={() => dispatch(setScrollTarget("non-deposited"))}
                 />
@@ -172,16 +168,12 @@ export const LenderNavSidebar = () => {
                 }
               >
                 <DashboardButton
-                  label={t(
-                    "dashboard.markets.tables.borrower.closed.prevActive",
-                  )}
+                  label={t("marketList.borrower.closed.prevActive")}
                   amount={prevActiveAmount}
                   onClick={() => dispatch(setScrollTarget("prev-active"))}
                 />
                 <DashboardButton
-                  label={t(
-                    "dashboard.markets.tables.borrower.closed.neverActive",
-                  )}
+                  label={t("marketList.borrower.closed.neverActive")}
                   amount={neverActiveAmount}
                   onClick={() => dispatch(setScrollTarget("never-active"))}
                 />
@@ -222,22 +214,22 @@ export const LenderNavSidebar = () => {
             }}
           >
             <DashboardSectionAccordion
-              label={t("dashboard.markets.tables.other.title")}
+              label={t("marketList.shared.tables.other.title")}
               amount={allMarketsCount}
               open
             >
               <DashboardButton
-                label={t("dashboard.markets.tables.other.selfOnboard")}
+                label={t("marketList.shared.tables.other.selfOnboard")}
                 amount={selfOnboardAmount}
                 onClick={() => dispatch(setScrollTarget("self-onboard"))}
               />
               <DashboardButton
-                label={t("dashboard.markets.tables.other.manual")}
+                label={t("marketList.shared.tables.other.manual")}
                 amount={manualAmount}
                 onClick={() => dispatch(setScrollTarget("manual"))}
               />
               <DashboardButton
-                label={t("dashboard.markets.tables.other.terminated")}
+                label={t("marketList.shared.tables.other.terminated")}
                 amount={terminatedOtherAmount}
                 onClick={() => dispatch(setScrollTarget("other-terminated"))}
               />

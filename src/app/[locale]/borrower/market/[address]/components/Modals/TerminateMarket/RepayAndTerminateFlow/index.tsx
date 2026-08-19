@@ -246,15 +246,15 @@ export const RepayAndTerminateFlow = ({
         <Box width="100%" height="100%" padding="0 24px">
           <Box sx={TerminateAlertContainer}>
             <Typography color={COLORS.blueRibbon} variant="text3">
-              {t("borrowerMarketDetails.modals.terminate.repayRemaining")}
+              {t("marketDetails.borrower.modals.terminate.repayRemaining")}
             </Typography>
             <Typography color={COLORS.blueRibbon} variant="text3">
-              {t("borrowerMarketDetails.modals.terminate.learnMore")}
+              {t("marketDetails.borrower.modals.terminate.learnMore")}
             </Typography>
           </Box>
 
           <Typography variant="text2">
-            {t("borrowerMarketDetails.modals.terminate.debts")}
+            {t("marketDetails.borrower.modals.terminate.debts")}
           </Typography>
 
           <Box sx={TerminateDetailsContainer}>
@@ -281,7 +281,7 @@ export const RepayAndTerminateFlow = ({
             }}
           >
             <Typography variant="text3">
-              {t("borrowerMarketDetails.modals.terminate.total")}
+              {t("marketDetails.borrower.modals.terminate.total")}
             </Typography>
             <Typography variant="text3" noWrap color={COLORS.dullRed}>
               {formatTokenWithCommas(market.totalDebts, {
@@ -299,7 +299,7 @@ export const RepayAndTerminateFlow = ({
             }}
           >
             <Typography variant="text2">
-              {t("borrowerMarketDetails.modals.terminate.totalAssets")}
+              {t("marketDetails.borrower.modals.terminate.totalAssets")}
             </Typography>
 
             <Typography variant="text2" noWrap color="green">
@@ -318,7 +318,7 @@ export const RepayAndTerminateFlow = ({
             }}
           >
             <Typography variant="text2">
-              {t("borrowerMarketDetails.modals.terminate.remainingDebt")}
+              {t("marketDetails.borrower.modals.terminate.remainingDebt")}
             </Typography>
             <Typography variant="text2" noWrap color={COLORS.dullRed}>
               {formatTokenWithCommas(market.outstandingDebt, {

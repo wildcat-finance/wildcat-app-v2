@@ -108,7 +108,7 @@ export const MarketsTableAccordion = ({
               {nameFilter === "" ? "" : nameFilter}{" "}
               {assetFilter?.length !== 0 &&
                 `${assetFilter?.map((asset) => ` ${asset.name}`)}`}{" "}
-              {t("dashboard.markets.noMarkets.filter.ending")}
+              {t("marketList.shared.noMarkets.filter.ending")}
             </Typography>
           </Box>
         )}

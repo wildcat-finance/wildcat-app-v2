@@ -418,7 +418,7 @@ export const WithdrawModal = ({
         }}
       >
         <TransactionHeader
-          label={t("lenderMarketDetails.transactions.withdraw.modal.title")}
+          label={t("marketDetails.lender.modals.withdraw.title")}
           arrowOnClick={
             // eslint-disable-next-line no-nested-ternary
             view === "form"
@@ -459,8 +459,8 @@ export const WithdrawModal = ({
         disabled={notMature}
       >
         {notMature
-          ? t("lenderMarketDetails.transactions.withdraw.buttonLocked")
-          : t("lenderMarketDetails.transactions.withdraw.button")}
+          ? t("marketDetails.lender.transactions.withdraw.buttonLocked")
+          : t("marketDetails.lender.transactions.withdraw.button")}
       </Button>
 
       <Dialog
@@ -483,7 +483,7 @@ export const WithdrawModal = ({
       >
         {(view === "form" || view === "steps") && (
           <TxModalHeader
-            title={t("lenderMarketDetails.transactions.withdraw.modal.title")}
+            title={t("marketDetails.lender.modals.withdraw.title")}
             arrowOnClick={canGoBackToForm ? handleBackToForm : null}
             crossOnClick={flow.busy ? null : handleClose}
           />

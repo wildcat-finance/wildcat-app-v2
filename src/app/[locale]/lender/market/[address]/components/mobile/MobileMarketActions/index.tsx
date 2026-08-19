@@ -325,7 +325,7 @@ export const MobileMarketActions = ({
     setIsMobileDepositOpen(true)
   }
 
-  let depositTooltip = t("lenderMarketDetails.transactions.deposit.tooltip")
+  let depositTooltip = t("marketDetails.lender.transactions.deposit.tooltip")
   if (touGateState === "blocked") {
     depositTooltip = "Accept the Terms of Use to deposit"
   } else if (touGateState === "unknown") {
@@ -339,7 +339,7 @@ export const MobileMarketActions = ({
       "The borrower must complete the market agreement selection before deposits can begin"
   }
 
-  let depositButtonText = t("lenderMarketDetails.transactions.deposit.button")
+  let depositButtonText = t("marketDetails.lender.transactions.deposit.button")
   if (
     actionState.deposit === "checking-tou" ||
     actionState.deposit === "loading"
@@ -391,7 +391,7 @@ export const MobileMarketActions = ({
           fullWidth
           sx={{ padding: "10px 20px", marginTop: "16px" }}
         >
-          {t("lenderMarketDetails.buttons.viewMla")}
+          {t("marketDetails.lender.buttons.viewMla")}
         </Button>
       </>
     )
@@ -478,7 +478,7 @@ export const MobileMarketActions = ({
                 }}
               >
                 <MobileMarketTransactionItem
-                  title={t("lenderMarketDetails.transactions.withdraw.title")}
+                  title={t("marketDetails.lender.transactions.withdraw.title")}
                   tooltip={withdrawTooltip}
                   amount={formatTokenWithCommas(combinedAvailable)}
                   asset={market.underlyingToken.symbol}
@@ -525,9 +525,9 @@ export const MobileMarketActions = ({
                   ↑{" "}
                   {withdrawalActionState === "fixed-term"
                     ? t(
-                        "lenderMarketDetails.transactions.withdraw.buttonLocked",
+                        "marketDetails.lender.transactions.withdraw.buttonLocked",
                       )
-                    : t("lenderMarketDetails.transactions.withdraw.button")}
+                    : t("marketDetails.lender.transactions.withdraw.button")}
                 </Button>
 
                 {withdrawalActionState !== "ready" && (
@@ -552,7 +552,7 @@ export const MobileMarketActions = ({
               }}
             >
               <MobileMarketTransactionItem
-                title={t("lenderMarketDetails.transactions.deposit.title")}
+                title={t("marketDetails.lender.transactions.deposit.title")}
                 tooltip={depositTooltip}
                 amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
                 asset={market.underlyingToken.symbol}

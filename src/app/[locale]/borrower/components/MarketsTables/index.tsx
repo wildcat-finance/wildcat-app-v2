@@ -223,7 +223,7 @@ export const MarketsTables = ({
           <Box marginTop="16px" ref={terminatedMarketsRef}>
             <BorrowerMarketsTable
               type="terminated"
-              label={t("borrowerMarketList.table.title.terminated")}
+              label={t("marketList.borrower.table.title.terminated")}
               noMarketsTitle={t(
                 "borrowerMarketList.table.noMarkets.terminated.title",
               )}
@@ -251,7 +251,7 @@ export const MarketsTables = ({
           />
         ) : (
           <Typography variant="text3" marginLeft="16px">
-            {t("borrowerMarketList.table.noMarkets.wrongNetwork")}
+            {t("marketList.borrower.table.noMarkets.wrongNetwork")}
           </Typography>
         )}
       </Box>

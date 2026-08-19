@@ -23,13 +23,13 @@ export const EditPolicySidebar = () => {
   return (
     <Box sx={ContentContainer}>
       <BackButton
-        title={t("editPolicy.sidebar.back")}
+        title={t("borrower.editPolicy.sidebar.back")}
         onClick={handleClickMarkets}
       />
 
       <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
         <Button variant="text" size="medium" sx={MenuItemButtonSelected}>
-          {t("editPolicy.sidebar.edit")}
+          {t("borrower.editPolicy.sidebar.edit")}
         </Button>
       </Box>
     </Box>

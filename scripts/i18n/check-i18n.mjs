@@ -189,10 +189,14 @@ const localeTopLevel = new Set([...localeKeys].map((k) => k.split(".")[0]))
  * Two file lists on purpose. Key resolution covers ALL source; the
  * hardcoded-string rules follow the eslint override list.
  */
+// `-z` and a NUL split, never a newline split: git QUOTES paths containing
+// non-ASCII bytes (this repo has 7, e.g. a directory spelled with a Cyrillic
+// "\u0441omponents"). A quoted path fails to open, and a silent `continue` then
+// hides every key and every hardcoded string in those files.
 const allSourceFiles = git([
-  "ls-files", "--cached", "--others", "--exclude-standard", "src",
+  "ls-files", "-z", "--cached", "--others", "--exclude-standard", "src",
 ])
-  .split("\n")
+  .split("\0")
   .filter((f) => /\.(tsx?|jsx?)$/.test(f))
   .filter((f) => !/(\.test\.[tj]sx?|\.stories\.[tj]sx?|\.d\.ts)$/.test(f))
 const uiFiles = new Set(allSourceFiles.filter((f) => !SKIP_UI_RE.test(f)))
@@ -202,13 +206,22 @@ const violations = {
   attrLiteral: [], depth: [], duplicateValue: [], orphanKey: [],
 }
 
+const unreadable = []
 const usedKeys = new Set()
 const referencedLiterals = new Set()
 const dynamicPrefixes = new Set()
 
 for (const file of allSourceFiles) {
   let source
-  try { source = fs.readFileSync(path.join(rootDir, file), "utf8") } catch { continue }
+  try {
+    source = fs.readFileSync(path.join(rootDir, file), "utf8")
+  } catch (e) {
+    // Never swallow this: an unreadable path means the file is not scanned, and a
+    // silent skip understates every count.
+    console.error(`check-i18n: cannot read ${file} (${e.code}) -- NOT SCANNED`)
+    unreadable.push(file)
+    continue
+  }
   const text = blankComments(source)
   const lineAt = (index) => text.slice(0, index).split("\n").length
 
@@ -256,6 +269,14 @@ for (const file of allSourceFiles) {
     if (NON_PROSE_RE.test(value) || NON_TRANSLATABLE.has(value.trim())) continue
     violations.attrLiteral.push({ file, line: lineAt(m.index), attr, value })
   }
+}
+
+if (unreadable.length) {
+  console.error(
+    `\n${unreadable.length} file(s) could not be read, so their keys are invisible. ` +
+      "Refusing to report counts that are known to be wrong.",
+  )
+  process.exitCode = 1
 }
 
 // ------------------------------------------------------------- locale shape

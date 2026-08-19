@@ -287,7 +287,7 @@ export const EditLendersByMarketTable = () => {
               }}
               variant="text"
             >
-              {t("editLendersList.forms.edit.undo")}
+              {t("borrower.editLenders.forms.undo")}
             </Button>
           )}
         </>
@@ -332,7 +332,7 @@ export const EditLendersByMarketTable = () => {
             }}
           >
             <Typography variant="text3" color={COLORS.santasGrey}>
-              {t("editLendersList.forms.edit.noLendersFilter")}
+              {t("borrower.editLenders.forms.noLendersFilter")}
             </Typography>
             <Button
               onClick={() => dispatch(resetFilters())}
@@ -345,7 +345,7 @@ export const EditLendersByMarketTable = () => {
                 },
               }}
             >
-              {t("editLendersList.forms.edit.resetFilters")}
+              {t("borrower.editLenders.forms.resetFilters")}
             </Button>
           </Box>
         </Box>

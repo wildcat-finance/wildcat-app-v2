@@ -98,8 +98,8 @@ export default function PolicyPage() {
   const accessControl = hasActivePullRoleProvider(
     data?.hooksInstance?.roleProviders ?? [],
   )
-    ? t("roleProviders.defaultPullProvider")
-    : t("roleProviders.manualApproval")
+    ? t("marketParameters.roleProviders.defaultPullProvider")
+    : t("marketParameters.roleProviders.manualApproval")
 
   const [tab, setTab] = useState<PolicyTabs>(PolicyTabs.DETAILS)
 

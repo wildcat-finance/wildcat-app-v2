@@ -25,9 +25,9 @@ export const CapacityField = ({
   } = form
 
   return (
-    <InputLabel label={t("createNewMarket.financial.maxCapacity.label")}>
+    <InputLabel label={t("borrower.createMarket.financial.maxCapacity.label")}>
       <NumberTextField
-        label={t("createNewMarket.financial.maxCapacity.placeholder")}
+        label={t("borrower.createMarket.financial.maxCapacity.placeholder")}
         value={getValues("maxTotalSupply")}
         decimalScale={tokenAsset?.decimals}
         // onBlur={(v) => {
@@ -73,13 +73,13 @@ export const BaseAprField = ({
         min={0}
         max={100}
         decimalScale={2}
-        label={t("createNewMarket.financial.baseAPR.placeholder")}
+        label={t("common.placeholders.range0to100")}
         value={getValues("annualInterestBips")}
         error={Boolean(errors.annualInterestBips)}
         helperText={errors.annualInterestBips?.message}
         endAdornment={
           <Typography variant="text2" sx={endDecorator}>
-            {t("createNewMarket.financial.baseAPR.chip")}
+            {t("common.units.percent")}
           </Typography>
         }
         {...register("annualInterestBips")}
@@ -97,18 +97,18 @@ export const PenaltyAprField = ({ form }: FinancialFieldProps) => {
   } = form
 
   return (
-    <InputLabel label={t("createNewMarket.financial.penaltyAPR.label")}>
+    <InputLabel label={t("borrower.createMarket.financial.penaltyAPR.label")}>
       <NumberTextField
         min={0}
         max={100}
         decimalScale={2}
-        label={t("createNewMarket.financial.penaltyAPR.placeholder")}
+        label={t("common.placeholders.range0to100")}
         value={getValues("delinquencyFeeBips")}
         error={Boolean(errors.delinquencyFeeBips)}
         helperText={errors.delinquencyFeeBips?.message}
         endAdornment={
           <Typography variant="text2" sx={endDecorator}>
-            {t("createNewMarket.financial.penaltyAPR.chip")}
+            {t("common.units.percent")}
           </Typography>
         }
         {...register("delinquencyFeeBips")}
@@ -126,9 +126,9 @@ export const ReserveRatioField = ({ form }: FinancialFieldProps) => {
   } = form
 
   return (
-    <InputLabel label={t("createNewMarket.financial.ratio.label")}>
+    <InputLabel label={t("borrower.createMarket.financial.ratio.label")}>
       <NumberTextField
-        label={t("createNewMarket.financial.ratio.placeholder")}
+        label={t("common.placeholders.range0to100")}
         min={0}
         max={100}
         decimalScale={2}
@@ -137,7 +137,7 @@ export const ReserveRatioField = ({ form }: FinancialFieldProps) => {
         helperText={errors.reserveRatioBips?.message}
         endAdornment={
           <Typography variant="text2" sx={endDecorator}>
-            {t("createNewMarket.financial.ratio.chip")}
+            {t("common.units.percent")}
           </Typography>
         }
         {...register("reserveRatioBips")}
@@ -190,16 +190,16 @@ export const GracePeriodField = ({ form }: FinancialFieldProps) => {
   const delinquencyGracePeriod = watch("delinquencyGracePeriod")
 
   return (
-    <InputLabel label={t("createNewMarket.periods.grace.label")}>
+    <InputLabel label={t("borrower.createMarket.periods.grace.label")}>
       <NumberTextField
         decimalScale={2}
-        label={t("createNewMarket.periods.grace.placeholder")}
+        label={t("borrower.createMarket.periods.grace.placeholder")}
         value={delinquencyGracePeriod}
         error={Boolean(errors.delinquencyGracePeriod)}
         helperText={errors.delinquencyGracePeriod?.message}
         endAdornment={
           <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-            {t("createNewMarket.periods.grace.chip")}
+            {t("borrower.createMarket.periods.grace.chip")}
           </Typography>
         }
         {...register("delinquencyGracePeriod")}
@@ -218,16 +218,16 @@ export const WithdrawalCycleField = ({ form }: FinancialFieldProps) => {
   const withdrawalBatchDuration = watch("withdrawalBatchDuration")
 
   return (
-    <InputLabel label={t("createNewMarket.periods.wdCycle.label")}>
+    <InputLabel label={t("borrower.createMarket.periods.wdCycle.label")}>
       <NumberTextField
         decimalScale={2}
-        label={t("createNewMarket.periods.wdCycle.placeholder")}
+        label={t("borrower.createMarket.periods.wdCycle.placeholder")}
         value={withdrawalBatchDuration}
         error={Boolean(errors.withdrawalBatchDuration)}
         helperText={errors.withdrawalBatchDuration?.message}
         endAdornment={
           <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-            {t("createNewMarket.periods.wdCycle.chip")}
+            {t("borrower.createMarket.periods.wdCycle.chip")}
           </Typography>
         }
         {...register("withdrawalBatchDuration")}
@@ -249,12 +249,12 @@ export const MinimumDepositField = ({
 
   return (
     <InputLabel
-      label={t("createNewMarket.financial.minDeposit.label")}
-      subtitle={t("createNewMarket.financial.minDeposit.explainer")}
+      label={t("borrower.createMarket.financial.minDeposit.label")}
+      subtitle={t("borrower.createMarket.financial.minDeposit.explainer")}
       margin="36px 0 0 0"
     >
       <NumberTextField
-        label={t("createNewMarket.financial.minDeposit.placeholder")}
+        label={t("borrower.createMarket.financial.minDeposit.placeholder")}
         max={getValues("maxTotalSupply")}
         value={getValues("minimumDeposit")}
         onValueChange={(v) => {
@@ -300,7 +300,7 @@ export const GraceVsWithdrawalWarning = ({ show }: { show: boolean }) => {
         <MediumWarning />
       </SvgIcon>
       <Typography variant="text3" sx={{ color: COLORS.butteredRum }}>
-        {t("createNewMarket.periods.graceVsWithdrawalWarning")}
+        {t("borrower.createMarket.periods.graceVsWithdrawalWarning")}
       </Typography>
     </Box>
   )

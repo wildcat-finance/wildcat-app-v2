@@ -273,7 +273,7 @@ export const ClaimableTable = ({
     <DetailsAccordion
       isOpen={isClaimableOpen}
       setIsOpen={setIsClaimableOpen}
-      summaryText={t("lenderMarketDetails.requests.claimable")}
+      summaryText={t("marketDetails.lender.requests.claimable")}
       summarySx={{
         borderRadius: "0px",
         borderBottom: isClaimableOpen ? "none" : `1px solid`,

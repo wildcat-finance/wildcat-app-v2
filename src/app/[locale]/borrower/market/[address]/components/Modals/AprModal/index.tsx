@@ -360,12 +360,12 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
     formatBps(market.originalReserveRatioBips) !== newReserveRatio
 
   const getMainButtonText = () => {
-    if (needsReset) return t("borrowerMarketDetails.modals.apr.resetTempRatio")
+    if (needsReset) return t("marketDetails.borrower.modals.apr.resetTempRatio")
     if (aprFixedReduction) return "Forbidden [Fixed-Term]"
     if (isPeriodicAprReduction) {
       return t("borrowerMarketDetails.modals.apr.proposeReduction")
     }
-    return t("borrowerMarketDetails.modals.apr.adjust")
+    return t("marketDetails.borrower.modals.apr.adjust")
   }
 
   useEffect(() => {
@@ -433,7 +433,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                 style={{ textDecoration: "none", display: "flex" }}
               >
                 <Typography variant="text3" color={COLORS.blueRibbon}>
-                  {t("borrowerMarketDetails.modals.apr.learnMore")}
+                  {t("marketDetails.borrower.modals.apr.learnMore")}
                 </Typography>
               </Link>
             </Box>
@@ -538,7 +538,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                     sx={AprAffectsBox}
                   >
                     <Typography variant="text4" textTransform="uppercase">
-                      {t("borrowerMarketDetails.modals.apr.aprAffects")}
+                      {t("marketDetails.borrower.modals.apr.aprAffects")}
                     </Typography>
 
                     <ModalDataItem
@@ -570,7 +570,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
                     <ModalDataItem
                       title={t(
-                        "borrowerMarketDetails.modals.apr.reservedRatio",
+                        "marketDetails.borrower.modals.apr.reservedRatio",
                       )}
                       value={`${newReserveRatio ?? currentReserveRatio}%`}
                       valueColor={
@@ -761,7 +761,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                 )}
 
                 <FormControlLabel
-                  label={t("borrowerMarketDetails.modals.apr.approveNotified")}
+                  label={t("marketDetails.borrower.modals.apr.approveNotified")}
                   sx={AprModalFormLabel}
                   control={
                     <ExtendedCheckbox
@@ -846,8 +846,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
               mainBtnText={getMainButtonText()}
               secondBtnText={
                 modal.approvedStep
-                  ? t("borrowerMarketDetails.modals.apr.confirmed")
-                  : t("borrowerMarketDetails.modals.apr.confirm")
+                  ? t("marketDetails.borrower.modals.apr.confirmed")
+                  : t("common.buttons.confirm")
               }
               mainBtnOnClick={needsReset ? () => resetMutate() : handleAdjust}
               secondBtnOnClick={needsReset ? undefined : handleConfirm}

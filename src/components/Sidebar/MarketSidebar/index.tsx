@@ -78,7 +78,7 @@ export const MarketSidebar = () => {
   return (
     <Box sx={ContentContainer}>
       <Box position="sticky" top="32px">
-        <BackButton title={t("borrowerMarketDetails.sidebar.backToMarkets")} />
+        <BackButton title={t("marketDetails.borrower.sidebar.backToMarkets")} />
 
         <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
           {canInteract && (
@@ -110,7 +110,7 @@ export const MarketSidebar = () => {
               <SvgIcon sx={{ marginRight: "10px" }}>
                 <BorrowAndRepayIcon />
               </SvgIcon>
-              {t("borrowerMarketDetails.sidebar.borrowRepay")}
+              {t("marketDetails.borrower.sidebar.borrowRepay")}
             </Button>
           )}
           <Button
@@ -141,7 +141,7 @@ export const MarketSidebar = () => {
             <SvgIcon sx={{ marginRight: "10px" }}>
               <StatusAndDetailsIcon />
             </SvgIcon>
-            {t("borrowerMarketDetails.sidebar.statusDetails")}
+            {t("marketDetails.borrower.sidebar.statusDetails")}
           </Button>
           {!hideDescriptionSection && (
             <Button
@@ -176,7 +176,7 @@ export const MarketSidebar = () => {
               >
                 <SummaryIcon />
               </SvgIcon>
-              {t("borrowerMarketDetails.description.title")}
+              {t("common.fields.marketDescription")}
             </Button>
           )}
           <Button
@@ -207,7 +207,7 @@ export const MarketSidebar = () => {
             <SvgIcon sx={{ marginRight: "10px" }}>
               <WithdrawalAndRequestsIcon />
             </SvgIcon>
-            {t("borrowerMarketDetails.sidebar.withdrawalRequests")}
+            {t("marketDetails.borrower.sidebar.withdrawalRequests")}
 
             {!!withdrawalsCount && (
               <Box
@@ -261,7 +261,7 @@ export const MarketSidebar = () => {
             <SvgIcon sx={{ marginRight: "10px" }}>
               <LenderBorrowerIcon />
             </SvgIcon>
-            {t("borrowerMarketDetails.sidebar.authorisedLenders")}
+            {t("marketDetails.borrower.sidebar.authorisedLenders")}
           </Button>
           {canInteract && (
             <Button
@@ -292,7 +292,7 @@ export const MarketSidebar = () => {
               <SvgIcon sx={{ marginRight: "10px" }}>
                 <CollateralContractIcon />
               </SvgIcon>
-              {t("borrowerMarketDetails.sidebar.mla")}
+              {t("common.fields.mla")}
             </Button>
           )}
 
@@ -326,7 +326,7 @@ export const MarketSidebar = () => {
             <SvgIcon sx={{ marginRight: "10px" }}>
               <MarketEventsIcon />
             </SvgIcon>
-            {t("borrowerMarketDetails.sidebar.marketHistory")}
+            {t("marketDetails.shared.sidebar.marketHistory")}
           </Button>
         </Box>
 
@@ -367,7 +367,7 @@ export const MarketSidebar = () => {
               >
                 <TokenWrapIcon />
               </SvgIcon>
-              {t("lenderMarketDetails.sidebar.wrapDebtToken")}
+              {t("marketDetails.lender.sidebar.wrapDebtToken")}
 
               <Box
                 sx={{

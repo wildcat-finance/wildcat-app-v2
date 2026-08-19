@@ -145,7 +145,7 @@ export const DateRange = ({ dates, setDates }: DateRangeProps) => {
               variant="text3"
               color={COLORS.santasGrey}
             >
-              {t("dateRange.startDate")}
+              {t("common.dateRange.startDate")}
             </Typography>
             <TextField
               sx={DateCalendarTextField}
@@ -182,7 +182,7 @@ export const DateRange = ({ dates, setDates }: DateRangeProps) => {
               variant="text3"
               color={COLORS.santasGrey}
             >
-              {t("dateRange.dueDate")}
+              {t("common.dateRange.dueDate")}
             </Typography>
             <TextField
               sx={DateCalendarTextField}

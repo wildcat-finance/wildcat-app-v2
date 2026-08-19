@@ -104,7 +104,7 @@ export const MarketStatusChart = ({
         remainingInterest && (
           <Box sx={{ display: "flex", columnGap: "3px", marginBottom: "24px" }}>
             <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-              {t("borrowerMarketDetails.statusChart.sufficientReserves")}
+              {t("marketDetails.shared.statusChart.sufficientReserves")}
             </Typography>
             <Typography variant="text3" sx={{ color: COLORS.ultramarineBlue }}>
               {remainingInterest}

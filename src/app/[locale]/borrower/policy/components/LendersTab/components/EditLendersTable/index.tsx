@@ -107,7 +107,7 @@ export const EditLendersTable = ({
             >
               {lendersNames[params.row.address.toLowerCase()] ===
               ("" || undefined)
-                ? t("editLendersList.forms.edit.table.addName")
+                ? t("borrower.editLenders.addName")
                 : lendersNames[params.row.address.toLowerCase()]}
             </Typography>
           )}
@@ -189,7 +189,7 @@ export const EditLendersTable = ({
               variant="text"
               onClick={() => handleRestoreLender(params.row.address)}
             >
-              {t("editLendersList.forms.edit.table.undo")}
+              {t("borrower.editLenders.undo")}
             </Button>
           )}
         </>
@@ -218,7 +218,7 @@ export const EditLendersTable = ({
         <Box sx={NoLendersBox}>
           <Typography variant="text3" color={COLORS.santasGrey}>
             {isFiltered
-              ? `${t("editLendersList.forms.edit.table.noLenders")}`
+              ? `${t("borrower.editLenders.noLenders")}`
               : "No Active Lenders"}
           </Typography>
         </Box>

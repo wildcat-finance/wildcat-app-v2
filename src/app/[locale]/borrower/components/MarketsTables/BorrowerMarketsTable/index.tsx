@@ -87,7 +87,7 @@ export const BorrowerMarketsTable = ({
   const columns: TypeSafeColDef<MarketsTableModel>[] = [
     {
       field: "status",
-      headerName: t("borrowerMarketList.table.header.status"),
+      headerName: t("common.fields.status"),
       maxWidth: 146,
       minWidth: 130,
       flex: 2,
@@ -111,7 +111,7 @@ export const BorrowerMarketsTable = ({
     },
     {
       field: "name",
-      headerName: t("borrowerMarketList.table.header.marketName"),
+      headerName: t("common.fields.marketName"),
       flex: 3.35,
       minWidth: 160,
       headerAlign: "left",
@@ -186,7 +186,7 @@ export const BorrowerMarketsTable = ({
     },
     {
       field: "asset",
-      headerName: t("borrowerMarketList.table.header.asset"),
+      headerName: t("common.fields.underlyingAsset"),
       minWidth: 131,
       flex: 1,
       headerAlign: "right",
@@ -206,7 +206,7 @@ export const BorrowerMarketsTable = ({
     },
     {
       field: "lenderAPR",
-      headerName: t("borrowerMarketList.table.header.apr"),
+      headerName: t("marketList.borrower.table.header.apr"),
       minWidth: 102,
       flex: 1,
       headerAlign: "right",
@@ -226,7 +226,7 @@ export const BorrowerMarketsTable = ({
     },
     {
       field: "crr",
-      headerName: t("borrowerMarketList.table.header.crr"),
+      headerName: t("marketList.borrower.table.header.crr"),
       minWidth: 79,
       flex: 1,
       headerAlign: "right",
@@ -257,7 +257,7 @@ export const BorrowerMarketsTable = ({
     },
     {
       field: "maxCapacity",
-      headerName: t("borrowerMarketList.table.header.capacity"),
+      headerName: t("marketList.borrower.table.header.capacity"),
       minWidth: 136,
       headerAlign: "right",
       align: "right",
@@ -280,7 +280,7 @@ export const BorrowerMarketsTable = ({
     },
     {
       field: "borrowable",
-      headerName: t("borrowerMarketList.table.header.borrowable"),
+      headerName: t("marketList.borrower.table.header.borrowable"),
       minWidth: 106,
       flex: 1.6,
       headerAlign: "right",
@@ -308,7 +308,7 @@ export const BorrowerMarketsTable = ({
     },
     {
       field: "deploy",
-      headerName: t("borrowerMarketList.table.header.deploy"),
+      headerName: t("marketList.borrower.table.header.deploy"),
       minWidth: 126,
       flex: 1.2,
       headerAlign: "right",
@@ -425,7 +425,7 @@ export const BorrowerMarketsTable = ({
             {nameFilter === "" ? "" : nameFilter}{" "}
             {assetFilter?.length !== 0 &&
               `${assetFilter?.map((asset) => ` ${asset.name}`)}`}{" "}
-            {t("borrowerMarketList.table.noMarkets.filter.ending")}
+            {t("marketList.borrower.noMarketsFilterEnding")}
           </Typography>
         </Box>
       )}

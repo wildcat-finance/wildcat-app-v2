@@ -13,12 +13,12 @@ export const getSharedGlossaryItems = (
     case CreateMarketSteps.POLICY: {
       const items = [
         {
-          title: t("createNewMarket.policy.policy.label"),
-          description: t("createNewMarket.policy.policy.glossary"),
+          title: t("borrower.createMarket.policy.policy.label"),
+          description: t("borrower.createMarket.policy.policy.glossary"),
         },
         {
-          title: t("createNewMarket.policy.name.label"),
-          description: t("createNewMarket.policy.name.glossary"),
+          title: t("borrower.createMarket.policy.name.label"),
+          description: t("borrower.createMarket.policy.name.glossary"),
         },
       ]
       if (marketType === "periodicTerm") {
@@ -47,15 +47,15 @@ export const getSharedGlossaryItems = (
       } else if (marketType === "fixedTerm") {
         items.push(
           {
-            title: t("createNewMarket.policy.expiration.label"),
+            title: t("borrower.createMarket.policy.expiration.label"),
             description: t("createNewMarket.policy.expiration.glossary"),
           },
           {
-            title: t("createNewMarket.policy.earlyClose.label"),
-            description: t("createNewMarket.policy.earlyClose.explainer"),
+            title: t("borrower.createMarket.policy.earlyClose.label"),
+            description: t("borrower.createMarket.policy.earlyClose.explainer"),
           },
           {
-            title: t("createNewMarket.policy.reduceExpiration.label"),
+            title: t("borrower.createMarket.policy.reduceExpiration.label"),
             description: t("createNewMarket.policy.reduceExpiration.explainer"),
           },
         )
@@ -65,23 +65,23 @@ export const getSharedGlossaryItems = (
     case CreateMarketSteps.BASIC:
       return [
         {
-          title: t("createNewMarket.basic.asset.label"),
-          description: t("createNewMarket.basic.asset.glossary"),
+          title: t("common.fields.underlyingAsset"),
+          description: t("borrower.createMarket.basic.asset.glossary"),
         },
         {
-          title: t("createNewMarket.basic.tokenName.label"),
-          description: t("createNewMarket.basic.tokenName.glossary"),
+          title: t("borrower.createMarket.basic.tokenName.label"),
+          description: t("borrower.createMarket.basic.tokenName.glossary"),
         },
         {
-          title: t("createNewMarket.basic.tokenSymbol.label"),
-          description: t("createNewMarket.basic.tokenSymbol.glossary"),
+          title: t("borrower.createMarket.basic.tokenSymbol.label"),
+          description: t("borrower.createMarket.basic.tokenSymbol.glossary"),
         },
       ]
     case CreateMarketSteps.MLA:
       return [
         {
-          title: t("createNewMarket.mla.mla.label"),
-          description: t("createNewMarket.mla.mla.glossary"),
+          title: t("borrower.createMarket.mla.mla.label"),
+          description: t("borrower.createMarket.mla.mla.glossary"),
         },
       ]
     case CreateMarketSteps.FINANCIAL:

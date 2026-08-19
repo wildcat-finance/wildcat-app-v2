@@ -189,13 +189,13 @@ export const MobileHeader = ({ children }: { children: ReactNode }) => {
         {marketSection === LenderMarketDashboardSections.ACTIVE && (
           <>
             <MobileSwitcherButton
-              label={t("dashboard.markets.tables.borrower.active.deposited")}
+              label={t("marketList.borrower.active.deposited")}
               target="deposited"
               amount={depositedAmount}
               type="secondary"
             />
             <MobileSwitcherButton
-              label={t("dashboard.markets.tables.borrower.active.nonDeposited")}
+              label={t("marketList.borrower.active.nonDeposited")}
               target="non-deposited"
               amount={nonDepositedAmount}
               type="secondary"
@@ -206,13 +206,13 @@ export const MobileHeader = ({ children }: { children: ReactNode }) => {
         {marketSection === LenderMarketDashboardSections.TERMINATED && (
           <>
             <MobileSwitcherButton
-              label={t("dashboard.markets.tables.borrower.closed.prevActive")}
+              label={t("marketList.borrower.closed.prevActive")}
               target="prev-active"
               amount={prevActiveAmount}
               type="secondary"
             />
             <MobileSwitcherButton
-              label={t("dashboard.markets.tables.borrower.closed.neverActive")}
+              label={t("marketList.borrower.closed.neverActive")}
               target="never-active"
               amount={neverActiveAmount}
               type="secondary"

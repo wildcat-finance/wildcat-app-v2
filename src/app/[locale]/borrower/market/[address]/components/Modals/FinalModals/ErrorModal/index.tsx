@@ -56,7 +56,7 @@ export const ErrorModal = ({
             </Typography>
             <Typography variant="text3" sx={FinalModalSubtitle}>
               {subtitle ?? (
-                <Trans i18nKey="borrowerMarketDetails.modals.error.subtitle" />
+                <Trans i18nKey="marketDetails.borrower.modals.error.subtitle" />
               )}
             </Typography>
           </Box>
@@ -77,7 +77,7 @@ export const ErrorModal = ({
             onClick={onTryAgain}
             fullWidth
           >
-            <Trans i18nKey="borrowerMarketDetails.modals.error.tryAgain" />
+            <Trans i18nKey="marketDetails.borrower.modals.error.tryAgain" />
           </Button>
         )}
       </Box>

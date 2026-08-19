@@ -19,8 +19,8 @@ import { LenderWithdrawalActionState } from "@/app/[locale]/lender/market/[addre
 
 export const POLICY_TYPE_KEY: Record<HooksKind, string> = {
   [HooksKind.Unknown]: "policyType.Unknown",
-  [HooksKind.OpenTerm]: "policyType.OpenTerm",
-  [HooksKind.FixedTerm]: "policyType.FixedTerm",
+  [HooksKind.OpenTerm]: "marketParameters.policyType.openTerm",
+  [HooksKind.FixedTerm]: "marketParameters.policyType.fixedTerm",
   [HooksKind.PeriodicTerm]: "policyType.PeriodicTerm",
 }
 

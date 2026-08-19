@@ -70,7 +70,7 @@ const SetMarketMLAForm = ({
   return (
     <Box sx={{ width: "100%" }}>
       <Typography variant="h6">
-        {t("borrowerMarketDetails.mla.template.label")}
+        {t("marketDetails.shared.mla.template.label")}
       </Typography>
       <Box
         sx={{ display: "flex", flexDirection: "row", gap: 2, width: "100%" }}
@@ -84,7 +84,7 @@ const SetMarketMLAForm = ({
                 e.target.value === "noMLA" ? "noMLA" : Number(e.target.value),
               )
             }
-            label={t("createNewMarket.mla.mla.label")}
+            label={t("borrower.createMarket.mla.mla.label")}
           >
             {options?.map((option) => (
               <MenuItem key={option.id} value={option.value}>
@@ -107,7 +107,7 @@ const SetMarketMLAForm = ({
               })
             }
           >
-            {t("borrowerMarketDetails.mla.buttons.refuse")}
+            {t("marketDetails.shared.mla.buttons.refuse")}
           </Button>
         ) : (
           <MlaModal
@@ -133,8 +133,8 @@ const SetMarketMLAForm = ({
             disableModalButton={!selectedTemplateId || isLoadingPreviewMla}
             buttonText={
               isLoadingPreviewMla
-                ? t("borrowerMarketDetails.mla.buttons.loading")
-                : t("borrowerMarketDetails.mla.buttons.set")
+                ? t("marketDetails.shared.mla.buttons.loading")
+                : t("marketDetails.shared.mla.buttons.set")
             }
           />
         )}
