@@ -7,7 +7,10 @@ import { useTranslation } from "react-i18next"
 import Clock from "@/assets/icons/clock_icon.svg"
 import { useLiveNowSeconds } from "@/hooks/useLiveNowSeconds"
 import { COLORS } from "@/theme/colors"
-import { remainingMillisecondsToDate } from "@/utils/formatters"
+import {
+  formatUtcMaturityDate,
+  remainingMillisecondsToDate,
+} from "@/utils/formatters"
 import {
   formatCompactDuration,
   getPeriodicScheduleTiming,
@@ -25,6 +28,7 @@ export const MarketTypeChip = ({
   type,
   kind,
   fixedPeriod,
+  fixedTermEndTime,
   periodicWindow,
   isMobile,
 }: MarketTypeChipProps) => {
@@ -38,9 +42,13 @@ export const MarketTypeChip = ({
   )
 
   const suffix = fixedPeriod && fixedPeriod > 0 ? "left" : "ago"
+  const maturityDateLabel =
+    fixedTermEndTime !== undefined
+      ? formatUtcMaturityDate(fixedTermEndTime)
+      : remainingMillisecondsToDate(fixedPeriod || 0)
   const chipTimeLabel =
     daysLeft > 7
-      ? remainingMillisecondsToDate(fixedPeriod || 0)
+      ? maturityDateLabel
       : `${humanizeDuration(fixedPeriod || 0, {
           round: true,
           largest: 1,

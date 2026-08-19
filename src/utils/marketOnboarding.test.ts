@@ -1,8 +1,52 @@
-import { DepositStatus, MarketOnboardingMode } from "@wildcatfi/wildcat-sdk"
+import {
+  DepositStatus,
+  HooksKind,
+  Market,
+  MarketOnboardingMode,
+  MarketVersion,
+} from "@wildcatfi/wildcat-sdk"
 
-import { getLenderMarketAction, LenderMarketAction } from "./marketOnboarding"
+import {
+  getLenderMarketAction,
+  getSubgraphMarketOnboardingMode,
+  LenderMarketAction,
+} from "./marketOnboarding"
 
 describe("marketOnboarding", () => {
+  it("uses provider indexes for indexed onboarding policy", () => {
+    const market = {
+      version: MarketVersion.V2,
+      hooksConfig: {
+        kind: HooksKind.OpenTerm,
+        depositRequiresAccess: true,
+        flags: { useOnDeposit: true },
+      },
+      roleProviders: [
+        {
+          isApproved: true,
+          isPullProvider: true,
+          pullProviderIndex: -1,
+        },
+      ],
+    } as unknown as Market
+
+    expect(getSubgraphMarketOnboardingMode(market)).toBe(
+      MarketOnboardingMode.BorrowerApproval,
+    )
+    expect(
+      getSubgraphMarketOnboardingMode({
+        ...market,
+        roleProviders: [
+          {
+            isApproved: true,
+            isPullProvider: true,
+            pullProviderIndex: 0,
+          },
+        ],
+      } as unknown as Market),
+    ).toBe(MarketOnboardingMode.SelfOnboard)
+  })
+
   it("shows deposit whenever the lender is currently eligible", () => {
     expect(
       getLenderMarketAction(

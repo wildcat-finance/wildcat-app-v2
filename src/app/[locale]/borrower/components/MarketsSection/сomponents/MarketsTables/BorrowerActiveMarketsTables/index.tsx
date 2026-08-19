@@ -271,10 +271,11 @@ export const BorrowerActiveMarketsTables = ({
       align: "right",
       renderCell: (params) => {
         const adsComponent = getAdsTooltipComponent(
+          params.row.chainId,
           params.row.id,
           formatBps(params.value),
         )
-        const adsCellProps = getAdsCellProps(params.row.id)
+        const adsCellProps = getAdsCellProps(params.row.chainId, params.row.id)
 
         return (
           <Link

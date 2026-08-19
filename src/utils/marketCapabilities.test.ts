@@ -13,15 +13,20 @@ describe("marketCapabilities", () => {
   it("classifies self-onboarding from active pull-provider metadata", () => {
     const borrowerPushProvider = {
       isApproved: true,
-      isPullProvider: false,
+      // This is how the legacy subgraph actually reports the borrower-only
+      // provider: the boolean is wrong, but the missing index is reliable.
+      isPullProvider: true,
+      pullProviderIndex: -1,
     }
     const removedPullProvider = {
       isApproved: false,
       isPullProvider: true,
+      pullProviderIndex: 0,
     }
     const activePullProvider = {
       isApproved: true,
       isPullProvider: true,
+      pullProviderIndex: 0,
     }
 
     expect(hasActivePullRoleProvider([borrowerPushProvider])).toBe(false)
@@ -31,6 +36,14 @@ describe("marketCapabilities", () => {
     expect(
       hasActivePullRoleProvider([borrowerPushProvider, activePullProvider]),
     ).toBe(true)
+    expect(
+      hasActivePullRoleProvider([
+        {
+          ...borrowerPushProvider,
+          pullProviderIndex: 2 ** 24 - 1,
+        },
+      ]),
+    ).toBe(false)
   })
 
   it("prefers hooks policy addresses when present", () => {
@@ -89,6 +102,27 @@ describe("marketCapabilities", () => {
       depositAvailability: "RequiresAccess",
     }
     expect(isSelfOnboardMarketAccount(deniedLender)).toBe(true)
+  })
+
+  it("does not trust a bad subgraph pull-provider boolean", () => {
+    expect(
+      isSelfOnboardMarketAccount({
+        market: {
+          onboardingMode: MarketOnboardingMode.SelfOnboard,
+          hooksConfig: {
+            kind: HooksKind.OpenTerm,
+            depositRequiresAccess: true,
+            flags: { useOnDeposit: true },
+          },
+          roleProviders: [
+            {
+              isApproved: true,
+              pullProviderIndex: -1,
+            },
+          ],
+        },
+      }),
+    ).toBe(false)
   })
 
   it("does not treat borrower-approval or unknown markets as self-onboard", () => {

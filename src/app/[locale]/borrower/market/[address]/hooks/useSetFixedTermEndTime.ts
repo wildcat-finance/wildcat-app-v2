@@ -6,6 +6,7 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { invalidateMarketAccountQueries } from "@/utils/marketAccountQueries"
 import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export const useSetFixedTermEndTime = (
@@ -43,17 +44,16 @@ export const useSetFixedTermEndTime = (
     },
     onSuccess() {
       client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_BORROWER_MARKET_ACCOUNT_LEGACY(
+        queryKey: QueryKeys.Markets.GET_MARKET(
           marketAccount.market.chainId,
-          marketAccount.account,
           marketAccount.market.address,
         ),
       })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
-          marketAccount.market.chainId,
-          marketAccount.market.address,
-        ),
+      invalidateMarketAccountQueries({
+        client,
+        chainId: marketAccount.market.chainId,
+        marketAddress: marketAccount.market.address,
+        accountAddress: marketAccount.account,
       })
     },
     onError(error) {

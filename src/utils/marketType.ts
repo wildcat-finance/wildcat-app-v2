@@ -22,6 +22,10 @@ export const getMarketTypeChip = (market: Market) => {
     return {
       kind,
       fixedPeriod: fixedTermEndTime - Date.now(),
+      // Carried alongside `fixedPeriod` so the chip can render the maturity in
+      // UTC. Deriving the date from `now + fixedPeriod` renders it in the
+      // viewer's local time, which disagrees with every other maturity display.
+      fixedTermEndTime: hooksConfig.fixedTermEndTime,
     }
     /*  if (fixedTermEndTime > Date.now()) {
       return {

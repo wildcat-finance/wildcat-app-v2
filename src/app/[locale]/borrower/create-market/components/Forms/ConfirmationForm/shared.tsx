@@ -6,9 +6,9 @@ import { Token } from "@wildcatfi/wildcat-sdk"
 import { UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
+import { MlaModal } from "@/app/[locale]/borrower/components/MlaModal"
 import { usePreviewMlaFromForm } from "@/app/[locale]/borrower/hooks/mla/usePreviewMla"
 import { SignMlaFromFormInputs } from "@/app/[locale]/borrower/hooks/mla/useSignBorrowerMla"
-import { MlaModal } from "@/app/[locale]/lender/components/MlaModal"
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import Info from "@/assets/icons/info_icon.svg"
@@ -121,8 +121,10 @@ export const SharedConfirmationForm = ({
   onClickSign,
   onDiscardSignature,
   signatureRequested,
+  paramsChangedSinceSigning,
   isSigning,
   isDeployReady,
+  isDeployDialogOpen,
   mlaSignature,
   FinancialSection,
 }: SharedConfirmationFormProps) => {
@@ -178,7 +180,13 @@ export const SharedConfirmationForm = ({
   /// signature was requested at this stage of the deployment process to prevent
   /// using a signature from a previous version of the market's parameters in case
   /// the user goes back and changes some settings.
-  const signed = signatureRequested && !isSigning && !!mlaSignature?.signature
+  const signed =
+    signatureRequested &&
+    !isSigning &&
+    !!mlaSignature?.signature &&
+    !paramsChangedSinceSigning
+
+  const actionsLocked = isDeployDialogOpen
 
   const handleBackClick = () => {
     if (onDiscardSignature()) {
@@ -295,12 +303,13 @@ export const SharedConfirmationForm = ({
               asset={tokenAsset}
               salt={salt}
               isSigning={false}
-              disabled={false}
+              disabled={actionsLocked}
               sx={{ width: "fit-content" }}
               modalButtonVariant="contained"
               modalButtonSize="small"
               buttonText={t("createNewMarket.buttons.viewMLA")}
               showSignButton={false}
+              isClosed={actionsLocked}
             />
           </Box>
 
@@ -481,6 +490,23 @@ export const SharedConfirmationForm = ({
         </Box>
       )}
 
+      {signatureRequested && paramsChangedSinceSigning && (
+        <Box sx={{ ...AlertContainer, marginTop: "12px" }}>
+          <SvgIcon
+            sx={{
+              fontSize: "18px",
+              "& path": { fill: COLORS.wildWatermelon },
+            }}
+          >
+            <Info />
+          </SvgIcon>
+
+          <Typography variant="text3" color={COLORS.dullRed}>
+            {t("createNewMarket.confirm.alertParamsChanged")}
+          </Typography>
+        </Box>
+      )}
+
       <Box
         sx={{
           width: "100%",
@@ -494,6 +520,7 @@ export const SharedConfirmationForm = ({
           variant="text"
           sx={{ justifyContent: "flex-start", borderRadius: "12px" }}
           onClick={handleBackClick}
+          disabled={actionsLocked}
         >
           <SvgIcon
             fontSize="medium"
@@ -518,11 +545,11 @@ export const SharedConfirmationForm = ({
               salt={salt}
               onSign={handleSign}
               isSigning={isSigning}
-              disabled={signed || isSigning}
+              disabled={signed || isSigning || actionsLocked}
               sx={{ width: "168px", borderRadius: "12px" }}
               modalButtonVariant="contained"
               modalButtonSize="large"
-              isClosed={signed}
+              isClosed={signed || actionsLocked}
             />
           )}
           {!isMLA && (
@@ -530,7 +557,7 @@ export const SharedConfirmationForm = ({
               size="large"
               variant="contained"
               sx={{ width: "168px", borderRadius: "12px" }}
-              disabled={signed || isSigning}
+              disabled={signed || isSigning || actionsLocked}
               onClick={handleSign}
             >
               {t("createNewMarket.buttons.signMlaRefusal")}
@@ -541,7 +568,7 @@ export const SharedConfirmationForm = ({
             size="large"
             variant="contained"
             sx={{ width: "168px", borderRadius: "12px" }}
-            disabled={!signed || !isDeployReady}
+            disabled={!signed || !isDeployReady || actionsLocked}
             onClick={handleDeploy}
           >
             {t("createNewMarket.buttons.deploy")}

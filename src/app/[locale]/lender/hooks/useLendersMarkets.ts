@@ -1,3 +1,5 @@
+import { useMemo, useRef } from "react"
+
 import { useQuery } from "@tanstack/react-query"
 import {
   SignerOrProvider,
@@ -19,6 +21,10 @@ import { cloneSdkObject } from "@/lib/sdk-object"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TOKENS_ADDRESSES } from "@/utils/constants"
 import { isNotExcludedMarket } from "@/utils/filters"
+import {
+  getSubgraphMarketOnboardingMode,
+  MarketOnboardingByAddress,
+} from "@/utils/marketOnboarding"
 import { refreshMarketAccountsV2LiveDataSafe } from "@/utils/marketV2Reads"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
@@ -61,8 +67,12 @@ function getChunks<T extends Market | MarketAccount>(
 
 type LenderStatusUpdate = Parameters<MarketAccount["updateWith"]>[0]
 
+export type LenderMarketsOnboardingStatus = "loading" | "ready" | "error"
+
 type UseLendersMarketsResult = TwoStepQueryHookResult<MarketAccount[]> & {
   hasLiveData: boolean
+  onboardingByMarket: MarketOnboardingByAddress
+  onboardingStatus: LenderMarketsOnboardingStatus
 }
 
 function zeroLenderBalances(lenderStatus: LenderStatusUpdate) {
@@ -144,6 +154,16 @@ export function useLendersMarkets(): UseLendersMarketsResult {
   })
 
   const accounts = data ?? []
+  const onboardingByMarket = useMemo(() => {
+    const result: MarketOnboardingByAddress = {}
+    accounts.forEach(({ market }) => {
+      const onboardingMode = getSubgraphMarketOnboardingMode(market)
+      if (onboardingMode) {
+        result[market.address.toLowerCase()] = onboardingMode
+      }
+    })
+    return result
+  }, [accounts, indexedDataUpdatedAt])
 
   async function getLenderUpdates() {
     logger.debug(`Getting lender updates...`)
@@ -220,9 +240,38 @@ export function useLendersMarkets(): UseLendersMarketsResult {
     refetchOnWindowFocus: true,
   })
 
+  const lastLiveSnapshot = useRef<{
+    chainId: SupportedChainId
+    lender: string | undefined
+    accounts: MarketAccount[]
+  }>()
+
+  // An indexed refresh starts a new live query. Keep the last hydrated rows on
+  // screen while it runs, but never carry them across a chain or wallet change.
+  if (updatedLenders !== undefined) {
+    lastLiveSnapshot.current = {
+      chainId: targetChainId,
+      lender,
+      accounts: updatedLenders,
+    }
+  }
+
+  const retainedLiveLenders =
+    lastLiveSnapshot.current?.chainId === targetChainId &&
+    lastLiveSnapshot.current.lender === lender
+      ? lastLiveSnapshot.current.accounts
+      : undefined
+  const liveLenders = updatedLenders ?? retainedLiveLenders
+
+  let onboardingStatus: LenderMarketsOnboardingStatus = "loading"
+  if (isErrorInitial) onboardingStatus = "error"
+  else if (data) onboardingStatus = "ready"
+
   return {
-    data: updatedLenders ?? accounts,
-    hasLiveData: updatedLenders !== undefined,
+    data: liveLenders ?? accounts,
+    hasLiveData: liveLenders !== undefined,
+    onboardingByMarket,
+    onboardingStatus,
     isLoadingInitial,
     isErrorInitial,
     errorInitial: errorInitial as Error | null,

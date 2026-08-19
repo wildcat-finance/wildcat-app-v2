@@ -49,13 +49,13 @@ describe("readWrapperAccountState", () => {
     const multicall = jest
       .fn()
       .mockResolvedValue([
-        success(1n),
-        success(2n),
-        success(3n),
-        success(4n),
-        success(5n),
-        success(6n),
-        success(7n),
+        success(BigInt(1)),
+        success(BigInt(2)),
+        success(BigInt(3)),
+        success(BigInt(4)),
+        success(BigInt(5)),
+        success(BigInt(6)),
+        success(BigInt(7)),
       ])
     const { wrapper } = createWrapper()
 
@@ -84,15 +84,15 @@ describe("readWrapperAccountState", () => {
     ])
     expect(state).toEqual({
       balances: {
-        marketBalance: { token: "market", raw: 1n },
-        shareBalance: { token: "share", raw: 2n },
+        marketBalance: { token: "market", raw: BigInt(1) },
+        shareBalance: { token: "share", raw: BigInt(2) },
       },
-      allowance: { token: "market", raw: 3n },
+      allowance: { token: "market", raw: BigInt(3) },
       limits: {
-        maxDeposit: { token: "market", raw: 4n },
-        maxMint: { token: "share", raw: 5n },
-        maxWithdraw: { token: "market", raw: 6n },
-        maxRedeem: { token: "share", raw: 7n },
+        maxDeposit: { token: "market", raw: BigInt(4) },
+        maxMint: { token: "share", raw: BigInt(5) },
+        maxWithdraw: { token: "market", raw: BigInt(6) },
+        maxRedeem: { token: "share", raw: BigInt(7) },
       },
     })
   })
@@ -101,12 +101,12 @@ describe("readWrapperAccountState", () => {
     const multicall = jest
       .fn()
       .mockResolvedValue([
-        success(1n),
+        success(BigInt(1)),
         failure(),
-        success(3n),
-        success(4n),
-        success(5n),
-        success(6n),
+        success(BigInt(3)),
+        success(BigInt(4)),
+        success(BigInt(5)),
+        success(BigInt(6)),
         failure(),
       ])
     const { wrapper } = createWrapper()
@@ -118,7 +118,7 @@ describe("readWrapperAccountState", () => {
     )
 
     expect(state.balances).toBeUndefined()
-    expect(state.allowance).toEqual({ token: "market", raw: 3n })
+    expect(state.allowance).toEqual({ token: "market", raw: BigInt(3) })
     expect(state.limits).toBeUndefined()
   })
 })

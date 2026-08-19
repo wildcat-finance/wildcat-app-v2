@@ -13,6 +13,7 @@ import { useWildcatClient } from "@/hooks/useEthersSigner"
 import { useAppDispatch } from "@/store/hooks"
 import { resetEditPolicyState } from "@/store/slices/editPolicySlice/editPolicySlice"
 import {
+  getLenderUpdateSafeBatch,
   isV2HooksInstance,
   lenderPolicyErrorAbi,
   prepareLenderRestoration,
@@ -136,8 +137,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         }
       }
 
-      const useGnosisMultiSend =
-        isConnectedToSafe && isTestnet && txs.length > 1
+      const safeBatch = getLenderUpdateSafeBatch(isConnectedToSafe, txs)
       if (txs.length > 1) {
         txs.forEach((tx, i) => {
           tx.pending = `Step ${i + 1}/${txs.length}: ${tx.pending}`
@@ -146,9 +146,9 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         })
       }
 
-      if (useGnosisMultiSend) {
+      if (safeBatch) {
         const tx = gnosisSafeSDK.txs.send({
-          txs: toSafeTransactions(txs),
+          txs: toSafeTransactions(safeBatch),
         })
         await toastRequest(tx, {
           pending: "Submitting gnosis transaction batch to update lenders...",

@@ -5,7 +5,11 @@
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest } from "next/server"
 
-import { getBorrowerAcceptanceTimes, prisma } from "@/lib/db"
+import {
+  findBorrowerWithPendingInvitation,
+  getBorrowerAcceptanceTimes,
+  prisma,
+} from "@/lib/db"
 import {
   getCurrentServiceAgreement,
   isServiceAgreementTimeSignedInBounds,
@@ -16,6 +20,7 @@ import {
 import { POST } from "./route"
 
 jest.mock("@/lib/db", () => ({
+  findBorrowerWithPendingInvitation: jest.fn(),
   getBorrowerAcceptanceTimes: jest.fn(),
   prisma: {
     borrower: {
@@ -50,6 +55,7 @@ const mockFindBorrower = prisma.borrower.findFirst as jest.Mock
 const mockFindCurrentAcceptance = prisma.serviceAgreementSignature
   .findUnique as jest.Mock
 const mockGetBorrowerAcceptanceTimes = getBorrowerAcceptanceTimes as jest.Mock
+const mockFindPendingInvitation = findBorrowerWithPendingInvitation as jest.Mock
 
 const request = (party: "Borrower" | "Lender") =>
   new NextRequest("http://localhost/api/service-agreement/accept", {
@@ -70,6 +76,7 @@ beforeEach(() => {
   mockTimeInBounds.mockReturnValue(true)
   mockFindCurrentAcceptance.mockResolvedValue(null)
   mockGetBorrowerAcceptanceTimes.mockResolvedValue(new Map())
+  mockFindPendingInvitation.mockResolvedValue(undefined)
   mockFindBorrower.mockResolvedValue({ name: "Example Borrower LLC" })
   mockVerifySignature.mockResolvedValue({ id: "verified" })
 })
@@ -92,7 +99,9 @@ describe("POST /api/service-agreement/accept", () => {
     expect(mockSaveSignature).not.toHaveBeenCalled()
   })
 
-  it("rejects a borrower's first acceptance through the generic endpoint", async () => {
+  it("sends a borrower with a waiting invitation back to that flow", async () => {
+    mockFindPendingInvitation.mockResolvedValue({ id: 7 })
+
     const response = await POST(request("Borrower"))
 
     expect(response.status).toBe(409)
@@ -107,6 +116,36 @@ describe("POST /api/service-agreement/accept", () => {
     expect(mockTimeInBounds).not.toHaveBeenCalled()
     expect(mockVerifySignature).not.toHaveBeenCalled()
     expect(mockSaveSignature).not.toHaveBeenCalled()
+  })
+
+  it("accepts a first borrower signature when no invitation is waiting", async () => {
+    const response = await POST(request("Borrower"))
+
+    expect(response.status).toBe(200)
+    expect(mockFindPendingInvitation).toHaveBeenCalledWith(
+      address,
+      SupportedChainId.Sepolia,
+    )
+    expect(mockVerifySignature).toHaveBeenCalledWith({
+      agreement,
+      chainId: SupportedChainId.Sepolia,
+      address,
+      party: "Borrower",
+      signature,
+      timeSigned,
+      organizationName: "Example Borrower LLC",
+    })
+    expect(mockSaveSignature).toHaveBeenCalledWith({ id: "verified" })
+  })
+
+  it("does not look up an invitation for a borrower who already signed", async () => {
+    mockGetBorrowerAcceptanceTimes.mockResolvedValue(
+      new Map([[address, new Date(timeSigned - 1)]]),
+    )
+
+    await POST(request("Borrower"))
+
+    expect(mockFindPendingInvitation).not.toHaveBeenCalled()
   })
 
   it("allows a recognized versioned or seeded-legacy acceptance to re-accept", async () => {

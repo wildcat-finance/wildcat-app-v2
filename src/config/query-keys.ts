@@ -20,15 +20,50 @@ const normalizeKeyPart = (value: unknown): unknown => {
   return value
 }
 
-// Build query keys, trimming only trailing `undefined` items and normalising inputs.
-export const k = <T extends readonly unknown[]>(
-  ...args: T
-): readonly unknown[] => {
-  const normalizedArgs = args.map(normalizeKeyPart)
-  const arr = [...normalizedArgs]
+// Build a flat query key, normalising inputs and trimming trailing `undefined`
+// so a factory called with omitted optional arguments forms a prefix of its
+// fully-specified key.
+export const k = (parts: readonly unknown[]): readonly unknown[] => {
+  const arr = parts.map(normalizeKeyPart)
   while (arr.length && arr[arr.length - 1] === undefined) arr.pop()
   return arr
 }
+
+const GET_BORROWER_WITHDRAWALS = Object.assign(
+  (
+    chainId: number,
+    kind: "initial" | "update",
+    marketAddress?: string,
+    updateQueryKeys?: unknown,
+  ) =>
+    k([
+      "borrower",
+      "GET_WITHDRAWALS",
+      chainId,
+      marketAddress,
+      kind,
+      updateQueryKeys,
+    ]),
+  {
+    PREFIX: (chainId: number, marketAddress?: string) =>
+      k(["borrower", "GET_WITHDRAWALS", chainId, marketAddress]),
+    INITIAL: (chainId: number, marketAddress?: string) =>
+      k(["borrower", "GET_WITHDRAWALS", chainId, marketAddress, "initial"]),
+    UPDATE: (
+      chainId: number,
+      marketAddress?: string,
+      updateQueryKeys?: unknown,
+    ) =>
+      k([
+        "borrower",
+        "GET_WITHDRAWALS",
+        chainId,
+        marketAddress,
+        "update",
+        updateQueryKeys,
+      ]),
+  },
+)
 
 const BORROWER_QUERY_KEYS = {
   // GET_ALL_LENDERS
@@ -111,20 +146,7 @@ const BORROWER_QUERY_KEYS = {
   GET_POLICY: (chainId: number, policyAddress?: string) =>
     k(["borrower", "GET_POLICY", chainId, policyAddress]),
   // GET_WITHDRAWALS_KEY
-  GET_WITHDRAWALS: (
-    chainId: number,
-    kind: "initial" | "update",
-    marketAddress?: string,
-    updateQueryKeys?: unknown,
-  ) =>
-    k([
-      "borrower",
-      "GET_WITHDRAWALS",
-      chainId,
-      marketAddress,
-      kind,
-      updateQueryKeys,
-    ]),
+  GET_WITHDRAWALS: GET_BORROWER_WITHDRAWALS,
   // PREVIEW_MLA_KEY
   PREVIEW_MLA: {
     FROM_FORM: (
@@ -358,6 +380,8 @@ const LENDER_QUERY_KEYS = {
       marketAddress,
       lenderAddress,
     ]),
+  GET_RECENT_DEPOSITS: (chainId: number) =>
+    k(["lender", "GET_RECENT_DEPOSITS", chainId]),
 } as const
 
 const WRAPPER_QUERY_KEYS = {

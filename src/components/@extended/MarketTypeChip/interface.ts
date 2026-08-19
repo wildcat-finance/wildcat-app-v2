@@ -5,6 +5,8 @@ import { PeriodicSchedule } from "@/utils/periodicWithdrawalWindow"
 export type MarketTypeChipProps = {
   kind: HooksKind
   fixedPeriod?: number
+  /** Unix seconds of the fixed-term maturity, rendered in UTC. */
+  fixedTermEndTime?: number
   /**
    * Raw periodic schedule; the chip computes window state live from it so the
    * countdown and open/closed flip stay current without parent re-renders.

@@ -13,7 +13,10 @@ import {
   PERIODIC_TERM_LIMITS,
 } from "@/config/market-duration"
 import { WRAPPER_TRANSFERS_DISABLED_ERROR } from "@/utils/createMarketDeploy"
-import { dayjs } from "@/utils/dayjs"
+import {
+  pickerDateToUtcMaturity,
+  utcTodayAsPickerDate,
+} from "@/utils/formatters"
 import { isLetterNumber, isLetterNumberSpace } from "@/utils/validations"
 
 import { PERIODIC_DURATION_UNITS } from "../utils/units"
@@ -130,6 +133,113 @@ export const baseMarketSchemaFields = {
 const isPositiveNumber = (value: number | undefined): value is number =>
   value !== undefined && Number.isFinite(value) && value > 0
 
+const humanizeSeconds = (seconds: number) =>
+  humanizeDuration(seconds * 1000, { round: true, largest: 2 })
+
+export type PeriodicTermIssuePath =
+  | "firstWithdrawalWindowStart"
+  | "periodDuration"
+  | "withdrawalWindowDuration"
+
+export type PeriodicTermIssue = {
+  path: PeriodicTermIssuePath
+  message: string
+}
+
+export type PeriodicTermValues = {
+  marketType?: string
+  firstWithdrawalWindowStart?: number
+  periodDuration?: number
+  withdrawalWindowDuration?: number
+}
+
+export const getPeriodicTermIssues = (
+  data: PeriodicTermValues,
+  { requireValues = false }: { requireValues?: boolean } = {},
+): PeriodicTermIssue[] => {
+  if (data.marketType !== "periodicTerm") return []
+
+  const now = Math.floor(Date.now() / 1000)
+  const {
+    firstWithdrawalWindowStart,
+    periodDuration,
+    withdrawalWindowDuration,
+  } = data
+  const issues: PeriodicTermIssue[] = []
+
+  if (!isPositiveNumber(firstWithdrawalWindowStart)) {
+    if (requireValues) {
+      issues.push({
+        path: "firstWithdrawalWindowStart",
+        message: "First withdrawal window start must be set",
+      })
+    }
+  } else if (
+    // The contract (`PeriodicTermHooks._validatePeriodicTerm`) does NOT require
+    // the start to be in the future — it is only the recurring-schedule anchor,
+    // and a past anchor is projected forward to the next window. The only timing
+    // rule is that the next window lands within `MaximumInitialWithdrawalWindowDelay`.
+    firstWithdrawalWindowStart >
+    now + PERIODIC_TERM_LIMITS.maxInitialDelaySeconds
+  ) {
+    issues.push({
+      path: "firstWithdrawalWindowStart",
+      message: `First withdrawal window must start within ${humanizeSeconds(
+        PERIODIC_TERM_LIMITS.maxInitialDelaySeconds,
+      )} from now`,
+    })
+  }
+
+  if (!isPositiveNumber(periodDuration)) {
+    if (requireValues) {
+      issues.push({
+        path: "periodDuration",
+        message: "Withdrawal period duration must be greater than zero",
+      })
+    }
+  } else if (periodDuration < PERIODIC_TERM_LIMITS.minPeriodSeconds) {
+    issues.push({
+      path: "periodDuration",
+      message: `Withdrawal period must be at least ${humanizeSeconds(
+        PERIODIC_TERM_LIMITS.minPeriodSeconds,
+      )}`,
+    })
+  } else if (periodDuration > PERIODIC_TERM_LIMITS.maxPeriodSeconds) {
+    issues.push({
+      path: "periodDuration",
+      message: `Withdrawal period can not exceed ${humanizeSeconds(
+        PERIODIC_TERM_LIMITS.maxPeriodSeconds,
+      )}`,
+    })
+  }
+
+  if (!isPositiveNumber(withdrawalWindowDuration)) {
+    if (requireValues) {
+      issues.push({
+        path: "withdrawalWindowDuration",
+        message: "Withdrawal window duration must be greater than zero",
+      })
+    }
+  } else if (withdrawalWindowDuration < PERIODIC_TERM_LIMITS.minWindowSeconds) {
+    issues.push({
+      path: "withdrawalWindowDuration",
+      message: `Withdrawal window must be at least ${humanizeSeconds(
+        PERIODIC_TERM_LIMITS.minWindowSeconds,
+      )}`,
+    })
+  } else if (
+    isPositiveNumber(periodDuration) &&
+    withdrawalWindowDuration >= periodDuration
+  ) {
+    issues.push({
+      path: "withdrawalWindowDuration",
+      message: "Withdrawal window must be shorter than the withdrawal period",
+    })
+  }
+
+  return issues
+}
+
 export const marketRefinementCallback = (
   data: {
     implementationType: "standard" | "revolving"
@@ -196,93 +306,11 @@ export const marketRefinementCallback = (
     }
   }
 
-  if (data.marketType === "periodicTerm") {
-    const now = Math.floor(Date.now() / 1000)
-    const {
-      firstWithdrawalWindowStart,
-      periodDuration,
-      withdrawalWindowDuration,
-    } = data
-
-    const humanize = (seconds: number) =>
-      humanizeDuration(seconds * 1000, { round: true, largest: 2 })
-
-    if (!isPositiveNumber(firstWithdrawalWindowStart)) {
-      ctx.addIssue({
-        message: "First withdrawal window start must be set",
-        path: ["firstWithdrawalWindowStart"],
-        code: "custom",
-      })
-    } else if (
-      // The contract (`PeriodicTermHooks._validatePeriodicTerm`) does NOT require
-      // the start to be in the future — it is only the recurring-schedule anchor,
-      // and a past anchor is projected forward to the next window. The only timing
-      // rule is that the next window lands within `MaximumInitialWithdrawalWindowDelay`.
-      // For a future anchor the next window IS the anchor, so this check matches the
-      // contract; for a past anchor it is always satisfied.
-      firstWithdrawalWindowStart >
-      now + PERIODIC_TERM_LIMITS.maxInitialDelaySeconds
-    ) {
-      ctx.addIssue({
-        message: `First withdrawal window must start within ${humanize(
-          PERIODIC_TERM_LIMITS.maxInitialDelaySeconds,
-        )} from now`,
-        path: ["firstWithdrawalWindowStart"],
-        code: "custom",
-      })
-    }
-
-    if (!isPositiveNumber(periodDuration)) {
-      ctx.addIssue({
-        message: "Withdrawal period duration must be greater than zero",
-        path: ["periodDuration"],
-        code: "custom",
-      })
-    } else if (periodDuration < PERIODIC_TERM_LIMITS.minPeriodSeconds) {
-      ctx.addIssue({
-        message: `Withdrawal period must be at least ${humanize(
-          PERIODIC_TERM_LIMITS.minPeriodSeconds,
-        )}`,
-        path: ["periodDuration"],
-        code: "custom",
-      })
-    } else if (periodDuration > PERIODIC_TERM_LIMITS.maxPeriodSeconds) {
-      ctx.addIssue({
-        message: `Withdrawal period can not exceed ${humanize(
-          PERIODIC_TERM_LIMITS.maxPeriodSeconds,
-        )}`,
-        path: ["periodDuration"],
-        code: "custom",
-      })
-    }
-
-    if (!isPositiveNumber(withdrawalWindowDuration)) {
-      ctx.addIssue({
-        message: "Withdrawal window duration must be greater than zero",
-        path: ["withdrawalWindowDuration"],
-        code: "custom",
-      })
-    } else if (
-      withdrawalWindowDuration < PERIODIC_TERM_LIMITS.minWindowSeconds
-    ) {
-      ctx.addIssue({
-        message: `Withdrawal window must be at least ${humanize(
-          PERIODIC_TERM_LIMITS.minWindowSeconds,
-        )}`,
-        path: ["withdrawalWindowDuration"],
-        code: "custom",
-      })
-    } else if (
-      isPositiveNumber(periodDuration) &&
-      withdrawalWindowDuration >= periodDuration
-    ) {
-      ctx.addIssue({
-        message: "Withdrawal window must be shorter than the withdrawal period",
-        path: ["withdrawalWindowDuration"],
-        code: "custom",
-      })
-    }
-  }
+  getPeriodicTermIssues(data, { requireValues: true }).forEach(
+    ({ path, message }) => {
+      ctx.addIssue({ message, path: [path], code: "custom" })
+    },
+  )
 }
 
 export const createBaseMarketSchemaObject = (
@@ -299,10 +327,12 @@ export const createBaseMarketSchemaObject = (
       .optional()
       .refine((value) => {
         if (value !== undefined) {
-          const today = dayjs.unix(Date.now() / 1_000).startOf("day")
-          const tomorrow = today.add(1, "day")
-          const maxDate = today.add(maxDays, "days")
-          return value >= tomorrow.unix() && value <= maxDate.unix()
+          // The picker stores 00:00 UTC for the selected calendar day, so its
+          // validation bounds must use that same calendar rather than local time.
+          const today = utcTodayAsPickerDate()
+          const tomorrow = pickerDateToUtcMaturity(today.add(1, "day"))
+          const maxDate = pickerDateToUtcMaturity(today.add(maxDays, "days"))
+          return value >= tomorrow && value <= maxDate
         }
         return true
       }, `Must be between tomorrow and ${maxLabel} from now`),

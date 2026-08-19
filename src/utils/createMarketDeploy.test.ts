@@ -1,4 +1,8 @@
-import { DeployMarketStatus, TransferAccess } from "@wildcatfi/wildcat-sdk"
+import {
+  DeployMarketPreview,
+  DeployMarketStatus,
+  TransferAccess,
+} from "@wildcatfi/wildcat-sdk"
 
 import {
   assertWrapperDeploymentCompatible,
@@ -12,7 +16,7 @@ describe("createMarketDeploy", () => {
   it("preserves the SDK template receiver when previewing deployment", () => {
     const hooksTemplate = {
       enabled: true,
-      previewDeployMarket() {
+      previewDeployMarket(): DeployMarketPreview {
         return {
           status: this.enabled
             ? DeployMarketStatus.HooksFactoryNotRegistered

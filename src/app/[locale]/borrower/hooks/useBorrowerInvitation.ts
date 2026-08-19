@@ -64,14 +64,17 @@ export enum BorrowerInvitationStatus {
 export const useBorrowerInvitationExists = (address: string | undefined) => {
   const { chainId } = useSelectedNetwork()
   const getInvitationExists = async () => {
-    if (!address) return undefined
+    // undefined is React Query's "not resolved" state, so null means
+    // "checked, no invite".
+    if (!address) return null
     const res = await fetch(
       `/api/invite/${address.toLowerCase()}?chainId=${chainId}`,
       {
         method: "HEAD",
       },
     )
-    if (res.status === 404) return undefined
+    if (res.status === 404) return null
+    if (!res.ok) throw Error("Failed to check borrower invitation")
     if (res.headers.get("Signed") === "true")
       return BorrowerInvitationStatus.PendingRegistration
     return BorrowerInvitationStatus.PendingSignature

@@ -1,16 +1,23 @@
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
   DefaultV2ParameterConstraints,
   MarketParameterConstraints,
 } from "@wildcatfi/wildcat-sdk"
-import { useForm, UseFormReturn } from "react-hook-form"
+import {
+  FieldError,
+  FieldErrors,
+  Resolver,
+  useForm,
+  UseFormReturn,
+} from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
 import {
   MarketValidationSchemaType,
   createBaseMarketSchemaObject,
+  getPeriodicTermIssues,
   marketRefinementCallback,
 } from "@/app/[locale]/borrower/create-market/validation/validationSchema"
 import { formatConstrainToNumber } from "@/utils/formatters"
@@ -81,6 +88,26 @@ function getValidationSchema(
 
 export type NewMarketFormType = UseFormReturn<MarketValidationSchemaType>
 
+const withPeriodicTermIssues =
+  (
+    resolver: Resolver<MarketValidationSchemaType>,
+  ): Resolver<MarketValidationSchemaType> =>
+  async (values, context, options) => {
+    const result = await resolver(values, context, options)
+    const issues = getPeriodicTermIssues(values)
+
+    if (issues.length === 0) return result
+
+    const errors: FieldErrors<MarketValidationSchemaType> = { ...result.errors }
+    issues.forEach(({ path, message }) => {
+      if (!errors[path]) {
+        errors[path] = { type: "custom", message } as FieldError
+      }
+    })
+
+    return { values: {}, errors }
+  }
+
 export const useNewMarketForm = (isTestnet: boolean): NewMarketFormType => {
   const { t } = useTranslation()
   const maxLabel = isTestnet
@@ -95,9 +122,20 @@ export const useNewMarketForm = (isTestnet: boolean): NewMarketFormType => {
 
   const form = useForm<MarketValidationSchemaType>({
     defaultValues: defaultMarketForm,
-    resolver: zodResolver(validationSchemaAsync),
+    resolver: withPeriodicTermIssues(zodResolver(validationSchemaAsync)),
     mode: "onBlur",
   })
+
+  const { trigger, watch } = form
+  const [marketType, periodDuration, withdrawalWindowDuration] = watch([
+    "marketType",
+    "periodDuration",
+    "withdrawalWindowDuration",
+  ])
+
+  useEffect(() => {
+    trigger(["periodDuration", "withdrawalWindowDuration"])
+  }, [marketType, periodDuration, trigger, withdrawalWindowDuration])
 
   return form
 }

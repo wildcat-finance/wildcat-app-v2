@@ -30,6 +30,7 @@ describe("getMarketTypeChip", () => {
     expect(getMarketTypeChip(market)).toEqual({
       kind: HooksKind.FixedTerm,
       fixedPeriod: 1_000_000,
+      fixedTermEndTime: 2_000,
     })
 
     jest.restoreAllMocks()

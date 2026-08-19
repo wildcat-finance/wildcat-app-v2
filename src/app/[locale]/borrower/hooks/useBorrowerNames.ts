@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
 
 import { QueryKeys } from "@/config/query-keys"
-import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import {
+  useIsSelectedNetworkRehydrated,
+  useSelectedNetwork,
+} from "@/hooks/useSelectedNetwork"
 import { trimAddress } from "@/utils/formatters"
 
 export type BorrowerWithName = {
@@ -33,27 +36,24 @@ export const getBorrowerDisplayName = (
 
 export const useBorrowerNames = () => {
   const { chainId } = useSelectedNetwork()
+  const isSelectedNetworkRehydrated = useIsSelectedNetworkRehydrated()
   const getBorrowers = async () => {
-    const data = await fetch(`/api/borrower-names?chainId=${chainId}`)
-      .then(async (res) => {
-        const result = (await res.json()) as BorrowerWithName[]
-        return result
-      })
-      .catch((err) => {
-        console.log(err)
-        return undefined
-      })
-    return data === undefined ? null : (data as BorrowerWithName[])
+    const response = await fetch(`/api/borrower-names?chainId=${chainId}`)
+    if (!response.ok) {
+      throw new Error(`Failed to retrieve borrower names: ${response.status}`)
+    }
+    return (await response.json()) as BorrowerWithName[]
   }
   const { data, ...result } = useQuery({
-    enabled: !!chainId,
+    enabled: isSelectedNetworkRehydrated && !!chainId,
     queryKey: QueryKeys.User.GET_BORROWER_NAMES(chainId),
     queryFn: getBorrowers,
     refetchOnMount: false,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 60_000,
+    refetchInterval: 60_000,
   })
   return {
-    data: data === null ? undefined : data,
+    data,
     ...result,
   }
 }

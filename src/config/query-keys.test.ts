@@ -12,7 +12,11 @@ describe("query keys", () => {
     const key = k(["test", BigInt(1)])
 
     expect(() => JSON.stringify(key)).not.toThrow()
-    expect(key).toEqual([["test", "1"]])
+    expect(key).toEqual(["test", "1"])
+  })
+
+  it("builds flat prefixes by trimming trailing undefined values", () => {
+    expect(k(["test", undefined])).toEqual(["test"])
   })
 
   it("does not include market objects in borrower market account keys", () => {
@@ -24,13 +28,11 @@ describe("query keys", () => {
 
     expect(() => JSON.stringify(key)).not.toThrow()
     expect(key).toEqual([
-      [
-        "borrower",
-        "GET_BORROWER_MARKET_ACCOUNT_LEGACY",
-        11155111,
-        "0xca732651410e915090d7a7d889a1e44ef4575fce",
-        "0x04fb4e4577ad2cdd65e70f18d7a5f326162ddd90",
-      ],
+      "borrower",
+      "GET_BORROWER_MARKET_ACCOUNT_LEGACY",
+      11155111,
+      "0xca732651410e915090d7a7d889a1e44ef4575fce",
+      "0x04fb4e4577ad2cdd65e70f18d7a5f326162ddd90",
     ])
   })
 
@@ -41,12 +43,10 @@ describe("query keys", () => {
     )
 
     expect(key).toEqual([
-      [
-        "service-agreement",
-        "GET_STATUS",
-        11155111,
-        "0xca732651410e915090d7a7d889a1e44ef4575fce",
-      ],
+      "service-agreement",
+      "GET_STATUS",
+      11155111,
+      "0xca732651410e915090d7a7d889a1e44ef4575fce",
     ])
   })
 
@@ -58,13 +58,11 @@ describe("query keys", () => {
     )
 
     expect(key).toEqual([
-      [
-        "lender",
-        "GET_NON_MLA_ACKNOWLEDGEMENT",
-        11155111,
-        "0x04fb4e4577ad2cdd65e70f18d7a5f326162ddd90",
-        "0xca732651410e915090d7a7d889a1e44ef4575fce",
-      ],
+      "lender",
+      "GET_NON_MLA_ACKNOWLEDGEMENT",
+      11155111,
+      "0x04fb4e4577ad2cdd65e70f18d7a5f326162ddd90",
+      "0xca732651410e915090d7a7d889a1e44ef4575fce",
     ])
   })
 
@@ -166,13 +164,11 @@ describe("query keys", () => {
         "0xCA732651410E915090D7A7D889A1E44EF4575FCE",
       ),
     ).toEqual([
-      [
-        "lender",
-        "GET_MARKET_WITHDRAWALS_EXECUTED",
-        11155111,
-        "0x04fb4e4577ad2cdd65e70f18d7a5f326162ddd90",
-        "0xca732651410e915090d7a7d889a1e44ef4575fce",
-      ],
+      "lender",
+      "GET_MARKET_WITHDRAWALS_EXECUTED",
+      11155111,
+      "0x04fb4e4577ad2cdd65e70f18d7a5f326162ddd90",
+      "0xca732651410e915090d7a7d889a1e44ef4575fce",
     ])
   })
 })

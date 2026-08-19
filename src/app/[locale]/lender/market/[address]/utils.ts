@@ -140,6 +140,53 @@ export const getLenderSurfaceState = ({
   return "actions"
 }
 
+export type LenderBannerState =
+  | "none"
+  | "connect"
+  | "authorization-error"
+  | "blocked"
+  | "request-access"
+
+export const getLenderBannerState = ({
+  isWalletHydrated,
+  isConnected,
+  isConnecting,
+  isReconnecting,
+  isDifferentChain,
+  accessState,
+  hasLenderTransactions,
+  isWithdrawalActivityLoading,
+}: {
+  isWalletHydrated: boolean
+  isConnected: boolean
+  isConnecting: boolean
+  isReconnecting: boolean
+  isDifferentChain: boolean
+  accessState: LenderAccessState
+  hasLenderTransactions: boolean
+  isWithdrawalActivityLoading: boolean
+}): LenderBannerState => {
+  if (!isWalletHydrated || isConnecting || isReconnecting) return "none"
+
+  const surface = getLenderSurfaceState({
+    isConnected,
+    isDifferentChain,
+    accessState,
+  })
+
+  if (surface === "connect") return "connect"
+  if (surface === "authorization-error") return "authorization-error"
+  if (surface === "blocked") return "blocked"
+  if (
+    surface === "request-access" &&
+    !hasLenderTransactions &&
+    !isWithdrawalActivityLoading
+  ) {
+    return "request-access"
+  }
+  return "none"
+}
+
 export const shouldShowLenderRequestBanner = ({
   isConnected,
   isDifferentChain,

@@ -20,9 +20,7 @@ export const LenderBannerWrapper: SxProps<Theme> = {
   flex: "0 0 auto",
 }
 
-// Owns the viewport-height budget below the market header so the banner and the
-// section share it: the banner takes its natural (variable) height and the
-// section flex-grows into whatever remains.
+// Scroll the banner and market section together inside the fixed page shell.
 export const MarketContentColumn = (
   theme: Theme,
   isWrongNetwork?: boolean,
@@ -32,20 +30,18 @@ export const MarketContentColumn = (
   height: `calc(100vh - ${pageCalcHeights.market} ${
     isWrongNetwork ? "- 130px" : ""
   })`,
+  overflowX: "hidden",
+  overflowY: "auto",
   [theme.breakpoints.down("md")]: {
     height: "auto",
+    overflow: "visible",
   },
 })
 
 export const SectionContainer = (theme: Theme): SxProps<Theme> => ({
   width: "100%",
-  flex: 1,
-  minHeight: 0,
-  overflow: "hidden",
-  overflowY: "visible",
   padding: "0 32.3% 24px 44px",
   [theme.breakpoints.down("md")]: {
-    flex: "none",
     padding: "12px 0px 0px",
   },
 })
