@@ -73,7 +73,6 @@ export const ActiveMarketsTables = ({
   marketAccounts,
   borrowers,
   isLoading,
-  liveDataStatus,
   filters,
 }: ActiveMarketsTableProps) => {
   const isMobile = useMobileResolution()
@@ -345,17 +344,12 @@ export const ActiveMarketsTables = ({
     return (
       <>
         {scrollTargetId === "deposited" && (
-          <MobileMarketList
-            markets={depositedMarkets}
-            isLoading={isLoading}
-            liveDataStatus={liveDataStatus}
-          />
+          <MobileMarketList markets={depositedMarkets} isLoading={isLoading} />
         )}
         {scrollTargetId === "non-deposited" && (
           <MobileMarketList
             markets={nonDepositedMarkets}
             isLoading={isLoading}
-            liveDataStatus={liveDataStatus}
           />
         )}
       </>
