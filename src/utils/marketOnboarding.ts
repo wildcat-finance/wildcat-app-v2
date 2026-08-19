@@ -54,6 +54,25 @@ export const getKnownMarketOnboardingMode = (
   return onboardingByMarket[marketAddress.toLowerCase()]
 }
 
+export enum LenderOnboardingType {
+  SelfOnboard = "selfOnboard",
+  BorrowerAllowlist = "borrowerAllowlist",
+  Unknown = "unknown",
+}
+
+export const getLenderOnboardingType = (
+  onboardingMode: MarketOnboardingMode | undefined,
+): LenderOnboardingType => {
+  switch (onboardingMode) {
+    case MarketOnboardingMode.SelfOnboard:
+      return LenderOnboardingType.SelfOnboard
+    case MarketOnboardingMode.BorrowerApproval:
+      return LenderOnboardingType.BorrowerAllowlist
+    default:
+      return LenderOnboardingType.Unknown
+  }
+}
+
 /**
  * Resolve the lender-specific action separately from the market's stable
  * onboarding policy.

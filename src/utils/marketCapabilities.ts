@@ -1,8 +1,10 @@
 import {
   FixedTermHooksConfig,
+  getDeploymentAddress,
   HooksKind,
   MarketOnboardingMode,
   type RoleProvider,
+  type SupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
 
 type MarketHooksConfigLike = {
@@ -10,7 +12,11 @@ type MarketHooksConfigLike = {
   hooksAddress?: string
   fixedTermEndTime?: number
   depositRequiresAccess?: boolean
-  flags?: { useOnDeposit?: boolean }
+  queueWithdrawalRequiresAccess?: boolean
+  flags?: {
+    useOnDeposit?: boolean
+    useOnQueueWithdrawal?: boolean
+  }
 }
 
 type MarketLike = {
@@ -83,4 +89,65 @@ export const isSelfOnboardMarketAccount = (
   }
 
   return market.onboardingMode === MarketOnboardingMode.SelfOnboard
+}
+
+type MarketAccessLike = {
+  chainId: SupportedChainId
+  hooksConfig?: MarketHooksConfigLike
+  roleProviders?: readonly Pick<
+    RoleProvider,
+    "providerAddress" | "isApproved" | "pullProviderIndex"
+  >[]
+}
+
+export type EffectiveMarketAccess = {
+  depositAccess: "open" | "restricted"
+  withdrawalAccess: "open" | "restricted"
+}
+
+const hasActiveOpenAccessRoleProvider = (market: MarketAccessLike): boolean => {
+  const openAccessProvider = getDeploymentAddress(
+    market.chainId,
+    "OpenAccessRoleProvider",
+  ).toLowerCase()
+
+  return (market.roleProviders ?? []).some(
+    ({ providerAddress, isApproved, pullProviderIndex }) =>
+      isApproved &&
+      pullProviderIndex >= 0 &&
+      pullProviderIndex !== NULL_PROVIDER_INDEX &&
+      providerAddress.toLowerCase() === openAccessProvider,
+  )
+}
+
+export const getEffectiveMarketAccess = (
+  market: MarketAccessLike,
+): EffectiveMarketAccess => {
+  const { hooksConfig } = market
+  if (!hooksConfig) {
+    return {
+      depositAccess: "restricted",
+      withdrawalAccess: "restricted",
+    }
+  }
+
+  const depositRequiresCredential = hooksConfig.depositRequiresAccess !== false
+  const withdrawalRequiresCredential =
+    hooksConfig.flags?.useOnQueueWithdrawal === true &&
+    (hooksConfig.kind === HooksKind.OpenTerm ||
+      hooksConfig.queueWithdrawalRequiresAccess === true)
+  // The open-access provider still issues a credential under the hood, but it
+  // does not require borrower approval. Other role providers stay restricted.
+  const hasOpenAccessProvider = hasActiveOpenAccessRoleProvider(market)
+
+  return {
+    depositAccess:
+      depositRequiresCredential && !hasOpenAccessProvider
+        ? "restricted"
+        : "open",
+    withdrawalAccess:
+      withdrawalRequiresCredential && !hasOpenAccessProvider
+        ? "restricted"
+        : "open",
+  }
 }

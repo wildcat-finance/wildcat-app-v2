@@ -508,26 +508,41 @@
           "tooltip": "Borrower can elect to shorten Fixed Term duration."
         }
       },
+      "lenderOnboarding": {
+        "label": "Lender Onboarding",
+        "selfOnboard": {
+          "text": "Lender Self-Onboarding",
+          "tooltip": "Lenders can onboard automatically without borrower approval. Standard sanctions screening still applies."
+        },
+        "borrowerAllowlist": {
+          "text": "Borrower Operated Allowlist",
+          "tooltip": "Lenders must be approved through the borrower's configured access provider."
+        },
+        "unknown": {
+          "text": "Unknown",
+          "tooltip": "This market's access policy could not be read."
+        }
+      },
       "depositAccess": {
         "label": "Deposit Access",
         "open": {
           "text": "Open Deposits",
-          "tooltip": "Anyone can lend to this market."
+          "tooltip": "Anyone can deposit without borrower approval. Standard sanctions screening still applies."
         },
         "restricted": {
           "text": "Restricted",
-          "tooltip": "Lenders must meet specific criteria to lend to this market."
+          "tooltip": "Only lenders approved through the borrower's configured access provider can deposit."
         }
       },
       "withdrawalAccess": {
         "label": "Withdrawal Access",
         "open": {
           "text": "Open Withdrawals",
-          "tooltip": "Anyone can request withdrawals."
+          "tooltip": "Anyone holding market tokens can request a withdrawal, subject to the market's term or withdrawal-window rules."
         },
         "restricted": {
           "text": "Restricted",
-          "tooltip": "Lenders who have not directly deposited must meet specific criteria to withdraw."
+          "tooltip": "Only approved or previously authorized lenders can request withdrawals, subject to the market's term or withdrawal-window rules."
         }
       },
       "transferAccess": {
