@@ -43,6 +43,14 @@ export const hasCreateMarketDeploymentTarget = ({
 }: CreateMarketDeploymentTargetInput) =>
   hasSelectedHooksTemplate || hasCommittedDeployment
 
+export const canDismissCreateMarketDeployDialog = ({
+  isDeploying,
+  isSuccess,
+}: {
+  isDeploying: boolean
+  isSuccess: boolean
+}) => !isDeploying && !isSuccess
+
 type HooksTemplateDeploymentPreviewer = {
   previewDeployMarket(params: never): DeployMarketPreview
 }
