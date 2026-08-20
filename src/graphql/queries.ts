@@ -209,10 +209,11 @@ export const DEBT_REPAIDS = gql`
 // },
 
 export const RECENT_DEPOSITS = gql`
-  query ($where: Deposit_filter, $first: Int) {
+  query ($where: Deposit_filter, $first: Int, $skip: Int) {
     deposits(
       where: $where
       first: $first
+      skip: $skip
       orderBy: blockTimestamp
       orderDirection: desc
     ) {
@@ -230,10 +231,11 @@ export const RECENT_DEPOSITS = gql`
 `
 
 export const RECENT_WITHDRAWAL_REQUESTS = gql`
-  query ($where: WithdrawalRequest_filter, $first: Int) {
+  query ($where: WithdrawalRequest_filter, $first: Int, $skip: Int) {
     withdrawalRequests(
       where: $where
       first: $first
+      skip: $skip
       orderBy: blockTimestamp
       orderDirection: desc
     ) {

@@ -1,7 +1,3 @@
-import { Dispatch } from "react"
-
-import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
-import { BaseTransaction } from "@safe-global/safe-apps-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
@@ -13,7 +9,6 @@ import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 export const useFaucet = (marketAccount: MarketAccount) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
-  const { connected: safeConnected, sdk } = useSafeAppsSDK()
   const { isTestnet, chainId: targetChainId } = useSelectedNetwork()
 
   return useMutation({
@@ -46,15 +41,10 @@ export const useFaucet = (marketAccount: MarketAccount) => {
     },
     onSuccess() {
       client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET(
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
           marketAccount.market.chainId,
           marketAccount.market.address,
-        ),
-      })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
-          marketAccount.market.chainId,
-          marketAccount.market.address,
+          marketAccount.account,
         ),
       })
     },

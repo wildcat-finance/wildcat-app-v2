@@ -14,8 +14,6 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { isUSDTLikeToken } from "@/utils/constants"
 
-import type { BorrowerWithdrawalsForMarketResult } from "./useGetWithdrawals"
-
 export const useRepay = (
   marketAccount: MarketAccount,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
@@ -136,30 +134,21 @@ export const useRepay = (
     },
     onSuccess() {
       client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_BORROWER_MARKET_ACCOUNT_LEGACY(
+        queryKey: QueryKeys.Markets.GET_MARKET(
           marketAccount.market.chainId,
-          marketAccount.account,
+          marketAccount.market.address,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
+          marketAccount.market.chainId,
           marketAccount.market.address,
         ),
       })
       if (processUnpaidWithdrawalsIfAny) {
         client.invalidateQueries({
-          queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
+          queryKey: QueryKeys.Borrower.GET_WITHDRAWALS.PREFIX(
             marketAccount.market.chainId,
-            marketAccount.market.address,
-          ),
-        })
-        client.invalidateQueries({
-          queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
-            marketAccount.market.chainId,
-            "initial",
-            marketAccount.market.address,
-          ),
-        })
-        client.invalidateQueries({
-          queryKey: QueryKeys.Borrower.GET_WITHDRAWALS(
-            marketAccount.market.chainId,
-            "update",
             marketAccount.market.address,
           ),
         })

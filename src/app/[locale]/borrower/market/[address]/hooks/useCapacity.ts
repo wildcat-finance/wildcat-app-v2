@@ -12,7 +12,7 @@ export const useSetMaxTotalSupply = (
   marketAccount: MarketAccount,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
 ) => {
-  const { signer, address, targetChainId } = useEthersProvider()
+  const { signer, targetChainId } = useEthersProvider()
   const client = useQueryClient()
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
@@ -62,9 +62,14 @@ export const useSetMaxTotalSupply = (
     },
     onSuccess() {
       client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_BORROWER_MARKET_ACCOUNT_LEGACY(
+        queryKey: QueryKeys.Markets.GET_MARKET(
           marketAccount.market.chainId,
-          address,
+          marketAccount.market.address,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
+          marketAccount.market.chainId,
           marketAccount.market.address,
         ),
       })

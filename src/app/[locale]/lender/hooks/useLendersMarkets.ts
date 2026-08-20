@@ -4,13 +4,9 @@ import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import {
   SignerOrProvider,
-  Market,
   MarketAccount,
-  MarketVersion,
-  SupportedChainId,
   SubgraphGetLenderMarketCatalogueQueryVariables,
   getLenderMarketCatalogue,
-  refreshLenderAccountState,
   SubgraphMarket_Filter,
 } from "@wildcatfi/wildcat-sdk"
 import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
@@ -21,7 +17,7 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useIsSelectedNetworkRehydrated } from "@/hooks/useSelectedNetwork"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
-import { EXCLUDED_MARKETS_FILTER, TOKENS_ADDRESSES } from "@/utils/constants"
+import { EXCLUDED_MARKETS_FILTER } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
 import {
   getSubgraphMarketOnboardingMode,
@@ -30,6 +26,8 @@ import {
 import { isFrontendVisibleMarket } from "@/utils/marketType"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
+import { refreshLenderMarketAccounts } from "./refreshLenderMarketAccounts"
+
 export type LenderMarketsQueryProps = Omit<
   SubgraphGetLenderMarketCatalogueQueryVariables,
   "lender"
@@ -37,13 +35,14 @@ export type LenderMarketsQueryProps = Omit<
 
 type LenderMarketUpdates = {
   marketAccounts: MarketAccount[]
+  onboardingByMarket: MarketOnboardingByAddress
   queryIdentity: string
 }
 
 export type LenderMarketsOnboardingStatus = "loading" | "ready" | "error"
 
 const MARKET_CATALOG_POLLING_INTERVAL = 60_000
-// Lender-only live refresh cadence; market state rides the catalogue poll.
+// Live market and lender-account refresh cadence.
 const MARKET_LIVE_REFRESH_INTERVAL = 60_000
 
 export type LenderMarketsResult = TwoStepQueryHookResult<
@@ -52,40 +51,6 @@ export type LenderMarketsResult = TwoStepQueryHookResult<
 > & {
   onboardingByMarket: MarketOnboardingByAddress
   onboardingStatus: LenderMarketsOnboardingStatus
-}
-
-function getChunks<T extends Market | MarketAccount>(
-  chainId: SupportedChainId,
-  values: T[],
-): { v1Chunks: T[][]; v2Chunks: T[][] } {
-  const v1Values = values.filter(
-    (v) =>
-      (v instanceof Market ? v.version : v.market.version) === MarketVersion.V1,
-  )
-  const v2Values = values.filter(
-    (v) =>
-      (v instanceof Market ? v.version : v.market.version) === MarketVersion.V2,
-  )
-  const isWeth = (v: T): boolean =>
-    (v instanceof Market
-      ? v.underlyingToken
-      : v.market.underlyingToken
-    ).address.toLowerCase() === TOKENS_ADDRESSES.WETH
-  if (chainId === SupportedChainId.Mainnet) {
-    const v1Chunks = [
-      ...v1Values.filter(isWeth).map((m) => [m]),
-      v1Values.filter((v) => !isWeth(v)),
-    ]
-    const v2Chunks = [
-      ...v2Values.filter(isWeth).map((m) => [m]),
-      v2Values.filter((v) => !isWeth(v)),
-    ]
-    return { v1Chunks, v2Chunks }
-  }
-  return {
-    v1Chunks: [v1Values],
-    v2Chunks: [v2Values],
-  }
 }
 
 export function useLendersMarkets(
@@ -158,32 +123,34 @@ export function useLendersMarkets(
   })
 
   const accounts = data ?? []
+  // Snapshot indexed onboarding before live lens hydration mutates the market
+  // objects. Keep the snapshot stable between catalogue refreshes.
+  const indexedOnboardingByMarket = useMemo(() => {
+    const map: MarketOnboardingByAddress = {}
+    const source = data ?? []
+    source.forEach(({ market }) => {
+      const mode = getSubgraphMarketOnboardingMode(market)
+      if (mode) map[market.address.toLowerCase()] = mode
+    })
+    return map
+  }, [catalogUpdatedAt, data])
 
   async function getLenderUpdates() {
     logger.debug(`Getting lender updates...`)
-    // Lender-only live refresh: balances, allowance, authorization and
-    // credential state. Market state stays subgraph-derived - the catalogue
-    // poll owns it - which keeps market encoding/decoding out of this loop.
-    // Chunking is preserved (including singleton WETH chunks on mainnet).
-    // `lender` is passed through as-is: when disconnected the SDK retains
-    // access state and zeroes wallet balances itself.
-    const { v1Chunks, v2Chunks } = getChunks(targetChainId, accounts)
-    await Promise.all(
-      [...v1Chunks, ...v2Chunks]
-        .filter((accountsChunk) => accountsChunk.length > 0)
-        .map((accountsChunk) =>
-          refreshLenderAccountState(
-            targetChainId,
-            signerOrProvider as SignerOrProvider,
-            lender,
-            accountsChunk,
-          ),
-        ),
+    // Refresh both time-sensitive market state and wallet-specific lender state.
+    // `lender` remains undefined when disconnected so the SDK retains access
+    // state while zeroing wallet balances and allowances.
+    await refreshLenderMarketAccounts(
+      targetChainId,
+      signerOrProvider as SignerOrProvider,
+      lender,
+      accounts,
     )
     return {
       // Updates mutate the SDK objects in place. Publish a fresh collection
       // so downstream memoized sorting and card derivation observe every refresh.
       marketAccounts: [...accounts],
+      onboardingByMarket: indexedOnboardingByMarket,
       queryIdentity: updateQueryIdentity,
     }
   }
@@ -222,18 +189,10 @@ export function useLendersMarkets(
   if (isErrorUpdate) onboardingStatus = "error"
   else if (updates) onboardingStatus = "ready"
 
-  // Onboarding classification is fully subgraph-derived: the catalogue's
-  // hooksConfig + hooksInstance carry everything needed, and the lender-only
-  // live refresh no longer produces market-level data to merge over it.
-  const onboardingByMarket = useMemo(() => {
-    const map: MarketOnboardingByAddress = {}
-    const source = updates?.marketAccounts ?? data ?? []
-    source.forEach(({ market }) => {
-      const mode = getSubgraphMarketOnboardingMode(market)
-      if (mode) map[market.address.toLowerCase()] = mode
-    })
-    return map
-  }, [data, updates])
+  // Onboarding classification remains subgraph-derived even though the market
+  // objects are subsequently hydrated with live lens state.
+  const onboardingByMarket =
+    updates?.onboardingByMarket ?? indexedOnboardingByMarket
 
   return {
     data: updates?.marketAccounts ?? accounts,

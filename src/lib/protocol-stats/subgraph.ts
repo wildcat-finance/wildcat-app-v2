@@ -1,8 +1,8 @@
 export const ETHEREUM_MAINNET_SUBGRAPH_URL =
-  "https://api.goldsky.com/api/public/project_cmheai1ym00jyx7p27qn46qtm/subgraphs/mainnet/v2.0.26/gn"
+  "https://api.goldsky.com/api/public/project_cmheai1ym00jyx7p27qn46qtm/subgraphs/mainnet/v2.0.30/gn"
 
 export const PLASMA_MAINNET_SUBGRAPH_URL =
-  "https://api.goldsky.com/api/public/project_cmheai1ym00jyx7p27qn46qtm/subgraphs/plasma-mainnet/v2.0.22/gn"
+  "https://api.goldsky.com/api/public/project_cmheai1ym00jyx7p27qn46qtm/subgraphs/plasma-mainnet/v2.0.30/gn"
 
 export async function querySubgraph<T>(url: string, query: string): Promise<T> {
   const res = await fetch(url, {
