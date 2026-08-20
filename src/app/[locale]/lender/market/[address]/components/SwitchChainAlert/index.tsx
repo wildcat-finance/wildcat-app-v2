@@ -1,8 +1,9 @@
 import React from "react"
 
 import { Box, Button, Typography } from "@mui/material"
-import { Trans, useTranslation } from "react-i18next"
+import { useTranslation } from "react-i18next"
 
+import { Trans } from "@/components/Translation"
 import { NETWORKS } from "@/config/network"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useNetworkGate } from "@/hooks/useNetworkGate"

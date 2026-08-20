@@ -9,13 +9,14 @@ import {
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
-import { Trans, useTranslation } from "react-i18next"
+import { useTranslation } from "react-i18next"
 
 import { MarketStatusAndTermChip } from "@/components/@extended/MarketStatusAndTermChip"
 import { getAdsConfig } from "@/components/AdsBanners/adsConfig"
 import { getAdsTooltipComponent } from "@/components/AdsBanners/adsHelpers"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { NetworkIcon } from "@/components/NetworkIcon"
+import { Trans } from "@/components/Translation"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import {

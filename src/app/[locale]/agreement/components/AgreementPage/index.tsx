@@ -2,12 +2,13 @@
 
 import { Box, Button, Typography, useTheme } from "@mui/material"
 import { useRouter } from "next/navigation"
-import { Trans, useTranslation } from "react-i18next"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { useBorrowerInvitationExists } from "@/app/[locale]/borrower/hooks/useBorrowerInvitation"
 import type { ServiceAgreementPartyInput } from "@/app/api/service-agreement/interface"
 import { ServiceAgreementVersionChip } from "@/components/ServiceAgreementVersionChip"
+import { Trans } from "@/components/Translation"
 import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { ROUTES } from "@/routes"

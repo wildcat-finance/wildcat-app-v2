@@ -11,7 +11,7 @@ import {
 } from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
 import Link from "next/link"
-import { Trans, useTranslation } from "react-i18next"
+import { useTranslation } from "react-i18next"
 
 import { LenderAnalyticsSummary } from "@/app/[locale]/lender/market/[address]/components/LenderAnalyticsSummary"
 import {
@@ -43,6 +43,7 @@ import {
   groupPeriodData,
 } from "@/components/Profile/shared/chartControls"
 import { ProfileSectionPanel } from "@/components/Profile/shared/ProfileSectionPanel"
+import { Trans } from "@/components/Translation"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"

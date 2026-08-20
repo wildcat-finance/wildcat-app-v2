@@ -4,11 +4,12 @@ import { useEffect, useState } from "react"
 
 import { Box, Button, InputBase, Typography } from "@mui/material"
 import Link from "next/link"
-import { Trans, useTranslation } from "react-i18next"
+import { useTranslation } from "react-i18next"
 
 import { AgreementText } from "@/app/[locale]/agreement/components/AgreementText"
 import { BorrowerInvitation } from "@/app/api/invite/interface"
 import { ServiceAgreementVersionChip } from "@/components/ServiceAgreementVersionChip"
+import { Trans } from "@/components/Translation"
 import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
 
 import { useSubmitAcceptInvitation } from "../../hooks/useSubmitAcceptInvitation"

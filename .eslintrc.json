@@ -54,6 +54,18 @@
     "react/react-in-jsx-scope": "off",
     "no-shadow": "off",
     "no-param-reassign": "off",
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "react-i18next",
+            "importNames": ["Trans"],
+            "message": "Use the protected Trans wrapper from @/components/Translation."
+          }
+        ]
+      }
+    ],
     "react/jsx-props-no-spreading": "off",
     "jsx-a11y/label-has-associated-control": "off",
     "@typescript-eslint/no-shadow": "error",

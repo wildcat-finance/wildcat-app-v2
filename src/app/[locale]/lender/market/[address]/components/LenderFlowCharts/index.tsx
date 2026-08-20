@@ -5,7 +5,7 @@ import { useCallback, useMemo, useRef, useState } from "react"
 import { Box, Skeleton, Typography } from "@mui/material"
 import { Market } from "@wildcatfi/wildcat-sdk"
 import type { ECharts } from "echarts/core"
-import { Trans, useTranslation } from "react-i18next"
+import { useTranslation } from "react-i18next"
 
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import {
@@ -28,6 +28,7 @@ import {
 } from "@/components/Profile/shared/chartControls"
 import { ChartDescriptionStyle } from "@/components/Profile/shared/chartStyle"
 import { TooltipButton } from "@/components/TooltipButton"
+import { Trans } from "@/components/Translation"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useNow } from "@/hooks/useNow"
 import { COLORS } from "@/theme/colors"

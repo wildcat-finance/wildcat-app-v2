@@ -51,17 +51,9 @@ await i18n.init({
   defaultNS: "en",
   fallbackNS: "en",
   ns: ["en"],
-  // Mirror src/app/i18n.ts exactly, including the tag-only escape. It does not
-  // change whether a key resolves, but a harness that claims to reproduce the
-  // app's config and quietly omits part of it is the kind of gap that makes a
-  // green run mean less than it looks.
-  interpolation: {
-    escapeValue: true,
-    escape: (value) =>
-      typeof value === "string"
-        ? value.replace(/</g, "&lt;").replace(/>/g, "&gt;")
-        : String(value),
-  },
+  // Mirror src/app/i18n.ts. React owns escaping for t() output; the local Trans
+  // wrapper protects interpolated values before react-i18next parses markup.
+  interpolation: { escapeValue: false },
 })
 
 function blankComments(src) {

@@ -1,7 +1,7 @@
 import { Box, Divider, Typography } from "@mui/material"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
-import { Trans } from "react-i18next"
 
+import { Trans } from "@/components/Translation"
 import { COLORS } from "@/theme/colors"
 
 export type OtherMarketsCardProps = {

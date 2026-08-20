@@ -1,6 +1,6 @@
 import { Box, Typography } from "@mui/material"
-import { Trans } from "react-i18next"
 
+import { Trans } from "@/components/Translation"
 import { COLORS } from "@/theme/colors"
 import { MarketStatus } from "@/utils/marketStatus"
 

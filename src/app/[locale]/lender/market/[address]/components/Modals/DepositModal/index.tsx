@@ -12,7 +12,7 @@ import {
 } from "@mui/material"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
-import { Trans, useTranslation } from "react-i18next"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
@@ -33,6 +33,7 @@ import { PeriodicWithdrawalWindowNotice } from "@/components/PeriodicWithdrawalW
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { toastError } from "@/components/Toasts"
 import { TooltipButton } from "@/components/TooltipButton"
+import { Trans } from "@/components/Translation"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"

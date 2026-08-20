@@ -2,9 +2,10 @@ import { useEffect } from "react"
 
 import { useLazyQuery } from "@apollo/client"
 import { Chip } from "@mui/material"
-import { Trans, useTranslation } from "react-i18next"
+import { useTranslation } from "react-i18next"
 import { useDispatch } from "react-redux"
 
+import { Trans } from "@/components/Translation"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { WITHDRAWAL_BATCH_EXPIREDS } from "@/graphql/queries"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"

@@ -10,7 +10,7 @@ import {
   Link as MuiLink,
 } from "@mui/material"
 import Link from "next/link"
-import { Trans, useTranslation } from "react-i18next"
+import { useTranslation } from "react-i18next"
 import { Connector, CreateConnectorFn, useConnect } from "wagmi"
 
 import CoinBase from "@/assets/icons/coinbase_icon.svg"
@@ -22,6 +22,7 @@ import Rabby from "@/assets/icons/rabby_icon.svg"
 import Rainbow from "@/assets/icons/rainbow_icon.svg"
 import Safe from "@/assets/icons/safe.svg"
 import WalletConnect from "@/assets/icons/walletConnect_icon.svg"
+import { Trans } from "@/components/Translation"
 import { COLORS } from "@/theme/colors"
 
 import {

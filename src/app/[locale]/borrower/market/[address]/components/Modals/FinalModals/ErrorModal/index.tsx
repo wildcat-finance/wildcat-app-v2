@@ -2,7 +2,6 @@ import * as React from "react"
 
 import { Box, Button, IconButton, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
-import { Trans } from "react-i18next"
 
 import {
   FinalModalCloseButton,
@@ -15,6 +14,7 @@ import {
 import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
+import { Trans } from "@/components/Translation"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 
 export const ErrorModal = ({

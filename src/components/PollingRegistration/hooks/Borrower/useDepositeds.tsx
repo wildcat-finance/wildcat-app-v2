@@ -5,10 +5,10 @@ import {
   MarketRecord,
   DepositRecord,
 } from "@wildcatfi/wildcat-sdk"
-import { Trans } from "react-i18next"
 import { useDispatch } from "react-redux"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
+import { Trans } from "@/components/Translation"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"

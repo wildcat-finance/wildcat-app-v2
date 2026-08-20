@@ -34,31 +34,10 @@ export default async function initTranslations(
     fallbackNS: namespaces[0],
     ns: namespaces,
     preload: resources ? [] : i18nConfig.locales,
-    // i18next's default escaping is wrong for React twice over. React already
-    // escapes text nodes, so escaping here shows the user entity codes: a token
-    // symbol "ETH/USD" renders as the literal "ETH&#x2F;USD", and worse through
-    // <Trans>, where the value is escaped by the interpolator and again by the
-    // AST walk ("ETH&amp;#x2F;USD"). Token symbols and market names come from
-    // chain data, so this is not a theoretical input.
-    //
-    // Turning escaping off entirely fixes that but opens a different hole: with
-    // it off, <Trans> parses the resolved string as markup, so a third-party
-    // value containing tag syntax becomes real elements -- "<strong>x</strong>"
-    // renders bold, and a stray "</strong>" breaks out and mangles the
-    // components mapping. No script executes (react-i18next drops attributes),
-    // but the layout is defaceable.
-    //
-    // So escape exactly the two characters that start a tag and nothing else.
-    // Verified against this repo's i18next 23.10.1 / react-i18next 14.1.0: "/",
-    // "&", "'" and '"' pass through untouched and render correctly, while tag
-    // syntax comes out as inert text through both t() and <Trans>.
-    interpolation: {
-      escapeValue: true,
-      escape: (value) =>
-        typeof value === "string"
-          ? value.replace(/</g, "&lt;").replace(/>/g, "&gt;")
-          : String(value),
-    },
+    // React escapes text nodes itself. Escaping again in i18next displays entity
+    // codes for ordinary values such as token symbols. Our local Trans wrapper
+    // adds a narrower boundary before react-i18next parses translated markup.
+    interpolation: { escapeValue: false },
     // Surfaces a key that only breaks on a specific runtime path, which neither
     // i18n:check nor i18n:verify can reach.
     saveMissing: isDev,

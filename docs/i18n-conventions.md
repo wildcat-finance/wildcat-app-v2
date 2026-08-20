@@ -39,8 +39,10 @@ variants, use an exhaustive map of literal keys and pass the selected value to
 Do not pass a default English value to `t()`. A fallback hides missing resources
 from both the checks and the user until another locale is enabled.
 
-Use `<Trans>` when a resource contains component tags. Use `t()` for plain text.
-Every `{{placeholder}}` in a resource must be supplied at the call site.
+Use the protected `<Trans>` exported by `@/components/Translation` when a
+resource contains component tags; direct imports from `react-i18next` are
+blocked. Use `t()` for plain text. Every `{{placeholder}}` in a resource must be
+supplied at the call site.
 
 User-visible JSX text must use a translation key. User-visible attributes such
 as `label`, `placeholder`, `title`, `alt`, and `aria-label` must also use keys.

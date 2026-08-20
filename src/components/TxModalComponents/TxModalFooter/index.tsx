@@ -7,11 +7,11 @@ import {
   useTheme,
 } from "@mui/material"
 import Link from "next/link"
-import { Trans } from "react-i18next"
 
 import Check from "@/assets/icons/check_icon.svg"
 import LinkIcon from "@/assets/icons/link_icon.svg"
 import { MiniLoader } from "@/components/Loader"
+import { Trans } from "@/components/Translation"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { COLORS } from "@/theme/colors"
 
