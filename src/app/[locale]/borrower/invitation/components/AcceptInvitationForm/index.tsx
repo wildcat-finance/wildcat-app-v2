@@ -4,11 +4,12 @@ import { useEffect, useState } from "react"
 
 import { Box, Button, InputBase, Typography } from "@mui/material"
 import Link from "next/link"
-import { Trans } from "react-i18next"
+import { useTranslation } from "react-i18next"
 
 import { AgreementText } from "@/app/[locale]/agreement/components/AgreementText"
 import { BorrowerInvitation } from "@/app/api/invite/interface"
 import { ServiceAgreementVersionChip } from "@/components/ServiceAgreementVersionChip"
+import { Trans } from "@/components/Translation"
 import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
 
 import { useSubmitAcceptInvitation } from "../../hooks/useSubmitAcceptInvitation"
@@ -37,6 +38,8 @@ export const AcceptInvitationForm = ({
   invitation: BorrowerInvitation
   address: string
 }) => {
+  const { t } = useTranslation()
+
   const [name, setName] = useState(invitation.name || "")
   const submitMutation = useSubmitAcceptInvitation()
   const [timeSigned, setTimeSigned] = useState<number>()
@@ -61,7 +64,7 @@ export const AcceptInvitationForm = ({
       <Box sx={InvitationContent}>
         <Box sx={InvitationHeader}>
           <Typography variant="title2" fontWeight={600} textAlign="center">
-            Accept Borrower Invitation
+            {t("borrower.invitation.acceptBorrowerInvitation")}
           </Typography>
         </Box>
 
@@ -71,7 +74,7 @@ export const AcceptInvitationForm = ({
             fontWeight={600}
             sx={BorrowerNameLabel}
           >
-            Borrower name
+            {t("common.labels.borrowerName")}
           </Typography>
           <InputBase
             inputProps={{ "aria-label": "Borrower name" }}
@@ -81,9 +84,10 @@ export const AcceptInvitationForm = ({
           />
         </Box>
         <Typography variant="text3" sx={BorrowerNameNote}>
-          This name is appended to the signed Terms of Use acknowledgement and
-          recorded as the <strong>borrower organization</strong> accepting the
-          invitation.
+          <Trans
+            i18nKey="borrower.invitation.nameHelper"
+            components={{ 1: <strong /> }}
+          />
         </Typography>
 
         <Box sx={TermsPanel}>
@@ -117,7 +121,7 @@ export const AcceptInvitationForm = ({
             size="large"
             sx={ActionButton}
           >
-            <Trans i18nKey="agreement.page.download" />
+            <Trans i18nKey="common.buttons.download" />
           </Button>
 
           <Button

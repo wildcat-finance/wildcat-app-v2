@@ -2,6 +2,7 @@ import { useMemo } from "react"
 
 import { Box, Button, Dialog, Typography, useTheme } from "@mui/material"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { useSignNonMlaAcknowledgement } from "@/app/[locale]/lender/hooks/useNonMlaAcknowledgement"
@@ -33,6 +34,8 @@ export const NonMlaAcknowledgementModal = ({
   onClose,
   onAcknowledged,
 }: NonMlaAcknowledgementModalProps) => {
+  const { t } = useTranslation()
+
   const theme = useTheme()
   const isMobile = useMobileResolution()
   const { address } = useAccount()
@@ -142,7 +145,7 @@ export const NonMlaAcknowledgementModal = ({
         }}
       >
         <TransactionHeader
-          label="No Master Loan Agreement"
+          label={t("marketDetails.lender.noMasterLoanAgreement")}
           arrowOnClick={null}
           crossOnClick={isPending ? null : onClose}
         />
@@ -160,7 +163,7 @@ export const NonMlaAcknowledgementModal = ({
           }}
         >
           <Typography variant="mobText3" color={COLORS.santasGrey}>
-            Sign this acknowledgement before opening the deposit window.
+            {t("marketDetails.lender.signAcknowledgementBeforeOpeningDeposit")}
           </Typography>
 
           {acknowledgementBox}
@@ -183,7 +186,7 @@ export const NonMlaAcknowledgementModal = ({
             disabled={isPending}
             fullWidth
           >
-            Cancel
+            {t("common.buttons.cancel")}
           </Button>
 
           <Button
@@ -217,7 +220,7 @@ export const NonMlaAcknowledgementModal = ({
       }}
     >
       <TxModalHeader
-        title="No Master Loan Agreement"
+        title={t("marketDetails.lender.noMasterLoanAgreement")}
         arrowOnClick={null}
         crossOnClick={isPending ? null : onClose}
       />
@@ -234,7 +237,7 @@ export const NonMlaAcknowledgementModal = ({
         }}
       >
         <Typography variant="text3" color={COLORS.santasGrey}>
-          Sign this acknowledgement before opening the deposit window.
+          {t("marketDetails.lender.signAcknowledgementBeforeOpeningDeposit")}
         </Typography>
 
         {acknowledgementBox}
@@ -254,7 +257,7 @@ export const NonMlaAcknowledgementModal = ({
           disabled={isPending}
           fullWidth
         >
-          Cancel
+          {t("common.buttons.cancel")}
         </Button>
 
         <Button

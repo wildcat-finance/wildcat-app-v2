@@ -59,12 +59,12 @@ export const ProfileDialog = ({
 
   const { data: isRegisteredBorrower } = useGetIsRegisteredBorrower()
   const isBorrowerContext = isBorrowerContextPath(pathname)
-  const isLenderContext = !isBorrowerContext
-  const useLenderProfile = analyticsUiEnabled && isLenderContext
-  const shouldShowProfileLink = useLenderProfile || isRegisteredBorrower
-  const profileRoute = useLenderProfile
-    ? ROUTES.lender.profile
-    : ROUTES.borrower.profile
+  const shouldShowProfileLink = isBorrowerContext
+    ? !!isRegisteredBorrower
+    : analyticsUiEnabled
+  const profileRoute = isBorrowerContext
+    ? ROUTES.borrower.profile
+    : ROUTES.lender.profile
 
   return (
     <Dialog open={open} onClose={handleClose} sx={DialogContainer}>
@@ -164,7 +164,9 @@ export const ProfileDialog = ({
                   variant="text2"
                   sx={{ width: "100%", fontWeight: 600, textAlign: "left" }}
                 >
-                  View {useLenderProfile ? "Lender" : "Borrower"} Profile
+                  {isBorrowerContext
+                    ? t("header.button.viewBorrowerProfile")
+                    : t("header.button.viewLenderProfile")}
                 </Typography>
               </Button>
             </Link>

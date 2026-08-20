@@ -14,43 +14,58 @@
   "parser": "@typescript-eslint/parser",
   "overrides": [
     {
+      "files": ["src/**/*.{ts,js,tsx,jsx}"]
+    },
+    {
       "files": [
-        "src/**/*.{ts,js,tsx,jsx}"
-      ]
+        "src/**/*.stories.{ts,tsx}",
+        "src/**/*.test.{ts,tsx}",
+        "src/**/*.d.ts",
+        "src/lib/**",
+        "src/store/**",
+        "src/providers/**",
+        "src/utils/**",
+        "src/hooks/**",
+        "src/app/api/**",
+        "src/theme/**",
+        "**/agreement/components/AgreementText/**"
+      ],
+      "rules": {
+        "i18next/no-literal-string": "off"
+      }
     }
   ],
-  "plugins": [
-    "react",
-    "prettier",
-    "@typescript-eslint",
-    "import"
-  ],
-  "ignorePatterns": [
-    "node_modules/",
-    "scripts/"
-  ],
+  "plugins": ["react", "prettier", "@typescript-eslint", "import", "i18next"],
+  "ignorePatterns": ["node_modules/", "scripts/"],
   "parserOptions": {
     "project": "./tsconfig.json",
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
   "rules": {
-    "semi": [
-      "error",
-      "never"
-    ],
+    "semi": ["error", "never"],
     "react/jsx-filename-extension": [
       1,
       {
-        "extensions": [
-          ".tsx"
-        ]
+        "extensions": [".tsx"]
       }
     ],
     "import/extensions": "off",
     "react/react-in-jsx-scope": "off",
     "no-shadow": "off",
     "no-param-reassign": "off",
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "react-i18next",
+            "importNames": ["Trans"],
+            "message": "Use the protected Trans wrapper from @/components/Translation."
+          }
+        ]
+      }
+    ],
     "react/jsx-props-no-spreading": "off",
     "jsx-a11y/label-has-associated-control": "off",
     "@typescript-eslint/no-shadow": "error",
@@ -88,29 +103,46 @@
           "caseInsensitive": true
         }
       }
+    ],
+    "i18next/no-literal-string": [
+      "error",
+      {
+        "markupOnly": true,
+        "ignoreAttribute": [
+          "data-testid",
+          "data-test",
+          "data-cy",
+          "type",
+          "className",
+          "id",
+          "role",
+          "href",
+          "src",
+          "name",
+          "key",
+          "to",
+          "as",
+          "sx",
+          "variant",
+          "color",
+          "size",
+          "align",
+          "component",
+          "direction",
+          "justifyContent",
+          "alignItems"
+        ]
+      }
     ]
   },
   "settings": {
-    "import/extensions": [
-      ".js",
-      ".jsx",
-      ".ts",
-      ".tsx"
-    ],
+    "import/extensions": [".js", ".jsx", ".ts", ".tsx"],
     "import/parsers": {
-      "@typescript-eslint/parser": [
-        ".ts",
-        ".tsx"
-      ]
+      "@typescript-eslint/parser": [".ts", ".tsx"]
     },
     "import/resolver": {
       "node": {
-        "extensions": [
-          ".js",
-          ".jsx",
-          ".ts",
-          ".tsx"
-        ]
+        "extensions": [".js", ".jsx", ".ts", ".tsx"]
       }
     }
   }

@@ -3,6 +3,7 @@
 import * as React from "react"
 
 import { Box, MenuItem, Select, Skeleton, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import {
   LenderPositionRow,
@@ -341,6 +342,8 @@ export const RiskReturnsChart = ({
   positions,
   priceMap,
 }: RiskReturnsChartProps) => {
+  const { t } = useTranslation()
+
   const marketOptions = React.useMemo(
     () =>
       positions
@@ -427,7 +430,7 @@ export const RiskReturnsChart = ({
             textAlign: "center",
           }}
         >
-          No daily risk and return history found for this market.
+          {t("profile.lender.noDailyRiskReturnHistory")}
         </Box>
       )
     }
@@ -457,8 +460,8 @@ export const RiskReturnsChart = ({
 
   return (
     <AnalyticsChartCard
-      title="Yield vs Withdrawal pressure"
-      description="Interest earned alongside deposit activity and withdrawal pressure."
+      title={t("profile.lender.yieldVsWithdrawalPressure")}
+      description={t("profile.lender.interestEarnedAlongsideDepositActivity")}
       cardHeight={360}
       dialogHeight={580}
       constrainWidth
@@ -480,7 +483,7 @@ export const RiskReturnsChart = ({
               fontSize: 10,
             }}
           >
-            Market
+            {t("profile.lender.market")}
           </Typography>
           <ChartPeriodSelector value={period} onChange={setPeriod} />
           <Select

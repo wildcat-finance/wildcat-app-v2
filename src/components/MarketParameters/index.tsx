@@ -10,6 +10,30 @@ import { getAdsMarketParameterComponent } from "@/components/AdsBanners/adsHelpe
 import { getMarketImplementationVariant } from "@/components/market-implementation-variants"
 import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
+import {
+  DEPOSIT_ACCESS_TEXT_KEY,
+  DEPOSIT_ACCESS_TOOLTIP_KEY,
+  EARLY_CLOSURE_TEXT_KEY,
+  EARLY_CLOSURE_TOOLTIP_KEY,
+  HOOK_FLAG_KEYS_PRIMARY,
+  HOOK_FLAG_KEYS_SECONDARY,
+  LENDER_ONBOARDING_TEXT_KEY,
+  LENDER_ONBOARDING_TOOLTIP_KEY,
+  MARKET_TERM_TEXT_KEY,
+  MARKET_TERM_TOOLTIP_KEY,
+  MATURITY_REDUCTION_TEXT_KEY,
+  MATURITY_REDUCTION_TOOLTIP_KEY,
+  PERIODIC_WINDOW_START_KEY,
+  PERIODIC_WINDOW_STATUS_TEXT_KEY,
+  PERIODIC_WINDOW_STATUS_TOOLTIP_KEY,
+  TEMP_RATIO_ACTIVE_TOOLTIP_KEY,
+  TEMP_RATIO_BANNER_BODY_KEY,
+  TEMP_RATIO_EXPIRED_TOOLTIP_KEY,
+  TRANSFER_ACCESS_TEXT_KEY,
+  TRANSFER_ACCESS_TOOLTIP_KEY,
+  WITHDRAWAL_ACCESS_TEXT_KEY,
+  WITHDRAWAL_ACCESS_TOOLTIP_KEY,
+} from "@/constants/i18nKeys"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useLivePeriodicNowSeconds } from "@/hooks/useLiveNowSeconds"
@@ -27,10 +51,12 @@ import {
   trimAddress,
 } from "@/utils/formatters"
 import { getMarketAprDisplayBips } from "@/utils/marketApr"
+import { getEffectiveMarketAccess } from "@/utils/marketCapabilities"
 import {
   getMarketImplementationConfig,
   getMarketImplementationType,
 } from "@/utils/marketImplementation"
+import { getLenderOnboardingType } from "@/utils/marketOnboarding"
 import { getPendingPeriodicAprChange } from "@/utils/periodicApr"
 import {
   formatCompactDuration,
@@ -131,29 +157,33 @@ const AdoptionStats = ({
   sharesAsset: string
   marketPct: string
   sharesPct: string
-}) => (
-  <Box
-    sx={{
-      display: "flex",
-      flexDirection: "column",
-      gap: "6px",
-      width: "100%",
-    }}
-  >
-    <AdoptionStatsRow
-      label="Original Token"
-      amount={marketAmount}
-      asset={marketAsset}
-      pct={marketPct}
-    />
-    <AdoptionStatsRow
-      label="Wrapped Token"
-      amount={sharesAmount}
-      asset={sharesAsset}
-      pct={sharesPct}
-    />
-  </Box>
-)
+}) => {
+  const { t } = useTranslation()
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "6px",
+        width: "100%",
+      }}
+    >
+      <AdoptionStatsRow
+        label={t("marketParameters.originalToken")}
+        amount={marketAmount}
+        asset={marketAsset}
+        pct={marketPct}
+      />
+      <AdoptionStatsRow
+        label={t("marketParameters.wrappedToken")}
+        amount={sharesAmount}
+        asset={sharesAsset}
+        pct={sharesPct}
+      />
+    </Box>
+  )
+}
 
 export const MarketParameters = ({
   market,
@@ -207,14 +237,14 @@ export const MarketParameters = ({
   const [gracePeriodLabel, gracePeriodTimer] =
     timeDelinquent > delinquencyGracePeriod
       ? [
-          t("borrowerMarketDetails.label.remainingTime"),
+          t("marketDetails.borrower.label.remainingTime"),
           humanizeDuration((timeDelinquent - delinquencyGracePeriod) * 1000, {
             round: true,
             largest: 1,
           }),
         ]
       : [
-          t("borrowerMarketDetails.label.availableGracePeriod"),
+          t("marketDetails.borrower.label.availableGracePeriod"),
           formatSecsToHours(delinquencyGracePeriod - timeDelinquent),
         ]
 
@@ -224,20 +254,20 @@ export const MarketParameters = ({
     if (!market.isDelinquent) {
       if (willBeDelinquent) {
         // If the market is not currently delinquent but will be after the next update:
-        return t("borrowerMarketDetails.tooltip.willBeDelinquent")
+        return t("marketDetails.borrower.tooltip.willBeDelinquent")
       }
       if (timeDelinquent > delinquencyGracePeriod) {
         // If the market is not currently delinquent (on-chain) but is incurring penalties:
-        return t("borrowerMarketDetails.tooltip.delinquencyFeesApply")
+        return t("marketDetails.borrower.tooltip.delinquencyFeesApply")
       }
       return undefined
     }
     if (!willBeDelinquent) {
       // If the market will stop being delinquent after the next update:
-      return t("borrowerMarketDetails.tooltip.hasBecomeHealthy")
+      return t("marketDetails.borrower.tooltip.hasBecomeHealthy")
     }
     // If the market will continue to be delinquent after the next update:
-    return t("borrowerMarketDetails.tooltip.delinquencyContinues")
+    return t("marketDetails.borrower.tooltip.delinquencyContinues")
   }, [delinquencyGracePeriod, market, t, timeDelinquent])
 
   const totalInterestAccrued = market
@@ -284,14 +314,11 @@ export const MarketParameters = ({
     if (hasTempReserveRatio) {
       return (
         <TooltipButton
-          value={t(
-            `borrowerMarketDetails.parameters.tempReserveRatio.${tempRatioI18nPrefix}ActiveTooltip`,
-            {
-              expiry: tempReserveRatioExpiry,
-              originalRatio: originalRatioFormatted,
-              currentRatio: currentRatioFormatted,
-            },
-          )}
+          value={t(TEMP_RATIO_ACTIVE_TOOLTIP_KEY[tempRatioI18nPrefix], {
+            expiry: tempReserveRatioExpiry,
+            originalRatio: originalRatioFormatted,
+            currentRatio: currentRatioFormatted,
+          })}
           color={COLORS.galliano}
         />
       )
@@ -299,13 +326,10 @@ export const MarketParameters = ({
     if (tempRatioExpired) {
       return (
         <TooltipButton
-          value={t(
-            `borrowerMarketDetails.parameters.tempReserveRatio.${tempRatioI18nPrefix}ExpiredTooltip`,
-            {
-              currentRatio: currentRatioFormatted,
-              originalRatio: originalRatioFormatted,
-            },
-          )}
+          value={t(TEMP_RATIO_EXPIRED_TOOLTIP_KEY[tempRatioI18nPrefix], {
+            currentRatio: currentRatioFormatted,
+            originalRatio: originalRatioFormatted,
+          })}
           color={COLORS.santasGrey}
         />
       )
@@ -321,23 +345,9 @@ export const MarketParameters = ({
   const implementationConfig = getMarketImplementationConfig(implementationType)
   const fixedTermHooksConfig =
     hooksConfig?.kind === HooksKind.FixedTerm ? hooksConfig : undefined
-  const depositAccess =
-    hooksConfig?.depositRequiresAccess === false ? "open" : "restricted"
+  const lenderOnboarding = getLenderOnboardingType(market.onboardingMode)
+  const { depositAccess, withdrawalAccess } = getEffectiveMarketAccess(market)
 
-  let withdrawalAccess: "open" | "restricted"
-  if (hooksConfig) {
-    if (
-      hooksConfig.flags.useOnQueueWithdrawal &&
-      (hooksConfig.kind === HooksKind.OpenTerm ||
-        hooksConfig.queueWithdrawalRequiresAccess)
-    ) {
-      withdrawalAccess = "restricted"
-    } else {
-      withdrawalAccess = "open"
-    }
-  } else {
-    withdrawalAccess = "restricted"
-  }
   let transferAccess: "open" | "restricted" | "disabled"
   if (hooksConfig) {
     if (hooksConfig.transfersDisabled) {
@@ -409,23 +419,17 @@ export const MarketParameters = ({
     if (!periodicWindowTiming || periodicWindowTiming.isTermClosed)
       return undefined
     if (periodicWindowTiming.isOpen && periodicWindowTiming.currentWindowEnd) {
-      return t(
-        "borrowerMarketDetails.parameters.periodicTerm.windowStatus.closesIn",
-        {
-          duration: formatCompactDuration(
-            periodicWindowTiming.currentWindowEnd - nowSec,
-          ),
-        },
-      )
-    }
-    return t(
-      "borrowerMarketDetails.parameters.periodicTerm.windowStatus.opensIn",
-      {
-        duration: formatCompactDuration(
-          periodicWindowTiming.nextWindowStart - nowSec,
+      return t("common.labels.timeLeft", {
+        time: formatCompactDuration(
+          periodicWindowTiming.currentWindowEnd - nowSec,
         ),
-      },
-    )
+      })
+    }
+    return t("marketParameters.periodicTerm.windowStatus.opensIn", {
+      duration: formatCompactDuration(
+        periodicWindowTiming.nextWindowStart - nowSec,
+      ),
+    })
   })()
 
   const adsMarketParameter = getAdsMarketParameterComponent(
@@ -480,49 +484,49 @@ export const MarketParameters = ({
         variant={isMobile ? "mobH3" : "title3"}
         sx={{ marginTop: { xs: "12px", md: 0 } }}
       >
-        {t("borrowerMarketDetails.header.parameters")}
+        {t("marketDetails.shared.header.parameters")}
       </Typography>
       <Box sx={MarketParametersContainer(theme)}>
         <Box sx={MarketParametersContainerColumn(theme)}>
           <ParametersItem
-            title={t("borrowerMarketDetails.parameters.marketAddress")}
+            title={t("marketParameters.marketAddress")}
             value={trimAddress(market.address)}
             copy={market.address}
             link={getAddressUrl(market.address)}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <ParametersItem
-            title={t("borrowerMarketDetails.parameters.underlyingAsset")}
+            title={t("common.fields.underlyingAsset")}
             value={`${market.underlyingToken.name} (${trimAddress(
               market.underlyingToken.address,
             )})`}
-            tooltipText="The ERC-20 token used for all transactions in the market, such as Wrapped Ether (WETH) or USDC."
+            tooltipText={t("common.labels.erc20TokenUsedAll")}
             copy={market.underlyingToken.address}
             link={getTokenUrl(market.underlyingToken.address)}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <ParametersItem
-            title={t("borrowerMarketDetails.parameters.marketTokenName")}
+            title={t("marketParameters.marketTokenName")}
             value={market.marketToken.name}
-            copy={getTokenUrl(market.marketToken.address)}
+            copy={market.marketToken.address}
             link={getTokenUrl(market.marketToken.address)}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <ParametersItem
-            title={t("borrowerMarketDetails.parameters.marketTokenPrefix")}
+            title={t("common.fields.marketTokenSymbol")}
             value={market.marketToken.symbol}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <ParametersItem
-            title={t("borrowerMarketDetails.parameters.maxBorrowingCapacity")}
+            title={t("marketParameters.maxBorrowingCapacity")}
             value={`${formatTokenWithCommas(market.maxTotalSupply, {
               fractionDigits: market.maxTotalSupply.token.decimals,
             })} ${market.underlyingToken.symbol}`}
-            tooltipText="The maximum limit of funds that borrowers can access in the market."
+            tooltipText={t("common.labels.maximumLimitFundsBorrowersCan")}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
           <ParametersItem
-            title={t("borrowerMarketDetails.parameters.totalInterestAccrued")}
+            title={t("marketParameters.totalInterestAccrued")}
             value={toTokenAmountProps(totalInterestAccrued).value}
           />
           {isMobileOpen && additionalItems && additionalItems.length > 0 && (
@@ -543,48 +547,38 @@ export const MarketParameters = ({
             <>
               <Divider sx={{ margin: "12px 0 12px" }} />
               <ParametersItem
-                title={t(
-                  "borrowerMarketDetails.parameters.marketImplementation.label",
-                )}
+                title={t("common.fields.type")}
                 value={implementationConfig.label}
               />
               <Divider sx={{ margin: "12px 0 12px" }} />
               {market.version === MarketVersion.V2 && market.hooksKind && (
                 <>
                   <ParametersItem
-                    title={t(
-                      "borrowerMarketDetails.parameters.marketTerm.label",
-                    )}
-                    value={t(
-                      `borrowerMarketDetails.parameters.marketTerm.${market.hooksKind}.text`,
-                    )}
+                    title={t("common.fields.term")}
+                    value={t(MARKET_TERM_TEXT_KEY[market.hooksKind])}
                     valueTooltipText={t(
-                      `borrowerMarketDetails.parameters.marketTerm.${market.hooksKind}.tooltip`,
+                      MARKET_TERM_TOOLTIP_KEY[market.hooksKind],
                     )}
                   />
                   <Divider sx={{ margin: "12px 0 12px" }} />
                 </>
               )}
               <ParametersItem
-                title={t(
-                  "borrowerMarketDetails.parameters.minimumDeposit.label",
-                )}
+                title={t("common.fields.minimumDeposit")}
                 // value={t(
                 // `borrowerMarketDetails.parameters.minimumDeposit.${market.hooksConfig?.minimumDeposit ? "none" : "none"}`,
                 // )}
                 {...(market.hooksConfig?.minimumDeposit?.gt(0)
                   ? toTokenAmountProps(market.hooksConfig.minimumDeposit)
                   : {
-                      value: t(
-                        "borrowerMarketDetails.parameters.minimumDeposit.none",
-                      ),
+                      value: t("marketParameters.minimumDeposit.none"),
                     })}
               />
               {fixedTermHooksConfig && (
                 <>
                   <Divider sx={{ margin: "12px 0 12px" }} />
                   <ParametersItem
-                    title={t("borrowerMarketDetails.parameters.marketExpiry")}
+                    title={t("marketParameters.marketExpiry")}
                     value={`${formatDate(
                       fixedTermHooksConfig.fixedTermEndTime,
                     )} 00:00 UTC`}
@@ -595,38 +589,32 @@ export const MarketParameters = ({
                 <>
                   <Divider sx={{ margin: "12px 0 12px" }} />
                   <ParametersItem
-                    title={t(
-                      "borrowerMarketDetails.parameters.periodicTerm.firstWindowStart",
-                    )}
+                    title={t("marketParameters.periodicTerm.firstWindowStart")}
                     value={formatPeriodicDateTime(
                       periodicHooksConfig.firstWithdrawalWindowStart,
                     )}
                     tooltipText={t(
-                      "borrowerMarketDetails.parameters.periodicTerm.firstWindowStartTooltip",
+                      "marketParameters.periodicTerm.firstWindowStartTooltip",
                     )}
                   />
                   <Divider sx={{ margin: "12px 0 12px" }} />
                   <ParametersItem
-                    title={t(
-                      "borrowerMarketDetails.parameters.periodicTerm.periodDuration",
-                    )}
+                    title={t("common.fields.withdrawalPeriod")}
                     value={formatPeriodicDuration(
                       periodicHooksConfig.periodDuration,
                     )}
                     tooltipText={t(
-                      "borrowerMarketDetails.parameters.periodicTerm.periodDurationTooltip",
+                      "marketParameters.periodicTerm.periodDurationTooltip",
                     )}
                   />
                   <Divider sx={{ margin: "12px 0 12px" }} />
                   <ParametersItem
-                    title={t(
-                      "borrowerMarketDetails.parameters.periodicTerm.withdrawalWindowDuration",
-                    )}
+                    title={t("common.fields.withdrawalWindow")}
                     value={formatPeriodicDuration(
                       periodicHooksConfig.withdrawalWindowDuration,
                     )}
                     tooltipText={t(
-                      "borrowerMarketDetails.parameters.periodicTerm.withdrawalWindowDurationTooltip",
+                      "marketParameters.periodicTerm.withdrawalWindowDurationTooltip",
                     )}
                   />
                   {periodicWindowStatus && (
@@ -634,19 +622,25 @@ export const MarketParameters = ({
                       <Divider sx={{ margin: "12px 0 12px" }} />
                       <ParametersItem
                         title={t(
-                          "borrowerMarketDetails.parameters.periodicTerm.windowStatus.label",
+                          "marketParameters.periodicTerm.windowStatus.label",
                         )}
                         value={
                           periodicWindowCountdown
                             ? `${t(
-                                `borrowerMarketDetails.parameters.periodicTerm.windowStatus.${periodicWindowStatus}.text`,
+                                PERIODIC_WINDOW_STATUS_TEXT_KEY[
+                                  periodicWindowStatus
+                                ],
                               )} · ${periodicWindowCountdown}`
                             : t(
-                                `borrowerMarketDetails.parameters.periodicTerm.windowStatus.${periodicWindowStatus}.text`,
+                                PERIODIC_WINDOW_STATUS_TEXT_KEY[
+                                  periodicWindowStatus
+                                ],
                               )
                         }
                         valueTooltipText={t(
-                          `borrowerMarketDetails.parameters.periodicTerm.windowStatus.${periodicWindowStatus}.tooltip`,
+                          PERIODIC_WINDOW_STATUS_TOOLTIP_KEY[
+                            periodicWindowStatus
+                          ],
                         )}
                       />
                     </>
@@ -656,7 +650,7 @@ export const MarketParameters = ({
                       <Divider sx={{ margin: "12px 0 12px" }} />
                       <ParametersItem
                         title={t(
-                          `borrowerMarketDetails.parameters.periodicTerm.${periodicWindowStartLabel}`,
+                          PERIODIC_WINDOW_START_KEY[periodicWindowStartLabel],
                         )}
                         value={formatPeriodicDateTime(
                           periodicWindowStartTimestamp,
@@ -668,26 +662,24 @@ export const MarketParameters = ({
               )}
               <Divider sx={{ margin: "12px 0 12px" }} />
               <ParametersItem
-                title={t(
-                  "borrowerMarketDetails.parameters.depositAccess.label",
-                )}
-                value={t(
-                  `borrowerMarketDetails.parameters.depositAccess.${depositAccess}.text`,
-                )}
+                title={t("marketParameters.lenderOnboarding.label")}
+                value={t(LENDER_ONBOARDING_TEXT_KEY[lenderOnboarding])}
                 valueTooltipText={t(
-                  `borrowerMarketDetails.parameters.depositAccess.${depositAccess}.tooltip`,
+                  LENDER_ONBOARDING_TOOLTIP_KEY[lenderOnboarding],
                 )}
               />
               <Divider sx={{ margin: "12px 0 12px" }} />
               <ParametersItem
-                title={t(
-                  "borrowerMarketDetails.parameters.withdrawalAccess.label",
-                )}
-                value={t(
-                  `borrowerMarketDetails.parameters.withdrawalAccess.${withdrawalAccess}.text`,
-                )}
+                title={t("marketParameters.depositAccess.label")}
+                value={t(DEPOSIT_ACCESS_TEXT_KEY[depositAccess])}
+                valueTooltipText={t(DEPOSIT_ACCESS_TOOLTIP_KEY[depositAccess])}
+              />
+              <Divider sx={{ margin: "12px 0 12px" }} />
+              <ParametersItem
+                title={t("marketParameters.withdrawalAccess.label")}
+                value={t(WITHDRAWAL_ACCESS_TEXT_KEY[withdrawalAccess])}
                 valueTooltipText={t(
-                  `borrowerMarketDetails.parameters.withdrawalAccess.${withdrawalAccess}.tooltip`,
+                  WITHDRAWAL_ACCESS_TOOLTIP_KEY[withdrawalAccess],
                 )}
               />
 
@@ -695,7 +687,7 @@ export const MarketParameters = ({
                 <>
                   <Divider sx={{ margin: "12px 0 12px" }} />
                   <ParametersItem
-                    title={t("borrowerMarketDetails.hooks.hooksAddress")}
+                    title={t("marketParameters.hooks.hooksAddress")}
                     value={trimAddress(hooksConfig.hooksAddress)}
                     copy={hooksConfig.hooksAddress}
                     link={getAddressUrl(hooksConfig.hooksAddress)}
@@ -725,24 +717,19 @@ export const MarketParameters = ({
                   sx={{ color: COLORS.butteredRum }}
                 >
                   <strong>
-                    {t(
-                      "borrowerMarketDetails.parameters.tempReserveRatio.bannerHeading",
-                    )}
+                    {t("marketParameters.tempReserveRatio.bannerHeading")}
                   </strong>{" "}
-                  {t(
-                    `borrowerMarketDetails.parameters.tempReserveRatio.${tempRatioI18nPrefix}BannerBody`,
-                    {
-                      originalRatio: originalRatioFormatted,
-                      currentRatio: currentRatioFormatted,
-                      expiry: tempReserveRatioExpiry,
-                    },
-                  )}{" "}
+                  {t(TEMP_RATIO_BANNER_BODY_KEY[tempRatioI18nPrefix], {
+                    originalRatio: originalRatioFormatted,
+                    currentRatio: currentRatioFormatted,
+                    expiry: tempReserveRatioExpiry,
+                  })}{" "}
                   <Link
                     href={EXTERNAL_LINKS.DOCS_REDUCING_APR}
                     target="_blank"
                     style={{ color: COLORS.butteredRum, fontWeight: 600 }}
                   >
-                    {t("borrowerMarketDetails.modals.apr.learnMore")}
+                    {t("common.buttons.learnMore")}
                   </Link>
                 </Typography>
               </Box>
@@ -750,15 +737,15 @@ export const MarketParameters = ({
             <ParametersItem
               title={
                 hasTempReserveRatio
-                  ? t("borrowerMarketDetails.parameters.tempReserveRatio.title")
-                  : t("borrowerMarketDetails.parameters.minimumReserveRatio")
+                  ? t("marketParameters.tempReserveRatio.title")
+                  : t("marketParameters.minimumReserveRatio")
               }
               value={`${
                 hasTempReserveRatio || tempRatioExpired
                   ? originalRatioFormatted
                   : currentRatioFormatted
               }%`}
-              tooltipText="A required percentage of market funds that must remain liquid and unavailable for borrowing."
+              tooltipText={t("common.labels.requiredPercentageMarketFundsMust")}
               valueComponent={tempRatioValueComponent}
             />
             {hasTempReserveRatio && (
@@ -784,13 +771,10 @@ export const MarketParameters = ({
                     variant="text4"
                     sx={{ color: COLORS.butteredRum, fontSize: "12px" }}
                   >
-                    {t(
-                      "borrowerMarketDetails.parameters.tempReserveRatio.badgeLabel",
-                      {
-                        currentRatio: currentRatioFormatted,
-                        expiry: tempReserveRatioExpiry,
-                      },
-                    )}
+                    {t("marketParameters.tempReserveRatio.badgeLabel", {
+                      currentRatio: currentRatioFormatted,
+                      expiry: tempReserveRatioExpiry,
+                    })}
                   </Typography>
                 </Box>
               </Box>
@@ -808,18 +792,14 @@ export const MarketParameters = ({
               <>
                 <Divider sx={{ margin: "12px 0 12px" }} />
                 <ParametersItem
-                  title={t(
-                    "borrowerMarketDetails.parameters.pendingPeriodicApr.label",
-                  )}
+                  title={t("marketParameters.pendingPeriodicApr.label")}
                   value={`${formatBps(
                     pendingPeriodicAprChange.proposedAprBips,
                     MARKET_PARAMS_DECIMALS.annualInterestBips,
                   )}%`}
-                  tooltipText={t(
-                    "borrowerMarketDetails.parameters.pendingPeriodicApr.tooltip",
-                  )}
+                  tooltipText={t("marketParameters.pendingPeriodicApr.tooltip")}
                   valueTooltipText={t(
-                    "borrowerMarketDetails.parameters.pendingPeriodicApr.pendingNotice",
+                    "marketParameters.pendingPeriodicApr.pendingNotice",
                     {
                       currentApr: formatBps(
                         market.annualInterestBips,
@@ -846,81 +826,71 @@ export const MarketParameters = ({
               </>
             )}
             <ParametersItem
-              title={t("borrowerMarketDetails.parameters.protocolAPR")}
+              title={t("common.fields.protocolFeeApr")}
               value={protocolAprDisplayValue}
               tooltipText={aprCopy.protocolAprTooltip}
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t("borrowerMarketDetails.parameters.effectiveAPR")}
+              title={t("marketParameters.effectiveAPR")}
               value={effectiveLenderAprDisplayValue}
               tooltipText={aprCopy.effectiveLenderAprTooltip}
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t("borrowerMarketDetails.parameters.penaltyAPR")}
+              title={t("common.fields.penaltyApr")}
               value={`${formatBps(
                 market.delinquencyFeeBips,
                 MARKET_PARAMS_DECIMALS.delinquencyFeeBips,
               )}%`}
-              tooltipText="An additional interest rate charged if the market remains delinquent—failing to maintain required reserves—after the grace period has elapsed."
+              tooltipText={t(
+                "marketParameters.additionalInterestRateChargedIf",
+              )}
               alarmState={market.isIncurringPenalties}
               valueTooltipText={penaltyAprTooltipValue}
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t("borrowerMarketDetails.parameters.maximumGracePeriod")}
+              title={t("marketParameters.maximumGracePeriod")}
               value={`${formatSecsToHours(market.delinquencyGracePeriod)}`}
-              tooltipText="The duration borrowers have to resolve reserve deficiencies or correct delinquency in the market before penalties take effect."
+              tooltipText={t(
+                "common.labels.durationBorrowersHaveResolveReserve",
+              )}
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
               title={gracePeriodLabel}
               value={gracePeriodTimer}
-              tooltipText="The portion of the grace period left for borrowers to fix non-compliance issues, such as restoring reserves."
+              tooltipText={t(
+                "marketParameters.portionGracePeriodLeftBorrowers",
+              )}
               alarmState={timeDelinquent > delinquencyGracePeriod}
               valueTooltipText={gracePeriodTooltip}
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t(
-                "borrowerMarketDetails.parameters.withdrawalCycleDuration",
-              )}
+              title={t("common.fields.withdrawalCycleDuration")}
               value={`${formatSecsToHours(market.withdrawalBatchDuration)}`}
-              tooltipText="A fixed period during which withdrawal requests are grouped and processed."
+              tooltipText={t("common.labels.fixedPeriodDuringWhichWithdrawal")}
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t("borrowerMarketDetails.parameters.transferAccess.label")}
-              value={t(
-                `borrowerMarketDetails.parameters.transferAccess.${transferAccess}.text`,
-              )}
-              valueTooltipText={t(
-                `borrowerMarketDetails.parameters.transferAccess.${transferAccess}.tooltip`,
-              )}
+              title={t("marketParameters.transferAccess.label")}
+              value={t(TRANSFER_ACCESS_TEXT_KEY[transferAccess])}
+              valueTooltipText={t(TRANSFER_ACCESS_TOOLTIP_KEY[transferAccess])}
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t(
-                "borrowerMarketDetails.parameters.marketEarlyClosure.label",
-              )}
-              value={t(
-                `borrowerMarketDetails.parameters.marketEarlyClosure.${earlyClosure}.text`,
-              )}
-              valueTooltipText={t(
-                `borrowerMarketDetails.parameters.marketEarlyClosure.${earlyClosure}.tooltip`,
-              )}
+              title={t("marketParameters.marketEarlyClosure.label")}
+              value={t(EARLY_CLOSURE_TEXT_KEY[earlyClosure])}
+              valueTooltipText={t(EARLY_CLOSURE_TOOLTIP_KEY[earlyClosure])}
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
-              title={t(
-                "borrowerMarketDetails.parameters.marketMaturityReduction.label",
-              )}
-              value={t(
-                `borrowerMarketDetails.parameters.marketMaturityReduction.${earlyMaturity}.text`,
-              )}
+              title={t("marketParameters.marketMaturityReduction.label")}
+              value={t(MATURITY_REDUCTION_TEXT_KEY[earlyMaturity])}
               valueTooltipText={t(
-                `borrowerMarketDetails.parameters.marketMaturityReduction.${earlyMaturity}.tooltip`,
+                MATURITY_REDUCTION_TOOLTIP_KEY[earlyMaturity],
               )}
             />
             {additionalItems && additionalItems.length > 0 && (
@@ -958,7 +928,7 @@ export const MarketParameters = ({
               }}
             >
               <ParametersItem
-                title="Wrapper"
+                title={t("marketParameters.wrapper")}
                 value=""
                 valueComponent={<WrapperChip hasWrapper={hasWrapper} />}
               />
@@ -966,7 +936,7 @@ export const MarketParameters = ({
                 <>
                   <Divider sx={{ margin: "12px 0" }} />
                   <ParametersItem
-                    title="Wrapper Address"
+                    title={t("marketParameters.wrapperAddress")}
                     value={trimAddress(wrapper.address.toLowerCase())}
                     copy={wrapper.address}
                     link={getAddressUrl(wrapper.address.toLowerCase())}
@@ -1001,7 +971,7 @@ export const MarketParameters = ({
                     variant={isMobile ? "mobText3" : "text3"}
                     sx={{ color: COLORS.santasGrey }}
                   >
-                    Adoption Status
+                    {t("marketParameters.adoptionStatus")}
                   </Typography>
                   <TooltipButton value={adoptionStatsTooltip} />
                 </Box>
@@ -1026,48 +996,30 @@ export const MarketParameters = ({
       {hooksConfig && isLocalHost && isMobileOpen && (
         <>
           <Typography variant="title3">
-            {t("borrowerMarketDetails.hooks.title")}
+            {t("marketParameters.hooks.title")}
           </Typography>
           <Box sx={MarketParametersContainer(theme)}>
             <Box sx={MarketParametersContainerColumn(theme)}>
               <ParametersItem
-                title={t("borrowerMarketDetails.hooks.hooksAddress")}
+                title={t("marketParameters.hooks.hooksAddress")}
                 value={trimAddress(hooksConfig.hooksAddress)}
                 copy={hooksConfig.hooksAddress}
                 link={getAddressUrl(hooksConfig.hooksAddress)}
               />
-              {(
-                [
-                  "useOnDeposit",
-                  "useOnQueueWithdrawal",
-                  "useOnExecuteWithdrawal",
-                  "useOnTransfer",
-                  "useOnBorrow",
-                ] as const
-              ).map((x) => (
+              {HOOK_FLAG_KEYS_PRIMARY.map(({ flag, key }) => (
                 <ParametersItem
-                  key={x}
-                  title={t(`borrowerMarketDetails.hooks.${x}`)}
-                  value={hooksConfig.flags[x] ? "True" : "False"}
+                  key={flag}
+                  title={t(key)}
+                  value={hooksConfig.flags[flag] ? "True" : "False"}
                 />
               ))}
             </Box>
             <Box sx={MarketParametersContainerColumn(theme)}>
-              {(
-                [
-                  "useOnRepay",
-                  "useOnCloseMarket",
-                  "useOnNukeFromOrbit",
-                  "useOnSetMaxTotalSupply",
-                  "useOnSetAnnualInterestAndReserveRatioBips",
-                  "useOnSetProtocolFeeBips",
-                  "useOnExecutePendingAnnualInterestBipsReduction",
-                ] as const
-              ).map((x) => (
+              {HOOK_FLAG_KEYS_SECONDARY.map(({ flag, key }) => (
                 <ParametersItem
-                  key={x}
-                  title={t(`borrowerMarketDetails.hooks.${x}`)}
-                  value={hooksConfig.flags[x] ? "True" : "False"}
+                  key={flag}
+                  title={t(key)}
+                  value={hooksConfig.flags[flag] ? "True" : "False"}
                 />
               ))}
             </Box>

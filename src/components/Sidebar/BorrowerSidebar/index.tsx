@@ -1,5 +1,6 @@
 import { Box, Button } from "@mui/material"
-import { usePathname } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 import { BackButton } from "@/components/BackButton"
 import {
@@ -53,13 +54,16 @@ const ProfileTabList = ({
 }
 
 export const BorrowerSidebar = () => {
+  const { t } = useTranslation()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const isLenderProfile = pathname.includes(ROUTES.lender.profile)
   const isEditProfile = pathname.includes(ROUTES.borrower.editProfile)
 
-  const backLink = isBorrowerContextPath(pathname)
-    ? ROUTES.borrower.root
-    : ROUTES.lender.root
+  const backLink =
+    isBorrowerContextPath(pathname) || searchParams.get("from") === "borrower"
+      ? ROUTES.borrower.root
+      : ROUTES.lender.root
 
   const resolved = resolveProfileTabs(pathname)
   const { chainId } = useSelectedNetwork()
@@ -72,15 +76,22 @@ export const BorrowerSidebar = () => {
 
   return (
     <Box sx={ContentContainer}>
-      <BackButton title="Back" link={backLink} />
+      <BackButton title={t("common.buttons.back")} link={backLink} back />
 
       {showTabs && resolved ? (
         <ProfileTabList resolved={resolved} />
       ) : (
         <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
           <Button variant="text" size="medium" sx={MenuItemButton}>
-            {isEditProfile && "Edit "}
-            {isLenderProfile ? "Lender" : "Borrower"} Profile
+            {isEditProfile
+              ? t(
+                  isLenderProfile
+                    ? "nav.editLenderProfile"
+                    : "nav.editBorrowerProfile",
+                )
+              : t(
+                  isLenderProfile ? "nav.lenderProfile" : "nav.borrowerProfile",
+                )}
           </Button>
         </Box>
       )}

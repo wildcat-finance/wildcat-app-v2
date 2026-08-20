@@ -86,7 +86,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
   const columns: GridColDef[] = [
     {
       field: "name",
-      headerName: t("borrowerProfile.profile.activeMarkets.table.name"),
+      headerName: t("common.fields.marketName"),
       flex: 2,
       minWidth: 200,
       headerAlign: "left",
@@ -122,7 +122,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     },
     {
       field: "status",
-      headerName: t("borrowerProfile.profile.activeMarkets.table.status"),
+      headerName: t("common.fields.status"),
       minWidth: 100,
       flex: 1,
       headerAlign: "left",
@@ -144,7 +144,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     },
     {
       field: "term",
-      headerName: t("borrowerProfile.profile.activeMarkets.table.term"),
+      headerName: t("common.fields.term"),
       minWidth: 100,
       flex: 1,
       headerAlign: "left",
@@ -166,7 +166,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     },
     {
       field: "asset",
-      headerName: t("borrowerProfile.profile.activeMarkets.table.asset"),
+      headerName: t("common.fields.asset"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -185,7 +185,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     },
     {
       field: "withdrawalBatchDuration",
-      headerName: t("dashboard.markets.tables.header.withdrawal"),
+      headerName: t("marketList.shared.tables.header.withdrawal"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -206,7 +206,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     },
     {
       field: "apr",
-      headerName: t("borrowerProfile.profile.activeMarkets.table.apr"),
+      headerName: t("common.fields.lenderApr"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -223,7 +223,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     },
     {
       field: "debt",
-      headerName: t("borrowerProfile.profile.activeMarkets.table.debt"),
+      headerName: t("common.fields.totalDebt"),
       flex: 1,
       minWidth: 100,
       headerAlign: "right",

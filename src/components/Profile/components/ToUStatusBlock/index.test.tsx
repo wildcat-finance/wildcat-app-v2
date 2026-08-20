@@ -50,7 +50,7 @@ describe("ToUStatusBlock", () => {
 
     fireEvent.click(
       screen.getByRole("button", {
-        name: "borrowerProfile.profile.touStatus.download",
+        name: "borrower.profile.view.touStatus.download",
       }),
     )
 
@@ -73,11 +73,11 @@ describe("ToUStatusBlock", () => {
     )
 
     expect(
-      screen.getByText("borrowerProfile.profile.touStatus.notAccepted"),
+      screen.getByText("borrower.profile.view.touStatus.notAccepted"),
     ).toBeTruthy()
     expect(
       screen.queryByRole("button", {
-        name: "borrowerProfile.profile.touStatus.download",
+        name: "borrower.profile.view.touStatus.download",
       }),
     ).toBeNull()
   })

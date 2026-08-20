@@ -2,7 +2,6 @@ import * as React from "react"
 
 import { Box, Button, IconButton, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
-import { Trans } from "react-i18next"
 
 import {
   FinalModalCloseButton,
@@ -15,6 +14,7 @@ import {
 import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
+import { Trans } from "@/components/Translation"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 
 export const ErrorModal = ({
@@ -50,14 +50,10 @@ export const ErrorModal = ({
 
           <Box sx={FinalModalTypoBox}>
             <Typography variant="title3">
-              {title ?? (
-                <Trans i18nKey="borrowerMarketDetails.modals.error.wait" />
-              )}
+              {title ?? <Trans i18nKey="common.states.error" />}
             </Typography>
             <Typography variant="text3" sx={FinalModalSubtitle}>
-              {subtitle ?? (
-                <Trans i18nKey="borrowerMarketDetails.modals.error.subtitle" />
-              )}
+              {subtitle ?? <Trans i18nKey="common.errors.reachOut" />}
             </Typography>
           </Box>
         </Box>
@@ -77,7 +73,7 @@ export const ErrorModal = ({
             onClick={onTryAgain}
             fullWidth
           >
-            <Trans i18nKey="borrowerMarketDetails.modals.error.tryAgain" />
+            <Trans i18nKey="common.buttons.tryAgain" />
           </Button>
         )}
       </Box>

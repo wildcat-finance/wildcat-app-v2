@@ -3,6 +3,7 @@ import * as React from "react"
 
 import { Box, Button, Dialog, IconButton, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
+import { useTranslation } from "react-i18next"
 
 import {
   DeployButtonContainer,
@@ -33,6 +34,8 @@ export const FinalModal = ({
   errorMessage,
   handleTryAgain,
 }: FinalModalProps) => {
+  const { t } = useTranslation()
+
   const [open, setIsOpen] = useState<boolean>(false)
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
@@ -116,7 +119,7 @@ export const FinalModal = ({
                 fullWidth
                 onClick={handleResetModal}
               >
-                Back
+                {t("common.buttons.back")}
               </Button>
               <Button
                 variant="contained"
@@ -127,7 +130,7 @@ export const FinalModal = ({
                   handleTryAgain()
                 }}
               >
-                Try Again
+                {t("common.buttons.tryAgain")}
               </Button>
             </Box>
           </Box>
@@ -150,9 +153,11 @@ export const FinalModal = ({
             </SvgIcon>
 
             <Box sx={DeployTypoBox}>
-              <Typography variant="title3">Lenders were edited!</Typography>
+              <Typography variant="title3">
+                {t("borrower.policies.lendersWereEdited")}
+              </Typography>
               <Typography variant="text3" sx={DeploySubtitle}>
-                Lenders were successfully edited: the rest is up to you!
+                {t("borrower.policies.lendersWereSuccessfullyEditedRest")}
               </Typography>
             </Box>
           </Box>
@@ -166,7 +171,7 @@ export const FinalModal = ({
           <Box sx={DeployTypoBox}>
             <Typography variant="text1">Wait a second...</Typography>
             <Typography variant="text3" sx={DeploySubtitle}>
-              Transaction in process.
+              {t("borrower.policies.transactionProcess")}
             </Typography>
           </Box>
         </Box>

@@ -6,7 +6,7 @@ export const standardMarketImplementationVariant: MarketImplementationVariant =
   {
     key: "standard",
     aprCopy: {
-      configuredAprLabelKey: "borrowerMarketDetails.parameters.baseAPR",
+      configuredAprLabelKey: "marketParameters.baseAPR",
       configuredAprTooltip:
         "The fixed annual percentage rate (excluding any protocol fees) that borrowers pay to lenders for assets within the market.",
       protocolAprTooltip:
@@ -14,10 +14,11 @@ export const standardMarketImplementationVariant: MarketImplementationVariant =
       effectiveLenderAprTooltip:
         "The current interest rate being paid to lenders: the base APR plus penalty APR if applicable.",
       getConfiguredAprValueTooltip: () => undefined,
-      adjustAprLabelKey: "borrowerMarketDetails.modals.apr.adjustBase",
-      alreadyUpdatedLabelKey: "borrowerMarketDetails.modals.apr.alreadyUpdated",
-      currentAprLabelKey: "borrowerMarketDetails.modals.apr.currentBaseApr",
-      newAprLabelKey: "borrowerMarketDetails.modals.apr.newBaseApr",
+      adjustAprLabelKey: "marketDetails.borrower.modals.apr.adjustBase",
+      alreadyUpdatedLabelKey:
+        "marketDetails.borrower.modals.apr.alreadyUpdated",
+      currentAprLabelKey: "marketDetails.borrower.modals.apr.currentBaseApr",
+      newAprLabelKey: "marketDetails.borrower.modals.apr.newBaseApr",
     },
     MarketCard: MobileMarketCard,
   }

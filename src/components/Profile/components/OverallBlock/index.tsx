@@ -71,12 +71,12 @@ export const OverallBlock = ({
   const normalizedDefaults = defaults !== undefined ? String(defaults) : "—"
 
   const profileInfo: ProfileItem[] = [
-    makeInformationItem(t("borrowerProfile.profile.overallInfo.name"), name, {
+    makeInformationItem(t("common.fields.legalName"), name, {
       verified: true,
     }),
-    makeInformationItem(t("borrowerProfile.profile.overallInfo.alias"), alias),
+    makeInformationItem(t("common.fields.alias"), alias),
     makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.address"),
+      t("borrower.profile.view.address"),
       address ? trimAddress(address) : undefined,
       {
         link: address ? getAddressUrl(address) : undefined,
@@ -84,34 +84,28 @@ export const OverallBlock = ({
         verified: true,
       },
     ),
+    makeInformationItem(t("common.fields.headquarters"), jurisdictionText, {
+      verified: true,
+    }),
+    makeInformationItem(t("common.fields.entityLegalForm"), entityKindText, {
+      verified: true,
+    }),
+    makeInformationItem(t("common.fields.founded"), founded, {
+      verified: true,
+    }),
     makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.headquarters"),
-      jurisdictionText,
-      { verified: true },
-    ),
-    makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.entityKind"),
-      entityKindText,
-      { verified: true },
-    ),
-    makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.founded"),
-      founded,
-      { verified: true },
-    ),
-    makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.markets"),
+      t("borrower.profile.view.overallInfo.markets"),
       normalizedMarkets,
     ),
     makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.borrowed"),
+      t("borrower.profile.view.overallInfo.borrowed"),
       borrowed ?? "[Coming Soon]",
     ),
     makeInformationItem(
-      t("borrowerProfile.profile.overallInfo.defaults.title"),
+      t("borrower.profile.view.overallInfo.defaults.title"),
       normalizedDefaults,
       {
-        tooltipText: t("borrowerProfile.profile.overallInfo.defaults.tooltip"),
+        tooltipText: t("borrower.profile.view.defaults.tooltip"),
       },
     ),
     ...(additionalUrls ?? []).map((url) =>
@@ -133,7 +127,7 @@ export const OverallBlock = ({
     return (
       <Box sx={MobileInfoContainer}>
         <Typography variant="mobH3" marginTop="12px">
-          {t("borrowerProfile.profile.overallInfo.title")}
+          {t("borrower.profile.view.title")}
         </Typography>
         <Box sx={MobileInfoGrid}>
           {existingData.map((item, index) => (
@@ -163,7 +157,7 @@ export const OverallBlock = ({
         display="block"
         sx={isPage ? { marginBottom: "24px" } : undefined}
       >
-        {t("borrowerProfile.profile.overallInfo.title")}
+        {t("borrower.profile.view.title")}
       </Typography>
 
       <Box sx={{ ...InfoContainer, marginTop: isPage ? "0" : "16px" }}>

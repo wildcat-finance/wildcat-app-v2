@@ -34,6 +34,60 @@ jest.mock("@/store/hooks", () => ({
 }))
 
 describe("ConfirmationForm access-control signature guard", () => {
+  it("keeps review actions locked behind the deployment dialog", () => {
+    const formValues = {
+      accessControl: "defaultPullProvider",
+      policy: "createNewPolicy",
+      policyName: "Test Policy",
+      marketType: "standard",
+      mla: "noMLA",
+      namePrefix: "Demo ",
+      symbolPrefix: "DEMO",
+      withdrawalRequiresAccess: false,
+      transferRequiresAccess: false,
+      disableTransfers: false,
+      allowForceBuyBack: false,
+      allowTermReduction: false,
+    } as unknown as MarketValidationSchemaType
+    const form = {
+      getValues: jest.fn((field?: keyof MarketValidationSchemaType) =>
+        field ? formValues[field] : formValues,
+      ),
+    } as unknown as UseFormReturn<MarketValidationSchemaType>
+    const onClickSign = jest.fn()
+
+    render(
+      <LegacyConfirmationForm
+        form={form}
+        tokenAsset={undefined}
+        borrowerProfile={undefined}
+        handleDeploy={jest.fn()}
+        salt="0x01"
+        timeSigned={1}
+        onClickSign={onClickSign}
+        onDiscardSignature={() => true}
+        signatureRequested={false}
+        paramsChangedSinceSigning={false}
+        isSigning={false}
+        isDeployReady
+        isDeployDialogOpen
+        mlaSignature={undefined}
+      />,
+    )
+
+    const backButton = screen.getByRole("button", {
+      name: "createNewMarket.buttons.back",
+    }) as HTMLButtonElement
+    const signButton = screen.getByRole("button", {
+      name: "createNewMarket.buttons.signMlaRefusal",
+    }) as HTMLButtonElement
+
+    expect(backButton.disabled).toBe(true)
+    expect(signButton.disabled).toBe(true)
+    fireEvent.click(signButton)
+    expect(onClickSign).not.toHaveBeenCalled()
+  })
+
   it("requires a new refusal signature after switching to an allowlist", () => {
     let formValues = {
       accessControl: "defaultPullProvider",
@@ -88,7 +142,7 @@ describe("ConfirmationForm access-control signature guard", () => {
     expect(
       (
         screen.getByRole("button", {
-          name: "createNewMarket.buttons.deploy",
+          name: "borrower.createMarket.buttons.deploy",
         }) as HTMLButtonElement
       ).disabled,
     ).toBe(false)
@@ -100,18 +154,18 @@ describe("ConfirmationForm access-control signature guard", () => {
 
     expect(screen.getByText("Borrower Operated Allowlist")).toBeTruthy()
     expect(
-      screen.getByText("createNewMarket.confirm.alertParamsChanged"),
+      screen.getByText("borrower.createMarket.confirm.alertParamsChanged"),
     ).toBeTruthy()
 
     const deployButton = screen.getByRole("button", {
-      name: "createNewMarket.buttons.deploy",
+      name: "borrower.createMarket.buttons.deploy",
     }) as HTMLButtonElement
     expect(deployButton.disabled).toBe(true)
     fireEvent.click(deployButton)
     expect(handleDeploy).not.toHaveBeenCalled()
 
     const signButton = screen.getByRole("button", {
-      name: "createNewMarket.buttons.signMlaRefusal",
+      name: "borrower.createMarket.buttons.signMlaRefusal",
     }) as HTMLButtonElement
     expect(signButton.disabled).toBe(false)
     fireEvent.click(signButton)

@@ -2,6 +2,7 @@ import { Box, Divider, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { dayjs } from "@/utils/dayjs"
+import { formatNumberWithCommas } from "@/utils/formatters"
 
 import { ConfirmationFormProps } from "./interface"
 import { DividerStyle, SubtitleStyle } from "./style"
@@ -12,7 +13,7 @@ import { SectionGrid } from "../style"
 const DURATION_DECIMAL_SCALE = 2
 
 const formatDuration = (seconds: number, unitSeconds: number) =>
-  `${Number((seconds / unitSeconds).toFixed(DURATION_DECIMAL_SCALE))}`
+  formatNumberWithCommas(seconds / unitSeconds, DURATION_DECIMAL_SCALE)
 
 const formatUtcTimestamp = (timestamp: number) =>
   timestamp ? dayjs.unix(timestamp).utc().format("DD/MM/YYYY HH:mm [UTC]") : ""
@@ -28,7 +29,7 @@ export const PeriodicTermsConfirmation = ({
   return (
     <>
       <Typography variant="text4" sx={SubtitleStyle}>
-        {t("createNewMarket.confirm.typeTerms")}
+        {t("common.fields.marketTerm")}
       </Typography>
 
       <Box
@@ -38,14 +39,16 @@ export const PeriodicTermsConfirmation = ({
         }}
       >
         <ConfirmationFormItem
-          label={t("createNewMarket.policy.periodic.firstWindowStart.label")}
+          label={t(
+            "borrower.createMarket.policy.periodic.firstWindowStart.label",
+          )}
           value={formatUtcTimestamp(
             Number(getValues("firstWithdrawalWindowStart")),
           )}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.policy.periodic.periodDuration.label")}
+          label={t("common.fields.withdrawalPeriod")}
           value={`${formatDuration(
             Number(getValues("periodDuration")),
             unitSeconds,
@@ -53,9 +56,7 @@ export const PeriodicTermsConfirmation = ({
         />
 
         <ConfirmationFormItem
-          label={t(
-            "createNewMarket.policy.periodic.withdrawalWindowDuration.label",
-          )}
+          label={t("common.fields.withdrawalWindow")}
           value={`${formatDuration(
             Number(getValues("withdrawalWindowDuration")),
             unitSeconds,

@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
 import { Market, TokenWrapper } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import { NoWrapperState } from "@/components/WrapDebtToken/NoWrapperState"
 import { WrapperDeployment } from "@/components/WrapDebtToken/WrapperDeployment"
@@ -31,46 +32,50 @@ export const WrapDebtToken = ({
   isWrapperError,
   isAuthorizedLender,
   isDifferentChain,
-}: WrapDebtTokenProps) => (
-  <Box>
-    {hasWrapper && !isAuthorizedLender && (
-      <Typography variant="text3" color={COLORS.manate}>
-        Only authorized lenders can access the wrapper.
-      </Typography>
-    )}
+}: WrapDebtTokenProps) => {
+  const { t } = useTranslation()
 
-    {!hasFactory && (
-      <NoWrapperState
-        canCreateWrapper={false}
-        statusMessage="Wrappers are not available on this chain yet."
-      />
-    )}
+  return (
+    <Box>
+      {hasWrapper && !isAuthorizedLender && (
+        <Typography variant="text3" color={COLORS.manate}>
+          {t("marketDetails.lender.onlyAuthorizedLendersCanAccess")}
+        </Typography>
+      )}
 
-    {hasFactory && !hasWrapper && !isWrapperLookupLoading && (
-      <WrapperDeployment
-        market={market}
-        hasFactory={hasFactory}
-        isDifferentChain={isDifferentChain}
-      />
-    )}
-
-    {hasFactory && isWrapperLookupLoading && <WrapperSkeleton />}
-
-    {isAuthorizedLender &&
-      hasWrapper &&
-      wrapper &&
-      !isWrapperLoading &&
-      !isWrapperError && (
-        <WrapperSection
-          market={market}
-          wrapper={wrapper}
-          isDifferentChain={isDifferentChain}
-          isAuthorizedLender={isAuthorizedLender}
+      {!hasFactory && (
+        <NoWrapperState
+          canCreateWrapper={false}
+          statusMessage="Wrappers are not available on this chain yet."
         />
       )}
 
-    {isAuthorizedLender &&
-      hasWrapper &&
-      (isWrapperLoading || isWrapperError) && <WrapperSkeleton />}
-  </Box>
-)
+      {hasFactory && !hasWrapper && !isWrapperLookupLoading && (
+        <WrapperDeployment
+          market={market}
+          hasFactory={hasFactory}
+          isDifferentChain={isDifferentChain}
+        />
+      )}
+
+      {hasFactory && isWrapperLookupLoading && <WrapperSkeleton />}
+
+      {isAuthorizedLender &&
+        hasWrapper &&
+        wrapper &&
+        !isWrapperLoading &&
+        !isWrapperError && (
+          <WrapperSection
+            market={market}
+            wrapper={wrapper}
+            isDifferentChain={isDifferentChain}
+            isAuthorizedLender={isAuthorizedLender}
+          />
+        )}
+
+      {isAuthorizedLender &&
+        hasWrapper &&
+        (isWrapperLoading || isWrapperError) && <WrapperSkeleton />}
+    </Box>
+  )
+}

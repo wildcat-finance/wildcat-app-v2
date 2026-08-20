@@ -13,6 +13,7 @@ import {
 } from "@mui/material"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import Cross from "@/assets/icons/cross_icon.svg"
 import Filter from "@/assets/icons/filter_icon.svg"
@@ -33,6 +34,8 @@ export const MobileSearchButton = ({
   setMarketSearch,
   isExplorePage,
 }: MobileSearchButtonProps) => {
+  const { t } = useTranslation()
+
   const [open, setOpen] = useState<boolean>(false)
 
   const handleToggleOpen = () => setOpen((prev) => !prev)
@@ -195,7 +198,7 @@ export const MobileSearchButton = ({
           onKeyDown={(e) => e.stopPropagation()}
           fullWidth
           size="small"
-          placeholder="Search by Name"
+          placeholder={t("common.placeholders.searchByName")}
           sx={{
             marginBottom: "8px",
 
@@ -263,7 +266,7 @@ export const MobileSearchButton = ({
             color="secondary"
             fullWidth
           >
-            Reset
+            {t("common.buttons.reset")}
           </Button>
 
           <Button
@@ -272,7 +275,7 @@ export const MobileSearchButton = ({
             variant="contained"
             fullWidth
           >
-            Search
+            {t("common.buttons.search")}
           </Button>
         </Box>
       </Dialog>

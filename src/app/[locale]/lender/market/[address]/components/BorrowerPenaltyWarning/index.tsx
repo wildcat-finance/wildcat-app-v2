@@ -37,8 +37,8 @@ export const BorrowerPenaltyWarning = ({
       <Typography variant="text3" color={COLORS.dullRed}>
         {t(
           verificationUnavailable
-            ? "lenderMarketDetails.borrowerPenaltyWarningUnavailable"
-            : "lenderMarketDetails.borrowerPenaltyWarning",
+            ? "marketDetails.lender.borrowerPenaltyWarningUnavailable"
+            : "marketDetails.lender.borrowerPenaltyWarning",
         )}
       </Typography>
     </Box>

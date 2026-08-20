@@ -1,6 +1,6 @@
 {
   "name": "wildcat-app-v2",
-  "version": "2.18.0",
+  "version": "2.19.0",
   "private": true,
   "packageManager": "npm@11.12.0",
   "engines": {
@@ -18,6 +18,8 @@
     "test": "jest",
     "check:exact-versions": "node scripts/check-exact-versions.mjs",
     "check:v2.5-mla-migration": "node scripts/build-v2-5-mla-template-migration.mjs",
+    "i18n:check": "node scripts/i18n/check-i18n.mjs --strict",
+    "i18n:verify": "node scripts/i18n/verify-rendered-keys.mjs",
     "prepare": "husky"
   },
   "dependencies": {
@@ -106,6 +108,7 @@
     "eslint-config-airbnb": "19.0.4",
     "eslint-config-next": "14.0.4",
     "eslint-config-prettier": "9.1.0",
+    "eslint-plugin-i18next": "6.1.4",
     "eslint-plugin-import": "2.29.1",
     "eslint-plugin-prettier": "5.1.3",
     "eslint-plugin-react": "7.34.0",

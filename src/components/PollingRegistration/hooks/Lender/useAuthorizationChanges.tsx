@@ -1,9 +1,9 @@
 import { useEffect } from "react"
 
 import { useLazyQuery } from "@apollo/client"
-import { Trans } from "react-i18next"
 import { useDispatch } from "react-redux"
 
+import { Trans } from "@/components/Translation"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { LENDER_AUTHORIZATION_CHANGES } from "@/graphql/queries"
 import { addNotification } from "@/store/slices/notificationsSlice/notificationsSlice"

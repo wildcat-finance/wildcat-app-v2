@@ -141,7 +141,7 @@ export const BorrowerActiveMarketsTables = ({
   const columns: TypeSafeColDef<BorrowerActiveMarketsTableModel>[] = [
     {
       field: "name",
-      headerName: t("dashboard.markets.tables.header.name"),
+      headerName: t("common.fields.marketName"),
       flex: 2,
       minWidth: 200,
       headerAlign: "left",
@@ -181,7 +181,7 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "status",
-      headerName: t("dashboard.markets.tables.header.status"),
+      headerName: t("common.fields.status"),
       minWidth: 100,
       flex: 1,
       headerAlign: "left",
@@ -209,7 +209,7 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "implementationType",
-      headerName: t("dashboard.markets.tables.header.type"),
+      headerName: t("common.fields.type"),
       minWidth: 110,
       flex: 1,
       headerAlign: "left",
@@ -238,7 +238,7 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "term",
-      headerName: t("dashboard.markets.tables.header.term"),
+      headerName: t("common.fields.term"),
       minWidth: 100,
       flex: 1,
       headerAlign: "left",
@@ -264,7 +264,7 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "apr",
-      headerName: t("dashboard.markets.tables.header.apr"),
+      headerName: t("common.fields.apr"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -298,7 +298,7 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "asset",
-      headerName: t("dashboard.markets.tables.header.asset"),
+      headerName: t("common.fields.asset"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -321,7 +321,7 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "withdrawalBatchDuration",
-      headerName: t("dashboard.markets.tables.header.withdrawal"),
+      headerName: t("marketList.shared.tables.header.withdrawal"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -344,7 +344,7 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "borrowable",
-      headerName: t("dashboard.markets.tables.header.borrowable"),
+      headerName: t("common.fields.borrowable"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -369,6 +369,7 @@ export const BorrowerActiveMarketsTables = ({
               ? formatTokenWithCommas(params.value, {
                   withSymbol: false,
                   fractionDigits: 2,
+                  compact: true,
                 })
               : "0"}
           </LiveMarketDataValue>
@@ -377,7 +378,7 @@ export const BorrowerActiveMarketsTables = ({
     },
     {
       field: "debt",
-      headerName: t("dashboard.markets.tables.header.debt"),
+      headerName: t("common.fields.totalDebt"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -397,6 +398,7 @@ export const BorrowerActiveMarketsTables = ({
               ? formatTokenWithCommas(params.value, {
                   withSymbol: false,
                   fractionDigits: 2,
+                  compact: true,
                 })
               : "0"}
           </LiveMarketDataValue>
@@ -422,13 +424,13 @@ export const BorrowerActiveMarketsTables = ({
     >
       <Box id="deposited" ref={depositedRef}>
         <MarketsTableAccordion
-          label={t("dashboard.markets.tables.borrower.active.deposited")}
+          label={t("marketList.borrower.active.deposited")}
           marketsLength={depositedMarkets.length}
           isLoading={isLoading}
           isOpen
-          noMarketsTitle={t("dashboard.markets.noMarkets.active.title")}
+          noMarketsTitle={t("common.states.noActiveMarkets")}
           noMarketsSubtitle={t(
-            "dashboard.markets.noMarkets.active.borrowerSubtitle",
+            "marketList.shared.noMarkets.active.borrowerSubtitle",
           )}
           nameFilter={filters.nameFilter}
           assetFilter={filters.assetFilter}
@@ -449,12 +451,12 @@ export const BorrowerActiveMarketsTables = ({
 
       <Box id="non-deposited" ref={nonDepositedRef}>
         <MarketsTableAccordion
-          label={t("dashboard.markets.tables.borrower.active.nonDeposited")}
+          label={t("marketList.borrower.active.nonDeposited")}
           isLoading={isLoading}
           isOpen
-          noMarketsTitle={t("dashboard.markets.noMarkets.active.title")}
+          noMarketsTitle={t("common.states.noActiveMarkets")}
           noMarketsSubtitle={t(
-            "dashboard.markets.noMarkets.active.borrowerSubtitle",
+            "marketList.shared.noMarkets.active.borrowerSubtitle",
           )}
           marketsLength={nonDepositedMarkets.length}
           nameFilter={filters.nameFilter}

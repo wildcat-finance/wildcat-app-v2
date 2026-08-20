@@ -1,6 +1,8 @@
 import { Box, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
+import { formatNumberWithCommas } from "@/utils/formatters"
+
 import { ConfirmationFormProps } from "./interface"
 import {
   ConfirmationFinancialSectionProps,
@@ -20,7 +22,7 @@ const LegacyFinancialSection = ({
   return (
     <>
       <Typography variant="text4" sx={SubtitleStyle}>
-        {t("createNewMarket.financial.title")}
+        {t("borrower.createMarket.financial.title")}
       </Typography>
 
       <Box
@@ -31,43 +33,62 @@ const LegacyFinancialSection = ({
         }}
       >
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.maxCapacity.label")}
-          value={`${getValues("maxTotalSupply")} ${tokenAsset?.symbol}`}
+          label={t("borrower.createMarket.financial.maxCapacity.label")}
+          value={`${formatNumberWithCommas(
+            getValues("maxTotalSupply"),
+          )} ${tokenAsset?.symbol}`}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.baseAPR.label")}
-          value={`${getValues("annualInterestBips")}%`}
+          label={t("common.fields.baseApr")}
+          value={`${formatNumberWithCommas(
+            getValues("annualInterestBips"),
+            2,
+          )}%`}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.protocolFee.label")}
+          label={t("common.fields.protocolFeeApr")}
           /* dev: hardcoded for now, need to grab protocol fee from template */
-          value={`${(getValues("annualInterestBips") * 5) / 100}%`}
+          value={`${formatNumberWithCommas(
+            (getValues("annualInterestBips") * 5) / 100,
+            4,
+          )}%`}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.penaltyAPR.label")}
-          value={`${getValues("delinquencyFeeBips")}%`}
+          label={t("common.fields.penaltyApr")}
+          value={`${formatNumberWithCommas(
+            getValues("delinquencyFeeBips"),
+            2,
+          )}%`}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.ratio.label")}
-          value={`${getValues("reserveRatioBips")}%`}
+          label={t("common.fields.reserveRatio")}
+          value={`${formatNumberWithCommas(getValues("reserveRatioBips"), 2)}%`}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.periods.grace.label")}
-          value={`${getValues("delinquencyGracePeriod")} hours`}
+          label={t("borrower.createMarket.periods.grace.label")}
+          value={`${formatNumberWithCommas(
+            getValues("delinquencyGracePeriod"),
+            2,
+          )} hours`}
         />
         <ConfirmationFormItem
-          label={t("createNewMarket.periods.wdCycle.label")}
-          value={`${getValues("withdrawalBatchDuration")} hours`}
+          label={t("common.fields.withdrawalCycleDuration")}
+          value={`${formatNumberWithCommas(
+            getValues("withdrawalBatchDuration"),
+            2,
+          )} hours`}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.minDeposit.label")}
-          value={`${getValues("minimumDeposit") ?? 0} ${tokenAsset?.symbol}`}
+          label={t("common.fields.minimumDeposit")}
+          value={`${formatNumberWithCommas(
+            getValues("minimumDeposit"),
+          )} ${tokenAsset?.symbol}`}
         />
       </Box>
     </>

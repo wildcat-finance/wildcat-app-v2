@@ -2,12 +2,13 @@
 
 import { Box, Button, Typography, useTheme } from "@mui/material"
 import { useRouter } from "next/navigation"
-import { Trans } from "react-i18next"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { useBorrowerInvitationExists } from "@/app/[locale]/borrower/hooks/useBorrowerInvitation"
 import type { ServiceAgreementPartyInput } from "@/app/api/service-agreement/interface"
 import { ServiceAgreementVersionChip } from "@/components/ServiceAgreementVersionChip"
+import { Trans } from "@/components/Translation"
 import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { ROUTES } from "@/routes"
@@ -22,6 +23,8 @@ export const AgreementPage = ({
 }: {
   party: ServiceAgreementPartyInput
 }) => {
+  const { t } = useTranslation()
+
   const theme = useTheme()
   const router = useRouter()
   const { data: currentAgreement, isLoading: isAgreementLoading } =
@@ -182,7 +185,7 @@ export const AgreementPage = ({
               },
             }}
           >
-            <Trans i18nKey="agreement.page.cancel" />
+            <Trans i18nKey="common.buttons.cancel" />
           </Button>
         )}
         {needsBorrowerInvitation && (
@@ -198,7 +201,7 @@ export const AgreementPage = ({
               },
             }}
           >
-            Complete Invitation
+            {t("agreement.completeInvitation")}
           </Button>
         )}
         {shouldCheckBorrowerInvitation && isInvitationError && (
@@ -214,7 +217,7 @@ export const AgreementPage = ({
               },
             }}
           >
-            Retry
+            {t("common.buttons.retry")}
           </Button>
         )}
         {(needsReacceptance || needsBorrowerFirstAcceptance) && (
@@ -235,7 +238,7 @@ export const AgreementPage = ({
             },
           }}
         >
-          <Trans i18nKey="agreement.page.download" />
+          <Trans i18nKey="common.buttons.download" />
         </Button>
       </Box>
     </Box>

@@ -3,6 +3,7 @@
 import { useState } from "react"
 
 import { Box } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import AuthWrapper from "@/components/AuthWrapper"
 
@@ -18,10 +19,12 @@ const AdminPageContainer = {
   flexDirection: "column",
 }
 const AdminPage = () => {
+  const { t } = useTranslation()
+
   const [activeSection, setActiveSection] = useState("invitations")
 
   return (
-    <AuthWrapper requiresAdmin title="Admin Panel">
+    <AuthWrapper requiresAdmin title={t("admin.title")}>
       <Box sx={AdminPageContainer}>
         <AdminSectionSwitcher
           activeSection={activeSection}

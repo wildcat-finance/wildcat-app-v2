@@ -111,8 +111,8 @@ const withPeriodicTermIssues =
 export const useNewMarketForm = (isTestnet: boolean): NewMarketFormType => {
   const { t } = useTranslation()
   const maxLabel = isTestnet
-    ? t("utils.time.oneYear")
-    : t("utils.time.twoYears")
+    ? t("common.states.time.oneYear")
+    : t("common.states.time.twoYears")
 
   const validationSchemaAsync = useMemo(
     () =>

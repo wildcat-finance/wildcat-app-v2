@@ -289,7 +289,7 @@ export const AllMarketsSection = () => {
             }}
           >
             <Typography variant="title2" sx={{ marginBottom: "6px" }}>
-              {t("dashboard.markets.title")}
+              {t("marketList.shared.title")}
             </Typography>
           </Box>
 
@@ -298,14 +298,14 @@ export const AllMarketsSection = () => {
             color={COLORS.santasGrey}
             sx={{ marginBottom: "24px", padding: "0 24px" }}
           >
-            {t("dashboard.markets.lenderSubtitle")}{" "}
+            {t("marketList.shared.lenderSubtitle")}{" "}
             <Link
               href="https://docs.wildcat.finance/using-wildcat/day-to-day-usage/lenders"
               style={{ color: COLORS.santasGrey }}
               target="_blank"
               rel="noreferrer"
             >
-              {t("dashboard.markets.docsLink")}
+              {t("marketList.shared.docsLink")}
             </Link>
           </Typography>
 
@@ -328,7 +328,7 @@ export const AllMarketsSection = () => {
           >
             <Box sx={{ display: "flex", gap: "6px" }}>
               <MarketsFilterSelect
-                placeholder={t("dashboard.markets.filters.assets")}
+                placeholder={t("common.fields.asset")}
                 options={
                   tokens?.map((token) => ({
                     id: token.address,
@@ -339,13 +339,13 @@ export const AllMarketsSection = () => {
                 setSelected={setMarketAssets}
               />
               <MarketsFilterSelect
-                placeholder={t("dashboard.markets.filters.statuses")}
+                placeholder={t("common.fields.status")}
                 options={marketStatusesMock}
                 selected={marketStatuses}
                 setSelected={setMarketStatuses}
               />
               <MarketsFilterSelect
-                placeholder="Withdrawal Cycle"
+                placeholder={t("common.placeholders.withdrawalCycle")}
                 options={withdrawalCycleOptions}
                 selected={marketWithdrawalCycles}
                 setSelected={setMarketWithdrawalCycles}
@@ -355,7 +355,7 @@ export const AllMarketsSection = () => {
             <FilterTextField
               value={marketSearch}
               setValue={setMarketSearch}
-              placeholder={t("dashboard.markets.filters.name")}
+              placeholder={t("common.buttons.search")}
               width="264px"
             />
           </Box>

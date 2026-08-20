@@ -28,6 +28,7 @@ import {
 } from "@/components/Profile/shared/chartControls"
 import { ChartDescriptionStyle } from "@/components/Profile/shared/chartStyle"
 import { TooltipButton } from "@/components/TooltipButton"
+import { Trans } from "@/components/Translation"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useNow } from "@/hooks/useNow"
 import { COLORS } from "@/theme/colors"
@@ -593,6 +594,7 @@ const DelinquencyHistoryContent = ({
   gracePeriodHours: number
   isExpanded: boolean
 }) => {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const penaltyEvents = data.filter((point) => point.isPenalized).length
   const longestDuration = data.reduce(
@@ -619,7 +621,7 @@ const DelinquencyHistoryContent = ({
         }}
       >
         <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
-          This market has never been delinquent.
+          {t("marketDetails.lender.delinquency.neverDelinquent")}
         </Typography>
       </Box>
     )
@@ -627,33 +629,35 @@ const DelinquencyHistoryContent = ({
 
   const caption = (
     <Typography sx={ChartDescriptionStyle}>
-      Grace period: {formatDuration(gracePeriodHours)}. Yellow shows time before
-      penalties; pink shows time after penalties began.
+      <Trans
+        i18nKey="marketDetails.lender.delinquency.gracePeriod.legend"
+        values={{ duration: formatDuration(gracePeriodHours) }}
+      />
     </Typography>
   )
 
   const metricCards = (
     <>
       <MetricCard
-        label="Total Events"
+        label={t("marketDetails.lender.delinquency.totalEvents.label")}
         value={String(data.length)}
-        tooltip="Number of times this market has entered a delinquent state."
+        tooltip={t("marketDetails.lender.delinquency.totalEvents.tooltip")}
       />
       <MetricCard
-        label="Longest"
+        label={t("marketDetails.lender.delinquency.longest.label")}
         value={formatDuration(longestDuration)}
-        tooltip="Duration of the longest single delinquency event."
+        tooltip={t("marketDetails.lender.delinquency.longest.tooltip")}
       />
       <MetricCard
-        label="Average Cure"
+        label={t("marketDetails.lender.delinquency.averageCure.label")}
         value={formatDuration(avgDuration)}
-        tooltip="Average time taken to resolve a delinquency event."
+        tooltip={t("marketDetails.lender.delinquency.averageCure.tooltip")}
       />
       <MetricCard
-        label="Penalty Events"
+        label={t("marketDetails.lender.delinquency.penaltyEvents.label")}
         value={String(penaltyEvents)}
         tone={penaltyEvents > 0 ? "danger" : "default"}
-        tooltip="Number of delinquency events that exceeded the grace period and incurred penalty interest."
+        tooltip={t("marketDetails.lender.delinquency.penaltyEvents.tooltip")}
       />
     </>
   )
@@ -788,9 +792,9 @@ export const LenderFlowCharts = ({
       {!isLoading && dailyFlows.length > 0 && (
         <>
           <AnalyticsChartCard
-            title={t("lenderMarketDetails.analytics.charts.dailyFlows")}
+            title={t("marketDetails.lender.analytics.charts.dailyFlows")}
             description={t(
-              "lenderMarketDetails.analytics.charts.dailyFlowsDesc",
+              "marketDetails.lender.analytics.charts.dailyFlowsDesc",
             )}
             descriptionPosition="bottom"
             actions={rangeSelector}
@@ -800,7 +804,9 @@ export const LenderFlowCharts = ({
                 data={filtered}
                 series={FLOWS_SERIES}
                 tooltipFormatter={flowsTooltip}
-                ariaLabel={t("lenderMarketDetails.analytics.charts.dailyFlows")}
+                ariaLabel={t(
+                  "marketDetails.lender.analytics.charts.dailyFlows",
+                )}
                 showLegend={isExpanded}
                 showDataZoom={isExpanded}
                 showExportActions={isExpanded}
@@ -814,9 +820,9 @@ export const LenderFlowCharts = ({
           </AnalyticsChartCard>
 
           <AnalyticsChartCard
-            title={t("lenderMarketDetails.analytics.charts.cumulativeNetFlow")}
+            title={t("marketDetails.lender.analytics.charts.cumulativeNetFlow")}
             description={t(
-              "lenderMarketDetails.analytics.charts.cumulativeNetFlowDesc",
+              "marketDetails.lender.analytics.charts.cumulativeNetFlowDesc",
             )}
             descriptionPosition="bottom"
             actions={rangeSelector}
@@ -827,7 +833,7 @@ export const LenderFlowCharts = ({
                 series={NET_FLOW_SERIES}
                 tooltipFormatter={netFlowTooltip}
                 ariaLabel={t(
-                  "lenderMarketDetails.analytics.charts.cumulativeNetFlow",
+                  "marketDetails.lender.analytics.charts.cumulativeNetFlow",
                 )}
                 showLegend={isExpanded}
                 showDataZoom={isExpanded}
@@ -855,7 +861,7 @@ export const LenderFlowCharts = ({
         />
       ) : (
         <AnalyticsChartCard
-          title={t("lenderMarketDetails.analytics.charts.delinquencyHistory")}
+          title={t("marketDetails.lender.analytics.charts.delinquencyHistory")}
           actions={
             marketStatus ? (
               <MarketStatusChip status={marketStatus} withPeriod={false} />

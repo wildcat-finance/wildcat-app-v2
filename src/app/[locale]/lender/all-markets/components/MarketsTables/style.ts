@@ -45,4 +45,7 @@ export const DataGridSx = {
     minHeight: "66px",
     height: "auto",
   },
+  "& .MuiDataGrid-cell--textRight": {
+    overflow: "hidden",
+  },
 }

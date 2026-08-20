@@ -10,6 +10,7 @@ import {
 } from "@mui/material"
 import { DataGrid, GridRowsProp } from "@mui/x-data-grid"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import { LenderName } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/components/LenderName"
 import { MarketWithdrawalRequetstCell } from "@/app/[locale]/borrower/market/[address]/components/MarketAuthorisedLenders/style"
@@ -32,6 +33,8 @@ export const LendersTable = ({
   isOpen,
   isLoading,
 }: LendersTableProps) => {
+  const { t } = useTranslation()
+
   const { getAddressUrl } = useBlockExplorer()
   const getEditLendersLink = (lenderAddress: string) =>
     `${ROUTES.borrower.lendersList}?lenderAddress=${encodeURIComponent(
@@ -99,7 +102,7 @@ export const LendersTable = ({
             }}
           >
             <Typography variant="text3" color={COLORS.santasGrey}>
-              No markets yet
+              {t("marketList.borrower.noMarketsYet")}
             </Typography>
 
             <Link href={getEditLendersLink(params.row.address)}>
@@ -108,7 +111,7 @@ export const LendersTable = ({
                 size="small"
                 sx={{ color: COLORS.ultramarineBlue }}
               >
-                Add markets
+                {t("marketList.borrower.addMarkets")}
               </Button>
             </Link>
           </Box>

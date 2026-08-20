@@ -5,6 +5,7 @@ import * as React from "react"
 import { Box, Tooltip, Typography } from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import {
   getBorrowerDisplayName,
@@ -94,6 +95,8 @@ export const LenderOverviewTab = ({
   data,
   isLoading,
 }: LenderOverviewTabProps) => {
+  const { t } = useTranslation()
+
   const { data: borrowers } = useBorrowerNames()
   const isMobile = useMobileResolution()
   const { chainId } = useSelectedNetwork()
@@ -353,7 +356,7 @@ export const LenderOverviewTab = ({
         isLoading={isLoading}
       />
 
-      <ProfileSectionPanel title="Active positions">
+      <ProfileSectionPanel title={t("profile.lender.activePositions")}>
         <AnalyticsDataGrid
           loading={isLoading}
           rows={activePositions}
@@ -398,7 +401,7 @@ export const LenderOverviewTab = ({
         />
       </ProfileSectionPanel>
 
-      <ProfileSectionPanel title="Borrower exposure">
+      <ProfileSectionPanel title={t("profile.lender.borrowerExposure")}>
         <AnalyticsDataGrid
           loading={isLoading}
           rows={borrowerExposureRows}
@@ -429,7 +432,9 @@ export const LenderOverviewTab = ({
         />
       </ProfileSectionPanel>
 
-      <ProfileSectionPanel title="Historical Borrower Exposure">
+      <ProfileSectionPanel
+        title={t("profile.lender.historicalBorrowerExposure")}
+      >
         <AnalyticsDataGrid
           loading={isLoading}
           rows={historicalBorrowerExposureRows}

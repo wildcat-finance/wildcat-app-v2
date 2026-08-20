@@ -5,6 +5,7 @@ import * as React from "react"
 import { Box, Tooltip as MuiTooltip, Typography } from "@mui/material"
 import { GridColDef } from "@mui/x-data-grid"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import {
   getBorrowerDisplayName,
@@ -69,6 +70,8 @@ export const MarketsInterestTab = ({
   data,
   isLoading,
 }: MarketsInterestTabProps) => {
+  const { t } = useTranslation()
+
   const { data: borrowers } = useBorrowerNames()
   const { chainId } = useSelectedNetwork()
   const { getAddressUrl } = useBlockExplorer()
@@ -271,7 +274,7 @@ export const MarketsInterestTab = ({
         gap: { xs: "2px", md: "24px" },
       }}
     >
-      <ProfileSectionPanel title="Interest breakdown">
+      <ProfileSectionPanel title={t("profile.lender.interestBreakdown")}>
         {interestRows.length > 0 ? (
           <Box
             sx={{
@@ -288,7 +291,7 @@ export const MarketsInterestTab = ({
             }}
           >
             <Typography variant="text2Highlighted">
-              Interest by position
+              {t("profile.lender.interestPosition")}
             </Typography>
             <Typography
               variant="text4"
@@ -297,11 +300,14 @@ export const MarketsInterestTab = ({
               display="block"
               sx={{ lineHeight: 1.45 }}
             >
-              Slices use current-price position estimates; the center total uses
-              historical USD when profile aggregates are available.{" "}
-              {formatUsd(displayTotalInterest, { compact: true })} earned across{" "}
-              {interestRows.length} positions with realized interest.{" "}
-              {activePositionCount} positions are still open with balance.
+              {t("profile.lender.slicesUseCurrentPricePosition")}{" "}
+              {t("profile.lender.interest.earnedAcross", {
+                amount: formatUsd(displayTotalInterest, { compact: true }),
+                positions: interestRows.length,
+              })}{" "}
+              {t("profile.lender.interest.openWithBalance", {
+                positions: activePositionCount,
+              })}
             </Typography>
 
             <Box
@@ -384,7 +390,7 @@ export const MarketsInterestTab = ({
             }}
           >
             <Typography variant="text2" color={COLORS.santasGrey}>
-              No interest earned yet for this lender.
+              {t("profile.lender.noInterestEarnedYetLender")}
             </Typography>
           </Box>
         )}
@@ -427,7 +433,7 @@ export const MarketsInterestTab = ({
       </ProfileSectionPanel>
 
       <ProfileSectionPanel
-        title="Market history"
+        title={t("common.labels.marketHistory")}
         subtitle={`All ${positions.length} lender positions, including exited markets.`}
       >
         <AnalyticsDataGrid
@@ -447,8 +453,8 @@ export const MarketsInterestTab = ({
               title={row.marketName}
               titleSub={
                 <Typography variant="text4" color={COLORS.santasGrey}>
-                  {row.borrowerDisplayName} · {row.asset} · since{" "}
-                  {row.addedDate}
+                  {row.borrowerDisplayName} · {row.asset}{" "}
+                  {t("profile.lender.since")} {row.addedDate}
                 </Typography>
               }
               headerRight={

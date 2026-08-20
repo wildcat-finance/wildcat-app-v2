@@ -10,6 +10,7 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import Cross from "@/assets/icons/cross_icon.svg"
 import Filter from "@/assets/icons/filter_icon.svg"
@@ -52,6 +53,8 @@ export const MobileFilterButton = ({
   showOnboardByBorrower,
   setShowOnboardByBorrower,
 }: MobileFilterButtonProps) => {
+  const { t } = useTranslation()
+
   const [open, setOpen] = useState<boolean>(false)
 
   const allAssetsSelected =
@@ -228,7 +231,7 @@ export const MobileFilterButton = ({
             </SvgIcon>
 
             <Typography variant="mobText3" color={COLORS.santasGrey}>
-              Filters
+              {t("common.labels.filters")}
             </Typography>
           </Box>
 
@@ -257,7 +260,7 @@ export const MobileFilterButton = ({
         >
           {setShowSelfOnboard && (
             <FormControlLabel
-              label="Self-Onboard"
+              label={t("marketList.shared.tables.other.selfOnboard")}
               control={
                 <ExtendedCheckbox
                   checked={showSelfOnboard}
@@ -274,7 +277,7 @@ export const MobileFilterButton = ({
 
           {setShowOnboardByBorrower && (
             <FormControlLabel
-              label="Onboard by Borrower"
+              label={t("marketList.shared.tables.other.manual")}
               control={
                 <ExtendedCheckbox
                   checked={showOnboardByBorrower}
@@ -290,7 +293,7 @@ export const MobileFilterButton = ({
           )}
 
           <FormControlLabel
-            label="Markets"
+            label={t("common.placeholders.markets")}
             control={
               <ExtendedCheckbox
                 checked={allStatusesSelected}
@@ -336,7 +339,7 @@ export const MobileFilterButton = ({
             />
           ))}
           <FormControlLabel
-            label="Withdrawal Cycle"
+            label={t("common.placeholders.withdrawalCycle")}
             control={
               <ExtendedCheckbox
                 checked={allWithdrawalCyclesSelected}
@@ -385,7 +388,7 @@ export const MobileFilterButton = ({
             />
           ))}
           <FormControlLabel
-            label="Currency"
+            label={t("common.fields.currency")}
             control={
               <ExtendedCheckbox
                 checked={allAssetsSelected}
@@ -440,7 +443,7 @@ export const MobileFilterButton = ({
             color="secondary"
             fullWidth
           >
-            Reset
+            {t("common.buttons.reset")}
           </Button>
         </Box>
       </Dialog>

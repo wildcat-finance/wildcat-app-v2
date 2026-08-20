@@ -9,6 +9,7 @@ import {
   WithdrawalBatch,
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import LinkIcon from "@/assets/icons/link_icon.svg"
 import { DetailsAccordion } from "@/components/Accordion/DetailsAccordion"
@@ -37,6 +38,8 @@ export const ClaimableTable = ({
   totalAmount,
   chainId,
 }: ClaimableTableProps) => {
+  const { t } = useTranslation()
+
   const [isClaimableOpen, setIsClaimableOpen] = useState(false)
   const [lendersName, setLendersName] = useState<{ [key: string]: string }>({})
   const theme = useTheme()
@@ -226,7 +229,7 @@ export const ClaimableTable = ({
           }}
         >
           <Typography variant="text3" color={COLORS.santasGrey}>
-            No claimable withdrawals.
+            {t("common.labels.noClaimableWithdrawals")}
           </Typography>
         </Box>
       )

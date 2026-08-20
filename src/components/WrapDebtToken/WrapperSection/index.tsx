@@ -21,6 +21,7 @@ import {
   toSafeTransactionInput,
 } from "@wildcatfi/wildcat-sdk"
 import { usePathname } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import Check from "@/assets/icons/check_icon.svg"
@@ -113,6 +114,8 @@ export const WrapperSection = ({
   isDifferentChain,
   isAuthorizedLender,
 }: WrapperSectionProps) => {
+  const { t } = useTranslation()
+
   const isLender = usePathname().includes("lender")
   const theme = useTheme()
   const client = useQueryClient()
@@ -749,7 +752,7 @@ export const WrapperSection = ({
     >
       {isMobile && isMobileOpenState && (
         <TransactionHeader
-          label="Wrapper contract"
+          label={t("common.fields.wrapperContract")}
           arrowOnClick={() => dispatch(setIsMobileOpenedState(false))}
           crossOnClick={null}
         />
@@ -787,8 +790,18 @@ export const WrapperSection = ({
               paddingX: isMobile ? "16px" : 0,
             }}
           >
-            <Tab value={WrapDebtTokenTab.WRAP} label="Wrap" sx={TabStyle} />
-            <Tab value={WrapDebtTokenTab.UNWRAP} label="Unwrap" sx={TabStyle} />
+            <Tab
+              value={WrapDebtTokenTab.WRAP}
+              label={t("marketDetails.lender.wrapDebtToken.wrap")}
+              sx={TabStyle}
+            />
+            <Tab
+              value={WrapDebtTokenTab.UNWRAP}
+              label={t(
+                "marketDetails.lender.transactions.withdraw.steps.unwrapTitle",
+              )}
+              sx={TabStyle}
+            />
           </Tabs>
 
           {!showSuccess && (
@@ -846,7 +859,7 @@ export const WrapperSection = ({
                           : COLORS.manate
                       }
                     >
-                      Show in Shares
+                      {t("marketDetails.lender.wrapDebtToken.showShares")}
                     </Typography>
 
                     <Switch
@@ -896,7 +909,7 @@ export const WrapperSection = ({
                     setAmount(event.target.value)
                   }}
                   size="medium"
-                  label="Amount"
+                  label={t("common.fields.amount")}
                   error={!!helperText}
                   helperText={helperText}
                   FormHelperTextProps={{
@@ -907,7 +920,10 @@ export const WrapperSection = ({
                     },
                   }}
                   endAdornment={
-                    <TextfieldButton buttonText="Max" onClick={setMaxAmount} />
+                    <TextfieldButton
+                      buttonText={t("common.buttons.max")}
+                      onClick={setMaxAmount}
+                    />
                   }
                 />
               </Box>
@@ -952,7 +968,9 @@ export const WrapperSection = ({
                     variant={isMobile ? "mobText4" : "text4"}
                     color={COLORS.manate}
                   >
-                    Estimates may change with the current conversion rate.
+                    {t(
+                      "marketDetails.lender.wrapDebtToken.estimatesMayChangeCurrentConversion",
+                    )}
                   </Typography>
                 </Box>
               </Box>
@@ -1071,7 +1089,7 @@ export const WrapperSection = ({
             fullWidth
             onClick={() => handleOpenSection(WrapDebtTokenTab.WRAP)}
           >
-            Wrap
+            {t("marketDetails.lender.wrapDebtToken.wrap")}
           </Button>
 
           <Button
@@ -1080,7 +1098,7 @@ export const WrapperSection = ({
             fullWidth
             onClick={() => handleOpenSection(WrapDebtTokenTab.UNWRAP)}
           >
-            Unwrap
+            {t("marketDetails.lender.transactions.withdraw.steps.unwrapTitle")}
           </Button>
         </Box>
       )}

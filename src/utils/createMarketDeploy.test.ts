@@ -6,6 +6,7 @@ import {
 
 import {
   assertWrapperDeploymentCompatible,
+  canDismissCreateMarketDeployDialog,
   getCreateMarketDeployRouting,
   getDeployMarketPreviewError,
   hasCreateMarketDeploymentTarget,
@@ -13,6 +14,19 @@ import {
 } from "./createMarketDeploy"
 
 describe("createMarketDeploy", () => {
+  it.each([
+    { isDeploying: false, isSuccess: false, expected: true },
+    { isDeploying: true, isSuccess: false, expected: false },
+    { isDeploying: false, isSuccess: true, expected: false },
+  ])(
+    "returns $expected for dialog dismissal with deploying=$isDeploying and success=$isSuccess",
+    ({ isDeploying, isSuccess, expected }) => {
+      expect(
+        canDismissCreateMarketDeployDialog({ isDeploying, isSuccess }),
+      ).toBe(expected)
+    },
+  )
+
   it("preserves the SDK template receiver when previewing deployment", () => {
     const hooksTemplate = {
       enabled: true,

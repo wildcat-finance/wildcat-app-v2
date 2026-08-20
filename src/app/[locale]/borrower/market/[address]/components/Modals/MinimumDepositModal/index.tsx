@@ -107,7 +107,7 @@ export const MinimumDepositModal = ({
         onClick={modal.handleOpenModal}
         disabled={disableMinDeposit}
       >
-        Adjust Minimum Deposit
+        {t("marketDetails.borrower.adjustMinimumDeposit")}
       </Button>
 
       <Dialog
@@ -117,7 +117,7 @@ export const MinimumDepositModal = ({
       >
         {showForm && (
           <TxModalHeader
-            title="Adjust Minimum Deposit"
+            title={t("marketDetails.borrower.adjustMinimumDeposit")}
             arrowOnClick={modal.handleCloseModal}
             crossOnClick={null}
           />
@@ -126,7 +126,7 @@ export const MinimumDepositModal = ({
         {showForm && (
           <Box sx={{ width: "100%", height: "100%", padding: "12px 24px" }}>
             <ModalDataItem
-              title={t("borrowerMarketDetails.modals.capacity.current")}
+              title={t("marketDetails.borrower.modals.capacity.current")}
               value={`${formatTokenWithCommas(market.maxTotalSupply)} ${
                 market.underlyingToken.symbol
               }`}
@@ -136,7 +136,7 @@ export const MinimumDepositModal = ({
             />
 
             <ModalDataItem
-              title="Current Minimum Deposit"
+              title={t("marketDetails.borrower.currentMinimumDeposit")}
               value={
                 market.hooksConfig?.minimumDeposit
                   ? formatTokenWithCommas(market.hooksConfig?.minimumDeposit, {
@@ -150,7 +150,7 @@ export const MinimumDepositModal = ({
             />
 
             <NumberTextField
-              label="Enter New Minimum Deposit Amount"
+              label={t("marketDetails.borrower.enterNewMinimumDepositAmount")}
               size="medium"
               style={{ width: "100%" }}
               value={amount}

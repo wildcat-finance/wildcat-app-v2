@@ -4,6 +4,7 @@ import { useState } from "react"
 
 import { Box, Button, Chip, SvgIcon, Typography } from "@mui/material"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
 import { NetworkSelectDialog } from "@/components/Header/HeaderNetworkButton/NetworkSelectDialog"
@@ -22,6 +23,8 @@ type HeaderNetworkButtonProps = {
 export const HeaderNetworkButton = ({
   mobile = false,
 }: HeaderNetworkButtonProps) => {
+  const { t } = useTranslation()
+
   const { targetChainId } = useCurrentNetwork()
   const network = NETWORKS_BY_ID[targetChainId as SupportedChainId]
 
@@ -53,7 +56,7 @@ export const HeaderNetworkButton = ({
 
             {network.isTestnet && (
               <Chip
-                label="Testnet"
+                label={t("header.testnet")}
                 variant="filled"
                 sx={{
                   backgroundColor: COLORS.white03,

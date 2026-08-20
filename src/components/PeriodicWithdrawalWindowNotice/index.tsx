@@ -45,8 +45,8 @@ export const PeriodicWithdrawalWindowNotice = ({
       : undefined
   const noticeText =
     variant === "deposit"
-      ? t("lenderMarketDetails.transactions.deposit.periodicWindowNotice")
-      : t("lenderMarketDetails.transactions.withdraw.periodicWindow.closed")
+      ? t("marketDetails.lender.transactions.deposit.periodicWindowNotice")
+      : t("marketDetails.lender.transactions.withdraw.periodicWindow.closed")
 
   return (
     <Box
@@ -110,7 +110,7 @@ export const PeriodicWithdrawalWindowNotice = ({
             }}
           >
             {t(
-              "lenderMarketDetails.transactions.withdraw.periodicWindow.nextStart",
+              "marketDetails.lender.transactions.withdraw.periodicWindow.nextStart",
               {
                 date: formatPeriodicWithdrawalWindowStart(nextWindowStart),
                 countdown: opensInCountdown,

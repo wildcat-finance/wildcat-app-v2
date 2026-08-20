@@ -5,6 +5,7 @@ import * as React from "react"
 
 import { Box, Skeleton, Typography } from "@mui/material"
 import { HooksKind, Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 import { formatUnits } from "viem"
 
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
@@ -295,6 +296,8 @@ const usePeekOnFirstVisit = (
 }
 
 export const TrendingMarketsCarousel = () => {
+  const { t } = useTranslation()
+
   const { marketAccounts, borrowers, isLoadingInitial } =
     useLenderMarketsContext()
   const {
@@ -649,7 +652,7 @@ export const TrendingMarketsCarousel = () => {
             lineHeight: "26px",
           }}
         >
-          Trending Markets
+          {t("marketList.lender.explore.trendingMarkets")}
         </Typography>
 
         <Box
@@ -713,7 +716,7 @@ export const TrendingMarketsCarousel = () => {
         {!isLoading && slots.length > 1 && (
           <Box
             role="group"
-            aria-label="Trending market position"
+            aria-label={t("marketList.lender.explore.trendingMarketPosition")}
             sx={{
               display: "flex",
               alignItems: "center",
@@ -757,7 +760,7 @@ export const TrendingMarketsCarousel = () => {
         variant="title3"
         sx={{ color: COLORS.blackRock, paddingLeft: "16px" }}
       >
-        Trending Markets
+        {t("marketList.lender.explore.trendingMarkets")}
       </Typography>
 
       <Box

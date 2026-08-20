@@ -1,9 +1,9 @@
 import { useEffect } from "react"
 
 import { useLazyQuery } from "@apollo/client"
-import { Trans } from "react-i18next"
 import { useDispatch } from "react-redux"
 
+import { Trans } from "@/components/Translation"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { WITHDRAWAL_BATCH_EXPIREDS } from "@/graphql/queries"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
@@ -37,8 +37,8 @@ export const useLenderWithdrawalResults = (
             const key: string =
               withdrawalBatchExpired.scaledAmountBurned ===
               withdrawalBatchExpired.scaledTotalAmount
-                ? "notifications.lenderWithdrawalSuccess.description"
-                : "notifications.lenderWithdrawalFailed.description"
+                ? "notifications.withdrawalSuccess.description"
+                : "notifications.withdrawalFailed.description"
             dispatch(
               addNotification({
                 description: (

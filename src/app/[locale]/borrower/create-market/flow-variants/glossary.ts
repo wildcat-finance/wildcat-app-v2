@@ -13,50 +13,52 @@ export const getSharedGlossaryItems = (
     case CreateMarketSteps.POLICY: {
       const items = [
         {
-          title: t("createNewMarket.policy.policy.label"),
-          description: t("createNewMarket.policy.policy.glossary"),
+          title: t("borrower.createMarket.policy.title"),
+          description: t("borrower.createMarket.policy.policy.glossary"),
         },
         {
-          title: t("createNewMarket.policy.name.label"),
-          description: t("createNewMarket.policy.name.glossary"),
+          title: t("common.fields.policyName"),
+          description: t("borrower.createMarket.policy.name.glossary"),
         },
       ]
       if (marketType === "periodicTerm") {
         items.push(
           {
-            title: t("createNewMarket.policy.periodic.firstWindowStart.label"),
-            description: t(
-              "createNewMarket.policy.periodic.firstWindowStart.glossary",
-            ),
-          },
-          {
-            title: t("createNewMarket.policy.periodic.periodDuration.label"),
-            description: t(
-              "createNewMarket.policy.periodic.periodDuration.glossary",
-            ),
-          },
-          {
             title: t(
-              "createNewMarket.policy.periodic.withdrawalWindowDuration.label",
+              "borrower.createMarket.policy.periodic.firstWindowStart.label",
             ),
             description: t(
-              "createNewMarket.policy.periodic.withdrawalWindowDuration.glossary",
+              "marketParameters.periodicTerm.firstWindowStartTooltip",
+            ),
+          },
+          {
+            title: t("common.fields.withdrawalPeriod"),
+            description: t(
+              "borrower.createMarket.policy.periodic.periodDuration.glossary",
+            ),
+          },
+          {
+            title: t("common.fields.withdrawalWindow"),
+            description: t(
+              "borrower.createMarket.policy.periodic.withdrawalWindowDuration.glossary",
             ),
           },
         )
       } else if (marketType === "fixedTerm") {
         items.push(
           {
-            title: t("createNewMarket.policy.expiration.label"),
-            description: t("createNewMarket.policy.expiration.glossary"),
+            title: t("borrower.createMarket.policy.expiration.label"),
+            description: t("borrower.createMarket.policy.expiration.glossary"),
           },
           {
-            title: t("createNewMarket.policy.earlyClose.label"),
-            description: t("createNewMarket.policy.earlyClose.explainer"),
+            title: t("borrower.createMarket.policy.earlyClose.label"),
+            description: t("borrower.createMarket.policy.earlyClose.explainer"),
           },
           {
-            title: t("createNewMarket.policy.reduceExpiration.label"),
-            description: t("createNewMarket.policy.reduceExpiration.explainer"),
+            title: t("borrower.createMarket.policy.reduceExpiration.label"),
+            description: t(
+              "borrower.createMarket.policy.reduceExpiration.explainer",
+            ),
           },
         )
       }
@@ -65,23 +67,23 @@ export const getSharedGlossaryItems = (
     case CreateMarketSteps.BASIC:
       return [
         {
-          title: t("createNewMarket.basic.asset.label"),
-          description: t("createNewMarket.basic.asset.glossary"),
+          title: t("common.fields.underlyingAsset"),
+          description: t("common.labels.erc20TokenUsedAll"),
         },
         {
-          title: t("createNewMarket.basic.tokenName.label"),
-          description: t("createNewMarket.basic.tokenName.glossary"),
+          title: t("borrower.createMarket.basic.tokenName.label"),
+          description: t("borrower.createMarket.basic.tokenName.glossary"),
         },
         {
-          title: t("createNewMarket.basic.tokenSymbol.label"),
-          description: t("createNewMarket.basic.tokenSymbol.glossary"),
+          title: t("common.fields.marketTokenSymbol"),
+          description: t("borrower.createMarket.basic.tokenSymbol.glossary"),
         },
       ]
     case CreateMarketSteps.MLA:
       return [
         {
-          title: t("createNewMarket.mla.mla.label"),
-          description: t("createNewMarket.mla.mla.glossary"),
+          title: t("common.labels.masterLoanAgreement"),
+          description: t("borrower.createMarket.mla.mla.glossary"),
         },
       ]
     case CreateMarketSteps.FINANCIAL:
@@ -90,24 +92,26 @@ export const getSharedGlossaryItems = (
       return [
         {
           title: t(
-            "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
+            "borrower.createMarket.lenderRestrictions.restrictWithdrawals.label",
           ),
           description: t(
-            "createNewMarket.lenderRestrictions.restrictWithdrawals.glossary",
+            "borrower.createMarket.lenderRestrictions.restrictWithdrawals.glossary",
           ),
         },
         {
           title: t(
-            "createNewMarket.lenderRestrictions.restrictTransfers.label",
+            "borrower.createMarket.lenderRestrictions.restrictTransfers.label",
           ),
           description: t(
-            "createNewMarket.lenderRestrictions.restrictTransfers.glossary",
+            "borrower.createMarket.lenderRestrictions.restrictTransfers.glossary",
           ),
         },
         {
-          title: t("createNewMarket.lenderRestrictions.disableTransfers.label"),
+          title: t(
+            "borrower.createMarket.lenderRestrictions.disableTransfers.label",
+          ),
           description: t(
-            "createNewMarket.lenderRestrictions.disableTransfers.glossary",
+            "borrower.createMarket.lenderRestrictions.disableTransfers.glossary",
           ),
         },
       ]
