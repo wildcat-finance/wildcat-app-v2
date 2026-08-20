@@ -5,6 +5,7 @@ import { Box, Typography } from "@mui/material"
 import { Market, TokenWrapper } from "@wildcatfi/wildcat-sdk"
 
 import { NoWrapperState } from "@/components/WrapDebtToken/NoWrapperState"
+import { WrapperDeployment } from "@/components/WrapDebtToken/WrapperDeployment"
 import { WrapperSection } from "@/components/WrapDebtToken/WrapperSection"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { useAppDispatch } from "@/store/hooks"
@@ -52,7 +53,11 @@ export const WrapDebtToken = ({
       )}
 
       {hasFactory && !hasWrapper && !isWrapperLookupLoading && (
-        <NoWrapperState canCreateWrapper={false} />
+        <WrapperDeployment
+          market={market}
+          hasFactory={hasFactory}
+          isDifferentChain={isDifferentChain}
+        />
       )}
 
       {hasFactory && isWrapperLookupLoading && (
