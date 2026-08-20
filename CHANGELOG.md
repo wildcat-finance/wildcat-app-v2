@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.19.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.18.0...v2.19.0) (2026-08-16)
+
+
+### Features
+
+* withdraw from wrapped ([0b1f026](https://github.com/wildcat-finance/wildcat-app-v2/commit/0b1f0260143a35577edc2dc0c44c77d3b4d1c1a0))
+* withdraw from wrapped ([8bb9861](https://github.com/wildcat-finance/wildcat-app-v2/commit/8bb986138ce181bd53fd31518dd581ae626cf062))
+
+
+### Bug Fixes
+
+* **banner:** reduce CTA size and make it nonstick ([a2b3cbb](https://github.com/wildcat-finance/wildcat-app-v2/commit/a2b3cbb11481c53f1f761e97517091d2b5d45e31))
+* **banner:** reduce CTA size and make it nonstick ([5c1efe4](https://github.com/wildcat-finance/wildcat-app-v2/commit/5c1efe486a7a03dba5a2b50c784d3273a70b533c))
+* **banner:** reduce CTA size and make it nonstick ([3897add](https://github.com/wildcat-finance/wildcat-app-v2/commit/3897adddd42ae3ee59db9292fc7b06416d91893c))
+
 ## [2.18.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.17.0...v2.18.0) (2026-08-13)
 
 
