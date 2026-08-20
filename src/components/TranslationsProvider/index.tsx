@@ -1,6 +1,6 @@
 "use client"
 
-import { ReactNode } from "react"
+import { ReactNode, useState } from "react"
 
 import { Resource, createInstance } from "i18next"
 import { I18nextProvider } from "react-i18next"
@@ -18,9 +18,13 @@ export default function TranslationsProvider({
   namespaces: string[]
   resources: Resource
 }) {
-  const i18n = createInstance()
+  const [i18n] = useState(() => {
+    const instance = createInstance()
 
-  initTranslations(locale, namespaces, i18n, resources)
+    initTranslations(locale, namespaces, instance, resources)
+
+    return instance
+  })
 
   return <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
 }
