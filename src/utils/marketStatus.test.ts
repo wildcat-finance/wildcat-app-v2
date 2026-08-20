@@ -1,5 +1,3 @@
-import { Market } from "@wildcatfi/wildcat-sdk"
-
 import {
   PENALTY_DEFAULT_THRESHOLD_SECONDS,
   countMarketsInDefault,
@@ -13,12 +11,11 @@ const market = (
   timeDelinquent: number,
   delinquencyGracePeriod = GRACE,
   isClosed = false,
-) =>
-  ({
-    timeDelinquent,
-    delinquencyGracePeriod,
-    isClosed,
-  }) as Market
+) => ({
+  timeDelinquent,
+  delinquencyGracePeriod,
+  isClosed,
+})
 
 describe("isMarketInDefault", () => {
   it("is false inside the grace period", () => {
@@ -42,12 +39,12 @@ describe("isMarketInDefault", () => {
   })
 
   it("does not require an unhonoured withdrawal request", () => {
-    expect(
-      isMarketInDefault({
-        ...market(GRACE + PENALTY_DEFAULT_THRESHOLD_SECONDS),
-        unpaidWithdrawalBatchExpiries: [],
-      } as Market),
-    ).toBe(true)
+    const marketWithoutRequests = {
+      ...market(GRACE + PENALTY_DEFAULT_THRESHOLD_SECONDS),
+      unpaidWithdrawalBatchExpiries: [],
+    }
+
+    expect(isMarketInDefault(marketWithoutRequests)).toBe(true)
   })
 
   it("is false once the market is closed", () => {

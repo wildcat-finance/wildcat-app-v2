@@ -53,13 +53,18 @@ export const isMarketInPenalty = (market: Market): boolean =>
 // `closeMarket()` resets it to zero, so closed markets don't count here.
 export const PENALTY_DEFAULT_THRESHOLD_SECONDS = 90 * 24 * 60 * 60
 
-export const isMarketInDefault = (market: Market): boolean =>
+type MarketDefaultState = Pick<
+  Market,
+  "isClosed" | "timeDelinquent" | "delinquencyGracePeriod"
+>
+
+export const isMarketInDefault = (market: MarketDefaultState): boolean =>
   !market.isClosed &&
   market.timeDelinquent - market.delinquencyGracePeriod >=
     PENALTY_DEFAULT_THRESHOLD_SECONDS
 
 export const countMarketsInDefault = (
-  markets: Market[] | undefined,
+  markets: MarketDefaultState[] | undefined,
 ): number | undefined => markets?.filter(isMarketInDefault).length
 
 export const getPenaltyBorrowers = (markets: Market[]): Set<string> =>
