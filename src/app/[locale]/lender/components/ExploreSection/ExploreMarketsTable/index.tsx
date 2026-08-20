@@ -27,6 +27,7 @@ import { useTranslation } from "react-i18next"
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
+import { useRecentDeposits } from "@/app/[locale]/lender/hooks/useRecentDeposits"
 import ArrowRightIcon from "@/assets/icons/arrowRight_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
@@ -83,6 +84,8 @@ import {
   MarketStatus,
 } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
+
+import { rankMarketsByActivity } from "./activityRanking"
 
 const SORT_OPTIONS = [
   "Most Funded",
@@ -223,7 +226,8 @@ export const ExploreMarketsTable = () => {
   const { t } = useTranslation()
   const { marketAccounts, borrowers, isLoadingInitial, onboardingByMarket } =
     useLenderMarketsContext()
-  const { isTestnet } = useCurrentNetwork()
+  const { data: recentDeposits } = useRecentDeposits()
+  const { isTestnet, targetChainId } = useCurrentNetwork()
   const isLoading = isLoadingInitial
 
   const [sortMode, setSortMode] = useState<SortOption>("Most Funded")
@@ -344,7 +348,10 @@ export const ExploreMarketsTable = () => {
       return false
     })
 
-    const sorted = [...onboardFiltered].sort((a, b) => {
+    const compareMarkets = (
+      a: (typeof onboardFiltered)[number],
+      b: (typeof onboardFiltered)[number],
+    ) => {
       if (sortMode === "Highest Yield") {
         return compareByHighestYield(a, b)
       }
@@ -358,9 +365,21 @@ export const ExploreMarketsTable = () => {
         )
       }
       return tokenAmountComparator(b.market.totalSupply, a.market.totalSupply)
-    })
+    }
 
-    const accountsToMap = isMobile ? sorted.slice(0, visibleMobileRows) : sorted
+    // Preserve the activity-qualified Top Markets first, then widen the
+    // window and finally use the remaining catalogue to fill empty slots.
+    // User-selected ranking still applies within each activity tier.
+    const sorted = rankMarketsByActivity(
+      onboardFiltered,
+      targetChainId,
+      Math.floor(Date.now() / 1000),
+      recentDeposits.latestDepositTimestampByMarket,
+      compareMarkets,
+    )
+
+    const visibleRows = isMobile ? visibleMobileRows : paginationModel.pageSize
+    const accountsToMap = sorted.slice(0, visibleRows)
 
     return {
       totalRows: sorted.length,
@@ -420,8 +439,11 @@ export const ExploreMarketsTable = () => {
     showSelfOnboard,
     showOnboardByBorrower,
     onboardingByMarket,
+    targetChainId,
+    recentDeposits.latestDepositTimestampByMarket,
     isMobile,
     visibleMobileRows,
+    paginationModel.pageSize,
   ])
 
   // Stable identity: a fresh columns array makes the DataGrid rebuild column
