@@ -467,6 +467,7 @@ const MARKET_QUERY_KEYS = {
     pageSize?: number,
     kinds?: string[],
     search?: string,
+    eventIndex?: number,
   ) =>
     k([
       "markets",
@@ -477,6 +478,7 @@ const MARKET_QUERY_KEYS = {
       pageSize,
       kinds,
       search,
+      eventIndex,
     ]),
 } as const
 

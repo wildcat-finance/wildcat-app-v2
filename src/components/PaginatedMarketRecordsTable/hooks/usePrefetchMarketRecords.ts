@@ -47,7 +47,9 @@ export function useIdlePrefetchMarketRecords(market: Market | undefined) {
   React.useEffect(() => {
     if (!market || typeof window === "undefined") return undefined
 
-    const marketKey = `${market.chainId}:${market.address.toLowerCase()}`
+    const marketKey = `${market.chainId}:${market.address.toLowerCase()}:${
+      market.eventIndex
+    }`
     if (prefetchedMarketKeyRef.current === marketKey) return undefined
 
     let timeoutId: ReturnType<typeof setTimeout> | undefined

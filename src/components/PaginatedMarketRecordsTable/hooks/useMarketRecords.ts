@@ -45,6 +45,7 @@ export const getMarketRecordsQueryKey = ({
     MARKET_RECORDS_RECENT_WINDOW_LIMIT,
     undefined,
     "recent-window",
+    market.eventIndex,
   )
 
 export async function fetchMarketRecordsWindow({
