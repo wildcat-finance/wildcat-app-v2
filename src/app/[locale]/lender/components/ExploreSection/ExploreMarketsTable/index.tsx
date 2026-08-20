@@ -82,6 +82,8 @@ import {
 } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
+import { rankMarketsByActivity } from "./activityRanking"
+
 const SORT_OPTIONS = [
   "Most Funded",
   "Highest Yield",
@@ -341,7 +343,10 @@ export const ExploreMarketsTable = () => {
       return false
     })
 
-    const sorted = [...onboardFiltered].sort((a, b) => {
+    const compareMarkets = (
+      a: (typeof onboardFiltered)[number],
+      b: (typeof onboardFiltered)[number],
+    ) => {
       if (sortMode === "Highest Yield") {
         return compareByHighestYield(a, b)
       }
@@ -355,9 +360,20 @@ export const ExploreMarketsTable = () => {
         )
       }
       return tokenAmountComparator(b.market.totalSupply, a.market.totalSupply)
-    })
+    }
 
-    const accountsToMap = isMobile ? sorted.slice(0, visibleMobileRows) : sorted
+    // Preserve the activity-qualified Top Markets first, then widen the
+    // window and finally use the remaining catalogue to fill empty slots.
+    // User-selected ranking still applies within each activity tier.
+    const sorted = rankMarketsByActivity(
+      onboardFiltered,
+      isTestnet === true,
+      Math.floor(Date.now() / 1000),
+      compareMarkets,
+    )
+
+    const visibleRows = isMobile ? visibleMobileRows : paginationModel.pageSize
+    const accountsToMap = sorted.slice(0, visibleRows)
 
     return {
       totalRows: sorted.length,
@@ -417,8 +433,10 @@ export const ExploreMarketsTable = () => {
     showSelfOnboard,
     showOnboardByBorrower,
     onboardingByMarket,
+    isTestnet,
     isMobile,
     visibleMobileRows,
+    paginationModel.pageSize,
   ])
 
   // Stable identity: a fresh columns array makes the DataGrid rebuild column
