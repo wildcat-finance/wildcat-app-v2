@@ -34,6 +34,7 @@ import { formatTokenWithCommas } from "@/utils/formatters"
 import { isPeriodicWithdrawalWindowClosed } from "@/utils/periodicWithdrawalWindow"
 
 import { MarketActionsProps } from "./interface"
+import { getMarketActionRows } from "./transactionRows"
 import { useFaucet } from "../../hooks/useFaucet"
 import { resolveLenderWithdrawalActionState } from "../../utils"
 
@@ -201,6 +202,19 @@ export const MarketActions = ({
   const isTooSmallMarketBalance: boolean =
     combinedAvailable.lt(smallestTokenAmountValue) && !combinedAvailable.eq(0)
 
+  const { depositRows, withdrawRows } = getMarketActionRows(marketAccount, {
+    walletBalance: t(
+      "lenderMarketDetails.transactions.deposit.rows.walletBalance",
+    ),
+    minimumDeposit: t(
+      "lenderMarketDetails.transactions.deposit.rows.minimumDeposit",
+    ),
+    withdrawalCycle: t("lenderMarketDetails.transactions.withdraw.rows.cycle"),
+    gracePeriod: t(
+      "lenderMarketDetails.transactions.withdraw.rows.gracePeriod",
+    ),
+  })
+
   return (
     <>
       <Box display="flex" columnGap="6px" flexWrap="wrap" rowGap="6px">
@@ -263,6 +277,7 @@ export const MarketActions = ({
               tooltip={t("marketDetails.lender.transactions.deposit.tooltip")}
               amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
               asset={market.underlyingToken.symbol}
+              rows={depositRows}
             >
               {(() => {
                 if (showFaucet) {
@@ -363,19 +378,15 @@ export const MarketActions = ({
                   })
                 : undefined
             }
+            status={withdrawalUnavailableText}
+            rows={withdrawRows}
           >
-            {withdrawalActionState === "ready" ? (
+            {withdrawalActionState === "ready" && (
               <WithdrawModal
                 marketAccount={marketAccount}
                 wrapper={wrapper}
                 hasWrapper={hasWrapper}
               />
-            ) : (
-              <Box sx={DepositStatusContainer}>
-                <Typography variant="text4" color={COLORS.santasGrey}>
-                  {withdrawalUnavailableText}
-                </Typography>
-              </Box>
             )}
           </TransactionBlock>
         </Box>

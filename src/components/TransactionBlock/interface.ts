@@ -14,6 +14,8 @@ export type TransactionBlockProps = {
   children: ReactNode
   /** Optional single-line breakdown shown under the amount. */
   subtitle?: string
+  /** Full-width action status shown below the amount. */
+  status?: string
   /** Key-value rows shown below a divider. */
   rows?: TransactionBlockRow[]
 }
