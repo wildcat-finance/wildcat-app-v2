@@ -41,7 +41,7 @@ export const GlossarySidebar = ({
       </SvgIcon>
 
       <Typography variant="text1" sx={{ margin: "12px 0 32px" }}>
-        {t("createNewMarket.glossary")}
+        {t("borrower.createMarket.glossary")}
       </Typography>
 
       {glossaryItems.map((block) => (

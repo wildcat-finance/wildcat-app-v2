@@ -66,7 +66,7 @@ export const LenderListSidebar = () => {
         >
           <BackArrow />
         </SvgIcon>
-        {t("lenderMarketList.sidebar.back")}
+        {t("common.buttons.back")}
       </Button>
       <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
         <Button
@@ -75,7 +75,7 @@ export const LenderListSidebar = () => {
           sx={step === "edit" ? MenuItemButtonSelected : MenuItemButton}
           // onClick={handleClickEdit}
         >
-          {t("lenderMarketList.sidebar.editingLenders")}
+          {t("borrower.editLenders.sidebar.editing")}
         </Button>
 
         <Button
@@ -84,7 +84,7 @@ export const LenderListSidebar = () => {
           sx={step === "confirm" ? MenuItemButtonSelected : MenuItemButton}
           // onClick={handleClickConfirm}
         >
-          {t("lenderMarketList.sidebar.confirm")}
+          {t("common.labels.confirmation")}
         </Button>
       </Box>
     </Box>

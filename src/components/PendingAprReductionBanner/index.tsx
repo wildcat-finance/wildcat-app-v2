@@ -6,6 +6,10 @@ import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
 import { PeriodicNoticeBanner } from "@/components/PeriodicNoticeBanner"
+import {
+  PENDING_APR_REDUCTION_BODY_KEY,
+  PENDING_APR_REDUCTION_TITLE_KEY,
+} from "@/constants/i18nKeys"
 import { useLiveNowSeconds } from "@/hooks/useLiveNowSeconds"
 import { formatBps, MARKET_PARAMS_DECIMALS } from "@/utils/formatters"
 import { getPendingPeriodicAprChange } from "@/utils/periodicApr"
@@ -110,10 +114,10 @@ export const PendingAprReductionBanner = ({
   return (
     <PeriodicNoticeBanner
       tone={phase === "exitNow" ? "warning" : "info"}
-      title={t(`lenderMarketDetails.pendingAprReduction.${phase}.title`, {
+      title={t(PENDING_APR_REDUCTION_TITLE_KEY[phase], {
         ...interpolation,
       })}
-      body={t(`lenderMarketDetails.pendingAprReduction.${phase}.body`, {
+      body={t(PENDING_APR_REDUCTION_BODY_KEY[phase], {
         ...interpolation,
       })}
       onClose={dismiss}

@@ -49,10 +49,10 @@ export const LenderMlaModal = ({
   const buttonText =
     // eslint-disable-next-line no-nested-ternary
     mla === null
-      ? t("lenderMarketDetails.buttons.mlaNotSet")
+      ? t("marketDetails.lender.buttons.mlaNotSet")
       : mlaInput && "noMLA" in mlaInput
-        ? t("lenderMarketDetails.buttons.mlaRefused")
-        : t("lenderMarketDetails.buttons.viewMla")
+        ? t("marketDetails.lender.buttons.mlaRefused")
+        : t("marketDetails.lender.buttons.viewMla")
 
   return (
     <>
@@ -98,7 +98,7 @@ export const LenderMlaModal = ({
                 height: "100%",
                 border: "none",
               }}
-              title="Market Lending Agreement"
+              title={t("common.fields.marketLendingAgreement")}
             />
           </Box>
           <Box
@@ -115,7 +115,7 @@ export const LenderMlaModal = ({
             ) : (
               signedMla === null && (
                 <Button variant="outlined" onClick={onSign}>
-                  Sign MLA
+                  {t("common.buttons.signMla")}
                 </Button>
               )
             )}
@@ -124,7 +124,7 @@ export const LenderMlaModal = ({
                 variant="outlined"
                 onClick={() => window.open(downloadPdfUrl, "_blank")}
               >
-                Download PDF
+                {t("common.buttons.downloadPdf")}
               </Button>
             )}
             {downloadSignedUrl && (
@@ -132,7 +132,7 @@ export const LenderMlaModal = ({
                 variant="outlined"
                 onClick={() => window.open(downloadSignedUrl, "_blank")}
               >
-                Download Signed MLA
+                {t("common.buttons.downloadSignedMla")}
               </Button>
             )}
           </Box>

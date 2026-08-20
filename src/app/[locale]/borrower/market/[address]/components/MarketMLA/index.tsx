@@ -70,13 +70,15 @@ const SetMarketMLAForm = ({
   return (
     <Box sx={{ width: "100%" }}>
       <Typography variant="h6">
-        {t("borrowerMarketDetails.mla.template.label")}
+        {t("marketDetails.shared.mla.template.label")}
       </Typography>
       <Box
         sx={{ display: "flex", flexDirection: "row", gap: 2, width: "100%" }}
       >
         <FormControl sx={{ mb: 2, width: "200px" }}>
-          <InputLabel>Select MLA Template</InputLabel>
+          <InputLabel>
+            {t("marketDetails.shared.mla.template.label")}
+          </InputLabel>
           <Select
             value={selectedTemplateId || ""}
             onChange={(e) =>
@@ -84,7 +86,7 @@ const SetMarketMLAForm = ({
                 e.target.value === "noMLA" ? "noMLA" : Number(e.target.value),
               )
             }
-            label={t("createNewMarket.mla.mla.label")}
+            label={t("common.labels.masterLoanAgreement")}
           >
             {options?.map((option) => (
               <MenuItem key={option.id} value={option.value}>
@@ -107,7 +109,7 @@ const SetMarketMLAForm = ({
               })
             }
           >
-            {t("borrowerMarketDetails.mla.buttons.refuse")}
+            {t("marketDetails.shared.mla.buttons.refuse")}
           </Button>
         ) : (
           <MlaModal
@@ -133,8 +135,8 @@ const SetMarketMLAForm = ({
             disableModalButton={!selectedTemplateId || isLoadingPreviewMla}
             buttonText={
               isLoadingPreviewMla
-                ? t("borrowerMarketDetails.mla.buttons.loading")
-                : t("borrowerMarketDetails.mla.buttons.set")
+                ? t("marketDetails.shared.mla.buttons.loading")
+                : t("marketDetails.shared.mla.buttons.set")
             }
           />
         )}
@@ -144,11 +146,14 @@ const SetMarketMLAForm = ({
 }
 
 const NoExistingMla = ({ marketAccount }: { marketAccount: MarketAccount }) => {
+  const { t } = useTranslation()
   const { data: borrowerProfile } = useBorrowerProfileTmp(
     marketAccount.market.borrower,
   )
-  if (!borrowerProfile) return <Box>No Borrower Profile</Box>
-  if (!marketAccount.isBorrower) return <Box>No Market MLA</Box>
+  if (!borrowerProfile)
+    return <Box>{t("marketDetails.borrower.mla.status.noBorrowerProfile")}</Box>
+  if (!marketAccount.isBorrower)
+    return <Box>{t("marketDetails.borrower.mla.status.noMarketMla")}</Box>
   return (
     <SetMarketMLAForm
       borrowerProfile={borrowerProfile as unknown as BasicBorrowerInfo}
@@ -182,6 +187,7 @@ export const MarketMLA = ({
 }: {
   marketAccount: MarketAccount
 }) => {
+  const { t } = useTranslation()
   const { data: borrowerProfile, isLoading: isLoadingBorrowerProfile } =
     useBorrowerProfileTmp(marketAccount.market.borrower)
   const { data: marketMla, isLoading: isLoadingMarketMla } = useMarketMla(
@@ -191,9 +197,16 @@ export const MarketMLA = ({
   if (isLoadingMarketMla || isLoadingBorrowerProfile)
     return <div>Loading...</div>
 
-  if (!borrowerProfile) return <Box>No Borrower Profile</Box>
-  if (!marketAccount.isBorrower) return <Box>Wrong Borrower Address</Box>
-  if (marketMla && "noMLA" in marketMla) return <Box>Borrower Declined MLA</Box>
+  if (!borrowerProfile)
+    return <Box>{t("marketDetails.borrower.mla.status.noBorrowerProfile")}</Box>
+  if (!marketAccount.isBorrower)
+    return (
+      <Box>{t("marketDetails.borrower.mla.status.wrongBorrowerAddress")}</Box>
+    )
+  if (marketMla && "noMLA" in marketMla)
+    return (
+      <Box>{t("marketDetails.borrower.mla.status.borrowerDeclinedMla")}</Box>
+    )
   if (marketMla)
     return (
       <ShowExistingMla

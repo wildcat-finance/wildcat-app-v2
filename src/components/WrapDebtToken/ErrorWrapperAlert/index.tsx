@@ -2,6 +2,7 @@ import React from "react"
 
 import { Box, Typography } from "@mui/material"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { COLORS } from "@/theme/colors"
@@ -17,6 +18,8 @@ export const ErrorWrapperAlert = ({
   message,
   txHash,
 }: WrapperFormProps) => {
+  const { t } = useTranslation()
+
   const { getTxUrl } = useBlockExplorer()
 
   return (
@@ -49,8 +52,9 @@ export const ErrorWrapperAlert = ({
       />
 
       <Typography variant="text2" color={COLORS.dullRed}>
-        Oops! Something goes wrong. {isWrapping ? "Wrap" : "Unwrap"} Tokens
-        again
+        {t("marketDetails.lender.wrapDebtToken.oopsSomethingGoesWrong")}{" "}
+        {isWrapping ? "Wrap" : "Unwrap"}{" "}
+        {t("marketDetails.lender.wrapDebtToken.tokensAgain")}
       </Typography>
 
       <Box sx={{ display: "flex", gap: "2px" }}>
@@ -70,7 +74,7 @@ export const ErrorWrapperAlert = ({
           >
             <Typography variant="text4" color={COLORS.dullRed08}>
               {" "}
-              View on Etherscan
+              {t("marketDetails.lender.wrapDebtToken.viewEtherscan")}
             </Typography>
           </Link>
         )}

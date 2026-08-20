@@ -9,12 +9,14 @@ import {
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import { MarketStatusAndTermChip } from "@/components/@extended/MarketStatusAndTermChip"
 import { getAdsConfig } from "@/components/AdsBanners/adsConfig"
 import { getAdsTooltipComponent } from "@/components/AdsBanners/adsHelpers"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { NetworkIcon } from "@/components/NetworkIcon"
+import { Trans } from "@/components/Translation"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import {
@@ -338,6 +340,8 @@ export const MobileMarketCard = ({
   baseRoute = ROUTES.lender.market,
   displayName,
 }: MobileMarketCardProps) => {
+  const { t } = useTranslation()
+
   const deposited = marketItem.deposited ?? marketItem.debt
   const capacity =
     marketItem.capacity ??
@@ -507,10 +511,16 @@ export const MobileMarketCard = ({
             whiteSpace: "nowrap",
           }}
         >
-          {formatCompactToken(deposited)} {marketItem.asset}{" "}
-          <Box component="span" sx={{ color: COLORS.matteSilver }}>
-            deposited
-          </Box>
+          <Trans
+            i18nKey="marketList.shared.cards.amountDeposited"
+            values={{
+              amount: formatCompactToken(deposited),
+              asset: marketItem.asset,
+            }}
+            components={{
+              1: <Box component="span" sx={{ color: COLORS.matteSilver }} />,
+            }}
+          />
         </Typography>
         <Typography
           variant="mobText1"
@@ -523,7 +533,10 @@ export const MobileMarketCard = ({
             whiteSpace: "nowrap",
           }}
         >
-          out of {formatCompactToken(capacity)} {marketItem.asset}
+          {t("marketList.shared.cards.outOfCapacity", {
+            amount: formatCompactToken(capacity),
+            asset: marketItem.asset,
+          })}
         </Typography>
       </Box>
     </Box>

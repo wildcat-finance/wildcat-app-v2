@@ -22,7 +22,7 @@ const LegacyFinancialSection = ({
   return (
     <>
       <Typography variant="text4" sx={SubtitleStyle}>
-        {t("createNewMarket.financial.title")}
+        {t("borrower.createMarket.financial.title")}
       </Typography>
 
       <Box
@@ -33,14 +33,14 @@ const LegacyFinancialSection = ({
         }}
       >
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.maxCapacity.label")}
+          label={t("borrower.createMarket.financial.maxCapacity.label")}
           value={`${formatNumberWithCommas(
             getValues("maxTotalSupply"),
           )} ${tokenAsset?.symbol}`}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.baseAPR.label")}
+          label={t("common.fields.baseApr")}
           value={`${formatNumberWithCommas(
             getValues("annualInterestBips"),
             2,
@@ -48,7 +48,7 @@ const LegacyFinancialSection = ({
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.protocolFee.label")}
+          label={t("common.fields.protocolFeeApr")}
           /* dev: hardcoded for now, need to grab protocol fee from template */
           value={`${formatNumberWithCommas(
             (getValues("annualInterestBips") * 5) / 100,
@@ -57,7 +57,7 @@ const LegacyFinancialSection = ({
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.penaltyAPR.label")}
+          label={t("common.fields.penaltyApr")}
           value={`${formatNumberWithCommas(
             getValues("delinquencyFeeBips"),
             2,
@@ -65,19 +65,19 @@ const LegacyFinancialSection = ({
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.ratio.label")}
+          label={t("common.fields.reserveRatio")}
           value={`${formatNumberWithCommas(getValues("reserveRatioBips"), 2)}%`}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.periods.grace.label")}
+          label={t("borrower.createMarket.periods.grace.label")}
           value={`${formatNumberWithCommas(
             getValues("delinquencyGracePeriod"),
             2,
           )} hours`}
         />
         <ConfirmationFormItem
-          label={t("createNewMarket.periods.wdCycle.label")}
+          label={t("common.fields.withdrawalCycleDuration")}
           value={`${formatNumberWithCommas(
             getValues("withdrawalBatchDuration"),
             2,
@@ -85,7 +85,7 @@ const LegacyFinancialSection = ({
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.financial.minDeposit.label")}
+          label={t("common.fields.minimumDeposit")}
           value={`${formatNumberWithCommas(
             getValues("minimumDeposit"),
           )} ${tokenAsset?.symbol}`}

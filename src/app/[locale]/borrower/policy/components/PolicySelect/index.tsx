@@ -19,6 +19,7 @@ import {
   Typography,
 } from "@mui/material"
 import { useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 import {
   MarketSelectMenuItemStyles,
@@ -45,6 +46,8 @@ export const PolicySelect = ({
   selected,
   setSelected,
 }: PolicySelectProps) => {
+  const { t } = useTranslation()
+
   const router = useRouter()
   const dispatch = useAppDispatch()
 
@@ -145,7 +148,7 @@ export const PolicySelect = ({
           onKeyDown={(e) => e.stopPropagation()}
           fullWidth
           size="small"
-          placeholder="Search by Name"
+          placeholder={t("common.placeholders.searchByName")}
           sx={SearchStyles}
           InputProps={{
             startAdornment: (

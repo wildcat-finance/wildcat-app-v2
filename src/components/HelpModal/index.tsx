@@ -53,7 +53,7 @@ export const HelpModal = () => {
           ...FabButtonSx,
           display: { xs: "none", md: "flex" },
         }}
-        aria-label={t("helpModal.ariaLabel")}
+        aria-label={t("modals.shared.help.ariaLabel")}
         aria-expanded={open}
         aria-haspopup="true"
         disableRipple
@@ -100,15 +100,15 @@ export const HelpModal = () => {
               sx={PopperPaperSx}
               elevation={0}
               role="dialog"
-              aria-label={t("helpModal.title")}
+              aria-label={t("modals.shared.help.title")}
             >
               <Box>
                 <Box sx={ModalHeaderSx}>
                   <Typography variant="text1">
-                    {t("helpModal.title")}
+                    {t("modals.shared.help.title")}
                   </Typography>
                   <Typography variant="text3" color={COLORS.manate}>
-                    {t("helpModal.subtitle")}
+                    {t("modals.shared.help.subtitle")}
                   </Typography>
                 </Box>
 

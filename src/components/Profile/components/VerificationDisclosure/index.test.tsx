@@ -31,7 +31,7 @@ describe("BorrowerProfileVerificationDisclosure", () => {
     render(<BorrowerProfileVerificationDisclosure showNote={false} />)
 
     const acknowledge = await screen.findByRole("button", {
-      name: "borrowerProfile.profile.verification.acknowledge",
+      name: "borrower.profile.view.verification.acknowledge",
     })
 
     fireEvent.click(acknowledge)
@@ -40,7 +40,7 @@ describe("BorrowerProfileVerificationDisclosure", () => {
     await waitFor(() => {
       expect(
         screen.queryByRole("button", {
-          name: "borrowerProfile.profile.verification.acknowledge",
+          name: "borrower.profile.view.verification.acknowledge",
         }),
       ).toBeNull()
     })
@@ -52,12 +52,12 @@ describe("BorrowerProfileVerificationDisclosure", () => {
     render(<BorrowerProfileVerificationDisclosure />)
 
     expect(
-      screen.getByText("borrowerProfile.profile.verification.title"),
+      screen.getByText("borrower.profile.view.verification.title"),
     ).toBeTruthy()
     await waitFor(() => {
       expect(
         screen.queryByRole("button", {
-          name: "borrowerProfile.profile.verification.acknowledge",
+          name: "borrower.profile.view.verification.acknowledge",
         }),
       ).toBeNull()
     })
@@ -72,11 +72,11 @@ describe("BorrowerProfileVerificationDisclosure", () => {
     )
 
     expect(
-      screen.getByText("borrowerProfile.profile.verification.title"),
+      screen.getByText("borrower.profile.view.verification.title"),
     ).toBeTruthy()
     expect(
       screen.queryByRole("button", {
-        name: "borrowerProfile.profile.verification.acknowledge",
+        name: "borrower.profile.view.verification.acknowledge",
       }),
     ).toBeNull()
   })

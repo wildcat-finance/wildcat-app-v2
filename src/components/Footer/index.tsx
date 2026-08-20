@@ -130,7 +130,7 @@ export const Footer = ({
             }}
             onClick={handleOpenCookiesModal}
           >
-            Cookies Settings
+            {t("common.buttons.cookiesSettings")}
           </Button>
 
           {/* Agreement pages have the ToU actions themselves and suppress the
@@ -148,7 +148,7 @@ export const Footer = ({
               }}
               onClick={handleOpenTouModal}
             >
-              Terms of Use status
+              {t("common.buttons.termsUseStatus")}
               {touDot}
             </Button>
           )}
@@ -166,7 +166,7 @@ export const Footer = ({
               color={COLORS.white06}
               sx={{ textDecoration: "underline" }}
             >
-              Privacy Policy
+              {t("common.links.privacyPolicy")}
             </Typography>
           </Link>
 
@@ -195,7 +195,7 @@ export const Footer = ({
               }}
               onClick={handleOpenCookiesModal}
             >
-              Cookies Settings
+              {t("common.buttons.cookiesSettings")}
             </Button>
 
             {address && (
@@ -209,7 +209,7 @@ export const Footer = ({
                 }}
                 onClick={handleOpenTouModal}
               >
-                Terms of Use status
+                {t("common.buttons.termsUseStatus")}
                 {touDot}
               </Button>
             )}
@@ -224,7 +224,11 @@ export const Footer = ({
               }}
             >
               <Typography variant="text4" sx={{ display: "flex", gap: "2px" }}>
-                {t("footer.agreement")} <Box sx={{ rotate: "270deg" }}>⇤</Box>
+                {t("footer.agreement")}{" "}
+                {/* eslint-disable-next-line i18next/no-literal-string */}
+                <Box sx={{ rotate: "270deg" }} aria-hidden="true">
+                  ⇤
+                </Box>
               </Typography>
             </Link>
 
@@ -237,7 +241,9 @@ export const Footer = ({
                 marginBottom: "8px",
               }}
             >
-              <Typography variant="text4">Privacy Policy</Typography>
+              <Typography variant="text4">
+                {t("common.links.privacyPolicy")}
+              </Typography>
             </Link>
           </>
         )}

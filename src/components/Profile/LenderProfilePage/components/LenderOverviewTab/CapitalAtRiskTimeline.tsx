@@ -3,6 +3,7 @@
 import * as React from "react"
 
 import { Box, Skeleton } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { LenderCapitalAtRiskPoint } from "@/app/[locale]/lender/profile/hooks/types"
 import {
@@ -299,6 +300,8 @@ export const CapitalAtRiskTimeline = ({
   data,
   isLoading,
 }: CapitalAtRiskTimelineProps) => {
+  const { t } = useTranslation()
+
   const [period, setPeriod] = React.useState<ChartPeriod>("D")
   const chartData = React.useMemo(
     () =>
@@ -333,8 +336,8 @@ export const CapitalAtRiskTimeline = ({
 
   return (
     <AnalyticsChartCard
-      title="Capital-at-risk timeline"
-      description="Exposure by market state, queued withdrawals, and penalty fees earned."
+      title={t("profile.lender.capitalRiskTimeline")}
+      description={t("profile.lender.exposureMarketStateQueuedWithdrawals")}
       cardHeight={340}
       dialogHeight={560}
       constrainWidth

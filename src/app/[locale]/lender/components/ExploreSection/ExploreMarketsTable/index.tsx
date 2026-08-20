@@ -510,7 +510,7 @@ export const ExploreMarketsTable = () => {
       },
       {
         field: "status",
-        headerName: t("dashboard.markets.tables.header.status"),
+        headerName: t("common.fields.status"),
         minWidth: 100,
         flex: 1,
         headerAlign: "left",
@@ -526,7 +526,7 @@ export const ExploreMarketsTable = () => {
       },
       {
         field: "term",
-        headerName: t("dashboard.markets.tables.header.term"),
+        headerName: t("common.fields.term"),
         minWidth: 100,
         flex: 1,
         headerAlign: "left",
@@ -542,7 +542,7 @@ export const ExploreMarketsTable = () => {
       },
       {
         field: "apr",
-        headerName: t("dashboard.markets.tables.header.apr"),
+        headerName: t("common.fields.apr"),
         minWidth: 100,
         flex: 1,
         headerAlign: "right",
@@ -572,7 +572,7 @@ export const ExploreMarketsTable = () => {
       },
       {
         field: "withdrawalBatchDuration",
-        headerName: t("dashboard.markets.tables.header.withdrawal"),
+        headerName: t("marketList.shared.tables.header.withdrawal"),
         minWidth: 100,
         flex: 1,
         headerAlign: "right",
@@ -585,7 +585,7 @@ export const ExploreMarketsTable = () => {
       },
       {
         field: "asset",
-        headerName: t("dashboard.markets.tables.header.asset"),
+        headerName: t("common.fields.asset"),
         minWidth: 112,
         flex: 0.5,
         headerAlign: "right",
@@ -702,7 +702,7 @@ export const ExploreMarketsTable = () => {
                   color="secondary"
                   endIcon={ActionArrowIcon}
                 >
-                  {t("dashboard.markets.tables.other.depositBTN")}
+                  {t("marketList.shared.tables.other.depositBTN")}
                 </Button>
               )}
               {action === LenderMarketAction.RequestAccess && (
@@ -718,7 +718,7 @@ export const ExploreMarketsTable = () => {
                     color="secondary"
                     endIcon={ActionArrowIcon}
                   >
-                    {t("dashboard.markets.tables.other.requestBTN")}
+                    {t("marketList.shared.tables.other.requestBTN")}
                   </Button>
                 </Link>
               )}
@@ -731,7 +731,7 @@ export const ExploreMarketsTable = () => {
                   disabled
                 >
                   {action === LenderMarketAction.DepositUnavailable
-                    ? t("dashboard.markets.tables.other.depositBTN")
+                    ? t("marketList.shared.tables.other.depositBTN")
                     : "Unavailable"}
                 </Button>
               )}
@@ -777,7 +777,7 @@ export const ExploreMarketsTable = () => {
             <Typography
               sx={{ fontSize: "20px", fontWeight: 500, lineHeight: "26px" }}
             >
-              Top Markets
+              {t("marketList.lender.explore.topMarkets")}
             </Typography>
 
             <Box sx={{ display: "flex", gap: "4px" }}>
@@ -906,7 +906,7 @@ export const ExploreMarketsTable = () => {
                 "&:hover": { bgcolor: COLORS.white06 },
               }}
             >
-              Show more markets
+              {t("marketList.lender.explore.showMoreMarkets")}
             </Button>
           ) : (
             <Button
@@ -923,7 +923,7 @@ export const ExploreMarketsTable = () => {
                 "&:hover": { bgcolor: COLORS.white06 },
               }}
             >
-              Go to All Markets
+              {t("marketList.lender.explore.goAllMarkets")}
             </Button>
           ))}
       </Box>
@@ -939,7 +939,7 @@ export const ExploreMarketsTable = () => {
           marginTop: "16px",
         }}
       >
-        Top Markets
+        {t("marketList.lender.explore.topMarkets")}
       </Typography>
 
       <Box
@@ -985,7 +985,7 @@ export const ExploreMarketsTable = () => {
 
         <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
           <FormControlLabel
-            label="Self-Onboard"
+            label={t("marketList.shared.tables.other.selfOnboard")}
             control={
               <ExtendedCheckbox
                 checked={showSelfOnboard}
@@ -1008,7 +1008,7 @@ export const ExploreMarketsTable = () => {
           />
 
           <FormControlLabel
-            label="Onboard by Borrower"
+            label={t("marketList.shared.tables.other.manual")}
             control={
               <ExtendedCheckbox
                 checked={showOnboardByBorrower}
@@ -1031,7 +1031,7 @@ export const ExploreMarketsTable = () => {
           />
 
           <MarketsFilterSelect
-            placeholder={t("dashboard.markets.filters.assets")}
+            placeholder={t("common.fields.asset")}
             options={
               tokens?.map((token) => ({
                 id: token.address,
@@ -1043,7 +1043,7 @@ export const ExploreMarketsTable = () => {
           />
 
           <MarketsFilterSelect
-            placeholder="Withdrawal Cycle"
+            placeholder={t("common.placeholders.withdrawalCycle")}
             options={withdrawalCycleOptions}
             selected={withdrawalCycles}
             setSelected={setWithdrawalCycles}
@@ -1099,7 +1099,7 @@ export const ExploreMarketsTable = () => {
             variant="contained"
             color="secondary"
           >
-            Go to All Markets
+            {t("marketList.lender.explore.goAllMarkets")}
           </Button>
         )}
       </Box>

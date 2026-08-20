@@ -146,7 +146,7 @@ export const ActiveMarketsTables = ({
   const columns: TypeSafeColDef<ActiveMarketsTableModel>[] = [
     {
       field: "name",
-      headerName: t("dashboard.markets.tables.header.name"),
+      headerName: t("common.fields.marketName"),
       flex: 2,
       minWidth: 200,
       headerAlign: "left",
@@ -194,7 +194,7 @@ export const ActiveMarketsTables = ({
     },
     {
       field: "status",
-      headerName: t("dashboard.markets.tables.header.status"),
+      headerName: t("common.fields.status"),
       minWidth: 100,
       flex: 1,
       headerAlign: "left",
@@ -210,7 +210,7 @@ export const ActiveMarketsTables = ({
     },
     {
       field: "term",
-      headerName: t("dashboard.markets.tables.header.term"),
+      headerName: t("common.fields.term"),
       minWidth: 100,
       flex: 1,
       headerAlign: "left",
@@ -226,7 +226,7 @@ export const ActiveMarketsTables = ({
     },
     {
       field: "apr",
-      headerName: t("dashboard.markets.tables.header.apr"),
+      headerName: t("common.fields.apr"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -253,7 +253,7 @@ export const ActiveMarketsTables = ({
     },
     {
       field: "withdrawalBatchDuration",
-      headerName: t("dashboard.markets.tables.header.withdrawal"),
+      headerName: t("marketList.shared.tables.header.withdrawal"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -266,7 +266,7 @@ export const ActiveMarketsTables = ({
     },
     {
       field: "asset",
-      headerName: t("dashboard.markets.tables.header.asset"),
+      headerName: t("common.fields.asset"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -279,7 +279,7 @@ export const ActiveMarketsTables = ({
     },
     {
       field: "capacityLeft",
-      headerName: t("dashboard.markets.tables.header.capacity"),
+      headerName: t("marketList.shared.tables.header.capacity"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -301,7 +301,7 @@ export const ActiveMarketsTables = ({
     },
     {
       field: "debt",
-      headerName: t("dashboard.markets.tables.header.debt"),
+      headerName: t("common.fields.totalDebt"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -321,7 +321,7 @@ export const ActiveMarketsTables = ({
     },
     {
       field: "loan",
-      headerName: t("dashboard.markets.tables.header.loan"),
+      headerName: t("marketList.shared.tables.header.loan"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
@@ -374,13 +374,13 @@ export const ActiveMarketsTables = ({
     >
       <Box id="deposited" ref={depositedRef}>
         <MarketsTableAccordion
-          label={t("dashboard.markets.tables.borrower.active.deposited")}
+          label={t("marketList.borrower.active.deposited")}
           marketsLength={depositedMarkets.length}
           isLoading={isLoading}
           isOpen
-          noMarketsTitle={t("dashboard.markets.noMarkets.active.title")}
+          noMarketsTitle={t("common.states.noActiveMarkets")}
           noMarketsSubtitle={t(
-            "dashboard.markets.noMarkets.active.lenderSubtitle",
+            "marketList.shared.noMarkets.active.lenderSubtitle",
           )}
           nameFilter={filters.nameFilter}
           assetFilter={filters.assetFilter}
@@ -401,12 +401,12 @@ export const ActiveMarketsTables = ({
 
       <Box id="non-deposited" ref={nonDepositedRef}>
         <MarketsTableAccordion
-          label={t("dashboard.markets.tables.borrower.active.nonDeposited")}
+          label={t("marketList.borrower.active.nonDeposited")}
           isLoading={isLoading}
           isOpen
-          noMarketsTitle={t("dashboard.markets.noMarkets.active.title")}
+          noMarketsTitle={t("common.states.noActiveMarkets")}
           noMarketsSubtitle={t(
-            "dashboard.markets.noMarkets.active.lenderSubtitle",
+            "marketList.shared.noMarkets.active.lenderSubtitle",
           )}
           marketsLength={nonDepositedMarkets.length}
           nameFilter={filters.nameFilter}

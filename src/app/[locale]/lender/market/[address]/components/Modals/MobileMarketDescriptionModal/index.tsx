@@ -1,6 +1,7 @@
 import React, { Dispatch, SetStateAction, useEffect } from "react"
 
 import { Box, Divider } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { Markdown } from "@/components/Markdown"
 import { TransactionHeader } from "@/components/Mobile/TransactionHeader"
@@ -22,6 +23,8 @@ export const MobileMarketDescriptionModal = ({
   isLoading: boolean
   setIsMobileDescriptionOpen?: Dispatch<SetStateAction<boolean>>
 }) => {
+  const { t } = useTranslation()
+
   useEffect(() => {
     if (typeof window === "undefined") return
 
@@ -45,7 +48,7 @@ export const MobileMarketDescriptionModal = ({
       }}
     >
       <TransactionHeader
-        label="Description"
+        label={t("common.fields.description")}
         subLabel={marketName}
         arrowOnClick={() => setIsMobileDescriptionOpen(false)}
         crossOnClick={null}

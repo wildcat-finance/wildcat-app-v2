@@ -16,6 +16,7 @@ import { LendersTab } from "@/app/[locale]/borrower/policy/components/LendersTab
 import { EditLenderFlowStatuses } from "@/app/[locale]/borrower/policy/components/LendersTab/interface"
 import { MarketsTab } from "@/app/[locale]/borrower/policy/components/MarketsTab"
 import { PolicySelect } from "@/app/[locale]/borrower/policy/components/PolicySelect"
+import { POLICY_TYPE_KEY } from "@/constants/i18nKeys"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { CreateMarketSteps } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import {
@@ -97,8 +98,8 @@ export default function PolicyPage() {
   const accessControl = hasActivePullRoleProvider(
     data?.hooksInstance?.roleProviders ?? [],
   )
-    ? t("roleProviders.defaultPullProvider")
-    : t("roleProviders.manualApproval")
+    ? t("marketParameters.roleProviders.defaultPullProvider")
+    : t("marketParameters.roleProviders.manualApproval")
 
   const [tab, setTab] = useState<PolicyTabs>(PolicyTabs.DETAILS)
 
@@ -176,7 +177,9 @@ export default function PolicyPage() {
         }}
       >
         <Box sx={{ display: "flex", gap: "6px", padding: "40px 24px 0" }}>
-          <Typography variant="title2">Policy Info</Typography>
+          <Typography variant="title2">
+            {t("borrower.policies.policyInfo")}
+          </Typography>
 
           <PolicySelect
             policies={policies}
@@ -206,9 +209,21 @@ export default function PolicyPage() {
               backgroundColor: COLORS.athensGrey,
             }}
           />
-          <Tab value={PolicyTabs.DETAILS} label="Details" sx={TabStyle} />
-          <Tab value={PolicyTabs.MARKETS} label="Markets" sx={TabStyle} />
-          <Tab value={PolicyTabs.LENDERS} label="Lenders" sx={TabStyle} />
+          <Tab
+            value={PolicyTabs.DETAILS}
+            label={t("common.fields.details")}
+            sx={TabStyle}
+          />
+          <Tab
+            value={PolicyTabs.MARKETS}
+            label={t("common.placeholders.markets")}
+            sx={TabStyle}
+          />
+          <Tab
+            value={PolicyTabs.LENDERS}
+            label={t("common.placeholders.lenders")}
+            sx={TabStyle}
+          />
           <Box
             sx={{
               width: "100%",
@@ -223,7 +238,9 @@ export default function PolicyPage() {
             <DetailsTab
               name={policyName}
               type={t(
-                `policyType.${data?.hooksInstance?.kind ?? HooksKind.OpenTerm}`,
+                POLICY_TYPE_KEY[
+                  data?.hooksInstance?.kind ?? HooksKind.OpenTerm
+                ],
               )}
               access={accessControl}
               isLoading={isLoading}

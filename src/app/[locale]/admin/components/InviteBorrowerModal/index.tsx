@@ -83,7 +83,7 @@ export const InviteBorrowerModal = () => {
             </TxModalHeader>
             <Box width="100%" padding="24px">
               <TextField
-                label={t("admin.inviteBorrower.addressLabel")}
+                label={t("common.fields.walletAddress")}
                 value={address}
                 onChange={(e) => {
                   setAddress(e.target.value)
@@ -118,7 +118,7 @@ export const InviteBorrowerModal = () => {
         {isError && (
           <ErrorModal
             onClose={handleClose}
-            title={t("admin.inviteBorrower.error.title")}
+            title={t("common.states.error")}
             subtitle={t("admin.inviteBorrower.error.subtitle")}
           />
         )}

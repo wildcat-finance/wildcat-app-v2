@@ -2,9 +2,9 @@ import React, { useEffect } from "react"
 
 import { useLazyQuery } from "@apollo/client"
 import { Box, Chip, Typography } from "@mui/material"
-import { Trans } from "react-i18next"
 import { useDispatch } from "react-redux"
 
+import { Trans } from "@/components/Translation"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { RESERVE_RATIO_BIPS_UPDATEDS } from "@/graphql/queries"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"

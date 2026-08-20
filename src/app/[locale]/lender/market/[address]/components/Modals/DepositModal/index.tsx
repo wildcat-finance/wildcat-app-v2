@@ -33,6 +33,7 @@ import { PeriodicWithdrawalWindowNotice } from "@/components/PeriodicWithdrawalW
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { toastError } from "@/components/Toasts"
 import { TooltipButton } from "@/components/TooltipButton"
+import { Trans } from "@/components/Translation"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
@@ -69,13 +70,13 @@ const BorrowerIdentityDisclosure = ({
 
   const items = [
     {
-      label: t("borrowerProfile.profile.overallInfo.name"),
+      label: t("common.fields.legalName"),
       value: legalName,
     },
     ...(alias
       ? [
           {
-            label: t("borrowerProfile.profile.overallInfo.alias"),
+            label: t("common.fields.alias"),
             value: alias,
           },
         ]
@@ -85,7 +86,7 @@ const BorrowerIdentityDisclosure = ({
   return (
     <Box>
       <Typography variant={isMobile ? "mobText2" : "text1"}>
-        Depositing to the following Borrower:
+        {t("marketDetails.lender.depositingFollowingBorrower")}
       </Typography>
 
       <Box
@@ -643,7 +644,7 @@ export const DepositModal = ({
           }}
         >
           <TransactionHeader
-            label={t("lenderMarketDetails.transactions.deposit.modal.title")}
+            label={t("marketDetails.lender.modals.deposit.title")}
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : handleModalArrowClick
             }
@@ -684,7 +685,7 @@ export const DepositModal = ({
               {isBorrowerPenaltyCheckPending && (
                 <Typography variant="mobText3" color={COLORS.santasGrey}>
                   {t(
-                    "lenderMarketDetails.transactions.deposit.modal.checkingBorrowerHistory",
+                    "marketDetails.lender.modals.deposit.checkingBorrowerHistory",
                   )}
                 </Typography>
               )}
@@ -692,8 +693,8 @@ export const DepositModal = ({
                 <FormControlLabel
                   label={t(
                     borrowerPenaltyVerificationUnavailable
-                      ? "lenderMarketDetails.transactions.deposit.modal.gate.unavailableCheckbox"
-                      : "lenderMarketDetails.transactions.deposit.modal.gate.checkbox",
+                      ? "marketDetails.lender.modals.deposit.gate.unavailableCheckbox"
+                      : "marketDetails.lender.modals.deposit.gate.checkbox",
                   )}
                   sx={{
                     alignItems: "flex-start",
@@ -719,7 +720,7 @@ export const DepositModal = ({
                   {modal.gettingValueStep && (
                     <>
                       <Typography variant="mobText2">
-                        Choose deposit amount
+                        {t("marketDetails.lender.chooseDepositAmount")}
                       </Typography>
 
                       {minimumDeposit && (
@@ -727,7 +728,7 @@ export const DepositModal = ({
                           color={COLORS.santasGrey}
                           variant="mobText3"
                         >
-                          Minimum deposit{" "}
+                          {t("common.labels.minimumDeposit")}{" "}
                           <Typography
                             variant="mobText3"
                             color={COLORS.ultramarineBlue}
@@ -740,7 +741,7 @@ export const DepositModal = ({
                       )}
 
                       <Typography color={COLORS.santasGrey} variant="mobText3">
-                        Available to deposit{" "}
+                        {t("marketDetails.lender.transactions.deposit.title")}{" "}
                         <Typography
                           variant="mobText3"
                           color={COLORS.ultramarineBlue}
@@ -812,10 +813,21 @@ export const DepositModal = ({
                       <DepositAlert
                         text={
                           <Typography variant="mobText3">
-                            This is a fixed-term market: funds are locked until{" "}
-                            <span style={{ textDecoration: "underline" }}>
-                              {formatUtcMaturity(fixedTermMaturity || 0)}
-                            </span>{" "}
+                            <Trans
+                              i18nKey="marketDetails.lender.modals.deposit.fixedTermLock"
+                              values={{
+                                maturity: formatUtcMaturity(
+                                  fixedTermMaturity || 0,
+                                ),
+                              }}
+                              components={{
+                                1: (
+                                  <span
+                                    style={{ textDecoration: "underline" }}
+                                  />
+                                ),
+                              }}
+                            />{" "}
                           </Typography>
                         }
                         icon={
@@ -836,7 +848,9 @@ export const DepositModal = ({
                       <DepositAlert
                         text={
                           <Typography variant="mobText3">
-                            The market can be repaid early to close
+                            {t(
+                              "marketDetails.lender.marketCanRepaidEarlyClose",
+                            )}
                           </Typography>
                         }
                         icon={
@@ -857,7 +871,9 @@ export const DepositModal = ({
                       <DepositAlert
                         text={
                           <Typography variant="mobText3">
-                            The market’s duration can be shorten
+                            {t(
+                              "marketDetails.lender.marketSDurationCanShorten",
+                            )}
                           </Typography>
                         }
                         icon={
@@ -883,22 +899,17 @@ export const DepositModal = ({
                       <DepositAlert
                         text={
                           <Typography variant="mobText3">
-                            You have an existing allowance of{" "}
-                            {market.underlyingToken
-                              .getAmount(marketAccount.underlyingApproval)
-                              .format(
-                                market.underlyingToken.decimals,
-                                true,
-                              )}{" "}
-                            for this market.
+                            {t("modals.shared.allowanceReset.existing", {
+                              amount: market.underlyingToken
+                                .getAmount(marketAccount.underlyingApproval)
+                                .format(market.underlyingToken.decimals, true),
+                            })}
                             <br />
-                            {market.underlyingToken.symbol} requires that
-                            allowances be reset to zero prior to being
-                            increased.
+                            {t("modals.shared.allowanceReset.mustReset", {
+                              token: market.underlyingToken.symbol,
+                            })}
                             <br />
-                            You will be prompted to execute two approval
-                            transactions to first reset and then increase the
-                            allowance for this market.
+                            {t("common.labels.willPromptedExecuteTwoApproval")}
                           </Typography>
                         }
                         icon={
@@ -933,8 +944,8 @@ export const DepositModal = ({
               <TxModalFooter
                 mainBtnText={t(
                   borrowerPenaltyVerificationUnavailable
-                    ? "lenderMarketDetails.transactions.deposit.modal.gate.unavailableButton"
-                    : "lenderMarketDetails.transactions.deposit.modal.gate.button",
+                    ? "marketDetails.lender.modals.deposit.gate.unavailableButton"
+                    : "marketDetails.lender.modals.deposit.gate.button",
                 )}
                 mainBtnOnClick={gate.accept}
                 disableMainBtn={!gate.acknowledged}
@@ -944,7 +955,7 @@ export const DepositModal = ({
             {!gate.gateActive && !isBorrowerPenaltyCheckPending && (
               <TxModalFooter
                 mainBtnText={t(
-                  "lenderMarketDetails.transactions.deposit.button",
+                  "marketDetails.lender.transactions.deposit.button",
                 )}
                 secondBtnText={
                   // eslint-disable-next-line no-nested-ternary
@@ -1038,7 +1049,7 @@ export const DepositModal = ({
               >
                 {isBorrowerPenaltyCheckPending
                   ? "Checking..."
-                  : t("lenderMarketDetails.transactions.deposit.button")}
+                  : t("marketDetails.lender.transactions.deposit.button")}
               </Button>
             </Box>
           </Tooltip>
@@ -1059,7 +1070,7 @@ export const DepositModal = ({
           >
             {isBorrowerPenaltyCheckPending
               ? "Checking..."
-              : t("lenderMarketDetails.transactions.deposit.button")}
+              : t("marketDetails.lender.transactions.deposit.button")}
           </Button>
         )}
 
@@ -1096,9 +1107,7 @@ export const DepositModal = ({
                 }}
               >
                 <TxModalHeader
-                  title={t(
-                    "lenderMarketDetails.transactions.deposit.modal.title",
-                  )}
+                  title={t("marketDetails.lender.modals.deposit.title")}
                   arrowOnClick={
                     modal.hideArrowButton || !showForm
                       ? null
@@ -1145,16 +1154,14 @@ export const DepositModal = ({
                       }}
                     >
                       <Typography variant="text1">
-                        {t(
-                          "lenderMarketDetails.transactions.deposit.modal.gate.heading",
-                        )}
+                        {t("marketDetails.lender.modals.deposit.gate.heading")}
                       </Typography>
 
                       <TooltipButton
                         value={t(
                           borrowerPenaltyVerificationUnavailable
-                            ? "lenderMarketDetails.transactions.deposit.modal.gate.unavailableTooltip"
-                            : "lenderMarketDetails.transactions.deposit.modal.gate.tooltip",
+                            ? "marketDetails.lender.modals.deposit.gate.unavailableTooltip"
+                            : "marketDetails.lender.modals.deposit.gate.tooltip",
                         )}
                       />
                     </Box>
@@ -1162,8 +1169,8 @@ export const DepositModal = ({
                     <FormControlLabel
                       label={t(
                         borrowerPenaltyVerificationUnavailable
-                          ? "lenderMarketDetails.transactions.deposit.modal.gate.unavailableCheckbox"
-                          : "lenderMarketDetails.transactions.deposit.modal.gate.checkbox",
+                          ? "marketDetails.lender.modals.deposit.gate.unavailableCheckbox"
+                          : "marketDetails.lender.modals.deposit.gate.checkbox",
                       )}
                       sx={{ marginBottom: "30px" }}
                       control={
@@ -1192,7 +1199,7 @@ export const DepositModal = ({
                         flexDirection="column"
                       >
                         <Typography variant="text1" sx={{ mb: "6px" }}>
-                          Choose deposit amount
+                          {t("marketDetails.lender.chooseDepositAmount")}
                         </Typography>
 
                         {minimumDeposit && (
@@ -1202,7 +1209,7 @@ export const DepositModal = ({
                             variant="text3"
                             lineHeight="24px"
                           >
-                            Minimum deposit{" "}
+                            {t("common.labels.minimumDeposit")}{" "}
                             <Typography
                               variant="text3"
                               lineHeight="24px"
@@ -1220,7 +1227,7 @@ export const DepositModal = ({
                           variant="text3"
                           lineHeight="24px"
                         >
-                          Available to deposit{" "}
+                          {t("marketDetails.lender.transactions.deposit.title")}{" "}
                           <Typography
                             variant="text3"
                             lineHeight="24px"
@@ -1315,11 +1322,21 @@ export const DepositModal = ({
                         <DepositAlert
                           text={
                             <Typography variant="mobText3">
-                              This is a fixed-term market: funds are locked
-                              until{" "}
-                              <span style={{ textDecoration: "underline" }}>
-                                {formatUtcMaturity(fixedTermMaturity || 0)}
-                              </span>{" "}
+                              <Trans
+                                i18nKey="marketDetails.lender.modals.deposit.fixedTermLock"
+                                values={{
+                                  maturity: formatUtcMaturity(
+                                    fixedTermMaturity || 0,
+                                  ),
+                                }}
+                                components={{
+                                  1: (
+                                    <span
+                                      style={{ textDecoration: "underline" }}
+                                    />
+                                  ),
+                                }}
+                              />{" "}
                             </Typography>
                           }
                           icon={
@@ -1340,7 +1357,9 @@ export const DepositModal = ({
                         <DepositAlert
                           text={
                             <Typography variant="mobText3">
-                              The market can be repaid early to close
+                              {t(
+                                "marketDetails.lender.marketCanRepaidEarlyClose",
+                              )}
                             </Typography>
                           }
                           icon={
@@ -1361,7 +1380,9 @@ export const DepositModal = ({
                         <DepositAlert
                           text={
                             <Typography variant="mobText3">
-                              The market’s duration can be shorten
+                              {t(
+                                "marketDetails.lender.marketSDurationCanShorten",
+                              )}
                             </Typography>
                           }
                           icon={
@@ -1387,22 +1408,22 @@ export const DepositModal = ({
                         <DepositAlert
                           text={
                             <Typography variant="mobText3">
-                              You have an existing allowance of{" "}
-                              {market.underlyingToken
-                                .getAmount(marketAccount.underlyingApproval)
-                                .format(
-                                  market.underlyingToken.decimals,
-                                  true,
-                                )}{" "}
-                              for this market.
+                              {t("modals.shared.allowanceReset.existing", {
+                                amount: market.underlyingToken
+                                  .getAmount(marketAccount.underlyingApproval)
+                                  .format(
+                                    market.underlyingToken.decimals,
+                                    true,
+                                  ),
+                              })}
                               <br />
-                              {market.underlyingToken.symbol} requires that
-                              allowances be reset to zero prior to being
-                              increased.
+                              {t("modals.shared.allowanceReset.mustReset", {
+                                token: market.underlyingToken.symbol,
+                              })}
                               <br />
-                              You will be prompted to execute two approval
-                              transactions to first reset and then increase the
-                              allowance for this market.
+                              {t(
+                                "common.labels.willPromptedExecuteTwoApproval",
+                              )}
                             </Typography>
                           }
                           icon={
@@ -1461,8 +1482,8 @@ export const DepositModal = ({
                 <TxModalFooter
                   mainBtnText={t(
                     borrowerPenaltyVerificationUnavailable
-                      ? "lenderMarketDetails.transactions.deposit.modal.gate.unavailableButton"
-                      : "lenderMarketDetails.transactions.deposit.modal.gate.button",
+                      ? "marketDetails.lender.modals.deposit.gate.unavailableButton"
+                      : "marketDetails.lender.modals.deposit.gate.button",
                   )}
                   mainBtnOnClick={gate.accept}
                   disableMainBtn={!gate.acknowledged}
@@ -1471,7 +1492,7 @@ export const DepositModal = ({
               ) : (
                 <TxModalFooter
                   mainBtnText={t(
-                    "lenderMarketDetails.transactions.deposit.button",
+                    "marketDetails.lender.transactions.deposit.button",
                   )}
                   secondBtnText={
                     // eslint-disable-next-line no-nested-ternary

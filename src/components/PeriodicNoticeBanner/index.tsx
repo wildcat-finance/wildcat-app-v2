@@ -2,6 +2,7 @@ import { ReactNode } from "react"
 
 import type { SxProps, Theme } from "@mui/material"
 import { Box, IconButton, SvgIcon, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import Check from "@/assets/icons/check_icon.svg"
 import Alert from "@/assets/icons/circledAlert_icon.svg"
@@ -71,6 +72,7 @@ export const PeriodicNoticeBanner = ({
   onClose?: () => void
   sx?: SxProps<Theme>
 }) => {
+  const { t } = useTranslation()
   const tones = TONE_STYLES[tone]
   const ToneIcon = tones.icon
 
@@ -144,7 +146,7 @@ export const PeriodicNoticeBanner = ({
 
       {onClose && (
         <IconButton
-          aria-label="dismiss notice"
+          aria-label={t("marketDetails.shared.banners.dismissNotice")}
           onClick={onClose}
           sx={{
             flexShrink: 0,

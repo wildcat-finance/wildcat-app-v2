@@ -23,6 +23,7 @@ import {
 import Clock from "@/assets/icons/clock_icon.svg"
 import { toastError } from "@/components/Toasts"
 import { TooltipButton } from "@/components/TooltipButton"
+import { WITHDRAWAL_UNAVAILABLE_KEY } from "@/constants/i18nKeys"
 import { useDepositAgreementGate } from "@/hooks/useDepositAgreementGate"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useLivePeriodicNowSeconds } from "@/hooks/useLiveNowSeconds"
@@ -215,18 +216,18 @@ export const MobileMarketActions = ({
     periodicTiming && !periodicTiming.isTermClosed
       ? periodicTiming.nextWindowStart
       : undefined
-  let withdrawTooltip = t("lenderMarketDetails.transactions.withdraw.tooltip")
+  let withdrawTooltip = t("marketDetails.lender.transactions.withdraw.tooltip")
 
   if (market.periodicHooksConfig) {
     withdrawTooltip = t(
-      "lenderMarketDetails.transactions.withdraw.periodicTooltip",
+      "marketDetails.lender.transactions.withdraw.periodicTooltip",
     )
   }
 
   if (periodicWindowClosed) {
     const nextWindowStartText = nextPeriodicWindowStart
       ? t(
-          "lenderMarketDetails.transactions.withdraw.periodicWindow.nextStart",
+          "marketDetails.lender.transactions.withdraw.periodicWindow.nextStart",
           {
             date: formatPeriodicWithdrawalWindowStart(nextPeriodicWindowStart),
             countdown: humanizeDuration(
@@ -238,7 +239,7 @@ export const MobileMarketActions = ({
       : undefined
 
     withdrawTooltip = [
-      t("lenderMarketDetails.transactions.withdraw.periodicWindow.closed"),
+      t("marketDetails.lender.transactions.withdraw.periodicWindow.closed"),
       nextWindowStartText,
     ]
       .filter(Boolean)
@@ -283,9 +284,7 @@ export const MobileMarketActions = ({
   const withdrawalUnavailableText =
     withdrawalActionState === "ready"
       ? undefined
-      : t(
-          `lenderMarketDetails.transactions.withdraw.unavailable.${withdrawalActionState}`,
-        )
+      : t(WITHDRAWAL_UNAVAILABLE_KEY[withdrawalActionState])
   const actionState = resolveLenderActionState({
     isConnected,
     isDifferentChain,
@@ -326,7 +325,7 @@ export const MobileMarketActions = ({
     setIsMobileDepositOpen(true)
   }
 
-  let depositTooltip = t("lenderMarketDetails.transactions.deposit.tooltip")
+  let depositTooltip = t("marketDetails.lender.transactions.deposit.tooltip")
   if (touGateState === "blocked") {
     depositTooltip = "Accept the Terms of Use to deposit"
   } else if (touGateState === "unknown") {
@@ -340,7 +339,7 @@ export const MobileMarketActions = ({
       "The borrower must complete the market agreement selection before deposits can begin"
   }
 
-  let depositButtonText = t("lenderMarketDetails.transactions.deposit.button")
+  let depositButtonText = t("marketDetails.lender.transactions.deposit.button")
   if (
     actionState.deposit === "checking-tou" ||
     actionState.deposit === "loading"
@@ -392,7 +391,7 @@ export const MobileMarketActions = ({
           fullWidth
           sx={{ padding: "10px 20px", marginTop: "16px" }}
         >
-          {t("lenderMarketDetails.buttons.viewMla")}
+          {t("marketDetails.lender.buttons.viewMla")}
         </Button>
       </>
     )
@@ -439,7 +438,7 @@ export const MobileMarketActions = ({
           >
             <Box>
               <MobileMarketTransactionItem
-                title="Available To Claim"
+                title={t("marketDetails.lender.availableClaim")}
                 amount={formatTokenWithCommas(withdrawals.totalClaimableAmount)}
                 asset={market.underlyingToken.symbol}
               />
@@ -479,7 +478,7 @@ export const MobileMarketActions = ({
                 }}
               >
                 <MobileMarketTransactionItem
-                  title={t("lenderMarketDetails.transactions.withdraw.title")}
+                  title={t("marketDetails.lender.transactions.withdraw.title")}
                   tooltip={withdrawTooltip}
                   amount={formatTokenWithCommas(combinedAvailable)}
                   asset={market.underlyingToken.symbol}
@@ -492,7 +491,7 @@ export const MobileMarketActions = ({
                       sx={{ color: COLORS.white06, display: "block" }}
                     >
                       {t(
-                        "lenderMarketDetails.transactions.withdraw.splitDirect",
+                        "marketDetails.lender.transactions.withdraw.splitDirect",
                         {
                           amount: formatTokenWithCommas(
                             marketAccount.marketBalance,
@@ -505,7 +504,7 @@ export const MobileMarketActions = ({
                       sx={{ color: COLORS.white06, display: "block" }}
                     >
                       {t(
-                        "lenderMarketDetails.transactions.withdraw.splitWrapped",
+                        "marketDetails.lender.transactions.withdraw.splitWrapped",
                         { amount: formatTokenWithCommas(wrappedAvailable) },
                       )}
                     </Typography>
@@ -526,9 +525,9 @@ export const MobileMarketActions = ({
                   ↑{" "}
                   {withdrawalActionState === "fixed-term"
                     ? t(
-                        "lenderMarketDetails.transactions.withdraw.buttonLocked",
+                        "marketDetails.lender.transactions.withdraw.buttonLocked",
                       )
-                    : t("lenderMarketDetails.transactions.withdraw.button")}
+                    : t("marketDetails.lender.transactions.withdraw.button")}
                 </Button>
 
                 {withdrawalActionState !== "ready" && (
@@ -553,7 +552,7 @@ export const MobileMarketActions = ({
               }}
             >
               <MobileMarketTransactionItem
-                title={t("lenderMarketDetails.transactions.deposit.title")}
+                title={t("marketDetails.lender.transactions.deposit.title")}
                 tooltip={depositTooltip}
                 amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
                 asset={market.underlyingToken.symbol}

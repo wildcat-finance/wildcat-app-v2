@@ -146,7 +146,7 @@ export default function Header() {
               }}
             >
               <Typography variant="text3" fontWeight={500} color={COLORS.white}>
-                Total Value Locked
+                {t("header.totalValueLocked")}
               </Typography>
               <Box
                 sx={{
@@ -202,7 +202,7 @@ export default function Header() {
                 variant="text2Highlighted"
                 sx={{ color: COLORS.white, cursor: "pointer" }}
               >
-                {t("header.role.lender")}
+                {t("common.fields.lender")}
               </Typography>
             </Link>
             <Switch
@@ -232,7 +232,7 @@ export default function Header() {
                 variant="text2Highlighted"
                 sx={{ color: COLORS.white, cursor: "pointer" }}
               >
-                {t("header.role.borrower")}
+                {t("common.labels.borrower")}
               </Typography>
             </Link>
           </Box>

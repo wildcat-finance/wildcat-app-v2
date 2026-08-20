@@ -1,6 +1,7 @@
 "use client"
 
 import { Box } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { useLenderPositions } from "@/app/[locale]/lender/profile/hooks/useLenderPositions"
 import { Footer } from "@/components/Footer"
@@ -31,6 +32,8 @@ export const LenderProfilePage = ({
   profileAddress,
   type,
 }: LenderProfilePageProps) => {
+  const { t } = useTranslation()
+
   const { chainId } = useSelectedNetwork()
   const analyticsAvailable = isSubgraphPricingConfigured(chainId)
 
@@ -63,7 +66,7 @@ export const LenderProfilePage = ({
             padding: "24px",
           }}
         >
-          Failed to load lender profile analytics for this address.
+          {t("profile.lender.failedLoadLenderProfileAnalytics")}
         </Box>
       </Box>
     )
@@ -121,8 +124,8 @@ export const LenderProfilePage = ({
         </>
       ) : (
         <AnalyticsUnavailableNotice
-          title="Lender analytics unavailable on this network"
-          description="This network does not provide the indexed analytics and pricing required for lender positions, cash flow, and interest metrics."
+          title={t("profile.lender.lenderAnalyticsUnavailableNetwork")}
+          description={t("profile.lender.networkDoesNotProvideIndexed")}
         />
       )}
 

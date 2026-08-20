@@ -1,6 +1,7 @@
 "use client"
 
 import { Box, Button, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { useLogin } from "@/hooks/useApiAuth"
@@ -34,6 +35,8 @@ const InvitationState = ({
 )
 
 const BorrowerInvitationPage = () => {
+  const { t } = useTranslation()
+
   const { address } = useAccount()
   const login = useLogin()
   const {
@@ -46,32 +49,32 @@ const BorrowerInvitationPage = () => {
   if (!address) {
     return (
       <InvitationState
-        title="Connect wallet"
-        description="Connect the invited wallet to review and accept your borrower invitation."
+        title={t("common.labels.connectWallet")}
+        description={t("borrower.invitation.connectInvitedWalletReviewAccept")}
       />
     )
   }
   if (isLoadingInvite) {
     return (
       <InvitationState
-        title="Loading invitation"
-        description="Checking whether this wallet has an active borrower invitation."
+        title={t("borrower.invitation.loadingInvitation")}
+        description={t("borrower.invitation.checkingWhetherWalletHasActive")}
       />
     )
   }
   if (!inviteExists) {
     return (
       <InvitationState
-        title="No invitation found"
-        description="This wallet does not currently have a borrower invitation."
+        title={t("borrower.invitation.noInvitationFound")}
+        description={t("borrower.invitation.walletDoesNotCurrentlyHave")}
       />
     )
   }
   if (mustLogin || !invitation) {
     return (
       <InvitationState
-        title="Sign in required"
-        description="Sign in with the invited wallet to view and accept your borrower invitation."
+        title={t("borrower.invitation.signRequired")}
+        description={t("borrower.invitation.signInvitedWalletViewAccept")}
         action={
           <Button
             variant="contained"

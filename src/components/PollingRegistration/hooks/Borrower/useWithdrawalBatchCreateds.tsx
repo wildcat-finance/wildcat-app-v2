@@ -2,10 +2,10 @@ import { useEffect, useState } from "react"
 
 import { useLazyQuery } from "@apollo/client"
 import { Chip, SvgIcon } from "@mui/material"
-import { Trans } from "react-i18next"
 import { useDispatch } from "react-redux"
 
 import Clock from "@/assets/icons/clock_icon.svg"
+import { Trans } from "@/components/Translation"
 import { lazyQueryOptions } from "@/config/subgraph"
 import { WITHDRAWAL_BATCH_CREATEDS } from "@/graphql/queries"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"

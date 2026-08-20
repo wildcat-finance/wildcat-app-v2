@@ -17,6 +17,7 @@ import { PeriodicWithdrawalWindowNotice } from "@/components/PeriodicWithdrawalW
 import { toastError } from "@/components/Toasts"
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
+import { WITHDRAWAL_UNAVAILABLE_KEY } from "@/constants/i18nKeys"
 import { useDepositAgreementGate } from "@/hooks/useDepositAgreementGate"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useLivePeriodicNowSeconds } from "@/hooks/useLiveNowSeconds"
@@ -136,9 +137,7 @@ export const MarketActions = ({
   const withdrawalUnavailableText =
     withdrawalActionState === "ready"
       ? undefined
-      : t(
-          `lenderMarketDetails.transactions.withdraw.unavailable.${withdrawalActionState}`,
-        )
+      : t(WITHDRAWAL_UNAVAILABLE_KEY[withdrawalActionState])
 
   const ongoingCount = (
     withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
@@ -166,7 +165,7 @@ export const MarketActions = ({
 
     if (!isOngoingWDsZero) {
       parts.push(
-        t("lenderMarketDetails.transactions.withdrawalsAlert.title.ongoing", {
+        t("marketDetails.lender.withdrawalsAlert.title.ongoing", {
           count: ongoingCount,
         }),
       )
@@ -174,18 +173,15 @@ export const MarketActions = ({
 
     if (!isOutstandingZero) {
       parts.push(
-        t(
-          "lenderMarketDetails.transactions.withdrawalsAlert.title.outstanding",
-          {
-            count: outstandingCount,
-          },
-        ),
+        t("marketDetails.lender.withdrawalsAlert.title.outstanding", {
+          count: outstandingCount,
+        }),
       )
     }
 
     if (!isClaimableZero) {
       parts.push(
-        t("lenderMarketDetails.transactions.withdrawalsAlert.title.claim", {
+        t("marketDetails.lender.withdrawalsAlert.title.claim", {
           claimableAmount: `${formatTokenWithCommas(
             withdrawals.totalClaimableAmount,
           )} ${market.underlyingToken.symbol}`,
@@ -194,12 +190,9 @@ export const MarketActions = ({
     }
 
     if (parts.length === 0) {
-      return t(
-        "lenderMarketDetails.transactions.withdrawalsAlert.title.noClaim",
-        {
-          claim: "nothing",
-        },
-      )
+      return t("marketDetails.lender.withdrawalsAlert.title.noClaim", {
+        claim: "nothing",
+      })
     }
 
     return parts.join(" · ")
@@ -219,7 +212,7 @@ export const MarketActions = ({
           onClick={() => handleAddToken()}
           disabled={isAddingToken && canAddToken}
         >
-          {t("lenderMarketDetails.buttons.addToken")}
+          {t("marketDetails.lender.buttons.addToken")}
         </Button>
 
         <LenderMlaModal mla={mla} isLoading={mlaLoading} />
@@ -256,7 +249,7 @@ export const MarketActions = ({
             <TelegramIcon />
           </SvgIcon>
 
-          {t("helpModal.items.telegram.botButton")}
+          {t("modals.shared.help.telegram.botButton")}
         </Button>
       </Box>
 
@@ -266,8 +259,8 @@ export const MarketActions = ({
         <Box sx={TransactionsContainer}>
           {accessState === "authorized" && (
             <TransactionBlock
-              title={t("lenderMarketDetails.transactions.deposit.title")}
-              tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
+              title={t("marketDetails.lender.transactions.deposit.title")}
+              tooltip={t("marketDetails.lender.transactions.deposit.tooltip")}
               amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
               asset={market.underlyingToken.symbol}
             >
@@ -291,7 +284,7 @@ export const MarketActions = ({
                   return (
                     <Box sx={DepositStatusContainer}>
                       <Typography variant="text3" color={COLORS.santasGrey}>
-                        Couldn&apos;t load agreement data
+                        {t("marketDetails.lender.couldnTLoadAgreementData")}
                       </Typography>
                       <Button
                         variant="contained"
@@ -302,7 +295,7 @@ export const MarketActions = ({
                           agreementGate.retry().catch(() => undefined)
                         }}
                       >
-                        Retry agreement data
+                        {t("marketDetails.lender.retryAgreementData")}
                       </Button>
                     </Box>
                   )
@@ -312,11 +305,10 @@ export const MarketActions = ({
                   return (
                     <Box sx={DepositStatusContainer}>
                       <Typography variant="text3" sx={{ fontWeight: 600 }}>
-                        Agreement Selection Required
+                        {t("marketDetails.lender.agreementSelectionRequired")}
                       </Typography>
                       <Typography variant="text4" color={COLORS.santasGrey}>
-                        The borrower must complete this market&apos;s agreement
-                        selection before deposits can begin.
+                        {t("marketDetails.lender.borrowerMustCompleteMarketS")}
                       </Typography>
                     </Box>
                   )
@@ -326,10 +318,12 @@ export const MarketActions = ({
                   return (
                     <Box sx={DepositStatusContainer}>
                       <Typography variant="text3" sx={{ fontWeight: 600 }}>
-                        Loan Agreement Signature Required
+                        {t(
+                          "marketDetails.lender.loanAgreementSignatureRequired",
+                        )}
                       </Typography>
                       <Typography variant="text4" color={COLORS.santasGrey}>
-                        Sign the MLA before depositing into this market.
+                        {t("marketDetails.lender.signMlaBeforeDepositingInto")}
                       </Typography>
                     </Box>
                   )
@@ -349,11 +343,11 @@ export const MarketActions = ({
           )}
 
           <TransactionBlock
-            title={t("lenderMarketDetails.transactions.withdraw.title")}
+            title={t("marketDetails.lender.transactions.withdraw.title")}
             tooltip={t(
               market.periodicHooksConfig
-                ? "lenderMarketDetails.transactions.withdraw.periodicTooltip"
-                : "lenderMarketDetails.transactions.withdraw.tooltip",
+                ? "marketDetails.lender.transactions.withdraw.periodicTooltip"
+                : "marketDetails.lender.transactions.withdraw.tooltip",
             )}
             amount={
               isTooSmallMarketBalance
@@ -363,7 +357,7 @@ export const MarketActions = ({
             asset={market.underlyingToken.symbol}
             subtitle={
               hasWrappedPosition && wrappedAvailable
-                ? t("lenderMarketDetails.transactions.withdraw.split", {
+                ? t("marketDetails.lender.transactions.withdraw.split", {
                     direct: formatTokenWithCommas(marketAccount.marketBalance),
                     wrapped: formatTokenWithCommas(wrappedAvailable),
                   })
@@ -400,7 +394,7 @@ export const MarketActions = ({
         <Typography variant="title3">{getWithdrawalsStatus()}</Typography>
         {isClaimableZero && (
           <Typography variant="text3" color={COLORS.santasGrey} marginTop="8px">
-            {t("lenderMarketDetails.transactions.withdrawalsAlert.subtitle")}
+            {t("marketDetails.lender.withdrawalsAlert.subtitle")}
           </Typography>
         )}
 
@@ -421,9 +415,7 @@ export const MarketActions = ({
                 sx={{ width: "fit-content" }}
                 onClick={handleChangeSection}
               >
-                {t(
-                  "lenderMarketDetails.transactions.withdrawalsAlert.buttons.withdrawals",
-                )}
+                {t("common.buttons.goToWithdrawals")}
               </Button>
             )}
 

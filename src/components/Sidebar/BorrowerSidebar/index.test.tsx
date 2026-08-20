@@ -13,6 +13,9 @@ jest.mock("next/navigation", () => ({
   useRouter: () => ({ back: backMock, push: pushMock }),
   useSearchParams: () => ({ get: searchParamsGetMock }),
 }))
+jest.mock("react-i18next", () => ({
+  useTranslation: () => ({ t: (key: string) => key }),
+}))
 jest.mock("@/assets/icons/backArrow_icon.svg", () => ({
   __esModule: true,
   default: () => null,
@@ -47,7 +50,7 @@ describe("BorrowerSidebar back navigation", () => {
     setHistoryLength(2)
     render(<BorrowerSidebar />)
 
-    fireEvent.click(screen.getByRole("button", { name: "Back" }))
+    fireEvent.click(screen.getByRole("button", { name: "common.buttons.back" }))
 
     expect(backMock).toHaveBeenCalledTimes(1)
     expect(pushMock).not.toHaveBeenCalled()
@@ -57,7 +60,7 @@ describe("BorrowerSidebar back navigation", () => {
     setHistoryLength(1)
     render(<BorrowerSidebar />)
 
-    fireEvent.click(screen.getByRole("button", { name: "Back" }))
+    fireEvent.click(screen.getByRole("button", { name: "common.buttons.back" }))
 
     expect(backMock).not.toHaveBeenCalled()
     expect(pushMock).toHaveBeenCalledWith("/lender")

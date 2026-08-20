@@ -142,9 +142,7 @@ export const MarketTransactions = ({
   const pendingAprExecutionError =
     pendingAprExecutionErrorStatus ===
     PeriodicAprSettlementStatus.ExecutionNotEnabled
-      ? t(
-          "borrowerMarketDetails.parameters.pendingPeriodicApr.executionNotEnabled",
-        )
+      ? t("marketParameters.pendingPeriodicApr.executionNotEnabled")
       : pendingAprExecutionErrorStatus
   const aprDisplay = getMarketAprDisplayBips(market)
   const currentAprFormatted = formatBps(
@@ -169,20 +167,20 @@ export const MarketTransactions = ({
   const pendingAprNoticeKey = (() => {
     if (!pendingPeriodicAprChange) return undefined
     if (!pendingPeriodicAprChange.isResponseWindowElapsed) {
-      return "borrowerMarketDetails.parameters.pendingPeriodicApr.pendingNotice"
+      return "marketParameters.pendingPeriodicApr.pendingNotice"
     }
     if (pendingAprNeedsSettlement) {
       if (pendingAprSettlementQuote?.needsRepayment) {
-        return "borrowerMarketDetails.parameters.pendingPeriodicApr.settlementNotice"
+        return "marketParameters.pendingPeriodicApr.settlementNotice"
       }
       return (pendingAprSettlementQuote?.remainingBatchesAfterThisPass ?? 0) > 0
-        ? "borrowerMarketDetails.parameters.pendingPeriodicApr.settlementNoticeMultiPass"
-        : "borrowerMarketDetails.parameters.pendingPeriodicApr.settlementNoticeZero"
+        ? "marketParameters.pendingPeriodicApr.settlementNoticeMultiPass"
+        : "marketParameters.pendingPeriodicApr.settlementNoticeZero"
     }
     if (pendingAprExecutionError) {
-      return "borrowerMarketDetails.parameters.pendingPeriodicApr.blockedNotice"
+      return "marketParameters.pendingPeriodicApr.blockedNotice"
     }
-    return "borrowerMarketDetails.parameters.pendingPeriodicApr.readyNotice"
+    return "marketParameters.pendingPeriodicApr.readyNotice"
   })()
   const pendingAprNotice =
     pendingAprNoticeKey && pendingAprFormatted
@@ -250,10 +248,10 @@ export const MarketTransactions = ({
       {holdTheMarket && (
         <Box sx={MarketTxUpperButtonsContainer}>
           {/* <Button variant="outlined" color="secondary" size="small"> */}
-          {/*  {t("borrowerMarketDetails.buttons.kyc")} */}
+          {/*  {t("marketDetails.borrower.buttons.kyc")} */}
           {/* </Button> */}
           {/* <Button variant="outlined" color="secondary" size="small"> */}
-          {/*  {t("borrowerMarketDetails.buttons.mla")} */}
+          {/*  {t("marketDetails.borrower.buttons.mla")} */}
           {/* </Button> */}
           <CapacityModal marketAccount={marketAccount} />
           <AprModal marketAccount={marketAccount} />
@@ -294,7 +292,7 @@ export const MarketTransactions = ({
               <TelegramIcon />
             </SvgIcon>
 
-            {t("helpModal.items.telegram.botButton")}
+            {t("modals.shared.help.telegram.botButton")}
           </Button>
         </Box>
       )}
@@ -314,19 +312,16 @@ export const MarketTransactions = ({
           }}
         >
           <Typography variant="text3" sx={{ color: COLORS.butteredRum }}>
-            {t(
-              "borrowerMarketDetails.parameters.tempReserveRatio.borrowerExpiredNotice",
-              {
-                currentRatio: currentRatioFormatted,
-                originalRatio: originalRatioFormatted,
-              },
-            )}{" "}
+            {t("marketParameters.tempReserveRatio.borrowerExpiredNotice", {
+              currentRatio: currentRatioFormatted,
+              originalRatio: originalRatioFormatted,
+            })}{" "}
             <Link
               href={EXTERNAL_LINKS.DOCS_REDUCING_APR}
               target="_blank"
               style={{ color: COLORS.butteredRum, fontWeight: 600 }}
             >
-              {t("borrowerMarketDetails.modals.apr.learnMore")}
+              {t("common.buttons.learnMore")}
             </Link>
           </Typography>
         </Box>
@@ -345,20 +340,17 @@ export const MarketTransactions = ({
           }}
         >
           <Typography variant="text3" sx={{ color: COLORS.blackRock }}>
-            {t(
-              "borrowerMarketDetails.parameters.tempReserveRatio.borrowerActiveNotice",
-              {
-                currentRatio: currentRatioFormatted,
-                originalRatio: originalRatioFormatted,
-                expiry: tempReserveRatioExpiry,
-              },
-            )}{" "}
+            {t("marketParameters.tempReserveRatio.borrowerActiveNotice", {
+              currentRatio: currentRatioFormatted,
+              originalRatio: originalRatioFormatted,
+              expiry: tempReserveRatioExpiry,
+            })}{" "}
             <Link
               href={EXTERNAL_LINKS.DOCS_REDUCING_APR}
               target="_blank"
               style={{ color: COLORS.blackRock, fontWeight: 600 }}
             >
-              {t("borrowerMarketDetails.modals.apr.learnMore")}
+              {t("common.buttons.learnMore")}
             </Link>
           </Typography>
         </Box>
@@ -370,13 +362,10 @@ export const MarketTransactions = ({
         dismissedAprNoticeKey !== aprNoticeDismissKey && (
           <PeriodicNoticeBanner
             tone="info"
-            title={t(
-              "borrowerMarketDetails.parameters.pendingPeriodicApr.bannerTitle",
-              {
-                currentApr: currentAprFormatted,
-                proposedApr: pendingAprFormatted,
-              },
-            )}
+            title={t("marketParameters.pendingPeriodicApr.bannerTitle", {
+              currentApr: currentAprFormatted,
+              proposedApr: pendingAprFormatted,
+            })}
             body={pendingAprNotice}
             onClose={() => setDismissedAprNoticeKey(aprNoticeDismissKey)}
             sx={{ mb: "24px" }}
@@ -392,16 +381,14 @@ export const MarketTransactions = ({
                 >
                   {(() => {
                     if (isPendingAprSettlement) {
-                      return t(
-                        "borrowerMarketDetails.parameters.pendingPeriodicApr.settling",
-                      )
+                      return t("marketParameters.pendingPeriodicApr.settling")
                     }
                     if (
                       (pendingAprSettlementQuote?.remainingBatchesAfterThisPass ??
                         0) > 0
                     ) {
                       return t(
-                        "borrowerMarketDetails.parameters.pendingPeriodicApr.processBatchesProgress",
+                        "marketParameters.pendingPeriodicApr.processBatchesProgress",
                         {
                           perPass: pendingAprSettlementQuote?.maxBatches,
                           total: pendingAprSettlementQuote?.unpaidBatchCount,
@@ -409,12 +396,8 @@ export const MarketTransactions = ({
                       )
                     }
                     return pendingAprSettlementQuote?.needsRepayment
-                      ? t(
-                          "borrowerMarketDetails.parameters.pendingPeriodicApr.settleAndApply",
-                        )
-                      : t(
-                          "borrowerMarketDetails.parameters.pendingPeriodicApr.processBatches",
-                        )
+                      ? t("marketParameters.pendingPeriodicApr.settleAndApply")
+                      : t("marketParameters.pendingPeriodicApr.processBatches")
                   })()}
                 </Button>
               ) : (
@@ -426,12 +409,8 @@ export const MarketTransactions = ({
                   onClick={handleExecutePendingAprChange}
                 >
                   {isPendingAprSettlement
-                    ? t(
-                        "borrowerMarketDetails.parameters.pendingPeriodicApr.executing",
-                      )
-                    : t(
-                        "borrowerMarketDetails.parameters.pendingPeriodicApr.execute",
-                      )}
+                    ? t("marketParameters.pendingPeriodicApr.executing")
+                    : t("marketParameters.pendingPeriodicApr.execute")}
                 </Button>
               ))
             }
@@ -441,13 +420,10 @@ export const MarketTransactions = ({
       {showAppliedAprNotice && (
         <PeriodicNoticeBanner
           tone="success"
-          title={t(
-            "borrowerMarketDetails.parameters.pendingPeriodicApr.appliedNoticeTitle",
-          )}
-          body={t(
-            "borrowerMarketDetails.parameters.pendingPeriodicApr.appliedNotice",
-            { currentApr: currentAprFormatted },
-          )}
+          title={t("marketParameters.pendingPeriodicApr.appliedNoticeTitle")}
+          body={t("marketParameters.pendingPeriodicApr.appliedNotice", {
+            currentApr: currentAprFormatted,
+          })}
           onClose={() => setIsAppliedNoticeDismissed(true)}
           sx={{ mb: "24px" }}
         />
@@ -455,8 +431,8 @@ export const MarketTransactions = ({
 
       <Box sx={MarketTxContainer}>
         <TransactionBlock
-          title={t("borrowerMarketDetails.transactions.toRepay.title")}
-          tooltip={t("borrowerMarketDetails.transactions.toRepay.tooltip")}
+          title={t("marketDetails.borrower.transactions.toRepay.title")}
+          tooltip={t("marketDetails.borrower.transactions.toRepay.tooltip")}
           amount={
             isTooSmallOutstandingDebt
               ? "< 0.00001"
@@ -474,8 +450,8 @@ export const MarketTransactions = ({
         </TransactionBlock>
 
         <TransactionBlock
-          title={t("borrowerMarketDetails.transactions.toBorrow.title")}
-          tooltip={t("borrowerMarketDetails.transactions.toBorrow.tooltip")}
+          title={t("common.fields.availableToBorrow")}
+          tooltip={t("marketDetails.borrower.transactions.toBorrow.tooltip")}
           amount={formatTokenWithCommas(marketAccount.market.borrowableAssets)}
           asset={market.underlyingToken.symbol}
         >
@@ -495,7 +471,7 @@ export const MarketTransactions = ({
 
           <Box sx={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             <Typography variant="title3">
-              {t("borrowerMarketDetails.transactions.ongoingWDs.title", {
+              {t("marketDetails.borrower.transactions.ongoingWDs.title", {
                 count: ongoingWDs,
               })}
             </Typography>
@@ -507,7 +483,7 @@ export const MarketTransactions = ({
               sx={{ width: "fit-content" }}
               onClick={handleClickWithdrawals}
             >
-              {t("borrowerMarketDetails.transactions.ongoingWDs.button")}
+              {t("common.buttons.goToWithdrawals")}
             </Button>
           </Box>
         </>

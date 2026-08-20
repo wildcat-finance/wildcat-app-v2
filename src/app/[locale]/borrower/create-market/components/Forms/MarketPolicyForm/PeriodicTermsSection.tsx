@@ -91,7 +91,7 @@ export const PeriodicTermsSection = ({
         }}
       >
         <Typography variant="text3">
-          {t("createNewMarket.policy.periodic.sectionTitle")}
+          {t("borrower.createMarket.policy.periodic.sectionTitle")}
         </Typography>
 
         <ToggleButtonGroup
@@ -132,15 +132,17 @@ export const PeriodicTermsSection = ({
         }}
       >
         <InputLabel
-          label={t("createNewMarket.policy.periodic.firstWindowStart.label")}
+          label={t(
+            "borrower.createMarket.policy.periodic.firstWindowStart.label",
+          )}
           tooltipText={t(
-            "createNewMarket.policy.periodic.firstWindowStart.glossary",
+            "marketParameters.periodicTerm.firstWindowStartTooltip",
           )}
         >
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DesktopDateTimePicker
               label={t(
-                "createNewMarket.policy.periodic.firstWindowStart.placeholder",
+                "borrower.createMarket.policy.periodic.firstWindowStart.placeholder",
               )}
               format="DD/MM/YYYY HH:mm"
               value={
@@ -229,14 +231,14 @@ export const PeriodicTermsSection = ({
         </InputLabel>
 
         <InputLabel
-          label={t("createNewMarket.policy.periodic.periodDuration.label")}
+          label={t("common.fields.withdrawalPeriod")}
           tooltipText={t(
-            "createNewMarket.policy.periodic.periodDuration.glossary",
+            "borrower.createMarket.policy.periodic.periodDuration.glossary",
           )}
         >
           <NumberTextField
             label={t(
-              "createNewMarket.policy.periodic.periodDuration.placeholder",
+              "borrower.createMarket.policy.periodic.periodDuration.placeholder",
             )}
             value={secondsToDurationInput(periodDurationWatch, unitSeconds)}
             error={Boolean(errors.periodDuration)}
@@ -261,16 +263,14 @@ export const PeriodicTermsSection = ({
         </InputLabel>
 
         <InputLabel
-          label={t(
-            "createNewMarket.policy.periodic.withdrawalWindowDuration.label",
-          )}
+          label={t("common.fields.withdrawalWindow")}
           tooltipText={t(
-            "createNewMarket.policy.periodic.withdrawalWindowDuration.glossary",
+            "borrower.createMarket.policy.periodic.withdrawalWindowDuration.glossary",
           )}
         >
           <NumberTextField
             label={t(
-              "createNewMarket.policy.periodic.withdrawalWindowDuration.placeholder",
+              "borrower.createMarket.policy.periodic.withdrawalWindowDuration.placeholder",
             )}
             value={secondsToDurationInput(
               withdrawalWindowDurationWatch,

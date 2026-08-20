@@ -104,7 +104,9 @@ export const TableSelect = ({
 
   return (
     <FormControl fullWidth>
-      <InputLabel sx={InputLabelStyle}>Add market</InputLabel>
+      <InputLabel sx={InputLabelStyle}>
+        {t("common.labels.addMarket")}
+      </InputLabel>
 
       <Select
         value={lenderMarkets}

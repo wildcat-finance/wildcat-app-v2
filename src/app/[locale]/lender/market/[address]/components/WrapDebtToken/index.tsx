@@ -11,6 +11,7 @@ import {
   WrapperFactory,
   toSafeTransactionInput,
 } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 import { zeroAddress } from "viem"
 
 import { toastRequest } from "@/components/Toasts"
@@ -45,6 +46,8 @@ export const WrapDebtToken = ({
   isAuthorizedLender,
   isDifferentChain,
 }: WrapDebtTokenProps) => {
+  const { t } = useTranslation()
+
   const { targetChainId } = useCurrentNetwork()
   const { signer } = useEthersProvider({ chainId: market?.chainId })
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
@@ -135,7 +138,7 @@ export const WrapDebtToken = ({
     <Box>
       {!isAuthorizedLender && (
         <Typography variant="text3" color={COLORS.manate}>
-          Only authorized lenders can access the wrapper.
+          {t("marketDetails.lender.onlyAuthorizedLendersCanAccess")}
         </Typography>
       )}
 

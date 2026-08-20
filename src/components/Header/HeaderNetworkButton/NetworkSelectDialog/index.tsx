@@ -87,7 +87,7 @@ export const NetworkSelectDialog = ({
 
         {network.isTestnet && (
           <Chip
-            label="Testnet"
+            label={t("header.testnet")}
             variant="filled"
             sx={{
               backgroundColor: COLORS.hawkesBlue,

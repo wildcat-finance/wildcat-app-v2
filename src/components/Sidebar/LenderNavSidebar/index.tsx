@@ -98,7 +98,7 @@ export const LenderNavSidebar = () => {
           <SvgIcon sx={{ marginRight: "10px" }}>
             <ExploreIcon />
           </SvgIcon>
-          <Typography variant="text2">Explore</Typography>
+          <Typography variant="text2">{t("nav.explore")}</Typography>
         </Box>
       </Box>
 
@@ -115,7 +115,7 @@ export const LenderNavSidebar = () => {
               <MyMarketsIcon />
             </SvgIcon>
             <Typography variant="text2" sx={{ marginRight: "6px" }}>
-              My Markets
+              {t("common.labels.myMarkets")}
             </Typography>
             <Typography variant="text2" color={COLORS.santasGrey}>
               {myMarketsCount !== 0 ? activeMarketsAmount : null}
@@ -134,7 +134,7 @@ export const LenderNavSidebar = () => {
               }}
             >
               <DashboardSectionAccordion
-                label="Active Markets"
+                label={t("common.fields.activeMarkets")}
                 amount={activeMarketsAmount}
                 open={marketSection === LenderMarketDashboardSections.ACTIVE}
                 onClick={() =>
@@ -144,23 +144,19 @@ export const LenderNavSidebar = () => {
                 }
               >
                 <DashboardButton
-                  label={t(
-                    "dashboard.markets.tables.borrower.active.deposited",
-                  )}
+                  label={t("marketList.borrower.active.deposited")}
                   amount={depositedAmount}
                   onClick={() => dispatch(setScrollTarget("deposited"))}
                 />
                 <DashboardButton
-                  label={t(
-                    "dashboard.markets.tables.borrower.active.nonDeposited",
-                  )}
+                  label={t("marketList.borrower.active.nonDeposited")}
                   amount={nonDepositedAmount}
                   onClick={() => dispatch(setScrollTarget("non-deposited"))}
                 />
               </DashboardSectionAccordion>
 
               <DashboardSectionAccordion
-                label="Terminated Markets"
+                label={t("common.fields.terminatedMarkets")}
                 amount={closedMarketsAmount}
                 open={
                   marketSection === LenderMarketDashboardSections.TERMINATED
@@ -172,16 +168,12 @@ export const LenderNavSidebar = () => {
                 }
               >
                 <DashboardButton
-                  label={t(
-                    "dashboard.markets.tables.borrower.closed.prevActive",
-                  )}
+                  label={t("marketList.borrower.closed.prevActive")}
                   amount={prevActiveAmount}
                   onClick={() => dispatch(setScrollTarget("prev-active"))}
                 />
                 <DashboardButton
-                  label={t(
-                    "dashboard.markets.tables.borrower.closed.neverActive",
-                  )}
+                  label={t("marketList.borrower.closed.neverActive")}
                   amount={neverActiveAmount}
                   onClick={() => dispatch(setScrollTarget("never-active"))}
                 />
@@ -203,7 +195,7 @@ export const LenderNavSidebar = () => {
             <AllMarketsIcon />
           </SvgIcon>
           <Typography variant="text2" sx={{ marginRight: "6px" }}>
-            All Markets
+            {t("common.fields.allMarkets")}
           </Typography>
           <Typography variant="text2" color={COLORS.santasGrey}>
             {allMarketsCount !== 0 ? allMarketsCount : null}
@@ -222,22 +214,22 @@ export const LenderNavSidebar = () => {
             }}
           >
             <DashboardSectionAccordion
-              label={t("dashboard.markets.tables.other.title")}
+              label={t("marketList.shared.tables.other.title")}
               amount={allMarketsCount}
               open
             >
               <DashboardButton
-                label={t("dashboard.markets.tables.other.selfOnboard")}
+                label={t("marketList.shared.tables.other.selfOnboard")}
                 amount={selfOnboardAmount}
                 onClick={() => dispatch(setScrollTarget("self-onboard"))}
               />
               <DashboardButton
-                label={t("dashboard.markets.tables.other.manual")}
+                label={t("marketList.shared.tables.other.manual")}
                 amount={manualAmount}
                 onClick={() => dispatch(setScrollTarget("manual"))}
               />
               <DashboardButton
-                label={t("dashboard.markets.tables.other.terminated")}
+                label={t("marketList.shared.tables.other.terminated")}
                 amount={terminatedOtherAmount}
                 onClick={() => dispatch(setScrollTarget("other-terminated"))}
               />

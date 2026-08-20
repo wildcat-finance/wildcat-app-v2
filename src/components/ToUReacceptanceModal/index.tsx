@@ -12,6 +12,7 @@ import {
   useTheme,
 } from "@mui/material"
 import { usePathname, useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { useBorrowerInvitationExists } from "@/app/[locale]/borrower/hooks/useBorrowerInvitation"
@@ -58,6 +59,8 @@ const formatChipDate = (iso: string) => dayjs(iso).utc().format("DD MMM YYYY")
 /// state - that bypasses the session dismissal without erasing it, and adds
 /// read-only views for signedCurrent accounts and first-time Lenders.
 export const ToUReacceptanceModal = () => {
+  const { t } = useTranslation()
+
   const theme = useTheme()
   const pathname = usePathname()
   const router = useRouter()
@@ -195,7 +198,7 @@ export const ToUReacceptanceModal = () => {
         }}
       >
         <TxModalHeader
-          title="Terms of Use"
+          title={t("common.labels.termsUse")}
           arrowOnClick={null}
           crossOnClick={() => dispatch(setTouModalOpen(false))}
         />
@@ -221,8 +224,7 @@ export const ToUReacceptanceModal = () => {
           ) : (
             <>
               <Typography variant="text3" color={COLORS.santasGrey}>
-                Couldn&apos;t verify your Terms of Use status. Check your
-                connection and selected network, then retry.
+                {t("agreement.reacceptance.couldnTVerifyTermsUse")}
               </Typography>
               <Button
                 variant="contained"
@@ -232,7 +234,7 @@ export const ToUReacceptanceModal = () => {
                   if (shouldCheckBorrowerInvitation) refetchInvitation()
                 }}
               >
-                Retry
+                {t("common.buttons.retry")}
               </Button>
             </>
           )}
@@ -393,7 +395,8 @@ export const ToUReacceptanceModal = () => {
         {((!isReadOnly && !needsBorrowerInvitation) || view === "decline") &&
           signingAs && (
             <Typography variant="text3" color={COLORS.blackRock}>
-              <strong>Signing as:</strong> {signingAs}
+              <strong>{t("agreement.reacceptance.signingAs")}</strong>{" "}
+              {signingAs}
             </Typography>
           )}
 
@@ -491,14 +494,14 @@ export const ToUReacceptanceModal = () => {
               onClick={viewFullTerms}
               sx={{ cursor: "pointer", alignSelf: "center" }}
             >
-              View full terms
+              {t("agreement.reacceptance.viewFullTerms")}
             </Typography>
           </>
         )}
 
         {view === "decline" && (
           <TextField
-            label="Reason (optional)"
+            label={t("agreement.reacceptance.reasonOptional")}
             multiline
             minRows={2}
             fullWidth
@@ -529,7 +532,7 @@ export const ToUReacceptanceModal = () => {
             onClick={handleDismiss}
             fullWidth
           >
-            Close
+            {t("common.buttons.close")}
           </Button>
         )}
 
@@ -540,7 +543,7 @@ export const ToUReacceptanceModal = () => {
             onClick={viewFullTerms}
             fullWidth
           >
-            Review Terms of Use
+            {t("common.buttons.reviewTermsUse")}
           </Button>
         )}
 
@@ -554,7 +557,7 @@ export const ToUReacceptanceModal = () => {
             }}
             fullWidth
           >
-            Complete Borrower Invitation
+            {t("agreement.reacceptance.completeBorrowerInvitation")}
           </Button>
         )}
 
@@ -578,7 +581,7 @@ export const ToUReacceptanceModal = () => {
                 disabled={isBusy || isWrongNetwork}
                 fullWidth
               >
-                Decline
+                {t("common.buttons.decline")}
               </Button>
             )}
           </>
@@ -594,7 +597,7 @@ export const ToUReacceptanceModal = () => {
               disabled={isBusy}
               fullWidth
             >
-              Back
+              {t("common.buttons.back")}
             </Button>
             <Button
               variant="contained"

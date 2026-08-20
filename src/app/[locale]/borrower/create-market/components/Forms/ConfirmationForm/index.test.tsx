@@ -88,7 +88,7 @@ describe("ConfirmationForm access-control signature guard", () => {
     expect(
       (
         screen.getByRole("button", {
-          name: "createNewMarket.buttons.deploy",
+          name: "borrower.createMarket.buttons.deploy",
         }) as HTMLButtonElement
       ).disabled,
     ).toBe(false)
@@ -100,18 +100,18 @@ describe("ConfirmationForm access-control signature guard", () => {
 
     expect(screen.getByText("Borrower Operated Allowlist")).toBeTruthy()
     expect(
-      screen.getByText("createNewMarket.confirm.alertParamsChanged"),
+      screen.getByText("borrower.createMarket.confirm.alertParamsChanged"),
     ).toBeTruthy()
 
     const deployButton = screen.getByRole("button", {
-      name: "createNewMarket.buttons.deploy",
+      name: "borrower.createMarket.buttons.deploy",
     }) as HTMLButtonElement
     expect(deployButton.disabled).toBe(true)
     fireEvent.click(deployButton)
     expect(handleDeploy).not.toHaveBeenCalled()
 
     const signButton = screen.getByRole("button", {
-      name: "createNewMarket.buttons.signMlaRefusal",
+      name: "borrower.createMarket.buttons.signMlaRefusal",
     }) as HTMLButtonElement
     expect(signButton.disabled).toBe(false)
     fireEvent.click(signButton)

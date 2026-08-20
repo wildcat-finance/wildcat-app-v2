@@ -48,7 +48,7 @@ export const ToUStatusBlock = ({
     return (
       <Box sx={containerSx}>
         <Typography variant={getTitleVariant()} sx={titleSx}>
-          {t("borrowerProfile.profile.touStatus.title")}
+          {t("common.labels.termsUse")}
         </Typography>
         <Box sx={{ marginTop: isPage ? "24px" : "16px" }}>
           {[0, 1, 2].map((row) => (
@@ -79,22 +79,22 @@ export const ToUStatusBlock = ({
 
   const items: { title: string; value: string; valueTitle?: string }[] = [
     {
-      title: t("borrowerProfile.profile.touStatus.acceptedVersion"),
+      title: t("borrower.profile.view.touStatus.acceptedVersion"),
       value: accepted
         ? formatServiceAgreementVersionLabel(accepted.version)
-        : t("borrowerProfile.profile.touStatus.notAccepted"),
+        : t("borrower.profile.view.touStatus.notAccepted"),
       valueTitle: accepted?.version,
     },
     ...(accepted
       ? [
           {
-            title: t("borrowerProfile.profile.touStatus.acceptedOn"),
+            title: t("borrower.profile.view.touStatus.acceptedOn"),
             value: dayjs(accepted.acceptedAt).utc().format("DD-MMM-YYYY HH:mm"),
           },
         ]
       : []),
     {
-      title: t("borrowerProfile.profile.touStatus.currentVersion"),
+      title: t("borrower.profile.view.touStatus.currentVersion"),
       value: formatServiceAgreementVersionLabel(current.version),
       valueTitle: current.version,
     },
@@ -111,7 +111,7 @@ export const ToUStatusBlock = ({
   return (
     <Box sx={containerSx}>
       <Typography variant={getTitleVariant()} sx={titleSx}>
-        {t("borrowerProfile.profile.touStatus.title")}
+        {t("common.labels.termsUse")}
       </Typography>
 
       <Box sx={{ marginTop: isPage ? "24px" : "16px" }}>
@@ -137,7 +137,7 @@ export const ToUStatusBlock = ({
           onClick={handleDownload}
           sx={{ marginTop: "16px" }}
         >
-          {t("borrowerProfile.profile.touStatus.download")}
+          {t("borrower.profile.view.touStatus.download")}
         </Button>
       )}
     </Box>

@@ -1,3 +1,22 @@
-if git diff --cached --name-only -- .npmrc .nvmrc package.json package-lock.json scripts/check-exact-versions.mjs .github/workflows/commitlint.yml | grep -q .; then
+if git diff --cached --name-only -- .npmrc .nvmrc package.json package-lock.json scripts/check-exact-versions.mjs .github/workflows/commitlint.yml .github/workflows/i18n.yml | grep -q .; then
   node scripts/check-exact-versions.mjs --staged || exit 1
+fi
+
+# Fast feedback for the i18n gates; .github/workflows/i18n.yml is the real
+# guarantee. Both run in about a second, so this only fires when the commit could
+# actually affect them, and it stays quiet unless something is wrong.
+#
+if git diff --cached --name-only -- src scripts/i18n | grep -q .; then
+  if ! git diff --quiet -- scripts/i18n; then
+    printf '%s\n' 'pre-commit: stage or revert changes to scripts/i18n before running the staged locale gates.'
+    exit 1
+  fi
+
+  for gate in i18n:check i18n:verify; do
+    if ! out=$(npm run --silent "$gate" -- --staged 2>&1); then
+      printf '%s\n' "$out"
+      printf '\npre-commit: %s failed. Fix it, or commit with --no-verify and fix it before pushing.\n' "$gate"
+      exit 1
+    fi
+  done
 fi

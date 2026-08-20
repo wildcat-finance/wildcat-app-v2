@@ -37,7 +37,7 @@ export const RevolvingFinancialForm = ({
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("createNewMarket.financial.title")}
+        {t("borrower.createMarket.financial.title")}
       </Typography>
 
       <Box
@@ -47,10 +47,7 @@ export const RevolvingFinancialForm = ({
         }}
       >
         <CapacityField form={form} tokenAsset={tokenAsset} />
-        <BaseAprField
-          form={form}
-          label={t("createNewMarket.financial.baseAPR.labelRevolving")}
-        />
+        <BaseAprField form={form} label={t("common.fields.utilizationApr")} />
         <PenaltyAprField form={form} />
         <ReserveRatioField form={form} />
         <CommitmentFeeField form={form} />

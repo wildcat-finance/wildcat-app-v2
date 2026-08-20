@@ -10,6 +10,7 @@ import {
   Typography,
 } from "@mui/material"
 import { Market } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import {
   CHART_PALETTE,
@@ -243,41 +244,51 @@ const SizeModeToggle = ({
 }: {
   value: TreemapSizeMode
   onChange: (value: TreemapSizeMode) => void
-}) => (
-  <ToggleButtonGroup
-    exclusive
-    size="small"
-    value={value}
-    onChange={(_, nextValue: TreemapSizeMode | null) => {
-      if (nextValue) onChange(nextValue)
-    }}
-    sx={{
-      "& .MuiToggleButton-root": {
-        minWidth: 74,
-        borderColor: COLORS.athensGrey,
-        color: COLORS.santasGrey,
-        typography: "text4",
-        padding: "4px 8px",
-        textTransform: "none",
-      },
-      "& .MuiToggleButton-root:focus-visible": {
-        outline: `2px solid ${COLORS.ultramarineBlue}`,
-        outlineOffset: "2px",
-      },
-      "& .Mui-selected": {
-        backgroundColor: `${COLORS.ultramarineBlue}14 !important`,
-        color: `${COLORS.ultramarineBlue} !important`,
-      },
-    }}
-  >
-    <ToggleButton value="capacity" aria-label="Size by capacity">
-      Capacity
-    </ToggleButton>
-    <ToggleButton value="supply" aria-label="Size by supply">
-      Supply
-    </ToggleButton>
-  </ToggleButtonGroup>
-)
+}) => {
+  const { t } = useTranslation()
+
+  return (
+    <ToggleButtonGroup
+      exclusive
+      size="small"
+      value={value}
+      onChange={(_, nextValue: TreemapSizeMode | null) => {
+        if (nextValue) onChange(nextValue)
+      }}
+      sx={{
+        "& .MuiToggleButton-root": {
+          minWidth: 74,
+          borderColor: COLORS.athensGrey,
+          color: COLORS.santasGrey,
+          typography: "text4",
+          padding: "4px 8px",
+          textTransform: "none",
+        },
+        "& .MuiToggleButton-root:focus-visible": {
+          outline: `2px solid ${COLORS.ultramarineBlue}`,
+          outlineOffset: "2px",
+        },
+        "& .Mui-selected": {
+          backgroundColor: `${COLORS.ultramarineBlue}14 !important`,
+          color: `${COLORS.ultramarineBlue} !important`,
+        },
+      }}
+    >
+      <ToggleButton
+        value="capacity"
+        aria-label={t("profile.treemap.sizeBy.capacity")}
+      >
+        {t("common.fields.capacity")}
+      </ToggleButton>
+      <ToggleButton
+        value="supply"
+        aria-label={t("profile.treemap.sizeBy.supply")}
+      >
+        {t("common.fields.supply")}
+      </ToggleButton>
+    </ToggleButtonGroup>
+  )
+}
 
 const TerminatedToggle = ({
   showTerminated,
@@ -285,39 +296,45 @@ const TerminatedToggle = ({
 }: {
   showTerminated: boolean
   onChange: (showTerminated: boolean) => void
-}) => (
-  <ToggleButton
-    selected={!showTerminated}
-    value="hide-terminated"
-    size="small"
-    onChange={() => onChange(!showTerminated)}
-    aria-label="Hide terminated markets"
-    sx={{
-      minWidth: 110,
-      borderColor: COLORS.athensGrey,
-      color: COLORS.santasGrey,
-      typography: "text4",
-      padding: "4px 8px",
-      textTransform: "none",
-      "&.Mui-selected": {
-        backgroundColor: `${COLORS.ultramarineBlue}14 !important`,
-        color: `${COLORS.ultramarineBlue} !important`,
-      },
-      "&:focus-visible": {
-        outline: `2px solid ${COLORS.ultramarineBlue}`,
-        outlineOffset: "2px",
-      },
-    }}
-  >
-    Hide terminated
-  </ToggleButton>
-)
+}) => {
+  const { t } = useTranslation()
+
+  return (
+    <ToggleButton
+      selected={!showTerminated}
+      value="hide-terminated"
+      size="small"
+      onChange={() => onChange(!showTerminated)}
+      aria-label={t("profile.treemap.hideTerminated.ariaLabel")}
+      sx={{
+        minWidth: 110,
+        borderColor: COLORS.athensGrey,
+        color: COLORS.santasGrey,
+        typography: "text4",
+        padding: "4px 8px",
+        textTransform: "none",
+        "&.Mui-selected": {
+          backgroundColor: `${COLORS.ultramarineBlue}14 !important`,
+          color: `${COLORS.ultramarineBlue} !important`,
+        },
+        "&:focus-visible": {
+          outline: `2px solid ${COLORS.ultramarineBlue}`,
+          outlineOffset: "2px",
+        },
+      }}
+    >
+      {t("profile.treemap.hideTerminated.label")}
+    </ToggleButton>
+  )
+}
 
 export const BorrowerMarketsTreemap = ({
   markets,
   priceMap,
   isLoading,
 }: BorrowerMarketsTreemapProps) => {
+  const { t } = useTranslation()
+
   const [sizeMode, setSizeMode] = React.useState<TreemapSizeMode>("capacity")
   const [showTerminated, setShowTerminated] = React.useState(true)
   const visibleMarkets = React.useMemo(
@@ -338,14 +355,14 @@ export const BorrowerMarketsTreemap = ({
   if (!isLoading && data.length === 0) {
     return (
       <Typography variant="text2" color={COLORS.santasGrey}>
-        No markets found for this borrower on the selected network.
+        {t("profile.noMarketsFoundBorrowerSelected")}
       </Typography>
     )
   }
 
   return (
     <AnalyticsChartCard
-      title="Borrower market map"
+      title={t("profile.borrowerMarketMap")}
       actions={
         <>
           <TerminatedToggle

@@ -20,6 +20,7 @@ import Cross from "@/assets/icons/cross_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
 import { FilterTextField } from "@/components/FilterTextfield"
 import { LendersMarketChip } from "@/components/LendersMarketChip"
+import { POLICY_TYPE_KEY } from "@/constants/i18nKeys"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
 import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
@@ -109,7 +110,7 @@ export const PoliciesSection = ({
           style={{ ...LinkCell, justifyContent: "flex-start" }}
         >
           <Typography variant="text3">
-            {t(`policyType.${params.row.type}`)}
+            {t(POLICY_TYPE_KEY[params.row.type as HooksKind])}
           </Typography>
         </Link>
       ),
@@ -177,14 +178,16 @@ export const PoliciesSection = ({
         }}
       >
         <Box sx={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-          <Typography variant="title2">Policies</Typography>
+          <Typography variant="title2">
+            {t("common.fields.policies")}
+          </Typography>
           <Typography variant="text3" color={COLORS.santasGrey}>
-            Common agreement for several markets.{" "}
+            {t("marketList.borrower.commonAgreementSeveralMarkets")}{" "}
             <Link
               href="https://docs.wildcat.finance/"
               style={{ color: COLORS.santasGrey }}
             >
-              Learn more
+              {t("common.buttons.learnMore")}
             </Link>
           </Typography>
         </Box>
@@ -202,11 +205,11 @@ export const PoliciesSection = ({
         <FilterTextField
           value={policyName}
           setValue={setPolicyName}
-          placeholder="Search by Name"
+          placeholder={t("common.placeholders.searchByName")}
         />
 
         <SmallFilterSelect
-          placeholder="Markets"
+          placeholder={t("common.placeholders.markets")}
           options={marketsOptions ?? []}
           selected={marketsFilter}
           setSelected={setMarketsFilter}
@@ -222,7 +225,9 @@ export const PoliciesSection = ({
           }}
         >
           <Box display="flex" columnGap="4px">
-            <Typography variant="text3">Policies</Typography>
+            <Typography variant="text3">
+              {t("common.fields.policies")}
+            </Typography>
             <Typography variant="text3" color={COLORS.santasGrey}>
               {isPoliciesLoading ? "Are Loading..." : rows.length}
             </Typography>

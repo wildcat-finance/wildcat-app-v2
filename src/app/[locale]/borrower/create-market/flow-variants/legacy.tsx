@@ -18,32 +18,32 @@ const getGlossaryItems = (
 
   return [
     {
-      title: t("createNewMarket.financial.maxCapacity.label"),
-      description: t("createNewMarket.financial.maxCapacity.glossary"),
+      title: t("borrower.createMarket.financial.maxCapacity.label"),
+      description: t("common.labels.maximumLimitFundsBorrowersCan"),
     },
     {
-      title: t("createNewMarket.financial.baseAPR.label"),
-      description: t("createNewMarket.financial.baseAPR.glossary"),
+      title: t("common.fields.baseApr"),
+      description: t("borrower.createMarket.financial.baseAPR.glossary"),
     },
     {
-      title: t("createNewMarket.financial.penaltyAPR.label"),
-      description: t("createNewMarket.financial.penaltyAPR.glossary"),
+      title: t("common.fields.penaltyApr"),
+      description: t("borrower.createMarket.financial.penaltyAPR.glossary"),
     },
     {
-      title: t("createNewMarket.financial.ratio.label"),
-      description: t("createNewMarket.financial.ratio.glossary"),
+      title: t("common.fields.reserveRatio"),
+      description: t("common.labels.requiredPercentageMarketFundsMust"),
     },
     {
-      title: t("createNewMarket.periods.grace.label"),
-      description: t("createNewMarket.periods.grace.glossary"),
+      title: t("borrower.createMarket.periods.grace.label"),
+      description: t("common.labels.durationBorrowersHaveResolveReserve"),
     },
     {
-      title: t("createNewMarket.periods.wdCycle.label"),
-      description: t("createNewMarket.periods.wdCycle.glossary"),
+      title: t("common.fields.withdrawalCycleDuration"),
+      description: t("common.labels.fixedPeriodDuringWhichWithdrawal"),
     },
     {
-      title: t("createNewMarket.financial.minDeposit.label"),
-      description: t("createNewMarket.financial.minDeposit.glossary"),
+      title: t("common.fields.minimumDeposit"),
+      description: t("borrower.createMarket.financial.minDeposit.glossary"),
     },
   ]
 }

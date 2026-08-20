@@ -3,6 +3,7 @@
 import * as React from "react"
 
 import { Box, Skeleton } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import {
   BorrowerCapitalCostPoint,
@@ -532,6 +533,8 @@ export const BorrowerChartsTab = ({
   isAnalyticsLoading,
   analyticsAvailable,
 }: BorrowerChartsTabProps) => {
+  const { t } = useTranslation()
+
   const [capitalCostPeriod, setCapitalCostPeriod] =
     React.useState<ChartPeriod>("D")
   const marketIds = analytics?.marketIds ?? []
@@ -618,7 +621,7 @@ export const BorrowerChartsTab = ({
 
     return (
       <AnalyticsChartCard
-        title="Delinquency cure velocity"
+        title={t("profile.borrower.delinquencyCureVelocity")}
         description={`Each dot is a recovered delinquency. Color shows liquidity gap; red rings mark penalty events. ${descriptionParts}.`}
         cardHeight={340}
         dialogHeight={560}
@@ -656,8 +659,8 @@ export const BorrowerChartsTab = ({
 
     return (
       <AnalyticsChartCard
-        title="Cost of capital and APR drift"
-        description="Interest, protocol fees, delinquency fees, and effective APR."
+        title={t("profile.borrower.costCapitalAprDrift")}
+        description={t("profile.borrower.interestProtocolFeesDelinquencyFees")}
         cardHeight={340}
         dialogHeight={560}
         constrainWidth
@@ -685,8 +688,8 @@ export const BorrowerChartsTab = ({
 
   return (
     <AnalyticsSectionCard
-      title="Borrower charts"
-      subtitle="Cure speed and realized capital cost across this borrower."
+      title={t("profile.borrower.borrowerCharts")}
+      subtitle={t("profile.borrower.cureSpeedRealizedCapitalCost")}
     >
       <Box
         sx={{

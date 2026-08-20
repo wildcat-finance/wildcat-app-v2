@@ -5,6 +5,7 @@ import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
 import Clock from "@/assets/icons/clock_icon.svg"
+import { MARKET_TYPE_CHIP_KEY } from "@/constants/i18nKeys"
 import { useLiveNowSeconds } from "@/hooks/useLiveNowSeconds"
 import { COLORS } from "@/theme/colors"
 import {
@@ -68,13 +69,13 @@ export const MarketTypeChip = ({
     const timing = getPeriodicScheduleTiming(periodicWindow, nowSec)
     periodicChipConfig = timing.isOpen
       ? {
-          label: t("marketTypeChip.windowOpen"),
+          label: t("marketParameters.marketTypeChip.windowOpen"),
           backgroundColor: COLORS.oasis,
           color: COLORS.butteredRum,
         }
       : {
           // Compact ("5m") — verbose units overflow the table type column.
-          label: t("marketTypeChip.windowOpensIn", {
+          label: t("marketParameters.marketTypeChip.windowOpensIn", {
             duration: formatCompactDuration(timing.nextWindowStart - nowSec, 1),
           }),
           backgroundColor: COLORS.whiteSmoke,
@@ -84,7 +85,7 @@ export const MarketTypeChip = ({
 
   const tableLabel = isFixedTerm
     ? chipTimeLabel
-    : periodicChipConfig?.label ?? t(`marketTypeChip.kind.${kind}`)
+    : periodicChipConfig?.label ?? t(MARKET_TYPE_CHIP_KEY[kind])
 
   let additionalChipConfig
 
@@ -128,7 +129,7 @@ export const MarketTypeChip = ({
     <Box sx={{ display: "flex", gap: "4px 2px", flexWrap: "wrap" }}>
       <Chip
         icon={<ClockIcon />}
-        label={t(`marketTypeChip.kind.${kind}`)}
+        label={t(MARKET_TYPE_CHIP_KEY[kind])}
         sx={{
           backgroundColor: COLORS.blackHaze,
           color:

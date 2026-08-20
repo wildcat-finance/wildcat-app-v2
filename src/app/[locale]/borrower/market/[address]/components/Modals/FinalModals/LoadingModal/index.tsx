@@ -1,7 +1,6 @@
 import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
-import { Trans } from "react-i18next"
 
 import {
   FinalModalContentContainer,
@@ -11,6 +10,7 @@ import {
 } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/style"
 import { LinkGroup } from "@/components/LinkComponent"
 import { Loader } from "@/components/Loader"
+import { Trans } from "@/components/Translation"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 
 export const LoadingModal = ({
@@ -35,12 +35,12 @@ export const LoadingModal = ({
           <Box sx={FinalModalTypoBox}>
             <Typography variant="text1">
               {title ?? (
-                <Trans i18nKey="borrowerMarketDetails.modals.loading.title" />
+                <Trans i18nKey="marketDetails.borrower.modals.loading.title" />
               )}
             </Typography>
             <Typography variant="text3" sx={FinalModalSubtitle}>
               {subtitle ?? (
-                <Trans i18nKey="borrowerMarketDetails.modals.loading.subtitle" />
+                <Trans i18nKey="marketDetails.borrower.modals.loading.subtitle" />
               )}
             </Typography>
           </Box>

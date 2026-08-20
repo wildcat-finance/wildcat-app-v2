@@ -202,7 +202,7 @@ export function PaginatedMarketRecordsTable({
         }}
       >
         <Typography variant="mobH3" marginTop="12px">
-          {t("lenderMarketDetails.sidebar.marketHistory")}
+          {t("marketDetails.shared.sidebar.marketHistory")}
         </Typography>
 
         <Box sx={{ marginTop: "8px" }}>
@@ -269,7 +269,7 @@ export function PaginatedMarketRecordsTable({
             <FilterTextField
               value={search}
               setValue={setSearch}
-              placeholder="Search by ID"
+              placeholder={t("marketDetails.shared.records.searchId")}
               width="100%"
             />
           </Box>
@@ -296,7 +296,7 @@ export function PaginatedMarketRecordsTable({
         >
           <Box sx={{ padding: "6px 0 6px 10px" }}>
             <FormControlLabel
-              label="All types"
+              label={t("marketDetails.shared.records.allTypes")}
               control={
                 <ExtendedCheckbox
                   checked={allSelected}
@@ -352,7 +352,7 @@ export function PaginatedMarketRecordsTable({
             color="secondary"
             sx={{ width: "100%", marginTop: "12px" }}
           >
-            Reset
+            {t("common.buttons.reset")}
           </Button>
         </Popover>
 
@@ -395,7 +395,7 @@ export function PaginatedMarketRecordsTable({
       >
         <Box sx={{ padding: "6px 0 6px 10px" }}>
           <FormControlLabel
-            label="All types"
+            label={t("marketDetails.shared.records.allTypes")}
             control={
               <ExtendedCheckbox
                 checked={allSelected}
@@ -449,14 +449,14 @@ export function PaginatedMarketRecordsTable({
           color="secondary"
           sx={{ width: "100%", marginTop: "12px" }}
         >
-          Reset
+          {t("common.buttons.reset")}
         </Button>
       </Popover>
 
       <FilterTextField
         value={search}
         setValue={setSearch}
-        placeholder="Search by ID"
+        placeholder={t("marketDetails.shared.records.searchId")}
         width="180px"
       />
 
@@ -481,7 +481,11 @@ export function PaginatedMarketRecordsTable({
       >
         {startEventIndex !== undefined && (
           <Typography variant="text3">
-            Showing recent records {startEventIndex} to {endEventIndex}
+            {t("marketDetails.shared.records.showingRecentRecords")}{" "}
+            {t("marketDetails.shared.records.range", {
+              from: startEventIndex,
+              to: endEventIndex,
+            })}
           </Typography>
         )}
         {/*      <div className="flex gap-x-4 items-center flex-row">

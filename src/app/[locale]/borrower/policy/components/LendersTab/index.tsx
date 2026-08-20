@@ -122,7 +122,7 @@ export const LendersTab = ({
           value={lendersFilter}
           onChange={handleChangeLendersFilter}
           size="small"
-          placeholder="Search"
+          placeholder={t("common.buttons.search")}
           sx={{
             width: "220px",
 
@@ -172,7 +172,7 @@ export const LendersTab = ({
         {isSelfOnboardPolicy ? (
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Typography variant="text3" color={COLORS.santasGrey}>
-              {t("policy.lenders.selfOnboardNotice")}
+              {t("borrower.policies.lenders.selfOnboardNotice")}
             </Typography>
           </Box>
         ) : (

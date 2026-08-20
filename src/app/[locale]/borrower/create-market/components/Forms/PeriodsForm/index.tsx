@@ -70,7 +70,7 @@ export const PeriodsForm = ({ form }: PeriodsFormProps) => {
   return (
     <Box sx={FormContainer}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("createNewMarket.periods.title")}
+        {t("borrower.createMarket.periods.title")}
       </Typography>
 
       <Box
@@ -80,30 +80,30 @@ export const PeriodsForm = ({ form }: PeriodsFormProps) => {
           gridTemplateRows: "repeat(1, 1fr)",
         }}
       >
-        <InputLabel label={t("createNewMarket.periods.grace.label")}>
+        <InputLabel label={t("borrower.createMarket.periods.grace.label")}>
           <NumberTextField
-            label={t("createNewMarket.periods.grace.placeholder")}
+            label={t("common.placeholders.range0to2160")}
             value={delinquencyGracePeriodWatch}
             error={Boolean(errors.delinquencyGracePeriod)}
             helperText={errors.delinquencyGracePeriod?.message}
             endAdornment={
               <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-                {t("createNewMarket.periods.grace.chip")}
+                {t("common.units.hours")}
               </Typography>
             }
             {...register("delinquencyGracePeriod")}
           />
         </InputLabel>
 
-        <InputLabel label={t("createNewMarket.periods.wdCycle.label")}>
+        <InputLabel label={t("common.fields.withdrawalCycleDuration")}>
           <NumberTextField
-            label={t("createNewMarket.periods.wdCycle.placeholder")}
+            label={t("common.placeholders.range0to2160")}
             value={withdrawalBatchDurationWatch}
             error={Boolean(errors.withdrawalBatchDuration)}
             helperText={errors.withdrawalBatchDuration?.message}
             endAdornment={
               <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-                {t("createNewMarket.periods.wdCycle.chip")}
+                {t("common.units.hours")}
               </Typography>
             }
             {...register("withdrawalBatchDuration")}

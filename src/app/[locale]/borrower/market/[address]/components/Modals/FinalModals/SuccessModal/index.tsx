@@ -2,7 +2,6 @@ import * as React from "react"
 
 import { Box, IconButton, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
-import { Trans } from "react-i18next"
 
 import {
   FinalModalCloseButton,
@@ -15,6 +14,7 @@ import {
 import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import { LinkGroup } from "@/components/LinkComponent"
+import { Trans } from "@/components/Translation"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 
 export const SuccessModal = ({
@@ -50,12 +50,12 @@ export const SuccessModal = ({
           <Box sx={FinalModalTypoBox}>
             <Typography variant="title3">
               {title ?? (
-                <Trans i18nKey="borrowerMarketDetails.modals.success.title" />
+                <Trans i18nKey="marketDetails.borrower.modals.success.title" />
               )}
             </Typography>
             <Typography variant="text3" sx={FinalModalSubtitle}>
               {subtitle ?? (
-                <Trans i18nKey="borrowerMarketDetails.modals.success.subtitle" />
+                <Trans i18nKey="marketDetails.borrower.modals.success.subtitle" />
               )}
             </Typography>
           </Box>

@@ -37,7 +37,7 @@ export const MarketSummary = ({
   if (!marketSummary?.description || marketSummary?.description === "") {
     return (
       <Typography variant="text2" color={COLORS.santasGrey}>
-        {t("lenderMarketDetails.description.states.noDescription")}
+        {t("common.states.noMarketDescription")}
       </Typography>
     )
   }

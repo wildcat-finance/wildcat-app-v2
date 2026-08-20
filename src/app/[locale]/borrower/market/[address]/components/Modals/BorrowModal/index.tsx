@@ -184,7 +184,7 @@ export const BorrowModal = ({
               (touActionBlocked && !touRetryAvailable)
             }
           >
-            {t("borrowerMarketDetails.modals.borrow.borrow")}
+            {t("marketDetails.borrower.modals.borrow.borrow")}
           </Button>
         </span>
       </Tooltip>
@@ -196,7 +196,7 @@ export const BorrowModal = ({
       >
         {showForm && (
           <TxModalHeader
-            title="Borrow"
+            title={t("marketDetails.borrower.modals.borrow.borrow")}
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
             }
@@ -209,7 +209,7 @@ export const BorrowModal = ({
             {modal.approvedStep && (
               <Box sx={TxModalInfoItem} marginBottom="8px">
                 <Typography variant="text3" sx={TxModalInfoTitle}>
-                  {t("borrowerMarketDetails.modals.borrow.borrowSum")}
+                  {t("marketDetails.borrower.modals.borrow.borrowSum")}
                 </Typography>
                 <Typography variant="text3">
                   {amount} {market.underlyingToken.symbol}
@@ -219,9 +219,9 @@ export const BorrowModal = ({
 
             <Box sx={TxModalInfoItem} marginBottom="8px">
               <Typography variant="text3" sx={TxModalInfoTitle}>
-                {t("borrowerMarketDetails.modals.borrow.availableToBorrow")}
+                {t("common.fields.availableToBorrow")}
                 {modal.approvedStep &&
-                  t("borrowerMarketDetails.modals.borrow.afterTransaction")}
+                  t("marketDetails.borrower.modals.borrow.afterTransaction")}
               </Typography>
               <Typography variant="text3">
                 {formatTokenWithCommas(
@@ -240,9 +240,9 @@ export const BorrowModal = ({
               : !!remainingInterest) && (
               <Box sx={TxModalInfoItem} marginBottom="20px">
                 <Typography variant="text3" sx={TxModalInfoTitle}>
-                  {t("borrowerMarketDetails.modals.borrow.interestRemaining")}
+                  {t("marketDetails.borrower.modals.borrow.interestRemaining")}
                   {modal.approvedStep &&
-                    t("borrowerMarketDetails.modals.borrow.afterTransaction")}
+                    t("marketDetails.borrower.modals.borrow.afterTransaction")}
                 </Typography>
                 <Typography variant="text3">
                   {modal.approvedStep

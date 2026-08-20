@@ -206,11 +206,11 @@ export const SharedConfirmationForm = ({
   return (
     <Box sx={{ ...FormContainer, width: "71.5%", paddingBottom: "24px" }}>
       <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("createNewMarket.confirm.title")}
+        {t("common.labels.confirmation")}
       </Typography>
 
       <Typography variant="text4" sx={SubtitleStyle}>
-        {t("createNewMarket.policy.title")}
+        {t("borrower.createMarket.policy.title")}
       </Typography>
 
       <Box
@@ -220,25 +220,25 @@ export const SharedConfirmationForm = ({
         }}
       >
         <ConfirmationFormItem
-          label={t("createNewMarket.policy.policy.label")}
+          label={t("borrower.createMarket.policy.title")}
           value={isNewPolicy ? "NEW POLICY" : "EXISTING POLICY"}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.policy.name.label")}
+          label={t("common.fields.policyName")}
           value={policyNameValue}
         />
         <ConfirmationFormItem
-          label={t("createNewMarket.policy.implementation.label")}
+          label={t("borrower.createMarket.policy.implementation.label")}
           value={implementationTypeValue || ""}
         />
         <ConfirmationFormItem
-          label={t("createNewMarket.policy.type.label")}
+          label={t("common.fields.marketTerm")}
           value={marketTypeValue || ""}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.policy.access.label")}
+          label={t("borrower.createMarket.policy.access.label")}
           value={accessControlValue ?? "-"}
         />
       </Box>
@@ -246,7 +246,7 @@ export const SharedConfirmationForm = ({
       <Divider sx={DividerStyle} />
 
       <Typography variant="text4" sx={SubtitleStyle}>
-        {t("createNewMarket.basic.title")}
+        {t("borrower.createMarket.basic.title")}
       </Typography>
 
       <Box
@@ -256,17 +256,17 @@ export const SharedConfirmationForm = ({
         }}
       >
         <ConfirmationFormItem
-          label={t("createNewMarket.basic.asset.label")}
+          label={t("common.fields.underlyingAsset")}
           value={tokenAsset?.name || ""}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.basic.tokenName.label")}
+          label={t("borrower.createMarket.basic.tokenName.label")}
           value={`${getValues("namePrefix")} ${tokenAsset?.name}`}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.basic.tokenSymbol.label")}
+          label={t("common.fields.marketTokenSymbol")}
           value={`${getValues("symbolPrefix")}${tokenAsset?.symbol}`}
         />
       </Box>
@@ -284,7 +284,7 @@ export const SharedConfirmationForm = ({
             }}
           >
             <Typography variant="text4" sx={{ textTransform: "uppercase" }}>
-              {t("createNewMarket.mla.title")}
+              {t("borrower.createMarket.mla.title")}
             </Typography>
 
             {/* <Button
@@ -293,7 +293,7 @@ export const SharedConfirmationForm = ({
               size="small"
               sx={{ width: "fit-content" }}
             >
-              {t("createNewMarket.buttons.viewMLA")}
+              {t("borrower.createMarket.buttons.viewMLA")}
             </Button> */}
             <PreviewMlaModal
               form={form}
@@ -307,7 +307,7 @@ export const SharedConfirmationForm = ({
               sx={{ width: "fit-content" }}
               modalButtonVariant="contained"
               modalButtonSize="small"
-              buttonText={t("createNewMarket.buttons.viewMLA")}
+              buttonText={t("borrower.createMarket.buttons.viewMLA")}
               showSignButton={false}
               isClosed={actionsLocked}
             />
@@ -320,7 +320,7 @@ export const SharedConfirmationForm = ({
       {isFixedTerm && (
         <>
           <Typography variant="text4" sx={SubtitleStyle}>
-            {t("createNewMarket.confirm.typeTerms")}
+            {t("common.fields.marketTerm")}
           </Typography>
 
           <Box
@@ -330,7 +330,7 @@ export const SharedConfirmationForm = ({
             }}
           >
             <ConfirmationFormItem
-              label={t("createNewMarket.policy.expiration.label")}
+              label={t("borrower.createMarket.policy.expiration.label")}
               value={
                 timestampToDateFormatted(
                   Number(getValues("fixedTermEndTime")),
@@ -340,12 +340,12 @@ export const SharedConfirmationForm = ({
             />
 
             <ConfirmationFormItem
-              label={t("createNewMarket.policy.earlyClose.label")}
+              label={t("borrower.createMarket.policy.earlyClose.label")}
               value={getValues("allowClosureBeforeTerm") ? "Yes" : "No"}
             />
 
             <ConfirmationFormItem
-              label={t("createNewMarket.policy.reduceExpiration.label")}
+              label={t("borrower.createMarket.policy.reduceExpiration.label")}
               value={getValues("allowTermReduction") ? "Yes" : "No"}
             />
           </Box>
@@ -369,7 +369,7 @@ export const SharedConfirmationForm = ({
         }}
       >
         <Typography variant="text4" sx={{ textTransform: "uppercase" }}>
-          {t("createNewMarket.wrapper.title")}
+          {t("borrower.createMarket.wrapper.title")}
         </Typography>
 
         <Typography variant="text2" sx={{ height: "20px" }}>
@@ -380,7 +380,7 @@ export const SharedConfirmationForm = ({
       <Divider sx={DividerStyle} />
 
       <Typography variant="text4" sx={SubtitleStyle}>
-        {t("createNewMarket.lenderRestrictions.title")}
+        {t("borrower.createMarket.lenderRestrictions.title")}
       </Typography>
 
       <Box
@@ -391,20 +391,22 @@ export const SharedConfirmationForm = ({
       >
         <ConfirmationFormItem
           label={t(
-            "createNewMarket.lenderRestrictions.restrictWithdrawals.label",
+            "borrower.createMarket.lenderRestrictions.restrictWithdrawals.label",
           )}
           value={withdrawalRequiresAccess ? "Yes" : "No"}
         />
 
         <ConfirmationFormItem
           label={t(
-            "createNewMarket.lenderRestrictions.restrictTransfers.label",
+            "borrower.createMarket.lenderRestrictions.restrictTransfers.label",
           )}
           value={transferRequiresAccess ? "Yes" : "No"}
         />
 
         <ConfirmationFormItem
-          label={t("createNewMarket.lenderRestrictions.disableTransfers.label")}
+          label={t(
+            "borrower.createMarket.lenderRestrictions.disableTransfers.label",
+          )}
           value={disableTransfers ? "Yes" : "No"}
         />
       </Box>
@@ -414,7 +416,7 @@ export const SharedConfirmationForm = ({
           <Divider sx={DividerStyle} />
 
           <Typography variant="text4" sx={SubtitleStyle}>
-            {t("createNewMarket.confirm.legalInfo.title")}
+            {t("borrower.createMarket.confirm.legalInfo.title")}
           </Typography>
 
           <Box
@@ -425,12 +427,12 @@ export const SharedConfirmationForm = ({
             }}
           >
             <ConfirmationFormItem
-              label={t("createNewMarket.confirm.legalInfo.legalName")}
+              label={t("borrower.createMarket.confirm.legalInfo.legalName")}
               value={borrowerData?.name || ""}
             />
 
             <ConfirmationFormItem
-              label={t("createNewMarket.confirm.legalInfo.jurisdiction")}
+              label={t("common.fields.jurisdiction")}
               value={
                 jurisdiction
                   ? jurisdiction.subDivisionName || jurisdiction.countryName
@@ -439,17 +441,17 @@ export const SharedConfirmationForm = ({
             />
 
             <ConfirmationFormItem
-              label={t("createNewMarket.confirm.legalInfo.entityKind")}
+              label={t("borrower.createMarket.confirm.legalInfo.entityKind")}
               value={entityKind || ""}
             />
 
             <ConfirmationFormItem
-              label={t("createNewMarket.confirm.legalInfo.address")}
+              label={t("borrower.createMarket.confirm.legalInfo.address")}
               value={borrowerData?.physicalAddress || ""}
             />
 
             <ConfirmationFormItem
-              label={t("createNewMarket.confirm.legalInfo.email")}
+              label={t("common.fields.email")}
               value={borrowerData?.email || ""}
             />
           </Box>
@@ -462,7 +464,7 @@ export const SharedConfirmationForm = ({
         </SvgIcon>
 
         <Typography variant="text3">
-          {t("createNewMarket.confirm.alert")}
+          {t("borrower.createMarket.confirm.alert")}
         </Typography>
       </Box>
 
@@ -472,7 +474,7 @@ export const SharedConfirmationForm = ({
         </SvgIcon>
 
         <Typography variant="text3">
-          {t("createNewMarket.confirm.alertFee")}
+          {t("borrower.createMarket.confirm.alertFee")}
         </Typography>
       </Box>
 
@@ -485,7 +487,7 @@ export const SharedConfirmationForm = ({
           </SvgIcon>
 
           <Typography variant="text3">
-            {t("createNewMarket.confirm.alertReduction")}
+            {t("borrower.createMarket.confirm.alertReduction")}
           </Typography>
         </Box>
       )}
@@ -502,7 +504,7 @@ export const SharedConfirmationForm = ({
           </SvgIcon>
 
           <Typography variant="text3" color={COLORS.dullRed}>
-            {t("createNewMarket.confirm.alertParamsChanged")}
+            {t("borrower.createMarket.confirm.alertParamsChanged")}
           </Typography>
         </Box>
       )}
@@ -531,7 +533,7 @@ export const SharedConfirmationForm = ({
           >
             <BackArrow />
           </SvgIcon>
-          {t("createNewMarket.buttons.back")}
+          {t("common.buttons.back")}
         </Button>
 
         <Box sx={{ display: "flex", gap: "4px" }}>
@@ -560,7 +562,7 @@ export const SharedConfirmationForm = ({
               disabled={signed || isSigning || actionsLocked}
               onClick={handleSign}
             >
-              {t("createNewMarket.buttons.signMlaRefusal")}
+              {t("borrower.createMarket.buttons.signMlaRefusal")}
             </Button>
           )}
 
@@ -571,7 +573,7 @@ export const SharedConfirmationForm = ({
             disabled={!signed || !isDeployReady || actionsLocked}
             onClick={handleDeploy}
           >
-            {t("createNewMarket.buttons.deploy")}
+            {t("borrower.createMarket.buttons.deploy")}
           </Button>
         </Box>
       </Box>

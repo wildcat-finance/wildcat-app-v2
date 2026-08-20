@@ -51,7 +51,7 @@ export const LinkGroup = ({
               disableFocusListener
               disableHoverListener
               disableTouchListener
-              title="Copied"
+              title={t("common.states.copied")}
               slotProps={{
                 popper: {
                   disablePortal: true,
@@ -109,7 +109,7 @@ export const LinkGroup = ({
               </SvgIcon>
 
               <Typography variant="text3">
-                {t("link.viewOnEtherscan")}
+                {t("common.links.viewOnEtherscan")}
               </Typography>
             </Link>
           )}

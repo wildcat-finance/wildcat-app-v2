@@ -128,7 +128,7 @@ export const CreateMarketSidebar = () => {
 
   return (
     <Box sx={ContentContainer}>
-      <BackButton title={t("createNewMarket.buttons.sidebar")} />
+      <BackButton title={t("nav.toMarkets")} />
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
         {steps.map((step) => (

@@ -6,6 +6,7 @@ import { Box, Button, Typography } from "@mui/material"
 import { GridRowsProp } from "@mui/x-data-grid"
 import { HooksKind } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { LendersSection } from "@/app/[locale]/borrower/components/LendersSection"
@@ -28,6 +29,8 @@ import { MarketsSection } from "./components/MarketsSection"
 import { PoliciesSection, PolicyDataT } from "./components/PoliciesSection"
 
 export default function BorrowerPage() {
+  const { t } = useTranslation()
+
   const dispatch = useAppDispatch()
   const isMobile = useMobileResolution()
 
@@ -111,11 +114,10 @@ export default function BorrowerPage() {
         }}
       >
         <Typography variant="mobH3">
-          The Borrower UI is not configured for mobile, sorry!
+          {t("marketList.borrower.borrowerUiNotConfiguredMobile")}
         </Typography>
         <Typography variant="mobText3" color={COLORS.santasGrey}>
-          Hop on a desktop or laptop instead: we are aiming to sort this out in
-          time.
+          {t("marketList.borrower.hopDesktopLaptopInsteadWe")}
         </Typography>
         <Link
           href={ROUTES.lender.root}
@@ -127,7 +129,7 @@ export default function BorrowerPage() {
           }}
         >
           <Button variant="contained" size="medium" color="secondary">
-            Switch to the Lenders
+            {t("marketList.borrower.switchLenders")}
           </Button>
         </Link>
       </Box>

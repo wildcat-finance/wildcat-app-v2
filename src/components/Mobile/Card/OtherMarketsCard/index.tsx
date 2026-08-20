@@ -1,6 +1,7 @@
 import { Box, Divider, Typography } from "@mui/material"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 
+import { Trans } from "@/components/Translation"
 import { COLORS } from "@/theme/colors"
 
 export type OtherMarketsCardProps = {
@@ -71,7 +72,7 @@ export const OtherMarketsCard = ({
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Typography variant="text4">{borrower}</Typography>
         <Typography variant="text4" color={COLORS.santasGrey}>
-          available to lend
+          <Trans i18nKey="marketList.shared.cards.availableToLend" />
         </Typography>
       </Box>
 
@@ -93,7 +94,10 @@ export const OtherMarketsCard = ({
           {loan}
         </Typography>
         <Typography variant="text4" color={COLORS.santasGrey}>
-          MATIC deposited
+          <Trans
+            i18nKey="marketList.shared.cards.assetDeposited"
+            values={{ asset }}
+          />
         </Typography>
       </Box>
 

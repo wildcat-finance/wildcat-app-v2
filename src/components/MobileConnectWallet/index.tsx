@@ -22,6 +22,7 @@ import Rabby from "@/assets/icons/rabby_icon.svg"
 import Rainbow from "@/assets/icons/rainbow_icon.svg"
 import Safe from "@/assets/icons/safe.svg"
 import WalletConnect from "@/assets/icons/walletConnect_icon.svg"
+import { Trans } from "@/components/Translation"
 import { COLORS } from "@/theme/colors"
 
 import {
@@ -118,17 +119,20 @@ export const MobileConnectWallet = ({
         ))}
       </Box>
       <Typography variant="text3" sx={Terms}>
-        By connecting your wallet, you consent to the{" "}
-        <MuiLink
-          component={Link}
-          href="https://docs.wildcat.finance/legal/protocol-ui-privacy-policy"
-          variant="inherit"
-          underline="always"
-          color="inherit"
-        >
-          Wildcat Privacy Policy
-        </MuiLink>
-        .
+        <Trans
+          i18nKey="header.modal.mobileNote"
+          components={{
+            1: (
+              <MuiLink
+                component={Link}
+                href="https://docs.wildcat.finance/legal/protocol-ui-privacy-policy"
+                variant="inherit"
+                underline="always"
+                color="inherit"
+              />
+            ),
+          }}
+        />
       </Typography>
     </Dialog>
   )

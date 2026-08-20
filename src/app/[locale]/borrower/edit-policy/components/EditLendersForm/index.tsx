@@ -148,7 +148,7 @@ export const EditLendersForm = ({
           value={lenderNameOrAddress}
           onChange={handleChangeLender}
           size="small"
-          placeholder="Search"
+          placeholder={t("common.buttons.search")}
           sx={{
             width: "320px",
             marginRight: "6px",
@@ -213,13 +213,13 @@ export const EditLendersForm = ({
                 fontWeight: 600,
               }}
             >
-              {t("editPolicy.forms.edit.submit")}
+              {t("common.buttons.submit")}
             </Button>
           </Box>
         ) : (
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Typography variant="text3" color={COLORS.santasGrey}>
-              {t("policy.lenders.selfOnboardNotice")}
+              {t("borrower.policies.lenders.selfOnboardNotice")}
             </Typography>
           </Box>
         )}
@@ -241,7 +241,7 @@ export const EditLendersForm = ({
             }}
           >
             <Typography variant="text3" color={COLORS.santasGrey}>
-              {t("editPolicy.forms.edit.noLenders")}
+              {t("borrower.editPolicy.forms.edit.noLenders")}
             </Typography>
           </Box>
         </Box>

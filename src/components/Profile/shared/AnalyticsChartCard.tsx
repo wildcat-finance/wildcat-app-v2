@@ -10,6 +10,7 @@ import {
   Theme,
   Typography,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import Expand from "@/assets/icons/expand_icon.svg"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -63,6 +64,8 @@ export const AnalyticsChartCard = ({
   cardSx,
   children,
 }: AnalyticsChartCardProps) => {
+  const { t } = useTranslation()
+
   const [isExpanded, setIsExpanded] = React.useState(false)
   const isMobile = useMobileResolution()
   const resolvedCardHeight =
@@ -123,7 +126,7 @@ export const AnalyticsChartCard = ({
             {actions}
             <IconButton
               onClick={() => setIsExpanded(true)}
-              aria-label="Expand chart"
+              aria-label={t("profile.expandChart")}
               sx={ChartActionButtonStyle}
             >
               <Expand />
@@ -195,7 +198,7 @@ export const AnalyticsChartCard = ({
               {actions}
               <IconButton
                 onClick={() => setIsExpanded(false)}
-                aria-label="Close expanded chart"
+                aria-label={t("profile.closeExpandedChart")}
                 sx={ChartActionButtonStyle}
               >
                 <CrossIcon />
