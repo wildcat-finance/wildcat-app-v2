@@ -21,6 +21,7 @@ import { cloneSdkObject } from "@/lib/sdk-object"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { TOKENS_ADDRESSES } from "@/utils/constants"
 import { isNotExcludedMarket } from "@/utils/filters"
+import { refetchOnMountIfInvalidated } from "@/utils/marketListQueries"
 import {
   getSubgraphMarketOnboardingMode,
   MarketOnboardingByAddress,
@@ -149,7 +150,7 @@ export function useLendersMarkets(): UseLendersMarketsResult {
     refetchInterval: LENDER_DASHBOARD_INDEXED_REFRESH_INTERVAL,
     staleTime: LENDER_DASHBOARD_INDEXED_REFRESH_INTERVAL,
     enabled: !!signerOrProvider && !isWrongNetwork,
-    refetchOnMount: false,
+    refetchOnMount: refetchOnMountIfInvalidated,
     refetchOnWindowFocus: true,
   })
 
@@ -236,7 +237,7 @@ export function useLendersMarkets(): UseLendersMarketsResult {
     refetchInterval: LENDER_DASHBOARD_LIVE_REFRESH_INTERVAL,
     staleTime: LENDER_DASHBOARD_LIVE_REFRESH_INTERVAL,
     enabled: !!data && !!signerOrProvider && !isWrongNetwork,
-    refetchOnMount: false,
+    refetchOnMount: refetchOnMountIfInvalidated,
     refetchOnWindowFocus: true,
   })
 
