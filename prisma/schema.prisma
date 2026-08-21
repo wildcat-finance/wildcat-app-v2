@@ -288,6 +288,17 @@ model Borrower {
   // NULL = not yet resolved.
   registeredBy      String?
 
+  // Set once when the restriction sync verifies (via the archcontroller view)
+  // that this borrower is no longer registered; auto-cleared on verified
+  // re-registration unless a manual override is set. See product#789.
+  removedFromArchController Boolean   @default(false)
+  removedAt                 DateTime?
+  // Manual admin override: "restricted" | "cleared". Takes precedence over
+  // the onchain-derived flag. NULL = no override.
+  restrictionOverride       String?
+  restrictionOverrideBy     String?
+  restrictionOverrideAt     DateTime?
+
   invitation                BorrowerInvitation?                @relation("BorrowerToInvitation")
   serviceAgreementSignature BorrowerServiceAgreementSignature? @relation("BorrowerToServiceAgreementSignature")
   updates                   BorrowerProfileUpdateRequest[]     @relation("BorrowerToProfileUpdateRequest")

@@ -1,5 +1,6 @@
 import { useAccount } from "wagmi"
 
+import { useBorrowerRestriction } from "@/hooks/useBorrowerRestriction"
 import { useGetBasicBorrowerData } from "@/hooks/useGetBasicBorrowerData"
 import { ROUTES } from "@/routes"
 
@@ -24,6 +25,7 @@ export type BannerConfigType = {
 
 export const useBorrowerInvitationRedirect = (): BannerConfigType => {
   const { address, isConnected } = useAccount()
+  const { restricted } = useBorrowerRestriction()
 
   const {
     data: borrowerData,
@@ -56,6 +58,18 @@ export const useBorrowerInvitationRedirect = (): BannerConfigType => {
     return {
       hideCreateMarket: true,
       hideBanner: true,
+    }
+  }
+
+  // Removed or manually restricted borrowers cannot create markets;
+  // repayment and termination stay available. (product#789)
+  if (restricted) {
+    return {
+      title: "Account Restricted",
+      message:
+        "This account is restricted from creating new markets. Repayment and market termination remain available.",
+      hideCreateMarket: true,
+      hideBanner: false,
     }
   }
 

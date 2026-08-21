@@ -8,6 +8,8 @@ import { useTranslation } from "react-i18next"
 import AuthWrapper from "@/components/AuthWrapper"
 import { Markdown } from "@/components/Markdown"
 import { MarkdownEditor } from "@/components/MarkdownEditor"
+import { toastError } from "@/components/Toasts"
+import { useBorrowerRestriction } from "@/hooks/useBorrowerRestriction"
 import { COLORS } from "@/theme/colors"
 
 import { useUpdateMarketSummary } from "../../hooks/useUpdateMarketSummary"
@@ -42,6 +44,7 @@ const InnerMarketSummaryEditor = ({
       },
       onError: (error) => {
         console.error(error)
+        toastError(error.message)
       },
     })
   }
@@ -94,6 +97,10 @@ export const BorrowerMarketSummary = ({
 }) => {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
+  // Restricted borrowers cannot edit market descriptions; the API rejects
+  // it server-side as well. (product#789)
+  const { restricted } = useBorrowerRestriction()
+  const canEdit = isBorrower && !restricted
 
   if (isLoading) {
     return (
@@ -116,7 +123,7 @@ export const BorrowerMarketSummary = ({
 
   return (
     <>
-      {isBorrower && (
+      {canEdit && (
         <Box
           sx={{
             display: "flex",

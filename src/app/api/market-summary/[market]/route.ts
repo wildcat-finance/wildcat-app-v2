@@ -2,6 +2,7 @@
 import { WildcatMarket__factory } from "@wildcatfi/wildcat-sdk/dist/typechain"
 import { NextRequest, NextResponse } from "next/server"
 
+import { getBorrowerRestriction } from "@/lib/borrowerRestriction"
 import { prisma } from "@/lib/db"
 import { getProviderForServer } from "@/lib/provider"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
@@ -63,6 +64,16 @@ export async function POST(
 
   if (borrower !== token.address.toLowerCase()) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  // Removed or manually restricted borrowers cannot edit market
+  // descriptions. (product#789)
+  const restriction = await getBorrowerRestriction(chainId, borrower)
+  if (restriction.restricted) {
+    return NextResponse.json(
+      { error: "Borrower is restricted" },
+      { status: 403 },
+    )
   }
 
   await prisma.marketDescription.upsert({

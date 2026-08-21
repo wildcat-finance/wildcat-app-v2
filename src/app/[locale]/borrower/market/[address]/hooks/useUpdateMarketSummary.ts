@@ -7,19 +7,32 @@ export const useUpdateMarketSummary = (market: string, chainId: number) => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationKey: ["update-market-summary", chainId, market],
-    mutationFn: (summary: string) => {
+    mutationFn: async (summary: string) => {
       if (!token || token.chainId !== chainId) {
         throw Error("No API token for market chain")
       }
-      return fetch(`/api/market-summary/${market}?chainId=${chainId}`, {
-        method: "POST",
-        body: JSON.stringify({
-          description: summary,
-        }),
-        headers: {
-          Authorization: `Bearer ${token.token}`,
+      const response = await fetch(
+        `/api/market-summary/${market}?chainId=${chainId}`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            description: summary,
+          }),
+          headers: {
+            Authorization: `Bearer ${token.token}`,
+          },
         },
-      }).then((res) => res.json())
+      )
+      if (!response.ok) {
+        const message = await response
+          .json()
+          .then((body) => (body as { error?: string })?.error)
+          .catch(() => undefined)
+        throw Error(
+          message ?? `Failed to save market description (${response.status})`,
+        )
+      }
+      return response.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
