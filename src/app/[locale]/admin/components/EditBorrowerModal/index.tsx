@@ -20,7 +20,7 @@ export const EditBorrowerModal = ({ address }: { address: `0x${string}` }) => {
   const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const { state: restrictionState, refetch: refetchRestriction } =
-    useBorrowerRestriction(address)
+    useBorrowerRestriction(address, { enabled: isOpen })
   const { mutate: setOverride, isPending: isOverridePending } =
     useSetBorrowerRestrictionOverride(address)
   const restricted = restrictionState?.restricted ?? false

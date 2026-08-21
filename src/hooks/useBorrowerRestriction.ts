@@ -22,6 +22,8 @@ import {
 
 import { useSelectedNetwork } from "./useSelectedNetwork"
 
+const RESTRICTION_REFETCH_INTERVAL = 60_000
+
 export interface UseBorrowerRestrictionResult {
   gateState: RestrictionGateState
   restricted: boolean
@@ -32,13 +34,14 @@ export interface UseBorrowerRestrictionResult {
 
 export const useBorrowerRestriction = (
   addressOverride?: string,
+  options?: { enabled?: boolean },
 ): UseBorrowerRestrictionResult => {
   const { address: connectedAddress } = useAccount()
   const { chainId } = useSelectedNetwork()
   const dispatch = useAppDispatch()
 
   const address = (addressOverride ?? connectedAddress)?.toLowerCase()
-  const enabled = !!address && !!chainId
+  const enabled = !!address && !!chainId && (options?.enabled ?? true)
 
   const lastKnown = useAppSelector((storeState) =>
     address && chainId
@@ -58,8 +61,9 @@ export const useBorrowerRestriction = (
       }
       return response.json()
     },
-    refetchOnWindowFocus: false,
-    staleTime: 60_000,
+    refetchOnWindowFocus: true,
+    refetchInterval: RESTRICTION_REFETCH_INTERVAL,
+    staleTime: RESTRICTION_REFETCH_INTERVAL,
   })
 
   useEffect(() => {

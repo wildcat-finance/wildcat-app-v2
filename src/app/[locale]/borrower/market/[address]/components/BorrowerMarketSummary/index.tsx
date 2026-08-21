@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next"
 import AuthWrapper from "@/components/AuthWrapper"
 import { Markdown } from "@/components/Markdown"
 import { MarkdownEditor } from "@/components/MarkdownEditor"
+import { toastError } from "@/components/Toasts"
 import { useBorrowerRestriction } from "@/hooks/useBorrowerRestriction"
 import { COLORS } from "@/theme/colors"
 
@@ -43,6 +44,7 @@ const InnerMarketSummaryEditor = ({
       },
       onError: (error) => {
         console.error(error)
+        toastError(error.message)
       },
     })
   }
