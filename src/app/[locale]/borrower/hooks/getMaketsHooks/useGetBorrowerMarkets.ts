@@ -14,6 +14,7 @@ import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
 import { isNotExcludedMarket } from "@/utils/filters"
+import { refetchOnMountIfInvalidated } from "@/utils/marketListQueries"
 
 import { GetMarketsProps } from "./interface"
 
@@ -52,7 +53,7 @@ export function useGetBorrowerMarketsQuery({
     queryFn: getBorrowerMarkets,
     refetchInterval: POLLING_INTERVAL,
     enabled,
-    refetchOnMount: false,
+    refetchOnMount: refetchOnMountIfInvalidated,
   })
 }
 
