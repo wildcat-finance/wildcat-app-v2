@@ -76,8 +76,8 @@
     }
   },
   "telegramBanner": {
-    "title": "Subscribe to our Telegram\u00a0Bot",
-    "subtitle": "Receive notifications for market\u00a0events",
+    "title": "Subscribe to our Telegram Bot",
+    "subtitle": "Receive notifications for market events",
     "button": "Subscribe"
   },
   "admin": {
@@ -558,11 +558,6 @@
         "afterTransaction": " After This",
         "approve": "Approve",
         "approved": "Approved"
-      },
-      "statement": {
-        "title": "Transaction History",
-        "generate": "Generate and download a summary of historic transactions.",
-        "download": "Download"
       },
       "terminate": {
         "terminateMarket": "Terminate Market",
@@ -1072,7 +1067,6 @@
     },
     "buttons": {
       "addToken": "Add Debt Token To Wallet",
-      "statement": "Download Statement",
       "viewMla": "View/Sign MLA",
       "mlaNotSet": "Borrower Has Not Configured An MLA",
       "mlaRefused": "Borrower Declined to Set An MLA"
