@@ -3,7 +3,9 @@ import { COLORS } from "@/theme/colors"
 export const AprModalDialog = {
   "& .MuiDialog-paper": {
     width: "500px",
-    minHeight: "425px",
+    maxWidth: "min(500px, calc(100% - 32px))",
+    minWidth: "0 !important",
+    minHeight: "450px",
     border: "none",
     borderRadius: "20px",
     margin: 0,
@@ -13,6 +15,8 @@ export const AprModalDialog = {
 
 export const AprModalMessageBox = {
   display: "flex",
+  flexWrap: "wrap",
+  justifyContent: "center",
   gap: "4px",
   alignItems: "center",
 }
