@@ -11,7 +11,12 @@ import {
   Typography,
 } from "@mui/material"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
-import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
+import {
+  DepositStatus,
+  Signer,
+  HooksKind,
+  TokenAmount,
+} from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
@@ -29,6 +34,7 @@ import { DepositAlert } from "@/components/DepositAlert"
 import { LinkGroup } from "@/components/LinkComponent"
 import { TransactionHeader } from "@/components/Mobile/TransactionHeader"
 import { NumberTextField } from "@/components/NumberTextfield"
+import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButton"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { toastError } from "@/components/Toasts"
 import { TooltipButton } from "@/components/TooltipButton"
@@ -43,6 +49,10 @@ import {
   hasManuallyDisabledMarketActions,
   isUSDTLikeToken,
 } from "@/utils/constants"
+import {
+  effectiveDepositAmount,
+  fillMaxDepositInput,
+} from "@/utils/depositMaxFill"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas, formatUtcMaturity } from "@/utils/formatters"
 
@@ -171,6 +181,10 @@ export const DepositModal = ({
       : undefined
 
   const [amount, setAmount] = useState("")
+  // Exact TokenAmount behind a Max fill; honoured only while the input
+  // still equals the filled string, so display truncation leaves no dust.
+  // (product#608)
+  const [exactAmount, setExactAmount] = useState<TokenAmount | undefined>()
 
   const [depositError, setDepositError] = useState<string | undefined>()
 
@@ -216,9 +230,18 @@ export const DepositModal = ({
   const agreementActionBlocked = agreementGate.state !== "satisfied"
 
   // user inputted amount
-  const depositTokenAmount = useMemo(
+  const parsedDepositAmount = useMemo(
     () => marketAccount.market.underlyingToken.parseAmount(amount || "0"),
     [amount],
+  )
+  const depositTokenAmount = useMemo(
+    () =>
+      effectiveDepositAmount({
+        exact: exactAmount,
+        parsed: parsedDepositAmount,
+        input: amount,
+      }),
+    [exactAmount, parsedDepositAmount, amount],
   )
   const minimumDeposit = market.hooksConfig?.minimumDeposit
 
@@ -250,8 +273,18 @@ export const DepositModal = ({
 
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
+    setExactAmount(undefined)
     setAmount(value)
   }
+
+  const handleClickMaxAmount = () => {
+    const filled = fillMaxDepositInput(marketAccount.maximumDeposit)
+    if (filled === null) return
+    setExactAmount(marketAccount.maximumDeposit)
+    setAmount(filled)
+  }
+
+  const showMaxButton = !marketAccount.maximumDeposit.raw.isZero()
 
   const handleDeposit = () => {
     if (
@@ -707,10 +740,24 @@ export const DepositModal = ({
                         value={amount}
                         onChange={handleAmountChange}
                         endAdornment={
-                          <TextfieldChip
-                            text={market.underlyingToken.symbol}
-                            size="small"
-                          />
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "4px",
+                            }}
+                          >
+                            {showMaxButton && (
+                              <TextfieldButton
+                                buttonText="Max"
+                                onClick={handleClickMaxAmount}
+                              />
+                            )}
+                            <TextfieldChip
+                              text={market.underlyingToken.symbol}
+                              size="small"
+                            />
+                          </Box>
                         }
                         disabled={isApproving}
                         error={
@@ -1185,10 +1232,24 @@ export const DepositModal = ({
                           value={amount}
                           onChange={handleAmountChange}
                           endAdornment={
-                            <TextfieldChip
-                              text={market.underlyingToken.symbol}
-                              size="small"
-                            />
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px",
+                              }}
+                            >
+                              {showMaxButton && (
+                                <TextfieldButton
+                                  buttonText="Max"
+                                  onClick={handleClickMaxAmount}
+                                />
+                              )}
+                              <TextfieldChip
+                                text={market.underlyingToken.symbol}
+                                size="small"
+                              />
+                            </Box>
                           }
                           disabled={isApproving}
                           error={
