@@ -8,7 +8,6 @@ import { Box, Button, Dialog, IconButton, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
 import {
   DepositAccess,
-  getDeploymentAddress,
   HooksKind,
   SupportedChainId,
   Token,
@@ -18,7 +17,6 @@ import {
 import { useRouter } from "next/navigation"
 import { FieldErrors } from "react-hook-form"
 import { useTranslation } from "react-i18next"
-import { zeroAddress } from "viem"
 import { useAccount } from "wagmi"
 
 import { PageContainer } from "@/app/[locale]/borrower/create-market/style"
@@ -61,6 +59,7 @@ import { COLORS } from "@/theme/colors"
 import {
   canDismissCreateMarketDeployDialog,
   getCreateMarketDeployRouting,
+  getCreateMarketRoleProviderInputs,
   hasCreateMarketDeploymentTarget,
 } from "@/utils/createMarketDeploy"
 
@@ -969,7 +968,20 @@ export default function CreateMarketPage() {
       return
     }
 
-    if (assetData && tokenAsset && selectedHooksTemplate && mlaSignature) {
+    if (
+      address &&
+      assetData &&
+      tokenAsset &&
+      selectedHooksTemplate &&
+      mlaSignature
+    ) {
+      const roleProviderInputs = getCreateMarketRoleProviderInputs({
+        accessControl: marketParams.accessControl,
+        borrower: address,
+        chainId: targetChainId,
+        hasExistingHooks: !!selectedHooksInstance,
+        salt,
+      })
       const realParams: DeployNewV2MarketParams = {
         timeSigned,
         deployFingerprint: getCreateMarketFormFingerprint(marketParams),
@@ -998,21 +1010,7 @@ export default function CreateMarketPage() {
         hooksInstanceName: marketParams.policyName,
         salt,
         hooksAddress: selectedHooksInstance?.address,
-        // @todo proper solution
-        existingProviders:
-          marketParams.accessControl === "defaultPullProvider"
-            ? [
-                {
-                  providerAddress: getDeploymentAddress(
-                    targetChainId,
-                    "OpenAccessRoleProvider",
-                  ),
-                  timeToLive: 90 * 86_400,
-                },
-              ]
-            : [],
-        newProviderInputs: [],
-        roleProviderFactory: zeroAddress,
+        ...roleProviderInputs,
         minimumDeposit: marketParams.minimumDeposit,
         deployWrapper: marketParams.deployWrapper,
         draftId: activeSafeDraft?.id,

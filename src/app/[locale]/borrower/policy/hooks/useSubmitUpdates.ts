@@ -15,7 +15,8 @@ import {
   getLenderUpdateSafeBatch,
   isV2HooksInstance,
   lenderPolicyErrorAbi,
-  prepareLenderRestoration,
+  prepareCompatibilityLenderAddition,
+  prepareCompatibilityLenderRemoval,
 } from "@/utils/lenderAccess"
 import {
   sendTransactionAndWait,
@@ -65,12 +66,12 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
 
       if (addLenders?.length) {
         if (isV2HooksInstance(policy)) {
-          const restoration = await prepareLenderRestoration(
+          const addition = await prepareCompatibilityLenderAddition(
             publicClient,
             policy,
             addLenders,
           )
-          txs.push(...restoration.transactions)
+          txs.push(...addition.transactions)
         } else {
           const tx = marketsToUpdate?.length
             ? policy.populateAuthorizeLendersAndUpdateMarkets(
@@ -86,7 +87,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         const tx =
           // eslint-disable-next-line no-nested-ternary
           isV2HooksInstance(policy)
-            ? policy.populateBlockLenders(removeLenders)
+            ? prepareCompatibilityLenderRemoval(policy, removeLenders)
             : marketsToUpdate?.length
               ? policy.populateDeauthorizeLendersAndUpdateMarkets(
                   removeLenders,

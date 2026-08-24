@@ -16,7 +16,8 @@ import {
   getLenderUpdateSafeBatch,
   isV2HooksInstance,
   lenderPolicyErrorAbi,
-  prepareLenderRestoration,
+  prepareCompatibilityLenderAddition,
+  prepareCompatibilityLenderRemoval,
 } from "@/utils/lenderAccess"
 import {
   sendTransactionAndWait,
@@ -74,18 +75,20 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         console.log(addLenders)
         if (isV2HooksInstance(policy)) {
           console.log(`adding lenders to v2 policy`)
-          const restoration = await prepareLenderRestoration(
+          const addition = await prepareCompatibilityLenderAddition(
             publicClient,
             policy,
             addLenders,
           )
-          txs.push({
-            ...restoration.transactions[0],
-            pending: `Adding ${addLenders.length} lenders`,
-            success: `Added ${addLenders.length} lenders`,
-            error: `Failed to add ${addLenders.length} lenders`,
+          addition.membershipTransactions.forEach((transaction) => {
+            txs.push({
+              ...transaction,
+              pending: `Adding ${addLenders.length} lenders`,
+              success: `Added ${addLenders.length} lenders`,
+              error: `Failed to add ${addLenders.length} lenders`,
+            })
           })
-          restoration.transactions.slice(1).forEach((transaction) => {
+          addition.unblockTransactions.forEach((transaction) => {
             txs.push({
               ...transaction,
               pending: "Restoring lender deposit access",
@@ -114,7 +117,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         console.log(removeLenders)
         console.log(`policy address: ${policy.address}`)
         if (isV2HooksInstance(policy)) {
-          const tx = policy.populateBlockLenders(removeLenders)
+          const tx = prepareCompatibilityLenderRemoval(policy, removeLenders)
           txs.push({
             ...tx,
             pending: `Removing ${removeLenders.length} lenders`,
