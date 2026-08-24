@@ -1,4 +1,13 @@
-import React, { ChangeEvent, useEffect, useMemo, useRef, useState } from "react"
+import React, {
+  ChangeEvent,
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 
 import {
   Box,
@@ -11,7 +20,12 @@ import {
   Typography,
 } from "@mui/material"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
-import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
+import {
+  DepositStatus,
+  Signer,
+  HooksKind,
+  TokenAmount,
+} from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
@@ -29,6 +43,7 @@ import { DepositAlert } from "@/components/DepositAlert"
 import { LinkGroup } from "@/components/LinkComponent"
 import { TransactionHeader } from "@/components/Mobile/TransactionHeader"
 import { NumberTextField } from "@/components/NumberTextfield"
+import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButton"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { toastError } from "@/components/Toasts"
 import { TooltipButton } from "@/components/TooltipButton"
@@ -43,8 +58,14 @@ import {
   hasManuallyDisabledMarketActions,
   isUSDTLikeToken,
 } from "@/utils/constants"
+import { fillMaxDepositInput } from "@/utils/depositMaxFill"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
-import { formatTokenWithCommas, formatUtcMaturity } from "@/utils/formatters"
+import {
+  formatTokenWithCommas,
+  formatUtcMaturity,
+  localize,
+  TOKEN_FORMAT_DECIMALS,
+} from "@/utils/formatters"
 
 import { EarningsProjection } from "./EarningsProjection"
 import { DepositModalProps } from "./interface"
@@ -171,6 +192,21 @@ export const DepositModal = ({
       : undefined
 
   const [amount, setAmount] = useState("")
+  // The Max fill currently standing in the field: its display string plus the
+  // exact TokenAmount behind it, so the deposit carries the true value rather
+  // than its five-decimal rendering. Null while the lender types their own
+  // amount. (product#608)
+  const [maxFill, setMaxFill] = useState<{
+    display: string
+    amount: TokenAmount
+  } | null>(null)
+
+  // Every reset path has to drop the Max fill along with the string, or the
+  // field would keep displaying the fill over a cleared amount.
+  const resetAmount = useCallback<Dispatch<SetStateAction<string>>>((value) => {
+    setMaxFill(null)
+    setAmount(value)
+  }, [])
 
   const [depositError, setDepositError] = useState<string | undefined>()
 
@@ -198,7 +234,7 @@ export const DepositModal = ({
   const modal = useApprovalModal(
     setShowSuccessPopup,
     setShowErrorPopup,
-    setAmount,
+    resetAmount,
     setTxHash,
   )
 
@@ -215,11 +251,27 @@ export const DepositModal = ({
   const previousConnectedAddress = useRef(connectedAddress?.toLowerCase())
   const agreementActionBlocked = agreementGate.state !== "satisfied"
 
+  // The fillable maximum, read fresh every render so it tracks the market
+  // poll. Null when there is nothing worth filling, which is also what hides
+  // the Max control.
+  const maxDepositAmount = marketAccount.maximumDeposit
+  const maxDepositFill = fillMaxDepositInput(maxDepositAmount)
+  const showMaxButton = maxDepositFill !== null
+  // The maximum as a primitive, so the re-sync below reacts to movements too
+  // small to disturb the five-decimal display string. Interest accrual shrinks
+  // a capacity-bound maximum by far less than that on every poll, and a fill
+  // left a hair above it fails ExceedsMaximumDeposit with no visible cause.
+  const maxDepositRaw = maxDepositAmount.raw.toString()
+
   // user inputted amount
-  const depositTokenAmount = useMemo(
+  const parsedDepositAmount = useMemo(
     () => marketAccount.market.underlyingToken.parseAmount(amount || "0"),
     [amount],
   )
+  // A standing Max fill carries the exact amount; `amount` holds its display
+  // form, so the transaction deposits the true value and the field still
+  // shows the five-decimal rendering.
+  const depositTokenAmount = maxFill ? maxFill.amount : parsedDepositAmount
   const minimumDeposit = market.hooksConfig?.minimumDeposit
 
   // TODO: remove after fixing previewDeposit in wildcat.ts
@@ -250,7 +302,13 @@ export const DepositModal = ({
 
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
-    setAmount(value)
+    resetAmount(value)
+  }
+
+  const handleClickMaxAmount = () => {
+    if (maxDepositFill === null) return
+    setAmount(maxDepositFill)
+    setMaxFill({ display: maxDepositFill, amount: maxDepositAmount })
   }
 
   const handleDeposit = () => {
@@ -292,14 +350,14 @@ export const DepositModal = ({
         approve(depositTokenAmount.token.getAmount(0)).then(() => {
           approve(depositTokenAmount).then(() => {
             if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
-              setAmount("")
+              resetAmount("")
             }
           })
         })
       } else {
         approve(depositTokenAmount).then(() => {
           if (depositTokenAmount.gt(marketAccount.underlyingBalance)) {
-            setAmount("")
+            resetAmount("")
           }
         })
       }
@@ -410,6 +468,34 @@ export const DepositModal = ({
   } else if (agreementGate.state === "error") {
     tooltip = "Tap to retry loading agreement data"
   }
+
+  // The market account polls, so the maximum moves under an open modal
+  // whenever another lender deposits, the borrower changes capacity, or the
+  // wallet balance shifts. Follow it while the fill is untouched, or the
+  // field would contradict the "Available to deposit" row directly above it
+  // and "Max" would stop meaning max. Held still while a transaction is in
+  // flight so the amount cannot move out from under a signature.
+  useEffect(() => {
+    if (!maxFill || isApproving || isDepositing) return
+    if (maxDepositFill === null) {
+      resetAmount("")
+      return
+    }
+    if (maxFill.amount.raw.toString() === maxDepositRaw) return
+    setMaxFill({ display: maxDepositFill, amount: maxDepositAmount })
+    setAmount(maxDepositFill)
+    // maxDepositAmount is rebuilt on every render (marketAccount.maximumDeposit
+    // is a getter over an object the poll mutates in place), so it cannot be a
+    // dependency; maxDepositRaw is its stable primitive form and gates the run.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    maxFill,
+    maxDepositFill,
+    maxDepositRaw,
+    isApproving,
+    isDepositing,
+    resetAmount,
+  ])
 
   useEffect(() => {
     if (amount === "" || amount === "0" || depositStep === "Ready") {
@@ -522,7 +608,7 @@ export const DepositModal = ({
     setDepositOpenRequested(false)
     setIsNonMlaAcknowledgementOpen(false)
     awaitingAcknowledgementRefresh.current = false
-    setAmount("")
+    resetAmount("")
     setTxHash("")
     gate.reset()
     resetDeposit()
@@ -688,16 +774,16 @@ export const DepositModal = ({
                           variant="mobText3"
                           color={COLORS.ultramarineBlue}
                         >
-                          {formatTokenWithCommas(marketAccount.maximumDeposit, {
-                            withSymbol: true,
-                          })}
+                          {localize(
+                            maxDepositAmount,
+                            TOKEN_FORMAT_DECIMALS,
+                            true,
+                          )}
                         </Typography>
                       </Typography>
 
                       <NumberTextField
-                        label={formatTokenWithCommas(
-                          marketAccount.maximumDeposit,
-                        )}
+                        label={localize(maxDepositAmount)}
                         size="medium"
                         style={{
                           width: "100%",
@@ -707,10 +793,25 @@ export const DepositModal = ({
                         value={amount}
                         onChange={handleAmountChange}
                         endAdornment={
-                          <TextfieldChip
-                            text={market.underlyingToken.symbol}
-                            size="small"
-                          />
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "4px",
+                            }}
+                          >
+                            {showMaxButton && (
+                              <TextfieldButton
+                                buttonText="Max"
+                                onClick={handleClickMaxAmount}
+                                disabled={isApproving}
+                              />
+                            )}
+                            <TextfieldChip
+                              text={market.underlyingToken.symbol}
+                              size="small"
+                            />
+                          </Box>
                         }
                         disabled={isApproving}
                         error={
@@ -1145,19 +1246,16 @@ export const DepositModal = ({
                             lineHeight="24px"
                             color={COLORS.ultramarineBlue}
                           >
-                            {formatTokenWithCommas(
-                              marketAccount.maximumDeposit,
-                              {
-                                withSymbol: true,
-                              },
+                            {localize(
+                              maxDepositAmount,
+                              TOKEN_FORMAT_DECIMALS,
+                              true,
                             )}
                           </Typography>
                         </Typography>
 
                         <NumberTextField
-                          label={formatTokenWithCommas(
-                            marketAccount.maximumDeposit,
-                          )}
+                          label={localize(maxDepositAmount)}
                           size="medium"
                           style={{
                             width: "100%",
@@ -1185,10 +1283,25 @@ export const DepositModal = ({
                           value={amount}
                           onChange={handleAmountChange}
                           endAdornment={
-                            <TextfieldChip
-                              text={market.underlyingToken.symbol}
-                              size="small"
-                            />
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "4px",
+                              }}
+                            >
+                              {showMaxButton && (
+                                <TextfieldButton
+                                  buttonText="Max"
+                                  onClick={handleClickMaxAmount}
+                                  disabled={isApproving}
+                                />
+                              )}
+                              <TextfieldChip
+                                text={market.underlyingToken.symbol}
+                                size="small"
+                              />
+                            </Box>
                           }
                           disabled={isApproving}
                           error={
