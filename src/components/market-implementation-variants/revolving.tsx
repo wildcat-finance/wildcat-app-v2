@@ -60,6 +60,8 @@ export const revolvingMarketImplementationVariant: MarketImplementationVariant =
       currentAprLabelKey:
         "marketDetails.borrower.modals.apr.currentUtilizationApr",
       newAprLabelKey: "marketDetails.borrower.modals.apr.newUtilizationApr",
+      proposedAprLabelKey:
+        "marketDetails.borrower.modals.apr.proposedUtilizationApr",
     },
     ExtraParametersSection: RevolvingExtraParametersSection,
     MarketCard: RevolvingMarketCard,

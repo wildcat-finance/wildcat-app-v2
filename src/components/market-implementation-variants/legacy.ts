@@ -19,6 +19,7 @@ export const standardMarketImplementationVariant: MarketImplementationVariant =
         "marketDetails.borrower.modals.apr.alreadyUpdated",
       currentAprLabelKey: "marketDetails.borrower.modals.apr.currentBaseApr",
       newAprLabelKey: "marketDetails.borrower.modals.apr.newBaseApr",
+      proposedAprLabelKey: "marketDetails.borrower.modals.apr.proposedBaseApr",
     },
     MarketCard: MobileMarketCard,
   }

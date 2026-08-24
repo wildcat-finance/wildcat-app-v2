@@ -19,6 +19,7 @@ export type MarketAprCopy = {
   alreadyUpdatedLabelKey: string
   currentAprLabelKey: string
   newAprLabelKey: string
+  proposedAprLabelKey: string
 }
 
 export type ExtraParametersSectionProps = {

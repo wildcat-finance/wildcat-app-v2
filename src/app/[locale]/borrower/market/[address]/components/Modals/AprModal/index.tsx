@@ -122,6 +122,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const alreadyUpdatedLabel = t(aprCopy.alreadyUpdatedLabelKey)
   const currentAprLabel = t(aprCopy.currentAprLabelKey)
   const newAprLabel = t(aprCopy.newAprLabelKey)
+  const proposedAprLabel = t(aprCopy.proposedAprLabelKey)
   const aprBips = parseAprBips(apr)
   const isPeriodicTerm = !!market.periodicHooksConfig
   const existingPendingProposal = isPeriodicTerm
@@ -535,7 +536,11 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
 
                 <Box marginTop="28px" sx={AprAffectsBox}>
                   <Typography variant="text4" textTransform="uppercase">
-                    {t("marketDetails.borrower.modals.apr.aprAffects")}
+                    {isPeriodicAprReduction
+                      ? t(
+                          "marketDetails.borrower.modals.apr.proposalLeavesUnchanged",
+                        )
+                      : t("marketDetails.borrower.modals.apr.aprAffects")}
                   </Typography>
 
                   <ModalDataItem
@@ -645,7 +650,9 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
             {modal.approvedStep && (
               <Box sx={AprModalConfirmedBox}>
                 <ModalDataItem
-                  title={newAprLabel}
+                  title={
+                    isPeriodicAprReduction ? proposedAprLabel : newAprLabel
+                  }
                   value={`${apr}%`}
                   containerSx={{ marginBottom: "16px" }}
                 >
@@ -660,9 +667,15 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                 </ModalDataItem>
 
                 <ModalDataItem
-                  title={t(
-                    "marketDetails.borrower.modals.apr.newCollateralObligation",
-                  )}
+                  title={
+                    isPeriodicAprReduction
+                      ? t(
+                          "marketDetails.borrower.modals.apr.collateralObligation",
+                        )
+                      : t(
+                          "marketDetails.borrower.modals.apr.newCollateralObligation",
+                        )
+                  }
                   value={
                     newCollateralObligations ?? currentCollateralObligations
                   }
@@ -686,9 +699,11 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                 </ModalDataItem>
 
                 <ModalDataItem
-                  title={t(
-                    "marketDetails.borrower.modals.apr.newReservedRatio",
-                  )}
+                  title={
+                    isPeriodicAprReduction
+                      ? t("common.fields.reserveRatio")
+                      : t("marketDetails.borrower.modals.apr.newReservedRatio")
+                  }
                   value={`${newReserveRatio ?? currentReserveRatio}%`}
                   valueColor={
                     !aprError &&
