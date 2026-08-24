@@ -33,6 +33,7 @@ import {
   TRANSFER_ACCESS_TOOLTIP_KEY,
   WITHDRAWAL_ACCESS_TEXT_KEY,
   WITHDRAWAL_ACCESS_TOOLTIP_KEY,
+  YesNoFlag,
 } from "@/constants/i18nKeys"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
@@ -360,30 +361,12 @@ export const MarketParameters = ({
   } else {
     transferAccess = "open"
   }
-  let earlyClosure: "yes" | "no" | "na" = "no"
-  if (hooksConfig) {
-    if (!fixedTermHooksConfig) {
-      earlyClosure = "na"
-    } else if (fixedTermHooksConfig.allowClosureBeforeTerm) {
-      earlyClosure = "yes"
-    } else {
-      earlyClosure = "no"
-    }
-  } else {
-    earlyClosure = "no"
-  }
-  let earlyMaturity: "yes" | "no" | "na" = "no"
-  if (hooksConfig) {
-    if (!fixedTermHooksConfig) {
-      earlyMaturity = "na"
-    } else if (fixedTermHooksConfig.allowTermReduction) {
-      earlyMaturity = "yes"
-    } else {
-      earlyMaturity = "no"
-    }
-  } else {
-    earlyMaturity = "no"
-  }
+  const earlyClosure: YesNoFlag = fixedTermHooksConfig?.allowClosureBeforeTerm
+    ? "yes"
+    : "no"
+  const earlyMaturity: YesNoFlag = fixedTermHooksConfig?.allowTermReduction
+    ? "yes"
+    : "no"
 
   // All periodic state below derives from the same ticked `nowSec` so the
   // status, labels and timestamps can never disagree mid-boundary.
@@ -879,20 +862,24 @@ export const MarketParameters = ({
               value={t(TRANSFER_ACCESS_TEXT_KEY[transferAccess])}
               valueTooltipText={t(TRANSFER_ACCESS_TOOLTIP_KEY[transferAccess])}
             />
-            <Divider sx={{ margin: "12px 0 12px" }} />
-            <ParametersItem
-              title={t("marketParameters.marketEarlyClosure.label")}
-              value={t(EARLY_CLOSURE_TEXT_KEY[earlyClosure])}
-              valueTooltipText={t(EARLY_CLOSURE_TOOLTIP_KEY[earlyClosure])}
-            />
-            <Divider sx={{ margin: "12px 0 12px" }} />
-            <ParametersItem
-              title={t("marketParameters.marketMaturityReduction.label")}
-              value={t(MATURITY_REDUCTION_TEXT_KEY[earlyMaturity])}
-              valueTooltipText={t(
-                MATURITY_REDUCTION_TOOLTIP_KEY[earlyMaturity],
-              )}
-            />
+            {fixedTermHooksConfig && (
+              <>
+                <Divider sx={{ margin: "12px 0 12px" }} />
+                <ParametersItem
+                  title={t("marketParameters.marketEarlyClosure.label")}
+                  value={t(EARLY_CLOSURE_TEXT_KEY[earlyClosure])}
+                  valueTooltipText={t(EARLY_CLOSURE_TOOLTIP_KEY[earlyClosure])}
+                />
+                <Divider sx={{ margin: "12px 0 12px" }} />
+                <ParametersItem
+                  title={t("marketParameters.marketMaturityReduction.label")}
+                  value={t(MATURITY_REDUCTION_TEXT_KEY[earlyMaturity])}
+                  valueTooltipText={t(
+                    MATURITY_REDUCTION_TOOLTIP_KEY[earlyMaturity],
+                  )}
+                />
+              </>
+            )}
             {additionalItems && additionalItems.length > 0 && (
               <>
                 <Divider sx={{ margin: "12px 0 12px" }} />
