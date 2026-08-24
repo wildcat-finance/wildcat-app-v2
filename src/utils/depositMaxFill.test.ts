@@ -1,6 +1,5 @@
 import {
   DEPOSIT_AMOUNT_DISPLAY_DECIMALS,
-  effectiveDepositAmount,
   fillMaxDepositInput,
   TokenAmountLike,
 } from "./depositMaxFill"
@@ -21,28 +20,12 @@ describe("fillMaxDepositInput", () => {
   it("fills nothing when the maximum is zero", () => {
     expect(fillMaxDepositInput(amount("0", true))).toBeNull()
   })
-})
 
-describe("effectiveDepositAmount", () => {
-  const exact = amount("999.99999")
-  const parsed = amount("999.99999")
-
-  it("uses the exact fill while the input is untouched", () => {
-    expect(effectiveDepositAmount({ exact, parsed, input: "999.99999" })).toBe(
-      exact,
-    )
-  })
-
-  it("uses the parsed input after a manual edit", () => {
-    expect(effectiveDepositAmount({ exact, parsed, input: "999.9" })).toBe(
-      parsed,
-    )
-    expect(effectiveDepositAmount({ exact, parsed, input: "" })).toBe(parsed)
-  })
-
-  it("uses the parsed input when nothing was filled", () => {
-    expect(
-      effectiveDepositAmount({ exact: undefined, parsed, input: "12" }),
-    ).toBe(parsed)
+  it("fills nothing when the maximum truncates away to zero", () => {
+    // 0.0000099 of an 18-decimal token: raw is non-zero, but format(5)
+    // renders "0" and filling that would arm a dust deposit under a field
+    // reading zero.
+    expect(fillMaxDepositInput(amount("0"))).toBeNull()
+    expect(fillMaxDepositInput(amount("0.00000"))).toBeNull()
   })
 })
