@@ -37,6 +37,7 @@ export type MobileMarketActionsProps = {
   setIsMLAOpen: Dispatch<SetStateAction<boolean>>
   wrapper?: TokenWrapper
   hasWrapper?: boolean
+  isLiveMarketReady: boolean
 }
 
 export type MobileMarketTransactionItemProps = {
@@ -96,8 +97,10 @@ const MobileMarketTransactionItem = ({
 
 export const MobileFaucetButton = ({
   marketAccount,
+  disabled,
 }: {
   marketAccount: MarketAccount
+  disabled: boolean
 }) => {
   const {
     mutate: faucet,
@@ -114,7 +117,7 @@ export const MobileFaucetButton = ({
       color="secondary"
       size="large"
       fullWidth
-      disabled={isFauceting}
+      disabled={disabled || isFauceting}
       sx={{ padding: "10px 20px", marginTop: "16px" }}
     >
       {isFauceting ? "Requesting Tokens..." : "Faucet"}
@@ -133,6 +136,7 @@ export const MobileMarketActions = ({
   setIsMLAOpen,
   wrapper,
   hasWrapper,
+  isLiveMarketReady,
 }: MobileMarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
@@ -210,6 +214,8 @@ export const MobileMarketActions = ({
     marketAccount.withdrawalAvailability !== QueueWithdrawalStatus.Ready
 
   const handleClickDeposit = () => {
+    if (!isLiveMarketReady) return
+
     if (touRetryAvailable) {
       toastError("Couldn't verify Terms of Use status — retrying")
       refetchAgreementStatus().catch(() => undefined)
@@ -398,7 +404,7 @@ export const MobileMarketActions = ({
                   onClick={() =>
                     setIsMobileWithdrawalOpen(!isMobileWithdrawalOpen)
                   }
-                  disabled={notMature || disableWithdraw}
+                  disabled={!isLiveMarketReady || notMature || disableWithdraw}
                   sx={{ padding: "10px 20px", marginTop: "16px" }}
                 >
                   ↑{" "}
@@ -494,7 +500,10 @@ export const MobileMarketActions = ({
 
                   <Box sx={{ width: "100%", marginTop: "auto" }}>
                     {showFaucet ? (
-                      <MobileFaucetButton marketAccount={marketAccount} />
+                      <MobileFaucetButton
+                        marketAccount={marketAccount}
+                        disabled={!isLiveMarketReady}
+                      />
                     ) : (
                       <Button
                         onClick={handleClickDeposit}
@@ -503,6 +512,7 @@ export const MobileMarketActions = ({
                         size="large"
                         fullWidth
                         disabled={
+                          !isLiveMarketReady ||
                           (touActionBlocked && !touRetryAvailable) ||
                           marketActionsManuallyDisabled ||
                           marketAccount.maximumDeposit.raw.isZero()

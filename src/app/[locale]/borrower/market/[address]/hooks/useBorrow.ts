@@ -7,7 +7,7 @@ import { parseUnits } from "ethers/lib/utils"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
-import { useEthersProvider, useEthersSigner } from "@/hooks/useEthersSigner"
+import { useEthersSigner } from "@/hooks/useEthersSigner"
 
 export const useBorrow = (
   marketAccount: MarketAccount,
@@ -69,9 +69,14 @@ export const useBorrow = (
     },
     onSuccess() {
       client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_BORROWER_MARKET_ACCOUNT_LEGACY(
+        queryKey: QueryKeys.Markets.GET_MARKET(
           marketAccount.market.chainId,
-          marketAccount.account,
+          marketAccount.market.address,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
+          marketAccount.market.chainId,
           marketAccount.market.address,
         ),
       })

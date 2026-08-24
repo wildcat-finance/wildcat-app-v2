@@ -27,7 +27,6 @@ import { useTranslation } from "react-i18next"
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
-import { useMarketsWithRecentInflow } from "@/app/[locale]/lender/hooks/useMarketsWithRecentInflow"
 import ArrowRightIcon from "@/assets/icons/arrowRight_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
@@ -82,6 +81,8 @@ import {
   MarketStatus,
 } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
+
+import { rankMarketsByActivity } from "./activityRanking"
 
 const SORT_OPTIONS = [
   "Most Funded",
@@ -222,10 +223,7 @@ export const ExploreMarketsTable = () => {
   const { marketAccounts, borrowers, isLoadingInitial, onboardingByMarket } =
     useLenderMarketsContext()
   const { isTestnet } = useCurrentNetwork()
-  const { isMarketQualifying, isLoading: isInflowLoading } =
-    useMarketsWithRecentInflow()
-
-  const isLoading = isLoadingInitial || isInflowLoading
+  const isLoading = isLoadingInitial
 
   const [sortMode, setSortMode] = useState<SortOption>("Most Funded")
   const [sortModel, setSortModel] = useState<GridSortModel>([])
@@ -313,7 +311,6 @@ export const ExploreMarketsTable = () => {
     rows: GridRowsProp<LenderOtherMarketsTableModel>
     totalRows: number
   }>(() => {
-    const gateActive = search.trim() === ""
     const penaltyBorrowers = getPenaltyBorrowers(
       marketAccounts.map((a) => a.market),
     )
@@ -324,18 +321,13 @@ export const ExploreMarketsTable = () => {
       assets,
       borrowers,
       withdrawalCycles,
-    ).filter((a) => {
-      if (!gateActive) return !a.market.isClosed
-      return (
+    ).filter(
+      (a) =>
         isExploreVisible(a.market) &&
-        isMarketQualifying(a) &&
-        !penaltyBorrowers.has(a.market.borrower.toLowerCase())
-      )
-    })
+        !penaltyBorrowers.has(a.market.borrower.toLowerCase()),
+    )
 
     const onboardFiltered = filtered.filter((account) => {
-      if (!gateActive) return true
-
       const onboardingMode = getKnownMarketOnboardingMode(
         account.market.version,
         account.market.address,
@@ -351,7 +343,10 @@ export const ExploreMarketsTable = () => {
       return false
     })
 
-    const sorted = [...onboardFiltered].sort((a, b) => {
+    const compareMarkets = (
+      a: (typeof onboardFiltered)[number],
+      b: (typeof onboardFiltered)[number],
+    ) => {
       if (sortMode === "Highest Yield") {
         return compareByHighestYield(a, b)
       }
@@ -365,9 +360,20 @@ export const ExploreMarketsTable = () => {
         )
       }
       return tokenAmountComparator(b.market.totalSupply, a.market.totalSupply)
-    })
+    }
 
-    const accountsToMap = isMobile ? sorted.slice(0, visibleMobileRows) : sorted
+    // Preserve the activity-qualified Top Markets first, then widen the
+    // window and finally use the remaining catalogue to fill empty slots.
+    // User-selected ranking still applies within each activity tier.
+    const sorted = rankMarketsByActivity(
+      onboardFiltered,
+      isTestnet === true,
+      Math.floor(Date.now() / 1000),
+      compareMarkets,
+    )
+
+    const visibleRows = isMobile ? visibleMobileRows : paginationModel.pageSize
+    const accountsToMap = sorted.slice(0, visibleRows)
 
     return {
       totalRows: sorted.length,
@@ -427,9 +433,10 @@ export const ExploreMarketsTable = () => {
     showSelfOnboard,
     showOnboardByBorrower,
     onboardingByMarket,
-    isMarketQualifying,
+    isTestnet,
     isMobile,
     visibleMobileRows,
+    paginationModel.pageSize,
   ])
 
   // Stable identity: a fresh columns array makes the DataGrid rebuild column

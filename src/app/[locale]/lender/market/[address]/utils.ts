@@ -37,3 +37,30 @@ export const shouldShowLenderRequestBanner = ({
   isDifferentChain: boolean
   authorizedInMarket: boolean | undefined
 }) => isConnected && !isDifferentChain && authorizedInMarket === false
+
+export const getLenderMarketLoadingState = ({
+  isMarketReady,
+  hasLiveMarket,
+  apiLoading,
+  isDiscoveringChainId,
+  hasMarketAccount,
+  isWithdrawalsLoading,
+  authorizedInMarket,
+  isDifferentChain,
+}: {
+  isMarketReady: boolean
+  hasLiveMarket: boolean
+  apiLoading: boolean
+  isDiscoveringChainId: boolean
+  hasMarketAccount: boolean
+  isWithdrawalsLoading: boolean
+  authorizedInMarket: boolean
+  isDifferentChain: boolean
+}) => ({
+  isPageLoading: !isMarketReady || apiLoading || isDiscoveringChainId,
+  isTransactionsLoading:
+    !hasMarketAccount ||
+    (authorizedInMarket && !isDifferentChain && isWithdrawalsLoading),
+  isBarChartsLoading: !hasMarketAccount || isWithdrawalsLoading,
+  isMarketActionsLoading: !hasLiveMarket,
+})

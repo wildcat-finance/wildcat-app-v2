@@ -148,7 +148,7 @@ export const useDeposit = (
         ),
       })
       client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
           marketAccount.market.chainId,
           marketAccount.market.address,
         ),

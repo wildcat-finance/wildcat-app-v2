@@ -54,10 +54,11 @@ export const MyMarketsSection = () => {
     isTestnet,
   } = useCurrentNetwork()
 
-  const { marketAccounts, isLoadingInitial, isLoadingUpdate, borrowers } =
-    useLenderMarketsContext()
-
-  const isLoading = isLoadingInitial || isLoadingUpdate
+  const {
+    marketAccounts,
+    isLoadingInitial: isLoading,
+    borrowers,
+  } = useLenderMarketsContext()
 
   const marketSection = useAppSelector(
     (state) => state.lenderDashboard.marketSection,
