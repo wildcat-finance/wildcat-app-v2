@@ -76,8 +76,8 @@
     }
   },
   "telegramBanner": {
-    "title": "Subscribe to our Telegram Bot",
-    "subtitle": "Receive notifications for market events",
+    "title": "Subscribe to our Telegram\u00a0Bot",
+    "subtitle": "Receive notifications for market\u00a0events",
     "button": "Subscribe"
   },
   "admin": {
@@ -580,8 +580,11 @@
           "message": "This is a fixed term market that has not reached maturity, and early closure is not permitted. It can be terminated once the fixed term ends.",
           "maturity": "Fixed term maturity: {{date}}",
           "termReduction": "You can bring the maturity forward with Adjust Maturity, then terminate once the term ends.",
-          "notBorrower": "Only the market's borrower can terminate this market.",
           "close": "Close"
+        },
+        "notBorrower": {
+          "title": "You cannot terminate this market",
+          "message": "Only the market's borrower can terminate this market."
         }
       }
     }

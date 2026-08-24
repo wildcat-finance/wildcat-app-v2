@@ -47,7 +47,9 @@ export const BlockedFlow = ({
       <Box sx={TerminateDialogBody}>
         <Box sx={TerminateDialogTypo}>
           <Typography variant="text1" textAlign="center" marginBottom="8px">
-            {t("borrowerMarketDetails.modals.terminate.earlyClosure.title")}
+            {isNotBorrower
+              ? t("borrowerMarketDetails.modals.terminate.notBorrower.title")
+              : t("borrowerMarketDetails.modals.terminate.earlyClosure.title")}
           </Typography>
           <Typography
             variant="text2"
@@ -55,9 +57,7 @@ export const BlockedFlow = ({
             textAlign="center"
           >
             {isNotBorrower
-              ? t(
-                  "borrowerMarketDetails.modals.terminate.earlyClosure.notBorrower",
-                )
+              ? t("borrowerMarketDetails.modals.terminate.notBorrower.message")
               : t(
                   "borrowerMarketDetails.modals.terminate.earlyClosure.message",
                 )}

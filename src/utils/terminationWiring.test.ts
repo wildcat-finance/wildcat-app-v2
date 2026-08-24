@@ -33,8 +33,8 @@ describe("terminate modal wiring", () => {
     expect(entry).toContain("BlockedFlow")
   })
 
-  it("recomputes when the preview status changes", () => {
-    expect(entry).toContain("[isModalOpen, previewStatus]")
+  it("decides the flow when the modal opens and then holds it", () => {
+    expect(entry).toContain("[isModalOpen]")
   })
 
   it("keeps the repay flow for indebted markets", () => {

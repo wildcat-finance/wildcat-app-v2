@@ -10,6 +10,7 @@ import { useTerminateMarket } from "@/app/[locale]/borrower/market/[address]/hoo
 import Cross from "@/assets/icons/cross_icon.svg"
 import {
   routeTermination,
+  TerminateModalFlow,
   TerminationBlockDetails,
 } from "@/utils/terminationBlockReason"
 
@@ -27,9 +28,7 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
   const [showErrorTerminationPopup, setShowErrorTerminationPopup] =
     useState(false)
 
-  const [flow, setFlow] = useState<
-    "terminate" | "repayAndTerminate" | "blocked"
-  >()
+  const [flow, setFlow] = useState<TerminateModalFlow>()
   const [blockDetails, setBlockDetails] = useState<TerminationBlockDetails>()
 
   const terminateFlow = flow === "terminate"
@@ -53,20 +52,20 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
     setIsModalOpen(false)
   }
 
-  // The SDK preview is the single authority on why termination is
-  // unavailable; statuses that repaying cannot fix route to the blocked
-  // view instead of the repay flow. (product#538)
-  const previewStatus = marketAccount.previewCloseMarket().status
-
+  // Decided when the modal opens, from the values current at that moment, and
+  // then held. Recomputing on every data refresh unmounts
+  // RepayAndTerminateFlow as soon as a repay brings outstandingDebt to zero,
+  // destroying its step state and both tx hashes mid-flow. (product#538)
   useEffect(() => {
+    if (!isModalOpen) return
     const routing = routeTermination({
-      status: previewStatus,
+      status: marketAccount.previewCloseMarket().status,
       outstandingDebtIsZero: market.outstandingDebt.eq(0),
       hooksConfig: market.hooksConfig,
     })
     setFlow(routing.flow)
     setBlockDetails(routing.block)
-  }, [isModalOpen, previewStatus])
+  }, [isModalOpen])
 
   useEffect(() => {
     if (isTerminatedError) {
