@@ -26,7 +26,7 @@ import {
   PeriodicTermHooksTemplate,
   PeriodicTermMarketDeploymentArgs,
 } from "@wildcatfi/wildcat-sdk"
-import { decodeEventLog, parseAbiItem, zeroAddress, type Hex } from "viem"
+import { zeroAddress } from "viem"
 
 import { toastError, toastRequest, toastSuccess } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
@@ -46,6 +46,7 @@ import {
   getDeployMarketPreviewError,
   previewHooksTemplateDeployment,
 } from "@/utils/createMarketDeploy"
+import { confirmMarketDeployment } from "@/utils/marketDeploymentReceipt"
 import {
   SafeTransactionTerminalError,
   waitForSafeTransactionExecution,
@@ -111,42 +112,6 @@ type DeployV2MarketOperation =
       params: CompleteDeployedV2MarketParams
     }
   | { kind: "complete"; params: CompleteDeployedV2MarketParams }
-
-type MarketDeployedEventArgs = {
-  market: string
-}
-
-const marketDeployedEventAbi = parseAbiItem(
-  "event MarketDeployed(address indexed hooksTemplate, address indexed market, string name, string symbol, address asset, uint256 maxTotalSupply, uint256 annualInterestBips, uint256 delinquencyFeeBips, uint256 withdrawalBatchDuration, uint256 reserveRatioBips, uint256 delinquencyGracePeriod, uint256 hooks)",
-)
-
-type MarketDeploymentReceipt = {
-  logs: readonly {
-    data: string
-    topics: readonly string[]
-  }[]
-}
-
-const getDeployedMarketFromReceipt = (receipt: MarketDeploymentReceipt) => {
-  const event = receipt.logs
-    .map((log) => {
-      try {
-        return decodeEventLog({
-          abi: [marketDeployedEventAbi],
-          data: log.data as Hex,
-          topics: log.topics as [Hex, ...Hex[]],
-        })
-      } catch {
-        return undefined
-      }
-    })
-    .find((decoded) => decoded?.eventName === "MarketDeployed")
-
-  if (!event) {
-    throw Error("MarketDeployed event not found")
-  }
-  return (event.args as MarketDeployedEventArgs).market
-}
 
 export const useDeployV2Market = () => {
   const signer = useEthersSigner()
@@ -786,18 +751,22 @@ export const useDeployV2Market = () => {
         })
       }
 
-      const receipt = await toastRequest(
-        send(),
+      marketAddress = await toastRequest(
+        (async () => {
+          const receipt = await send()
+          return confirmMarketDeployment({
+            receipt,
+            predictedMarket,
+            factoryAddress: lookupFactory.address,
+            getCode: (address) => activeSigner.provider.getCode(address),
+          })
+        })(),
         getStepToastConfig(deploymentSteps, "market", {
           pending: "Deploying Market..",
           success: "Market Deployed Successfully!",
           error: "Market Deployment Failed.",
         }),
       )
-      marketAddress = getDeployedMarketFromReceipt(receipt)
-      if (marketAddress.toLowerCase() !== predictedMarket.toLowerCase()) {
-        throw Error("Safe transaction deployed an unexpected market address")
-      }
       setDeployed({
         salt: marketParams.salt,
         marketKind: marketParams.marketKind,
@@ -891,27 +860,33 @@ export const useDeployV2Market = () => {
       includeMockToken: false,
       includeWrapper: !!params.deployWrapper,
     })
-    const receipt = await toastRequest(
-      waitForSafeProposal({
-        borrowerAddress: params.borrowerAddress,
-        salt: params.salt,
-        predictedMarket: params.marketAddress,
-        step: "market",
-        clearOnSuccess: false,
-      }),
+    const factory = getHooksFactoryContractForMarketKind(
+      targetChainId,
+      params.marketKind,
+      activeSigner,
+    )
+    const deployedMarket = await toastRequest(
+      (async () => {
+        const receipt = await waitForSafeProposal({
+          borrowerAddress: params.borrowerAddress,
+          salt: params.salt,
+          predictedMarket: params.marketAddress,
+          step: "market",
+          clearOnSuccess: false,
+        })
+        return confirmMarketDeployment({
+          receipt,
+          predictedMarket: params.marketAddress,
+          factoryAddress: factory.address,
+          getCode: (address) => activeSigner.provider.getCode(address),
+        })
+      })(),
       getStepToastConfig(deploymentSteps, "market", {
         pending: "Waiting for Safe market deployment..",
         success: "Market Deployed Successfully!",
         error: "Market Deployment Failed.",
       }),
     )
-    const deployedMarket = getDeployedMarketFromReceipt(receipt)
-    if (deployedMarket.toLowerCase() !== params.marketAddress.toLowerCase()) {
-      throw Error("Safe transaction deployed an unexpected market address")
-    }
-    if ((await activeSigner.provider.getCode(deployedMarket)) === "0x") {
-      throw Error("Safe market deployment has no on-chain code")
-    }
     dispatch(
       markCreateMarketDraftDeployed({
         address: params.borrowerAddress,

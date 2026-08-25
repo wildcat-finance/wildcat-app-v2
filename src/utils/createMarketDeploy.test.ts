@@ -1,19 +1,107 @@
 import {
+  encodeAccessListRoleProviderDeploymentInputs,
   DeployMarketPreview,
   DeployMarketStatus,
+  getDeploymentAddress,
+  SupportedChainId,
   TransferAccess,
 } from "@wildcatfi/wildcat-sdk"
+import { zeroAddress } from "viem"
 
 import {
   assertWrapperDeploymentCompatible,
   canDismissCreateMarketDeployDialog,
   getCreateMarketDeployRouting,
+  getCreateMarketRoleProviderInputs,
   getDeployMarketPreviewError,
   hasCreateMarketDeploymentTarget,
   previewHooksTemplateDeployment,
 } from "./createMarketDeploy"
 
 describe("createMarketDeploy", () => {
+  const borrower = "0x0000000000000000000000000000000000000010"
+  const salt = `${borrower}${"11".repeat(12)}`
+
+  it("creates one borrower-administered access list for a fresh v2.5 policy", () => {
+    expect(
+      getCreateMarketRoleProviderInputs({
+        accessControl: "manualApproval",
+        borrower,
+        chainId: SupportedChainId.Sepolia,
+        hasExistingHooks: false,
+        salt,
+      }),
+    ).toEqual({
+      existingProviders: [],
+      newProviderInputs: [
+        {
+          data: encodeAccessListRoleProviderDeploymentInputs({
+            administrator: borrower,
+            initialMembers: [],
+            salt,
+          }),
+          timeToLive: 0,
+        },
+      ],
+      roleProviderFactory: getDeploymentAddress(
+        SupportedChainId.Sepolia,
+        "AccessListRoleProviderFactory",
+      ),
+    })
+  })
+
+  it("keeps the pre-v2.5 borrower-provider constructor behavior", () => {
+    expect(
+      getCreateMarketRoleProviderInputs({
+        accessControl: "manualApproval",
+        borrower,
+        chainId: SupportedChainId.Mainnet,
+        hasExistingHooks: false,
+        salt,
+      }),
+    ).toEqual({
+      existingProviders: [],
+      newProviderInputs: [],
+      roleProviderFactory: zeroAddress,
+    })
+  })
+
+  it("attaches the existing open-access provider for self-onboarding", () => {
+    expect(
+      getCreateMarketRoleProviderInputs({
+        accessControl: "defaultPullProvider",
+        borrower,
+        chainId: SupportedChainId.Sepolia,
+        hasExistingHooks: false,
+        salt,
+      }),
+    ).toEqual({
+      existingProviders: [
+        {
+          providerAddress: getDeploymentAddress(
+            SupportedChainId.Sepolia,
+            "OpenAccessRoleProvider",
+          ),
+          timeToLive: 90 * 86_400,
+        },
+      ],
+      newProviderInputs: [],
+      roleProviderFactory: zeroAddress,
+    })
+  })
+
+  it("does not mutate provider attachments when reusing existing hooks", () => {
+    expect(
+      getCreateMarketRoleProviderInputs({
+        accessControl: "manualApproval",
+        borrower,
+        chainId: SupportedChainId.Sepolia,
+        hasExistingHooks: true,
+        salt,
+      }),
+    ).toEqual({})
+  })
+
   it.each([
     { isDeploying: false, isSuccess: false, expected: true },
     { isDeploying: true, isSuccess: false, expected: false },

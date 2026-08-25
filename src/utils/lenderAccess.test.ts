@@ -1,23 +1,47 @@
+import {
+  prepareAddAccessListMembers,
+  prepareTransaction,
+} from "@wildcatfi/wildcat-sdk"
 import type { PublicClient } from "viem"
 
-import type { LenderRestorationPolicy } from "./lenderAccess"
+import type { CompatibilityLenderPolicy } from "./lenderAccess"
 import {
   getLenderUpdateSafeBatch,
-  prepareLenderRestoration,
+  prepareCompatibilityLenderAddition,
+  prepareCompatibilityLenderRemoval,
 } from "./lenderAccess"
 
-const policyAddress = "0x0000000000000000000000000000000000000010"
-const lenderA = "0x0000000000000000000000000000000000000011"
-const lenderB = "0x0000000000000000000000000000000000000012"
+jest.mock("@wildcatfi/wildcat-sdk", () => {
+  const actual = jest.requireActual("@wildcatfi/wildcat-sdk")
+  return {
+    ...actual,
+    prepareAddAccessListMembers: jest.fn((provider: string) => ({
+      to: provider,
+      data: "0xcccc",
+      value: "0",
+    })),
+    prepareTransaction: jest.fn(({ to }: { to: string }) => ({
+      to,
+      data: "0xdddd",
+      value: "0",
+    })),
+  }
+})
 
-const grantTransaction = {
+const policyAddress = "0x0000000000000000000000000000000000000010"
+const borrower = "0x0000000000000000000000000000000000000011"
+const lenderA = "0x0000000000000000000000000000000000000012"
+const lenderB = "0x0000000000000000000000000000000000000013"
+const accessList = "0x0000000000000000000000000000000000000014"
+
+const blockTransaction = {
   to: policyAddress,
   data: "0x11111111",
   value: "0",
 }
 
-const makePolicy = () => {
-  const populateAddLenders = jest.fn().mockReturnValue(grantTransaction)
+const makePolicy = (kind: "access-list" | "legacy-push" = "access-list") => {
+  const populateBlockLenders = jest.fn().mockReturnValue(blockTransaction)
   const populateUnblockLender = jest.fn((lender: string) => ({
     to: policyAddress,
     data: lender === lenderA ? "0xaaaaaaaa" : "0xbbbbbbbb",
@@ -25,24 +49,55 @@ const makePolicy = () => {
   }))
   const policy = {
     address: policyAddress,
-    populateAddLenders,
+    administrator: borrower,
+    populateBlockLenders,
     populateUnblockLender,
-  } as unknown as LenderRestorationPolicy
-  return { policy, populateAddLenders, populateUnblockLender }
+    roleProviders: [
+      kind === "access-list"
+        ? {
+            administrator: borrower,
+            isApproved: true,
+            isManaged: true,
+            isPullProvider: true,
+            isPushProvider: false,
+            kind: "access-list",
+            providerAddress: accessList,
+          }
+        : {
+            isApproved: true,
+            isPullProvider: false,
+            isPushProvider: true,
+            kind: "unknown",
+            providerAddress: borrower,
+          },
+    ],
+  } as unknown as CompatibilityLenderPolicy
+  return { policy, populateBlockLenders, populateUnblockLender }
 }
 
-const makePublicClient = (blocked: Record<string, boolean>) => {
+const makePublicClient = ({
+  blocked = {},
+  members = {},
+}: {
+  blocked?: Record<string, boolean>
+  members?: Record<string, boolean>
+}) => {
   const getBlock = jest.fn().mockResolvedValue({
     number: BigInt(123),
     timestamp: BigInt(456),
   })
-  const readContract = jest.fn(({ args }: { args: [string] }) =>
-    Promise.resolve({
-      isBlockedFromDeposits: blocked[args[0]] ?? false,
-      lastProvider: "0x0000000000000000000000000000000000000000",
-      canRefresh: false,
-      lastApprovalTimestamp: 0,
-    }),
+  const readContract = jest.fn(
+    ({ functionName, args }: { functionName: string; args: [string] }) => {
+      if (functionName === "isMember") {
+        return Promise.resolve(members[args[0]] ?? false)
+      }
+      return Promise.resolve({
+        isBlockedFromDeposits: blocked[args[0]] ?? false,
+        lastProvider: "0x0000000000000000000000000000000000000000",
+        canRefresh: false,
+        lastApprovalTimestamp: 0,
+      })
+    },
   )
   return {
     publicClient: { getBlock, readContract } as unknown as PublicClient,
@@ -51,64 +106,137 @@ const makePublicClient = (blocked: Record<string, boolean>) => {
   }
 }
 
-describe("prepareLenderRestoration", () => {
-  it("uses one chain snapshot and orders grant before required unblocks", async () => {
-    const { policy, populateAddLenders, populateUnblockLender } = makePolicy()
+describe("prepareCompatibilityLenderAddition", () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it("adds missing access-list members before restoring existing hook blocks", async () => {
+    const { policy, populateUnblockLender } = makePolicy()
     const { publicClient, readContract } = makePublicClient({
-      [lenderA]: true,
-      [lenderB]: false,
+      blocked: { [lenderA]: true },
+      members: { [lenderA]: true, [lenderB]: false },
     })
 
-    const plan = await prepareLenderRestoration(publicClient, policy, [
-      lenderA,
-      lenderB,
-    ])
+    const plan = await prepareCompatibilityLenderAddition(
+      publicClient,
+      policy,
+      [lenderA, lenderB],
+    )
 
     expect(plan.blockNumber).toBe(BigInt(123))
     expect(plan.blockTimestamp).toBe(456)
     expect(plan.blockedLenders).toEqual([lenderA])
-    expect(plan.transactions).toEqual([
-      grantTransaction,
+    expect(plan.membershipTransactions).toEqual([
+      { to: accessList, data: "0xcccc", value: "0" },
+    ])
+    expect(prepareAddAccessListMembers).toHaveBeenCalledWith(accessList, [
+      lenderB,
+    ])
+    expect(plan.unblockTransactions).toEqual([
       { to: policyAddress, data: "0xaaaaaaaa", value: "0" },
     ])
-    expect(populateAddLenders).toHaveBeenCalledWith([
-      { lender: lenderA, credentialTimestamp: 456 },
-      { lender: lenderB, credentialTimestamp: 456 },
+    expect(plan.transactions).toEqual([
+      ...plan.membershipTransactions,
+      ...plan.unblockTransactions,
     ])
     expect(populateUnblockLender).toHaveBeenCalledWith(lenderA)
-    expect(readContract).toHaveBeenCalledTimes(2)
+    expect(readContract).toHaveBeenCalledTimes(4)
     expect(readContract).toHaveBeenCalledWith(
       expect.objectContaining({
         functionName: "getPreviousLenderStatus",
         blockNumber: BigInt(123),
       }),
     )
+    expect(readContract).toHaveBeenCalledWith(
+      expect.objectContaining({
+        functionName: "isMember",
+        blockNumber: BigInt(123),
+      }),
+    )
   })
 
-  it("does not add unblock calls for lenders that are not blocked", async () => {
+  it("only unblocks a lender who is already an access-list member", async () => {
+    const { policy } = makePolicy()
+    const { publicClient } = makePublicClient({
+      blocked: { [lenderA]: true },
+      members: { [lenderA]: true },
+    })
+
+    const plan = await prepareCompatibilityLenderAddition(
+      publicClient,
+      policy,
+      [lenderA],
+    )
+
+    expect(plan.membershipTransactions).toEqual([])
+    expect(plan.transactions).toEqual(plan.unblockTransactions)
+  })
+
+  it("does nothing when an access-list member is already unblocked", async () => {
     const { policy, populateUnblockLender } = makePolicy()
-    const { publicClient } = makePublicClient({})
+    const { publicClient } = makePublicClient({ members: { [lenderA]: true } })
 
-    const plan = await prepareLenderRestoration(publicClient, policy, [lenderA])
+    const plan = await prepareCompatibilityLenderAddition(
+      publicClient,
+      policy,
+      [lenderA],
+    )
 
-    expect(plan.transactions).toEqual([grantTransaction])
+    expect(plan.transactions).toEqual([])
     expect(populateUnblockLender).not.toHaveBeenCalled()
   })
 
-  it("fails before building transactions when live block-state reads fail", async () => {
-    const { policy, populateAddLenders } = makePolicy()
-    const publicClient = {
-      getBlock: jest.fn().mockResolvedValue({
-        number: BigInt(123),
-        timestamp: BigInt(456),
+  it("preserves legacy borrower-provider grant then unblock behavior", async () => {
+    const { policy } = makePolicy("legacy-push")
+    const { publicClient } = makePublicClient({
+      blocked: { [lenderA]: true },
+    })
+
+    const plan = await prepareCompatibilityLenderAddition(
+      publicClient,
+      policy,
+      [lenderA, lenderB],
+    )
+
+    expect(prepareTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: policyAddress,
+        functionName: "grantRoles",
+        args: [
+          [lenderA, lenderB],
+          [456, 456],
+        ],
       }),
-      readContract: jest.fn().mockRejectedValue(Error("RPC unavailable")),
-    } as unknown as PublicClient
+    )
+    expect(plan.transactions).toEqual([
+      ...plan.membershipTransactions,
+      ...plan.unblockTransactions,
+    ])
+  })
+
+  it("rejects access lists administered by another address", async () => {
+    const { policy } = makePolicy()
+    policy.roleProviders[0].administrator = lenderB
+    const { publicClient, getBlock } = makePublicClient({})
 
     await expect(
-      prepareLenderRestoration(publicClient, policy, [lenderA]),
-    ).rejects.toThrow("RPC unavailable")
-    expect(populateAddLenders).not.toHaveBeenCalled()
+      prepareCompatibilityLenderAddition(publicClient, policy, [lenderA]),
+    ).rejects.toThrow(
+      "The borrower does not administer this policy's access list",
+    )
+    expect(getBlock).not.toHaveBeenCalled()
+  })
+})
+
+describe("prepareCompatibilityLenderRemoval", () => {
+  it("preserves the existing hook-wide block behavior", () => {
+    const { policy, populateBlockLenders } = makePolicy()
+
+    expect(prepareCompatibilityLenderRemoval(policy, [lenderA])).toBe(
+      blockTransaction,
+    )
+    expect(populateBlockLenders).toHaveBeenCalledWith([lenderA])
   })
 })
 

@@ -17,7 +17,7 @@ import Cross from "@/assets/icons/cross_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
 import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
-import { hasActivePullRoleProvider } from "@/utils/marketCapabilities"
+import { hasActiveLenderOnboardingRoleProvider } from "@/utils/marketCapabilities"
 
 import { EditLendersTable } from "./components/EditLendersTable"
 import { AddModal } from "./components/Modals/AddModal"
@@ -33,7 +33,7 @@ export const LendersTab = ({
 }: LendersTabProps) => {
   const { t } = useTranslation()
 
-  const isSelfOnboardPolicy = hasActivePullRoleProvider(
+  const isSelfOnboardPolicy = hasActiveLenderOnboardingRoleProvider(
     policy?.roleProviders ?? [],
   )
 

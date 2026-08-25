@@ -25,7 +25,7 @@ import {
   setPolicyLenderFilter,
   setPolicyLendersTableData,
 } from "@/store/slices/editPolicySlice/editPolicySlice"
-import { hasActivePullRoleProvider } from "@/utils/marketCapabilities"
+import { hasActiveLenderOnboardingRoleProvider } from "@/utils/marketCapabilities"
 
 import { ConfirmLendersForm } from "./components/ConfirmLendersForm"
 import { EditLendersForm } from "./components/EditLendersForm"
@@ -59,7 +59,7 @@ export default function EditPolicyPage() {
   const [accessControl, setAccessControl] = React.useState<string | undefined>()
   const markets = data?.markets ?? []
 
-  const canEditLenders = !hasActivePullRoleProvider(
+  const canEditLenders = !hasActiveLenderOnboardingRoleProvider(
     data?.hooksInstance?.roleProviders ?? [],
   )
 
@@ -73,7 +73,7 @@ export default function EditPolicyPage() {
       const hooksKind = hooksInstance?.kind ?? HooksKind.OpenTerm
       if (hooksInstance) {
         policyName = hooksInstance.name
-        const hasPullProvider = hasActivePullRoleProvider(
+        const hasPullProvider = hasActiveLenderOnboardingRoleProvider(
           hooksInstance.roleProviders,
         )
         setAccessControl(
@@ -95,9 +95,11 @@ export default function EditPolicyPage() {
           if (credential) {
             const { lastProvider } = credential
             if (lastProvider) {
-              credentialSource = lastProvider.isPushProvider
-                ? t("marketParameters.roleProviders.manualApproval")
-                : t("marketParameters.roleProviders.defaultPullProvider")
+              credentialSource = hasActiveLenderOnboardingRoleProvider([
+                lastProvider,
+              ])
+                ? t("marketParameters.roleProviders.defaultPullProvider")
+                : t("marketParameters.roleProviders.manualApproval")
               credentialExpiry =
                 lastProvider.timeToLive === maxTimeToLive
                   ? maxTimeToLive

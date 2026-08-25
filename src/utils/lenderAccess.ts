@@ -1,4 +1,5 @@
 import {
+  accessListRoleProviderAbi,
   FixedTermHooks,
   HooksInstance,
   iOpenTermHooksAbi,
@@ -6,15 +7,21 @@ import {
   OpenTermHooks,
   PartialTransaction,
   PeriodicTermHooks,
+  prepareAddAccessListMembers,
+  prepareTransaction,
 } from "@wildcatfi/wildcat-sdk"
 import { parseAbi, type Address, type PublicClient } from "viem"
 
 export const lenderPolicyErrorAbi = parseAbi([
+  "error CallerNotAdministrator()",
   "error CallerNotBorrower()",
   "error GrantedCredentialExpired()",
   "error InvalidArrayLength()",
   "error InvalidCredentialReturned()",
   "error InvalidCredentialTimestamp()",
+  "error InvalidMember()",
+  "error MemberAlreadyExists()",
+  "error MemberNotFound()",
   "error NotApprovedLender()",
   "error ProviderCanNotReplaceCredential()",
   "error ProviderCanNotRevokeCredential()",
@@ -35,17 +42,27 @@ type StoredLenderStatus = {
   lastApprovalTimestamp: number
 }
 
-export type LenderRestorationPlan = {
+export type CompatibilityLenderAdditionPlan = {
   blockNumber: bigint
   blockTimestamp: number
   blockedLenders: string[]
+  membershipTransactions: PartialTransaction[]
   transactions: PartialTransaction[]
+  unblockTransactions: PartialTransaction[]
 }
 
-export type LenderRestorationPolicy = Pick<
+export type CompatibilityLenderPolicy = Pick<
   HooksInstance,
-  "address" | "populateAddLenders" | "populateUnblockLender"
+  | "address"
+  | "administrator"
+  | "populateBlockLenders"
+  | "populateUnblockLender"
+  | "roleProviders"
 >
+
+type CompatibilityProvider =
+  | { address: string; kind: "access-list" }
+  | { address: string; kind: "legacy-push" }
 
 export const getLenderUpdateSafeBatch = <Transaction>(
   isConnectedToSafe: boolean,
@@ -75,48 +92,152 @@ const readStoredLenderStatus = (
     blockNumber,
   }) as Promise<StoredLenderStatus>
 
-/**
- * Plans the existing-policy restore workflow against one chain snapshot.
- * Granting must remain first because it is the permissioned operation; only
- * lenders whose independent deposit block is set receive a follow-up unblock.
- */
-export const prepareLenderRestoration = async (
+const readAccessListMembership = (
   publicClient: PublicClient,
-  policy: LenderRestorationPolicy,
+  providerAddress: string,
+  lender: string,
+  blockNumber: bigint,
+): Promise<boolean> =>
+  publicClient.readContract({
+    address: providerAddress as Address,
+    abi: accessListRoleProviderAbi,
+    functionName: "isMember",
+    args: [lender as Address],
+    blockNumber,
+  }) as Promise<boolean>
+
+const getCompatibilityProvider = (
+  policy: CompatibilityLenderPolicy,
+): CompatibilityProvider => {
+  const administrator = policy.administrator.toLowerCase()
+  const approvedProviders = policy.roleProviders.filter(
+    (provider) => provider.isApproved,
+  )
+  const accessLists = approvedProviders.filter(
+    (provider) => provider.kind === "access-list",
+  )
+  const managedAccessLists = accessLists.filter(
+    (provider) => provider.administrator?.toLowerCase() === administrator,
+  )
+
+  if (managedAccessLists.length > 1) {
+    throw Error(
+      "Multiple managed access lists require explicit provider selection",
+    )
+  }
+  if (managedAccessLists.length === 1) {
+    return {
+      address: managedAccessLists[0].providerAddress,
+      kind: "access-list",
+    }
+  }
+  if (accessLists.length > 0) {
+    throw Error("The borrower does not administer this policy's access list")
+  }
+
+  const legacyBorrowerProvider = approvedProviders.find(
+    (provider) =>
+      provider.isPushProvider &&
+      provider.providerAddress.toLowerCase() === administrator,
+  )
+  if (legacyBorrowerProvider) {
+    return {
+      address: legacyBorrowerProvider.providerAddress,
+      kind: "legacy-push",
+    }
+  }
+
+  throw Error(
+    "No borrower-managed lender provider is available for this policy",
+  )
+}
+
+const prepareLegacyLenderGrant = (
+  policyAddress: string,
   lenders: string[],
-): Promise<LenderRestorationPlan> => {
+  credentialTimestamp: number,
+): PartialTransaction =>
+  prepareTransaction({
+    to: policyAddress,
+    abi: iOpenTermHooksAbi,
+    functionName: lenders.length === 1 ? "grantRole" : "grantRoles",
+    args:
+      lenders.length === 1
+        ? [lenders[0], credentialTimestamp]
+        : [lenders, lenders.map(() => credentialTimestamp)],
+  })
+
+/**
+ * Temporary v2.5 compatibility adapter for the existing frontend behavior.
+ * Its "add lender" action also clears a hook-local block, while membership and
+ * blocking remain separate domains in the SDK and protocol.
+ */
+export const prepareCompatibilityLenderAddition = async (
+  publicClient: PublicClient,
+  policy: CompatibilityLenderPolicy,
+  lenders: string[],
+): Promise<CompatibilityLenderAdditionPlan> => {
   if (lenders.length === 0) {
     throw Error("At least one lender is required")
   }
 
+  const provider = getCompatibilityProvider(policy)
   const block = await publicClient.getBlock()
   const blockTimestamp = toCredentialTimestamp(block.timestamp)
-  const statuses = await Promise.all(
-    lenders.map((lender) =>
-      readStoredLenderStatus(
-        publicClient,
-        policy.address,
-        lender,
-        block.number,
+  const [statuses, memberships] = await Promise.all([
+    Promise.all(
+      lenders.map((lender) =>
+        readStoredLenderStatus(
+          publicClient,
+          policy.address,
+          lender,
+          block.number,
+        ),
       ),
     ),
-  )
+    provider.kind === "access-list"
+      ? Promise.all(
+          lenders.map((lender) =>
+            readAccessListMembership(
+              publicClient,
+              provider.address,
+              lender,
+              block.number,
+            ),
+          ),
+        )
+      : Promise.resolve(undefined),
+  ])
   const blockedLenders = lenders.filter(
     (_, index) => statuses[index].isBlockedFromDeposits,
+  )
+  const membershipTransactions =
+    provider.kind === "access-list"
+      ? (() => {
+          const missingMembers = lenders.filter(
+            (_, index) => !memberships?.[index],
+          )
+          return missingMembers.length > 0
+            ? [prepareAddAccessListMembers(provider.address, missingMembers)]
+            : []
+        })()
+      : [prepareLegacyLenderGrant(policy.address, lenders, blockTimestamp)]
+  const unblockTransactions = blockedLenders.map((lender) =>
+    policy.populateUnblockLender(lender),
   )
 
   return {
     blockNumber: block.number,
     blockTimestamp,
     blockedLenders,
-    transactions: [
-      policy.populateAddLenders(
-        lenders.map((lender) => ({
-          lender,
-          credentialTimestamp: blockTimestamp,
-        })),
-      ),
-      ...blockedLenders.map((lender) => policy.populateUnblockLender(lender)),
-    ],
+    membershipTransactions,
+    transactions: [...membershipTransactions, ...unblockTransactions],
+    unblockTransactions,
   }
 }
+
+/** Preserve the current UI's "remove lender" behavior: block at the hook. */
+export const prepareCompatibilityLenderRemoval = (
+  policy: CompatibilityLenderPolicy,
+  lenders: string[],
+): PartialTransaction => policy.populateBlockLenders(lenders)

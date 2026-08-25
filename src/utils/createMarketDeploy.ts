@@ -1,9 +1,14 @@
 import {
+  encodeAccessListRoleProviderDeploymentInputs,
   DeployableMarketKind,
   DeployMarketPreview,
   DeployMarketStatus,
+  getDeploymentAddress,
+  hasDeploymentAddress,
+  SupportedChainId,
   TransferAccess,
 } from "@wildcatfi/wildcat-sdk"
+import { zeroAddress } from "viem"
 
 export const WRAPPER_TRANSFERS_DISABLED_ERROR =
   "A wrapper cannot be deployed when market transfers are disabled"
@@ -35,6 +40,89 @@ type CreateMarketDeployRoutingOutput =
 type CreateMarketDeploymentTargetInput = {
   hasSelectedHooksTemplate: boolean
   hasCommittedDeployment: boolean
+}
+
+type CreateMarketRoleProviderInputs = {
+  existingProviders?: Array<{
+    providerAddress: string
+    timeToLive: number
+  }>
+  newProviderInputs?: Array<{
+    data: string
+    timeToLive: number
+  }>
+  roleProviderFactory?: string
+}
+
+type CreateMarketRoleProviderInput = {
+  accessControl: string
+  borrower: string
+  chainId: SupportedChainId
+  hasExistingHooks: boolean
+  salt: string
+}
+
+/**
+ * Keeps legacy deployments unchanged while giving fresh v2.5 borrower-operated
+ * policies their own managed allowlist. Provider creation happens inside the
+ * existing deployMarketAndHooks transaction.
+ */
+export const getCreateMarketRoleProviderInputs = ({
+  accessControl,
+  borrower,
+  chainId,
+  hasExistingHooks,
+  salt,
+}: CreateMarketRoleProviderInput): CreateMarketRoleProviderInputs => {
+  if (hasExistingHooks) return {}
+
+  if (accessControl === "defaultPullProvider") {
+    return {
+      existingProviders: [
+        {
+          providerAddress: getDeploymentAddress(
+            chainId,
+            "OpenAccessRoleProvider",
+          ),
+          timeToLive: 90 * 86_400,
+        },
+      ],
+      newProviderInputs: [],
+      roleProviderFactory: zeroAddress,
+    }
+  }
+
+  if (accessControl !== "manualApproval") {
+    throw Error(`Unsupported access-control selection: ${accessControl}`)
+  }
+
+  if (!hasDeploymentAddress(chainId, "AccessListRoleProviderFactory")) {
+    // Pre-v2.5 hooks add the borrower as a push provider during construction.
+    return {
+      existingProviders: [],
+      newProviderInputs: [],
+      roleProviderFactory: zeroAddress,
+    }
+  }
+
+  return {
+    existingProviders: [],
+    newProviderInputs: [
+      {
+        data: encodeAccessListRoleProviderDeploymentInputs({
+          administrator: borrower,
+          initialMembers: [],
+          salt,
+        }),
+        // Keep mutable allowlist removals effective on the next gated action.
+        timeToLive: 0,
+      },
+    ],
+    roleProviderFactory: getDeploymentAddress(
+      chainId,
+      "AccessListRoleProviderFactory",
+    ),
+  }
 }
 
 export const hasCreateMarketDeploymentTarget = ({

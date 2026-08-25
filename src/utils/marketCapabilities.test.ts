@@ -9,6 +9,7 @@ import {
   getEffectiveMarketAccess,
   getFixedTermHooksConfig,
   getMarketPolicyAddress,
+  hasActiveLenderOnboardingRoleProvider,
   hasActivePullRoleProvider,
   isFixedTermMarket,
   isHooksManagedMarket,
@@ -42,6 +43,14 @@ describe("marketCapabilities", () => {
     expect(
       hasActivePullRoleProvider([borrowerPushProvider, activePullProvider]),
     ).toBe(true)
+    expect(hasActiveLenderOnboardingRoleProvider([activePullProvider])).toBe(
+      true,
+    )
+    expect(
+      hasActiveLenderOnboardingRoleProvider([
+        { ...activePullProvider, kind: "access-list" },
+      ]),
+    ).toBe(false)
     expect(
       hasActivePullRoleProvider([
         {
@@ -124,6 +133,28 @@ describe("marketCapabilities", () => {
             {
               isApproved: true,
               pullProviderIndex: -1,
+            },
+          ],
+        },
+      }),
+    ).toBe(false)
+  })
+
+  it("keeps active access-list pull providers under borrower approval", () => {
+    expect(
+      isSelfOnboardMarketAccount({
+        market: {
+          onboardingMode: MarketOnboardingMode.SelfOnboard,
+          hooksConfig: {
+            kind: HooksKind.PeriodicTerm,
+            depositRequiresAccess: true,
+            flags: { useOnDeposit: true },
+          },
+          roleProviders: [
+            {
+              kind: "access-list",
+              isApproved: true,
+              pullProviderIndex: 0,
             },
           ],
         },

@@ -11,7 +11,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
-import { hasActivePullRoleProvider } from "@/utils/marketCapabilities"
+import { hasActiveLenderOnboardingRoleProvider } from "@/utils/marketCapabilities"
 
 import { NewMarketFormType } from "./useNewMarketForm"
 import { useGetBorrowerHooksData } from "../../hooks/useGetBorrowerHooksData"
@@ -127,7 +127,7 @@ export function useNewMarketHooksData(
           )
           setValue(
             "accessControl",
-            hasActivePullRoleProvider(hooksInstance.roleProviders)
+            hasActiveLenderOnboardingRoleProvider(hooksInstance.roleProviders)
               ? "defaultPullProvider"
               : "manualApproval",
           )
