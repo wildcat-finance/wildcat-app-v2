@@ -47,6 +47,20 @@ describe("marketOnboarding", () => {
         ],
       } as unknown as Market),
     ).toBe(MarketOnboardingMode.SelfOnboard)
+
+    expect(
+      getSubgraphMarketOnboardingMode({
+        ...market,
+        roleProviders: [
+          {
+            kind: "access-list",
+            isApproved: true,
+            isPullProvider: true,
+            pullProviderIndex: 0,
+          },
+        ],
+      } as unknown as Market),
+    ).toBe(MarketOnboardingMode.BorrowerApproval)
   })
 
   it.each([

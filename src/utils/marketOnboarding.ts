@@ -5,7 +5,7 @@ import {
   MarketVersion,
 } from "@wildcatfi/wildcat-sdk"
 
-import { hasActivePullRoleProvider } from "./marketCapabilities"
+import { hasActiveLenderOnboardingRoleProvider } from "./marketCapabilities"
 
 export { MarketOnboardingMode }
 
@@ -37,7 +37,7 @@ export const getSubgraphMarketOnboardingMode = (
 
   if (!market.roleProviders) return undefined
 
-  return hasActivePullRoleProvider(market.roleProviders)
+  return hasActiveLenderOnboardingRoleProvider(market.roleProviders)
     ? MarketOnboardingMode.SelfOnboard
     : MarketOnboardingMode.BorrowerApproval
 }

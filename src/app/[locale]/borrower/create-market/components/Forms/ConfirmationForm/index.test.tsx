@@ -76,10 +76,10 @@ describe("ConfirmationForm access-control signature guard", () => {
     )
 
     const backButton = screen.getByRole("button", {
-      name: "createNewMarket.buttons.back",
+      name: "common.buttons.back",
     }) as HTMLButtonElement
     const signButton = screen.getByRole("button", {
-      name: "createNewMarket.buttons.signMlaRefusal",
+      name: "borrower.createMarket.buttons.signMlaRefusal",
     }) as HTMLButtonElement
 
     expect(backButton.disabled).toBe(true)

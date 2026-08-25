@@ -25,7 +25,7 @@ type MarketLike = {
   onboardingMode?: MarketOnboardingMode
   roleProviders?: readonly Pick<
     RoleProvider,
-    "isApproved" | "pullProviderIndex"
+    "kind" | "isApproved" | "pullProviderIndex"
   >[]
 }
 
@@ -37,17 +37,31 @@ type MarketAccountLike = {
 // subgraph serializes the same sentinel as -1.
 const NULL_PROVIDER_INDEX = 2 ** 24 - 1
 
+type PullRoleProviderLike = Pick<
+  RoleProvider,
+  "kind" | "isApproved" | "pullProviderIndex"
+>
+
+const isActivePullRoleProvider = ({
+  isApproved,
+  pullProviderIndex,
+}: PullRoleProviderLike): boolean =>
+  isApproved &&
+  pullProviderIndex >= 0 &&
+  pullProviderIndex !== NULL_PROVIDER_INDEX
+
 export const hasActivePullRoleProvider = (
-  roleProviders: readonly Pick<
-    RoleProvider,
-    "isApproved" | "pullProviderIndex"
-  >[],
+  roleProviders: readonly PullRoleProviderLike[],
+): boolean => roleProviders.some(isActivePullRoleProvider)
+
+export const hasActiveLenderOnboardingRoleProvider = (
+  roleProviders: readonly PullRoleProviderLike[],
 ): boolean =>
   roleProviders.some(
-    ({ isApproved, pullProviderIndex }) =>
-      isApproved &&
-      pullProviderIndex >= 0 &&
-      pullProviderIndex !== NULL_PROVIDER_INDEX,
+    (provider) =>
+      // access-list membership is borrower-managed even though credentials are
+      // pulled from the provider when a lender attempts the gated action.
+      isActivePullRoleProvider(provider) && provider.kind !== "access-list",
   )
 
 export const isHooksManagedMarket = (market: MarketLike): boolean =>
@@ -85,7 +99,7 @@ export const isSelfOnboardMarketAccount = (
   }
 
   if (market.roleProviders) {
-    return hasActivePullRoleProvider(market.roleProviders)
+    return hasActiveLenderOnboardingRoleProvider(market.roleProviders)
   }
 
   return market.onboardingMode === MarketOnboardingMode.SelfOnboard

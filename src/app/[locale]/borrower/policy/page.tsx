@@ -27,7 +27,7 @@ import {
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 import { pageCalcHeights } from "@/utils/constants"
-import { hasActivePullRoleProvider } from "@/utils/marketCapabilities"
+import { hasActiveLenderOnboardingRoleProvider } from "@/utils/marketCapabilities"
 
 import { SmallFilterSelectItem } from "../../../../components/SmallFilterSelect"
 
@@ -95,7 +95,7 @@ export default function PolicyPage() {
     }
   }, [data, policyName, policyAddress])
 
-  const accessControl = hasActivePullRoleProvider(
+  const accessControl = hasActiveLenderOnboardingRoleProvider(
     data?.hooksInstance?.roleProviders ?? [],
   )
     ? t("marketParameters.roleProviders.defaultPullProvider")
