@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "fluid": true,
+  "crons": [
+    {
+      "path": "/api/export/cleanup",
+      "schedule": "17 3 * * *"
+    },
+    {
+      "path": "/api/export/reconcile",
+      "schedule": "*/10 * * * *"
+    }
+  ]
+}
