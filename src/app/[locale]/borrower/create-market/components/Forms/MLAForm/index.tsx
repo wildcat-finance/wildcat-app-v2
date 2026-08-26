@@ -5,7 +5,6 @@ import {
   CircularProgress,
   FormControlLabel,
   RadioGroup,
-  Typography,
 } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
@@ -115,10 +114,6 @@ export const MlaForm = ({ form }: MLAFormProps) => {
 
   return (
     <Box sx={FormContainer}>
-      <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("borrower.createMarket.mla.title")}
-      </Typography>
-
       <HorizontalInputLabel
         label={t("common.labels.masterLoanAgreement")}
         explainer={t("borrower.createMarket.mla.mla.explainer")}

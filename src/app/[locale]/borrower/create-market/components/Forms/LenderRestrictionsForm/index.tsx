@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 
-import { Box, Switch, Typography } from "@mui/material"
+import { Box, Switch } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { FormFooter } from "@/app/[locale]/borrower/create-market/components/FormFooter"
@@ -63,10 +63,6 @@ export const LenderRestrictionsForm = ({
 
   return (
     <Box sx={FormContainer}>
-      <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("borrower.createMarket.lenderRestrictions.title")}
-      </Typography>
-
       <Box
         sx={{
           display: "flex",

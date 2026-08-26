@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material"
+import { Box } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import {
@@ -30,10 +30,6 @@ export const LegacyFinancialForm = ({
 
   return (
     <Box sx={FormContainer}>
-      <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("borrower.createMarket.financial.title")}
-      </Typography>
-
       <Box
         sx={{
           ...SectionGrid,
