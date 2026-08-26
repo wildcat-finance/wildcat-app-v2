@@ -81,7 +81,6 @@ export const LenderMarketSidebar = () => {
       <Box position="sticky" top="32px">
         <BackButton
           title={t("nav.backMarkets")}
-          back
           link={ROUTES.lender.root}
         />
 
