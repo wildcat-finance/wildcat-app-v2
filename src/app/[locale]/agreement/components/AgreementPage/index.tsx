@@ -8,6 +8,7 @@ import type { ServiceAgreementPartyInput } from "@/app/api/service-agreement/int
 import { ServiceAgreementVersionChip } from "@/components/ServiceAgreementVersionChip"
 import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
+import { currentReturnTarget } from "@/utils/returnTarget"
 
 import { AgreementText } from "../AgreementText"
 import { ReacceptButton } from "../ReacceptButton"
@@ -141,7 +142,7 @@ export const AgreementPage = ({
             variant="contained"
             color="secondary"
             size="large"
-            onClick={() => router.back()}
+            onClick={() => router.push(currentReturnTarget(party))}
             sx={{
               width: "168.63px",
               height: "44px",
