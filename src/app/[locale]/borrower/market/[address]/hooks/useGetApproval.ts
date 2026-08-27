@@ -7,6 +7,7 @@ import { useAccount } from "wagmi"
 import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { logger } from "@/lib/logging/client"
 import { withClientSpan } from "@/lib/telemetry/clientTracing"
 
@@ -18,8 +19,9 @@ export const useApprove = (
 ) => {
   const { targetChainId } = useCurrentNetwork()
   const { address } = useAccount()
+  const signer = useEthersSigner()
   const client = useQueryClient()
-  const { connected: safeConnected, sdk } = useSafeAppsSDK()
+  const { connected: safeConnected, sdk, safe } = useSafeAppsSDK()
 
   const mutation = useMutation({
     mutationFn: async (tokenAmount: TokenAmount) => {
@@ -27,15 +29,28 @@ export const useApprove = (
       return withClientSpan(
         "market.approve",
         async (span) => {
-          if (!market) {
-            throw Error("Market not available")
+          if (!market || !signer || !address) {
+            throw Error("Market or signing account not available")
           }
-          if (market.chainId !== targetChainId) {
+          const signingChainId = safeConnected ? safe.chainId : signer.chainId
+          const signingAddress = safeConnected
+            ? safe.safeAddress
+            : await signer.getAddress()
+          if (
+            market.chainId !== targetChainId ||
+            market.chainId !== signingChainId
+          ) {
             throw Error(
-              `Market chainId does not match target chainId:` +
+              `Market chainId does not match active chainId:` +
                 ` Market ${market.chainId},` +
-                ` Target ${targetChainId}`,
+                ` Target ${targetChainId}, Signing ${signingChainId}`,
             )
+          }
+          if (
+            !signingAddress ||
+            signingAddress.toLowerCase() !== address.toLowerCase()
+          ) {
+            throw Error("Signing account does not match connected account")
           }
 
           span.setAttributes({
@@ -44,30 +59,34 @@ export const useApprove = (
             "token.amount": tokenAmount.raw.toString(),
           })
 
-          const tx = await token.contract.approve(
-            market.address.toLowerCase(),
-            tokenAmount.raw,
-          )
-          span.setAttribute("tx.hash", tx.hash)
+          const approve = async () => {
+            const tx = await token.contract.approve(
+              market.address.toLowerCase(),
+              tokenAmount.raw,
+            )
+            span.setAttribute("tx.hash", tx.hash)
 
-          if (!safeConnected && setTxHash) setTxHash(tx.hash)
+            if (!safeConnected && setTxHash) setTxHash(tx.hash)
 
-          if (safeConnected) {
-            const checkTransaction = async () => {
-              const transactionBySafeHash = await sdk.txs.getBySafeTxHash(
-                tx.hash,
-              )
-              if (transactionBySafeHash?.txHash) {
-                if (setTxHash) setTxHash(transactionBySafeHash.txHash)
-              } else {
-                setTimeout(checkTransaction, 1000)
+            if (safeConnected) {
+              const checkTransaction = async () => {
+                const transactionBySafeHash = await sdk.txs.getBySafeTxHash(
+                  tx.hash,
+                )
+                if (transactionBySafeHash?.txHash) {
+                  if (setTxHash) setTxHash(transactionBySafeHash.txHash)
+                } else {
+                  setTimeout(checkTransaction, 1000)
+                }
               }
+
+              await checkTransaction()
             }
 
-            await checkTransaction()
+            return tx.wait()
           }
 
-          await tx.wait()
+          await approve()
         },
         {
           parentContext,
@@ -81,16 +100,10 @@ export const useApprove = (
     },
     onSuccess() {
       client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
           market.chainId,
           market.address,
-        ),
-      })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_BORROWER_MARKET_ACCOUNT_LEGACY(
-          market.chainId,
           address,
-          market.address,
         ),
       })
     },

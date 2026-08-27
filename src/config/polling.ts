@@ -3,3 +3,6 @@ export const POLLING_INTERVALS = {
   default: 30_000,
   slow: 60_000,
 } as const
+
+// Backwards-compatible alias for consumers that predate the interval map.
+export const POLLING_INTERVAL = POLLING_INTERVALS.fast

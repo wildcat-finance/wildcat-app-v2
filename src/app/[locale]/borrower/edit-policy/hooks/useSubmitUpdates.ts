@@ -6,6 +6,7 @@ import {
   FixedTermHooks,
   HooksInstance,
   OpenTermHooks,
+  PeriodicTermHooks,
 } from "@wildcatfi/wildcat-sdk/dist/access"
 
 import { toastRequest, ToastRequestConfig } from "@/components/Toasts"
@@ -17,6 +18,11 @@ import { withClientSpan } from "@/lib/telemetry/clientTracing"
 import { useFlowMutation } from "@/lib/telemetry/useFlowMutation"
 import { useAppDispatch } from "@/store/hooks"
 import { resetEditPolicyState } from "@/store/slices/editPolicySlice/editPolicySlice"
+import { trimAddress } from "@/utils/formatters"
+import {
+  getBlockedLenders,
+  getLenderUpdateSafeBatch,
+} from "@/utils/lenderAccess"
 
 export type SubmitPolicyUpdatesInputs = {
   addLenders?: string[]
@@ -90,9 +96,27 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
               logger.debug({ addLenders }, "Add lenders list")
               if (
                 policy instanceof OpenTermHooks ||
-                policy instanceof FixedTermHooks
+                policy instanceof FixedTermHooks ||
+                policy instanceof PeriodicTermHooks
               ) {
                 logger.debug("Adding lenders to v2 policy")
+
+                const policyContract = policy.contract
+                const blockedLenders = await getBlockedLenders(
+                  addLenders,
+                  "getLenderStatus" in policyContract
+                    ? (lender) => policyContract.getLenderStatus(lender)
+                    : undefined,
+                )
+                blockedLenders.forEach((lender) => {
+                  txs.push({
+                    ...policy.populateUnblockLender(lender),
+                    pending: `Restoring deposit access for ${trimAddress(lender)}`,
+                    success: `Restored deposit access for ${trimAddress(lender)}`,
+                    error: `Failed to restore access for ${trimAddress(lender)}`,
+                  })
+                })
+
                 const tx = policy.populateAddLenders(
                   addLenders.map((lender) => ({ lender })),
                 )
@@ -130,7 +154,8 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
               )
               if (
                 policy instanceof OpenTermHooks ||
-                policy instanceof FixedTermHooks
+                policy instanceof FixedTermHooks ||
+                policy instanceof PeriodicTermHooks
               ) {
                 const tx = policy.populateBlockLenders(removeLenders)
                 txs.push({
@@ -161,8 +186,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
               "policy.tx_count": txs.length,
             })
 
-            const useGnosisMultiSend =
-              isConnectedToSafe && isTestnet && txs.length > 1
+            const safeBatch = getLenderUpdateSafeBatch(isConnectedToSafe, txs)
             if (txs.length > 1) {
               txs.forEach((tx, i) => {
                 tx.pending = `Step ${i + 1}/${txs.length}: ${tx.pending}`
@@ -171,15 +195,8 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
               })
             }
 
-            if (useGnosisMultiSend) {
-              const gnosisTransactions: PartialTransaction[] = txs.map(
-                ({ to, data, value }) => ({
-                  to,
-                  data,
-                  value,
-                }),
-              )
-              const tx = gnosisSafeSDK.txs.send({ txs: gnosisTransactions })
+            if (safeBatch) {
+              const tx = gnosisSafeSDK.txs.send({ txs: safeBatch })
               await toastRequest(
                 tx.then((result) => {
                   span.setAttribute("safe.tx_hash", result.safeTxHash)

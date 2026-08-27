@@ -24,7 +24,8 @@ export async function GET(request: NextRequest) {
     })
   ).map(({ name, alias, address }) => ({
     address,
-    name: alias || name || undefined,
+    name: name || undefined,
+    alias: alias || undefined,
   }))
   return NextResponse.json(names)
 }

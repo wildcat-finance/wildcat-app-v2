@@ -45,7 +45,7 @@ export const useGetBorrowerInvitation = (address: string | undefined) => {
   }
   const { data, ...result } = useQuery({
     enabled: !!address,
-    queryKey: [USE_BORROWER_INVITE_KEY, address, !!token],
+    queryKey: [USE_BORROWER_INVITE_KEY, chainId, address, !!token],
     queryFn: getInvitation,
     refetchOnMount: false,
   })
@@ -79,7 +79,7 @@ export const useBorrowerInvitationExists = (address: string | undefined) => {
   }
   const { data, ...result } = useQuery({
     enabled: !!address,
-    queryKey: [USE_BORROWER_INVITE_EXISTS_KEY, address],
+    queryKey: [USE_BORROWER_INVITE_EXISTS_KEY, chainId, address],
     queryFn: getInvitationExists,
   })
   return {
@@ -115,7 +115,7 @@ export const useBorrowerInvitation = (address: string | undefined) => {
   }
   const { data, ...result } = useQuery({
     enabled: !!address && !!token,
-    queryKey: [USE_BORROWER_INVITE_KEY, address],
+    queryKey: [USE_BORROWER_INVITE_KEY, chainId, address],
     queryFn: getInvites,
     refetchOnMount: false,
   })

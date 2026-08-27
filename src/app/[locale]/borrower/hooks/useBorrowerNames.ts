@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query"
 
 import { POLLING_INTERVALS } from "@/config/polling"
-import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { QueryKeys } from "@/config/query-keys"
+import {
+  useIsSelectedNetworkRehydrated,
+  useSelectedNetwork,
+} from "@/hooks/useSelectedNetwork"
 import { logger } from "@/lib/logging/client"
 import { trimAddress } from "@/utils/formatters"
-
-export const USE_REGISTERED_BORROWERS_KEY = "use-borrower-names"
 
 export type BorrowerWithName = {
   address: string
@@ -15,29 +17,30 @@ export type BorrowerWithName = {
 
 export const useBorrowerNames = () => {
   const { chainId } = useSelectedNetwork()
+  const isSelectedNetworkRehydrated = useIsSelectedNetworkRehydrated()
   const getBorrowers = async () => {
-    const data = await fetch(`/api/borrower-names?chainId=${chainId}`)
-      .then(async (res) => {
-        const result = (await res.json()) as BorrowerWithName[]
-        logger.info({ count: result.length }, "Got borrowers")
-        return result
-      })
-      .catch((err) => {
-        logger.error({ err }, "Error retrieving borrowers")
-        return undefined
-      })
-    return data === undefined ? null : (data as BorrowerWithName[])
+    const response = await fetch(`/api/borrower-names?chainId=${chainId}`)
+    if (!response.ok) {
+      logger.error(
+        { status: response.status },
+        "Error retrieving borrowers",
+      )
+      throw new Error(`Failed to retrieve borrower names: ${response.status}`)
+    }
+    const result = (await response.json()) as BorrowerWithName[]
+    logger.info({ count: result.length }, "Got borrowers")
+    return result
   }
-  const { data, ...result } = useQuery({
-    enabled: true,
-    queryKey: [USE_REGISTERED_BORROWERS_KEY],
+  const { data } = useQuery({
+    enabled: isSelectedNetworkRehydrated,
+    queryKey: QueryKeys.User.GET_BORROWER_NAMES(chainId),
     queryFn: getBorrowers,
     refetchOnMount: false,
-    refetchInterval: POLLING_INTERVALS.default,
+    staleTime: POLLING_INTERVALS.slow,
+    refetchInterval: POLLING_INTERVALS.slow,
   })
   return {
-    data: data === null ? undefined : data,
-    ...result,
+    data,
   }
 }
 

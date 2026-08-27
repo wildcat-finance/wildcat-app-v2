@@ -14,17 +14,21 @@ import { cookieToInitialState } from "wagmi"
 
 import {
   BackgroundContainer,
+  ContentArea,
   ContentContainer,
   PageContainer,
+  RootScaffold,
 } from "@/app/[locale]/layout-style"
 import initTranslations from "@/app/i18n"
 import Header from "@/components/Header"
 import { HelpModal } from "@/components/HelpModal"
 import HotjarConsent from "@/components/HotjarConsent"
 import OtelClient from "@/components/OtelClient"
+import { SafeMessageCoordinator } from "@/components/SafeMessageCoordinator"
 import { Sidebar } from "@/components/Sidebar"
 import StoreProvider from "@/components/StoreProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
+import { ToUReacceptanceModal } from "@/components/ToUReacceptanceModal"
 import TranslationsProvider from "@/components/TranslationsProvider"
 import { config } from "@/lib/config"
 import { isOtelEnabled } from "@/lib/otel/enabled"
@@ -93,24 +97,14 @@ export default async function RootLayout({
                     locale={locale}
                     resources={resources}
                   >
-                    {/* <PollingRegistration /> */}
                     <ThemeRegistry>
                       <Box sx={BackgroundContainer} />
-                      <Box position="relative">
+                      <Box sx={RootScaffold}>
                         <Header />
                         <Box sx={PageContainer}>
                           <Box sx={ContentContainer}>
                             <Sidebar />
-                            <Box
-                              width="calc(100vw - 267px)"
-                              sx={{
-                                "@media (max-width: 1000px)": {
-                                  width: "100%",
-                                },
-                              }}
-                            >
-                              {children}
-                            </Box>
+                            <Box sx={ContentArea}>{children}</Box>
                             <Suspense>
                               <HotjarConsent />
                             </Suspense>
@@ -118,6 +112,8 @@ export default async function RootLayout({
                         </Box>
                       </Box>
                       <HelpModal />
+                      <SafeMessageCoordinator />
+                      <ToUReacceptanceModal />
                     </ThemeRegistry>
                   </TranslationsProvider>
                 </SubgraphProvider>

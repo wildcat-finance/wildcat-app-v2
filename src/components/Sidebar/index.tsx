@@ -9,11 +9,13 @@ import { BorrowerSidebar } from "@/components/Sidebar/BorrowerSidebar"
 import { CreateMarketSidebar } from "@/components/Sidebar/CreateMarketSidebar"
 import { LenderDashboardSidebar } from "@/components/Sidebar/LenderDashboardSidebar"
 import { LenderMarketSidebar } from "@/components/Sidebar/LenderMarketSidebar"
+import { LenderNavSidebar } from "@/components/Sidebar/LenderNavSidebar"
 import { LenderListSidebar } from "@/components/Sidebar/LendersListSidebar"
 import { MarketSidebar } from "@/components/Sidebar/MarketSidebar"
 import { ROUTES } from "@/routes"
 import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
+import { isServiceAgreementPath } from "@/utils/serviceAgreementParty"
 
 import { EditPolicySidebar } from "./EditPolicySidebar"
 import { TelegramBanner } from "../TelegramBanner"
@@ -21,15 +23,19 @@ import { TelegramBanner } from "../TelegramBanner"
 export const Sidebar = () => {
   const pathname = usePathname()
   const theme = useTheme()
+  const isAgreementPath = isServiceAgreementPath(pathname)
+
+  if (isAgreementPath) return null
 
   return (
     <Box
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: "calc(100vh - 82px)",
+        flex: "0 0 267px",
         minWidth: "267px",
         width: "267px",
+        minHeight: 0,
         borderRight: `1px solid ${COLORS.blackRock006}`,
         overflow: "hidden",
         overflowY: "auto",
@@ -39,7 +45,9 @@ export const Sidebar = () => {
       }}
     >
       <Box marginBottom="auto">
-        {pathname === ROUTES.lender.root && <LenderDashboardSidebar />}
+        {(pathname === ROUTES.lender.root ||
+          pathname === ROUTES.lender.myMarkets ||
+          pathname === ROUTES.lender.allMarkets) && <LenderNavSidebar />}
         {pathname === ROUTES.borrower.root && <BorrowerDashboardSidebar />}
         {pathname.includes(ROUTES.borrower.market) && <MarketSidebar />}
         {(pathname.includes(ROUTES.borrower.profile) ||

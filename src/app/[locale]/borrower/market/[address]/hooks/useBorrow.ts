@@ -32,7 +32,7 @@ export const useBorrow = (
             !signer ||
             !Signer.isSigner(marketAccount.market.provider)
           ) {
-            throw Error("Missing signer or market account")
+            return
           }
           if (
             signer.chainId !== marketAccount.market.chainId ||
@@ -91,9 +91,14 @@ export const useBorrow = (
     },
     onSuccess() {
       client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_BORROWER_MARKET_ACCOUNT_LEGACY(
+        queryKey: QueryKeys.Markets.GET_MARKET(
           marketAccount.market.chainId,
-          marketAccount.account,
+          marketAccount.market.address,
+        ),
+      })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
+          marketAccount.market.chainId,
           marketAccount.market.address,
         ),
       })

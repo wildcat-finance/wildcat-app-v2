@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { prisma } from "@/lib/db"
+import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
 import { MlaTemplate } from "../../interface"
 
@@ -10,12 +11,17 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const chainId = validateChainIdParam(request)
+  if (!chainId) {
+    return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+  }
   const id = parseInt(params.id, 10)
   const mlaTemplate = await prisma.mlaTemplate
-    .findUnique({
-      where: { id },
+    .findFirst({
+      where: { id, chainId },
       select: {
         id: true,
+        chainId: true,
         name: true,
         description: true,
         html: true,

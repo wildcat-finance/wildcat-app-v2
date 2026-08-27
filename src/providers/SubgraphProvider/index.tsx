@@ -33,7 +33,7 @@ export const SubgraphProvider = ({
   const { chainId } = useSelectedNetwork()
   // Recreates the subgraph client when the target chain changes
   const value = useMemo(() => {
-    logger.info({ chainId }, "Recreating subgraph client") // first test
+    logger.info({ chainId }, "Recreating subgraph client")
     return getSubgraphClient(chainId)
   }, [chainId])
   return (

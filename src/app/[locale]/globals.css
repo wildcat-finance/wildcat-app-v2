@@ -1,9 +1,10 @@
-html {
-    width: 100vw;
-}
-
 body {
-    height: 100vh;
     margin: 0;
     padding: 0;
+}
+
+@media (max-width: 1000px) {
+    html {
+        scroll-padding-top: 64px;
+    }
 }

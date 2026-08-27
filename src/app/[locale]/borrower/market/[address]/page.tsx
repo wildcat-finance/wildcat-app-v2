@@ -12,12 +12,11 @@ import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/comp
 import { WrapDebtToken } from "@/app/[locale]/borrower/market/[address]/components/WrapDebtToken"
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
-import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { useGetMarket } from "@/hooks/useGetMarket"
-import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
+import { useMarketAccount } from "@/hooks/useMarketAccount"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
@@ -46,6 +45,7 @@ import {
   SkeletonContainer,
   SkeletonStyle,
 } from "./style"
+import { LeadBanner } from "../../../../../components/LeadBanner"
 
 export default function MarketDetails({
   params: { address },
@@ -71,7 +71,7 @@ export default function MarketDetails({
     chainId: marketChainId,
   })
   const { data: withdrawals } = useGetWithdrawals(market)
-  const { data: marketAccount } = useGetMarketAccountForBorrowerLegacy(market)
+  const { data: marketAccount } = useMarketAccount(market)
 
   const { isWrongNetwork, isSelectionMismatch } = useNetworkGate({
     desiredChainId: market?.chainId ?? marketChainId,
@@ -93,6 +93,7 @@ export default function MarketDetails({
   const [prevURL, setPrevURL] = useState<string | null>(null)
   const { data: marketMla, isLoading: isLoadingMarketMla } = useMarketMla(
     marketAccount?.market.address,
+    marketAccount?.market.chainId,
   )
 
   const {
@@ -226,10 +227,9 @@ export default function MarketDetails({
         <Box sx={{ width: "69%" }}>
           <LeadBanner
             title="Select MLA Settings"
-            text="Your MLA selection was not successfully uploaded. Please try again."
+            subtitle="Your MLA selection was not successfully uploaded. Please try again."
             buttonText="Go to MLA Settings"
-            buttonLink={undefined}
-            onClick={() => dispatch(setCheckBlock(5))}
+            buttonOnClick={() => dispatch(setCheckBlock(5))}
           />
         </Box>
       </Box>
@@ -238,7 +238,7 @@ export default function MarketDetails({
   return (
     <Box>
       <Box>
-        <MarketHeader marketAccount={marketAccount} />
+        <MarketHeader market={market} marketAccount={marketAccount} />
         {isDifferentChain && (
           <SwitchChainAlert desiredChainId={market?.chainId} />
         )}

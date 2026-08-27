@@ -12,10 +12,11 @@ export const useAllBorrowerInvitations = () => {
   const token = useAuthToken()
   const { chainId } = useSelectedNetwork()
   const { mutate: removeBadToken } = useRemoveBadApiToken()
+  const isAdminForChain = token?.isAdmin && token.chainId === chainId
   return useQuery({
     queryKey: QueryKeys.Admin.GET_ALL_BORROWER_INVITATIONS(
       chainId,
-      token?.isAdmin,
+      isAdminForChain,
       token?.address,
     ),
     queryFn: async () => {
@@ -55,7 +56,7 @@ export const useAllBorrowerInvitations = () => {
       })
       return invitations
     },
-    enabled: token?.isAdmin,
+    enabled: !!isAdminForChain,
     refetchInterval: POLLING_INTERVALS.fast,
   })
 }

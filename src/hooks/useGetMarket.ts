@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 
 import { useQuery } from "@tanstack/react-query"
 import {
@@ -55,6 +55,24 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
   })
   const signerOrProvider = signer || provider
 
+  const indexedMarket = useMemo(() => {
+    if (!effectiveChainId || !subgraphMarket || !signerOrProvider) {
+      return undefined
+    }
+
+    try {
+      return Market.fromSubgraphMarketData(
+        effectiveChainId,
+        signerOrProvider,
+        subgraphMarket,
+      )
+    } catch {
+      // Don't let the early fallback take down the page. The live query still
+      // owns the error if the subgraph data is busted.
+      return undefined
+    }
+  }, [effectiveChainId, signerOrProvider, subgraphMarket])
+
   const query = useQuery({
     queryKey: QueryKeys.Markets.GET_MARKET(
       effectiveChainId ?? 0,
@@ -104,6 +122,7 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
 
   return {
     ...query,
+    indexedMarket,
     isDiscoveringChainId: api.isLoading,
     discoveredChainId: effectiveChainId,
     apiError: api.error,

@@ -4,102 +4,101 @@ import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import {
   SignerOrProvider,
-  Market,
   MarketAccount,
-  getLensContract,
-  MarketVersion,
-  SupportedChainId,
-  getLensV2Contract,
-  SubgraphGetAllMarketsForLenderViewQueryVariables,
-  getLenderAccountsForAllMarkets,
+  SubgraphGetLenderMarketCatalogueQueryVariables,
+  getLenderMarketCatalogue,
   SubgraphMarket_Filter,
-  hasDeploymentAddress,
 } from "@wildcatfi/wildcat-sdk"
-import { BigNumber, constants } from "ethers"
+import { constants } from "ethers"
 
-import { POLLING_INTERVALS } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useIsSelectedNetworkRehydrated } from "@/hooks/useSelectedNetwork"
 import { logger } from "@/lib/logging/client"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
-import { EXCLUDED_MARKETS_FILTER, TOKENS_ADDRESSES } from "@/utils/constants"
+import { EXCLUDED_MARKETS_FILTER } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
+import {
+  getSubgraphMarketOnboardingMode,
+  MarketOnboardingByAddress,
+} from "@/utils/marketOnboarding"
+import { isFrontendVisibleMarket } from "@/utils/marketType"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
-export type LenderMarketsQueryProps =
-  SubgraphGetAllMarketsForLenderViewQueryVariables
+import { refreshLenderMarketAccounts } from "./refreshLenderMarketAccounts"
 
-function getChunks<T extends Market | MarketAccount>(
-  chainId: SupportedChainId,
-  values: T[],
-): { v1Chunks: T[][]; v2Chunks: T[][] } {
-  const v1Values = values.filter(
-    (v) =>
-      (v instanceof Market ? v.version : v.market.version) === MarketVersion.V1,
-  )
-  const v2Values = values.filter(
-    (v) =>
-      (v instanceof Market ? v.version : v.market.version) === MarketVersion.V2,
-  )
-  const isWeth = (v: T): boolean =>
-    (v instanceof Market
-      ? v.underlyingToken
-      : v.market.underlyingToken
-    ).address.toLowerCase() === TOKENS_ADDRESSES.WETH
-  if (chainId === SupportedChainId.Mainnet) {
-    const v1Chunks = [
-      ...v1Values.filter(isWeth).map((m) => [m]),
-      v1Values.filter((v) => !isWeth(v)),
-    ]
-    const v2Chunks = [
-      ...v2Values.filter(isWeth).map((m) => [m]),
-      v2Values.filter((v) => !isWeth(v)),
-    ]
-    return { v1Chunks, v2Chunks }
-  }
-  return {
-    v1Chunks: [v1Values],
-    v2Chunks: [v2Values],
-  }
+export type LenderMarketsQueryProps = Omit<
+  SubgraphGetLenderMarketCatalogueQueryVariables,
+  "lender"
+>
+
+type LenderMarketUpdates = {
+  marketAccounts: MarketAccount[]
+  onboardingByMarket: MarketOnboardingByAddress
+  queryIdentity: string
+}
+
+export type LenderMarketsOnboardingStatus = "loading" | "ready" | "error"
+
+const MARKET_CATALOG_POLLING_INTERVAL = 60_000
+// Live market and lender-account refresh cadence.
+const MARKET_LIVE_REFRESH_INTERVAL = 60_000
+
+export type LenderMarketsResult = TwoStepQueryHookResult<
+  MarketAccount[],
+  LenderMarketUpdates
+> & {
+  onboardingByMarket: MarketOnboardingByAddress
+  onboardingStatus: LenderMarketsOnboardingStatus
 }
 
 export function useLendersMarkets(
   filters: LenderMarketsQueryProps = {},
-): TwoStepQueryHookResult<MarketAccount[]> {
+): LenderMarketsResult {
   const { isWrongNetwork, provider, signer, address } = useEthersProvider()
-  const { chainId, targetChainId } = useCurrentNetwork()
+  const { targetChainId } = useCurrentNetwork()
   const subgraphClient = useSubgraphClient()
+  const isSelectedNetworkRehydrated = useIsSelectedNetworkRehydrated()
   const signerOrProvider = signer ?? provider
 
   const lender = address?.toLowerCase()
+  const filtersKey = JSON.stringify(filters)
+  const updateQueryIdentity = `${targetChainId}:${
+    lender ?? constants.AddressZero
+  }:${filtersKey}`
 
   async function queryMarketsForLender() {
     logger.info({ lender }, "Getting all markets")
-    if (!chainId) throw Error("No chainId")
     if (!signerOrProvider) throw Error(`no provider`)
     const { marketFilter, ...otherFilters } = filters
     const filter = combineFilters([
       { ...marketFilter },
       ...EXCLUDED_MARKETS_FILTER,
     ]) as SubgraphMarket_Filter
-    const lenderAccounts = await getLenderAccountsForAllMarkets(
+    // Catalogue query: current indexed state only, no raw event history.
+    // network-only because react-query owns freshness here - Apollo's cache
+    // would otherwise satisfy the 60s poll without hitting the subgraph.
+    const { accounts: lenderAccounts } = await getLenderMarketCatalogue(
       subgraphClient,
       {
         ...otherFilters,
         lender: lender ?? constants.AddressZero,
         fetchPolicy: "network-only",
-        chainId,
+        chainId: targetChainId,
         signerOrProvider,
         marketFilter: filter,
       },
     )
-    lenderAccounts.sort(
+    const visibleAccounts = lenderAccounts.filter(({ market }) =>
+      isFrontendVisibleMarket(market),
+    )
+    visibleAccounts.sort(
       (a, b) =>
         (b.market.deployedEvent?.blockNumber ?? 0) -
         (a.market.deployedEvent?.blockNumber ?? 0),
     )
-    return lenderAccounts
+    return visibleAccounts
   }
 
   const {
@@ -108,102 +107,57 @@ export function useLendersMarkets(
     refetch: refetchInitial,
     isError: isErrorInitial,
     failureReason: errorInitial,
+    dataUpdatedAt: catalogUpdatedAt,
   } = useQuery({
     queryKey: QueryKeys.Lender.GET_LENDER_ACCOUNTS.INITIAL(
       targetChainId,
       lender,
-      JSON.stringify(filters),
+      filtersKey,
     ),
     queryFn: queryMarketsForLender,
-    refetchInterval: POLLING_INTERVALS.default,
-    enabled: !!signerOrProvider && !isWrongNetwork,
+    refetchInterval: MARKET_CATALOG_POLLING_INTERVAL,
+    staleTime: MARKET_CATALOG_POLLING_INTERVAL,
+    enabled:
+      isSelectedNetworkRehydrated && !!signerOrProvider && !isWrongNetwork,
     refetchOnMount: false,
   })
 
   const accounts = data ?? []
-
-  const CHUNK_SIZE = targetChainId === 1 ? 5 : 50
+  // Snapshot indexed onboarding before live lens hydration mutates the market
+  // objects. Keep the snapshot stable between catalogue refreshes.
+  const indexedOnboardingByMarket = useMemo(() => {
+    const map: MarketOnboardingByAddress = {}
+    const source = data ?? []
+    source.forEach(({ market }) => {
+      const mode = getSubgraphMarketOnboardingMode(market)
+      if (mode) map[market.address.toLowerCase()] = mode
+    })
+    return map
+  }, [catalogUpdatedAt, data])
 
   async function getLenderUpdates() {
     logger.info({ lender }, "Getting lender updates")
-    const hasV1Lens = hasDeploymentAddress(targetChainId, "MarketLens")
-    const lens = hasV1Lens
-      ? getLensContract(targetChainId, signerOrProvider as SignerOrProvider)
-      : undefined
-    const lensV2 = getLensV2Contract(
+    // Refresh both time-sensitive market state and wallet-specific lender state.
+    // `lender` remains undefined when disconnected so the SDK retains access
+    // state while zeroing wallet balances and allowances.
+    await refreshLenderMarketAccounts(
       targetChainId,
       signerOrProvider as SignerOrProvider,
+      lender,
+      accounts,
     )
-
-    const { v1Chunks, v2Chunks } = getChunks(targetChainId, accounts)
-    await Promise.all([
-      ...(lens
-        ? v1Chunks.map(async (accountsChunk) => {
-            const updates = await lens.getMarketsDataWithLenderStatus(
-              lender ?? constants.AddressZero,
-              accountsChunk.map((m) => m.market.address),
-            )
-            accountsChunk.forEach((account, i) => {
-              let update = updates[i]
-              account.market.updateWith(update.market)
-              // If the lender account is not set, set the balances to 0 but still use
-              // the credential, as that will tell us whether the market is open access.
-              if (!lender) {
-                update = {
-                  ...update,
-                  lenderStatus: {
-                    ...update.lenderStatus,
-                    normalizedBalance: BigNumber.from(0),
-                    scaledBalance: BigNumber.from(0),
-                    underlyingBalance: BigNumber.from(0),
-                    underlyingApproval: BigNumber.from(0),
-                  },
-                }
-              }
-              account.updateWith(update.lenderStatus)
-            })
-          })
-        : []),
-      ...v2Chunks.map(async (accountsChunk) => {
-        const updates = await lensV2.getMarketsDataWithLenderStatus(
-          lender ?? constants.AddressZero,
-          accountsChunk.map((m) => m.market.address),
-        )
-        accountsChunk.forEach((account, i) => {
-          let update = updates[i]
-          account.market.updateWith(update.market)
-          // If the lender account is not set, set the balances to 0 but still use
-          // the credential, as that will tell us whether the market is open access.
-          if (!lender) {
-            update = {
-              ...update,
-              lenderStatus: {
-                ...update.lenderStatus,
-                normalizedBalance: BigNumber.from(0),
-                scaledBalance: BigNumber.from(0),
-                underlyingBalance: BigNumber.from(0),
-                underlyingApproval: BigNumber.from(0),
-              },
-            }
-          }
-          account.updateWith(update.lenderStatus)
-        })
-      }),
-    ]).catch((e) => {
-      logger.error({ err: e }, "Failed to get lender updates")
-      throw e
-    })
     logger.info({ accountCount: accounts.length }, "Got lender updates")
-    return accounts
+    return {
+      // Updates mutate the SDK objects in place. Publish a fresh collection
+      // so downstream memoized sorting and card derivation observe every refresh.
+      marketAccounts: [...accounts],
+      onboardingByMarket: indexedOnboardingByMarket,
+      queryIdentity: updateQueryIdentity,
+    }
   }
 
-  const updateQueryKeys = useMemo(
-    () => accounts.map((b) => [b.market.address, b.account]),
-    [accounts],
-  )
-
   const {
-    data: updatedLenders,
+    data: updates,
     isLoading: isLoadingUpdate,
     isPaused: isPendingUpdate,
     refetch: refetchUpdate,
@@ -213,16 +167,39 @@ export function useLendersMarkets(
     queryKey: QueryKeys.Lender.GET_LENDER_ACCOUNTS.UPDATE(
       targetChainId,
       lender,
-      updateQueryKeys,
+      catalogUpdatedAt,
     ),
     queryFn: getLenderUpdates,
-    enabled: !!data,
+    enabled:
+      isSelectedNetworkRehydrated &&
+      !!data &&
+      !!signerOrProvider &&
+      !isWrongNetwork,
     refetchOnMount: false,
+    refetchInterval: MARKET_LIVE_REFRESH_INTERVAL,
+    staleTime: MARKET_LIVE_REFRESH_INTERVAL,
+    // Keep the last enriched catalogue visible only while refreshing the same
+    // chain and lender. Never expose another chain/account's personalized data.
+    placeholderData: (previous) =>
+      previous?.queryIdentity === updateQueryIdentity ? previous : undefined,
+    gcTime: MARKET_LIVE_REFRESH_INTERVAL,
+    structuralSharing: false,
   })
 
+  let onboardingStatus: LenderMarketsOnboardingStatus = "loading"
+  if (isErrorUpdate) onboardingStatus = "error"
+  else if (updates) onboardingStatus = "ready"
+
+  // Onboarding classification remains subgraph-derived even though the market
+  // objects are subsequently hydrated with live lens state.
+  const onboardingByMarket =
+    updates?.onboardingByMarket ?? indexedOnboardingByMarket
+
   return {
-    data: updatedLenders ?? accounts,
-    isLoadingInitial,
+    data: updates?.marketAccounts ?? accounts,
+    onboardingByMarket,
+    onboardingStatus,
+    isLoadingInitial: !isSelectedNetworkRehydrated || isLoadingInitial,
     isErrorInitial,
     errorInitial: errorInitial as Error | null,
     refetchInitial,

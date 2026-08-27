@@ -21,7 +21,7 @@
                     .-@-.                           
 ```
 
-Wildcat is a protocol for undercollateralized on-chain lending. Wildcat allows borrowers to define credit markets based on their own parameters including apr, withdrawal cycle periods, reserve ratios, penalty apr and durations.
+Wildcat is a protocol for undercollateralized onchain lending. Wildcat allows borrowers to define credit markets based on their own parameters including apr, withdrawal cycle periods, reserve ratios, penalty apr and durations.
 
 This repo is for the [frontend application](https://app.wildcat.finance/lender). We also have a [testnet app](https://testnet.wildcat.finance/) here
 
@@ -30,12 +30,13 @@ This repo is for the [frontend application](https://app.wildcat.finance/lender).
 
 
 ## Running locally
+> Requires `Node 22.22.1` & `npm 11.12.0`
+
 
 ```bash
 npm install
 npm run dev
 ```
-
 
 
 ## Learn more

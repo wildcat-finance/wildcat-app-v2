@@ -85,15 +85,10 @@ export const useFaucet = (
     },
     onSuccess() {
       client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET(
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
           marketAccount.market.chainId,
           marketAccount.market.address,
-        ),
-      })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
-          marketAccount.market.chainId,
-          marketAccount.market.address,
+          marketAccount.account,
         ),
       })
     },

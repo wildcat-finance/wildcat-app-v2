@@ -20,12 +20,22 @@ export const BackgroundContainer = {
   },
 }
 
+export const RootScaffold = {
+  position: "relative",
+  height: "100dvh",
+  display: "flex",
+  flexDirection: "column",
+}
+
 export const PageContainer = {
   borderRadius: "12px 12px 0px 0px",
   backgroundColor: "white",
 
   display: "flex",
   flexDirection: "column",
+
+  flex: "1 1 auto",
+  minHeight: 0,
 
   "@media (max-width: 1000px)": {
     backgroundColor: "transparent",
@@ -34,14 +44,24 @@ export const PageContainer = {
 }
 
 export const ContentContainer = {
-  height: "calc(100vh - 82px)",
   width: "100%",
   display: "flex",
   flexDirection: "row",
 
+  flex: "1 1 auto",
+  minHeight: 0,
+  minWidth: 0,
+
   "@media (max-width: 1000px)": {
-    height: "calc(100dvh - 68px)",
     paddingX: "4px",
     paddingBottom: "4px",
   },
+}
+
+export const ContentArea = {
+  flex: "1 1 0",
+  minWidth: 0,
+  minHeight: 0,
+  display: "flex",
+  flexDirection: "column",
 }

@@ -1,13 +1,24 @@
 import { useQuery } from "@tanstack/react-query"
 
-type MarketSummaryResponse = { description: string | null }
+import { MarketSummary } from "@/app/api/market-summary/[market]/dto"
+
+export const useMarketSummaryExists = (market: string, chainId: number) =>
+  useQuery({
+    queryKey: ["market-summary", chainId, market.toLowerCase()],
+    queryFn: () =>
+      fetch(`/api/market-summary/${market}?chainId=${chainId}`, {
+        method: "HEAD",
+      }).then((res) => res.ok),
+  })
 
 export const useMarketSummary = (market: string, chainId: number) =>
   useQuery({
-    queryKey: ["market-summary", market.toLowerCase()],
+    queryKey: ["market-summary", chainId, market.toLowerCase()],
     refetchOnMount: false,
     queryFn: () =>
       fetch(`/api/market-summary/${market}?chainId=${chainId}`)
-        .then((res) => res.json() as Promise<MarketSummaryResponse>)
-        .catch(() => null),
+        .then((res) =>
+          res.ok ? (res.json() as Promise<MarketSummary>) : undefined,
+        )
+        .catch(() => undefined),
   })

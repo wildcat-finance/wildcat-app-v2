@@ -8,10 +8,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { DECLINE_MLA_ASSIGNMENT_MESSAGE } from "@/config/mla-rejection"
 import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
 import { formatDate } from "@/lib/mla"
+import { lockMlaAssignment } from "@/lib/mlaPersistence"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
-import { withServerSpan } from "@/lib/telemetry/serverDomainTracing"
 import { getZodParseError } from "@/lib/zod-error"
+import { isServiceAgreementTimeSignedInBounds } from "@/utils/serviceAgreementMessage"
 
 import { DeclineMlaRequestDTO } from "./dto"
 import { DeclineMlaRequest } from "./interface"
@@ -21,105 +22,124 @@ export const POST = async (
   request: NextRequest,
   params: { params: { market: string } },
 ) => {
+  let body: DeclineMlaRequest
+  try {
+    const input = await request.json()
+    body = DeclineMlaRequestDTO.parse(input)
+    if (!isSupportedChainId(body.chainId)) {
+      return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
+    }
+  } catch (error) {
+    return getZodParseError(error)
+  }
+  const { chainId } = body
   const marketAddress = params.params.market.toLowerCase()
+  const provider = getProviderForServer(chainId)
 
-  return withServerSpan(
-    "api.mla.decline.post",
-    async (span) => {
-      let body: DeclineMlaRequest
-      try {
-        const input = await request.json()
-        body = DeclineMlaRequestDTO.parse(input)
-        if (!isSupportedChainId(body.chainId)) {
-          span.setAttribute("mla.result", "invalid_chain_id")
-          return NextResponse.json(
-            { error: "Invalid chain ID" },
-            { status: 400 },
-          )
-        }
-      } catch (error) {
-        span.setAttribute("mla.result", "invalid_payload")
-        return getZodParseError(error)
-      }
-
-      const { chainId } = body
-      const provider = getProviderForServer(chainId)
-      span.setAttribute("market.chain_id", chainId)
-
-      const mla = await withServerSpan("mla.db.get_signed", async () =>
-        getSignedMasterLoanAgreement(marketAddress, chainId),
-      )
-      if (mla) {
-        span.setAttribute("mla.result", "already_exists")
-        return NextResponse.json(
-          { error: "MLA already exists" },
-          { status: 400 },
-        )
-      }
-
-      const market = await withServerSpan("mla.chain.get_market", async () =>
-        Market.getMarket(chainId, marketAddress, provider).catch(async () => {
-          const lens = getLensV2Contract(chainId, provider)
-          return Market.fromMarketDataV2(
-            chainId,
-            provider,
-            await lens.getMarketData(marketAddress),
-          )
-        }),
-      )
-      const address = market.borrower.toLowerCase()
-      span.setAttribute("borrower.address", address)
-
-      const message = DECLINE_MLA_ASSIGNMENT_MESSAGE.replace(
-        "{{market}}",
-        marketAddress,
-      ).replace("{{timeSigned}}", formatDate(body.timeSigned)!)
-
-      const verifiedSignature = await withServerSpan(
-        "mla.signature.verify",
-        async () =>
-          verifyAndDescribeSignature({
-            provider,
-            address,
-            allowSingleSafeOwner: false,
-            message,
-            signature: body.signature,
-          }),
-      )
-      if (!verifiedSignature) {
-        span.setAttribute("mla.result", "invalid_signature")
-        return NextResponse.json(
-          { error: "Invalid signature" },
-          { status: 400 },
-        )
-      }
-
-      await withServerSpan("mla.db.create_refusal", async () =>
-        prisma.refusalToAssignMla.create({
-          data: {
-            chainId,
-            market: marketAddress,
-            address,
-            signer: verifiedSignature.address,
-            signature: body.signature,
-            timeSigned: new Date(body.timeSigned).toISOString(),
-            kind: verifiedSignature.kind,
-            blockNumber:
-              "blockNumber" in verifiedSignature
-                ? verifiedSignature.blockNumber
-                : undefined,
-          },
-        }),
-      )
-      span.setAttribute("mla.result", "declined")
+  const existingRefusal = await prisma.refusalToAssignMla.findFirst({
+    where: { chainId, market: marketAddress },
+  })
+  if (existingRefusal) {
+    if (
+      existingRefusal.signature === body.signature &&
+      existingRefusal.timeSigned.getTime() === body.timeSigned
+    ) {
       return NextResponse.json({ success: true })
-    },
-    {
-      attributes: {
-        "market.address": marketAddress,
-      },
+    }
+    return NextResponse.json(
+      { error: "MLA assignment already declined" },
+      { status: 409 },
+    )
+  }
+
+  // MLA signing shares the ToU ceremony window: after the idempotent-replay
+  // check so retries of an already-stored action still succeed; before
+  // verification so a new record can only claim a signing time the server
+  // clock roughly agrees with.
+  if (!isServiceAgreementTimeSignedInBounds(body.timeSigned)) {
+    return NextResponse.json(
+      { error: "timeSigned is outside the accepted signing window" },
+      { status: 400 },
+    )
+  }
+
+  const mla = await getSignedMasterLoanAgreement(marketAddress, chainId)
+  if (mla) {
+    return NextResponse.json({ error: "MLA already exists" }, { status: 400 })
+  }
+
+  const market = await Market.getMarket(chainId, marketAddress, provider).catch(
+    async () => {
+      const lens = getLensV2Contract(chainId, provider)
+      return Market.fromMarketDataV2(
+        chainId,
+        provider,
+        await lens.getMarketData(marketAddress),
+      )
     },
   )
+  const address = market.borrower.toLowerCase()
+
+  const message = DECLINE_MLA_ASSIGNMENT_MESSAGE.replace(
+    "{{market}}",
+    marketAddress,
+  ).replace("{{timeSigned}}", formatDate(body.timeSigned)!)
+
+  const signature = await verifyAndDescribeSignature({
+    provider,
+    address,
+    allowSingleSafeOwner: false,
+    message,
+    signature: body.signature,
+  })
+  if (!signature) {
+    return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
+  }
+  const result = await prisma.$transaction(
+    async (transaction) => {
+      await lockMlaAssignment(transaction, chainId, marketAddress)
+      const [concurrentRefusal, concurrentMla] = await Promise.all([
+        transaction.refusalToAssignMla.findUnique({
+          where: { chainId_market: { chainId, market: marketAddress } },
+        }),
+        transaction.masterLoanAgreement.findUnique({
+          where: { chainId_market: { chainId, market: marketAddress } },
+        }),
+      ])
+      if (concurrentRefusal) {
+        return concurrentRefusal.signature === body.signature &&
+          concurrentRefusal.timeSigned.getTime() === body.timeSigned
+          ? "success"
+          : "refusal-conflict"
+      }
+      if (concurrentMla) return "mla-conflict"
+      await transaction.refusalToAssignMla.create({
+        data: {
+          chainId,
+          market: marketAddress,
+          address,
+          signer: signature.address,
+          signature: body.signature,
+          timeSigned: new Date(body.timeSigned).toISOString(),
+          kind: signature.kind,
+          blockNumber:
+            "blockNumber" in signature ? signature.blockNumber : undefined,
+        },
+      })
+      return "success"
+    },
+    { timeout: 15_000 },
+  )
+  if (result === "refusal-conflict") {
+    return NextResponse.json(
+      { error: "MLA assignment already declined" },
+      { status: 409 },
+    )
+  }
+  if (result === "mla-conflict") {
+    return NextResponse.json({ error: "MLA already exists" }, { status: 400 })
+  }
+  return NextResponse.json({ success: true })
 }
 
 export const dynamic = "force-dynamic"

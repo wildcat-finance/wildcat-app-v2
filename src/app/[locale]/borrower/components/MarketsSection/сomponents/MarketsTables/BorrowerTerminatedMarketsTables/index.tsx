@@ -25,7 +25,6 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
-import { pageCalcHeights } from "@/utils/constants"
 import {
   buildMarketHref,
   formatBps,
@@ -39,7 +38,7 @@ import { MarketsTableAccordion } from "../../../../../../../../components/Market
 
 export type BorrowerTerminatedMarketsTableModel = {
   id: string
-  chainId?: number
+  chainId: number
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string
@@ -213,10 +212,11 @@ export const BorrowerTerminatedMarketsTables = ({
       align: "right",
       renderCell: (params) => {
         const adsComponent = getAdsTooltipComponent(
+          params.row.chainId,
           params.row.id,
           formatBps(params.value),
         )
-        const adsCellProps = getAdsCellProps(params.row.id)
+        const adsCellProps = getAdsCellProps(params.row.chainId, params.row.id)
 
         return (
           <Link
@@ -293,7 +293,8 @@ export const BorrowerTerminatedMarketsTables = ({
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: `calc(100vh - ${pageCalcHeights.dashboard})`,
+        flex: "1 1 0",
+        minHeight: 0,
         width: "100%",
         overflow: "auto",
         overflowY: "auto",

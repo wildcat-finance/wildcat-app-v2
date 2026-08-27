@@ -5,9 +5,8 @@ import { BorrowerProfileInput } from "@/app/api/profiles/interface"
 import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { logger } from "@/lib/logging/client"
-
-import { USE_REGISTERED_BORROWERS_KEY } from "../../../hooks/useBorrowerNames"
 
 const hashData = async (data: object): Promise<string> => {
   const encoder = new TextEncoder()
@@ -27,12 +26,14 @@ const formatDateForMessage = (date: Date): string => {
 
 export const useUpdateBorrowerProfile = () => {
   const queryClient = useQueryClient()
-  const { address, chainId } = useAccount()
+  const { address } = useAccount()
+  const { chainId } = useSelectedNetwork()
   const token = useAuthToken()
   const { mutate: removeBadToken } = useRemoveBadApiToken()
+  const isAdminForChain = token?.isAdmin && token.chainId === chainId
 
   const updateBorrowerProfile = async (profile: BorrowerProfileInput) => {
-    if (!token.token) {
+    if (!token?.token) {
       throw new Error("No token available. Make sure you are logged in.")
     }
     if (!chainId) {
@@ -83,7 +84,7 @@ export const useUpdateBorrowerProfile = () => {
       await toastRequest(
         updateBorrowerProfile({
           ...profile,
-          address: token.isAdmin
+          address: isAdminForChain
             ? profile.address.toLowerCase()
             : address.toLowerCase(),
         }),
@@ -98,7 +99,7 @@ export const useUpdateBorrowerProfile = () => {
       if (chainId === undefined) {
         return
       }
-      const lowerAddress = token.isAdmin
+      const lowerAddress = isAdminForChain
         ? profile.address.toLowerCase()
         : address?.toLowerCase()
       queryClient.invalidateQueries({
@@ -111,13 +112,13 @@ export const useUpdateBorrowerProfile = () => {
         ),
       })
       queryClient.invalidateQueries({
-        queryKey: [USE_REGISTERED_BORROWERS_KEY],
+        queryKey: QueryKeys.User.GET_BORROWER_NAMES(chainId),
       })
-      if (token.isAdmin) {
+      if (isAdminForChain) {
         queryClient.invalidateQueries({
           queryKey: QueryKeys.Admin.GET_ALL_BORROWER_PROFILES(
             chainId,
-            token.isAdmin,
+            isAdminForChain,
             token.address,
           ),
         })

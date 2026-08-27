@@ -5,15 +5,22 @@ import { MarketStatus } from "@/utils/marketStatus"
 export const typeComparator = (
   v1:
     | { kind: HooksKind.FixedTerm; fixedPeriod: number }
-    | { kind: HooksKind.Unknown | HooksKind.OpenTerm; fixedPeriod?: undefined },
+    | {
+        kind: HooksKind.Unknown | HooksKind.OpenTerm | HooksKind.PeriodicTerm
+        fixedPeriod?: undefined
+      },
   v2:
     | { kind: HooksKind.FixedTerm; fixedPeriod: number }
-    | { kind: HooksKind.Unknown | HooksKind.OpenTerm; fixedPeriod?: undefined },
+    | {
+        kind: HooksKind.Unknown | HooksKind.OpenTerm | HooksKind.PeriodicTerm
+        fixedPeriod?: undefined
+      },
 ) => {
   const order: { [key in HooksKind]: number } = {
     [HooksKind.FixedTerm]: 0,
     [HooksKind.OpenTerm]: 1,
     [HooksKind.Unknown]: 2,
+    [HooksKind.PeriodicTerm]: 3,
   }
 
   if (order[v1.kind] !== order[v2.kind]) {
@@ -125,5 +132,7 @@ export const tokenAmountComparator = (v1: TokenAmount, v2: TokenAmount) => {
     return v1Num - v2Num
   }
 
-  return v1.gte(v2) ? 1 : -1
+  if (v1.eq(v2)) return 0
+
+  return v1.gt(v2) ? 1 : -1
 }

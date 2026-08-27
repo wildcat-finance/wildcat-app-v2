@@ -41,7 +41,7 @@ export const useDeposit = (
 ) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
-  const { connected: safeConnected, sdk } = useSafeAppsSDK()
+  const { connected: safeConnected, sdk, safe } = useSafeAppsSDK()
   const { targetChainId } = useCurrentNetwork()
   const tracer = trace.getTracer("wildcat-app-v2-web")
 
@@ -69,12 +69,28 @@ export const useDeposit = (
           let outcome: TelemetrySpanOutcome = "success"
           try {
             if (!marketAccount || !signer) throw Error()
-            if (marketAccount.market.chainId !== targetChainId) {
+            const signingChainId = safeConnected
+              ? safe.chainId
+              : signer.chainId
+            const signingAddress = safeConnected
+              ? safe.safeAddress
+              : await signer.getAddress()
+            if (
+              marketAccount.market.chainId !== targetChainId ||
+              marketAccount.market.chainId !== signingChainId
+            ) {
               throw Error(
-                `Market chainId does not match target chainId:` +
+                `Market chainId does not match active chainId:` +
                   ` Market ${marketAccount.market.chainId},` +
-                  ` Target ${targetChainId}`,
+                  ` Target ${targetChainId}, Signing ${signingChainId}`,
               )
+            }
+            if (
+              !signingAddress ||
+              signingAddress.toLowerCase() !==
+                marketAccount.account.toLowerCase()
+            ) {
+              throw Error("Signing account does not match market account")
             }
 
             const spanAttributes = {
@@ -273,7 +289,7 @@ export const useDeposit = (
         ),
       })
       client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
           marketAccount.market.chainId,
           marketAccount.market.address,
         ),

@@ -29,7 +29,6 @@ import {
   tokenAmountComparator,
   typeComparator,
 } from "@/utils/comparators"
-import { pageCalcHeights } from "@/utils/constants"
 import {
   buildMarketHref,
   formatBps,
@@ -43,7 +42,7 @@ import { MarketsTableModel } from "../../../../MarketsTables/interface"
 
 export type BorrowerActiveMarketsTableModel = {
   id: string
-  chainId?: number
+  chainId: number
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string
@@ -227,10 +226,11 @@ export const BorrowerActiveMarketsTables = ({
       align: "right",
       renderCell: (params) => {
         const adsComponent = getAdsTooltipComponent(
+          params.row.chainId,
           params.row.id,
           formatBps(params.value),
         )
-        const adsCellProps = getAdsCellProps(params.row.id)
+        const adsCellProps = getAdsCellProps(params.row.chainId, params.row.id)
 
         return (
           <Link
@@ -361,7 +361,8 @@ export const BorrowerActiveMarketsTables = ({
       sx={{
         display: "flex",
         flexDirection: "column",
-        height: `calc(100vh - ${pageCalcHeights.dashboard})`,
+        flex: "1 1 0",
+        minHeight: 0,
         width: "100%",
         overflow: "auto",
         overflowY: "auto",

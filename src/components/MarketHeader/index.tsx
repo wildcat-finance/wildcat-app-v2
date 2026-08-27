@@ -11,7 +11,6 @@ import {
 import humanizeDuration from "humanize-duration"
 import Link from "next/link"
 
-import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { useGetBorrowerProfile } from "@/app/[locale]/lender/profile/hooks/useGetBorrowerProfile"
 import Avatar from "@/assets/icons/avatar_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
@@ -31,6 +30,7 @@ import {
 } from "./style"
 
 export const MarketHeader = ({
+  market,
   marketAccount,
   mla,
   hasMarketDescription,
@@ -40,42 +40,36 @@ export const MarketHeader = ({
 
   const [remainingTime, setRemainingTime] = React.useState<string>("")
 
-  const { market } = marketAccount
-
-  const { data } = useGetWithdrawals(market)
-
-  const cycleStart = data.activeWithdrawal?.requests[0]?.blockTimestamp
-
   React.useEffect(() => {
-    const cycleEnd =
-      cycleStart !== undefined ? cycleStart + market.withdrawalBatchDuration : 0
+    const cycleEnd = market.pendingWithdrawalExpiry
 
-    if (cycleStart) {
-      const updateRemainingTime = () => {
-        const now = Math.floor(Date.now() / 1000)
-        const timeLeft = cycleEnd - now
-        if (timeLeft > 0) {
-          setRemainingTime(
-            humanizeDuration(timeLeft * 1000, {
-              round: true,
-              largest: 1,
-              units: ["h", "m", "s"],
-            }),
-          )
-        } else {
-          setRemainingTime("")
-        }
-      }
-
-      updateRemainingTime()
-
-      const intervalId = setInterval(updateRemainingTime, 1000)
-
-      return () => clearInterval(intervalId)
+    if (!cycleEnd) {
+      setRemainingTime("")
+      return undefined
     }
 
-    return undefined
-  }, [data, market.withdrawalBatchDuration, cycleStart])
+    const updateRemainingTime = () => {
+      const now = Math.floor(Date.now() / 1000)
+      const timeLeft = cycleEnd - now
+      if (timeLeft > 0) {
+        setRemainingTime(
+          humanizeDuration(timeLeft * 1000, {
+            round: true,
+            largest: 1,
+            units: ["h", "m", "s"],
+          }),
+        )
+      } else {
+        setRemainingTime("")
+      }
+    }
+
+    updateRemainingTime()
+
+    const intervalId = setInterval(updateRemainingTime, 1000)
+
+    return () => clearInterval(intervalId)
+  }, [market.pendingWithdrawalExpiry])
 
   const marketStatus = getMarketStatusChip(market)
   const shouldShowCycleChip =
@@ -132,83 +126,92 @@ export const MarketHeader = ({
               display: "flex",
               flexDirection: "row",
               justifyContent: "space-between",
+              alignItems: "flex-start",
               gap: "8px",
             }}
           >
-            <Box sx={{ display: "flex", gap: "4px" }}>
-              <Typography
-                variant="mobH2"
-                sx={{
-                  maxWidth: "280px",
-                  whiteSpace: "nowrap",
-                  textOverflow: "ellipsis",
-                  overflow: "hidden",
-                }}
-              >
-                {market.name}
-              </Typography>
-              <Typography variant="mobText4">
-                {market.underlyingToken.symbol}
-              </Typography>
-            </Box>
-
-            <MobileMoreButton marketAccount={marketAccount} />
-          </Box>
-
-          <Link
-            href={`${ROUTES.lender.profile}/${market.borrower}`}
-            style={{ display: "flex", textDecoration: "none" }}
-          >
-            <Box
+            <Typography
+              variant="mobH3"
               sx={{
-                display: "flex",
-                gap: "6px",
-                alignItems: "center",
-                padding: "2px 10px 2px 4px",
-                borderRadius: "12px",
-                bgcolor: COLORS.whiteSmoke,
-                marginTop: "2px",
+                flex: 1,
+                minWidth: 0,
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                wordBreak: "break-word",
               }}
             >
-              {profileData ? (
-                <Box
-                  sx={{
-                    width: "16px",
-                    height: "16px",
-                    borderRadius: "50%",
-                    bgcolor: "#4CA6D9",
+              {market.name}
+            </Typography>
 
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Typography
-                    variant="mobText4"
+            {marketAccount && (
+              <MobileMoreButton marketAccount={marketAccount} />
+            )}
+          </Box>
+
+          <Box
+            sx={{
+              display: "flex",
+              gap: "8px",
+              alignItems: "center",
+              marginTop: "2px",
+            }}
+          >
+            <Link
+              href={`${ROUTES.lender.profile}/${market.borrower}`}
+              style={{ display: "flex", textDecoration: "none" }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: "6px",
+                  alignItems: "center",
+                  padding: "2px 10px 2px 4px",
+                  borderRadius: "12px",
+                  bgcolor: COLORS.whiteSmoke,
+                }}
+              >
+                {profileData ? (
+                  <Box
                     sx={{
-                      fontSize: "8px",
-                      lineHeight: "8px",
-                      color: COLORS.white,
+                      width: "16px",
+                      height: "16px",
+                      borderRadius: "50%",
+                      bgcolor: "#4CA6D9",
+
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
-                    {String(getBorrowerName())[0]}
-                  </Typography>
-                </Box>
-              ) : (
-                <SvgIcon
-                  sx={{
-                    fontSize: "16px",
-                    "& circle": { fill: "#4CA6D9", opacity: 1 },
-                    "& path": { fill: COLORS.white },
-                  }}
-                >
-                  <Avatar />
-                </SvgIcon>
-              )}
+                    <Typography
+                      variant="mobText4"
+                      sx={{
+                        fontSize: "8px",
+                        lineHeight: "8px",
+                        color: COLORS.white,
+                      }}
+                    >
+                      {String(getBorrowerName())[0]}
+                    </Typography>
+                  </Box>
+                ) : (
+                  <SvgIcon
+                    sx={{
+                      fontSize: "16px",
+                      "& circle": { fill: "#4CA6D9", opacity: 1 },
+                      "& path": { fill: COLORS.white },
+                    }}
+                  >
+                    <Avatar />
+                  </SvgIcon>
+                )}
 
-              <Typography variant="mobText3">{getBorrowerName()}</Typography>
-            </Box>
-          </Link>
+                <Typography variant="mobText3">{getBorrowerName()}</Typography>
+              </Box>
+            </Link>
+          </Box>
         </Box>
 
         <Box

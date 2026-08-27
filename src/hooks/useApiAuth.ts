@@ -2,19 +2,18 @@
 
 import { useEffect } from "react"
 
-import { context } from "@opentelemetry/api"
-import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
-import { useIsMutating, useMutation } from "@tanstack/react-query"
+import { useIsMutating, useMutation, useQuery } from "@tanstack/react-query"
 import { decode as decodeJWT } from "jsonwebtoken"
 import { useAccount } from "wagmi"
 
 import { toastError, toastRequest } from "@/components/Toasts"
-import { getLoginSignatureMessage } from "@/config/api"
-import { logger } from "@/lib/logging/client"
-import { withClientSpan } from "@/lib/telemetry/clientTracing"
-import { useFlowMutation } from "@/lib/telemetry/useFlowMutation"
+import {
+  getLoginSignatureMessage,
+  LOGIN_SIGNATURE_MAX_AGE_SECONDS,
+} from "@/config/api"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
+  getApiTokenKey,
   setApiToken,
   removeApiToken,
 } from "@/store/slices/apiTokensSlice/apiTokensSlice"
@@ -22,73 +21,54 @@ import { ApiToken } from "@/store/slices/apiTokensSlice/interface"
 import { dayjs } from "@/utils/dayjs"
 
 import { useEthersSigner } from "./useEthersSigner"
+import { useSafeMessageSigning } from "./useSafeMessageSigning"
+import { useSelectedNetwork } from "./useSelectedNetwork"
 
-export const useRefreshApiToken = () => {
+export const useRefreshApiToken = (chainIdOverride?: number) => {
   const { address } = useAccount()
+  const selectedNetwork = useSelectedNetwork()
+  const chainId = chainIdOverride ?? selectedNetwork.chainId
   const dispatch = useAppDispatch()
-  const tokenKey = address?.toLowerCase() ?? ""
+  const tokenKey = address ? getApiTokenKey(address, chainId) : ""
   const token = useAppSelector((state) => state.apiTokens[tokenKey])
-  const flow = useFlowMutation()
 
   return useMutation({
     mutationKey: ["refreshApiToken", tokenKey],
     mutationFn: async () => {
-      flow.start("auth.refresh_token.flow", {
-        "auth.token_key": tokenKey,
+      if (!token) throw Error(`No API token`)
+      console.log(`Refreshing token (mutate)`)
+      const response = await fetch("/api/auth/refresh", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token.token}`,
+        },
       })
-
-      try {
-        const newToken = await withClientSpan(
-          "auth.refresh_token",
-          async (span) => {
-            if (!token) {
-              throw Error("No token")
-            }
-            logger.info({ tokenKey }, "Refreshing token")
-            const response = await fetch("/api/auth/refresh", {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${token.token}`,
-              },
-            })
-            span.setAttribute("http.status_code", response.status)
-            if (response.status === 401) {
-              toastError(`Session expired`)
-              throw Error(`Failed to refresh token! Invalid Credentials`)
-            } else if (response.status !== 200) {
-              throw Error(`Failed to refresh token! ${response.statusText}`)
-            }
-            return (await response.json()) as ApiToken
-          },
-          {
-            parentContext: flow.getParentContext() ?? context.active(),
-            attributes: {
-              "auth.token_key": tokenKey,
-            },
-          },
-        )
-        flow.endSuccess()
-        return newToken
-      } catch (error) {
-        flow.endError(error)
-        throw error
+      if (response.status === 401) {
+        toastError(`Session expired`)
+        throw Error(`Failed to refresh token! Invalid Credentials`)
+      } else if (response.status !== 200) {
+        throw Error(`Failed to refresh token! ${response.statusText}`)
       }
+      const newToken = (await response.json()) as ApiToken
+      return newToken
     },
     onSuccess: (newToken: ApiToken) => {
-      logger.info({ tokenKey }, "Token refreshed")
+      console.log(`Token refreshed`)
       dispatch(setApiToken(newToken))
     },
     onError(error) {
-      logger.error({ err: error, tokenKey }, "Error refreshing token")
+      console.log(`Error refreshing token`)
       dispatch(removeApiToken(tokenKey))
     },
   })
 }
 
-export const useRemoveBadApiToken = () => {
+export const useRemoveBadApiToken = (chainIdOverride?: number) => {
   const dispatch = useAppDispatch()
   const { address } = useAccount()
-  const tokenKey = address?.toLowerCase() ?? ""
+  const selectedNetwork = useSelectedNetwork()
+  const chainId = chainIdOverride ?? selectedNetwork.chainId
+  const tokenKey = address ? getApiTokenKey(address, chainId) : ""
   return useMutation({
     mutationKey: ["removeBadApiToken", tokenKey],
     mutationFn: async () => {
@@ -98,13 +78,16 @@ export const useRemoveBadApiToken = () => {
   })
 }
 
-export const useAuthToken = () => {
+export const useAuthToken = (chainIdOverride?: number) => {
   const { address } = useAccount()
-  const tokenKey = address?.toLowerCase() ?? ""
+  const selectedNetwork = useSelectedNetwork()
+  const chainId = chainIdOverride ?? selectedNetwork.chainId
+  const tokenKey = address ? getApiTokenKey(address, chainId) : ""
   const token = useAppSelector((state) => state.apiTokens[tokenKey])
-  const { mutate: refreshToken, isPending: isRefreshing } = useRefreshApiToken()
+  const { mutate: refreshToken, isPending: isRefreshing } =
+    useRefreshApiToken(chainId)
   const { mutate: removeBadToken, isPending: isRemovingBadToken } =
-    useRemoveBadApiToken()
+    useRemoveBadApiToken(chainId)
   const isRefreshingAnywhere = useIsMutating({
     mutationKey: ["refreshApiToken", tokenKey],
   })
@@ -112,7 +95,7 @@ export const useAuthToken = () => {
 
   useEffect(() => {
     if (jwt && !isRefreshing && !isRefreshingAnywhere) {
-      logger.debug({ tokenKey }, "Checking token age")
+      console.log(`Checking token age`)
       const decoded = decodeJWT(jwt, { json: true })
       if (decoded) {
         const now = dayjs().unix()
@@ -120,16 +103,12 @@ export const useAuthToken = () => {
         const isExpired = (decoded.exp ?? 0) < now
         const isTooFarAhead = (decoded.iat ?? 0) > now + 86_400 * 365
         if (isExpired || isTooFarAhead) {
-          logger.info(
-            {
-              tokenKey,
-              reason: isExpired ? "expired" : "too far ahead",
-            },
-            "Removing bad token",
+          console.log(
+            `Removing bad token: ${isExpired ? "expired" : "too far ahead"}`,
           )
           removeBadToken()
         } else if (age > 3_600) {
-          logger.info({ tokenKey }, "Refreshing token")
+          console.log(`Refreshing token`)
           refreshToken()
         }
       }
@@ -148,116 +127,103 @@ export const useAuthToken = () => {
 
 export const useLogin = () => {
   const dispatch = useAppDispatch()
-
-  const { sdk, connected: safeConnected } = useSafeAppsSDK()
+  const selectedNetwork = useSelectedNetwork()
   const signer = useEthersSigner()
-  const flow = useFlowMutation()
+  const safeSigning = useSafeMessageSigning()
 
   return useMutation({
     mutationFn: async (address: string) => {
-      flow.start("auth.login.flow", {
-        "safe.connected": safeConnected,
-        "address.wallet": address?.toLowerCase() ?? "",
-      })
+      if (!signer) throw Error(`No signer`)
+      if (!address) throw Error(`No address`)
+      if (signer.chainId !== selectedNetwork.chainId) {
+        throw Error(`Wallet network does not match selected network`)
+      }
+      address = address.toLowerCase()
+      // Login timestamps are unix SECONDS (the server's freshness check and
+      // the signed message both use them); the pending-message machinery
+      // treats the value as opaque and hands it back on resume.
+      const timeSigned = dayjs().unix()
+      const signPromise = safeSigning
+        .signMessage({
+          flow: "login",
+          address,
+          chainId: selectedNetwork.chainId,
+          timeSigned,
+          // The server rejects login messages older than an hour, so a
+          // pending Safe login proposal is worthless past that - expire it
+          // instead of submitting a guaranteed rejection.
+          expiresAt: (timeSigned + LOGIN_SIGNATURE_MAX_AGE_SECONDS) * 1000,
+          buildMessage: (effectiveTimeSigned) =>
+            getLoginSignatureMessage(
+              address,
+              effectiveTimeSigned,
+              selectedNetwork.chainId,
+            ),
+        })
+        .then((result) => {
+          // Outside a Safe app context "0x" means the wallet gave us nothing.
+          // Inside one, "0x" is a real answer: an on-chain-registered Safe
+          // message the server verifies against the Safe's signed-message
+          // registry.
+          if (!safeSigning.safeConnected && result.signature === "0x") {
+            throw Error(`Wallet did not return a login signature`)
+          }
+          return result
+        })
+      // When connected to a Safe the coordinator owns progress toasts
+      // ("Awaiting Safe confirmations for login...").
+      const signed = safeSigning.safeConnected
+        ? await signPromise
+        : await toastRequest(signPromise, {
+            pending: `Signing login message...`,
+            success: `Signed login message!`,
+            error: `Failed to sign login message!`,
+          })
+
+      safeSigning.markSubmitting(signed.pendingSafeMessageId)
+      const submitLogin = async () => {
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          body: JSON.stringify({
+            signature: signed.signature,
+            timeSigned: signed.timeSigned,
+            address,
+            chainId: selectedNetwork.chainId,
+          }),
+        })
+        if (response.status !== 200) {
+          throw Error(`Failed to log in! ${response.statusText}`)
+        }
+        const token = (await response.json()) as ApiToken
+        if (token.chainId !== selectedNetwork.chainId) {
+          throw Error(`Login returned token for wrong chain`)
+        }
+        return token
+      }
 
       try {
-        const token = await withClientSpan(
-          "auth.login",
-          async (span) => {
-            if (!signer) throw Error(`No signer`)
-            if (!address) throw Error(`No address`)
-            address = address.toLowerCase()
-            const timeSigned = dayjs().unix()
-            span.setAttribute("address.wallet", address)
-
-            const sign = async () => {
-              const LoginMessage = getLoginSignatureMessage(address, timeSigned)
-
-              if (sdk && safeConnected) {
-                const settingsResult = await sdk.eth.setSafeSettings([
-                  {
-                    offChainSigning: true,
-                  },
-                ])
-                logger.info({ settingsResult }, "Set safe settings")
-
-                const result = await sdk.txs.signMessage(LoginMessage)
-
-                if ("safeTxHash" in result) {
-                  span.setAttribute("safe.tx_hash", result.safeTxHash)
-                  return {
-                    signature: undefined,
-                    safeTxHash: result.safeTxHash,
-                  }
-                }
-                if ("signature" in result) {
-                  return {
-                    signature: result.signature as string,
-                    safeTxHash: undefined,
-                  }
-                }
-              }
-              logger.info({ address }, "Signing message with EOA")
-              const signatureResult = await signer.signMessage(LoginMessage)
-              return { signature: signatureResult }
-            }
-            let result: { signature?: string; safeTxHash?: string } = {}
-            await toastRequest(
-              sign().then((res) => {
-                result = res
-              }),
-              {
-                pending: `Signing login message...`,
-                success: `Signed login message!`,
-                error: `Failed to sign login message!`,
-              },
-            )
-            const submitLogin = async () => {
-              const response = await fetch("/api/auth/login", {
-                method: "POST",
-                body: JSON.stringify({
-                  signature: result.signature ?? "0x",
-                  timeSigned,
-                  address,
-                  chainId: signer.chainId,
-                }),
-              })
-              span.setAttribute("http.status_code", response.status)
-              if (response.status !== 200)
-                throw Error(`Failed to log in! ${response.statusText}`)
-              return (await response.json()) as ApiToken
-            }
-
-            return toastRequest(submitLogin(), {
-              pending: `Submitting login...`,
-              success: `Logged in!`,
-              error: `Failed to log in!`,
-            })
-          },
-          {
-            parentContext: flow.getParentContext() ?? context.active(),
-            attributes: {
-              "safe.connected": safeConnected,
-            },
-          },
-        )
-        flow.endSuccess()
+        const token = await toastRequest(submitLogin(), {
+          pending: `Submitting login...`,
+          success: `Logged in!`,
+          error: `Failed to log in!`,
+        })
+        safeSigning.markCompleted(signed.pendingSafeMessageId)
         return token
       } catch (error) {
-        flow.endError(error)
+        safeSigning.markSubmissionFailed(signed.pendingSafeMessageId, error)
         throw error
       }
     },
     onSuccess: (token) => {
       if (token) {
         dispatch(setApiToken(token))
-        logger.info({ address: token.address }, "Login successful")
+        console.log(`Login successful`)
       } else {
         throw Error(`Login failed`)
       }
     },
     onError(error) {
-      logger.error({ err: error }, "Login failed")
+      console.log(error)
     },
   })
 }

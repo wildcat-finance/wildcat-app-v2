@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     span.setAttribute("address.wallet", token.address.toLowerCase())
 
     const newToken = await withServerSpan("auth.token.create", async () =>
-      createApiToken(token.address),
+      createApiToken(token.address, token.chainId),
     )
     if (!newToken) {
       span.setAttribute("auth.result", "token_create_failed")

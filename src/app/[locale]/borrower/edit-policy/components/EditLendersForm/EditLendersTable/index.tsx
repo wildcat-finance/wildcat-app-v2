@@ -26,7 +26,11 @@ import { TableSelect } from "./TableSelect"
 import { EditLenderFlowStatuses } from "../../../interface"
 import { DeleteModal } from "../Modals/DeleteModal"
 
-export const EditLendersTable = () => {
+export const EditLendersTable = ({
+  canEditLenders,
+}: {
+  canEditLenders: boolean
+}) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const { getAddressUrl } = useBlockExplorer()
@@ -228,11 +232,15 @@ export const EditLendersTable = () => {
     },
   ]
 
+  const visibleColumns = canEditLenders
+    ? columns
+    : columns.filter((column) => column.field !== "delete")
+
   return (
     <>
       {!noLenders && (
         <DataGrid
-          columns={columns}
+          columns={visibleColumns}
           rows={filteredLenders}
           sx={EditLendersTableStyles}
           getRowHeight={() => "auto"}

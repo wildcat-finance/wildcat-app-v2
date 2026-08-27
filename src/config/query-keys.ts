@@ -16,12 +16,12 @@ const normalizeKeyPart = (value: unknown): unknown => {
   return value
 }
 
-// Build query keys, trimming only trailing `undefined` items and normalising inputs.
-export const k = <T extends readonly unknown[]>(
-  ...args: T
-): readonly unknown[] => {
-  const normalizedArgs = args.map(normalizeKeyPart)
-  const arr = [...normalizedArgs]
+// Build a flat query key, normalising inputs and trimming trailing `undefined`
+// so a factory called with omitted optional arguments forms a prefix of its
+// fully-specified key (TanStack partial matching treats an explicit `undefined`
+// against a concrete value as a mismatch).
+export const k = (parts: readonly unknown[]): readonly unknown[] => {
+  const arr = parts.map(normalizeKeyPart)
   while (arr.length && arr[arr.length - 1] === undefined) arr.pop()
   return arr
 }
@@ -77,21 +77,6 @@ const BORROWER_QUERY_KEYS = {
       shouldSkipRecords,
       variables,
     ]),
-  // GET_BORROWER_MARKET_ACCOUNT_LEGACY_KEY
-  GET_BORROWER_MARKET_ACCOUNT_LEGACY: (
-    chainId: number,
-    borrowerAddress?: string,
-    marketAddress?: string,
-    market?: unknown,
-  ) =>
-    k([
-      "borrower",
-      "GET_BORROWER_MARKET_ACCOUNT_LEGACY",
-      chainId,
-      borrowerAddress,
-      marketAddress,
-      market,
-    ]),
   // GET_BORROWER_PROFILE_KEY
   // @TODO this is a duplicate of GET_PROFILE - double check that the fact the function
   // casts to BorrowerProfileInput instead of BorrowerProfile is not a problem for deduplication
@@ -115,20 +100,25 @@ const BORROWER_QUERY_KEYS = {
   GET_POLICY: (chainId: number, policyAddress?: string) =>
     k(["borrower", "GET_POLICY", chainId, policyAddress]),
   // GET_WITHDRAWALS_KEY
-  GET_WITHDRAWALS: (
-    chainId: number,
-    kind: "initial" | "update",
-    marketAddress?: string,
-    updateQueryKeys?: unknown,
-  ) =>
-    k([
-      "borrower",
-      "GET_WITHDRAWALS",
-      chainId,
-      marketAddress,
-      kind,
-      updateQueryKeys,
-    ]),
+  GET_WITHDRAWALS: {
+    PREFIX: (chainId: number, marketAddress?: string) =>
+      k(["borrower", "GET_WITHDRAWALS", chainId, marketAddress]),
+    INITIAL: (chainId: number, marketAddress?: string) =>
+      k(["borrower", "GET_WITHDRAWALS", chainId, marketAddress, "initial"]),
+    UPDATE: (
+      chainId: number,
+      marketAddress?: string,
+      updateQueryKeys?: unknown,
+    ) =>
+      k([
+        "borrower",
+        "GET_WITHDRAWALS",
+        chainId,
+        marketAddress,
+        "update",
+        updateQueryKeys,
+      ]),
+  },
   // PREVIEW_MLA_KEY
   PREVIEW_MLA: {
     FROM_FORM: (
@@ -197,6 +187,14 @@ const USER_QUERY_KEYS = {
     k(["user", "GET_BORROWER_NAMES", chainId]),
 } as const
 
+const SERVICE_AGREEMENT_QUERY_KEYS = {
+  // GET_CURRENT_SERVICE_AGREEMENT_KEY
+  GET_CURRENT: () => k(["service-agreement", "GET_CURRENT"]),
+  // GET_SERVICE_AGREEMENT_STATUS_KEY
+  GET_STATUS: (chainId: number, address?: string) =>
+    k(["service-agreement", "GET_STATUS", chainId, address]),
+} as const
+
 const TOKEN_QUERY_KEYS = {
   // TOKEN_METADATA_KEY
   TOKEN_METADATA: (chainId: number, tokenAddress?: string) =>
@@ -207,21 +205,6 @@ const TOKEN_QUERY_KEYS = {
 } as const
 
 const LENDER_QUERY_KEYS = {
-  // GET_LENDER_MARKET_ACCOUNT_KEY
-  GET_MARKET_ACCOUNT: (
-    chainId: number,
-    marketAddress?: string,
-    lenderAddress?: string,
-    kind?: "initial" | "update",
-  ) =>
-    k([
-      "lender",
-      "GET_LENDER_MARKET_ACCOUNT",
-      chainId,
-      marketAddress,
-      lenderAddress,
-      kind,
-    ]),
   // GET_LENDER_WITHDRAWALS_KEY
   GET_WITHDRAWALS: {
     PREFIX: (chainId: number, lenderAddress?: string, marketAddress?: string) =>
@@ -288,6 +271,23 @@ const LENDER_QUERY_KEYS = {
     marketAddress?: string,
     lenderAddress?: string,
   ) => k(["lender", "GET_SIGNED_MLA", chainId, marketAddress, lenderAddress]),
+  GET_BORROWER_PENALTY_WARNING: (chainId: number, borrowerAddress?: string) =>
+    k(["lender", "GET_BORROWER_PENALTY_WARNING", chainId, borrowerAddress]),
+  GET_NON_MLA_ACKNOWLEDGEMENT: (
+    chainId: number,
+    marketAddress?: string,
+    lenderAddress?: string,
+  ) =>
+    k([
+      "lender",
+      "GET_NON_MLA_ACKNOWLEDGEMENT",
+      chainId,
+      marketAddress,
+      lenderAddress,
+    ]),
+  // GET_RECENT_DEPOSITS_KEY
+  GET_RECENT_DEPOSITS: (chainId: number) =>
+    k(["lender", "GET_RECENT_DEPOSITS", chainId]),
 } as const
 
 const WRAPPER_QUERY_KEYS = {
@@ -334,9 +334,50 @@ const MARKET_QUERY_KEYS = {
   // GET_ALL_TOKENS_WITH_MARKETS_KEY
   GET_ALL_TOKENS_WITH_MARKETS: (chainId: number) =>
     k(["markets", "GET_ALL_TOKENS_WITH_MARKETS", chainId]),
-  // GET_MARKET_ACCOUNT_KEY
-  GET_MARKET_ACCOUNT: (chainId: number, marketAddress?: string) =>
-    k(["markets", "GET_MARKET_ACCOUNT", chainId, marketAddress]),
+  // GET_MARKET_ACCOUNT_KEY — canonical market-account family shared by the
+  // borrower and lender views (src/hooks/useMarketAccount.ts). Identity is
+  // chainId + marketAddress + accountAddress + phase; mutations invalidate a
+  // PREFIX to refresh both phases at once.
+  GET_MARKET_ACCOUNT: {
+    PREFIX: (
+      chainId: number,
+      marketAddress?: string,
+      accountAddress?: string,
+    ) =>
+      k([
+        "markets",
+        "GET_MARKET_ACCOUNT",
+        chainId,
+        marketAddress,
+        accountAddress,
+      ]),
+    INITIAL: (
+      chainId: number,
+      marketAddress?: string,
+      accountAddress?: string,
+    ) =>
+      k([
+        "markets",
+        "GET_MARKET_ACCOUNT",
+        chainId,
+        marketAddress,
+        accountAddress,
+        "initial",
+      ]),
+    UPDATE: (
+      chainId: number,
+      marketAddress?: string,
+      accountAddress?: string,
+    ) =>
+      k([
+        "markets",
+        "GET_MARKET_ACCOUNT",
+        chainId,
+        marketAddress,
+        accountAddress,
+        "update",
+      ]),
+  },
   // GET_MARKET_KEY
   GET_MARKET: (chainId: number, marketAddress?: string) =>
     k(["markets", "GET_MARKET", chainId, marketAddress]),
@@ -387,4 +428,5 @@ export const QueryKeys = {
   Lender: LENDER_QUERY_KEYS,
   Wrapper: WRAPPER_QUERY_KEYS,
   Markets: MARKET_QUERY_KEYS,
+  ServiceAgreement: SERVICE_AGREEMENT_QUERY_KEYS,
 } as const

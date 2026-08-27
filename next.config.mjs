@@ -163,6 +163,11 @@ const nextConfig = {
         destination: '/lender',
         permanent: true,
       },
+      {
+        source: '/pdf/Wildcat_Terms_of_Use.pdf',
+        destination: '/api/service-agreement/current/download',
+        permanent: true,
+      },
     ]
   },
 
