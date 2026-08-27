@@ -16,7 +16,7 @@ import { useTranslation } from "react-i18next"
 import Alert from "@/assets/icons/circledAlert_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { DepositAlert } from "@/components/DepositAlert"
-import { getMarketImplementationVariant } from "@/components/market-implementation-variants"
+import { getMarketAprCopy } from "@/components/market-implementation-variants"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
@@ -94,7 +94,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
   const aprDisplay = getMarketAprDisplayBips(market)
-  const { aprCopy } = getMarketImplementationVariant(market)
+  const aprCopy = getMarketAprCopy(market)
   const currentConfiguredAprBips = aprDisplay.configuredAprBips
   const currentConfiguredAprDisplayValue = formatBps(
     currentConfiguredAprBips,
@@ -123,6 +123,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const currentAprLabel = t(aprCopy.currentAprLabelKey)
   const newAprLabel = t(aprCopy.newAprLabelKey)
   const proposedAprLabel = t(aprCopy.proposedAprLabelKey)
+  const proposeReductionTitle = t(aprCopy.proposeReductionTitleKey)
   const aprBips = parseAprBips(apr)
   const isPeriodicTerm = !!market.periodicHooksConfig
   const existingPendingProposal = isPeriodicTerm
@@ -415,9 +416,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
         {showForm && (
           <TxModalHeader
             title={
-              isPeriodicAprReduction
-                ? t("marketDetails.borrower.modals.apr.proposeReductionTitle")
-                : adjustAprLabel
+              isPeriodicAprReduction ? proposeReductionTitle : adjustAprLabel
             }
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack

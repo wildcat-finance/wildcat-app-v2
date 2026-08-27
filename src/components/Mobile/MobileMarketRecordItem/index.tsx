@@ -13,6 +13,7 @@ type MobileMarketRecordItemProps = {
   lenderNames: { [key: string]: string }
   borrowerName: string
   txUrl: string
+  aprName: string
   isLast?: boolean
 }
 
@@ -21,10 +22,23 @@ export const MobileMarketRecordItem = ({
   lenderNames,
   borrowerName,
   txUrl,
+  aprName,
   isLast = false,
 }: MobileMarketRecordItemProps) => {
-  const displayText = getRecordText(record, lenderNames, borrowerName)
-  const rawText = getRecordText(record, lenderNames, borrowerName, true)
+  const displayText = getRecordText(
+    record,
+    lenderNames,
+    borrowerName,
+    false,
+    aprName,
+  )
+  const rawText = getRecordText(
+    record,
+    lenderNames,
+    borrowerName,
+    true,
+    aprName,
+  )
 
   return (
     <Box>

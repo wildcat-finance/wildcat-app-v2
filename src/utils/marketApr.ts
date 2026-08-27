@@ -1,5 +1,7 @@
 import { Market } from "@wildcatfi/wildcat-sdk"
 
+import { getMarketImplementationType } from "@/utils/marketImplementation"
+
 type MarketAprDisplayBips = {
   isRevolving: boolean
   configuredAprKind: "annualInterest" | "utilization"
@@ -51,7 +53,24 @@ export const getMarketAprDisplayBips = (
 export const getDisplayLenderAprBips = (market: Market): number =>
   getMarketAprDisplayBips(market).currentEffectiveLenderAprBips
 
-export const getConfiguredAprLabelKey = (market: Market): string =>
+/**
+ * Whether the APR the borrower configures on this market is the utilization
+ * APR rather than a base APR.
+ *
+ * Two independent signals identify a revolving market and either one alone is
+ * enough: the kind recorded by the hooks factory/subgraph (`marketKind`) and
+ * the revolving metrics carried by whichever read produced the numbers we
+ * render (`configuredAprKind`). Reads that drop one of the two exist - a V1
+ * projection, a subgraph row whose `marketKind` did not parse, lens data
+ * without the unified V2.5 fields - and copy keyed off only one of them can end
+ * up calling a utilization APR a "base APR". Deriving the wording from both
+ * keeps the label and the number it sits next to from disagreeing.
+ */
+export const isRevolvingAprMarket = (market: Market): boolean =>
+  getMarketImplementationType(market) === "revolving" ||
   getMarketAprDisplayBips(market).configuredAprKind === "utilization"
+
+export const getConfiguredAprLabelKey = (market: Market): string =>
+  isRevolvingAprMarket(market)
     ? "common.fields.utilizationApr"
     : "marketParameters.baseAPR"

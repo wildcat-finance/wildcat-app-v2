@@ -4,6 +4,7 @@ import { Divider } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { ParametersItem } from "@/components/ParametersItem"
+import { PENDING_UTILIZATION_APR_REDUCTION_TITLE_KEY } from "@/constants/i18nKeys"
 import { formatBps, MARKET_PARAMS_DECIMALS } from "@/utils/formatters"
 
 import {
@@ -62,6 +63,18 @@ export const revolvingMarketImplementationVariant: MarketImplementationVariant =
       newAprLabelKey: "marketDetails.borrower.modals.apr.newUtilizationApr",
       proposedAprLabelKey:
         "marketDetails.borrower.modals.apr.proposedUtilizationApr",
+      proposeReductionTitleKey:
+        "marketDetails.borrower.modals.apr.proposeReductionTitleUtilization",
+      pendingAprLabelKey:
+        "marketParameters.pendingPeriodicApr.labelUtilization",
+      pendingAprBannerTitleKey:
+        "marketParameters.pendingPeriodicApr.bannerTitleUtilization",
+      appliedAprNoticeTitleKey:
+        "marketParameters.pendingPeriodicApr.appliedNoticeTitleUtilization",
+      appliedAprNoticeBodyKey:
+        "marketParameters.pendingPeriodicApr.appliedNoticeUtilization",
+      pendingAprReductionTitleKeys: PENDING_UTILIZATION_APR_REDUCTION_TITLE_KEY,
+      aprRecordName: "Utilization APR",
     },
     ExtraParametersSection: RevolvingExtraParametersSection,
     MarketCard: RevolvingMarketCard,

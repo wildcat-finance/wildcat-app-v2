@@ -7,7 +7,10 @@ import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import { getAdsMarketParameterComponent } from "@/components/AdsBanners/adsHelpers"
-import { getMarketImplementationVariant } from "@/components/market-implementation-variants"
+import {
+  getMarketAprCopy,
+  getMarketImplementationVariant,
+} from "@/components/market-implementation-variants"
 import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import {
@@ -343,8 +346,8 @@ export const MarketParameters = ({
 
   const { hooksConfig, periodicHooksConfig } = market
   const aprDisplay = getMarketAprDisplayBips(market)
-  const { aprCopy, ExtraParametersSection } =
-    getMarketImplementationVariant(market)
+  const { ExtraParametersSection } = getMarketImplementationVariant(market)
+  const aprCopy = getMarketAprCopy(market)
   const implementationType = getMarketImplementationType(market)
   const implementationConfig = getMarketImplementationConfig(implementationType)
   const fixedTermHooksConfig = getFixedTermHooksConfig(market)
@@ -777,7 +780,7 @@ export const MarketParameters = ({
               <>
                 <Divider sx={{ margin: "12px 0 12px" }} />
                 <ParametersItem
-                  title={t("marketParameters.pendingPeriodicApr.label")}
+                  title={t(aprCopy.pendingAprLabelKey)}
                   value={`${formatBps(
                     pendingPeriodicAprChange.proposedAprBips,
                     MARKET_PARAMS_DECIMALS.annualInterestBips,

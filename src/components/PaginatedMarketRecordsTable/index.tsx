@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next"
 import { useBorrowerNameOrAddress } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import Filter from "@/assets/icons/filter_icon.svg"
 import { FilterTextField } from "@/components/FilterTextfield"
+import { getMarketAprCopy } from "@/components/market-implementation-variants"
 import { MobileMarketRecordItem } from "@/components/Mobile/MobileMarketRecordItem"
 import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
@@ -43,6 +44,7 @@ export function PaginatedMarketRecordsTable({
   const isMobile = useMobileResolution()
   const { getTxUrl } = useBlockExplorer({ chainId: market.chainId })
   const borrowerName = useBorrowerNameOrAddress(market.borrower)
+  const { aprRecordName } = getMarketAprCopy(market)
   const [page, setPage] = useState(0)
   const [pageSize, setPageSize] = useState(DEFAULT_MARKET_RECORDS_PAGE_SIZE)
   const [selectedFilters, setSelectedFilters] = useState<MarketRecordKind[]>(
@@ -228,6 +230,7 @@ export function PaginatedMarketRecordsTable({
                 lenderNames={lendersName}
                 borrowerName={borrowerName}
                 txUrl={getTxUrl(r.transactionHash)}
+                aprName={aprRecordName}
                 isLast={index === (previewRecords?.length ?? 0) - 1}
               />
             ))

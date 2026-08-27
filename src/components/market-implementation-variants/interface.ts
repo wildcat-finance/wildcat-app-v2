@@ -1,5 +1,6 @@
 import { ComponentType } from "react"
 
+import { PendingAprReductionPhase } from "@/constants/i18nKeys"
 import { getMarketAprDisplayBips } from "@/utils/marketApr"
 import { MarketImplementationType } from "@/utils/marketImplementation"
 
@@ -20,6 +21,13 @@ export type MarketAprCopy = {
   currentAprLabelKey: string
   newAprLabelKey: string
   proposedAprLabelKey: string
+  proposeReductionTitleKey: string
+  pendingAprLabelKey: string
+  pendingAprBannerTitleKey: string
+  appliedAprNoticeTitleKey: string
+  appliedAprNoticeBodyKey: string
+  pendingAprReductionTitleKeys: Record<PendingAprReductionPhase, string>
+  aprRecordName: string
 }
 
 export type ExtraParametersSectionProps = {

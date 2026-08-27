@@ -1,4 +1,5 @@
 import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
+import { PENDING_APR_REDUCTION_TITLE_KEY } from "@/constants/i18nKeys"
 
 import { MarketImplementationVariant } from "./interface"
 
@@ -20,6 +21,17 @@ export const standardMarketImplementationVariant: MarketImplementationVariant =
       currentAprLabelKey: "marketDetails.borrower.modals.apr.currentBaseApr",
       newAprLabelKey: "marketDetails.borrower.modals.apr.newBaseApr",
       proposedAprLabelKey: "marketDetails.borrower.modals.apr.proposedBaseApr",
+      proposeReductionTitleKey:
+        "marketDetails.borrower.modals.apr.proposeReductionTitle",
+      pendingAprLabelKey: "marketParameters.pendingPeriodicApr.label",
+      pendingAprBannerTitleKey:
+        "marketParameters.pendingPeriodicApr.bannerTitle",
+      appliedAprNoticeTitleKey:
+        "marketParameters.pendingPeriodicApr.appliedNoticeTitle",
+      appliedAprNoticeBodyKey:
+        "marketParameters.pendingPeriodicApr.appliedNotice",
+      pendingAprReductionTitleKeys: PENDING_APR_REDUCTION_TITLE_KEY,
+      aprRecordName: "Base APR",
     },
     MarketCard: MobileMarketCard,
   }
