@@ -47,6 +47,7 @@ const DepositStatusContainer = {
 }
 
 const FaucetButton = ({ marketAccount }: { marketAccount: MarketAccount }) => {
+  const { t } = useTranslation()
   const {
     mutate: faucet,
     isPending: isFauceting,
@@ -63,7 +64,9 @@ const FaucetButton = ({ marketAccount }: { marketAccount: MarketAccount }) => {
       sx={{ width: "152px" }}
       onClick={() => faucet()}
     >
-      {isFauceting ? "Requesting Tokens..." : "Faucet"}
+      {isFauceting
+        ? t("marketDetails.lender.faucet.requesting")
+        : t("marketDetails.lender.faucet.button")}
     </Button>
   )
 }
@@ -191,9 +194,7 @@ export const MarketActions = ({
     }
 
     if (parts.length === 0) {
-      return t("marketDetails.lender.withdrawalsAlert.title.noClaim", {
-        claim: "nothing",
-      })
+      return t("marketDetails.lender.withdrawalsAlert.title.noClaim")
     }
 
     return parts.join(" · ")
@@ -289,7 +290,7 @@ export const MarketActions = ({
                   return (
                     <Box sx={DepositStatusContainer}>
                       <Typography variant="text3" color={COLORS.santasGrey}>
-                        Loading agreement data...
+                        {t("marketDetails.lender.agreementGate.loading")}
                       </Typography>
                     </Box>
                   )
@@ -306,7 +307,9 @@ export const MarketActions = ({
                         size="small"
                         sx={{ alignSelf: "flex-start" }}
                         onClick={() => {
-                          toastError("Couldn't load agreement data — retrying")
+                          toastError(
+                            t("marketDetails.lender.agreementGate.retryToast"),
+                          )
                           agreementGate.retry().catch(() => undefined)
                         }}
                       >

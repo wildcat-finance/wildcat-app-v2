@@ -832,6 +832,14 @@
           "title": "Unable to verify lender access"
         }
       },
+      "agreementGate": {
+        "borrowerIncompleteTooltip": "The borrower must complete the market agreement selection before deposits can begin",
+        "loading": "Loading agreement data...",
+        "retryToast": "Couldn't load agreement data — retrying",
+        "retryTooltip": "Tap to retry loading agreement data",
+        "waitingBorrower": "Waiting for borrower agreement selection",
+        "waitingSignature": "Waiting for signature"
+      },
       "agreementSelectionRequired": "Agreement Selection Required",
       "analytics": {
         "charts": {
@@ -893,6 +901,10 @@
         }
       },
       "depositingFollowingBorrower": "Depositing to the following Borrower:",
+      "faucet": {
+        "button": "Faucet",
+        "requesting": "Requesting Tokens..."
+      },
       "interestedLendingThroughWildcatConnect": "Interested in lending through Wildcat? Connect with this borrower to request access.",
       "leaveRequest": "Leave a Request",
       "lendThroughWildcat": "Lend through Wildcat",
@@ -963,9 +975,16 @@
       "signAcknowledgementBeforeOpeningDeposit": "Sign this acknowledgement before opening the deposit window.",
       "signMlaBeforeDepositingInto": "Sign the MLA before depositing into this market.",
       "signed": "Signed:",
+      "touGate": {
+        "blockedTooltip": "Accept the Terms of Use to deposit",
+        "checkingTooltip": "Checking Terms of Use status",
+        "retryToast": "Couldn't verify Terms of Use status — retrying",
+        "retryTooltip": "Couldn't verify Terms of Use status — tap to retry"
+      },
       "transactions": {
         "deposit": {
           "button": "Deposit",
+          "buttonChecking": "Checking...",
           "periodicWindowNotice": "This is a periodic market: withdrawal requests are only available during scheduled withdrawal windows.",
           "rows": {
             "minimumDeposit": "Minimum deposit",
