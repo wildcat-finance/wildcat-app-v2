@@ -8,6 +8,7 @@ import {
   Token,
 } from "@wildcatfi/wildcat-sdk"
 import { UseFormReturn } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { lastSlaUpdateTime, MlaTemplate } from "@/app/api/mla/interface"
@@ -205,6 +206,24 @@ export const useSetMarketMLA = () => {
   })
 }
 
+/**
+ * Signing without a template signs the refusal message rather than an
+ * agreement, so no toast may claim an MLA was signed. Exhaustive map of literal
+ * keys per the locale convention: the branch picks a row, never builds a key.
+ */
+const MLA_SIGNING_TOAST_KEYS = {
+  agreement: {
+    pending: "borrower.createMarket.mla.signing.agreement.pending",
+    success: "borrower.createMarket.mla.signing.agreement.success",
+    error: "borrower.createMarket.mla.signing.agreement.error",
+  },
+  refusal: {
+    pending: "borrower.createMarket.mla.signing.refusal.pending",
+    success: "borrower.createMarket.mla.signing.refusal.success",
+    error: "borrower.createMarket.mla.signing.refusal.error",
+  },
+} as const
+
 export type SignMlaFromFormInputs = {
   form: UseFormReturn<MarketValidationSchemaType>
   timeSigned: number
@@ -216,6 +235,7 @@ export type SignMlaFromFormInputs = {
 }
 
 export const useSignMla = (salt: string, marketKind: DeployableMarketKind) => {
+  const { t } = useTranslation()
   const { address } = useAccount()
   const signer = useEthersSigner()
   const safeSigning = useSafeMessageSigning()
@@ -239,6 +259,10 @@ export const useSignMla = (salt: string, marketKind: DeployableMarketKind) => {
       const selectedMla = form.getValues("mla")
       const mlaTemplateId =
         selectedMla === "noMLA" ? undefined : Number(selectedMla)
+      const toastKeys =
+        MLA_SIGNING_TOAST_KEYS[
+          mlaTemplateId === undefined ? "refusal" : "agreement"
+        ]
       console.log("mlaTemplateId", mlaTemplateId)
       if (!signer || !address || !marketAddress || !borrowerProfile || !asset) {
         console.log("missing required data")
@@ -298,11 +322,11 @@ export const useSignMla = (salt: string, marketKind: DeployableMarketKind) => {
           },
         }),
         {
-          success: "MLA signed successfully",
-          error: "Failed to set MLA",
+          success: t(toastKeys.success),
+          error: t(toastKeys.error),
           pending: safeSigning.safeConnected
-            ? "Awaiting Safe confirmations — you may leave this page."
-            : "Setting MLA...",
+            ? t("borrower.createMarket.mla.signing.pendingSafe")
+            : t(toastKeys.pending),
         },
       )
       return result

@@ -162,6 +162,19 @@
           "explainer": "Explainer",
           "glossary": "A legally binding document that defines the terms, obligations, and penalties for borrowers and lenders in the market."
         },
+        "signing": {
+          "agreement": {
+            "error": "Failed to set MLA",
+            "pending": "Setting MLA...",
+            "success": "MLA signed successfully"
+          },
+          "pendingSafe": "Awaiting Safe confirmations — you may leave this page.",
+          "refusal": {
+            "error": "Failed to sign MLA refusal",
+            "pending": "Signing MLA refusal...",
+            "success": "MLA refusal signed successfully"
+          }
+        },
         "title": "Loan Agreement"
       },
       "noTransactionWasSentReview": "No transaction was sent. Review the highlighted field and try again.",
