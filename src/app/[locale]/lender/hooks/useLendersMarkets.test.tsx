@@ -342,6 +342,57 @@ describe("useLendersMarkets", () => {
     )
   })
 
+  it("refreshes an invalidated inactive overview when it remounts", async () => {
+    const first = createIndexedAccount(LENDER_A, "indexed-1")
+    const second = createIndexedAccount(LENDER_A, "indexed-2")
+    const queryClient = createQueryClient()
+
+    getLenderAccountsForAllMarketsMock
+      .mockResolvedValueOnce([first])
+      .mockResolvedValueOnce([second])
+    refreshMarketAccountsV2LiveDataSafeMock.mockImplementation(
+      async (_chainId, _provider, _lender, accounts: TestMarketAccount[]) => {
+        const isTerminated = accounts[0].generation === "indexed-2"
+        accounts[0].stateSource = "live"
+        accounts[0].generation = accounts[0].generation.replace(
+          "indexed",
+          "live",
+        )
+        accounts[0].market.isClosed = isTerminated
+        return accounts
+      },
+    )
+
+    const firstView = renderHook(() => useLendersMarkets(), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    await waitFor(() =>
+      expect(asTestAccount(firstView.result.current.data[0]).generation).toBe(
+        "live-1",
+      ),
+    )
+    expect(firstView.result.current.data[0].market.isClosed).toBe(false)
+    firstView.unmount()
+
+    await queryClient.invalidateQueries({
+      queryKey: QueryKeys.Lender.GET_LENDER_ACCOUNTS.PREFIX(SEPOLIA_CHAIN_ID),
+      refetchType: "none",
+    })
+
+    const secondView = renderHook(() => useLendersMarkets(), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    await waitFor(() =>
+      expect(asTestAccount(secondView.result.current.data[0]).generation).toBe(
+        "live-2",
+      ),
+    )
+    expect(secondView.result.current.data[0].market.isClosed).toBe(true)
+    expect(getLenderAccountsForAllMarketsMock).toHaveBeenCalledTimes(2)
+  })
+
   it("keeps the last live generation when new indexed data fails to hydrate", async () => {
     const first = createIndexedAccount(LENDER_A, "indexed-1")
     const second = createIndexedAccount(LENDER_A, "indexed-2")

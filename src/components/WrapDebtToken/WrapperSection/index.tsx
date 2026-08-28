@@ -48,7 +48,7 @@ import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 import { isUSDTLikeToken } from "@/utils/constants"
 import { formatTokenWithCommas } from "@/utils/formatters"
-import { invalidateMarketAccountQueries } from "@/utils/marketAccountQueries"
+import { invalidateMarketStateQueries } from "@/utils/marketStateQueries"
 import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 import { getWrapperTransactionMethod } from "./transaction"
@@ -689,7 +689,7 @@ export const WrapperSection = ({
         ),
       })
       if (market) {
-        invalidateMarketAccountQueries({
+        invalidateMarketStateQueries({
           client,
           chainId: market.chainId,
           marketAddress: market.address,

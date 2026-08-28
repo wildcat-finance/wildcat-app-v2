@@ -961,6 +961,10 @@
         "deposit": {
           "button": "Deposit",
           "periodicWindowNotice": "This is a periodic market: withdrawal requests are only available during scheduled withdrawal windows.",
+          "rows": {
+            "minimumDeposit": "Minimum deposit",
+            "walletBalance": "Wallet balance"
+          },
           "title": "Available To Deposit",
           "tooltip": "The amount of the underlying asset held by the address you are connected with."
         },
@@ -1001,6 +1005,10 @@
             "unwrapping": "Unwrapping {{shares}} {{symbol}}",
             "wrapped": "Wrapped",
             "wrappedOnly": "Wrapped position only"
+          },
+          "rows": {
+            "cycle": "Withdrawal cycle",
+            "gracePeriod": "Grace period"
           },
           "split": "{{direct}} direct · ≈ {{wrapped}} wrapped",
           "splitDirect": "{{amount}} direct",

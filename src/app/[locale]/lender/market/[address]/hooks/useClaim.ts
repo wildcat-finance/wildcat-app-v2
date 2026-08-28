@@ -8,7 +8,7 @@ import { useAccount } from "wagmi"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useWildcatClient } from "@/hooks/useEthersSigner"
-import { invalidateMarketAccountQueries } from "@/utils/marketAccountQueries"
+import { invalidateMarketStateQueries } from "@/utils/marketStateQueries"
 import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 import {
@@ -80,7 +80,7 @@ export const useClaim = (
       client.invalidateQueries({
         queryKey: QueryKeys.Markets.GET_MARKET(market.chainId, market.address),
       })
-      invalidateMarketAccountQueries({
+      invalidateMarketStateQueries({
         client,
         chainId: market.chainId,
         marketAddress,

@@ -204,14 +204,14 @@ export const MarketActions = ({
 
   const { depositRows, withdrawRows } = getMarketActionRows(marketAccount, {
     walletBalance: t(
-      "lenderMarketDetails.transactions.deposit.rows.walletBalance",
+      "marketDetails.lender.transactions.deposit.rows.walletBalance",
     ),
     minimumDeposit: t(
-      "lenderMarketDetails.transactions.deposit.rows.minimumDeposit",
+      "marketDetails.lender.transactions.deposit.rows.minimumDeposit",
     ),
-    withdrawalCycle: t("lenderMarketDetails.transactions.withdraw.rows.cycle"),
+    withdrawalCycle: t("marketDetails.lender.transactions.withdraw.rows.cycle"),
     gracePeriod: t(
-      "lenderMarketDetails.transactions.withdraw.rows.gracePeriod",
+      "marketDetails.lender.transactions.withdraw.rows.gracePeriod",
     ),
   })
 

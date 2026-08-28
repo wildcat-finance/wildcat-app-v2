@@ -13,7 +13,7 @@ import {
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { invalidateMarketAccountQueries } from "@/utils/marketAccountQueries"
+import { invalidateMarketStateQueries } from "@/utils/marketStateQueries"
 import {
   toSdkTransactionRequest,
   toSafeTransactions,
@@ -147,7 +147,7 @@ export const useSettleAndApplyPendingApr = (
       client.invalidateQueries({
         queryKey: [PERIODIC_APR_SETTLEMENT_QUOTE_KEY],
       })
-      invalidateMarketAccountQueries({
+      invalidateMarketStateQueries({
         client,
         chainId: marketAccount.market.chainId,
         marketAddress: marketAccount.market.address,

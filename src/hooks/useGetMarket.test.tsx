@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { renderHook, waitFor } from "@testing-library/react"
 import type { Market, SignerOrProvider } from "@wildcatfi/wildcat-sdk"
 
+import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 
 import {
@@ -58,8 +59,8 @@ const marketAddress = "0x04fb4e4577ad2cdd65e70f18d7a5f326162ddd90"
 const publicProvider = { request: jest.fn() }
 const liveProvider = { request: jest.fn() }
 
-const createWrapper = () => {
-  const queryClient = new QueryClient({
+const createQueryClient = () =>
+  new QueryClient({
     defaultOptions: {
       queries: {
         retry: false,
@@ -67,10 +68,11 @@ const createWrapper = () => {
     },
   })
 
-  return ({ children }: PropsWithChildren) => (
+const createWrapper =
+  (queryClient = createQueryClient()) =>
+  ({ children }: PropsWithChildren) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
-}
 
 const createIndexedMarket = (version: "v1" | "v2" = "v2") => {
   const sdkProvider = publicProvider as unknown as SignerOrProvider
@@ -214,6 +216,47 @@ describe("useGetMarket", () => {
     expect(result.current.data).not.toBe(indexedMarket)
     expect(result.current.data?.stateSource).toBe("live")
     expect(result.current.data?.provider).toBe(liveProvider)
+  })
+
+  it("refreshes invalidated live state when a detail view remounts", async () => {
+    const indexedMarket = createIndexedMarket()
+    const queryClient = createQueryClient()
+    const wrapper = createWrapper(queryClient)
+    let isClosed = false
+
+    getIndexedMarketMock.mockResolvedValue(indexedMarket)
+    refreshMarketsV2LiveDataSafeMock.mockImplementation(
+      async (_chainId, markets) => {
+        const [market] = markets
+        market.isClosed = isClosed
+        return markets
+      },
+    )
+
+    const firstView = renderHook(
+      () => useGetMarket({ address: marketAddress, chainId: 11155111 }),
+      { wrapper },
+    )
+
+    await waitFor(() => expect(firstView.result.current.data).toBeDefined())
+    expect(firstView.result.current.data?.isClosed).toBe(false)
+    firstView.unmount()
+
+    isClosed = true
+    await queryClient.invalidateQueries({
+      queryKey: QueryKeys.Markets.GET_MARKET(11155111, marketAddress),
+      refetchType: "none",
+    })
+
+    const secondView = renderHook(
+      () => useGetMarket({ address: marketAddress, chainId: 11155111 }),
+      { wrapper },
+    )
+
+    await waitFor(() =>
+      expect(secondView.result.current.data?.isClosed).toBe(true),
+    )
+    expect(refreshMarketsV2LiveDataSafeMock).toHaveBeenCalledTimes(2)
   })
 
   it("surfaces unsupported chains without attempting discovery", async () => {
