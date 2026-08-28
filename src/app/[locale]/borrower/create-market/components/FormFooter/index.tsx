@@ -6,7 +6,7 @@ import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import { COLORS } from "@/theme/colors"
 
 import { FormFooterProps } from "./interface"
-import { FooterContainer } from "./style"
+import { FooterBar, FooterContainer } from "./style"
 
 export const FormFooter = ({
   backOnClick,
@@ -17,33 +17,35 @@ export const FormFooter = ({
 
   return (
     <Box sx={FooterContainer}>
-      <Button
-        size="large"
-        variant="text"
-        sx={{ justifyContent: "flex-start" }}
-        onClick={backOnClick}
-      >
-        <SvgIcon
-          fontSize="medium"
-          sx={{
-            marginRight: "4px",
-            "& path": { fill: `${COLORS.bunker}` },
-          }}
+      <Box sx={FooterBar}>
+        <Button
+          size="large"
+          variant="text"
+          sx={{ justifyContent: "flex-start" }}
+          onClick={backOnClick}
         >
-          <BackArrow />
-        </SvgIcon>
-        {t("common.buttons.back")}
-      </Button>
+          <SvgIcon
+            fontSize="medium"
+            sx={{
+              marginRight: "4px",
+              "& path": { fill: `${COLORS.bunker}` },
+            }}
+          >
+            <BackArrow />
+          </SvgIcon>
+          {t("common.buttons.back")}
+        </Button>
 
-      <Button
-        size="large"
-        variant="contained"
-        sx={{ width: "140px" }}
-        disabled={disableNext}
-        onClick={nextOnClick}
-      >
-        {t("common.buttons.next")}
-      </Button>
+        <Button
+          size="large"
+          variant="contained"
+          sx={{ width: "140px" }}
+          disabled={disableNext}
+          onClick={nextOnClick}
+        >
+          {t("common.buttons.next")}
+        </Button>
+      </Box>
     </Box>
   )
 }

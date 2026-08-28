@@ -3,7 +3,6 @@ import {
   TransferAccess,
   WithdrawalAccess,
 } from "@wildcatfi/wildcat-sdk"
-import humanizeDuration from "humanize-duration"
 import { isAddress } from "viem"
 import { z } from "zod"
 
@@ -19,7 +18,10 @@ import {
 } from "@/utils/formatters"
 import { isLetterNumber, isLetterNumberSpace } from "@/utils/validations"
 
-import { PERIODIC_DURATION_UNITS } from "../utils/units"
+import {
+  formatDurationFromSeconds,
+  PERIODIC_DURATION_UNITS,
+} from "../utils/units"
 
 const DepositAccessOptions = ["Open", "RequiresCredential"] as const
 
@@ -133,9 +135,6 @@ export const baseMarketSchemaFields = {
 const isPositiveNumber = (value: number | undefined): value is number =>
   value !== undefined && Number.isFinite(value) && value > 0
 
-const humanizeSeconds = (seconds: number) =>
-  humanizeDuration(seconds * 1000, { round: true, largest: 2 })
-
 export type PeriodicTermIssuePath =
   | "firstWithdrawalWindowStart"
   | "periodDuration"
@@ -184,7 +183,7 @@ export const getPeriodicTermIssues = (
   ) {
     issues.push({
       path: "firstWithdrawalWindowStart",
-      message: `First withdrawal window must start within ${humanizeSeconds(
+      message: `First withdrawal window must start within ${formatDurationFromSeconds(
         PERIODIC_TERM_LIMITS.maxInitialDelaySeconds,
       )} from now`,
     })
@@ -200,14 +199,14 @@ export const getPeriodicTermIssues = (
   } else if (periodDuration < PERIODIC_TERM_LIMITS.minPeriodSeconds) {
     issues.push({
       path: "periodDuration",
-      message: `Withdrawal period must be at least ${humanizeSeconds(
+      message: `Withdrawal period must be at least ${formatDurationFromSeconds(
         PERIODIC_TERM_LIMITS.minPeriodSeconds,
       )}`,
     })
   } else if (periodDuration > PERIODIC_TERM_LIMITS.maxPeriodSeconds) {
     issues.push({
       path: "periodDuration",
-      message: `Withdrawal period can not exceed ${humanizeSeconds(
+      message: `Withdrawal period can not exceed ${formatDurationFromSeconds(
         PERIODIC_TERM_LIMITS.maxPeriodSeconds,
       )}`,
     })
@@ -223,7 +222,7 @@ export const getPeriodicTermIssues = (
   } else if (withdrawalWindowDuration < PERIODIC_TERM_LIMITS.minWindowSeconds) {
     issues.push({
       path: "withdrawalWindowDuration",
-      message: `Withdrawal window must be at least ${humanizeSeconds(
+      message: `Withdrawal window must be at least ${formatDurationFromSeconds(
         PERIODIC_TERM_LIMITS.minWindowSeconds,
       )}`,
     })

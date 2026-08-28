@@ -9,6 +9,7 @@ import {
   SharedConfirmationForm,
 } from "./shared"
 import { SubtitleStyle } from "./style"
+import { formatDurationFromHoursInput } from "../../../utils/units"
 import { ConfirmationFormItem } from "../../ConfirmationFormItem"
 import { SectionGrid } from "../style"
 
@@ -79,17 +80,15 @@ const RevolvingFinancialSection = ({
 
         <ConfirmationFormItem
           label={t("borrower.createMarket.periods.grace.label")}
-          value={`${formatNumberWithCommas(
+          value={formatDurationFromHoursInput(
             getValues("delinquencyGracePeriod"),
-            2,
-          )} hours`}
+          )}
         />
         <ConfirmationFormItem
           label={t("common.fields.withdrawalCycleDuration")}
-          value={`${formatNumberWithCommas(
+          value={formatDurationFromHoursInput(
             getValues("withdrawalBatchDuration"),
-            2,
-          )} hours`}
+          )}
         />
 
         <ConfirmationFormItem

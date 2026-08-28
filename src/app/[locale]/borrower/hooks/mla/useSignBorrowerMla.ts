@@ -8,6 +8,7 @@ import {
   Token,
 } from "@wildcatfi/wildcat-sdk"
 import { UseFormReturn } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { lastSlaUpdateTime, MlaTemplate } from "@/app/api/mla/interface"
@@ -32,6 +33,7 @@ import { useAppStore } from "@/store/hooks"
 import { getCreateMarketSigningDraftScope } from "@/store/slices/createMarketSigningDraftsSlice/createMarketSigningDraftsSlice"
 import { SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS } from "@/utils/serviceAgreementMessage"
 
+import { getMlaSigningToastKeys } from "./mlaSigningToastKeys"
 import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
 import { CreateMarketMlaIdentity, getMlaFromForm } from "./usePreviewMla"
 import { MarketValidationSchemaType } from "../../create-market/validation/validationSchema"
@@ -216,6 +218,7 @@ export type SignMlaFromFormInputs = {
 }
 
 export const useSignMla = (salt: string, marketKind: DeployableMarketKind) => {
+  const { t } = useTranslation()
   const { address } = useAccount()
   const signer = useEthersSigner()
   const safeSigning = useSafeMessageSigning()
@@ -239,6 +242,7 @@ export const useSignMla = (salt: string, marketKind: DeployableMarketKind) => {
       const selectedMla = form.getValues("mla")
       const mlaTemplateId =
         selectedMla === "noMLA" ? undefined : Number(selectedMla)
+      const toastKeys = getMlaSigningToastKeys(mlaTemplateId)
       console.log("mlaTemplateId", mlaTemplateId)
       if (!signer || !address || !marketAddress || !borrowerProfile || !asset) {
         console.log("missing required data")
@@ -298,11 +302,11 @@ export const useSignMla = (salt: string, marketKind: DeployableMarketKind) => {
           },
         }),
         {
-          success: "MLA signed successfully",
-          error: "Failed to set MLA",
+          success: t(toastKeys.success),
+          error: t(toastKeys.error),
           pending: safeSigning.safeConnected
-            ? "Awaiting Safe confirmations — you may leave this page."
-            : "Setting MLA...",
+            ? t("borrower.createMarket.mla.signing.pendingSafe")
+            : t(toastKeys.pending),
         },
       )
       return result
