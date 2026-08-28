@@ -12,16 +12,16 @@ export const hoursInputToSeconds = (value: number) =>
  * One presentation for every duration the flow displays. The inputs are
  * denominated differently — grace period and withdrawal cycle in hours, the
  * periodic durations in whichever unit the Days/Hours/Minutes toggle is on —
- * so everything is normalised to seconds and then humanised, which picks the
- * unit from the magnitude instead of from the input. Same compound form the
- * market parameters page uses, so a market reads identically before and after
- * deployment.
+ * so everything is normalised to seconds and then humanised. Keep every
+ * day/hour/minute/second component: this is the final parameter review, and
+ * dropping the smaller components can make a value such as 1.99 days look like
+ * exactly 2 days.
  */
 export const formatDurationFromSeconds = (seconds: number) =>
   Number.isFinite(seconds)
     ? humanizeDuration(seconds * 1000, {
         round: true,
-        largest: 2,
+        largest: 4,
         // Weeks and months are not units this flow ever asks for, and they
         // read as approximations: the 90-day grace-period ceiling humanises to
         // "2 months, 4 weeks" by default.

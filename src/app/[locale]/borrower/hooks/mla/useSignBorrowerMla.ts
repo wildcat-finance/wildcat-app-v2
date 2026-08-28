@@ -33,6 +33,7 @@ import { useAppStore } from "@/store/hooks"
 import { getCreateMarketSigningDraftScope } from "@/store/slices/createMarketSigningDraftsSlice/createMarketSigningDraftsSlice"
 import { SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS } from "@/utils/serviceAgreementMessage"
 
+import { getMlaSigningToastKeys } from "./mlaSigningToastKeys"
 import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
 import { CreateMarketMlaIdentity, getMlaFromForm } from "./usePreviewMla"
 import { MarketValidationSchemaType } from "../../create-market/validation/validationSchema"
@@ -206,24 +207,6 @@ export const useSetMarketMLA = () => {
   })
 }
 
-/**
- * Signing without a template signs the refusal message rather than an
- * agreement, so no toast may claim an MLA was signed. Exhaustive map of literal
- * keys per the locale convention: the branch picks a row, never builds a key.
- */
-const MLA_SIGNING_TOAST_KEYS = {
-  agreement: {
-    pending: "borrower.createMarket.mla.signing.agreement.pending",
-    success: "borrower.createMarket.mla.signing.agreement.success",
-    error: "borrower.createMarket.mla.signing.agreement.error",
-  },
-  refusal: {
-    pending: "borrower.createMarket.mla.signing.refusal.pending",
-    success: "borrower.createMarket.mla.signing.refusal.success",
-    error: "borrower.createMarket.mla.signing.refusal.error",
-  },
-} as const
-
 export type SignMlaFromFormInputs = {
   form: UseFormReturn<MarketValidationSchemaType>
   timeSigned: number
@@ -259,10 +242,7 @@ export const useSignMla = (salt: string, marketKind: DeployableMarketKind) => {
       const selectedMla = form.getValues("mla")
       const mlaTemplateId =
         selectedMla === "noMLA" ? undefined : Number(selectedMla)
-      const toastKeys =
-        MLA_SIGNING_TOAST_KEYS[
-          mlaTemplateId === undefined ? "refusal" : "agreement"
-        ]
+      const toastKeys = getMlaSigningToastKeys(mlaTemplateId)
       console.log("mlaTemplateId", mlaTemplateId)
       if (!signer || !address || !marketAddress || !borrowerProfile || !asset) {
         console.log("missing required data")
