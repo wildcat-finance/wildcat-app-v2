@@ -70,10 +70,6 @@ export const AgreementPage = ({
       touState === "declined")
   const needsLenderSignature = party === "Lender" && touState === "neverSigned"
 
-  const handleDownload = () => {
-    window.open(`/api/service-agreement/current/download`, "_blank")
-  }
-
   return (
     <Box
       className="text"
@@ -226,10 +222,12 @@ export const AgreementPage = ({
         {needsLenderSignature && <SignButton />}
 
         <Button
+          component="a"
+          href="/api/service-agreement/current/download"
+          download
           variant="contained"
           color="secondary"
           size="large"
-          onClick={handleDownload}
           sx={{
             width: "168.63px",
             height: "44px",
