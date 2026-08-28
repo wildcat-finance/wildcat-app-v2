@@ -7,7 +7,7 @@ import { MarketAccount, Signer } from "@wildcatfi/wildcat-sdk"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
-import { invalidateMarketAccountQueries } from "@/utils/marketAccountQueries"
+import { invalidateMarketStateQueries } from "@/utils/marketStateQueries"
 import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export const useBorrow = (
@@ -68,7 +68,7 @@ export const useBorrow = (
           marketAccount.market.address,
         ),
       })
-      invalidateMarketAccountQueries({
+      invalidateMarketStateQueries({
         client,
         chainId: marketAccount.market.chainId,
         marketAddress: marketAccount.market.address,

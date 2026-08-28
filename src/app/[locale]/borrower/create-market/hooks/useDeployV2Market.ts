@@ -47,6 +47,7 @@ import {
   previewHooksTemplateDeployment,
 } from "@/utils/createMarketDeploy"
 import { confirmMarketDeployment } from "@/utils/marketDeploymentReceipt"
+import { invalidateMarketListQueries } from "@/utils/marketListQueries"
 import {
   SafeTransactionTerminalError,
   waitForSafeTransactionExecution,
@@ -926,15 +927,7 @@ export const useDeployV2Market = () => {
           borrowerAddress,
         ),
       })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_OWN_MARKETS(
-          targetChainId,
-          borrowerAddress,
-        ),
-      })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_ALL_MARKETS(targetChainId),
-      })
+      invalidateMarketListQueries({ client, chainId: targetChainId })
       client.invalidateQueries({
         queryKey: QueryKeys.Borrower.GET_BASIC_BORROWER_DATA(
           targetChainId,

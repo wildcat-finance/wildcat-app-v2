@@ -17,6 +17,7 @@ import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useMarketDetailPerformanceMark } from "@/hooks/useMarketDetailPerformance"
 import { cloneSdkObject } from "@/lib/sdk-object"
 import { refreshMarketsV2LiveDataSafe } from "@/utils/marketV2Reads"
+import { refetchOnMountIfInvalidated } from "@/utils/queryRefetch"
 
 export type UseMarketProps = {
   address: string | undefined
@@ -290,7 +291,7 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
     },
     retry: 1,
     retryDelay: 250,
-    refetchOnMount: false,
+    refetchOnMount: refetchOnMountIfInvalidated,
     refetchOnWindowFocus: false,
   })
 

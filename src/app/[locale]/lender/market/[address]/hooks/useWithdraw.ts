@@ -15,7 +15,7 @@ import { useAccount } from "wagmi"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
-import { invalidateMarketAccountQueries } from "@/utils/marketAccountQueries"
+import { invalidateMarketStateQueries } from "@/utils/marketStateQueries"
 import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export const useWithdraw = (
@@ -96,7 +96,7 @@ export const useWithdraw = (
           marketAddress,
         ),
       })
-      invalidateMarketAccountQueries({
+      invalidateMarketStateQueries({
         client,
         chainId: marketAccount.market.chainId,
         marketAddress,

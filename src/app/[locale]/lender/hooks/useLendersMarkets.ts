@@ -26,6 +26,7 @@ import {
   MarketOnboardingByAddress,
 } from "@/utils/marketOnboarding"
 import { refreshMarketAccountsV2LiveDataSafe } from "@/utils/marketV2Reads"
+import { refetchOnMountIfInvalidated } from "@/utils/queryRefetch"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export const LENDER_DASHBOARD_INDEXED_REFRESH_INTERVAL = 60_000
@@ -149,7 +150,7 @@ export function useLendersMarkets(): UseLendersMarketsResult {
     refetchInterval: LENDER_DASHBOARD_INDEXED_REFRESH_INTERVAL,
     staleTime: LENDER_DASHBOARD_INDEXED_REFRESH_INTERVAL,
     enabled: !!signerOrProvider && !isWrongNetwork,
-    refetchOnMount: false,
+    refetchOnMount: refetchOnMountIfInvalidated,
     refetchOnWindowFocus: true,
   })
 
@@ -236,7 +237,7 @@ export function useLendersMarkets(): UseLendersMarketsResult {
     refetchInterval: LENDER_DASHBOARD_LIVE_REFRESH_INTERVAL,
     staleTime: LENDER_DASHBOARD_LIVE_REFRESH_INTERVAL,
     enabled: !!data && !!signerOrProvider && !isWrongNetwork,
-    refetchOnMount: false,
+    refetchOnMount: refetchOnMountIfInvalidated,
     refetchOnWindowFocus: true,
   })
 

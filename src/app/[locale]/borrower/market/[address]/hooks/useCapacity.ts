@@ -6,7 +6,7 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
-import { invalidateMarketAccountQueries } from "@/utils/marketAccountQueries"
+import { invalidateMarketStateQueries } from "@/utils/marketStateQueries"
 import { waitForSubmittedTransaction } from "@/utils/transactions"
 
 export const useSetMaxTotalSupply = (
@@ -58,7 +58,7 @@ export const useSetMaxTotalSupply = (
           marketAccount.market.address,
         ),
       })
-      invalidateMarketAccountQueries({
+      invalidateMarketStateQueries({
         client,
         chainId: marketAccount.market.chainId,
         marketAddress: marketAccount.market.address,
