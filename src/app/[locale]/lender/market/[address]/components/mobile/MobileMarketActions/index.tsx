@@ -137,6 +137,7 @@ export const MobileFaucetButton = ({
 }: {
   marketAccount: MarketAccount
 }) => {
+  const { t } = useTranslation()
   const {
     mutate: faucet,
     isPending: isFauceting,
@@ -155,7 +156,9 @@ export const MobileFaucetButton = ({
       disabled={isFauceting}
       sx={{ padding: "10px 20px", marginTop: "16px" }}
     >
-      {isFauceting ? "Requesting Tokens..." : "Faucet"}
+      {isFauceting
+        ? t("marketDetails.lender.faucet.requesting")
+        : t("marketDetails.lender.faucet.button")}
     </Button>
   )
 }
@@ -299,14 +302,14 @@ export const MobileMarketActions = ({
 
   const handleClickDeposit = () => {
     if (touRetryAvailable) {
-      toastError("Couldn't verify Terms of Use status — retrying")
+      toastError(t("marketDetails.lender.touGate.retryToast"))
       refetchAgreementStatus().catch(() => undefined)
       return
     }
     if (touActionBlocked) return
 
     if (agreementGate.state === "error") {
-      toastError("Couldn't load agreement data — retrying")
+      toastError(t("marketDetails.lender.agreementGate.retryToast"))
       agreementGate.retry().catch(() => undefined)
       return
     }
@@ -327,16 +330,17 @@ export const MobileMarketActions = ({
 
   let depositTooltip = t("marketDetails.lender.transactions.deposit.tooltip")
   if (touGateState === "blocked") {
-    depositTooltip = "Accept the Terms of Use to deposit"
+    depositTooltip = t("marketDetails.lender.touGate.blockedTooltip")
   } else if (touGateState === "unknown") {
     depositTooltip = isAgreementFetching
-      ? "Checking Terms of Use status"
-      : "Couldn't verify Terms of Use status — tap to retry"
+      ? t("marketDetails.lender.touGate.checkingTooltip")
+      : t("marketDetails.lender.touGate.retryTooltip")
   } else if (agreementGate.state === "error") {
-    depositTooltip = "Tap to retry loading agreement data"
+    depositTooltip = t("marketDetails.lender.agreementGate.retryTooltip")
   } else if (borrowerAgreementIncomplete) {
-    depositTooltip =
-      "The borrower must complete the market agreement selection before deposits can begin"
+    depositTooltip = t(
+      "marketDetails.lender.agreementGate.borrowerIncompleteTooltip",
+    )
   }
 
   let depositButtonText = t("marketDetails.lender.transactions.deposit.button")
@@ -344,12 +348,14 @@ export const MobileMarketActions = ({
     actionState.deposit === "checking-tou" ||
     actionState.deposit === "loading"
   ) {
-    depositButtonText = "Checking..."
+    depositButtonText = t(
+      "marketDetails.lender.transactions.deposit.buttonChecking",
+    )
   } else if (
     actionState.deposit === "error" ||
     actionState.deposit === "retry-tou"
   ) {
-    depositButtonText = "Retry"
+    depositButtonText = t("common.buttons.retry")
   }
 
   let depositAction: React.ReactNode = (
@@ -377,12 +383,16 @@ export const MobileMarketActions = ({
     depositAction = null
   } else if (borrowerAgreementIncomplete) {
     depositAction = (
-      <MobileDepositStatus text="Waiting for borrower agreement selection" />
+      <MobileDepositStatus
+        text={t("marketDetails.lender.agreementGate.waitingBorrower")}
+      />
     )
   } else if (mlaRequiredAndUnsigned) {
     depositAction = (
       <>
-        <MobileDepositStatus text="Waiting for signature" />
+        <MobileDepositStatus
+          text={t("marketDetails.lender.agreementGate.waitingSignature")}
+        />
         <Button
           onClick={handleClickToggleMLA}
           variant="contained"

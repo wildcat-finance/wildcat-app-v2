@@ -338,6 +338,18 @@ const KNOWN_DUPLICATES = new Map([
     },
   ],
   [
+    "withdrawal cycle",
+    {
+      kind: "casing",
+      reason:
+        "'Withdrawal Cycle' as a market-list filter placeholder vs 'Withdrawal cycle' as the market-page detail row -- inherited; needs a copy decision",
+      keys: [
+      "common.placeholders.withdrawalCycle",
+      "marketDetails.lender.transactions.withdraw.rows.cycle",
+      ],
+    },
+  ],
+  [
     "wrapper contract",
     {
       kind: "casing",
