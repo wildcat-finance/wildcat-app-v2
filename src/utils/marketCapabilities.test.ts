@@ -84,19 +84,50 @@ describe("marketCapabilities", () => {
     expect(getMarketPolicyAddress(market)).toBe("0xcontroller")
   })
 
-  it("detects fixed-term hooks configs without overloading implementation type", () => {
-    const market = {
-      controller: undefined,
+  it.each([
+    {
+      label: "open-term market",
+      hooksConfig: {
+        kind: HooksKind.OpenTerm,
+        hooksAddress: "0xhooks",
+      },
+      marketKind: "standard",
+      expected: false,
+    },
+    {
+      label: "fixed-term market",
       hooksConfig: {
         kind: HooksKind.FixedTerm,
         hooksAddress: "0xhooks",
         fixedTermEndTime: 12345,
       },
-    }
+      marketKind: "standard",
+      expected: true,
+    },
+    {
+      label: "periodic RCF market",
+      hooksConfig: {
+        kind: HooksKind.PeriodicTerm,
+        hooksAddress: "0xhooks",
+      },
+      marketKind: "revolving",
+      expected: false,
+    },
+  ])(
+    "classifies $label from its hooks config",
+    ({ hooksConfig, marketKind, expected }) => {
+      const market = {
+        controller: undefined,
+        hooksConfig,
+        marketKind,
+      }
 
-    expect(isFixedTermMarket(market)).toBe(true)
-    expect(getFixedTermHooksConfig(market)).toEqual(market.hooksConfig)
-  })
+      expect(isFixedTermMarket(market)).toBe(expected)
+      expect(getFixedTermHooksConfig(market)).toBe(
+        expected ? hooksConfig : undefined,
+      )
+    },
+  )
 
   it("uses stable market policy rather than lender-specific deposit availability", () => {
     const account = {

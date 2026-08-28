@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from "react"
 
 import { Box, Divider, Typography, useTheme } from "@mui/material"
-import { MarketVersion, HooksKind } from "@wildcatfi/wildcat-sdk"
+import { MarketVersion } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
@@ -52,7 +52,10 @@ import {
   trimAddress,
 } from "@/utils/formatters"
 import { getMarketAprDisplayBips } from "@/utils/marketApr"
-import { getEffectiveMarketAccess } from "@/utils/marketCapabilities"
+import {
+  getEffectiveMarketAccess,
+  getFixedTermHooksConfig,
+} from "@/utils/marketCapabilities"
 import {
   getMarketImplementationConfig,
   getMarketImplementationType,
@@ -344,8 +347,7 @@ export const MarketParameters = ({
     getMarketImplementationVariant(market)
   const implementationType = getMarketImplementationType(market)
   const implementationConfig = getMarketImplementationConfig(implementationType)
-  const fixedTermHooksConfig =
-    hooksConfig?.kind === HooksKind.FixedTerm ? hooksConfig : undefined
+  const fixedTermHooksConfig = getFixedTermHooksConfig(market)
   const lenderOnboarding = getLenderOnboardingType(market.onboardingMode)
   const { depositAccess, withdrawalAccess } = getEffectiveMarketAccess(market)
 
