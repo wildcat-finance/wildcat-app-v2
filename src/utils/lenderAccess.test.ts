@@ -6,6 +6,7 @@ import type { PublicClient } from "viem"
 
 import type { CompatibilityLenderPolicy } from "./lenderAccess"
 import {
+  canManagePolicyLenders,
   getLenderUpdateSafeBatch,
   prepareCompatibilityLenderAddition,
   prepareCompatibilityLenderRemoval,
@@ -226,6 +227,18 @@ describe("prepareCompatibilityLenderAddition", () => {
       "The borrower does not administer this policy's access list",
     )
     expect(getBlock).not.toHaveBeenCalled()
+  })
+})
+
+describe("canManagePolicyLenders", () => {
+  it("matches the provider paths supported by lender updates", () => {
+    expect(canManagePolicyLenders(makePolicy().policy)).toBe(true)
+    expect(canManagePolicyLenders(makePolicy("legacy-push").policy)).toBe(true)
+
+    const { policy } = makePolicy()
+    policy.roleProviders[0].administrator = lenderB
+    expect(canManagePolicyLenders(policy)).toBe(false)
+    expect(canManagePolicyLenders(undefined)).toBe(false)
   })
 })
 

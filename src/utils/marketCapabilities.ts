@@ -25,7 +25,7 @@ type MarketLike = {
   onboardingMode?: MarketOnboardingMode
   roleProviders?: readonly Pick<
     RoleProvider,
-    "kind" | "isApproved" | "pullProviderIndex"
+    "kind" | "isApproved" | "pullProviderIndex" | "isManaged"
   >[]
 }
 
@@ -41,7 +41,7 @@ const NULL_PROVIDER_INDEX = 2 ** 24 - 1
 
 type PullRoleProviderLike = Pick<
   RoleProvider,
-  "kind" | "isApproved" | "pullProviderIndex"
+  "kind" | "isApproved" | "pullProviderIndex" | "isManaged"
 >
 
 const isActivePullRoleProvider = ({
@@ -61,9 +61,12 @@ export const hasActiveLenderOnboardingRoleProvider = (
 ): boolean =>
   roleProviders.some(
     (provider) =>
-      // access-list membership is borrower-managed even though credentials are
-      // pulled from the provider when a lender attempts the gated action.
-      isActivePullRoleProvider(provider) && provider.kind !== "access-list",
+      // Access-list, Merkle, and explicitly managed providers can pull a
+      // credential, but the lender cannot establish eligibility alone.
+      isActivePullRoleProvider(provider) &&
+      provider.isManaged !== true &&
+      provider.kind !== "access-list" &&
+      provider.kind !== "merkle",
   )
 
 export const isHooksManagedMarket = (market: MarketLike): boolean =>
@@ -90,7 +93,10 @@ export const isSelfOnboardMarketAccount = (
   const { hooksConfig } = market
 
   if (!hooksConfig) {
-    return market.onboardingMode === MarketOnboardingMode.SelfOnboard
+    return (
+      market.onboardingMode === MarketOnboardingMode.Open ||
+      market.onboardingMode === MarketOnboardingMode.Self
+    )
   }
 
   if (
@@ -104,7 +110,10 @@ export const isSelfOnboardMarketAccount = (
     return hasActiveLenderOnboardingRoleProvider(market.roleProviders)
   }
 
-  return market.onboardingMode === MarketOnboardingMode.SelfOnboard
+  return (
+    market.onboardingMode === MarketOnboardingMode.Open ||
+    market.onboardingMode === MarketOnboardingMode.Self
+  )
 }
 
 type MarketAccessLike = {

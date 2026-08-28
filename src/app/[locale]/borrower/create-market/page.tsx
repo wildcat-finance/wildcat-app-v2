@@ -96,7 +96,10 @@ import {
 import { useNewMarketForm } from "./hooks/useNewMarketForm"
 import { useNewMarketHooksData } from "./hooks/useNewMarketHooksData"
 import { useTokenMetadata } from "./hooks/useTokenMetadata"
-import { getCreateMarketFormFingerprint } from "./validation/deployFingerprint"
+import {
+  getCreateMarketFormFingerprint,
+  getCreateMarketSignatureFingerprint,
+} from "./validation/deployFingerprint"
 import { MarketValidationSchemaType } from "./validation/validationSchema"
 import { getMlaFromForm } from "../hooks/mla/usePreviewMla"
 import {
@@ -283,7 +286,7 @@ export default function CreateMarketPage() {
   const paramsChangedSinceSigning =
     !!signedFormFingerprint &&
     signedFormFingerprint !==
-      getCreateMarketFormFingerprint(newMarketForm.watch())
+      getCreateMarketSignatureFingerprint(newMarketForm.watch())
 
   const {
     data: mlaSignature,
@@ -566,7 +569,7 @@ export default function CreateMarketPage() {
 
       setSignatureRequested(true)
       setSignedFormFingerprint(
-        getCreateMarketFormFingerprint(args.form.getValues()),
+        getCreateMarketSignatureFingerprint(args.form.getValues()),
       )
       if (!signer || signer.chainId !== targetChainId) {
         setSignatureRequested(false)
@@ -743,7 +746,7 @@ export default function CreateMarketPage() {
     setDraftToResumeId(draftToResume.id)
     setSignatureRequested(true)
     setSignedFormFingerprint(
-      getCreateMarketFormFingerprint(draftToResume.formValues),
+      getCreateMarketSignatureFingerprint(draftToResume.formValues),
     )
     dispatch(setCreatingStep(CreateMarketSteps.CONFIRM))
   }, [
@@ -1102,13 +1105,31 @@ export default function CreateMarketPage() {
     setIsValidatingSignature(true)
     try {
       const formValues = newMarketForm.getValues()
+      const currentSafeDeploymentIdentity =
+        activeSafeDraft && !activeCommittedDraft && selectedHooksTemplate
+          ? getCreateMarketDeploymentIdentity({
+              formValues,
+              predictedMarket: effectiveMarketAddress,
+              hooksTemplate: selectedHooksTemplate,
+              hooksInstanceAddress: selectedHooksInstance?.address,
+            })
+          : undefined
+      const canRefreshUncommittedRefusalDraft =
+        !!activeSafeDraft &&
+        !activeCommittedDraft &&
+        activeSafeDraft.formValues.mla === "noMLA" &&
+        formValues.mla === "noMLA" &&
+        activeSafeDraft.address === address.toLowerCase() &&
+        activeSafeDraft.chainId === targetChainId &&
+        activeSafeDraft.salt === salt &&
+        activeSafeDraft.timeSigned === timeSigned
 
       if (isSafeSigning && !activeSafeDraft) {
         throw new Error("The Safe signing draft is no longer active")
       }
-      if (
-        activeSafeDraft &&
-        !(activeCommittedDraft
+      const isActiveSafeDraftCompatible =
+        !activeSafeDraft ||
+        (activeCommittedDraft
           ? isCommittedCreateMarketDraftCompatible({
               draft: activeCommittedDraft,
               formValues,
@@ -1118,21 +1139,17 @@ export default function CreateMarketPage() {
               salt,
               predictedMarket: effectiveMarketAddress,
             })
-          : selectedHooksTemplate &&
-            isCreateMarketDraftCompatible({
-              draft: activeSafeDraft,
-              formValues,
-              asset: getAssetSnapshot(assetData),
-              deploymentIdentity: getCreateMarketDeploymentIdentity({
+          : canRefreshUncommittedRefusalDraft ||
+            (!!currentSafeDeploymentIdentity &&
+              isCreateMarketDraftCompatible({
+                draft: activeSafeDraft,
                 formValues,
-                predictedMarket: effectiveMarketAddress,
-                hooksTemplate: selectedHooksTemplate,
-                hooksInstanceAddress: selectedHooksInstance?.address,
-              }),
-              address,
-              chainId: targetChainId,
-            }))
-      ) {
+                asset: getAssetSnapshot(assetData),
+                deploymentIdentity: currentSafeDeploymentIdentity,
+                address,
+                chainId: targetChainId,
+              })))
+      if (!isActiveSafeDraftCompatible) {
         toastError(
           "Market deployment details changed. Review and sign the market agreement again.",
         )
@@ -1183,6 +1200,23 @@ export default function CreateMarketPage() {
         )
         handleDiscardSignature(refreshedBorrowerProfile)
         return
+      }
+
+      if (
+        canRefreshUncommittedRefusalDraft &&
+        activeSafeDraft &&
+        currentSafeDeploymentIdentity
+      ) {
+        // No transaction exists yet, and the refusal still covers the same
+        // address and time. Update the Safe recovery snapshot before deploy.
+        dispatch(
+          saveCreateMarketSigningDraft({
+            ...activeSafeDraft,
+            formValues: { ...formValues },
+            asset: getAssetSnapshot(assetData),
+            deploymentIdentity: currentSafeDeploymentIdentity,
+          }),
+        )
       }
 
       handleDeployMarket()

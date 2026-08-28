@@ -25,21 +25,21 @@ export const getSubgraphMarketOnboardingMode = (
   market: Market,
 ): MarketOnboardingMode | undefined => {
   if (market.version === MarketVersion.V1) {
-    return MarketOnboardingMode.BorrowerApproval
+    return MarketOnboardingMode.Managed
   }
 
   const { hooksConfig } = market
   if (!hooksConfig) return undefined
 
   if (!hooksConfig.flags.useOnDeposit || !hooksConfig.depositRequiresAccess) {
-    return MarketOnboardingMode.SelfOnboard
+    return MarketOnboardingMode.Open
   }
 
   if (!market.roleProviders) return undefined
 
   return hasActiveLenderOnboardingRoleProvider(market.roleProviders)
-    ? MarketOnboardingMode.SelfOnboard
-    : MarketOnboardingMode.BorrowerApproval
+    ? MarketOnboardingMode.Self
+    : MarketOnboardingMode.Managed
 }
 
 export const getKnownMarketOnboardingMode = (
@@ -48,26 +48,35 @@ export const getKnownMarketOnboardingMode = (
   onboardingByMarket: MarketOnboardingByAddress,
 ): MarketOnboardingMode | undefined => {
   if (version === MarketVersion.V1) {
-    return MarketOnboardingMode.BorrowerApproval
+    return MarketOnboardingMode.Managed
   }
 
   return onboardingByMarket[marketAddress.toLowerCase()]
 }
 
 export enum LenderOnboardingType {
-  SelfOnboard = "selfOnboard",
-  BorrowerAllowlist = "borrowerAllowlist",
+  Open = "open",
+  Self = "self",
+  Managed = "managed",
   Unknown = "unknown",
 }
+
+export const isSelfServiceMarketOnboardingMode = (
+  onboardingMode: MarketOnboardingMode | undefined,
+): boolean =>
+  onboardingMode === MarketOnboardingMode.Open ||
+  onboardingMode === MarketOnboardingMode.Self
 
 export const getLenderOnboardingType = (
   onboardingMode: MarketOnboardingMode | undefined,
 ): LenderOnboardingType => {
   switch (onboardingMode) {
-    case MarketOnboardingMode.SelfOnboard:
-      return LenderOnboardingType.SelfOnboard
-    case MarketOnboardingMode.BorrowerApproval:
-      return LenderOnboardingType.BorrowerAllowlist
+    case MarketOnboardingMode.Open:
+      return LenderOnboardingType.Open
+    case MarketOnboardingMode.Self:
+      return LenderOnboardingType.Self
+    case MarketOnboardingMode.Managed:
+      return LenderOnboardingType.Managed
     default:
       return LenderOnboardingType.Unknown
   }
@@ -86,7 +95,7 @@ export const getLenderMarketAction = (
   }
 
   if (
-    onboardingMode === MarketOnboardingMode.BorrowerApproval &&
+    onboardingMode === MarketOnboardingMode.Managed &&
     depositStatus !== DepositStatus.Blocked &&
     depositStatus !== DepositStatus.MarketClosed
   ) {
@@ -94,7 +103,7 @@ export const getLenderMarketAction = (
   }
 
   if (
-    onboardingMode === MarketOnboardingMode.SelfOnboard &&
+    onboardingMode === MarketOnboardingMode.Self &&
     depositStatus === DepositStatus.RequiresAccess
   ) {
     return LenderMarketAction.DepositUnavailable

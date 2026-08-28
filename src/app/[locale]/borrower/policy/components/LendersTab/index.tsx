@@ -17,6 +17,7 @@ import Cross from "@/assets/icons/cross_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
 import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
+import { canManagePolicyLenders } from "@/utils/lenderAccess"
 import { hasActiveLenderOnboardingRoleProvider } from "@/utils/marketCapabilities"
 
 import { EditLendersTable } from "./components/EditLendersTable"
@@ -36,6 +37,7 @@ export const LendersTab = ({
   const isSelfOnboardPolicy = hasActiveLenderOnboardingRoleProvider(
     policy?.roleProviders ?? [],
   )
+  const canEditLenders = controller ? true : canManagePolicyLenders(policy)
 
   const initialLendersList = useAppSelector(
     (state) => state.policyLenders.initialLenders,
@@ -169,10 +171,14 @@ export const LendersTab = ({
           }}
         />
 
-        {isSelfOnboardPolicy ? (
+        {!canEditLenders ? (
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Typography variant="text3" color={COLORS.santasGrey}>
-              {t("borrower.policies.lenders.selfOnboardNotice")}
+              {t(
+                isSelfOnboardPolicy
+                  ? "borrower.policies.lenders.selfOnboardNotice"
+                  : "borrower.policies.lenders.notEditableNotice",
+              )}
             </Typography>
           </Box>
         ) : (
@@ -196,7 +202,7 @@ export const LendersTab = ({
         <EditLendersTable
           filteredLenders={filteredLenders}
           isFiltered={!!lendersFilter}
-          canEditLenders={!isSelfOnboardPolicy}
+          canEditLenders={canEditLenders}
         />
       )}
 

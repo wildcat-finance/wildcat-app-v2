@@ -20,6 +20,14 @@ import {
   getMarketPolicyAddress,
   isHooksManagedMarket,
 } from "@/utils/marketCapabilities"
+import {
+  mergePolicyLenderAccess,
+  type PolicyLenderAccessSource,
+} from "@/utils/policyLenderAccess"
+
+export type MarketLenderData = BasicLenderData & {
+  accessSources: PolicyLenderAccessSource[]
+}
 
 export const useGetMarketLenders = (market?: Market) => {
   const { signer, provider, chainId } = useEthersProvider({
@@ -39,7 +47,7 @@ export const useGetMarketLenders = (market?: Market) => {
     if (!subgraphClient) throw new Error("Subgraph client undefined")
     const policy = getMarketPolicyAddress(market)
     assert(policy !== undefined, `Policy undefined ${policy}`)
-    const [{ lenders: policyLenders }, activeLenders] = await Promise.all([
+    const [policyData, activeLenders] = await Promise.all([
       getPolicyMarketsAndLenders(subgraphClient, {
         fetchPolicy: "network-only",
         contractAddress: policy?.toLowerCase(),
@@ -52,6 +60,10 @@ export const useGetMarketLenders = (market?: Market) => {
       }),
     ])
 
+    const policyLenders = mergePolicyLenderAccess(
+      policyData.lenders,
+      policyData.accessListMembers,
+    )
     const inactiveLenders = policyLenders.filter(
       (x) =>
         !activeLenders.some(
@@ -59,21 +71,31 @@ export const useGetMarketLenders = (market?: Market) => {
         ),
     )
 
-    const allLenders = [
-      ...activeLenders,
-      ...inactiveLenders.map(
-        (lender) =>
+    const allLenders: MarketLenderData[] = [
+      ...activeLenders.map((lender) => {
+        const policyLender = policyLenders.find(
+          (candidate) =>
+            candidate.address.toLowerCase() === lender.address.toLowerCase(),
+        )
+        return Object.assign(lender, {
+          accessSources: policyLender?.sources ?? [],
+        })
+      }),
+      ...inactiveLenders.map((access) =>
+        Object.assign(
           new BasicLenderData({
             market,
-            address: lender.address,
+            address: access.address,
             scaledBalance: BigInt(0),
-            addedTimestamp: lender.addedTimestamp,
-            credential: lender.credential,
-            isAuthorizedOnController: lender.isAuthorizedOnController,
-            isKnownLender: lender.activeMarkets.find(
+            addedTimestamp: access.addedTimestamp,
+            credential: access.lender?.credential,
+            isAuthorizedOnController: access.lender?.isAuthorizedOnController,
+            isKnownLender: access.lender?.activeMarkets.find(
               (y) => y.address.toLowerCase() === market.address.toLowerCase(),
             )?.isKnownLender,
           }),
+          { accessSources: access.sources },
+        ),
       ),
     ]
     if (isHooksManagedMarket(market)) {

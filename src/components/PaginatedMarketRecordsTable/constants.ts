@@ -22,7 +22,8 @@ export const MARKET_RECORD_FILTERS: MarketRecordFilterOption[] = (
     ["PeriodicTermClosed", "Periodic Term Closed"],
     ["PeriodicTermUpdated", "Periodic Term Updated"],
     ["ProtocolFeeBipsUpdated", "Protocol Fee Change"],
-    ["WithdrawalRequest", "Withdrawal"],
+    ["WithdrawalExecution", "Withdrawal Executed"],
+    ["WithdrawalRequest", "Withdrawal Requested"],
   ] as [MarketRecordKind, string][]
 ).map(([value, label]) => ({ id: `check-filter-${value}`, value, label }))
 

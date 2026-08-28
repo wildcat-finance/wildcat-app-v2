@@ -90,6 +90,8 @@ export const MarketAuthorisedLenders = ({
   const { t } = useTranslation()
   const lendersRows = data
     ? data?.map((lender) => {
+        const isAccessListMember = lender.accessSources.includes("access-list")
+
         const lenderData = {
           id: lender.address,
           balance: market.marketToken.getAmount(
@@ -98,7 +100,9 @@ export const MarketAuthorisedLenders = ({
           role: lender.inferredRole,
           isDeauthorized:
             market?.version === MarketVersion.V2
-              ? lender.credential !== undefined && !lender.hasValidCredential
+              ? !isAccessListMember &&
+                lender.credential !== undefined &&
+                !lender.hasValidCredential
               : lender.isAuthorizedOnController !== undefined &&
                 (lender.role === LenderRole.Null ||
                   lender.role === LenderRole.WithdrawOnly),
@@ -114,21 +118,25 @@ export const MarketAuthorisedLenders = ({
                 ? "Withdraw Only"
                 : lender.inferredRole === LenderRole.Blocked
                   ? "Blocked From Deposits"
-                  : lender.credential !== undefined
-                    ? !lender.hasValidCredential &&
-                      lender.credentialExpiry !== undefined &&
-                      lender.credentialExpiry < Date.now()
-                      ? "Credential Expired"
-                      : "Provider Removed"
-                    : "Unknown", // @todo
+                  : isAccessListMember
+                    ? "Access List"
+                    : lender.credential !== undefined
+                      ? !lender.hasValidCredential &&
+                        lender.credentialExpiry !== undefined &&
+                        lender.credentialExpiry < Date.now()
+                        ? "Credential Expired"
+                        : "Provider Removed"
+                      : "Unknown", // @todo
 
-          accessExpiry: lender.credentialExpiry
-            ? formatBlockTimestamp(lender.credentialExpiry, {
-                year: "numeric",
-                hour: undefined,
-                minute: undefined,
-              })
-            : "Never", // @todo
+          accessExpiry: isAccessListMember
+            ? "On Demand"
+            : lender.credentialExpiry
+              ? formatBlockTimestamp(lender.credentialExpiry, {
+                  year: "numeric",
+                  hour: undefined,
+                  minute: undefined,
+                })
+              : "Never", // @todo
           name: (() => {
             const correctLender =
               lendersNames[lender.address.toLowerCase()] || ""

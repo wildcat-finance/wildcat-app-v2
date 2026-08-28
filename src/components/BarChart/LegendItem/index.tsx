@@ -14,6 +14,7 @@ export const LegendItem = ({
   type = "default",
   children,
   withDivider = false,
+  totalLabel,
 }: LegendItemProps) => {
   const [expanded, setExpanded] = useState(true)
 
@@ -67,9 +68,24 @@ export const LegendItem = ({
             )}
           </Box>
           {expanded && children}
-          <Typography variant="text3">
-            {formatTokenWithCommas(chartItem.value)} {chartItem.asset}
-          </Typography>
+          {totalLabel ? (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: "8px",
+              }}
+            >
+              <Typography variant="text3">
+                {formatTokenWithCommas(chartItem.value)} {chartItem.asset}
+              </Typography>
+              <Typography variant="text3">{totalLabel}</Typography>
+            </Box>
+          ) : (
+            <Typography variant="text3">
+              {formatTokenWithCommas(chartItem.value)} {chartItem.asset}
+            </Typography>
+          )}
         </Box>
       )
 

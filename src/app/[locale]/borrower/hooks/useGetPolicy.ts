@@ -33,6 +33,7 @@ export const useGetPolicy = ({ policy }: GetPolicyArgs) => {
     const {
       markets: indexedMarkets,
       lenders,
+      accessListMembers,
       hooksInstance,
       controller,
     } = await getPolicyMarketsAndLenders(subgraphClient, {
@@ -46,7 +47,7 @@ export const useGetPolicy = ({ policy }: GetPolicyArgs) => {
       (a, b) => Number(a.isClosed) - Number(b.isClosed),
     )
     await updateMarkets(markets, provider, network)
-    return { markets, lenders, hooksInstance, controller }
+    return { markets, lenders, accessListMembers, hooksInstance, controller }
   }
 
   return useQuery({

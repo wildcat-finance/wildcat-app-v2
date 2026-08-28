@@ -307,6 +307,15 @@
     },
     "policies": {
       "lenders": {
+        "accessSource": "Access Source",
+        "accessSources": {
+          "accessList": "Access List",
+          "controller": "Controller Approval",
+          "credential": "Cached Credential",
+          "pending": "Pending",
+          "unknown": "Unknown"
+        },
+        "notEditableNotice": "This policy's lender provider cannot be edited here.",
         "selfOnboardNotice": "Lenders onboard themselves to this policy, so there is no allowlist to edit."
       },
       "lendersEdits": "Lenders Edits",
@@ -1178,9 +1187,10 @@
           "time": "Time"
         },
         "noMatchingRecentEvents": "No matching recent events",
-        "range": "{{from}} to {{to}}",
         "searchId": "Search by ID",
-        "showingRecentRecords": "Showing recent records"
+        "exportCsv": "Export CSV",
+        "exportFailed": "Could not export market history",
+        "exporting": "Exporting..."
       },
       "sidebar": {
         "marketHistory": "Market History"
@@ -1194,7 +1204,8 @@
         "ongoingWds": "Ongoing WDs",
         "outstandingWds": "Outstanding WDs",
         "protocolFees": "Protocol Fees",
-        "sufficientReserves": "Sufficient Reserves For"
+        "sufficientReserves": "Sufficient Reserves For",
+        "total": "Total"
       },
       "switchChain": {
         "instruction": "To interact with it, please change the network to <1>{{network}}</1>."
@@ -1357,14 +1368,18 @@
     },
     "marketExpiry": "Loan Maturity",
     "lenderOnboarding": {
-      "borrowerAllowlist": {
-        "text": "Borrower Operated Allowlist",
-        "tooltip": "Lenders must be approved through the borrower's configured access provider."
-      },
       "label": "Lender Onboarding",
-      "selfOnboard": {
+      "managed": {
+        "text": "Managed",
+        "tooltip": "Eligibility is controlled by a managed provider or per-account approval."
+      },
+      "open": {
+        "text": "Open",
+        "tooltip": "Deposits do not require an access credential."
+      },
+      "self": {
         "text": "Lender Self-Onboarding",
-        "tooltip": "Lenders can onboard automatically without borrower approval. Standard sanctions screening still applies."
+        "tooltip": "Lenders can satisfy the configured access provider without prior approval."
       },
       "unknown": {
         "text": "Unknown",
