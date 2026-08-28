@@ -13,6 +13,10 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setPolicyLenders } from "@/store/slices/policyLendersSlice/policyLendersSlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
+import {
+  POLICY_LENDER_ACCESS_SOURCE_KEY,
+  type PolicyLenderAccessSource,
+} from "@/utils/policyLenderAccess"
 
 import { TypeSafeColDef, EditLendersTableModel } from "./interface"
 import {
@@ -155,6 +159,30 @@ export const EditLendersTable = ({
             copyValue={params.value}
           />
         </Box>
+      ),
+    },
+    {
+      field: "accessSources",
+      headerName: t("borrower.policies.lenders.accessSource"),
+      disableColumnMenu: true,
+      minWidth: 180,
+      flex: 1,
+      headerAlign: "left",
+      align: "left",
+      renderCell: (params) => (
+        <Typography variant="text3">
+          {params.row.accessSources.length
+            ? params.row.accessSources
+                .map((source: PolicyLenderAccessSource) =>
+                  t(POLICY_LENDER_ACCESS_SOURCE_KEY[source]),
+                )
+                .join(" + ")
+            : t(
+                params.row.status === EditLenderFlowStatuses.NEW
+                  ? "borrower.policies.lenders.accessSources.pending"
+                  : "borrower.policies.lenders.accessSources.unknown",
+              )}
+        </Typography>
       ),
     },
     {

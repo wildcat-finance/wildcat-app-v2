@@ -1,4 +1,7 @@
-import { getCreateMarketFormFingerprint } from "./deployFingerprint"
+import {
+  getCreateMarketFormFingerprint,
+  getCreateMarketSignatureFingerprint,
+} from "./deployFingerprint"
 import { MarketValidationSchemaType } from "./validationSchema"
 
 /**
@@ -75,5 +78,38 @@ describe("getCreateMarketFormFingerprint", () => {
         minimumDeposit: null as unknown as undefined,
       }),
     ).toBe(signed)
+  })
+})
+
+describe("getCreateMarketSignatureFingerprint", () => {
+  const signedRefusal = getCreateMarketSignatureFingerprint(signedValues)
+
+  it("keeps a refusal valid when unrelated market settings change", () => {
+    expect(
+      getCreateMarketSignatureFingerprint({
+        ...signedValues,
+        accessControl: "manualApproval",
+        annualInterestBips: 12,
+        deployWrapper: true,
+      }),
+    ).toBe(signedRefusal)
+  })
+
+  it("invalidates a refusal when the MLA selection changes", () => {
+    expect(
+      getCreateMarketSignatureFingerprint({ ...signedValues, mla: "1" }),
+    ).not.toBe(signedRefusal)
+  })
+
+  it("still fingerprints every field for an MLA", () => {
+    const agreementValues = { ...signedValues, mla: "1" }
+    const signedAgreement = getCreateMarketSignatureFingerprint(agreementValues)
+
+    expect(
+      getCreateMarketSignatureFingerprint({
+        ...agreementValues,
+        accessControl: "manualApproval",
+      }),
+    ).not.toBe(signedAgreement)
   })
 })

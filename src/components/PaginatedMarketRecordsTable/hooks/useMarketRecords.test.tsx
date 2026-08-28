@@ -5,7 +5,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { renderHook, waitFor } from "@testing-library/react"
 import type { Market, MarketRecord } from "@wildcatfi/wildcat-sdk"
 
-import { useMarketRecords } from "./useMarketRecords"
+import {
+  fetchAllMarketRecords,
+  filterMarketRecords,
+  useMarketRecords,
+} from "./useMarketRecords"
 import { useIdlePrefetchMarketRecords } from "./usePrefetchMarketRecords"
 
 const getMarketRecordsMock = jest.fn()
@@ -112,5 +116,38 @@ describe("useMarketRecords", () => {
     expect(getMarketRecordsMock.mock.calls[1][1]).toEqual(
       expect.objectContaining({ endEventIndex: 6 }),
     )
+  })
+
+  it("treats an empty kind selection as no matching records", () => {
+    expect(filterMarketRecords({ records: makeRecords(2), kinds: [] })).toEqual(
+      [],
+    )
+  })
+
+  it("loads every history window for export", async () => {
+    getMarketRecordsMock.mockImplementation(
+      (
+        _client: unknown,
+        {
+          endEventIndex,
+          additionalFilter,
+        }: {
+          endEventIndex: number
+          additionalFilter: { eventIndex_gte: number }
+        },
+      ) =>
+        Promise.resolve(
+          makeRecords(endEventIndex).filter(
+            (record) => record.eventIndex >= additionalFilter.eventIndex_gte,
+          ),
+        ),
+    )
+
+    const records = await fetchAllMarketRecords({ market: makeMarket(250) })
+
+    expect(records).toHaveLength(250)
+    expect(records[0].eventIndex).toBe(249)
+    expect(records.at(-1)?.eventIndex).toBe(0)
+    expect(getMarketRecordsMock).toHaveBeenCalledTimes(3)
   })
 })

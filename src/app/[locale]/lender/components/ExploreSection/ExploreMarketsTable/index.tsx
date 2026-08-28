@@ -70,6 +70,7 @@ import { getMarketImplementationType } from "@/utils/marketImplementation"
 import {
   getLenderMarketAction,
   getKnownMarketOnboardingMode,
+  isSelfServiceMarketOnboardingMode,
   LenderMarketAction,
   MarketOnboardingMode,
 } from "@/utils/marketOnboarding"
@@ -339,10 +340,10 @@ export const ExploreMarketsTable = () => {
         onboardingByMarket,
       )
 
-      if (onboardingMode === MarketOnboardingMode.SelfOnboard) {
+      if (isSelfServiceMarketOnboardingMode(onboardingMode)) {
         return showSelfOnboard
       }
-      if (onboardingMode === MarketOnboardingMode.BorrowerApproval) {
+      if (onboardingMode === MarketOnboardingMode.Managed) {
         return showOnboardByBorrower
       }
       return false

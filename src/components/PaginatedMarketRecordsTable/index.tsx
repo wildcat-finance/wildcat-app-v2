@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react"
+import { Dispatch, SetStateAction, useEffect, useState } from "react"
 import * as React from "react"
 
 import {
@@ -18,10 +18,12 @@ import { FilterTextField } from "@/components/FilterTextfield"
 import { getMarketAprCopy } from "@/components/market-implementation-variants"
 import { MobileMarketRecordItem } from "@/components/Mobile/MobileMarketRecordItem"
 import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
+import { toastError } from "@/components/Toasts"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMarketDetailPerformanceMark } from "@/hooks/useMarketDetailPerformance"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
+import { buildMarketRecordsCsv } from "@/utils/marketRecords"
 
 import {
   ALL_MARKET_RECORD_KINDS,
@@ -29,7 +31,11 @@ import {
   MARKET_RECORD_FILTERS,
   MarketRecordFilterOption,
 } from "./constants"
-import { useMarketRecords } from "./hooks/useMarketRecords"
+import {
+  fetchAllMarketRecords,
+  filterMarketRecords,
+  useMarketRecords,
+} from "./hooks/useMarketRecords"
 import { MarketRecordsTable } from "./MarketRecordsTable"
 import ExtendedCheckbox from "../@extended/ExtendedСheckbox"
 
@@ -51,6 +57,7 @@ export function PaginatedMarketRecordsTable({
     ALL_MARKET_RECORD_KINDS,
   )
   const [search, setSearch] = useState("")
+  const [isExporting, setIsExporting] = useState(false)
 
   useEffect(() => {
     setPageSize(isMobile ? 6 : 10)
@@ -104,16 +111,43 @@ export function PaginatedMarketRecordsTable({
     selectedFilters.length > 0 &&
     selectedFilters.length < ALL_MARKET_RECORD_KINDS.length
 
-  const [startEventIndex, endEventIndex] = useMemo(() => {
-    if (!data?.records?.length) {
-      return [undefined, undefined]
+  const handleExport = async () => {
+    setIsExporting(true)
+    try {
+      const records = filterMarketRecords({
+        records: await fetchAllMarketRecords({ market }),
+        kinds: selectedFilters,
+        search,
+      })
+      let lenderNames: { [key: string]: string } = {}
+      try {
+        lenderNames = JSON.parse(
+          window.localStorage.getItem("lenders-name") || "{}",
+        )
+      } catch {
+        lenderNames = {}
+      }
+
+      const csv = buildMarketRecordsCsv(
+        records,
+        lenderNames,
+        borrowerName,
+        aprRecordName,
+      )
+      const url = URL.createObjectURL(
+        new Blob([csv], { type: "text/csv;charset=utf-8" }),
+      )
+      const link = document.createElement("a")
+      link.href = url
+      link.download = `wildcat-market-${market.address}-history.csv`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      toastError(t("marketDetails.shared.records.exportFailed"))
+    } finally {
+      setIsExporting(false)
     }
-
-    const start = page * pageSize + 1
-    const end = Math.min(start + data.records.length - 1, data.totalRecords)
-
-    return [start, end]
-  }, [data, page, pageSize])
+  }
 
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
 
@@ -184,6 +218,23 @@ export function PaginatedMarketRecordsTable({
         />
       )}
     </Box>
+  )
+
+  const exportButton = (
+    <Button
+      onClick={handleExport}
+      disabled={isExporting}
+      variant="outlined"
+      color="secondary"
+      size="small"
+      sx={{ minWidth: "fit-content", whiteSpace: "nowrap" }}
+    >
+      {t(
+        isExporting
+          ? "marketDetails.shared.records.exporting"
+          : "marketDetails.shared.records.exportCsv",
+      )}
+    </Button>
   )
 
   if (isMobile && setIsOpen) {
@@ -276,6 +327,8 @@ export function PaginatedMarketRecordsTable({
               width="100%"
             />
           </Box>
+
+          {exportButton}
         </Box>
 
         <Popover
@@ -463,6 +516,8 @@ export function PaginatedMarketRecordsTable({
         width="180px"
       />
 
+      {exportButton}
+
       <MarketRecordsTable
         market={market}
         records={data?.records}
@@ -473,40 +528,6 @@ export function PaginatedMarketRecordsTable({
         setPageSize={setPageSize}
         rowCount={data?.totalRecords}
       />
-
-      <Box
-        sx={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        {startEventIndex !== undefined && (
-          <Typography variant="text3">
-            {t("marketDetails.shared.records.showingRecentRecords")}{" "}
-            {t("marketDetails.shared.records.range", {
-              from: startEventIndex,
-              to: endEventIndex,
-            })}
-          </Typography>
-        )}
-        {/*      <div className="flex gap-x-4 items-center flex-row">
-          {page > 0 && (
-            // <ExpandMore
-            //   className="transform rotate-90 hover:rotate-90 page-btn-left hover:scale-150"
-            //   onClick={() => setPage(page - 1)}
-            // />
-          )}
-          Page {page + 1} {pagesCount === undefined ? "" : `of ${pagesCount}`}
-          {pagesCount && pagesCount - 1 > page && data?.length === pageSize && (
-            <ExpandMore
-              className="transform -rotate-90 hover:-rotate-90 page-btn-left hover:scale-150"
-              onClick={() => setPage(page + 1)}
-            />
-          )}
-        </div> */}
-      </Box>
     </>
   )
 }

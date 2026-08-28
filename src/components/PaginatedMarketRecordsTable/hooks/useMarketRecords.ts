@@ -92,7 +92,7 @@ export function getNextMarketRecordsWindowParam(
     : undefined
 }
 
-function filterMarketRecords({
+export function filterMarketRecords({
   records,
   kinds,
   search,
@@ -101,7 +101,7 @@ function filterMarketRecords({
   kinds?: MarketRecordKind[]
   search?: string
 }) {
-  const selectedKindSet = kinds?.length ? new Set(kinds) : undefined
+  const selectedKindSet = kinds === undefined ? undefined : new Set(kinds)
   const kindFiltered = selectedKindSet
     ? records.filter((r) => selectedKindSet.has(getRecordKind(r)))
     : records
@@ -116,6 +116,48 @@ function filterMarketRecords({
         return haystack.some((s) => s.includes(q))
       })
     : kindFiltered
+}
+
+export async function fetchAllMarketRecords({
+  market,
+  targetChainId,
+}: Pick<UseMarketRecordsProps, "market"> & {
+  targetChainId?: number
+}): Promise<MarketRecord[]> {
+  const recordsById = new Map<string, MarketRecord>()
+  let endEventIndex = market.eventIndex
+
+  do {
+    // eslint-disable-next-line no-await-in-loop
+    const page = await fetchMarketRecordsWindow({
+      market,
+      targetChainId,
+      endEventIndex,
+    })
+
+    page.records.forEach((record) => {
+      recordsById.set(
+        `${record.transactionHash}-${record.eventIndex}-${getRecordKind(
+          record,
+        )}`,
+        record,
+      )
+    })
+
+    const nextEndEventIndex = page.windowStartEventIndex
+    if (
+      nextEndEventIndex === undefined ||
+      nextEndEventIndex <= 0 ||
+      (endEventIndex !== undefined && nextEndEventIndex >= endEventIndex)
+    ) {
+      break
+    }
+    endEventIndex = nextEndEventIndex
+  } while (endEventIndex !== undefined)
+
+  return Array.from(recordsById.values()).sort(
+    (a, b) => b.eventIndex - a.eventIndex,
+  )
 }
 
 export function useMarketRecords({

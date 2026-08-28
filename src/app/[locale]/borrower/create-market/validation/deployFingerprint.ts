@@ -1,19 +1,9 @@
 import { MarketValidationSchemaType } from "./validationSchema"
 
 /**
- * Stable fingerprint of the whole create-market form, used to decide whether a
- * market agreement signature still covers what is about to be deployed.
- *
- * The pre-deploy guard rebuilds the MLA message and compares it against the
- * signed one, which only sees the parameters that appear in the agreement text.
- * Policy-level settings are absent from it - access control above all, but also
- * the policy selection, its name and the wrapper - so changing them after
- * signing left the signature valid, nothing asked for a re-sign, and the
- * confirmation screen could advertise a selection the signature never covered.
- *
- * Fingerprint every field rather than maintaining a second list of
- * "policy-relevant" ones: an incomplete list is what caused the bug, and a new
- * form field would silently fall through the same gap.
+ * Stable fingerprint of the complete deployment form. Safe recovery uses this
+ * after a transaction is proposed or a market is deployed, where restoring
+ * anything except the exact deployment would be unsafe.
  */
 export const getCreateMarketFormFingerprint = (
   values: Partial<MarketValidationSchemaType>,
@@ -26,3 +16,16 @@ export const getCreateMarketFormFingerprint = (
         values[key as keyof MarketValidationSchemaType] ?? null,
       ]),
   )
+
+/**
+ * An MLA covers the market terms, so any form change needs a new signature.
+ * A refusal only covers the predicted market and signing time; those are
+ * checked separately immediately before deployment. Keep the mode here so a
+ * refusal can never be reused as an agreement, or vice versa.
+ */
+export const getCreateMarketSignatureFingerprint = (
+  values: Partial<MarketValidationSchemaType>,
+): string =>
+  values.mla === "noMLA"
+    ? JSON.stringify([["mla", "noMLA"]])
+    : getCreateMarketFormFingerprint(values)

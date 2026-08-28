@@ -152,6 +152,18 @@ const getCompatibilityProvider = (
   )
 }
 
+export const canManagePolicyLenders = (
+  policy: CompatibilityLenderPolicy | undefined,
+): boolean => {
+  if (!policy) return false
+  try {
+    getCompatibilityProvider(policy)
+    return true
+  } catch {
+    return false
+  }
+}
+
 const prepareLegacyLenderGrant = (
   policyAddress: string,
   lenders: string[],

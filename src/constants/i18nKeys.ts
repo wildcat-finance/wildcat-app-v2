@@ -55,10 +55,10 @@ export type TempReserveRatioViewer = "borrower" | "lender"
 
 export const LENDER_ONBOARDING_TEXT_KEY: Record<LenderOnboardingType, string> =
   {
-    [LenderOnboardingType.SelfOnboard]:
-      "marketParameters.lenderOnboarding.selfOnboard.text",
-    [LenderOnboardingType.BorrowerAllowlist]:
-      "marketParameters.lenderOnboarding.borrowerAllowlist.text",
+    [LenderOnboardingType.Open]: "marketParameters.lenderOnboarding.open.text",
+    [LenderOnboardingType.Self]: "marketParameters.lenderOnboarding.self.text",
+    [LenderOnboardingType.Managed]:
+      "marketParameters.lenderOnboarding.managed.text",
     [LenderOnboardingType.Unknown]:
       "marketParameters.lenderOnboarding.unknown.text",
   }
@@ -67,10 +67,10 @@ export const LENDER_ONBOARDING_TOOLTIP_KEY: Record<
   LenderOnboardingType,
   string
 > = {
-  [LenderOnboardingType.SelfOnboard]:
-    "marketParameters.lenderOnboarding.selfOnboard.tooltip",
-  [LenderOnboardingType.BorrowerAllowlist]:
-    "marketParameters.lenderOnboarding.borrowerAllowlist.tooltip",
+  [LenderOnboardingType.Open]: "marketParameters.lenderOnboarding.open.tooltip",
+  [LenderOnboardingType.Self]: "marketParameters.lenderOnboarding.self.tooltip",
+  [LenderOnboardingType.Managed]:
+    "marketParameters.lenderOnboarding.managed.tooltip",
   [LenderOnboardingType.Unknown]:
     "marketParameters.lenderOnboarding.unknown.tooltip",
 }

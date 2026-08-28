@@ -78,7 +78,7 @@ export function useBorrowerMarketAccountQuery({
       market.chainId,
       provider,
       lenderAddress as string,
-      marketAddress as string,
+      market,
     )
 
     if (market && market.provider !== provider) {

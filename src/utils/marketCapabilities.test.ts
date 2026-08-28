@@ -133,7 +133,7 @@ describe("marketCapabilities", () => {
     const account = {
       market: {
         controller: undefined,
-        onboardingMode: MarketOnboardingMode.SelfOnboard,
+        onboardingMode: MarketOnboardingMode.Self,
         hooksConfig: {
           kind: HooksKind.OpenTerm,
           hooksAddress: "0xhooks",
@@ -154,7 +154,7 @@ describe("marketCapabilities", () => {
     expect(
       isSelfOnboardMarketAccount({
         market: {
-          onboardingMode: MarketOnboardingMode.SelfOnboard,
+          onboardingMode: MarketOnboardingMode.Self,
           hooksConfig: {
             kind: HooksKind.OpenTerm,
             depositRequiresAccess: true,
@@ -175,7 +175,7 @@ describe("marketCapabilities", () => {
     expect(
       isSelfOnboardMarketAccount({
         market: {
-          onboardingMode: MarketOnboardingMode.SelfOnboard,
+          onboardingMode: MarketOnboardingMode.Self,
           hooksConfig: {
             kind: HooksKind.PeriodicTerm,
             depositRequiresAccess: true,
@@ -197,7 +197,7 @@ describe("marketCapabilities", () => {
     const account = {
       market: {
         controller: "0xcontroller",
-        onboardingMode: MarketOnboardingMode.BorrowerApproval,
+        onboardingMode: MarketOnboardingMode.Managed,
         hooksConfig: undefined,
       },
     }

@@ -74,6 +74,11 @@ export const getRecordText = (
     const label = lenderName ?? trimAddress(record.address)
     return `${label} requested a withdrawal of ${fmt(record.normalizedAmount)}`
   }
+  if (record.__typename === "WithdrawalExecution") {
+    const lenderName = lenderNames[record.address.toLowerCase()]
+    const label = lenderName ?? trimAddress(record.address)
+    return `${label} withdrew ${fmt(record.normalizedAmount)}`
+  }
   if (record.__typename === "MaxTotalSupplyUpdated") {
     const kind = record.newMaxTotalSupply.gt(record.oldMaxTotalSupply)
       ? "increased"
@@ -130,3 +135,36 @@ export const getRecordText = (
   }
   return ""
 }
+
+const csvCell = (value: string | number) => {
+  const text = String(value)
+  const spreadsheetSafe = /^[=+\-@]/.test(text) ? `'${text}` : text
+  return `"${spreadsheetSafe.replaceAll('"', '""')}"`
+}
+
+export const buildMarketRecordsCsv = (
+  records: MarketRecord[],
+  lenderNames: { [key: string]: string },
+  borrowerName: string,
+  aprName: string,
+): string =>
+  [
+    [
+      "eventIndex",
+      "eventType",
+      "blockNumber",
+      "blockTimestamp",
+      "transactionHash",
+      "description",
+    ],
+    ...records.map((record) => [
+      record.eventIndex,
+      record.__typename,
+      record.blockNumber,
+      new Date(record.blockTimestamp * 1000).toISOString(),
+      record.transactionHash,
+      getRecordText(record, lenderNames, borrowerName, true, aprName),
+    ]),
+  ]
+    .map((row) => row.map(csvCell).join(","))
+    .join("\n")

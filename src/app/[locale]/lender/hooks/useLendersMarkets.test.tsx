@@ -476,7 +476,7 @@ describe("useLendersMarkets", () => {
 
     await waitFor(() => expect(result.current.onboardingStatus).toBe("ready"))
     expect(result.current.onboardingByMarket[MARKET_ADDRESS]).toBe(
-      actualSdk.MarketOnboardingMode.BorrowerApproval,
+      actualSdk.MarketOnboardingMode.Managed,
     )
   })
 

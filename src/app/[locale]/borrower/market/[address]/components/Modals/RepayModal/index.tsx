@@ -112,6 +112,7 @@ export const RepayModal = ({
     setAmount("")
     setMaxRepayAmount(undefined)
     setDays("")
+    setFinalRepayAmount(undefined)
   }
 
   const handleOpenModal = () => {
@@ -126,20 +127,19 @@ export const RepayModal = ({
 
   const repayTokenAmount = useMemo(
     () => market.underlyingToken.parseAmount(amount.replace(/,/g, "") || "0"), // delete commas
-    [amount],
+    [amount, market.underlyingToken],
   )
 
   const repayDaysAmount = market.repayRequiredForDuration(
     Number(days) * SECONDS_IN_DAY,
   )
 
-  const repayAmount = isRepayByDays
+  const quotedRepayAmount = isRepayByDays
     ? repayDaysAmount
     : maxRepayAmount || repayTokenAmount
+  const repayAmount = finalRepayAmount || quotedRepayAmount
 
-  const repayStep = marketAccount.previewRepay(
-    finalRepayAmount || repayAmount,
-  ).status
+  const repayStep = marketAccount.previewRepay(repayAmount).status
 
   const isAllowanceSufficient =
     marketAccount.isApprovedFor(repayAmount) ||
@@ -163,42 +163,36 @@ export const RepayModal = ({
 
   const handleRepay = () => {
     setTxHash("")
-    repay(finalRepayAmount || repayAmount)
+    repay(repayAmount)
   }
 
-  const handleApprove = () => {
+  const handleApprove = async () => {
     setTxHash("")
-    if (!isAllowanceSufficient) {
+    if (isAllowanceSufficient) return
+
+    const approvalAmount = repayAmount
+    if (isRepayByDays) setFinalRepayAmount(approvalAmount)
+
+    try {
       if (
         marketAccount.underlyingApproval > BigInt(0) &&
         isUSDTLikeToken(market.underlyingToken.address)
       ) {
-        approve(repayAmount.token.getAmount(0)).then(() => {
-          approve(repayAmount).then(() => {
-            // track that we just approved this amount
-            setJustApprovedAmount(repayAmount)
-            // only clear amount if approving more than balance
-            if (repayAmount.gt(marketAccount.underlyingBalance)) {
-              setAmount("")
-              setDays("")
-              setFinalRepayAmount(undefined)
-            }
-            modal.setFlowStep(ModalSteps.gettingValues)
-          })
-        })
-      } else {
-        approve(repayAmount).then(() => {
-          // track that we just approved this amount
-          setJustApprovedAmount(repayAmount)
-          // only clear amount if approving more than balance
-          if (repayAmount.gt(marketAccount.underlyingBalance)) {
-            setAmount("")
-            setDays("")
-            setFinalRepayAmount(undefined)
-          }
-          modal.setFlowStep(ModalSteps.gettingValues)
-        })
+        await approve(approvalAmount.token.getAmount(0))
       }
+      await approve(approvalAmount)
+
+      // Repay-by-days quotes accrue continuously. Once approved, keep using
+      // the exact quote the wallet approved until the user changes the input.
+      setJustApprovedAmount(approvalAmount)
+      if (approvalAmount.gt(marketAccount.underlyingBalance)) {
+        setAmount("")
+        setDays("")
+        setFinalRepayAmount(undefined)
+      }
+      modal.setFlowStep(ModalSteps.gettingValues)
+    } catch {
+      if (isRepayByDays) setFinalRepayAmount(undefined)
     }
   }
 
@@ -212,16 +206,19 @@ export const RepayModal = ({
     const { value } = evt.target
     setAmount(value)
     setMaxRepayAmount(undefined)
+    setFinalRepayAmount(undefined)
   }
 
   const handleClickMaxAmount = () => {
     setAmount(formatTokenWithCommas(market.outstandingDebt))
     setMaxRepayAmount(market.outstandingDebt)
+    setFinalRepayAmount(undefined)
   }
 
   const handleDaysChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
     setDays(value)
+    setFinalRepayAmount(undefined)
   }
 
   const mustResetAllowance =
@@ -282,7 +279,7 @@ export const RepayModal = ({
       variant="text3"
       color={COLORS.santasGrey}
       sx={{ padding: "0 12px" }}
-    >{`~ ${formatTokenWithCommas(repayDaysAmount)} ${
+    >{`~ ${formatTokenWithCommas(repayAmount)} ${
       market.underlyingToken.symbol
     }`}</Typography>
   ) : (

@@ -26,6 +26,7 @@ import { EXCLUDED_MARKETS } from "@/utils/constants"
 import { filterMarketAccounts } from "@/utils/filters"
 import {
   getKnownMarketOnboardingMode,
+  isSelfServiceMarketOnboardingMode,
   MarketOnboardingMode,
 } from "@/utils/marketOnboarding"
 import { MarketStatus } from "@/utils/marketStatus"
@@ -188,11 +189,13 @@ export const AllMarketsSection = () => {
       otherMarketAccounts.filter(
         (account) =>
           !account.market.isClosed &&
-          getKnownMarketOnboardingMode(
-            account.market.version,
-            account.market.address,
-            onboardingByMarket,
-          ) === MarketOnboardingMode.SelfOnboard,
+          isSelfServiceMarketOnboardingMode(
+            getKnownMarketOnboardingMode(
+              account.market.version,
+              account.market.address,
+              onboardingByMarket,
+            ),
+          ),
       ).length,
     [onboardingByMarket, otherMarketAccounts],
   )
@@ -206,7 +209,7 @@ export const AllMarketsSection = () => {
             account.market.version,
             account.market.address,
             onboardingByMarket,
-          ) === MarketOnboardingMode.BorrowerApproval,
+          ) === MarketOnboardingMode.Managed,
       ).length,
     [onboardingByMarket, otherMarketAccounts],
   )

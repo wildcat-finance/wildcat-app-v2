@@ -47,6 +47,7 @@ import { getMarketImplementationType } from "@/utils/marketImplementation"
 import {
   getLenderMarketAction,
   getKnownMarketOnboardingMode,
+  isSelfServiceMarketOnboardingMode,
   LenderMarketAction,
   MarketOnboardingMode,
 } from "@/utils/marketOnboarding"
@@ -172,11 +173,11 @@ export const OtherMarketsTable = ({
     return !account?.market.isClosed
   })
 
-  const selfOnboard = activeRows.filter(
-    (market) => market.onboardingMode === MarketOnboardingMode.SelfOnboard,
+  const selfOnboard = activeRows.filter((market) =>
+    isSelfServiceMarketOnboardingMode(market.onboardingMode),
   )
   const manual = activeRows.filter(
-    (market) => market.onboardingMode === MarketOnboardingMode.BorrowerApproval,
+    (market) => market.onboardingMode === MarketOnboardingMode.Managed,
   )
 
   const columns: TypeSafeColDef<OtherMarketsTableModel>[] = [

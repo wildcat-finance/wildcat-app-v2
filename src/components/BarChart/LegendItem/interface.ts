@@ -9,4 +9,5 @@ export type LegendItemProps = {
   expandable?: boolean
   children?: React.ReactNode
   withDivider?: boolean
+  totalLabel?: string
 }

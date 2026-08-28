@@ -2,7 +2,7 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import { UseFormReturn } from "react-hook-form"
 
-import { getCreateMarketFormFingerprint } from "@/app/[locale]/borrower/create-market/validation/deployFingerprint"
+import { getCreateMarketSignatureFingerprint } from "@/app/[locale]/borrower/create-market/validation/deployFingerprint"
 import { MarketValidationSchemaType } from "@/app/[locale]/borrower/create-market/validation/validationSchema"
 
 import { LegacyConfirmationForm } from "./LegacyConfirmationForm"
@@ -88,7 +88,7 @@ describe("ConfirmationForm access-control signature guard", () => {
     expect(onClickSign).not.toHaveBeenCalled()
   })
 
-  it("requires a new refusal signature after switching to an allowlist", () => {
+  it("keeps a refusal usable after switching to an allowlist", () => {
     let formValues = {
       accessControl: "defaultPullProvider",
       policy: "createNewPolicy",
@@ -104,7 +104,7 @@ describe("ConfirmationForm access-control signature guard", () => {
       allowTermReduction: false,
     } as unknown as MarketValidationSchemaType
 
-    const signedFingerprint = getCreateMarketFormFingerprint(formValues)
+    const signedFingerprint = getCreateMarketSignatureFingerprint(formValues)
     const getValues = jest.fn((field?: keyof MarketValidationSchemaType) =>
       field ? formValues[field] : formValues,
     )
@@ -149,26 +149,20 @@ describe("ConfirmationForm access-control signature guard", () => {
 
     formValues = { ...formValues, accessControl: "manualApproval" }
     const paramsChangedSinceSigning =
-      getCreateMarketFormFingerprint(formValues) !== signedFingerprint
+      getCreateMarketSignatureFingerprint(formValues) !== signedFingerprint
     rerender(renderForm(paramsChangedSinceSigning))
 
     expect(screen.getByText("Borrower Operated Allowlist")).toBeTruthy()
     expect(
-      screen.getByText("borrower.createMarket.confirm.alertParamsChanged"),
-    ).toBeTruthy()
+      screen.queryByText("borrower.createMarket.confirm.alertParamsChanged"),
+    ).toBeNull()
 
     const deployButton = screen.getByRole("button", {
       name: "borrower.createMarket.buttons.deploy",
     }) as HTMLButtonElement
-    expect(deployButton.disabled).toBe(true)
+    expect(deployButton.disabled).toBe(false)
     fireEvent.click(deployButton)
-    expect(handleDeploy).not.toHaveBeenCalled()
-
-    const signButton = screen.getByRole("button", {
-      name: "borrower.createMarket.buttons.signMlaRefusal",
-    }) as HTMLButtonElement
-    expect(signButton.disabled).toBe(false)
-    fireEvent.click(signButton)
-    expect(onClickSign).toHaveBeenCalledTimes(1)
+    expect(handleDeploy).toHaveBeenCalledTimes(1)
+    expect(onClickSign).not.toHaveBeenCalled()
   })
 })

@@ -28,6 +28,8 @@ import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 import { pageCalcHeights } from "@/utils/constants"
 import { hasActiveLenderOnboardingRoleProvider } from "@/utils/marketCapabilities"
+import { mergePolicyLenderAccess } from "@/utils/policyLenderAccess"
+import { shouldSyncPolicyLenderDraft } from "@/utils/policyLenderDraft"
 
 import { SmallFilterSelectItem } from "../../../../components/SmallFilterSelect"
 
@@ -111,47 +113,33 @@ export default function PolicyPage() {
   }
 
   const markets = data?.markets ?? []
-  const lenders = data?.lenders
+  const lenders = React.useMemo(
+    () =>
+      data
+        ? mergePolicyLenderAccess(data.lenders, data.accessListMembers)
+        : undefined,
+    [data],
+  )
 
   const dispatch = useAppDispatch()
 
   const lendersList = useAppSelector((state) => state.policyLenders.lenders)
+  const shouldSyncLenders = shouldSyncPolicyLenderDraft(lendersList)
 
   useEffect(() => {
-    if (lenders) {
-      const lendersData =
-        data?.lenders?.map((lender) => {
-          let isAuthorized: boolean
-          const { credential } = lender
-          if (credential) {
-            const { lastProvider } = credential
-            isAuthorized = !!lastProvider
-            return {
-              id: lender.address,
-              address: lender.address,
-              status: EditLenderFlowStatuses.OLD,
-              isAuthorized,
-            }
-          }
-          if (lender.isAuthorizedOnController) {
-            isAuthorized = true
-          } else {
-            isAuthorized = false
-          }
-          return {
-            id: lender.address,
-            address: lender.address,
-            status: EditLenderFlowStatuses.OLD,
-            isAuthorized,
-          }
-        }) ?? []
+    if (lenders && shouldSyncLenders) {
+      const lendersData = lenders.map((lender) => ({
+        id: lender.address,
+        address: lender.address,
+        status: EditLenderFlowStatuses.OLD,
+        isAuthorized: lender.isAuthorized,
+        accessSources: lender.sources,
+      }))
 
-      if (lendersList.length === 0) {
-        dispatch(setPolicyLenders(lendersData))
-      }
+      dispatch(setPolicyLenders(lendersData))
       dispatch(setInitialPolicyLenders(lendersData))
     }
-  }, [data, isPolicyLoading])
+  }, [dispatch, lenders, shouldSyncLenders])
 
   useEffect(
     () => () => {

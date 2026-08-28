@@ -1,5 +1,7 @@
 import { HooksInstance, MarketController } from "@wildcatfi/wildcat-sdk"
 
+import type { PolicyLenderAccessSource } from "@/utils/policyLenderAccess"
+
 export enum EditLenderFlowStatuses {
   OLD = "old",
   NEW = "new",
@@ -11,6 +13,7 @@ export type LendersItem = {
   address: string
   status: EditLenderFlowStatuses
   isAuthorized: boolean
+  accessSources: PolicyLenderAccessSource[]
 }
 
 export type LendersTabProps = {

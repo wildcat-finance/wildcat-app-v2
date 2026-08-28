@@ -10,6 +10,7 @@ import {
   getLenderOnboardingType,
   getLenderMarketAction,
   getSubgraphMarketOnboardingMode,
+  isSelfServiceMarketOnboardingMode,
   LenderOnboardingType,
   LenderMarketAction,
 } from "./marketOnboarding"
@@ -33,7 +34,7 @@ describe("marketOnboarding", () => {
     } as unknown as Market
 
     expect(getSubgraphMarketOnboardingMode(market)).toBe(
-      MarketOnboardingMode.BorrowerApproval,
+      MarketOnboardingMode.Managed,
     )
     expect(
       getSubgraphMarketOnboardingMode({
@@ -46,7 +47,7 @@ describe("marketOnboarding", () => {
           },
         ],
       } as unknown as Market),
-    ).toBe(MarketOnboardingMode.SelfOnboard)
+    ).toBe(MarketOnboardingMode.Self)
 
     expect(
       getSubgraphMarketOnboardingMode({
@@ -60,19 +61,24 @@ describe("marketOnboarding", () => {
           },
         ],
       } as unknown as Market),
-    ).toBe(MarketOnboardingMode.BorrowerApproval)
+    ).toBe(MarketOnboardingMode.Managed)
   })
 
   it.each([
     {
-      label: "lender self-onboarding",
-      onboardingMode: MarketOnboardingMode.SelfOnboard,
-      expected: LenderOnboardingType.SelfOnboard,
+      label: "open deposits",
+      onboardingMode: MarketOnboardingMode.Open,
+      expected: LenderOnboardingType.Open,
     },
     {
-      label: "borrower-operated allowlist",
-      onboardingMode: MarketOnboardingMode.BorrowerApproval,
-      expected: LenderOnboardingType.BorrowerAllowlist,
+      label: "lender self-onboarding",
+      onboardingMode: MarketOnboardingMode.Self,
+      expected: LenderOnboardingType.Self,
+    },
+    {
+      label: "managed access",
+      onboardingMode: MarketOnboardingMode.Managed,
+      expected: LenderOnboardingType.Managed,
     },
     {
       label: "unresolved onboarding policy",
@@ -83,25 +89,34 @@ describe("marketOnboarding", () => {
     expect(getLenderOnboardingType(onboardingMode)).toBe(expected)
   })
 
+  it("groups open and self onboarding as self-service", () => {
+    expect(isSelfServiceMarketOnboardingMode(MarketOnboardingMode.Open)).toBe(
+      true,
+    )
+    expect(isSelfServiceMarketOnboardingMode(MarketOnboardingMode.Self)).toBe(
+      true,
+    )
+    expect(
+      isSelfServiceMarketOnboardingMode(MarketOnboardingMode.Managed),
+    ).toBe(false)
+  })
+
   it("shows deposit whenever the lender is currently eligible", () => {
     expect(
-      getLenderMarketAction(
-        MarketOnboardingMode.BorrowerApproval,
-        DepositStatus.Ready,
-      ),
+      getLenderMarketAction(MarketOnboardingMode.Managed, DepositStatus.Ready),
     ).toBe(LenderMarketAction.Deposit)
   })
 
   it("routes ineligible borrower-approval lenders to request access", () => {
     expect(
       getLenderMarketAction(
-        MarketOnboardingMode.BorrowerApproval,
+        MarketOnboardingMode.Managed,
         DepositStatus.RequiresAccess,
       ),
     ).toBe(LenderMarketAction.RequestAccess)
     expect(
       getLenderMarketAction(
-        MarketOnboardingMode.BorrowerApproval,
+        MarketOnboardingMode.Managed,
         DepositStatus.InsufficientRole,
       ),
     ).toBe(LenderMarketAction.RequestAccess)
@@ -110,13 +125,13 @@ describe("marketOnboarding", () => {
   it("does not misroute blocked, closed, or unknown markets", () => {
     expect(
       getLenderMarketAction(
-        MarketOnboardingMode.BorrowerApproval,
+        MarketOnboardingMode.Managed,
         DepositStatus.Blocked,
       ),
     ).toBe(LenderMarketAction.Unavailable)
     expect(
       getLenderMarketAction(
-        MarketOnboardingMode.SelfOnboard,
+        MarketOnboardingMode.Self,
         DepositStatus.MarketClosed,
       ),
     ).toBe(LenderMarketAction.Unavailable)
@@ -128,7 +143,7 @@ describe("marketOnboarding", () => {
   it("keeps provider-denied self-onboarding deposits visibly unavailable", () => {
     expect(
       getLenderMarketAction(
-        MarketOnboardingMode.SelfOnboard,
+        MarketOnboardingMode.Self,
         DepositStatus.RequiresAccess,
       ),
     ).toBe(LenderMarketAction.DepositUnavailable)

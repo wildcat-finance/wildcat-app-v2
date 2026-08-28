@@ -1,6 +1,6 @@
 import type { MarketRecord } from "@wildcatfi/wildcat-sdk"
 
-import { getRecordText } from "@/utils/marketRecords"
+import { buildMarketRecordsCsv, getRecordText } from "@/utils/marketRecords"
 
 describe("market records", () => {
   it("formats periodic APR reduction proposal records", () => {
@@ -48,5 +48,37 @@ describe("market records", () => {
 
     expect(text).toContain("Periodic term closed")
     expect(text).toContain("scheduled windows")
+  })
+
+  it("formats withdrawal executions separately from requests", () => {
+    const record = {
+      __typename: "WithdrawalExecution",
+      address: "0x0000000000000000000000000000000000000001",
+      normalizedAmount: {
+        format: () => "100",
+        decimals: 6,
+        symbol: "USDC",
+      },
+    } as MarketRecord
+
+    expect(getRecordText(record, {}, "Borrower", true)).toBe(
+      "0x0000...0001 withdrew 100 USDC",
+    )
+  })
+
+  it("exports stable CSV and neutralizes spreadsheet formulas", () => {
+    const record = {
+      __typename: "MarketClosed",
+      eventIndex: 7,
+      blockNumber: 10,
+      blockTimestamp: 1_000,
+      transactionHash: "=unsafe",
+    } as MarketRecord
+
+    const csv = buildMarketRecordsCsv([record], {}, "Borrower", "Base APR")
+
+    expect(csv).toContain('"MarketClosed"')
+    expect(csv).toContain('"\'=unsafe"')
+    expect(csv).toContain('"Market closed"')
   })
 })

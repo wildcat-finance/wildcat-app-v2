@@ -128,6 +128,12 @@ export const MarketStatusChart = ({
             key={chartItem.label}
             chartItem={chartItem}
             type={getLegendItemType(chartItem)}
+            totalLabel={
+              chartItem.id === MARKET_BAR_DATA.collateralObligations.id &&
+              !isDelinquent
+                ? t("marketDetails.shared.statusChart.total")
+                : undefined
+            }
           >
             {chartItem.id === MARKET_BAR_DATA.collateralObligations.id && (
               <>

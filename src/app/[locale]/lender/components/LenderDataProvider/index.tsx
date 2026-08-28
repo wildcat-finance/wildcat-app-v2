@@ -14,6 +14,7 @@ import { EXCLUDED_MARKETS } from "@/utils/constants"
 import { getMarketLiveDataStatus } from "@/utils/marketLiveData"
 import {
   getKnownMarketOnboardingMode,
+  isSelfServiceMarketOnboardingMode,
   MarketOnboardingMode,
 } from "@/utils/marketOnboarding"
 
@@ -101,11 +102,13 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
       othersMarkets.filter(
         (account) =>
           !account.market.isClosed &&
-          getKnownMarketOnboardingMode(
-            account.market.version,
-            account.market.address,
-            onboardingByMarket,
-          ) === MarketOnboardingMode.SelfOnboard,
+          isSelfServiceMarketOnboardingMode(
+            getKnownMarketOnboardingMode(
+              account.market.version,
+              account.market.address,
+              onboardingByMarket,
+            ),
+          ),
       ).length,
     [onboardingByMarket, othersMarkets],
   )
@@ -119,7 +122,7 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
             account.market.version,
             account.market.address,
             onboardingByMarket,
-          ) === MarketOnboardingMode.BorrowerApproval,
+          ) === MarketOnboardingMode.Managed,
       ).length,
     [onboardingByMarket, othersMarkets],
   )

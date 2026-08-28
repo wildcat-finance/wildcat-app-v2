@@ -25,16 +25,18 @@ import {
   setPolicyLenderFilter,
   setPolicyLendersTableData,
 } from "@/store/slices/editPolicySlice/editPolicySlice"
+import { canManagePolicyLenders } from "@/utils/lenderAccess"
 import { hasActiveLenderOnboardingRoleProvider } from "@/utils/marketCapabilities"
+import {
+  mergePolicyLenderAccess,
+  POLICY_LENDER_ACCESS_SOURCE_KEY,
+} from "@/utils/policyLenderAccess"
+import { shouldSyncPolicyLenderDraft } from "@/utils/policyLenderDraft"
 
 import { ConfirmLendersForm } from "./components/ConfirmLendersForm"
 import { EditLendersForm } from "./components/EditLendersForm"
 import useTrackPolicyLendersChanges from "./hooks/useTrackLendersChanges"
-import {
-  PolicyLenderTableDataType,
-  EditLenderFlowStatuses,
-  LenderInfo,
-} from "./interface"
+import { PolicyLenderTableDataType, EditLenderFlowStatuses } from "./interface"
 import { BorrowerMarketsTable } from "../components/MarketsTables/BorrowerMarketsTable"
 import { useGetPolicy } from "../hooks/useGetPolicy"
 
@@ -51,17 +53,17 @@ export default function EditPolicyPage() {
   const lendersTableData = useAppSelector(
     (state) => state.editPolicy.lendersTableData,
   )
+  const shouldSyncLenders = shouldSyncPolicyLenderDraft(lendersTableData)
   const [originalPolicyName, setOriginalPolicyName] = React.useState("")
   const [hooksKind, setHooksKind] = React.useState<HooksKind | undefined>()
-  const [lenders, setLenders] = React.useState<LenderInfo[]>([])
   const [version, setVersion] = React.useState<MarketVersion | undefined>()
   const [pendingPolicyName, setPendingPolicyName] = React.useState("")
   const [accessControl, setAccessControl] = React.useState<string | undefined>()
   const markets = data?.markets ?? []
 
-  const canEditLenders = !hasActiveLenderOnboardingRoleProvider(
-    data?.hooksInstance?.roleProviders ?? [],
-  )
+  const canEditLenders = data?.controller
+    ? true
+    : canManagePolicyLenders(data?.hooksInstance)
 
   useEffect(() => {
     if (data) {
@@ -86,49 +88,33 @@ export default function EditPolicyPage() {
         policyName = "V1 Markets"
         setAccessControl(t("marketParameters.roleProviders.manualApproval"))
       }
-      const lendersData =
-        data.lenders?.map((lender) => {
-          let credentialExpiry: number | undefined
-          let credentialSource: string
-          const maxTimeToLive = 2 ** 32 - 1
-          const { credential } = lender
-          if (credential) {
-            const { lastProvider } = credential
-            if (lastProvider) {
-              credentialSource = hasActiveLenderOnboardingRoleProvider([
-                lastProvider,
-              ])
-                ? t("marketParameters.roleProviders.defaultPullProvider")
-                : t("marketParameters.roleProviders.manualApproval")
-              credentialExpiry =
-                lastProvider.timeToLive === maxTimeToLive
-                  ? maxTimeToLive
-                  : credential.lastApprovalTimestamp + lastProvider.timeToLive
-            } else {
-              credentialSource = t("borrower.editPolicy.deauthorized")
-            }
-            return {
-              ...lender,
-              credentialExpiry,
-              credentialSource,
-            }
-          }
-          if (lender.isAuthorizedOnController) {
-            credentialExpiry = undefined
-            credentialSource = t(
-              "marketParameters.roleProviders.manualApproval",
-            )
-          } else {
-            credentialExpiry = maxTimeToLive
-            credentialSource = t("borrower.editPolicy.deauthorized")
-          }
-          return {
-            ...lender,
-            credentialExpiry,
-            credentialSource,
-          }
-        }) ?? []
-      setLenders(lendersData)
+      const maxTimeToLive = 2 ** 32 - 1
+      const lendersData = mergePolicyLenderAccess(
+        data.lenders,
+        data.accessListMembers,
+      ).map((access) => {
+        const { credential } = access.lender ?? {}
+        const { lastProvider } = credential ?? {}
+        let credentialExpiry: number | undefined
+        if (credential && lastProvider) {
+          credentialExpiry =
+            lastProvider.timeToLive === maxTimeToLive
+              ? maxTimeToLive
+              : credential.lastApprovalTimestamp + lastProvider.timeToLive
+        }
+        const credentialSource = access.isAuthorized
+          ? access.sources
+              .map((source) => t(POLICY_LENDER_ACCESS_SOURCE_KEY[source]))
+              .join(" + ")
+          : t("borrower.editPolicy.deauthorized")
+
+        return {
+          address: access.address,
+          activeMarkets: access.lender?.activeMarkets ?? [],
+          credentialExpiry,
+          credentialSource,
+        }
+      })
       setOriginalPolicyName(policyName)
       setPendingPolicyName(policyName)
       setHooksKind(hooksKind)
@@ -143,12 +129,12 @@ export default function EditPolicyPage() {
         }),
       )
 
-      dispatch(setInitialPolicyLendersTableData(formattedLendersData))
-      if (lendersTableData.length === 0) {
+      if (shouldSyncLenders) {
+        dispatch(setInitialPolicyLendersTableData(formattedLendersData))
         dispatch(setPolicyLendersTableData(formattedLendersData))
       }
     }
-  }, [isPolicyLoading, data])
+  }, [data, dispatch, shouldSyncLenders, t])
 
   useEffect(() => {
     if (originalPolicyName && pendingPolicyName === "") {

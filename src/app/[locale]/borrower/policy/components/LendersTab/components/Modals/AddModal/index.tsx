@@ -76,6 +76,7 @@ export const AddModal = ({ disabled }: { disabled: boolean }) => {
           address: getValues("address").toLowerCase(),
           status: EditLenderFlowStatuses.NEW,
           isAuthorized: true,
+          accessSources: [],
         },
       ]),
     )
