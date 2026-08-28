@@ -33,6 +33,8 @@ type MarketAccountLike = {
   market: MarketLike
 }
 
+type MarketTermLike = Pick<MarketLike, "hooksConfig">
+
 // The hooks contract stores "no pull-provider slot" as max uint24, while the
 // subgraph serializes the same sentinel as -1.
 const NULL_PROVIDER_INDEX = 2 ** 24 - 1
@@ -72,13 +74,13 @@ export const getMarketPolicyAddress = (
 ): string | undefined => market.hooksConfig?.hooksAddress ?? market.controller
 
 export const getFixedTermHooksConfig = (
-  market: MarketLike,
+  market: MarketTermLike,
 ): FixedTermHooksConfig | undefined =>
   market.hooksConfig?.kind === HooksKind.FixedTerm
     ? (market.hooksConfig as FixedTermHooksConfig)
     : undefined
 
-export const isFixedTermMarket = (market: MarketLike): boolean =>
+export const isFixedTermMarket = (market: MarketTermLike): boolean =>
   getFixedTermHooksConfig(market) !== undefined
 
 export const isSelfOnboardMarketAccount = (
