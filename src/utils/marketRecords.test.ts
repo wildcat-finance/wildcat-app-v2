@@ -13,10 +13,28 @@ describe("market records", () => {
       } as MarketRecord,
       {},
       "Borrower",
+      false,
+      "Utilization APR",
     )
 
-    expect(text).toContain("APR reduction proposed to 8.75%")
+    expect(text).toContain("Utilization APR reduction proposed to 8.75%")
     expect(text).toContain("lender response window")
+  })
+
+  it("uses the market-specific APR name for applied changes", () => {
+    const text = getRecordText(
+      {
+        __typename: "AnnualInterestBipsUpdated",
+        oldAnnualInterestBips: 1_000,
+        newAnnualInterestBips: 875,
+      } as MarketRecord,
+      {},
+      "Borrower",
+      false,
+      "Utilization APR",
+    )
+
+    expect(text).toBe("Utilization APR changed from 10% to 8.75%")
   })
 
   it("formats periodic term closed records", () => {

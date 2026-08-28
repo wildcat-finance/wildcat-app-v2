@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next"
 import { MaturityModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MaturityModal"
 import { MinimumDepositModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MinimumDepositModal"
 import TelegramIcon from "@/assets/icons/telegram_icon.svg"
+import { getMarketAprCopy } from "@/components/market-implementation-variants"
 import { PeriodicNoticeBanner } from "@/components/PeriodicNoticeBanner"
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
@@ -145,6 +146,7 @@ export const MarketTransactions = ({
       ? t("marketParameters.pendingPeriodicApr.executionNotEnabled")
       : pendingAprExecutionErrorStatus
   const aprDisplay = getMarketAprDisplayBips(market)
+  const aprCopy = getMarketAprCopy(market)
   const currentAprFormatted = formatBps(
     aprDisplay.configuredAprBips,
     MARKET_PARAMS_DECIMALS.annualInterestBips,
@@ -362,7 +364,7 @@ export const MarketTransactions = ({
         dismissedAprNoticeKey !== aprNoticeDismissKey && (
           <PeriodicNoticeBanner
             tone="info"
-            title={t("marketParameters.pendingPeriodicApr.bannerTitle", {
+            title={t(aprCopy.pendingAprBannerTitleKey, {
               currentApr: currentAprFormatted,
               proposedApr: pendingAprFormatted,
             })}
@@ -420,8 +422,8 @@ export const MarketTransactions = ({
       {showAppliedAprNotice && (
         <PeriodicNoticeBanner
           tone="success"
-          title={t("marketParameters.pendingPeriodicApr.appliedNoticeTitle")}
-          body={t("marketParameters.pendingPeriodicApr.appliedNotice", {
+          title={t(aprCopy.appliedAprNoticeTitleKey)}
+          body={t(aprCopy.appliedAprNoticeBodyKey, {
             currentApr: currentAprFormatted,
           })}
           onClose={() => setIsAppliedNoticeDismissed(true)}

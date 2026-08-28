@@ -734,15 +734,19 @@
           "newReservedRatio": "New Reserve Ratio",
           "newUtilizationApr": "New Utilization APR",
           "pendingProposalReplaceNotice": "A reduction to {{proposedApr}}% is already pending (lenders can respond until {{readyAt}}). Submitting a new proposal replaces it and restarts the response window.",
-          "periodicProposalNotice": "This proposes an APR reduction for lenders to review. The APR will not change until the lender response window has closed.",
+          "periodicProposalNotice": "This proposes an APR reduction for lenders to review. The APR only changes once the lender response window has closed, and the window always runs, even if no lender holds a position. The reduction does not change your reserve ratio or collateral obligation.",
           "proposalErrorSubtitle": "The proposal transaction did not complete. Check your wallet and try again.",
           "proposalErrorTitle": "APR Reduction Proposal Failed",
+          "proposalLeavesUnchanged": "Unchanged By This Proposal",
           "proposalLoadingSubtitle": "Submitting proposal transaction...",
           "proposalLoadingTitle": "Proposing APR Reduction...",
           "proposalSuccessSubtitle": "The APR can be updated after the lender response window closes.",
           "proposalSuccessTitle": "APR Reduction Proposed",
           "proposeReduction": "Propose Reduction",
-          "proposeReductionTitle": "Propose APR Reduction",
+          "proposeReductionTitle": "Propose Base APR Reduction",
+      "proposeReductionTitleUtilization": "Propose Utilization APR Reduction",
+          "proposedBaseApr": "Proposed Base APR",
+          "proposedUtilizationApr": "Proposed Utilization APR",
           "resetTempRatio": "Reset Temporary Reserve Ratio",
           "setTemporarily": "set temporarily until",
           "willSetTemporarily": "Temporary reserve ratio in force until"
@@ -931,15 +935,18 @@
       "pendingAprReduction": {
         "elapsed": {
           "body": "The lender response window has passed; the borrower can apply the reduction at any time.",
-          "title": "Base APR reduction pending: {{currentApr}}% → {{proposedApr}}%"
+          "title": "Base APR reduction pending: {{currentApr}}% → {{proposedApr}}%",
+          "titleUtilization": "Utilization APR reduction pending: {{currentApr}}% → {{proposedApr}}%"
         },
         "exitNow": {
           "body": "Request a withdrawal before {{windowEnd}} ({{countdown}} left) if you do not wish to lend at the reduced rate.",
-          "title": "Base APR drops from {{currentApr}}% to {{proposedApr}}% after this window"
+          "title": "Base APR drops from {{currentApr}}% to {{proposedApr}}% after this window",
+          "titleUtilization": "Utilization APR drops from {{currentApr}}% to {{proposedApr}}% after this window"
         },
         "proposed": {
           "body": "You can request a withdrawal during the response window ({{windowStart}} – {{windowEnd}}) before the change can take effect.",
-          "title": "Base APR reduction proposed: {{currentApr}}% → {{proposedApr}}%"
+          "title": "Base APR reduction proposed: {{currentApr}}% → {{proposedApr}}%",
+          "titleUtilization": "Utilization APR reduction proposed: {{currentApr}}% → {{proposedApr}}%"
         }
       },
       "requests": {
@@ -1378,13 +1385,17 @@
     "pendingPeriodicApr": {
       "appliedNotice": "The base APR is now {{currentApr}}%.",
       "appliedNoticeTitle": "Base APR change applied",
+      "appliedNoticeTitleUtilization": "Utilization APR change applied",
+      "appliedNoticeUtilization": "The utilization APR is now {{currentApr}}%.",
       "bannerTitle": "Pending base APR reduction: {{currentApr}}% → {{proposedApr}}%",
+      "bannerTitleUtilization": "Pending utilization APR reduction: {{currentApr}}% → {{proposedApr}}%",
       "blockedNotice": "The response window has closed, but the reduction cannot be applied yet: {{reason}}",
       "cancelProposalWarning": "Increasing the APR will cancel your pending reduction proposal to {{proposedApr}}%.",
       "execute": "Apply APR",
       "executing": "Applying...",
       "executionNotEnabled": "This market was not deployed with the V2.5 APR-reduction execution hook enabled.",
       "label": "Pending Base APR",
+      "labelUtilization": "Pending Utilization APR",
       "pendingNotice": "Lenders can respond until {{readyAt}}. The reduction can be applied once the response window closes.",
       "processBatches": "Process Unpaid Batches",
       "processBatchesProgress": "Process Unpaid Batches ({{perPass}} of {{total}})",

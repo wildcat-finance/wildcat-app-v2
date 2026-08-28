@@ -5,11 +5,9 @@ import type { Market } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import { useTranslation } from "react-i18next"
 
+import { getMarketAprCopy } from "@/components/market-implementation-variants"
 import { PeriodicNoticeBanner } from "@/components/PeriodicNoticeBanner"
-import {
-  PENDING_APR_REDUCTION_BODY_KEY,
-  PENDING_APR_REDUCTION_TITLE_KEY,
-} from "@/constants/i18nKeys"
+import { PENDING_APR_REDUCTION_BODY_KEY } from "@/constants/i18nKeys"
 import { useLiveNowSeconds } from "@/hooks/useLiveNowSeconds"
 import { formatBps, MARKET_PARAMS_DECIMALS } from "@/utils/formatters"
 import { getPendingPeriodicAprChange } from "@/utils/periodicApr"
@@ -111,10 +109,12 @@ export const PendingAprReductionBanner = ({
     ),
   }
 
+  const { pendingAprReductionTitleKeys } = getMarketAprCopy(market)
+
   return (
     <PeriodicNoticeBanner
       tone={phase === "exitNow" ? "warning" : "info"}
-      title={t(PENDING_APR_REDUCTION_TITLE_KEY[phase], {
+      title={t(pendingAprReductionTitleKeys[phase], {
         ...interpolation,
       })}
       body={t(PENDING_APR_REDUCTION_BODY_KEY[phase], {

@@ -272,6 +272,16 @@ export const PENDING_APR_REDUCTION_TITLE_KEY: Record<
   elapsed: "marketDetails.lender.pendingAprReduction.elapsed.title",
 }
 
+export const PENDING_UTILIZATION_APR_REDUCTION_TITLE_KEY: Record<
+  PendingAprReductionPhase,
+  string
+> = {
+  proposed:
+    "marketDetails.lender.pendingAprReduction.proposed.titleUtilization",
+  exitNow: "marketDetails.lender.pendingAprReduction.exitNow.titleUtilization",
+  elapsed: "marketDetails.lender.pendingAprReduction.elapsed.titleUtilization",
+}
+
 export const PENDING_APR_REDUCTION_BODY_KEY: Record<
   PendingAprReductionPhase,
   string

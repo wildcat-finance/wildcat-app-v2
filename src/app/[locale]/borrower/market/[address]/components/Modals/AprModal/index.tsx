@@ -16,7 +16,7 @@ import { useTranslation } from "react-i18next"
 import Alert from "@/assets/icons/circledAlert_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { DepositAlert } from "@/components/DepositAlert"
-import { getMarketImplementationVariant } from "@/components/market-implementation-variants"
+import { getMarketAprCopy } from "@/components/market-implementation-variants"
 import { NumberTextField } from "@/components/NumberTextfield"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
@@ -94,7 +94,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
   const aprDisplay = getMarketAprDisplayBips(market)
-  const { aprCopy } = getMarketImplementationVariant(market)
+  const aprCopy = getMarketAprCopy(market)
   const currentConfiguredAprBips = aprDisplay.configuredAprBips
   const currentConfiguredAprDisplayValue = formatBps(
     currentConfiguredAprBips,
@@ -122,6 +122,8 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const alreadyUpdatedLabel = t(aprCopy.alreadyUpdatedLabelKey)
   const currentAprLabel = t(aprCopy.currentAprLabelKey)
   const newAprLabel = t(aprCopy.newAprLabelKey)
+  const proposedAprLabel = t(aprCopy.proposedAprLabelKey)
+  const proposeReductionTitle = t(aprCopy.proposeReductionTitleKey)
   const aprBips = parseAprBips(apr)
   const isPeriodicTerm = !!market.periodicHooksConfig
   const existingPendingProposal = isPeriodicTerm
@@ -414,9 +416,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
         {showForm && (
           <TxModalHeader
             title={
-              isPeriodicAprReduction
-                ? t("marketDetails.borrower.modals.apr.proposeReductionTitle")
-                : adjustAprLabel
+              isPeriodicAprReduction ? proposeReductionTitle : adjustAprLabel
             }
             arrowOnClick={
               modal.hideArrowButton || !showForm ? null : modal.handleClickBack
@@ -483,6 +483,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                   size="medium"
                   sx={{
                     width: "100%",
+                    height: "auto",
                   }}
                   value={apr}
                   onChange={handleAprChange}
@@ -532,95 +533,93 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                     </Typography>
                   )}
 
-                {!isPeriodicAprReduction && (
-                  <Box
-                    marginTop={aprError ? "44px" : "28px"}
-                    sx={AprAffectsBox}
+                <Box marginTop="28px" sx={AprAffectsBox}>
+                  <Typography variant="text4" textTransform="uppercase">
+                    {isPeriodicAprReduction
+                      ? t(
+                          "marketDetails.borrower.modals.apr.proposalLeavesUnchanged",
+                        )
+                      : t("marketDetails.borrower.modals.apr.aprAffects")}
+                  </Typography>
+
+                  <ModalDataItem
+                    title={t(
+                      "marketDetails.borrower.modals.apr.collateralObligation",
+                    )}
+                    value={
+                      newCollateralObligations ?? currentCollateralObligations
+                    }
+                    valueColor={
+                      !aprError &&
+                      newCollateralObligations &&
+                      newCollateralObligations !== currentCollateralObligations
+                        ? COLORS.bunker
+                        : COLORS.santasGrey
+                    }
+                    containerSx={{ marginBottom: "12px", marginTop: "12px" }}
                   >
-                    <Typography variant="text4" textTransform="uppercase">
-                      {t("marketDetails.borrower.modals.apr.aprAffects")}
+                    {newCollateralObligations && (
+                      <DifferenceChip
+                        startValue={currentCollateralObligations}
+                        endValue={newCollateralObligations}
+                        error={!!aprError}
+                        type="percentage"
+                      />
+                    )}
+                  </ModalDataItem>
+
+                  <ModalDataItem
+                    title={t("common.fields.reserveRatio")}
+                    value={`${newReserveRatio ?? currentReserveRatio}%`}
+                    valueColor={
+                      !aprError &&
+                      newReserveRatio &&
+                      newReserveRatio !== currentReserveRatio
+                        ? COLORS.bunker
+                        : COLORS.santasGrey
+                    }
+                  >
+                    {newReserveRatio && (
+                      <DifferenceChip
+                        startValue={currentReserveRatio}
+                        endValue={newReserveRatio}
+                        error={!!aprError}
+                        type="difference"
+                      />
+                    )}
+                  </ModalDataItem>
+
+                  {showRatioTimer && (
+                    <Typography
+                      variant="text4"
+                      color={COLORS.santasGrey}
+                      sx={{
+                        marginLeft: "auto",
+                        marginTop: "4px",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      {`${t(
+                        "marketDetails.borrower.modals.apr.willSetTemporarily",
+                      )} ${twoWeeksTime}`}
                     </Typography>
+                  )}
 
-                    <ModalDataItem
-                      title={t(
-                        "marketDetails.borrower.modals.apr.collateralObligation",
-                      )}
-                      value={
-                        newCollateralObligations ?? currentCollateralObligations
-                      }
-                      valueColor={
-                        !aprError &&
-                        newCollateralObligations &&
-                        newCollateralObligations !==
-                          currentCollateralObligations
-                          ? COLORS.bunker
-                          : COLORS.santasGrey
-                      }
-                      containerSx={{ marginBottom: "12px", marginTop: "12px" }}
+                  {tempReserveRatio && (
+                    <Typography
+                      variant="text4"
+                      color={COLORS.santasGrey}
+                      sx={{
+                        marginLeft: "auto",
+                        marginBottom: "4px",
+                      }}
                     >
-                      {newCollateralObligations && (
-                        <DifferenceChip
-                          startValue={currentCollateralObligations}
-                          endValue={newCollateralObligations}
-                          error={!!aprError}
-                          type="percentage"
-                        />
-                      )}
-                    </ModalDataItem>
-
-                    <ModalDataItem
-                      title={t("common.fields.reserveRatio")}
-                      value={`${newReserveRatio ?? currentReserveRatio}%`}
-                      valueColor={
-                        !aprError &&
-                        newReserveRatio &&
-                        newReserveRatio !== currentReserveRatio
-                          ? COLORS.bunker
-                          : COLORS.santasGrey
-                      }
-                    >
-                      {newReserveRatio && (
-                        <DifferenceChip
-                          startValue={currentReserveRatio}
-                          endValue={newReserveRatio}
-                          error={!!aprError}
-                          type="difference"
-                        />
-                      )}
-                    </ModalDataItem>
-
-                    {showRatioTimer && (
-                      <Typography
-                        variant="text4"
-                        color={COLORS.santasGrey}
-                        sx={{
-                          marginLeft: "auto",
-                          marginTop: "4px",
-                          marginBottom: "4px",
-                        }}
-                      >
-                        {`${t(
-                          "marketDetails.borrower.modals.apr.willSetTemporarily",
-                        )} ${twoWeeksTime}`}
-                      </Typography>
-                    )}
-
-                    {tempReserveRatio && (
-                      <Typography
-                        variant="text4"
-                        color={COLORS.santasGrey}
-                        sx={{
-                          marginLeft: "auto",
-                          marginBottom: "4px",
-                        }}
-                      >
-                        {`${t(
-                          "marketDetails.borrower.modals.apr.setTemporarily",
-                        )} ${reserveRatioExpiry}`}
-                      </Typography>
-                    )}
-                  </Box>
-                )}
+                      {`${t(
+                        "marketDetails.borrower.modals.apr.setTemporarily",
+                      )} ${reserveRatioExpiry}`}
+                    </Typography>
+                  )}
+                </Box>
 
                 {needsReset && (
                   <DepositAlert
@@ -650,7 +649,9 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
             {modal.approvedStep && (
               <Box sx={AprModalConfirmedBox}>
                 <ModalDataItem
-                  title={newAprLabel}
+                  title={
+                    isPeriodicAprReduction ? proposedAprLabel : newAprLabel
+                  }
                   value={`${apr}%`}
                   containerSx={{ marginBottom: "16px" }}
                 >
@@ -665,9 +666,15 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                 </ModalDataItem>
 
                 <ModalDataItem
-                  title={t(
-                    "marketDetails.borrower.modals.apr.newCollateralObligation",
-                  )}
+                  title={
+                    isPeriodicAprReduction
+                      ? t(
+                          "marketDetails.borrower.modals.apr.collateralObligation",
+                        )
+                      : t(
+                          "marketDetails.borrower.modals.apr.newCollateralObligation",
+                        )
+                  }
                   value={
                     newCollateralObligations ?? currentCollateralObligations
                   }
@@ -691,9 +698,11 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
                 </ModalDataItem>
 
                 <ModalDataItem
-                  title={t(
-                    "marketDetails.borrower.modals.apr.newReservedRatio",
-                  )}
+                  title={
+                    isPeriodicAprReduction
+                      ? t("common.fields.reserveRatio")
+                      : t("marketDetails.borrower.modals.apr.newReservedRatio")
+                  }
                   value={`${newReserveRatio ?? currentReserveRatio}%`}
                   valueColor={
                     !aprError &&

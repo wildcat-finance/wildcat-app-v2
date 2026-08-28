@@ -36,11 +36,12 @@ export const getRecordText = (
   lenderNames: { [key: string]: string },
   borrowerName: string,
   raw = false,
+  aprName = "Base APR",
 ): string => {
   const fmt = raw ? formatAmountRaw : formatAmountDisplay
 
   if (record.__typename === "AnnualInterestBipsUpdated") {
-    return `Base APR changed from ${record.oldAnnualInterestBips / 100}% to ${
+    return `${aprName} changed from ${record.oldAnnualInterestBips / 100}% to ${
       record.newAnnualInterestBips / 100
     }%`
   }
@@ -123,7 +124,7 @@ export const getRecordText = (
     const start = timestampToDateFormatted(record.responseWindowStart)
     const end = timestampToDateFormatted(record.responseWindowEnd)
 
-    return `Base APR reduction proposed to ${
+    return `${aprName} reduction proposed to ${
       record.annualInterestBips / 100
     }%; lender response window ${start} to ${end}`
   }

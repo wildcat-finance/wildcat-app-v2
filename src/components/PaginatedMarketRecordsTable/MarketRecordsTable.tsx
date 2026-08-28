@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next"
 
 import { TableStyles } from "@/app/[locale]/borrower/edit-lenders-list/components/ConfirmLendersForm/style"
 import { useBorrowerNameOrAddress } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
+import { getMarketAprCopy } from "@/components/market-implementation-variants"
 import { MobileMarketRecordItem } from "@/components/Mobile/MobileMarketRecordItem"
 import { TablePagination } from "@/components/TablePagination"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
@@ -33,6 +34,7 @@ export function MarketRecordsTable({
   const name = useBorrowerNameOrAddress(market.borrower)
   const { t } = useTranslation()
   const isMobile = useMobileResolution()
+  const { aprRecordName } = getMarketAprCopy(market)
 
   const lendersName: { [key: string]: string } = JSON.parse(
     localStorage.getItem("lenders-name") || "{}",
@@ -80,8 +82,20 @@ export function MarketRecordsTable({
       align: "right",
       sortable: false,
       renderCell: (params) => {
-        const rawText = getRecordText(params.row, lendersName, name, true)
-        const displayText = getRecordText(params.row, lendersName, name)
+        const rawText = getRecordText(
+          params.row,
+          lendersName,
+          name,
+          true,
+          aprRecordName,
+        )
+        const displayText = getRecordText(
+          params.row,
+          lendersName,
+          name,
+          false,
+          aprRecordName,
+        )
         return (
           <Tooltip title={rawText} placement="right" arrow>
             <Typography variant="text3">{displayText}</Typography>
@@ -154,6 +168,7 @@ export function MarketRecordsTable({
               lenderNames={lendersName}
               borrowerName={name}
               txUrl={getTxUrl(r.transactionHash)}
+              aprName={aprRecordName}
               isLast={index === (records?.length ?? 0) - 1}
             />
           ))}
