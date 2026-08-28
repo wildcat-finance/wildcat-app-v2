@@ -617,7 +617,6 @@
       "percent": "%"
     },
     "yesNo": {
-      "na": "N/A",
       "no": "No",
       "yes": "Yes"
     }
@@ -1291,7 +1290,6 @@
       }
     },
     "effectiveAPR": "Effective Lender APR",
-    "fixedTermOnlyTooltip": "This setting applies only to Fixed Term markets.",
     "hooks": {
       "hooksAddress": "Policy (Hook Instance) Address",
       "title": "Market Hooks",
