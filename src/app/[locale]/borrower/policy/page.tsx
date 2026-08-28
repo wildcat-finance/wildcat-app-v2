@@ -29,6 +29,7 @@ import { lh, pxToRem } from "@/theme/units"
 import { pageCalcHeights } from "@/utils/constants"
 import { hasActiveLenderOnboardingRoleProvider } from "@/utils/marketCapabilities"
 import { mergePolicyLenderAccess } from "@/utils/policyLenderAccess"
+import { shouldSyncPolicyLenderDraft } from "@/utils/policyLenderDraft"
 
 import { SmallFilterSelectItem } from "../../../../components/SmallFilterSelect"
 
@@ -123,9 +124,10 @@ export default function PolicyPage() {
   const dispatch = useAppDispatch()
 
   const lendersList = useAppSelector((state) => state.policyLenders.lenders)
+  const shouldSyncLenders = shouldSyncPolicyLenderDraft(lendersList)
 
   useEffect(() => {
-    if (lenders) {
+    if (lenders && shouldSyncLenders) {
       const lendersData = lenders.map((lender) => ({
         id: lender.address,
         address: lender.address,
@@ -134,12 +136,10 @@ export default function PolicyPage() {
         accessSources: lender.sources,
       }))
 
-      if (lendersList.length === 0) {
-        dispatch(setPolicyLenders(lendersData))
-      }
+      dispatch(setPolicyLenders(lendersData))
       dispatch(setInitialPolicyLenders(lendersData))
     }
-  }, [dispatch, lenders, lendersList.length])
+  }, [dispatch, lenders, shouldSyncLenders])
 
   useEffect(
     () => () => {

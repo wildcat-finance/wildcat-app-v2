@@ -31,6 +31,7 @@ import {
   mergePolicyLenderAccess,
   POLICY_LENDER_ACCESS_SOURCE_KEY,
 } from "@/utils/policyLenderAccess"
+import { shouldSyncPolicyLenderDraft } from "@/utils/policyLenderDraft"
 
 import { ConfirmLendersForm } from "./components/ConfirmLendersForm"
 import { EditLendersForm } from "./components/EditLendersForm"
@@ -52,6 +53,7 @@ export default function EditPolicyPage() {
   const lendersTableData = useAppSelector(
     (state) => state.editPolicy.lendersTableData,
   )
+  const shouldSyncLenders = shouldSyncPolicyLenderDraft(lendersTableData)
   const [originalPolicyName, setOriginalPolicyName] = React.useState("")
   const [hooksKind, setHooksKind] = React.useState<HooksKind | undefined>()
   const [version, setVersion] = React.useState<MarketVersion | undefined>()
@@ -127,12 +129,12 @@ export default function EditPolicyPage() {
         }),
       )
 
-      dispatch(setInitialPolicyLendersTableData(formattedLendersData))
-      if (lendersTableData.length === 0) {
+      if (shouldSyncLenders) {
+        dispatch(setInitialPolicyLendersTableData(formattedLendersData))
         dispatch(setPolicyLendersTableData(formattedLendersData))
       }
     }
-  }, [data, dispatch, lendersTableData.length, t])
+  }, [data, dispatch, shouldSyncLenders, t])
 
   useEffect(() => {
     if (originalPolicyName && pendingPolicyName === "") {
