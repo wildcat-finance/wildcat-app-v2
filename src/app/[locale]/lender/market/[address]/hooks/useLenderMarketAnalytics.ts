@@ -32,7 +32,7 @@ export const sumLenderWithdrawalsExecuted = (
 export function useLenderMarketAnalytics(
   market: Market | undefined,
   lenderAddress: `0x${string}` | undefined,
-  enabled = true,
+  extendedAnalyticsEnabled = true,
 ): LenderMarketAnalytics {
   const marketAddress = market?.address.toLowerCase()
   const lender = lenderAddress?.toLowerCase()
@@ -49,7 +49,7 @@ export function useLenderMarketAnalytics(
         market?.chainId ?? 0,
         marketAddress,
       ),
-      enabled: enabled && !!marketAddress && analyticsConfigured,
+      enabled: !!marketAddress && analyticsConfigured,
       refetchInterval: 60_000,
       refetchOnMount: false,
       staleTime: 60_000,
@@ -78,7 +78,11 @@ export function useLenderMarketAnalytics(
         marketAddress,
         lender,
       ),
-      enabled: enabled && !!marketAddress && !!lender && analyticsConfigured,
+      enabled:
+        extendedAnalyticsEnabled &&
+        !!marketAddress &&
+        !!lender &&
+        analyticsConfigured,
       refetchInterval: 60_000,
       refetchOnMount: false,
       staleTime: 60_000,
