@@ -27,20 +27,24 @@ export const useLiveNowSeconds = (
   return enabled ? tickNowSec : Date.now() / 1000
 }
 
-/**
- * `useLiveNowSeconds` pre-wired for a periodic-term market: ticks only while
- * the market has an active recurring schedule (periodic, not term-closed, not
- * market-closed).
- */
-export const useLivePeriodicNowSeconds = (market: {
+type PeriodicClockMarket = {
   isClosed: boolean
   periodicHooksConfig?: {
     periodDuration: number
     periodicTermClosed: boolean
   }
-}): number =>
-  useLiveNowSeconds(
-    !!market.periodicHooksConfig?.periodDuration &&
-      !market.periodicHooksConfig.periodicTermClosed &&
-      !market.isClosed,
-  )
+}
+
+export const hasLivePeriodicClock = (market: PeriodicClockMarket): boolean =>
+  !!market.periodicHooksConfig?.periodDuration &&
+  !market.periodicHooksConfig.periodicTermClosed &&
+  !market.isClosed
+
+/**
+ * `useLiveNowSeconds` pre-wired for a periodic-term market: ticks only while
+ * the market has an active recurring schedule (periodic, not term-closed, not
+ * market-closed).
+ */
+export const useLivePeriodicNowSeconds = (
+  market: PeriodicClockMarket,
+): number => useLiveNowSeconds(hasLivePeriodicClock(market))

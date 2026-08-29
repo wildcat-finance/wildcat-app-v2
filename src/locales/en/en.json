@@ -725,6 +725,7 @@
       "insufficientBalanceRepayRemainingDebts": "Insufficient balance to repay remaining debts.",
       "label": {
         "availableGracePeriod": "Available Grace Period",
+        "elapsedPenaltyTime": "Time With Delinquency Fees",
         "remainingTime": "Remaining Time With Delinquency Fees"
       },
       "lendersCurrentlyMarket": "Lenders Currently in the Market",
