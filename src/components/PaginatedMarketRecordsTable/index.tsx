@@ -86,6 +86,12 @@ export function PaginatedMarketRecordsTable({
     },
     !isLoading && Boolean(data?.records?.length),
   )
+  const visibleRecordRange = data?.records.length
+    ? {
+        from: page * pageSize + 1,
+        to: page * pageSize + data.records.length,
+      }
+    : undefined
   const options = MARKET_RECORD_FILTERS
 
   const handleChange = (o: MarketRecordFilterOption, checked: boolean) => {
@@ -528,6 +534,24 @@ export function PaginatedMarketRecordsTable({
         setPageSize={setPageSize}
         rowCount={data?.totalRecords}
       />
+
+      {visibleRecordRange && (
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Typography variant="text3">
+            {t("marketDetails.shared.records.paginationRange", {
+              from: visibleRecordRange.from,
+              to: visibleRecordRange.to,
+            })}
+          </Typography>
+        </Box>
+      )}
     </>
   )
 }

@@ -1190,7 +1190,8 @@
         "searchId": "Search by ID",
         "exportCsv": "Export CSV",
         "exportFailed": "Could not export market history",
-        "exporting": "Exporting..."
+        "exporting": "Exporting...",
+        "paginationRange": "Viewing records {{from}} to {{to}}"
       },
       "sidebar": {
         "marketHistory": "Market History"
