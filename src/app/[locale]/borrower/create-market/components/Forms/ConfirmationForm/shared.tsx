@@ -80,7 +80,7 @@ const PreviewMlaModal = ({
   )
   return (
     <MlaModal
-      mla={mla}
+      mla={mla ? { html: mla.htmlWithPlaceholders } : mla}
       onSign={() => {
         onSign?.({
           form,
