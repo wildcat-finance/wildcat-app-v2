@@ -1335,10 +1335,10 @@
       "label": "Deposit Access",
       "open": {
         "text": "Open Deposits",
-        "tooltip": "Anyone can lend to this market."
+        "tooltip": "Anyone can deposit without prior approval. Standard sanctions screening still applies."
       },
       "restricted": {
-        "tooltip": "Lenders must meet specific criteria to lend to this market."
+        "tooltip": "Only lenders approved by the market's managed access controls can deposit."
       }
     },
     "effectiveAPR": "Effective Lender APR",
@@ -1377,11 +1377,11 @@
       },
       "open": {
         "text": "Open",
-        "tooltip": "Deposits do not require an access credential."
+        "tooltip": "Deposits do not require an access credential. Standard sanctions screening still applies."
       },
       "self": {
         "text": "Lender Self-Onboarding",
-        "tooltip": "Lenders can satisfy the configured access provider without prior approval."
+        "tooltip": "Lenders can satisfy the configured access provider without prior approval. Standard sanctions screening still applies."
       },
       "unknown": {
         "text": "Unknown",
@@ -1523,10 +1523,10 @@
       "label": "Withdrawal Access",
       "open": {
         "text": "Open Withdrawals",
-        "tooltip": "Anyone can request withdrawals."
+        "tooltip": "Anyone holding market tokens can request a withdrawal, subject to the market's term or withdrawal-window rules."
       },
       "restricted": {
-        "tooltip": "Lenders who have not directly deposited must meet specific criteria to withdraw."
+        "tooltip": "Only approved or previously authorized lenders can request withdrawals, subject to the market's term or withdrawal-window rules."
       }
     },
     "wrappedToken": "Wrapped Token",
