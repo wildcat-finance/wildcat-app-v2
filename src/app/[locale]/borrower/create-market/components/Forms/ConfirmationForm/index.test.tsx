@@ -7,16 +7,23 @@ import { MarketValidationSchemaType } from "@/app/[locale]/borrower/create-marke
 
 import { LegacyConfirmationForm } from "./LegacyConfirmationForm"
 
+const mockUsePreviewMlaFromForm = jest.fn()
+const mockMlaModal = jest.fn<null, [props: { mla?: { html: string } | null }]>()
+
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }))
 
 jest.mock("@/app/[locale]/borrower/hooks/mla/usePreviewMla", () => ({
-  usePreviewMlaFromForm: () => ({ data: undefined, isLoading: false }),
+  usePreviewMlaFromForm: (...args: unknown[]) =>
+    mockUsePreviewMlaFromForm(...args),
 }))
 
 jest.mock("@/app/[locale]/borrower/components/MlaModal", () => ({
-  MlaModal: () => null,
+  MlaModal: (props: { mla?: { html: string } | null }) => {
+    mockMlaModal(props)
+    return null
+  },
 }))
 
 jest.mock("@/assets/icons/arrowLeft_icon.svg", () => ({
@@ -33,7 +40,15 @@ jest.mock("@/store/hooks", () => ({
   useAppDispatch: () => jest.fn(),
 }))
 
-describe("ConfirmationForm access-control signature guard", () => {
+describe("ConfirmationForm", () => {
+  beforeEach(() => {
+    mockUsePreviewMlaFromForm.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+    })
+    mockMlaModal.mockClear()
+  })
+
   it("keeps review actions locked behind the deployment dialog", () => {
     const formValues = {
       accessControl: "defaultPullProvider",
@@ -164,5 +179,66 @@ describe("ConfirmationForm access-control signature guard", () => {
     fireEvent.click(deployButton)
     expect(handleDeploy).toHaveBeenCalledTimes(1)
     expect(onClickSign).not.toHaveBeenCalled()
+  })
+
+  it("keeps lender identity as a placeholder in borrower MLA previews", () => {
+    const borrowerAddress = "0x0000000000000000000000000000000000000001"
+    const placeholderHtml = `<p>${borrowerAddress}</p><p>[Insert Lender Address]</p>`
+    mockUsePreviewMlaFromForm.mockReturnValue({
+      data: {
+        html: `<p>${borrowerAddress}</p><p>{{lender.address}}</p>`,
+        htmlWithPlaceholders: placeholderHtml,
+      },
+      isLoading: false,
+    })
+
+    const formValues = {
+      accessControl: "defaultPullProvider",
+      policy: "createNewPolicy",
+      policyName: "Test Policy",
+      marketType: "standard",
+      mla: "1",
+      namePrefix: "Demo ",
+      symbolPrefix: "DEMO",
+      withdrawalRequiresAccess: false,
+      transferRequiresAccess: false,
+      disableTransfers: false,
+      allowForceBuyBack: false,
+      allowTermReduction: false,
+    } as unknown as MarketValidationSchemaType
+    const form = {
+      getValues: jest.fn((field?: keyof MarketValidationSchemaType) =>
+        field ? formValues[field] : formValues,
+      ),
+    } as unknown as UseFormReturn<MarketValidationSchemaType>
+
+    render(
+      <LegacyConfirmationForm
+        form={form}
+        tokenAsset={undefined}
+        borrowerProfile={undefined}
+        handleDeploy={jest.fn()}
+        salt="0x01"
+        timeSigned={1}
+        onClickSign={jest.fn()}
+        onDiscardSignature={() => true}
+        signatureRequested={false}
+        paramsChangedSinceSigning={false}
+        isSigning={false}
+        isDeployReady={false}
+        isDeployDialogOpen={false}
+        mlaSignature={undefined}
+      />,
+    )
+
+    const previewDocuments = mockMlaModal.mock.calls
+      .map(([props]) => props)
+      .filter(({ mla }) => mla !== undefined)
+
+    expect(previewDocuments.length).toBeGreaterThan(0)
+    previewDocuments.forEach(({ mla }) => {
+      expect(mla?.html).toBe(placeholderHtml)
+      expect(mla?.html).not.toContain("{{lender.address}}")
+    })
   })
 })
