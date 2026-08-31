@@ -59,6 +59,7 @@ import {
 } from "@/utils/comparators"
 import { filterMarketAccounts } from "@/utils/filters"
 import {
+  buildBorrowerProfileHref,
   buildMarketHref,
   formatBps,
   formatSecsToHours,
@@ -496,7 +497,10 @@ export const ExploreMarketsTable = () => {
             </Link>
             {params.row.borrowerAddress ? (
               <Link
-                href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+                href={buildBorrowerProfileHref(
+                  params.row.borrowerAddress,
+                  params.row.chainId,
+                )}
                 prefetch={false}
                 onClick={(e: React.MouseEvent) => e.stopPropagation()}
                 style={{ display: "flex", textDecoration: "none" }}
@@ -708,7 +712,10 @@ export const ExploreMarketsTable = () => {
               )}
               {action === LenderMarketAction.RequestAccess && (
                 <Link
-                  href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+                  href={buildBorrowerProfileHref(
+                    params.row.borrowerAddress,
+                    params.row.chainId,
+                  )}
                   prefetch={false}
                   onClick={(e: React.MouseEvent) => e.stopPropagation()}
                   style={{ textDecoration: "none" }}

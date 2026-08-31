@@ -20,6 +20,7 @@ import { Trans } from "@/components/Translation"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import {
+  buildBorrowerProfileHref,
   buildMarketHref,
   formatBps,
   formatSecsToHours,
@@ -453,7 +454,13 @@ export const MobileMarketCard = ({
               size="medium"
               href={
                 marketItem.borrowerAddress
-                  ? `${ROUTES.lender.profile}/${marketItem.borrowerAddress}`
+                  ? buildBorrowerProfileHref(
+                      marketItem.borrowerAddress,
+                      marketItem.chainId,
+                      baseRoute === ROUTES.borrower.market
+                        ? "borrower"
+                        : undefined,
+                    )
                   : undefined
               }
             />
