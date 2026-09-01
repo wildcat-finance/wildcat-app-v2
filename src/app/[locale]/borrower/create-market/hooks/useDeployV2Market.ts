@@ -49,6 +49,7 @@ import {
 import { confirmMarketDeployment } from "@/utils/marketDeploymentReceipt"
 import { invalidateMarketListQueries } from "@/utils/marketListQueries"
 import {
+  assertTransactionSucceeded,
   SafeTransactionTerminalError,
   waitForSafeTransactionExecution,
 } from "@/utils/transactions"
@@ -127,7 +128,7 @@ export const useDeployV2Market = () => {
       throw Error("Safe transaction receipt is not available yet")
     }
     receipt.transactionHash = txHash
-    return receipt
+    return assertTransactionSucceeded(receipt, txHash)
   }
 
   const [deployed, setDeployed] = useState<

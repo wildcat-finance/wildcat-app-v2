@@ -12,7 +12,10 @@ import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { WRAPPER_TRANSFERS_DISABLED_ERROR } from "@/utils/createMarketDeploy"
-import { waitForSafeTransactionExecution } from "@/utils/transactions"
+import {
+  assertTransactionSucceeded,
+  waitForSafeTransactionExecution,
+} from "@/utils/transactions"
 
 type UseCreateWrapperParams = {
   market: Market | undefined
@@ -72,7 +75,10 @@ export const useCreateWrapper = ({
           sdk,
           safeTxHash,
         )
-        await sdk.eth.getTransactionReceipt([transactionHash])
+        assertTransactionSucceeded(
+          await sdk.eth.getTransactionReceipt([transactionHash]),
+          transactionHash,
+        )
         return transactionHash
       }
 

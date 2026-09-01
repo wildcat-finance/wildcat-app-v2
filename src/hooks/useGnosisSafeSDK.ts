@@ -6,6 +6,8 @@ import SafeAppsSDK, {
 } from "@safe-global/safe-apps-sdk"
 import { useAccount, useConnectorClient } from "wagmi"
 
+import { assertTransactionSucceeded } from "@/utils/transactions"
+
 export type GnosisSafeHook = {
   isConnectedToSafe: boolean
   sdk?: SafeAppsSDK
@@ -58,7 +60,7 @@ export function useGnosisSafeSDK(): GnosisSafeHook {
       if (tx) {
         tx.transactionHash = txHash
       }
-      return tx
+      return assertTransactionSucceeded(tx, txHash)
     })
   }
 

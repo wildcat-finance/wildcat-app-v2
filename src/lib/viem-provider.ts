@@ -12,6 +12,11 @@ import type {
   WalletClient,
 } from "viem"
 
+import {
+  assertTransactionSucceeded,
+  getBufferedGasLimit,
+} from "@/utils/transactions"
+
 type RpcRequestArgs = {
   method: string
   params?: unknown
@@ -95,8 +100,12 @@ export const createViemProvider = (
     getCode: async (address) =>
       (await publicClient.getBytecode({ address: address as Address })) ?? "0x",
     getBlockNumber: async () => Number(await publicClient.getBlockNumber()),
-    waitForTransaction: (hash) =>
-      publicClient.waitForTransactionReceipt({ hash: hash as Hash }),
+    waitForTransaction: async (hash) => {
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash: hash as Hash,
+      })
+      return assertTransactionSucceeded(receipt, hash)
+    },
   }
 }
 
@@ -127,12 +136,17 @@ export const createViemSigner = ({
         message,
       }),
     sendTransaction: async ({ to, data, value }) => {
-      const hash = await walletClient.sendTransaction({
+      const request = {
         account,
-        chain,
         to: to as Address | undefined,
         data: data as Hex | undefined,
         value: normalizeValue(value),
+      }
+      const estimatedGas = await publicClient.estimateGas(request)
+      const hash = await walletClient.sendTransaction({
+        chain,
+        ...request,
+        gas: getBufferedGasLimit(estimatedGas),
       })
       return {
         hash,
