@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { Market } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import { toastRequest } from "@/components/Toasts"
 import { NoWrapperState } from "@/components/WrapDebtToken/NoWrapperState"
@@ -17,6 +18,7 @@ export const WrapperDeployment = ({
   hasFactory,
   isDifferentChain,
 }: WrapperDeploymentProps) => {
+  const { t } = useTranslation()
   const {
     canCreateWrapper,
     transfersDisabled,
@@ -38,7 +40,7 @@ export const WrapperDeployment = ({
       disableCreateWrapper={!canCreateWrapper}
       statusMessage={
         transfersDisabled
-          ? "Wrappers are not available when market transfers are disabled."
+          ? t("marketDetails.lender.wrapDebtToken.transfersDisabled")
           : undefined
       }
     />

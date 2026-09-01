@@ -218,7 +218,7 @@ export const ToUReacceptanceModal = () => {
             <>
               <Loader />
               <Typography variant="text3" color={COLORS.santasGrey}>
-                Checking Terms of Use status...
+                {t("agreement.reacceptance.checking")}
               </Typography>
             </>
           ) : (
@@ -310,8 +310,7 @@ export const ToUReacceptanceModal = () => {
     touParty === "Borrower" ? "new markets and borrowing" : "deposits"
   let description = ""
   if (needsBorrowerInvitation) {
-    description =
-      "Complete the borrower invitation to accept the Wildcat Terms of Use for this account."
+    description = t("agreement.reacceptance.borrowerInvitationRequired")
   } else if (view === "decline") {
     description =
       `You are declining Terms of Use ${newVersionLabel}. Your decline is ` +
@@ -570,7 +569,9 @@ export const ToUReacceptanceModal = () => {
               disabled={isBusy || !accept.isReady || isWrongNetwork}
               fullWidth
             >
-              {accept.isPending ? "Signing..." : "Sign Terms of Use"}
+              {accept.isPending
+                ? t("common.buttons.signing")
+                : t("agreement.signButton.reaccept")}
             </Button>
             {!isDeclined && (
               <Button
@@ -606,7 +607,9 @@ export const ToUReacceptanceModal = () => {
               disabled={isBusy || !decline.isReady || isWrongNetwork}
               fullWidth
             >
-              {decline.isPending ? "Signing..." : "Sign Decline"}
+              {decline.isPending
+                ? t("common.buttons.signing")
+                : t("agreement.reacceptance.signDecline")}
             </Button>
           </>
         )}

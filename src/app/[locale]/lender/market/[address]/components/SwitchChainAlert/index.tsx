@@ -91,7 +91,7 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
           onClick={handleSwitchChain}
           disabled={isSwitching}
         >
-          {isSwitching ? "Switching..." : "Switch Network"}
+          {isSwitching ? t("auth.switching") : t("auth.switchNetwork")}
         </Button>
       </>
     )
@@ -124,7 +124,7 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
           onClick={handleSwitchChain}
           disabled={isSwitching}
         >
-          {isSwitching ? "Switching..." : "Switch Network"}
+          {isSwitching ? t("auth.switching") : t("auth.switchNetwork")}
         </Button>
       </Box>
     </Box>

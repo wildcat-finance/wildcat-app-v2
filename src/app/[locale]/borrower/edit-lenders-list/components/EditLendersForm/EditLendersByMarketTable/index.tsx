@@ -186,7 +186,7 @@ export const EditLendersByMarketTable = () => {
             >
               {lendersNames[params.row.address.toLowerCase()] ===
               ("" || undefined)
-                ? "Add name"
+                ? t("borrower.editLenders.addName")
                 : lendersNames[params.row.address.toLowerCase()]}
             </Typography>
           )}

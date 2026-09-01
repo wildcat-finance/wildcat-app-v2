@@ -22,11 +22,14 @@ import { CancelInviteModal } from "../CancelInviteModal"
 import { InviteBorrowerModal } from "../InviteBorrowerModal"
 
 const RegisterBorrowerButton = ({ address }: { address: string }) => {
+  const { t } = useTranslation()
   const { mutate, isPending } = useRegisterTestnetBorrower()
 
   return (
     <Button variant="outlined" onClick={() => mutate(address)}>
-      {isPending ? "Registering..." : "Register"}
+      {isPending
+        ? t("admin.borrowers.registering")
+        : t("admin.borrowers.register")}
     </Button>
   )
 }

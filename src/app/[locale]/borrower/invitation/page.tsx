@@ -82,7 +82,9 @@ const BorrowerInvitationPage = () => {
             onClick={() => login.mutate(address)}
             disabled={login.isPending}
           >
-            {login.isPending ? "Signing in..." : "Sign in"}
+            {login.isPending
+              ? t("borrower.invitation.signingIn")
+              : t("borrower.invitation.signIn")}
           </Button>
         }
       />

@@ -218,7 +218,11 @@ export const SharedConfirmationForm = ({
       >
         <ConfirmationFormItem
           label={t("borrower.createMarket.policy.title")}
-          value={isNewPolicy ? "NEW POLICY" : "EXISTING POLICY"}
+          value={
+            isNewPolicy
+              ? t("borrower.createMarket.policy.newPolicy")
+              : t("borrower.createMarket.policy.existingPolicy")
+          }
         />
 
         <ConfirmationFormItem

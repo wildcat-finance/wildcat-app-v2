@@ -2,7 +2,9 @@
   "admin": {
     "borrowers": {
       "pendingRegistration": "Pending Registration",
-      "registeredTitle": "Registered Borrowers"
+      "register": "Register",
+      "registeredTitle": "Registered Borrowers",
+      "registering": "Registering..."
     },
     "editBorrower": {
       "description": "Edit borrower's profile details.",
@@ -46,12 +48,16 @@
       "title": "Wildcat Terms Of Use",
       "toasts": {
         "submitFailed": "Failed to submit TOU signature."
-      }
+      },
+      "unavailable": "Current Terms of Use are not available."
     },
     "reacceptance": {
+      "borrowerInvitationRequired": "Complete the borrower invitation to accept the Wildcat Terms of Use for this account.",
+      "checking": "Checking Terms of Use status...",
       "completeBorrowerInvitation": "Complete Borrower Invitation",
       "couldnTVerifyTermsUse": "Couldn’t verify your Terms of Use status. Check your connection and selected network, then retry.",
       "reasonOptional": "Reason (optional)",
+      "signDecline": "Sign Decline",
       "signingAs": "Signing as:",
       "toasts": {
         "accepted": "Terms of Use accepted.",
@@ -63,17 +69,20 @@
     },
     "signButton": {
       "reaccept": "Sign Terms of Use",
-      "sign": "Sign And Continue",
-      "signing": "Signing..."
+      "sign": "Sign And Continue"
     }
   },
   "auth": {
+    "adminAccessDenied": "This account does not have admin access on the selected network.",
+    "adminLoginRequired": "Log in with your wallet to access the admin panel.",
     "connectWalletContinue": "Connect your wallet to continue",
     "notAdmin": "You are not an admin",
     "selectNetwork": "Select Network",
     "sessionExpired": "Session expired",
     "switchNetwork": "Switch Network",
-    "switchNetworkToExplore": "Switch to {{network}} to explore the markets."
+    "switchNetworkToExplore": "Switch to {{network}} to explore the markets.",
+    "switching": "Switching...",
+    "walletRequired": "Connect your wallet to continue."
   },
   "borrower": {
     "createMarket": {
@@ -209,6 +218,7 @@
           "explainer": "Allows you to terminate a market before it reaches maturity.",
           "label": "Permit Early Termination"
         },
+        "existingPolicy": "EXISTING POLICY",
         "expiration": {
           "glossary": "The date the fixed loan term ends. Lenders cannot queue withdrawals until this maturity date passes.",
           "label": "Fixed Term Maturity Date [00:00 UTC]"
@@ -220,6 +230,7 @@
           "glossary": "Unique identifier for this reusable market rule-set.",
           "placeholder": "Input Policy Name"
         },
+        "newPolicy": "NEW POLICY",
         "periodic": {
           "firstWindowStart": {
             "label": "First Withdrawal Window [UTC]",
@@ -285,6 +296,7 @@
       }
     },
     "editLenders": {
+      "addName": "Add name",
       "confirm": "Confirm Changes To Lender List",
       "for": " for",
       "forms": {
@@ -318,6 +330,7 @@
         }
       },
       "lenders": "Policy Lenders",
+      "manuallyAdding": "Manually adding",
       "markets": "Policy Markets",
       "policyDetails": "Policy Details",
       "policyType": "Policy Type",
@@ -336,8 +349,11 @@
       "loadingInvitation": "Loading invitation",
       "nameHelper": "This name is appended to the signed Terms of Use acknowledgement and recorded as the <1>borrower organization</1> accepting the invitation.",
       "noInvitationFound": "No invitation found",
+      "signAccept": "Sign & Accept",
+      "signIn": "Sign in",
       "signInvitedWalletViewAccept": "Sign in with the invited wallet to view and accept your borrower invitation.",
       "signRequired": "Sign in required",
+      "signingIn": "Signing in...",
       "walletDoesNotCurrentlyHave": "This wallet does not currently have a borrower invitation."
     },
     "policies": {
@@ -350,6 +366,7 @@
           "pending": "Pending",
           "unknown": "Unknown"
         },
+        "noActive": "No Active Lenders",
         "notEditableNotice": "This policy's lender provider cannot be edited here.",
         "selfOnboardNotice": "Lenders onboard themselves to this policy, so there is no allowlist to edit."
       },
@@ -357,7 +374,9 @@
       "lendersWereEdited": "Lenders were edited!",
       "lendersWereSuccessfullyEditedRest": "Lenders were successfully edited: the rest is up to you!",
       "policyInfo": "Policy Info",
-      "transactionProcess": "Transaction in process."
+      "transactionFailed": "Transaction failed",
+      "transactionProcess": "Transaction in process.",
+      "waitASecond": "Wait a second..."
     },
     "profile": {
       "edit": {
@@ -503,6 +522,9 @@
       "add": "Add",
       "addName": "Add Name",
       "apply": "Apply",
+      "approve": "Approve",
+      "approved": "Approved",
+      "approving": "Approving",
       "back": "Back",
       "cancel": "Cancel",
       "clear": "Clear",
@@ -528,6 +550,7 @@
       "save": "Save",
       "search": "Search",
       "signMla": "Sign MLA",
+      "signing": "Signing...",
       "submit": "Submit",
       "termsUseStatus": "Terms of Use status",
       "tryAgain": "Try Again",
@@ -612,11 +635,13 @@
       "addNewLender": "Add a new lender",
       "aggregateKpisUnavailableNetwork": "Aggregate KPIs unavailable on this network",
       "annualPercentageRateChargedUndrawn": "The annual percentage rate charged on undrawn deposited capital in a revolving market.",
+      "ascending": "Ascending",
       "borrower": "Borrower",
       "borrowerName": "Borrower name",
       "confirmation": "Confirmation",
       "connectWallet": "Connect Wallet",
       "deposit": "Deposit",
+      "descending": "Descending",
       "durationBorrowersHaveResolveReserve": "The duration borrowers have to resolve reserve deficiencies or correct delinquency in the market before penalties take effect.",
       "erc20TokenUsedAll": "The ERC-20 token used for all transactions in the market, such as Wrapped Ether (WETH) or USDC.",
       "filters": "Filters",
@@ -647,6 +672,7 @@
       "borrowerHandle": "borrower_profile",
       "dateExample": "01/02/1980",
       "dateExampleHint": "e.g. 25/12/2024",
+      "enterName": "Enter name",
       "lenders": "Lenders",
       "markets": "Markets",
       "pleaseSelect": "Please Select",
@@ -664,6 +690,7 @@
       "noMarketDescription": "No market description found.",
       "noMarketsOnNetwork": "No Wildcat Markets On This Network",
       "noMatchingLenders": "No Matching Lenders",
+      "removed": "Removed",
       "time": {
         "oneYear": "one year",
         "twoYears": "two years"
@@ -695,6 +722,7 @@
     },
     "connect": "Connect",
     "help": "Help",
+    "mainnet": "Mainnet",
     "modal": {
       "mobileNote": "By connecting your wallet, you consent to the <1>Wildcat Privacy Policy</1>.",
       "note": "By connecting your wallet, you consent to the Wildcat Privacy Policy.",
@@ -824,9 +852,8 @@
         },
         "repay": {
           "afterTransaction": " After This",
-          "approve": "Approve",
-          "approved": "Approved",
           "daysSubtitle": " Number of additional days to cover interest and fees",
+          "exceedsBalance": "Amount exceeds wallet balance. You can still approve for future use",
           "interestRemaining": "Interest Remaining For",
           "repay": "Repay",
           "repaySum": "Amount To Repay",
@@ -845,6 +872,7 @@
           "consequences": "Once the market is terminated, you cannot adjust any parameters or borrow further.",
           "debts": "Debts",
           "remainingDebt": "Remaining Debt",
+          "repayAndTerminate": "Repay and Terminate",
           "repayRemaining": "You need to repay all outstanding debt before/when terminating a market.",
           "terminateMarket": "Terminate Market",
           "totalAssets": "Total Assets In Market"
@@ -881,6 +909,10 @@
           "title": "To Be Repaid",
           "tooltip": "The sum of all borrowed funds plus accrued interest/fees that a borrower must return to the market."
         }
+      },
+      "wrapper": {
+        "checkingStatus": "Checking wrapper status...",
+        "loadingDetails": "Loading wrapper details..."
       }
     },
     "lender": {
@@ -977,9 +1009,12 @@
       "marketCanRepaidEarlyClose": "The market can be repaid early to close",
       "marketSDurationCanShorten": "The market’s duration can be shorten",
       "modals": {
+        "acknowledgement": {
+          "button": "Acknowledge",
+          "loading": "Loading acknowledgement...",
+          "profileUnavailable": "Borrower profile is unavailable."
+        },
         "deposit": {
-          "approve": "Approve",
-          "approved": "Approved",
           "checkingBorrowerHistory": "Checking borrower withdrawal history...",
           "fixedTermLock": "This is a fixed-term market: funds are locked until <1>{{maturity}}</1>",
           "gate": {
@@ -1174,6 +1209,9 @@
         "subtitle": "This market doesn't have a wrapper contract yet.",
         "title": "No wrapper deployed",
         "tokensAgain": "Tokens again",
+        "transfersDisabled": "Wrappers are not available when market transfers are disabled.",
+        "unwrapTokens": "Unwrap Tokens",
+        "unwrapping": "Unwrapping",
         "viewEtherscan": "View on Etherscan",
         "whatHappensAfter": {
           "answer": "Once deployed, the wrapper is available to everyone.",
@@ -1188,8 +1226,10 @@
           "question": "Who can deploy the wrapper?"
         },
         "wrap": "Wrap",
+        "wrapTokens": "Wrap Tokens",
         "wrappedHoldingsValue": "Wrapped holdings value: ~",
-        "wrappedTokens": "Wrapped tokens"
+        "wrappedTokens": "Wrapped tokens",
+        "wrapping": "Wrapping"
       },
       "wrongMarketNetwork": "Wrong Market Network"
     },
@@ -1231,12 +1271,12 @@
           "event": "Event",
           "time": "Time"
         },
-        "noMatchingRecentEvents": "No matching recent events",
-        "searchId": "Search by ID",
         "exportCsv": "Export CSV",
         "exportFailed": "Could not export market history",
         "exporting": "Exporting...",
-        "paginationRange": "Viewing records {{from}} to {{to}}"
+        "noMatchingRecentEvents": "No matching recent events",
+        "paginationRange": "Viewing records {{from}} to {{to}}",
+        "searchId": "Search by ID"
       },
       "sidebar": {
         "marketHistory": "Market History"
@@ -1350,6 +1390,7 @@
       "noMarketsHere": "No Markets Here",
       "noMarketsMatchCurrentFilters": "No markets match the current filters.",
       "open": "Open",
+      "seeLess": "See Less",
       "seeMore": "See More",
       "tables": {
         "header": {
@@ -1363,7 +1404,8 @@
           "requestBTN": "Request",
           "selfOnboard": "Self-Onboard",
           "terminated": "Terminated",
-          "title": "Other Markets"
+          "title": "Other Markets",
+          "unavailable": "Unavailable"
         }
       },
       "title": "Markets",
@@ -1402,17 +1444,6 @@
       "useOnSetProtocolFeeBips": "Hook on Protocol Fee Shift?",
       "useOnTransfer": "Hook on Token Transfer?"
     },
-    "marketAddress": "Market Address",
-    "marketEarlyClosure": {
-      "label": "Fixed Term Closure Permitted",
-      "no": {
-        "tooltip": "Market can only be terminated after fixed duration maturity."
-      },
-      "yes": {
-        "tooltip": "Borrower can elect to terminate the market at any time."
-      }
-    },
-    "marketExpiry": "Loan Maturity",
     "lenderOnboarding": {
       "label": "Lender Onboarding",
       "managed": {
@@ -1432,6 +1463,17 @@
         "tooltip": "This market's access policy could not be read."
       }
     },
+    "marketAddress": "Market Address",
+    "marketEarlyClosure": {
+      "label": "Fixed Term Closure Permitted",
+      "no": {
+        "tooltip": "Market can only be terminated after fixed duration maturity."
+      },
+      "yes": {
+        "tooltip": "Borrower can elect to terminate the market at any time."
+      }
+    },
+    "marketExpiry": "Loan Maturity",
     "marketMaturityReduction": {
       "label": "Fixed Term Maturity Reduction Permitted",
       "no": {
@@ -1575,7 +1617,15 @@
     },
     "wrappedToken": "Wrapped Token",
     "wrapper": "Wrapper",
-    "wrapperAddress": "Wrapper Address"
+    "wrapperAddress": "Wrapper Address",
+    "wrapperAdoption": {
+      "tooltipBorrower": "The total amount of Market (debt) tokens vs the total amount of wrapped Market (debt) tokens",
+      "tooltipLender": "Your Market (debt) tokens vs the amount of wrapped Market debt (tokens)"
+    },
+    "wrapperStatus": {
+      "active": "Active",
+      "inactive": "Inactive"
+    }
   },
   "modals": {
     "shared": {
@@ -1703,6 +1753,10 @@
     "borrower": {
       "aggregateBatchStats": "Aggregate batch stats",
       "batchOutcomes": "Batch outcomes",
+      "batches": {
+        "avgShortfall": "Avg shortfall",
+        "fullyPaid": "100% paid"
+      },
       "borrowerCharts": "Borrower charts",
       "costCapitalAprDrift": "Cost of capital and APR drift",
       "cureSpeedRealizedCapitalCost": "Cure speed and realized capital cost across this borrower.",
@@ -1717,6 +1771,11 @@
       "marketsRankedTotalTimeSpent": "Markets ranked by total time spent delinquent.",
       "networkDoesNotProvideIndexed": "This network does not provide the indexed analytics and pricing required for aggregate profile KPIs.",
       "noActiveMarketsFoundBorrower": "No active markets found for this borrower on the selected network.",
+      "noCuredDelinquencyEvents": "No cured delinquency events found for this borrower.",
+      "noDailyCapitalCost": "No daily capital cost data found.",
+      "noDelinquencyEvents": "No delinquency events found for this borrower.",
+      "noExpiredBatches": "No expired withdrawal batches for this borrower.",
+      "withdrawalDataUnavailable": "Withdrawal data is unavailable right now.",
       "withdrawalProcessing": "Withdrawal processing"
     },
     "borrowerMarketMap": "Borrower market map",

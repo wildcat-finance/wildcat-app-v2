@@ -183,7 +183,7 @@ describe("RepayModal", () => {
     })
     fireEvent.click(
       screen.getByRole("button", {
-        name: "marketDetails.borrower.modals.repay.approve",
+        name: "common.buttons.approve",
       }),
     )
 

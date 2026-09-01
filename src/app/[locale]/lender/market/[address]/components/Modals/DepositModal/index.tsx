@@ -965,8 +965,8 @@ export const DepositModal = ({
                   isConnectedToSafe
                     ? undefined
                     : isApprovedButton
-                      ? t("marketDetails.lender.modals.deposit.approved")
-                      : t("marketDetails.lender.modals.deposit.approve")
+                      ? t("common.buttons.approved")
+                      : t("common.buttons.approve")
                 }
                 secondBtnIcon={isApprovedButton && !isConnectedToSafe}
                 mainBtnOnClick={handleDeposit}
@@ -1502,8 +1502,8 @@ export const DepositModal = ({
                     isConnectedToSafe
                       ? undefined
                       : isApprovedButton
-                        ? t("marketDetails.lender.modals.deposit.approved")
-                        : t("marketDetails.lender.modals.deposit.approve")
+                        ? t("common.buttons.approved")
+                        : t("common.buttons.approve")
                   }
                   secondBtnIcon={isApprovedButton && !isConnectedToSafe}
                   mainBtnOnClick={handleDeposit}

@@ -49,9 +49,7 @@ export const SignButton = () => {
       onClick={handleSign}
       disabled={isSigning || !timeSigned}
     >
-      {isSigning
-        ? t("agreement.signButton.signing")
-        : t("agreement.signButton.sign")}
+      {isSigning ? t("common.buttons.signing") : t("agreement.signButton.sign")}
     </Button>
   )
 }

@@ -247,7 +247,7 @@ export const EditLendersTable = ({
           <Typography variant="text3" color={COLORS.santasGrey}>
             {isFiltered
               ? `${t("common.states.noMatchingLenders")}`
-              : "No Active Lenders"}
+              : t("borrower.policies.lenders.noActive")}
           </Typography>
         </Box>
       )}

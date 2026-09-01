@@ -91,32 +91,41 @@ const formatPeriodicDateTime = (timestamp: number) =>
 const formatPeriodicDuration = (seconds: number) =>
   humanizeDuration(seconds * 1000, { round: true, largest: 2 })
 
-const WrapperChip = ({ hasWrapper }: { hasWrapper?: boolean }) => (
-  <Box
-    sx={{
-      width: "fit-content",
-      display: "flex",
-      alignItems: "center",
-      gap: "3px",
-      padding: "0 8px 0 5px",
-      borderRadius: "12px",
-      backgroundColor: hasWrapper ? "#D1FAE6" : COLORS.remy,
-    }}
-  >
+const WrapperChip = ({ hasWrapper }: { hasWrapper?: boolean }) => {
+  const { t } = useTranslation()
+
+  return (
     <Box
       sx={{
-        width: "4px",
-        height: "4px",
-        borderRadius: "50%",
-        backgroundColor: hasWrapper ? "#28CA7C" : COLORS.wildWatermelon,
+        width: "fit-content",
+        display: "flex",
+        alignItems: "center",
+        gap: "3px",
+        padding: "0 8px 0 5px",
+        borderRadius: "12px",
+        backgroundColor: hasWrapper ? "#D1FAE6" : COLORS.remy,
       }}
-    />
+    >
+      <Box
+        sx={{
+          width: "4px",
+          height: "4px",
+          borderRadius: "50%",
+          backgroundColor: hasWrapper ? "#28CA7C" : COLORS.wildWatermelon,
+        }}
+      />
 
-    <Typography variant="text4" color={hasWrapper ? "#19965A" : COLORS.dullRed}>
-      {hasWrapper ? "Active" : "Inactive"}
-    </Typography>
-  </Box>
-)
+      <Typography
+        variant="text4"
+        color={hasWrapper ? "#19965A" : COLORS.dullRed}
+      >
+        {hasWrapper
+          ? t("marketParameters.wrapperStatus.active")
+          : t("marketParameters.wrapperStatus.inactive")}
+      </Typography>
+    </Box>
+  )
+}
 
 const AdoptionStatsRow = ({
   label,
@@ -243,8 +252,8 @@ export const MarketParameters = ({
 
   const adoptionStatsTooltip =
     viewerType === "lender"
-      ? "Your Market (debt) tokens vs the amount of wrapped Market debt (tokens)"
-      : "The total amount of Market (debt) tokens vs the total amount of wrapped Market (debt) tokens"
+      ? t("marketParameters.wrapperAdoption.tooltipLender")
+      : t("marketParameters.wrapperAdoption.tooltipBorrower")
 
   const nowSec = useLiveNowSeconds(
     hasLivePeriodicClock(market) || hasLiveDelinquencyClock(market),

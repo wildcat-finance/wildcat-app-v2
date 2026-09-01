@@ -401,7 +401,9 @@ export const RepayAndTerminateFlow = ({
               onClick={isProcessed ? handleTerminateMarket : handleRepay}
               fullWidth
             >
-              {isProcessed ? "Terminate Market" : "Try Again"}
+              {isProcessed
+                ? t("marketDetails.borrower.modals.terminate.terminateMarket")
+                : t("common.buttons.tryAgain")}
             </Button>
           </Box>
         </>
@@ -428,8 +430,14 @@ export const RepayAndTerminateFlow = ({
       )}
 
       <TxModalFooter
-        mainBtnText="Repay and Terminate"
-        secondBtnText={IsTxApproved ? "Approved" : "Approve"}
+        mainBtnText={t(
+          "marketDetails.borrower.modals.terminate.repayAndTerminate",
+        )}
+        secondBtnText={
+          IsTxApproved
+            ? t("common.buttons.approved")
+            : t("common.buttons.approve")
+        }
         mainBtnOnClick={handleTerminateMarket}
         secondBtnOnClick={handleApprove}
         disableMainBtn={disableTerminate}

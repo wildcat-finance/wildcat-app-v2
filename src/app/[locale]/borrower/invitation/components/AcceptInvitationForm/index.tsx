@@ -137,7 +137,9 @@ export const AcceptInvitationForm = ({
             }
             sx={ActionButton}
           >
-            {submitMutation.isPending ? "Signing..." : "Sign & Accept"}
+            {submitMutation.isPending
+              ? t("common.buttons.signing")
+              : t("borrower.invitation.signAccept")}
           </Button>
         </Box>
       </Box>

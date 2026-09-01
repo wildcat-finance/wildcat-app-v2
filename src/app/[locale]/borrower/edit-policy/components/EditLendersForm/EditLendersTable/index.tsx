@@ -189,7 +189,7 @@ export const EditLendersTable = ({
             variant="text3"
           >
             {params.row.status === EditLenderFlowStatuses.NEW
-              ? `Manually adding`
+              ? t("borrower.editPolicy.manuallyAdding")
               : params.value}
           </Typography>
         </Box>

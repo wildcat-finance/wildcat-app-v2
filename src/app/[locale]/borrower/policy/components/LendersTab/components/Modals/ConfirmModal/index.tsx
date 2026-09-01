@@ -137,7 +137,7 @@ export const ConfirmModal = ({
       renderCell: (params) => (
         <Typography variant="text3" color={COLORS.santasGrey}>
           {params.row.status === EditLenderFlowStatuses.DELETED
-            ? "Removed"
+            ? t("common.states.removed")
             : ""}
         </Typography>
       ),

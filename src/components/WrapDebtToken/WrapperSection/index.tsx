@@ -715,8 +715,16 @@ export const WrapperSection = ({
   })
 
   const submitButtonText = submitMutation.isPending
-    ? `${isWrapTab ? "Wrapping" : "Unwrapping"}`
-    : `${isWrapTab ? "Wrap" : "Unwrap"} Tokens`
+    ? t(
+        isWrapTab
+          ? "marketDetails.lender.wrapDebtToken.wrapping"
+          : "marketDetails.lender.wrapDebtToken.unwrapping",
+      )
+    : t(
+        isWrapTab
+          ? "marketDetails.lender.wrapDebtToken.wrapTokens"
+          : "marketDetails.lender.wrapDebtToken.unwrapTokens",
+      )
 
   const formattedOutput = outputAmount
     ? formatTokenWithCommas(outputAmount)
@@ -1026,10 +1034,10 @@ export const WrapperSection = ({
 
                   {/* eslint-disable-next-line no-nested-ternary */}
                   {approveMutation.isPending
-                    ? "Approving"
+                    ? t("common.buttons.approving")
                     : isApproved && !isInputZero
-                      ? "Approved"
-                      : "Approve"}
+                      ? t("common.buttons.approved")
+                      : t("common.buttons.approve")}
                 </Button>
               )}
 

@@ -103,26 +103,14 @@ const KNOWN_DUPLICATES = new Map([
     },
   ],
   [
-    "approve",
+    "add name",
     {
-      kind: "homonym",
+      kind: "casing",
       reason:
-        "the borrower repaying a market vs the lender approving a deposit -- same word, two flows",
+        "'Add Name' as the button vs 'Add name' as the empty lender-name cell -- inherited; needs a copy decision",
       keys: [
-      "marketDetails.borrower.modals.repay.approve",
-      "marketDetails.lender.modals.deposit.approve",
-      ],
-    },
-  ],
-  [
-    "approved",
-    {
-      kind: "homonym",
-      reason:
-        "the settled state of those same two approvals",
-      keys: [
-      "marketDetails.borrower.modals.repay.approved",
-      "marketDetails.lender.modals.deposit.approved",
+      "borrower.editLenders.addName",
+      "common.buttons.addName",
       ],
     },
   ],
