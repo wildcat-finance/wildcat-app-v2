@@ -26,6 +26,7 @@ import {
   PeriodicTermHooksTemplate,
   PeriodicTermMarketDeploymentArgs,
 } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 import { zeroAddress } from "viem"
 
 import { toastError, toastRequest, toastSuccess } from "@/components/Toasts"
@@ -116,6 +117,7 @@ type DeployV2MarketOperation =
   | { kind: "complete"; params: CompleteDeployedV2MarketParams }
 
 export const useDeployV2Market = () => {
+  const { t } = useTranslation()
   const signer = useEthersSigner()
   const client = useQueryClient()
   const { isTestnet, targetChainId } = useCurrentNetwork()
@@ -663,7 +665,7 @@ export const useDeployV2Market = () => {
             )
           }
         } else {
-          toastError("Must Be Registered Borrower")
+          toastError(t("borrower.createMarket.toasts.mustBeRegisteredBorrower"))
           throw Error("Not Registered Borrower")
         }
       }

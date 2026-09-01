@@ -103,6 +103,30 @@ const KNOWN_DUPLICATES = new Map([
     },
   ],
   [
+    "approve",
+    {
+      kind: "homonym",
+      reason:
+        "the borrower repaying a market vs the lender approving a deposit -- same word, two flows",
+      keys: [
+      "marketDetails.borrower.modals.repay.approve",
+      "marketDetails.lender.modals.deposit.approve",
+      ],
+    },
+  ],
+  [
+    "approved",
+    {
+      kind: "homonym",
+      reason:
+        "the settled state of those same two approvals",
+      keys: [
+      "marketDetails.borrower.modals.repay.approved",
+      "marketDetails.lender.modals.deposit.approved",
+      ],
+    },
+  ],
+  [
     "borrower name",
     {
       kind: "casing",
@@ -162,6 +186,18 @@ const KNOWN_DUPLICATES = new Map([
       keys: [
       "admin.editBorrower.title",
       "nav.editBorrowerProfile",
+      ],
+    },
+  ],
+  [
+    "failed to submit tou signature.",
+    {
+      kind: "casing",
+      reason:
+        "'ToU' on the reacceptance flow vs 'TOU' on the agreement page -- inherited; needs a copy decision",
+      keys: [
+      "agreement.page.toasts.submitFailed",
+      "agreement.reacceptance.toasts.submitFailed",
       ],
     },
   ],

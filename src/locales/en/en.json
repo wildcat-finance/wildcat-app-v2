@@ -36,14 +36,29 @@
   },
   "agreement": {
     "completeInvitation": "Complete Invitation",
+    "gate": {
+      "checking": "Checking Terms of Use status",
+      "retryToast": "Couldn't verify Terms of Use status — retrying",
+      "retryTooltipClick": "Couldn't verify Terms of Use status — click to retry",
+      "retryTooltipTap": "Couldn't verify Terms of Use status — tap to retry"
+    },
     "page": {
-      "title": "Wildcat Terms Of Use"
+      "title": "Wildcat Terms Of Use",
+      "toasts": {
+        "submitFailed": "Failed to submit TOU signature."
+      }
     },
     "reacceptance": {
       "completeBorrowerInvitation": "Complete Borrower Invitation",
       "couldnTVerifyTermsUse": "Couldn’t verify your Terms of Use status. Check your connection and selected network, then retry.",
       "reasonOptional": "Reason (optional)",
       "signingAs": "Signing as:",
+      "toasts": {
+        "accepted": "Terms of Use accepted.",
+        "declineFailed": "Failed to submit the decline.",
+        "declined": "Terms of Use declined.",
+        "submitFailed": "Failed to submit ToU signature."
+      },
       "viewFullTerms": "View full terms"
     },
     "signButton": {
@@ -56,6 +71,7 @@
     "connectWalletContinue": "Connect your wallet to continue",
     "notAdmin": "You are not an admin",
     "selectNetwork": "Select Network",
+    "sessionExpired": "Session expired",
     "switchNetwork": "Switch Network",
     "switchNetworkToExplore": "Switch to {{network}} to explore the markets."
   },
@@ -240,6 +256,25 @@
       "signingDraftExistsSafeNetwork": "A signing draft exists for this Safe and network. Resume the exact market settings and signing request, or discard it and start again.",
       "termsUseUpdateRequired": "Terms of Use update required",
       "title": "Creating a New Market",
+      "toasts": {
+        "agreementValidationFailed": "Couldn't validate the market agreement. Please try again.",
+        "deploymentContextChanged": "The saved market no longer matches the current V2.5 deployment context. Review and sign it again.",
+        "deploymentDetailsChanged": "Market deployment details changed. Review and sign the market agreement again.",
+        "deploymentNotReady": "Market deployment is not ready: the asset, policy template or signed agreement is missing.",
+        "deploymentNotReadyReload": "Market deployment is not ready yet. Reload the step and sign the market agreement again.",
+        "draftExpired": "The saved signing draft has expired. Review and sign the market agreement again.",
+        "draftNetworkMismatch": "Switch the wallet to the saved draft's network to resume.",
+        "legalDetailsChanged": "Borrower legal details changed. Review and sign the market agreement again.",
+        "marketOrBorrowerChanged": "Market or borrower details changed. Review and sign the market agreement again.",
+        "mustBeRegisteredBorrower": "Must Be Registered Borrower",
+        "parametersIncomplete": "Market parameters are incomplete. Review the earlier steps.",
+        "policyUnavailable": "The saved policy is no longer available for V2.5 deployment. Review the market settings again.",
+        "profileRefreshFailed": "Failed to refresh borrower profile. Please try again.",
+        "settingsChangedAfterSigning": "Market settings changed after the agreement was signed. Review and sign the market agreement again.",
+        "signingNotReady": "Market signing is not ready. Please try again.",
+        "termsNotAccepted": "Accept the current Terms of Use before creating a market.",
+        "wrongWalletNetwork": "Wallet network does not match selected network."
+      },
       "wrapper": {
         "deploy": {
           "explainer": "If you don’t deploy now, anyone can deploy later. Deploying now makes the wrapper ready for lenders immediately.",
@@ -767,7 +802,7 @@
           "proposalSuccessTitle": "APR Reduction Proposed",
           "proposeReduction": "Propose Reduction",
           "proposeReductionTitle": "Propose Base APR Reduction",
-      "proposeReductionTitleUtilization": "Propose Utilization APR Reduction",
+          "proposeReductionTitleUtilization": "Propose Utilization APR Reduction",
           "proposedBaseApr": "Proposed Base APR",
           "proposedUtilizationApr": "Proposed Utilization APR",
           "resetTempRatio": "Reset Temporary Reserve Ratio",
@@ -830,6 +865,10 @@
         "hasBecomeHealthy": "This market has become healthy, and its delinquency timer will begin to decrease once it is updated.",
         "willBeDelinquent": "This market has become delinquent since its last update, and its delinquency timer will begin to increase when next updated."
       },
+      "touGate": {
+        "blockedTooltip": "Accept the Terms of Use to borrow",
+        "networkTooltip": "Switch to the market network to borrow"
+      },
       "transactions": {
         "ongoingWDs": {
           "title_one": "There are {{count}} active withdrawal request from lenders in this market.",
@@ -856,8 +895,11 @@
         }
       },
       "agreementGate": {
+        "acknowledgementRequiredTooltip": "Acknowledge the absence of an MLA before depositing",
         "borrowerIncompleteTooltip": "The borrower must complete the market agreement selection before deposits can begin",
+        "checkingTooltip": "Checking market agreement data",
         "loading": "Loading agreement data...",
+        "mlaRequiredTooltip": "Sign the market's MLA before depositing",
         "retryToast": "Couldn't load agreement data — retrying",
         "retryTooltip": "Tap to retry loading agreement data",
         "waitingBorrower": "Waiting for borrower agreement selection",
@@ -936,6 +978,8 @@
       "marketSDurationCanShorten": "The market’s duration can be shorten",
       "modals": {
         "deposit": {
+          "approve": "Approve",
+          "approved": "Approved",
           "checkingBorrowerHistory": "Checking borrower withdrawal history...",
           "fixedTermLock": "This is a fixed-term market: funds are locked until <1>{{maturity}}</1>",
           "gate": {
@@ -1000,9 +1044,7 @@
       "signed": "Signed:",
       "touGate": {
         "blockedTooltip": "Accept the Terms of Use to deposit",
-        "checkingTooltip": "Checking Terms of Use status",
-        "retryToast": "Couldn't verify Terms of Use status — retrying",
-        "retryTooltip": "Couldn't verify Terms of Use status — tap to retry"
+        "networkTooltip": "Switch to the market network to deposit"
       },
       "transactions": {
         "deposit": {
@@ -1014,7 +1056,9 @@
             "walletBalance": "Wallet balance"
           },
           "title": "Available To Deposit",
-          "tooltip": "The amount of the underlying asset held by the address you are connected with."
+          "tooltip": "The amount of the underlying asset held by the address you are connected with.",
+          "tooltipAtCapacity": "Market is at full capacity",
+          "tooltipZeroBalance": "Underlying token balance is zero"
         },
         "withdraw": {
           "button": "Withdraw",
@@ -1608,6 +1652,7 @@
       "description": "A lender has deposited tokens into <strong>{{marketName}}</strong>"
     },
     "history": {
+      "allMarkedAsRead": "All notifications marked as read",
       "earlier": "EARLIER",
       "markAllAsRead": "Mark All As Read",
       "title": "Notifications"

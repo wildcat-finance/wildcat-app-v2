@@ -357,7 +357,7 @@ export const DepositModal = ({
 
   const handleOpenDepositModal = () => {
     if (touRetryAvailable) {
-      toastError("Couldn't verify Terms of Use status — retrying")
+      toastError(t("agreement.gate.retryToast"))
       refetchAgreementStatus().catch(() => undefined)
       return
     }
@@ -365,7 +365,7 @@ export const DepositModal = ({
 
     if (agreementGate.state === "error") {
       setDepositOpenRequested(false)
-      toastError("Couldn't load agreement data — retrying")
+      toastError(t("marketDetails.lender.agreementGate.retryToast"))
       agreementGate.retry().catch(() => undefined)
       return
     }
@@ -446,28 +446,31 @@ export const DepositModal = ({
   const underlyingBalanceIsZero = marketAccount.underlyingBalance.eq(0)
 
   const tooltip = underlyingBalanceIsZero
-    ? "Underlying token balance is zero"
-    : "Market is at full capacity"
+    ? t("marketDetails.lender.transactions.deposit.tooltipZeroBalance")
+    : t("marketDetails.lender.transactions.deposit.tooltipAtCapacity")
   let actionTooltip = tooltip
   if (touGateState === "blocked") {
-    actionTooltip = "Accept the Terms of Use to deposit"
+    actionTooltip = t("marketDetails.lender.touGate.blockedTooltip")
   } else if (touGateState === "unknown") {
     actionTooltip = isAgreementFetching
-      ? "Checking Terms of Use status"
-      : "Couldn't verify Terms of Use status — tap to retry"
+      ? t("agreement.gate.checking")
+      : t("agreement.gate.retryTooltipTap")
   } else if (networkActionBlocked) {
-    actionTooltip = "Switch to the market network to deposit"
+    actionTooltip = t("marketDetails.lender.touGate.networkTooltip")
   } else if (agreementGate.state === "loading") {
-    actionTooltip = "Checking market agreement data"
+    actionTooltip = t("marketDetails.lender.agreementGate.checkingTooltip")
   } else if (agreementGate.state === "error") {
-    actionTooltip = "Tap to retry loading agreement data"
+    actionTooltip = t("marketDetails.lender.agreementGate.retryTooltip")
   } else if (agreementGate.state === "requires-borrower-mla-selection") {
-    actionTooltip =
-      "The borrower must complete the market agreement selection before deposits can begin"
+    actionTooltip = t(
+      "marketDetails.lender.agreementGate.borrowerIncompleteTooltip",
+    )
   } else if (agreementGate.state === "requires-mla-signature") {
-    actionTooltip = "Sign the market's MLA before depositing"
+    actionTooltip = t("marketDetails.lender.agreementGate.mlaRequiredTooltip")
   } else if (agreementGate.state === "requires-non-mla-acknowledgement") {
-    actionTooltip = "Acknowledge the absence of an MLA before depositing"
+    actionTooltip = t(
+      "marketDetails.lender.agreementGate.acknowledgementRequiredTooltip",
+    )
   }
 
   useEffect(() => {
@@ -962,8 +965,8 @@ export const DepositModal = ({
                   isConnectedToSafe
                     ? undefined
                     : isApprovedButton
-                      ? "Approved"
-                      : "Approve"
+                      ? t("marketDetails.lender.modals.deposit.approved")
+                      : t("marketDetails.lender.modals.deposit.approve")
                 }
                 secondBtnIcon={isApprovedButton && !isConnectedToSafe}
                 mainBtnOnClick={handleDeposit}
@@ -1499,8 +1502,8 @@ export const DepositModal = ({
                     isConnectedToSafe
                       ? undefined
                       : isApprovedButton
-                        ? "Approved"
-                        : "Approve"
+                        ? t("marketDetails.lender.modals.deposit.approved")
+                        : t("marketDetails.lender.modals.deposit.approve")
                   }
                   secondBtnIcon={isApprovedButton && !isConnectedToSafe}
                   mainBtnOnClick={handleDeposit}

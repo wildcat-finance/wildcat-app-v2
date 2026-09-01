@@ -462,7 +462,7 @@ export default function CreateMarketPage() {
 
       const profileResult = await refetchBorrowerProfile()
       if (profileResult.error || !profileResult.data) {
-        toastError("Failed to refresh borrower profile. Please try again.")
+        toastError(t("borrower.createMarket.toasts.profileRefreshFailed"))
         return undefined
       }
       return profileResult.data
@@ -574,7 +574,7 @@ export default function CreateMarketPage() {
       if (!signer || signer.chainId !== targetChainId) {
         setSignatureRequested(false)
         setSignedFormFingerprint(undefined)
-        toastError("Wallet network does not match selected network.")
+        toastError(t("borrower.createMarket.toasts.wrongWalletNetwork"))
         return
       }
       if (
@@ -585,7 +585,7 @@ export default function CreateMarketPage() {
       ) {
         setSignatureRequested(false)
         setSignedFormFingerprint(undefined)
-        toastError("Market signing is not ready. Please try again.")
+        toastError(t("borrower.createMarket.toasts.signingNotReady"))
         return
       }
       if (!isSafeSigning) {
@@ -603,7 +603,7 @@ export default function CreateMarketPage() {
       ) {
         setSignatureRequested(false)
         setSignedFormFingerprint(undefined)
-        toastError("Market signing is not ready. Please try again.")
+        toastError(t("borrower.createMarket.toasts.signingNotReady"))
         return
       }
 
@@ -676,7 +676,7 @@ export default function CreateMarketPage() {
   const handleResumeSavedDraft = useCallback(async () => {
     if (!signingDraft) return
     if (!signer || signer.chainId !== targetChainId) {
-      toastError("Switch the wallet to the saved draft's network to resume.")
+      toastError(t("borrower.createMarket.toasts.draftNetworkMismatch"))
       return
     }
     let draftToResume = signingDraft
@@ -711,9 +711,7 @@ export default function CreateMarketPage() {
     )
 
     if (isCreateMarketSigningDraftExpired(draftToResume)) {
-      toastError(
-        "The saved signing draft has expired. Review and sign the market agreement again.",
-      )
+      toastError(t("borrower.createMarket.toasts.draftExpired"))
       if (hasCommittedCreateMarketDeployment(draftToResume)) {
         restartCommittedSigningContext(draftToResume, refreshedBorrowerProfile)
         return
@@ -725,9 +723,7 @@ export default function CreateMarketPage() {
       return
     }
     if (borrowerProfileChanged) {
-      toastError(
-        "Borrower legal details changed. Review and sign the market agreement again.",
-      )
+      toastError(t("borrower.createMarket.toasts.legalDetailsChanged"))
       if (hasCommittedCreateMarketDeployment(draftToResume)) {
         restartCommittedSigningContext(draftToResume, refreshedBorrowerProfile)
         return
@@ -807,9 +803,7 @@ export default function CreateMarketPage() {
         setDraftToResumeId(undefined)
         setSignatureRequested(false)
         setSignedFormFingerprint(undefined)
-        toastError(
-          "The saved policy is no longer available for V2.5 deployment. Review the market settings again.",
-        )
+        toastError(t("borrower.createMarket.toasts.policyUnavailable"))
         removeDraftRecords(signingDraft.id)
         startFreshSigningContext()
         return
@@ -833,9 +827,7 @@ export default function CreateMarketPage() {
       setDraftToResumeId(undefined)
       setSignatureRequested(false)
       setSignedFormFingerprint(undefined)
-      toastError(
-        "The saved market no longer matches the current V2.5 deployment context. Review and sign it again.",
-      )
+      toastError(t("borrower.createMarket.toasts.deploymentContextChanged"))
       if (!committedDraft) {
         removeDraftRecords(signingDraft.id)
         startFreshSigningContext()
@@ -900,7 +892,7 @@ export default function CreateMarketPage() {
     ).filter((key) => FIELD_TO_STEP[key] !== undefined)
 
     if (!field) {
-      toastError("Market parameters are incomplete. Review the earlier steps.")
+      toastError(t("borrower.createMarket.toasts.parametersIncomplete"))
       return
     }
 
@@ -936,7 +928,7 @@ export default function CreateMarketPage() {
         ? signingDraft
         : undefined
     if (touGateState !== "unblocked" && !activeSafeDraft?.deployedMarket) {
-      toastError("Accept the current Terms of Use before creating a market.")
+      toastError(t("borrower.createMarket.toasts.termsNotAccepted"))
       return
     }
     let transferAccess = TransferAccess.Open
@@ -1053,9 +1045,7 @@ export default function CreateMarketPage() {
       setFinalOpen(true)
       deployNewMarket(realParams)
     } else {
-      toastError(
-        "Market deployment is not ready: the asset, policy template or signed agreement is missing.",
-      )
+      toastError(t("borrower.createMarket.toasts.deploymentNotReady"))
     }
   }, handleInvalidDeploy)
 
@@ -1072,7 +1062,7 @@ export default function CreateMarketPage() {
       ? activeSafeDraft
       : undefined
     if (touGateState !== "unblocked" && !activeCommittedDraft?.deployedMarket) {
-      toastError("Accept the current Terms of Use before creating a market.")
+      toastError(t("borrower.createMarket.toasts.termsNotAccepted"))
       return
     }
     if (
@@ -1084,20 +1074,16 @@ export default function CreateMarketPage() {
       !address ||
       !effectiveMarketAddress
     ) {
-      toastError(
-        "Market deployment is not ready yet. Reload the step and sign the market agreement again.",
-      )
+      toastError(t("borrower.createMarket.toasts.deploymentNotReadyReload"))
       return
     }
     if (signer.chainId !== targetChainId) {
-      toastError("Wallet network does not match selected network.")
+      toastError(t("borrower.createMarket.toasts.wrongWalletNetwork"))
       return
     }
     if (paramsChangedSinceSigning) {
       setFinalOpen(false)
-      toastError(
-        "Market settings changed after the agreement was signed. Review and sign the market agreement again.",
-      )
+      toastError(t("borrower.createMarket.toasts.settingsChangedAfterSigning"))
       handleDiscardSignature()
       return
     }
@@ -1150,9 +1136,7 @@ export default function CreateMarketPage() {
                 chainId: targetChainId,
               })))
       if (!isActiveSafeDraftCompatible) {
-        toastError(
-          "Market deployment details changed. Review and sign the market agreement again.",
-        )
+        toastError(t("borrower.createMarket.toasts.deploymentDetailsChanged"))
         handleDiscardSignature()
         return
       }
@@ -1195,9 +1179,7 @@ export default function CreateMarketPage() {
       }
 
       if (currentMessage !== mlaSignature.message) {
-        toastError(
-          "Market or borrower details changed. Review and sign the market agreement again.",
-        )
+        toastError(t("borrower.createMarket.toasts.marketOrBorrowerChanged"))
         handleDiscardSignature(refreshedBorrowerProfile)
         return
       }
@@ -1222,7 +1204,7 @@ export default function CreateMarketPage() {
       handleDeployMarket()
     } catch {
       setFinalOpen(false)
-      toastError("Couldn't validate the market agreement. Please try again.")
+      toastError(t("borrower.createMarket.toasts.agreementValidationFailed"))
     } finally {
       setIsValidatingSignature(false)
     }

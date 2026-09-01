@@ -84,7 +84,7 @@ export const BorrowModal = ({
 
   const handleOpenBorrowModal = () => {
     if (touRetryAvailable) {
-      toastError("Couldn't verify Terms of Use status — retrying")
+      toastError(t("agreement.gate.retryToast"))
       refetchAgreementStatus().catch(() => undefined)
       return
     }
@@ -160,13 +160,13 @@ export const BorrowModal = ({
 
   let borrowTooltip = ""
   if (touGateState === "blocked") {
-    borrowTooltip = "Accept the Terms of Use to borrow"
+    borrowTooltip = t("marketDetails.borrower.touGate.blockedTooltip")
   } else if (touGateState === "unknown") {
     borrowTooltip = isAgreementFetching
-      ? "Checking Terms of Use status"
-      : "Couldn't verify Terms of Use status — click to retry"
+      ? t("agreement.gate.checking")
+      : t("agreement.gate.retryTooltipClick")
   } else if (networkActionBlocked) {
-    borrowTooltip = "Switch to the market network to borrow"
+    borrowTooltip = t("marketDetails.borrower.touGate.networkTooltip")
   }
 
   return (
@@ -294,7 +294,11 @@ export const BorrowModal = ({
         )}
 
         <TxModalFooter
-          mainBtnText={modal.approvedStep ? "Confirm" : "Borrow"}
+          mainBtnText={
+            modal.approvedStep
+              ? t("common.buttons.confirm")
+              : t("marketDetails.borrower.modals.borrow.borrow")
+          }
           mainBtnOnClick={modal.approvedStep ? handleConfirm : handleBorrow}
           disableMainBtn={disableBorrow}
           hideButtons={!showForm}
