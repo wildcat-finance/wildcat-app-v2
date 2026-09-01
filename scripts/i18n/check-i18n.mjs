@@ -54,9 +54,22 @@ const asJson = process.argv.includes("--json")
 
 /** Sections docs/i18n-conventions.md allows at the top level. */
 const ALLOWED_TOP_LEVEL = new Set([
-  "common", "nav", "header", "footer", "auth", "validation", "notifications",
-  "agreement", "modals", "marketList", "marketDetails", "marketParameters",
-  "borrower", "lender", "admin", "profile",
+  "common",
+  "nav",
+  "header",
+  "footer",
+  "auth",
+  "validation",
+  "notifications",
+  "agreement",
+  "modals",
+  "marketList",
+  "marketDetails",
+  "marketParameters",
+  "borrower",
+  "lender",
+  "admin",
+  "profile",
 ])
 
 /**
@@ -90,15 +103,26 @@ const MAX_DEPTH = 6
  */
 const KNOWN_DUPLICATES = new Map([
   [
+    "access requirements",
+    {
+      kind: "homonym",
+      reason: "the edit-policy section heading vs the policies table column",
+      keys: [
+        "borrower.editPolicy.accessControl",
+        "common.fields.accessRequirements",
+      ],
+    },
+  ],
+  [
     "active markets",
     {
       kind: "casing",
       reason:
         "'Active markets' vs 'Active Markets' -- inherited from before the refactor; needs a copy decision, not a key decision",
       keys: [
-      "borrower.profile.view.activeMarkets.title",
-      "common.fields.activeMarkets",
-      "common.labels.activeMarkets",
+        "borrower.profile.view.activeMarkets.title",
+        "common.fields.activeMarkets",
+        "common.labels.activeMarkets",
       ],
     },
   ],
@@ -108,10 +132,7 @@ const KNOWN_DUPLICATES = new Map([
       kind: "casing",
       reason:
         "'Add Name' as the button vs 'Add name' as the empty lender-name cell -- inherited; needs a copy decision",
-      keys: [
-      "borrower.editLenders.addName",
-      "common.buttons.addName",
-      ],
+      keys: ["borrower.editLenders.addName", "common.buttons.addName"],
     },
   ],
   [
@@ -121,8 +142,9 @@ const KNOWN_DUPLICATES = new Map([
       reason:
         "'Borrower name' vs 'Borrower Name' -- inherited; needs a copy decision",
       keys: [
-      "common.labels.borrowerName",
-      "marketList.borrower.table.header.borrowerName",
+        "admin.tables.borrowerName",
+        "common.labels.borrowerName",
+        "marketList.borrower.table.header.borrowerName",
       ],
     },
   ],
@@ -130,11 +152,10 @@ const KNOWN_DUPLICATES = new Map([
     "cancel invitation",
     {
       kind: "homonym",
-      reason:
-        "modal title vs the button that confirms it",
+      reason: "modal title vs the button that confirms it",
       keys: [
-      "admin.invites.cancelModal.confirm",
-      "admin.invites.cancelModal.title",
+        "admin.invites.cancelModal.confirm",
+        "admin.invites.cancelModal.title",
       ],
     },
   ],
@@ -145,9 +166,9 @@ const KNOWN_DUPLICATES = new Map([
       reason:
         "the common atom, the header button and the dialog title it opens",
       keys: [
-      "common.labels.connectWallet",
-      "header.button.connectWallet",
-      "header.modal.title",
+        "common.labels.connectWallet",
+        "header.button.connectWallet",
+        "header.modal.title",
       ],
     },
   ],
@@ -158,11 +179,20 @@ const KNOWN_DUPLICATES = new Map([
       reason:
         "the common atom, the modal title, the market page button and the market-list row action",
       keys: [
-      "common.labels.deposit",
-      "marketDetails.lender.modals.deposit.title",
-      "marketDetails.lender.transactions.deposit.button",
-      "marketList.shared.tables.other.depositBTN",
+        "common.labels.deposit",
+        "marketDetails.lender.modals.deposit.title",
+        "marketDetails.lender.transactions.deposit.button",
+        "marketList.shared.tables.other.depositBTN",
       ],
+    },
+  ],
+  [
+    "deposited",
+    {
+      kind: "homonym",
+      reason:
+        "the market-list category a lender browses by vs the amount column in profile tables",
+      keys: ["common.fields.deposited", "marketList.borrower.active.deposited"],
     },
   ],
   [
@@ -171,10 +201,7 @@ const KNOWN_DUPLICATES = new Map([
       kind: "homonym",
       reason:
         "a borrower editing their own profile vs an admin editing someone else's record",
-      keys: [
-      "admin.editBorrower.title",
-      "nav.editBorrowerProfile",
-      ],
+      keys: ["admin.editBorrower.title", "nav.editBorrowerProfile"],
     },
   ],
   [
@@ -184,8 +211,8 @@ const KNOWN_DUPLICATES = new Map([
       reason:
         "'ToU' on the reacceptance flow vs 'TOU' on the agreement page -- inherited; needs a copy decision",
       keys: [
-      "agreement.page.toasts.submitFailed",
-      "agreement.reacceptance.toasts.submitFailed",
+        "agreement.page.toasts.submitFailed",
+        "agreement.reacceptance.toasts.submitFailed",
       ],
     },
   ],
@@ -193,12 +220,11 @@ const KNOWN_DUPLICATES = new Map([
     "fixed term",
     {
       kind: "homonym",
-      reason:
-        "withdraw buttonLocked vs marketTerm enum vs marketTypeChip enum",
+      reason: "withdraw buttonLocked vs marketTerm enum vs marketTypeChip enum",
       keys: [
-      "marketDetails.lender.transactions.withdraw.buttonLocked",
-      "marketParameters.marketTerm.FixedTerm.text",
-      "marketParameters.marketTypeChip.FixedTerm",
+        "marketDetails.lender.transactions.withdraw.buttonLocked",
+        "marketParameters.marketTerm.FixedTerm.text",
+        "marketParameters.marketTypeChip.FixedTerm",
       ],
     },
   ],
@@ -206,24 +232,16 @@ const KNOWN_DUPLICATES = new Map([
     "for",
     {
       kind: "homonym",
-      reason:
-        "a sentence fragment used by two different assemblies",
-      keys: [
-      "borrower.editLenders.for",
-      "borrower.editPolicy.for",
-      ],
+      reason: "a sentence fragment used by two different assemblies",
+      keys: ["borrower.editLenders.for", "borrower.editPolicy.for"],
     },
   ],
   [
     "lender profile",
     {
       kind: "homonym",
-      reason:
-        "sidebar nav label vs the profile page heading",
-      keys: [
-      "nav.lenderProfile",
-      "profile.lender.lenderProfile",
-      ],
+      reason: "sidebar nav label vs the profile page heading",
+      keys: ["nav.lenderProfile", "profile.lender.lenderProfile"],
     },
   ],
   [
@@ -233,8 +251,8 @@ const KNOWN_DUPLICATES = new Map([
       reason:
         "'Market history' vs 'Market History' -- inherited; needs a copy decision",
       keys: [
-      "common.labels.marketHistory",
-      "marketDetails.shared.sidebar.marketHistory",
+        "common.labels.marketHistory",
+        "marketDetails.shared.sidebar.marketHistory",
       ],
     },
   ],
@@ -245,9 +263,10 @@ const KNOWN_DUPLICATES = new Map([
       reason:
         "a profile stat label, a filter placeholder and the market-list page title",
       keys: [
-      "borrower.profile.view.overallInfo.markets",
-      "common.placeholders.markets",
-      "marketList.shared.title",
+        "borrower.profile.view.overallInfo.markets",
+        "common.fields.markets",
+        "common.placeholders.markets",
+        "marketList.shared.title",
       ],
     },
   ],
@@ -257,10 +276,7 @@ const KNOWN_DUPLICATES = new Map([
       kind: "casing",
       reason:
         "'Minimum deposit' vs 'Minimum Deposit' -- inherited; needs a copy decision",
-      keys: [
-      "common.fields.minimumDeposit",
-      "common.labels.minimumDeposit",
-      ],
+      keys: ["common.fields.minimumDeposit", "common.labels.minimumDeposit"],
     },
   ],
   [
@@ -270,9 +286,9 @@ const KNOWN_DUPLICATES = new Map([
       reason:
         "the yes/no atom vs two noMarkets.filter.beginning sentence fragments",
       keys: [
-      "common.yesNo.no",
-      "marketList.borrower.noMarkets.filter.beginning",
-      "marketList.shared.noMarkets.filter.beginning",
+        "common.yesNo.no",
+        "marketList.borrower.noMarkets.filter.beginning",
+        "marketList.shared.noMarkets.filter.beginning",
       ],
     },
   ],
@@ -280,11 +296,10 @@ const KNOWN_DUPLICATES = new Map([
     "notifications",
     {
       kind: "homonym",
-      reason:
-        "header menu label vs the history page title",
+      reason: "header menu label vs the history page title",
       keys: [
-      "header.notifications.notifications",
-      "notifications.history.title",
+        "header.notifications.notifications",
+        "notifications.history.title",
       ],
     },
   ],
@@ -295,8 +310,8 @@ const KNOWN_DUPLICATES = new Map([
       reason:
         "the market-term filter value (sibling of marketList.shared.fixed) vs the periodic window-status value (sibling of scheduled/closed) -- two enums in different domains",
       keys: [
-      "marketList.shared.open",
-      "marketParameters.periodicTerm.windowStatus.open.text",
+        "marketList.shared.open",
+        "marketParameters.periodicTerm.windowStatus.open.text",
       ],
     },
   ],
@@ -304,11 +319,10 @@ const KNOWN_DUPLICATES = new Map([
     "open term",
     {
       kind: "homonym",
-      reason:
-        "marketTerm enum vs marketTypeChip enum",
+      reason: "marketTerm enum vs marketTypeChip enum",
       keys: [
-      "marketParameters.marketTerm.OpenTerm.text",
-      "marketParameters.marketTypeChip.OpenTerm",
+        "marketParameters.marketTerm.OpenTerm.text",
+        "marketParameters.marketTypeChip.OpenTerm",
       ],
     },
   ],
@@ -316,11 +330,34 @@ const KNOWN_DUPLICATES = new Map([
     "open withdrawals",
     {
       kind: "homonym",
-      reason:
-        "the withdrawalAccess parameter value vs the section heading",
+      reason: "the withdrawalAccess parameter value vs the section heading",
       keys: [
-      "marketDetails.shared.withdrawalRequests.openWithdrawals",
-      "marketParameters.withdrawalAccess.open.text",
+        "marketDetails.shared.withdrawalRequests.openWithdrawals",
+        "marketParameters.withdrawalAccess.open.text",
+      ],
+    },
+  ],
+  [
+    "pending",
+    {
+      kind: "homonym",
+      reason:
+        "a lender access source that has not resolved vs the market status chip",
+      keys: [
+        "borrower.policies.lenders.accessSources.pending",
+        "common.labels.pending",
+      ],
+    },
+  ],
+  [
+    "penalty events",
+    {
+      kind: "homonym",
+      reason:
+        "the market delinquency panel vs the borrower profile stat -- same metric, two surfaces",
+      keys: [
+        "marketDetails.lender.delinquency.penaltyEvents.label",
+        "profile.borrower.stats.penaltyEvents",
       ],
     },
   ],
@@ -328,11 +365,45 @@ const KNOWN_DUPLICATES = new Map([
     "periodic term",
     {
       kind: "homonym",
-      reason:
-        "marketTerm enum vs marketTypeChip enum",
+      reason: "marketTerm enum vs marketTypeChip enum",
       keys: [
-      "marketParameters.marketTerm.PeriodicTerm.text",
-      "marketParameters.marketTypeChip.PeriodicTerm",
+        "marketParameters.marketTerm.PeriodicTerm.text",
+        "marketParameters.marketTypeChip.PeriodicTerm",
+      ],
+    },
+  ],
+  [
+    "remaining",
+    {
+      kind: "homonym",
+      reason:
+        "remaining capacity in the market list vs the remaining amount of a withdrawal",
+      keys: [
+        "common.fields.remaining",
+        "marketList.shared.tables.header.capacity",
+      ],
+    },
+  ],
+  [
+    "terminated",
+    {
+      kind: "homonym",
+      reason: "the market-list category vs the market status chip",
+      keys: [
+        "common.labels.terminated",
+        "marketList.shared.tables.other.terminated",
+      ],
+    },
+  ],
+  [
+    "total events",
+    {
+      kind: "homonym",
+      reason:
+        "the market delinquency panel vs the borrower profile stat -- same metric, two surfaces",
+      keys: [
+        "marketDetails.lender.delinquency.totalEvents.label",
+        "profile.borrower.stats.totalEvents",
       ],
     },
   ],
@@ -340,11 +411,10 @@ const KNOWN_DUPLICATES = new Map([
     "unknown term",
     {
       kind: "homonym",
-      reason:
-        "marketTypeChip enum vs policyType enum",
+      reason: "marketTypeChip enum vs policyType enum",
       keys: [
-      "marketParameters.marketTypeChip.Unknown",
-      "marketParameters.policyType.Unknown",
+        "marketParameters.marketTypeChip.Unknown",
+        "marketParameters.policyType.Unknown",
       ],
     },
   ],
@@ -352,12 +422,11 @@ const KNOWN_DUPLICATES = new Map([
     "withdraw",
     {
       kind: "homonym",
-      reason:
-        "the common atom, the modal title and the page button",
+      reason: "the common atom, the modal title and the page button",
       keys: [
-      "common.buttons.withdraw",
-      "marketDetails.lender.modals.withdraw.title",
-      "marketDetails.lender.transactions.withdraw.button",
+        "common.buttons.withdraw",
+        "marketDetails.lender.modals.withdraw.title",
+        "marketDetails.lender.transactions.withdraw.button",
       ],
     },
   ],
@@ -368,8 +437,8 @@ const KNOWN_DUPLICATES = new Map([
       reason:
         "'Withdrawal Cycle' as a market-list filter placeholder vs 'Withdrawal cycle' as the market-page detail row -- inherited; needs a copy decision",
       keys: [
-      "common.placeholders.withdrawalCycle",
-      "marketDetails.lender.transactions.withdraw.rows.cycle",
+        "common.placeholders.withdrawalCycle",
+        "marketDetails.lender.transactions.withdraw.rows.cycle",
       ],
     },
   ],
@@ -380,8 +449,8 @@ const KNOWN_DUPLICATES = new Map([
       reason:
         "'Wrapper contract' vs 'Wrapper Contract' -- inherited; needs a copy decision",
       keys: [
-      "borrower.createMarket.wrapper.title",
-      "common.fields.wrapperContract",
+        "borrower.createMarket.wrapper.title",
+        "common.fields.wrapperContract",
       ],
     },
   ],
@@ -411,29 +480,53 @@ const DYNAMIC_KEY_RE =
 const DYNAMIC_PREFIX_RE = /\bt\(\s*`([A-Za-z0-9_.\-]*?)\$\{/g
 const DEFAULT_VALUE_RE = /\bt\(\s*(["'])[A-Za-z0-9_.\-]+\1\s*,\s*(["'])/g
 /** Any key-shaped literal, wherever it appears -- keys get parked in variables. */
-const ANY_KEY_LITERAL_RE = /(["'])([A-Za-z][A-Za-z0-9_\-]*(?:\.[A-Za-z0-9_\-]+)+)\1/g
+const ANY_KEY_LITERAL_RE =
+  /(["'])([A-Za-z][A-Za-z0-9_\-]*(?:\.[A-Za-z0-9_\-]+)+)\1/g
 /** A dotted literal that is a filename or a host, not an i18n key. */
 const FILENAME_LIKE_RE =
   /\.(json|ts|tsx|js|jsx|mjs|cjs|css|scss|svg|png|jpg|jpeg|webp|gif|md|pdf|txt|html|ya?ml|finance|com|org|io|xyz|dev|app)$/i
 
 const USER_VISIBLE_ATTRS = [
-  "label", "placeholder", "title", "helperText", "alt", "aria-label",
-  "headerName", "tooltip", "tooltipText", "subtitle", "buttonText",
-  "emptyText", "errorText", "description", "heading", "caption",
+  "label",
+  "placeholder",
+  "title",
+  "helperText",
+  "alt",
+  "aria-label",
+  "headerName",
+  "tooltip",
+  "tooltipText",
+  "subtitle",
+  "buttonText",
+  "emptyText",
+  "errorText",
+  "description",
+  "heading",
+  "caption",
 ]
 const ATTR_LITERAL_RE = new RegExp(
   `\\b(${USER_VISIBLE_ATTRS.join("|")})=(["'])([^"']{2,})\\2`,
   "g",
 )
 /** Not prose: enum-ish single tokens, key/path shapes, format strings. */
-const NON_PROSE_RE = /^(?:[a-z0-9_-]+|[A-Za-z0-9_.\-]*\.[A-Za-z0-9_.\-]+|[#/{$].*|%s|\d+)$/
+const NON_PROSE_RE =
+  /^(?:[a-z0-9_-]+|[A-Za-z0-9_.\-]*\.[A-Za-z0-9_.\-]+|[#/{$].*|%s|\d+)$/
 /**
  * Deliberately never translated -- file-format acronyms and network proper nouns
  * read identically in every locale. Keeping this list makes the count mean
  * "strings that ought to be keys", not "strings already ruled out".
  */
 const NON_TRANSLATABLE = new Set([
-  "CSV", "PDF", "PNG", "SVG", "JSON", "XLSX", "Ethereum", "Plasma", "True", "False",
+  "CSV",
+  "PDF",
+  "PNG",
+  "SVG",
+  "JSON",
+  "XLSX",
+  "Ethereum",
+  "Plasma",
+  "True",
+  "False",
 ])
 
 function git(args) {
@@ -478,28 +571,59 @@ function blankComments(src) {
     const c = src[i]
     const n = src[i + 1]
     if (state === 0) {
-      if (c === "/" && n === "/") { state = 1; out[i] = out[i + 1] = " "; i += 2; continue }
-      if (c === "/" && n === "*") { state = 2; out[i] = out[i + 1] = " "; i += 2; continue }
+      if (c === "/" && n === "/") {
+        state = 1
+        out[i] = out[i + 1] = " "
+        i += 2
+        continue
+      }
+      if (c === "/" && n === "*") {
+        state = 2
+        out[i] = out[i + 1] = " "
+        i += 2
+        continue
+      }
       if (c === "'") state = 3
       else if (c === '"') state = 4
       else if (c === "`") state = 5
-      else if (c === "}" && tpl.length) { tpl.pop(); state = 5 }
+      else if (c === "}" && tpl.length) {
+        tpl.pop()
+        state = 5
+      }
       i += 1
       continue
     }
-    if (state === 1) { if (c === "\n") state = 0; else out[i] = " "; i += 1; continue }
+    if (state === 1) {
+      if (c === "\n") state = 0
+      else out[i] = " "
+      i += 1
+      continue
+    }
     if (state === 2) {
-      if (c === "*" && n === "/") { out[i] = out[i + 1] = " "; state = 0; i += 2; continue }
+      if (c === "*" && n === "/") {
+        out[i] = out[i + 1] = " "
+        state = 0
+        i += 2
+        continue
+      }
       if (c !== "\n") out[i] = " "
       i += 1
       continue
     }
-    if (c === "\\") { i += 2; continue }
+    if (c === "\\") {
+      i += 2
+      continue
+    }
     if (state === 3 && c === "'") state = 0
     else if (state === 4 && c === '"') state = 0
     else if (state === 5) {
       if (c === "`") state = 0
-      else if (c === "$" && n === "{") { tpl.push(1); state = 0; i += 2; continue }
+      else if (c === "$" && n === "{") {
+        tpl.push(1)
+        state = 0
+        i += 2
+        continue
+      }
     }
     i += 1
   }
@@ -544,14 +668,7 @@ const localeTopLevel = new Set([...localeKeys].map((k) => k.split(".")[0]))
 const allSourceFiles = git(
   staged
     ? ["ls-files", "-z", "--cached", "src"]
-    : [
-        "ls-files",
-        "-z",
-        "--cached",
-        "--others",
-        "--exclude-standard",
-        "src",
-      ],
+    : ["ls-files", "-z", "--cached", "--others", "--exclude-standard", "src"],
 )
   .split("\0")
   .filter((f) => /\.(tsx?|jsx?)$/.test(f))
@@ -559,8 +676,14 @@ const allSourceFiles = git(
 const uiFiles = new Set(allSourceFiles.filter((f) => !SKIP_UI_RE.test(f)))
 
 const violations = {
-  missingKey: [], dynamicKey: [], defaultValue: [], legacySection: [],
-  attrLiteral: [], depth: [], duplicateValue: [], orphanKey: [],
+  missingKey: [],
+  dynamicKey: [],
+  defaultValue: [],
+  legacySection: [],
+  attrLiteral: [],
+  depth: [],
+  duplicateValue: [],
+  orphanKey: [],
   staleHomonym: [],
 }
 
@@ -604,21 +727,29 @@ for (const file of allSourceFiles) {
      * section the refactor REMOVED would otherwise be waved through precisely
      * because its section is gone.
      */
-    if (!(localeTopLevel.has(key.split(".")[0]) || key.split(".").length >= 3)) continue
+    if (!(localeTopLevel.has(key.split(".")[0]) || key.split(".").length >= 3))
+      continue
     usedKeys.add(key)
     if (!resolvableKeys.has(key) && !localeKeys.has(key)) {
       violations.missingKey.push({ file, line: lineAt(m.index), key })
     }
   }
 
-  for (const m of text.matchAll(DYNAMIC_PREFIX_RE)) if (m[1]) dynamicPrefixes.add(m[1])
+  for (const m of text.matchAll(DYNAMIC_PREFIX_RE))
+    if (m[1]) dynamicPrefixes.add(m[1])
   for (const m of text.matchAll(DYNAMIC_KEY_RE)) {
     violations.dynamicKey.push({
-      file, line: lineAt(m.index), snippet: m[0].replace(/\s+/g, " ").trim(),
+      file,
+      line: lineAt(m.index),
+      snippet: m[0].replace(/\s+/g, " ").trim(),
     })
   }
   for (const m of text.matchAll(DEFAULT_VALUE_RE)) {
-    violations.defaultValue.push({ file, line: lineAt(m.index), snippet: m[0].trim() })
+    violations.defaultValue.push({
+      file,
+      line: lineAt(m.index),
+      snippet: m[0].trim(),
+    })
   }
 
   if (!uiFiles.has(file)) continue
@@ -697,12 +828,21 @@ violations.duplicateValue.sort((a, b) => b.keys.length - a.keys.length)
 for (const [value, allowed] of KNOWN_DUPLICATES) {
   const observed = byValue.get(value) ?? []
   if (observed.length < 2) {
-    violations.staleHomonym.push({ value, kind: allowed.kind, reason: allowed.reason })
+    violations.staleHomonym.push({
+      value,
+      kind: allowed.kind,
+      reason: allowed.reason,
+    })
     continue
   }
   const gone = allowed.keys.filter((k) => !observed.includes(k))
   if (gone.length) {
-    violations.staleHomonym.push({ value, kind: allowed.kind, gone, reason: allowed.reason })
+    violations.staleHomonym.push({
+      value,
+      kind: allowed.kind,
+      gone,
+      reason: allowed.reason,
+    })
   }
 }
 
@@ -722,9 +862,15 @@ violations.orphanKey.sort((a, b) => a.key.localeCompare(b.key))
 
 // ----------------------------------------------------------------- reporting
 const SEVERITY = {
-  missingKey: "error", dynamicKey: "error", defaultValue: "error",
-  legacySection: "error", attrLiteral: "error", depth: "error",
-  duplicateValue: "warn", orphanKey: "error", staleHomonym: "warn",
+  missingKey: "error",
+  dynamicKey: "error",
+  defaultValue: "error",
+  legacySection: "error",
+  attrLiteral: "error",
+  depth: "error",
+  duplicateValue: "warn",
+  orphanKey: "error",
+  staleHomonym: "warn",
 }
 const counts = Object.fromEntries(
   Object.entries(violations).map(([k, v]) => [k, v.length]),
@@ -733,12 +879,16 @@ const counts = Object.fromEntries(
 if (writeBaseline) {
   fs.writeFileSync(
     baselineFile,
-    `${JSON.stringify({
-      $comment:
-        "GENERATED by scripts/i18n/check-i18n.mjs --write-baseline. Counts may only " +
-        "go DOWN. When every count is 0, run with --strict and delete this file.",
-      counts,
-    }, null, 2)}\n`,
+    `${JSON.stringify(
+      {
+        $comment:
+          "GENERATED by scripts/i18n/check-i18n.mjs --write-baseline. Counts may only " +
+          "go DOWN. When every count is 0, run with --strict and delete this file.",
+        counts,
+      },
+      null,
+      2,
+    )}\n`,
   )
   console.log(`wrote ${path.relative(rootDir, baselineFile)}`)
   console.log(JSON.stringify(counts, null, 2))
@@ -749,7 +899,10 @@ if (writeBaseline) {
   if (asJson) {
     // A file, not stdout: the payload is large enough that piping it races
     // process exit and truncates.
-    fs.writeFileSync(reportFile, `${JSON.stringify({ counts, violations }, null, 2)}\n`)
+    fs.writeFileSync(
+      reportFile,
+      `${JSON.stringify({ counts, violations }, null, 2)}\n`,
+    )
     console.log(`wrote ${path.relative(rootDir, reportFile)}`)
   }
 
@@ -776,14 +929,30 @@ if (writeBaseline) {
     if (verdict === "error" || verdict === "regression") failed = true
 
     const budget = allowed === undefined ? "" : ` (baseline ${allowed})`
-    lines.push(`${verdict.toUpperCase().padEnd(11)} ${rule.padEnd(15)} ${count}${budget}`)
+    lines.push(
+      `${verdict.toUpperCase().padEnd(11)} ${rule.padEnd(
+        15,
+      )} ${count}${budget}`,
+    )
 
-    const show = verdict === "error" || verdict === "regression" || severity === "error"
+    const show =
+      verdict === "error" || verdict === "regression" || severity === "error"
     if (!asJson && count && show) {
       for (const item of items.slice(0, 15)) {
-        if (item.attr) lines.push(`              ${item.file}:${item.line}  ${item.attr}="${item.value}"`)
-        else if (item.file) lines.push(`              ${item.file}:${item.line}  ${item.key ?? item.snippet}`)
-        else if (item.section) lines.push(`              section "${item.section}" -- ${item.keys} keys`)
+        if (item.attr)
+          lines.push(
+            `              ${item.file}:${item.line}  ${item.attr}="${item.value}"`,
+          )
+        else if (item.file)
+          lines.push(
+            `              ${item.file}:${item.line}  ${
+              item.key ?? item.snippet
+            }`,
+          )
+        else if (item.section)
+          lines.push(
+            `              section "${item.section}" -- ${item.keys} keys`,
+          )
         else lines.push(`              ${JSON.stringify(item)}`)
       }
       if (count > 15) lines.push(`              ... and ${count - 15} more`)
@@ -791,9 +960,17 @@ if (writeBaseline) {
   }
 
   if (!asJson) {
-    console.log(`i18n check ${strict ? "(strict)" : baseline ? "(vs baseline)" : "(no baseline)"}\n`)
+    console.log(
+      `i18n check ${
+        strict ? "(strict)" : baseline ? "(vs baseline)" : "(no baseline)"
+      }\n`,
+    )
     console.log(lines.join("\n"))
-    console.log(failed ? "\nFAIL -- see docs/i18n-conventions.md for how to place a key." : "\nPASS")
+    console.log(
+      failed
+        ? "\nFAIL -- see docs/i18n-conventions.md for how to place a key."
+        : "\nPASS",
+    )
   }
 
   // exitCode, not exit(): buffered stdout must flush first.

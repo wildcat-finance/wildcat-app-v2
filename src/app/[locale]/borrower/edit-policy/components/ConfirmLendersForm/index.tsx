@@ -103,7 +103,7 @@ export const ConfirmLendersForm = ({
     {
       field: "name",
       disableColumnMenu: true,
-      headerName: "Name",
+      headerName: t("common.fields.name"),
       minWidth: 160,
       flex: 1.5,
       headerAlign: "left",
@@ -131,7 +131,7 @@ export const ConfirmLendersForm = ({
     },
     {
       field: "address",
-      headerName: "Wallet Address",
+      headerName: t("common.fields.walletAddress"),
       minWidth: 176,
       headerAlign: "left",
       align: "left",

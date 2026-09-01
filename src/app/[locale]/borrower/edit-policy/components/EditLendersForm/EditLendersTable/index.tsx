@@ -98,7 +98,7 @@ export const EditLendersTable = ({
   const columns: TypeSafeColDef<EditPolicyLendersTableModel>[] = [
     {
       field: "name",
-      headerName: "Name",
+      headerName: t("common.fields.name"),
       disableColumnMenu: true,
       minWidth: 170,
       flex: 1,
@@ -132,7 +132,7 @@ export const EditLendersTable = ({
     },
     {
       field: "address",
-      headerName: "Wallet Address",
+      headerName: t("common.fields.walletAddress"),
       disableColumnMenu: true,
       minWidth: 180,
       flex: 1,
@@ -166,7 +166,7 @@ export const EditLendersTable = ({
     },
     {
       field: "credentialSource",
-      headerName: "Credential",
+      headerName: t("common.fields.credential"),
       disableColumnMenu: true,
       minWidth: 180,
       flex: 1,

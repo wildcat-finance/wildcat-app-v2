@@ -4,6 +4,7 @@ import { Box, Skeleton } from "@mui/material"
 import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid"
 import { Market, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import { MarketImplementationChip } from "@/components/@extended/MarketImplementationChip"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
@@ -45,10 +46,11 @@ export type MarketsTableModel = {
 }
 
 export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
+  const { t } = useTranslation()
   const columns: GridColDef[] = [
     {
       field: "status",
-      headerName: "Status",
+      headerName: t("common.fields.status"),
       minWidth: 120,
       flex: 0.7,
       headerAlign: "left",
@@ -74,7 +76,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
     },
     {
       field: "implementationType",
-      headerName: "Type",
+      headerName: t("common.fields.type"),
       minWidth: 130,
       flex: 0.8,
       headerAlign: "left",
@@ -103,7 +105,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
     },
     {
       field: "term",
-      headerName: "Term",
+      headerName: t("common.fields.term"),
       minWidth: 170,
       flex: 1,
       headerAlign: "left",
@@ -129,7 +131,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
     },
     {
       field: "name",
-      headerName: "Market Name",
+      headerName: t("common.fields.marketName"),
       flex: 3,
       minWidth: 208,
       headerAlign: "left",
@@ -152,7 +154,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
     },
     {
       field: "asset",
-      headerName: "Asset",
+      headerName: t("common.fields.asset"),
       minWidth: 95,
       headerAlign: "right",
       align: "right",
@@ -172,7 +174,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
     },
     {
       field: "debt",
-      headerName: "Total Debt",
+      headerName: t("common.fields.totalDebt"),
       minWidth: 110,
       headerAlign: "right",
       align: "right",

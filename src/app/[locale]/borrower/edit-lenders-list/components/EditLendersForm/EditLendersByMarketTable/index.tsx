@@ -169,7 +169,7 @@ export const EditLendersByMarketTable = () => {
   const columns: TypeSafeColDef<EditLendersByMarketTableModel>[] = [
     {
       field: "name",
-      headerName: "Name",
+      headerName: t("common.fields.name"),
       disableColumnMenu: true,
       minWidth: 170,
       maxWidth: 190,
@@ -212,7 +212,7 @@ export const EditLendersByMarketTable = () => {
     },
     {
       field: "address",
-      headerName: "Wallet Address",
+      headerName: t("common.fields.walletAddress"),
       disableColumnMenu: true,
       minWidth: 180,
       maxWidth: 200,

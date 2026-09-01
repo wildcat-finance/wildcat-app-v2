@@ -64,7 +64,7 @@ export const ConfirmModal = ({
   const columns: TypeSafeColDef<EditLendersTableModel>[] = [
     {
       field: "name",
-      headerName: "Name",
+      headerName: t("common.fields.name"),
       minWidth: 160,
       flex: 0.5,
       headerAlign: "left",
@@ -97,7 +97,7 @@ export const ConfirmModal = ({
     },
     {
       field: "address",
-      headerName: "Wallet Address",
+      headerName: t("common.fields.walletAddress"),
       minWidth: 160,
       flex: 1,
       headerAlign: "left",

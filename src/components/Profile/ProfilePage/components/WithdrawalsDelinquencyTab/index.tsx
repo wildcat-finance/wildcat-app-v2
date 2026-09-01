@@ -496,9 +496,9 @@ export const WithdrawalsDelinquencyTab = ({
             value={delinquencySort}
             onChange={setDelinquencySort}
             options={[
-              { value: "hours", label: "Highest" },
-              { value: "market", label: "Market" },
-              { value: "recent", label: "Recent" },
+              { value: "hours", label: t("common.fields.highest") },
+              { value: "market", label: t("common.fields.market") },
+              { value: "recent", label: t("common.fields.recent") },
             ]}
           />
         }
@@ -599,10 +599,10 @@ export const WithdrawalsDelinquencyTab = ({
                   value={batchSort}
                   onChange={setBatchSort}
                   options={[
-                    { value: "expiry", label: "Expiry" },
-                    { value: "status", label: "Status" },
-                    { value: "market", label: "Market" },
-                    { value: "shortfall", label: "Shortfall" },
+                    { value: "expiry", label: t("common.fields.expiry") },
+                    { value: "status", label: t("common.fields.status") },
+                    { value: "market", label: t("common.fields.market") },
+                    { value: "shortfall", label: t("common.fields.shortfall") },
                   ]}
                 />
               </Box>
@@ -763,19 +763,19 @@ export const WithdrawalsDelinquencyTab = ({
           isLoading={isAnalyticsLoading || delinquencyQuery.isLoading}
           items={[
             {
-              label: "Total events",
+              label: t("profile.borrower.stats.totalEvents"),
               value: String(delinquencyMetrics.totalEvents),
             },
             {
-              label: "Longest event",
+              label: t("profile.borrower.stats.longestEvent"),
               value: formatHours(delinquencyMetrics.longestSingleDelinquency),
             },
             {
-              label: "Avg cure time",
+              label: t("profile.borrower.stats.avgCureTime"),
               value: formatHours(delinquencyMetrics.averageCureTime),
             },
             {
-              label: "Penalty events",
+              label: t("profile.borrower.stats.penaltyEvents"),
               value: String(delinquencyMetrics.penaltyEvents),
             },
           ]}

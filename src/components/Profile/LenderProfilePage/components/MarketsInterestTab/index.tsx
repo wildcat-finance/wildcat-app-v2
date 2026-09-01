@@ -108,9 +108,9 @@ export const MarketsInterestTab = ({
         color: PIE_COLORS[index % PIE_COLORS.length],
         tooltipRows: [
           { label: "APR", value: `${row.apr.toFixed(2)}%` },
-          { label: "Status", value: row.status },
+          { label: t("common.fields.status"), value: row.status },
           {
-            label: "Share",
+            label: t("common.fields.share"),
             value: formatPercent(
               totalInterest > 0
                 ? (row.interestEarned / totalInterest) * 100
@@ -142,7 +142,7 @@ export const MarketsInterestTab = ({
   const interestColumns: GridColDef[] = [
     {
       field: "marketName",
-      headerName: "Market",
+      headerName: t("common.fields.market"),
       flex: 1.2,
       minWidth: 220,
       renderCell: ({ row, value }) => (
@@ -157,20 +157,20 @@ export const MarketsInterestTab = ({
     },
     {
       field: "borrowerDisplayName",
-      headerName: "Borrower",
+      headerName: t("common.labels.borrower"),
       flex: 1.2,
       minWidth: 240,
       renderCell: renderBorrowerCell,
     },
     {
       field: "asset",
-      headerName: "Asset",
+      headerName: t("common.fields.asset"),
       minWidth: 110,
       renderCell: ({ value }) => <TextCell>{value}</TextCell>,
     },
     {
       field: "interestEarned",
-      headerName: "Interest earned",
+      headerName: t("common.fields.interestEarned"),
       minWidth: 150,
       align: "right",
       headerAlign: "right",
@@ -182,7 +182,7 @@ export const MarketsInterestTab = ({
     },
     {
       field: "share",
-      headerName: "Share",
+      headerName: t("common.fields.share"),
       minWidth: 120,
       align: "right",
       headerAlign: "right",
@@ -195,7 +195,7 @@ export const MarketsInterestTab = ({
   const marketHistoryColumns: GridColDef[] = [
     {
       field: "marketName",
-      headerName: "Market",
+      headerName: t("common.fields.market"),
       flex: 1.2,
       minWidth: 220,
       renderCell: ({ row, value }) => (
@@ -210,26 +210,26 @@ export const MarketsInterestTab = ({
     },
     {
       field: "borrowerDisplayName",
-      headerName: "Borrower",
+      headerName: t("common.labels.borrower"),
       flex: 1.2,
       minWidth: 240,
       renderCell: renderBorrowerCell,
     },
     {
       field: "asset",
-      headerName: "Asset",
+      headerName: t("common.fields.asset"),
       minWidth: 110,
       renderCell: ({ value }) => <TextCell>{value}</TextCell>,
     },
     {
       field: "addedDate",
-      headerName: "First deposit",
+      headerName: t("common.fields.firstDeposit"),
       minWidth: 140,
       renderCell: ({ value }) => <TextCell>{value}</TextCell>,
     },
     {
       field: "status",
-      headerName: "Status",
+      headerName: t("common.fields.status"),
       minWidth: 130,
       renderCell: ({ value }) => (
         <MarketStatusChip
@@ -242,7 +242,7 @@ export const MarketsInterestTab = ({
     },
     {
       field: "totalDeposited",
-      headerName: "Deposited",
+      headerName: t("common.fields.deposited"),
       minWidth: 140,
       align: "right",
       headerAlign: "right",
@@ -254,7 +254,7 @@ export const MarketsInterestTab = ({
     },
     {
       field: "interestEarned",
-      headerName: "Interest",
+      headerName: t("common.fields.interest"),
       minWidth: 130,
       align: "right",
       headerAlign: "right",
@@ -326,7 +326,7 @@ export const MarketsInterestTab = ({
                   formatValue={(value) => formatUsd(value)}
                   centerLabel={{
                     primary: formatUsd(displayTotalInterest, { compact: true }),
-                    secondary: "Total interest",
+                    secondary: t("profile.lender.stats.totalInterest"),
                   }}
                   ariaLabel="Interest earned by lender position"
                 />
@@ -467,7 +467,7 @@ export const MarketsInterestTab = ({
               headlineLabel="Deposited"
               rows={[
                 {
-                  label: "Interest earned",
+                  label: t("common.fields.interestEarned"),
                   value: formatUsd(row.interestEarned, { compact: true }),
                 },
               ]}

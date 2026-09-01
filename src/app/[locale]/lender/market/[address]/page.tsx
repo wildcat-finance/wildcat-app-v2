@@ -236,7 +236,7 @@ export default function LenderMarketDetails({
         ),
       },
       {
-        label: t("marketDetails.lender.analytics.interestEarned"),
+        label: t("common.fields.interestEarned"),
         value: formatTokenWithCommas(totalInterestEarned),
         symbol: assetSymbol,
         tooltip: t("marketDetails.lender.analytics.interestEarnedTooltip"),
@@ -268,7 +268,7 @@ export default function LenderMarketDetails({
       marketAccount.totalInterestEarned ?? market.underlyingToken.getAmount(0)
     return [
       {
-        title: t("marketDetails.lender.analytics.interestEarned"),
+        title: t("common.fields.interestEarned"),
         value: formatTokenWithCommas(interestEarned, { withSymbol: true }),
         tooltipText: t("marketDetails.lender.analytics.interestEarnedTooltip"),
       },
