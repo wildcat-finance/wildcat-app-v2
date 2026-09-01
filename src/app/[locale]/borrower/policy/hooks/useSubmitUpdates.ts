@@ -19,6 +19,7 @@ import {
   prepareCompatibilityLenderRemoval,
 } from "@/utils/lenderAccess"
 import {
+  assertTransactionSucceeded,
   sendTransactionAndWait,
   toSafeTransactions,
 } from "@/utils/transactions"
@@ -43,7 +44,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       if (tx) {
         tx.transactionHash = txHash
       }
-      return tx
+      return assertTransactionSucceeded(tx, txHash)
     })
   }
 

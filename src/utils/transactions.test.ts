@@ -9,6 +9,7 @@ import {
   SafeTransactionTerminalError,
   sendTransactionAndWait,
   waitForSafeTransactionExecution,
+  waitForSubmittedTransaction,
 } from "./transactions"
 
 const policyAddress = "0x0000000000000000000000000000000000000001"
@@ -95,6 +96,50 @@ describe("sendTransactionAndWait", () => {
         errorAbi: lenderPolicyErrorAbi,
       }),
     ).rejects.toThrow("ahead of the latest block")
+  })
+
+  it("rejects a transaction that was mined with reverted status", async () => {
+    const estimateGas = jest.fn().mockResolvedValue(BigInt(50000))
+    const sendTransaction = jest.fn().mockResolvedValue(transactionHash)
+    const { publicClient, walletClient, waitForTransactionReceipt } =
+      makeClients(estimateGas, sendTransaction)
+    waitForTransactionReceipt.mockResolvedValueOnce({ status: "reverted" })
+
+    await expect(
+      sendTransactionAndWait(publicClient, walletClient, lenderTx),
+    ).rejects.toThrow(`Transaction reverted: ${transactionHash}`)
+  })
+})
+
+describe("waitForSubmittedTransaction", () => {
+  it.each([
+    { status: "reverted" },
+    { status: 0 },
+    { status: false },
+    { status: BigInt(0) },
+    { status: "0x0" },
+  ])("rejects a failed mined receipt with status $status", async (receipt) => {
+    const waitForTransaction = jest.fn().mockResolvedValue(receipt)
+
+    await expect(
+      waitForSubmittedTransaction({
+        provider: { waitForTransaction },
+        hash: transactionHash,
+      }),
+    ).rejects.toThrow(`Transaction reverted: ${transactionHash}`)
+  })
+
+  it("rejects a receipt without a success status", async () => {
+    const waitForTransaction = jest.fn().mockResolvedValue({})
+
+    await expect(
+      waitForSubmittedTransaction({
+        provider: { waitForTransaction },
+        hash: transactionHash,
+      }),
+    ).rejects.toThrow(
+      `Transaction success could not be confirmed: ${transactionHash}`,
+    )
   })
 })
 

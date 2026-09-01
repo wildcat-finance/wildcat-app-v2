@@ -34,6 +34,48 @@ export const toViemTransactionRequest = (tx: PartialTransaction) => ({
 
 const GAS_LIMIT_BUFFER_PERCENT = BigInt(25)
 
+export const getBufferedGasLimit = (estimatedGas: bigint): bigint =>
+  (estimatedGas * (BigInt(100) + GAS_LIMIT_BUFFER_PERCENT)) / BigInt(100)
+
+const isRevertedReceiptStatus = (status: unknown): boolean =>
+  status === "reverted" ||
+  status === false ||
+  status === 0 ||
+  status === BigInt(0) ||
+  status === "0x0"
+
+const isSuccessfulReceiptStatus = (status: unknown): boolean =>
+  status === "success" ||
+  status === true ||
+  status === 1 ||
+  status === BigInt(1) ||
+  status === "0x1"
+
+export const assertTransactionSucceeded = <T>(
+  receipt: T,
+  transactionHash?: string,
+): T => {
+  const status =
+    typeof receipt === "object" && receipt !== null && "status" in receipt
+      ? receipt.status
+      : undefined
+  if (isSuccessfulReceiptStatus(status)) {
+    return receipt
+  }
+  if (isRevertedReceiptStatus(status)) {
+    throw Error(
+      transactionHash
+        ? `Transaction reverted: ${transactionHash}`
+        : "Transaction reverted",
+    )
+  }
+  throw Error(
+    transactionHash
+      ? `Transaction success could not be confirmed: ${transactionHash}`
+      : "Transaction success could not be confirmed",
+  )
+}
+
 export const sendTransactionAndWait = async (
   publicClient: PublicClient,
   walletClient: WalletClient,
@@ -49,15 +91,15 @@ export const sendTransactionAndWait = async (
   const request = toViemTransactionRequest(tx)
   try {
     const estimated = await publicClient.estimateGas({ account, ...request })
-    const gas =
-      (estimated * (BigInt(100) + GAS_LIMIT_BUFFER_PERCENT)) / BigInt(100)
+    const gas = getBufferedGasLimit(estimated)
     const hash = await walletClient.sendTransaction({
       account,
       chain,
       ...request,
       gas,
     })
-    return publicClient.waitForTransactionReceipt({ hash })
+    const receipt = await publicClient.waitForTransactionReceipt({ hash })
+    return assertTransactionSucceeded(receipt, hash)
   } catch (error) {
     throw Error(describeContractError(error, options?.errorAbi))
   }
@@ -195,5 +237,8 @@ export const waitForSubmittedTransaction = async ({
       ? await waitForSafeTransactionHash(safeSdk, submittedHash)
       : submittedHash
   const receipt = await provider.waitForTransaction(transactionHash)
-  return { hash: transactionHash, receipt }
+  return {
+    hash: transactionHash,
+    receipt: assertTransactionSucceeded(receipt, transactionHash),
+  }
 }
