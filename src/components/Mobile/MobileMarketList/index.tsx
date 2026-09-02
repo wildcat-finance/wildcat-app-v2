@@ -27,6 +27,7 @@ import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { MarketStatus } from "@/utils/marketStatus"
 import { getPaginationRange } from "@/utils/pagination"
+import { isBorrowerContextPath } from "@/utils/profileRoutes"
 
 import { MobileMarketCardVariant, MobileMarketItem } from "../MobileMarketCard"
 
@@ -168,7 +169,7 @@ export const MobileMarketList = ({
   const isLenderProfilePage = pathname.includes(ROUTES.lender.profile)
 
   const showBorrowerInCard = !isBorrowerProfilePage && !isLenderProfilePage
-  const baseRoute = isBorrowerProfilePage
+  const baseRoute = isBorrowerContextPath(pathname)
     ? ROUTES.borrower.market
     : ROUTES.lender.market
 

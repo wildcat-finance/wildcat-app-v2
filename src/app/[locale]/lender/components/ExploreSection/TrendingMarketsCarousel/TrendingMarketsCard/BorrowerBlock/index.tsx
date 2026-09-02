@@ -7,8 +7,8 @@ import { useTranslation } from "react-i18next"
 import { MarketStatusAndTermChip } from "@/components/@extended/MarketStatusAndTermChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { NetworkIcon } from "@/components/NetworkIcon"
-import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
+import { buildBorrowerProfileHref } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 
 import { SupplyProgressFillStyle, SupplyProgressTrackStyle } from "../style"
@@ -119,7 +119,7 @@ export const TrendingMarketDetails = ({
           <BorrowerProfileChip
             borrower={borrower}
             size={isMobile ? "medium" : "small"}
-            href={`${ROUTES.lender.profile}/${borrowerAddress}`}
+            href={buildBorrowerProfileHref(borrowerAddress, chainId)}
           />
           <AssetChip asset={asset} chainId={chainId} isMobile={isMobile} />
         </Box>
