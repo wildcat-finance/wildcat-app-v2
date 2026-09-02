@@ -25,7 +25,10 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { invalidateMarketStateQueries } from "@/utils/marketStateQueries"
-import { toViemTransactionRequest } from "@/utils/transactions"
+import {
+  assertTransactionSucceeded,
+  toViemTransactionRequest,
+} from "@/utils/transactions"
 
 import { WithdrawRoute } from "./useWithdrawRouting"
 import { resolveWithdrawalQueueRaw } from "./withdrawQueue"
@@ -325,7 +328,10 @@ export const useWithdrawFlow = ({
         gas,
       })
       setTxHash(hash)
-      const receipt = await publicClient.waitForTransactionReceipt({ hash })
+      const receipt = assertTransactionSucceeded(
+        await publicClient.waitForTransactionReceipt({ hash }),
+        hash,
+      )
       return { hash, receipt }
     },
     [publicClient, walletClient],
@@ -456,7 +462,10 @@ export const useWithdrawFlow = ({
       }
 
       setTxHash(resolvedHash)
-      const receipt = await sdk.eth.getTransactionReceipt([resolvedHash])
+      const receipt = assertTransactionSucceeded(
+        await sdk.eth.getTransactionReceipt([resolvedHash]),
+        resolvedHash,
+      )
       const queued = receipt?.logs
         ? decodeQueued(receipt.logs as TransactionLog[])
         : undefined

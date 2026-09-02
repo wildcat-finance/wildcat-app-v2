@@ -44,6 +44,7 @@ jest.mock("@/hooks/useEthersSigner", () => ({
 }))
 
 jest.mock("@/utils/transactions", () => ({
+  ...jest.requireActual("@/utils/transactions"),
   waitForSafeTransactionExecution: (...args: unknown[]) =>
     waitForSafeTransactionExecutionMock(...args),
 }))
@@ -173,7 +174,7 @@ describe("useCreateWrapper", () => {
     toSafeTransactionInputMock.mockReturnValue(safeTransaction)
     sendSafeTransactions.mockResolvedValue({ safeTxHash })
     waitForSafeTransactionExecutionMock.mockResolvedValue(transactionHash)
-    getTransactionReceipt.mockResolvedValue({ transactionHash })
+    getTransactionReceipt.mockResolvedValue({ transactionHash, status: 1 })
     const { wrapper } = createQueryWrapper()
     const { result } = renderHook(
       () =>
@@ -206,6 +207,43 @@ describe("useCreateWrapper", () => {
     )
     expect(getTransactionReceipt).toHaveBeenCalledWith([transactionHash])
     expect(createWrapperMock).not.toHaveBeenCalled()
+  })
+
+  it("rejects a reverted Safe deployment receipt", async () => {
+    const safeTxHash = "0xsafe"
+    const transactionHash = "0xtransaction"
+    useSafeAppsSDKMock.mockReturnValue({ connected: true, sdk: safeSdk })
+    populateCreateWrapperMock.mockReturnValue({
+      to: "0xfactory",
+      data: "0x1234",
+    })
+    toSafeTransactionInputMock.mockReturnValue({
+      to: "0xfactory",
+      data: "0x1234",
+      value: "0",
+    })
+    sendSafeTransactions.mockResolvedValue({ safeTxHash })
+    waitForSafeTransactionExecutionMock.mockResolvedValue(transactionHash)
+    getTransactionReceipt.mockResolvedValue({
+      transactionHash,
+      status: 0,
+    })
+    const { wrapper } = createQueryWrapper()
+    const { result } = renderHook(
+      () =>
+        useCreateWrapper({
+          market,
+          hasFactory: true,
+          isDifferentChain: false,
+        }),
+      { wrapper },
+    )
+
+    await act(async () => {
+      await expect(result.current.createWrapper()).rejects.toThrow(
+        `Transaction reverted: ${transactionHash}`,
+      )
+    })
   })
 
   it("requires the market network", () => {

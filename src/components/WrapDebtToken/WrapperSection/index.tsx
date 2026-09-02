@@ -49,7 +49,10 @@ import { lh, pxToRem } from "@/theme/units"
 import { isUSDTLikeToken } from "@/utils/constants"
 import { formatTokenWithCommas } from "@/utils/formatters"
 import { invalidateMarketStateQueries } from "@/utils/marketStateQueries"
-import { waitForSubmittedTransaction } from "@/utils/transactions"
+import {
+  assertTransactionSucceeded,
+  waitForSubmittedTransaction,
+} from "@/utils/transactions"
 
 import { getWrapperTransactionMethod } from "./transaction"
 import { ErrorWrapperAlert } from "../ErrorWrapperAlert"
@@ -466,7 +469,10 @@ export const WrapperSection = ({
       }
       check()
     })
-    await sdk.eth.getTransactionReceipt([resolvedTxHash])
+    assertTransactionSucceeded(
+      await sdk.eth.getTransactionReceipt([resolvedTxHash]),
+      resolvedTxHash,
+    )
     return resolvedTxHash
   }
 
