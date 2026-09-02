@@ -12,6 +12,7 @@ import { Trans } from "@/components/Translation"
 import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { ROUTES } from "@/routes"
+import { currentReturnTarget } from "@/utils/returnTarget"
 import { requiresBorrowerInvitationAcceptance } from "@/utils/serviceAgreementState"
 
 import { AgreementText } from "../AgreementText"
@@ -172,7 +173,7 @@ export const AgreementPage = ({
             variant="contained"
             color="secondary"
             size="large"
-            onClick={() => router.back()}
+            onClick={() => router.replace(currentReturnTarget(party))}
             sx={{
               width: "168.63px",
               height: "44px",

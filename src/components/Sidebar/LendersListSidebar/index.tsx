@@ -1,28 +1,21 @@
 import { Box, Button } from "@mui/material"
-import SvgIcon from "@mui/material/SvgIcon"
-import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
-import BackArrow from "@/assets/icons/backArrow_icon.svg"
+import { BackButton } from "@/components/BackButton"
 import {
   ContentContainer,
   MenuItemButton,
   MenuItemButtonSelected,
 } from "@/components/Sidebar/style"
+import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setEditStep } from "@/store/slices/editLendersListSlice/editLendersListSlice"
-import { COLORS } from "@/theme/colors"
 
 export const LenderListSidebar = () => {
   const { t } = useTranslation()
-  const router = useRouter()
 
   const dispatch = useAppDispatch()
   const step = useAppSelector((state) => state.editLendersList.step)
-
-  const handleBackClick = () => {
-    router.back()
-  }
 
   const handleClickConfirm = () => {
     dispatch(setEditStep("confirm"))
@@ -34,40 +27,18 @@ export const LenderListSidebar = () => {
 
   return (
     <Box sx={ContentContainer}>
-      <Button
-        onClick={handleBackClick}
-        fullWidth
-        variant="text"
-        size="medium"
-        sx={{
-          color: COLORS.santasGrey,
-          fontWeight: 500,
-          justifyContent: "flex-start",
-          marginBottom: "14px",
-
-          "&:hover": {
-            "& .MuiSvgIcon-root": {
-              "& path": {
-                fill: `${COLORS.blackRock08}`,
-              },
-            },
-          },
-        }}
-      >
-        <SvgIcon
-          fontSize="small"
-          sx={{
-            marginRight: "4px",
-            "& path": {
-              fill: `${COLORS.santasGrey}`,
-              transition: "fill 0.2s",
-            },
-          }}
-        >
-          <BackArrow />
-        </SvgIcon>
-        {t("common.buttons.back")}
-      </Button>
+      {/*
+        This is a link to the borrower markets page, not a history jump. It
+        used to call `router.back()` unconditionally, so opening
+        /borrower/edit-lenders-list directly sent the borrower to whatever the
+        tab held before, which is the defect issue 32 reported on the lender
+        side. The only reliable way into this page is the authorised-lenders
+        table on /borrower, so that is where back goes.
+      */}
+      <BackButton
+        title={t("common.buttons.back")}
+        link={ROUTES.borrower.root}
+      />
       <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
         <Button
           variant="text"

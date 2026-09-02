@@ -11,6 +11,7 @@ import {
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { GenericProviderProps } from "@/providers/interface"
 import { ROUTES } from "@/routes"
+import { withReturnTarget } from "@/utils/returnTarget"
 
 export const RedirectsProvider = ({ children }: GenericProviderProps) => {
   const router = useRouter()
@@ -28,9 +29,11 @@ export const RedirectsProvider = ({ children }: GenericProviderProps) => {
 
   useEffect(() => {
     if (redirectPath && !isRedirectLoading) {
-      router.push(redirectPath)
+      // Carry the page being left, so the agreement page can return there
+      // instead of relying on browser history it does not own.
+      router.push(withReturnTarget(redirectPath, pathname))
     }
-  }, [router, redirectPath, isRedirectLoading])
+  }, [router, redirectPath, isRedirectLoading, pathname])
 
   useEffect(() => {
     const prev = previousNetworkRef.current

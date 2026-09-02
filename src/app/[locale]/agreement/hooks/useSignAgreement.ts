@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 
 import { toastError, toastRequest } from "@/components/Toasts"
 import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
@@ -7,10 +7,12 @@ import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { isTerminalClientError } from "@/utils/httpStatus"
+import { currentReturnTarget } from "@/utils/returnTarget"
 import {
   buildServiceAgreementMessage,
   SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
 } from "@/utils/serviceAgreementMessage"
+import { getServiceAgreementPartyForPath } from "@/utils/serviceAgreementParty"
 import { invalidateToUQueries } from "@/utils/serviceAgreementQueries"
 
 export type SignAgreementProps = {
@@ -24,6 +26,7 @@ export const useSignAgreement = () => {
   const { chainId } = useSelectedNetwork()
   const safeSigning = useSafeMessageSigning()
   const router = useRouter()
+  const pathname = usePathname()
   const client = useQueryClient()
   const currentAgreement = useCurrentServiceAgreement()
 
@@ -93,7 +96,11 @@ export const useSignAgreement = () => {
     },
     onSuccess: async (_, variables) => {
       await invalidateToUQueries(client, chainId, variables.address)
-      router.back()
+      // A successful signature must not leave the application. Return to the
+      // validated target carried on the URL, or to the party's own root.
+      router.replace(
+        currentReturnTarget(getServiceAgreementPartyForPath(pathname)),
+      )
     },
     onError(error) {
       console.log(error)

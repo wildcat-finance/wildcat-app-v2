@@ -50,26 +50,32 @@ describe("MobileNamePageBlockWrapper back navigation", () => {
     Reflect.deleteProperty(window.history, "length")
   })
 
-  it("returns to the previous page when navigation history is available", () => {
+  it("names the lender dashboard even when browser history is available", () => {
     setHistoryLength(2)
     renderWrapper()
 
-    fireEvent.click(screen.getByRole("link"))
+    const control = screen.getByRole("link", { name: "common.buttons.back" })
+    expect(control.getAttribute("href")).toBe("/lender")
 
-    expect(backMock).toHaveBeenCalledTimes(1)
+    fireEvent.click(control)
+
+    expect(backMock).not.toHaveBeenCalled()
     expect(pushMock).not.toHaveBeenCalled()
   })
 
-  it("uses the borrower dashboard fallback carried in the profile URL", () => {
-    setHistoryLength(1)
+  it("names the borrower dashboard when carried in the profile URL", () => {
+    setHistoryLength(2)
     searchParamsGetMock.mockImplementation((key: string) =>
       key === "from" ? "borrower" : null,
     )
     renderWrapper()
 
-    fireEvent.click(screen.getByRole("link"))
+    const control = screen.getByRole("link", { name: "common.buttons.back" })
+    expect(control.getAttribute("href")).toBe("/borrower")
+
+    fireEvent.click(control)
 
     expect(backMock).not.toHaveBeenCalled()
-    expect(pushMock).toHaveBeenCalledWith("/borrower")
+    expect(pushMock).not.toHaveBeenCalled()
   })
 })

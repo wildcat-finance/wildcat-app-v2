@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 
 import type { ServiceAgreementPartyInput } from "@/app/api/service-agreement/interface"
 import { useAcceptToU } from "@/hooks/useToUReacceptance"
+import { currentReturnTarget } from "@/utils/returnTarget"
 
 /// Party-aware re-acceptance CTA for accounts that signed an older ToU version
 /// or declined the current one. Same flow as the re-acceptance modal (borrower
@@ -21,8 +22,12 @@ export const ReacceptButton = ({
 
   const handleSign = () => {
     // Return to where the user came from (re-acceptance modal, create-market
-    // blocker), mirroring the legacy SignButton's post-sign navigation.
-    accept.mutate(undefined, { onSuccess: () => router.back() })
+    // blocker), mirroring SignButton's post-sign navigation. The destination
+    // is the validated target carried on the URL, falling back to the party
+    // root, so a successful re-acceptance never leaves the application.
+    accept.mutate(undefined, {
+      onSuccess: () => router.replace(currentReturnTarget(party)),
+    })
   }
 
   return (
