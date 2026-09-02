@@ -52,8 +52,10 @@ export const parseReturnTarget = (
   )
   if (!allowed) return null
 
-  // Returning to an agreement route from the agreement page is a loop.
-  if (isServiceAgreementPath(pathname)) return null
+  // Next canonicalizes trailing slashes. Compare that canonical route so an
+  // equivalent agreement URL cannot return straight back into this page.
+  const routePathname = pathname.replace(/\/+$/, "")
+  if (isServiceAgreementPath(routePathname)) return null
 
   return `${pathname}${url.search}`
 }

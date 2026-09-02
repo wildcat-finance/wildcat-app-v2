@@ -4,11 +4,13 @@ import { fireEvent, render, screen } from "@testing-library/react"
 import { ReacceptButton } from "@/app/[locale]/agreement/components/ReacceptButton"
 import { ROUTES } from "@/routes"
 
-const mockPush = jest.fn()
+const JAVASCRIPT_URL = ["javascript", "alert(1)"].join(":")
+
+const mockReplace = jest.fn()
 const mockBack = jest.fn()
 
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push: mockPush, back: mockBack }),
+  useRouter: () => ({ replace: mockReplace, back: mockBack }),
 }))
 
 jest.mock("react-i18next", () => ({
@@ -30,7 +32,7 @@ const setUrl = (url: string) => window.history.replaceState({}, "", url)
 
 describe("ReacceptButton", () => {
   beforeEach(() => {
-    mockPush.mockClear()
+    mockReplace.mockClear()
     mockBack.mockClear()
     setUrl("/lender/agreement")
   })
@@ -43,7 +45,7 @@ describe("ReacceptButton", () => {
     render(<ReacceptButton party="Lender" />)
     fireEvent.click(screen.getByRole("button"))
 
-    expect(mockPush).toHaveBeenCalledWith("/lender/my-markets")
+    expect(mockReplace).toHaveBeenCalledWith("/lender/my-markets")
     expect(mockBack).not.toHaveBeenCalled()
   })
 
@@ -51,19 +53,19 @@ describe("ReacceptButton", () => {
     const hostile = [
       "https://evil.example/x",
       "//evil.example/x",
-      "javascript:alert(1)",
+      JAVASCRIPT_URL,
       "/admin",
       "/lender/../../evil",
     ]
 
     hostile.forEach((value) => {
-      mockPush.mockClear()
+      mockReplace.mockClear()
       setUrl(`/borrower/agreement?returnTo=${encodeURIComponent(value)}`)
 
       const view = render(<ReacceptButton party="Borrower" />)
       fireEvent.click(screen.getByRole("button"))
 
-      expect(mockPush).toHaveBeenCalledWith(ROUTES.borrower.root)
+      expect(mockReplace).toHaveBeenCalledWith(ROUTES.borrower.root)
       expect(mockBack).not.toHaveBeenCalled()
       view.unmount()
     })

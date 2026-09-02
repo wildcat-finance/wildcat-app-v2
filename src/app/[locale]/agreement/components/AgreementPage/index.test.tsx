@@ -4,17 +4,34 @@ import { fireEvent, render, screen } from "@testing-library/react"
 import { AgreementPage } from "@/app/[locale]/agreement/components/AgreementPage"
 import { ROUTES } from "@/routes"
 
+const JAVASCRIPT_URL = ["javascript", "alert(1)"].join(":")
+
 const mockPush = jest.fn()
+const mockReplace = jest.fn()
 const mockBack = jest.fn()
 
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push: mockPush, back: mockBack }),
+  useRouter: () => ({ push: mockPush, replace: mockReplace, back: mockBack }),
   usePathname: () => "/lender/agreement",
 }))
 
 jest.mock("react-i18next", () => ({
-  Trans: ({ i18nKey }: { i18nKey: string }) => <span>{i18nKey}</span>,
   useTranslation: () => ({ t: (key: string) => key }),
+}))
+jest.mock("wagmi", () => ({
+  useAccount: () => ({ address: "0xabc" }),
+}))
+
+jest.mock("@/components/Translation", () => ({
+  Trans: ({ i18nKey }: { i18nKey: string }) => <span>{i18nKey}</span>,
+}))
+jest.mock("@/app/[locale]/borrower/hooks/useBorrowerInvitation", () => ({
+  useBorrowerInvitationExists: () => ({
+    data: undefined,
+    isSuccess: true,
+    isError: false,
+    refetch: jest.fn(),
+  }),
 }))
 
 jest.mock("@/hooks/useCurrentServiceAgreement", () => ({
@@ -23,7 +40,10 @@ jest.mock("@/hooks/useCurrentServiceAgreement", () => ({
 
 // signedCurrent puts the page in review mode, which is when Cancel renders.
 jest.mock("@/hooks/useNetworkGate", () => ({
-  useNetworkGate: () => ({ touState: "signedCurrent" }),
+  useNetworkGate: () => ({
+    touState: "signedCurrent",
+    isAgreementSigned: true,
+  }),
 }))
 
 jest.mock("@/components/ServiceAgreementVersionChip", () => ({
@@ -42,11 +62,14 @@ jest.mock("@/app/[locale]/agreement/components/ReacceptButton", () => ({
 const setUrl = (url: string) => window.history.replaceState({}, "", url)
 
 const clickCancel = () =>
-  fireEvent.click(screen.getByRole("button", { name: /agreement.page.cancel/i }))
+  fireEvent.click(
+    screen.getByRole("button", { name: /common.buttons.cancel/i }),
+  )
 
 describe("AgreementPage cancel", () => {
   beforeEach(() => {
     mockPush.mockClear()
+    mockReplace.mockClear()
     mockBack.mockClear()
     setUrl("/lender/agreement")
   })
@@ -59,7 +82,8 @@ describe("AgreementPage cancel", () => {
     render(<AgreementPage party="Lender" />)
     clickCancel()
 
-    expect(mockPush).toHaveBeenCalledWith("/lender/my-markets")
+    expect(mockReplace).toHaveBeenCalledWith("/lender/my-markets")
+    expect(mockPush).not.toHaveBeenCalled()
     expect(mockBack).not.toHaveBeenCalled()
   })
 
@@ -73,14 +97,14 @@ describe("AgreementPage cancel", () => {
     render(<AgreementPage party="Lender" />)
     clickCancel()
 
-    expect(mockPush).toHaveBeenCalledWith("/lender/market/0xabc?chainId=1")
+    expect(mockReplace).toHaveBeenCalledWith("/lender/market/0xabc?chainId=1")
   })
 
   it("falls back to the party root when no target was carried", () => {
     render(<AgreementPage party="Lender" />)
     clickCancel()
 
-    expect(mockPush).toHaveBeenCalledWith(ROUTES.lender.root)
+    expect(mockReplace).toHaveBeenCalledWith(ROUTES.lender.root)
     expect(mockBack).not.toHaveBeenCalled()
   })
 
@@ -88,7 +112,7 @@ describe("AgreementPage cancel", () => {
     render(<AgreementPage party="Borrower" />)
     clickCancel()
 
-    expect(mockPush).toHaveBeenCalledWith(ROUTES.borrower.root)
+    expect(mockReplace).toHaveBeenCalledWith(ROUTES.borrower.root)
   })
 
   it("refuses a target naming another origin", () => {
@@ -101,27 +125,27 @@ describe("AgreementPage cancel", () => {
     render(<AgreementPage party="Lender" />)
     clickCancel()
 
-    expect(mockPush).toHaveBeenCalledWith(ROUTES.lender.root)
+    expect(mockReplace).toHaveBeenCalledWith(ROUTES.lender.root)
   })
 
   it("never leaves the application, whatever the target says", () => {
     const hostile = [
       "https://evil.example/x",
       "//evil.example/x",
-      "javascript:alert(1)",
+      JAVASCRIPT_URL,
       "/admin",
       "/lender/../../evil",
       "",
     ]
 
     hostile.forEach((value) => {
-      mockPush.mockClear()
+      mockReplace.mockClear()
       setUrl(`/lender/agreement?returnTo=${encodeURIComponent(value)}`)
 
       const view = render(<AgreementPage party="Lender" />)
       clickCancel()
 
-      expect(mockPush).toHaveBeenCalledWith(ROUTES.lender.root)
+      expect(mockReplace).toHaveBeenCalledWith(ROUTES.lender.root)
       view.unmount()
     })
   })

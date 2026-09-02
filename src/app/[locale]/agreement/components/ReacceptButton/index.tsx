@@ -26,7 +26,7 @@ export const ReacceptButton = ({
     // is the validated target carried on the URL, falling back to the party
     // root, so a successful re-acceptance never leaves the application.
     accept.mutate(undefined, {
-      onSuccess: () => router.push(currentReturnTarget(party)),
+      onSuccess: () => router.replace(currentReturnTarget(party)),
     })
   }
 

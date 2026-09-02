@@ -7,13 +7,13 @@ import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { isTerminalClientError } from "@/utils/httpStatus"
+import { currentReturnTarget } from "@/utils/returnTarget"
 import {
   buildServiceAgreementMessage,
   SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS,
 } from "@/utils/serviceAgreementMessage"
-import { invalidateToUQueries } from "@/utils/serviceAgreementQueries"
 import { getServiceAgreementPartyForPath } from "@/utils/serviceAgreementParty"
-import { currentReturnTarget } from "@/utils/returnTarget"
+import { invalidateToUQueries } from "@/utils/serviceAgreementQueries"
 
 export type SignAgreementProps = {
   address: string | undefined
@@ -98,7 +98,7 @@ export const useSignAgreement = () => {
       await invalidateToUQueries(client, chainId, variables.address)
       // A successful signature must not leave the application. Return to the
       // validated target carried on the URL, or to the party's own root.
-      router.push(
+      router.replace(
         currentReturnTarget(getServiceAgreementPartyForPath(pathname)),
       )
     },

@@ -48,18 +48,18 @@ export const BackButton = ({
   link = ROUTES.borrower.root,
   onClick,
 }: BackButtonProps) => (
-  <Link href={link} passHref>
-    <Button
-      fullWidth
-      variant="text"
-      size="medium"
-      onClick={onClick}
-      sx={buttonSx}
-    >
-      <SvgIcon fontSize="small" sx={iconSx}>
-        <BackArrow />
-      </SvgIcon>
-      {title}
-    </Button>
-  </Link>
+  <Button
+    component={Link}
+    href={link}
+    fullWidth
+    variant="text"
+    size="medium"
+    onClick={onClick}
+    sx={buttonSx}
+  >
+    <SvgIcon fontSize="small" sx={iconSx}>
+      <BackArrow />
+    </SvgIcon>
+    {title}
+  </Button>
 )

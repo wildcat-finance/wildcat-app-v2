@@ -37,7 +37,7 @@ describe("LenderListSidebar", () => {
     render(<LenderListSidebar />)
 
     const control = screen.getByRole("link", {
-      name: /lenderMarketList.sidebar.back/i,
+      name: /common.buttons.back/i,
     })
 
     expect(control.getAttribute("href")).toBe(ROUTES.borrower.root)
@@ -47,10 +47,10 @@ describe("LenderListSidebar", () => {
     render(<LenderListSidebar />)
 
     const editing = screen.getByRole("button", {
-      name: /lenderMarketList.sidebar.editingLenders/i,
+      name: /borrower.editLenders.sidebar.editing/i,
     })
     const confirm = screen.getByRole("button", {
-      name: /lenderMarketList.sidebar.confirm/i,
+      name: /common.labels.confirmation/i,
     })
 
     // The store says step "edit", so only that button carries the selected

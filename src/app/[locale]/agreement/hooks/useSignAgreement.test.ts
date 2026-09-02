@@ -4,7 +4,9 @@ import { renderHook } from "@testing-library/react"
 import { useSignAgreement } from "@/app/[locale]/agreement/hooks/useSignAgreement"
 import { ROUTES } from "@/routes"
 
-const mockPush = jest.fn()
+const JAVASCRIPT_URL = ["javascript", "alert(1)"].join(":")
+
+const mockReplace = jest.fn()
 const mockBack = jest.fn()
 
 type MutationConfig = {
@@ -24,11 +26,13 @@ jest.mock("@tanstack/react-query", () => ({
 }))
 
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push: mockPush, back: mockBack }),
+  useRouter: () => ({ replace: mockReplace, back: mockBack }),
   usePathname: () => "/lender/agreement",
 }))
 
-jest.mock("@/hooks/useEthersSigner", () => ({ useEthersSigner: () => undefined }))
+jest.mock("@/hooks/useEthersSigner", () => ({
+  useEthersSigner: () => undefined,
+}))
 jest.mock("@/hooks/useSelectedNetwork", () => ({
   useSelectedNetwork: () => ({ chainId: 1 }),
 }))
@@ -55,7 +59,7 @@ const succeed = async () => {
 
 describe("useSignAgreement success navigation", () => {
   beforeEach(() => {
-    mockPush.mockClear()
+    mockReplace.mockClear()
     mockBack.mockClear()
     captured = undefined
     setUrl("/lender/agreement")
@@ -68,34 +72,34 @@ describe("useSignAgreement success navigation", () => {
 
     await succeed()
 
-    expect(mockPush).toHaveBeenCalledWith("/lender/my-markets")
+    expect(mockReplace).toHaveBeenCalledWith("/lender/my-markets")
     expect(mockBack).not.toHaveBeenCalled()
   })
 
   it("falls back to the lender root when nothing was carried", async () => {
     await succeed()
 
-    expect(mockPush).toHaveBeenCalledWith(ROUTES.lender.root)
+    expect(mockReplace).toHaveBeenCalledWith(ROUTES.lender.root)
   })
 
   it("never leaves the application after a successful signature", async () => {
     const hostile = [
       "https://evil.example/x",
       "//evil.example/x",
-      "javascript:alert(1)",
+      JAVASCRIPT_URL,
       "/admin",
       "/lender/../../evil",
     ]
 
     // eslint-disable-next-line no-restricted-syntax
     for (const value of hostile) {
-      mockPush.mockClear()
+      mockReplace.mockClear()
       setUrl(`/lender/agreement?returnTo=${encodeURIComponent(value)}`)
 
       // eslint-disable-next-line no-await-in-loop
       await succeed()
 
-      expect(mockPush).toHaveBeenCalledWith(ROUTES.lender.root)
+      expect(mockReplace).toHaveBeenCalledWith(ROUTES.lender.root)
       expect(mockBack).not.toHaveBeenCalled()
     }
   })
