@@ -1013,6 +1013,16 @@
           "tooltip": "The amount of the underlying asset held by the address you are connected with."
         },
         "withdraw": {
+          "batchJoin": {
+            "checkingBody": "Calculating the batch's current blended rate before you continue.",
+            "checkingTitle": "Checking the current withdrawal batch",
+            "closesIn": "Batch closes in {{remaining}}",
+            "title": "You are joining a batch that opened {{elapsed}} ago",
+            "unknownBody": "We couldn't confirm whether an in-progress batch would reduce this request's claimable amount. Continuing may make less than the requested amount claimable. Any difference goes to lenders who entered the batch earlier by protocol design, not as a fee. <docs>Read the docs</docs>",
+            "unknownTitle": "Unable to verify withdrawal batch pricing",
+            "wait": "Wait until this batch closes to avoid its current blended rate",
+            "warningBody": "At the current blended rate, the estimated claimable amount is about <strong>{{payout}} {{symbol}}</strong>. About <strong>{{loss}} {{symbol}} ({{percent}}% of your request)</strong> of the interest earned by your tokens goes to lenders who entered this batch earlier. This is protocol design, not a fee. <docs>Read the docs</docs>"
+          },
           "button": "Withdraw",
           "buttonLocked": "Fixed Term",
           "chips": {
@@ -1021,8 +1031,11 @@
             "max": "Max · {{amount}}"
           },
           "confirm": {
+            "checkingBatch": "Checking Current Batch…",
             "enterAmount": "Enter An Amount",
             "exceeds": "Amount Exceeds Available",
+            "withdrawAnyway_one": "Withdraw Anyway · 1 step",
+            "withdrawAnyway_other": "Withdraw Anyway · {{count}} steps",
             "withdraw_one": "Withdraw {{amount}} {{symbol}} · 1 step",
             "withdraw_other": "Withdraw {{amount}} {{symbol}} · {{count}} steps"
           },
