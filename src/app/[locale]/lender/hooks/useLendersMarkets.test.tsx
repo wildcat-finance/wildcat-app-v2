@@ -164,6 +164,45 @@ describe("useLendersMarkets", () => {
     useSubgraphClientMock.mockReturnValue({ chainId: SEPOLIA_CHAIN_ID })
   })
 
+  it("makes a live refreshable zero-TTL lender deposit-ready", () => {
+    const account = createIndexedAccount(LENDER_A, "indexed-1")
+    Object.assign(account.market, {
+      isClosed: false,
+      hooksConfig: {
+        depositRequiresAccess: true,
+        flags: { useOnDeposit: true },
+      },
+    })
+    Object.assign(account, {
+      credential: {
+        canRefresh: true,
+        isBlockedFromDeposits: false,
+        lastApprovalTimestamp: Math.floor(Date.now() / 1000) - 1,
+        lastProvider: {
+          providerAddress: "0x4444444444444444444444444444444444444444",
+          timeToLive: 0,
+          isPullProvider: true,
+          pullProviderIndex: 0,
+          isPushProvider: false,
+          pushProviderIndex: 2 ** 24 - 1,
+          isApproved: true,
+        },
+      },
+    })
+
+    expect(account.stateSource).toBe("indexed")
+    expect(account.hasValidCredential).toBe(false)
+    expect(account.depositAvailability).toBe(
+      actualSdk.DepositStatus.RequiresAccess,
+    )
+
+    account.stateSource = "live"
+
+    expect(account.hasValidCredential).toBe(true)
+    expect(account.depositAvailability).toBe(actualSdk.DepositStatus.Ready)
+    expect(account.inferredRole).toBe(actualSdk.LenderRole.DepositAndWithdraw)
+  })
+
   it("exposes indexed rows while live hydration is still pending", async () => {
     const indexed = createIndexedAccount(LENDER_A, "indexed-1")
     const liveGate = createDeferred<void>()
