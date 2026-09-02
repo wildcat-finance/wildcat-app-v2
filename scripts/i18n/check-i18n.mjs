@@ -20,6 +20,12 @@
  *   legacySection  ERROR  top-level section outside the documented convention
  *   attrLiteral    ERROR  user-visible JSX attribute holding a hardcoded string
  *   depth          ERROR  key deeper than MAX_DEPTH
+ *   hardcodedCopy  WARN   user-visible copy that neither eslint nor attrLiteral
+ *                         can see: an object property (`headerName: "..."`), an
+ *                         attribute written as `attr={"..."}` or a ternary, a
+ *                         literal branch inside JSX, a toast argument, or JSX
+ *                         text ending in an ellipsis. Advisory on purpose --
+ *                         see the block above the rule for why.
  *   duplicateValue WARN   the same English wording under more than one key,
  *                         unless its exact key set is declared below. Useful for
  *                         spotting reusable atoms, but not proof that keys share
@@ -40,6 +46,8 @@ import { execFileSync } from "node:child_process"
 import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
+
+import ts from "typescript"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootDir = path.resolve(__dirname, "..", "..")
@@ -486,6 +494,60 @@ const ANY_KEY_LITERAL_RE =
 const FILENAME_LIKE_RE =
   /\.(json|ts|tsx|js|jsx|mjs|cjs|css|scss|svg|png|jpg|jpeg|webp|gif|md|pdf|txt|html|ya?ml|finance|com|org|io|xyz|dev|app)$/i
 
+/**
+ * Names that carry copy when they hold a string. Wider than USER_VISIBLE_ATTRS
+ * because this rule also reads object literals: a DataGrid column is
+ * `{ headerName: "Wallet Address" }`, never a JSX attribute, so the attribute
+ * list alone never sees it.
+ */
+const UI_MEMBER_NAMES = new Set([
+  "label",
+  "placeholder",
+  "title",
+  "helperText",
+  "alt",
+  "aria-label",
+  "headerName",
+  "tooltip",
+  "tooltipText",
+  "subtitle",
+  "buttonText",
+  "emptyText",
+  "errorText",
+  "description",
+  "heading",
+  "caption",
+  "message",
+  "text",
+  "content",
+  "primary",
+  "secondary",
+  "header",
+  "hint",
+  "confirmText",
+  "cancelText",
+  "okText",
+  "legend",
+  "summary",
+  "mainBtnText",
+  "secondBtnText",
+  "statusMessage",
+  "badge",
+  "name",
+])
+/** Variable and property names whose value reads as copy. */
+const UI_NAME_RE =
+  /(tooltip|label|title|text|message|button|placeholder|subtitle|heading|caption|copy|description|status|prompt|notice|warning|error)/i
+/** Calls whose first string argument is shown to a person. */
+const TOAST_RE = /^(toast|toastError|toastSuccess|toastInfo|toastWarn)$/
+/**
+ * CSS-shaped values reach the same properties as copy (`label`, `title` and
+ * `name` are all used by ECharts config), so the rule has to rule them out by
+ * value rather than by position.
+ */
+const CSS_TOKEN_RE =
+  /^(?:[-\d.]+(?:px|%|rem|em|vh|vw|fr|s|ms|deg|ch)?|auto|none|inherit|initial|unset|solid|dashed|dotted|center|left|right|top|bottom|flex|block|inline|inline-flex|inline-block|grid|column|row|wrap|nowrap|hidden|visible|scroll|pointer|bold|normal|italic|uppercase|lowercase|capitalize|ease|ease-in|ease-out|ease-in-out|linear|infinite|alternate|forwards|border-box|content-box|cover|contain|sticky|relative|absolute|fixed|static|space-between|space-around|flex-start|flex-end|stretch|baseline|!important|all|transform|opacity|fill|stroke|width|height|margin|padding|color|background|border)$/i
+
 const USER_VISIBLE_ATTRS = [
   "label",
   "placeholder",
@@ -527,7 +589,21 @@ const NON_TRANSLATABLE = new Set([
   "Plasma",
   "True",
   "False",
+  // network proper nouns read the same in every locale
+  "Ethereum Mainnet",
+  "Plasma Testnet",
+  "Sepolia",
 ])
+
+/**
+ * Strings that look like copy and must never become keys.
+ *
+ * The MLA files hold the exact text a lender or borrower signs with their
+ * wallet. Translating one changes the signed payload, which breaks verification
+ * of every signature made before the change -- these are protocol constants that
+ * happen to be written in English, not UI copy.
+ */
+const NOT_UI_COPY_RE = /^src\/config\/mla-(acceptance|rejection)\.ts$/
 
 function git(args) {
   return execFileSync("git", args, {
@@ -685,6 +761,167 @@ const violations = {
   duplicateValue: [],
   orphanKey: [],
   staleHomonym: [],
+  hardcodedCopy: [],
+}
+
+/**
+ * Everything the two error rules structurally cannot see.
+ *
+ * eslint-plugin-i18next reads JSX *text* and nothing else, and it skips text
+ * ending in an ellipsis ("Loading..." passes, "Loading" does not). attrLiteral
+ * is a regex over `attr="literal"` for a fixed attribute list, so an attribute
+ * written `attr={"literal"}`, a ternary, or a plain object property is invisible
+ * to it. Between them they miss the shapes this codebase actually uses: DataGrid
+ * columns, chart series, button-state ternaries and toast arguments.
+ *
+ * WARN, not ERROR, on purpose. Turning it fatal today would fail the gate on
+ * inherited copy that is still being migrated, and a gate nobody can keep green
+ * gets bypassed with --no-verify, which costs more than it saves. The count is
+ * meant to ratchet down; when it reaches zero, promote it in SEVERITY.
+ */
+const isCopyLike = (raw) => {
+  const value = raw.trim()
+  if (value.length < 3 || !/[A-Za-z]/.test(value)) return false
+  if (NON_PROSE_RE.test(value) || NON_TRANSLATABLE.has(value)) return false
+  if (value === "use client" || value === "use server") return false
+  if (/^[A-Z0-9_]+$/.test(value)) return false // SCREAMING_CASE constants
+  if (/^[a-z][A-Za-z0-9]*$/.test(value)) return false // camelCase tokens
+  if (/^[a-z0-9]+(-[a-z0-9]+)+$/.test(value)) return false // kebab tokens
+  if (/^0x[0-9a-fA-F]+$/.test(value)) return false
+  // PascalCase with three or more humps and no spaces: a contract error or an
+  // enum member (`WithdrawalBatchNotExpired`), never a sentence someone reads
+  if (/^[A-Z][a-z0-9]+(?:[A-Z][a-z0-9]+){2,}$/.test(value)) return false
+  if (/^#[0-9a-fA-F]{3,8}$/.test(value)) return false
+  if (/^[&.:>~[@]/.test(value)) return false // selectors, media queries
+  if (/^(rgba?|hsla?|calc|translate\w*|scale|rotate|var|url)\(/.test(value))
+    return false
+  if (/\[UTC\]/.test(value) || /^[DMYHhmsAa/\-.:,\s[\]]+$/.test(value))
+    return false
+  if (value.split(/[\s,]+/).every((token) => CSS_TOKEN_RE.test(token)))
+    return false
+  // one word with no sentence punctuation is a token far more often than copy
+  return /\s/.test(value) || /^[A-Z]/.test(value)
+}
+
+const scanHardcodedCopy = (file, source) => {
+  const sf = ts.createSourceFile(
+    file,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    // .ts parsed as TSX reads `<T,>` and generic arrows as JSX, which invents
+    // JsxText nodes that do not exist and reports code as copy.
+    file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
+  )
+  const lineOf = (node) =>
+    sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1
+  const nameOf = (node) => node.getText(sf).replace(/["']/g, "")
+
+  const found = []
+  const classify = (node) => {
+    const parent = node.parent
+    if (!parent) return null
+
+    // attr={"literal"} and attr={cond ? "a" : "b"} -- the regex sees neither
+    let holder = parent
+    if (ts.isJsxExpression(holder)) holder = holder.parent
+    if (ts.isJsxAttribute(holder)) {
+      const attr = nameOf(holder.name)
+      if (!UI_MEMBER_NAMES.has(attr)) return null
+      // a plain attr="literal" on a listed name is already an attrLiteral error
+      if (parent === holder && USER_VISIBLE_ATTRS.includes(attr)) return null
+      return { kind: "attr", name: attr }
+    }
+
+    if (ts.isPropertyAssignment(parent)) {
+      const name = nameOf(parent.name)
+      return UI_MEMBER_NAMES.has(name) ? { kind: "prop", name } : null
+    }
+
+    if (ts.isCallExpression(parent)) {
+      const callee = parent.expression.getText(sf).split(".").pop()
+      return TOAST_RE.test(callee) ? { kind: "toast", name: callee } : null
+    }
+
+    if (
+      ts.isVariableDeclaration(parent) &&
+      UI_NAME_RE.test(nameOf(parent.name))
+    )
+      return { kind: "var", name: nameOf(parent.name) }
+    if (
+      ts.isBinaryExpression(parent) &&
+      parent.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+      UI_NAME_RE.test(parent.left.getText(sf))
+    )
+      return { kind: "var", name: parent.left.getText(sf) }
+
+    // a literal branch of a ternary, wherever that ternary lands
+    if (ts.isConditionalExpression(parent)) {
+      let up = parent.parent
+      for (let hops = 0; up && hops < 5; hops += 1, up = up.parent) {
+        if (ts.isJsxExpression(up)) {
+          // an attribute value reaches here as ConditionalExpression -> JsxExpression
+          // -> JsxAttribute; report the attribute name rather than a bare "jsx"
+          const attr = ts.isJsxAttribute(up.parent)
+            ? nameOf(up.parent.name)
+            : null
+          if (attr)
+            return UI_MEMBER_NAMES.has(attr)
+              ? { kind: "ternary", name: attr }
+              : null
+          return { kind: "ternary", name: "jsx" }
+        }
+        if (ts.isJsxAttribute(up)) {
+          const attr = nameOf(up.name)
+          return UI_MEMBER_NAMES.has(attr)
+            ? { kind: "ternary", name: attr }
+            : null
+        }
+        if (ts.isPropertyAssignment(up)) {
+          const name = nameOf(up.name)
+          return UI_MEMBER_NAMES.has(name) ? { kind: "ternary", name } : null
+        }
+        if (ts.isVariableDeclaration(up) && UI_NAME_RE.test(nameOf(up.name)))
+          return { kind: "ternary", name: nameOf(up.name) }
+        if (
+          ts.isBinaryExpression(up) &&
+          up.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+          UI_NAME_RE.test(up.left.getText(sf))
+        )
+          return { kind: "ternary", name: up.left.getText(sf) }
+      }
+      return null
+    }
+
+    return null
+  }
+
+  const visit = (node) => {
+    if (ts.isJsxText(node)) {
+      const value = node.text.trim()
+      // eslint already errors on JSX text; it only lets the ellipsis form through
+      if (value.endsWith("...") && isCopyLike(value))
+        found.push({
+          file,
+          line: lineOf(node),
+          kind: "jsxText",
+          name: "-",
+          value,
+        })
+    } else if (
+      ts.isStringLiteral(node) ||
+      ts.isNoSubstitutionTemplateLiteral(node)
+    ) {
+      if (isCopyLike(node.text)) {
+        const hit = classify(node)
+        if (hit)
+          found.push({ file, line: lineOf(node), ...hit, value: node.text })
+      }
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(sf)
+  return found
 }
 
 const unreadable = []
@@ -753,6 +990,9 @@ for (const file of allSourceFiles) {
   }
 
   if (!uiFiles.has(file)) continue
+  // the raw source, not the comment-blanked copy: TypeScript strips comments itself
+  if (!NOT_UI_COPY_RE.test(file))
+    violations.hardcodedCopy.push(...scanHardcodedCopy(file, source))
   for (const m of text.matchAll(ATTR_LITERAL_RE)) {
     const [, attr, , value] = m
     if (NON_PROSE_RE.test(value) || NON_TRANSLATABLE.has(value.trim())) continue
@@ -871,6 +1111,7 @@ const SEVERITY = {
   duplicateValue: "warn",
   orphanKey: "error",
   staleHomonym: "warn",
+  hardcodedCopy: "warn",
 }
 const counts = Object.fromEntries(
   Object.entries(violations).map(([k, v]) => [k, v.length]),
@@ -956,6 +1197,22 @@ if (writeBaseline) {
         else lines.push(`              ${JSON.stringify(item)}`)
       }
       if (count > 15) lines.push(`              ... and ${count - 15} more`)
+    }
+
+    /**
+     * A warn rule prints no items above, but a bare number is not actionable:
+     * "239" says nothing about where to start. Files, not lines -- the full list
+     * is what --json is for.
+     */
+    if (!asJson && rule === "hardcodedCopy" && count) {
+      const byFile = new Map()
+      for (const item of items)
+        byFile.set(item.file, (byFile.get(item.file) ?? 0) + 1)
+      const top = [...byFile].sort((a, b) => b[1] - a[1]).slice(0, 10)
+      lines.push(`              in ${byFile.size} files, most of it here:`)
+      for (const [file, n] of top)
+        lines.push(`              ${String(n).padStart(4)}  ${file}`)
+      lines.push("              every line: npm run i18n:check -- --json")
     }
   }
 
