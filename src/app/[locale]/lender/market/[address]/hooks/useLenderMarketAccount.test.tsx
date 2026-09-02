@@ -245,7 +245,7 @@ describe("useLenderMarketAccountQuery", () => {
         SEPOLIA_CHAIN_ID,
         provider,
         LENDER_B,
-        MARKET_ADDRESS,
+        market,
       ),
     )
     expect(result.current.data).not.toBe(authoritativeA)
@@ -302,7 +302,7 @@ describe("useLenderMarketAccountQuery", () => {
         SEPOLIA_CHAIN_ID,
         provider,
         LENDER_A,
-        MARKET_ADDRESS,
+        market,
       ),
     )
     expect(getIndexedLenderAccountSummaryForMarketMock).toHaveBeenCalledWith(

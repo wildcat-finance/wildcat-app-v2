@@ -89,7 +89,7 @@ export function useLenderMarketAccountQuery({
       market.chainId,
       provider,
       lenderAddress,
-      marketAddress,
+      market,
     )
     return updated
   }
