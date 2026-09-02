@@ -1,6 +1,9 @@
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 
-import { rankMarketsByActivity } from "./activityRanking"
+import {
+  rankMarketsByActivity,
+  selectTopMarketsByActivity,
+} from "./activityRanking"
 
 const DAY_SECONDS = 24 * 60 * 60
 const NOW = 4000 * DAY_SECONDS
@@ -123,5 +126,44 @@ describe("rankMarketsByActivity", () => {
         highestScoreFirst,
       ).map(({ id }) => id),
     ).toEqual(["higher", "active"])
+  })
+})
+
+describe("selectTopMarketsByActivity", () => {
+  it("sorts selected Sepolia markets by the requested criterion", () => {
+    const recent = market("recent", 1, 5)
+    const thirtyDay = market("thirty-day", 4, 20)
+    const ninetyDay = market("ninety-day", 3, 60)
+    const inactive = market("inactive", 100, 100)
+    const markets = [inactive, recent, ninetyDay, thirtyDay]
+
+    expect(
+      selectTopMarketsByActivity(
+        markets,
+        SupportedChainId.Sepolia,
+        NOW,
+        timestamps(markets),
+        highestScoreFirst,
+        3,
+      ).map(({ id }) => id),
+    ).toEqual(["thirty-day", "ninety-day", "recent"])
+  })
+
+  it("keeps inactive markets out when activity fills the visible slots", () => {
+    const recent = market("recent", 1, 5)
+    const thirtyDay = market("thirty-day", 2, 20)
+    const inactive = market("inactive", 100, 100)
+    const markets = [inactive, thirtyDay, recent]
+
+    expect(
+      selectTopMarketsByActivity(
+        markets,
+        SupportedChainId.Sepolia,
+        NOW,
+        timestamps(markets),
+        highestScoreFirst,
+        2,
+      ).map(({ id }) => id),
+    ).toEqual(["thirty-day", "recent"])
   })
 })

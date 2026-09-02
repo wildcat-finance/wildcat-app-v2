@@ -63,3 +63,30 @@ export const rankMarketsByActivity = <T extends ActivityMarket>(
     )
     .map(({ account }) => account)
 }
+
+/**
+ * Activity decides which markets qualify for the limited Top Markets window;
+ * the selected UI criterion decides how those markets are displayed.
+ *
+ * Keeping these as separate steps prevents activity tiers from making the
+ * visible sort controls appear inert when each market belongs to a different
+ * tier, which is common on Sepolia.
+ */
+export const selectTopMarketsByActivity = <T extends ActivityMarket>(
+  markets: T[],
+  chainId: number,
+  now: number,
+  latestDepositTimestampByMarket: Record<string, number>,
+  compare: (a: T, b: T) => number,
+  limit: number,
+): T[] =>
+  rankMarketsByActivity(
+    markets,
+    chainId,
+    now,
+    latestDepositTimestampByMarket,
+    compare,
+  )
+    .slice(0, Math.max(0, limit))
+    // Array#sort is stable, so activity remains the tie-breaker.
+    .sort(compare)
