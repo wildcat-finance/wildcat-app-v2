@@ -27,7 +27,6 @@ import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { TablePagination } from "@/components/TablePagination"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
-import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import {
@@ -36,6 +35,7 @@ import {
   typeComparator,
 } from "@/utils/comparators"
 import {
+  buildBorrowerProfileHref,
   buildMarketHref,
   formatBps,
   formatSecsToHours,
@@ -216,7 +216,10 @@ export const OtherMarketsTable = ({
 
           {params.row.borrowerAddress ? (
             <Link
-              href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+              href={buildBorrowerProfileHref(
+                params.row.borrowerAddress,
+                params.row.chainId,
+              )}
               prefetch={false}
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
               style={{ display: "flex", textDecoration: "none" }}
@@ -409,7 +412,10 @@ export const OtherMarketsTable = ({
             )}
             {action === LenderMarketAction.RequestAccess && (
               <Link
-                href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+                href={buildBorrowerProfileHref(
+                  params.row.borrowerAddress,
+                  params.row.chainId,
+                )}
                 prefetch={false}
                 onClick={(e: React.MouseEvent) => e.stopPropagation()}
                 style={{ textDecoration: "none" }}

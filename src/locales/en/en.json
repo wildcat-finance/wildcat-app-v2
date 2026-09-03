@@ -895,10 +895,6 @@
           "repaySum": "Amount To Repay",
           "upTo": "Up to"
         },
-        "statement": {
-          "generate": "Generate and download a summary of historic transactions.",
-          "title": "Transaction History"
-        },
         "success": {
           "subtitle": "You can close this window now.",
           "title": "Transaction Successful!"

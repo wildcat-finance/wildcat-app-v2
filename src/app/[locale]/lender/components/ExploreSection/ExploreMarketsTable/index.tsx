@@ -59,6 +59,7 @@ import {
 } from "@/utils/comparators"
 import { filterMarketAccounts } from "@/utils/filters"
 import {
+  buildBorrowerProfileHref,
   buildMarketHref,
   formatBps,
   formatSecsToHours,
@@ -86,7 +87,7 @@ import {
 } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
-import { rankMarketsByActivity } from "./activityRanking"
+import { selectTopMarketsByActivity } from "./activityRanking"
 
 const SORT_OPTIONS = [
   "Most Funded",
@@ -368,22 +369,21 @@ export const ExploreMarketsTable = () => {
       return tokenAmountComparator(b.market.totalSupply, a.market.totalSupply)
     }
 
-    // Preserve the activity-qualified Top Markets first, then widen the
-    // window and finally use the remaining catalogue to fill empty slots.
-    // User-selected ranking still applies within each activity tier.
-    const sorted = rankMarketsByActivity(
+    const visibleRows = isMobile ? visibleMobileRows : paginationModel.pageSize
+
+    // Activity selects the visible candidates; the chosen criterion orders
+    // that complete set so each sort control has the behavior it advertises.
+    const accountsToMap = selectTopMarketsByActivity(
       onboardFiltered,
       targetChainId,
       Math.floor(Date.now() / 1000),
       recentDeposits.latestDepositTimestampByMarket,
       compareMarkets,
+      visibleRows,
     )
 
-    const visibleRows = isMobile ? visibleMobileRows : paginationModel.pageSize
-    const accountsToMap = sorted.slice(0, visibleRows)
-
     return {
-      totalRows: sorted.length,
+      totalRows: onboardFiltered.length,
       rows: accountsToMap.map((account) => {
         const { market } = account
         const {
@@ -496,7 +496,10 @@ export const ExploreMarketsTable = () => {
             </Link>
             {params.row.borrowerAddress ? (
               <Link
-                href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+                href={buildBorrowerProfileHref(
+                  params.row.borrowerAddress,
+                  params.row.chainId,
+                )}
                 prefetch={false}
                 onClick={(e: React.MouseEvent) => e.stopPropagation()}
                 style={{ display: "flex", textDecoration: "none" }}
@@ -708,7 +711,10 @@ export const ExploreMarketsTable = () => {
               )}
               {action === LenderMarketAction.RequestAccess && (
                 <Link
-                  href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+                  href={buildBorrowerProfileHref(
+                    params.row.borrowerAddress,
+                    params.row.chainId,
+                  )}
                   prefetch={false}
                   onClick={(e: React.MouseEvent) => e.stopPropagation()}
                   style={{ textDecoration: "none" }}

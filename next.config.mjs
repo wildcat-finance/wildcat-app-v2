@@ -151,6 +151,11 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: '/lender/profile/:address',
+        destination: '/profile/borrower/:address',
+        permanent: false,
+      },
+      {
         source: '/pdf/Wildcat_Terms_of_Use.pdf',
         destination: '/api/service-agreement/current/download',
         permanent: true,
