@@ -51,6 +51,8 @@ import { formatTokenWithCommas } from "@/utils/formatters"
 import { invalidateMarketStateQueries } from "@/utils/marketStateQueries"
 import {
   assertTransactionSucceeded,
+  isApprovalAllowanceSufficient,
+  waitForApproval,
   waitForSubmittedTransaction,
 } from "@/utils/transactions"
 
@@ -518,9 +520,23 @@ export const WrapperSection = ({
           ),
         )
         const { safeTxHash } = await sdk.txs.send({ txs })
-        const hash = await waitForSafeTransaction(safeTxHash)
-        setTxHash(hash.toString())
-        return hash
+        return waitForApproval({
+          provider: signer.provider,
+          hash: safeTxHash,
+          isAllowanceSufficient: async () => {
+            const currentAllowance = await wrapper.marketToken.allowance(
+              address,
+              wrapper.address,
+            )
+            return isApprovalAllowanceSufficient(
+              currentAllowance.raw,
+              approvalAmount.raw,
+            )
+          },
+          safeConnected: true,
+          safeSdk: sdk,
+          onTransactionHash: setTxHash,
+        })
       }
 
       if (
@@ -532,18 +548,40 @@ export const WrapperSection = ({
           wrapper.address,
           wrapper.marketToken.getAmount(0),
         )
-        await waitForSubmittedTransaction({
+        await waitForApproval({
           provider: signer.provider,
           hash: resetHash,
+          isAllowanceSufficient: async () => {
+            const currentAllowance = await wrapper.marketToken.allowance(
+              address,
+              wrapper.address,
+            )
+            return isApprovalAllowanceSufficient(
+              currentAllowance.raw,
+              BigInt(0),
+            )
+          },
         })
       }
       const hash = await wrapper.marketToken.approve(
         wrapper.address,
         approvalAmount,
       )
-      setTxHash(hash.toString())
-      await waitForSubmittedTransaction({ provider: signer.provider, hash })
-      return hash
+      return waitForApproval({
+        provider: signer.provider,
+        hash,
+        isAllowanceSufficient: async () => {
+          const currentAllowance = await wrapper.marketToken.allowance(
+            address,
+            wrapper.address,
+          )
+          return isApprovalAllowanceSufficient(
+            currentAllowance.raw,
+            approvalAmount.raw,
+          )
+        },
+        onTransactionHash: setTxHash,
+      })
     },
     onSuccess: () => {
       client.invalidateQueries({

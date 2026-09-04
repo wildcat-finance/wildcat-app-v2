@@ -127,6 +127,13 @@ type WaitForTransactionProvider = {
   waitForTransaction: (transactionHash: string) => Promise<TransactionReceipt>
 }
 
+type TransactionReceiptRequestProvider = {
+  request: (args: {
+    method: "eth_getTransactionReceipt"
+    params: [string]
+  }) => Promise<unknown>
+}
+
 const isWaitForTransactionProvider = (
   provider: unknown,
 ): provider is WaitForTransactionProvider =>
@@ -134,6 +141,14 @@ const isWaitForTransactionProvider = (
   provider !== null &&
   "waitForTransaction" in provider &&
   typeof provider.waitForTransaction === "function"
+
+const isTransactionReceiptRequestProvider = (
+  provider: unknown,
+): provider is TransactionReceiptRequestProvider =>
+  typeof provider === "object" &&
+  provider !== null &&
+  "request" in provider &&
+  typeof provider.request === "function"
 
 export const waitForSafeTransactionHash = async (
   sdk: SafeSdkLike,
@@ -181,6 +196,125 @@ export class SafeTransactionTerminalError extends Error {
   ) {
     super(`Safe transaction ${transactionStatus.toLowerCase()}`)
     this.name = "SafeTransactionTerminalError"
+  }
+}
+
+const APPROVAL_CONFIRMATION_POLL_INTERVAL_MS = 1000
+const APPROVAL_CONFIRMATION_TIMEOUT_MS = 180_000
+
+const createApprovalConfirmationTimeoutError = (submittedHash: string) => {
+  const error = Error(`Approval confirmation timed out: ${submittedHash}`)
+  error.name = "ApprovalConfirmationTimeoutError"
+  return error
+}
+
+export const isApprovalAllowanceSufficient = (
+  allowance: bigint,
+  requiredAllowance: bigint,
+): boolean =>
+  requiredAllowance === BigInt(0)
+    ? allowance === BigInt(0)
+    : allowance >= requiredAllowance
+
+export const waitForApproval = async ({
+  provider,
+  hash,
+  isAllowanceSufficient,
+  safeConnected = false,
+  safeSdk,
+  onTransactionHash,
+  pollingIntervalMs = APPROVAL_CONFIRMATION_POLL_INTERVAL_MS,
+  timeoutMs = APPROVAL_CONFIRMATION_TIMEOUT_MS,
+}: {
+  provider?: unknown
+  hash: TransactionHashLike
+  isAllowanceSufficient: () => Promise<boolean>
+  safeConnected?: boolean
+  safeSdk?: SafeSdkLike
+  onTransactionHash?: (hash: string) => void
+  pollingIntervalMs?: number
+  timeoutMs?: number
+}): Promise<string> => {
+  if (safeConnected && !safeSdk) {
+    throw Error("No Safe SDK")
+  }
+
+  const submittedHash = toTransactionHashString(hash)
+  let transactionHash: string | undefined = safeConnected
+    ? undefined
+    : submittedHash
+  let stopped = false
+  let timeout: ReturnType<typeof setTimeout> | undefined
+
+  if (transactionHash) onTransactionHash?.(transactionHash)
+
+  const poll = async (): Promise<string> => {
+    if (stopped) return transactionHash ?? submittedHash
+
+    try {
+      if (await isAllowanceSufficient()) {
+        return transactionHash ?? submittedHash
+      }
+    } catch {
+      // Transient allowance reads should not strand an otherwise valid tx.
+    }
+
+    if (stopped) return transactionHash ?? submittedHash
+
+    if (safeConnected && safeSdk && !transactionHash) {
+      try {
+        const transaction = await safeSdk.txs.getBySafeTxHash(submittedHash)
+        const resolution = getSafeTransactionResolution(transaction)
+        if (resolution.status === "terminal") {
+          throw new SafeTransactionTerminalError(
+            submittedHash,
+            resolution.transactionStatus,
+          )
+        }
+        if (resolution.status === "executed") {
+          transactionHash = resolution.transactionHash
+          onTransactionHash?.(transactionHash)
+        }
+      } catch (error) {
+        if (error instanceof SafeTransactionTerminalError) throw error
+        // Safe service failures are retried until the overall timeout.
+      }
+    }
+
+    if (stopped) return transactionHash ?? submittedHash
+
+    if (transactionHash && isTransactionReceiptRequestProvider(provider)) {
+      let receipt: unknown
+      try {
+        receipt = await provider.request({
+          method: "eth_getTransactionReceipt",
+          params: [transactionHash],
+        })
+      } catch {
+        // Receipt lookup failures are retried; allowance remains canonical.
+      }
+      if (stopped) return transactionHash ?? submittedHash
+      if (receipt) assertTransactionSucceeded(receipt, transactionHash)
+    }
+
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, Math.max(1, pollingIntervalMs))
+    })
+    return poll()
+  }
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeout = setTimeout(
+      () => reject(createApprovalConfirmationTimeoutError(submittedHash)),
+      Math.max(0, timeoutMs),
+    )
+  })
+
+  try {
+    return await Promise.race([poll(), timeoutPromise])
+  } finally {
+    stopped = true
+    if (timeout) clearTimeout(timeout)
   }
 }
 

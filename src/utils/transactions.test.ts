@@ -6,8 +6,10 @@ import { encodeErrorResult } from "viem"
 import { lenderPolicyErrorAbi } from "./lenderAccess"
 import {
   getSafeTransactionResolution,
+  isApprovalAllowanceSufficient,
   SafeTransactionTerminalError,
   sendTransactionAndWait,
+  waitForApproval,
   waitForSafeTransactionExecution,
   waitForSubmittedTransaction,
 } from "./transactions"
@@ -140,6 +142,113 @@ describe("waitForSubmittedTransaction", () => {
     ).rejects.toThrow(
       `Transaction success could not be confirmed: ${transactionHash}`,
     )
+  })
+})
+
+describe("waitForApproval", () => {
+  it("requires an exact zero for allowance resets", () => {
+    expect(isApprovalAllowanceSufficient(BigInt(0), BigInt(0))).toBe(true)
+    expect(isApprovalAllowanceSufficient(BigInt(1), BigInt(0))).toBe(false)
+    expect(isApprovalAllowanceSufficient(BigInt(5), BigInt(4))).toBe(true)
+    expect(isApprovalAllowanceSufficient(BigInt(3), BigInt(4))).toBe(false)
+  })
+
+  it("resolves from allowance without receipt confirmation", async () => {
+    const isAllowanceSufficient = jest
+      .fn()
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true)
+    const onTransactionHash = jest.fn()
+
+    await expect(
+      waitForApproval({
+        hash: transactionHash,
+        isAllowanceSufficient,
+        onTransactionHash,
+        pollingIntervalMs: 1,
+        timeoutMs: 100,
+      }),
+    ).resolves.toBe(transactionHash)
+    expect(isAllowanceSufficient).toHaveBeenCalledTimes(2)
+    expect(onTransactionHash).toHaveBeenCalledWith(transactionHash)
+  })
+
+  it("recovers the executed transaction hash for Safe approvals", async () => {
+    const safeTxHash = "0xsafe"
+    const executedHash = `0x${"2".repeat(64)}`
+    const getBySafeTxHash = jest.fn().mockResolvedValue({
+      txStatus: "SUCCESS",
+      txHash: executedHash,
+    })
+    const isAllowanceSufficient = jest
+      .fn()
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true)
+    const onTransactionHash = jest.fn()
+
+    await expect(
+      waitForApproval({
+        hash: safeTxHash,
+        isAllowanceSufficient,
+        safeConnected: true,
+        safeSdk: { txs: { getBySafeTxHash } },
+        onTransactionHash,
+        pollingIntervalMs: 1,
+        timeoutMs: 100,
+      }),
+    ).resolves.toBe(executedHash)
+    expect(onTransactionHash).toHaveBeenCalledWith(executedHash)
+  })
+
+  it("rejects terminal Safe approvals", async () => {
+    const getBySafeTxHash = jest.fn().mockResolvedValue({
+      txStatus: "FAILED",
+    })
+
+    await expect(
+      waitForApproval({
+        hash: "0xsafe",
+        isAllowanceSufficient: jest.fn().mockResolvedValue(false),
+        safeConnected: true,
+        safeSdk: { txs: { getBySafeTxHash } },
+        pollingIntervalMs: 1,
+        timeoutMs: 100,
+      }),
+    ).rejects.toEqual(new SafeTransactionTerminalError("0xsafe", "FAILED"))
+  })
+
+  it("rejects an approval transaction that was mined reverted", async () => {
+    const provider = {
+      request: jest.fn().mockResolvedValue({ status: "0x0" }),
+    }
+
+    await expect(
+      waitForApproval({
+        provider,
+        hash: transactionHash,
+        isAllowanceSufficient: jest.fn().mockResolvedValue(false),
+        pollingIntervalMs: 1,
+        timeoutMs: 100,
+      }),
+    ).rejects.toThrow(`Transaction reverted: ${transactionHash}`)
+    expect(provider.request).toHaveBeenCalledWith({
+      method: "eth_getTransactionReceipt",
+      params: [transactionHash],
+    })
+  })
+
+  it("times out even when an allowance read never settles", async () => {
+    await expect(
+      waitForApproval({
+        hash: transactionHash,
+        isAllowanceSufficient: () => new Promise<boolean>(() => {}),
+        pollingIntervalMs: 1,
+        timeoutMs: 10,
+      }),
+    ).rejects.toMatchObject({
+      name: "ApprovalConfirmationTimeoutError",
+      message: `Approval confirmation timed out: ${transactionHash}`,
+    })
   })
 })
 
