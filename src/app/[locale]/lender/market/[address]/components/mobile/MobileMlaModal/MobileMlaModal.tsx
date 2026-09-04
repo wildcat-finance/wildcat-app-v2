@@ -149,7 +149,9 @@ export const MobileMlaModal = ({
             disabled={disableActions}
             fullWidth
           >
-            {signedMlaLoading ? "Signing..." : "Sign MLA"}
+            {signedMlaLoading
+              ? t("common.buttons.signing")
+              : t("common.buttons.signMla")}
           </Button>
         )}
       </Box>

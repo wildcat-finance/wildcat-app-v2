@@ -58,7 +58,7 @@ export const LendersTable = ({
       sortable: false,
       field: "name",
       disableColumnMenu: true,
-      headerName: "Name",
+      headerName: t("common.fields.name"),
       minWidth: 160,
       headerAlign: "left",
       align: "left",
@@ -68,7 +68,7 @@ export const LendersTable = ({
     {
       sortable: false,
       field: "address",
-      headerName: "Wallet Address",
+      headerName: t("common.fields.walletAddress"),
       minWidth: 176,
       headerAlign: "left",
       align: "left",
@@ -86,7 +86,7 @@ export const LendersTable = ({
     {
       sortable: true,
       field: "markets",
-      headerName: "Assigned to Markets",
+      headerName: t("common.fields.assignedToMarkets"),
       minWidth: 176,
       headerAlign: "left",
       align: "left",

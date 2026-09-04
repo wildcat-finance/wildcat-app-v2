@@ -483,7 +483,7 @@ export const RiskReturnsChart = ({
               fontSize: 10,
             }}
           >
-            {t("profile.lender.market")}
+            {t("common.fields.market")}
           </Typography>
           <ChartPeriodSelector value={period} onChange={setPeriod} />
           <Select

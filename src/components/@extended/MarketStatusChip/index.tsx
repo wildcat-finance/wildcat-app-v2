@@ -24,7 +24,7 @@ export const MarketStatusChip = ({
   switch (status.status) {
     case "Penalty": {
       chipConfig = {
-        label: "Penalty",
+        label: t("common.labels.penalty"),
         icon: "",
         backgroundColor: COLORS.cherub,
         fontColor: COLORS.dullRed,
@@ -33,7 +33,7 @@ export const MarketStatusChip = ({
     }
     case "Pending": {
       chipConfig = {
-        label: "Pending",
+        label: t("common.labels.pending"),
         icon: <Clock />,
         backgroundColor: COLORS.oasis,
         fontColor: variant === "text" ? COLORS.galliano : COLORS.butteredRum,
@@ -42,7 +42,7 @@ export const MarketStatusChip = ({
     }
     case "Terminated": {
       chipConfig = {
-        label: "Terminated",
+        label: t("common.labels.terminated"),
         icon: undefined,
         backgroundColor: COLORS.whiteSmoke,
         fontColor: COLORS.santasGrey,
@@ -51,7 +51,7 @@ export const MarketStatusChip = ({
     }
     default: {
       chipConfig = {
-        label: "Penalty",
+        label: t("common.labels.penalty"),
         icon: "",
         backgroundColor: COLORS.cherub,
         fontColor: COLORS.dullRed,

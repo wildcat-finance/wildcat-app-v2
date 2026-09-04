@@ -27,7 +27,9 @@ export const SeeMoreButton = ({
   const handleToggle = () => setIsOpen(!isOpen)
 
   if (variant === "accordion") {
-    const label = isOpen ? "See Less" : "See More"
+    const label = isOpen
+      ? t("marketList.shared.seeLess")
+      : t("marketList.shared.seeMore")
 
     return (
       <Button

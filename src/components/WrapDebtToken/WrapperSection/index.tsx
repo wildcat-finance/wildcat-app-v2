@@ -379,8 +379,8 @@ export const WrapperSection = ({
   const needsApproval = approvalRequired && !isApproved
 
   const approvePendingLabel = awaitingSafeSignatures
-    ? "Awaiting Safe signatures"
-    : "Approving"
+    ? t("marketDetails.lender.wrapDebtToken.awaitingSafeSignatures")
+    : t("common.buttons.approving")
 
   const isApproveButtonDisabled =
     !approvalRequired ||
@@ -765,8 +765,16 @@ export const WrapperSection = ({
   })
 
   const submitButtonText = submitMutation.isPending
-    ? `${isWrapTab ? "Wrapping" : "Unwrapping"}`
-    : `${isWrapTab ? "Wrap" : "Unwrap"} Tokens`
+    ? t(
+        isWrapTab
+          ? "marketDetails.lender.wrapDebtToken.wrapping"
+          : "marketDetails.lender.wrapDebtToken.unwrapping",
+      )
+    : t(
+        isWrapTab
+          ? "marketDetails.lender.wrapDebtToken.wrapTokens"
+          : "marketDetails.lender.wrapDebtToken.unwrapTokens",
+      )
 
   const formattedOutput = outputAmount
     ? formatTokenWithCommas(outputAmount)
@@ -1084,8 +1092,8 @@ export const WrapperSection = ({
                   {approveMutation.isPending
                     ? approvePendingLabel
                     : isApproved && !isInputZero
-                      ? "Approved"
-                      : "Approve"}
+                      ? t("common.buttons.approved")
+                      : t("common.buttons.approve")}
                 </Button>
               )}
 

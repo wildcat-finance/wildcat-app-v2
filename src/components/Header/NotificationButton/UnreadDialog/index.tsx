@@ -52,7 +52,7 @@ export const UnreadDialog = ({ open, handleClose }: UnreadDialogProps) => {
     if (!address) return
     setLastFetchedTimestamp(notifications[0]?.blockTimestamp, address)
     dispatch(markAllAsRead())
-    toastSuccess("All notifications marked as read")
+    toastSuccess(t("notifications.history.allMarkedAsRead"))
   }
 
   return (

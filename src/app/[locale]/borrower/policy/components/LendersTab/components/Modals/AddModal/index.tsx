@@ -150,7 +150,7 @@ export const AddModal = ({ disabled }: { disabled: boolean }) => {
           <TextField
             fullWidth
             size="medium"
-            label={isDisabled ? "" : "Enter name"}
+            label={isDisabled ? "" : t("common.placeholders.enterName")}
             {...register("name")}
             error={!!errors.name}
             disabled={isDisabled}

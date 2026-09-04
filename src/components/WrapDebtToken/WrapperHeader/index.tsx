@@ -64,7 +64,7 @@ export const WrapperHeader = ({
         }}
       >
         <Typography variant={isMobile ? "mobH3" : "title3"}>
-          {isMobile ? "Wrapper" : wrapperName}
+          {isMobile ? t("marketParameters.wrapper") : wrapperName}
         </Typography>
 
         <Box

@@ -102,7 +102,9 @@ export const HeaderNetworkButton = ({
           </Box>
 
           <Chip
-            label={network.isTestnet ? "Testnet" : "Mainnet"}
+            label={
+              network.isTestnet ? t("header.testnet") : t("header.mainnet")
+            }
             variant="filled"
             sx={{
               backgroundColor: COLORS.hawkesBlue,

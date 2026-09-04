@@ -119,8 +119,10 @@ export const NonMlaAcknowledgementModal = ({
         >
           {acknowledgementText ||
             (isBorrowerProfileLoading
-              ? "Loading acknowledgement..."
-              : "Borrower profile is unavailable.")}
+              ? t("marketDetails.lender.modals.acknowledgement.loading")
+              : t(
+                  "marketDetails.lender.modals.acknowledgement.profileUnavailable",
+                ))}
         </Box>
       </Typography>
     </Box>
@@ -196,7 +198,9 @@ export const NonMlaAcknowledgementModal = ({
             disabled={!canSign}
             fullWidth
           >
-            {isPending ? "Signing..." : "Acknowledge"}
+            {isPending
+              ? t("common.buttons.signing")
+              : t("marketDetails.lender.modals.acknowledgement.button")}
           </Button>
         </Box>
       </Box>
@@ -267,7 +271,9 @@ export const NonMlaAcknowledgementModal = ({
           disabled={!canSign}
           fullWidth
         >
-          {isPending ? "Signing..." : "Acknowledge"}
+          {isPending
+            ? t("common.buttons.signing")
+            : t("marketDetails.lender.modals.acknowledgement.button")}
         </Button>
       </Box>
     </Dialog>

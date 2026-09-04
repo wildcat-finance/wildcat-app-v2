@@ -3,6 +3,7 @@ import { useEffect } from "react"
 
 import { Box, Typography } from "@mui/material"
 import { Market, TokenWrapper } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import { NoWrapperState } from "@/components/WrapDebtToken/NoWrapperState"
 import { WrapperDeployment } from "@/components/WrapDebtToken/WrapperDeployment"
@@ -31,6 +32,7 @@ export const WrapDebtToken = ({
   isWrapperLoading,
   isWrapperError,
 }: WrapDebtTokenProps) => {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
   useEffect(() => {
@@ -62,7 +64,7 @@ export const WrapDebtToken = ({
 
       {hasFactory && isWrapperLookupLoading && (
         <Typography variant="text3" color={COLORS.manate}>
-          Checking wrapper status...
+          {t("marketDetails.borrower.wrapper.checkingStatus")}
         </Typography>
       )}
 
@@ -77,7 +79,7 @@ export const WrapDebtToken = ({
 
       {hasWrapper && (isWrapperLoading || isWrapperError) && (
         <Typography variant="text3" color={COLORS.manate}>
-          Loading wrapper details...
+          {t("marketDetails.borrower.wrapper.loadingDetails")}
         </Typography>
       )}
     </Box>

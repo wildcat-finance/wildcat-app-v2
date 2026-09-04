@@ -1,4 +1,5 @@
 import { Box, Skeleton, SxProps, Theme, Typography } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { Markdown } from "@/components/Markdown"
 import { COLORS } from "@/theme/colors"
@@ -23,6 +24,7 @@ export const AgreementText = ({
   isLoading?: boolean
   sx?: SxProps<Theme>
 }) => {
+  const { t } = useTranslation()
   if (isLoading) {
     return (
       <Box
@@ -51,9 +53,7 @@ export const AgreementText = ({
 
   if (!markdown) {
     return (
-      <Typography variant="text2">
-        Current Terms of Use are not available.
-      </Typography>
+      <Typography variant="text2">{t("agreement.page.unavailable")}</Typography>
     )
   }
 

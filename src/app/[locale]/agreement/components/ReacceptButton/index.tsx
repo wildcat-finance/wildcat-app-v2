@@ -45,7 +45,7 @@ export const ReacceptButton = ({
       disabled={accept.isPending || !accept.isReady}
     >
       {accept.isPending
-        ? t("agreement.signButton.signing")
+        ? t("common.buttons.signing")
         : t("agreement.signButton.reaccept")}
     </Button>
   )

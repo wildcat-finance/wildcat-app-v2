@@ -194,7 +194,7 @@ export const LenderOverviewTab = ({
   const positionColumns: GridColDef[] = [
     {
       field: "marketName",
-      headerName: "Market",
+      headerName: t("common.fields.market"),
       flex: 1.5,
       minWidth: 220,
       renderCell: ({ row, value }) => (
@@ -209,7 +209,7 @@ export const LenderOverviewTab = ({
     },
     {
       field: "borrowerDisplayName",
-      headerName: "Borrower",
+      headerName: t("common.labels.borrower"),
       flex: 1.4,
       minWidth: 240,
       renderCell: ({ row, value }) => (
@@ -223,13 +223,13 @@ export const LenderOverviewTab = ({
     },
     {
       field: "asset",
-      headerName: "Asset",
+      headerName: t("common.fields.asset"),
       minWidth: 80,
       renderCell: ({ value }) => <TextCell>{value}</TextCell>,
     },
     {
       field: "currentBalance",
-      headerName: "Balance",
+      headerName: t("common.fields.balance"),
       minWidth: 130,
       align: "right",
       headerAlign: "right",
@@ -241,7 +241,7 @@ export const LenderOverviewTab = ({
     },
     {
       field: "totalDeposited",
-      headerName: "Deposited",
+      headerName: t("common.fields.deposited"),
       minWidth: 130,
       align: "right",
       headerAlign: "right",
@@ -253,7 +253,7 @@ export const LenderOverviewTab = ({
     },
     {
       field: "interestEarned",
-      headerName: "Interest",
+      headerName: t("common.fields.interest"),
       minWidth: 130,
       align: "right",
       headerAlign: "right",
@@ -275,7 +275,7 @@ export const LenderOverviewTab = ({
     },
     {
       field: "status",
-      headerName: "Status",
+      headerName: t("common.fields.status"),
       minWidth: 120,
       renderCell: ({ value }) => (
         <MarketStatusChip
@@ -291,7 +291,7 @@ export const LenderOverviewTab = ({
   const borrowerExposureColumns: GridColDef[] = [
     {
       field: "borrower",
-      headerName: "Borrower",
+      headerName: t("common.labels.borrower"),
       flex: 1.2,
       minWidth: 180,
       renderCell: ({ value }) => (
@@ -304,14 +304,14 @@ export const LenderOverviewTab = ({
     },
     {
       field: "borrowerName",
-      headerName: "Name",
+      headerName: t("common.fields.name"),
       flex: 1,
       minWidth: 160,
       renderCell: ({ value }) => <TextCell>{value}</TextCell>,
     },
     {
       field: "marketCount",
-      headerName: "Markets",
+      headerName: t("common.fields.markets"),
       minWidth: 110,
       align: "right",
       headerAlign: "right",
@@ -319,7 +319,7 @@ export const LenderOverviewTab = ({
     },
     {
       field: "exposure",
-      headerName: "Exposure",
+      headerName: t("common.fields.exposure"),
       minWidth: 140,
       align: "right",
       headerAlign: "right",
@@ -331,7 +331,7 @@ export const LenderOverviewTab = ({
     },
     {
       field: "share",
-      headerName: "Portfolio Share",
+      headerName: t("common.fields.portfolioShare"),
       minWidth: 150,
       align: "right",
       headerAlign: "right",
@@ -387,11 +387,11 @@ export const LenderOverviewTab = ({
               headlineLabel="Balance"
               rows={[
                 {
-                  label: "Deposited",
+                  label: t("common.fields.deposited"),
                   value: formatUsd(row.totalDeposited, { compact: true }),
                 },
                 {
-                  label: "Interest earned",
+                  label: t("common.fields.interestEarned"),
                   value: formatUsd(row.interestEarned, { compact: true }),
                 },
                 { label: "APR", value: formatPercent(row.apr) },

@@ -95,7 +95,7 @@ export const EditLendersTable = ({
   const columns: TypeSafeColDef<EditLendersTableModel>[] = [
     {
       field: "name",
-      headerName: "Name",
+      headerName: t("common.fields.name"),
       disableColumnMenu: true,
       minWidth: 170,
       flex: 1,
@@ -129,7 +129,7 @@ export const EditLendersTable = ({
     },
     {
       field: "address",
-      headerName: "Wallet Address",
+      headerName: t("common.fields.walletAddress"),
       disableColumnMenu: true,
       minWidth: 180,
       flex: 1,
@@ -247,7 +247,7 @@ export const EditLendersTable = ({
           <Typography variant="text3" color={COLORS.santasGrey}>
             {isFiltered
               ? `${t("common.states.noMatchingLenders")}`
-              : "No Active Lenders"}
+              : t("borrower.policies.lenders.noActive")}
           </Typography>
         </Box>
       )}

@@ -302,7 +302,7 @@ export const MobileMarketActions = ({
 
   const handleClickDeposit = () => {
     if (touRetryAvailable) {
-      toastError(t("marketDetails.lender.touGate.retryToast"))
+      toastError(t("agreement.gate.retryToast"))
       refetchAgreementStatus().catch(() => undefined)
       return
     }
@@ -333,8 +333,8 @@ export const MobileMarketActions = ({
     depositTooltip = t("marketDetails.lender.touGate.blockedTooltip")
   } else if (touGateState === "unknown") {
     depositTooltip = isAgreementFetching
-      ? t("marketDetails.lender.touGate.checkingTooltip")
-      : t("marketDetails.lender.touGate.retryTooltip")
+      ? t("agreement.gate.checking")
+      : t("agreement.gate.retryTooltipTap")
   } else if (agreementGate.state === "error") {
     depositTooltip = t("marketDetails.lender.agreementGate.retryTooltip")
   } else if (borrowerAgreementIncomplete) {

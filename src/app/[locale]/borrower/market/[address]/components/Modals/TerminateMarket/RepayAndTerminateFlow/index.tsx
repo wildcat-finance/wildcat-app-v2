@@ -129,12 +129,12 @@ export const RepayAndTerminateFlow = ({
   if (isProcessed) {
     repayedModalStepTypo = {
       title: `${total} ${market.underlyingToken.symbol} was successfully repaid.`,
-      subtitle: "Any other message. You can close the window.",
+      subtitle: t("marketDetails.borrower.modals.terminate.successSubtitle"),
     }
   } else if (IsProcessedError) {
     repayedModalStepTypo = {
       title: `${total} ${market.underlyingToken.symbol} wasn't repaid.`,
-      subtitle: "Explanatory message about the problem.",
+      subtitle: t("marketDetails.borrower.modals.terminate.errorSubtitle"),
     }
   }
 
@@ -344,9 +344,7 @@ export const RepayAndTerminateFlow = ({
                 }}
               >
                 <Typography variant="text1">
-                  {t(
-                    "marketDetails.borrower.authorisedLenders.tableHeaders.balance",
-                  )}
+                  {t("common.fields.balance")}
                 </Typography>
                 <Typography variant="text1" noWrap color={COLORS.blueRibbon}>
                   {formatTokenWithCommas(marketAccount.underlyingBalance, {
@@ -401,7 +399,9 @@ export const RepayAndTerminateFlow = ({
               onClick={isProcessed ? handleTerminateMarket : handleRepay}
               fullWidth
             >
-              {isProcessed ? "Terminate Market" : "Try Again"}
+              {isProcessed
+                ? t("marketDetails.borrower.modals.terminate.terminateMarket")
+                : t("common.buttons.tryAgain")}
             </Button>
           </Box>
         </>
@@ -428,8 +428,14 @@ export const RepayAndTerminateFlow = ({
       )}
 
       <TxModalFooter
-        mainBtnText="Repay and Terminate"
-        secondBtnText={IsTxApproved ? "Approved" : "Approve"}
+        mainBtnText={t(
+          "marketDetails.borrower.modals.terminate.repayAndTerminate",
+        )}
+        secondBtnText={
+          IsTxApproved
+            ? t("common.buttons.approved")
+            : t("common.buttons.approve")
+        }
         mainBtnOnClick={handleTerminateMarket}
         secondBtnOnClick={handleApprove}
         disableMainBtn={disableTerminate}

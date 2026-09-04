@@ -39,7 +39,7 @@ export const BorrowersTable = () => {
   >[] = [
     {
       field: "timeInvited",
-      headerName: "Invited At",
+      headerName: t("admin.tables.invitedAt"),
       flex: 1,
       minWidth: 134,
       headerAlign: "left",
@@ -59,7 +59,7 @@ export const BorrowersTable = () => {
     },
     {
       field: "name",
-      headerName: "Borrower Name",
+      headerName: t("admin.tables.borrowerName"),
       flex: 1.7,
       minWidth: 134,
       headerAlign: "left",
@@ -79,7 +79,7 @@ export const BorrowersTable = () => {
     },
     {
       field: "alias",
-      headerName: "Borrower Alias",
+      headerName: t("admin.tables.borrowerAlias"),
       flex: 1,
       // minWidth: 134,
       headerAlign: "left",
@@ -100,7 +100,7 @@ export const BorrowersTable = () => {
     {
       sortable: false,
       field: "address",
-      headerName: "Wallet Address",
+      headerName: t("common.fields.walletAddress"),
       minWidth: 176,
       headerAlign: "left",
       align: "left",
@@ -117,7 +117,7 @@ export const BorrowersTable = () => {
     },
     {
       field: "registeredOnChain",
-      headerName: "Registered On Chain",
+      headerName: t("admin.tables.registeredOnChain"),
       flex: 1,
       minWidth: 134,
       headerAlign: "left",
@@ -126,7 +126,7 @@ export const BorrowersTable = () => {
     },
     {
       field: "timeSigned",
-      headerName: "Signed At",
+      headerName: t("admin.tables.signedAt"),
       flex: 1,
       minWidth: 134,
       headerAlign: "left",

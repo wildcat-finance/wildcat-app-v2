@@ -4,6 +4,7 @@ import { useEffect } from "react"
 
 import { useIsMutating, useMutation, useQuery } from "@tanstack/react-query"
 import { decode as decodeJWT } from "jsonwebtoken"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { toastError, toastRequest } from "@/components/Toasts"
@@ -25,6 +26,7 @@ import { useSafeMessageSigning } from "./useSafeMessageSigning"
 import { useSelectedNetwork } from "./useSelectedNetwork"
 
 export const useRefreshApiToken = (chainIdOverride?: number) => {
+  const { t } = useTranslation()
   const { address } = useAccount()
   const selectedNetwork = useSelectedNetwork()
   const chainId = chainIdOverride ?? selectedNetwork.chainId
@@ -44,7 +46,7 @@ export const useRefreshApiToken = (chainIdOverride?: number) => {
         },
       })
       if (response.status === 401) {
-        toastError(`Session expired`)
+        toastError(t("auth.sessionExpired"))
         throw Error(`Failed to refresh token! Invalid Credentials`)
       } else if (response.status !== 200) {
         throw Error(`Failed to refresh token! ${response.statusText}`)
@@ -64,6 +66,7 @@ export const useRefreshApiToken = (chainIdOverride?: number) => {
 }
 
 export const useRemoveBadApiToken = (chainIdOverride?: number) => {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const { address } = useAccount()
   const selectedNetwork = useSelectedNetwork()
@@ -73,7 +76,7 @@ export const useRemoveBadApiToken = (chainIdOverride?: number) => {
     mutationKey: ["removeBadApiToken", tokenKey],
     mutationFn: async () => {
       dispatch(removeApiToken(tokenKey))
-      toastError(`Session expired`)
+      toastError(t("auth.sessionExpired"))
     },
   })
 }

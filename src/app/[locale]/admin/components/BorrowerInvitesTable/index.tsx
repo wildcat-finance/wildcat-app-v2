@@ -22,11 +22,14 @@ import { CancelInviteModal } from "../CancelInviteModal"
 import { InviteBorrowerModal } from "../InviteBorrowerModal"
 
 const RegisterBorrowerButton = ({ address }: { address: string }) => {
+  const { t } = useTranslation()
   const { mutate, isPending } = useRegisterTestnetBorrower()
 
   return (
     <Button variant="outlined" onClick={() => mutate(address)}>
-      {isPending ? "Registering..." : "Register"}
+      {isPending
+        ? t("admin.borrowers.registering")
+        : t("admin.borrowers.register")}
     </Button>
   )
 }
@@ -51,7 +54,7 @@ export const BorrowerInvitesTable = () => {
   >[] = [
     {
       field: "name",
-      headerName: "Borrower Name",
+      headerName: t("admin.tables.borrowerName"),
       flex: 1,
       // minWidth: 134,
       headerAlign: "left",
@@ -71,7 +74,7 @@ export const BorrowerInvitesTable = () => {
     },
     {
       field: "alias",
-      headerName: "Borrower Alias",
+      headerName: t("admin.tables.borrowerAlias"),
       flex: 1,
       // minWidth: 134,
       headerAlign: "left",
@@ -91,7 +94,7 @@ export const BorrowerInvitesTable = () => {
     },
     {
       field: "timeInvited",
-      headerName: "Invited",
+      headerName: t("admin.tables.invited"),
       flex: 1,
       // minWidth: 134,
       headerAlign: "left",
@@ -116,7 +119,7 @@ export const BorrowerInvitesTable = () => {
     {
       sortable: false,
       field: "address",
-      headerName: "Wallet Address",
+      headerName: t("common.fields.walletAddress"),
       // minWidth: 176,
       headerAlign: "left",
       align: "left",
@@ -136,7 +139,7 @@ export const BorrowerInvitesTable = () => {
     },
     {
       field: "registeredOnChain",
-      headerName: "Registered On Chain",
+      headerName: t("admin.tables.registeredOnChain"),
       flex: 0.6,
       // minWidth: 134,
       headerAlign: "left",
@@ -145,7 +148,7 @@ export const BorrowerInvitesTable = () => {
     },
     {
       field: "timeSigned",
-      headerName: "Signed",
+      headerName: t("admin.tables.signed"),
       flex: 1,
       // minWidth: 134,
       headerAlign: "left",

@@ -78,7 +78,7 @@ export const MlaForm = ({ form }: MLAFormProps) => {
     () => [
       {
         id: "noMLA",
-        label: "Don’t Use",
+        label: t("common.labels.dontUse"),
         value: "noMLA",
       },
       ...visibleTemplates.map((template) => ({

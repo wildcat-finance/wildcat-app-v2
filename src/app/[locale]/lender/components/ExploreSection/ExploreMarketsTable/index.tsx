@@ -453,7 +453,7 @@ export const ExploreMarketsTable = () => {
     () => [
       {
         field: "name",
-        headerName: "Market",
+        headerName: t("common.fields.market"),
         flex: 2.5,
         minWidth: 200,
         headerAlign: "left",
@@ -602,7 +602,7 @@ export const ExploreMarketsTable = () => {
       },
       {
         field: "debt",
-        headerName: "Total Debt / Remaining",
+        headerName: t("common.fields.totalDebtRemaining"),
         minWidth: 200,
         flex: 1.5,
         headerAlign: "right",
@@ -739,7 +739,7 @@ export const ExploreMarketsTable = () => {
                 >
                   {action === LenderMarketAction.DepositUnavailable
                     ? t("marketList.shared.tables.other.depositBTN")
-                    : "Unavailable"}
+                    : t("marketList.shared.tables.other.unavailable")}
                 </Button>
               )}
             </Box>

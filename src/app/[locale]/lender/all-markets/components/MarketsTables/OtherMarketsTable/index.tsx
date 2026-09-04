@@ -435,7 +435,7 @@ export const OtherMarketsTable = ({
               >
                 {action === LenderMarketAction.DepositUnavailable
                   ? t("marketList.shared.tables.other.depositBTN")
-                  : "Unavailable"}
+                  : t("marketList.shared.tables.other.unavailable")}
               </Button>
             )}
           </Box>

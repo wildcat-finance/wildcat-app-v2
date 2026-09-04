@@ -347,13 +347,13 @@ export const ActivityCashFlowTab = ({
   const activityColumns: GridColDef[] = [
     {
       field: "date",
-      headerName: "Date",
+      headerName: t("common.fields.date"),
       minWidth: 130,
       renderCell: ({ value }) => <TextCell>{value}</TextCell>,
     },
     {
       field: "market",
-      headerName: "Market",
+      headerName: t("common.fields.market"),
       flex: 1.2,
       minWidth: 220,
       renderCell: ({ row, value }) => (
@@ -368,7 +368,7 @@ export const ActivityCashFlowTab = ({
     },
     {
       field: "type",
-      headerName: "Type",
+      headerName: t("common.fields.type"),
       minWidth: 180,
       renderCell: ({ value }) => {
         const palette = getActivityTypePalette(value as string)
@@ -387,7 +387,7 @@ export const ActivityCashFlowTab = ({
     },
     {
       field: "amountUsd",
-      headerName: "Amount",
+      headerName: t("common.fields.amount"),
       minWidth: 130,
       align: "right",
       headerAlign: "right",
@@ -395,7 +395,7 @@ export const ActivityCashFlowTab = ({
     },
     {
       field: "txHash",
-      headerName: "Transaction",
+      headerName: t("common.fields.transaction"),
       minWidth: 170,
       renderCell: ({ value }) => (
         <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
@@ -413,7 +413,7 @@ export const ActivityCashFlowTab = ({
   const batchColumns: GridColDef[] = [
     {
       field: "marketName",
-      headerName: "Market",
+      headerName: t("common.fields.market"),
       flex: 1.1,
       minWidth: 220,
       renderCell: ({ row, value }) => (
@@ -428,13 +428,13 @@ export const ActivityCashFlowTab = ({
     },
     {
       field: "expiry",
-      headerName: "Expiry",
+      headerName: t("common.fields.expiry"),
       minWidth: 140,
       renderCell: ({ value }) => <TextCell>{value}</TextCell>,
     },
     {
       field: "requested",
-      headerName: "Requested",
+      headerName: t("common.fields.requested"),
       minWidth: 130,
       align: "right",
       headerAlign: "right",
@@ -442,7 +442,7 @@ export const ActivityCashFlowTab = ({
     },
     {
       field: "withdrawn",
-      headerName: "Withdrawn",
+      headerName: t("common.fields.withdrawn"),
       minWidth: 130,
       align: "right",
       headerAlign: "right",
@@ -450,7 +450,7 @@ export const ActivityCashFlowTab = ({
     },
     {
       field: "remaining",
-      headerName: "Remaining",
+      headerName: t("common.fields.remaining"),
       minWidth: 130,
       align: "right",
       headerAlign: "right",
@@ -458,7 +458,7 @@ export const ActivityCashFlowTab = ({
     },
     {
       field: "status",
-      headerName: "Status",
+      headerName: t("common.fields.status"),
       minWidth: 130,
       sortable: false,
       renderCell: ({ row }) => {
@@ -651,32 +651,32 @@ export const ActivityCashFlowTab = ({
           isLoading={batchesQuery.isLoading}
           items={[
             {
-              label: "Total batches",
+              label: t("profile.lender.stats.totalBatches"),
               value: String(batchSummary.total),
-              description: "rows in the table",
+              description: t("profile.lender.stats.rowsInTable"),
             },
             {
-              label: "Pending batches",
+              label: t("profile.lender.stats.pendingBatches"),
               value: String(batchSummary.pending),
             },
             {
-              label: "Completed batches",
+              label: t("profile.lender.stats.completedBatches"),
               value: String(batchSummary.completed),
             },
             {
-              label: "Expired batches",
+              label: t("profile.lender.stats.expiredBatches"),
               value: String(batchSummary.expired),
             },
             ...(batchSummary.closed > 0
               ? [
                   {
-                    label: "Closed batches",
+                    label: t("profile.lender.stats.closedBatches"),
                     value: String(batchSummary.closed),
                   },
                 ]
               : []),
             {
-              label: "Total requested",
+              label: t("profile.lender.stats.totalRequested"),
               value: formatUsd(batchSummary.totalRequested, {
                 compact: true,
               }),
