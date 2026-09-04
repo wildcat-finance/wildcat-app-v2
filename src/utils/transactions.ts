@@ -150,26 +150,19 @@ const isTransactionReceiptRequestProvider = (
   "request" in provider &&
   typeof provider.request === "function"
 
-export const waitForSafeTransactionHash = async (
-  sdk: SafeSdkLike,
-  safeTxHash: string,
-): Promise<string> =>
-  new Promise((resolve) => {
-    const check = async () => {
-      const transactionBySafeHash = await sdk.txs.getBySafeTxHash(safeTxHash)
-      if (transactionBySafeHash?.txHash) {
-        resolve(transactionBySafeHash.txHash)
-      } else {
-        setTimeout(check, 1000)
-      }
-    }
-    check()
+const delay = (ms: number): Promise<void> =>
+  new Promise<void>((resolve) => {
+    setTimeout(resolve, Math.max(1, ms))
   })
 
 export type SafeTransactionResolution =
   | { status: "pending" }
   | { status: "executed"; transactionHash: string }
-  | { status: "terminal"; transactionStatus: "CANCELLED" | "FAILED" }
+  | {
+      status: "terminal"
+      transactionStatus: "CANCELLED" | "FAILED"
+      transactionHash?: string
+    }
 
 export const getSafeTransactionResolution = (
   transaction: SafeTransactionDetails | null | undefined,
@@ -181,6 +174,7 @@ export const getSafeTransactionResolution = (
     return {
       status: "terminal",
       transactionStatus: transaction.txStatus,
+      transactionHash: transaction.txHash ?? undefined,
     }
   }
   if (transaction?.txHash) {
@@ -193,18 +187,125 @@ export class SafeTransactionTerminalError extends Error {
   constructor(
     readonly safeTxHash: string,
     readonly transactionStatus: "CANCELLED" | "FAILED",
+    readonly transactionHash?: string,
   ) {
     super(`Safe transaction ${transactionStatus.toLowerCase()}`)
     this.name = "SafeTransactionTerminalError"
   }
 }
 
-const APPROVAL_CONFIRMATION_POLL_INTERVAL_MS = 1000
-const APPROVAL_CONFIRMATION_TIMEOUT_MS = 180_000
+const SAFE_EXECUTION_POLL_INTERVAL_MS = 1000
+const SAFE_EXECUTION_SLOW_POLL_INTERVAL_MS = 5000
+const SAFE_EXECUTION_FAST_POLL_WINDOW_MS = 60_000
+const SAFE_EXECUTION_SERVICE_FAILURE_GRACE_MS = 120_000
+const SAFE_EXECUTION_TIMEOUT_MS = 1_800_000
+const SAFE_OUTCOME_GRACE_MS = 15_000
 
-const createApprovalConfirmationTimeoutError = (submittedHash: string) => {
-  const error = Error(`Approval confirmation timed out: ${submittedHash}`)
+const createSafeExecutionTimeoutError = (
+  safeTxHash: string,
+  timeoutMs: number,
+) => {
+  const error = Error(
+    `Safe transaction ${safeTxHash} has not executed after` +
+      ` ${Math.round(timeoutMs / 1000)}s. The proposal is still queued in the` +
+      ` Safe and will execute once the remaining owners have signed it.`,
+  )
+  error.name = "SafeExecutionTimeoutError"
+  return error
+}
+
+export type SafeTransactionExecutionOptions = {
+  /** Poll cadence for the first `fastPollWindowMs`. */
+  pollIntervalMs?: number
+  /** Cadence after that. Defaults to `pollIntervalMs`, i.e. no backoff at all. */
+  slowPollIntervalMs?: number
+  fastPollWindowMs?: number
+  /**
+   * Wall clock measured from the first of a run of transport failures. The
+   * default of 0 rejects on the very first one, which is the existing contract
+   * `useDeployV2Market` and `useCreateWrapper` resume flows are written against.
+   * The original error is always rethrown unchanged, so no caller has to learn
+   * a new error class to keep working.
+   */
+  serviceFailureGraceMs?: number
+  /**
+   * Wall clock from the first poll. `undefined` waits indefinitely, which is the
+   * existing contract for callers that own their own resume UI.
+   */
+  timeoutMs?: number
+  onWaiting?: (elapsedMs: number) => void
+}
+
+/**
+ * The one Safe execution poller. It is terminal-aware, so a CANCELLED or FAILED
+ * proposal rejects instead of being waited on forever.
+ */
+export const waitForSafeTransactionExecution = async (
+  sdk: SafeSdkLike,
+  safeTxHash: string,
+  {
+    pollIntervalMs = SAFE_EXECUTION_POLL_INTERVAL_MS,
+    slowPollIntervalMs = pollIntervalMs,
+    fastPollWindowMs = Number.POSITIVE_INFINITY,
+    serviceFailureGraceMs = 0,
+    timeoutMs,
+    onWaiting,
+  }: SafeTransactionExecutionOptions = {},
+): Promise<string> => {
+  const startedAt = Date.now()
+  let firstFailureAt: number | undefined
+
+  /* eslint-disable no-await-in-loop */
+  for (;;) {
+    try {
+      const resolution = getSafeTransactionResolution(
+        await sdk.txs.getBySafeTxHash(safeTxHash),
+      )
+      firstFailureAt = undefined
+      if (resolution.status === "executed") {
+        return resolution.transactionHash
+      }
+      if (resolution.status === "terminal") {
+        throw new SafeTransactionTerminalError(
+          safeTxHash,
+          resolution.transactionStatus,
+          resolution.transactionHash,
+        )
+      }
+    } catch (error) {
+      if (error instanceof SafeTransactionTerminalError) throw error
+      if (firstFailureAt === undefined) firstFailureAt = Date.now()
+      if (Date.now() - firstFailureAt >= serviceFailureGraceMs) throw error
+    }
+
+    const elapsedMs = Date.now() - startedAt
+    if (timeoutMs !== undefined && elapsedMs >= timeoutMs) {
+      throw createSafeExecutionTimeoutError(safeTxHash, timeoutMs)
+    }
+    onWaiting?.(elapsedMs)
+    await delay(
+      elapsedMs < fastPollWindowMs ? pollIntervalMs : slowPollIntervalMs,
+    )
+  }
+  /* eslint-enable no-await-in-loop */
+}
+
+const APPROVAL_CONFIRMATION_POLL_INTERVAL_MS = 1000
+const APPROVAL_CONFIRMATION_TIMEOUT_MS = 300_000
+const APPROVAL_ALLOWANCE_POLL_FACTOR = 4
+const APPROVAL_ALLOWANCE_GRACE_MS = 15_000
+const APPROVAL_RECEIPT_FAILURE_GRACE_MS = 60_000
+const APPROVAL_ALLOWANCE_REPORT_ATTEMPTS = 3
+
+const createApprovalConfirmationTimeoutError = (
+  transactionHash: string,
+  cause?: unknown,
+) => {
+  const error = Error(`Approval confirmation timed out: ${transactionHash}`)
   error.name = "ApprovalConfirmationTimeoutError"
+  if (cause !== undefined) {
+    error.cause = cause
+  }
   return error
 }
 
@@ -216,6 +317,208 @@ export const isApprovalAllowanceSufficient = (
     ? allowance === BigInt(0)
     : allowance >= requiredAllowance
 
+type AllowanceWatcher = {
+  poll: () => Promise<boolean>
+  lastError: () => unknown
+}
+
+const createAllowanceWatcher = (
+  isAllowanceSufficient: () => Promise<boolean>,
+  graceMs: number,
+): AllowanceWatcher => {
+  let baseline: boolean | undefined
+  let sufficientSince: number | undefined
+  let lastError: unknown
+
+  return {
+    poll: async () => {
+      let current: boolean
+      try {
+        current = await isAllowanceSufficient()
+        lastError = undefined
+      } catch (error) {
+        lastError = error
+        return false
+      }
+
+      if (baseline === undefined) {
+        baseline = current
+        return false
+      }
+      if (baseline || !current) {
+        sufficientSince = undefined
+        return false
+      }
+      if (sufficientSince === undefined) {
+        sufficientSince = Date.now()
+      }
+      return Date.now() - sufficientSince >= graceMs
+    },
+    lastError: () => lastError,
+  }
+}
+
+const readAllowanceAfterConfirmation = async (
+  isAllowanceSufficient: () => Promise<boolean>,
+  attempts: number,
+  intervalMs: number,
+): Promise<boolean | undefined> => {
+  let observed: boolean | undefined
+
+  /* eslint-disable no-await-in-loop */
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    if (attempt > 0) {
+      await delay(intervalMs)
+    }
+    try {
+      observed = await isAllowanceSufficient()
+      if (observed) return true
+    } catch {
+      // Leaves the result unknown rather than claiming the allowance is short.
+    }
+  }
+  /* eslint-enable no-await-in-loop */
+
+  return observed
+}
+
+type ApprovalEvidence = {
+  confirmedBy: "receipt" | "allowance"
+  receipt?: unknown
+}
+
+const confirmApprovalTransaction = async ({
+  provider,
+  transactionHash,
+  allowance,
+  pollingIntervalMs,
+  allowancePollIntervalMs,
+  timeoutMs,
+}: {
+  provider: TransactionReceiptRequestProvider
+  transactionHash: string
+  allowance: AllowanceWatcher
+  pollingIntervalMs: number
+  allowancePollIntervalMs: number
+  timeoutMs: number
+}): Promise<ApprovalEvidence> => {
+  let stopped = false
+  let timeout: ReturnType<typeof setTimeout> | undefined
+  let firstFailureAt: number | undefined
+  let lastReceiptError: unknown
+  let nextAllowancePollAt = Date.now()
+
+  const poll = async (): Promise<ApprovalEvidence> => {
+    /* eslint-disable no-await-in-loop */
+    for (;;) {
+      if (stopped) {
+        throw createApprovalConfirmationTimeoutError(transactionHash)
+      }
+
+      let receipt: unknown
+      try {
+        receipt = await provider.request({
+          method: "eth_getTransactionReceipt",
+          params: [transactionHash],
+        })
+        firstFailureAt = undefined
+        lastReceiptError = undefined
+      } catch (error) {
+        lastReceiptError = error
+        if (firstFailureAt === undefined) firstFailureAt = Date.now()
+        if (Date.now() - firstFailureAt >= APPROVAL_RECEIPT_FAILURE_GRACE_MS) {
+          throw error
+        }
+      }
+
+      if (receipt) {
+        assertTransactionSucceeded(receipt, transactionHash)
+        return { confirmedBy: "receipt", receipt }
+      }
+
+      if (Date.now() >= nextAllowancePollAt) {
+        nextAllowancePollAt = Date.now() + allowancePollIntervalMs
+        if (await allowance.poll()) {
+          return { confirmedBy: "allowance" }
+        }
+      }
+
+      await delay(pollingIntervalMs)
+    }
+    /* eslint-enable no-await-in-loop */
+  }
+
+  const deadline = new Promise<never>((_, reject) => {
+    timeout = setTimeout(
+      () => {
+        reject(
+          createApprovalConfirmationTimeoutError(
+            transactionHash,
+            lastReceiptError ?? allowance.lastError(),
+          ),
+        )
+      },
+      Math.max(0, timeoutMs),
+    )
+  })
+
+  try {
+    return await Promise.race([poll(), deadline])
+  } finally {
+    stopped = true
+    if (timeout) clearTimeout(timeout)
+  }
+}
+
+const confirmSafeExecutionOutcome = async ({
+  safeSdk,
+  safeTxHash,
+  transactionHash,
+  pollIntervalMs,
+  graceMs,
+}: {
+  safeSdk: SafeSdkLike
+  safeTxHash: string
+  transactionHash: string
+  pollIntervalMs: number
+  graceMs: number
+}): Promise<void> => {
+  const deadlineAt = Date.now() + Math.max(0, graceMs)
+
+  /* eslint-disable no-await-in-loop */
+  for (;;) {
+    try {
+      const transaction = await safeSdk.txs.getBySafeTxHash(safeTxHash)
+      const resolution = getSafeTransactionResolution(transaction)
+      if (resolution.status === "terminal") {
+        throw new SafeTransactionTerminalError(
+          safeTxHash,
+          resolution.transactionStatus,
+          resolution.transactionHash ?? transactionHash,
+        )
+      }
+      if (transaction?.txStatus === "SUCCESS") {
+        return
+      }
+    } catch (error) {
+      if (error instanceof SafeTransactionTerminalError) throw error
+    }
+
+    if (Date.now() >= deadlineAt) {
+      return
+    }
+    await delay(pollIntervalMs)
+  }
+  /* eslint-enable no-await-in-loop */
+}
+
+export type ApprovalConfirmation = {
+  transactionHash: string
+  confirmedBy: "receipt" | "allowance"
+  receipt?: unknown
+  allowanceSatisfied?: boolean
+}
+
 export const waitForApproval = async ({
   provider,
   hash,
@@ -223,130 +526,104 @@ export const waitForApproval = async ({
   safeConnected = false,
   safeSdk,
   onTransactionHash,
+  onWaitingForSafeExecution,
   pollingIntervalMs = APPROVAL_CONFIRMATION_POLL_INTERVAL_MS,
   timeoutMs = APPROVAL_CONFIRMATION_TIMEOUT_MS,
+  safeExecutionTimeoutMs = SAFE_EXECUTION_TIMEOUT_MS,
+  safeOutcomeGraceMs = SAFE_OUTCOME_GRACE_MS,
+  allowanceGraceMs = APPROVAL_ALLOWANCE_GRACE_MS,
 }: {
-  provider?: unknown
+  provider: unknown
   hash: TransactionHashLike
   isAllowanceSufficient: () => Promise<boolean>
   safeConnected?: boolean
   safeSdk?: SafeSdkLike
   onTransactionHash?: (hash: string) => void
+  onWaitingForSafeExecution?: (elapsedMs: number) => void
   pollingIntervalMs?: number
   timeoutMs?: number
-}): Promise<string> => {
+  safeExecutionTimeoutMs?: number
+  safeOutcomeGraceMs?: number
+  allowanceGraceMs?: number
+}): Promise<ApprovalConfirmation> => {
   if (safeConnected && !safeSdk) {
     throw Error("No Safe SDK")
   }
+  if (!isTransactionReceiptRequestProvider(provider)) {
+    throw Error("No provider available to confirm the approval transaction")
+  }
 
   const submittedHash = toTransactionHashString(hash)
-  let transactionHash: string | undefined = safeConnected
-    ? undefined
-    : submittedHash
-  let stopped = false
-  let timeout: ReturnType<typeof setTimeout> | undefined
 
-  if (transactionHash) onTransactionHash?.(transactionHash)
-
-  const poll = async (): Promise<string> => {
-    if (stopped) return transactionHash ?? submittedHash
-
+  let transactionHash: string
+  if (safeConnected && safeSdk) {
     try {
-      if (await isAllowanceSufficient()) {
-        return transactionHash ?? submittedHash
+      transactionHash = await waitForSafeTransactionExecution(
+        safeSdk,
+        submittedHash,
+        {
+          pollIntervalMs: pollingIntervalMs,
+          slowPollIntervalMs: Math.max(
+            pollingIntervalMs,
+            SAFE_EXECUTION_SLOW_POLL_INTERVAL_MS,
+          ),
+          fastPollWindowMs: SAFE_EXECUTION_FAST_POLL_WINDOW_MS,
+          serviceFailureGraceMs: SAFE_EXECUTION_SERVICE_FAILURE_GRACE_MS,
+          timeoutMs: safeExecutionTimeoutMs,
+          onWaiting: onWaitingForSafeExecution,
+        },
+      )
+    } catch (error) {
+      // A proposal that failed on-chain still produced a transaction the user
+      // can open in an explorer, so hand the hash over before rejecting.
+      if (
+        error instanceof SafeTransactionTerminalError &&
+        error.transactionHash
+      ) {
+        onTransactionHash?.(error.transactionHash)
       }
-    } catch {
-      // Transient allowance reads should not strand an otherwise valid tx.
+      throw error
     }
+  } else {
+    transactionHash = submittedHash
+  }
 
-    if (stopped) return transactionHash ?? submittedHash
+  onTransactionHash?.(transactionHash)
 
-    if (safeConnected && safeSdk && !transactionHash) {
-      try {
-        const transaction = await safeSdk.txs.getBySafeTxHash(submittedHash)
-        const resolution = getSafeTransactionResolution(transaction)
-        if (resolution.status === "terminal") {
-          throw new SafeTransactionTerminalError(
-            submittedHash,
-            resolution.transactionStatus,
-          )
-        }
-        if (resolution.status === "executed") {
-          transactionHash = resolution.transactionHash
-          onTransactionHash?.(transactionHash)
-        }
-      } catch (error) {
-        if (error instanceof SafeTransactionTerminalError) throw error
-        // Safe service failures are retried until the overall timeout.
-      }
-    }
+  const allowance = createAllowanceWatcher(
+    isAllowanceSufficient,
+    allowanceGraceMs,
+  )
+  const evidence = await confirmApprovalTransaction({
+    provider,
+    transactionHash,
+    allowance,
+    pollingIntervalMs,
+    allowancePollIntervalMs: pollingIntervalMs * APPROVAL_ALLOWANCE_POLL_FACTOR,
+    timeoutMs,
+  })
 
-    if (stopped) return transactionHash ?? submittedHash
-
-    if (transactionHash && isTransactionReceiptRequestProvider(provider)) {
-      let receipt: unknown
-      try {
-        receipt = await provider.request({
-          method: "eth_getTransactionReceipt",
-          params: [transactionHash],
-        })
-      } catch {
-        // Receipt lookup failures are retried; allowance remains canonical.
-      }
-      if (stopped) return transactionHash ?? submittedHash
-      if (receipt) assertTransactionSucceeded(receipt, transactionHash)
-    }
-
-    await new Promise<void>((resolve) => {
-      setTimeout(resolve, Math.max(1, pollingIntervalMs))
+  if (safeConnected && safeSdk && evidence.confirmedBy === "receipt") {
+    await confirmSafeExecutionOutcome({
+      safeSdk,
+      safeTxHash: submittedHash,
+      transactionHash,
+      pollIntervalMs: pollingIntervalMs,
+      graceMs: safeOutcomeGraceMs,
     })
-    return poll()
   }
 
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    timeout = setTimeout(
-      () => reject(createApprovalConfirmationTimeoutError(submittedHash)),
-      Math.max(0, timeoutMs),
-    )
-  })
+  const allowanceSatisfied =
+    evidence.confirmedBy === "allowance"
+      ? true
+      : await readAllowanceAfterConfirmation(
+          isAllowanceSufficient,
+          APPROVAL_ALLOWANCE_REPORT_ATTEMPTS,
+          pollingIntervalMs,
+        )
 
-  try {
-    return await Promise.race([poll(), timeoutPromise])
-  } finally {
-    stopped = true
-    if (timeout) clearTimeout(timeout)
-  }
+  return { transactionHash, ...evidence, allowanceSatisfied }
 }
-
-export const waitForSafeTransactionExecution = async (
-  sdk: SafeSdkLike,
-  safeTxHash: string,
-): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const check = async () => {
-      try {
-        const transaction = await sdk.txs.getBySafeTxHash(safeTxHash)
-        const resolution = getSafeTransactionResolution(transaction)
-        if (resolution.status === "executed") {
-          resolve(resolution.transactionHash)
-          return
-        }
-        if (resolution.status === "terminal") {
-          reject(
-            new SafeTransactionTerminalError(
-              safeTxHash,
-              resolution.transactionStatus,
-            ),
-          )
-          return
-        }
-        setTimeout(check, 1000)
-      } catch (error) {
-        reject(error)
-      }
-    }
-    check()
-  })
 
 export const waitForSubmittedTransaction = async ({
   provider,
@@ -368,7 +645,7 @@ export const waitForSubmittedTransaction = async ({
   const submittedHash = toTransactionHashString(hash)
   const transactionHash =
     safeConnected && safeSdk
-      ? await waitForSafeTransactionHash(safeSdk, submittedHash)
+      ? await waitForSafeTransactionExecution(safeSdk, submittedHash)
       : submittedHash
   const receipt = await provider.waitForTransaction(transactionHash)
   return {

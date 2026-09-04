@@ -71,7 +71,7 @@ export const useApprove = (
         })
       }
 
-      await approve()
+      return approve()
     },
     onSuccess() {
       invalidateMarketAccountQueries({
@@ -86,7 +86,10 @@ export const useApprove = (
   const approveWithToast = async (tokenAmount: TokenAmount) => {
     await toastRequest(mutation.mutateAsync(tokenAmount), {
       pending: `Approving ${tokenAmount.format()} ${token.symbol}...`,
-      success: `Successfully approved ${tokenAmount.format()} ${token.symbol}`,
+      success: (confirmation) =>
+        confirmation.allowanceSatisfied === false
+          ? `Approved a smaller ${token.symbol} allowance than requested`
+          : `Successfully approved ${tokenAmount.format()} ${token.symbol}`,
       error: "Failed to approve",
     })
   }
