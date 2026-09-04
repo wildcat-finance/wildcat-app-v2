@@ -52,6 +52,7 @@ import { invalidateMarketStateQueries } from "@/utils/marketStateQueries"
 import {
   assertTransactionSucceeded,
   isApprovalAllowanceSufficient,
+  isApprovalAllowanceMismatchError,
   waitForApproval,
   waitForSafeTransactionExecution,
   waitForSubmittedTransaction,
@@ -1050,8 +1051,14 @@ export const WrapperSection = ({
                   onClick={() =>
                     toastRequest(approveMutation.mutateAsync(), {
                       pending: "Approving...",
-                      success: "Approved",
-                      error: "Approval failed",
+                      success: (confirmation) =>
+                        confirmation.confirmedBy === "allowance"
+                          ? "Allowance ready"
+                          : "Approved",
+                      getErrorMessage: (error) =>
+                        isApprovalAllowanceMismatchError(error)
+                          ? "Approved allowance is smaller than requested"
+                          : "Approval failed",
                     })
                   }
                   disabled={isApproveButtonDisabled}

@@ -9,6 +9,7 @@ import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { invalidateMarketAccountQueries } from "@/utils/marketAccountQueries"
 import {
   isApprovalAllowanceSufficient,
+  isApprovalAllowanceMismatchError,
   waitForApproval,
 } from "@/utils/transactions"
 
@@ -87,10 +88,13 @@ export const useApprove = (
     await toastRequest(mutation.mutateAsync(tokenAmount), {
       pending: `Approving ${tokenAmount.format()} ${token.symbol}...`,
       success: (confirmation) =>
-        confirmation.allowanceSatisfied === false
-          ? `Approved a smaller ${token.symbol} allowance than requested`
+        confirmation.confirmedBy === "allowance"
+          ? `${tokenAmount.format()} ${token.symbol} allowance is ready`
           : `Successfully approved ${tokenAmount.format()} ${token.symbol}`,
-      error: "Failed to approve",
+      getErrorMessage: (error) =>
+        isApprovalAllowanceMismatchError(error)
+          ? `Approved ${token.symbol} allowance is smaller than requested`
+          : "Failed to approve",
     })
   }
 

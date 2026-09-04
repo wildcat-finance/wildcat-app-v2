@@ -100,7 +100,7 @@ describe("useApprove", () => {
       }) => {
         expect(await isAllowanceSufficient()).toBe(true)
         onTransactionHash?.(hash)
-        return hash
+        return { transactionHash: hash, confirmedBy: "allowance" }
       },
     )
     const { client, wrapper } = createQueryWrapper()
