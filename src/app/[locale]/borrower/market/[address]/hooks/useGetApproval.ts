@@ -1,13 +1,17 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { Market, Signer, Token, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import type { Market, Token, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
 import { toastRequest } from "@/components/Toasts"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { invalidateMarketAccountQueries } from "@/utils/marketAccountQueries"
-import { waitForSubmittedTransaction } from "@/utils/transactions"
+import {
+  isApprovalAllowanceSufficient,
+  isApprovalAllowanceMismatchError,
+  waitForApproval,
+} from "@/utils/transactions"
 
 export const useApprove = (
   token: Token,
@@ -52,34 +56,23 @@ export const useApprove = (
           tokenAmount,
         )
 
-        if (!safeConnected && setTxHash) setTxHash(hash.toString())
-
-        if (safeConnected) {
-          const checkTransaction = async () => {
-            const transactionBySafeHash = await sdk.txs.getBySafeTxHash(
-              hash.toString(),
-            )
-            if (transactionBySafeHash?.txHash) {
-              if (setTxHash) setTxHash(transactionBySafeHash.txHash)
-            } else {
-              setTimeout(checkTransaction, 1000)
-            }
-          }
-
-          await checkTransaction()
-        }
-
-        return waitForSubmittedTransaction({
-          provider: Signer.isSigner(token.provider)
-            ? token.provider.provider
-            : token.provider,
+        return waitForApproval({
+          provider: signer.provider,
           hash,
+          isAllowanceSufficient: async () => {
+            const allowance = await token.allowance(
+              signingAddress,
+              market.address,
+            )
+            return isApprovalAllowanceSufficient(allowance.raw, tokenAmount.raw)
+          },
           safeConnected,
           safeSdk: sdk,
+          onTransactionHash: setTxHash,
         })
       }
 
-      await approve()
+      return approve()
     },
     onSuccess() {
       invalidateMarketAccountQueries({
@@ -94,8 +87,14 @@ export const useApprove = (
   const approveWithToast = async (tokenAmount: TokenAmount) => {
     await toastRequest(mutation.mutateAsync(tokenAmount), {
       pending: `Approving ${tokenAmount.format()} ${token.symbol}...`,
-      success: `Successfully approved ${tokenAmount.format()} ${token.symbol}`,
-      error: "Failed to approve",
+      success: (confirmation) =>
+        confirmation.confirmedBy === "allowance"
+          ? `${tokenAmount.format()} ${token.symbol} allowance is ready`
+          : `Successfully approved ${tokenAmount.format()} ${token.symbol}`,
+      getErrorMessage: (error) =>
+        isApprovalAllowanceMismatchError(error)
+          ? `Approved ${token.symbol} allowance is smaller than requested`
+          : "Failed to approve",
     })
   }
 
