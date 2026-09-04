@@ -387,6 +387,8 @@ const LENDER_QUERY_KEYS = {
 const WRAPPER_QUERY_KEYS = {
   GET_WRAPPER_FOR_MARKET: (chainId: number, marketAddress?: string) =>
     k(["wrapper", "GET_WRAPPER_FOR_MARKET", chainId, marketAddress]),
+  GET_DEPLOYMENT_CAPABILITY: (chainId: number, marketAddress?: string) =>
+    k(["wrapper", "GET_DEPLOYMENT_CAPABILITY", chainId, marketAddress]),
   GET_WRAPPER: (chainId: number, wrapperAddress?: string) =>
     k(["wrapper", "GET_WRAPPER", chainId, wrapperAddress]),
   GET_ACCOUNT_STATE: (

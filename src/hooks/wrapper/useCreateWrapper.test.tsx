@@ -2,7 +2,7 @@
 import { PropsWithChildren } from "react"
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { act, renderHook } from "@testing-library/react"
+import { act, renderHook, waitFor } from "@testing-library/react"
 import type { Market } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
@@ -11,6 +11,7 @@ import { WRAPPER_TRANSFERS_DISABLED_ERROR } from "@/utils/createMarketDeploy"
 import { useCreateWrapper } from "./useCreateWrapper"
 
 const createWrapperMock = jest.fn()
+const getDeploymentCapabilityMock = jest.fn()
 const populateCreateWrapperMock = jest.fn()
 const toSafeTransactionInputMock = jest.fn()
 const useCurrentNetworkMock = jest.fn()
@@ -28,8 +29,15 @@ jest.mock("@wildcatfi/wildcat-sdk", () => ({
   },
   WrapperFactory: {
     createWrapper: (...args: unknown[]) => createWrapperMock(...args),
+    getDeploymentCapability: (...args: unknown[]) =>
+      getDeploymentCapabilityMock(...args),
     populateCreateWrapper: (...args: unknown[]) =>
       populateCreateWrapperMock(...args),
+  },
+  WrapperDeploymentStatus: {
+    Ready: "Ready",
+    FactoryUnavailable: "FactoryUnavailable",
+    UnsupportedFactory: "UnsupportedFactory",
   },
   toSafeTransactionInput: (...args: unknown[]) =>
     toSafeTransactionInputMock(...args),
@@ -89,10 +97,15 @@ describe("useCreateWrapper", () => {
     useCurrentNetworkMock.mockReturnValue({ targetChainId: CHAIN_ID })
     useEthersProviderMock.mockReturnValue({ signer })
     useSafeAppsSDKMock.mockReturnValue({ connected: false, sdk: safeSdk })
+    getDeploymentCapabilityMock.mockResolvedValue({
+      status: "Ready",
+      factoryAddress: "0xfactory",
+      routing: "market",
+    })
     createWrapperMock.mockResolvedValue({ result: { address: "0xwrapper" } })
   })
 
-  it("allows deployment for a terminated market", () => {
+  it("allows deployment for a terminated market", async () => {
     const { wrapper } = createQueryWrapper()
     const { result } = renderHook(
       () =>
@@ -104,7 +117,35 @@ describe("useCreateWrapper", () => {
       { wrapper },
     )
 
-    expect(result.current.canCreateWrapper).toBe(true)
+    await waitFor(() => expect(result.current.canCreateWrapper).toBe(true))
+  })
+
+  it("does not offer deployment for an unsupported market factory", async () => {
+    getDeploymentCapabilityMock.mockResolvedValue({
+      status: "UnsupportedFactory",
+      marketFactoryAddress: "0xlegacy",
+      supportedFactoryAddresses: ["0xfactory"],
+    })
+    const { wrapper } = createQueryWrapper()
+    const { result } = renderHook(
+      () =>
+        useCreateWrapper({
+          market,
+          hasFactory: true,
+          isDifferentChain: false,
+        }),
+      { wrapper },
+    )
+
+    await waitFor(() =>
+      expect(result.current.deploymentStatus).toBe("UnsupportedFactory"),
+    )
+    expect(result.current.canCreateWrapper).toBe(false)
+    expect(getDeploymentCapabilityMock).toHaveBeenCalledWith(
+      CHAIN_ID,
+      signer,
+      MARKET_ADDRESS,
+    )
   })
 
   it("blocks deployment when market transfers are disabled", async () => {
@@ -170,7 +211,7 @@ describe("useCreateWrapper", () => {
     const safeTxHash = "0xsafe"
     const transactionHash = "0xtransaction"
     useSafeAppsSDKMock.mockReturnValue({ connected: true, sdk: safeSdk })
-    populateCreateWrapperMock.mockReturnValue(populatedTransaction)
+    populateCreateWrapperMock.mockResolvedValue(populatedTransaction)
     toSafeTransactionInputMock.mockReturnValue(safeTransaction)
     sendSafeTransactions.mockResolvedValue({ safeTxHash })
     waitForSafeTransactionExecutionMock.mockResolvedValue(transactionHash)
@@ -213,7 +254,7 @@ describe("useCreateWrapper", () => {
     const safeTxHash = "0xsafe"
     const transactionHash = "0xtransaction"
     useSafeAppsSDKMock.mockReturnValue({ connected: true, sdk: safeSdk })
-    populateCreateWrapperMock.mockReturnValue({
+    populateCreateWrapperMock.mockResolvedValue({
       to: "0xfactory",
       data: "0x1234",
     })

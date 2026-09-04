@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { Market } from "@wildcatfi/wildcat-sdk"
+import { Market, WrapperDeploymentStatus } from "@wildcatfi/wildcat-sdk"
 
 import { toastRequest } from "@/components/Toasts"
 import { NoWrapperState } from "@/components/WrapDebtToken/NoWrapperState"
@@ -20,9 +20,26 @@ export const WrapperDeployment = ({
   const {
     canCreateWrapper,
     transfersDisabled,
+    deploymentStatus,
+    isCheckingDeploymentCapability,
+    isDeploymentCapabilityError,
     createWrapper,
     isCreatingWrapper,
   } = useCreateWrapper({ market, hasFactory, isDifferentChain })
+
+  let statusMessage: string | undefined
+  if (transfersDisabled) {
+    statusMessage =
+      "Wrappers are not available when market transfers are disabled."
+  } else if (isCheckingDeploymentCapability) {
+    statusMessage = "Checking wrapper availability..."
+  } else if (deploymentStatus === WrapperDeploymentStatus.UnsupportedFactory) {
+    statusMessage = "Wrapper deployment is not available for this market."
+  } else if (deploymentStatus === WrapperDeploymentStatus.FactoryUnavailable) {
+    statusMessage = "Wrappers are not available on this chain yet."
+  } else if (isDeploymentCapabilityError) {
+    statusMessage = "Unable to verify wrapper availability."
+  }
 
   return (
     <NoWrapperState
@@ -36,11 +53,7 @@ export const WrapperDeployment = ({
       }
       isCreatingWrapper={isCreatingWrapper}
       disableCreateWrapper={!canCreateWrapper}
-      statusMessage={
-        transfersDisabled
-          ? "Wrappers are not available when market transfers are disabled."
-          : undefined
-      }
+      statusMessage={statusMessage}
     />
   )
 }
