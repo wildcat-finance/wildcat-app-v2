@@ -370,11 +370,12 @@ export const useDeployV2Market = () => {
                 salt,
                 predictedMarket: marketAddress,
               })
-              const wrapperTransaction = WrapperFactory.populateCreateWrapper(
-                chainId,
-                signer,
-                marketAddress,
-              )
+              const wrapperTransaction =
+                await WrapperFactory.populateCreateWrapper(
+                  chainId,
+                  signer,
+                  marketAddress,
+                )
               return waitForSafeProposal({
                 borrowerAddress,
                 salt,

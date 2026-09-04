@@ -2,7 +2,11 @@
 import type { ReactElement } from "react"
 
 import { fireEvent, render, screen } from "@testing-library/react"
-import type { Market, TokenWrapper } from "@wildcatfi/wildcat-sdk"
+import {
+  WrapperDeploymentStatus,
+  type Market,
+  type TokenWrapper,
+} from "@wildcatfi/wildcat-sdk"
 
 import { WrapDebtToken as BorrowerWrapDebtToken } from "@/app/[locale]/borrower/market/[address]/components/WrapDebtToken"
 import { WrapDebtToken as LenderWrapDebtToken } from "@/app/[locale]/lender/market/[address]/components/WrapDebtToken"
@@ -107,6 +111,9 @@ describe("wrapper deployment market views", () => {
     useCreateWrapperMock.mockReturnValue({
       canCreateWrapper: true,
       transfersDisabled: false,
+      deploymentStatus: WrapperDeploymentStatus.Ready,
+      isCheckingDeploymentCapability: false,
+      isDeploymentCapabilityError: false,
       createWrapper: createWrapperMock,
       isCreatingWrapper: false,
     })
@@ -160,6 +167,25 @@ describe("wrapper deployment market views", () => {
       screen.getByText(
         "Wrappers are not available when market transfers are disabled.",
       ),
+    ).toBeTruthy()
+  })
+
+  it("hides deployment for an unsupported market factory", () => {
+    useCreateWrapperMock.mockReturnValue({
+      canCreateWrapper: false,
+      transfersDisabled: false,
+      deploymentStatus: WrapperDeploymentStatus.UnsupportedFactory,
+      isCheckingDeploymentCapability: false,
+      isDeploymentCapabilityError: false,
+      createWrapper: createWrapperMock,
+      isCreatingWrapper: false,
+    })
+
+    renderWithTranslations(<BorrowerWrapDebtToken {...wrapperProps} />)
+
+    expect(screen.queryByRole("button", { name: "Deploy wrapper" })).toBeNull()
+    expect(
+      screen.getByText("Wrapper deployment is not available for this market."),
     ).toBeTruthy()
   })
 

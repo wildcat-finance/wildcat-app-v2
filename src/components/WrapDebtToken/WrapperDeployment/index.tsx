@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { Market } from "@wildcatfi/wildcat-sdk"
+import { Market, WrapperDeploymentStatus } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { toastRequest } from "@/components/Toasts"
@@ -22,9 +22,31 @@ export const WrapperDeployment = ({
   const {
     canCreateWrapper,
     transfersDisabled,
+    deploymentStatus,
+    isCheckingDeploymentCapability,
+    isDeploymentCapabilityError,
     createWrapper,
     isCreatingWrapper,
   } = useCreateWrapper({ market, hasFactory, isDifferentChain })
+
+  let statusMessage: string | undefined
+  if (transfersDisabled) {
+    statusMessage = t("marketDetails.lender.wrapDebtToken.transfersDisabled")
+  } else if (isCheckingDeploymentCapability) {
+    statusMessage = t("marketDetails.lender.wrapDebtToken.deployment.checking")
+  } else if (deploymentStatus === WrapperDeploymentStatus.UnsupportedFactory) {
+    statusMessage = t(
+      "marketDetails.lender.wrapDebtToken.deployment.unsupportedFactory",
+    )
+  } else if (deploymentStatus === WrapperDeploymentStatus.FactoryUnavailable) {
+    statusMessage = t(
+      "marketDetails.lender.wrapDebtToken.deployment.factoryUnavailable",
+    )
+  } else if (isDeploymentCapabilityError) {
+    statusMessage = t(
+      "marketDetails.lender.wrapDebtToken.deployment.verificationFailed",
+    )
+  }
 
   return (
     <NoWrapperState
@@ -38,11 +60,7 @@ export const WrapperDeployment = ({
       }
       isCreatingWrapper={isCreatingWrapper}
       disableCreateWrapper={!canCreateWrapper}
-      statusMessage={
-        transfersDisabled
-          ? t("marketDetails.lender.wrapDebtToken.transfersDisabled")
-          : undefined
-      }
+      statusMessage={statusMessage}
     />
   )
 }

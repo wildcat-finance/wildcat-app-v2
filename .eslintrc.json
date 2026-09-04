@@ -78,13 +78,7 @@
     "react/button-has-type": "off",
     "react/function-component-definition": "off",
     "@typescript-eslint/no-unused-vars": "warn",
-    "prettier/prettier": [
-      "error",
-      {
-        "semi": false,
-        "endOfLine": "auto"
-      }
-    ],
+    "prettier/prettier": "error",
     "import/order": [
       "error",
       {

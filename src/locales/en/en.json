@@ -1231,11 +1231,18 @@
       "wrapDebtToken": {
         "addMarketToken": "+ Add market token",
         "addWrappedToken": "+ Add wrapped token",
+        "awaitingSafeSignatures": "Awaiting Safe signatures",
         "balanceMarketDebtTokensWallet": "Balance of market (debt) tokens in your wallet.",
         "balanceWrappedErc4626Share": "Balance of wrapped (ERC-4626 share) tokens in your wallet.",
         "canCloseModalWindow": "You can close the modal window.",
         "commonQuestions": "Common Questions",
         "deployButton": "Deploy Wrapper",
+        "deployment": {
+          "checking": "Checking wrapper availability...",
+          "factoryUnavailable": "Wrappers are not available on this chain yet.",
+          "unsupportedFactory": "Wrapper deployment is not available for this market.",
+          "verificationFailed": "Unable to verify wrapper availability."
+        },
         "estimatesMayChangeCurrentConversion": "Estimates may change with the current conversion rate.",
         "marketTokens": "Market tokens",
         "oopsSomethingGoesWrong": "Oops! Something goes wrong.",
