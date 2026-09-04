@@ -63,7 +63,7 @@ export const useCreateWrapper = ({
       const chainId = market.chainId as SupportedChainId
       if (safeConnected) {
         if (!sdk) throw new Error("No Safe SDK")
-        const tx = WrapperFactory.populateCreateWrapper(
+        const tx = await WrapperFactory.populateCreateWrapper(
           chainId,
           signer,
           market.address,

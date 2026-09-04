@@ -170,7 +170,7 @@ describe("useCreateWrapper", () => {
     const safeTxHash = "0xsafe"
     const transactionHash = "0xtransaction"
     useSafeAppsSDKMock.mockReturnValue({ connected: true, sdk: safeSdk })
-    populateCreateWrapperMock.mockReturnValue(populatedTransaction)
+    populateCreateWrapperMock.mockResolvedValue(populatedTransaction)
     toSafeTransactionInputMock.mockReturnValue(safeTransaction)
     sendSafeTransactions.mockResolvedValue({ safeTxHash })
     waitForSafeTransactionExecutionMock.mockResolvedValue(transactionHash)
@@ -213,7 +213,7 @@ describe("useCreateWrapper", () => {
     const safeTxHash = "0xsafe"
     const transactionHash = "0xtransaction"
     useSafeAppsSDKMock.mockReturnValue({ connected: true, sdk: safeSdk })
-    populateCreateWrapperMock.mockReturnValue({
+    populateCreateWrapperMock.mockResolvedValue({
       to: "0xfactory",
       data: "0x1234",
     })

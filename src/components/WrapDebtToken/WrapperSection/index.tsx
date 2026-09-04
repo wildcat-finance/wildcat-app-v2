@@ -33,11 +33,14 @@ import { TextfieldButton } from "@/components/TextfieldAdornments/TextfieldButto
 import { toastRequest } from "@/components/Toasts"
 import { TooltipButton } from "@/components/TooltipButton"
 import { WrapperSuccessBanner } from "@/components/WrapDebtToken/mobile/WrapperSuccessBanner"
+import { WrapperTransferAccessNotice } from "@/components/WrapDebtToken/WrapperTransferAccessNotice"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useWrapperAccountState } from "@/hooks/wrapper/useWrapperAccountState"
+import { useWrapperTransferAccess } from "@/hooks/wrapper/useWrapperTransferAccess"
+import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   setActiveTab,
@@ -152,6 +155,13 @@ export const WrapperSection = ({
   const balances = accountState?.balances
   const allowance = accountState?.allowance
   const limits = accountState?.limits
+  const {
+    accessStatus,
+    canRetry: canRetryTransferAccess,
+    canWrap,
+    isFetching: isFetchingTransferAccess,
+    refetch: refetchTransferAccess,
+  } = useWrapperTransferAccess(market, wrapper)
 
   const {
     canAddToken: canAddMarketToken,
@@ -371,6 +381,7 @@ export const WrapperSection = ({
   const needsApproval = approvalRequired && !isApproved
 
   const isApproveButtonDisabled =
+    !canWrap ||
     !approvalRequired ||
     isApproved ||
     isDifferentChain ||
@@ -380,6 +391,7 @@ export const WrapperSection = ({
 
   const shouldDisableSubmit =
     !isAuthorizedLender ||
+    (isWrapTab && !canWrap) ||
     isSubmitTransitioning ||
     isDifferentChain ||
     !signer ||
@@ -745,6 +757,13 @@ export const WrapperSection = ({
     dispatch(setIsMobileOpenedState(true))
   }
 
+  const managePolicyHref =
+    !isLender && market?.hooksConfig?.hooksAddress
+      ? `${ROUTES.borrower.policy}?policy=${encodeURIComponent(
+          market.hooksConfig.hooksAddress,
+        )}`
+      : undefined
+
   return (
     <Box
       marginTop="4px"
@@ -781,6 +800,21 @@ export const WrapperSection = ({
         shareSymbol={wrapper.shareToken.symbol}
         convertedShareValue={convertedShareValue}
         convertedShareSymbol={wrapper.marketToken.symbol}
+      />
+
+      <WrapperTransferAccessNotice
+        status={accessStatus}
+        wrapperAddress={wrapper.address}
+        managePolicyHref={managePolicyHref}
+        inset={isMobile && isMobileOpenState}
+        isRetrying={isFetchingTransferAccess}
+        onRetry={
+          canRetryTransferAccess
+            ? () => {
+                refetchTransferAccess()
+              }
+            : undefined
+        }
       />
 
       {isMobileOpenState && isLender && (
@@ -903,6 +937,7 @@ export const WrapperSection = ({
                         },
                       }}
                       checked={unit === AmountUnit.SHARES}
+                      disabled={isWrapTab && !canWrap}
                       onChange={(e, checked) => handleUnitChange(e, checked)}
                     />
                   </Box>
@@ -916,6 +951,7 @@ export const WrapperSection = ({
                   }}
                   size="medium"
                   label={t("common.fields.amount")}
+                  disabled={isWrapTab && !canWrap}
                   error={!!helperText}
                   helperText={helperText}
                   FormHelperTextProps={{
@@ -929,6 +965,7 @@ export const WrapperSection = ({
                     <TextfieldButton
                       buttonText={t("common.buttons.max")}
                       onClick={setMaxAmount}
+                      disabled={isWrapTab && !canWrap}
                     />
                   }
                 />
@@ -1093,6 +1130,7 @@ export const WrapperSection = ({
             variant="contained"
             size="large"
             fullWidth
+            disabled={!canWrap}
             onClick={() => handleOpenSection(WrapDebtTokenTab.WRAP)}
           >
             {t("marketDetails.lender.wrapDebtToken.wrap")}

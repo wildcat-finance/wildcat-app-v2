@@ -1128,7 +1128,7 @@
         "tokensAgain": "Tokens again",
         "viewEtherscan": "View on Etherscan",
         "whatHappensAfter": {
-          "answer": "Once deployed, the wrapper is available to everyone.",
+          "answer": "Once deployed, eligible lenders can use the wrapper. Restricted markets also require the borrower to authorize the wrapper contract.",
           "question": "What happens after deployment?"
         },
         "whatIsWrapping": {
@@ -1140,6 +1140,19 @@
           "question": "Who can deploy the wrapper?"
         },
         "wrap": "Wrap",
+        "wrapperAccess": {
+          "checking": {
+            "message": "Checking whether this wrapper can receive market tokens…"
+          },
+          "denied": {
+            "address": "Wrapper: {{address}}",
+            "managePolicy": "Manage Policy",
+            "message": "This wrapper cannot receive market tokens. The borrower must authorize it in the market policy before anyone can wrap."
+          },
+          "error": {
+            "message": "Wrapper access couldn’t be verified. Retry the onchain check before wrapping."
+          }
+        },
         "wrappedHoldingsValue": "Wrapped holdings value: ~",
         "wrappedTokens": "Wrapped tokens"
       },

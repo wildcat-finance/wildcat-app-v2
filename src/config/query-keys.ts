@@ -394,6 +394,20 @@ const WRAPPER_QUERY_KEYS = {
     wrapperAddress?: string,
     account?: string,
   ) => k(["wrapper", "GET_ACCOUNT_STATE", chainId, wrapperAddress, account]),
+  GET_TRANSFER_ACCESS: (
+    chainId: number,
+    hooksAddress?: string,
+    marketAddress?: string,
+    wrapperAddress?: string,
+  ) =>
+    k([
+      "wrapper",
+      "GET_TRANSFER_ACCESS",
+      chainId,
+      hooksAddress,
+      marketAddress,
+      wrapperAddress,
+    ]),
   GET_ADOPTION: (
     chainId: number,
     wrapperAddress?: string,
