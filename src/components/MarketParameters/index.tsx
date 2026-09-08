@@ -946,7 +946,7 @@ export const MarketParameters = ({
                   <Divider sx={{ margin: "12px 0" }} />
                   <ParametersItem
                     title={t("marketParameters.wrapperAddress")}
-                    value={trimAddress(wrapper.address.toLowerCase())}
+                    value={trimAddress(wrapper.address)}
                     copy={wrapper.address}
                     link={getAddressUrl(wrapper.address.toLowerCase())}
                   />
