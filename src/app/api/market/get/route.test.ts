@@ -5,6 +5,10 @@
 import { NextRequest } from "next/server"
 
 const mockQuery = jest.fn()
+
+jest.mock("@/lib/gateway/server", () => ({
+  getServerSubgraphClient: jest.fn(() => ({ query: mockQuery })),
+}))
 const mockUnstableCache = jest.fn(
   (fn: () => unknown, ..._args: unknown[]) => fn,
 )
