@@ -4,6 +4,7 @@ import { Box, Button, FormControlLabel, Typography } from "@mui/material"
 import { MarketAccount, TokenWrapper } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
+import type { WithdrawalBatchJoinWarningResult } from "@/app/[locale]/lender/market/[address]/hooks/useWithdrawalBatchJoinWarning"
 import { useWithdrawRouting } from "@/app/[locale]/lender/market/[address]/hooks/useWithdrawRouting"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { NumberTextField } from "@/components/NumberTextfield"
@@ -12,6 +13,7 @@ import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { RoutingPanel } from "./RoutingPanel"
+import { WithdrawalBatchJoinWarning } from "./WithdrawalBatchJoinWarning"
 
 export type WithdrawFormProps = {
   routing: ReturnType<typeof useWithdrawRouting>
@@ -24,6 +26,7 @@ export type WithdrawFormProps = {
   safeThreshold: number
   /** Blocking reason from the market state, if any. */
   blockingError?: string
+  batchJoinWarning: WithdrawalBatchJoinWarningResult
 }
 
 /**
@@ -39,6 +42,7 @@ export const WithdrawForm = ({
   isMultisig,
   safeThreshold,
   blockingError,
+  batchJoinWarning,
 }: WithdrawFormProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
@@ -183,6 +187,8 @@ export const WithdrawForm = ({
           txSummary={txSummary}
         />
       )}
+
+      <WithdrawalBatchJoinWarning warning={batchJoinWarning} />
 
       {hasWrappedPosition && (
         <FormControlLabel

@@ -8,6 +8,8 @@ export const EXTERNAL_LINKS = {
     "https://docs.wildcat.finance/using-wildcat/day-to-day-usage/borrowers#reducing-apr",
   DOCS_WRAPPER:
     "https://docs.wildcat.finance/using-wildcat/day-to-day-usage/wildcat-4626-wrapper",
+  DOCS_WITHDRAWAL_BATCH_INTEREST:
+    "https://docs.wildcat.finance/technical-overview/security-developer-dives/known-issues#newer-withdrawals-lose-some-of-their-accrued-interest-to-previous-withdrawals-in-the-same-batch",
   BUSINESS_INQUIRY:
     "https://docs.google.com/forms/d/e/1FAIpQLSfnCu3FjMtA48sWn28oRXxw71dc4ofnfaF1NdNnK62tkFxu7A/viewform?usp=send_form",
 } as const
