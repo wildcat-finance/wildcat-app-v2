@@ -33,7 +33,7 @@ export type WithdrawRoute = {
   amount: TokenAmount
   /** Portion served from the directly-held market tokens. */
   fromDirect: TokenAmount
-  /** Portion that has to be unwrapped first (in market-token terms). */
+  /** Portion to unwrap, in underlying units; converted to market-token units at the wrapper. */
   fromWrapped: TokenAmount
   /**
    * The whole market-token balance is being queued, so the queue leg can use
@@ -111,7 +111,11 @@ export const useWithdrawRouting = ({
 
   const shareBalance = accountState?.balances?.shareBalance
 
-  const direct = marketAccount.marketBalance
+  // Routing uses underlying units; normalized receipt amounts are nominally 1:1.
+  const direct = useMemo(
+    () => market.underlyingToken.getAmount(marketAccount.marketBalance.raw),
+    [market, marketAccount.marketBalance],
+  )
 
   const zero = useMemo(() => market.underlyingToken.getAmount(0), [market])
 
@@ -127,8 +131,14 @@ export const useWithdrawRouting = ({
    * `previewRedeem(shareBalance)` can sit above it and trip
    * `WithdrawMoreThanMax()`.
    */
-  const wrappedCap =
-    hasWrapper && wrapper ? accountState?.limits?.maxWithdraw : undefined
+  const wrappedLimit = accountState?.limits?.maxWithdraw
+  const wrappedCap = useMemo(
+    () =>
+      hasWrapper && wrapper && wrappedLimit
+        ? market.underlyingToken.getAmount(wrappedLimit.raw)
+        : undefined,
+    [hasWrapper, wrapper, wrappedLimit, market],
+  )
 
   /**
    * Treat the wrapped position as present only when it is actually withdrawable.
@@ -257,7 +267,9 @@ export const useWithdrawRouting = ({
     enabled: !!wrapper && route.usesWrapped && !route.isFullWrapped,
     queryFn: async () => {
       if (!wrapper) throw new Error("No wrapper")
-      return wrapper.previewWithdraw(route.fromWrapped)
+      return wrapper.previewWithdraw(
+        wrapper.marketToken.getAmount(route.fromWrapped.raw),
+      )
     },
     refetchOnMount: false,
     refetchOnWindowFocus: false,

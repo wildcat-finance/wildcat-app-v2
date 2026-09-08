@@ -189,8 +189,7 @@ export const MobileMarketActions = ({
   const wrappedCap =
     hasWrapper && wrapper ? wrapperAccountState?.limits?.maxWithdraw : undefined
   const hasWrappedPosition =
-    !!wrappedCap &&
-    wrappedCap.gte(market.underlyingToken.parseAmount("0.00001"))
+    !!wrappedCap && wrappedCap.gte(market.marketToken.parseAmount("0.00001"))
   const wrappedAvailable = hasWrappedPosition ? wrappedCap : undefined
   const combinedAvailable = wrappedAvailable
     ? marketAccount.marketBalance.add(wrappedAvailable)
