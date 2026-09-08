@@ -64,7 +64,7 @@ function getMinimumAPR(market: Market) {
   const { liquidReserves, outstandingTotalSupply } = market
   const currentCollateralizationBips = liquidReserves
     .mul(BIP)
-    .div(outstandingTotalSupply.gt(0) ? outstandingTotalSupply : 1).raw
+    .div(outstandingTotalSupply.gt(0) ? outstandingTotalSupply.raw : 1).raw
   const [, originalAnnualInterestBips] =
     market.originalReserveRatioAndAnnualInterestBips
 

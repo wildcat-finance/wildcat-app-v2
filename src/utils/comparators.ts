@@ -139,7 +139,8 @@ export const tokenAmountComparator = (v1: TokenAmount, v2: TokenAmount) => {
     return v1Num - v2Num
   }
 
-  if (v1.eq(v2)) return 0
+  // Market rows may use different tokens; these quantities share a decimal scale.
+  if (v1.raw === v2.raw) return 0
 
-  return v1.gt(v2) ? 1 : -1
+  return v1.raw > v2.raw ? 1 : -1
 }

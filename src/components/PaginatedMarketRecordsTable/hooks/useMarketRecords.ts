@@ -6,11 +6,11 @@ import {
   MarketRecord,
   MarketRecordKind,
   getMarketRecords,
-  getSubgraphClient,
 } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { getAppSubgraphClient } from "@/lib/gateway/client"
 
 import { MARKET_RECORDS_RECENT_WINDOW_LIMIT } from "../constants"
 
@@ -56,7 +56,7 @@ export async function fetchMarketRecordsWindow({
   targetChainId?: number
   endEventIndex?: number
 }): Promise<MarketRecordsWindowResult> {
-  const subgraphClient = getSubgraphClient(targetChainId ?? market.chainId)
+  const subgraphClient = getAppSubgraphClient(targetChainId ?? market.chainId)
   const windowEndEventIndex = endEventIndex ?? market.eventIndex
   const windowStartEventIndex =
     windowEndEventIndex === undefined

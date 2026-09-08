@@ -347,7 +347,7 @@ export const MobileMarketCard = ({
   const capacity =
     marketItem.capacity ??
     (deposited && marketItem.capacityLeft
-      ? deposited.add(marketItem.capacityLeft)
+      ? deposited.add(marketItem.capacityLeft.raw)
       : undefined)
   const depositedRaw = deposited?.raw ?? BigInt(0)
   const capacityRaw = capacity?.raw ?? BigInt(0)

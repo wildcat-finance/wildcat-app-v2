@@ -16,6 +16,10 @@ import { resolveRegisteredByMany, tryResolveRegisteredBy } from "./registrar"
 const mockQuery = jest.fn()
 const mockGetDeploymentAddress = jest.fn()
 
+jest.mock("@/lib/gateway/server", () => ({
+  getServerSubgraphClient: jest.fn(() => ({ query: mockQuery })),
+}))
+
 jest.mock("@apollo/client", () => ({ gql: jest.fn(() => ({})) }))
 
 jest.mock("@wildcatfi/wildcat-sdk", () => ({

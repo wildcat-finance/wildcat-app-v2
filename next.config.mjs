@@ -9,11 +9,6 @@ const isProduction = vercelEnv === 'production'
 const tokenImagesHostname = process.env.NEXT_PUBLIC_TOKENS_IMG_HOSTNAME
 
 const connectSrc = [
-  'https://eth-sepolia.g.alchemy.com',
-  'https://eth-mainnet.g.alchemy.com',
-  'https://testnet-rpc.plasma.to',
-  'https://rpc.plasma.to',
-  'https://api.goldsky.com',
   'https://relay.walletconnect.com',
   'wss://relay.walletconnect.com',
   'https://explorer-api.walletconnect.com',

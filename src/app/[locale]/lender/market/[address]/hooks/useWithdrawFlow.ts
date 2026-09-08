@@ -403,7 +403,11 @@ export const useWithdrawFlow = ({
           toSafeTransactionInput(
             route.isFullWrapped && route.sharesToRedeem
               ? wrapper.populateRedeem(route.sharesToRedeem, address, address)
-              : wrapper.populateWithdraw(route.fromWrapped, address, address),
+              : wrapper.populateWithdraw(
+                  wrapper.marketToken.getAmount(route.fromWrapped.raw),
+                  address,
+                  address,
+                ),
           ),
         )
       }

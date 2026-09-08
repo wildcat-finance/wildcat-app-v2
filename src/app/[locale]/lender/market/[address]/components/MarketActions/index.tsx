@@ -92,7 +92,7 @@ export const MarketActions = ({
     publicClient,
   )
 
-  const smallestTokenAmountValue = market.underlyingToken.parseAmount("0.00001")
+  const smallestTokenAmountValue = market.marketToken.parseAmount("0.00001")
   const wrappedCap =
     hasWrapper && wrapper ? wrapperAccountState?.limits?.maxWithdraw : undefined
   const hasWrappedPosition =
