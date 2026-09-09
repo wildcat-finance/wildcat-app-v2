@@ -11,7 +11,6 @@ import Cross from "@/assets/icons/cross_icon.svg"
 import {
   routeTermination,
   TerminateModalFlow,
-  TerminationBlockDetails,
 } from "@/utils/terminationBlockReason"
 
 import { BlockedFlow } from "./BlockedFlow"
@@ -28,8 +27,15 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
   const [showErrorTerminationPopup, setShowErrorTerminationPopup] =
     useState(false)
 
-  const [flow, setFlow] = useState<TerminateModalFlow>()
-  const [blockDetails, setBlockDetails] = useState<TerminationBlockDetails>()
+  const [transactionFlow, setTransactionFlow] =
+    useState<Exclude<TerminateModalFlow, "blocked">>()
+  const routing = routeTermination({
+    status: marketAccount.previewCloseMarket().status,
+    outstandingDebtIsZero: market.outstandingDebt.eq(0),
+    hooksConfig: market.hooksConfig,
+  })
+  const flow = transactionFlow ?? routing.flow
+  const blockDetails = routing.block
 
   const terminateFlow = flow === "terminate"
   const repayAndTerminateFlow = flow === "repayAndTerminate"
@@ -45,6 +51,7 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
   const handleOpenModal = () => {
     setShowSuccessTerminationPopup(false)
     setShowErrorTerminationPopup(false)
+    setTransactionFlow(undefined)
     setIsModalOpen(true)
   }
 
@@ -52,20 +59,18 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
     setIsModalOpen(false)
   }
 
-  // Decided when the modal opens, from the values current at that moment, and
-  // then held. Recomputing on every data refresh unmounts
-  // RepayAndTerminateFlow as soon as a repay brings outstandingDebt to zero,
-  // destroying its step state and both tx hashes mid-flow. (product#538)
+  // Keep blocked reasons current until the borrower can proceed. Once a
+  // transaction flow opens, preserve its step state and hashes through data
+  // refreshes, including a repayment bringing outstanding debt to zero.
   useEffect(() => {
-    if (!isModalOpen) return
-    const routing = routeTermination({
-      status: marketAccount.previewCloseMarket().status,
-      outstandingDebtIsZero: market.outstandingDebt.eq(0),
-      hooksConfig: market.hooksConfig,
-    })
-    setFlow(routing.flow)
-    setBlockDetails(routing.block)
-  }, [isModalOpen])
+    if (
+      isModalOpen &&
+      transactionFlow === undefined &&
+      routing.flow !== "blocked"
+    ) {
+      setTransactionFlow(routing.flow)
+    }
+  }, [isModalOpen, transactionFlow, routing.flow])
 
   useEffect(() => {
     if (isTerminatedError) {
