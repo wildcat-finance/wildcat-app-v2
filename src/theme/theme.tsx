@@ -1077,9 +1077,6 @@ export const theme = createTheme({
     MuiAutocomplete: {
       styleOverrides: {
         root: {
-          "& .MuiAutocomplete-popper": {
-            border: "1px solid red",
-          },
           "& .MuiAutocomplete-inputRoot": {
             padding: "8px 11px !important",
           },
