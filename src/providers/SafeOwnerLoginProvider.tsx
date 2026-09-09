@@ -54,20 +54,29 @@ const OwnerWalletDialog = ({
   onCancel: () => void
   onSigned: (signature: OwnerLoginSignature) => void
 }) => {
-  const { connectors, connectAsync } = useConnect()
+  const { connectors, connectAsync, isPending: isConnecting } = useConnect()
   const { connector: connectedOwner } = useAccount()
-  const { mutate, isPending, error } = useMutation({
+  const { mutate, isPending, error, variables } = useMutation({
     mutationFn: async (connector: Connector) => {
+      const { signal } = request.controller
       if (connectedOwner?.uid !== connector.uid) {
-        await connectAsync({ connector, chainId: request.chainId })
+        let closeModal: (() => void) | undefined
+        try {
+          if (connector.type === "walletConnect") {
+            const provider = (await connector.getProvider()) as {
+              modal?: { closeModal: () => void }
+            }
+            closeModal = () => provider.modal?.closeModal()
+            signal.addEventListener("abort", closeModal, { once: true })
+          }
+          if (signal.aborted) throw new Error("Login cancelled")
+          await connectAsync({ connector, chainId: request.chainId })
+        } finally {
+          if (closeModal) signal.removeEventListener("abort", closeModal)
+        }
       }
-      if (request.controller.signal.aborted) throw new Error("Login cancelled")
-      return signSafeOwnerLogin(
-        ownerConfig,
-        connector,
-        request,
-        request.controller.signal,
-      )
+      if (signal.aborted) throw new Error("Login cancelled")
+      return signSafeOwnerLogin(ownerConfig, connector, request, signal)
     },
     onSuccess: onSigned,
   })
@@ -85,6 +94,7 @@ const OwnerWalletDialog = ({
   return (
     <Dialog
       open
+      disableEnforceFocus={isConnecting && variables?.type === "walletConnect"}
       onClose={onCancel}
       fullWidth
       maxWidth="xs"

@@ -130,6 +130,86 @@ it("does not prompt for a signature after cancelling a pending wallet connection
   expect(onSigned).not.toHaveBeenCalled()
 })
 
+it.each(["account", "network", "unmount"])(
+  "closes WalletConnect when login is cancelled by %s",
+  async (change) => {
+    let rejectPairing: (error: Error) => void
+    const closeModal = jest.fn(() => rejectPairing(new Error("Pairing closed")))
+    const walletConnect = {
+      ...connector,
+      type: "walletConnect",
+      name: "WalletConnect",
+      getProvider: async () => ({ modal: { closeModal } }),
+    }
+    jest.mocked(useConnect).mockReturnValue({
+      connectors: [walletConnect],
+      connectAsync,
+    } as unknown as ReturnType<typeof useConnect>)
+    connectAsync.mockReturnValueOnce(
+      new Promise((_, reject) => {
+        rejectPairing = reject
+      }),
+    )
+    const { rerender, unmount } = render(tree())
+    fireEvent.click(screen.getByText("Login"))
+    fireEvent.click(screen.getByText("WalletConnect"))
+    await waitFor(() => expect(connectAsync).toHaveBeenCalled())
+    if (change === "unmount") unmount()
+    else {
+      if (change === "account")
+        jest.mocked(useAccount).mockReturnValue({
+          address: "0xother",
+          chainId: 9745,
+        } as unknown as ReturnType<typeof useAccount>)
+      else
+        jest
+          .mocked(useSelectedNetwork)
+          .mockReturnValue({ chainId: 1 } as ReturnType<
+            typeof useSelectedNetwork
+          >)
+      rerender(tree())
+    }
+    await waitFor(() => expect(closeModal).toHaveBeenCalledTimes(1))
+    expect(signSafeOwnerLogin).not.toHaveBeenCalled()
+    expect(onSigned).not.toHaveBeenCalled()
+    expect(onError).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "Login cancelled" }),
+    )
+  },
+)
+
+it("does not start WalletConnect pairing if cancelled while its provider initializes", async () => {
+  let finishProvider: (provider: { modal: { closeModal: () => void } }) => void
+  const closeModal = jest.fn()
+  const getProvider = jest.fn(
+    () =>
+      new Promise((resolve) => {
+        finishProvider = resolve
+      }),
+  )
+  const walletConnect = {
+    ...connector,
+    type: "walletConnect",
+    name: "WalletConnect",
+    getProvider,
+  }
+  jest.mocked(useConnect).mockReturnValue({
+    connectors: [walletConnect],
+    connectAsync,
+  } as unknown as ReturnType<typeof useConnect>)
+  render(tree())
+  fireEvent.click(screen.getByText("Login"))
+  fireEvent.click(screen.getByText("WalletConnect"))
+  await waitFor(() => expect(getProvider).toHaveBeenCalled())
+  fireEvent.click(screen.getByText("Cancel"))
+  await act(async () => {
+    finishProvider!({ modal: { closeModal } })
+  })
+  expect(connectAsync).not.toHaveBeenCalled()
+  expect(signSafeOwnerLogin).not.toHaveBeenCalled()
+  expect(closeModal).not.toHaveBeenCalled()
+})
+
 it("ignores a late signature from a dismissed dialog after starting another login", async () => {
   let completeSign: (value: typeof signed) => void
   jest.mocked(signSafeOwnerLogin).mockReturnValueOnce(
