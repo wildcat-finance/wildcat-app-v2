@@ -247,6 +247,12 @@ export const ExploreMarketsTable = () => {
   const [showSelfOnboard, setShowSelfOnboard] = useState(true)
   const [showOnboardByBorrower, setShowOnboardByBorrower] = useState(false)
 
+  const hasActiveFilters =
+    search !== "" ||
+    assets.length > 0 ||
+    statuses.length > 0 ||
+    withdrawalCycles.length > 0
+
   const [visibleMobileRows, setVisibleMobileRows] = useState(EXPLORE_PAGE_SIZE)
   useEffect(() => {
     setVisibleMobileRows(EXPLORE_PAGE_SIZE)
@@ -894,6 +900,23 @@ export const ExploreMarketsTable = () => {
               gap: "4px",
             }}
           >
+            {rows.length === 0 && (
+              <Box
+                sx={{
+                  width: "100%",
+                  padding: "24px 12px",
+                  backgroundColor: COLORS.white,
+                  borderRadius: "14px",
+                  textAlign: "center",
+                }}
+              >
+                <Typography variant="mobText3" color={COLORS.santasGrey}>
+                  {hasActiveFilters
+                    ? t("marketList.shared.noMarketsMatchCurrentFilters")
+                    : t("marketList.lender.explore.noMarkets.title")}
+                </Typography>
+              </Box>
+            )}
             {rows.map((marketItem) => (
               <MobileMarketCard key={marketItem.id} marketItem={marketItem} />
             ))}
@@ -901,7 +924,6 @@ export const ExploreMarketsTable = () => {
         )}
 
         {!isLoading &&
-          totalRows > 0 &&
           (totalRows > visibleMobileRows ? (
             <Button
               type="button"
@@ -1067,8 +1089,9 @@ export const ExploreMarketsTable = () => {
           marketsLength={rows.length}
           rowsLength={paginationModel.pageSize}
           isLoading={isLoading}
-          noMarketsTitle="No Markets Available"
-          noMarketsSubtitle="There are no markets to display at the moment."
+          noMarketsTitle={t("marketList.lender.explore.noMarkets.title")}
+          noMarketsSubtitle={t("marketList.lender.explore.noMarkets.subtitle")}
+          hasActiveFilters={hasActiveFilters}
           highlightNoMarketsBanner
         >
           <DataGrid
