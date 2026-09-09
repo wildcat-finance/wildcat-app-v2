@@ -249,6 +249,60 @@ export const RECENT_WITHDRAWAL_REQUESTS = gql`
   }
 `
 
+// Page each relationship at the root: nested collections have independent
+// limits. Membership and attachments exist only in the V2.5 schema.
+export const LENDER_POLICY_ACCESS_LIST_MEMBERSHIPS = gql`
+  query ($first: Int!, $where: RoleProviderMember_filter!) {
+    roleProviderMembers(
+      first: $first
+      orderBy: id
+      orderDirection: asc
+      where: $where
+    ) {
+      id
+      provider {
+        id
+      }
+    }
+  }
+`
+
+export const LENDER_POLICY_ACCESS_LIST_HOOKS = gql`
+  query ($first: Int!, $where: RoleProvider_filter!) {
+    roleProviders(
+      first: $first
+      orderBy: id
+      orderDirection: asc
+      where: $where
+    ) {
+      id
+      hooks {
+        id
+      }
+    }
+  }
+`
+
+// Direct hook grants are available on both the legacy and V2.5 schemas.
+export const LENDER_POLICY_HOOKS_ACCESS = gql`
+  query ($first: Int!, $where: LenderHooksAccess_filter!) {
+    lenderHooksAccesses(
+      first: $first
+      orderBy: id
+      orderDirection: asc
+      where: $where
+    ) {
+      id
+      lastProvider {
+        isApproved
+      }
+      hooks {
+        id
+      }
+    }
+  }
+`
+
 export const MARKET_TERMINATEDS = gql`
   query ($where: MarketClosed_filter) {
     marketCloseds(where: $where) {

@@ -116,6 +116,7 @@ const lenderContextDefaults = {
   onboardingByMarket: {},
   onboardingStatus: "ready" as const,
   liveDataStatus: "ready" as const,
+  policyMarkets: new Set<string>(),
 }
 
 describe("TrendingMarketsCarousel", () => {

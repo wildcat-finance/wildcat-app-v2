@@ -17,6 +17,7 @@ export type LenderMarketsContextType = {
   onboardingStatus: LenderMarketsOnboardingStatus
   liveDataStatus: MarketLiveDataStatus
   borrowers: BorrowerWithName[] | undefined
+  policyMarkets: Set<string>
 }
 
 const defaultContext: LenderMarketsContextType = {
@@ -27,6 +28,7 @@ const defaultContext: LenderMarketsContextType = {
   onboardingStatus: "loading",
   liveDataStatus: "loading",
   borrowers: undefined,
+  policyMarkets: new Set(),
 }
 
 export const LenderMarketsContext =
