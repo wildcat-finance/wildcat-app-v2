@@ -10,7 +10,11 @@ import { useAccount, useConfig } from "wagmi"
 import { getAccount } from "wagmi/actions"
 
 import { toastError, toastRequest } from "@/components/Toasts"
-import { getLoginSignatureMessage } from "@/config/api"
+import {
+  getLoginSignatureMessage,
+  LOGIN_SIGNATURE_MAX_AGE_SECONDS,
+} from "@/config/api"
+import type { SafeLoginSignature } from "@/lib/safeOwnerLogin"
 import { useSafeOwnerLogin } from "@/providers/SafeOwnerLoginProvider"
 import { useAppDispatch, useAppSelector, useAppStore } from "@/store/hooks"
 import {
@@ -22,6 +26,7 @@ import { ApiToken } from "@/store/slices/apiTokensSlice/interface"
 import { dayjs } from "@/utils/dayjs"
 
 import { useEthersSigner } from "./useEthersSigner"
+import { useSafeMessageSigning } from "./useSafeMessageSigning"
 import { useSelectedNetwork } from "./useSelectedNetwork"
 
 export const useRefreshApiToken = (chainIdOverride?: number) => {
@@ -136,6 +141,7 @@ export const useLogin = () => {
   const signer = useEthersSigner()
   const { connected: safeConnected, safe } = useSafeAppsSDK()
   const signAsOwner = useSafeOwnerLogin()
+  const safeSigning = useSafeMessageSigning()
   const isLoggingIn = useIsMutating({ mutationKey: ["login"] })
 
   const mutation = useMutation({
@@ -166,9 +172,30 @@ export const useLogin = () => {
         throw Error(t("auth.login.safeNotReady"))
       }
 
-      let signed
+      let signed: SafeLoginSignature
       if (safeConnected) {
-        signed = await signAsOwner({ address, chainId })
+        signed = await signAsOwner({ address, chainId }, (signal) => {
+          requireCurrentAccount()
+          const timeSigned = dayjs().unix()
+          return safeSigning.signMessage({
+            flow: "safe-login",
+            address,
+            chainId,
+            timeSigned,
+            expiresAt: (timeSigned + LOGIN_SIGNATURE_MAX_AGE_SECONDS) * 1000,
+            buildMessage: (effectiveTimeSigned) =>
+              getLoginSignatureMessage(address, effectiveTimeSigned, chainId),
+            signal,
+            isStillRelevant: () => {
+              const account = getAccount(config)
+              return (
+                account.address?.toLowerCase() === address &&
+                account.chainId === chainId &&
+                store.getState().selectedNetwork.chainId === chainId
+              )
+            },
+          })
+        })
       } else {
         if (!signer) throw Error(t("auth.login.connectWallet"))
         if (signer.chainId !== chainId) {
@@ -188,25 +215,37 @@ export const useLogin = () => {
         if (signature === "0x") throw Error(t("auth.login.emptySignature"))
         signed = { signature, timeSigned }
       }
-      requireCurrentAccount()
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...signed, address, chainId }),
-      })
-      if (!response.ok) {
-        const result = await response.json()
-        throw Error(result.error || t("auth.login.failed"))
+      try {
+        requireCurrentAccount()
+        safeSigning.markSubmitting(signed.pendingSafeMessageId)
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            signature: signed.signature,
+            timeSigned: signed.timeSigned,
+            address,
+            chainId,
+          }),
+        })
+        if (!response.ok) {
+          const result = await response.json()
+          throw Error(result.error || t("auth.login.failed"))
+        }
+        const token = (await response.json()) as ApiToken
+        if (
+          token.chainId !== chainId ||
+          token.address.toLowerCase() !== address
+        ) {
+          throw Error(t("auth.login.wrongSession"))
+        }
+        requireCurrentAccount()
+        safeSigning.markCompleted(signed.pendingSafeMessageId)
+        return token
+      } catch (error) {
+        safeSigning.markSubmissionFailed(signed.pendingSafeMessageId, error)
+        throw error
       }
-      const token = (await response.json()) as ApiToken
-      if (
-        token.chainId !== chainId ||
-        token.address.toLowerCase() !== address
-      ) {
-        throw Error(t("auth.login.wrongSession"))
-      }
-      requireCurrentAccount()
-      return token
     },
     onSuccess: (token) => dispatch(setApiToken(token)),
     onError: (error) => toastError(error.message),

@@ -139,6 +139,14 @@ it("uses the Safe's chain-specific admin permission for owner login", async () =
 })
 
 it("retains API login for a signature validated by the full Safe verification path", async () => {
+  // The Safe is owned by another contract, with no directly signing EOA.
+  const contractOwner = "0x3333333333333333333333333333333333333333"
+  jest.mocked(describeAccount).mockResolvedValueOnce({
+    kind: AccountKind.Safe,
+    owners: [contractOwner],
+    threshold: 1,
+  })
+  getOwners.mockResolvedValueOnce([contractOwner])
   jest
     .mocked(provider.call)
     .mockResolvedValueOnce(
