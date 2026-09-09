@@ -3,6 +3,7 @@ import {
   markSafeMessageSignatureReady,
   markSafeMessageSubmitting,
   markSafeMessageSubmissionFailed,
+  migratePendingSafeMessages,
   pendingSafeMessagesReducer,
   PendingSafeMessage,
   removePendingSafeMessage,
@@ -23,6 +24,25 @@ const pending: PendingSafeMessage = {
 }
 
 describe("pendingSafeMessagesSlice", () => {
+  it("removes obsolete login proposals on upgrade while preserving agreement signatures", async () => {
+    const agreement = {
+      ...pending,
+      status: "signatureReady",
+      signature: "0xsigned",
+    }
+    const persisted = {
+      _persist: { version: 1, rehydrated: true },
+      records: {
+        login: { ...pending, id: "login", flow: "login" },
+        agreement,
+      },
+    }
+    await expect(migratePendingSafeMessages(persisted, 2)).resolves.toEqual({
+      ...persisted,
+      records: { agreement },
+    })
+  })
+
   it("retains a ready signature for retry until submission succeeds", () => {
     let state = pendingSafeMessagesReducer(
       undefined,

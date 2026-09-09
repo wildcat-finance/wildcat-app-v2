@@ -29,6 +29,7 @@ import { ToUReacceptanceModal } from "@/components/ToUReacceptanceModal"
 import TranslationsProvider from "@/components/TranslationsProvider"
 import { config } from "@/lib/config"
 import { RedirectsProvider } from "@/providers/RedirectsProvider"
+import { SafeOwnerLoginProvider } from "@/providers/SafeOwnerLoginProvider"
 import { SafeProvider } from "@/providers/SafeProvider"
 import { SubgraphProvider } from "@/providers/SubgraphProvider"
 import { WagmiQueryProviders } from "@/providers/WagmiQueryProviders"
@@ -81,22 +82,24 @@ export default async function RootLayout({
                     resources={resources}
                   >
                     <ThemeRegistry>
-                      <Box sx={BackgroundContainer} />
-                      <Box sx={RootScaffold}>
-                        <Header />
-                        <Box sx={PageContainer}>
-                          <Box sx={ContentContainer}>
-                            <Sidebar />
-                            <Box sx={ContentArea}>{children}</Box>
-                            <Suspense>
-                              <HotjarConsent />
-                            </Suspense>
+                      <SafeOwnerLoginProvider>
+                        <Box sx={BackgroundContainer} />
+                        <Box sx={RootScaffold}>
+                          <Header />
+                          <Box sx={PageContainer}>
+                            <Box sx={ContentContainer}>
+                              <Sidebar />
+                              <Box sx={ContentArea}>{children}</Box>
+                              <Suspense>
+                                <HotjarConsent />
+                              </Suspense>
+                            </Box>
                           </Box>
                         </Box>
-                      </Box>
-                      <HelpModal />
-                      <SafeMessageCoordinator />
-                      <ToUReacceptanceModal />
+                        <HelpModal />
+                        <SafeMessageCoordinator />
+                        <ToUReacceptanceModal />
+                      </SafeOwnerLoginProvider>
                     </ThemeRegistry>
                   </TranslationsProvider>
                 </SubgraphProvider>

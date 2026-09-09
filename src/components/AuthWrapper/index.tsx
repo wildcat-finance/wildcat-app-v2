@@ -58,7 +58,7 @@ export default function AuthWrapper({
   const { address } = useAccount()
   const { chainId } = useSelectedNetwork()
   const token = useAuthToken()
-  const { mutate: login } = useLogin()
+  const { mutate: login, isPending } = useLogin()
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
@@ -89,8 +89,9 @@ export default function AuthWrapper({
               variant="contained"
               size="large"
               onClick={() => login(address)}
+              disabled={isPending}
             >
-              {buttonText}
+              {isPending ? "Signing in…" : buttonText}
             </Button>
           }
         />
@@ -102,8 +103,9 @@ export default function AuthWrapper({
         color="secondary"
         size="small"
         onClick={() => login(address)}
+        disabled={isPending}
       >
-        {buttonText}
+        {isPending ? "Signing in…" : buttonText}
       </Button>
     )
   }
