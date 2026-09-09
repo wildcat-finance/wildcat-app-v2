@@ -4,7 +4,6 @@ import type { PersistedState } from "redux-persist"
 import storage from "redux-persist/lib/storage"
 
 export type SafeMessageFlow =
-  | "login"
   | "initial-tou"
   | "tou-accept"
   | "tou-decline"
@@ -138,17 +137,35 @@ export const discardLegacyCreateMarketSafeMessages = (
   } as unknown as PersistedState
 }
 
+export const migratePendingSafeMessages = createMigrate(
+  {
+    2: discardLegacyCreateMarketSafeMessages,
+    3: (state) => {
+      // Keep current agreement drafts and signatures while retiring login
+      // proposals. Repeating the draft cleanup is safe for either v2 history.
+      const cleaned = discardLegacyCreateMarketSafeMessages(state)
+      if (!cleaned) return cleaned
+      const pendingState = cleaned as unknown as PendingSafeMessagesState &
+        NonNullable<PersistedState>
+      return {
+        ...pendingState,
+        records: Object.fromEntries(
+          Object.entries(pendingState.records).filter(
+            ([, record]) => (record.flow as string) !== "login",
+          ),
+        ),
+      } as unknown as PersistedState
+    },
+  },
+  { debug: false },
+)
+
 export default persistReducer(
   {
     key: "pendingSafeMessages",
     storage,
-    version: 2,
-    migrate: createMigrate(
-      {
-        2: discardLegacyCreateMarketSafeMessages,
-      },
-      { debug: false },
-    ),
+    version: 3,
+    migrate: migratePendingSafeMessages,
   },
   pendingSafeMessagesReducer,
 )

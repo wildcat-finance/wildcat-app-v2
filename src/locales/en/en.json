@@ -82,6 +82,31 @@
     }
   },
   "auth": {
+    "login": {
+      "pending": "Signing in…",
+      "noAccount": "No login account selected",
+      "accountChanged": "The connected account changed. Start login again",
+      "selectWalletNetwork": "Select the connected wallet's network before logging in",
+      "safeMismatch": "The connected Safe does not match the login account",
+      "safeNotReady": "The Safe connection is not ready. Please try again",
+      "connectWallet": "Connect your wallet before logging in",
+      "wrongNetwork": "Wallet network does not match selected network",
+      "signPrompt": "Sign the login message in your wallet…",
+      "signed": "Login message signed",
+      "signatureFailed": "Login signature failed",
+      "emptySignature": "Wallet did not return a login signature",
+      "failed": "Failed to log in",
+      "wrongSession": "Login returned a session for the wrong account or network",
+      "cancelled": "Login cancelled",
+      "alreadyInProgress": "A login is already in progress"
+    },
+    "safeOwner": {
+      "title": "Log in as Safe owner",
+      "description": "Connect one of this Safe’s owner wallets and sign a login message.",
+      "approvalScope": "Your Safe stays connected. This signature only logs you in; agreements and transactions still require Safe approval.",
+      "browserWallet": "Browser wallet",
+      "continueInWallet": "Continue in your owner wallet…"
+    },
     "adminAccessDenied": "This account does not have admin access on the selected network.",
     "adminLoginRequired": "Log in with your wallet to access the admin panel.",
     "connectWalletContinue": "Connect your wallet to continue",
