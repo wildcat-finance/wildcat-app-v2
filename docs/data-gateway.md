@@ -1,6 +1,6 @@
 # App data gateway
 
-The app uses `@wildcatfi/wildcat-sdk@3.2.9-beta`. Browser RPC and subgraph
+The app uses `@wildcatfi/wildcat-sdk@3.2.10-beta`. Browser RPC and subgraph
 requests go through these same-origin POST routes:
 
 - `/api/gateway/rpc/{chainId}`
@@ -9,6 +9,10 @@ requests go through these same-origin POST routes:
 The routes derive their upstream URLs from the SDK. Subgraph releases stay
 pinned in the SDK; the browser cannot select an upstream URL or another release.
 SDK metadata checks use the same proxy as normal subgraph queries.
+
+On Sepolia, this SDK selects the protocol V2.5.4 factories and lens with
+subgraph V2.5.12. See [the SDK integration notes](./sdk-v3.2.10-integration.md)
+for historical wrapper compatibility and verification.
 
 Server RPC reads, registrar lookups, and market discovery call the gateway
 directly. Protocol statistics run in the browser and use the proxy. Wallet
