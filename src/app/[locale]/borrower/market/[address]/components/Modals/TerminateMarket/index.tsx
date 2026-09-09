@@ -8,7 +8,12 @@ import { TerminateMarketProps } from "@/app/[locale]/borrower/market/[address]/c
 import { TerminateFlow } from "@/app/[locale]/borrower/market/[address]/components/Modals/TerminateMarket/TerminateFlow"
 import { useTerminateMarket } from "@/app/[locale]/borrower/market/[address]/hooks/useTerminateMarket"
 import Cross from "@/assets/icons/cross_icon.svg"
+import {
+  routeTermination,
+  TerminateModalFlow,
+} from "@/utils/terminationBlockReason"
 
+import { BlockedFlow } from "./BlockedFlow"
 import { RepayAndTerminateFlow } from "./RepayAndTerminateFlow"
 
 export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
@@ -22,13 +27,19 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
   const [showErrorTerminationPopup, setShowErrorTerminationPopup] =
     useState(false)
 
-  const [flow, setFlow] = useState<
-    "terminate" | "repayAndTerminate" | "terminateWithRepay"
-  >()
+  const [transactionFlow, setTransactionFlow] =
+    useState<Exclude<TerminateModalFlow, "blocked">>()
+  const routing = routeTermination({
+    status: marketAccount.previewCloseMarket().status,
+    outstandingDebtIsZero: market.outstandingDebt.eq(0),
+    hooksConfig: market.hooksConfig,
+  })
+  const flow = transactionFlow ?? routing.flow
+  const blockDetails = routing.block
 
   const terminateFlow = flow === "terminate"
   const repayAndTerminateFlow = flow === "repayAndTerminate"
-  // const terminateWithRepay = flow === "terminateWithRepay"
+  const blockedFlow = flow === "blocked"
 
   const {
     mutateAsync: terminate,
@@ -40,6 +51,7 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
   const handleOpenModal = () => {
     setShowSuccessTerminationPopup(false)
     setShowErrorTerminationPopup(false)
+    setTransactionFlow(undefined)
     setIsModalOpen(true)
   }
 
@@ -47,16 +59,18 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
     setIsModalOpen(false)
   }
 
-  const isReadyForTermination =
-    marketAccount.previewCloseMarket().status === "Ready"
-
+  // Keep blocked reasons current until the borrower can proceed. Once a
+  // transaction flow opens, preserve its step state and hashes through data
+  // refreshes, including a repayment bringing outstanding debt to zero.
   useEffect(() => {
-    if (isReadyForTermination && market.outstandingDebt.eq(0)) {
-      setFlow("terminate")
-    } else {
-      setFlow("repayAndTerminate")
+    if (
+      isModalOpen &&
+      transactionFlow === undefined &&
+      routing.flow !== "blocked"
+    ) {
+      setTransactionFlow(routing.flow)
     }
-  }, [isModalOpen])
+  }, [isModalOpen, transactionFlow, routing.flow])
 
   useEffect(() => {
     if (isTerminatedError) {
@@ -92,6 +106,14 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
           successPopup={showSuccessTerminationPopup}
           errorPopup={showErrorTerminationPopup}
           txHash={terminateTxHash}
+        />
+      )}
+
+      {blockedFlow && blockDetails && (
+        <BlockedFlow
+          block={blockDetails}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
         />
       )}
 

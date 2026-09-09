@@ -4,7 +4,7 @@
     "bytes_generated": 9015991,
     "bytes_lockfile": 1895407,
     "files_skipped_unreadable": 0,
-    "files_walked": 1051
+    "files_walked": 1063
   },
   "entries": [
     {
@@ -17,7 +17,7 @@
     {
       "bytes": 126,
       "category": "generated",
-      "evidence": "marker 'do not edit' in the first 4096 bytes",
+      "evidence": "marker 'do not edit' on a comment-led line in the first 4096 bytes",
       "grade": "hard",
       "path": "prisma/migrations/migration_lock.toml"
     },

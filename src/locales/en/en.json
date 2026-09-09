@@ -574,7 +574,18 @@
         "totalDebt": "Total Debt",
         "remainingDebt": "Remaining Debt",
         "debts": "Debts",
-        "total": "Total"
+        "total": "Total",
+        "earlyClosure": {
+          "title": "Market cannot be terminated early",
+          "message": "This is a fixed term market that has not reached maturity, and early closure is not permitted. It can be terminated once the fixed term ends.",
+          "maturity": "Fixed term maturity: {{date}}",
+          "termReduction": "You can bring the maturity forward with Adjust Maturity, then terminate once the term ends.",
+          "close": "Close"
+        },
+        "notBorrower": {
+          "title": "You cannot terminate this market",
+          "message": "Only the market's borrower can terminate this market."
+        }
       }
     }
   },
