@@ -1,7 +1,7 @@
 import { ReactNode } from "react"
 import * as React from "react"
 
-import { Box, Skeleton, Typography } from "@mui/material"
+import { Box, Button, Skeleton, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { RepeatingSkeletons } from "@/components/RepeatingSkeletons"
@@ -18,7 +18,8 @@ export type MarketsTableWrapperProps = {
   noMarketsSubtitle?: string
   highlightNoMarketsBanner?: boolean
 
-  hasActiveFilters?: boolean
+  isFilteredEmpty: boolean
+  onResetFilters: () => void
 }
 
 export const MarketsTableWrapper = ({
@@ -29,7 +30,8 @@ export const MarketsTableWrapper = ({
   noMarketsTitle,
   noMarketsSubtitle,
   highlightNoMarketsBanner,
-  hasActiveFilters,
+  isFilteredEmpty,
+  onResetFilters,
 }: MarketsTableWrapperProps) => {
   const { t } = useTranslation()
 
@@ -54,7 +56,7 @@ export const MarketsTableWrapper = ({
         </Box>
       )}
 
-      {isEmpty && !hasActiveFilters && (
+      {isEmpty && !isFilteredEmpty && (
         <Box
           sx={{
             width: "100%",
@@ -77,7 +79,7 @@ export const MarketsTableWrapper = ({
         </Box>
       )}
 
-      {isEmpty && hasActiveFilters && (
+      {isEmpty && isFilteredEmpty && (
         <Box
           sx={{
             width: "100%",
@@ -94,6 +96,14 @@ export const MarketsTableWrapper = ({
           <Typography variant="text3" color={COLORS.santasGrey}>
             {t("marketList.shared.noMarketsMatchCurrentFilters")}
           </Typography>
+          <Button
+            variant="text"
+            size="small"
+            onClick={onResetFilters}
+            sx={{ alignSelf: "flex-start", marginTop: "8px" }}
+          >
+            {t("common.buttons.resetFilters")}
+          </Button>
         </Box>
       )}
 
