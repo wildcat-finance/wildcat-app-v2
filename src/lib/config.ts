@@ -25,7 +25,6 @@ export const wagmiBaseConfig = {
   storage: createStorage({
     storage: cookieStorage,
   }),
-  // multiInjectedProviderDiscovery: false,
   transports: {
     [sepolia.id]: http(getRpcProxyUrl(sepolia.id)),
     [mainnet.id]: http(getRpcProxyUrl(mainnet.id)),
@@ -34,4 +33,8 @@ export const wagmiBaseConfig = {
   },
 } as const
 
-export const config = createConfig(wagmiBaseConfig)
+// Cookie hydration and public clients do not need wallet event listeners.
+export const config = createConfig({
+  ...wagmiBaseConfig,
+  multiInjectedProviderDiscovery: false,
+})

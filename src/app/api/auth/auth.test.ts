@@ -138,7 +138,11 @@ describe("chain-scoped API authentication", () => {
 
   test("refresh preserves chain scope and rechecks live admin membership", async () => {
     mockAdminLookup.mockResolvedValueOnce({ id: 1 }).mockResolvedValueOnce(null)
-    const original = await createApiToken(address, SupportedChainId.Sepolia)
+    const original = await createApiToken(
+      address,
+      SupportedChainId.Sepolia,
+      address,
+    )
     expect(original?.isAdmin).toBe(true)
 
     const response = await refresh(

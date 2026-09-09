@@ -2,17 +2,17 @@
 
 import { useEffect } from "react"
 
-import { useIsMutating, useMutation, useQuery } from "@tanstack/react-query"
+import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
+import { useIsMutating, useMutation } from "@tanstack/react-query"
 import { decode as decodeJWT } from "jsonwebtoken"
 import { useTranslation } from "react-i18next"
-import { useAccount } from "wagmi"
+import { useAccount, useConfig } from "wagmi"
+import { getAccount } from "wagmi/actions"
 
 import { toastError, toastRequest } from "@/components/Toasts"
-import {
-  getLoginSignatureMessage,
-  LOGIN_SIGNATURE_MAX_AGE_SECONDS,
-} from "@/config/api"
-import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { getLoginSignatureMessage } from "@/config/api"
+import { useSafeOwnerLogin } from "@/providers/SafeOwnerLoginProvider"
+import { useAppDispatch, useAppSelector, useAppStore } from "@/store/hooks"
 import {
   getApiTokenKey,
   setApiToken,
@@ -22,7 +22,6 @@ import { ApiToken } from "@/store/slices/apiTokensSlice/interface"
 import { dayjs } from "@/utils/dayjs"
 
 import { useEthersSigner } from "./useEthersSigner"
-import { useSafeMessageSigning } from "./useSafeMessageSigning"
 import { useSelectedNetwork } from "./useSelectedNetwork"
 
 export const useRefreshApiToken = (chainIdOverride?: number) => {
@@ -129,104 +128,88 @@ export const useAuthToken = (chainIdOverride?: number) => {
 }
 
 export const useLogin = () => {
+  const { t } = useTranslation()
+  const config = useConfig()
   const dispatch = useAppDispatch()
-  const selectedNetwork = useSelectedNetwork()
+  const store = useAppStore()
+  const { chainId } = useSelectedNetwork()
   const signer = useEthersSigner()
-  const safeSigning = useSafeMessageSigning()
+  const { connected: safeConnected, safe } = useSafeAppsSDK()
+  const signAsOwner = useSafeOwnerLogin()
+  const isLoggingIn = useIsMutating({ mutationKey: ["login"] })
 
-  return useMutation({
+  const mutation = useMutation({
+    mutationKey: ["login"],
     mutationFn: async (address: string) => {
-      if (!signer) throw Error(`No signer`)
-      if (!address) throw Error(`No address`)
-      if (signer.chainId !== selectedNetwork.chainId) {
-        throw Error(`Wallet network does not match selected network`)
-      }
+      if (!address) throw Error(t("auth.login.noAccount"))
       address = address.toLowerCase()
-      // Login timestamps are unix SECONDS (the server's freshness check and
-      // the signed message both use them); the pending-message machinery
-      // treats the value as opaque and hands it back on resume.
-      const timeSigned = dayjs().unix()
-      const signPromise = safeSigning
-        .signMessage({
-          flow: "login",
-          address,
-          chainId: selectedNetwork.chainId,
-          timeSigned,
-          // The server rejects login messages older than an hour, so a
-          // pending Safe login proposal is worthless past that - expire it
-          // instead of submitting a guaranteed rejection.
-          expiresAt: (timeSigned + LOGIN_SIGNATURE_MAX_AGE_SECONDS) * 1000,
-          buildMessage: (effectiveTimeSigned) =>
-            getLoginSignatureMessage(
-              address,
-              effectiveTimeSigned,
-              selectedNetwork.chainId,
-            ),
-        })
-        .then((result) => {
-          // Outside a Safe app context "0x" means the wallet gave us nothing.
-          // Inside one, "0x" is a real answer: an on-chain-registered Safe
-          // message the server verifies against the Safe's signed-message
-          // registry.
-          if (!safeSigning.safeConnected && result.signature === "0x") {
-            throw Error(`Wallet did not return a login signature`)
-          }
-          return result
-        })
-      // When connected to a Safe the coordinator owns progress toasts
-      // ("Awaiting Safe confirmations for login...").
-      const signed = safeSigning.safeConnected
-        ? await signPromise
-        : await toastRequest(signPromise, {
-            pending: `Signing login message...`,
-            success: `Signed login message!`,
-            error: `Failed to sign login message!`,
-          })
-
-      safeSigning.markSubmitting(signed.pendingSafeMessageId)
-      const submitLogin = async () => {
-        const response = await fetch("/api/auth/login", {
-          method: "POST",
-          body: JSON.stringify({
-            signature: signed.signature,
-            timeSigned: signed.timeSigned,
-            address,
-            chainId: selectedNetwork.chainId,
-          }),
-        })
-        if (response.status !== 200) {
-          throw Error(`Failed to log in! ${response.statusText}`)
+      const requireCurrentAccount = () => {
+        const account = getAccount(config)
+        if (account.address?.toLowerCase() !== address) {
+          throw Error(t("auth.login.accountChanged"))
         }
-        const token = (await response.json()) as ApiToken
-        if (token.chainId !== selectedNetwork.chainId) {
-          throw Error(`Login returned token for wrong chain`)
+        if (
+          account.chainId !== chainId ||
+          store.getState().selectedNetwork.chainId !== chainId
+        ) {
+          throw Error(t("auth.login.selectWalletNetwork"))
         }
-        return token
+      }
+      requireCurrentAccount()
+      if (
+        safeConnected &&
+        (safe.safeAddress.toLowerCase() !== address || safe.chainId !== chainId)
+      ) {
+        throw Error(t("auth.login.safeMismatch"))
+      }
+      if (getAccount(config).connector?.id === "safe" && !safeConnected) {
+        throw Error(t("auth.login.safeNotReady"))
       }
 
-      try {
-        const token = await toastRequest(submitLogin(), {
-          pending: `Submitting login...`,
-          success: `Logged in!`,
-          error: `Failed to log in!`,
-        })
-        safeSigning.markCompleted(signed.pendingSafeMessageId)
-        return token
-      } catch (error) {
-        safeSigning.markSubmissionFailed(signed.pendingSafeMessageId, error)
-        throw error
-      }
-    },
-    onSuccess: (token) => {
-      if (token) {
-        dispatch(setApiToken(token))
-        console.log(`Login successful`)
+      let signed
+      if (safeConnected) {
+        signed = await signAsOwner({ address, chainId })
       } else {
-        throw Error(`Login failed`)
+        if (!signer) throw Error(t("auth.login.connectWallet"))
+        if (signer.chainId !== chainId) {
+          throw Error(t("auth.login.wrongNetwork"))
+        }
+        const timeSigned = dayjs().unix()
+        const signature = await toastRequest(
+          signer.signMessage(
+            getLoginSignatureMessage(address, timeSigned, chainId),
+          ),
+          {
+            pending: t("auth.login.signPrompt"),
+            success: t("auth.login.signed"),
+            error: t("auth.login.signatureFailed"),
+          },
+        )
+        if (signature === "0x") throw Error(t("auth.login.emptySignature"))
+        signed = { signature, timeSigned }
       }
+      requireCurrentAccount()
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...signed, address, chainId }),
+      })
+      if (!response.ok) {
+        const result = await response.json()
+        throw Error(result.error || t("auth.login.failed"))
+      }
+      const token = (await response.json()) as ApiToken
+      if (
+        token.chainId !== chainId ||
+        token.address.toLowerCase() !== address
+      ) {
+        throw Error(t("auth.login.wrongSession"))
+      }
+      requireCurrentAccount()
+      return token
     },
-    onError(error) {
-      console.log(error)
-    },
+    onSuccess: (token) => dispatch(setApiToken(token)),
+    onError: (error) => toastError(error.message),
   })
+  return { ...mutation, isPending: mutation.isPending || isLoggingIn > 0 }
 }
