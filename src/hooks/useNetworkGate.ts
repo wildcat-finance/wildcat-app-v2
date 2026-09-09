@@ -42,17 +42,21 @@ const NO_WALLET_RESTRICTED_PATHS = [
   ROUTES.borrower.agreement,
   ROUTES.lender.agreement,
   ROUTES.borrower.createMarket,
-  ROUTES.borrower.market,
   ROUTES.borrower.lendersList,
+  ROUTES.borrower.policy,
+  ROUTES.borrower.notifications,
   ROUTES.lender.myMarkets,
 ]
 
-const isNotPublicPath = (pathname: string) => {
-  if (pathname.startsWith(ROUTES.borrower.market)) {
-    return true
-  }
-  return NO_WALLET_RESTRICTED_PATHS.includes(pathname)
-}
+const NO_WALLET_RESTRICTED_ROOTS = [
+  ROUTES.borrower.market,
+  ROUTES.borrower.profile,
+]
+
+const isNotPublicPath = (pathname: string) =>
+  NO_WALLET_RESTRICTED_ROOTS.some(
+    (root) => pathname === root || pathname.startsWith(`${root}/`),
+  ) || NO_WALLET_RESTRICTED_PATHS.includes(pathname)
 
 const isLenderMarketPath = (pathname: string) =>
   pathname.startsWith(`${ROUTES.lender.market}/`)
@@ -70,11 +74,16 @@ export const useNetworkGate = ({
   const dispatch = useAppDispatch()
   const currentPathname = usePathname()
   const { chainId: selectedChainId, isTestnet } = useSelectedNetwork()
-  const { address, chain: walletChain, isConnected } = useAccount()
+  // Unconfigured wallet networks still have an ID, but no chain metadata.
+  const {
+    address,
+    chain: walletChain,
+    chainId: walletChainId,
+    isConnected,
+  } = useAccount()
   const { switchChainAsync, isPending: isSwitching } = useSwitchChain()
 
   const effectiveChainId = desiredChainId ?? selectedChainId
-  const walletChainId = walletChain?.id
   const touParty =
     agreementParty ??
     getServiceAgreementPartyForPath(pathname ?? currentPathname)

@@ -247,6 +247,15 @@ export const ExploreMarketsTable = () => {
   const [showSelfOnboard, setShowSelfOnboard] = useState(true)
   const [showOnboardByBorrower, setShowOnboardByBorrower] = useState(false)
 
+  const resetFilters = () => {
+    setSearch("")
+    setAssets([])
+    setStatuses([])
+    setWithdrawalCycles([])
+    setShowSelfOnboard(true)
+    setShowOnboardByBorrower(true)
+  }
+
   const [visibleMobileRows, setVisibleMobileRows] = useState(EXPLORE_PAGE_SIZE)
   useEffect(() => {
     setVisibleMobileRows(EXPLORE_PAGE_SIZE)
@@ -322,24 +331,36 @@ export const ExploreMarketsTable = () => {
     return underlyingTokens
   }, [marketAccounts, isTestnet])
 
-  const { rows, totalRows } = useMemo<{
+  const { rows, totalRows, isFilteredEmpty } = useMemo<{
     rows: GridRowsProp<LenderOtherMarketsTableModel>
     totalRows: number
+    isFilteredEmpty: boolean
   }>(() => {
     const penaltyBorrowers = getPenaltyBorrowers(
       marketAccounts.map((a) => a.market),
     )
+    // Count markets that could be shown before applying any user filters,
+    // including onboarding. Resetting cannot reveal ineligible markets.
+    const availableMarkets = marketAccounts.filter(({ market }) => {
+      const onboardingMode = getKnownMarketOnboardingMode(
+        market.version,
+        market.address,
+        onboardingByMarket,
+      )
+      return (
+        isExploreVisible(market) &&
+        !penaltyBorrowers.has(market.borrower.toLowerCase()) &&
+        (isSelfServiceMarketOnboardingMode(onboardingMode) ||
+          onboardingMode === MarketOnboardingMode.Managed)
+      )
+    })
     const filtered = filterMarketAccounts(
-      marketAccounts,
+      availableMarkets,
       search,
       statuses,
       assets,
       borrowers,
       withdrawalCycles,
-    ).filter(
-      (a) =>
-        isExploreVisible(a.market) &&
-        !penaltyBorrowers.has(a.market.borrower.toLowerCase()),
     )
 
     const onboardFiltered = filtered.filter((account) => {
@@ -392,6 +413,8 @@ export const ExploreMarketsTable = () => {
 
     return {
       totalRows: onboardFiltered.length,
+      isFilteredEmpty:
+        availableMarkets.length > 0 && onboardFiltered.length === 0,
       rows: accountsToMap.map((account) => {
         const { market } = account
         const {
@@ -894,6 +917,33 @@ export const ExploreMarketsTable = () => {
               gap: "4px",
             }}
           >
+            {rows.length === 0 && (
+              <Box
+                sx={{
+                  width: "100%",
+                  padding: "24px 12px",
+                  backgroundColor: COLORS.white,
+                  borderRadius: "14px",
+                  textAlign: "center",
+                }}
+              >
+                <Typography variant="mobText3" color={COLORS.santasGrey}>
+                  {isFilteredEmpty
+                    ? t("marketList.shared.noMarketsMatchCurrentFilters")
+                    : t("marketList.lender.explore.noMarkets.title")}
+                </Typography>
+                {isFilteredEmpty && (
+                  <Button
+                    variant="text"
+                    size="small"
+                    onClick={resetFilters}
+                    sx={{ display: "block", margin: "8px auto 0" }}
+                  >
+                    {t("common.buttons.resetFilters")}
+                  </Button>
+                )}
+              </Box>
+            )}
             {rows.map((marketItem) => (
               <MobileMarketCard key={marketItem.id} marketItem={marketItem} />
             ))}
@@ -901,7 +951,6 @@ export const ExploreMarketsTable = () => {
         )}
 
         {!isLoading &&
-          totalRows > 0 &&
           (totalRows > visibleMobileRows ? (
             <Button
               type="button"
@@ -1067,8 +1116,10 @@ export const ExploreMarketsTable = () => {
           marketsLength={rows.length}
           rowsLength={paginationModel.pageSize}
           isLoading={isLoading}
-          noMarketsTitle="No Markets Available"
-          noMarketsSubtitle="There are no markets to display at the moment."
+          noMarketsTitle={t("marketList.lender.explore.noMarkets.title")}
+          noMarketsSubtitle={t("marketList.lender.explore.noMarkets.subtitle")}
+          isFilteredEmpty={isFilteredEmpty}
+          onResetFilters={resetFilters}
           highlightNoMarketsBanner
         >
           <DataGrid

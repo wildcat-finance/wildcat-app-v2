@@ -1433,6 +1433,10 @@
         "apr": "% APR",
         "earn": "Earn",
         "goAllMarkets": "Go to All Markets",
+        "noMarkets": {
+          "subtitle": "There are no markets to display at the moment.",
+          "title": "No Markets Available"
+        },
         "showMoreMarkets": "Show more markets",
         "topMarkets": "Top Markets",
         "trendingMarketPosition": "Trending market position",

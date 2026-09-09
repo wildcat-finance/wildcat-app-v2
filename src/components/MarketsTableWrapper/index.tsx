@@ -1,13 +1,11 @@
 import { ReactNode } from "react"
 import * as React from "react"
 
-import { Box, Skeleton, Typography } from "@mui/material"
+import { Box, Button, Skeleton, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { RepeatingSkeletons } from "@/components/RepeatingSkeletons"
-import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { COLORS } from "@/theme/colors"
-import { MarketStatus } from "@/utils/marketStatus"
 
 export type MarketsTableWrapperProps = {
   children: ReactNode
@@ -20,11 +18,8 @@ export type MarketsTableWrapperProps = {
   noMarketsSubtitle?: string
   highlightNoMarketsBanner?: boolean
 
-  showNoFilteredMarkets?: boolean
-  statusFilter?: MarketStatus[]
-  assetFilter?: SmallFilterSelectItem[]
-  withdrawalFilter?: SmallFilterSelectItem[]
-  nameFilter?: string
+  isFilteredEmpty: boolean
+  onResetFilters: () => void
 }
 
 export const MarketsTableWrapper = ({
@@ -35,19 +30,12 @@ export const MarketsTableWrapper = ({
   noMarketsTitle,
   noMarketsSubtitle,
   highlightNoMarketsBanner,
-  showNoFilteredMarkets,
-  statusFilter,
-  assetFilter,
-  withdrawalFilter,
-  nameFilter,
+  isFilteredEmpty,
+  onResetFilters,
 }: MarketsTableWrapperProps) => {
   const { t } = useTranslation()
 
-  const defaultFiltersSettings =
-    (assetFilter === undefined || assetFilter.length === 0) &&
-    (statusFilter === undefined || statusFilter.length === 0) &&
-    (withdrawalFilter === undefined || withdrawalFilter.length === 0) &&
-    (nameFilter === undefined || nameFilter === "")
+  const isEmpty = marketsLength === 0 && !isLoading
 
   return (
     <>
@@ -68,7 +56,7 @@ export const MarketsTableWrapper = ({
         </Box>
       )}
 
-      {marketsLength === 0 && !isLoading && defaultFiltersSettings && (
+      {isEmpty && !isFilteredEmpty && (
         <Box
           sx={{
             width: "100%",
@@ -88,6 +76,34 @@ export const MarketsTableWrapper = ({
           <Typography variant="text3" color={COLORS.santasGrey}>
             {noMarketsSubtitle}
           </Typography>
+        </Box>
+      )}
+
+      {isEmpty && isFilteredEmpty && (
+        <Box
+          sx={{
+            width: "100%",
+            padding: "24px 16px 24px",
+            borderRadius: "12px",
+            backgroundColor: highlightNoMarketsBanner
+              ? COLORS.hintOfRed
+              : "transparent",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+          }}
+        >
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            {t("marketList.shared.noMarketsMatchCurrentFilters")}
+          </Typography>
+          <Button
+            variant="text"
+            size="small"
+            onClick={onResetFilters}
+            sx={{ alignSelf: "flex-start", marginTop: "8px" }}
+          >
+            {t("common.buttons.resetFilters")}
+          </Button>
         </Box>
       )}
 
