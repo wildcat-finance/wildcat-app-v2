@@ -1,4 +1,3 @@
-import { AddEthereumChainParameter } from "viem"
 import { http, createConfig, createStorage, cookieStorage } from "wagmi"
 import { mainnet, sepolia } from "wagmi/chains"
 import { safe, walletConnect } from "wagmi/connectors"
@@ -9,6 +8,16 @@ import { plasmaTestnet } from "./chains/plasma-testnet"
 const DefaultNetwork = process.env.NEXT_PUBLIC_TARGET_NETWORK
 
 const chains = [mainnet, sepolia, plasmaTestnet, plasmaMainnet]
+
+export const walletConnectOptions = {
+  metadata: {
+    description: "An undercollateralised credit facility protocol.",
+    name: "Wildcat",
+    url: "https://app.wildcat.finance",
+    icons: ["https://avatars.githubusercontent.com/u/113041915?s=200&v=4"],
+  },
+  projectId: "b129ed6623af640bbab035d6b906dfd6",
+}
 
 // Sort so that default network is first
 chains.sort((a, b) => {
@@ -24,7 +33,10 @@ export const config = createConfig({
   storage: createStorage({
     storage: cookieStorage,
   }),
-  // multiInjectedProviderDiscovery: false,
+  // In a Safe iframe, injected wallets belong to the owner-login connection.
+  // Their connect/accountsChanged events must not replace the primary Safe.
+  multiInjectedProviderDiscovery:
+    typeof window === "undefined" || window.parent === window,
   transports: {
     [sepolia.id]: http(
       `https://eth-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
@@ -47,18 +59,6 @@ export const config = createConfig({
     */
     ...(typeof window === "undefined"
       ? []
-      : [
-          walletConnect({
-            metadata: {
-              description: "An undercollateralised credit facility protocol.",
-              name: "Wildcat",
-              url: "https://app.wildcat.finance",
-              icons: [
-                "https://avatars.githubusercontent.com/u/113041915?s=200&v=4",
-              ],
-            },
-            projectId: "b129ed6623af640bbab035d6b906dfd6",
-          }),
-        ]),
+      : [walletConnect(walletConnectOptions)]),
   ],
 })
