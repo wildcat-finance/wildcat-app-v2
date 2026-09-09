@@ -70,7 +70,7 @@ import {
 import { EarningsProjection } from "./EarningsProjection"
 import { DepositModalProps } from "./interface"
 import { useDepositGate } from "./useDepositGate"
-import { useDeposit } from "../../../hooks/useDeposit"
+import { DepositRequest, useDeposit } from "../../../hooks/useDeposit"
 import { NonMlaAcknowledgementModal } from "../NonMlaAcknowledgementModal"
 
 type BorrowerIdentityDisclosureProps = {
@@ -222,6 +222,7 @@ export const DepositModal = ({
     isPending: isDepositing,
     isSuccess: isDeposed,
     isError: isDepositError,
+    variables: attemptedDeposit,
     reset: resetDeposit,
   } = useDeposit(marketAccount, setTxHash)
 
@@ -248,7 +249,10 @@ export const DepositModal = ({
     useState(false)
   const [depositOpenRequested, setDepositOpenRequested] = useState(false)
   const awaitingAcknowledgementRefresh = useRef(false)
-  const previousConnectedAddress = useRef(connectedAddress?.toLowerCase())
+  const depositScope = `${
+    market.chainId
+  }:${market.address.toLowerCase()}:${connectedAddress?.toLowerCase()}`
+  const previousDepositScope = useRef(depositScope)
   const agreementActionBlocked = agreementGate.state !== "satisfied"
 
   // The fillable maximum, read fresh every render so it tracks the market
@@ -268,9 +272,8 @@ export const DepositModal = ({
     () => marketAccount.market.underlyingToken.parseAmount(amount || "0"),
     [amount],
   )
-  // A standing Max fill carries the exact amount; `amount` holds its display
-  // form, so the transaction deposits the true value and the field still
-  // shows the five-decimal rendering.
+  // A standing Max fill carries the precise bound; `amount` holds its
+  // five-decimal display form without losing precision at submission.
   const depositTokenAmount = maxFill ? maxFill.amount : parsedDepositAmount
   const minimumDeposit = market.hooksConfig?.minimumDeposit
 
@@ -311,8 +314,10 @@ export const DepositModal = ({
     setMaxFill({ display: maxDepositFill, amount: maxDepositAmount })
   }
 
-  const handleDeposit = () => {
+  const submitDeposit = (request: DepositRequest) => {
     if (
+      isDepositing ||
+      isApproving ||
       marketActionsManuallyDisabled ||
       touActionBlocked ||
       networkActionBlocked ||
@@ -322,12 +327,19 @@ export const DepositModal = ({
       return
 
     setTxHash("")
-    deposit(depositTokenAmount)
+    setShowErrorPopup(false)
+    setShowSuccessPopup(false)
+    deposit(request)
   }
 
+  const handleDeposit = () =>
+    submitDeposit({
+      amount: depositTokenAmount,
+      mode: maxFill ? "maximum" : "exact",
+    })
+
   const handleTryAgain = () => {
-    setTxHash("")
-    handleDeposit()
+    if (attemptedDeposit) submitDeposit(attemptedDeposit)
   }
 
   const handleApprove = () => {
@@ -474,9 +486,9 @@ export const DepositModal = ({
   // wallet balance shifts. Follow it while the fill is untouched, or the
   // field would contradict the "Available to deposit" row directly above it
   // and "Max" would stop meaning max. Held still while a transaction is in
-  // flight so the amount cannot move out from under a signature.
+  // flight or the form is hidden. Retries retain the submitted request.
   useEffect(() => {
-    if (!maxFill || isApproving || isDepositing) return
+    if (!maxFill || isApproving || !showForm) return
     if (maxDepositFill === null) {
       resetAmount("")
       return
@@ -493,7 +505,7 @@ export const DepositModal = ({
     maxDepositFill,
     maxDepositRaw,
     isApproving,
-    isDepositing,
+    showForm,
     resetAmount,
   ])
 
@@ -602,9 +614,8 @@ export const DepositModal = ({
   ])
 
   useEffect(() => {
-    const currentAddress = connectedAddress?.toLowerCase()
-    if (previousConnectedAddress.current === currentAddress) return
-    previousConnectedAddress.current = currentAddress
+    if (previousDepositScope.current === depositScope) return
+    previousDepositScope.current = depositScope
     setDepositOpenRequested(false)
     setIsNonMlaAcknowledgementOpen(false)
     awaitingAcknowledgementRefresh.current = false
@@ -615,7 +626,7 @@ export const DepositModal = ({
     modal.handleCloseModal()
     if (setIsMobileOpen) setIsMobileOpen(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connectedAddress])
+  }, [depositScope])
 
   useEffect(() => {
     if (isDepositError) {
