@@ -6,6 +6,9 @@ import { getLoginSignatureMessage } from "@/config/api"
 
 export type SafeOwnerLoginScope = { address: string; chainId: number }
 export type OwnerLoginSignature = { signature: string; timeSigned: number }
+export type SafeLoginSignature = OwnerLoginSignature & {
+  pendingSafeMessageId?: string
+}
 
 export async function signSafeOwnerLogin(
   ownerConfig: Config,

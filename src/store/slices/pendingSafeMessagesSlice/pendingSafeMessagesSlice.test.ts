@@ -25,6 +25,22 @@ const pending: PendingSafeMessage = {
 }
 
 describe("pendingSafeMessagesSlice", () => {
+  it("keeps full Safe login proofs across version-3 rehydration", async () => {
+    const persisted = {
+      _persist: { version: 3, rehydrated: true },
+      records: {
+        login: {
+          ...pending,
+          flow: "safe-login",
+          signature: "0x",
+          status: "signatureReady",
+        },
+      },
+    }
+    await expect(migratePendingSafeMessages(persisted, 3)).resolves.toEqual(
+      persisted,
+    )
+  })
   it.each([1, 2])(
     "upgrades version %s while preserving current agreement drafts and ready signatures",
     async (version) => {

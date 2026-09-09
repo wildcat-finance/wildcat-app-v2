@@ -101,11 +101,14 @@
       "alreadyInProgress": "A login is already in progress"
     },
     "safeOwner": {
-      "title": "Log in as Safe owner",
+      "title": "Log in with your Safe",
       "description": "Connect one of this Safe’s owner wallets and sign a login message.",
       "approvalScope": "Your Safe stays connected. This signature only logs you in; agreements and transactions still require Safe approval.",
       "browserWallet": "Browser wallet",
-      "continueInWallet": "Continue in your owner wallet…"
+      "continueInWallet": "Continue in your owner wallet…",
+      "useSafeApprovals": "Use Safe approvals",
+      "safeApprovalsDescription": "Use this if an owner is a contract wallet or cannot sign a personal message. Your Safe’s usual approvals are required.",
+      "waitingForSafe": "Waiting for Safe approvals… You can cancel and return to this login later."
     },
     "adminAccessDenied": "This account does not have admin access on the selected network.",
     "adminLoginRequired": "Log in with your wallet to access the admin panel.",

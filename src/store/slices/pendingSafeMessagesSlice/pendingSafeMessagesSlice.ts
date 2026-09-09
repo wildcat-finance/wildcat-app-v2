@@ -4,6 +4,7 @@ import type { PersistedState } from "redux-persist"
 import storage from "redux-persist/lib/storage"
 
 export type SafeMessageFlow =
+  | "safe-login"
   | "initial-tou"
   | "tou-accept"
   | "tou-decline"

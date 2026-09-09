@@ -28,20 +28,27 @@ import { NETWORKS_BY_ID } from "@/config/network"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { getOwnerWalletConfig } from "@/lib/ownerWalletConfig"
 import {
-  OwnerLoginSignature,
+  SafeLoginSignature,
   SafeOwnerLoginScope,
   signSafeOwnerLogin,
 } from "@/lib/safeOwnerLogin"
 import { GenericProviderProps } from "@/providers/interface"
 
+type SignWithSafe = (signal: AbortSignal) => Promise<SafeLoginSignature>
+
 const OwnerLoginContext = createContext<
-  ((scope: SafeOwnerLoginScope) => Promise<OwnerLoginSignature>) | undefined
+  | ((
+      scope: SafeOwnerLoginScope,
+      signWithSafe: SignWithSafe,
+    ) => Promise<SafeLoginSignature>)
+  | undefined
 >(undefined)
 
 type LoginRequest = SafeOwnerLoginScope & {
   controller: AbortController
-  resolve: (signature: OwnerLoginSignature) => void
+  resolve: (signature: SafeLoginSignature) => void
   reject: (error: Error) => void
+  signWithSafe: SignWithSafe
 }
 
 const OwnerWalletDialog = ({
@@ -53,24 +60,33 @@ const OwnerWalletDialog = ({
   request: LoginRequest
   ownerConfig: Config
   onCancel: () => void
-  onSigned: (signature: OwnerLoginSignature) => void
+  onSigned: (signature: SafeLoginSignature) => void
 }) => {
   const { t } = useTranslation()
-  const { connectors, connectAsync } = useConnect()
+  const { connectors, connectAsync, isPending: isConnecting } = useConnect()
   const { connector: connectedOwner } = useAccount()
-  const { mutate, isPending, error } = useMutation({
-    mutationFn: async (connector: Connector) => {
+  const { mutate, isPending, error, variables } = useMutation({
+    mutationFn: async (connector: Connector | "safe") => {
+      const { signal } = request.controller
+      if (connector === "safe") return request.signWithSafe(signal)
       if (connectedOwner?.uid !== connector.uid) {
-        await connectAsync({ connector, chainId: request.chainId })
+        let closeModal: (() => void) | undefined
+        try {
+          if (connector.type === "walletConnect") {
+            const provider = (await connector.getProvider()) as {
+              modal?: { closeModal: () => void }
+            }
+            closeModal = () => provider.modal?.closeModal()
+            signal.addEventListener("abort", closeModal, { once: true })
+          }
+          if (signal.aborted) throw new Error(t("auth.login.cancelled"))
+          await connectAsync({ connector, chainId: request.chainId })
+        } finally {
+          if (closeModal) signal.removeEventListener("abort", closeModal)
+        }
       }
-      if (request.controller.signal.aborted)
-        throw new Error(t("auth.login.cancelled"))
-      return signSafeOwnerLogin(
-        ownerConfig,
-        connector,
-        request,
-        request.controller.signal,
-      )
+      if (signal.aborted) throw new Error(t("auth.login.cancelled"))
+      return signSafeOwnerLogin(ownerConfig, connector, request, signal)
     },
     onSuccess: onSigned,
   })
@@ -88,6 +104,11 @@ const OwnerWalletDialog = ({
   return (
     <Dialog
       open
+      disableEnforceFocus={
+        isConnecting &&
+        variables !== "safe" &&
+        variables?.type === "walletConnect"
+      }
       onClose={onCancel}
       fullWidth
       maxWidth="xs"
@@ -119,9 +140,21 @@ const OwnerWalletDialog = ({
                 : connector.name}
             </Button>
           ))}
+          <Button
+            variant="outlined"
+            disabled={isPending}
+            onClick={() => mutate("safe")}
+          >
+            {t("auth.safeOwner.useSafeApprovals")}
+          </Button>
+          <Typography variant="text3">
+            {t("auth.safeOwner.safeApprovalsDescription")}
+          </Typography>
           {isPending && (
             <Typography role="status">
-              {t("auth.safeOwner.continueInWallet")}
+              {variables === "safe"
+                ? t("auth.safeOwner.waitingForSafe")
+                : t("auth.safeOwner.continueInWallet")}
             </Typography>
           )}
           {error && <Alert severity="error">{error.message}</Alert>}
@@ -149,14 +182,15 @@ export const SafeOwnerLoginProvider = ({ children }: GenericProviderProps) => {
   }, [t])
 
   const signAsOwner = useCallback(
-    (scope: SafeOwnerLoginScope) => {
+    (scope: SafeOwnerLoginScope, signWithSafe: SignWithSafe) => {
       if (active.current)
         return Promise.reject(new Error(t("auth.login.alreadyInProgress")))
-      return new Promise<OwnerLoginSignature>((resolve, reject) => {
+      return new Promise<SafeLoginSignature>((resolve, reject) => {
         const next = {
           ...scope,
           resolve,
           reject,
+          signWithSafe,
           controller: new AbortController(),
         }
         active.current = next

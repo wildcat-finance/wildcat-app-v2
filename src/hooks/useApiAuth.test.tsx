@@ -14,6 +14,7 @@ import { setApiToken } from "@/store/slices/apiTokensSlice/apiTokensSlice"
 
 import { useLogin } from "./useApiAuth"
 import { useEthersSigner } from "./useEthersSigner"
+import { MessageToSign, useSafeMessageSigning } from "./useSafeMessageSigning"
 import { useSelectedNetwork } from "./useSelectedNetwork"
 
 jest.mock("react-i18next", () => {
@@ -40,6 +41,9 @@ jest.mock("@/store/hooks", () => ({
 }))
 jest.mock("./useEthersSigner", () => ({ useEthersSigner: jest.fn() }))
 jest.mock("./useSelectedNetwork", () => ({ useSelectedNetwork: jest.fn() }))
+jest.mock("./useSafeMessageSigning", () => ({
+  useSafeMessageSigning: jest.fn(),
+}))
 
 const address = "0xc15be5214978d1fc509ecdd4f9d5bc067c94d9ae"
 const otherAddress = "0x1111111111111111111111111111111111111111"
@@ -47,6 +51,12 @@ const primaryConfig = { id: "active-wagmi-provider" }
 const dispatch = jest.fn()
 const signAsOwner = jest.fn()
 const signMessage = jest.fn()
+const safeSigning = {
+  signMessage: jest.fn(),
+  markSubmitting: jest.fn(),
+  markCompleted: jest.fn(),
+  markSubmissionFailed: jest.fn(),
+}
 const fetchMock = jest.fn()
 const getState = jest.fn()
 const originalFetch = global.fetch
@@ -89,6 +99,11 @@ beforeEach(() => {
   } as ReturnType<typeof useSafeAppsSDK>)
   jest.mocked(useSafeOwnerLogin).mockReturnValue(signAsOwner)
   signAsOwner.mockResolvedValue(signed)
+  jest
+    .mocked(useSafeMessageSigning)
+    .mockReturnValue(
+      safeSigning as unknown as ReturnType<typeof useSafeMessageSigning>,
+    )
   signMessage.mockResolvedValue("0xeoa-signature")
   jest
     .mocked(useEthersSigner)
@@ -116,7 +131,10 @@ it("submits the owner signature as the Safe and stores the Safe session", async 
     await result.current.mutateAsync(address)
   })
   expect(getAccount).toHaveBeenCalledWith(primaryConfig)
-  expect(signAsOwner).toHaveBeenCalledWith({ address, chainId: 9745 })
+  expect(signAsOwner).toHaveBeenCalledWith(
+    { address, chainId: 9745 },
+    expect.any(Function),
+  )
   expect(signMessage).not.toHaveBeenCalled()
   expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
     ...signed,
@@ -124,6 +142,64 @@ it("submits the owner signature as the Safe and stores the Safe session", async 
     chainId: 9745,
   })
   expect(dispatch).toHaveBeenCalledWith(setApiToken(token))
+})
+
+it.each(["0x", "0xthreshold-signature"])(
+  "submits a full Safe proof (%s) with its original timestamp and completes the pending message",
+  async (signature) => {
+    const { signal } = new AbortController()
+    signAsOwner.mockImplementationOnce((_scope, fallback) => fallback(signal))
+    safeSigning.signMessage.mockImplementationOnce(
+      async (input: MessageToSign) => {
+        expect(input.flow).toBe("safe-login")
+        expect(input.signal).toBe(signal)
+        expect(input.expiresAt).toBe((input.timeSigned + 3600) * 1000)
+        expect(await input.buildMessage(123)).toBe(
+          getLoginSignatureMessage(address, 123, 9745),
+        )
+        return {
+          signature,
+          timeSigned: 123,
+          message: "login",
+          pendingSafeMessageId: "pending-login",
+        }
+      },
+    )
+    const { result } = renderHook(useLogin, { wrapper })
+    await act(async () => {
+      await result.current.mutateAsync(address)
+    })
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+      signature,
+      timeSigned: 123,
+      address,
+      chainId: 9745,
+    })
+    expect(safeSigning.markSubmitting).toHaveBeenCalledWith("pending-login")
+    expect(safeSigning.markCompleted).toHaveBeenCalledWith("pending-login")
+    expect(dispatch).toHaveBeenCalledWith(setApiToken(token))
+  },
+)
+
+it("retains a full Safe proof for retry when login submission fails", async () => {
+  signAsOwner.mockResolvedValueOnce({
+    signature: "0x",
+    timeSigned: 123,
+    pendingSafeMessageId: "pending-login",
+  })
+  fetchMock.mockRejectedValueOnce(new Error("Network unavailable"))
+  const { result } = renderHook(useLogin, { wrapper })
+  await act(async () => {
+    await expect(result.current.mutateAsync(address)).rejects.toThrow(
+      "Network unavailable",
+    )
+  })
+  expect(safeSigning.markCompleted).not.toHaveBeenCalled()
+  expect(safeSigning.markSubmissionFailed).toHaveBeenCalledWith(
+    "pending-login",
+    expect.any(Error),
+  )
+  expect(dispatch).not.toHaveBeenCalled()
 })
 
 it("retains direct signing for an ordinary connected wallet", async () => {

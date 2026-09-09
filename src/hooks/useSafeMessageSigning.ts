@@ -35,6 +35,7 @@ export type MessageToSign = {
     context?: Record<string, string | number | boolean>,
   ) => boolean
   isStillRelevant?: () => boolean
+  signal?: AbortSignal
 }
 
 export type WalletMessageSignature = {
@@ -58,8 +59,22 @@ const isSameScope = (
 const waitForSafeSignature = (
   store: ReturnType<typeof useAppStore>,
   id: string,
+  signal?: AbortSignal,
 ): Promise<string> =>
   new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new Error("Safe signing request cancelled"))
+      return
+    }
+    let unsubscribe: (() => void) | undefined
+    const cancel = () => {
+      unsubscribe?.()
+      reject(new Error("Safe signing request cancelled"))
+    }
+    const cleanup = () => {
+      unsubscribe?.()
+      signal?.removeEventListener("abort", cancel)
+    }
     const check = () => {
       const record = store.getState().pendingSafeMessages.records[id]
       if (!record) {
@@ -76,10 +91,11 @@ const waitForSafeSignature = (
       }
       return false
     }
-    if (check()) return
-    const unsubscribe = store.subscribe(() => {
-      if (check()) unsubscribe()
+    signal?.addEventListener("abort", cancel, { once: true })
+    unsubscribe = store.subscribe(() => {
+      if (check()) cleanup()
     })
+    if (check()) cleanup()
   })
 
 export const useSafeMessageSigning = () => {
@@ -98,13 +114,18 @@ export const useSafeMessageSigning = () => {
   )
 
   const resumePendingMessage = useCallback(
-    async (record: PendingSafeMessage): Promise<WalletMessageSignature> => {
+    async (
+      record: PendingSafeMessage,
+      signal?: AbortSignal,
+    ): Promise<WalletMessageSignature> => {
+      if (signal?.aborted) throw new Error("Safe signing request cancelled")
       if (record.expiresAt && record.expiresAt <= Date.now()) {
         dispatch(removePendingSafeMessage(record.id))
         throw new Error("Pending Safe message expired")
       }
       const signature =
-        record.signature ?? (await waitForSafeSignature(store, record.id))
+        record.signature ??
+        (await waitForSafeSignature(store, record.id, signal))
       return {
         signature,
         message: record.message,
@@ -118,6 +139,8 @@ export const useSafeMessageSigning = () => {
 
   const signMessage = useCallback(
     async (input: MessageToSign): Promise<WalletMessageSignature> => {
+      if (input.signal?.aborted)
+        throw new Error("Safe signing request cancelled")
       if (!signer) throw new Error("No signer")
       if (signer.chainId !== input.chainId) {
         throw new Error("Wallet network does not match signing network")
@@ -196,14 +219,20 @@ export const useSafeMessageSigning = () => {
       const matching = candidates.find(
         ({ record, rebuiltMessage }) => rebuiltMessage === record.message,
       )
-      if (matching) return resumePendingMessage(matching.record)
+      if (matching) return resumePendingMessage(matching.record, input.signal)
 
       const message = await input.buildMessage(input.timeSigned, input.context)
-      if (input.isStillRelevant && !input.isStillRelevant()) {
+      if (
+        input.signal?.aborted ||
+        (input.isStillRelevant && !input.isStillRelevant())
+      ) {
         throw new Error("Signing request was discarded")
       }
       const proposal = await proposeSafeMessage(sdk, message)
-      if (input.isStillRelevant && !input.isStillRelevant()) {
+      if (
+        input.signal?.aborted ||
+        (input.isStillRelevant && !input.isStillRelevant())
+      ) {
         throw new Error("Signing request was discarded")
       }
       const id = getPendingSafeMessageId({
@@ -228,7 +257,7 @@ export const useSafeMessageSigning = () => {
         context: input.context,
       }
       dispatch(addPendingSafeMessage(record))
-      return resumePendingMessage(record)
+      return resumePendingMessage(record, input.signal)
     },
     [
       dispatch,
