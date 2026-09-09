@@ -74,11 +74,16 @@ export const useNetworkGate = ({
   const dispatch = useAppDispatch()
   const currentPathname = usePathname()
   const { chainId: selectedChainId, isTestnet } = useSelectedNetwork()
-  const { address, chain: walletChain, isConnected } = useAccount()
+  // Unconfigured wallet networks still have an ID, but no chain metadata.
+  const {
+    address,
+    chain: walletChain,
+    chainId: walletChainId,
+    isConnected,
+  } = useAccount()
   const { switchChainAsync, isPending: isSwitching } = useSwitchChain()
 
   const effectiveChainId = desiredChainId ?? selectedChainId
-  const walletChainId = walletChain?.id
   const touParty =
     agreementParty ??
     getServiceAgreementPartyForPath(pathname ?? currentPathname)
