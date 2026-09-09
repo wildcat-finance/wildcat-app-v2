@@ -42,17 +42,21 @@ const NO_WALLET_RESTRICTED_PATHS = [
   ROUTES.borrower.agreement,
   ROUTES.lender.agreement,
   ROUTES.borrower.createMarket,
-  ROUTES.borrower.market,
   ROUTES.borrower.lendersList,
+  ROUTES.borrower.policy,
+  ROUTES.borrower.notifications,
   ROUTES.lender.myMarkets,
 ]
 
-const isNotPublicPath = (pathname: string) => {
-  if (pathname.startsWith(ROUTES.borrower.market)) {
-    return true
-  }
-  return NO_WALLET_RESTRICTED_PATHS.includes(pathname)
-}
+const NO_WALLET_RESTRICTED_ROOTS = [
+  ROUTES.borrower.market,
+  ROUTES.borrower.profile,
+]
+
+const isNotPublicPath = (pathname: string) =>
+  NO_WALLET_RESTRICTED_ROOTS.some(
+    (root) => pathname === root || pathname.startsWith(`${root}/`),
+  ) || NO_WALLET_RESTRICTED_PATHS.includes(pathname)
 
 const isLenderMarketPath = (pathname: string) =>
   pathname.startsWith(`${ROUTES.lender.market}/`)
