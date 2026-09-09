@@ -106,7 +106,7 @@ export function cloneMarketAccountForLiveRefresh(
 
 export function useLendersMarkets(): UseLendersMarketsResult {
   const { isWrongNetwork, provider, signer, address } = useEthersProvider()
-  const { chainId, targetChainId } = useCurrentNetwork()
+  const { targetChainId } = useCurrentNetwork()
   const subgraphClient = useSubgraphClient()
   const signerOrProvider = signer ?? provider
 
@@ -114,14 +114,14 @@ export function useLendersMarkets(): UseLendersMarketsResult {
 
   async function queryMarketsForLender() {
     logger.debug(`Getting all markets...`)
-    if (!chainId) throw Error("No chainId")
+    if (!targetChainId) throw Error("No chainId")
     if (!signerOrProvider) throw Error(`no provider`)
     const lenderAccounts = await getLenderAccountsForAllMarkets(
       subgraphClient,
       {
         lender: lender ?? zeroAddress,
         fetchPolicy: "network-only",
-        chainId,
+        chainId: targetChainId,
         signerOrProvider,
       },
     )
