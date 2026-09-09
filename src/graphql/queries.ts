@@ -249,6 +249,56 @@ export const RECENT_WITHDRAWAL_REQUESTS = gql`
   }
 `
 
+// Markets a lender can reach because a borrower added them to a policy.
+//
+// Granting policy access takes two different shapes, and neither leaves a
+// per-market LenderAccount row, a credential or a role behind — so a market
+// held this way is invisible to everything else the dashboard fetches:
+//
+//   pull provider (ACCESS_LIST) — addMember on the provider writes only a
+//     roleProviderMember; the hook does not read it until the lender itself
+//     first acts on a market, so no hooks access exists yet.
+//   push provider — grantRole on the hooks instance writes a
+//     lenderHooksAccess directly, and no roleProviderMember at all.
+//
+// Both have to be read, because a lender found by one is not found by the
+// other — but they are separate documents rather than one, because only the
+// second is answerable on every schema. The legacy schema (mainnet, plasma)
+// has no roleProviderMembers field, and a document that mentions it there
+// fails outright, which would take the answerable half down with it.
+export const LENDER_POLICY_ACCESS_LIST_MARKETS = gql`
+  query ($lender: Bytes!) {
+    roleProviderMembers(where: { account: $lender, isMember: true }) {
+      provider {
+        attachments(where: { isApproved: true }) {
+          hooks {
+            markets {
+              id
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
+export const LENDER_POLICY_HOOKS_ACCESS_MARKETS = gql`
+  query ($lender: Bytes!) {
+    lenderHooksAccesses(
+      where: { lender: $lender, isBlockedFromDeposits: false }
+    ) {
+      lastProvider {
+        isApproved
+      }
+      hooks {
+        markets {
+          id
+        }
+      }
+    }
+  }
+`
+
 export const MARKET_TERMINATEDS = gql`
   query ($where: MarketClosed_filter) {
     marketCloseds(where: $where) {
