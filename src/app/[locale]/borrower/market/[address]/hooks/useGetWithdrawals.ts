@@ -6,13 +6,13 @@ import {
   getLatestLensContract,
   WithdrawalBatch,
   TokenAmount,
-  getSubgraphClient,
   getIncompleteWithdrawalsForMarket,
   logger,
 } from "@wildcatfi/wildcat-sdk"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
+import { getAppSubgraphClient } from "@/lib/gateway/client"
 import { cloneSdkObject } from "@/lib/sdk-object"
 import { TwoStepQueryHookResult } from "@/utils/types"
 import { applyLatestLensWithdrawalBatchUpdate } from "@/utils/withdrawalBatch"
@@ -92,7 +92,7 @@ export function useGetWithdrawals(
   const address = market?.address.toLowerCase()
   const targetChainId = market?.chainId
   const subgraphClient = useMemo(
-    () => (targetChainId ? getSubgraphClient(targetChainId) : undefined),
+    () => (targetChainId ? getAppSubgraphClient(targetChainId) : undefined),
     [targetChainId],
   )
   async function getIncompleteWithdrawalBatches(): Promise<BorrowerWithdrawalsForMarketResult> {

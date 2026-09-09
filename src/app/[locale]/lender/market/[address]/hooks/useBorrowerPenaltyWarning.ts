@@ -3,7 +3,6 @@ import { useCallback } from "react"
 import { useQuery } from "@tanstack/react-query"
 import {
   getIndexedMarketList,
-  getSubgraphClient,
   Market,
   SignerOrProvider,
   SupportedChainId,
@@ -13,6 +12,7 @@ import { updateMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/upda
 import { NETWORKS_BY_ID } from "@/config/network"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { getAppSubgraphClient } from "@/lib/gateway/client"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
 import { isNotExcludedMarket } from "@/utils/filters"
 
@@ -52,7 +52,7 @@ export const useBorrowerPenaltyWarning = (market: Market | undefined) => {
         )
       }
 
-      const subgraphClient = getSubgraphClient(chainId)
+      const subgraphClient = getAppSubgraphClient(chainId)
       const indexedMarkets = await getIndexedMarketList(subgraphClient, {
         chainId,
         signerOrProvider: signerOrProvider as SignerOrProvider,

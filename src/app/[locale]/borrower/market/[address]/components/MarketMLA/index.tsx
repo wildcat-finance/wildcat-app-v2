@@ -57,7 +57,7 @@ const SetMarketMLAForm = ({
   const options = [
     {
       id: "noMLA",
-      label: "Don’t Use",
+      label: t("common.labels.dontUse"),
       value: "noMLA",
     },
     ...(templates?.map((template) => ({

@@ -4,7 +4,6 @@ import {
   MarketAccount,
   SignerOrProvider,
   getIndexedLenderAccountSummaryForMarket,
-  getSubgraphClient,
 } from "@wildcatfi/wildcat-sdk"
 import { zeroAddress } from "viem"
 import { useAccount } from "wagmi"
@@ -13,6 +12,7 @@ import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { getAppSubgraphClient } from "@/lib/gateway/client"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 const INDEXED_ACCOUNT_POLLING_INTERVAL = 60_000
@@ -48,7 +48,7 @@ export function useLenderMarketAccountQuery({
 
   const { chainId } = useSelectedNetwork()
   const targetChainId = market?.chainId ?? chainId
-  const subgraphClient = getSubgraphClient(targetChainId)
+  const subgraphClient = getAppSubgraphClient(targetChainId)
 
   async function queryMarketAccount() {
     if (!market || !lender) throw Error()

@@ -8,14 +8,14 @@ import { getProviderForServer, getViemPublicClientForServer } from "./provider"
 
 const mockPublicClient = { request: jest.fn() }
 const mockCreatePublicClient = jest.fn().mockReturnValue(mockPublicClient)
-const mockHttp = jest.fn((url: string) => ({ url }))
+const mockHttp = jest.fn<{ url: string }, [string, unknown]>((url) => ({ url }))
 const mockViemProvider = { request: jest.fn() }
 const mockCreateViemProvider = jest.fn().mockReturnValue(mockViemProvider)
 
 jest.mock("viem", () => ({
   ...jest.requireActual("viem"),
   createPublicClient: (config: unknown) => mockCreatePublicClient(config),
-  http: (...args: [string]) => mockHttp(...args),
+  http: (...args: [string, unknown]) => mockHttp(...args),
 }))
 
 jest.mock("@/config/network", () => ({
@@ -27,10 +27,16 @@ jest.mock("./viem-provider", () => ({
 }))
 
 describe("server viem clients", () => {
+  const originalEnvironment = { ...process.env }
+
+  afterAll(() => {
+    process.env = originalEnvironment
+  })
+
   beforeEach(() => {
     jest.clearAllMocks()
     delete process.env.WILDCAT_SERVER_RPC_URL_SEPOLIA
-    process.env.NEXT_PUBLIC_ALCHEMY_API_KEY = "test-key"
+    process.env.WILDCAT_GATEWAY_TOKEN = "test-gateway-key"
   })
 
   it("creates a native read-only client for the requested chain", () => {
@@ -38,12 +44,19 @@ describe("server viem clients", () => {
       mockPublicClient,
     )
     expect(mockHttp).toHaveBeenCalledWith(
-      "https://eth-sepolia.g.alchemy.com/v2/test-key",
+      "https://rpc.wildcat.finance/11155111",
+      {
+        timeout: 30_000,
+        fetchOptions: {
+          headers: { Authorization: "Bearer test-gateway-key" },
+          redirect: "error",
+        },
+      },
     )
     expect(mockCreatePublicClient).toHaveBeenCalledWith(
       expect.objectContaining({
         chain: expect.objectContaining({ id: SupportedChainId.Sepolia }),
-        transport: { url: "https://eth-sepolia.g.alchemy.com/v2/test-key" },
+        transport: { url: "https://rpc.wildcat.finance/11155111" },
       }),
     )
   })
@@ -53,7 +66,18 @@ describe("server viem clients", () => {
 
     getViemPublicClientForServer(SupportedChainId.Sepolia)
 
-    expect(mockHttp).toHaveBeenCalledWith("https://rpc.example.invalid")
+    expect(mockHttp).toHaveBeenCalledWith("https://rpc.example.invalid", {
+      timeout: 30_000,
+      fetchOptions: { headers: {}, redirect: "error" },
+    })
+  })
+
+  it("requires a gateway token when using the default provider", () => {
+    delete process.env.WILDCAT_GATEWAY_TOKEN
+    expect(() => getViemPublicClientForServer()).toThrow(
+      "WILDCAT_GATEWAY_TOKEN is missing or invalid",
+    )
+    expect(mockHttp).not.toHaveBeenCalled()
   })
 
   it("builds the SDK compatibility provider from the native client", () => {

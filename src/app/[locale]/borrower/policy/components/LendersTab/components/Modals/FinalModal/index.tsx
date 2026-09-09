@@ -101,8 +101,8 @@ export const FinalModal = ({
               <Box sx={DeployTypoBox}>
                 <Typography variant="title3">
                   {errorMessage
-                    ? "Transaction failed"
-                    : "Oops! Something went wrong!"}
+                    ? t("borrower.policies.transactionFailed")
+                    : t("common.states.error")}
                 </Typography>
                 <Typography variant="text3" sx={DeploySubtitle}>
                   {errorMessage ??
@@ -169,7 +169,9 @@ export const FinalModal = ({
           <Loader />
 
           <Box sx={DeployTypoBox}>
-            <Typography variant="text1">Wait a second...</Typography>
+            <Typography variant="text1">
+              {t("borrower.policies.waitASecond")}
+            </Typography>
             <Typography variant="text3" sx={DeploySubtitle}>
               {t("borrower.policies.transactionProcess")}
             </Typography>

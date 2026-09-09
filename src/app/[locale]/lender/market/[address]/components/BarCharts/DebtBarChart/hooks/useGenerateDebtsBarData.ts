@@ -31,15 +31,19 @@ export const useGenerateDebtsBarData = ({
   const locked = minTokenAmount(market.totalAssets, totalClaims)
   const liquid = market.totalAssets.sub(locked)
 
-  const rawBorrowed = market.totalSupply.sub(market.totalAssets)
+  // Receipt supply is normalized 1:1 to the underlying asset.
+  const supplyInAssets = market.underlyingToken.getAmount(
+    market.totalSupply.raw,
+  )
+  const rawBorrowed = supplyInAssets.sub(market.totalAssets)
   const borrowed = rawBorrowed.lt(0)
     ? market.underlyingToken.getAmount(0)
     : rawBorrowed
 
   const asset = market.underlyingToken.symbol
 
-  const total = market.totalSupply.gt(market.totalAssets)
-    ? market.totalSupply
+  const total = supplyInAssets.gt(market.totalAssets)
+    ? supplyInAssets
     : market.totalAssets
 
   const colorKey = !isDelinquent ? "healthyBgColor" : "delinquentBgColor"

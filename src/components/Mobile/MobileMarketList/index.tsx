@@ -356,7 +356,11 @@ export const MobileMarketList = ({
             </IconButton>
           </Tooltip>
           <Tooltip
-            title={sortDir === "desc" ? "Descending" : "Ascending"}
+            title={
+              sortDir === "desc"
+                ? t("common.labels.descending")
+                : t("common.labels.ascending")
+            }
             placement="top"
           >
             <IconButton

@@ -484,9 +484,7 @@ export const WithdrawalsDelinquencyTab = ({
       )
     }
     if (delinquencyRows.length === 0) {
-      return (
-        <EmptyPanel message="No delinquency events found for this borrower." />
-      )
+      return <EmptyPanel message={t("profile.borrower.noDelinquencyEvents")} />
     }
 
     return (
@@ -498,9 +496,9 @@ export const WithdrawalsDelinquencyTab = ({
             value={delinquencySort}
             onChange={setDelinquencySort}
             options={[
-              { value: "hours", label: "Highest" },
-              { value: "market", label: "Market" },
-              { value: "recent", label: "Recent" },
+              { value: "hours", label: t("common.fields.highest") },
+              { value: "market", label: t("common.fields.market") },
+              { value: "recent", label: t("common.fields.recent") },
             ]}
           />
         }
@@ -559,7 +557,9 @@ export const WithdrawalsDelinquencyTab = ({
       )
     }
     if (!batchesQuery.data) {
-      return <EmptyPanel message="Withdrawal data is unavailable right now." />
+      return (
+        <EmptyPanel message={t("profile.borrower.withdrawalDataUnavailable")} />
+      )
     }
 
     return (
@@ -571,7 +571,7 @@ export const WithdrawalsDelinquencyTab = ({
         }}
       >
         {batchRows.length === 0 ? (
-          <EmptyPanel message="No expired withdrawal batches for this borrower." />
+          <EmptyPanel message={t("profile.borrower.noExpiredBatches")} />
         ) : (
           <AnalyticsChartCard
             title={t("profile.borrower.batchOutcomes")}
@@ -599,10 +599,10 @@ export const WithdrawalsDelinquencyTab = ({
                   value={batchSort}
                   onChange={setBatchSort}
                   options={[
-                    { value: "expiry", label: "Expiry" },
-                    { value: "status", label: "Status" },
-                    { value: "market", label: "Market" },
-                    { value: "shortfall", label: "Shortfall" },
+                    { value: "expiry", label: t("common.fields.expiry") },
+                    { value: "status", label: t("common.fields.status") },
+                    { value: "market", label: t("common.fields.market") },
+                    { value: "shortfall", label: t("common.fields.shortfall") },
                   ]}
                 />
               </Box>
@@ -632,7 +632,10 @@ export const WithdrawalsDelinquencyTab = ({
                           (sum, batch) => sum + batch.shortfall,
                           0,
                         ) / batchRows.length,
-                  name: batchMode === "percent" ? "100% paid" : "Avg shortfall",
+                  name:
+                    batchMode === "percent"
+                      ? t("profile.borrower.batches.fullyPaid")
+                      : t("profile.borrower.batches.avgShortfall"),
                   color: CHART_PALETTE.semantic.primary,
                 }}
                 showExportActions
@@ -760,19 +763,19 @@ export const WithdrawalsDelinquencyTab = ({
           isLoading={isAnalyticsLoading || delinquencyQuery.isLoading}
           items={[
             {
-              label: "Total events",
+              label: t("profile.borrower.stats.totalEvents"),
               value: String(delinquencyMetrics.totalEvents),
             },
             {
-              label: "Longest event",
+              label: t("profile.borrower.stats.longestEvent"),
               value: formatHours(delinquencyMetrics.longestSingleDelinquency),
             },
             {
-              label: "Avg cure time",
+              label: t("profile.borrower.stats.avgCureTime"),
               value: formatHours(delinquencyMetrics.averageCureTime),
             },
             {
-              label: "Penalty events",
+              label: t("profile.borrower.stats.penaltyEvents"),
               value: String(delinquencyMetrics.penaltyEvents),
             },
           ]}

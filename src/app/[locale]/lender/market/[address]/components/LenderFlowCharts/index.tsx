@@ -356,51 +356,61 @@ const MAX_VISIBLE_ROWS = 10
 const CSV_FILE_NAME = "market-delinquency-history.csv"
 const IMAGE_FILE_NAME = "market-delinquency-history.png"
 
-const DelinquencyLegend = () => (
-  <Box
-    sx={{
-      padding: "8px 12px",
-      borderRadius: "10px",
-      backgroundColor: COLORS.white,
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      gap: "4px",
-      flexShrink: 0,
-      marginLeft: "auto",
-    }}
-  >
-    {[
-      { color: CHART_PALETTE.risk.grace, label: "Within Grace" },
-      { color: CHART_PALETTE.risk.penalty, label: "Penalty Time" },
-    ].map((row) => (
-      <Box
-        key={row.label}
-        sx={{ display: "flex", alignItems: "center", gap: "6px" }}
-      >
+const DelinquencyLegend = () => {
+  const { t } = useTranslation()
+
+  return (
+    <Box
+      sx={{
+        padding: "8px 12px",
+        borderRadius: "10px",
+        backgroundColor: COLORS.white,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        gap: "4px",
+        flexShrink: 0,
+        marginLeft: "auto",
+      }}
+    >
+      {[
+        {
+          color: CHART_PALETTE.risk.grace,
+          label: t("marketDetails.lender.barchart.withinGrace"),
+        },
+        {
+          color: CHART_PALETTE.risk.penalty,
+          label: t("marketDetails.lender.barchart.penaltyTime"),
+        },
+      ].map((row) => (
         <Box
-          sx={{
-            width: 10,
-            height: 10,
-            borderRadius: "2px",
-            backgroundColor: row.color,
-            flexShrink: 0,
-          }}
-        />
-        <Typography
-          variant="text4"
-          sx={{
-            color: COLORS.santasGrey,
-            lineHeight: 1.2,
-            whiteSpace: "nowrap",
-          }}
+          key={row.label}
+          sx={{ display: "flex", alignItems: "center", gap: "6px" }}
         >
-          {row.label}
-        </Typography>
-      </Box>
-    ))}
-  </Box>
-)
+          <Box
+            sx={{
+              width: 10,
+              height: 10,
+              borderRadius: "2px",
+              backgroundColor: row.color,
+              flexShrink: 0,
+            }}
+          />
+          <Typography
+            variant="text4"
+            sx={{
+              color: COLORS.santasGrey,
+              lineHeight: 1.2,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {row.label}
+          </Typography>
+        </Box>
+      ))}
+    </Box>
+  )
+}
 
 const downloadFromHref = (href: string, fileName: string) => {
   const link = document.createElement("a")

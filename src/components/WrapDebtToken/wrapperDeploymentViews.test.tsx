@@ -1,9 +1,17 @@
 /* eslint-disable import/no-extraneous-dependencies */
+import type { ReactElement } from "react"
+
 import { fireEvent, render, screen } from "@testing-library/react"
-import type { Market, TokenWrapper } from "@wildcatfi/wildcat-sdk"
+import {
+  WrapperDeploymentStatus,
+  type Market,
+  type TokenWrapper,
+} from "@wildcatfi/wildcat-sdk"
 
 import { WrapDebtToken as BorrowerWrapDebtToken } from "@/app/[locale]/borrower/market/[address]/components/WrapDebtToken"
 import { WrapDebtToken as LenderWrapDebtToken } from "@/app/[locale]/lender/market/[address]/components/WrapDebtToken"
+import TranslationsProvider from "@/components/TranslationsProvider"
+import english from "@/locales/en/en.json"
 
 const createWrapperMock = jest.fn()
 const dispatchMock = jest.fn()
@@ -68,6 +76,19 @@ jest.mock(
   }),
 )
 
+const renderWithTranslations = (ui: ReactElement) =>
+  render(ui, {
+    wrapper: ({ children }) => (
+      <TranslationsProvider
+        locale="en"
+        namespaces={["en"]}
+        resources={{ en: { en: english } }}
+      >
+        {children}
+      </TranslationsProvider>
+    ),
+  })
+
 const market = {
   address: "0x2222222222222222222222222222222222222222",
   chainId: 11155111,
@@ -90,13 +111,16 @@ describe("wrapper deployment market views", () => {
     useCreateWrapperMock.mockReturnValue({
       canCreateWrapper: true,
       transfersDisabled: false,
+      deploymentStatus: WrapperDeploymentStatus.Ready,
+      isCheckingDeploymentCapability: false,
+      isDeploymentCapabilityError: false,
       createWrapper: createWrapperMock,
       isCreatingWrapper: false,
     })
   })
 
   it("offers the lender deployment flow from the borrower market view", () => {
-    render(<BorrowerWrapDebtToken {...wrapperProps} />)
+    renderWithTranslations(<BorrowerWrapDebtToken {...wrapperProps} />)
 
     fireEvent.click(screen.getByRole("button", { name: "Deploy wrapper" }))
 
@@ -114,7 +138,7 @@ describe("wrapper deployment market views", () => {
   })
 
   it("does not role-gate deployment from the lender market view", () => {
-    render(
+    renderWithTranslations(
       <LenderWrapDebtToken
         {...wrapperProps}
         isAuthorizedLender={false}
@@ -136,13 +160,32 @@ describe("wrapper deployment market views", () => {
       isCreatingWrapper: false,
     })
 
-    render(<BorrowerWrapDebtToken {...wrapperProps} />)
+    renderWithTranslations(<BorrowerWrapDebtToken {...wrapperProps} />)
 
     expect(screen.queryByRole("button", { name: "Deploy wrapper" })).toBeNull()
     expect(
       screen.getByText(
         "Wrappers are not available when market transfers are disabled.",
       ),
+    ).toBeTruthy()
+  })
+
+  it("hides deployment for an unsupported market factory", () => {
+    useCreateWrapperMock.mockReturnValue({
+      canCreateWrapper: false,
+      transfersDisabled: false,
+      deploymentStatus: WrapperDeploymentStatus.UnsupportedFactory,
+      isCheckingDeploymentCapability: false,
+      isDeploymentCapabilityError: false,
+      createWrapper: createWrapperMock,
+      isCreatingWrapper: false,
+    })
+
+    renderWithTranslations(<BorrowerWrapDebtToken {...wrapperProps} />)
+
+    expect(screen.queryByRole("button", { name: "Deploy wrapper" })).toBeNull()
+    expect(
+      screen.getByText("Wrapper deployment is not available for this market."),
     ).toBeTruthy()
   })
 
@@ -155,13 +198,13 @@ describe("wrapper deployment market views", () => {
       wrapper,
       hasWrapper: true,
     }
-    const { unmount } = render(
+    const { unmount } = renderWithTranslations(
       <BorrowerWrapDebtToken {...deployedWrapperProps} />,
     )
     expect(screen.getByText("Wrapper details")).toBeTruthy()
     unmount()
 
-    render(
+    renderWithTranslations(
       <LenderWrapDebtToken
         {...deployedWrapperProps}
         isAuthorizedLender

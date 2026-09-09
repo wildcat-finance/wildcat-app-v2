@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { usePathname, useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 import { toastError, toastRequest } from "@/components/Toasts"
 import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
@@ -22,6 +23,7 @@ export type SignAgreementProps = {
 }
 
 export const useSignAgreement = () => {
+  const { t } = useTranslation()
   const signer = useEthersSigner()
   const { chainId } = useSelectedNetwork()
   const safeSigning = useSafeMessageSigning()
@@ -89,7 +91,7 @@ export const useSignAgreement = () => {
         safeSigning.markCompleted(result.pendingSafeMessageId)
       } catch (error) {
         safeSigning.markSubmissionFailed(result.pendingSafeMessageId, error)
-        toastError("Failed to submit TOU signature.")
+        toastError(t("agreement.page.toasts.submitFailed"))
         throw error
       }
       return result

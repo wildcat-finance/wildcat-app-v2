@@ -117,19 +117,19 @@ export const OverviewTab = ({
             analyticsAvailable
               ? [
                   {
-                    title: "First market created",
+                    title: t("profile.borrower.stats.firstMarketCreated"),
                     value: analytics?.firstMarketCreated,
                   },
                   {
-                    title: "Time on protocol",
+                    title: t("profile.borrower.stats.timeOnProtocol"),
                     value: analytics?.timeOnProtocol,
                   },
                   {
-                    title: "Active markets",
+                    title: t("common.labels.activeMarkets"),
                     value: analytics?.activeMarkets,
                   },
                   {
-                    title: "Assets used",
+                    title: t("common.fields.assetsUsed"),
                     value: analytics?.assetsUsed.join(", "),
                   },
                 ]

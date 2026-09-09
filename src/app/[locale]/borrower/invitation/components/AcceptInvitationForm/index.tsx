@@ -77,7 +77,7 @@ export const AcceptInvitationForm = ({
             {t("common.labels.borrowerName")}
           </Typography>
           <InputBase
-            inputProps={{ "aria-label": "Borrower name" }}
+            inputProps={{ "aria-label": t("common.labels.borrowerName") }}
             sx={BorrowerNameInput}
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -137,7 +137,9 @@ export const AcceptInvitationForm = ({
             }
             sx={ActionButton}
           >
-            {submitMutation.isPending ? "Signing..." : "Sign & Accept"}
+            {submitMutation.isPending
+              ? t("common.buttons.signing")
+              : t("borrower.invitation.signAccept")}
           </Button>
         </Box>
       </Box>

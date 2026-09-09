@@ -71,7 +71,7 @@ export const LenderOverviewHeader = ({
 
   const summaryItems = [
     {
-      label: "Total balance",
+      label: t("profile.lender.stats.totalBalance"),
       value: formatUsd(profileInfo?.totalBalance ?? 0, { compact: true }),
       description: METRIC_BASIS.currentUsd,
       fullPrecisionValue: formatUsd(profileInfo?.totalBalance ?? 0, {
@@ -79,7 +79,7 @@ export const LenderOverviewHeader = ({
       }),
     },
     {
-      label: "Total deposited",
+      label: t("profile.lender.stats.totalDeposited"),
       value: formatUsd(profileInfo?.totalDeposited ?? 0, { compact: true }),
       description: METRIC_BASIS.historicalUsd,
       fullPrecisionValue: formatUsd(profileInfo?.totalDeposited ?? 0, {
@@ -87,7 +87,7 @@ export const LenderOverviewHeader = ({
       }),
     },
     {
-      label: "Total interest earned",
+      label: t("profile.lender.stats.totalInterestEarned"),
       value: formatUsd(profileInfo?.totalInterestEarned ?? 0, {
         compact: true,
       }),
@@ -97,9 +97,9 @@ export const LenderOverviewHeader = ({
       }),
     },
     {
-      label: "Effective yield",
+      label: t("profile.lender.stats.effectiveYield"),
       value: formatEffectiveYield(profileInfo?.effectiveYield),
-      description: "Historical USD interest / historical USD deposits",
+      description: t("profile.lender.stats.effectiveYieldDescription"),
       fullPrecisionValue:
         typeof profileInfo?.effectiveYield === "number" &&
         profileInfo.effectiveYield > 0
@@ -107,14 +107,14 @@ export const LenderOverviewHeader = ({
           : undefined,
     },
     {
-      label: "Active positions",
+      label: t("profile.lender.activePositions"),
       value: String(profileInfo?.activePositions ?? 0),
       description: `open positions with balance, of ${
         profileInfo?.totalPositions ?? 0
       } total`,
     },
     {
-      label: "Assets used",
+      label: t("common.fields.assetsUsed"),
       value: String(assetsUsed.length),
       description: assetsUsed.length > 0 ? assetsUsed.join(", ") : "—",
     },

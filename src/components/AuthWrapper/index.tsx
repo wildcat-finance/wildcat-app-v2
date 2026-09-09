@@ -71,12 +71,7 @@ export default function AuthWrapper({
   // If no address, tell user to connect wallet
   if (!isMounted || !address) {
     if (title) {
-      return (
-        <PanelFallback
-          title={title}
-          message="Connect your wallet to continue."
-        />
-      )
+      return <PanelFallback title={title} message={t("auth.walletRequired")} />
     }
     return (
       <Typography variant="h6">{t("auth.connectWalletContinue")}</Typography>
@@ -88,7 +83,7 @@ export default function AuthWrapper({
       return (
         <PanelFallback
           title={title}
-          message="Log in with your wallet to access the admin panel."
+          message={t("auth.adminLoginRequired")}
           action={
             <Button
               variant="contained"
@@ -116,10 +111,7 @@ export default function AuthWrapper({
   if (requiresAdmin && (!token.isAdmin || token.chainId !== chainId)) {
     if (title) {
       return (
-        <PanelFallback
-          title={title}
-          message="This account does not have admin access on the selected network."
-        />
+        <PanelFallback title={title} message={t("auth.adminAccessDenied")} />
       )
     }
     return <Typography variant="h6">{t("auth.notAdmin")}</Typography>

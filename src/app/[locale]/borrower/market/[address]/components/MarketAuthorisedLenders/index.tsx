@@ -187,9 +187,7 @@ export const MarketAuthorisedLenders = ({
     {
       sortable: false,
       field: "name",
-      headerName: t(
-        "marketDetails.borrower.authorisedLenders.tableHeaders.name",
-      ),
+      headerName: t("common.fields.name"),
       minWidth: 146,
       headerAlign: "left",
       align: "left",
@@ -237,12 +235,10 @@ export const MarketAuthorisedLenders = ({
     {
       sortable: true,
       field: "balance",
-      headerName: t(
-        "marketDetails.borrower.authorisedLenders.tableHeaders.balance",
-      ),
+      headerName: t("common.fields.balance"),
       renderHeader: () => (
         <Typography variant="text4" color={COLORS.santasGrey}>
-          {t("marketDetails.borrower.authorisedLenders.tableHeaders.balance")},{" "}
+          {t("common.fields.balance")},{" "}
           <span style={{ color: COLORS.ultramarineBlue }}>
             {market.underlyingToken.symbol}
           </span>

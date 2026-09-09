@@ -81,7 +81,7 @@ export const PoliciesSection = ({
   const columns: TypeSafeColDef<PolicyDataT>[] = [
     {
       field: "name",
-      headerName: "Policy Name",
+      headerName: t("common.fields.policyName"),
       flex: 1.5,
       minWidth: 160,
       headerAlign: "left",
@@ -99,7 +99,7 @@ export const PoliciesSection = ({
     },
     {
       field: "type",
-      headerName: "Type",
+      headerName: t("common.fields.type"),
       flex: 1.5,
       minWidth: 160,
       headerAlign: "left",
@@ -117,7 +117,7 @@ export const PoliciesSection = ({
     },
     {
       field: "accessRequirements",
-      headerName: "Access Requirements",
+      headerName: t("common.fields.accessRequirements"),
       flex: 1.5,
       minWidth: 160,
       headerAlign: "left",
@@ -134,7 +134,7 @@ export const PoliciesSection = ({
     {
       sortable: true,
       field: "markets",
-      headerName: "Assigned to Markets",
+      headerName: t("common.fields.assignedToMarkets"),
       minWidth: 176,
       headerAlign: "left",
       align: "left",

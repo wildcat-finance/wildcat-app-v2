@@ -189,8 +189,7 @@ export const MobileMarketActions = ({
   const wrappedCap =
     hasWrapper && wrapper ? wrapperAccountState?.limits?.maxWithdraw : undefined
   const hasWrappedPosition =
-    !!wrappedCap &&
-    wrappedCap.gte(market.underlyingToken.parseAmount("0.00001"))
+    !!wrappedCap && wrappedCap.gte(market.marketToken.parseAmount("0.00001"))
   const wrappedAvailable = hasWrappedPosition ? wrappedCap : undefined
   const combinedAvailable = wrappedAvailable
     ? marketAccount.marketBalance.add(wrappedAvailable)
@@ -302,7 +301,7 @@ export const MobileMarketActions = ({
 
   const handleClickDeposit = () => {
     if (touRetryAvailable) {
-      toastError(t("marketDetails.lender.touGate.retryToast"))
+      toastError(t("agreement.gate.retryToast"))
       refetchAgreementStatus().catch(() => undefined)
       return
     }
@@ -333,8 +332,8 @@ export const MobileMarketActions = ({
     depositTooltip = t("marketDetails.lender.touGate.blockedTooltip")
   } else if (touGateState === "unknown") {
     depositTooltip = isAgreementFetching
-      ? t("marketDetails.lender.touGate.checkingTooltip")
-      : t("marketDetails.lender.touGate.retryTooltip")
+      ? t("agreement.gate.checking")
+      : t("agreement.gate.retryTooltipTap")
   } else if (agreementGate.state === "error") {
     depositTooltip = t("marketDetails.lender.agreementGate.retryTooltip")
   } else if (borrowerAgreementIncomplete) {

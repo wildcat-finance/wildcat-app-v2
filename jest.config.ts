@@ -11,6 +11,7 @@ const config: Config = {
   coverageProvider: "v8",
   testEnvironment: "jsdom",
   moduleNameMapper: {
+    "^server-only$": "<rootDir>/node_modules/server-only/empty.js",
     "^@/(.*)$": "<rootDir>/src/$1",
     // ...
     "^@/app/(.*)$": "<rootDir>/src/app/$1",

@@ -32,6 +32,10 @@ This repo is for the [frontend application](https://app.wildcat.finance/lender).
 ## Running locally
 > Requires `Node 22.22.1` & `npm 11.12.0`
 
+Copy `.env.example` to `.env.local` and configure the server-only gateway token.
+See [app data gateway setup](./docs/data-gateway.md) for Vercel configuration
+and connection behavior.
+
 
 ```bash
 npm install

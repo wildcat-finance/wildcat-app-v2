@@ -45,7 +45,6 @@ import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
 import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
 import { MobileSearchButton } from "@/components/Mobile/MobileSearchButton"
 import { RepeatingSkeletons } from "@/components/RepeatingSkeletons"
-import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { marketStatusesMock } from "@/mocks/mocks"
@@ -303,16 +302,25 @@ export const ExploreMarketsTable = () => {
     }
   }, [isMobile, isLoading])
 
-  const { data: tokensRaw } = useAllTokensWithMarkets()
   const tokens = useMemo(() => {
+    // The token index also contains wrappers; only market assets belong here.
+    const underlyingTokens = Array.from(
+      new Map(
+        marketAccounts.map(({ market }) => [
+          market.underlyingToken.address.toLowerCase(),
+          market.underlyingToken,
+        ]),
+      ).values(),
+    )
+
     if (isTestnet) {
-      return tokensRaw?.filter(
+      return underlyingTokens.filter(
         (token, index, self) =>
           index === self.findIndex((x) => x.symbol === token.symbol),
       )
     }
-    return tokensRaw
-  }, [tokensRaw, isTestnet])
+    return underlyingTokens
+  }, [marketAccounts, isTestnet])
 
   const { rows, totalRows } = useMemo<{
     rows: GridRowsProp<LenderOtherMarketsTableModel>
@@ -453,7 +461,7 @@ export const ExploreMarketsTable = () => {
     () => [
       {
         field: "name",
-        headerName: "Market",
+        headerName: t("common.fields.market"),
         flex: 2.5,
         minWidth: 200,
         headerAlign: "left",
@@ -602,7 +610,7 @@ export const ExploreMarketsTable = () => {
       },
       {
         field: "debt",
-        headerName: "Total Debt / Remaining",
+        headerName: t("common.fields.totalDebtRemaining"),
         minWidth: 200,
         flex: 1.5,
         headerAlign: "right",
@@ -739,7 +747,7 @@ export const ExploreMarketsTable = () => {
                 >
                   {action === LenderMarketAction.DepositUnavailable
                     ? t("marketList.shared.tables.other.depositBTN")
-                    : "Unavailable"}
+                    : t("marketList.shared.tables.other.unavailable")}
                 </Button>
               )}
             </Box>
@@ -789,12 +797,10 @@ export const ExploreMarketsTable = () => {
 
             <Box sx={{ display: "flex", gap: "4px" }}>
               <MobileFilterButton
-                assetsOptions={
-                  tokens?.map((token) => ({
-                    id: token.address,
-                    name: token.symbol,
-                  })) ?? []
-                }
+                assetsOptions={tokens.map((token) => ({
+                  id: token.address,
+                  name: token.symbol,
+                }))}
                 statusesOptions={statusFilterOptions}
                 withdrawalCycleOptions={withdrawalCycleOptions}
                 marketAssets={assets}
@@ -1039,12 +1045,10 @@ export const ExploreMarketsTable = () => {
 
           <MarketsFilterSelect
             placeholder={t("common.fields.asset")}
-            options={
-              tokens?.map((token) => ({
-                id: token.address,
-                name: token.symbol,
-              })) ?? []
-            }
+            options={tokens.map((token) => ({
+              id: token.address,
+              name: token.symbol,
+            }))}
             selected={assets}
             setSelected={setAssets}
           />

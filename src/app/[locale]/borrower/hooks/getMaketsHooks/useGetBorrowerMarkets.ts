@@ -1,9 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import {
-  getIndexedMarketList,
-  getSubgraphClient,
-  SupportedChainId,
-} from "@wildcatfi/wildcat-sdk"
+import { getIndexedMarketList, SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
 import { updateMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/updateMarkets"
@@ -12,6 +8,7 @@ import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { getAppSubgraphClient } from "@/lib/gateway/client"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
 import { isNotExcludedMarket } from "@/utils/filters"
 import { refetchOnMountIfInvalidated } from "@/utils/queryRefetch"
@@ -29,7 +26,7 @@ export function useGetBorrowerMarketsQuery({
 
   async function queryBorrowerMarkets() {
     if (!address || !chainId || !provider) return []
-    const subgraphClient = getSubgraphClient(chainId)
+    const subgraphClient = getAppSubgraphClient(chainId)
     const markets = await getIndexedMarketList(subgraphClient, {
       chainId,
       signerOrProvider: provider,

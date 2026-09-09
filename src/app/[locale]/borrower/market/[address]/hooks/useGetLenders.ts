@@ -1,16 +1,16 @@
 import { useQuery } from "@tanstack/react-query"
 import {
   getAuthorisedLendersByMarket,
-  getSubgraphClient,
   logger,
   Market,
 } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
+import { getAppSubgraphClient } from "@/lib/gateway/client"
 
 export const useGetAuthorisedLendersByMarket = (market: Market | undefined) => {
   const subgraphClient = market?.chainId
-    ? getSubgraphClient(market.chainId)
+    ? getAppSubgraphClient(market.chainId)
     : undefined
   const queryAuthorisedLenders = async () => {
     if (!market || !subgraphClient) throw Error()

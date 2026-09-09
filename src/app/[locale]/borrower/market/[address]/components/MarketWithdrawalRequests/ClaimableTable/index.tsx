@@ -62,7 +62,7 @@ export const ClaimableTable = ({
       {
         sortable: false,
         field: "lender",
-        headerName: "Lender",
+        headerName: t("common.fields.lender"),
         minWidth: 176,
         headerAlign: "left",
         align: "left",
@@ -98,7 +98,7 @@ export const ClaimableTable = ({
       {
         sortable: false,
         field: "dateSubmitted",
-        headerName: "Date Submitted",
+        headerName: t("common.fields.dateSubmitted"),
         minWidth: 216,
         headerAlign: "left",
         align: "left",
@@ -126,7 +126,7 @@ export const ClaimableTable = ({
       {
         sortable: false,
         field: "transactionId",
-        headerName: "Transaction ID",
+        headerName: t("common.fields.transactionId"),
         minWidth: 216,
         headerAlign: "left",
         align: "left",
@@ -153,7 +153,7 @@ export const ClaimableTable = ({
       {
         sortable: false,
         field: "amount",
-        headerName: "Amount",
+        headerName: t("common.fields.amount"),
         minWidth: 120,
         flex: 1,
         headerAlign: "right",

@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
 import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
+import { useWithdrawalBatchJoinWarning } from "@/app/[locale]/lender/market/[address]/hooks/useWithdrawalBatchJoinWarning"
 import {
   LegStatus,
   useWithdrawFlow,
@@ -50,6 +51,9 @@ export const WithdrawModal = ({
 
   const [isDesktopOpen, setIsDesktopOpen] = useState(false)
   const [snapshotShares, setSnapshotShares] = useState<TokenAmount>()
+  const isOpen = isMobile ? !!isMobileOpen : isDesktopOpen
+  const isOpenRef = React.useRef(isOpen)
+  isOpenRef.current = isOpen
 
   // /**
   //  * The form is the tallest view. Remember its height and hold it for the rest
@@ -61,6 +65,8 @@ export const WithdrawModal = ({
 
   const routing = useWithdrawRouting({ marketAccount, wrapper, hasWrapper })
   const flow = useWithdrawFlow({ marketAccount, wrapper })
+  const routeRef = React.useRef(routing.route)
+  routeRef.current = routing.route
 
   const notMature =
     market.hooksConfig?.kind === HooksKind.FixedTerm &&
@@ -78,6 +84,16 @@ export const WithdrawModal = ({
   } else if (availability !== QueueWithdrawalStatus.Ready) {
     blockingError = SDK_ERRORS_MAPPING.queueWithdrawal[availability]
   }
+
+  const batchJoinWarning = useWithdrawalBatchJoinWarning({
+    marketAccount,
+    requestAmount: routing.route.amount,
+    dustFloor: routing.dustFloor,
+    requestIsValid: routing.isValid && !blockingError,
+    useExactScaledBalance:
+      routing.route.isFullMax && !routing.route.usesWrapped,
+    enabled: isOpen,
+  })
 
   /** Transaction count for the current route, before the flow is started. */
   const previewLegCount = React.useMemo(() => {
@@ -98,9 +114,8 @@ export const WithdrawModal = ({
     return "steps" as const
   })()
 
-  const isOpen = isMobile ? !!isMobileOpen : isDesktopOpen
-
   const handleClose = () => {
+    isOpenRef.current = false
     flow.reset()
     routing.reset()
     setSnapshotShares(undefined)
@@ -140,9 +155,22 @@ export const WithdrawModal = ({
     setSnapshotShares(undefined)
   }
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
+    if (batchJoinWarning.state === "loading") return
+    const { route } = routing
+    if (batchJoinWarning.state === "clear") {
+      const latestState = await batchJoinWarning.refresh()
+      if (
+        latestState !== "clear" ||
+        !isOpenRef.current ||
+        routeRef.current !== route
+      ) {
+        return
+      }
+    }
+
     setSnapshotShares(routing.sharesToUnwrap)
-    flow.begin(routing.route)
+    flow.begin(route)
   }
 
   // ---- step rows ----
@@ -252,6 +280,19 @@ export const WithdrawModal = ({
       return t("marketDetails.lender.transactions.withdraw.confirm.exceeds")
     if (!routing.isValid || blockingError)
       return t("marketDetails.lender.transactions.withdraw.confirm.enterAmount")
+    if (batchJoinWarning.state === "loading")
+      return t(
+        "marketDetails.lender.transactions.withdraw.confirm.checkingBatch",
+      )
+    if (
+      batchJoinWarning.state === "warning" ||
+      batchJoinWarning.state === "unknown"
+    ) {
+      return t(
+        "marketDetails.lender.transactions.withdraw.confirm.withdrawAnyway",
+        { count: previewLegCount },
+      )
+    }
     return t("marketDetails.lender.transactions.withdraw.confirm.withdraw", {
       amount: formatTokenWithCommas(routing.route.amount),
       symbol,
@@ -290,6 +331,7 @@ export const WithdrawModal = ({
         isMultisig={flow.isMultisig}
         safeThreshold={flow.safeThreshold}
         blockingError={blockingError}
+        batchJoinWarning={batchJoinWarning}
       />
     </Box>
   )
@@ -374,7 +416,11 @@ export const WithdrawModal = ({
         <TxModalFooter
           mainBtnText={confirmLabel}
           mainBtnOnClick={handleConfirm}
-          disableMainBtn={!routing.isValid || !!blockingError}
+          disableMainBtn={
+            !routing.isValid ||
+            !!blockingError ||
+            batchJoinWarning.state === "loading"
+          }
         />
       )
     }
@@ -399,6 +445,11 @@ export const WithdrawModal = ({
       />
     )
   })()
+
+  const dialogHeight =
+    batchJoinWarning.state === "clear"
+      ? DIALOG_HEIGHT
+      : "min(647px, calc(100dvh - 32px))"
 
   // ---- mobile ----
   if (isMobile && isMobileOpen) {
@@ -434,6 +485,8 @@ export const WithdrawModal = ({
             padding: "24px 20px 16px",
             width: "100%",
             flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
             display: "flex",
             flexDirection: "column",
           }}
@@ -466,9 +519,9 @@ export const WithdrawModal = ({
         onClose={flow.busy ? undefined : handleClose}
         sx={{
           "& .MuiDialog-paper": {
-            height: DIALOG_HEIGHT,
-            minHeight: DIALOG_HEIGHT,
-            maxHeight: DIALOG_HEIGHT,
+            height: dialogHeight,
+            minHeight: dialogHeight,
+            maxHeight: dialogHeight,
             width: "440px",
             minWidth: "440px !important",
             maxWidth: "440px",

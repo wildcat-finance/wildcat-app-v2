@@ -1,12 +1,13 @@
 import {
-  getSubgraphClient,
   isSupportedChainId,
   SubgraphDeploymentRequirementsByChain,
 } from "@wildcatfi/wildcat-sdk"
 
+import { getAppSubgraphClient } from "@/lib/gateway/client"
+
 export const getConfiguredSubgraphClient = (chainId: number | undefined) => {
   if (chainId === undefined || !isSupportedChainId(chainId)) return undefined
-  return getSubgraphClient(chainId)
+  return getAppSubgraphClient(chainId)
 }
 
 export const isSubgraphAnalyticsConfigured = (

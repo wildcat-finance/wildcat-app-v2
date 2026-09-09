@@ -44,9 +44,6 @@ import { RepayModalProps } from "./interface"
 import { DaysSubtitle, PenaltyRepayBtn, PenaltyRepayBtnIcon } from "./style"
 
 const SECONDS_IN_DAY = 24 * 60 * 60
-const EXCEEDS_BALANCE_MESSAGE =
-  "Amount exceeds wallet balance. You can still approve for future use"
-
 export const RepayModal = ({
   buttonType = "marketHeader",
   marketAccount,
@@ -321,7 +318,7 @@ export const RepayModal = ({
     if (repayStep === "InsufficientAllowance") {
       // warn approval is larger than balance
       if (repayAmount.gt(marketAccount.underlyingBalance)) {
-        setRepayError(EXCEEDS_BALANCE_MESSAGE)
+        setRepayError(t("marketDetails.borrower.modals.repay.exceedsBalance"))
       } else {
         // amount is within balance, just needs approval
         setRepayError(undefined)
@@ -333,7 +330,7 @@ export const RepayModal = ({
     if (repayStep === "InsufficientBalance") {
       if (!isAllowanceSufficient) {
         // needs approval - friendly message
-        setRepayError(EXCEEDS_BALANCE_MESSAGE)
+        setRepayError(t("marketDetails.borrower.modals.repay.exceedsBalance"))
       } else {
         // has approval but truly insufficient balance
         setRepayError(SDK_ERRORS_MAPPING.repay[repayStep])
@@ -611,8 +608,8 @@ export const RepayModal = ({
             isConnectedToSafe
               ? undefined
               : isApprovedButton
-                ? t("marketDetails.borrower.modals.repay.approved")
-                : t("marketDetails.borrower.modals.repay.approve")
+                ? t("common.buttons.approved")
+                : t("common.buttons.approve")
           }
           secondBtnIcon={isApprovedButton && !isConnectedToSafe}
           mainBtnOnClick={handleRepay}

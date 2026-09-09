@@ -4,6 +4,7 @@ import { useEffect } from "react"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { ServiceAgreementPartyInput } from "@/app/api/service-agreement/interface"
@@ -57,6 +58,7 @@ export const useAccountToUParty = (party: ServiceAgreementPartyInput) => {
 
 /// Accept the CURRENT ToU version (re-acceptance path, both parties).
 export const useAcceptToU = (agreementParty: ServiceAgreementPartyInput) => {
+  const { t } = useTranslation()
   const { address } = useAccount()
   const { chainId: selectedChainId } = useSelectedNetwork()
   const client = useQueryClient()
@@ -155,10 +157,10 @@ export const useAcceptToU = (agreementParty: ServiceAgreementPartyInput) => {
         }
         if (!result.success) throw Error(`Failed to submit signature`)
         safeSigning.markCompleted(signed.pendingSafeMessageId)
-        toastSuccess("Terms of Use accepted.")
+        toastSuccess(t("agreement.reacceptance.toasts.accepted"))
       } catch (error) {
         safeSigning.markSubmissionFailed(signed.pendingSafeMessageId, error)
-        toastError("Failed to submit ToU signature.")
+        toastError(t("agreement.reacceptance.toasts.submitFailed"))
         throw error
       }
     },
@@ -184,6 +186,7 @@ export const useAcceptToU = (agreementParty: ServiceAgreementPartyInput) => {
 /// Decline the CURRENT ToU version - wallet-signs an unambiguous refusal
 /// message (never confusable with an acceptance) and records it.
 export const useDeclineToU = (agreementParty: ServiceAgreementPartyInput) => {
+  const { t } = useTranslation()
   const { address } = useAccount()
   const { chainId: selectedChainId } = useSelectedNetwork()
   const client = useQueryClient()
@@ -334,10 +337,10 @@ export const useDeclineToU = (agreementParty: ServiceAgreementPartyInput) => {
         }
         if (!result.success) throw Error(`Failed to submit decline`)
         safeSigning.markCompleted(signed.pendingSafeMessageId)
-        toastSuccess("Terms of Use declined.")
+        toastSuccess(t("agreement.reacceptance.toasts.declined"))
       } catch (error) {
         safeSigning.markSubmissionFailed(signed.pendingSafeMessageId, error)
-        toastError("Failed to submit the decline.")
+        toastError(t("agreement.reacceptance.toasts.declineFailed"))
         throw error
       }
     },

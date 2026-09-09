@@ -368,6 +368,12 @@ const LENDER_QUERY_KEYS = {
   ) => k(["lender", "GET_SIGNED_MLA", chainId, marketAddress, lenderAddress]),
   GET_BORROWER_PENALTY_WARNING: (chainId: number, borrowerAddress?: string) =>
     k(["lender", "GET_BORROWER_PENALTY_WARNING", chainId, borrowerAddress]),
+  GET_WITHDRAWAL_BATCH_JOIN: (
+    chainId: number,
+    marketAddress?: string,
+    expiry?: number,
+  ) =>
+    k(["lender", "GET_WITHDRAWAL_BATCH_JOIN", chainId, marketAddress, expiry]),
   GET_NON_MLA_ACKNOWLEDGEMENT: (
     chainId: number,
     marketAddress?: string,
@@ -387,6 +393,8 @@ const LENDER_QUERY_KEYS = {
 const WRAPPER_QUERY_KEYS = {
   GET_WRAPPER_FOR_MARKET: (chainId: number, marketAddress?: string) =>
     k(["wrapper", "GET_WRAPPER_FOR_MARKET", chainId, marketAddress]),
+  GET_DEPLOYMENT_CAPABILITY: (chainId: number, marketAddress?: string) =>
+    k(["wrapper", "GET_DEPLOYMENT_CAPABILITY", chainId, marketAddress]),
   GET_WRAPPER: (chainId: number, wrapperAddress?: string) =>
     k(["wrapper", "GET_WRAPPER", chainId, wrapperAddress]),
   GET_ACCOUNT_STATE: (

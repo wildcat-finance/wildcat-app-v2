@@ -1,9 +1,10 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   Market,
   Signer,
   SupportedChainId,
+  WrapperDeploymentStatus,
   WrapperFactory,
   toSafeTransactionInput,
 } from "@wildcatfi/wildcat-sdk"
@@ -29,15 +30,42 @@ export const useCreateWrapper = ({
   isDifferentChain,
 }: UseCreateWrapperParams) => {
   const { targetChainId } = useCurrentNetwork()
-  const { signer } = useEthersProvider({ chainId: market?.chainId })
+  const { provider, signer } = useEthersProvider({ chainId: market?.chainId })
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
   const client = useQueryClient()
 
   const transfersDisabled = market?.hooksConfig?.transfersDisabled === true
+  const signerOrProvider = signer ?? provider
+  const marketChainId = market?.chainId as SupportedChainId | undefined
+  const deploymentCapabilityQuery = useQuery({
+    queryKey: QueryKeys.Wrapper.GET_DEPLOYMENT_CAPABILITY(
+      marketChainId ?? 0,
+      market?.address,
+    ),
+    enabled:
+      !!market &&
+      !!marketChainId &&
+      !!signerOrProvider &&
+      hasFactory &&
+      !transfersDisabled,
+    queryFn: async () => {
+      if (!market || !marketChainId || !signerOrProvider) {
+        throw new Error("Missing wrapper deployment params")
+      }
+      return WrapperFactory.getDeploymentCapability(
+        marketChainId,
+        signerOrProvider,
+        market.address,
+      )
+    },
+    staleTime: Infinity,
+  })
+  const deploymentStatus = deploymentCapabilityQuery.data?.status
   const canCreateWrapper =
     !!market &&
     hasFactory &&
     !transfersDisabled &&
+    deploymentStatus === WrapperDeploymentStatus.Ready &&
     !!signer &&
     Signer.isSigner(signer) &&
     !isDifferentChain &&
@@ -63,7 +91,7 @@ export const useCreateWrapper = ({
       const chainId = market.chainId as SupportedChainId
       if (safeConnected) {
         if (!sdk) throw new Error("No Safe SDK")
-        const tx = WrapperFactory.populateCreateWrapper(
+        const tx = await WrapperFactory.populateCreateWrapper(
           chainId,
           signer,
           market.address,
@@ -102,6 +130,9 @@ export const useCreateWrapper = ({
   return {
     canCreateWrapper,
     transfersDisabled,
+    deploymentStatus,
+    isCheckingDeploymentCapability: deploymentCapabilityQuery.isLoading,
+    isDeploymentCapabilityError: deploymentCapabilityQuery.isError,
     createWrapper: mutation.mutateAsync,
     isCreatingWrapper: mutation.isPending,
   }

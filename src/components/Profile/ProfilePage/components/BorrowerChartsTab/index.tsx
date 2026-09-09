@@ -598,7 +598,7 @@ export const BorrowerChartsTab = ({
 
     if (!cureVelocityQuery.data || cureVelocityQuery.data.points.length === 0) {
       return (
-        <EmptyPanel message="No cured delinquency events found for this borrower." />
+        <EmptyPanel message={t("profile.borrower.noCuredDelinquencyEvents")} />
       )
     }
 
@@ -654,7 +654,7 @@ export const BorrowerChartsTab = ({
     }
 
     if (capitalCostRows.length === 0) {
-      return <EmptyPanel message="No daily capital cost data found." />
+      return <EmptyPanel message={t("profile.borrower.noDailyCapitalCost")} />
     }
 
     return (
