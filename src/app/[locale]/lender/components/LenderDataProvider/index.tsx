@@ -39,7 +39,7 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
   })
 
   const { data: borrowers } = useBorrowerNames()
-  const { policyMarkets } = useLenderPolicyMarkets()
+  const { policyMarkets } = useLenderPolicyMarkets(marketAccounts)
 
   const lenderMarkets = useMemo(
     () =>

@@ -249,51 +249,55 @@ export const RECENT_WITHDRAWAL_REQUESTS = gql`
   }
 `
 
-// Markets a lender can reach because a borrower added them to a policy.
-//
-// Granting policy access takes two different shapes, and neither leaves a
-// per-market LenderAccount row, a credential or a role behind — so a market
-// held this way is invisible to everything else the dashboard fetches:
-//
-//   pull provider (ACCESS_LIST) — addMember on the provider writes only a
-//     roleProviderMember; the hook does not read it until the lender itself
-//     first acts on a market, so no hooks access exists yet.
-//   push provider — grantRole on the hooks instance writes a
-//     lenderHooksAccess directly, and no roleProviderMember at all.
-//
-// Both have to be read, because a lender found by one is not found by the
-// other — but they are separate documents rather than one, because only the
-// second is answerable on every schema. The legacy schema (mainnet, plasma)
-// has no roleProviderMembers field, and a document that mentions it there
-// fails outright, which would take the answerable half down with it.
-export const LENDER_POLICY_ACCESS_LIST_MARKETS = gql`
-  query ($lender: Bytes!) {
-    roleProviderMembers(where: { account: $lender, isMember: true }) {
+// Page each relationship at the root: nested collections have independent
+// limits. Membership and attachments exist only in the V2.5 schema.
+export const LENDER_POLICY_ACCESS_LIST_MEMBERSHIPS = gql`
+  query ($first: Int!, $where: RoleProviderMember_filter!) {
+    roleProviderMembers(
+      first: $first
+      orderBy: id
+      orderDirection: asc
+      where: $where
+    ) {
+      id
       provider {
-        attachments(where: { isApproved: true }) {
-          hooks {
-            markets {
-              id
-            }
-          }
-        }
+        id
       }
     }
   }
 `
 
-export const LENDER_POLICY_HOOKS_ACCESS_MARKETS = gql`
-  query ($lender: Bytes!) {
-    lenderHooksAccesses(
-      where: { lender: $lender, isBlockedFromDeposits: false }
+export const LENDER_POLICY_ACCESS_LIST_HOOKS = gql`
+  query ($first: Int!, $where: RoleProvider_filter!) {
+    roleProviders(
+      first: $first
+      orderBy: id
+      orderDirection: asc
+      where: $where
     ) {
+      id
+      hooks {
+        id
+      }
+    }
+  }
+`
+
+// Direct hook grants are available on both the legacy and V2.5 schemas.
+export const LENDER_POLICY_HOOKS_ACCESS = gql`
+  query ($first: Int!, $where: LenderHooksAccess_filter!) {
+    lenderHooksAccesses(
+      first: $first
+      orderBy: id
+      orderDirection: asc
+      where: $where
+    ) {
+      id
       lastProvider {
         isApproved
       }
       hooks {
-        markets {
-          id
-        }
+        id
       }
     }
   }
