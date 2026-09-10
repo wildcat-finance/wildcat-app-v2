@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { Box, Button, Tooltip, Typography } from "@mui/material"
+import { Box, Button, Skeleton, Tooltip, Typography } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
 import { MarketRecord } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
@@ -8,7 +8,6 @@ import { useTranslation } from "react-i18next"
 import { TableStyles } from "@/app/[locale]/borrower/edit-lenders-list/components/ConfirmLendersForm/style"
 import { useBorrowerNameOrAddress } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { getMarketAprCopy } from "@/components/market-implementation-variants"
-import { MarketRecordsSkeleton } from "@/components/MarketDetailSkeletons"
 import { MobileMarketRecordItem } from "@/components/Mobile/MobileMarketRecordItem"
 import { TablePagination } from "@/components/TablePagination"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
@@ -107,7 +106,30 @@ export function MarketRecordsTable({
   ]
 
   if (isLoading) {
-    return <MarketRecordsSkeleton isMobile={isMobile} />
+    return (
+      <Box
+        display="flex"
+        flexDirection="column"
+        padding={isMobile ? "8px 0" : "32px 16px"}
+        rowGap="8px"
+      >
+        <Skeleton
+          height={isMobile ? "60px" : "52px"}
+          width="100%"
+          sx={{ bgcolor: COLORS.athensGrey }}
+        />
+        <Skeleton
+          height={isMobile ? "60px" : "52px"}
+          width="100%"
+          sx={{ bgcolor: COLORS.athensGrey }}
+        />
+        <Skeleton
+          height={isMobile ? "60px" : "52px"}
+          width="100%"
+          sx={{ bgcolor: COLORS.athensGrey }}
+        />
+      </Box>
+    )
   }
 
   const rows = records?.map((r) => ({

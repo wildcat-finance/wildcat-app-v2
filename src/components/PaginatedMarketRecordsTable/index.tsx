@@ -434,44 +434,64 @@ export function PaginatedMarketRecordsTable({
 
   return (
     <>
-      <Box
+      {filterButton}
+
+      <Popover
+        id={id}
+        open={open}
+        anchorEl={anchorEl}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
+        }}
         sx={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
+          "& .MuiPaper-root": {
+            width: "294px",
+            height: "fit-content",
+            fontFamily: "inherit",
+            padding: "12px",
+            marginTop: "2px",
+          },
         }}
       >
-        <Box>
-          {filterButton}
-
-          <Popover
-            id={id}
-            open={open}
-            anchorEl={anchorEl}
-            onClose={handleClose}
-            anchorOrigin={{
-              vertical: "bottom",
-              horizontal: "left",
-            }}
-            sx={{
-              "& .MuiPaper-root": {
-                width: "294px",
-                height: "fit-content",
-                fontFamily: "inherit",
-                padding: "12px",
-                marginTop: "2px",
-              },
-            }}
-          >
-            <Box sx={{ padding: "6px 0 6px 10px" }}>
+        <Box sx={{ padding: "6px 0 6px 10px" }}>
+          <FormControlLabel
+            label={t("marketDetails.shared.records.allTypes")}
+            control={
+              <ExtendedCheckbox
+                checked={allSelected}
+                indeterminate={isIndeterminate}
+                onChange={(event) => handleToggleAll(event.target.checked)}
+                sx={{
+                  "& ::before": {
+                    transform: "translate(-3px, -3px) scale(0.75)",
+                  },
+                }}
+              />
+            }
+          />
+        </Box>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "6px",
+            padding: "0 10px 0 26px",
+          }}
+        >
+          {options.map((o) => (
+            <Box
+              key={o.id}
+              sx={{ padding: "2px 0", display: "flex", align: "center" }}
+            >
               <FormControlLabel
-                label={t("marketDetails.shared.records.allTypes")}
+                label={o.label}
                 control={
                   <ExtendedCheckbox
-                    checked={allSelected}
-                    indeterminate={isIndeterminate}
-                    onChange={(event) => handleToggleAll(event.target.checked)}
+                    value={o.value}
+                    onChange={(event) => handleChange(o, event.target.checked)}
+                    checked={selectedFilters.includes(o.value)}
                     sx={{
                       "& ::before": {
                         transform: "translate(-3px, -3px) scale(0.75)",
@@ -481,62 +501,28 @@ export function PaginatedMarketRecordsTable({
                 }
               />
             </Box>
-
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "6px",
-                padding: "0 10px 0 26px",
-              }}
-            >
-              {options.map((o) => (
-                <Box
-                  key={o.id}
-                  sx={{ padding: "2px 0", display: "flex", align: "center" }}
-                >
-                  <FormControlLabel
-                    label={o.label}
-                    control={
-                      <ExtendedCheckbox
-                        value={o.value}
-                        onChange={(event) =>
-                          handleChange(o, event.target.checked)
-                        }
-                        checked={selectedFilters.includes(o.value)}
-                        sx={{
-                          "& ::before": {
-                            transform: "translate(-3px, -3px) scale(0.75)",
-                          },
-                        }}
-                      />
-                    }
-                  />
-                </Box>
-              ))}
-            </Box>
-
-            <Button
-              onClick={handleClear}
-              size="medium"
-              variant="contained"
-              color="secondary"
-              sx={{ width: "100%", marginTop: "12px" }}
-            >
-              {t("common.buttons.reset")}
-            </Button>
-          </Popover>
-
-          <FilterTextField
-            value={search}
-            setValue={setSearch}
-            placeholder={t("marketDetails.shared.records.searchId")}
-            width="180px"
-          />
+          ))}
         </Box>
 
-        {exportButton}
-      </Box>
+        <Button
+          onClick={handleClear}
+          size="medium"
+          variant="contained"
+          color="secondary"
+          sx={{ width: "100%", marginTop: "12px" }}
+        >
+          {t("common.buttons.reset")}
+        </Button>
+      </Popover>
+
+      <FilterTextField
+        value={search}
+        setValue={setSearch}
+        placeholder={t("marketDetails.shared.records.searchId")}
+        width="180px"
+      />
+
+      {exportButton}
 
       <MarketRecordsTable
         market={market}
