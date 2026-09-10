@@ -28,7 +28,10 @@ import { LeadBanner } from "@/components/LeadBanner"
 import {
   AccountRowsSkeleton,
   ChartSectionSkeleton,
+  DescriptionSkeleton,
   LenderTransactionsSkeleton,
+  MarketHeaderSkeleton,
+  MarketRecordsSkeleton,
 } from "@/components/MarketDetailSkeletons"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
@@ -38,6 +41,7 @@ import { useIdlePrefetchMarketRecords } from "@/components/PaginatedMarketRecord
 import { PendingAprReductionBanner } from "@/components/PendingAprReductionBanner"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
 import { METRIC_BASIS } from "@/components/Profile/shared/metricBasis"
+import { WrapperSkeleton } from "@/components/WrapDebtToken/WrapperSkeleton"
 import { analyticsUiEnabled } from "@/config/featureFlags"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useGetMarket } from "@/hooks/useGetMarket"
@@ -86,8 +90,6 @@ import {
   LenderBannerWrapper,
   MarketContentColumn,
   SectionContainer,
-  SkeletonContainer,
-  SkeletonStyle,
 } from "./style"
 import {
   getEffectiveLenderRole,
@@ -106,6 +108,56 @@ const LenderFlowCharts = dynamic(
     loading: () => <ChartSectionSkeleton sections={3} />,
   },
 )
+
+const renderSectionSkeleton = (
+  section: LenderMarketSections,
+  authorizedInMarket: boolean,
+) => {
+  switch (section) {
+    case LenderMarketSections.STATUS:
+      return <ChartSectionSkeleton sections={authorizedInMarket ? 3 : 1} />
+    case LenderMarketSections.SUMMARY:
+      return <DescriptionSkeleton />
+    case LenderMarketSections.MARKET_HISTORY:
+      return <MarketRecordsSkeleton />
+    case LenderMarketSections.WRAP_DEBT_TOKEN:
+      return <WrapperSkeleton />
+    // Neither of these has a placeholder of its own yet; three rows is the closest
+    // shape the shared library offers.
+    case LenderMarketSections.REQUESTS:
+    case LenderMarketSections.BORROWER_PROFILE:
+      return <AccountRowsSkeleton />
+    case LenderMarketSections.TRANSACTIONS:
+    default:
+      return <LenderTransactionsSkeleton />
+  }
+}
+
+const isSectionSkeletonVisible = (
+  section: LenderMarketSections,
+  flags: {
+    isTransactionsLoading: boolean
+    isBarChartsLoading: boolean
+    isWithdrawalsLoading: boolean
+    isLoadingSummary: boolean
+  },
+) => {
+  switch (section) {
+    case LenderMarketSections.TRANSACTIONS:
+      return flags.isTransactionsLoading
+    case LenderMarketSections.STATUS:
+      return flags.isBarChartsLoading
+    case LenderMarketSections.REQUESTS:
+      return flags.isWithdrawalsLoading
+    case LenderMarketSections.SUMMARY:
+      return flags.isLoadingSummary
+    // MARKET_HISTORY and WRAP_DEBT_TOKEN own their placeholders internally and
+    // BORROWER_PROFILE has none, so the page cannot tell. Never hold the banner on a
+    // state it cannot observe.
+    default:
+      return false
+  }
+}
 
 export default function LenderMarketDetails({
   params: { address },
@@ -167,6 +219,7 @@ export default function LenderMarketDetails({
     data: marketAccount,
     authoritativeAccount,
     authoritativeStatus,
+    isPendingUpdate: isLenderAccessPaused,
     refetchUpdate: refetchLenderAccess,
   } = useLenderMarketAccount(market)
   const { data: withdrawals, isLoadingInitial: isWithdrawalsLoading } =
@@ -337,14 +390,28 @@ export default function LenderMarketDetails({
   const showLenderAccessError = lenderBannerState === "authorization-error"
   const showLenderBlocked = lenderBannerState === "blocked"
   const showLenderRequestBanner = lenderBannerState === "request-access"
+  const isLenderAccessResolving =
+    isConnected &&
+    !isDifferentChain &&
+    authoritativeStatus === "resolving" &&
+    !isLenderAccessPaused
   const isTransactionsLoading =
     !marketAccount ||
+    isLenderAccessResolving ||
+    (!isDifferentChain && isWrapperPositionLoading) ||
     (showLenderTransactions && !isDifferentChain && isWithdrawalsLoading)
-  const isBarChartsLoading = !marketAccount || isWithdrawalsLoading
+  const isBarChartsLoading =
+    !marketAccount || isLenderAccessResolving || isWithdrawalsLoading
 
   const currentSection = useAppSelector(
     (state) => state.lenderMarketRouting.currentSection,
   )
+  const isSectionSkeletonShowing = isSectionSkeletonVisible(currentSection, {
+    isTransactionsLoading,
+    isBarChartsLoading,
+    isWithdrawalsLoading,
+    isLoadingSummary,
+  })
 
   useEffect(() => {
     dispatch(setIsLoading(isLoading))
@@ -533,28 +600,12 @@ export default function LenderMarketDetails({
 
   if (isLoading && !isMobile)
     return (
-      <Box sx={{ padding: "52px 20px 0 44px" }}>
-        <Box sx={{ width: "69%" }}>
-          <Box width="100%" height="90px">
-            <Skeleton
-              height="20px"
-              width="132px"
-              sx={{ bgcolor: COLORS.athensGrey }}
-            />
-          </Box>
-          <Box sx={SkeletonContainer}>
-            <Skeleton height="82px" width="395px" sx={SkeletonStyle} />
-            <Skeleton height="82px" width="395px" sx={SkeletonStyle} />
-          </Box>
-          <Box
-            sx={SkeletonContainer}
-            marginTop="56px"
-            flexDirection="column"
-            gap="20px"
-          >
-            <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
-            <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
-            <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+      <Box>
+        <MarketHeaderSkeleton />
+
+        <Box sx={MarketContentColumn(theme)}>
+          <Box sx={SectionContainer(theme)}>
+            {renderSectionSkeleton(currentSection, authorizedInMarket)}
           </Box>
         </Box>
       </Box>
@@ -894,7 +945,7 @@ export default function LenderMarketDetails({
       )}
 
       <Box sx={MarketContentColumn(theme, isConnected && isDifferentChain)}>
-        {showConnectWalletBanner && (
+        {showConnectWalletBanner && !isSectionSkeletonShowing && (
           <Box sx={LenderBannerWrapper}>
             <LeadBanner
               title={t("marketDetails.lender.connectWallet")}
