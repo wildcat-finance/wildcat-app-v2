@@ -60,7 +60,7 @@ import {
   LenderMarketSections,
   setIsLender,
   setIsLoading,
-  setSection,
+  setDefaultSection,
   resetPageState,
   setWithdrawalsCount,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
@@ -133,32 +133,6 @@ const renderSectionSkeleton = (
   }
 }
 
-const isSectionSkeletonVisible = (
-  section: LenderMarketSections,
-  flags: {
-    isTransactionsLoading: boolean
-    isBarChartsLoading: boolean
-    isWithdrawalsLoading: boolean
-    isLoadingSummary: boolean
-  },
-) => {
-  switch (section) {
-    case LenderMarketSections.TRANSACTIONS:
-      return flags.isTransactionsLoading
-    case LenderMarketSections.STATUS:
-      return flags.isBarChartsLoading
-    case LenderMarketSections.REQUESTS:
-      return flags.isWithdrawalsLoading
-    case LenderMarketSections.SUMMARY:
-      return flags.isLoadingSummary
-    // MARKET_HISTORY and WRAP_DEBT_TOKEN own their placeholders internally and
-    // BORROWER_PROFILE has none, so the page cannot tell. Never hold the banner on a
-    // state it cannot observe.
-    default:
-      return false
-  }
-}
-
 export default function LenderMarketDetails({
   params: { address },
 }: {
@@ -167,6 +141,7 @@ export default function LenderMarketDetails({
   const theme = useTheme()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
+  const isMobile = useMobileResolution()
   const {
     address: connectedAddress,
     isConnected,
@@ -219,6 +194,8 @@ export default function LenderMarketDetails({
     data: marketAccount,
     authoritativeAccount,
     authoritativeStatus,
+    isLoadingInitial: isAccountInitialLoading,
+    isLoadingUpdate: isAccountUpdateLoading,
     isPendingUpdate: isLenderAccessPaused,
     refetchUpdate: refetchLenderAccess,
   } = useLenderMarketAccount(market)
@@ -406,16 +383,39 @@ export default function LenderMarketDetails({
   const currentSection = useAppSelector(
     (state) => state.lenderMarketRouting.currentSection,
   )
-  const isSectionSkeletonShowing = isSectionSkeletonVisible(currentSection, {
-    isTransactionsLoading,
-    isBarChartsLoading,
-    isWithdrawalsLoading,
-    isLoadingSummary,
-  })
+  const hasSelectedSection = useAppSelector(
+    (state) => state.lenderMarketRouting.hasSelectedSection,
+  )
+  const lenderLandingSection = showLenderTransactions
+    ? LenderMarketSections.TRANSACTIONS
+    : LenderMarketSections.STATUS
+  // Coordinate only the account area. Public content and optional metadata
+  // load independently, and errors/paused reads keep recovery reachable.
+  const isAccountLoading =
+    !isWalletHydrated ||
+    isConnecting ||
+    isReconnecting ||
+    (!isDifferentChain &&
+      lenderAccessState !== "error" &&
+      !isLenderAccessPaused &&
+      ((!marketAccount &&
+        (isAccountInitialLoading || isAccountUpdateLoading)) ||
+        (isConnected &&
+          (lenderAccessState === "resolving" ||
+            isWrapperPositionLoading ||
+            isWithdrawalsLoading))))
+  const isDesktopAccountLoading =
+    !isMobile &&
+    (isAccountLoading ||
+      (!hasSelectedSection &&
+        isConnected &&
+        !isDifferentChain &&
+        authoritativeStatus === "resolved" &&
+        currentSection !== lenderLandingSection))
 
   useEffect(() => {
     dispatch(setIsLoading(isLoading))
-  }, [isLoading])
+  }, [dispatch, isLoading])
 
   useEffect(() => {
     if (!isWalletHydrated || isConnecting || isReconnecting) return
@@ -425,26 +425,26 @@ export default function LenderMarketDetails({
       return
     }
 
+    if (!isMobile && isAccountLoading) return
+
     if (lenderAccessState === "resolving" || lenderAccessState === "error") {
       dispatch(setIsLender(showLenderTransactions))
       return
     }
 
-    if (showLenderTransactions) {
-      dispatch(setIsLender(true))
-      dispatch(setSection(LenderMarketSections.TRANSACTIONS))
-    } else {
-      dispatch(setIsLender(false))
-      dispatch(setSection(LenderMarketSections.STATUS))
-    }
+    dispatch(setIsLender(showLenderTransactions))
+    dispatch(setDefaultSection(lenderLandingSection))
   }, [
     dispatch,
+    isAccountLoading,
     isConnected,
     isConnecting,
     isDifferentChain,
+    isMobile,
     isReconnecting,
     isWalletHydrated,
     lenderAccessState,
+    lenderLandingSection,
     showLenderTransactions,
   ])
 
@@ -490,8 +490,6 @@ export default function LenderMarketDetails({
     },
     [],
   )
-
-  const isMobile = useMobileResolution()
 
   const { data: mla, isLoading: mlaLoading } = useMarketMla(
     market?.address,
@@ -945,7 +943,7 @@ export default function LenderMarketDetails({
       )}
 
       <Box sx={MarketContentColumn(theme, isConnected && isDifferentChain)}>
-        {showConnectWalletBanner && !isSectionSkeletonShowing && (
+        {showConnectWalletBanner && (
           <Box sx={LenderBannerWrapper}>
             <LeadBanner
               title={t("marketDetails.lender.connectWallet")}
@@ -981,7 +979,7 @@ export default function LenderMarketDetails({
           </Box>
         )}
 
-        {showLenderRequestBanner && (
+        {showLenderRequestBanner && !isDesktopAccountLoading && (
           <Box sx={LenderBannerWrapper}>
             <LeadBanner
               title={t("marketDetails.lender.lendThroughWildcat")}
@@ -1013,7 +1011,7 @@ export default function LenderMarketDetails({
         <Box sx={SectionContainer(theme)}>
           {currentSection === LenderMarketSections.TRANSACTIONS && (
             <Box>
-              {isTransactionsLoading ? (
+              {isDesktopAccountLoading || isTransactionsLoading ? (
                 <LenderTransactionsSkeleton />
               ) : (
                 <>
@@ -1067,7 +1065,7 @@ export default function LenderMarketDetails({
 
           {currentSection === LenderMarketSections.STATUS && (
             <Box marginTop="12px">
-              {!isBarChartsLoading ? (
+              {!isDesktopAccountLoading && !isBarChartsLoading && (
                 <>
                   <BarCharts
                     marketAccount={marketAccount}
@@ -1076,7 +1074,9 @@ export default function LenderMarketDetails({
                   />
                   <Divider sx={{ margin: "40px 0 44px" }} />
                 </>
-              ) : (
+              )}
+              {isDesktopAccountLoading && <LenderTransactionsSkeleton />}
+              {!isDesktopAccountLoading && isBarChartsLoading && (
                 <ChartSectionSkeleton sections={authorizedInMarket ? 3 : 1} />
               )}
               <MarketParameters
