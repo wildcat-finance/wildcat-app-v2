@@ -6,6 +6,7 @@ import { LenderRole } from "@wildcatfi/wildcat-sdk"
 
 import { useBorrowerNames } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { LenderMarketsContext } from "@/app/[locale]/lender/context"
+import { useLenderPolicyMarkets } from "@/app/[locale]/lender/hooks/useLenderPolicyMarkets"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useAppDispatch } from "@/store/hooks"
@@ -38,6 +39,7 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
   })
 
   const { data: borrowers } = useBorrowerNames()
+  const { policyMarkets } = useLenderPolicyMarkets(marketAccounts)
 
   const lenderMarkets = useMemo(
     () =>
@@ -73,12 +75,17 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
     [lenderMarkets],
   )
 
-  const nonDepositedMarketsAmount = useMemo(
+  const policyOnlyMarkets = useMemo(
     () =>
-      lenderMarkets.filter(
-        (market) => !market.market.isClosed && !market.hasEverInteracted,
-      ).length,
-    [lenderMarkets],
+      othersMarkets.filter((account) =>
+        policyMarkets.has(account.market.address.toLowerCase()),
+      ),
+    [othersMarkets, policyMarkets],
+  )
+
+  const nonDepositedMarketsAmount = useMemo(
+    () => policyOnlyMarkets.filter((market) => !market.market.isClosed).length,
+    [policyOnlyMarkets],
   )
 
   const prevActiveAmount = useMemo(
@@ -90,11 +97,8 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
   )
 
   const neverActiveAmount = useMemo(
-    () =>
-      lenderMarkets.filter(
-        (market) => market.market.isClosed && !market.hasEverInteracted,
-      ).length,
-    [lenderMarkets],
+    () => policyOnlyMarkets.filter((market) => market.market.isClosed).length,
+    [policyOnlyMarkets],
   )
 
   const selfOnboardAmount = useMemo(
@@ -204,6 +208,7 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
       onboardingStatus,
       liveDataStatus,
       borrowers,
+      policyMarkets,
     }),
     [
       marketAccounts,
@@ -213,6 +218,7 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
       onboardingStatus,
       liveDataStatus,
       borrowers,
+      policyMarkets,
     ],
   )
 
