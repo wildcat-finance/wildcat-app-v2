@@ -3,8 +3,16 @@ import { http, createConfig, createStorage, cookieStorage } from "wagmi"
 import { mainnet, sepolia } from "wagmi/chains"
 import { safe, walletConnect } from "wagmi/connectors"
 
+import { TargetChainId } from "@/config/network"
+import { isTestMode } from "@/config/testMode"
+
 import { plasmaMainnet } from "./chains/plasma-mainnet"
 import { plasmaTestnet } from "./chains/plasma-testnet"
+import {
+  ANVIL_DEFAULT_ACCOUNTS,
+  localAnvilConnector,
+} from "./connectors/localAnvilConnector"
+import { getBrowserRpcUrl } from "./rpcUrls"
 
 const DefaultNetwork = process.env.NEXT_PUBLIC_TARGET_NETWORK
 
@@ -26,14 +34,10 @@ export const config = createConfig({
   }),
   // multiInjectedProviderDiscovery: false,
   transports: {
-    [sepolia.id]: http(
-      `https://eth-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
-    ),
-    [mainnet.id]: http(
-      `https://eth-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
-    ),
-    [plasmaTestnet.id]: http(`https://testnet-rpc.plasma.to`),
-    [plasmaMainnet.id]: http(`https://rpc.plasma.to`),
+    [sepolia.id]: http(getBrowserRpcUrl(sepolia.id)),
+    [mainnet.id]: http(getBrowserRpcUrl(mainnet.id)),
+    [plasmaTestnet.id]: http(getBrowserRpcUrl(plasmaTestnet.id)),
+    [plasmaMainnet.id]: http(getBrowserRpcUrl(plasmaMainnet.id)),
   },
   connectors: [
     safe({
@@ -45,7 +49,18 @@ export const config = createConfig({
       appLogoUrl: "https://avatars.githubusercontent.com/u/113041915?s=200&v=4",
     }),
     */
-    ...(typeof window === "undefined"
+    // Test mode (fork harness): register the Local Anvil wallet and skip WalletConnect's
+    // third-party script. Production builds never set NEXT_PUBLIC_TEST_MODE.
+    ...(isTestMode
+      ? [
+          localAnvilConnector({
+            rpcUrl: getBrowserRpcUrl(TargetChainId),
+            chainId: TargetChainId,
+            accounts: ANVIL_DEFAULT_ACCOUNTS,
+          }),
+        ]
+      : []),
+    ...(isTestMode || typeof window === "undefined"
       ? []
       : [
           walletConnect({

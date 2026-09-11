@@ -32,7 +32,7 @@ export const SuccessModal = ({
 
   return (
     <>
-      <Box sx={FinalModalHeader}>
+      <Box sx={FinalModalHeader} data-tx-status="success">
         <Box width="20px" height="20px" />
         <IconButton disableRipple onClick={onClose}>
           <SvgIcon fontSize="big" sx={FinalModalCloseButton}>

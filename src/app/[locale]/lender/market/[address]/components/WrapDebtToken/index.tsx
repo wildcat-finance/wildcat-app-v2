@@ -118,7 +118,7 @@ export const WrapDebtToken = ({
   // return <WrapperSkeleton />
 
   return (
-    <Box>
+    <Box data-testid="wrap-debt-token-section">
       {!isAuthorizedLender && (
         <Typography variant="text3" color={COLORS.manate}>
           Only authorized lenders can access the wrapper.

@@ -172,6 +172,7 @@ export const MarketTransactions = ({
 
       {tempRatioExpired && (
         <Box
+          data-testid="borrower-temp-ratio-expired"
           sx={{
             display: "flex",
             gap: "10px",
@@ -203,6 +204,8 @@ export const MarketTransactions = ({
 
       {hasTempReserveRatio && (
         <Box
+          data-testid="borrower-temp-ratio-active"
+          data-expiry={market.temporaryReserveRatioExpiry}
           sx={{
             display: "flex",
             gap: "10px",
@@ -234,39 +237,55 @@ export const MarketTransactions = ({
       )}
 
       <Box sx={MarketTxContainer}>
-        <TransactionBlock
-          title={t("borrowerMarketDetails.transactions.toRepay.title")}
-          tooltip={t("borrowerMarketDetails.transactions.toRepay.tooltip")}
-          amount={
-            isTooSmallOutstandingDebt
-              ? "< 0.00001"
-              : formatTokenWithCommas(market.outstandingDebt)
-          }
-          asset={market.underlyingToken.symbol}
-          warning={market.isIncurringPenalties || market.isDelinquent}
+        {/* Test-only anchor: raw outstanding debt for e2e oracles (display: contents keeps layout). */}
+        <Box
+          data-testid="borrower-to-repay"
+          data-value={market.outstandingDebt.raw.toString()}
+          sx={{ display: "contents" }}
         >
-          {!disableRepay && (
-            <RepayModal
-              marketAccount={marketAccount}
-              disableRepayBtn={disableRepay}
-            />
-          )}
-        </TransactionBlock>
+          <TransactionBlock
+            title={t("borrowerMarketDetails.transactions.toRepay.title")}
+            tooltip={t("borrowerMarketDetails.transactions.toRepay.tooltip")}
+            amount={
+              isTooSmallOutstandingDebt
+                ? "< 0.00001"
+                : formatTokenWithCommas(market.outstandingDebt)
+            }
+            asset={market.underlyingToken.symbol}
+            warning={market.isIncurringPenalties || market.isDelinquent}
+          >
+            {!disableRepay && (
+              <RepayModal
+                marketAccount={marketAccount}
+                disableRepayBtn={disableRepay}
+              />
+            )}
+          </TransactionBlock>
+        </Box>
 
-        <TransactionBlock
-          title={t("borrowerMarketDetails.transactions.toBorrow.title")}
-          tooltip={t("borrowerMarketDetails.transactions.toBorrow.tooltip")}
-          amount={formatTokenWithCommas(marketAccount.market.borrowableAssets)}
-          asset={market.underlyingToken.symbol}
+        {/* Test-only anchor: raw borrowable assets for e2e oracles. */}
+        <Box
+          data-testid="borrower-available-to-borrow"
+          data-value={marketAccount.market.borrowableAssets.raw.toString()}
+          sx={{ display: "contents" }}
         >
-          {!hideBorrow && (
-            <BorrowModal
-              market={market}
-              marketAccount={marketAccount}
-              disableBorrowBtn={disableBorrow}
-            />
-          )}
-        </TransactionBlock>
+          <TransactionBlock
+            title={t("borrowerMarketDetails.transactions.toBorrow.title")}
+            tooltip={t("borrowerMarketDetails.transactions.toBorrow.tooltip")}
+            amount={formatTokenWithCommas(
+              marketAccount.market.borrowableAssets,
+            )}
+            asset={market.underlyingToken.symbol}
+          >
+            {!hideBorrow && (
+              <BorrowModal
+                market={market}
+                marketAccount={marketAccount}
+                disableBorrowBtn={disableBorrow}
+              />
+            )}
+          </TransactionBlock>
+        </Box>
       </Box>
 
       {!isOngoingWDsZero && (

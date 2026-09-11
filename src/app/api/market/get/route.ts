@@ -1,9 +1,3 @@
-import {
-  ApolloClient,
-  HttpLink,
-  InMemoryCache,
-  NormalizedCacheObject,
-} from "@apollo/client"
 import { SubgraphUrls } from "@wildcatfi/wildcat-sdk"
 import { getMarketDocumentForChain } from "@wildcatfi/wildcat-sdk/dist/gql"
 import {
@@ -14,6 +8,8 @@ import {
 import { unstable_cache } from "next/cache"
 import { NextRequest, NextResponse } from "next/server"
 
+import { getServerSubgraphClient } from "@/lib/subgraph/server"
+
 import {
   MARKET_CACHE_PAYLOAD_VERSION,
   recoverIncompatibleMarketPayload,
@@ -23,26 +19,15 @@ export const runtime = "nodejs"
 
 type SupportedChainId = keyof typeof SubgraphUrls
 
-const CLIENT_CACHE = new Map<
-  SupportedChainId,
-  ApolloClient<NormalizedCacheObject>
->()
-
 function isSupportedChainId(chainId: number): chainId is SupportedChainId {
   return Object.prototype.hasOwnProperty.call(SubgraphUrls, chainId)
 }
 
 function getClient(chainId: SupportedChainId) {
-  const cached = CLIENT_CACHE.get(chainId)
-  if (cached) return cached
-
-  const uri = SubgraphUrls[chainId]
-  const client = new ApolloClient<NormalizedCacheObject>({
-    link: new HttpLink({ uri }),
-    cache: new InMemoryCache(),
-  })
-  CLIENT_CACHE.set(chainId, client)
-  return client
+  // Env-aware client: honours WILDCAT_SERVER_SUBGRAPH_URL_* overrides and falls back to the
+  // SDK's production SubgraphUrls. Building a client from SubgraphUrls directly pinned this
+  // route to production, so no fork/preview/local deployment could ever see its own markets.
+  return getServerSubgraphClient(chainId)
 }
 
 const DISCOVERY_CHAIN_IDS: SupportedChainId[] = Object.keys(SubgraphUrls)

@@ -6,7 +6,6 @@ import {
   getLensV2Contract,
   WithdrawalBatch,
   TokenAmount,
-  getSubgraphClient,
 } from "@wildcatfi/wildcat-sdk"
 import {
   GetIncompleteWithdrawalsForMarketDocument,
@@ -17,6 +16,7 @@ import { logger } from "@wildcatfi/wildcat-sdk/dist/utils/logger"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
+import { getBrowserSubgraphClient } from "@/lib/subgraph/client"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type BorrowerWithdrawalsForMarketResult = {
@@ -94,7 +94,7 @@ export function useGetWithdrawals(
   const address = market?.address.toLowerCase()
   const targetChainId = market?.chainId
   const subgraphClient = useMemo(
-    () => (targetChainId ? getSubgraphClient(targetChainId) : undefined),
+    () => (targetChainId ? getBrowserSubgraphClient(targetChainId) : undefined),
     [targetChainId],
   )
   async function getAllPendingWithdrawalBatches(): Promise<BorrowerWithdrawalsForMarketResult> {

@@ -8,7 +8,6 @@ import {
   MarketVersion,
   Market,
   MarketAccount,
-  getSubgraphClient,
   SignerOrProvider,
 } from "@wildcatfi/wildcat-sdk"
 import { SubgraphGetMarketQueryVariables } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
@@ -18,6 +17,7 @@ import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { getBrowserSubgraphClient } from "@/lib/subgraph/client"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type UseMarketAccountProps = {
@@ -41,7 +41,7 @@ export function useMarketAccountQuery({
   const targetChainId = market?.chainId ?? chainId
   const subgraphClient =
     typeof targetChainId === "number"
-      ? getSubgraphClient(targetChainId)
+      ? getBrowserSubgraphClient(targetChainId)
       : undefined
 
   async function queryMarketAccount() {

@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import {
   getMarketsForBorrower,
-  getSubgraphClient,
   Market,
   SignerOrProvider,
   SupportedChainId,
@@ -12,6 +11,7 @@ import { NETWORKS_BY_ID } from "@/config/network"
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { getBrowserSubgraphClient } from "@/lib/subgraph/client"
 import { EXCLUDED_MARKETS_FILTER } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
 import { isFrontendVisibleMarket } from "@/utils/marketType"
@@ -45,7 +45,7 @@ export const useBorrowerPenaltyWarning = (market: Market | undefined) => {
         return emptyBorrowerPenaltyWarningResult
       }
 
-      const subgraphClient = getSubgraphClient(chainId)
+      const subgraphClient = getBrowserSubgraphClient(chainId)
       const borrowerMarkets = await getMarketsForBorrower(subgraphClient, {
         borrower: borrowerAddress,
         chainId,

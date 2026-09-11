@@ -38,3 +38,15 @@ next-env.d.ts
 
 /.idea
 .vscode
+# local fork harness
+harness/fork/.env
+harness/fork/.env.fork
+harness/fork/.state/
+playwright-report/
+test-results/
+playwright-summary.json
+# e2e report artefacts (regenerated per run)
+playwright-report.md
+uat-report*/
+uat-compare/
+uat-runs/

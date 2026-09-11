@@ -28,7 +28,11 @@ export const LoadingModal = ({
     <>
       <Box width="20px" height="20px" />
 
-      <Box padding="0 24px" sx={FinalModalContentContainer}>
+      <Box
+        padding="0 24px"
+        sx={FinalModalContentContainer}
+        data-tx-status="pending"
+      >
         <Box margin="auto" sx={FinalModalMainContainer}>
           <Loader />
 

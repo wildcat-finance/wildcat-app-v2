@@ -112,25 +112,31 @@ export const WithdrawalRequests = ({
           />
         </Box>
 
-        <OngoingTable
-          withdrawals={
-            withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
-          }
-          totalAmount={activeTotalAmount}
-          columns={columns}
-        />
+        <Box data-testid="withdrawals-ongoing">
+          <OngoingTable
+            withdrawals={
+              withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
+            }
+            totalAmount={activeTotalAmount}
+            columns={columns}
+          />
+        </Box>
 
-        <ClaimableTable
-          withdrawals={withdrawals.expiredPendingWithdrawals}
-          totalAmount={claimableTotalAmount}
-          chainId={chainId}
-        />
+        <Box data-testid="withdrawals-claimable">
+          <ClaimableTable
+            withdrawals={withdrawals.expiredPendingWithdrawals}
+            totalAmount={claimableTotalAmount}
+            chainId={chainId}
+          />
+        </Box>
 
-        <OutstandingTable
-          totalAmount={expiredTotalAmount}
-          withdrawals={withdrawals?.expiredPendingWithdrawals ?? []}
-          columns={columns}
-        />
+        <Box data-testid="withdrawals-outstanding">
+          <OutstandingTable
+            totalAmount={expiredTotalAmount}
+            withdrawals={withdrawals?.expiredPendingWithdrawals ?? []}
+            columns={columns}
+          />
+        </Box>
       </Box>
     </Box>
   )

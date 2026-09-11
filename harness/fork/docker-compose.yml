@@ -1,0 +1,82 @@
+# Local Sepolia fork harness. See harness/fork/README.md and README-main.md.
+# Requires harness/fork/.env with ALCHEMY_KEY. Every published port binds to 127.0.0.1.
+name: wildcat-fork
+services:
+  postgres-graph:
+    image: postgres:16
+    command: ["postgres", "-cshared_preload_libraries=pg_stat_statements", "-cmax_connections=200"]
+    environment:
+      POSTGRES_USER: graph-node
+      POSTGRES_PASSWORD: let-me-in
+      POSTGRES_DB: graph-node
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+    volumes: [pg-graph:/var/lib/postgresql/data]
+    ports: ["127.0.0.1:15432:5432"]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U graph-node"], interval: 5s, timeout: 3s, retries: 20 }
+
+  postgres-app:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: wildcat
+      POSTGRES_PASSWORD: wildcat
+      POSTGRES_DB: postgres
+    volumes: [pg-app:/var/lib/postgresql/data]
+    ports: ["127.0.0.1:15433:5432"]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U wildcat"], interval: 5s, timeout: 3s, retries: 20 }
+
+  ipfs:
+    image: ipfs/kubo:v0.29.0
+    ports: ["127.0.0.1:15001:5001"]
+    volumes: [ipfs:/data/ipfs]
+
+  graph-node-primary:
+    image: graphprotocol/graph-node:v0.45.0
+    depends_on: [postgres-graph, ipfs]
+    ports: ["127.0.0.1:18000:8000", "127.0.0.1:18020:8020", "127.0.0.1:18030:8030"]
+    environment:
+      GRAPH_NODE_CONFIG: /config.toml
+      ALCHEMY_URL: https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY:?set ALCHEMY_KEY in harness/fork/.env}
+      ipfs: ipfs:5001
+      node_id: primary
+      GRAPH_LOG: info
+      ETHEREUM_POLLING_INTERVAL: "4000"
+      GRAPH_ALLOW_NON_DETERMINISTIC_IPFS: "true"
+    volumes: [./graph-node/config-primary.toml:/config.toml:ro]
+
+  anvil-fork:
+    image: ghcr.io/foundry-rs/foundry:v1.7.1
+    entrypoint: ["anvil"]
+    # No --block-time: anvil fetches EIP-4788 beacon-root storage from upstream on every mined block and
+    # panics on a connection reset. On-demand mining only.
+    restart: unless-stopped
+    stop_signal: SIGINT          # anvil flushes its fork storage cache only on Ctrl-C (SIGINT), not SIGTERM
+    stop_grace_period: 60s
+    # --no-rate-limit: anvil throttles its own upstream fetches (~330 CU/s) by default; a cold fork under app load
+    # then queues eth_calls for minutes. --retries/--timeout make transient upstream errors non-fatal.
+    command: ["--host", "0.0.0.0", "--silent", "--prune-history", "10000", "--no-rate-limit", "--retries", "5", "--timeout", "45000",
+              "--fork-url", "https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY:?set ALCHEMY_KEY}",
+              "--fork-block-number", "${FORK_BLOCK:?FORK_BLOCK is set by scripts/lib.sh from pins.json}"]
+    ports: ["127.0.0.1:18545:8545"]
+    # anvil persists its fork storage cache (keyed by chain + fork block) on graceful shutdown; keeping it across
+    # resets means a re-created fork at the pinned block starts warm instead of re-fetching everything from Alchemy.
+    volumes: [anvil-cache:/home/foundry/.foundry/cache]
+
+  graph-node-fork:
+    image: graphprotocol/graph-node:v0.45.0
+    depends_on: [postgres-graph, ipfs, anvil-fork]
+    ports: ["127.0.0.1:18100:8000", "127.0.0.1:18120:8020", "127.0.0.1:18130:8030"]
+    environment:
+      GRAPH_NODE_CONFIG: /config.toml
+      ipfs: ipfs:5001
+      node_id: fork1
+      GRAPH_LOG: info
+      ETHEREUM_REORG_THRESHOLD: "1"
+      ETHEREUM_POLLING_INTERVAL: "1000"
+      GRAPH_ALLOW_NON_DETERMINISTIC_IPFS: "true"
+    volumes: [./graph-node/config-fork.toml:/config.toml:ro]
+
+volumes:
+  pg-graph:
+  pg-app:
+  ipfs:
+  anvil-cache:

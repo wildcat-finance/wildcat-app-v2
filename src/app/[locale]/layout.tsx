@@ -27,6 +27,7 @@ import StoreProvider from "@/components/StoreProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
 import { ToUReacceptanceModal } from "@/components/ToUReacceptanceModal"
 import TranslationsProvider from "@/components/TranslationsProvider"
+import { isTestMode } from "@/config/testMode"
 import { config } from "@/lib/config"
 import { RedirectsProvider } from "@/providers/RedirectsProvider"
 import { SafeProvider } from "@/providers/SafeProvider"
@@ -88,9 +89,11 @@ export default async function RootLayout({
                           <Box sx={ContentContainer}>
                             <Sidebar />
                             <Box sx={ContentArea}>{children}</Box>
-                            <Suspense>
-                              <HotjarConsent />
-                            </Suspense>
+                            {!isTestMode && (
+                              <Suspense>
+                                <HotjarConsent />
+                              </Suspense>
+                            )}
                           </Box>
                         </Box>
                       </Box>

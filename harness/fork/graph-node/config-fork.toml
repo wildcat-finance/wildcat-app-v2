@@ -1,0 +1,14 @@
+[store]
+[store.primary]
+connection = "postgresql://graph-node:let-me-in@postgres-graph:5432/graph-node"
+pool_size = 10
+
+[chains]
+ingestor = "fork1"
+[chains.fork]
+shard = "primary"
+provider = [ { label = "anvil-fork", url = "http://anvil-fork:8545", features = ["archive"] } ]
+
+[deployment]
+[[deployment.rule]]
+indexers = ["fork1"]

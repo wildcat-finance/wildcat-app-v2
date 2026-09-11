@@ -1,9 +1,9 @@
 import { LazyQueryHookOptions } from "@apollo/client"
-import { getSubgraphClient } from "@wildcatfi/wildcat-sdk"
 
 import { TargetChainId } from "@/config/network"
+import { getBrowserSubgraphClient } from "@/lib/subgraph/client"
 
-export const SubgraphClient = getSubgraphClient(TargetChainId)
+export const SubgraphClient = getBrowserSubgraphClient(TargetChainId)
 
 export const lazyQueryOptions: LazyQueryHookOptions = {
   client: SubgraphClient,

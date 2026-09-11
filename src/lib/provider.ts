@@ -22,12 +22,29 @@ const RPC_URL_BY_ID = {
   [SupportedChainId.PlasmaMainnet]: "https://rpc.plasma.to",
 }
 
-export const getProviderForServer = (chainId: SupportedChainId) => {
-  const chain = VIEM_CHAIN_BY_ID[chainId]
-  const rpcUrl = RPC_URL_BY_ID[chainId].replace(
+const SERVER_RPC_ENV_BY_ID = {
+  [SupportedChainId.Sepolia]: "WILDCAT_SERVER_RPC_URL_SEPOLIA",
+  [SupportedChainId.Mainnet]: "WILDCAT_SERVER_RPC_URL_MAINNET",
+  [SupportedChainId.PlasmaTestnet]: "WILDCAT_SERVER_RPC_URL_PLASMA_TESTNET",
+  [SupportedChainId.PlasmaMainnet]: "WILDCAT_SERVER_RPC_URL_PLASMA_MAINNET",
+}
+
+/**
+ * Server-side RPC endpoint for a chain. `WILDCAT_SERVER_RPC_URL_<NET>` lets the fork harness point
+ * API routes at the local anvil; with no override set this is the production Alchemy URL.
+ */
+const resolveServerRpcUrl = (chainId: SupportedChainId) => {
+  const serverRpcUrl = process.env[SERVER_RPC_ENV_BY_ID[chainId]]
+  if (serverRpcUrl) return serverRpcUrl
+  return RPC_URL_BY_ID[chainId].replace(
     "ALCHEMY_API_KEY",
     process.env.NEXT_PUBLIC_ALCHEMY_API_KEY || "",
   )
+}
+
+export const getProviderForServer = (chainId: SupportedChainId) => {
+  const chain = VIEM_CHAIN_BY_ID[chainId]
+  const rpcUrl = resolveServerRpcUrl(chainId)
 
   const client = createPublicClient({
     chain,

@@ -1,11 +1,9 @@
 import { gql } from "@apollo/client"
-import {
-  getDeploymentAddress,
-  getSubgraphClient,
-  SupportedChainId,
-} from "@wildcatfi/wildcat-sdk"
+import { getDeploymentAddress, SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { providers } from "ethers"
 import { hexZeroPad, keccak256, toUtf8Bytes } from "ethers/lib/utils"
+
+import { getBrowserSubgraphClient } from "@/lib/subgraph/client"
 
 const RESOLVE_TIMEOUT_MS = 5_000
 
@@ -67,7 +65,7 @@ async function resolveViaSubgraph(
     chainId,
     "WildcatArchController",
   ).toLowerCase()
-  const { data } = await getSubgraphClient(chainId).query<{
+  const { data } = await getBrowserSubgraphClient(chainId).query<{
     registeredBorrowers: RegisteredBorrowerResult[]
   }>({
     query: BORROWER_REGISTRATIONS_QUERY,

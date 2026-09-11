@@ -10,6 +10,8 @@ const createJestConfig = nextJest({
 const config: Config = {
   coverageProvider: "v8",
   testEnvironment: "jsdom",
+  // Playwright specs live in e2e/ and are run by `npm run test:e2e`, not jest.
+  testPathIgnorePatterns: ["/node_modules/", "<rootDir>/e2e/"],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
     // ...
@@ -29,6 +31,7 @@ const config: Config = {
     "^@/routes$": "<rootDir>/src/routes",
     "^@/middleware$": "<rootDir>/src/middleware",
   },
+  setupFiles: ["<rootDir>/jest.setup.ts"],
   // Add more setup options before each test is run
   // setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 }

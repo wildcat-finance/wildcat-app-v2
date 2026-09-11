@@ -6,7 +6,6 @@ import {
   SubgraphMarket_Filter,
   SupportedChainId,
   getMarketsForBorrower,
-  getSubgraphClient,
 } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
@@ -16,6 +15,7 @@ import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { getBrowserSubgraphClient } from "@/lib/subgraph/client"
 import { EXCLUDED_MARKETS_FILTER } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
 import { isFrontendVisibleMarket } from "@/utils/marketType"
@@ -34,7 +34,7 @@ export function useGetBorrowerMarketsQuery({
   const { address: userAddress } = useAccount()
   const { chainId: selectedChainId } = useSelectedNetwork()
   const targetChainId = chainId ?? selectedChainId
-  const subgraphClient = getSubgraphClient(targetChainId)
+  const subgraphClient = getBrowserSubgraphClient(targetChainId)
   const network = useSelectedNetwork()
   const address = (borrowerAddress ?? userAddress)?.toLowerCase()
 

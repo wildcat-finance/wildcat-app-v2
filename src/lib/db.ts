@@ -1,4 +1,3 @@
-import { PrismaClient } from "@prisma/client"
 import {
   getArchControllerContract,
   getDeploymentAddress,
@@ -22,10 +21,11 @@ import {
 import { BorrowerProfileUpdate } from "@/app/api/profiles/updates/interface"
 
 import { MlaTemplateField } from "./mla"
+import { prisma } from "./prisma"
 import { getProviderForServer } from "./provider"
 import { resolveRegisteredByMany, tryResolveRegisteredBy } from "./registrar"
 
-export const prisma = new PrismaClient()
+export { prisma }
 
 /// Legacy wrapper hashes of the seeded ServiceAgreement versions. Old-table
 /// rows with any other hash are not valid ToU acceptances.

@@ -1,0 +1,82 @@
+{
+  "harness": {
+    "ownsStack": false,
+    "note": "This variant attaches read-only to the docker compose project `wildcat-fork`, which the v2.5 branch (feat/automated-tests-2.5) composes and owns; scripts/attach.sh verifies health and writes .env.fork. up.sh / reset.sh / down.sh / fork-destroy.sh / db-restore.sh are refused while .harness.ownsStack is false; set HARNESS_ALLOW_MUTATE=1 only when the v2.5 stack is idle."
+  },
+  "app": {
+    "branch": "main",
+    "commit": "564a189b (origin/main, release-please 2.20.0)",
+    "version": "2.20.0",
+    "port": 3001,
+    "url": "http://127.0.0.1:3001",
+    "portNote": "The v2.5 variant owns :3000. attach.sh writes PORT into .env.fork; e2e/lib/env.ts and playwright.config.ts read APP_URL (env) then .app.url from this file."
+  },
+  "sdk": "@wildcatfi/wildcat-sdk@3.1.17",
+  "subgraph": {
+    "repo": "wildcat-finance/subgraph",
+    "version": "v2.1.8",
+    "commit": "8fabe69 (tag v2.1.8)",
+    "productionUrl": "https://api.goldsky.com/api/public/project_cmheai1ym00jyx7p27qn46qtm/subgraphs/sepolia/v2.1.8/gn",
+    "productionUrlSource": "SubgraphUrls[SupportedChainId.Sepolia] in @wildcatfi/wildcat-sdk@3.1.17 dist/constants.js",
+    "primaryName": "wildcat-sepolia-v218",
+    "primaryDeployment": "QmdRkJoEKXKVJZNYHpWFP8i4xSNXSaw9WSBspX9KSL9qKT",
+    "forkName": "wildcat-sepolia-fork-v218",
+    "forkManifestCid": ""
+  },
+  "forkBlock": 11584253,
+  "forkBlockNote": "Same block as the v2.5 variant, deliberately: both fork subgraphs index the same anvil-fork container, so they must graft at the same height. The v2.1.8 graft base recorded in the subgraph repo's subgraph.fork.yaml is 11584263 (10 blocks LATER than the fork point) and must NOT be reused as-is: it would copy 10 blocks of real Sepolia history the anvil fork does not have.",
+  "protocol": {
+    "repo": "wildcat-finance/v2-protocol",
+    "commit": "e8899ec",
+    "productionSource": "49f891c",
+    "deployments": "deployments/sepolia/deployments.json"
+  },
+  "db": {
+    "snapshot": "wildcat-dev.sql.gz",
+    "sha256": "95af2feea47bf95a6c98fff2c9b962a5817e8303f80b08dad9773c4dd05f8b54",
+    "migration": "shared wildcat_fork database, restored/migrated by the v2.5 variant (19 applied; main knows 17 — the extra ones are additive and verified benign via prisma migrate status)",
+    "migrationCount": 17,
+    "source": "dev database (previews), sanitized — SHARED with the v2.5 variant (database wildcat_fork)",
+    "note": "main's prisma schema is a subset of v2.5's. The shared wildcat_fork DB was restored and migrated by the v2.5 variant, so it carries migrations main does not know about. Verify with `npx prisma migrate status` before assuming compatibility; see harness/fork/README-main.md."
+  },
+  "images": {
+    "graphNode": "graphprotocol/graph-node:v0.45.0",
+    "anvil": "ghcr.io/foundry-rs/foundry:v1.7.1",
+    "postgres": "postgres:16",
+    "ipfs": "ipfs/kubo:v0.29.0"
+  },
+  "smoke": {
+    "marketNote": "NOT the v2.5 smoke market. The v2.5 pins smoke on 0x0329c128... (the periodic market), which is a v2.5-only hooks shape: subgraph v2.1.8 does not index it and main's app cannot render it. Requirements for this pin: indexed by wildcat-sepolia-fork-v218, open access (depositRequiresAccess=false), minimumDeposit 0, mock asset, spare capacity, and NO MLA record in the app DB (so the deposit modal has no acknowledgement gate the smoke does not drive).",
+    "market": "0x6511942327716a6f249464d30035bc137530c4db",
+    "account": 0
+  },
+  "markets": {
+    "openTerm": "0x07878e16a64ed6daacebe8a6537902a048de8f2d",
+    "periodic": "0x0329c128fc4188df024ea2ad038baff277ecbe0c",
+    "mla": "0x0e52d4a2e116e2fd4325fe2ec64bcf94f8d92cfd",
+    "noMla": "0x07878e16a64ed6daacebe8a6537902a048de8f2d",
+    "fixedTerm": "0xf2d12f3215f878a274f637199e66e89d8e8bca36",
+    "wrapperMarket": "0x1d547b4da93376e6a1bc49226fd4513cc0a18414",
+    "wrapper": "0x297fc91e05a2f272bb848dcd07eb816ecc9ea619",
+    "transferOpen": "0x07878e16a64ed6daacebe8a6537902a048de8f2d",
+    "transferDisabled": "0x273e2a0c2309da00684703485f6f43dbbf327f5c",
+    "transferRestricted": "0x2d13c4e20f6b7d202ee9b7a99323f912238e87f1"
+  },
+  "marketsNote": "Same chain and fork block as the v2.5 variant, so the same pinned fixtures exist. `periodic` is a v2.5-only market shape that SDK 3.1.17 has no UI for; nothing on this branch reads it.",
+  "borrower": {
+    "address": "0xe9aee885af757ff7f632000769046876814926e6",
+    "note": "MAIN ONLY. The borrower-ops suite acts as this account by anvil impersonation. It has to be a PRE-FORK Sepolia borrower: /api/market/get builds its Apollo client from the SDK's hardcoded production SubgraphUrls (not the getServerSubgraphClient it imports), so useGetMarket — which gates the whole borrower market page — answers null for anything the fork deployed after the pin block. Verified at the pin: isRegisteredBorrower=true, market.borrower() == this address, four OPEN markets indexed by wildcat-sepolia-fork-v218, and an impersonated setMaxTotalSupply simulates clean.",
+    "markets": {
+      "openTerm": "0xb8e52989ef7c8860f027b927aabb390592a86964",
+      "openTermPinned": "0x07878e16a64ed6daacebe8a6537902a048de8f2d",
+      "fixedTerm": "0xa1acec75f9358183e3c9f8fa51015c1b58d77a3e",
+      "fixedTermSpare": "0xb028464b94e978ef0dfa5d2617f09c15cc4f8026",
+      "closed": "0x57270b78cfbd3e5c53831561fd0fff2fa3dc4ab1"
+    },
+    "marketsNote": "Roles are DISCOVERED from the subgraph at run time; these are the values observed at the pin, for orientation. 'openTermPinned' is also markets.openTerm / noMla / transferOpen — lender fixtures — so borrower-ops must never CLOSE it (the suite derives that protected set from `markets` above). The two fixed-term markets both matured in Jan 2025, i.e. before the pin: closure is permitted."
+  },
+  "notes": {
+    "divergence": "main runs SDK 3.1.17 -> subgraph v2.1.8; the v2.5 line runs SDK 3.2.7-beta -> subgraph v2.5.11. The two schemas are not interchangeable, so main needs its own primary + fork subgraph deployment. The v2.5 fork subgraph at /subgraphs/name/wildcat-sepolia-fork must NOT be pointed at main."
+  },
+  "forkManifestCid": ""
+}
