@@ -92,7 +92,7 @@ export const RepayAndTerminateFlow = ({
         values.push({
           name: "Remaining Loan",
           value: formatTokenWithCommas(
-            market.underlyingToken.getAmount(market.outstandingTotalSupply),
+            market.underlyingToken.getAmount(market.outstandingTotalSupply.raw),
             {
               withSymbol: true,
             },

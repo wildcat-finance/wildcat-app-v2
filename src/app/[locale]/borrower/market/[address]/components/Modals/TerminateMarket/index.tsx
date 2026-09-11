@@ -22,13 +22,10 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
   const [showErrorTerminationPopup, setShowErrorTerminationPopup] =
     useState(false)
 
-  const [flow, setFlow] = useState<
-    "terminate" | "repayAndTerminate" | "terminateWithRepay"
-  >()
+  const [flow, setFlow] = useState<"terminate" | "repayAndTerminate">()
 
   const terminateFlow = flow === "terminate"
   const repayAndTerminateFlow = flow === "repayAndTerminate"
-  // const terminateWithRepay = flow === "terminateWithRepay"
 
   const {
     mutateAsync: terminate,
@@ -38,6 +35,13 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
   } = useTerminateMarket(marketAccount, setTerminateTxHash)
 
   const handleOpenModal = () => {
+    const isReadyForTermination =
+      marketAccount.previewCloseMarket().status === "Ready"
+    setFlow(
+      isReadyForTermination && market.outstandingDebt.eq(0)
+        ? "terminate"
+        : "repayAndTerminate",
+    )
     setShowSuccessTerminationPopup(false)
     setShowErrorTerminationPopup(false)
     setIsModalOpen(true)
@@ -46,17 +50,6 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
   const handleCloseModal = () => {
     setIsModalOpen(false)
   }
-
-  const isReadyForTermination =
-    marketAccount.previewCloseMarket().status === "Ready"
-
-  useEffect(() => {
-    if (isReadyForTermination && market.outstandingDebt.eq(0)) {
-      setFlow("terminate")
-    } else {
-      setFlow("repayAndTerminate")
-    }
-  }, [isModalOpen])
 
   useEffect(() => {
     if (isTerminatedError) {
@@ -83,7 +76,7 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
         </Button>
       )}
 
-      {terminateFlow && (
+      {isModalOpen && terminateFlow && (
         <TerminateFlow
           terminateFunc={terminate}
           isTerminating={isTerminating}
@@ -95,7 +88,7 @@ export const TerminateMarket = ({ marketAccount }: TerminateMarketProps) => {
         />
       )}
 
-      {repayAndTerminateFlow && (
+      {isModalOpen && repayAndTerminateFlow && (
         <RepayAndTerminateFlow
           marketAccount={marketAccount}
           terminateFunc={terminate}
