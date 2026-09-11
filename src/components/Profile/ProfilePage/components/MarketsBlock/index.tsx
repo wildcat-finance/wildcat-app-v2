@@ -16,8 +16,8 @@ import {
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import {
-  percentComparator,
   statusComparator,
+  tokenAmountComparator,
   typeComparator,
 } from "@/utils/comparators"
 import {
@@ -206,12 +206,12 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     },
     {
       field: "apr",
+      type: "number",
       headerName: t("common.fields.lenderApr"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
       align: "right",
-      sortComparator: percentComparator,
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}
@@ -228,6 +228,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
       minWidth: 100,
       headerAlign: "right",
       align: "right",
+      sortComparator: tokenAmountComparator,
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}
