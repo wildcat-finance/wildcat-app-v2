@@ -59,6 +59,7 @@ export const LinkGroup = ({
               }}
             >
               <IconButton
+                data-testid="copy-button"
                 disableRipple
                 sx={ButtonStyle}
                 onClick={() => {
@@ -75,6 +76,7 @@ export const LinkGroup = ({
 
           {linkValue && (
             <Link
+              data-testid="link-button"
               href={linkValue}
               target="_blank"
               style={{ display: "flex", justifyContent: "center" }}

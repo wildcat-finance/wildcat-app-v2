@@ -48,7 +48,7 @@ export const ParametersItem = ({
     valueTitle ?? (value.toString().length > 26 ? value.toString() : undefined)
 
   return (
-    <Box sx={ParametersItemContainer}>
+    <Box data-testid="parameters-item" sx={ParametersItemContainer}>
       <Box sx={ParametersItemTitleContainer}>
         <Typography
           variant={isMobile ? "mobText3" : "text3"}

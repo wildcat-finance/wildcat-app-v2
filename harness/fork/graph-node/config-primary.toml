@@ -1,0 +1,14 @@
+[store]
+[store.primary]
+connection = "postgresql://graph-node:let-me-in@postgres-graph:5432/graph-node"
+pool_size = 10
+
+[chains]
+ingestor = "primary"
+[chains.sepolia]
+shard = "primary"
+provider = [ { label = "alchemy", url = "${ALCHEMY_URL}", features = ["archive"] } ]
+
+[deployment]
+[[deployment.rule]]
+indexers = ["primary"]

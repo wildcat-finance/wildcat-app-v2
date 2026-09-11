@@ -45,3 +45,18 @@ next-env.d.ts
 
 # i18n checker scratch output (npm run i18n:check -- --json)
 /scripts/i18n/check-report.json
+
+# local fork harness
+harness/fork/.env
+harness/fork/.env.fork
+harness/fork/.state/
+playwright-report/
+test-results/
+playwright-summary.json
+harness/fork/graph-snapshots/
+harness/fork/checkpoints/
+# e2e report artefacts (regenerated per run)
+playwright-report.md
+uat-report*/
+uat-compare/
+uat-runs/

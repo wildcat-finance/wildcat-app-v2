@@ -12,10 +12,13 @@ const mockUnstableCache = jest.fn(
 jest.mock("@apollo/client", () => ({ gql: jest.fn(() => ({})) }))
 
 jest.mock("@wildcatfi/wildcat-sdk", () => ({
-  getSubgraphClient: jest.fn(() => ({ query: mockQuery })),
   SubgraphUrls: {
     11155111: "https://example.invalid/subgraph",
   },
+}))
+
+jest.mock("@/lib/subgraph/server", () => ({
+  getServerSubgraphClient: jest.fn(() => ({ query: mockQuery })),
 }))
 
 jest.mock("next/cache", () => ({

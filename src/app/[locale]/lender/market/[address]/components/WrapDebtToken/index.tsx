@@ -36,7 +36,7 @@ export const WrapDebtToken = ({
   const { t } = useTranslation()
 
   return (
-    <Box>
+    <Box data-testid="wrap-debt-token-section">
       {hasWrapper && !isAuthorizedLender && (
         <Typography variant="text3" color={COLORS.manate}>
           {t("marketDetails.lender.onlyAuthorizedLendersCanAccess")}

@@ -2,12 +2,11 @@
 
 import { createContext, useContext, useMemo } from "react"
 
-import { getSubgraphClient } from "@wildcatfi/wildcat-sdk"
-
 import { NETWORKS } from "@/config/network"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { getBrowserSubgraphClient } from "@/lib/subgraph/client"
 
-export type SubgraphClientType = ReturnType<typeof getSubgraphClient>
+export type SubgraphClientType = ReturnType<typeof getBrowserSubgraphClient>
 
 const TargetNetworkEnv = process.env.NEXT_PUBLIC_TARGET_NETWORK
 
@@ -19,7 +18,7 @@ const defaultNetwork =
     : NETWORKS.Mainnet
 
 const SubgraphContext = createContext<SubgraphClientType>(
-  getSubgraphClient(defaultNetwork.chainId),
+  getBrowserSubgraphClient(defaultNetwork.chainId),
 )
 
 export const SubgraphProvider = ({
@@ -30,7 +29,7 @@ export const SubgraphProvider = ({
   // Reads target chain from react-redux
   const { chainId } = useSelectedNetwork()
   // Recreates the subgraph client when the target chain changes
-  const value = useMemo(() => getSubgraphClient(chainId), [chainId])
+  const value = useMemo(() => getBrowserSubgraphClient(chainId), [chainId])
   return (
     <SubgraphContext.Provider value={value} key={`subgraph-client-${chainId}`}>
       {children}

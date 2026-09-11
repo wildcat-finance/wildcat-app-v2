@@ -15,12 +15,16 @@ const getSubgraphClientMock = jest.fn((chainId: unknown) => ({
 
 jest.mock("@wildcatfi/wildcat-sdk", () => ({
   getIndexedMarket: (...args: unknown[]) => getIndexedMarketMock(...args),
-  getSubgraphClient: (chainId: unknown) => getSubgraphClientMock(chainId),
   isSupportedChainId: (chainId: number) => chainId === 11155111,
   MarketVersion: {
     V1: "v1",
     V2: "v2",
   },
+}))
+
+jest.mock("@/lib/subgraph/client", () => ({
+  getBrowserSubgraphClient: (chainId: unknown) =>
+    getSubgraphClientMock(chainId),
 }))
 
 jest.mock("@/hooks/useEthersSigner", () => ({

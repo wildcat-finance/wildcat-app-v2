@@ -373,6 +373,8 @@ export const MarketActions = ({
                 : formatTokenWithCommas(combinedAvailable)
             }
             asset={market.underlyingToken.symbol}
+            testId="lender-available-withdraw"
+            dataValue={combinedAvailable.raw.toString()}
             subtitle={
               hasWrappedPosition && wrappedAvailable
                 ? t("marketDetails.lender.transactions.withdraw.split", {
@@ -405,7 +407,13 @@ export const MarketActions = ({
       <Divider sx={{ margin: "32px 0 40px" }} />
 
       <Box width="100%" display="flex" flexDirection="column">
-        <Typography variant="title3">{getWithdrawalsStatus()}</Typography>
+        <Typography
+          variant="title3"
+          data-testid="lender-withdrawals-status"
+          data-claimable={withdrawals.totalClaimableAmount.raw.toString()}
+        >
+          {getWithdrawalsStatus()}
+        </Typography>
         {isClaimableZero && (
           <Typography variant="text3" color={COLORS.santasGrey} marginTop="8px">
             {t("marketDetails.lender.withdrawalsAlert.subtitle")}

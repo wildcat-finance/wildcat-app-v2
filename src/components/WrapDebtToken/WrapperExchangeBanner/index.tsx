@@ -27,6 +27,8 @@ const BannerItem = ({
   value,
   symbol,
   align,
+  testId,
+  rawValue,
 }: {
   isMobile: boolean
   title: string
@@ -34,6 +36,9 @@ const BannerItem = ({
   value: string
   symbol: string
   align: "start" | "end"
+  /** e2e anchor: raw (wei) balance exposed as data-value next to the formatted text. */
+  testId?: string
+  rawValue?: string
 }) => (
   <Box
     sx={{
@@ -72,7 +77,13 @@ const BannerItem = ({
       </Typography>
     </Box>
 
-    <Typography variant={isMobile ? "mobText1" : "title2"}>{value}</Typography>
+    <Typography
+      variant={isMobile ? "mobText1" : "title2"}
+      data-testid={testId}
+      data-value={rawValue}
+    >
+      {value}
+    </Typography>
   </Box>
 )
 
@@ -125,6 +136,8 @@ export const WrapperExchangeBanner = ({
             symbol={marketSymbol || ""}
             align="start"
             isMobile={isMobile}
+            testId="wrapper-market-balance"
+            rawValue={marketBalance?.raw.toString() ?? "0"}
           />
 
           <SvgIcon
@@ -142,6 +155,8 @@ export const WrapperExchangeBanner = ({
             symbol={shareSymbol || ""}
             align="end"
             isMobile={isMobile}
+            testId="wrapper-share-balance"
+            rawValue={shareBalance?.raw.toString() ?? "0"}
           />
         </Box>
       </Box>

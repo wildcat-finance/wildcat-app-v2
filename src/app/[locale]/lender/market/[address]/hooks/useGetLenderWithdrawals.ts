@@ -9,7 +9,6 @@ import {
   LenderWithdrawalStatus,
   TokenAmount,
   BatchStatus,
-  getSubgraphClient,
   getIncompleteLenderWithdrawalsForMarket,
   logger,
 } from "@wildcatfi/wildcat-sdk"
@@ -18,6 +17,7 @@ import { useAccount } from "wagmi"
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { cloneSdkObject } from "@/lib/sdk-object"
+import { getBrowserSubgraphClient } from "@/lib/subgraph/client"
 import { TwoStepQueryHookResult } from "@/utils/types"
 import { applyLatestLensWithdrawalBatchUpdate } from "@/utils/withdrawalBatch"
 
@@ -93,7 +93,7 @@ export function useGetLenderWithdrawals(
 
   const targetChainId = market?.chainId
   const subgraphClient = useMemo(
-    () => (targetChainId ? getSubgraphClient(targetChainId) : undefined),
+    () => (targetChainId ? getBrowserSubgraphClient(targetChainId) : undefined),
     [targetChainId],
   )
 

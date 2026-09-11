@@ -26,10 +26,13 @@ const useAccountMock = jest.fn()
 jest.mock("@wildcatfi/wildcat-sdk", () => ({
   getIndexedLenderAccountSummaryForMarket: (...args: unknown[]) =>
     getIndexedLenderAccountSummaryForMarketMock(...args),
-  getSubgraphClient: (chainId: number) => ({ chainId }),
   MarketAccount: {
     getMarketAccount: (...args: unknown[]) => getMarketAccountMock(...args),
   },
+}))
+
+jest.mock("@/lib/subgraph/client", () => ({
+  getBrowserSubgraphClient: (chainId: number) => ({ chainId }),
 }))
 
 jest.mock("@/hooks/useSelectedNetwork", () => ({

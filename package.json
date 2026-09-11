@@ -9,6 +9,10 @@
   },
   "scripts": {
     "dev": "next dev",
+    "dev:fork": "harness/fork/scripts/up.sh && env $(grep -v '^#' harness/fork/.env.fork | xargs) next dev",
+    "dev:fork:status": "harness/fork/scripts/status.sh",
+    "dev:fork:reset": "harness/fork/scripts/reset.sh",
+    "dev:fork:down": "harness/fork/scripts/down.sh",
     "build": "prisma generate && next build",
     "start": "next start",
     "storybook": "storybook dev -p 6006",
@@ -20,7 +24,12 @@
     "check:v2.5-mla-migration": "node scripts/build-v2-5-mla-template-migration.mjs",
     "i18n:check": "node scripts/i18n/check-i18n.mjs --strict",
     "i18n:verify": "node scripts/i18n/verify-rendered-keys.mjs",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "board": "sh -c '[ -f harness/fork/.env.fork ] && export $(grep -v \"^#\" harness/fork/.env.fork | xargs) WILDCAT_ENV_FORK_APPLIED=1; PW_VIDEO=on playwright test --grep-invert \"BOP-14\"'; node e2e/tools/check-board.mjs",
+    "board:one": "sh -c '[ -f harness/fork/.env.fork ] && export $(grep -v \"^#\" harness/fork/.env.fork | xargs) WILDCAT_ENV_FORK_APPLIED=1; node e2e/tools/board-one.mjs \"$@\"' _",
+    "report": "node e2e/tools/render-report.mjs"
   },
   "dependencies": {
     "@apollo/client": "3.9.9",
@@ -76,6 +85,7 @@
     "rehype-sanitize": "6.0.0",
     "remark-gfm": "4.0.1",
     "remark-rehype": "11.1.2",
+    "server-only": "0.0.1",
     "viem": "2.9.3",
     "wagmi": "2.12.24",
     "zod": "3.23.8",
@@ -85,6 +95,7 @@
     "@commitlint/cli": "20.1.0",
     "@commitlint/config-conventional": "20.0.0",
     "@next/eslint-plugin-next": "14.1.3",
+    "@playwright/test": "1.47.2",
     "@storybook/addon-essentials": "7.6.17",
     "@storybook/addon-interactions": "7.6.17",
     "@storybook/addon-links": "7.6.17",

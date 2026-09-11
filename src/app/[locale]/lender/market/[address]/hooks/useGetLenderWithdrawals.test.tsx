@@ -15,7 +15,6 @@ jest.mock("@wildcatfi/wildcat-sdk", () => ({
   BatchStatus: {
     Complete: "Complete",
   },
-  getSubgraphClient: (chainId: number) => ({ chainId }),
   getIncompleteLenderWithdrawalsForMarket: (...args: unknown[]) =>
     getIncompleteWithdrawalsMock(...args),
   getLatestLensContract: () => ({
@@ -25,6 +24,10 @@ jest.mock("@wildcatfi/wildcat-sdk", () => ({
   logger: {
     debug: jest.fn(),
   },
+}))
+
+jest.mock("@/lib/subgraph/client", () => ({
+  getBrowserSubgraphClient: (chainId: number) => ({ chainId }),
 }))
 
 jest.mock("wagmi", () => ({

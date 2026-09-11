@@ -29,6 +29,7 @@ import {
   TitleContainer,
 } from "@/components/Header/HeaderButton/ConnectWalletDialog/style"
 import { ConnectWalletDialogProps } from "@/components/Header/HeaderButton/ConnectWalletDialog/type"
+import { LOCAL_ANVIL_CONNECTOR_NAME } from "@/lib/connectors/localAnvilConnector"
 
 const SAFE_CONNECTOR_NAME = "Safe"
 
@@ -41,6 +42,8 @@ const walletIcons = {
   WalletConnect: <WalletConnect />,
   // "Coinbase Wallet": <CoinBase />,
   [SAFE_CONNECTOR_NAME]: <Safe />,
+  // Fork-harness test wallet (only registered when NEXT_PUBLIC_TEST_MODE=1)
+  [LOCAL_ANVIL_CONNECTOR_NAME]: <Safe />,
 }
 
 export const ConnectWalletDialog = ({

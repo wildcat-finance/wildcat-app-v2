@@ -1,0 +1,59 @@
+{
+  "app": {
+    "commit": "d335b59b (integration/v2.5-develop base of the harness branch)"
+  },
+  "sdk": "@wildcatfi/wildcat-sdk@3.2.7-beta",
+  "subgraph": {
+    "repo": "wildcat-finance/subgraph",
+    "version": "v2.5.11",
+    "commit": "tag v2.5.11",
+    "primaryDeployment": "QmULCYeErPV4u33KNacWbrDrdbuyhXqdSzuBWaxL7p1u94",
+    "primaryName": "wildcat-sepolia-v2511",
+    "previous": {
+      "version": "v2.5.9",
+      "commit": "ccb34b3",
+      "primaryDeployment": "QmWVh487jkySYxtpW16vcatSgn1jmrVHAHYdhWNTMk1kKR"
+    }
+  },
+  "forkBlock": 11584253,
+  "protocol": {
+    "repo": "wildcat-finance/v2-protocol",
+    "commit": "e8899ec",
+    "productionSource": "49f891c",
+    "deployments": "deployments/sepolia/deployments.json"
+  },
+  "db": {
+    "snapshot": "wildcat-dev.sql.gz",
+    "sha256": "95af2feea47bf95a6c98fff2c9b962a5817e8303f80b08dad9773c4dd05f8b54",
+    "migration": "20260728000000_v2_5_default_mla_templates",
+    "migrationCount": 19,
+    "source": "dev database (previews), sanitized"
+  },
+  "images": {
+    "graphNode": "graphprotocol/graph-node:v0.45.0",
+    "anvil": "ghcr.io/foundry-rs/foundry:v1.7.1",
+    "postgres": "postgres:16",
+    "ipfs": "ipfs/kubo:v0.29.0"
+  },
+  "smoke": {
+    "market": "0x0329c128fc4188df024ea2ad038baff277ecbe0c",
+    "account": 0
+  },
+  "markets": {
+    "openTerm": "0x07878e16a64ed6daacebe8a6537902a048de8f2d",
+    "periodic": "0x0329c128fc4188df024ea2ad038baff277ecbe0c",
+    "mla": "0x0e52d4a2e116e2fd4325fe2ec64bcf94f8d92cfd",
+    "noMla": "0x07878e16a64ed6daacebe8a6537902a048de8f2d",
+    "fixedTerm": "0xf2d12f3215f878a274f637199e66e89d8e8bca36",
+    "wrapperMarket": "0x1d547b4da93376e6a1bc49226fd4513cc0a18414",
+    "wrapper": "0x297fc91e05a2f272bb848dcd07eb816ecc9ea619",
+    "transferOpen": "0x07878e16a64ed6daacebe8a6537902a048de8f2d",
+    "transferDisabled": "0x273e2a0c2309da00684703485f6f43dbbf327f5c",
+    "transferRestricted": "0x2d13c4e20f6b7d202ee9b7a99323f912238e87f1"
+  },
+  "appBase": "d335b59b",
+  "forkManifestCid": "",
+  "notes": {
+    "subgraph": "The fork subgraph is v2.5.11 grafted from a fresh v2.5.11 primary at forkBlock. Grafting v2.5.11 onto a 2.5.9 primary is rejected by graph-node (incompatible WithdrawalExecution schema). v2.5.11 is required by the SDK 3.2.7 Sepolia factory rotation and carries WithdrawalExecution.eventIndex, which the SDK's market-history query filters on."
+  }
+}

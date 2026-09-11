@@ -1,0 +1,116 @@
+# Local Sepolia fork harness. See harness/fork/README.md.
+# Requires harness/fork/.env with ALCHEMY_KEY. Every published port binds to 127.0.0.1.
+name: wildcat-fork
+services:
+  postgres-graph:
+    image: postgres:16
+    command: ["postgres", "-cshared_preload_libraries=pg_stat_statements", "-cmax_connections=200"]
+    environment:
+      POSTGRES_USER: graph-node
+      POSTGRES_PASSWORD: let-me-in
+      POSTGRES_DB: graph-node
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+    volumes: [pg-graph:/var/lib/postgresql/data]
+    ports: ["127.0.0.1:15432:5432"]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U graph-node"], interval: 5s, timeout: 3s, retries: 20 }
+
+  postgres-app:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: wildcat
+      POSTGRES_PASSWORD: wildcat
+      POSTGRES_DB: postgres
+    volumes: [pg-app:/var/lib/postgresql/data]
+    ports: ["127.0.0.1:15433:5432"]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U wildcat"], interval: 5s, timeout: 3s, retries: 20 }
+
+  ipfs:
+    image: ipfs/kubo:v0.29.0
+    ports: ["127.0.0.1:15001:5001"]
+    volumes: [ipfs:/data/ipfs]
+
+  # Immutable JSON-RPC disk cache in front of Alchemy. Everything the harness pulls upstream is
+  # for deep-finalized blocks, so responses are cached forever in the rpc-cache volume and shared
+  # by graph-node (subgraph version re-syncs become mostly local) and anvil (cold forks start warm
+  # even after a crash — anvil's own cache only flushes on SIGINT). See rpc-cache/proxy.mjs.
+  rpc-cache:
+    image: node:20-alpine
+    restart: unless-stopped
+    entrypoint: ["node", "/proxy.mjs"]
+    environment:
+      UPSTREAM_URL: https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY:?set ALCHEMY_KEY in harness/fork/.env}
+      CACHE_DIR: /cache
+      PORT: "8545"
+    volumes:
+      - ./rpc-cache/proxy.mjs:/proxy.mjs:ro
+      - rpc-cache:/cache
+    ports: ["127.0.0.1:18999:8545"]
+
+  graph-node-primary:
+    image: graphprotocol/graph-node:v0.45.0
+    depends_on: [postgres-graph, ipfs, rpc-cache]
+    ports: ["127.0.0.1:18000:8000", "127.0.0.1:18020:8020", "127.0.0.1:18030:8030"]
+    environment:
+      GRAPH_NODE_CONFIG: /config.toml
+      ALCHEMY_URL: http://rpc-cache:8545
+      # Same watcher-timeout floor as the fork node (measured 2026-09-08: barriers 29.5s -> ~1s).
+      GRAPH_CHAIN_HEAD_WATCHER_TIMEOUT: "2"
+      ipfs: ipfs:5001
+      node_id: primary
+      GRAPH_LOG: info
+      ETHEREUM_POLLING_INTERVAL: "4000"
+      GRAPH_ALLOW_NON_DETERMINISTIC_IPFS: "true"
+    volumes: [./graph-node/config-primary.toml:/config.toml:ro]
+
+  anvil-fork:
+    image: ghcr.io/foundry-rs/foundry:v1.7.1
+    entrypoint: ["anvil"]
+    depends_on: [rpc-cache]
+    # No --block-time: anvil fetches EIP-4788 beacon-root storage from upstream on every mined block and
+    # panics on a connection reset. On-demand mining only.
+    restart: unless-stopped
+    stop_signal: SIGINT          # anvil flushes its fork storage cache only on Ctrl-C (SIGINT), not SIGTERM
+    stop_grace_period: 60s
+    # --no-rate-limit: anvil throttles its own upstream fetches (~330 CU/s) by default; a cold fork under app load
+    # then queues eth_calls for minutes. --retries/--timeout make transient upstream errors non-fatal.
+    # fork-url goes through rpc-cache so a re-created fork at the pinned block replays from disk
+    # even when anvil's own cache was lost to a crash (it only flushes on SIGINT).
+    # --preserve-historical-states: kept for live historical eth_call on a long-running fork.
+    # NOTE (measured): anvil 1.7.1's anvil_dumpState does NOT serialize historical states even
+    # with this flag — checkpoint restores therefore restore the GRAPH database from a paired
+    # dump instead of regrafting (see scripts/checkpoint.sh / restore.sh).
+    # --no-request-size-limit: anvil_loadState bodies for a board-sized checkpoint exceed the
+    # 2MB default request cap (-32600 Invalid request).
+    command: ["--host", "0.0.0.0", "--silent", "--prune-history", "10000", "--no-rate-limit", "--retries", "5", "--timeout", "45000",
+              "--preserve-historical-states", "--no-request-size-limit",
+              "--fork-url", "http://rpc-cache:8545",
+              "--fork-block-number", "${FORK_BLOCK:?FORK_BLOCK is set by scripts/lib.sh from pins.json}"]
+    ports: ["127.0.0.1:18545:8545"]
+    # anvil persists its fork storage cache (keyed by chain + fork block) on graceful shutdown; keeping it across
+    # resets means a re-created fork at the pinned block starts warm instead of re-fetching everything from Alchemy.
+    volumes: [anvil-cache:/home/foundry/.foundry/cache]
+
+  graph-node-fork:
+    image: graphprotocol/graph-node:v0.45.0
+    depends_on: [postgres-graph, ipfs, anvil-fork]
+    ports: ["127.0.0.1:18100:8000", "127.0.0.1:18120:8020", "127.0.0.1:18130:8030"]
+    environment:
+      GRAPH_NODE_CONFIG: /config.toml
+      # PERFORMANCE-FINDINGS §2: graph-node commits in ms but starts processing a new block up
+      # to ~30s after ingestion — consistent with the chain-head watcher's poll fallback when
+      # LISTEN/NOTIFY isn't delivering. Floor the fallback so the barrier is seconds, not 30.
+      GRAPH_CHAIN_HEAD_WATCHER_TIMEOUT: "2"
+      ipfs: ipfs:5001
+      node_id: fork1
+      GRAPH_LOG: info
+      ETHEREUM_REORG_THRESHOLD: "1"
+      ETHEREUM_POLLING_INTERVAL: "1000"
+      GRAPH_ALLOW_NON_DETERMINISTIC_IPFS: "true"
+    volumes: [./graph-node/config-fork.toml:/config.toml:ro]
+
+volumes:
+  pg-graph:
+  pg-app:
+  ipfs:
+  anvil-cache:
+  rpc-cache:

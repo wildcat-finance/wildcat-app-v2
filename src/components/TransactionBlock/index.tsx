@@ -25,6 +25,8 @@ export const TransactionBlock = ({
   subtitle,
   status,
   rows,
+  testId,
+  dataValue,
 }: TransactionBlockProps) => (
   <Box sx={BlockContainer}>
     {/* Header group: the subtitle sits OUTSIDE the row that holds the action
@@ -53,6 +55,8 @@ export const TransactionBlock = ({
                 whiteSpace: "nowrap",
               }}
               title={amount}
+              data-testid={testId}
+              data-value={dataValue}
             >
               {amount}
             </Typography>

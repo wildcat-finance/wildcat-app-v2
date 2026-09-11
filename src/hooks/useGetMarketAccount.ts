@@ -5,7 +5,6 @@ import {
   getLenderAccountForMarket,
   Market,
   MarketAccount,
-  getSubgraphClient,
   SignerOrProvider,
 } from "@wildcatfi/wildcat-sdk"
 import { zeroAddress } from "viem"
@@ -14,6 +13,7 @@ import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { getBrowserSubgraphClient } from "@/lib/subgraph/client"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type UseBorrowerMarketAccountProps = {
@@ -38,7 +38,7 @@ export function useBorrowerMarketAccountQuery({
   const targetChainId = market?.chainId ?? chainId
   const subgraphClient =
     typeof targetChainId === "number"
-      ? getSubgraphClient(targetChainId)
+      ? getBrowserSubgraphClient(targetChainId)
       : undefined
 
   async function queryMarketAccount() {

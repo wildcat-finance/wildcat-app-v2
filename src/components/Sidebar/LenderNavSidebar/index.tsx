@@ -81,6 +81,7 @@ export const LenderNavSidebar = () => {
 
   return (
     <Box
+      data-testid="lender-nav-sidebar"
       sx={{
         height: "100%",
         width: "267px",

@@ -1,4 +1,3 @@
-import { PrismaClient } from "@prisma/client"
 import {
   checkRegisteredBorrowers as checkRegisteredBorrowersOnChain,
   getArchControllerContract,
@@ -18,9 +17,10 @@ import {
 import { BorrowerProfileUpdate } from "@/app/api/profiles/updates/interface"
 
 import { MlaTemplateField } from "./mla"
+import { prisma } from "./prisma"
 import { getProviderForServer } from "./provider"
 
-export const prisma = new PrismaClient()
+export { prisma }
 
 async function getSeededLegacyWrapperHashes(): Promise<string[]> {
   const versions = await prisma.serviceAgreement.findMany({

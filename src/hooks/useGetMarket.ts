@@ -3,7 +3,6 @@ import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import {
   getIndexedMarket,
-  getSubgraphClient,
   isSupportedChainId,
   Market,
   MarketVersion,
@@ -16,6 +15,7 @@ import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useMarketDetailPerformanceMark } from "@/hooks/useMarketDetailPerformance"
 import { cloneSdkObject } from "@/lib/sdk-object"
+import { getBrowserSubgraphClient } from "@/lib/subgraph/client"
 import { refreshMarketsV2LiveDataSafe } from "@/utils/marketV2Reads"
 import { refetchOnMountIfInvalidated } from "@/utils/queryRefetch"
 
@@ -78,7 +78,7 @@ export async function fetchIndexedMarketForDetail({
   marketAddress,
   signerOrProvider,
 }: IndexedMarketQueryOptionsInput) {
-  const subgraphClient = getSubgraphClient(chainId)
+  const subgraphClient = getBrowserSubgraphClient(chainId)
   const market = await getIndexedMarket(subgraphClient, {
     chainId,
     signerOrProvider,

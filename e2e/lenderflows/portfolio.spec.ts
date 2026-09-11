@@ -1,0 +1,232 @@
+import {
+  fetchAllMarkets,
+  fetchPositions,
+  formatBpsPercent,
+  gotoAligned,
+  readAccordionCount,
+  readOtherMarketsCounts,
+  rowsIn,
+  searchField,
+} from "./helpers"
+import { ensureTouSigned } from "./lib"
+import { ANVIL_ACCOUNTS, pins, type Address } from "../lib/env"
+import { connectAs, ensureConnected } from "../lib/page"
+import { attachAgreement, step } from "../lib/step"
+import * as subgraph from "../lib/subgraph"
+import { expect, test } from "../lib/test"
+
+/**
+ * Lender portfolio UAT cases (LEN-27, LEN-32), read-only.
+ * Oracle: the fork subgraph. No transactions, no time travel.
+ */
+
+const account = ANVIL_ACCOUNTS[0] as Address
+const ALL_MARKETS = "/lender/all-markets"
+const MY_MARKETS = "/lender/my-markets"
+
+// After a harness reset the app DB snapshot holds NO ToU acceptance for our accounts, and every
+// /lender page redirects to the agreement gate ("Are Loading..." forever from a test's viewpoint).
+// Make the suite self-sufficient instead of depending on agreements.spec.ts having run first.
+test("setup: current ToU acceptance for the reading account", async ({
+  page,
+}) => {
+  await ensureTouSigned(page, account, pins.markets.openTerm)
+})
+
+test("LEN-27: RCF pricing on the detail page and market list", async ({
+  page,
+}) => {
+  test.setTimeout(300_000)
+  // Deterministic pick: the first open revolving market in the pinned catalogue.
+  const catalogue = await fetchAllMarkets()
+  const rcf = catalogue
+    .filter((m) => m.marketKind === "REVOLVING" && !m.isClosed)
+    .sort((a, b) => (a.id < b.id ? -1 : 1))[0]
+  if (!rcf) throw new Error("the fork has no open revolving (RCF) market")
+  const commitmentBips = Number(rcf.commitmentFeeBips ?? "0")
+  const utilizationBips = rcf.annualInterestBips
+
+  await step(page, "detail page: both APRs are discoverable", async () => {
+    await gotoAligned(page, `/lender/market/${rcf.id}`)
+    await ensureConnected(page, account)
+    // Open-access markets land on Deposit & Withdraw; open Status & Details.
+    const statusButton = page.getByRole("button", {
+      name: /^Status and Details$/,
+    })
+    await expect(statusButton).toBeVisible({ timeout: 90_000 })
+    await statusButton.click()
+    await expect(page.getByText("Parameters", { exact: true })).toBeVisible({
+      timeout: 90_000,
+    })
+
+    const row = (title: string) =>
+      page
+        .getByTestId("parameters-item")
+        .filter({ has: page.getByText(title, { exact: true }) })
+
+    await expect(row("Type")).toContainText("Revolving")
+    await expect(row("Commitment APR")).toContainText(
+      formatBpsPercent(commitmentBips),
+    )
+    await expect(row("Utilization APR")).toContainText(
+      formatBpsPercent(utilizationBips),
+    )
+    const effectiveRow = row("Effective Lender APR")
+    await expect(effectiveRow).toHaveCount(1)
+    const effectiveText = (await effectiveRow.innerText()).replace(/\n/g, " ")
+    attachAgreement("LEN-27 detail page APRs", {
+      market: rcf.id,
+      name: rcf.name,
+      commitmentAprShown: formatBpsPercent(commitmentBips),
+      utilizationAprShown: formatBpsPercent(utilizationBips),
+      effectiveLenderAprRow: effectiveText,
+    })
+  })
+
+  await step(page, "market list: interim single blended APR", async () => {
+    await gotoAligned(page, ALL_MARKETS)
+    await ensureConnected(page, account)
+    await readOtherMarketsCounts(page)
+    await searchField(page).fill(rcf.id)
+    const row = page
+      .locator(".MuiDataGrid-row")
+      .filter({ hasText: rcf.name })
+      .first()
+    await expect(row).toBeVisible({ timeout: 60_000 })
+    const aprCell = (
+      await row.locator('.MuiDataGrid-cell[data-field="apr"]').innerText()
+    ).trim()
+    // The two-APR list display is a known backlog item: today the list shows
+    // exactly one (blended) percentage. Fail if that interim state changes so
+    // the documentation gets refreshed.
+    const percentages = aprCell.match(/\d+(\.\d+)?%/g) ?? []
+    expect(percentages, "list shows a single blended APR").toHaveLength(1)
+    attachAgreement("LEN-27 list display", {
+      market: rcf.id,
+      name: rcf.name,
+      aprCell,
+      commitmentFeeBips: commitmentBips,
+      utilizationAprBips: utilizationBips,
+      note: "List row shows one blended lender APR; commitment fee and utilization APR are only on the detail page (Status & Details). Two-APR list display remains a backlog item.",
+    })
+  })
+})
+
+test("LEN-32: positions vs explorer separation; withdrawal indicators", async ({
+  page,
+}) => {
+  test.setTimeout(420_000)
+  // KNOWN-ISSUES #1: on head the wallet-gated /lender/my-markets deep link
+  // deterministically bounces to /lender while wagmi reconnects; pre-seed the
+  // connector state so hydration starts connected (the documented workaround).
+  await connectAs(page, 0)
+  const positions = await fetchPositions(account)
+  expect(
+    positions.map((p) => p.marketId),
+    "account #0 holds its pinned open-term position (seeded by the withdrawal specs)",
+  ).toContain(pins.markets.openTerm.toLowerCase())
+  const active = positions.filter((p) => !p.isClosed)
+  const terminated = positions.filter((p) => p.isClosed)
+
+  await step(
+    page,
+    "positions page lists exactly the subgraph positions",
+    async () => {
+      await gotoAligned(page, MY_MARKETS)
+      await ensureConnected(page, account)
+      await expect
+        .poll(async () => readAccordionCount(page, "deposited"), {
+          timeout: 90_000,
+        })
+        .toBe(active.length)
+      const shownNames = (
+        await rowsIn(page, "deposited")
+          .locator('.MuiDataGrid-cell[data-field="name"]')
+          .allInnerTexts()
+      ).map((t) => t.split("\n")[0].trim())
+      for (const p of active)
+        expect(shownNames, "every active position is listed").toContainEqual(
+          p.marketName,
+        )
+      expect(shownNames, "no extra rows beyond positions").toHaveLength(
+        active.length,
+      )
+      attachAgreement("LEN-32 positions", { positions, shownNames })
+    },
+  )
+
+  await step(page, "explorer excludes every position market", async () => {
+    await gotoAligned(page, ALL_MARKETS)
+    await ensureConnected(page, account)
+    await readOtherMarketsCounts(page)
+    for (const p of positions) {
+      await searchField(page).fill(p.marketId)
+      const counts = await readOtherMarketsCounts(page)
+      expect(
+        counts,
+        `position market ${p.marketName} (${p.marketId}) must not appear in Other Markets`,
+      ).toEqual({ self: 0, manual: 0, terminated: 0 })
+    }
+    await searchField(page).fill("")
+  })
+
+  await step(
+    page,
+    "open-withdrawal indicator on the position market",
+    async () => {
+      const market = pins.markets.openTerm.toLowerCase()
+      const openExpiries = await subgraph.openWithdrawalExpiries(
+        market,
+        account,
+      )
+      await gotoAligned(page, `/lender/market/${market}`)
+      await ensureConnected(page, account)
+
+      const requestsButton = page.getByRole("button", {
+        name: /^Withdrawal Requests/,
+      })
+      await expect(requestsButton).toBeVisible({ timeout: 60_000 })
+      const badgeText = (await requestsButton.innerText()).replace(
+        /Withdrawal Requests/,
+        "",
+      )
+      const badge = Number(badgeText.match(/(\d+)/)?.[1] ?? "0")
+
+      await requestsButton.click()
+      await expect(page.getByTestId("withdrawals-ongoing")).toBeVisible({
+        timeout: 60_000,
+      })
+      const body = await page.locator("body").innerText()
+      const start = body.indexOf("Open Withdrawals")
+      const sectionText = start >= 0 ? body.slice(start, start + 400) : ""
+
+      test.skip(
+        openExpiries.length === 0,
+        "no open withdrawal batches at run time — indicator not exercisable (run after a queueing suite)",
+      )
+      if (openExpiries.length > 0) {
+        expect(
+          badge,
+          `sidebar badge reflects ${openExpiries.length} open withdrawal batch(es)`,
+        ).toBeGreaterThanOrEqual(1)
+      }
+      attachAgreement("LEN-32 withdrawal indicators (observed)", {
+        market,
+        openBatchExpiries: openExpiries,
+        sidebarBadge: badge,
+        sectionPreview: sectionText.slice(0, 400),
+        note: "The market-list tables on this build carry no outstanding-withdrawal tag column; the only withdrawal indicator is the count badge on the market page's 'Withdrawal Requests' sidebar entry (ongoing+claimable+outstanding). Recorded per runsheet.",
+      })
+    },
+  )
+
+  await step(page, "terminated positions (observational)", async () => {
+    attachAgreement("LEN-32 terminated positions", {
+      terminated,
+      note:
+        terminated.length === 0
+          ? "account #0 holds no terminated-market positions on this fork; the terminated bucket separation is covered by LEN-06."
+          : "terminated positions exist; membership asserted via LEN-06 section counts.",
+    })
+  })
+})

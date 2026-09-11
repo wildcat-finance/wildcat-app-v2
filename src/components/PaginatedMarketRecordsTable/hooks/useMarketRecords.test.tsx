@@ -16,7 +16,10 @@ const getMarketRecordsMock = jest.fn()
 
 jest.mock("@wildcatfi/wildcat-sdk", () => ({
   getMarketRecords: (...args: unknown[]) => getMarketRecordsMock(...args),
-  getSubgraphClient: (chainId: number) => ({ chainId }),
+}))
+
+jest.mock("@/lib/subgraph/client", () => ({
+  getBrowserSubgraphClient: (chainId: number) => ({ chainId }),
 }))
 
 jest.mock("@/hooks/useSelectedNetwork", () => ({

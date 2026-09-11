@@ -1,8 +1,10 @@
 import { gql } from "@apollo/client"
-import { getSubgraphClient, SubgraphUrls } from "@wildcatfi/wildcat-sdk"
+import { SubgraphUrls } from "@wildcatfi/wildcat-sdk"
 // eslint-disable-next-line camelcase
 import { unstable_cache } from "next/cache"
 import { NextRequest, NextResponse } from "next/server"
+
+import { getServerSubgraphClient } from "@/lib/subgraph/server"
 
 export const runtime = "nodejs"
 
@@ -44,7 +46,7 @@ async function fetchMarketFromChain(
   addressLower: string,
   chainId: SupportedChainId,
 ) {
-  const client = getSubgraphClient(chainId)
+  const client = getServerSubgraphClient(chainId)
   const res = await client.query<
     MarketDiscoveryQuery,
     MarketDiscoveryQueryVariables

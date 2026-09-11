@@ -21,7 +21,10 @@ jest.mock("@apollo/client", () => ({ gql: jest.fn(() => ({})) }))
 jest.mock("@wildcatfi/wildcat-sdk", () => ({
   getDeploymentAddress: (...args: unknown[]) =>
     mockGetDeploymentAddress(...args),
-  getSubgraphClient: jest.fn(() => ({ query: mockQuery })),
+}))
+
+jest.mock("@/lib/subgraph/client", () => ({
+  getBrowserSubgraphClient: jest.fn(() => ({ query: mockQuery })),
 }))
 
 const chainId = 11155111 as SupportedChainId

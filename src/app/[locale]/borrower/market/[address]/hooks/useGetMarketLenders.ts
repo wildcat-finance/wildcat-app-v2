@@ -9,13 +9,13 @@ import {
   Market,
   SignerOrProvider,
   SupportedChainId,
-  getSubgraphClient,
 } from "@wildcatfi/wildcat-sdk"
 import { useAccount } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { getBrowserSubgraphClient } from "@/lib/subgraph/client"
 import {
   getMarketPolicyAddress,
   isHooksManagedMarket,
@@ -35,7 +35,7 @@ export const useGetMarketLenders = (market?: Market) => {
   })
   const targetChainId = market?.chainId ?? chainId
   const subgraphClient = targetChainId
-    ? getSubgraphClient(targetChainId)
+    ? getBrowserSubgraphClient(targetChainId)
     : undefined
   const { address } = useAccount()
   const signerOrProvider = signer ?? provider

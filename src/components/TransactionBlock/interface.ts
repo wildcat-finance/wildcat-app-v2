@@ -6,6 +6,10 @@ export type TransactionBlockRow = {
 }
 
 export type TransactionBlockProps = {
+  /** Automation anchor: data-testid on the amount element. */
+  testId?: string
+  /** Automation anchor: raw (unformatted) value exposed as data-value on the amount element. */
+  dataValue?: string
   title: string
   tooltip?: string
   warning?: boolean

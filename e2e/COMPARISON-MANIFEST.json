@@ -1,0 +1,613 @@
+{
+  "$schema": "comparison-manifest/1",
+  "note": "One row per UAT id that either branch DECLARES — not per id a board happened to run, so a row excluded by the board's --grep-invert still needs one. Rows added as `identical` carry no branch-specific difference: W1 captured every gate, every main-only row and every in-test branch as its own row before deleting the variant plumbing. `absent: both` marks an id neither branch tests, retired or covered under another id.",
+  "variants": {
+    "a": "v2.5",
+    "b": "main"
+  },
+  "rows": {
+    "LEN-23": {
+      "relation": "v25-only",
+      "reason": "periodic-term markets do not exist on main (PeriodicTerms* absent; isFrontendVisibleMarket hides them)"
+    },
+    "LEN-23b": {
+      "relation": "v25-only",
+      "reason": "periodic-term markets do not exist on main (PeriodicTerms* absent; isFrontendVisibleMarket hides them)",
+      "note": "split from LEN-23 in W2 so every id is unique; same relation"
+    },
+    "LEN-23c": {
+      "relation": "v25-only",
+      "reason": "periodic-term markets do not exist on main (PeriodicTerms* absent; isFrontendVisibleMarket hides them)",
+      "note": "split from LEN-23 in W2 so every id is unique; same relation"
+    },
+    "LEN-25": {
+      "relation": "v25-only",
+      "reason": "periodic-term markets do not exist on main"
+    },
+    "LEN-24": {
+      "relation": "v25-only",
+      "reason": "periodic-term markets do not exist on main",
+      "decision": "D7 grouping ruling"
+    },
+    "LEN-26": {
+      "relation": "v25-only",
+      "reason": "revolving/RCF markets do not exist on main"
+    },
+    "LEN-27": {
+      "relation": "v25-only",
+      "reason": "revolving/RCF pricing does not exist on main"
+    },
+    "BOP-16": {
+      "relation": "v25-only",
+      "reason": "revolving/RCF markets do not exist on main"
+    },
+    "BOP-16b": {
+      "relation": "v25-only",
+      "reason": "revolving/RCF markets do not exist on main"
+    },
+    "BOP-17": {
+      "relation": "v25-only",
+      "reason": "periodic-term markets do not exist on main"
+    },
+    "BOP-17b": {
+      "relation": "v25-only",
+      "reason": "periodic-term markets do not exist on main; on v2.5 an expected failure (KNOWN-ISSUES #20)"
+    },
+    "BOP-33": {
+      "relation": "v25-only",
+      "reason": "revolving/RCF markets do not exist on main"
+    },
+    "MKT-05": {
+      "relation": "v25-only",
+      "reason": "revolving market creation does not exist on main (create-market/flow-variants absent)"
+    },
+    "MKT-06": {
+      "relation": "v25-only",
+      "reason": "periodic market creation does not exist on main"
+    },
+    "MKT-07": {
+      "relation": "v25-only",
+      "reason": "revolving + periodic creation does not exist on main"
+    },
+    "MKT-09": {
+      "relation": "v25-only",
+      "reason": "periodic timing fields do not exist on main"
+    },
+    "MKT-04": {
+      "relation": "identical",
+      "note": "both wizards deploy fixed-term markets; main's M5 crash (`invalid BigNumber value`, main KNOWN-ISSUES M5) needs an undefined `fixedTermEndTime`, which is reached only via main's M8 template latch (new policy + Open Term Loan), not a fixed-term-specific gap"
+    },
+    "MKT-10": {
+      "relation": "identical",
+      "note": "step navigation mechanism differs: main's sidebar is a chain (each step enables only the next, so the test walks forward with Next) while v2.5 jumps directly to Confirmation via the sidebar tab; the asserted facts (nav stays usable, unsigned deploy stays locked) hold on both"
+    },
+    "MKT-17": {
+      "relation": "intentionally-different",
+      "reason": "a parameter change after signing a refusal does not force re-signing on v2.5 (post-5ec10f25 MODE-aware fingerprint: a refusal covers only the predicted market + signing time); main predates that change and still invalidates a signed refusal on any form edit, requiring re-sign"
+    },
+    "MKT-22": {
+      "relation": "identical",
+      "note": "main resolves the wrapper through Wildcat4626WrapperFactory.wrapperForMarket instead of WildcatMarket.registeredWrapper (v2.5 addition)"
+    },
+    "MKT-23": {
+      "relation": "v25-improves",
+      "reason": "v2.5 offers post-hoc wrapper deployment on the borrower side; on main neither side offers it under the harness (borrower side hardcoded false; lender side gated on an authorised lender with an ethers signer — main KNOWN-ISSUES M12, unverified with a real wallet)"
+    },
+    "BOP-02": {
+      "relation": "identical",
+      "note": "main renders the same 'Lenders were edited' confirmation, hard-coded rather than from the locale file; runs on main once borrower-ops uses a borrower-administered allowlist fixture (W6.4)"
+    },
+    "BOP-05": {
+      "relation": "identical",
+      "note": "as BOP-02"
+    },
+    "LEN-07": {
+      "relation": "intentionally-different",
+      "reason": "v2.5 routes borrower chips to /profile/borrower/<addr> with a destination-based Back link; main routes to /lender/profile/<addr> (same profile page component)"
+    },
+    "LEN-07b": {
+      "relation": "intentionally-different",
+      "reason": "route differs (see LEN-07); the page shows the clicked borrower in both"
+    },
+    "LEN-08": {
+      "relation": "identical",
+      "note": "the periodic-term column is v2.5-only; main's row checks the open and fixed term cells"
+    },
+    "LEN-06": {
+      "relation": "v25-improves",
+      "reason": "main's sidebar and content switcher disagree on the Other Markets total (main KNOWN-ISSUES M2); both observed totals accepted on main"
+    },
+    "LEN-10": {
+      "relation": "v25-improves",
+      "reason": "Export CSV exists only on v2.5; the records table is asserted on both"
+    },
+    "LEN-11": {
+      "relation": "v25-improves",
+      "reason": "main's Market Token copy button yields the explorer URL (main KNOWN-ISSUES M1); v2.5 the address"
+    },
+    "LEN-13": {
+      "relation": "identical",
+      "note": "MLA gate copy differs"
+    },
+    "LEN-15": {
+      "relation": "identical",
+      "note": "Status & Details label differs: 'Deposit Access: Open Deposits' (main) vs 'Lender Onboarding: Open' (v2.5)"
+    },
+    "LEN-03": {
+      "relation": "intentionally-different",
+      "reason": "v2.5 auto-opens a first-acceptance ToU prompt; main shows the page without a prompt"
+    },
+    "BON-01": {
+      "relation": "intentionally-different",
+      "reason": "as LEN-03"
+    },
+    "BON-02": {
+      "relation": "intentionally-different",
+      "reason": "as LEN-03; the ToU-prompt step differs by app (main dismisses via the dashboard banner instead of a dialog)"
+    },
+    "BON-03": {
+      "relation": "intentionally-different",
+      "reason": "as LEN-03 (Borrower Invitation Required prompt is v2.5-only)"
+    },
+    "BON-06": {
+      "relation": "identical",
+      "note": "acceptedTermsTextAvailable asserted on v2.5 only; ZIP content and hash asserted on both"
+    },
+    "LEN-35": {
+      "relation": "v25-improves",
+      "reason": "both enforce the fixed-term lock; only v2.5 renders the reason copy (main KNOWN-ISSUES M10)"
+    },
+    "LEN-35b": {
+      "relation": "identical",
+      "note": "split from LEN-35 in W2. LEN-35's v25-improves relation is about the BEFORE-maturity reason copy (main KNOWN-ISSUES M10); the after-maturity half behaves the same on both branches."
+    },
+    "ADM-04": {
+      "relation": "v25-improves",
+      "reason": "the admin panel's Register button reverts Unauthorized() on main (SDK 3.1.17 manifest names a superseded MockArchControllerOwner, main KNOWN-ISSUES M3); main's row asserts the revert and registers via the real owner"
+    },
+    "ADM-05": {
+      "relation": "v25-improves",
+      "reason": "as ADM-04"
+    },
+    "BOP-18": {
+      "relation": "identical",
+      "note": "runtime-skips on main because the fixture borrower's fixed-term markets matured before the pin (fixture reason)"
+    },
+    "BOP-24": {
+      "relation": "identical",
+      "note": "as BOP-18"
+    },
+    "EDG-12": {
+      "relation": "identical"
+    },
+    "MKT-01": {
+      "relation": "identical",
+      "note": "main's policy step has one Market Type select carrying the term; no Market Term review row"
+    },
+    "MKT-03": {
+      "relation": "identical",
+      "note": "review rows: main renders raw form values ('1000000 DAI', '1 hours'), v2.5 localises"
+    },
+    "MKT-20": {
+      "relation": "v25-improves",
+      "reason": "main's completion modal closes on Escape and on a backdrop click (main KNOWN-ISSUES M9); v2.5 keeps it open until Close"
+    },
+    "V2P-01": {
+      "relation": "main-only",
+      "reason": "chain-level suite for the deployed V2/V2.1 protocol"
+    },
+    "V2P-02": {
+      "relation": "main-only",
+      "reason": "as V2P-01"
+    },
+    "V2P-03": {
+      "relation": "main-only",
+      "reason": "as V2P-01"
+    },
+    "V2P-04": {
+      "relation": "main-only",
+      "reason": "as V2P-01"
+    },
+    "V2P-05": {
+      "relation": "main-only",
+      "reason": "as V2P-01; delinquency has no test of any kind on v2.5 (W7)"
+    },
+    "V2P-06": {
+      "relation": "main-only",
+      "reason": "as V2P-01"
+    },
+    "V2P-07": {
+      "relation": "main-only",
+      "reason": "as V2P-01"
+    },
+    "V2P-08": {
+      "relation": "main-only",
+      "reason": "as V2P-01"
+    },
+    "V2P-09": {
+      "relation": "main-only",
+      "reason": "as V2P-01; sanctions untested on v2.5 (W7)"
+    },
+    "MKT-M01": {
+      "relation": "main-only",
+      "reason": "asserts main KNOWN-ISSUES M8 (template latch)"
+    },
+    "M5": {
+      "relation": "main-only",
+      "reason": "deploy-parameter probe for main KNOWN-ISSUES M5"
+    },
+    "LEN-16": {
+      "relation": "untested-on-main",
+      "reason": "needs a borrower-administered allowlist fixture on main (W6.4)"
+    },
+    "LEN-20": {
+      "relation": "untested-on-main",
+      "reason": "needs a disposable market closed with a lender balance on main (W6.4)"
+    },
+    "LEN-34": {
+      "relation": "untested-on-main",
+      "reason": "needs a TTL-bearing access-list provider on main (W6.4)"
+    },
+    "LEN-28": {
+      "relation": "untested-on-main",
+      "reason": "wrapper lifecycle not yet ported to main (W6.4); legacy wrapper exists on main"
+    },
+    "LEN-29": {
+      "relation": "untested-on-main",
+      "reason": "as LEN-28"
+    },
+    "LEN-30": {
+      "relation": "untested-on-main",
+      "reason": "as LEN-28"
+    },
+    "LEN-31": {
+      "relation": "untested-on-main",
+      "reason": "as LEN-28"
+    },
+    "BOP-03b": {
+      "relation": "untested-on-main",
+      "reason": "member removal needs the allowlist fixture on main (W6.4)"
+    },
+    "BOP-09b": {
+      "relation": "untested-on-main",
+      "reason": "days-mode repay submission not ported to main"
+    },
+    "BOP-06-UI": {
+      "relation": "untested-on-main",
+      "reason": "main's useBorrow awaits tx.wait() without checking receipt.status (inherited finding 5); UI borrow proof pending on main"
+    },
+    "BOP-31": {
+      "relation": "identical",
+      "absent": "both",
+      "note": "force buyback is not a feature of either app; no test on either side (owner decision, borrower-ops.spec.ts)"
+    },
+    "WRP-01": {
+      "relation": "untested-on-main",
+      "reason": "wrappers-deployment suite (UAT sheet 6) exists only on v2.5; canonical-uniqueness and closure have legacy counterparts (W6.4)"
+    },
+    "WRP-02": {
+      "relation": "untested-on-main",
+      "reason": "as WRP-01"
+    },
+    "WRP-03": {
+      "relation": "untested-on-main",
+      "reason": "as WRP-01"
+    },
+    "WRP-04": {
+      "relation": "v25-only",
+      "reason": "wrapper-at-creation lifecycle on the v2.5 wrapper factory"
+    },
+    "WRP-05": {
+      "relation": "v25-only",
+      "reason": "termination with wrapped supply on a revolving+periodic market"
+    },
+    "WAL-05": {
+      "relation": "untested-on-main",
+      "reason": "wallet-transition suite uses the v2.5 branch's test-mode connector events; not ported"
+    },
+    "WAL-06": {
+      "relation": "untested-on-main",
+      "reason": "as WAL-05"
+    },
+    "WAL-07": {
+      "relation": "untested-on-main",
+      "reason": "as WAL-05"
+    },
+    "ADM-06": {
+      "relation": "untested-on-main",
+      "reason": "public-profile half has no oracle on main (no /profile/borrower route); needs a main-side oracle"
+    },
+    "ADM-07": {
+      "relation": "untested-on-main",
+      "reason": "as ADM-06"
+    },
+    "ADM-08": {
+      "relation": "untested-on-main",
+      "reason": "as ADM-06"
+    },
+    "EDG-01": {
+      "relation": "untested-on-main",
+      "reason": "not ported"
+    },
+    "EDG-03": {
+      "relation": "untested-on-main",
+      "reason": "not ported"
+    },
+    "EDG-05": {
+      "relation": "untested-on-main",
+      "reason": "not ported; overlaps V2P-06"
+    },
+    "EDG-07": {
+      "relation": "untested-on-main",
+      "reason": "not ported"
+    },
+    "EDG-08": {
+      "relation": "untested-on-main",
+      "reason": "needs a main-side oracle (periodic filter and SDK 3.1.17 penalty arithmetic differ)"
+    },
+    "EDG-10": {
+      "relation": "untested-on-main",
+      "reason": "not ported"
+    },
+    "BOP-27": {
+      "relation": "untested-on-main",
+      "reason": "executed-document assertions exist on v2.5; main has no implementation"
+    },
+    "MKT-18": {
+      "relation": "untested-on-main",
+      "reason": "Safe + MLA deployment is test.fixme on both branches (no Safe infrastructure on the fork)"
+    },
+    "WAL-01": {
+      "relation": "untested-on-main",
+      "reason": "Safe/Rabby manual lane; test.fixme on v2.5, absent on main"
+    },
+    "WAL-02": {
+      "relation": "untested-on-main",
+      "reason": "as WAL-01"
+    },
+    "WAL-03": {
+      "relation": "untested-on-main",
+      "reason": "as WAL-01"
+    },
+    "WAL-04": {
+      "relation": "untested-on-main",
+      "reason": "as WAL-01"
+    },
+    "ADM-09": {
+      "relation": "untested-on-main",
+      "reason": "test.fixme on v2.5 (no per-borrower history view in either app); absent on main"
+    },
+    "ADM-11": {
+      "relation": "untested-on-main",
+      "reason": "test.fixme on v2.5 (no removeBorrower in either app); absent on main"
+    },
+    "ADM-13": {
+      "relation": "untested-on-main",
+      "reason": "test.fixme on v2.5 (no ToU publishing surface in either app); absent on main"
+    },
+    "EDG-02": {
+      "relation": "identical",
+      "absent": "both",
+      "note": "no test under this id on either branch: covered by LEN-15 (below-minimum deposit is blocked) — edge-regression.spec.ts header"
+    },
+    "EDG-04": {
+      "relation": "identical",
+      "absent": "both",
+      "note": "no test under this id on either branch: covered by LEN-22 (three lenders queue inside one cycle) — edge-regression.spec.ts header"
+    },
+    "EDG-06": {
+      "relation": "untested-on-main",
+      "reason": "test.fixme on v2.5 (sanctions; see V2P-09 and W7); absent on main"
+    },
+    "EDG-09": {
+      "relation": "untested-on-main",
+      "reason": "test.fixme on v2.5; absent on main"
+    },
+    "EDG-14": {
+      "relation": "untested-on-main",
+      "reason": "test.fixme on v2.5 (ADM-11 dependency); absent on main"
+    },
+    "EDG-15": {
+      "relation": "untested-on-main",
+      "reason": "test.fixme on v2.5; absent on main"
+    },
+    "ADM-01": {
+      "relation": "identical"
+    },
+    "ADM-02": {
+      "relation": "identical"
+    },
+    "ADM-03": {
+      "relation": "identical"
+    },
+    "ADM-10": {
+      "relation": "identical"
+    },
+    "ADM-12": {
+      "relation": "identical"
+    },
+    "BON-04": {
+      "relation": "identical"
+    },
+    "BON-05": {
+      "relation": "identical"
+    },
+    "BON-07": {
+      "relation": "identical"
+    },
+    "BON-08": {
+      "relation": "identical"
+    },
+    "BON-09": {
+      "relation": "identical"
+    },
+    "BON-10": {
+      "relation": "identical"
+    },
+    "BOP-01": {
+      "relation": "identical"
+    },
+    "BOP-03": {
+      "relation": "identical"
+    },
+    "BOP-04": {
+      "relation": "identical"
+    },
+    "BOP-06": {
+      "relation": "identical"
+    },
+    "BOP-07": {
+      "relation": "identical"
+    },
+    "BOP-08": {
+      "relation": "identical"
+    },
+    "BOP-09": {
+      "relation": "identical"
+    },
+    "BOP-10": {
+      "relation": "identical"
+    },
+    "BOP-11": {
+      "relation": "identical"
+    },
+    "BOP-12": {
+      "relation": "identical"
+    },
+    "BOP-13": {
+      "relation": "identical"
+    },
+    "BOP-14": {
+      "relation": "identical"
+    },
+    "BOP-14b": {
+      "relation": "identical"
+    },
+    "BOP-15": {
+      "relation": "identical"
+    },
+    "BOP-19": {
+      "relation": "identical"
+    },
+    "BOP-20": {
+      "relation": "identical"
+    },
+    "BOP-21": {
+      "relation": "identical"
+    },
+    "BOP-22": {
+      "relation": "identical"
+    },
+    "BOP-23": {
+      "relation": "identical"
+    },
+    "BOP-25": {
+      "relation": "identical"
+    },
+    "BOP-26": {
+      "relation": "identical"
+    },
+    "BOP-28": {
+      "relation": "identical"
+    },
+    "BOP-28b": {
+      "relation": "identical"
+    },
+    "BOP-29": {
+      "relation": "identical"
+    },
+    "BOP-30": {
+      "relation": "identical"
+    },
+    "BOP-32": {
+      "relation": "identical"
+    },
+    "EDG-11": {
+      "relation": "identical"
+    },
+    "EDG-13": {
+      "relation": "identical"
+    },
+    "LEN-01": {
+      "relation": "identical"
+    },
+    "LEN-02": {
+      "relation": "identical"
+    },
+    "LEN-04": {
+      "relation": "identical"
+    },
+    "LEN-05": {
+      "relation": "identical"
+    },
+    "LEN-09": {
+      "relation": "identical"
+    },
+    "LEN-12": {
+      "relation": "identical"
+    },
+    "LEN-14": {
+      "relation": "identical"
+    },
+    "LEN-17": {
+      "relation": "identical"
+    },
+    "LEN-18": {
+      "relation": "identical"
+    },
+    "LEN-19": {
+      "relation": "identical"
+    },
+    "LEN-21": {
+      "relation": "identical"
+    },
+    "LEN-22": {
+      "relation": "identical"
+    },
+    "LEN-32": {
+      "relation": "identical"
+    },
+    "LEN-33": {
+      "relation": "identical"
+    },
+    "LEN-33b": {
+      "relation": "identical"
+    },
+    "LEN-33c": {
+      "relation": "identical"
+    },
+    "MKT-02": {
+      "relation": "identical"
+    },
+    "MKT-08": {
+      "relation": "identical"
+    },
+    "MKT-11": {
+      "relation": "identical"
+    },
+    "MKT-12": {
+      "relation": "identical"
+    },
+    "MKT-13": {
+      "relation": "identical"
+    },
+    "MKT-14": {
+      "relation": "identical"
+    },
+    "MKT-15": {
+      "relation": "identical"
+    },
+    "MKT-16": {
+      "relation": "identical"
+    },
+    "MKT-19": {
+      "relation": "identical"
+    },
+    "MKT-21": {
+      "relation": "identical"
+    },
+    "MKT-24": {
+      "relation": "identical"
+    }
+  }
+}
