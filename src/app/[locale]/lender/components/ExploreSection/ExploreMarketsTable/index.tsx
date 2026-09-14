@@ -934,10 +934,10 @@ export const ExploreMarketsTable = () => {
                 </Typography>
                 {isFilteredEmpty && (
                   <Button
-                    variant="text"
+                    variant="contained"
                     size="small"
                     onClick={resetFilters}
-                    sx={{ display: "block", margin: "8px auto 0" }}
+                    sx={{ marginTop: "8px" }}
                   >
                     {t("common.buttons.resetFilters")}
                   </Button>
