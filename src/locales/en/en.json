@@ -1160,8 +1160,6 @@
         },
         "withdraw": {
           "batchJoin": {
-            "checkingBody": "Calculating the batch's current blended rate before you continue.",
-            "checkingTitle": "Checking the current withdrawal batch",
             "closesIn": "Batch closes in {{remaining}}",
             "title": "You are joining a batch that opened {{elapsed}} ago",
             "unknownBody": "We couldn't confirm whether an in-progress batch would reduce this request's claimable amount. Continuing may make less than the requested amount claimable. Any difference goes to lenders who entered the batch earlier by protocol design, not as a fee. <docs>Read the docs</docs>",
@@ -1188,6 +1186,9 @@
           "errors": {
             "exceeds": "Above the {{amount}} {{symbol}} available from this source",
             "tooSmall": "Amount is below the {{amount}} {{symbol}} minimum"
+          },
+          "failed": {
+            "subtitle": "The withdrawal transaction did not complete. Check your wallet and try again."
           },
           "periodicTooltip": "The amount of underlying asset debt that the connected address can request for withdrawal. Periodic markets accept withdrawal requests only during scheduled withdrawal windows.",
           "periodicWindow": {
