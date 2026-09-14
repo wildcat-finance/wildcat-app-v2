@@ -26,6 +26,7 @@ import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { TablePagination } from "@/components/TablePagination"
+import { useMarketHref } from "@/hooks/useMarketHref"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
@@ -36,7 +37,6 @@ import {
 } from "@/utils/comparators"
 import {
   buildBorrowerProfileHref,
-  buildMarketHref,
   formatBps,
   formatSecsToHours,
   formatTokenWithCommas,
@@ -57,15 +57,19 @@ import { getMarketTypeChip } from "@/utils/marketType"
 import { OtherMarketsTableModel, OtherMarketsTableProps } from "./interface"
 import { DataGridSx } from "../style"
 
-const MarketLinkRow = (props: GridRowProps) => (
-  <Link
-    href={buildMarketHref(props.row.id, props.row.chainId)}
-    style={{ display: "contents", color: "inherit" }}
-    tabIndex={-1}
-  >
-    <GridRow {...props} />
-  </Link>
-)
+const MarketLinkRow = (props: GridRowProps) => {
+  const buildMarketHref = useMarketHref()
+
+  return (
+    <Link
+      href={buildMarketHref(props.row.id, props.row.chainId)}
+      style={{ display: "contents", color: "inherit" }}
+      tabIndex={-1}
+    >
+      <GridRow {...props} />
+    </Link>
+  )
+}
 
 const clickableGridSx = {
   ...DataGridSx,

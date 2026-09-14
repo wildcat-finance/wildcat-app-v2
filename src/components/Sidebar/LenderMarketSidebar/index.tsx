@@ -1,5 +1,4 @@
 import * as React from "react"
-import { useEffect } from "react"
 
 import {
   Box,
@@ -24,16 +23,12 @@ import { usePrefetchMarketRecords } from "@/components/PaginatedMarketRecordsTab
 import { MenuItemButton } from "@/components/Sidebar/MarketSidebar/style"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { restoreLenderMarketOrigin } from "@/store/slices/lenderMarketOriginSlice/lenderMarketOriginSlice"
 import {
   LenderMarketSections,
   setSection,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import { COLORS } from "@/theme/colors"
-import {
-  readStoredLenderMarketOrigin,
-  resolveLenderMarketBackLink,
-} from "@/utils/lenderMarketOrigin"
+import { resolveLenderMarketBackLink } from "@/utils/lenderMarketOrigin"
 
 export const LenderMarketSidebar = () => {
   const { t } = useTranslation()
@@ -50,12 +45,7 @@ export const LenderMarketSidebar = () => {
     address: params.address,
     chainId: marketChainId,
   })
-  const origin = useAppSelector((state) => state.lenderMarketOrigin.origin)
-  const backLink = resolveLenderMarketBackLink(origin)
-
-  useEffect(() => {
-    dispatch(restoreLenderMarketOrigin(readStoredLenderMarketOrigin()))
-  }, [dispatch])
+  const backLink = resolveLenderMarketBackLink(searchParams.get("from"))
   const prefetchMarketHistory = usePrefetchMarketRecords(market)
 
   const currentSection = useAppSelector(

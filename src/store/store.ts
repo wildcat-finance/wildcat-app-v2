@@ -17,7 +17,6 @@ import borrowerOverviewSlice from "./slices/borrowerOverviewSlice/borrowerOvervi
 import editLendersListSlice from "./slices/editLendersListSlice/editLendersListSlice"
 import editPolicySlice from "./slices/editPolicySlice/editPolicySlice"
 import highlightSidebarSlice from "./slices/highlightSidebarSlice/highlightSidebarSlice"
-import lenderMarketOriginSlice from "./slices/lenderMarketOriginSlice/lenderMarketOriginSlice"
 import lenderMarketRoutingSlice from "./slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import lenderMlaSignaturesSlice from "./slices/lenderMlaSignaturesSlice/mlaSignaturesSlice"
 import marketFiltersSlice from "./slices/marketFiltersSlice/marketFiltersSlice"
@@ -45,7 +44,6 @@ export const makeStore = () => {
       lenderDashboardAmounts: lenderDashboardAmountsSlice,
       highlightSidebar: highlightSidebarSlice,
       lenderMarketRouting: lenderMarketRoutingSlice,
-      lenderMarketOrigin: lenderMarketOriginSlice,
       editLendersList: editLendersListSlice,
       policyLenders: policyLendersSlice,
       editPolicy: editPolicySlice,

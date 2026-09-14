@@ -9,7 +9,6 @@ import { LenderMarketsContext } from "@/app/[locale]/lender/context"
 import { useLenderPolicyMarkets } from "@/app/[locale]/lender/hooks/useLenderPolicyMarkets"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
-import { useTrackLenderMarketOrigin } from "@/hooks/useTrackLenderMarketOrigin"
 import { useAppDispatch } from "@/store/hooks"
 import { setLendersSectionAmount } from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
@@ -23,7 +22,6 @@ import {
 export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
   const dispatch = useAppDispatch()
   const { isWrongNetwork } = useCurrentNetwork()
-  useTrackLenderMarketOrigin()
 
   const {
     data: marketAccounts,
