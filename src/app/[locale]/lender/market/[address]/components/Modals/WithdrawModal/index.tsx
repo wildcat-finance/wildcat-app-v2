@@ -336,6 +336,10 @@ export const WithdrawModal = ({
     </Box>
   )
 
+  const failureSubtitle = t(
+    "marketDetails.lender.transactions.withdraw.failed.subtitle",
+  )
+
   const stepsBody = (
     <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
       <WithdrawSteps
@@ -349,7 +353,7 @@ export const WithdrawModal = ({
       />
       {flow.failed && !!flow.error && (
         <Typography variant="text3" color={COLORS.dullRed}>
-          {flow.error}
+          {failureSubtitle}
         </Typography>
       )}
     </Box>
@@ -397,7 +401,7 @@ export const WithdrawModal = ({
       }}
       onClose={handleClose}
       txHash={flow.txHash}
-      subtitle={flow.error}
+      subtitle={failureSubtitle}
     />
   )
 
