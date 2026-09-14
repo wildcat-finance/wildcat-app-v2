@@ -71,6 +71,7 @@ const mockSidebarState = {
     withdrawalsCount: 0,
   },
   hideMarketSections: { description: false },
+  lenderMarketOrigin: { origin: null },
 }
 
 jest.mock("@/store/hooks", () => ({
