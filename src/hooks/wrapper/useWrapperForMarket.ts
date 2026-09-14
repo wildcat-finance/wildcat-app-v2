@@ -46,13 +46,17 @@ export const useWrapperForMarket = (
       getWrapperDiscoveryRefetchInterval(!!currentQuery.state.data),
     queryFn: async () => {
       if (!market || !signerOrProvider || !chainId) throw new Error("No market")
-      return TokenWrapper.fromMarketWithSubgraph(subgraphClient, {
-        chainId,
-        signerOrProvider,
-        market: market.address,
-        fetchPolicy: "cache-first",
-        fallbackToFactory: true,
-      })
+      const discovered = await TokenWrapper.fromMarketWithSubgraph(
+        subgraphClient,
+        {
+          chainId,
+          signerOrProvider,
+          market: market.address,
+          fetchPolicy: "cache-first",
+          fallbackToFactory: true,
+        },
+      )
+      return discovered ?? null
     },
     refetchOnMount: false,
     refetchOnWindowFocus: (currentQuery) =>
@@ -61,7 +65,7 @@ export const useWrapperForMarket = (
       getWrapperDiscoveryAttentionRefetch(!!currentQuery.state.data),
   })
 
-  const wrapper = query.data
+  const wrapper = query.data ?? undefined
   const wrapperAddress = wrapper?.address
   const hasWrapper = !!wrapper
 
