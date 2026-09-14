@@ -31,11 +31,6 @@ export const WithdrawalBatchJoinWarning = ({
   if (warning.state === "clear") return null
 
   const title = (() => {
-    if (warning.state === "loading") {
-      return t(
-        "marketDetails.lender.transactions.withdraw.batchJoin.checkingTitle",
-      )
-    }
     if (warning.state === "unknown") {
       return t(
         "marketDetails.lender.transactions.withdraw.batchJoin.unknownTitle",
@@ -47,11 +42,6 @@ export const WithdrawalBatchJoinWarning = ({
   })()
 
   const body = (() => {
-    if (warning.state === "loading") {
-      return t(
-        "marketDetails.lender.transactions.withdraw.batchJoin.checkingBody",
-      )
-    }
     if (warning.state === "unknown") {
       return (
         <Trans
@@ -97,8 +87,7 @@ export const WithdrawalBatchJoinWarning = ({
 
   return (
     <Box
-      role={warning.state === "loading" ? "status" : "note"}
-      aria-live={warning.state === "loading" ? "polite" : undefined}
+      role="note"
       sx={{
         width: "100%",
         padding: "14px 16px",

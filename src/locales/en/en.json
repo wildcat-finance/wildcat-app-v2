@@ -1160,8 +1160,6 @@
         },
         "withdraw": {
           "batchJoin": {
-            "checkingBody": "Calculating the batch's current blended rate before you continue.",
-            "checkingTitle": "Checking the current withdrawal batch",
             "closesIn": "Batch closes in {{remaining}}",
             "title": "You are joining a batch that opened {{elapsed}} ago",
             "unknownBody": "We couldn't confirm whether an in-progress batch would reduce this request's claimable amount. Continuing may make less than the requested amount claimable. Any difference goes to lenders who entered the batch earlier by protocol design, not as a fee. <docs>Read the docs</docs>",

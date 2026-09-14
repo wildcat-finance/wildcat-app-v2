@@ -156,7 +156,7 @@ export const WithdrawModal = ({
   }
 
   const handleConfirm = async () => {
-    if (batchJoinWarning.state === "loading") return
+    if (batchJoinWarning.isChecking) return
     const { route } = routing
     if (batchJoinWarning.state === "clear") {
       const latestState = await batchJoinWarning.refresh()
@@ -280,7 +280,7 @@ export const WithdrawModal = ({
       return t("marketDetails.lender.transactions.withdraw.confirm.exceeds")
     if (!routing.isValid || blockingError)
       return t("marketDetails.lender.transactions.withdraw.confirm.enterAmount")
-    if (batchJoinWarning.state === "loading")
+    if (batchJoinWarning.isChecking)
       return t(
         "marketDetails.lender.transactions.withdraw.confirm.checkingBatch",
       )
@@ -421,9 +421,7 @@ export const WithdrawModal = ({
           mainBtnText={confirmLabel}
           mainBtnOnClick={handleConfirm}
           disableMainBtn={
-            !routing.isValid ||
-            !!blockingError ||
-            batchJoinWarning.state === "loading"
+            !routing.isValid || !!blockingError || batchJoinWarning.isChecking
           }
         />
       )
