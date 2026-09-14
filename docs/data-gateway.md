@@ -1,6 +1,6 @@
 # App data gateway
 
-The app uses `@wildcatfi/wildcat-sdk@3.2.10-beta`. Browser RPC and subgraph
+The app uses `@wildcatfi/wildcat-sdk@3.2.12-beta`. Browser RPC and subgraph
 requests go through these same-origin POST routes:
 
 - `/api/gateway/rpc/{chainId}`
