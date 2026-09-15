@@ -125,7 +125,14 @@ close that gap (`capability-ledger/SCHEMA.md` §5.1).
   which of them THIS assertion exercised. The `req` lands on the step's journal entry, and the
   journal is the record of what actually ran, which is why an attribution can be checked rather
   than believed. A step with no `req` asserts nothing the ledger names (arrange, navigation,
-  teardown) and produces no result of its own.
+  teardown) and produces no result of its own. **Never nest `step()`**: Playwright propagates a
+  child step's error to its parent and the reporter walks the tree pre-order, so a failure inside a
+  nested checkpoint resolves to the OUTER one — which under `/3` credits it to whatever the outer
+  step declared. Keep checkpoints flat.
+- `requirements([...])` and `infra(...)` **throw at authoring time** on a malformed id or an infra
+  kind outside `setup|teardown|smoke`. A malformed id fails the run's schema check, and once that
+  fails every other check on the run reports `skipped: schema invalid` — one typo would cost the
+  whole run rather than produce one finding.
 - **Infrastructure rows** declare `infra("setup" | "teardown" | "smoke")` instead
   (`e2e/fork.smoke.spec.ts` is the worked example). That is the ONE exemption: an infra row asserts
   no product behaviour, so it declares nothing and observes nothing.
@@ -134,6 +141,12 @@ Every other row must declare something. A row that declares MORE THAN ONE requir
 every assertion with `step(…, { req })` — a multi-requirement row with no step attribution is an
 error, not a degraded mode: it is exactly the shape that recorded one setup failure as eight broken
 capabilities.
+
+**Journal coverage is the precondition.** The site of a failure is resolved against the journal, so
+a failing row whose journal recorded no `step()` entries takes the "outside every checkpoint" branch
+and records one `unattributed` result — a valid archive that says almost nothing. `node
+e2e/tools/check-board.mjs --min-journal-pct <n>` is the gate: it defaults to 0 (measured, not
+enforced), and raising it is the lever once a board has measured the journal attach.
 
 **The switch.** The reporter writes `uat-run/2` by default and `uat-run/3` — the same archive plus
 per-row `requirements`, per-row `observations`, the `infra` marker and `req` on a journal step — when
@@ -144,7 +157,15 @@ per-row `requirements`, per-row `observations`, the `infra` marker and `req` on 
 The default stays `uat-run/2` until the specs carry their declarations, which is an owner decision.
 Nothing is lost by flipping it early: a row that has not been migrated comes out with
 `requirements: []` and `needsAnnotation: true`, which is the honest answer rather than "this row is
-about no behaviour", and every `uat-run/2` field is unchanged either way.
+about no behaviour".
+
+**`uat-run/2` is frozen, field for field.** The switch also decides how `failedDuring` is
+classified, and the default classification is untouched: the flattened-`test.step` position, and
+only `step` / `between` / `arrange`, exactly as every archived run carries it and as
+`uat-report/index.html` renders it. `/3` resolves that position against the journal instead (a
+checkpoint the journal never recorded becomes `unknown` rather than claiming an index that does not
+exist) and adds the `hook` / `fixture` / `teardown` sites the run schema has, read off Playwright's
+own step tree. `__tests__/summaryReporter.test.ts` pins the `/2` shapes as a golden table.
 
 **What the validator checks** (`capability-ledger/VALIDATOR.md` L051–L062): the archive validates
 against `run.schema.json`; a row's declaration equals the ledger's mapping for that row in BOTH
@@ -156,7 +177,9 @@ row-attributed — a failure no attributed assertion owns is recorded once as `u
 nobody; and every observation is reconciled with the execution outcome recomputed from the raw
 Playwright fields. `__tests__/observations.test.ts` exercises the emission and then validates the
 archive the reporter writes; set `WILDCAT_LEDGER_TOOL` to the ledger tool's `ledger.mjs` and it runs
-L051–L062 over that archive as well.
+L051–L062 over that archive as well, and `UAT_RUN_SCHEMA_PATH` to the authoritative
+`run.schema.json` to check the vendored copy under `e2e/lib/__fixtures__/` for drift (its sha256 is
+checked in beside it and compared on every run).
 
 ## Structure
 - One spec file per runsheet area; `test.describe.serial`; one `test("XXX-nn: …")` per UAT case;

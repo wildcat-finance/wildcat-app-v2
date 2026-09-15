@@ -37,7 +37,8 @@ import { expect, test } from "../lib/test"
  * pair; the before-maturity half stays in `lenderflows/periodic.spec.ts` and still pairs with the
  * main worktree's run.
  */
-test.describe.serial("final phase: fixed-term maturity transition (LEN-35)", () => {
+test.describe
+  .serial("final phase: fixed-term maturity transition (LEN-35)", () => {
   let fixed: FixedTermFixture | null = null
 
   /**
