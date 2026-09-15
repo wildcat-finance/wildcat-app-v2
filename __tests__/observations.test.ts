@@ -1,4 +1,4 @@
-/* eslint-disable import/no-extraneous-dependencies, global-require, @typescript-eslint/no-var-requires */
+/* eslint-disable import/no-extraneous-dependencies, global-require, no-restricted-syntax, @typescript-eslint/no-var-requires */
 /**
  * The uat-run/3 observation contract (capability-ledger SCHEMA.md §5.1) — the emission algorithm
  * and the archive it produces.
@@ -18,6 +18,7 @@
  * `e2e/lib/__fixtures__/` for the same reason.
  */
 import { execFileSync } from "node:child_process"
+import { createHash } from "node:crypto"
 import {
   existsSync,
   mkdtempSync,
@@ -28,6 +29,7 @@ import {
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 
+import { infra, requirements } from "../e2e/lib/step"
 import SummaryReporter from "../e2e/lib/summaryReporter"
 import {
   declareAndObserve,
@@ -43,8 +45,8 @@ import {
 } from "../e2e/lib/uatModel"
 
 const FIXTURES = resolve(__dirname, "../e2e/lib/__fixtures__")
-const RUN_SCHEMA =
-  process.env.UAT_RUN_SCHEMA_PATH ?? join(FIXTURES, "run.schema.json")
+const VENDORED_SCHEMA = join(FIXTURES, "run.schema.json")
+const RUN_SCHEMA = process.env.UAT_RUN_SCHEMA_PATH ?? VENDORED_SCHEMA
 const SPEC = "e2e/fixture/minimal.spec.ts"
 const AT = "2026-01-03T00:00:00.000Z"
 
@@ -175,6 +177,34 @@ const fixtureRows = (): UatTest[] => [
   }),
 ]
 
+/* ------------------------------------------------------------------------- schema drift ----- */
+
+describe("the vendored run.schema.json", () => {
+  const sha = (path: string) =>
+    createHash("sha256").update(readFileSync(path)).digest("hex")
+
+  it("matches the sha checked in beside it", () => {
+    // The copy is the contract this suite is held to. Pinning its digest turns "someone edited
+    // the fixture to make a test pass" into a failing test rather than a silent divergence.
+    expect(sha(VENDORED_SCHEMA)).toBe(
+      readFileSync(join(FIXTURES, "run.schema.sha256"), "utf8").trim(),
+    )
+  })
+
+  it("matches the authoritative copy, when one is named", () => {
+    // UAT_RUN_SCHEMA_PATH is how CI points at the capability-ledger's own file. Without it there
+    // is nothing to compare against and the case reports as skipped rather than as passing.
+    if (!process.env.UAT_RUN_SCHEMA_PATH) {
+      // eslint-disable-next-line no-console
+      console.log(
+        "skipped: set UAT_RUN_SCHEMA_PATH to the authoritative run.schema.json to check for drift",
+      )
+      return
+    }
+    expect(sha(process.env.UAT_RUN_SCHEMA_PATH)).toBe(sha(VENDORED_SCHEMA))
+  })
+})
+
 /* ---------------------------------------------------------------------- the declaration ----- */
 
 describe("the declaration a row and a step carry", () => {
@@ -229,6 +259,72 @@ describe("the declaration a row and a step carry", () => {
     ).toBeUndefined()
     expect(failedAssertionOf(undefined)).toBeUndefined()
     expect(failedAssertionOf("Error:")).toBeUndefined()
+  })
+
+  it("refuses Playwright's own matcher and timeout text — that is not an author's message", () => {
+    // Real heads off the archived boards. failedAssertion is what a defect signature's
+    // `assertion` is matched against, so admitting these would let one signature be satisfied by
+    // text that dozens of unrelated failures share.
+    for (const head of [
+      "Error: Timed out 90000ms waiting for expect(locator).toBeVisible()",
+      "Error: expect(received).toEqual(expected) // deep equality",
+      "Error: expect(received).toBe(expected) // Object.is equality",
+      "Error: expect.poll(received).toBe(expected)",
+      "Error: Timed out 5000ms from expect(locator).toHaveText()",
+      "Error: Test timeout of 240000ms exceeded.",
+      "Error: Timeout 10000ms exceeded.",
+      "Error: locator.click: Timeout 10000ms exceeded.",
+      "Error: page.goto: net::ERR_CONNECTION_REFUSED",
+      "Error: strict mode violation: getByRole('button') resolved to 3 elements",
+    ])
+      expect([head, failedAssertionOf(head)]).toEqual([head, undefined])
+
+    // An author's message that merely CONTAINS one of those words is still an author's message.
+    expect(
+      failedAssertionOf("Error: the deposit button is visible after approval"),
+    ).toBe("the deposit button is visible after approval")
+  })
+
+  it("caps the failed assertion at the same length as the error", () => {
+    const head = `Error: ${"x".repeat(3_000)}`
+    expect(failedAssertionOf(head)).toHaveLength(2_000)
+  })
+})
+
+describe("the declaration helpers refuse a malformed id at authoring time", () => {
+  it("requirements() throws on anything that is not a requirement id", () => {
+    expect(() => requirements(["REQ-LEN-136"])).not.toThrow()
+    expect(() => requirements(["REQ-PROTO-009"])).not.toThrow()
+    // A malformed id fails run.schema.json (L051), and once L051 fails for a version L052-L058,
+    // L061 and L062 all report "skipped: schema invalid" for it. One typo costs the whole run, so
+    // it is caught where it is written rather than where it is read.
+    for (const bad of [
+      "REQ-LEN-13",
+      "REQ-LEN-1366",
+      "req-len-136",
+      "REQ-LENDERFLOWS-136",
+      "LEN-136",
+      "REQ-LEN-136 ",
+      "",
+    ])
+      expect(() => requirements([bad])).toThrow(/not a requirement id/)
+    expect(() => requirements([])).toThrow(/at least one requirement id/)
+  })
+
+  it("infra() throws outside its closed vocabulary", () => {
+    for (const kind of ["setup", "teardown", "smoke"] as const)
+      expect(() => infra(kind)).not.toThrow()
+    expect(() => infra("fixture" as never)).toThrow(/not an infra kind/)
+  })
+
+  it("reading an archive still keeps an unknown id verbatim", () => {
+    // The SHAPE is checked at declaration; whether REQ-XXX-999 is anybody's requirement is
+    // L019/L050's question, and the reporter must not answer it by dropping the id.
+    expect(
+      parseRequirements([
+        { type: "requirements", description: "REQ-XXX-999,not-an-id" },
+      ]),
+    ).toEqual(["REQ-XXX-999", "not-an-id"])
   })
 })
 
@@ -421,6 +517,121 @@ describe("emitObservations (SCHEMA.md §5.1 rules 1-7)", () => {
         error: "Error: nope",
       },
     ])
+  })
+
+  it("a row that ran to the end and reported no failure carries only pass observations", () => {
+    // The admissibility table's first row: passed, flaky and unexpected-pass alike. `not-run` is
+    // not admissible there — a step that never started records no journal entry, so a not-run on
+    // such a row would always describe a step the journal says ran.
+    const cases: [string, Partial<UatTest>][] = [
+      ["flaky", { status: "passed", outcome: "flaky", retry: 1 }],
+      [
+        "unexpected-pass",
+        {
+          status: "passed",
+          expectedStatus: "failed",
+          outcome: "unexpected-pass",
+        },
+      ],
+    ]
+    for (const [label, over] of cases) {
+      const observations = observed(
+        row({
+          title: `ADM-13: ${label}`,
+          annotations: [requirementsAnnotation("REQ-ADM-001", "REQ-ADM-002")],
+          journal: [
+            jstep("first", ["REQ-ADM-001"]),
+            jstep("second", ["REQ-ADM-002"]),
+          ],
+          ...over,
+        }),
+      )
+      expect([label, observations.map((o) => o.status)]).toEqual([
+        label,
+        ["pass", "pass"],
+      ])
+      expect([label, observations.map((o) => o.attribution)]).toEqual([
+        label,
+        ["step", "step"],
+      ])
+    }
+  })
+
+  it("a timedOut or interrupted row is a failure like any other, at its resolved step", () => {
+    for (const status of ["timedOut", "interrupted"]) {
+      const observations = observed(
+        row({
+          title: `ADM-14: ${status}`,
+          annotations: [requirementsAnnotation("REQ-ADM-001")],
+          status,
+          // deriveOutcome folds both into `failed`; the reporter stores that, and the emitter
+          // reads the outcome, so neither status needs a branch of its own.
+          outcome: "failed",
+          journal: [jstep("the checkpoint", ["REQ-ADM-001"])],
+          failedDuring: { kind: "step", name: "the checkpoint", index: 1 },
+          errorHead: "Error: Test timeout of 240000ms exceeded.",
+        }),
+      )
+      expect([status, observations]).toEqual([
+        status,
+        [
+          {
+            requirementId: "REQ-ADM-001",
+            status: "fail",
+            attribution: "step",
+            step: "the checkpoint",
+            stepIndex: 1,
+            // No failedAssertion: the head is Playwright's timeout text, not a message.
+            error: "Error: Test timeout of 240000ms exceeded.",
+          },
+        ],
+      ])
+    }
+  })
+
+  it("a non-step site on a MULTI-requirement row is still exactly one unattributed observation", () => {
+    // The shape the whole contract exists for: one setup failure on a row covering three
+    // behaviours is one "we learned nothing here", not three broken capabilities. The row's own
+    // steps report nothing either — nothing about them was resolved.
+    for (const kind of [
+      "arrange",
+      "hook",
+      "fixture",
+      "teardown",
+      "between",
+      "unknown",
+    ]) {
+      const observations = observed(
+        row({
+          title: `ADM-15: ${kind}`,
+          annotations: [
+            requirementsAnnotation("REQ-ADM-001", "REQ-ADM-002", "REQ-ADM-003"),
+          ],
+          status: "failed",
+          outcome: "failed",
+          journal: [
+            jstep("first", ["REQ-ADM-001"]),
+            jstep("second", ["REQ-ADM-002"]),
+          ],
+          failedDuring: {
+            kind,
+            name: kind === "arrange" ? undefined : "somewhere",
+          },
+          errorHead: "Error: the fixture never came up",
+        }),
+      )
+      expect([kind, observations]).toEqual([
+        kind,
+        [
+          {
+            requirementId: null,
+            status: "unattributed",
+            attribution: "row",
+            error: "Error: the fixture never came up",
+          },
+        ],
+      ])
+    }
   })
 
   it("two steps declaring the same requirement are two observations, keyed by their indices", () => {
