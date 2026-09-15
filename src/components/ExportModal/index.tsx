@@ -38,6 +38,7 @@ import {
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
 
+import { exportClientHeaders } from "./client"
 import { ExportModalProps } from "./interface"
 
 type MarketSelection = "current" | "borrower" | "custom"
@@ -249,6 +250,7 @@ export const ExportModal = ({
   const [error, setError] = useState<string>()
   const [catalogError, setCatalogError] = useState<string>()
   const shouldHydrateRestoredJob = useRef(false)
+  const hasEditedAddresses = useRef(false)
   const storageKey = `wildcat-export-job:${chainId}`
 
   const hydrateForm = useCallback(
@@ -272,6 +274,7 @@ export const ExportModal = ({
         )
       }
       setStatements(request.statements)
+      hasEditedAddresses.current = true
       setAddresses(request.addresses.join("\n"))
       setFormat(request.format)
 
@@ -313,8 +316,8 @@ export const ExportModal = ({
   }, [jobId, storageKey])
 
   useEffect(() => {
-    if (defaultAddress && !addresses) setAddresses(defaultAddress)
-  }, [addresses, defaultAddress])
+    if (!hasEditedAddresses.current) setAddresses(defaultAddress ?? "")
+  }, [defaultAddress])
 
   useEffect(() => {
     setMarketOptions([])
@@ -480,30 +483,6 @@ export const ExportModal = ({
     open,
   ])
 
-  const poll = useCallback(
-    async (id: string) => {
-      const response = await fetch(`/api/export/jobs/${id}`, {
-        cache: "no-store",
-      })
-      const body = (await response.json()) as ExportProgress & {
-        error?: string
-      }
-      if (!response.ok)
-        throw new Error(body.error ?? "Unable to load export job")
-      setProgress(body)
-      if (body.request && Array.isArray(body.request.markets)) {
-        setJobRequest(body.request)
-        if (shouldHydrateRestoredJob.current) {
-          hydrateForm(body.request)
-          shouldHydrateRestoredJob.current = false
-        }
-      }
-      setIsRestoringJob(false)
-      return body
-    },
-    [hydrateForm],
-  )
-
   useEffect(() => {
     if (!jobId) return undefined
     let active = true
@@ -512,7 +491,24 @@ export const ExportModal = ({
     let lastProgress = -1
     const update = async () => {
       try {
-        const next = await poll(jobId)
+        const response = await fetch(`/api/export/jobs/${jobId}`, {
+          cache: "no-store",
+          headers: exportClientHeaders(),
+        })
+        const next = (await response.json()) as ExportProgress
+        if (!active) return
+        if (!response.ok)
+          throw new Error(next.error ?? "Unable to load export job")
+        setError(undefined)
+        setProgress(next)
+        if (next.request && Array.isArray(next.request.markets)) {
+          setJobRequest(next.request)
+          if (shouldHydrateRestoredJob.current) {
+            hydrateForm(next.request)
+            shouldHydrateRestoredJob.current = false
+          }
+        }
+        setIsRestoringJob(false)
         if (next.progress !== lastProgress) {
           lastProgress = next.progress
           delay = 1_500
@@ -520,7 +516,6 @@ export const ExportModal = ({
           delay = Math.min(delay * 1.35, 10_000)
         }
         if (
-          active &&
           next.status !== "completed" &&
           next.status !== "failed" &&
           next.status !== "cancelled"
@@ -548,7 +543,7 @@ export const ExportModal = ({
       active = false
       clearTimeout(timer)
     }
-  }, [jobId, poll])
+  }, [jobId, hydrateForm])
 
   const toggleStatement = (statement: ExportStatementType) => {
     setStatements((current) =>
@@ -563,7 +558,7 @@ export const ExportModal = ({
     setMarketSelection(selection)
   }
 
-  const submit = async (requestedSnapshot?: string) => {
+  const submit = async () => {
     setError(undefined)
     if (borrowerSelectionIssue) {
       setError(borrowerSelectionIssue)
@@ -587,16 +582,17 @@ export const ExportModal = ({
     try {
       const response = await fetch("/api/export/jobs", {
         method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          ...formRequest,
-          ...(requestedSnapshot ? { snapshotBlock: requestedSnapshot } : {}),
-        }),
+        headers: {
+          "content-type": "application/json",
+          ...exportClientHeaders(),
+        },
+        body: JSON.stringify(formRequest),
       })
       const body = (await response.json()) as {
         jobId?: string
         status?: ExportProgress["status"]
         downloadUrl?: string
+        snapshotTimestampUtc?: string
         request?: CanonicalExportRequest
         error?: string
       }
@@ -610,6 +606,7 @@ export const ExportModal = ({
         progress: body.status === "completed" ? 100 : 0,
         phase: body.status === "completed" ? "completed" : "queued",
         downloadUrl: body.downloadUrl,
+        snapshotTimestampUtc: body.snapshotTimestampUtc,
         request: body.request,
       })
       setJobId(body.jobId)
@@ -630,11 +627,13 @@ export const ExportModal = ({
     try {
       const response = await fetch(`/api/export/jobs/${jobId}`, {
         method: "DELETE",
+        headers: exportClientHeaders(),
       })
       const body = (await response.json()) as { error?: string }
       if (!response.ok) throw new Error(body.error ?? "Unable to cancel export")
       setProgress({ status: "cancelled", progress: progress?.progress ?? 0 })
       window.sessionStorage.removeItem(storageKey)
+      setJobId(undefined)
     } catch (cancelError) {
       setError(
         cancelError instanceof Error
@@ -682,7 +681,7 @@ export const ExportModal = ({
     dialogAction = hasRequestChanges ? (
       <Stack width="100%" gap="8px">
         <Button
-          onClick={() => submit(jobRequest?.snapshotBlock)}
+          onClick={() => submit()}
           variant="contained"
           fullWidth
           sx={actionButtonSx}
@@ -1090,7 +1089,10 @@ export const ExportModal = ({
                   maxRows={3}
                   size="small"
                   value={addresses}
-                  onChange={(event) => setAddresses(event.target.value)}
+                  onChange={(event) => {
+                    hasEditedAddresses.current = true
+                    setAddresses(event.target.value)
+                  }}
                   placeholder="0x… — separate multiple addresses with commas or spaces"
                   inputProps={{ "aria-label": "Position addresses" }}
                   sx={{
@@ -1241,8 +1243,8 @@ export const ExportModal = ({
             progress.downloadUrl &&
             (hasRequestChanges ? (
               <Alert severity="info" sx={statusAlertSx}>
-                Your selections have changed. Generate an updated ZIP to include
-                them, or download the existing ZIP unchanged.
+                Your selections have changed. Generate an updated ZIP with the
+                latest confirmed data, or download the existing ZIP unchanged.
               </Alert>
             ) : (
               <Alert
@@ -1257,6 +1259,30 @@ export const ExportModal = ({
                 the latest confirmed block.
               </Alert>
             ))}
+          {jobRequest && progress?.status === "completed" && (
+            <Typography variant="text4" color="text.secondary">
+              Existing export: block {jobRequest.snapshotBlock}
+              {progress.snapshotTimestampUtc && (
+                <>
+                  {" "}
+                  · Data as of{" "}
+                  {new Date(progress.snapshotTimestampUtc).toLocaleString(
+                    "en-GB",
+                    {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                      timeZone: "UTC",
+                    },
+                  )}{" "}
+                  UTC
+                </>
+              )}
+            </Typography>
+          )}
         </Stack>
       </DialogContent>
       <DialogActions sx={{ padding: { xs: "0 24px 20px", sm: "0 32px 24px" } }}>

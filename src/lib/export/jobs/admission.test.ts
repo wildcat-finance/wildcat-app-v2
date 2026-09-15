@@ -1,7 +1,7 @@
 /** @jest-environment node */
 /* eslint-disable @typescript-eslint/no-explicit-any, arrow-body-style, import/first */
 
-import { ExportJobStatus, Prisma } from "@prisma/client"
+import { ExportJobStatus, Prisma, PrismaClient } from "@prisma/client"
 
 type Row = {
   id: string
@@ -11,9 +11,16 @@ type Row = {
   generatedAtUtc: Date | null
   requestIp: string
   createdAt: Date
+  workflowRunId?: string
+  phase?: string
 }
 
 let rows: Row[] = []
+let subscriptions: {
+  jobId: string
+  clientId: string
+  cancelledAt: Date | null
+}[] = []
 let transactionQueue = Promise.resolve()
 let transactionErrors: unknown[] = []
 
@@ -63,7 +70,46 @@ const mockDatabase = {
       ]
     },
   ),
+  exportJobSubscription: {
+    upsert: jest.fn(async ({ create, update }: any) => {
+      const existing = subscriptions.find(
+        (s) => s.jobId === create.jobId && s.clientId === create.clientId,
+      )
+      if (existing) Object.assign(existing, update)
+      else subscriptions.push({ ...create, cancelledAt: null })
+    }),
+    findUnique: jest.fn(
+      async ({ where: { jobId_clientId: id } }: any) =>
+        subscriptions.find(
+          (s) => s.jobId === id.jobId && s.clientId === id.clientId,
+        ) ?? null,
+    ),
+    update: jest.fn(async ({ where: { jobId_clientId: id }, data }: any) =>
+      Object.assign(
+        subscriptions.find(
+          (s) => s.jobId === id.jobId && s.clientId === id.clientId,
+        )!,
+        data,
+      ),
+    ),
+    count: jest.fn(
+      async ({ where }: any) =>
+        subscriptions.filter(
+          (s) => s.jobId === where.jobId && s.cancelledAt === null,
+        ).length,
+    ),
+  },
   exportJob: {
+    findUnique: jest.fn(
+      async ({ where }: any) => rows.find((r) => r.id === where.id) ?? null,
+    ),
+    updateMany: jest.fn(async ({ where, data }: any) => {
+      const row = rows.find(
+        (r) => r.id === where.id && matchesStatus(r, where.status.in),
+      )
+      if (row) Object.assign(row, data)
+      return { count: row ? 1 : 0 }
+    }),
     findFirst: jest.fn(async ({ where }: any) => {
       return (
         rows.find(
@@ -88,6 +134,11 @@ const mockDatabase = {
         createdAt: new Date(),
       }
       rows.push(row)
+      subscriptions.push({
+        jobId: row.id,
+        clientId: data.subscriptions.create.clientId,
+        cancelledAt: null,
+      })
       return { id: row.id }
     }),
   },
@@ -115,6 +166,10 @@ jest.mock("@/lib/db", () => ({
       findFirst: (...args: unknown[]) =>
         mockDatabase.exportJob.findFirst(...(args as [any])),
     },
+    exportJobSubscription: {
+      upsert: (...args: unknown[]) =>
+        mockDatabase.exportJobSubscription.upsert(...(args as [any])),
+    },
     $transaction: (...args: unknown[]) =>
       mockTransaction(
         ...(args as [(database: typeof mockDatabase) => unknown, unknown]),
@@ -122,8 +177,27 @@ jest.mock("@/lib/db", () => ({
   },
 }))
 
-import { admitExportJob, ExportAdmissionError } from "./admission"
+import {
+  admitExportJob as submitExportJob,
+  cancelExportSubscriptionWithClient,
+  ExportAdmissionError,
+} from "./admission"
 import { CanonicalExportRequest } from "../types"
+
+const admitExportJob = (
+  request: CanonicalExportRequest,
+  hash: string,
+  ip: string,
+) => submitExportJob(request, hash, ip, ip)
+const cancelSubscription = (jobId: string, clientId: string) =>
+  cancelExportSubscriptionWithClient(
+    {
+      ...mockDatabase,
+      $transaction: mockTransaction,
+    } as unknown as PrismaClient,
+    jobId,
+    clientId,
+  )
 
 const request: CanonicalExportRequest = {
   chainId: 1,
@@ -144,6 +218,7 @@ const prismaError = (code: string) =>
 describe("export admission", () => {
   beforeEach(() => {
     rows = []
+    subscriptions = []
     transactionQueue = Promise.resolve()
     transactionErrors = []
     jest.clearAllMocks()
@@ -157,6 +232,7 @@ describe("export admission", () => {
     expect(results.filter((result) => result.created)).toHaveLength(1)
     expect(new Set(results.map((result) => result.jobId)).size).toBe(1)
     expect(rows).toHaveLength(1)
+    expect(subscriptions).toHaveLength(2)
   })
 
   it("serializes the cross-IP global running cap", async () => {
@@ -233,5 +309,59 @@ describe("export admission", () => {
       message: "The export service is temporarily busy; please try again",
     })
     expect(rows).toHaveLength(0)
+  })
+})
+
+describe("shared export cancellation", () => {
+  beforeEach(() => {
+    rows = []
+    subscriptions = []
+    transactionQueue = Promise.resolve()
+    transactionErrors = []
+    jest.clearAllMocks()
+  })
+
+  it("detaches one caller and stops the run only after the last subscriber cancels", async () => {
+    const first = await admitExportJob(request, "same", "first")
+    await admitExportJob(request, "same", "second")
+    rows[0].workflowRunId = "workflow"
+    expect(await cancelSubscription(first.jobId, "first")).toEqual({
+      status: "cancelled",
+    })
+    expect(rows[0].status).toBe(ExportJobStatus.Queued)
+    expect(await cancelSubscription(first.jobId, "second")).toEqual({
+      status: "cancelled",
+      workflowRunId: "workflow",
+    })
+    expect(rows[0]).toMatchObject({
+      status: ExportJobStatus.Cancelled,
+      phase: "cancelling",
+    })
+  })
+
+  it("rejects an unrelated caller and reattaches a previous subscriber on resubmission", async () => {
+    const first = await admitExportJob(request, "same", "first")
+    await admitExportJob(request, "same", "second")
+    expect(await cancelSubscription(first.jobId, "stranger")).toEqual({
+      status: "forbidden",
+    })
+    await cancelSubscription(first.jobId, "first")
+    await admitExportJob(request, "same", "first")
+    expect(
+      subscriptions.find((s) => s.clientId === "first")?.cancelledAt,
+    ).toBeNull()
+    expect(await cancelSubscription(first.jobId, "second")).toEqual({
+      status: "cancelled",
+    })
+    expect(rows[0].status).toBe(ExportJobStatus.Queued)
+  })
+
+  it("does not grant cancellation rights for pre-migration jobs without subscriptions", async () => {
+    const first = await admitExportJob(request, "same", "first")
+    subscriptions = []
+    expect(await cancelSubscription(first.jobId, "stranger")).toEqual({
+      status: "forbidden",
+    })
+    expect(rows[0].status).toBe(ExportJobStatus.Queued)
   })
 })

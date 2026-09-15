@@ -5,13 +5,18 @@ import { getRun } from "workflow/api"
 
 import { prisma } from "@/lib/db"
 
+import { finishExportCancellation } from "./cancellation"
+
 const START_GRACE_MS = 2 * 60 * 1_000
 export const EXPORT_RECONCILE_BATCH_SIZE = 100
 
 export async function reconcileExportJobs(now = new Date()) {
   const jobs = await prisma.exportJob.findMany({
     where: {
-      status: { in: [ExportJobStatus.Queued, ExportJobStatus.Running] },
+      OR: [
+        { status: { in: [ExportJobStatus.Queued, ExportJobStatus.Running] } },
+        { status: ExportJobStatus.Cancelled, phase: "cancelling" },
+      ],
     },
     orderBy: { createdAt: "asc" },
     take: EXPORT_RECONCILE_BATCH_SIZE,
@@ -24,6 +29,27 @@ export async function reconcileExportJobs(now = new Date()) {
   })
   let repaired = 0
   for (const job of jobs) {
+    if (job.status === ExportJobStatus.Cancelled) {
+      if (job.workflowRunId) {
+        try {
+          await finishExportCancellation(job.id, job.workflowRunId)
+          repaired += 1
+        } catch {
+          // Keep the cancellation pending for the next reconciliation pass.
+        }
+      } else if (now.getTime() - job.createdAt.getTime() >= START_GRACE_MS) {
+        const result = await prisma.exportJob.updateMany({
+          where: {
+            id: job.id,
+            status: ExportJobStatus.Cancelled,
+            workflowRunId: null,
+          },
+          data: { phase: "cancelled", heartbeatAt: now },
+        })
+        repaired += result.count
+      }
+      continue
+    }
     if (!job.workflowRunId) {
       if (now.getTime() - job.createdAt.getTime() < START_GRACE_MS) continue
       const result = await prisma.exportJob.updateMany({

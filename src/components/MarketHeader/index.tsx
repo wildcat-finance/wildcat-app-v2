@@ -8,6 +8,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material"
+import { MarketVersion } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import Link from "next/link"
 import { useAccount } from "wagmi"
@@ -19,7 +20,7 @@ import { ExportModal } from "@/components/ExportModal"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
 import { MobileMoreButton } from "@/components/Mobile/MobileMoreButton"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
-import { ExportChainId } from "@/lib/export/types"
+import { EXPORT_CHAIN_IDS, ExportChainId } from "@/lib/export/types"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
@@ -42,6 +43,9 @@ export const MarketHeader = ({
   const isMobile = useMobileResolution()
   const { address: connectedAddress } = useAccount()
   const [isExportOpen, setIsExportOpen] = React.useState(false)
+  const supportsExport =
+    market.version === MarketVersion.V2 &&
+    EXPORT_CHAIN_IDS.some((chainId) => chainId === market.chainId)
 
   const [remainingTime, setRemainingTime] = React.useState<string>("")
 
@@ -92,6 +96,17 @@ export const MarketHeader = ({
 
     return trimAddress(market.borrower)
   }
+
+  const exportModal = supportsExport && (
+    <ExportModal
+      open={isExportOpen}
+      onClose={() => setIsExportOpen(false)}
+      chainId={market.chainId as ExportChainId}
+      marketAddress={market.address}
+      borrowerAddress={market.borrower}
+      defaultAddress={connectedAddress}
+    />
+  )
 
   if (isMobile)
     return (
@@ -281,22 +296,24 @@ export const MarketHeader = ({
           >
             Withdrawal Requests
           </Button>
-          <Button
-            variant="text"
-            size="small"
-            sx={{
-              minWidth: "fit-content",
-              padding: "6px 8px",
-              flexShrink: 0,
-              fontSize: 10,
-              fontWeight: 600,
-              lineHeight: "16px",
-              backgroundColor: COLORS.hintOfRed,
-            }}
-            onClick={() => setIsExportOpen(true)}
-          >
-            Export
-          </Button>
+          {supportsExport && (
+            <Button
+              variant="text"
+              size="small"
+              sx={{
+                minWidth: "fit-content",
+                padding: "6px 8px",
+                flexShrink: 0,
+                fontSize: 10,
+                fontWeight: 600,
+                lineHeight: "16px",
+                backgroundColor: COLORS.hintOfRed,
+              }}
+              onClick={() => setIsExportOpen(true)}
+            >
+              Export
+            </Button>
+          )}
           {mla && !("noMLA" in mla) && (
             <Button
               variant="text"
@@ -317,14 +334,7 @@ export const MarketHeader = ({
             </Button>
           )}
         </Box>
-        <ExportModal
-          open={isExportOpen}
-          onClose={() => setIsExportOpen(false)}
-          chainId={market.chainId as ExportChainId}
-          marketAddress={market.address}
-          borrowerAddress={market.borrower}
-          defaultAddress={connectedAddress}
-        />
+        {exportModal}
       </Box>
     )
 
@@ -372,22 +382,17 @@ export const MarketHeader = ({
         {shouldShowCycleChip && (
           <MarketCycleChip status={marketStatus.status} time={remainingTime} />
         )}
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={() => setIsExportOpen(true)}
-        >
-          Export
-        </Button>
+        {supportsExport && (
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => setIsExportOpen(true)}
+          >
+            Export
+          </Button>
+        )}
       </Box>
-      <ExportModal
-        open={isExportOpen}
-        onClose={() => setIsExportOpen(false)}
-        chainId={market.chainId as ExportChainId}
-        marketAddress={market.address}
-        borrowerAddress={market.borrower}
-        defaultAddress={connectedAddress}
-      />
+      {exportModal}
     </Box>
   )
 }

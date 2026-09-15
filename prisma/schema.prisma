@@ -50,6 +50,7 @@ model ExportJob {
   params            Json
   snapshotBlock     BigInt
   snapshotBlockHash String
+  snapshotTimestampUtc DateTime?
   status            ExportJobStatus @default(Queued)
   workflowRunId     String?
   progress          Int             @default(0)
@@ -63,11 +64,30 @@ model ExportJob {
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
   completedAt       DateTime?
+  subscriptions     ExportJobSubscription[]
+  partBuilds        ExportPartBuild[]
 
   @@index([status, createdAt])
   @@index([requestIp, status])
   @@index([requestIp, createdAt])
   @@index([paramsHash])
+}
+
+model ExportJobSubscription {
+  jobId    String
+  clientId String
+  cancelledAt DateTime?
+  job      ExportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@id([jobId, clientId])
+}
+
+model ExportPartBuild {
+  key   String @id
+  jobId String
+  job   ExportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
 }
 
 model ExportArtifact {

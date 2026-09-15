@@ -1,4 +1,10 @@
 /** @jest-environment node */
+/* eslint-disable import/first */
+
+jest.mock("../jobs/providerThrottle", () => ({
+  ...jest.requireActual("../jobs/providerThrottle"),
+  waitForProviderSlot: jest.fn().mockResolvedValue(undefined),
+}))
 
 import {
   ExportRpcClient,
@@ -6,6 +12,7 @@ import {
   normalizeRpcBlock,
   normalizeRpcLog,
 } from "./rpc"
+import * as providerThrottle from "../jobs/providerThrottle"
 
 const HASH = `0x${"1".repeat(64)}`
 const TX_HASH = `0x${"2".repeat(64)}`
@@ -300,5 +307,31 @@ describe("export RPC boundary", () => {
       "invalid argument",
     )
     expect(logCalls).toBe(1)
+  })
+  it("reserves only the RPC slots needed by a short snapshot lookup", async () => {
+    const reserve = jest.mocked(providerThrottle.waitForProviderSlot)
+    reserve.mockClear()
+    jest.spyOn(global, "fetch").mockImplementation(async (_url, init) => {
+      const body = JSON.parse(String(init?.body)) as {
+        id: number
+        method: string
+      }
+      return response({
+        jsonrpc: "2.0",
+        id: body.id,
+        result:
+          body.method === "eth_chainId"
+            ? "0x1"
+            : { number: "0x1", timestamp: "0x2", hash: HASH },
+      }) as never
+    })
+    await new ExportRpcClient(1, ["https://rpc.example"], 1).getBlock(
+      "finalized",
+    )
+    expect(reserve).toHaveBeenCalledTimes(2)
+    expect(reserve.mock.calls).toEqual([
+      ["rpc:rpc.example", 100, 1],
+      ["rpc:rpc.example", 100, 1],
+    ])
   })
 })

@@ -201,6 +201,7 @@ export class ExportRpcClient implements ExportRpc {
   constructor(
     readonly chainId: ExportChainId,
     private readonly urls = getExportRpcUrls()[chainId],
+    private readonly leaseSize = 50,
   ) {
     this.providerHosts = urls.map((url) => new URL(url).host)
   }
@@ -209,7 +210,7 @@ export class ExportRpcClient implements ExportRpc {
     await waitForProviderSlot(
       `rpc:${new URL(url).host}`,
       RPC_MIN_REQUEST_INTERVAL_MS,
-      50,
+      this.leaseSize,
     )
     const response = await fetch(url, {
       method: "POST",

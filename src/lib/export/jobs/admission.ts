@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db"
 
 import { CanonicalExportRequest } from "../types"
 
-const ADMISSION_LOCK = 8_510_852n
+export const ADMISSION_LOCK = 8_510_852n
 const GLOBAL_RUNNING_LIMIT = 8
 const IP_RUNNING_LIMIT = 2
 const IP_HOURLY_LIMIT = 10
@@ -29,6 +29,7 @@ export type AdmissionResult = {
   status: ExportJobStatus
   artifactKey?: string
   generatedAtUtc?: Date
+  snapshotTimestampUtc?: Date
 }
 
 type AdmissionSnapshot = {
@@ -70,6 +71,7 @@ async function findCompletedJob(
       status: true,
       artifactKey: true,
       generatedAtUtc: true,
+      snapshotTimestampUtc: true,
     },
   })
   if (!completed) return undefined
@@ -80,26 +82,7 @@ async function findCompletedJob(
     status: completed.status,
     artifactKey: completed.artifactKey ?? undefined,
     generatedAtUtc: completed.generatedAtUtc ?? undefined,
-  }
-}
-
-async function findActiveJob(
-  database: PrismaClient,
-  paramsHash: string,
-): Promise<AdmissionResult | undefined> {
-  const active = await database.exportJob.findFirst({
-    where: {
-      paramsHash,
-      status: { in: [ExportJobStatus.Queued, ExportJobStatus.Running] },
-    },
-    select: { id: true, status: true },
-  })
-  if (!active) return undefined
-  return {
-    jobId: active.id,
-    created: false,
-    completed: false,
-    status: active.status,
+    snapshotTimestampUtc: completed.snapshotTimestampUtc ?? undefined,
   }
 }
 
@@ -108,11 +91,18 @@ async function admitOnce(
   request: CanonicalExportRequest,
   paramsHash: string,
   requestIp: string,
+  clientId: string,
+  snapshotTimestampUtc?: Date,
 ): Promise<AdmissionResult> {
   const completed = await findCompletedJob(database, paramsHash)
-  if (completed) return completed
-  const active = await findActiveJob(database, paramsHash)
-  if (active) return active
+  if (completed) {
+    await database.exportJobSubscription.upsert({
+      where: { jobId_clientId: { jobId: completed.jobId, clientId } },
+      create: { jobId: completed.jobId, clientId },
+      update: { cancelledAt: null },
+    })
+    return completed
+  }
 
   return database.$transaction(async (transaction) => {
     await transaction.$executeRaw`
@@ -155,11 +145,17 @@ async function admitOnce(
     `
 
     if (snapshot.activeId && snapshot.activeStatus) {
+      await transaction.exportJobSubscription.upsert({
+        where: { jobId_clientId: { jobId: snapshot.activeId, clientId } },
+        create: { jobId: snapshot.activeId, clientId },
+        update: { cancelledAt: null },
+      })
       return {
         jobId: snapshot.activeId,
         created: false,
         completed: false,
         status: activeStatus(snapshot.activeStatus),
+        snapshotTimestampUtc,
       }
     }
     if (snapshot.globalRunning >= BigInt(GLOBAL_RUNNING_LIMIT)) {
@@ -187,6 +183,8 @@ async function admitOnce(
         snapshotBlock: BigInt(request.snapshotBlock),
         snapshotBlockHash: request.snapshotBlockHash,
         requestIp,
+        snapshotTimestampUtc,
+        subscriptions: { create: { clientId } },
       },
       select: { id: true },
     })
@@ -195,6 +193,7 @@ async function admitOnce(
       created: true,
       completed: false,
       status: ExportJobStatus.Queued,
+      snapshotTimestampUtc,
     }
   }, TRANSACTION_OPTIONS)
 }
@@ -204,15 +203,24 @@ async function attemptAdmission(
   request: CanonicalExportRequest,
   paramsHash: string,
   requestIp: string,
+  clientId: string,
+  snapshotTimestampUtc: Date | undefined,
   attempt: number,
 ): Promise<AdmissionResult> {
   try {
-    return await admitOnce(database, request, paramsHash, requestIp)
+    return await admitOnce(
+      database,
+      request,
+      paramsHash,
+      requestIp,
+      clientId,
+      snapshotTimestampUtc,
+    )
   } catch (error) {
-    if (isKnownRequestError(error, ["P2002"])) {
-      const active = await findActiveJob(database, paramsHash)
-      if (active) return active
-    } else if (!isTransientAdmissionError(error)) {
+    if (
+      !isKnownRequestError(error, ["P2002"]) &&
+      !isTransientAdmissionError(error)
+    ) {
       throw error
     }
     const delay = RETRY_DELAYS_MS[attempt]
@@ -228,6 +236,8 @@ async function attemptAdmission(
       request,
       paramsHash,
       requestIp,
+      clientId,
+      snapshotTimestampUtc,
       attempt + 1,
     )
   }
@@ -238,12 +248,84 @@ export async function admitExportJobWithClient(
   request: CanonicalExportRequest,
   paramsHash: string,
   requestIp: string,
+  clientId: string,
+  snapshotTimestampUtc?: Date,
 ): Promise<AdmissionResult> {
-  return attemptAdmission(database, request, paramsHash, requestIp, 0)
+  return attemptAdmission(
+    database,
+    request,
+    paramsHash,
+    requestIp,
+    clientId,
+    snapshotTimestampUtc,
+    0,
+  )
 }
 
 export const admitExportJob = (
   request: CanonicalExportRequest,
   paramsHash: string,
   requestIp: string,
-) => admitExportJobWithClient(prisma, request, paramsHash, requestIp)
+  clientId: string,
+  snapshotTimestampUtc?: Date,
+) =>
+  admitExportJobWithClient(
+    prisma,
+    request,
+    paramsHash,
+    requestIp,
+    clientId,
+    snapshotTimestampUtc,
+  )
+
+export async function cancelExportSubscriptionWithClient(
+  database: PrismaClient,
+  jobId: string,
+  clientId: string,
+) {
+  return database.$transaction(async (transaction) => {
+    await transaction.$executeRaw`SELECT pg_advisory_xact_lock(${ADMISSION_LOCK})`
+    const job = await transaction.exportJob.findUnique({
+      where: { id: jobId },
+    })
+    if (!job) return { status: "not_found" } as const
+    const subscription = await transaction.exportJobSubscription.findUnique({
+      where: { jobId_clientId: { jobId, clientId } },
+    })
+    if (!subscription) return { status: "forbidden" } as const
+    if (job.status === ExportJobStatus.Cancelled) {
+      return { status: "cancelled", workflowRunId: job.workflowRunId } as const
+    }
+    if (
+      job.status !== ExportJobStatus.Queued &&
+      job.status !== ExportJobStatus.Running
+    ) {
+      return { status: job.status.toLowerCase() }
+    }
+    await transaction.exportJobSubscription.update({
+      where: { jobId_clientId: { jobId, clientId } },
+      data: { cancelledAt: new Date() },
+    })
+    const subscribers = await transaction.exportJobSubscription.count({
+      where: { jobId, cancelledAt: null },
+    })
+    if (subscribers > 0) return { status: "cancelled" } as const
+    await transaction.exportJob.updateMany({
+      where: {
+        id: jobId,
+        status: { in: [ExportJobStatus.Queued, ExportJobStatus.Running] },
+      },
+      data: {
+        status: ExportJobStatus.Cancelled,
+        phase: "cancelling",
+        error: "Export cancelled",
+        completedAt: new Date(),
+        heartbeatAt: new Date(),
+      },
+    })
+    return { status: "cancelled", workflowRunId: job.workflowRunId } as const
+  }, TRANSACTION_OPTIONS)
+}
+
+export const cancelExportSubscription = (jobId: string, clientId: string) =>
+  cancelExportSubscriptionWithClient(prisma, jobId, clientId)

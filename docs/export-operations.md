@@ -7,6 +7,49 @@ active V2 markets; **Selected** exports an explicit list of markets. Requests
 must supply 1–50 market addresses. The former **All V2** option and
 `markets: "all"` API request are no longer supported.
 
+The entry point is available for V2 markets on supported chains. Every new UI
+submission resolves the latest finalized snapshot, including changes to a previous
+export's settings. The previous ZIP remains downloadable and displays its own
+snapshot time and block. Date ranges continue to filter statement tables only;
+the accompanying data files always contain the full market history.
+
+## Local setup after the coordination update
+
+Install the pinned dependencies, apply `20260915010000_export_coordination` to
+your development database, and regenerate the Prisma client before starting:
+
+```sh
+npm ci
+npx prisma migrate deploy
+npx prisma generate
+npm run dev
+```
+
+Check that both `DATABASE_URL` and `DIRECT_URL` target the intended development
+database before running the migration. Prisma migrations use `DIRECT_URL`. It adds export subscriptions, shared part-build coordination, and
+the snapshot timestamp; existing jobs and artifacts are retained. Pipeline version
+10 rebuilds old cached market parts for the corrected position accounting and new
+year-end state fields. Bundle format version 3 includes embedded statement fonts.
+
+## Request and download lifecycle
+
+Create/cancel API requests require an `X-Export-Client` header containing a UUID.
+The browser generates this anonymous subscriber capability once per tab and keeps
+it in session storage. Send the same header when polling to receive that
+subscriber's cancellation state. This works inside the Safe iframe without
+third-party cookies. API clients must retain their own UUID; it is independent
+of any wallet or financial identity.
+
+Identical requests share computation. Cancellation detaches the requesting
+subscriber; the Workflow is cancelled only when no subscribers remain. A pending
+Workflow cancellation is retried by reconciliation if its API is temporarily
+unavailable.
+
+Download URLs now point to `/api/export/jobs/<id>/download`. Each visit signs a
+fresh Storage URL and redirects without caching it. Transient Storage failures
+return a retryable response without invalidating a completed job; a confirmed
+missing object still marks the artifact unavailable.
+
 ## Runtime ownership
 
 Vercel Workflow is the durable execution engine. `ExportJob` is the app-facing
@@ -14,12 +57,19 @@ status mirror used by the polling API; it is not a second scheduler. Per-market
 parts and final ZIPs live in the private Supabase Storage bucket named by
 `EXPORT_STORAGE_BUCKET`.
 
+Part builds are coordinated by market/snapshot identity across request formats
+and statement selections. Waiting Workflows suspend durably. The immutable
+Storage object is published before its checksum metadata, so failed uploads do
+not poison retries. Submission-time RPC calls reserve individual provider slots;
+bulk workers retain larger leases.
+
 Required server environment:
 
 - `EXPORT_RPC_URLS`: JSON object from chain ID to an ordered array of archive RPC URLs.
 - `ETHERSCAN_API_KEY`: Etherscan v2 key used for direct reverted calls and independent log-set checks.
 - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `EXPORT_STORAGE_BUCKET`.
 - `DATABASE_URL`: PostgreSQL containing the export job, artifact, and provider-throttle migrations.
+- `DIRECT_URL`: direct connection to the same database, used by Prisma migrations.
 - `CRON_SECRET`: Vercel production cron authentication secret.
 - Optional `EXPORT_STORAGE_NAMESPACE`: a stable, storage-safe deployment namespace.
   Without it, the app derives one from the Vercel environment and Git branch.
@@ -48,7 +98,7 @@ and message for the UI.
 The ten-minute reconciler compares active rows with their actual Workflow runs.
 It repairs workflows that failed, were cancelled, or never started; temporary
 Workflow API failures leave healthy jobs untouched. The UI cancellation action
-cancels the Workflow run and conditionally marks the row cancelled. Workflow
+detaches its subscriber and cancels the run once no subscribers remain. Workflow
 steps only update queued/running rows, so a late step cannot revive a cancelled
 job.
 

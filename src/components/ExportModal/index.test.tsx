@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 
 import { CanonicalExportRequest } from "@/lib/export/types"
 
@@ -14,7 +14,8 @@ const OTHER_BORROWER = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 const ORIGINAL_JOB = "original-job"
 const UPDATED_JOB = "updated-job"
 const FRESH_JOB = "fresh-job"
-const DOWNLOAD_URL = "https://storage.example/original.zip"
+const CLIENT_ID = "87dba73b-8516-43b3-bfaf-ea1ae6b6e366"
+const DOWNLOAD_URL = `/api/export/jobs/${ORIGINAL_JOB}/download`
 
 const originalRequest: CanonicalExportRequest = {
   chainId: 1,
@@ -34,13 +35,20 @@ const response = (body: unknown, status = 200) =>
   }) as Response
 
 describe("ExportModal", () => {
+  beforeEach(() => {
+    Object.defineProperty(window.crypto, "randomUUID", {
+      configurable: true,
+      value: jest.fn(() => CLIENT_ID),
+    })
+  })
+
   afterEach(() => {
     jest.restoreAllMocks()
     Reflect.deleteProperty(global, "fetch")
     window.sessionStorage.clear()
   })
 
-  it("distinguishes changed options from the completed ZIP and reuses its snapshot", async () => {
+  it("keeps the completed ZIP available and uses latest data for changed options", async () => {
     window.sessionStorage.setItem("wildcat-export-job:1", ORIGINAL_JOB)
     const fetchMock = jest.fn(
       async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -51,6 +59,7 @@ describe("ExportModal", () => {
             progress: 100,
             phase: "completed",
             downloadUrl: DOWNLOAD_URL,
+            snapshotTimestampUtc: "2026-07-28T16:04:35Z",
             request: originalRequest,
           })
         }
@@ -99,6 +108,9 @@ describe("ExportModal", () => {
     })
     expect(originalDownload.getAttribute("href")).toBe(DOWNLOAD_URL)
     expect(
+      screen.getByText(/Data as of 28 Jul 2026, 16:04:35 UTC/),
+    ).toBeTruthy()
+    expect(
       (
         screen.getByRole("checkbox", {
           name: "Market condition statement",
@@ -137,11 +149,120 @@ describe("ExportModal", () => {
         String(url) === "/api/export/jobs" && init?.method === "POST",
     )
     const submitted = JSON.parse(String(submission?.[1]?.body))
-    expect(submitted.snapshotBlock).toBe(originalRequest.snapshotBlock)
+    expect(submission?.[1]?.headers).toEqual({
+      "content-type": "application/json",
+      "X-Export-Client": CLIENT_ID,
+    })
+    expect(window.sessionStorage.getItem("wildcat-export-client")).toBe(
+      CLIENT_ID,
+    )
+    expect(submitted.snapshotBlock).toBeUndefined()
     expect(submitted.statements.sort()).toEqual([
       "borrower",
       "market_condition",
     ])
+  })
+
+  it("lets users clear a connected-wallet default before entering another address", async () => {
+    render(
+      <ExportModal
+        open
+        onClose={jest.fn()}
+        chainId={1}
+        marketAddress={MARKET}
+        borrowerAddress={BORROWER}
+        defaultAddress={BORROWER}
+      />,
+    )
+    fireEvent.click(
+      screen.getByRole("checkbox", {
+        name: "Position statement (entered addresses)",
+      }),
+    )
+    const input = screen.getByRole("textbox", {
+      name: "Position addresses",
+    }) as HTMLTextAreaElement
+    expect(input.value).toBe(BORROWER)
+    fireEvent.change(input, { target: { value: "" } })
+    expect(input.value).toBe("")
+    fireEvent.change(input, { target: { value: OTHER_BORROWER } })
+    expect(input.value).toBe(OTHER_BORROWER)
+  })
+
+  it("clears a temporary polling error when the export recovers", async () => {
+    window.sessionStorage.setItem("wildcat-export-job:1", ORIGINAL_JOB)
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce(
+        response({ error: "Temporarily unavailable" }, 503),
+      )
+      .mockResolvedValueOnce(
+        response({
+          status: "completed",
+          progress: 100,
+          downloadUrl: DOWNLOAD_URL,
+          request: originalRequest,
+        }),
+      )
+    render(
+      <ExportModal
+        open
+        onClose={jest.fn()}
+        chainId={1}
+        marketAddress={MARKET}
+        borrowerAddress={BORROWER}
+      />,
+    )
+    expect(await screen.findByText("Temporarily unavailable")).toBeTruthy()
+    expect(
+      await screen.findByRole(
+        "link",
+        { name: "Download ZIP" },
+        { timeout: 4_000 },
+      ),
+    ).toBeTruthy()
+    expect(screen.queryByText("Temporarily unavailable")).toBeNull()
+    expect(
+      screen.getByText(
+        `Existing export: block ${originalRequest.snapshotBlock}`,
+      ),
+    ).toBeTruthy()
+  })
+
+  it("ignores an in-flight shared-job poll after cancelling this export", async () => {
+    window.sessionStorage.setItem("wildcat-export-job:1", ORIGINAL_JOB)
+    const running = {
+      status: "running",
+      progress: 20,
+      request: originalRequest,
+    }
+    let finishPoll!: (value: Response) => void
+    const inFlightPoll = new Promise<Response>((resolve) => {
+      finishPoll = resolve
+    })
+    let pollCount = 0
+    global.fetch = jest.fn(async (_input, init) => {
+      if (init?.method === "DELETE") return response({ status: "cancelled" })
+      pollCount += 1
+      return pollCount === 1 ? response(running) : inFlightPoll
+    })
+    render(
+      <ExportModal
+        open
+        onClose={jest.fn()}
+        chainId={1}
+        marketAddress={MARKET}
+        borrowerAddress={BORROWER}
+      />,
+    )
+    await screen.findByRole("button", { name: "Cancel export" })
+    await waitFor(() => expect(pollCount).toBe(2), { timeout: 2_500 })
+    fireEvent.click(screen.getByRole("button", { name: "Cancel export" }))
+    await screen.findByText("Export cancelled.")
+    await act(async () => finishPoll(response(running)))
+    expect(screen.getByRole("button", { name: "Generate export" })).toBeTruthy()
+    expect(screen.queryByRole("button", { name: "Cancel export" })).toBeNull()
+    expect(window.sessionStorage.getItem("wildcat-export-job:1")).toBeNull()
   })
 
   it("can generate a fresh snapshot without discarding the completed ZIP", async () => {

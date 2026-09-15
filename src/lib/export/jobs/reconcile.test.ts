@@ -75,4 +75,84 @@ describe("export workflow reconciliation", () => {
     await expect(reconcileExportJobs()).resolves.toBe(0)
     expect(mockUpdateMany).not.toHaveBeenCalled()
   })
+  it("finishes a cancelled job that never received a workflow run ID", async () => {
+    mockFindMany.mockResolvedValue([
+      {
+        id: "job",
+        status: "Cancelled",
+        workflowRunId: null,
+        createdAt: new Date("2026-08-10T00:00:00Z"),
+      },
+    ])
+    expect(await reconcileExportJobs(new Date("2026-08-10T00:03:00Z"))).toBe(1)
+    expect(mockUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ phase: "cancelled" }),
+      }),
+    )
+  })
+
+  it("retries stopping a pending cancellation and leaves it pending during API failure", async () => {
+    mockFindMany.mockResolvedValue([
+      {
+        id: "job",
+        status: "Cancelled",
+        workflowRunId: "run",
+        createdAt: new Date(),
+      },
+    ])
+    const cancel = jest
+      .fn()
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValue(undefined)
+    mockGetRun.mockReturnValue({ status: Promise.resolve("running"), cancel })
+    expect(await reconcileExportJobs()).toBe(0)
+    expect(mockUpdateMany).not.toHaveBeenCalled()
+    expect(await reconcileExportJobs()).toBe(1)
+    expect(cancel).toHaveBeenCalledTimes(2)
+  })
+
+  it.each(["completed", "failed", "cancelled"])(
+    "finishes cancellation without cancelling an already %s run",
+    async (status) => {
+      mockFindMany.mockResolvedValue([
+        {
+          id: "job",
+          status: "Cancelled",
+          workflowRunId: "run",
+          createdAt: new Date(),
+        },
+      ])
+      const cancel = jest.fn()
+      mockGetRun.mockReturnValue({ status: Promise.resolve(status), cancel })
+      expect(await reconcileExportJobs()).toBe(1)
+      expect(cancel).not.toHaveBeenCalled()
+    },
+  )
+  it("finishes cancellation if the run terminates during the cancel request", async () => {
+    mockFindMany.mockResolvedValue([
+      {
+        id: "job",
+        status: "Cancelled",
+        workflowRunId: "run",
+        createdAt: new Date(),
+      },
+    ])
+    const status = jest
+      .fn()
+      .mockResolvedValueOnce("running")
+      .mockResolvedValue("failed")
+    mockGetRun.mockReturnValue({
+      get status() {
+        return status()
+      },
+      cancel: jest.fn().mockRejectedValue(new Error("Already failed")),
+    })
+    expect(await reconcileExportJobs()).toBe(1)
+    expect(mockUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ phase: "cancelled" }),
+      }),
+    )
+  })
 })

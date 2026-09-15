@@ -9,11 +9,10 @@ import {
   admitExportJob,
   ExportAdmissionError,
 } from "@/lib/export/jobs/admission"
+import { finishExportCancellation } from "@/lib/export/jobs/cancellation"
+import { getExportClientId } from "@/lib/export/jobs/client"
 import { exportWorkflow } from "@/lib/export/jobs/exportWorkflow"
-import {
-  createExportDownloadUrl,
-  exportObjectExists,
-} from "@/lib/export/jobs/storage"
+import { exportObjectExists } from "@/lib/export/jobs/storage"
 import { resolveSnapshotBlock } from "@/lib/export/sources/discovery"
 import { ExportRpcClient } from "@/lib/export/sources/rpc"
 import {
@@ -32,6 +31,12 @@ const clientIp = (request: NextRequest) =>
 
 export async function POST(request: NextRequest) {
   try {
+    const clientId = getExportClientId(request)
+    if (!clientId)
+      return NextResponse.json(
+        { error: "A valid X-Export-Client UUID is required" },
+        { status: 400 },
+      )
     const contentLength = Number(request.headers.get("content-length") ?? 0)
     if (contentLength > MAX_REQUEST_BYTES) {
       return NextResponse.json(
@@ -47,7 +52,7 @@ export async function POST(request: NextRequest) {
       )
     }
     const parsed = parseExportRequest(JSON.parse(body))
-    const rpc = new ExportRpcClient(parsed.chainId)
+    const rpc = new ExportRpcClient(parsed.chainId, undefined, 1)
     const snapshot = await resolveSnapshotBlock(rpc, parsed.snapshotBlock)
     const canonical = canonicalizeExportRequest(
       parsed,
@@ -55,10 +60,13 @@ export async function POST(request: NextRequest) {
       snapshot.blockHash,
     )
     const paramsHash = hashExportRequest(canonical)
+    const snapshotTimestampUtc = new Date(snapshot.timestamp * 1_000)
     let admission = await admitExportJob(
       canonical,
       paramsHash,
       clientIp(request),
+      clientId,
+      snapshotTimestampUtc,
     )
     while (
       admission.completed &&
@@ -74,7 +82,13 @@ export async function POST(request: NextRequest) {
           completedAt: new Date(),
         },
       })
-      admission = await admitExportJob(canonical, paramsHash, clientIp(request))
+      admission = await admitExportJob(
+        canonical,
+        paramsHash,
+        clientIp(request),
+        clientId,
+        snapshotTimestampUtc,
+      )
     }
     if (admission.created) {
       let run
@@ -83,8 +97,8 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Workflow failed to start"
-        await prisma.exportJob.update({
-          where: { id: admission.jobId },
+        await prisma.exportJob.updateMany({
+          where: { id: admission.jobId, status: { in: ["Queued", "Running"] } },
           data: {
             status: "Failed",
             errorClass: "WorkflowStartError",
@@ -94,14 +108,33 @@ export async function POST(request: NextRequest) {
         })
         throw error
       }
-      await prisma.exportJob.update({
-        where: { id: admission.jobId },
-        data: { workflowRunId: run.runId },
-      })
+      const startedJob = await prisma.$transaction(
+        async (transaction) => {
+          const job = await transaction.exportJob.update({
+            where: { id: admission.jobId },
+            data: { workflowRunId: run.runId },
+          })
+          if (job.status === "Cancelled") {
+            await transaction.exportJob.updateMany({
+              where: { id: admission.jobId, status: "Cancelled" },
+              data: { phase: "cancelling" },
+            })
+          }
+          return job
+        },
+        { maxWait: 5_000, timeout: 5_000 },
+      )
+      if (startedJob.status === "Cancelled") {
+        try {
+          await finishExportCancellation(admission.jobId, run.runId)
+        } catch {
+          // The reconciler retains and retries the pending cancellation.
+        }
+      }
     }
     const downloadUrl =
       admission.completed && admission.artifactKey
-        ? await createExportDownloadUrl(admission.artifactKey)
+        ? `/api/export/jobs/${admission.jobId}/download`
         : undefined
     return NextResponse.json(
       {
@@ -110,6 +143,7 @@ export async function POST(request: NextRequest) {
         request: canonical,
         ...(downloadUrl ? { downloadUrl } : {}),
         generatedAtUtc: admission.generatedAtUtc?.toISOString(),
+        snapshotTimestampUtc: snapshotTimestampUtc.toISOString(),
       },
       { status: admission.completed ? 200 : 202 },
     )
