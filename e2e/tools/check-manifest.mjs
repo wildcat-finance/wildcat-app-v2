@@ -28,8 +28,9 @@ const arg = (name) => {
 const readRun = (p, label, errors) => {
   if (!p) return null
   const r = JSON.parse(readFileSync(p, "utf8"))
-  if (r.schema !== "uat-run/2")
-    errors.push(`${label}: schema ${r.schema}, expected uat-run/2`)
+  // uat-run/3 is uat-run/2 plus four additions; the pairing this script checks is unchanged.
+  if (!["uat-run/2", "uat-run/3"].includes(r.schema))
+    errors.push(`${label}: schema ${r.schema}, expected uat-run/2 or uat-run/3`)
   return r
 }
 

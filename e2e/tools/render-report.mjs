@@ -26,8 +26,9 @@ if (!existsSync(runPath)) {
   process.exit(1)
 }
 const run = JSON.parse(readFileSync(runPath, "utf8"))
-if (run.schema !== "uat-run/2") {
-  console.error(`${runPath}: schema ${run.schema} — this renderer reads uat-run/2 only`)
+// uat-run/3 adds four fields to uat-run/2 and changes none of the ones the renderer reads.
+if (!["uat-run/2", "uat-run/3"].includes(run.schema)) {
+  console.error(`${runPath}: schema ${run.schema} — this renderer reads uat-run/2 and uat-run/3 only`)
   process.exit(1)
 }
 

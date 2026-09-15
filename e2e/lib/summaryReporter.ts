@@ -25,7 +25,9 @@ import { buildAddressBook, enrichTransactions } from "./txDecode"
 import {
   assignPages,
   attributeDidNotRun,
+  declareAndObserve,
   deriveOutcome,
+  journalStepIndexOf,
   parseUatId,
   runsheetPageOf,
   type Outcome,
@@ -269,8 +271,19 @@ class SummaryReporter implements Reporter {
       }
     }
 
+    const journal = (parseJson(attachment("journal.json")?.body) ??
+      []) as JournalEntry[]
+
     // WHERE did it fail: in a step() checkpoint, between checkpoints, or before the first one
     // (setup/arrange — the behavior under test was never exercised).
+    //
+    // `index` is the failing step's position among the JOURNAL's `kind: "step"` entries, not among
+    // Playwright's flattened `test.step` list. The two agree whenever every checkpoint went
+    // through `step()` (which records a journal entry on entry), and today every one does — but
+    // the failure site is the evidence a per-requirement failure attribution rests on, and the
+    // only thing it can be reconciled against is the record of what RAN. A raw `test.step()` has
+    // no journal partner, so a site inside one is recorded as `unknown` naming that step: honest
+    // about the place, and not claiming a journal position that does not exist.
     let failedDuring:
       | { kind: string; name?: string; index?: number }
       | undefined
@@ -284,20 +297,30 @@ class SummaryReporter implements Reporter {
         }
       }
       walk(result.steps)
+      /** The journal position of flat step `i`, paired by (name, ordinal); 0 when unrecorded. */
+      const journalIndexOfFlat = (i: number) =>
+        journalStepIndexOf(
+          journal,
+          flat[i].title,
+          flat.filter((st, j) => j <= i && st.title === flat[i].title).length,
+        )
       const failing = flat.findIndex((st) => st.error)
-      if (failing >= 0)
-        failedDuring = {
-          kind: "step",
-          name: flat[failing].title,
-          index: failing + 1,
-        }
-      else if (flat.length === 0) failedDuring = { kind: "arrange" }
-      else
+      if (failing >= 0) {
+        const index = journalIndexOfFlat(failing)
+        failedDuring =
+          index > 0
+            ? { kind: "step", name: flat[failing].title, index }
+            : { kind: "unknown", name: flat[failing].title }
+      } else if (flat.length === 0) failedDuring = { kind: "arrange" }
+      else {
+        const last = flat.length - 1
+        const index = journalIndexOfFlat(last)
         failedDuring = {
           kind: "between",
-          name: flat[flat.length - 1].title,
-          index: flat.length,
+          name: flat[last].title,
+          ...(index > 0 ? { index } : {}),
         }
+      }
     }
     const stepShots: { name: string; file: string }[] = failed
       ? result.attachments
@@ -340,8 +363,6 @@ class SummaryReporter implements Reporter {
             .trim() || undefined
         : undefined
 
-    const journal = (parseJson(attachment("journal.json")?.body) ??
-      []) as JournalEntry[]
     const failureState = parseJson(attachment("failure-state.json")?.body) as
       | Record<string, unknown>
       | undefined
@@ -562,8 +583,21 @@ class SummaryReporter implements Reporter {
       archiveDir,
     }
 
+    // uat-run/3 (capability-ledger SCHEMA.md §5.1) is OPT-IN, and stays opt-in until the specs
+    // carry their declarations (owner decision D5). The two additions a row needs — the row-level
+    // `requirements` annotation and `req` on a step — are already carried by `annotations` and by
+    // the journal in EVERY run, so the switch changes what the reporter DERIVES, never what the
+    // suite recorded: an archive written under UAT_RUN_SCHEMA=3 today has `requirements: []` and
+    // `needsAnnotation: true` on every row that has not been migrated, which is the honest answer
+    // and exactly what the validator's declaration-coverage gate is there to count.
+    const runSchema =
+      process.env.UAT_RUN_SCHEMA === "3" ? "uat-run/3" : "uat-run/2"
+    // An infra row declares nothing by construction; a functional row that carries no annotation
+    // declares nothing and SAYS SO (needsAnnotation), rather than reading as "about no behaviour".
+    if (runSchema === "uat-run/3") this.uatTests.forEach(declareAndObserve)
+
     const run: UatRun = {
-      schema: "uat-run/2",
+      schema: runSchema,
       status: result.status,
       startedAt: result.startTime?.toISOString?.(),
       durationMs: result.duration,
