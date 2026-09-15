@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react"
 
 import { ExportProgressTracker } from "./ProgressTracker"
 
-it("updates the work description, market context and active stage as the export advances", () => {
+it("updates the work description, market context and percentage as the export advances", () => {
   const { rerender } = render(
     <ExportProgressTracker
       networkName="Sepolia"
@@ -16,14 +16,14 @@ it("updates the work description, market context and active stage as the export 
   )
   expect(screen.getByText("Sepolia · Market 8 of 43")).toBeTruthy()
   expect(screen.getByRole("status").textContent).toContain(
-    "Fetching on-chain history",
+    "Sepolia RPC nodes and Etherscan",
+  )
+  expect(screen.getByRole("status").textContent).toContain(
+    "Fetching market history",
   )
   expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe(
     "18",
   )
-  expect(
-    screen.getByText("Build data").closest("li")?.getAttribute("aria-current"),
-  ).toBe("step")
 
   rerender(
     <ExportProgressTracker
@@ -36,7 +36,7 @@ it("updates the work description, market context and active stage as the export 
     />,
   )
   expect(screen.getByRole("status").textContent).toContain(
-    "Reconciling the calculated history with on-chain",
+    "Comparing calculated totals with contract balances fetched through RPC",
   )
 
   rerender(
@@ -47,12 +47,6 @@ it("updates the work description, market context and active stage as the export 
   )
   expect(screen.getByText("Packaging the ZIP")).toBeTruthy()
   expect(screen.queryByText(/Market 8 of 43/)).toBeNull()
-  expect(
-    screen
-      .getByText("Create files")
-      .closest("li")
-      ?.getAttribute("aria-current"),
-  ).toBe("step")
 
   rerender(
     <ExportProgressTracker
@@ -61,11 +55,8 @@ it("updates the work description, market context and active stage as the export 
     />,
   )
   expect(screen.getByRole("status").textContent).toContain(
-    "Uploading the finished export",
+    "Uploading your ZIP to Wildcat's export storage",
   )
-  expect(
-    screen.getByText("Save ZIP").closest("li")?.getAttribute("aria-current"),
-  ).toBe("step")
 })
 
 it("explains shared waits and cached data without exposing internal phase names", () => {
@@ -80,7 +71,7 @@ it("explains shared waits and cached data without exposing internal phase names"
     />,
   )
   expect(screen.getByRole("status").textContent).toContain(
-    "Another export is building this market's data",
+    "Another export is processing this market",
   )
   rerender(
     <ExportProgressTracker
