@@ -242,6 +242,115 @@ describe("SummaryReporter.onEnd", () => {
     }
   })
 
+  /**
+   * The failure SITE is the evidence a per-requirement failure attribution rests on
+   * (capability-ledger SCHEMA.md §5.1), and the only record it can be reconciled against is the
+   * journal — what actually RAN. Playwright reports the site as a position in its flattened
+   * `test.step` list, which is a different sequence as soon as a checkpoint did not go through
+   * `step()`, so `onTestEnd` pairs the two by (name, ordinal) before recording an index.
+   */
+  describe("onTestEnd records the failure site against the journal", () => {
+    const journalOf = (...names: string[]) =>
+      Buffer.from(
+        JSON.stringify([
+          { at: "2026-01-03T00:00:00.000Z", kind: "nav", url: "/lender" },
+          ...names.map((name) => ({
+            at: "2026-01-03T00:00:00.000Z",
+            kind: "step",
+            name,
+          })),
+        ]),
+      )
+
+    const report = async (
+      flat: { title: string; failing?: boolean }[],
+      journal: Buffer,
+    ) => {
+      const reporter = new SummaryReporter()
+      reporter.onTestEnd(
+        {
+          annotations: [],
+          expectedStatus: "passed",
+          location: { file: "/repo/e2e/fixture/x.spec.ts" },
+          title: "X-01: a row",
+          titlePath: () => ["", "chromium", "x.spec.ts", "X-01: a row"],
+        } as never,
+        {
+          status: "failed",
+          retry: 0,
+          duration: 5,
+          startTime: new Date("2026-01-03T00:00:00.000Z"),
+          error: { message: "Error: the last checkpoint broke" },
+          attachments: [
+            {
+              name: "journal.json",
+              body: journal,
+              contentType: "application/json",
+            },
+          ],
+          steps: flat.map((f) => ({
+            category: "test.step",
+            title: f.title,
+            error: f.failing ? { message: "boom" } : undefined,
+            steps: [],
+          })),
+        } as never,
+      )
+      await reporter.onEnd({
+        status: "failed",
+        startTime: new Date("2026-01-03T00:00:00.000Z"),
+        duration: 5,
+      })
+      return JSON.parse(
+        readFileSync(join(dir, "uat-report", "run.json"), "utf8"),
+      ).tests[0]
+    }
+
+    it("indexes the journal, not Playwright's flattened step list", async () => {
+      // Three test.step entries, but only two of them recorded a journal entry — so the failing
+      // one is Playwright's #3 and the journal's #2, and it is the journal's that is evidence.
+      const t = await report(
+        [
+          { title: "warm up" },
+          { title: "alpha" },
+          { title: "beta", failing: true },
+        ],
+        journalOf("alpha", "beta"),
+      )
+      expect(t.failedDuring).toEqual({ kind: "step", name: "beta", index: 2 })
+    })
+
+    it("claims no journal position for a checkpoint the journal never recorded", async () => {
+      const t = await report(
+        [{ title: "alpha" }, { title: "a raw test.step", failing: true }],
+        journalOf("alpha"),
+      )
+      // The place is reported; the position is not invented. A site the journal cannot account
+      // for owns no attributed assertion, and `unknown` is what the schema calls that.
+      expect(t.failedDuring).toEqual({
+        kind: "unknown",
+        name: "a raw test.step",
+      })
+    })
+
+    it("names the last checkpoint, at its journal position, when nothing inside one failed", async () => {
+      const t = await report(
+        [{ title: "warm up" }, { title: "alpha" }],
+        journalOf("alpha"),
+      )
+      expect(t.failedDuring).toEqual({
+        kind: "between",
+        name: "alpha",
+        index: 1,
+      })
+    })
+
+    it("says arrange when the row never reached a checkpoint", async () => {
+      const t = await report([], journalOf())
+      expect(t.failedDuring).toEqual({ kind: "arrange" })
+    })
+  })
+
   it("still archives run.json when rendering throws (a malformed UAT_OTHER_RUN)", async () => {
     const originalOther = process.env.UAT_OTHER_RUN
     const badOtherPath = join(dir, "not-json.txt")

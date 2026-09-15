@@ -1,0 +1,280 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wildcat.finance/schemas/uat-run-3.json",
+  "title": "uat-run/3",
+  "description": "The run archive the capability ledger derives from. `uat-run/3` is `uat-run/2` plus four additions (SCHEMA.md §5.1): per-row `requirements`, per-row `observations[]`, the `infra` marker and `req` on a journal step entry. Everything `uat-run/2` carried is unchanged, so a v2 consumer keeps working; this schema describes the /3 shape and is what VALIDATOR.md L051 validates a supplied run against. A `uat-run/2` archive does NOT validate against it and is read in the synthesised compatibility mode instead.",
+  "type": "object",
+  "required": ["schema", "status", "startedAt", "meta", "tests"],
+  "properties": {
+    "schema": { "const": "uat-run/3" },
+    "status": { "enum": ["passed", "failed", "timedout", "interrupted"] },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "durationMs": { "type": "number", "minimum": 0 },
+    "meta": { "$ref": "#/$defs/meta" },
+    "tests": { "type": "array", "items": { "$ref": "#/$defs/test" } }
+  },
+  "$defs": {
+    "meta": {
+      "type": "object",
+      "description": "SCHEMA.md §7.1. Every field the configuration gate L023 compares is REQUIRED here: an absent field is a gate failure, and a run that cannot even state its own configuration is not evidence.",
+      "required": [
+        "appCommit",
+        "appDirty",
+        "sdk",
+        "subgraphName",
+        "subgraphDeployment",
+        "forkBlock",
+        "pinsSha256",
+        "testMode",
+        "envApplied",
+        "mode"
+      ],
+      "properties": {
+        "appCommit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{7,40}$",
+          "description": "The SUITE branch HEAD the run was taken on — compared to versionPin.suiteCommit, never to appSourceCommit."
+        },
+        "appDirty": { "type": "boolean" },
+        "appDirtyFiles": { "type": "integer", "minimum": 0 },
+        "buildId": { "type": "string" },
+        "build": { "type": "string" },
+        "sdk": { "type": "string", "minLength": 1 },
+        "subgraphName": { "type": "string", "minLength": 1 },
+        "subgraphDeployment": { "type": "string", "minLength": 1 },
+        "forkBlock": { "type": "integer", "minimum": 0 },
+        "pinsSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "testMode": { "type": "boolean" },
+        "envApplied": { "type": "boolean" },
+        "mode": { "enum": ["full", "targeted"] },
+        "argv": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "observation": {
+      "type": "object",
+      "description": "SCHEMA.md §5.1. One result for one requirement, or — for `unattributed` — one result for a failure that belongs to no requirement the row attributed.",
+      "required": ["requirementId", "status", "attribution"],
+      "properties": {
+        "requirementId": {
+          "type": ["string", "null"],
+          "pattern": "^REQ-[A-Z]{3,5}-[0-9]{3}$",
+          "description": "null ONLY on an `unattributed` observation: the failure happened outside every attributed assertion, so no requirement owns it."
+        },
+        "status": { "enum": ["pass", "fail", "skipped", "not-run", "unattributed"] },
+        "attribution": {
+          "enum": ["step", "row"],
+          "description": "`step` when an attributed assertion the journal records produced this result, `row` when the row itself did. A `fail` is ALWAYS `step` (review 6): see the clause below."
+        },
+        "step": {
+          "type": "string",
+          "description": "The step() name this observation reports on. On an `unattributed` observation it names the step the row FELL OVER IN when that step declares no requirement (L061) — the place is known even though no requirement owns the failure."
+        },
+        "stepIndex": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "The step's 1-based position among the journal's `kind: \"step\"` entries. REQUIRED on a step-attributed observation: `(requirementId, stepIndex)` is the key an observation is identified by (SCHEMA.md §5.1, L057), so one without an index has no identity to be counted at."
+        },
+        "assertion": {
+          "type": "string",
+          "description": "The expect(…, \"<message>\") message of the assertion this observation reports on, when the step named one."
+        },
+        "failedAssertion": {
+          "type": "string",
+          "description": "The expect(…, \"<message>\") message of the assertion that FAILED. Matched by signature.assertion (§5.4)."
+        },
+        "error": { "type": "string", "maxLength": 2000 },
+        "reason": { "type": "string" },
+        "blockedBy": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "description": "An `unattributed` observation is row-attributed and names no requirement — it is exactly the failure no assertion owns. It may name a `step`, and only for the one shape L061 requires it in: the row fell over inside a journal step that declares no requirement, so the failure has a place but no owner. It never carries a `stepIndex`, because it reports on no attributed assertion and therefore indexes none.",
+          "if": { "properties": { "status": { "const": "unattributed" } }, "required": ["status"] },
+          "then": {
+            "properties": {
+              "requirementId": { "type": "null" },
+              "attribution": { "const": "row" },
+              "stepIndex": false
+            }
+          }
+        },
+        {
+          "description": "Every other status names a requirement.",
+          "if": {
+            "properties": { "status": { "enum": ["pass", "fail", "skipped", "not-run"] } },
+            "required": ["status"]
+          },
+          "then": { "properties": { "requirementId": { "type": "string" } } }
+        },
+        {
+          "description": "A step-attributed observation names its step AND its position: `(requirementId, stepIndex)` is the key L057 counts observations by, so both fields are required.",
+          "if": { "properties": { "attribution": { "const": "step" } }, "required": ["attribution"] },
+          "then": { "required": ["step", "stepIndex"] }
+        },
+        {
+          "description": "Review 6. A `fail` is a REQUIREMENT-OWNED failure, and the only thing that establishes ownership is an attributed assertion the journal recorded. So a `fail` observation is always `attribution: \"step\"` and always carries `step` + `stepIndex`: a requirement-owned failure is step-attributed, and a failure no assertion owns is `unattributed` (SCHEMA.md §5.1). The shape this forbids is a row-attributed `fail` for a requirement the row merely DECLARED — it manufactures a per-requirement failure out of a failure nobody owned, and, sitting beside the `unattributed` observation the real site owed, it outranks it in the §5.3 fold and can then be excused by a defect signature (§5.4).",
+          "if": { "properties": { "status": { "const": "fail" } }, "required": ["status"] },
+          "then": {
+            "properties": { "attribution": { "const": "step" } },
+            "required": ["step", "stepIndex"]
+          }
+        },
+        {
+          "description": "The same rule stated from the attribution side, so the violation is reported against whichever field the author got wrong: `attribution: \"row\"` carries only `pass`, `skipped`, `not-run` (§5.1 rules 5 and 7) or `unattributed` (rule 6). Never `fail`.",
+          "if": { "properties": { "attribution": { "const": "row" } }, "required": ["attribution"] },
+          "then": {
+            "properties": { "status": { "enum": ["pass", "skipped", "not-run", "unattributed"] } }
+          }
+        },
+        {
+          "description": "A row-attributed observation that names a requirement has no step to name — the `unattributed` observation of the clause above is the one exception, and it never carries an index either way.",
+          "if": {
+            "properties": {
+              "attribution": { "const": "row" },
+              "status": { "not": { "const": "unattributed" } }
+            },
+            "required": ["attribution", "status"]
+          },
+          "then": { "properties": { "step": false, "stepIndex": false } }
+        },
+        {
+          "description": "Only a failure carries a failedAssertion.",
+          "if": {
+            "properties": { "status": { "enum": ["pass", "skipped", "not-run"] } },
+            "required": ["status"]
+          },
+          "then": { "properties": { "failedAssertion": false } }
+        }
+      ],
+      "additionalProperties": false
+    },
+
+    "annotation": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string" },
+        "description": { "type": "string" }
+      }
+    },
+
+    "journalEntry": {
+      "type": "object",
+      "description": "One entry of `UatTest.journal`. The `kind: \"step\"` entries, in order, ARE the sequence an observation's `stepIndex` indexes into (1-based); L061 ties every step-attributed observation to the entry at its index, and requires that entry's `req` to name the requirement the observation is credited with. Each `(step entry carrying req, id in that req)` pair owes exactly one observation at that index — the cardinality L057 counts (review 5, finding 2) — and it is the entry the failure site resolves to that decides how a failure is represented.",
+      "properties": {
+        "kind": { "type": "string" },
+        "name": { "type": "string" },
+        "req": { "type": "array", "items": { "type": "string" } }
+      },
+      "allOf": [
+        {
+          "description": "`req` is the step declaration of §5.1 and lives only on a step entry.",
+          "if": { "required": ["req"] },
+          "then": { "properties": { "kind": { "const": "step" } } }
+        }
+      ]
+    },
+
+    "test": {
+      "type": "object",
+      "description": "One Playwright row. `requirements`, `observations` and `req` on a journal step entry are the /3 additions. `requirements`, `observations` AND `journal` are all required: an absent declaration must be a schema failure rather than a silent empty set, and `journal` is what step attribution is checked AGAINST (L061, review 3 finding 4) — an attribution with no executed step behind it is an unverifiable claim, so a row that attributes to steps without recording them does not validate.",
+      "required": [
+        "uatId",
+        "title",
+        "file",
+        "status",
+        "outcome",
+        "annotations",
+        "requirements",
+        "observations",
+        "journal"
+      ],
+      "properties": {
+        "uatId": { "type": ["string", "null"] },
+        "page": { "type": ["integer", "null"] },
+        "title": { "type": "string" },
+        "file": { "type": "string" },
+        "suite": { "type": "string" },
+        "status": { "enum": ["passed", "failed", "timedOut", "skipped", "interrupted"] },
+        "expectedStatus": { "type": "string" },
+        "outcome": {
+          "enum": [
+            "passed",
+            "failed",
+            "flaky",
+            "skipped",
+            "did-not-run",
+            "expected-failure",
+            "unexpected-pass"
+          ]
+        },
+        "annotations": { "type": "array", "items": { "$ref": "#/$defs/annotation" } },
+        "requirements": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^REQ-[A-Z]{3,5}-[0-9]{3}$" },
+          "uniqueItems": true,
+          "description": "The row-level declaration, parsed from the `requirements` annotation. `[]` only on an infra row."
+        },
+        "observations": { "type": "array", "items": { "$ref": "#/$defs/observation" } },
+        "infra": { "enum": ["setup", "teardown", "smoke"] },
+        "journal": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/journalEntry" },
+          "description": "Required. The executed journal — what step attribution is verified against (L061). `[]` is legal and means the row attributed nothing to a step."
+        },
+        "failedDuring": {
+          "type": "object",
+          "description": "WHERE the row failed — the failure SITE, and the evidence behind every `fail` attribution on the row (review 4, finding 2). A `step` site names the step and its 1-based position among the journal's step entries, and L061 RESOLVES it against the journal before it requires anything of the observations (review 5, finding 1): the entry at that index must carry that name, or the site is not reconcilable and the row is rejected. Once resolved, that entry's `req` decides the representation — a failing step that declares requirements owes a step-attributed `fail` for each of them and may carry no `unattributed` observation; a failing step that declares none owes exactly one `unattributed` observation naming that step, and no step-attributed `fail`. Every other kind happened outside every `step(page, name, fn, {req})`, so the row owes exactly one `unattributed` observation naming NO step (SCHEMA.md §5.1 rule 6). `between` is the reporter's current spelling for \"after the last checkpoint\" (`e2e/lib/summaryReporter.ts`) and is one of those non-step sites.",
+          "required": ["kind"],
+          "properties": {
+            "kind": {
+              "enum": ["step", "arrange", "hook", "fixture", "teardown", "between", "unknown"]
+            },
+            "name": { "type": "string" },
+            "index": { "type": "integer", "minimum": 1 }
+          },
+          "allOf": [
+            {
+              "description": "A step failure site names the step and its 1-based position, or L061 has nothing to compare a step-attributed fail against.",
+              "if": { "properties": { "kind": { "const": "step" } }, "required": ["kind"] },
+              "then": { "required": ["name", "index"] }
+            }
+          ],
+          "additionalProperties": false
+        },
+        "errorHead": { "type": "string" },
+        "errorDetail": { "type": "string" },
+        "errorStack": { "type": "string" },
+        "blockedBy": { "type": "string" },
+        "retry": { "type": "integer", "minimum": 0 },
+        "startedAt": { "type": "string", "format": "date-time" },
+        "durationMs": { "type": "number", "minimum": 0 },
+        "stepShots": { "type": "array" },
+        "agreements": { "type": "array" },
+        "video": { "type": "string" },
+        "tracePath": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "description": "An infra row asserts no product behaviour, so it declares nothing and observes nothing.",
+          "if": { "required": ["infra"] },
+          "then": {
+            "properties": {
+              "requirements": { "maxItems": 0 },
+              "observations": { "maxItems": 0 }
+            }
+          }
+        },
+        {
+          "description": "A row that failed must say WHERE (review 4, finding 2). `status` is the raw Playwright fact the execution outcome is recomputed from (L060), so `failed`/`timedOut`/`interrupted` is exactly the set of rows whose recomputed outcome is `failed` or `expected-failure` — the rows where a failure actually occurred. `unexpected-pass` is not among them: its Playwright status is `passed`, so there is no failure site to record. Without `failedDuring` a failed row's attributions rest on nothing, and L061 rejects the row as `invalid` if no run schema was supplied to catch it here.",
+          "if": {
+            "properties": { "status": { "enum": ["failed", "timedOut", "interrupted"] } },
+            "required": ["status"]
+          },
+          "then": { "required": ["failedDuring"] }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,587 @@
+{
+  "schema": "capability-ledger/2",
+  "versions": {
+    "v25": {
+      "ref": "fixture/v25",
+      "appSourceCommit": "0abcdef",
+      "suiteCommit": "1111111111111111111111111111111111111111",
+      "repoRoot": ".",
+      "knownIssuesPath": "e2e/KNOWN-ISSUES.md",
+      "sdk": "2.0.0",
+      "subgraphName": "fixture-v25",
+      "subgraphDeployment": "QmULCYeErPV4u33KNacWbrDrdbuyhXqdSzuBWaxL7p1u94",
+      "forkBlock": 100,
+      "pinsSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "main": {
+      "ref": "fixture/main",
+      "appSourceCommit": "0fedcba",
+      "suiteCommit": "2222222222222222222222222222222222222222",
+      "repoRoot": ".",
+      "knownIssuesPath": "e2e/KNOWN-ISSUES.md",
+      "sdk": "1.0.0",
+      "subgraphName": "fixture-main",
+      "subgraphDeployment": "QmdRkJoEKXKVJZNYHpWFP8i4xSNXSaw9WSBspX9KSL9qKT",
+      "forkBlock": 100,
+      "pinsSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  },
+  "precedence": {
+    "onChain": [
+      "protocol",
+      "sdk",
+      "subgraph"
+    ],
+    "ui": "spec"
+  },
+  "infraRows": [
+    {
+      "version": "both",
+      "file": "e2e/fixture/minimal.spec.ts",
+      "titlePrefix": "smoke:",
+      "kind": "smoke",
+      "reason": "The fixture's smoke row: it proves the stack is up and asserts no product behaviour."
+    }
+  ],
+  "areas": [
+    {
+      "id": "ADM",
+      "title": "Admin",
+      "runsheetPrefixes": [
+        "ADM"
+      ],
+      "capabilities": [
+        {
+          "id": "CAP-ADM-panel",
+          "title": "Admin panel",
+          "requirements": [
+            {
+              "id": "REQ-ADM-001",
+              "statement": "Show the admin panel to an administrator wallet.",
+              "desired": {
+                "source": "spec",
+                "ref": "Fixture spec §001",
+                "text": "Show the admin panel to an administrator wallet.",
+                "status": "approved",
+                "approver": "product@wildcat.finance",
+                "approvedOn": "2026-01-02"
+              },
+              "uatIds": [
+                "ADM-01"
+              ],
+              "versions": {
+                "v25": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "conforming"
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-01",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                },
+                "main": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "conforming"
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-01",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "id": "REQ-ADM-002",
+              "statement": "List the outstanding borrower invitations.",
+              "desired": {
+                "source": "spec",
+                "ref": "Fixture spec §002",
+                "text": "List the outstanding borrower invitations.",
+                "status": "approved",
+                "approver": "product@wildcat.finance",
+                "approvedOn": "2026-01-02"
+              },
+              "uatIds": [
+                "ADM-02"
+              ],
+              "versions": {
+                "v25": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "conforming"
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-02",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                },
+                "main": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "conforming"
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-02",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "id": "REQ-ADM-003",
+              "statement": "Register an invited borrower from the invitations table.",
+              "desired": {
+                "source": "spec",
+                "ref": "Fixture spec §003",
+                "text": "Register an invited borrower from the invitations table.",
+                "status": "approved",
+                "approver": "product@wildcat.finance",
+                "approvedOn": "2026-01-02"
+              },
+              "uatIds": [
+                "ADM-02"
+              ],
+              "versions": {
+                "v25": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "conforming"
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-02",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                },
+                "main": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "conforming"
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-02",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "id": "REQ-ADM-004",
+              "statement": "Open the administrator's market controls.",
+              "desired": {
+                "source": "spec",
+                "ref": "Fixture spec §004",
+                "text": "Open the administrator's market controls.",
+                "status": "approved",
+                "approver": "product@wildcat.finance",
+                "approvedOn": "2026-01-02"
+              },
+              "uatIds": [
+                "ADM-04"
+              ],
+              "versions": {
+                "v25": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "conforming"
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-04",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                },
+                "main": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "conforming"
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-04",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "id": "REQ-ADM-005",
+              "statement": "Apply an administrator override to a market parameter.",
+              "desired": {
+                "source": "spec",
+                "ref": "Fixture spec §005",
+                "text": "Apply an administrator override to a market parameter.",
+                "status": "approved",
+                "approver": "product@wildcat.finance",
+                "approvedOn": "2026-01-02"
+              },
+              "uatIds": [
+                "ADM-04"
+              ],
+              "versions": {
+                "v25": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "conforming"
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-04",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                },
+                "main": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "conforming"
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-04",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "id": "REQ-ADM-006",
+              "statement": "Record the override against the market's history.",
+              "desired": {
+                "source": "spec",
+                "ref": "Fixture spec §006",
+                "text": "Record the override against the market's history.",
+                "status": "approved",
+                "approver": "product@wildcat.finance",
+                "approvedOn": "2026-01-02"
+              },
+              "uatIds": [
+                "ADM-04"
+              ],
+              "versions": {
+                "v25": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "conforming"
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-04",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                },
+                "main": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "conforming"
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-04",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "id": "REQ-ADM-007",
+              "statement": "Refuse the admin panel to a wallet that is not an administrator.",
+              "desired": {
+                "source": "spec",
+                "ref": "Fixture spec §007",
+                "text": "Refuse the admin panel to a wallet that is not an administrator.",
+                "status": "approved",
+                "approver": "product@wildcat.finance",
+                "approvedOn": "2026-01-02"
+              },
+              "uatIds": [
+                "ADM-05"
+              ],
+              "versions": {
+                "v25": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "conforming"
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-05",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                },
+                "main": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "conforming"
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-05",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "id": "REQ-ADM-008",
+              "statement": "Render the administrator's landing page for a cold session.",
+              "desired": {
+                "source": "spec",
+                "ref": "Fixture spec §008",
+                "text": "Render the administrator's landing page for a cold session.",
+                "status": "approved",
+                "approver": "product@wildcat.finance",
+                "approvedOn": "2026-01-02"
+              },
+              "uatIds": [
+                "ADM-06"
+              ],
+              "versions": {
+                "v25": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "conforming"
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-06",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                },
+                "main": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "conforming"
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-06",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "id": "REQ-ADM-009",
+              "statement": "Purge a revoked administrator from the registry.",
+              "desired": {
+                "source": "spec",
+                "ref": "Fixture spec §009",
+                "text": "Purge a revoked administrator from the registry.",
+                "status": "approved",
+                "approver": "product@wildcat.finance",
+                "approvedOn": "2026-01-02"
+              },
+              "uatIds": [
+                "ADM-07"
+              ],
+              "versions": {
+                "v25": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "conforming"
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-07",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                },
+                "main": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "conforming"
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-07",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "id": "REQ-ADM-010",
+              "statement": "Record the administrator's hardware signature for a registration.",
+              "desired": {
+                "source": "spec",
+                "ref": "Fixture spec §010",
+                "text": "Record the administrator's hardware signature for a registration.",
+                "status": "approved",
+                "approver": "product@wildcat.finance",
+                "approvedOn": "2026-01-02"
+              },
+              "uatIds": [
+                "ADM-08"
+              ],
+              "versions": {
+                "v25": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "known-defect",
+                    "knownIssue": {
+                      "register": "v25",
+                      "id": "1",
+                      "signature": {
+                        "requirementId": "REQ-ADM-010",
+                        "errorPattern": "boom happened while registering",
+                        "maxLength": 400,
+                        "step": "register the borrower",
+                        "verification": {
+                          "state": "unverified"
+                        }
+                      }
+                    },
+                    "note": "The fixture chain's registrar reverts."
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-08",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                },
+                "main": {
+                  "applicability": {
+                    "class": "required"
+                  },
+                  "implementation": {
+                    "class": "conforming"
+                  },
+                  "coverage": {
+                    "class": "automated",
+                    "tests": [
+                      {
+                        "uatId": "ADM-08",
+                        "file": "e2e/fixture/minimal.spec.ts"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

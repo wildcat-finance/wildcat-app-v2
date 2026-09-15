@@ -1,0 +1,50 @@
+[
+  {
+    "id": null,
+    "file": "e2e/fixture/minimal.spec.ts",
+    "kind": "test",
+    "title": "smoke: the stack is up"
+  },
+  {
+    "id": "ADM-01",
+    "file": "e2e/fixture/minimal.spec.ts",
+    "kind": "test",
+    "title": "ADM-01: fixture row"
+  },
+  {
+    "id": "ADM-02",
+    "file": "e2e/fixture/minimal.spec.ts",
+    "kind": "test",
+    "title": "ADM-02: fixture row"
+  },
+  {
+    "id": "ADM-04",
+    "file": "e2e/fixture/minimal.spec.ts",
+    "kind": "test",
+    "title": "ADM-04: fixture row"
+  },
+  {
+    "id": "ADM-05",
+    "file": "e2e/fixture/minimal.spec.ts",
+    "kind": "test",
+    "title": "ADM-05: fixture row"
+  },
+  {
+    "id": "ADM-06",
+    "file": "e2e/fixture/minimal.spec.ts",
+    "kind": "test",
+    "title": "ADM-06: fixture row"
+  },
+  {
+    "id": "ADM-07",
+    "file": "e2e/fixture/minimal.spec.ts",
+    "kind": "test",
+    "title": "ADM-07: fixture row"
+  },
+  {
+    "id": "ADM-08",
+    "file": "e2e/fixture/minimal.spec.ts",
+    "kind": "test",
+    "title": "ADM-08: fixture row"
+  }
+]
