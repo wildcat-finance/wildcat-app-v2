@@ -138,6 +138,14 @@ describe("market part publication through the export workflow", () => {
     )
   })
 
+  it("reports preparation rather than a shared wait when it owns the build", async () => {
+    await expect(exportWorkflow("job")).resolves.toHaveProperty("artifactKey")
+    const phases = mockProgress.mock.calls.map(([update]) => update.data.phase)
+    expect(phases).toContain("preparing_market_data_1_of_1")
+    expect(phases).not.toContain("waiting_for_market_data_1_of_1")
+    expect(mockSleep).not.toHaveBeenCalled()
+  })
+
   it("replaces orphan metadata when no object was ever published", async () => {
     mockRows.set(partKey(), {
       key: partKey(),
@@ -173,6 +181,13 @@ describe("market part publication through the export workflow", () => {
     })
     await expect(exportWorkflow("job")).resolves.toHaveProperty("artifactKey")
     expect(mockSleep).toHaveBeenCalledWith("10s")
+    expect(mockProgress).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          phase: "waiting_for_market_data_1_of_1",
+        }),
+      }),
+    )
     expect(mockBuild).not.toHaveBeenCalled()
   })
   it("tracks a failed bundle upload for cleanup without pinning its checksum", async () => {

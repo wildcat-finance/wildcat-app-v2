@@ -570,7 +570,7 @@ export async function buildExportBundle(
     )
   })
 
-  await onProgress?.("creating_statements")
+  if (request.statements.length > 0) await onProgress?.("creating_statements")
   const statementFiles = new Map<string, Buffer>()
   for (const dataset of [...datasets].sort((a, b) =>
     a.market.address.localeCompare(b.market.address),

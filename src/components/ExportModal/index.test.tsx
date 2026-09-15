@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 
 import { CanonicalExportRequest } from "@/lib/export/types"
 
-import { ExportModal, exportErrorMessage, exportPhaseLabel } from "./index"
+import { ExportModal, exportErrorMessage } from "./index"
 
 jest.mock("@/assets/icons/cross_icon.svg", () => () => <svg />)
 
@@ -391,7 +391,7 @@ describe("ExportModal", () => {
     fireEvent.mouseDown(
       await screen.findByRole("combobox", { name: "Selected markets" }),
     )
-    expect(await screen.findByText("wmUSDC — Test Market")).toBeTruthy()
+    expect(await screen.findByText("wmUSDC - Test Market")).toBeTruthy()
     expect(screen.getByText(MARKET)).toBeTruthy()
     expect(fetchMock).toHaveBeenCalledWith("/api/export/markets?chainId=1", {
       signal: expect.any(AbortSignal),
@@ -399,110 +399,118 @@ describe("ExportModal", () => {
     expect(screen.queryByText("Loading…")).toBeNull()
   })
 
-  it("defaults Borrower scope to the current borrower and submits the chosen borrower's active markets", async () => {
-    const borrowerMarkets = [MARKET, OTHER_MARKET]
-    const otherBorrowerMarket = "0x3333333333333333333333333333333333333333"
-    const fetchMock = jest.fn(
-      async (input: RequestInfo | URL, init?: RequestInit) => {
-        const url = String(input)
-        if (url === "/api/export/markets?chainId=1&includeBorrowers=true") {
-          return response({
-            markets: borrowerMarkets.map((address, index) => ({
-              address,
-              name: `Market ${index + 1}`,
-              symbol: `M${index + 1}`,
-              borrower: BORROWER,
-              isActive: true,
-            })),
-            borrowers: [
+  it.each([
+    [1, "Ethereum Mainnet"],
+    [11155111, "Sepolia"],
+  ] as const)(
+    "labels borrowers with their network and market count on %s",
+    async (chainId, networkName) => {
+      const borrowerMarkets = [MARKET, OTHER_MARKET]
+      const otherBorrowerMarket = "0x3333333333333333333333333333333333333333"
+      const fetchMock = jest.fn(
+        async (input: RequestInfo | URL, init?: RequestInit) => {
+          const url = String(input)
+          if (
+            url ===
+            `/api/export/markets?chainId=${chainId}&includeBorrowers=true`
+          ) {
+            return response({
+              markets: borrowerMarkets.map((address, index) => ({
+                address,
+                name: `Market ${index + 1}`,
+                symbol: `M${index + 1}`,
+                borrower: BORROWER,
+                isActive: true,
+              })),
+              borrowers: [
+                {
+                  address: OTHER_BORROWER,
+                  name: "Other Borrower",
+                  marketAddresses: [otherBorrowerMarket],
+                },
+                {
+                  address: BORROWER,
+                  name: "Current Borrower",
+                  marketAddresses: borrowerMarkets,
+                },
+              ],
+            })
+          }
+          if (url === "/api/export/jobs" && init?.method === "POST") {
+            const submitted = JSON.parse(String(init.body))
+            return response(
               {
-                address: OTHER_BORROWER,
-                name: "Other Borrower",
-                marketAddresses: [otherBorrowerMarket],
+                jobId: "borrower-job",
+                status: "queued",
+                request: {
+                  ...originalRequest,
+                  markets: submitted.markets,
+                },
               },
-              {
-                address: BORROWER,
-                name: "Current Borrower",
-                marketAddresses: borrowerMarkets,
-              },
-            ],
-          })
-        }
-        if (url === "/api/export/jobs" && init?.method === "POST") {
-          const submitted = JSON.parse(String(init.body))
-          return response(
-            {
-              jobId: "borrower-job",
+              202,
+            )
+          }
+          if (url === "/api/export/jobs/borrower-job") {
+            return response({
               status: "queued",
-              request: {
-                ...originalRequest,
-                markets: submitted.markets,
-              },
-            },
-            202,
-          )
-        }
-        if (url === "/api/export/jobs/borrower-job") {
-          return response({
-            status: "queued",
-            progress: 0,
-            phase: "queued",
-            request: { ...originalRequest, markets: [otherBorrowerMarket] },
-          })
-        }
-        throw new Error(`Unexpected fetch: ${url}`)
-      },
-    )
-    global.fetch = fetchMock
+              progress: 0,
+              phase: "queued",
+              request: { ...originalRequest, markets: [otherBorrowerMarket] },
+            })
+          }
+          throw new Error(`Unexpected fetch: ${url}`)
+        },
+      )
+      global.fetch = fetchMock
 
-    render(
-      <ExportModal
-        open
-        onClose={jest.fn()}
-        chainId={1}
-        marketAddress={MARKET}
-        borrowerAddress={BORROWER}
-      />,
-    )
+      render(
+        <ExportModal
+          open
+          onClose={jest.fn()}
+          chainId={chainId}
+          marketAddress={MARKET}
+          borrowerAddress={BORROWER}
+        />,
+      )
 
-    fireEvent.click(screen.getByRole("button", { name: "Borrower" }))
-    const borrowerInput = await screen.findByDisplayValue("Current Borrower")
-    expect(
-      screen.getByText("Includes 2 active V2 markets on this chain."),
-    ).toBeTruthy()
-
-    fireEvent.mouseDown(borrowerInput)
-    fireEvent.click(await screen.findByText("Other Borrower"))
-    expect(screen.getByDisplayValue("Other Borrower")).toBeTruthy()
-    expect(
-      screen.getByText("Includes 1 active V2 market on this chain."),
-    ).toBeTruthy()
-
-    fireEvent.click(screen.getByRole("button", { name: "Generate export" }))
-
-    await waitFor(() => {
+      fireEvent.click(screen.getByRole("button", { name: "Borrower" }))
+      const borrowerInput = await screen.findByDisplayValue(
+        `Current Borrower (${networkName} - 2 markets)`,
+      )
       expect(
-        fetchMock.mock.calls.some(
-          ([url, init]) =>
-            String(url) === "/api/export/jobs" && init?.method === "POST",
-        ),
-      ).toBe(true)
-    })
-    const submission = fetchMock.mock.calls.find(
-      ([url, init]) =>
-        String(url) === "/api/export/jobs" && init?.method === "POST",
-    )
-    expect(JSON.parse(String(submission?.[1]?.body)).markets).toEqual([
-      otherBorrowerMarket,
-    ])
-  })
+        screen.getByText("Includes 2 active V2 markets on this chain."),
+      ).toBeTruthy()
 
-  it("shows human-readable progress stages", () => {
-    expect(exportPhaseLabel("building_transactions_2_of_8")).toBe(
-      "Building transaction history — market 2 of 8",
-    )
-    expect(exportPhaseLabel("creating_statements")).toBe("Creating statements")
-  })
+      fireEvent.mouseDown(borrowerInput)
+      fireEvent.click(
+        await screen.findByText(`Other Borrower (${networkName} - 1 market)`),
+      )
+      expect(
+        screen.getByDisplayValue(`Other Borrower (${networkName} - 1 market)`),
+      ).toBeTruthy()
+      expect(
+        screen.getByText("Includes 1 active V2 market on this chain."),
+      ).toBeTruthy()
+
+      fireEvent.click(screen.getByRole("button", { name: "Generate export" }))
+
+      await waitFor(() => {
+        expect(
+          fetchMock.mock.calls.some(
+            ([url, init]) =>
+              String(url) === "/api/export/jobs" && init?.method === "POST",
+          ),
+        ).toBe(true)
+      })
+      const submission = fetchMock.mock.calls.find(
+        ([url, init]) =>
+          String(url) === "/api/export/jobs" && init?.method === "POST",
+      )
+      expect(JSON.parse(String(submission?.[1]?.body)).markets).toEqual([
+        otherBorrowerMarket,
+      ])
+    },
+  )
 
   it("does not expose workflow internals for provider rate limits", () => {
     expect(

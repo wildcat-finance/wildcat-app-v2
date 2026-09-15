@@ -1007,6 +1007,7 @@ async function buildDailySeries(
   gracePeriod: number,
   withdrawalCycle: number,
   checkpoint?: MarketDataset,
+  onProgress?: (progress: number) => Promise<void>,
 ) {
   const deployment = await rpc.getBlock(market.deploymentBlock)
   const deploymentTimestamp = fromHex(deployment.timestamp)
@@ -1046,12 +1047,14 @@ async function buildDailySeries(
     daySpecs.map(({ periodEnd }) => periodEnd),
     snapshotBlock,
   )
+  await onProgress?.(0.2)
   const dayEndBlockData = await rpc.batch<{ timestamp: string }>(
     dayEndBlocks.map((block) => ({
       method: "eth_getBlockByNumber",
       params: [toBlockHex(block), false],
     })),
   )
+  await onProgress?.(0.3)
   const stateReads = await contractReadMany<CurrentState | BigNumber>(
     rpc,
     market.address,
@@ -1062,6 +1065,8 @@ async function buildDailySeries(
       { functionName: "totalSupply", args: [], block },
     ]),
   )
+
+  await onProgress?.(0.8)
 
   let previousRateState = {
     timestamp: deploymentTimestamp,
@@ -1580,6 +1585,7 @@ export async function buildPositionSummaries(
 
 export type MarketDatasetBuildStage =
   | "reading_history"
+  | "fetching_transactions"
   | "building_transactions"
   | "building_daily_history"
   | "checking_balances"
@@ -1728,7 +1734,7 @@ export async function buildMarketDataset(
     marketLogs,
     etherscanLogs,
   )
-  await onProgress?.("building_transactions")
+  await onProgress?.("fetching_transactions")
   const allHashes = [
     ...new Set(
       [...marketLogs, ...assetLogs].map((log) =>
@@ -1743,6 +1749,7 @@ export async function buildMarketDataset(
       fromHex(log.blockNumber),
     ),
   )
+  await onProgress?.("building_transactions")
   const newEvents = decodeEvents(market, marketLogs, timestamps, context)
   const events = [...(checkpoint?.events ?? []), ...newEvents].sort(
     (a, b) => a.blockNumber - b.blockNumber || a.logIndex - b.logIndex,
@@ -1937,6 +1944,9 @@ export async function buildMarketDataset(
       gracePeriod,
       withdrawalCycle,
       checkpoint,
+      async (fraction) => {
+        await onProgress?.("building_daily_history", fraction)
+      },
     ),
     erc20Read<BigNumber>(
       rpc,

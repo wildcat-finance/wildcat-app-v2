@@ -13,6 +13,11 @@ export's settings. The previous ZIP remains downloadable and displays its own
 snapshot time and block. Date ranges continue to filter statement tables only;
 the accompanying data files always contain the full market history.
 
+Progress identifies the current market and distinguishes on-chain reads,
+calculations, verification, file creation, and saving the ZIP. Its percentage
+estimates work stages, not time remaining. A shared-data wait appears only when
+another job owns that market's build; verified cached data is labelled as reuse.
+
 ## Local setup after the coordination update
 
 Install the pinned dependencies, apply `20260915010000_export_coordination` to
@@ -29,7 +34,7 @@ Check that both `DATABASE_URL` and `DIRECT_URL` target the intended development
 database before running the migration. Prisma migrations use `DIRECT_URL`. It adds export subscriptions, shared part-build coordination, and
 the snapshot timestamp; existing jobs and artifacts are retained. Pipeline version
 10 rebuilds old cached market parts for the corrected position accounting and new
-year-end state fields. Bundle format version 3 includes embedded statement fonts.
+year-end state fields. Bundle format version 4 includes embedded statement fonts and updated statement copy.
 
 ## Request and download lifecycle
 

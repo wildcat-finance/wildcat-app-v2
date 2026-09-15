@@ -17,7 +17,6 @@ import {
   FormControlLabel,
   FormLabel,
   IconButton,
-  LinearProgress,
   Stack,
   Switch,
   SvgIcon,
@@ -28,6 +27,7 @@ import {
 } from "@mui/material"
 
 import Cross from "@/assets/icons/cross_icon.svg"
+import { NETWORKS_BY_ID } from "@/config/network"
 import {
   CanonicalExportRequest,
   ExportProgress,
@@ -40,6 +40,7 @@ import { trimAddress } from "@/utils/formatters"
 
 import { exportClientHeaders } from "./client"
 import { ExportModalProps } from "./interface"
+import { ExportProgressTracker } from "./ProgressTracker"
 
 type MarketSelection = "current" | "borrower" | "custom"
 type DateSelection = "full" | "year" | "custom"
@@ -151,36 +152,6 @@ const SegmentedControl = <T extends string>({
   </ToggleButtonGroup>
 )
 
-const phaseLabels: Record<string, string> = {
-  queued: "Waiting to start",
-  discovering_markets: "Finding selected markets",
-  reading_history: "Reading and verifying market history",
-  building_transactions: "Building transaction history",
-  building_daily_history: "Building daily market history",
-  checking_balances: "Checking market balances",
-  finalizing_market_data: "Finalizing market data",
-  loading_cached_market_data: "Loading previously verified market data",
-  market_complete: "Market data complete",
-  loading_market_data: "Loading market data",
-  building_position_data: "Building position data",
-  preparing_bundle: "Preparing export files",
-  creating_statements: "Creating statements",
-  creating_zip: "Creating ZIP",
-  uploading_export: "Saving export",
-  finalizing: "Finalizing export",
-  completed: "Export complete",
-}
-
-export const exportPhaseLabel = (phase: string) => {
-  const marketPhase = phase.match(/^(.+)_(\d+)_of_(\d+)$/)
-  if (marketPhase) {
-    const [, stage, current, total] = marketPhase
-    const label = phaseLabels[stage] ?? stage.replaceAll("_", " ")
-    return `${label} — market ${current} of ${total}`
-  }
-  return phaseLabels[phase] ?? phase.replaceAll("_", " ")
-}
-
 export const exportErrorMessage = (message: string) => {
   if (/RPC HTTP 429|rate limit/i.test(message)) {
     return "Blockchain data providers are temporarily busy. Please try the export again shortly."
@@ -220,6 +191,11 @@ export const ExportModal = ({
   borrowerAddress,
   defaultAddress,
 }: ExportModalProps) => {
+  const networkName = NETWORKS_BY_ID[chainId].name
+  const borrowerLabel = (option: BorrowerOption) =>
+    `${borrowerOptionLabel(option)} (${networkName} - ${
+      option.marketAddresses.length
+    } market${option.marketAddresses.length === 1 ? "" : "s"})`
   const [marketSelection, setMarketSelection] =
     useState<MarketSelection>("current")
   const [marketOptions, setMarketOptions] = useState<MarketOption[]>([])
@@ -489,6 +465,7 @@ export const ExportModal = ({
     let timer: ReturnType<typeof setTimeout>
     let delay = 1_500
     let lastProgress = -1
+    let lastPhase: string | undefined
     const update = async () => {
       try {
         const response = await fetch(`/api/export/jobs/${jobId}`, {
@@ -509,7 +486,8 @@ export const ExportModal = ({
           }
         }
         setIsRestoringJob(false)
-        if (next.progress !== lastProgress) {
+        if (next.progress !== lastProgress || next.phase !== lastPhase) {
+          lastPhase = next.phase
           lastProgress = next.progress
           delay = 1_500
         } else {
@@ -812,7 +790,7 @@ export const ExportModal = ({
                   isOptionEqualToValue={(option, value) =>
                     option.address === value.address
                   }
-                  getOptionLabel={borrowerOptionLabel}
+                  getOptionLabel={borrowerLabel}
                   onChange={(_event, value) => setSelectedBorrower(value)}
                   ListboxProps={{
                     sx: {
@@ -850,7 +828,7 @@ export const ExportModal = ({
                           textOverflow="ellipsis"
                           whiteSpace="nowrap"
                         >
-                          {borrowerOptionLabel(option)}
+                          {borrowerLabel(option)}
                         </Typography>
                         <Typography
                           color={COLORS.santasGrey}
@@ -895,7 +873,7 @@ export const ExportModal = ({
                     display="block"
                     fontSize="11px"
                     lineHeight="16px"
-                    marginTop="5px"
+                    sx={{ marginTop: "10px" }}
                   >
                     Includes {selectedBorrower.marketAddresses.length} active V2
                     market
@@ -911,7 +889,7 @@ export const ExportModal = ({
                     display="block"
                     fontSize="11px"
                     lineHeight="16px"
-                    marginTop="5px"
+                    sx={{ marginTop: "10px" }}
                   >
                     {borrowerSelectionIssue}
                   </Typography>
@@ -932,7 +910,7 @@ export const ExportModal = ({
                   option.address === value.address
                 }
                 getOptionLabel={(option) =>
-                  `${option.symbol} — ${option.name} (${option.address})`
+                  `${option.symbol} - ${option.name} (${option.address})`
                 }
                 getOptionDisabled={(option) =>
                   selectedMarketOptions.length >= 50 &&
@@ -977,7 +955,7 @@ export const ExportModal = ({
                         textOverflow="ellipsis"
                         whiteSpace="nowrap"
                       >
-                        {option.symbol} — {option.name}
+                        {option.symbol} - {option.name}
                       </Typography>
                       <Typography
                         color={COLORS.santasGrey}
@@ -1093,7 +1071,7 @@ export const ExportModal = ({
                     hasEditedAddresses.current = true
                     setAddresses(event.target.value)
                   }}
-                  placeholder="0x… — separate multiple addresses with commas or spaces"
+                  placeholder="0x… - separate multiple addresses with commas or spaces"
                   inputProps={{ "aria-label": "Position addresses" }}
                   sx={{
                     height: "auto",
@@ -1200,22 +1178,11 @@ export const ExportModal = ({
             </Box>
           </Box>
 
-          {jobIsWorking && (
-            <Box aria-live="polite" role="status">
-              <LinearProgress
-                variant={progress ? "determinate" : "indeterminate"}
-                value={progress?.progress ?? 0}
-              />
-              <Typography variant="text3" marginTop="8px" display="block">
-                {progress?.status === "queued" ? "Queued" : "Building export"} —{" "}
-                {progress?.progress ?? 0}%
-              </Typography>
-              {progress?.phase && (
-                <Typography variant="text4" color="text.secondary">
-                  {exportPhaseLabel(progress.phase)}
-                </Typography>
-              )}
-            </Box>
+          {jobIsWorking && progress && (
+            <ExportProgressTracker
+              progress={progress}
+              networkName={networkName}
+            />
           )}
           {catalogError && (
             <Alert severity="error" sx={statusAlertSx}>

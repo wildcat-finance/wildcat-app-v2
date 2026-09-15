@@ -82,14 +82,16 @@ const checksum = (value: Buffer) =>
 
 const marketStageFraction: Record<MarketDatasetBuildStage, number> = {
   reading_history: 0,
-  building_transactions: 0.3,
+  fetching_transactions: 0.3,
+  building_transactions: 0.45,
   building_daily_history: 0.58,
   checking_balances: 0.82,
   finalizing_market_data: 0.95,
 }
 
 const marketStageEndFraction: Record<MarketDatasetBuildStage, number> = {
-  reading_history: marketStageFraction.building_transactions,
+  reading_history: marketStageFraction.fetching_transactions,
+  fetching_transactions: marketStageFraction.building_transactions,
   building_transactions: marketStageFraction.building_daily_history,
   building_daily_history: marketStageFraction.checking_balances,
   checking_balances: marketStageFraction.finalizing_market_data,
@@ -433,13 +435,22 @@ async function preparePart(
   jobId: string,
   request: CanonicalExportRequest,
   market: string,
+  index: number,
+  total: number,
 ) {
   "use step"
 
-  await updateActiveJob(jobId, { phase: "waiting_for_market_data" })
+  await updateActiveJob(jobId, {})
   const key = partKey(request, market)
-  if (await exportObjectExists(key)) return true
-  return claimPartBuild(key, jobId)
+  const ready =
+    (await exportObjectExists(key)) || (await claimPartBuild(key, jobId))
+  await updateActiveJob(jobId, {
+    progress: 5 + Math.floor((index / total) * 75),
+    phase: `${ready ? "preparing_market_data" : "waiting_for_market_data"}_${
+      index + 1
+    }_of_${total}`,
+  })
+  return ready
 }
 
 async function assemble(
@@ -574,7 +585,13 @@ export async function exportWorkflow(jobId: string) {
     const keys: string[] = []
     for (let index = 0; index < universe.markets.length; index += 1) {
       while (
-        !(await preparePart(jobId, request, universe.markets[index].address))
+        !(await preparePart(
+          jobId,
+          request,
+          universe.markets[index].address,
+          index,
+          universe.markets.length,
+        ))
       ) {
         // Waiting is durable Workflow suspension, not a failed step consuming
         // the retry budget or a function holding a database connection open.

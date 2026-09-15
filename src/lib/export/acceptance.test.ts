@@ -100,6 +100,7 @@ describe("recorded reference market A", () => {
       ),
     ).toEqual([
       "reading_history",
+      "fetching_transactions",
       "building_transactions",
       "building_daily_history",
       "checking_balances",

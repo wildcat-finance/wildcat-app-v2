@@ -898,7 +898,7 @@ export function positionStatement(
               ? annual
               : [
                   [
-                    "—",
+                    "N/A",
                     period.isFullHistory
                       ? "No earnings activity"
                       : "No complete calendar year in this reporting period",
@@ -951,7 +951,7 @@ export function positionStatement(
             headers: ["Date", "What happened", "Amount"],
             rows: activities.length
               ? activities
-              : [["—", "This address never touched this market", ""]],
+              : [["N/A", "This address never touched this market", ""]],
           },
         ],
       },
