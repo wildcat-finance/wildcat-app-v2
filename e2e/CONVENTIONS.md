@@ -101,6 +101,82 @@ and every authoring agent MUST follow these; each one exists because its violati
   on stale state, or it runs and leaves the board wrecked for everything that was filtered out. Run
   the whole file, then re-run it whole.
 
+## Declaring requirements
+The capability ledger derives one outcome per REQUIREMENT, not per row, so a row's `outcome` alone
+cannot say which behaviour broke. Two declarations, both carried into `run.json` untouched, are what
+close that gap (`capability-ledger/SCHEMA.md` §5.1).
+
+- **Per row.** `test("LEN-35b: …", requirements(["REQ-LEN-136"]), async ({ page }) => …)` —
+  `requirements` and `infra` are exported from `e2e/lib/step.ts` and return a plain Playwright
+  test-details object (`{ annotation: [{ type: "requirements", description: "REQ-A,REQ-B" }] }`),
+  so writing the annotation out by hand is exactly equivalent. The row-level declaration says WHICH
+  BEHAVIOURS the row is about.
+- **Per step.** `step(page, "queue a withdrawal", async () => { … }, { req: ["REQ-LEN-136"] })` —
+  which of them THIS assertion exercised. The `req` lands on the step's journal entry, and the
+  journal is the record of what actually ran, which is why an attribution can be checked rather
+  than believed. A step with no `req` asserts nothing the ledger names (arrange, navigation,
+  teardown) and produces no result of its own. **Never nest `step()`**: Playwright propagates a
+  child step's error to its parent and the reporter walks the tree pre-order, so a failure inside a
+  nested checkpoint resolves to the OUTER one — which under `/3` credits it to whatever the outer
+  step declared. Keep checkpoints flat.
+- `requirements([...])` and `infra(...)` **throw at authoring time** on a malformed id or an infra
+  kind outside `setup|teardown|smoke`. A malformed id fails the run's schema check, and once that
+  fails every other check on the run reports `skipped: schema invalid` — one typo would cost the
+  whole run rather than produce one finding.
+- **Infrastructure rows** declare `infra("setup" | "teardown" | "smoke")` instead
+  (`e2e/fork.smoke.spec.ts` is the worked example). That is the ONE exemption: an infra row asserts
+  no product behaviour, so it declares nothing and observes nothing.
+
+Every other row must declare something. A row that declares MORE THAN ONE requirement must attribute
+every assertion with `step(…, { req })` — a multi-requirement row with no step attribution is an
+error, not a degraded mode: it is exactly the shape that recorded one setup failure as eight broken
+capabilities.
+
+**Journal coverage is the precondition.** The site of a failure is resolved against the journal, so
+a failing row whose journal recorded no `step()` entries takes the "outside every checkpoint" branch
+and records one `unattributed` result — a valid archive that says almost nothing. `node
+e2e/tools/check-board.mjs --min-journal-pct <n>` is the gate: it defaults to 0 (measured, not
+enforced), and raising it is the lever once a board has measured the journal attach. `npm run board`
+prints that percentage on every run (`journal: N of M executed rows carry a journal`).
+
+**The switch.** The reporter writes `uat-run/2` by default and `uat-run/3` — the same archive plus
+per-row `requirements`, per-row `observations`, the `infra` marker and `req` on a journal step — when
+`UAT_RUN_SCHEMA=3` is set:
+
+    UAT_RUN_SCHEMA=3 npm run board
+
+— see `harness/fork/README-main.md` § "Running the board". The default stays `uat-run/2` until the
+specs carry their declarations, which is an owner decision. Nothing is lost by flipping it early: a
+row that has not been migrated comes out with `requirements: []` and `needsAnnotation: true`, which
+is the honest answer rather than "this row is about no behaviour".
+
+**`uat-run/2` is frozen, field for field.** The switch also decides how `failedDuring` is
+classified, and the default classification is untouched: the flattened-`test.step` position, and
+only `step` / `between` / `arrange`, exactly as every archived run carries it and as
+`uat-report/index.html` renders it. `/3` resolves that position against the journal instead (a
+checkpoint the journal never recorded becomes `unknown` rather than claiming an index that does not
+exist) and adds the `hook` / `fixture` / `teardown` sites the run schema has, read off Playwright's
+own step tree. `__tests__/summaryReporter.test.ts` pins the `/2` shapes as a golden table.
+
+**What the validator checks** (`capability-ledger/VALIDATOR.md` L051–L062): the archive validates
+against `run.schema.json`; a row's declaration equals the ledger's mapping for that row in BOTH
+directions; an observation may name only a requirement the row declared; every (journal step
+carrying `req`, id in it) pair is observed exactly once, at that step's index; every step
+attribution names a step the journal actually recorded; a failed row states WHERE it failed and the
+site is resolved against the journal before anything is required of it; a `fail` is never
+row-attributed — a failure no attributed assertion owns is recorded once as `unattributed`, naming
+nobody; and every observation is reconciled with the execution outcome recomputed from the raw
+Playwright fields. `__tests__/observations.test.ts` exercises the emission and then validates the
+archive the reporter writes; set `WILDCAT_LEDGER_TOOL` to the ledger tool's `ledger.mjs` and it runs
+L051–L062 over that archive as well, and `UAT_RUN_SCHEMA_PATH` to the authoritative
+`run.schema.json` to check the vendored copy under `e2e/lib/__fixtures__/` for drift (its sha256 is
+checked in beside it and compared on every run).
+
+The ledger maps a row to the SAME requirements on both branches unless it says otherwise, so a
+declaration ported from the v2.5 worktree is only correct once `ledger.draft.json` shows the row
+under `versions.main` as well — the validator checks the mapping in both directions and rejects a
+row that declares what this branch's ledger entry does not.
+
 ## Structure
 - One spec file per runsheet area; `test.describe.serial`; `step(page, ...)` for major actions
   (screenshot film strip); `attachAgreement` for every page/chain/subgraph comparison; `test.fixme`

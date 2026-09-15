@@ -13,6 +13,13 @@ export type JournalEntry = { at: string } & (
       /** Chain head when the step began/ended (strings; used to attribute swept UI txs). */
       blockStart?: string
       blockEnd?: string
+      /**
+       * uat-run/3 (capability-ledger SCHEMA.md §5.1 rule 1): the requirement ids this checkpoint
+       * asserts, as `step(page, name, fn, { req: ["REQ-…"] })` declared them. Absent means the
+       * step asserts nothing the ledger names — arrange, navigation, teardown — and it produces
+       * no observation of its own.
+       */
+      req?: string[]
     }
   | { kind: "nav"; url: string }
   | {

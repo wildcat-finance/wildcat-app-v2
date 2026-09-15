@@ -8,6 +8,7 @@ import {
   sh,
   waitForSubgraphBlock,
 } from "./fixtures"
+import { infra } from "./lib/step"
 import { expect, test, type Page } from "./lib/test"
 
 type Asset = {
@@ -73,124 +74,143 @@ async function connectLocalAnvil(page: Page, account: string) {
   await expect(connected).toBeVisible({ timeout: 30_000 })
 }
 
+/**
+ * Every row here is HARNESS SMOKE, not runsheet coverage: it proves the stack is up (compose
+ * health, funding, a connect and one deposit) and asserts no product behaviour of its own. The
+ * `infra()` marker (capability-ledger SCHEMA.md §5.1 rule 2) is what says so in the archive — it
+ * is the one exemption from "every functional row declares its requirements", so a row carrying
+ * it declares nothing and observes nothing rather than being counted as an undeclared gap.
+ */
 test.describe.serial("local fork harness smoke", () => {
   const account = ANVIL_ACCOUNTS[pins.smoke.account]
   const market = pins.smoke.market.toLowerCase()
   let asset: Asset
   let before: { deposits: number; total: bigint }
 
-  test("stack is healthy and the pinned market exists", async () => {
-    expect(pins.smoke.market, "pins.json smoke.market must be set").not.toBe(
-      "unpinned",
-    )
-    const status = sh("status.sh")
-    expect(status, status).not.toContain("FAIL")
-    expect(await rpc<string>("eth_chainId")).toBe("0xaa36a7")
-    const m = await gql<MarketQ>(
-      `{ market(id: "${market}") { id name totalDeposited asset { address decimals symbol isMock } } }`,
-    )
-    expect(
-      m.market,
-      "pinned smoke market exists on the fork subgraph",
-    ).not.toBeNull()
-    asset = m.market!.asset
-    const l = await gql<LenderQ>(lenderQuery(market, account))
-    before = {
-      deposits: l.lenderAccount?.deposits.length ?? 0,
-      total: BigInt(l.market.totalDeposited),
-    }
-  })
+  test(
+    "stack is healthy and the pinned market exists",
+    infra("smoke"),
+    async () => {
+      expect(pins.smoke.market, "pins.json smoke.market must be set").not.toBe(
+        "unpinned",
+      )
+      const status = sh("status.sh")
+      expect(status, status).not.toContain("FAIL")
+      expect(await rpc<string>("eth_chainId")).toBe("0xaa36a7")
+      const m = await gql<MarketQ>(
+        `{ market(id: "${market}") { id name totalDeposited asset { address decimals symbol isMock } } }`,
+      )
+      expect(
+        m.market,
+        "pinned smoke market exists on the fork subgraph",
+      ).not.toBeNull()
+      asset = m.market!.asset
+      const l = await gql<LenderQ>(lenderQuery(market, account))
+      before = {
+        deposits: l.lenderAccount?.deposits.length ?? 0,
+        total: BigInt(l.market.totalDeposited),
+      }
+    },
+  )
 
-  test("fund the anvil account with ETH and the market's underlying", async () => {
-    sh("faucet.sh", account, "1000000000000000000")
-    sh(
-      "faucet.sh",
-      account,
-      asset.address,
-      (10n ** BigInt(asset.decimals) * DEPOSIT_UNITS * 10n).toString(),
-    )
-  })
+  test(
+    "fund the anvil account with ETH and the market's underlying",
+    infra("smoke"),
+    async () => {
+      sh("faucet.sh", account, "1000000000000000000")
+      sh(
+        "faucet.sh",
+        account,
+        asset.address,
+        (10n ** BigInt(asset.decimals) * DEPOSIT_UNITS * 10n).toString(),
+      )
+    },
+  )
 
-  test("connect and sign the lender terms through the real flow", async ({
-    page,
-  }) => {
-    // The harness DB is disposable: clear any prior lender acceptance so the real signing flow runs.
-    const addr = account.toLowerCase()
-    sh(
-      "db-exec.sh",
-      `delete from "ServiceAgreementSignature" where lower(address)='${addr}' and party='Lender'`,
-    )
-    sh(
-      "db-exec.sh",
-      `delete from "LenderServiceAgreementSignature" where lower(signer)='${addr}'`,
-    )
-    const slaUrl = `${APP_URL}/api/sla/${account}?chainId=11155111&party=Lender`
-    expect((await (await fetch(slaUrl)).json()).state).toBe("neverSigned")
+  test(
+    "connect and sign the lender terms through the real flow",
+    infra("smoke"),
+    async ({ page }) => {
+      // The harness DB is disposable: clear any prior lender acceptance so the real signing flow runs.
+      const addr = account.toLowerCase()
+      sh(
+        "db-exec.sh",
+        `delete from "ServiceAgreementSignature" where lower(address)='${addr}' and party='Lender'`,
+      )
+      sh(
+        "db-exec.sh",
+        `delete from "LenderServiceAgreementSignature" where lower(signer)='${addr}'`,
+      )
+      const slaUrl = `${APP_URL}/api/sla/${account}?chainId=11155111&party=Lender`
+      expect((await (await fetch(slaUrl)).json()).state).toBe("neverSigned")
 
-    // Connect on the market page (the home page fans out lens reads for every market, which is a heavy cold-fork load);
-    // the agreement page redirects home when no wallet is connected.
-    await page.goto(`/lender/market/${market}`)
-    await connectLocalAnvil(page, account)
-    await page.goto("/lender/agreement") // wagmi reconnects from cookie storage on reload
-    // Lender ToU: the app requests a personal_sign; anvil signs for its own account, the API verifies it.
-    const sign = page.getByRole("button", { name: /^sign/i })
-    await expect(sign).toBeVisible({ timeout: 30_000 })
-    await sign.click()
-    await expect(sign).toBeHidden({ timeout: 60_000 })
-    await expect
-      .poll(async () => (await (await fetch(slaUrl)).json()).state, {
-        timeout: 30_000,
-      })
-      .toBe("signedCurrent")
-  })
+      // Connect on the market page (the home page fans out lens reads for every market, which is a heavy cold-fork load);
+      // the agreement page redirects home when no wallet is connected.
+      await page.goto(`/lender/market/${market}`)
+      await connectLocalAnvil(page, account)
+      await page.goto("/lender/agreement") // wagmi reconnects from cookie storage on reload
+      // Lender ToU: the app requests a personal_sign; anvil signs for its own account, the API verifies it.
+      const sign = page.getByRole("button", { name: /^sign/i })
+      await expect(sign).toBeVisible({ timeout: 30_000 })
+      await sign.click()
+      await expect(sign).toBeHidden({ timeout: 60_000 })
+      await expect
+        .poll(async () => (await (await fetch(slaUrl)).json()).state, {
+          timeout: 30_000,
+        })
+        .toBe("signedCurrent")
+    },
+  )
 
-  test("deposit through the UI and verify chain, subgraph and UI", async ({
-    page,
-  }) => {
-    await page.goto(`/lender/market/${market}`)
-    await connectLocalAnvil(page, account)
+  test(
+    "deposit through the UI and verify chain, subgraph and UI",
+    infra("smoke"),
+    async ({ page }) => {
+      await page.goto(`/lender/market/${market}`)
+      await connectLocalAnvil(page, account)
 
-    await page
-      .getByRole("button", { name: /^deposit$/i })
-      .first()
-      .click()
-    const dialog = page.getByRole("dialog")
-    await expect(dialog).toBeVisible({ timeout: 30_000 })
-    await dialog.getByRole("textbox").first().fill(DEPOSIT_UNITS.toString())
-
-    // Borrower-history gate (only for some markets): acknowledge and continue.
-    const gate = dialog.getByRole("checkbox")
-    if (await gate.count()) {
-      await gate.first().check()
-      await dialog
-        .getByRole("button", { name: /deposit anyway|continue/i })
+      await page
+        .getByRole("button", { name: /^deposit$/i })
+        .first()
         .click()
-    }
+      const dialog = page.getByRole("dialog")
+      await expect(dialog).toBeVisible({ timeout: 30_000 })
+      await dialog.getByRole("textbox").first().fill(DEPOSIT_UNITS.toString())
 
-    // Approve (if the allowance is insufficient) — wait for the button to become actionable, not just present.
-    const approve = dialog.getByRole("button", { name: /^approve$/i })
-    const deposit = dialog.getByRole("button", { name: /^deposit$/i })
-    await expect(approve.or(deposit).first()).toBeEnabled({ timeout: 60_000 })
-    if (await approve.count()) {
-      await expect(approve).toBeEnabled({ timeout: 60_000 })
-      await approve.click()
-      await expect(
-        dialog.getByRole("button", { name: /^approved$/i }),
-      ).toBeVisible({ timeout: 90_000 })
-    }
-    await expect(deposit).toBeEnabled({ timeout: 60_000 })
-    await deposit.click()
-    await expect(page.getByText("Transaction Successful!")).toBeVisible({
-      timeout: 120_000,
-    })
+      // Borrower-history gate (only for some markets): acknowledge and continue.
+      const gate = dialog.getByRole("checkbox")
+      if (await gate.count()) {
+        await gate.first().check()
+        await dialog
+          .getByRole("button", { name: /deposit anyway|continue/i })
+          .click()
+      }
 
-    await rpc("anvil_mine", ["0x1"])
-    const head = await anvilHead()
-    await waitForSubgraphBlock(head)
-    const after = await gql<LenderQ>(lenderQuery(market, account))
-    expect(after.lenderAccount?.deposits.length).toBe(before.deposits + 1)
-    expect(BigInt(after.market.totalDeposited) - before.total).toBe(
-      10n ** BigInt(asset.decimals) * DEPOSIT_UNITS,
-    )
-  })
+      // Approve (if the allowance is insufficient) — wait for the button to become actionable, not just present.
+      const approve = dialog.getByRole("button", { name: /^approve$/i })
+      const deposit = dialog.getByRole("button", { name: /^deposit$/i })
+      await expect(approve.or(deposit).first()).toBeEnabled({ timeout: 60_000 })
+      if (await approve.count()) {
+        await expect(approve).toBeEnabled({ timeout: 60_000 })
+        await approve.click()
+        await expect(
+          dialog.getByRole("button", { name: /^approved$/i }),
+        ).toBeVisible({ timeout: 90_000 })
+      }
+      await expect(deposit).toBeEnabled({ timeout: 60_000 })
+      await deposit.click()
+      await expect(page.getByText("Transaction Successful!")).toBeVisible({
+        timeout: 120_000,
+      })
+
+      await rpc("anvil_mine", ["0x1"])
+      const head = await anvilHead()
+      await waitForSubgraphBlock(head)
+      const after = await gql<LenderQ>(lenderQuery(market, account))
+      expect(after.lenderAccount?.deposits.length).toBe(before.deposits + 1)
+      expect(BigInt(after.market.totalDeposited) - before.total).toBe(
+        10n ** BigInt(asset.decimals) * DEPOSIT_UNITS,
+      )
+    },
+  )
 })

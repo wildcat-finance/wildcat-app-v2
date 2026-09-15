@@ -44,8 +44,12 @@ console.log(`journal:  ${withJournal.length} of ${executed.length} executed rows
 console.log(`archived: ${run.meta?.archiveDir ?? "(not archived)"}`)
 console.log(`report:   ${reportPath}`)
 
+// uat-run/3 is uat-run/2 plus four additions and changes nothing this script reads, so both are
+// a board (capability-ledger SCHEMA.md §5.1). Anything else is not.
+const RUN_SCHEMAS = ["uat-run/2", "uat-run/3"]
+
 const errors = []
-if (run.schema !== "uat-run/2") errors.push(`schema is ${run.schema}, expected uat-run/2`)
+if (!RUN_SCHEMAS.includes(run.schema)) errors.push(`schema is ${run.schema}, expected one of ${RUN_SCHEMAS.join(" / ")}`)
 if (ageMin > MAX_AGE_MIN) errors.push(`run.json is ${ageMin.toFixed(0)} min old — this board did not write it`)
 if (run.meta?.mode !== "full") errors.push(`selection is "${run.meta?.mode}" — a targeted run is not a board (argv: ${(run.meta?.argv ?? []).join(" ")})`)
 if ((run.tests?.length ?? 0) < MIN_TESTS) errors.push(`only ${run.tests?.length ?? 0} tests (< ${MIN_TESTS})`)
@@ -67,8 +71,8 @@ if (otherRun) {
     errors.push(`UAT_OTHER_RUN=${otherRun} did not parse (${e.message}) — the report has no main column`)
   }
   if (other) {
-    if (other.schema !== "uat-run/2")
-      errors.push(`UAT_OTHER_RUN: schema ${other.schema}, expected uat-run/2`)
+    if (!RUN_SCHEMAS.includes(other.schema))
+      errors.push(`UAT_OTHER_RUN: schema ${other.schema}, expected one of ${RUN_SCHEMAS.join(" / ")}`)
     if (!(other.tests?.length > 0))
       errors.push("UAT_OTHER_RUN: 0 tests — buildOverlay is skipped and no main column renders")
     // A targeted or stale main run.json still makes `class="other"` render for every id-bearing

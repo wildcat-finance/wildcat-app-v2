@@ -177,3 +177,12 @@ no row failed, unexpectedly passed or never ran. It prints the immutable archive
 (`uat-runs/<startedAt>/`) — that path, not `uat-report/`, is what a status entry cites.
 
     npm run board:one -- LEN-16 # one row against an already-fixtured fork (see the caveat it prints)
+
+    UAT_RUN_SCHEMA=3 npm run board
+
+writes the archive as `uat-run/3` instead: the same run.json plus the per-requirement
+`observations` the capability ledger derives outcomes from, the row-level `requirements`
+declaration each row carries, and `req` on the journal's step entries. Every `uat-run/2` field is
+unchanged, and `board`'s own artefact check accepts either. The default stays `uat-run/2` until the
+specs carry their declarations — see `e2e/CONVENTIONS.md` § Declaring requirements for how a row and
+a step declare one, and what the validator checks.
