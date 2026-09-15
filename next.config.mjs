@@ -114,6 +114,11 @@ const nextConfig = {
   // @vercel/queue imports this CommonJS helper at runtime. Bundling it removes
   // require.main/process.argv context and breaks Workflow's local world.
   serverExternalPackages: ['xdg-app-paths', '@sparticuz/chromium'],
+  experimental: {
+    outputFileTracingIncludes: {
+      '/.well-known/workflow/v1/step': ['./src/lib/export/statements/fonts/*'],
+    },
+  },
 
   webpack(config) {
     // Fix pino-pretty and lokijs resolve

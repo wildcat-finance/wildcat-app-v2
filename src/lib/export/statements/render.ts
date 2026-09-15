@@ -3,15 +3,9 @@
 import { createHash } from "node:crypto"
 
 import ExcelJS from "exceljs"
-import {
-  PDFDocument,
-  PDFFont,
-  PDFHexString,
-  PDFPage,
-  rgb,
-  StandardFonts,
-} from "pdf-lib"
+import { PDFDocument, PDFHexString, PDFPage, rgb } from "pdf-lib"
 
+import { createStatementFonts, pdfGraphemes, PdfTextFont } from "./fonts"
 import { formatFixed, formatUnits, RAY, rayDiv } from "../bigint"
 import {
   CanonicalExportRequest,
@@ -1030,13 +1024,13 @@ const PDF_PANEL = rgb(0.96, 0.96, 0.97)
 
 const splitPdfWord = (
   word: string,
-  font: PDFFont,
+  font: PdfTextFont,
   size: number,
   maxWidth: number,
 ) => {
   const chunks: string[] = []
   let chunk = ""
-  for (const character of word) {
+  for (const character of pdfGraphemes(word)) {
     const candidate = `${chunk}${character}`
     if (chunk && font.widthOfTextAtSize(candidate, size) > maxWidth) {
       chunks.push(chunk)
@@ -1051,7 +1045,7 @@ const splitPdfWord = (
 
 const wrapPdfText = (
   text: string,
-  font: PDFFont,
+  font: PdfTextFont,
   size: number,
   maxWidth: number,
 ) =>
@@ -1081,8 +1075,10 @@ const wrapPdfText = (
 
 export async function renderPdf(model: StatementModel, timestamp: number) {
   const document = await PDFDocument.create()
-  const regular = await document.embedFont(StandardFonts.Helvetica)
-  const bold = await document.embedFont(StandardFonts.HelveticaBold)
+  const { regular, bold } = await createStatementFonts(
+    document,
+    JSON.stringify(model),
+  )
   const contentWidth = A4_WIDTH - PDF_MARGIN * 2
   const pageBottom = PDF_MARGIN + PDF_FOOTER_HEIGHT
   let page: PDFPage = document.addPage([A4_WIDTH, A4_HEIGHT])
@@ -1098,7 +1094,7 @@ export async function renderPdf(model: StatementModel, timestamp: number) {
   const drawLines = (
     lines: string[],
     options: {
-      font: PDFFont
+      font: PdfTextFont
       size: number
       lineHeight: number
       x?: number
@@ -1108,10 +1104,9 @@ export async function renderPdf(model: StatementModel, timestamp: number) {
   ) => {
     for (const line of lines) {
       ensureSpace(options.lineHeight)
-      page.drawText(line, {
+      options.font.drawText(page, line, {
         x: options.x ?? PDF_MARGIN,
         y: y - options.size,
-        font: options.font,
         size: options.size,
         color: options.color ?? PDF_TEXT,
       })
@@ -1122,7 +1117,7 @@ export async function renderPdf(model: StatementModel, timestamp: number) {
   const drawParagraph = (
     text: string,
     options: {
-      font?: PDFFont
+      font?: PdfTextFont
       size?: number
       lineHeight?: number
       width?: number
@@ -1194,10 +1189,9 @@ export async function renderPdf(model: StatementModel, timestamp: number) {
       }
       row.lines.forEach((cellLines, index) => {
         cellLines.forEach((line, lineIndex) => {
-          page.drawText(line, {
+          row.font.drawText(page, line, {
             x: PDF_MARGIN + index * columnWidth + padding,
             y: y - padding - row.size - lineIndex * row.lineHeight,
-            font: row.font,
             size: row.size,
             color: header ? PDF_MUTED : PDF_TEXT,
           })
@@ -1305,10 +1299,9 @@ export async function renderPdf(model: StatementModel, timestamp: number) {
   const pages = document.getPages()
   pages.forEach((pdfPage, index) => {
     const label = `Page ${index + 1} of ${pages.length}`
-    pdfPage.drawText(label, {
+    regular.drawText(pdfPage, label, {
       x: A4_WIDTH - PDF_MARGIN - regular.widthOfTextAtSize(label, 7.5),
       y: PDF_MARGIN - 5,
-      font: regular,
       size: 7.5,
       color: PDF_MUTED,
     })
