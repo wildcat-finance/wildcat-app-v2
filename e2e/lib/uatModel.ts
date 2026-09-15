@@ -412,6 +412,16 @@ export const attributeDidNotRun = (tests: UatTest[]): void => {
 // uat-run/3: declaration and emission (capability-ledger SCHEMA.md §5.1)
 // ---------------------------------------------------------------------------------------------
 
+/**
+ * The id shape `run.schema.json` enforces. It is checked at DECLARATION time (`requirements()` in
+ * `e2e/lib/step.ts`) and never while reading an archive: `parseRequirements` keeps an unknown id
+ * verbatim, because deciding that `REQ-XXX-999` is nobody's requirement is L019/L050's job. The
+ * SHAPE is a different question — a malformed id fails L051, and once L051 fails for a version
+ * L052-L058, L061 and L062 all report `skipped: schema invalid` for it, so one typo in a spec
+ * costs the whole run rather than producing one finding.
+ */
+export const REQUIREMENT_ID_RE = /^REQ-[A-Z]{3,5}-[0-9]{3}$/
+
 /** The annotation type a row declares its requirements with. */
 export const REQUIREMENTS_ANNOTATION = "requirements"
 /** The annotation type an infrastructure row marks itself with. */
@@ -444,9 +454,7 @@ export const parseRequirements = (annotations: UatAnnotation[]): string[] => {
  * exempt the row, because the exemption is what lets a row declare nothing, and a row that
  * exempts itself with a word the schema does not contain has not said which kind of infra it is.
  */
-export const infraKindOf = (
-  annotations: UatAnnotation[],
-): UatTest["infra"] => {
+export const infraKindOf = (annotations: UatAnnotation[]): UatTest["infra"] => {
   for (const a of annotations)
     if (a.type === INFRA_ANNOTATION) {
       const kind = a.description?.trim()
@@ -470,30 +478,59 @@ export const journalStepIndexOf = (
   name: string | undefined,
   ordinal: number,
 ): number => {
+  const steps = journal.filter((e) => e.kind === "step")
   let seen = 0
-  let position = 0
-  for (const e of journal) {
-    if (e.kind !== "step") continue
-    position += 1
-    if (e.name === name) {
-      seen += 1
-      if (seen === ordinal) return position
-    }
-  }
-  return 0
+  const position = steps.findIndex((e) => {
+    if (e.name !== name) return false
+    seen += 1
+    return seen === ordinal
+  })
+  return position + 1
 }
 
 /**
+ * Text that Playwright, not a test author, wrote. `failedAssertion` is what a defect signature's
+ * `assertion` is matched against (SCHEMA.md §5.4), so admitting matcher or timeout boilerplate
+ * would let one signature be satisfied by text that dozens of unrelated failures share — the
+ * error's first line is very often the matcher's own rendering, not a message anybody chose.
+ *
+ * These are the shapes seen on the archived boards, plus the API-call and strict-mode renderings
+ * from the same family:
+ *
+ *   Error: Timed out 90000ms waiting for expect(locator).toBeVisible()
+ *   Error: expect(received).toEqual(expected) // deep equality
+ *   Test timeout of 240000ms exceeded.
+ *   Error: locator.click: Timeout 10000ms exceeded.
+ *   Error: strict mode violation: getByRole('button') resolved to 3 elements
+ */
+const PLAYWRIGHT_BOILERPLATE = [
+  /^expect[.(]/,
+  /^Timed out \d+\s*m?s (?:waiting for|from) /,
+  /^Test timeout of /,
+  /^Timeout \d+\s*m?s exceeded/,
+  /^strict mode violation\b/,
+  // "locator.click: …", "page.goto: …", "apiRequestContext.fetch: …" — an API call, not a message.
+  /^(?:page|locator|frame|frameLocator|browser|browserContext|browserType|elementHandle|request|apiRequest|apiRequestContext|route|worker|download|fileChooser|keyboard|mouse|touchscreen|selectors|electron|android)\.[A-Za-z]+:/,
+]
+
+/**
  * SCHEMA.md §5.1 rule 8: the message argument of the failing `expect(…, "<message>")`, taken from
- * the error's first line when it is of the form `Error: <message>`; undefined when the assertion
- * carried no message.
+ * the error's first line when it is of the form `Error: <message>`; **absent when the assertion
+ * carried no message**, which is the half that matters. A head with no `Error:` prefix carried no
+ * message, and neither did one whose text is Playwright's own matcher or timeout rendering — that
+ * is the string the matcher prints when `expect()` was called WITHOUT a message argument.
+ *
+ * Capped like `error`: the cap is what keeps one runaway head out of every consumer that prints an
+ * observation, and a signature matching on 2 000 characters of it is already matching on too much.
  */
 export const failedAssertionOf = (
   errorHead: string | undefined,
 ): string | undefined => {
   const m = /^Error:\s*(.+)$/.exec(errorHead?.trim() ?? "")
   const message = m?.[1].trim()
-  return message ? message : undefined
+  if (!message) return undefined
+  if (PLAYWRIGHT_BOILERPLATE.some((re) => re.test(message))) return undefined
+  return message.slice(0, OBSERVATION_ERROR_CAP)
 }
 
 const cappedError = (errorHead: string | undefined) =>
@@ -544,6 +581,8 @@ export const emitObservations = (t: UatTest): UatObservation[] => {
   }
 
   const rowFailed = t.outcome === "failed" || t.outcome === "expected-failure"
+  /** The row's capped error head — computed once; every observation that carries one carries it. */
+  const error = cappedError(t.errorHead)
 
   // Resolve the failure site against the journal BEFORE reading anything out of it: a `kind:
   // "step"` site must name a `kind: "step"` journal entry at its own 1-based index, or there is
@@ -565,7 +604,7 @@ export const emitObservations = (t: UatTest): UatObservation[] => {
         requirementId: null,
         status: "unattributed",
         attribution: "row",
-        ...(cappedError(t.errorHead) ? { error: cappedError(t.errorHead) } : {}),
+        ...(error ? { error } : {}),
       },
     ]
 
@@ -590,7 +629,6 @@ export const emitObservations = (t: UatTest): UatObservation[] => {
       if (status === "fail") {
         const assertion = failedAssertionOf(t.errorHead)
         if (assertion) observation.failedAssertion = assertion
-        const error = cappedError(t.errorHead)
         if (error) observation.error = error
       }
       observations.push(observation)
@@ -607,7 +645,7 @@ export const emitObservations = (t: UatTest): UatObservation[] => {
       status: "unattributed",
       attribution: "row",
       step: steps[failing - 1].name ?? "",
-      ...(cappedError(t.errorHead) ? { error: cappedError(t.errorHead) } : {}),
+      ...(error ? { error } : {}),
     })
 
   // Rule 7 — the SINGLE-requirement row's row-level account, for a requirement no journal step

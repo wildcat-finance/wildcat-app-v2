@@ -3,6 +3,7 @@ import { test, type Page, type TestDetails } from "@playwright/test"
 
 import { publicClient } from "./chain"
 import * as journal from "./journal"
+import { REQUIREMENT_ID_RE } from "./uatModel"
 
 /** Stamp the chain head onto a step journal entry (best effort — UI-only suites may run
  *  without a reachable chain; the step then simply lacks a block range). */
@@ -26,7 +27,12 @@ const markBlock = async (
  *  journal entry and nowhere else, which is the point — the journal is the record of what actually
  *  RAN, so an attribution can be checked against an executed step rather than taken on trust. A
  *  step with no `req` asserts nothing the ledger names and produces no observation of its own, so
- *  the parameter is optional and every existing call site keeps working unchanged. */
+ *  the parameter is optional and every existing call site keeps working unchanged.
+ *
+ *  DO NOT NEST `step()`. Playwright propagates a child step's error to its parent and the reporter
+ *  walks the step tree pre-order, so a failure inside a nested checkpoint resolves to the OUTER
+ *  one — which under uat-run/3 is an attribution, not merely a label: the failure would be
+ *  credited to whatever the outer step declared. Keep checkpoints flat. */
 export const step = async <T>(
   page: Page,
   name: string,
@@ -67,9 +73,22 @@ export const step = async <T>(
  * about this helper: it is a plain details object, and writing the annotation out by hand is
  * exactly equivalent.
  */
-export const requirements = (ids: string[]): TestDetails => ({
-  annotation: [{ type: "requirements", description: ids.join(",") }],
-})
+export const requirements = (ids: string[]): TestDetails => {
+  const malformed = ids.filter((id) => !REQUIREMENT_ID_RE.test(id))
+  if (ids.length === 0 || malformed.length > 0)
+    throw new Error(
+      `requirements(): ${
+        ids.length === 0
+          ? "declare at least one requirement id, or mark the row infra()"
+          : `${malformed.join(", ")} is not a requirement id`
+      } — ids look like REQ-LEN-136 (${
+        REQUIREMENT_ID_RE.source
+      }). A malformed id fails the run's schema check, which takes every other check on that run down with it.`,
+    )
+  return {
+    annotation: [{ type: "requirements", description: ids.join(",") }],
+  }
+}
 
 /**
  * The INFRASTRUCTURE marker (capability-ledger SCHEMA.md §5.1 rule 2). An infra row asserts no
@@ -77,11 +96,14 @@ export const requirements = (ids: string[]): TestDetails => ({
  * declares no requirements and observes none, and it is the one exemption from the
  * declaration-is-required rule.
  */
-export const infra = (
-  kind: "setup" | "teardown" | "smoke",
-): TestDetails => ({
-  annotation: [{ type: "infra", description: kind }],
-})
+export const infra = (kind: "setup" | "teardown" | "smoke"): TestDetails => {
+  // Typed, but the vocabulary is closed on the reading side too and a JS caller reaches this.
+  if (kind !== "setup" && kind !== "teardown" && kind !== "smoke")
+    throw new Error(
+      `infra(): "${kind}" is not an infra kind — setup, teardown or smoke. A row that exempts itself with a word the schema does not contain has not said which kind of infra it is, so it is read as a functional row that declared nothing.`,
+    )
+  return { annotation: [{ type: "infra", description: kind }] }
+}
 
 /** Attach a structured oracle comparison so failures are self-describing without reading traces. */
 export const attachAgreement = (
