@@ -7,7 +7,14 @@
  * under e2e/ are run by `npm run test:e2e`, not jest) — a *.test.ts placed inside e2e/lib/ is
  * silently never discovered, even when invoked with an explicit path.
  */
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
@@ -243,13 +250,27 @@ describe("SummaryReporter.onEnd", () => {
   })
 
   /**
-   * The failure SITE is the evidence a per-requirement failure attribution rests on
-   * (capability-ledger SCHEMA.md §5.1), and the only record it can be reconciled against is the
-   * journal — what actually RAN. Playwright reports the site as a position in its flattened
-   * `test.step` list, which is a different sequence as soon as a checkpoint did not go through
-   * `step()`, so `onTestEnd` pairs the two by (name, ordinal) before recording an index.
+   * The failure SITE, on both schemas.
+   *
+   * `uat-run/2` is a frozen archive format: `failedDuring` stays the flattened-`test.step`
+   * position it has always been, because `uatReport.ts` renders the kind and the index into prose
+   * and archived runs are compared field for field across branches. `uat-run/3` needs a site that
+   * can be RECONCILED against what actually ran — it is the evidence every per-requirement failure
+   * attribution rests on — so it resolves the position against the journal, names the sites the
+   * journal cannot account for, and keeps the hook/fixture/teardown distinction.
    */
-  describe("onTestEnd records the failure site against the journal", () => {
+  describe("onTestEnd records the failure site", () => {
+    let originalSchema: string | undefined
+
+    beforeEach(() => {
+      originalSchema = process.env.UAT_RUN_SCHEMA
+    })
+
+    afterEach(() => {
+      if (originalSchema === undefined) delete process.env.UAT_RUN_SCHEMA
+      else process.env.UAT_RUN_SCHEMA = originalSchema
+    })
+
     const journalOf = (...names: string[]) =>
       Buffer.from(
         JSON.stringify([
@@ -262,14 +283,34 @@ describe("SummaryReporter.onEnd", () => {
         ]),
       )
 
-    const report = async (
+    /** Playwright's own step tree: `test.step` checkpoints, optionally wrapped in a hook. */
+    type Step = {
+      category: string
+      title: string
+      error?: unknown
+      steps?: Step[]
+    }
+    const checkpoints = (
       flat: { title: string; failing?: boolean }[],
+    ): Step[] =>
+      flat.map((f) => ({
+        category: "test.step",
+        title: f.title,
+        error: f.failing ? { message: "boom" } : undefined,
+        steps: [],
+      }))
+
+    const report = async (
+      schema: "2" | "3",
+      steps: Step[],
       journal: Buffer,
     ) => {
+      if (schema === "3") process.env.UAT_RUN_SCHEMA = "3"
+      else delete process.env.UAT_RUN_SCHEMA
       const reporter = new SummaryReporter()
       reporter.onTestEnd(
         {
-          annotations: [],
+          annotations: [{ type: "requirements", description: "REQ-ADM-001" }],
           expectedStatus: "passed",
           location: { file: "/repo/e2e/fixture/x.spec.ts" },
           title: "X-01: a row",
@@ -288,12 +329,7 @@ describe("SummaryReporter.onEnd", () => {
               contentType: "application/json",
             },
           ],
-          steps: flat.map((f) => ({
-            category: "test.step",
-            title: f.title,
-            error: f.failing ? { message: "boom" } : undefined,
-            steps: [],
-          })),
+          steps,
         } as never,
       )
       await reporter.onEnd({
@@ -306,23 +342,160 @@ describe("SummaryReporter.onEnd", () => {
       ).tests[0]
     }
 
-    it("indexes the journal, not Playwright's flattened step list", async () => {
-      // Three test.step entries, but only two of them recorded a journal entry — so the failing
-      // one is Playwright's #3 and the journal's #2, and it is the journal's that is evidence.
-      const t = await report(
+    // ---- uat-run/2: the shapes the report renderer and every archived run already carry -------
+
+    /**
+     * A GOLDEN of the frozen format, over every shape the failure-site walk can take, with and
+     * without a journal. These exact values were taken from the reporter as it stood before
+     * uat-run/3 existed (`fe8577c6`), by driving both reporters over this same fixture table in
+     * one process and comparing the run.json they wrote: byte-identical, `meta`, rows and all.
+     * The table is what keeps them that way.
+     */
+    const FROZEN: [string, Step[], Buffer, Record<string, unknown>][] = [
+      [
+        "step failure, journal complete",
+        checkpoints([{ title: "alpha" }, { title: "beta", failing: true }]),
+        journalOf("alpha", "beta"),
+        { kind: "step", name: "beta", index: 2 },
+      ],
+      [
+        "step failure, NO journal at all",
+        checkpoints([{ title: "alpha" }, { title: "beta", failing: true }]),
+        Buffer.from("[]"),
+        { kind: "step", name: "beta", index: 2 },
+      ],
+      [
+        "step failure, journal missing the failing step",
+        checkpoints([{ title: "alpha" }, { title: "beta", failing: true }]),
+        journalOf("alpha"),
+        { kind: "step", name: "beta", index: 2 },
+      ],
+      [
+        "step failure, journal carries extra steps",
+        checkpoints([{ title: "beta", failing: true }]),
+        journalOf("warm", "beta", "later"),
+        { kind: "step", name: "beta", index: 1 },
+      ],
+      [
+        "duplicate step names, second fails",
+        checkpoints([{ title: "retry" }, { title: "retry", failing: true }]),
+        journalOf("retry", "retry"),
+        { kind: "step", name: "retry", index: 2 },
+      ],
+      [
+        "duplicate step names, NO journal",
+        checkpoints([{ title: "retry" }, { title: "retry", failing: true }]),
+        Buffer.from("[]"),
+        { kind: "step", name: "retry", index: 2 },
+      ],
+      [
+        "between, journal complete",
+        checkpoints([{ title: "alpha" }, { title: "beta" }]),
+        journalOf("alpha", "beta"),
+        { kind: "between", name: "beta", index: 2 },
+      ],
+      [
+        "between, NO journal",
+        checkpoints([{ title: "alpha" }, { title: "beta" }]),
+        Buffer.from("[]"),
+        { kind: "between", name: "beta", index: 2 },
+      ],
+      ["arrange, no checkpoints", [], journalOf(), { kind: "arrange" }],
+      [
+        "arrange, no checkpoints, NO journal",
+        [],
+        Buffer.from("[]"),
+        { kind: "arrange" },
+      ],
+      [
+        "hook failure wrapping a fixture",
         [
+          {
+            category: "hook",
+            title: "Before Hooks",
+            error: { message: "boom" },
+            steps: [
+              {
+                category: "fixture",
+                title: "fixture: page",
+                error: { message: "boom" },
+              },
+            ],
+          },
+        ],
+        Buffer.from("[]"),
+        { kind: "arrange" },
+      ],
+      [
+        "After Hooks failure after a checkpoint",
+        [
+          ...checkpoints([{ title: "alpha" }]),
+          {
+            category: "hook",
+            title: "After Hooks",
+            error: { message: "boom" },
+            steps: [],
+          },
+        ],
+        journalOf("alpha"),
+        { kind: "between", name: "alpha", index: 1 },
+      ],
+      [
+        "nested step, child fails",
+        [
+          {
+            category: "test.step",
+            title: "outer",
+            error: { message: "boom" },
+            steps: checkpoints([{ title: "inner", failing: true }]),
+          },
+        ],
+        journalOf("outer", "inner"),
+        { kind: "step", name: "outer", index: 1 },
+      ],
+    ]
+
+    it.each(FROZEN)(
+      "uat-run/2 is unchanged: %s",
+      async (_title, steps, journal, expected) => {
+        const t = await report("2", steps, journal)
+        expect(t.failedDuring).toEqual(expected)
+      },
+    )
+
+    it("uat-run/2 writes no observations, no requirements and no infra marker", async () => {
+      const t = await report(
+        "2",
+        checkpoints([{ title: "alpha", failing: true }]),
+        journalOf("alpha"),
+      )
+      expect(t.observations).toBeUndefined()
+      expect(t.requirements).toBeUndefined()
+      expect(t.infra).toBeUndefined()
+    })
+
+    // ---- uat-run/3: a site that can be reconciled against the journal ------------------------
+
+    it("uat-run/3 indexes the journal, not Playwright's flattened step list", async () => {
+      const t = await report(
+        "3",
+        checkpoints([
           { title: "warm up" },
           { title: "alpha" },
           { title: "beta", failing: true },
-        ],
+        ]),
         journalOf("alpha", "beta"),
       )
       expect(t.failedDuring).toEqual({ kind: "step", name: "beta", index: 2 })
     })
 
-    it("claims no journal position for a checkpoint the journal never recorded", async () => {
+    it("uat-run/3 claims no journal position for a checkpoint the journal never recorded", async () => {
       const t = await report(
-        [{ title: "alpha" }, { title: "a raw test.step", failing: true }],
+        "3",
+        checkpoints([
+          { title: "alpha" },
+          { title: "a raw test.step", failing: true },
+        ]),
         journalOf("alpha"),
       )
       // The place is reported; the position is not invented. A site the journal cannot account
@@ -333,9 +506,10 @@ describe("SummaryReporter.onEnd", () => {
       })
     })
 
-    it("names the last checkpoint, at its journal position, when nothing inside one failed", async () => {
+    it("uat-run/3 names the last checkpoint, at its journal position, when nothing inside one failed", async () => {
       const t = await report(
-        [{ title: "warm up" }, { title: "alpha" }],
+        "3",
+        checkpoints([{ title: "warm up" }, { title: "alpha" }]),
         journalOf("alpha"),
       )
       expect(t.failedDuring).toEqual({
@@ -345,9 +519,91 @@ describe("SummaryReporter.onEnd", () => {
       })
     })
 
-    it("says arrange when the row never reached a checkpoint", async () => {
-      const t = await report([], journalOf())
+    it("uat-run/3 says arrange when the row never reached a checkpoint", async () => {
+      const t = await report("3", [], journalOf())
       expect(t.failedDuring).toEqual({ kind: "arrange" })
+    })
+
+    it("uat-run/3 reports a fixture failure as a fixture, not as arrange", async () => {
+      const t = await report(
+        "3",
+        [
+          {
+            category: "hook",
+            title: "Before Hooks",
+            error: { message: "boom" },
+            steps: [
+              {
+                category: "fixture",
+                title: "fixture: page",
+                error: { message: "boom" },
+              },
+            ],
+          },
+        ],
+        journalOf(),
+      )
+      expect(t.failedDuring).toEqual({ kind: "fixture", name: "fixture: page" })
+    })
+
+    it("uat-run/3 reports a beforeEach failure as a hook", async () => {
+      const t = await report(
+        "3",
+        [
+          {
+            category: "hook",
+            title: "Before Hooks",
+            error: { message: "boom" },
+            steps: [],
+          },
+        ],
+        journalOf(),
+      )
+      expect(t.failedDuring).toEqual({ kind: "hook", name: "Before Hooks" })
+    })
+
+    it("uat-run/3 reports an After Hooks failure as teardown, even after the checkpoints ran", async () => {
+      const t = await report(
+        "3",
+        [
+          ...checkpoints([{ title: "alpha" }]),
+          {
+            category: "hook",
+            title: "After Hooks",
+            error: { message: "boom" },
+            steps: [
+              {
+                category: "fixture",
+                title: "fixture: uatJournal",
+                error: { message: "boom" },
+              },
+            ],
+          },
+        ],
+        journalOf("alpha"),
+      )
+      expect(t.failedDuring).toEqual({
+        kind: "teardown",
+        name: "fixture: uatJournal",
+      })
+    })
+
+    it("uat-run/3 prefers a failing checkpoint to the hook it ran under", async () => {
+      // A `test.step` that broke is a more specific answer than "somewhere in Before Hooks", and
+      // it is the only one an assertion can be attributed to.
+      const t = await report(
+        "3",
+        [
+          {
+            category: "hook",
+            title: "Before Hooks",
+            error: { message: "boom" },
+            steps: checkpoints([{ title: "alpha", failing: true }]),
+          },
+        ],
+        journalOf("alpha"),
+      )
+      expect(t.failedDuring).toEqual({ kind: "step", name: "alpha", index: 1 })
     })
   })
 

@@ -156,6 +156,14 @@ const staticMeta = (): ConstructionMeta => {
   }
 }
 
+/**
+ * uat-run/3 (capability-ledger SCHEMA.md §5.1) is OPT-IN, and stays opt-in until the specs carry
+ * their declarations (owner decision D5). Read at CALL time, never captured at construction: the
+ * reporter is built before the process that runs the tests can set it, exactly as `argv` is.
+ */
+const runSchema = (): "uat-run/2" | "uat-run/3" =>
+  process.env.UAT_RUN_SCHEMA === "3" ? "uat-run/3" : "uat-run/2"
+
 /** Docs the report header renders (release blockers, untested rows) + the optional overlay
  *  inputs. All optional: a branch without a manifest or a second run renders the plain report. */
 const renderInputs = () => ({
@@ -277,48 +285,94 @@ class SummaryReporter implements Reporter {
     // WHERE did it fail: in a step() checkpoint, between checkpoints, or before the first one
     // (setup/arrange — the behavior under test was never exercised).
     //
-    // `index` is the failing step's position among the JOURNAL's `kind: "step"` entries, not among
-    // Playwright's flattened `test.step` list. The two agree whenever every checkpoint went
-    // through `step()` (which records a journal entry on entry), and today every one does — but
-    // the failure site is the evidence a per-requirement failure attribution rests on, and the
-    // only thing it can be reconciled against is the record of what RAN. A raw `test.step()` has
-    // no journal partner, so a site inside one is recorded as `unknown` naming that step: honest
-    // about the place, and not claiming a journal position that does not exist.
+    // TWO CLASSIFICATIONS, and the schema picks. `uat-run/2` is a FROZEN archive format: its
+    // `failedDuring` is the flattened-`test.step` position it has always been, because
+    // `uatReport.ts` renders the kind and the index into prose ("Failed during checkpoint X (#n)")
+    // and archived runs are compared field for field across branches. `uat-run/3` needs a site that
+    // can be RECONCILED — it is the evidence every per-requirement failure attribution rests on,
+    // and the only record it can be reconciled against is the journal, which is the sequence the
+    // ledger's own rules index. So /3 resolves the position against the journal, names the two
+    // sites the journal cannot account for (`unknown`), and reports the hook/fixture/teardown
+    // distinction `run.schema.json` has. Nothing of that reaches /2.
     let failedDuring:
       | { kind: string; name?: string; index?: number }
       | undefined
     if (failed) {
       const flat: { title: string; error?: unknown }[] = []
+      /** Every step carrying an error, pre-order, with the category Playwright filed it under. */
+      const erroring: { category: string; title: string }[] = []
       const walk = (steps: TestResult["steps"]) => {
         for (const st of steps) {
           if (st.category === "test.step")
             flat.push({ title: st.title, error: st.error })
+          if (st.error)
+            erroring.push({ category: st.category, title: st.title })
           if (st.steps) walk(st.steps)
         }
       }
       walk(result.steps)
-      /** The journal position of flat step `i`, paired by (name, ordinal); 0 when unrecorded. */
-      const journalIndexOfFlat = (i: number) =>
-        journalStepIndexOf(
-          journal,
-          flat[i].title,
-          flat.filter((st, j) => j <= i && st.title === flat[i].title).length,
-        )
+      // Pre-order, so a NESTED step() resolves to its outer checkpoint: Playwright propagates a
+      // child step's error to its parent, and the parent is seen first. No spec nests `step()`
+      // today; e2e/CONVENTIONS.md records the consequence for one that ever does.
       const failing = flat.findIndex((st) => st.error)
-      if (failing >= 0) {
-        const index = journalIndexOfFlat(failing)
-        failedDuring =
-          index > 0
-            ? { kind: "step", name: flat[failing].title, index }
-            : { kind: "unknown", name: flat[failing].title }
-      } else if (flat.length === 0) failedDuring = { kind: "arrange" }
-      else {
-        const last = flat.length - 1
-        const index = journalIndexOfFlat(last)
-        failedDuring = {
-          kind: "between",
-          name: flat[last].title,
-          ...(index > 0 ? { index } : {}),
+
+      if (runSchema() === "uat-run/2") {
+        if (failing >= 0)
+          failedDuring = {
+            kind: "step",
+            name: flat[failing].title,
+            index: failing + 1,
+          }
+        else if (flat.length === 0) failedDuring = { kind: "arrange" }
+        else
+          failedDuring = {
+            kind: "between",
+            name: flat[flat.length - 1].title,
+            index: flat.length,
+          }
+      } else {
+        /** The journal position of flat step `i`, paired by (name, ordinal); 0 when unrecorded. */
+        const journalIndexOfFlat = (i: number) =>
+          journalStepIndexOf(
+            journal,
+            flat[i].title,
+            flat.filter((st, j) => j <= i && st.title === flat[i].title).length,
+          )
+        // Playwright files fixture setup/teardown and before/after hooks as steps of their own
+        // ("Before Hooks", "After Hooks", "fixture: page"), so the step tree is where the
+        // hook/fixture/teardown distinction actually is. A `test.step` error outranks all of it:
+        // a checkpoint that broke is a more specific answer than the hook it ran under.
+        const hooks = erroring.filter((e) => e.category === "hook")
+        const fixture = erroring.find((e) => e.category === "fixture")
+        const outside: { kind: string; name?: string } | undefined = hooks.some(
+          (h) => /after/i.test(h.title),
+        )
+          ? { kind: "teardown", name: (fixture ?? hooks[0]).title }
+          : fixture
+            ? { kind: "fixture", name: fixture.title }
+            : hooks.length > 0
+              ? { kind: "hook", name: hooks[0].title }
+              : undefined
+
+        if (failing >= 0) {
+          const journalIndex = journalIndexOfFlat(failing)
+          // A checkpoint the journal never recorded (a raw `test.step`, or a run whose journal
+          // attachment is missing) is a place with no position. `unknown` says exactly that
+          // rather than claiming a journal index that does not exist.
+          failedDuring =
+            journalIndex > 0
+              ? { kind: "step", name: flat[failing].title, index: journalIndex }
+              : { kind: "unknown", name: flat[failing].title }
+        } else if (outside) failedDuring = outside
+        else if (flat.length === 0) failedDuring = { kind: "arrange" }
+        else {
+          const last = flat.length - 1
+          const journalIndex = journalIndexOfFlat(last)
+          failedDuring = {
+            kind: "between",
+            name: flat[last].title,
+            ...(journalIndex > 0 ? { index: journalIndex } : {}),
+          }
         }
       }
     }
@@ -583,21 +637,17 @@ class SummaryReporter implements Reporter {
       archiveDir,
     }
 
-    // uat-run/3 (capability-ledger SCHEMA.md §5.1) is OPT-IN, and stays opt-in until the specs
-    // carry their declarations (owner decision D5). The two additions a row needs — the row-level
-    // `requirements` annotation and `req` on a step — are already carried by `annotations` and by
-    // the journal in EVERY run, so the switch changes what the reporter DERIVES, never what the
-    // suite recorded: an archive written under UAT_RUN_SCHEMA=3 today has `requirements: []` and
-    // `needsAnnotation: true` on every row that has not been migrated, which is the honest answer
-    // and exactly what the validator's declaration-coverage gate is there to count.
-    const runSchema =
-      process.env.UAT_RUN_SCHEMA === "3" ? "uat-run/3" : "uat-run/2"
-    // An infra row declares nothing by construction; a functional row that carries no annotation
-    // declares nothing and SAYS SO (needsAnnotation), rather than reading as "about no behaviour".
-    if (runSchema === "uat-run/3") this.uatTests.forEach(declareAndObserve)
+    // The two additions a row needs — the row-level `requirements` annotation and `req` on a step
+    // — are already carried by `annotations` and by the journal in EVERY run, so the switch
+    // changes what the reporter DERIVES, never what the suite recorded: an archive written under
+    // UAT_RUN_SCHEMA=3 today has `requirements: []` and `needsAnnotation: true` on every row that
+    // has not been migrated, which is the honest answer and exactly what the validator's
+    // declaration-coverage gate is there to count. An infra row declares nothing by construction.
+    const schema = runSchema()
+    if (schema === "uat-run/3") this.uatTests.forEach(declareAndObserve)
 
     const run: UatRun = {
-      schema: runSchema,
+      schema,
       status: result.status,
       startedAt: result.startTime?.toISOString?.(),
       durationMs: result.duration,
