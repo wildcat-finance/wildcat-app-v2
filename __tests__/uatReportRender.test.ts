@@ -616,4 +616,134 @@ describe("renderUatReport row detail", () => {
     expect(html).toContain("&lt;img src=x onerror=&quot;alert(1)&quot;&gt;")
     expect(html).toContain("he said &quot;no&quot; &amp; left")
   })
+
+  /**
+   * A failed row whose ONLY variable is the failure site the reporter recorded for it, so the
+   * prose under test is the only thing that can differ between the cases below.
+   */
+  const siteRow = (failedDuring: UatTest["failedDuring"]): UatTest =>
+    t({
+      title: "LEN-42: the lender claims a matured withdrawal",
+      suite: "lender flows",
+      page: 5,
+      status: "failed",
+      outcome: "failed",
+      startedAt: "2026-09-11T02:00:00.000Z",
+      durationMs: 7_000,
+      errorHead: "expect(locator).toBeVisible()",
+      failedDuring,
+      journal: [
+        {
+          at: "2026-09-11T02:00:01.000Z",
+          kind: "step",
+          name: "the lender opens the claims tab",
+        },
+        {
+          at: "2026-09-11T02:00:04.000Z",
+          kind: "step",
+          name: "the matured amount is claimable",
+        },
+      ],
+    })
+
+  const siteProse = (failedDuring: UatTest["failedDuring"]): string =>
+    sectionOf(renderUatReport(runOf([siteRow(failedDuring)])), "uat-LEN-42")
+
+  it("gives every uat-run/3 failure site its own wording, and never cites a position the site does not have", () => {
+    // `uat-run/2` only ever wrote step / arrange / between. A native `uat-run/3` row can carry
+    // hook, fixture, teardown and unknown as well, and none of those four has a journal index —
+    // before this, all four fell through to "Failed after checkpoint ? (#undefined)".
+    const cases: {
+      site: NonNullable<UatTest["failedDuring"]>
+      says: string
+      alsoNames?: string
+    }[] = [
+      {
+        site: { kind: "hook", name: "Before Hooks" },
+        says: "Failed in a test hook before/after the body",
+        alsoNames: "Before Hooks",
+      },
+      {
+        site: { kind: "fixture", name: "fixture: page" },
+        says: "Failed while a fixture was set up or torn down",
+        alsoNames: "fixture: page",
+      },
+      {
+        site: { kind: "teardown", name: "After Hooks" },
+        says: "Failed during teardown, after the last checkpoint",
+        alsoNames: "After Hooks",
+      },
+      {
+        site: { kind: "unknown", name: "a raw test.step nobody journalled" },
+        says: "Failed outside any journalled checkpoint (site not attributable)",
+        alsoNames: "a raw test.step nobody journalled",
+      },
+    ]
+
+    for (const { site, says, alsoNames } of cases) {
+      const section = siteProse(site)
+      expect(section).toContain(says)
+      if (alsoNames) expect(section).toContain(alsoNames)
+      // Neither the /2 wording nor a position it never had.
+      expect(section).not.toContain("#undefined")
+      expect(section).not.toContain("Failed <b>after</b> checkpoint")
+      expect(section).not.toContain("Failed during checkpoint")
+    }
+  })
+
+  it("keeps the uat-run/2 wording for step, arrange and between, and drops the index when a /3 between has none", () => {
+    const step = siteProse({
+      kind: "step",
+      name: "the matured amount is claimable",
+      index: 2,
+    })
+    expect(step).toContain(
+      'Failed during checkpoint <b>the matured amount is claimable</b> (#2).',
+    )
+
+    expect(siteProse({ kind: "arrange" })).toContain(
+      "<b>setup/arrange phase</b>",
+    )
+
+    const between = siteProse({
+      kind: "between",
+      name: "the matured amount is claimable",
+      index: 2,
+    })
+    expect(between).toContain("Failed <b>after</b> checkpoint")
+    expect(between).toContain("(#2)")
+
+    // `/3` writes `between` with NO index when the journal never recorded that checkpoint.
+    const positionless = siteProse({
+      kind: "between",
+      name: "a checkpoint the journal never saw",
+    })
+    expect(positionless).toContain(
+      "Failed <b>after</b> checkpoint <b>a checkpoint the journal never saw</b>, before the next",
+    )
+    expect(positionless).not.toContain("#undefined")
+  })
+
+  it("highlights the journalled checkpoint for a step site only — the sites with no position mark none", () => {
+    const step = siteProse({
+      kind: "step",
+      name: "the matured amount is claimable",
+      index: 2,
+    })
+    expect(step).toContain('<span class="badge bad">failed here</span>')
+    expect(step).toContain('class="step step-failed"')
+
+    for (const site of [
+      { kind: "hook", name: "Before Hooks" },
+      { kind: "fixture", name: "fixture: page" },
+      { kind: "teardown", name: "After Hooks" },
+      // Same NAME as a journalled checkpoint: an unattributable site must still not claim it.
+      { kind: "unknown", name: "the matured amount is claimable" },
+      { kind: "arrange" },
+    ]) {
+      const section = siteProse(site)
+      expect(section).not.toContain("failed here")
+      expect(section).not.toContain("step-failed")
+    }
+  })
 })

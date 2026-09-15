@@ -891,20 +891,41 @@ const renderFailedCard = (
         t.failureShot,
       )}" alt="app at failure"></a><figcaption>Final app state at the moment of failure — the assertion read its text from this page.</figcaption></figure>`
     : `<div class="no-shot">No failure screenshot (page was already closed).</div>`
+  // WHERE it failed, one sentence per failure SITE. `uat-run/2` only ever writes `step`,
+  // `arrange` and `between`; `uat-run/3` adds `hook`, `fixture`, `teardown` and `unknown` (see
+  // e2e/CONVENTIONS.md and `run.schema.json`), and those four have no journal position at all.
+  // So the `#n` suffix is written ONLY when the site actually carries an index — a `/3`
+  // `between` whose checkpoint the journal never recorded has none either, and "(#undefined)"
+  // is never a thing a reader should see.
   const where = (() => {
     const f = t.failedDuring
     if (!f) return ""
-    if (f.kind === "step")
-      return `<p class="where">Failed during checkpoint <b>${esc(
-        f.name ?? "?",
-      )}</b> (#${f.index}).</p>`
-    if (f.kind === "arrange")
-      return `<p class="where warn">⚠ Failed in the test's <b>setup/arrange phase</b> — before its first checkpoint. The behavior this test verifies was <b>never exercised</b>; fix the precondition, not the assertion.</p>`
-    return `<p class="where">Failed <b>after</b> checkpoint <b>${esc(
-      f.name ?? "?",
-    )}</b> (#${
-      f.index
-    }), before the next — follow-up assertions of that phase.</p>`
+    const at = f.index !== undefined ? ` (#${f.index})` : ""
+    const named = f.name ? ` (<b>${esc(f.name)}</b>)` : ""
+    switch (f.kind) {
+      case "step":
+        return `<p class="where">Failed during checkpoint <b>${esc(
+          f.name ?? "?",
+        )}</b>${at}.</p>`
+      case "arrange":
+        return `<p class="where warn">⚠ Failed in the test's <b>setup/arrange phase</b> — before its first checkpoint. The behavior this test verifies was <b>never exercised</b>; fix the precondition, not the assertion.</p>`
+      case "hook":
+        return `<p class="where warn">⚠ Failed in a test hook before/after the body${named} — outside every <code>step()</code> checkpoint, so no checkpoint owns this failure. Fix the hook, not an assertion.</p>`
+      case "fixture":
+        return `<p class="where warn">⚠ Failed while a fixture was set up or torn down${named} — the harness around the test broke, not a checkpoint inside it.</p>`
+      case "teardown":
+        return `<p class="where">Failed during teardown, after the last checkpoint${named} — every checkpoint of the body had already run, so the behaviour under test was exercised.</p>`
+      case "unknown":
+        return `<p class="where warn">⚠ Failed outside any journalled checkpoint (site not attributable)${named} — the journal recorded no checkpoint at this position, so there is none to cite.</p>`
+      case "between":
+        return `<p class="where">Failed <b>after</b> checkpoint <b>${esc(
+          f.name ?? "?",
+        )}</b>${at}, before the next — follow-up assertions of that phase.</p>`
+      default:
+        return `<p class="where warn">⚠ Failed at an unrecognised site <code>${esc(
+          f.kind,
+        )}</code>${named}${at}.</p>`
+    }
   })()
   const patternNote = /Expected pattern/i.test(t.errorDetail ?? "")
     ? `<p class="muted">“Expected pattern” is a regex that was <b>not found</b> on the page — that is the failure. “Received” is the page text that WAS there (whitespace-flattened by innerText).</p>`
