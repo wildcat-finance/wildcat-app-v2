@@ -111,6 +111,53 @@ and every authoring agent MUST follow these; each one exists because its violati
   filtered out. Run the whole file, then re-run it whole.
 - `npm run board:one -- <id>` applies exactly that rule and prints it.
 
+## Declaring requirements
+The capability ledger derives one outcome per REQUIREMENT, not per row, so a row's `outcome` alone
+cannot say which behaviour broke. Two declarations, both carried into `run.json` untouched, are what
+close that gap (`capability-ledger/SCHEMA.md` §5.1).
+
+- **Per row.** `test("LEN-35b: …", requirements(["REQ-LEN-136"]), async ({ page }) => …)` —
+  `requirements` and `infra` are exported from `e2e/lib/step.ts` and return a plain Playwright
+  test-details object (`{ annotation: [{ type: "requirements", description: "REQ-A,REQ-B" }] }`),
+  so writing the annotation out by hand is exactly equivalent. The row-level declaration says WHICH
+  BEHAVIOURS the row is about.
+- **Per step.** `step(page, "queue a withdrawal", async () => { … }, { req: ["REQ-LEN-136"] })` —
+  which of them THIS assertion exercised. The `req` lands on the step's journal entry, and the
+  journal is the record of what actually ran, which is why an attribution can be checked rather
+  than believed. A step with no `req` asserts nothing the ledger names (arrange, navigation,
+  teardown) and produces no result of its own.
+- **Infrastructure rows** declare `infra("setup" | "teardown" | "smoke")` instead
+  (`e2e/fork.smoke.spec.ts` is the worked example). That is the ONE exemption: an infra row asserts
+  no product behaviour, so it declares nothing and observes nothing.
+
+Every other row must declare something. A row that declares MORE THAN ONE requirement must attribute
+every assertion with `step(…, { req })` — a multi-requirement row with no step attribution is an
+error, not a degraded mode: it is exactly the shape that recorded one setup failure as eight broken
+capabilities.
+
+**The switch.** The reporter writes `uat-run/2` by default and `uat-run/3` — the same archive plus
+per-row `requirements`, per-row `observations`, the `infra` marker and `req` on a journal step — when
+`UAT_RUN_SCHEMA=3` is set:
+
+    UAT_RUN_SCHEMA=3 npm run board
+
+The default stays `uat-run/2` until the specs carry their declarations, which is an owner decision.
+Nothing is lost by flipping it early: a row that has not been migrated comes out with
+`requirements: []` and `needsAnnotation: true`, which is the honest answer rather than "this row is
+about no behaviour", and every `uat-run/2` field is unchanged either way.
+
+**What the validator checks** (`capability-ledger/VALIDATOR.md` L051–L062): the archive validates
+against `run.schema.json`; a row's declaration equals the ledger's mapping for that row in BOTH
+directions; an observation may name only a requirement the row declared; every (journal step
+carrying `req`, id in it) pair is observed exactly once, at that step's index; every step
+attribution names a step the journal actually recorded; a failed row states WHERE it failed and the
+site is resolved against the journal before anything is required of it; a `fail` is never
+row-attributed — a failure no attributed assertion owns is recorded once as `unattributed`, naming
+nobody; and every observation is reconciled with the execution outcome recomputed from the raw
+Playwright fields. `__tests__/observations.test.ts` exercises the emission and then validates the
+archive the reporter writes; set `WILDCAT_LEDGER_TOOL` to the ledger tool's `ledger.mjs` and it runs
+L051–L062 over that archive as well.
+
 ## Structure
 - One spec file per runsheet area; `test.describe.serial`; one `test("XXX-nn: …")` per UAT case;
   `step(page, ...)` for major actions (screenshot film strip); `attachAgreement` for every

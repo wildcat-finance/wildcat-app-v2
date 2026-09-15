@@ -122,6 +122,13 @@ v2.5's report carries main's outcome per row directly (`npm run board` with
 `UAT_OTHER_RUN=<main's run.json>`, or `npm run report -- --other …` afterwards); rows pair by UAT
 id.
 
+`UAT_RUN_SCHEMA=3 npm run board` writes the archive as `uat-run/3` instead: the same run.json plus
+the per-requirement `observations` the capability ledger derives outcomes from, the row-level
+`requirements` declaration each row carries, and `req` on the journal's step entries. Every
+`uat-run/2` field is unchanged, and `board`'s own artefact check accepts either. The default stays
+`uat-run/2` until the specs carry their declarations — see `e2e/CONVENTIONS.md` § Declaring
+requirements for how a row and a step declare one, and what the validator checks.
+
 ## Smoke test (`npm run test:e2e -- e2e/fork.smoke.spec.ts`)
 Serial Playwright spec `e2e/fork.smoke.spec.ts` (boots `dev:fork` if the app is not running):
 health + pins → faucet (ETH + market underlying) → real lender ToU signature (the harness DB's prior
