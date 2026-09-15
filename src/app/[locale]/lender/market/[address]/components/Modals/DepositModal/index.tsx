@@ -443,6 +443,23 @@ export const DepositModal = ({
 
   const showForm = !(isDepositing || showSuccessPopup || showErrorPopup)
 
+  const [formNode, setFormNode] = useState<HTMLDivElement | null>(null)
+  const [formHeight, setFormHeight] = useState<number>()
+
+  useEffect(() => {
+    if (!formNode) return undefined
+
+    const measure = () => {
+      const height = formNode.offsetHeight
+      if (height > 0) setFormHeight(height)
+    }
+    measure()
+
+    const observer = new ResizeObserver(measure)
+    observer.observe(formNode)
+    return () => observer.disconnect()
+  }, [formNode])
+
   const underlyingBalanceIsZero = marketAccount.underlyingBalance.eq(0)
 
   const tooltip = underlyingBalanceIsZero
@@ -1091,7 +1108,7 @@ export const DepositModal = ({
               border: "none",
               borderRadius: "20px",
               margin: 0,
-              padding: showForm ? 0 : "24px 0",
+              padding: 0,
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
@@ -1099,7 +1116,15 @@ export const DepositModal = ({
           }}
         >
           {showForm && (
-            <>
+            <Box
+              ref={setFormNode}
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                flex: 1,
+                minHeight: 0,
+              }}
+            >
               <Box
                 flexShrink={0}
                 paddingTop="14px"
@@ -1446,72 +1471,88 @@ export const DepositModal = ({
                   </>
                 )}
               </Box>
-            </>
+
+              <Box
+                sx={{
+                  flexShrink: 0,
+                  padding: "12px 0 24px",
+                  backgroundColor: COLORS.white,
+                }}
+              >
+                <Box sx={{ height: "44px" }}>
+                  {txHash !== "" && (
+                    <LinkGroup
+                      type="etherscan"
+                      linkValue={getTxUrl(txHash as string)}
+                      groupSX={{ padding: "8px", marginBottom: "8px" }}
+                    />
+                  )}
+                </Box>
+
+                {gate.gateActive ? (
+                  <TxModalFooter
+                    mainBtnText={t(
+                      borrowerPenaltyVerificationUnavailable
+                        ? "marketDetails.lender.modals.deposit.gate.unavailableButton"
+                        : "marketDetails.lender.modals.deposit.gate.button",
+                    )}
+                    mainBtnOnClick={gate.accept}
+                    disableMainBtn={!gate.acknowledged}
+                    hideButtons={!showForm}
+                  />
+                ) : (
+                  <TxModalFooter
+                    mainBtnText={t(
+                      "marketDetails.lender.transactions.deposit.button",
+                    )}
+                    secondBtnText={
+                      // eslint-disable-next-line no-nested-ternary
+                      isConnectedToSafe
+                        ? undefined
+                        : isApprovedButton
+                          ? t("common.buttons.approved")
+                          : t("common.buttons.approve")
+                    }
+                    secondBtnIcon={isApprovedButton && !isConnectedToSafe}
+                    mainBtnOnClick={handleDeposit}
+                    secondBtnOnClick={handleApprove}
+                    disableMainBtn={disableDeposit}
+                    disableSecondBtn={disableApprove}
+                    secondBtnLoading={isApproving}
+                    hideButtons={!showForm}
+                  />
+                )}
+              </Box>
+            </Box>
           )}
 
-          {isDepositing && <LoadingModal txHash={txHash} />}
-          {showErrorPopup && (
-            <ErrorModal
-              onTryAgain={handleTryAgain}
-              onClose={() => {
-                setShowErrorPopup(false)
-                resetDeposit()
-                modal.handleCloseModal()
-              }}
-              txHash={txHash}
-            />
-          )}
-          {showSuccessPopup && (
-            <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
-          )}
-
-          {showForm && (
+          {!showForm && (
             <Box
               sx={{
-                flexShrink: 0,
-                padding: "12px 0 24px",
-                backgroundColor: COLORS.white,
+                height: formHeight,
+                minHeight: "353px",
+                boxSizing: "border-box",
+                padding: "24px 0",
+                display: "flex",
+                flexDirection: "column",
               }}
             >
-              {txHash !== "" && (
-                <LinkGroup
-                  type="etherscan"
-                  linkValue={getTxUrl(txHash as string)}
-                  groupSX={{ padding: "8px", marginBottom: "8px" }}
+              {isDepositing && <LoadingModal txHash={txHash} />}
+              {showErrorPopup && (
+                <ErrorModal
+                  onTryAgain={handleTryAgain}
+                  onClose={() => {
+                    setShowErrorPopup(false)
+                    resetDeposit()
+                    modal.handleCloseModal()
+                  }}
+                  txHash={txHash}
                 />
               )}
-
-              {gate.gateActive ? (
-                <TxModalFooter
-                  mainBtnText={t(
-                    borrowerPenaltyVerificationUnavailable
-                      ? "marketDetails.lender.modals.deposit.gate.unavailableButton"
-                      : "marketDetails.lender.modals.deposit.gate.button",
-                  )}
-                  mainBtnOnClick={gate.accept}
-                  disableMainBtn={!gate.acknowledged}
-                  hideButtons={!showForm}
-                />
-              ) : (
-                <TxModalFooter
-                  mainBtnText={t(
-                    "marketDetails.lender.transactions.deposit.button",
-                  )}
-                  secondBtnText={
-                    // eslint-disable-next-line no-nested-ternary
-                    isConnectedToSafe
-                      ? undefined
-                      : isApprovedButton
-                        ? t("common.buttons.approved")
-                        : t("common.buttons.approve")
-                  }
-                  secondBtnIcon={isApprovedButton && !isConnectedToSafe}
-                  mainBtnOnClick={handleDeposit}
-                  secondBtnOnClick={handleApprove}
-                  disableMainBtn={disableDeposit}
-                  disableSecondBtn={disableApprove}
-                  secondBtnLoading={isApproving}
-                  hideButtons={!showForm}
+              {showSuccessPopup && (
+                <SuccessModal
+                  onClose={modal.handleCloseModal}
+                  txHash={txHash}
                 />
               )}
             </Box>

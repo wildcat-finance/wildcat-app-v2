@@ -93,14 +93,14 @@ export const MarketsTableWrapper = ({
             justifyContent: "center",
           }}
         >
-          <Typography variant="text3" color={COLORS.santasGrey}>
+          <Typography variant="text1" color={COLORS.blackRock}>
             {t("marketList.shared.noMarketsMatchCurrentFilters")}
           </Typography>
           <Button
-            variant="text"
+            variant="contained"
             size="small"
             onClick={onResetFilters}
-            sx={{ alignSelf: "flex-start", marginTop: "8px" }}
+            sx={{ alignSelf: "flex-start", marginTop: "12px" }}
           >
             {t("common.buttons.resetFilters")}
           </Button>

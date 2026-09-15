@@ -1,22 +1,9 @@
 import { Theme, SxProps } from "@mui/material"
 
-import { COLORS } from "@/theme/colors"
 import { pageCalcHeights } from "@/utils/constants"
 
-export const SkeletonContainer = {
-  width: "100%",
-  maxWidth: "807px",
-  display: "flex",
-  justifyContent: "space-between",
-}
-
-export const SkeletonStyle = {
-  bgcolor: COLORS.athensGrey,
-  borderRadius: "12px",
-}
-
 export const LenderBannerWrapper: SxProps<Theme> = {
-  padding: "52px 32.3% 0 44px",
+  padding: "4px 32.3% 0 44px",
   flex: "0 0 auto",
 }
 

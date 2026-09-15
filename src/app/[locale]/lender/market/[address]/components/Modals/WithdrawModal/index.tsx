@@ -156,7 +156,7 @@ export const WithdrawModal = ({
   }
 
   const handleConfirm = async () => {
-    if (batchJoinWarning.state === "loading") return
+    if (batchJoinWarning.isChecking) return
     const { route } = routing
     if (batchJoinWarning.state === "clear") {
       const latestState = await batchJoinWarning.refresh()
@@ -280,7 +280,7 @@ export const WithdrawModal = ({
       return t("marketDetails.lender.transactions.withdraw.confirm.exceeds")
     if (!routing.isValid || blockingError)
       return t("marketDetails.lender.transactions.withdraw.confirm.enterAmount")
-    if (batchJoinWarning.state === "loading")
+    if (batchJoinWarning.isChecking)
       return t(
         "marketDetails.lender.transactions.withdraw.confirm.checkingBatch",
       )
@@ -336,6 +336,10 @@ export const WithdrawModal = ({
     </Box>
   )
 
+  const failureSubtitle = t(
+    "marketDetails.lender.transactions.withdraw.failed.subtitle",
+  )
+
   const stepsBody = (
     <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
       <WithdrawSteps
@@ -349,7 +353,7 @@ export const WithdrawModal = ({
       />
       {flow.failed && !!flow.error && (
         <Typography variant="text3" color={COLORS.dullRed}>
-          {flow.error}
+          {failureSubtitle}
         </Typography>
       )}
     </Box>
@@ -397,7 +401,7 @@ export const WithdrawModal = ({
       }}
       onClose={handleClose}
       txHash={flow.txHash}
-      subtitle={flow.error}
+      subtitle={failureSubtitle}
     />
   )
 
@@ -417,9 +421,7 @@ export const WithdrawModal = ({
           mainBtnText={confirmLabel}
           mainBtnOnClick={handleConfirm}
           disableMainBtn={
-            !routing.isValid ||
-            !!blockingError ||
-            batchJoinWarning.state === "loading"
+            !routing.isValid || !!blockingError || batchJoinWarning.isChecking
           }
         />
       )
