@@ -480,6 +480,7 @@ async function assemble(
         dataset.snapshotTimestamp,
         dataset.events,
         request.addresses,
+        dataset.dailySeries,
       )
     })
   }

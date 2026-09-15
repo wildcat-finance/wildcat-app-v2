@@ -685,6 +685,105 @@ export function applyScaledSupplyEvent(
   return next
 }
 
+type WithdrawalBatchPreview = {
+  expiry: number
+  scaledTotalAmountRaw: string
+  scaledAmountBurnedRaw: string
+  normalizedAmountPaidRaw: string
+  additionalScaledAmountBurnedRaw: string
+  additionalNormalizedAmountPaidRaw: string
+}
+
+// currentState() can reserve a pending batch's liquidity without emitting a
+// payment. Verify that adjustment against getWithdrawalBatch(), retaining both
+// the emitted history and the independently queried preview for the export.
+export async function readWithdrawalBatchPreview(
+  rpc: ExportRpc,
+  marketAddress: string,
+  block: number,
+  events: DecodedMarketEvent[],
+  scaledSupply: bigint,
+  unclaimedWithdrawals: bigint,
+): Promise<WithdrawalBatchPreview | undefined> {
+  let recordedSupply = 0n
+  let recordedUnclaimed = 0n
+  let pendingExpiry = 0
+  const batches = new Map<
+    number,
+    { scaled: bigint; burned: bigint; paid: bigint }
+  >()
+  for (const event of events) {
+    if (event.blockNumber > block) break
+    recordedSupply = applyScaledSupplyEvent(recordedSupply, event)
+    const expiry = Number(event.args.expiry)
+    if (event.name === "WithdrawalBatchCreated") pendingExpiry = expiry
+    if (event.name === "WithdrawalBatchExpired") pendingExpiry = 0
+    if (event.name === "WithdrawalQueued") {
+      const batch = batches.get(expiry) ?? { scaled: 0n, burned: 0n, paid: 0n }
+      batch.scaled += BigInt(String(event.args.scaledAmount))
+      batches.set(expiry, batch)
+    }
+    if (event.name === "WithdrawalBatchPayment") {
+      const batch = batches.get(expiry)!
+      batch.burned += BigInt(String(event.args.scaledAmountBurned))
+      const paid = BigInt(String(event.args.normalizedAmountPaid))
+      batch.paid += paid
+      recordedUnclaimed += paid
+    }
+    if (event.name === "WithdrawalExecuted")
+      recordedUnclaimed -= event.amountRaw ?? 0n
+  }
+  if (
+    recordedSupply === scaledSupply &&
+    recordedUnclaimed === unclaimedWithdrawals
+  )
+    return undefined
+  const recordedBatch = batches.get(pendingExpiry)
+  if (!recordedBatch)
+    throw new Error(
+      `Withdrawal-state reconciliation failed for ${marketAddress} at block ${block}: no pending batch`,
+    )
+  const batch = await contractRead<utils.Result>(
+    rpc,
+    marketAddress,
+    "getWithdrawalBatch",
+    [pendingExpiry],
+    block,
+  )
+  const scaled = asBigInt(batch.scaledTotalAmount)
+  const burned = asBigInt(batch.scaledAmountBurned)
+  const paid = asBigInt(batch.normalizedAmountPaid)
+  const additionalBurned = burned - recordedBatch.burned
+  const additionalPaid = paid - recordedBatch.paid
+  if (
+    scaled !== recordedBatch.scaled ||
+    burned > scaled ||
+    additionalBurned < 0n ||
+    additionalPaid < 0n ||
+    recordedSupply - additionalBurned !== scaledSupply ||
+    recordedUnclaimed + additionalPaid !== unclaimedWithdrawals
+  ) {
+    throw new Error(
+      `Withdrawal-state reconciliation failed for ${marketAddress} at block ${block}: pending-batch preview does not explain state`,
+    )
+  }
+  return {
+    expiry: pendingExpiry,
+    scaledTotalAmountRaw: String(scaled),
+    scaledAmountBurnedRaw: String(burned),
+    normalizedAmountPaidRaw: String(paid),
+    additionalScaledAmountBurnedRaw: String(additionalBurned),
+    additionalNormalizedAmountPaidRaw: String(additionalPaid),
+  }
+}
+
+const batchPreviewFromDaily = (
+  row: MarketDataset["dailySeries"][number] | undefined,
+): WithdrawalBatchPreview | undefined =>
+  row?.pending_batch_preview_json
+    ? JSON.parse(row.pending_batch_preview_json)
+    : undefined
+
 export const proportionalPrincipalReturned = (
   originalPrincipal: bigint,
   cumulativeExecuted: bigint,
@@ -902,6 +1001,7 @@ async function buildDailySeries(
   snapshotTimestamp: number,
   transactions: TransactionLedgerRow[],
   accruals: InterestAccrualRow[],
+  events: DecodedMarketEvent[],
   deploymentState: CurrentState,
   delinquencyFeeBips: number,
   gracePeriod: number,
@@ -1104,6 +1204,17 @@ async function buildDailySeries(
     const amount = (value: bigint) => formatUnits(value, market.assetDecimals)
     const timeDelinquent = asNumber(state.timeDelinquent)
     const penaltyActive = timeDelinquent > gracePeriod
+    const preview =
+      day.endsWith("-12-31") || day === endDate
+        ? await readWithdrawalBatchPreview(
+            rpc,
+            market.address,
+            dayEndBlocks[index],
+            events,
+            asBigInt(state.scaledTotalSupply),
+            asBigInt(state.normalizedUnclaimedWithdrawals),
+          )
+        : undefined
     rows.push({
       market_address: market.address,
       market_symbol: market.symbol,
@@ -1119,6 +1230,12 @@ async function buildDailySeries(
       period_elapsed_seconds: String(elapsed),
       is_partial_day: String(
         periodEnd !== targetEnd || deploymentTimestamp > dayStart,
+      ),
+      pending_batch_preview_json: preview ? JSON.stringify(preview) : "",
+      scale_factor_ray: String(scaleFactor),
+      scaled_total_supply_raw: String(state.scaledTotalSupply),
+      normalized_unclaimed_withdrawals_raw: String(
+        state.normalizedUnclaimedWithdrawals,
       ),
       outstanding_principal: amount(totalSupply),
       outstanding_principal_raw: String(totalSupply),
@@ -1181,31 +1298,21 @@ export async function buildPositionSummaries(
   snapshotTimestamp: number,
   events: DecodedMarketEvent[],
   addresses: string[],
+  dailySeries: MarketDataset["dailySeries"],
 ): Promise<Record<string, PositionSummary>> {
   const normalized = [
     ...new Set(addresses.map((address) => address.toLowerCase())),
   ]
   if (normalized.length === 0) return {}
-  const batchScaledRemaining = new Map<number, bigint>()
-  const batchNormalizedPaid = new Map<number, bigint>()
-  for (const event of events) {
-    if (event.name === "WithdrawalQueued") {
-      const expiry = Number(event.args.expiry)
-      batchScaledRemaining.set(
-        expiry,
-        (batchScaledRemaining.get(expiry) ?? 0n) +
-          BigInt(String(event.args.scaledAmount)),
-      )
-    }
-    if (event.name === "WithdrawalBatchPayment") {
-      const expiry = Number(event.args.expiry)
-      batchNormalizedPaid.set(
-        expiry,
-        (batchNormalizedPaid.get(expiry) ?? 0n) +
-          BigInt(String(event.args.normalizedAmountPaid)),
-      )
-    }
-  }
+  const snapshotYear = new Date(snapshotTimestamp * 1_000).getUTCFullYear()
+  const yearEnds = dailySeries
+    .filter(
+      (row) =>
+        row.date_utc.endsWith("-12-31") &&
+        Number(row.date_utc.slice(0, 4)) < snapshotYear,
+    )
+    .map((row) => ({ row, preview: batchPreviewFromDaily(row) }))
+  const snapshotPreview = batchPreviewFromDaily(dailySeries.at(-1))
   const result: Record<string, PositionSummary> = {}
   for (const address of normalized) {
     let deposits = 0n
@@ -1218,36 +1325,74 @@ export async function buildPositionSummaries(
     let scaledBalance = 0n
     let scaleFactor = RAY
     const queuedPrincipal = new Map<number, bigint>()
-    const queuedScaled = new Map<number, bigint>()
     const queuedInitialScaled = new Map<number, bigint>()
     const executedByBatch = new Map<number, bigint>()
-    const remainingByBatch = new Map<number, bigint>()
+    const batches = new Map<
+      number,
+      { scaled: bigint; burned: bigint; paid: bigint }
+    >()
     const annualEarnings: Record<string, bigint> = {}
+    let yearEndIndex = 0
+    let previousYearEarnings = 0n
+    const batchAt = (expiry: number, preview?: WithdrawalBatchPreview) =>
+      preview?.expiry === expiry
+        ? {
+            scaled: BigInt(preview.scaledTotalAmountRaw),
+            burned: BigInt(preview.scaledAmountBurnedRaw),
+            paid: BigInt(preview.normalizedAmountPaidRaw),
+          }
+        : batches.get(expiry)!
+    const pendingValue = (factor: bigint, preview?: WithdrawalBatchPreview) => {
+      let value = 0n
+      for (const [expiry, holderScaled] of queuedInitialScaled) {
+        const batch = batchAt(expiry, preview)
+        // The batch belongs pro rata to every request, including requests
+        // queued after an earlier payment. Match the contract's cumulative
+        // mulDiv rounding, rather than assigning historical burns to holders.
+        const batchValue =
+          batch.paid + ((batch.scaled - batch.burned) * factor) / RAY
+        value +=
+          (batchValue * holderScaled) / batch.scaled -
+          (executedByBatch.get(expiry) ?? 0n)
+      }
+      return value
+    }
+    const recordYearEnd = ({ row, preview }: (typeof yearEnds)[number]) => {
+      const factor = BigInt(row.scale_factor_ray)
+      const cumulativeEarnings =
+        rayMul(scaledBalance, factor) +
+        pendingValue(factor, preview) +
+        payouts +
+        transferValueOut -
+        deposits -
+        acquired
+      annualEarnings[row.date_utc.slice(0, 4)] =
+        cumulativeEarnings - previousYearEarnings
+      previousYearEarnings = cumulativeEarnings
+    }
     for (const event of events) {
-      if (event.name === "InterestAndFeesAccrued") {
-        const baseRay = BigInt(String(event.args.baseInterestRay))
-        const penaltyRay = BigInt(String(event.args.delinquencyFeeRay))
-        const scaleDelta = rayMul(scaleFactor, baseRay + penaltyRay)
-        const scaledEarningBalance =
-          scaledBalance +
-          [...queuedScaled.values()].reduce((sum, value) => sum + value, 0n)
-        const earned = rayMul(scaledEarningBalance, scaleDelta)
-        const year = new Date(
-          Number(event.args.toTimestamp) * 1_000,
-        ).getUTCFullYear()
-        annualEarnings[String(year)] =
-          (annualEarnings[String(year)] ?? 0n) + earned
-        scaleFactor = BigInt(String(event.args.scaleFactor))
-      } else if (event.name === "StateUpdated") {
+      while (
+        yearEndIndex < yearEnds.length &&
+        Number(yearEnds[yearEndIndex].row.snapshot_block) < event.blockNumber
+      ) {
+        recordYearEnd(yearEnds[yearEndIndex])
+        yearEndIndex += 1
+      }
+      if (
+        event.name === "InterestAndFeesAccrued" ||
+        event.name === "StateUpdated"
+      ) {
         scaleFactor = BigInt(String(event.args.scaleFactor))
       }
       if (event.name === "WithdrawalQueued") {
         const expiry = Number(event.args.expiry)
-        remainingByBatch.set(
-          expiry,
-          (remainingByBatch.get(expiry) ?? 0n) +
-            BigInt(String(event.args.scaledAmount)),
-        )
+        const batch = batches.get(expiry) ?? {
+          scaled: 0n,
+          burned: 0n,
+          paid: 0n,
+        }
+        batch.scaled += BigInt(String(event.args.scaledAmount))
+        batches.set(expiry, batch)
       }
       if (event.name === "Deposit" && event.participant === address) {
         const value = event.amountRaw ?? 0n
@@ -1255,7 +1400,10 @@ export async function buildPositionSummaries(
         principal += value
         scaledBalance += BigInt(String(event.args.scaledAmount))
       }
-      if (event.name === "Transfer") {
+      if (
+        event.name === "Transfer" &&
+        event.participant !== event.counterparty
+      ) {
         const scaled = rayDiv(event.amountRaw ?? 0n, scaleFactor)
         if (
           event.participant === address &&
@@ -1289,7 +1437,6 @@ export async function buildPositionSummaries(
           expiry,
           (queuedPrincipal.get(expiry) ?? 0n) + principalMoved,
         )
-        queuedScaled.set(expiry, (queuedScaled.get(expiry) ?? 0n) + scaled)
         queuedInitialScaled.set(
           expiry,
           (queuedInitialScaled.get(expiry) ?? 0n) + scaled,
@@ -1297,17 +1444,9 @@ export async function buildPositionSummaries(
       }
       if (event.name === "WithdrawalBatchPayment") {
         const expiry = Number(event.args.expiry)
-        const totalRemaining = remainingByBatch.get(expiry) ?? 0n
-        const burned = BigInt(String(event.args.scaledAmountBurned))
-        const holderRemaining = queuedScaled.get(expiry) ?? 0n
-        if (totalRemaining > 0n && holderRemaining > 0n) {
-          const holderBurned =
-            burned === totalRemaining
-              ? holderRemaining
-              : (burned * holderRemaining) / totalRemaining
-          queuedScaled.set(expiry, holderRemaining - holderBurned)
-        }
-        remainingByBatch.set(expiry, totalRemaining - burned)
+        const batch = batches.get(expiry)!
+        batch.burned += BigInt(String(event.args.scaledAmountBurned))
+        batch.paid += BigInt(String(event.args.normalizedAmountPaid))
       }
       if (
         event.name === "WithdrawalExecuted" &&
@@ -1327,6 +1466,10 @@ export async function buildPositionSummaries(
         returned += principalMoved
         payouts += event.amountRaw ?? 0n
       }
+    }
+    while (yearEndIndex < yearEnds.length) {
+      recordYearEnd(yearEnds[yearEndIndex])
+      yearEndIndex += 1
     }
     const [balance, onchainScaledBalance, snapshotState] = await Promise.all([
       contractRead<BigNumber>(
@@ -1366,23 +1509,21 @@ export async function buildPositionSummaries(
       )
     }
     let pendingWithdrawalPrincipal = 0n
-    let pendingWithdrawalValue = 0n
+    const pendingWithdrawalValue = pendingValue(
+      snapshotScaleFactor,
+      snapshotPreview,
+    )
     for (const [expiry, originalPrincipal] of queuedPrincipal) {
-      const totalScaled = batchScaledRemaining.get(expiry) ?? 0n
-      const holderInitialScaled = queuedInitialScaled.get(expiry) ?? 0n
-      const holderRemainingScaled = queuedScaled.get(expiry) ?? 0n
-      const entitlement =
-        totalScaled > 0n
-          ? ((batchNormalizedPaid.get(expiry) ?? 0n) * holderInitialScaled) /
-            totalScaled
-          : 0n
-      const holderBurnedScaled = holderInitialScaled - holderRemainingScaled
-      const fundedPrincipal =
-        holderInitialScaled > 0n
-          ? (originalPrincipal * holderBurnedScaled) / holderInitialScaled
-          : 0n
-      const totalExecuted = executedByBatch.get(expiry) ?? 0n
-      const executed = totalExecuted > entitlement ? entitlement : totalExecuted
+      const batch = batchAt(expiry, snapshotPreview)
+      const holderScaled = queuedInitialScaled.get(expiry)!
+      const entitlement = (batch.paid * holderScaled) / batch.scaled
+      const fundedPrincipal = (originalPrincipal * batch.burned) / batch.scaled
+      const executed = executedByBatch.get(expiry) ?? 0n
+      if (executed > entitlement) {
+        throw new Error(
+          `Position withdrawal exceeds batch entitlement for ${address} in ${market.address}`,
+        )
+      }
       const principalReturned = proportionalPrincipalReturned(
         fundedPrincipal,
         executed,
@@ -1390,25 +1531,11 @@ export async function buildPositionSummaries(
       )
       returned += principalReturned
       pendingWithdrawalPrincipal += originalPrincipal - principalReturned
-      pendingWithdrawalValue +=
-        entitlement > executed ? entitlement - executed : 0n
-      pendingWithdrawalValue += rayMul(
-        holderRemainingScaled,
-        snapshotScaleFactor,
-      )
     }
     const totalPositionValue = currentValue + pendingWithdrawalValue
     const earnings =
       totalPositionValue + payouts + transferValueOut - deposits - acquired
-    const allocatedEarnings = Object.values(annualEarnings).reduce(
-      (sum, value) => sum + value,
-      0n,
-    )
-    const currentYear = new Date(snapshotTimestamp * 1000)
-      .getUTCFullYear()
-      .toString()
-    annualEarnings[currentYear] =
-      (annualEarnings[currentYear] ?? 0n) + earnings - allocatedEarnings
+    annualEarnings[String(snapshotYear)] = earnings - previousYearEarnings
     const principalStillInvested = principal + pendingWithdrawalPrincipal
     const splitEarnings =
       payouts -
@@ -1792,7 +1919,6 @@ export async function buildMarketDataset(
   )
   const [
     dailySeries,
-    positions,
     balanceValue,
     snapshotState,
     totalSupplyValue,
@@ -1805,19 +1931,12 @@ export async function buildMarketDataset(
       snapshotTimestamp,
       transactions,
       interestAccruals,
+      events,
       deploymentState,
       delinquencyFeeBips,
       gracePeriod,
       withdrawalCycle,
       checkpoint,
-    ),
-    buildPositionSummaries(
-      rpc,
-      market,
-      snapshotBlock,
-      snapshotTimestamp,
-      events,
-      positionAddresses,
     ),
     erc20Read<BigNumber>(
       rpc,
@@ -1850,6 +1969,16 @@ export async function buildMarketDataset(
     ),
   ])
 
+  const positions = await buildPositionSummaries(
+    rpc,
+    market,
+    snapshotBlock,
+    snapshotTimestamp,
+    events,
+    positionAddresses,
+    dailySeries,
+  )
+
   await onProgress?.("checking_balances")
 
   const expectedBalance = transactions.reduce(
@@ -1875,15 +2004,40 @@ export async function buildMarketDataset(
 
   const walkedScaledSupply = events.reduce(applyScaledSupplyEvent, 0n)
   const onchainScaledSupply = asBigInt(snapshotState.scaledTotalSupply)
-  if (walkedScaledSupply !== onchainScaledSupply) {
+  const withdrawalPreview = batchPreviewFromDaily(dailySeries.at(-1))
+  const previewScaledBurned = BigInt(
+    withdrawalPreview?.additionalScaledAmountBurnedRaw ?? "0",
+  )
+  const previewPaid = BigInt(
+    withdrawalPreview?.additionalNormalizedAmountPaidRaw ?? "0",
+  )
+  const reconciledScaledSupply = walkedScaledSupply - previewScaledBurned
+  const recordedUnclaimedWithdrawals = events.reduce(
+    (sum, event) =>
+      sum +
+      (event.name === "WithdrawalBatchPayment"
+        ? BigInt(String(event.args.normalizedAmountPaid))
+        : event.name === "WithdrawalExecuted"
+          ? -(event.amountRaw ?? 0n)
+          : 0n),
+    0n,
+  )
+  if (
+    recordedUnclaimedWithdrawals + previewPaid !==
+    asBigInt(snapshotState.normalizedUnclaimedWithdrawals)
+  )
+    throw new Error(
+      `Unclaimed-withdrawal reconciliation failed for ${market.address}`,
+    )
+  if (reconciledScaledSupply !== onchainScaledSupply) {
     throw new Error(
       `Scaled-supply reconciliation failed for ${market.address}: ${
-        walkedScaledSupply - onchainScaledSupply
+        reconciledScaledSupply - onchainScaledSupply
       } base units`,
     )
   }
   const computedTotalSupply = rayMul(
-    walkedScaledSupply,
+    reconciledScaledSupply,
     asBigInt(snapshotState.scaleFactor),
   )
   const onchainTotalSupply = asBigInt(totalSupplyValue)
@@ -2075,6 +2229,12 @@ export async function buildMarketDataset(
         actualAssetBalanceRaw: String(actualBalance),
         differenceRaw: "0",
         walkedScaledSupplyRaw: String(walkedScaledSupply),
+        previewScaledAmountBurnedRaw: String(previewScaledBurned),
+        previewNormalizedAmountPaidRaw: String(previewPaid),
+        recordedUnclaimedWithdrawalsRaw: String(recordedUnclaimedWithdrawals),
+        onchainUnclaimedWithdrawalsRaw: String(
+          snapshotState.normalizedUnclaimedWithdrawals,
+        ),
         onchainScaledSupplyRaw: String(onchainScaledSupply),
         computedTotalSupplyRaw: String(computedTotalSupply),
         onchainTotalSupplyRaw: String(onchainTotalSupply),

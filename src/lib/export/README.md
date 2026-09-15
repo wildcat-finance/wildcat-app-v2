@@ -34,10 +34,34 @@ total position value = active market-token value + pending withdrawal value
 ```
 
 Pending withdrawal value includes both funded-but-unclaimed assets and the
-snapshot value of scaled tokens still waiting in an unfunded batch. Position
+snapshot value of scaled tokens still waiting in an unfunded batch. Each account
+owns its proportional share of the cumulative batch, including payments made
+before its request joined. Claims use the contract's cumulative floor rounding;
+self-transfers leave principal and earnings unchanged. Position
 earnings are split into cash payouts, value transferred with market tokens,
 active market-token value, and pending withdrawal value; these categories
 reconcile exactly to total economic earnings.
+
+Daily APRs retain the specified recorded-period convention: aggregate the ray
+increments and durations of accrual periods ending that day, then annualise once.
+This preserves the required reference-day regressions; it is distinct from a
+rate integrated over every second of the UTC day. The calendar-year position
+fix does not change those daily APR columns or recorded protocol-fee totals.
+
+Calendar-year position earnings are changes in cumulative economic earnings
+(value plus payouts and outgoing transfers minus acquisitions), measured at the
+last block on or before each UTC 31 December end and at the requested snapshot.
+They use archived year-end scale factors, including growth not yet emitted as
+an accrual event. Recorded market interest and fees retain their posting dates.
+
+`daily_series.csv` includes `scale_factor_ray`, `scaled_total_supply_raw`, and
+`normalized_unclaimed_withdrawals_raw` to reproduce these valuations. Its
+`pending_batch_preview_json` is populated at year ends and the final snapshot
+when the contract previews a payment without emitting a log. The exporter
+checks that payment against `getWithdrawalBatch()` and separately reconciles
+scaled supply and funded-but-unclaimed assets. The manifest retains the emitted
+supply, preview adjustment, and recorded/on-chain unclaimed balances. Previewed
+payments never become fabricated transaction or event rows.
 
 Sanctions companion events describe ordinary queue/execute flows and are not
 second movements. A direct sanctioned asset transfer to escrow is `escrowed_out`;

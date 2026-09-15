@@ -203,6 +203,10 @@ export type MarketDataset = {
       actualAssetBalanceRaw: string
       differenceRaw: string
       walkedScaledSupplyRaw: string
+      previewScaledAmountBurnedRaw: string
+      previewNormalizedAmountPaidRaw: string
+      recordedUnclaimedWithdrawalsRaw: string
+      onchainUnclaimedWithdrawalsRaw: string
       onchainScaledSupplyRaw: string
       computedTotalSupplyRaw: string
       onchainTotalSupplyRaw: string
@@ -234,5 +238,6 @@ export type ExportProgress = {
   error?: string
   downloadUrl?: string
   generatedAtUtc?: string
+  snapshotTimestampUtc?: string
   request?: CanonicalExportRequest
 }

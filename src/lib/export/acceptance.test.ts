@@ -89,6 +89,7 @@ describe("recorded reference market A", () => {
       dataset.snapshotTimestamp,
       dataset.events,
       [POSITION, ...TRANSFER_POSITIONS],
+      dataset.dailySeries,
     )
   }, 120_000)
 
@@ -110,7 +111,7 @@ describe("recorded reference market A", () => {
     expect(dataset.transactions).toHaveLength(200)
     expect(dataset.events).toHaveLength(888)
     expect(dataset.interestAccruals).toHaveLength(219)
-    expect(Object.keys(dataset.dailySeries[0])).toHaveLength(56)
+    expect(Object.keys(dataset.dailySeries[0])).toHaveLength(60)
     expect(dataset.manifest.protocolFeesByYearRaw).toEqual({
       "2025": "33729528171",
       "2026": "34682959349",

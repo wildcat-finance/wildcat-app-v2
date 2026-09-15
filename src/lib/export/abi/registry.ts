@@ -34,6 +34,7 @@ export const metadataInterface = new utils.Interface([
   "function totalSupply() view returns (uint256)",
   "function balanceOf(address) view returns (uint256)",
   "function scaledBalanceOf(address) view returns (uint256)",
+  "function getWithdrawalBatch(uint32) view returns (tuple(uint104 scaledTotalAmount,uint104 scaledAmountBurned,uint128 normalizedAmountPaid))",
 ])
 
 export const erc20Interface = new utils.Interface([
