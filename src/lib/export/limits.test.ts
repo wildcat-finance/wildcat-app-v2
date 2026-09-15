@@ -5,7 +5,7 @@ import { CanonicalExportRequest } from "./types"
 
 const request: CanonicalExportRequest = {
   chainId: 1,
-  markets: "all",
+  markets: ["0x1111111111111111111111111111111111111111"],
   statements: ["market_condition", "borrower", "position"],
   addresses: Array.from(
     { length: 5 },

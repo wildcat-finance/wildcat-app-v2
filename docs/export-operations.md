@@ -1,5 +1,12 @@
 # Export operations
 
+## Market selection
+
+Exports default to **This market**. **Borrower** exports the chosen borrower's
+active V2 markets; **Selected** exports an explicit list of markets. Requests
+must supply 1–50 market addresses. The former **All V2** option and
+`markets: "all"` API request are no longer supported.
+
 ## Runtime ownership
 
 Vercel Workflow is the durable execution engine. `ExportJob` is the app-facing

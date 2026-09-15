@@ -301,7 +301,7 @@ describe("recorded reference market A", () => {
     }
     const multiMarketRequest: CanonicalExportRequest = {
       ...request,
-      markets: "all",
+      markets: [dataset.market.address, secondAddress],
       statements: ["market_condition"],
       addresses: [],
     }

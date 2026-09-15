@@ -21,7 +21,7 @@ describeWithDatabase("export job coordination against Postgres", () => {
   const testId = `admission-test-${randomUUID()}`
   const request: CanonicalExportRequest = {
     chainId: 1,
-    markets: "all",
+    markets: ["0x1111111111111111111111111111111111111111"],
     statements: [],
     addresses: [],
     format: "pdf",

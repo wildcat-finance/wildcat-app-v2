@@ -40,7 +40,7 @@ import { trimAddress } from "@/utils/formatters"
 
 import { ExportModalProps } from "./interface"
 
-type MarketSelection = "current" | "borrower" | "all" | "custom"
+type MarketSelection = "current" | "borrower" | "custom"
 type DateSelection = "full" | "year" | "custom"
 type MarketOption = {
   address: string
@@ -190,12 +190,9 @@ export const exportErrorMessage = (message: string) => {
 const requestOptionsKey = (request: ExportRequest | CanonicalExportRequest) =>
   JSON.stringify({
     chainId: request.chainId,
-    markets:
-      request.markets === "all"
-        ? "all"
-        : [
-            ...new Set(request.markets.map((item) => item.toLowerCase())),
-          ].sort(),
+    markets: [
+      ...new Set(request.markets.map((item) => item.toLowerCase())),
+    ].sort(),
     statements: [...new Set(request.statements)].sort(),
     addresses: [
       ...new Set(request.addresses.map((item) => item.toLowerCase())),
@@ -222,7 +219,8 @@ export const ExportModal = ({
   borrowerAddress,
   defaultAddress,
 }: ExportModalProps) => {
-  const [marketSelection, setMarketSelection] = useState<MarketSelection>("all")
+  const [marketSelection, setMarketSelection] =
+    useState<MarketSelection>("current")
   const [marketOptions, setMarketOptions] = useState<MarketOption[]>([])
   const [selectedMarketOptions, setSelectedMarketOptions] = useState<
     MarketOption[]
@@ -255,10 +253,7 @@ export const ExportModal = ({
 
   const hydrateForm = useCallback(
     (request: CanonicalExportRequest) => {
-      if (request.markets === "all") {
-        setMarketSelection("all")
-        setSelectedMarketOptions([])
-      } else if (
+      if (
         request.markets.length === 1 &&
         request.markets[0].toLowerCase() === marketAddress.toLowerCase()
       ) {
@@ -341,7 +336,6 @@ export const ExportModal = ({
   }, [borrowerAddress, borrowerOptions])
 
   const selectedMarkets = useMemo(() => {
-    if (marketSelection === "all") return "all" as const
     if (marketSelection === "current") return [marketAddress.toLowerCase()]
     if (marketSelection === "borrower") {
       return selectedBorrower?.marketAddresses ?? []
@@ -497,7 +491,7 @@ export const ExportModal = ({
       if (!response.ok)
         throw new Error(body.error ?? "Unable to load export job")
       setProgress(body)
-      if (body.request) {
+      if (body.request && Array.isArray(body.request.markets)) {
         setJobRequest(body.request)
         if (shouldHydrateRestoredJob.current) {
           hydrateForm(body.request)
@@ -804,7 +798,6 @@ export const ExportModal = ({
               options={[
                 { value: "current", label: "This market" },
                 { value: "borrower", label: "Borrower" },
-                { value: "all", label: "All V2" },
                 { value: "custom", label: "Selected" },
               ]}
             />

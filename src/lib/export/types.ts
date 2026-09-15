@@ -8,7 +8,7 @@ export type ExportStatementFormat = "pdf" | "xlsx"
 
 export type ExportRequest = {
   chainId: ExportChainId
-  markets: "all" | string[]
+  markets: string[]
   statements: ExportStatementType[]
   addresses: string[]
   dateFrom?: string

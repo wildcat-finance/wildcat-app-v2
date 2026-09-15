@@ -128,7 +128,6 @@ async function loadMarketMetadata(
   addresses: string[],
   registryData: Map<string, { controller?: string; removedAtBlock?: number }>,
   marketAddedLayout: MarketUniverse["marketAddedLayout"],
-  allowV1Exclusion: boolean,
 ): Promise<MarketUniverse> {
   const metadata: MarketMetadata[] = Array(addresses.length)
   let cursor = 0
@@ -164,7 +163,7 @@ async function loadMarketMetadata(
         .join(", ")}`,
     )
   }
-  if (!allowV1Exclusion && excludedV1.length > 0) {
+  if (excludedV1.length > 0) {
     throw new Error(`V1 markets are not supported: ${excludedV1.join(", ")}`)
   }
   return {
@@ -278,20 +277,16 @@ export async function discoverMarketUniverse(
   rpc: ExportRpc,
   chainId: ExportChainId,
   snapshotBlock: number,
-  selection: "all" | string[],
+  selection: string[],
 ): Promise<MarketUniverse> {
   const deployment = Deployments[chainId]
   const archController = deployment?.WildcatArchController?.toLowerCase()
   if (!archController)
     throw new Error(`No ArchController deployment for chain ${chainId}`)
 
-  const selected =
-    selection === "all"
-      ? undefined
-      : [...new Set(selection.map(normalizeAddress))].sort()
+  const selected = [...new Set(selection.map(normalizeAddress))].sort()
   if (
-    selected &&
-    (await areCurrentlyRegistered(rpc, archController, snapshotBlock, selected))
+    await areCurrentlyRegistered(rpc, archController, snapshotBlock, selected)
   ) {
     return loadMarketMetadata(
       rpc,
@@ -300,7 +295,6 @@ export async function discoverMarketUniverse(
       selected,
       new Map(),
       "none",
-      false,
     )
   }
 
@@ -374,9 +368,7 @@ export async function discoverMarketUniverse(
     new Set(universe.keys()),
   )
 
-  const requested =
-    selection === "all" ? [...universe.keys()].sort() : selected!
-  for (const address of requested) {
+  for (const address of selected) {
     if (!universe.has(address)) {
       throw new Error(
         `Requested address ${address} is not a registered Wildcat market`,
@@ -388,10 +380,9 @@ export async function discoverMarketUniverse(
     rpc,
     chainId,
     snapshotBlock,
-    requested,
+    selected,
     universe,
     marketAddedLayout,
-    selection === "all",
   )
 }
 

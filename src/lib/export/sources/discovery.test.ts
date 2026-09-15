@@ -91,25 +91,6 @@ describe("market discovery", () => {
     })
   })
 
-  it("keeps full registry discovery for an all-markets request", async () => {
-    const getLogs = jest.fn(async () => {
-      throw new Error("full registry discovery reached")
-    })
-    const batch = jest.fn()
-    const rpc = {
-      usedProviderHosts: new Set<string>(),
-      batch,
-      getLogs,
-      findDeploymentBlock: jest.fn(async () => 100),
-    } as unknown as ExportRpc
-
-    await expect(
-      discoverMarketUniverse(rpc, 1, SNAPSHOT, "all"),
-    ).rejects.toThrow("full registry discovery reached")
-    expect(batch).not.toHaveBeenCalled()
-    expect(getLogs).toHaveBeenCalled()
-  })
-
   it("uses registry history for an explicit market removed before the snapshot", async () => {
     const getLogs = jest.fn(async () => {
       throw new Error("historical registry discovery reached")

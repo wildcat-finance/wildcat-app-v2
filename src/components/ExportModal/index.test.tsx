@@ -258,6 +258,13 @@ describe("ExportModal", () => {
       />,
     )
 
+    expect(screen.queryByRole("button", { name: "All V2" })).toBeNull()
+    expect(
+      screen
+        .getByRole("button", { name: "This market" })
+        .getAttribute("aria-pressed"),
+    ).toBe("true")
+
     fireEvent.click(screen.getByRole("button", { name: "Selected" }))
 
     fireEvent.mouseDown(

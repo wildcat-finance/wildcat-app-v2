@@ -47,7 +47,7 @@ describe("export request validation", () => {
     expect(() =>
       parseExportRequest({
         chainId: 1,
-        markets: "all",
+        markets: [A],
         statements: ["position"],
         format: "xlsx",
       }),
@@ -55,18 +55,22 @@ describe("export request validation", () => {
     expect(
       parseExportRequest({
         chainId: 1,
-        markets: "all",
+        markets: [A],
         statements: [],
         format: "xlsx",
       }).addresses,
     ).toEqual([])
   })
 
+  it("rejects all-market exports", () => {
+    expect(() => parseExportRequest({ chainId: 1, markets: "all" })).toThrow()
+  })
+
   it("rejects invalid dates and unbounded request arrays", () => {
     expect(() =>
       parseExportRequest({
         chainId: 1,
-        markets: "all",
+        markets: [A],
         statements: [],
         addresses: [],
         dateFrom: "2026-02-31",

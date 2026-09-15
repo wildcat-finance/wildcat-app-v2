@@ -29,10 +29,7 @@ const exportRequestSchema = z
     chainId: z
       .number()
       .refine((value) => EXPORT_CHAIN_IDS.includes(value as never)),
-    markets: z.union([
-      z.literal("all"),
-      z.array(address).min(1).max(MAX_EXPORT_MARKETS),
-    ]),
+    markets: z.array(address).min(1).max(MAX_EXPORT_MARKETS),
     statements: z
       .array(z.enum(["market_condition", "position", "borrower"]))
       .max(3)
@@ -72,12 +69,9 @@ export function canonicalizeExportRequest(
 ): CanonicalExportRequest {
   return {
     chainId: request.chainId,
-    markets:
-      request.markets === "all"
-        ? "all"
-        : [
-            ...new Set(request.markets.map((item) => item.toLowerCase())),
-          ].sort(),
+    markets: [
+      ...new Set(request.markets.map((item) => item.toLowerCase())),
+    ].sort(),
     statements: [
       ...new Set(request.statements),
     ].sort() as CanonicalExportRequest["statements"],
