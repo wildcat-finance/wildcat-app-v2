@@ -20,7 +20,6 @@ export const launchPuppeteer = async (
     })
   }
   return puppeteer.launch({
-    channel: "chrome",
     args: ["--no-sandbox"],
     headless: true,
     ...options,
