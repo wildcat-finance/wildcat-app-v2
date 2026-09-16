@@ -285,11 +285,12 @@ export const DepositModal = ({
       return
 
     setTxHash("")
+    setShowErrorPopup(false)
+    setShowSuccessPopup(false)
     deposit(depositTokenAmount)
   }
 
   const handleTryAgain = () => {
-    setTxHash("")
     handleDeposit()
   }
 
@@ -442,6 +443,19 @@ export const DepositModal = ({
       : false
 
   const showForm = !(isDepositing || showSuccessPopup || showErrorPopup)
+
+  /**
+   * The transaction view, as a single value rather than three independent
+   * conditions rendered side by side. A pending transaction outranks a stored
+   * outcome, and a success outranks a stale failure, so a flag left over from
+   * an earlier attempt can no longer put two states on screen at once.
+   */
+  const txView = (() => {
+    if (isDepositing) return "loading" as const
+    if (showSuccessPopup) return "success" as const
+    if (showErrorPopup) return "error" as const
+    return null
+  })()
 
   const [formNode, setFormNode] = useState<HTMLDivElement | null>(null)
   const [formHeight, setFormHeight] = useState<number>()
@@ -1012,8 +1026,8 @@ export const DepositModal = ({
             },
           }}
         >
-          {isDepositing && <LoadingModal txHash={txHash} />}
-          {showErrorPopup && (
+          {txView === "loading" && <LoadingModal txHash={txHash} />}
+          {txView === "error" && (
             <ErrorModal
               onTryAgain={handleTryAgain}
               onClose={() => {
@@ -1025,7 +1039,7 @@ export const DepositModal = ({
               txHash={txHash}
             />
           )}
-          {showSuccessPopup && (
+          {txView === "success" && (
             <SuccessModal
               onClose={() => {
                 setShowSuccessPopup(false)
@@ -1537,8 +1551,8 @@ export const DepositModal = ({
                 flexDirection: "column",
               }}
             >
-              {isDepositing && <LoadingModal txHash={txHash} />}
-              {showErrorPopup && (
+              {txView === "loading" && <LoadingModal txHash={txHash} />}
+              {txView === "error" && (
                 <ErrorModal
                   onTryAgain={handleTryAgain}
                   onClose={() => {
@@ -1549,7 +1563,7 @@ export const DepositModal = ({
                   txHash={txHash}
                 />
               )}
-              {showSuccessPopup && (
+              {txView === "success" && (
                 <SuccessModal
                   onClose={modal.handleCloseModal}
                   txHash={txHash}
