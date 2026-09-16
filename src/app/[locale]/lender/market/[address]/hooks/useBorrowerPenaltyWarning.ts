@@ -13,8 +13,7 @@ import { NETWORKS_BY_ID } from "@/config/network"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { getAppSubgraphClient } from "@/lib/gateway/client"
-import { EXCLUDED_MARKETS } from "@/utils/constants"
-import { isNotExcludedMarket } from "@/utils/filters"
+import { excludedMarketsFilter, isNotExcludedMarket } from "@/utils/filters"
 
 import { shouldMarketTriggerBorrowerPenaltyWarning } from "../utils"
 
@@ -59,7 +58,7 @@ export const useBorrowerPenaltyWarning = (market: Market | undefined) => {
         fetchPolicy: "network-only",
         filter: {
           borrower: borrowerAddress,
-          excludeAddresses: EXCLUDED_MARKETS,
+          ...excludedMarketsFilter(),
           isClosed: false,
         },
       })

@@ -9,8 +9,7 @@ import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { getAppSubgraphClient } from "@/lib/gateway/client"
-import { EXCLUDED_MARKETS } from "@/utils/constants"
-import { isNotExcludedMarket } from "@/utils/filters"
+import { excludedMarketsFilter, isNotExcludedMarket } from "@/utils/filters"
 import { refetchOnMountIfInvalidated } from "@/utils/queryRefetch"
 
 import { GetMarketsProps } from "./interface"
@@ -33,7 +32,7 @@ export function useGetBorrowerMarketsQuery({
       fetchPolicy: "network-only",
       filter: {
         borrower: address,
-        excludeAddresses: EXCLUDED_MARKETS,
+        ...excludedMarketsFilter(),
       },
     })
     return markets.filter(isNotExcludedMarket)
