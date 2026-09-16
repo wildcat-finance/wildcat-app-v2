@@ -1,36 +1,5 @@
-import { BIPS, formatFixed } from "../bigint"
-import { InterestAccrualRow } from "../types"
-
-const utcDate = (timestamp: number) =>
-  new Date(timestamp * 1_000).toISOString().slice(0, 10)
-
-export function aggregateAccrualsForDay(
-  accruals: InterestAccrualRow[],
-  day: string,
-) {
-  return accruals
-    .filter((accrual) => utcDate(accrual.periodEnd) === day)
-    .reduce(
-      (totals, accrual) => ({
-        baseRay: totals.baseRay + accrual.baseInterestRay,
-        penaltyRay: totals.penaltyRay + accrual.delinquencyFeeRay,
-        protocolRay:
-          totals.protocolRay +
-          (accrual.baseInterestRay * BigInt(accrual.protocolFeeBips) +
-            BIPS / 2n) /
-            BIPS,
-        seconds: totals.seconds + accrual.periodEnd - accrual.periodStart,
-        events: totals.events + 1,
-      }),
-      {
-        baseRay: 0n,
-        penaltyRay: 0n,
-        protocolRay: 0n,
-        seconds: 0,
-        events: 0,
-      },
-    )
-}
+import { formatFixed } from "../bigint"
+import { DecodedMarketEvent } from "../types"
 
 export type RateState = {
   timestamp: number
@@ -91,9 +60,11 @@ export function percentagesFromRateSeconds(
 ) {
   if (elapsed <= 0) {
     return {
-      baseApr: "0.000000",
-      penaltyApr: "0.000000",
-      protocolFeeApr: "0.000000",
+      baseApr: "",
+      penaltyApr: "",
+      protocolFeeApr: "",
+      effectiveApr: "",
+      borrowerApr: "",
     }
   }
   const seconds = BigInt(elapsed)
@@ -105,9 +76,74 @@ export function percentagesFromRateSeconds(
       rounded(values.penaltyBipsSeconds * 10_000n, seconds),
       6,
     ),
+    effectiveApr: formatFixed(
+      rounded(
+        (values.baseBipsSeconds + values.penaltyBipsSeconds) * 10_000n,
+        seconds,
+      ),
+      6,
+    ),
+    borrowerApr: formatFixed(
+      rounded(
+        (values.baseBipsSeconds + values.penaltyBipsSeconds) * 10_000n +
+          values.protocolBipsSquaredSeconds,
+        seconds,
+      ),
+      6,
+    ),
     protocolFeeApr: formatFixed(
       rounded(values.protocolBipsSquaredSeconds, seconds),
       6,
     ),
   }
+}
+
+/** Integrate the actual snapshot interval, applying changes in log order. */
+export function integrateRateEvents(
+  state: RateState,
+  events: DecodedMarketEvent[],
+  endTimestamp: number,
+  delinquencyFeeBips: number,
+  gracePeriod: number,
+): RateSeconds {
+  const totals: RateSeconds = {
+    baseBipsSeconds: 0n,
+    penaltyBipsSeconds: 0n,
+    protocolBipsSquaredSeconds: 0n,
+  }
+  const advance = (timestamp: number) => {
+    const values = advanceRateState(
+      state,
+      timestamp,
+      delinquencyFeeBips,
+      gracePeriod,
+    )
+    totals.baseBipsSeconds += values.baseBipsSeconds
+    totals.penaltyBipsSeconds += values.penaltyBipsSeconds
+    totals.protocolBipsSquaredSeconds += values.protocolBipsSquaredSeconds
+  }
+  events.forEach((event) => {
+    if (
+      ![
+        "AnnualInterestBipsUpdated",
+        "ProtocolFeeBipsUpdated",
+        "StateUpdated",
+        "MarketClosed",
+      ].includes(event.name)
+    )
+      return
+    advance(event.timestamp)
+    if (event.name === "AnnualInterestBipsUpdated")
+      state.annualInterestBips = Number(event.args.annualInterestBipsUpdated)
+    if (event.name === "ProtocolFeeBipsUpdated")
+      state.protocolFeeBips = Number(event.args.protocolFeeBips)
+    if (event.name === "StateUpdated")
+      state.isDelinquent = event.args.isDelinquent === true
+    if (event.name === "MarketClosed") {
+      state.annualInterestBips = 0
+      state.timeDelinquent = 0
+    }
+  })
+  advance(endTimestamp)
+  return totals
 }

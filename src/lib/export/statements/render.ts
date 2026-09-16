@@ -7,6 +7,7 @@ import { PDFDocument, PDFHexString, PDFPage, rgb } from "pdf-lib"
 
 import { createStatementFonts, pdfGraphemes, PdfTextFont } from "./fonts"
 import { formatFixed, formatUnits, RAY, rayDiv } from "../bigint"
+import { percentagesFromRateSeconds } from "../ledger/dailyRates"
 import {
   CanonicalExportRequest,
   MarketDataset,
@@ -223,15 +224,45 @@ const commonMetadata = (dataset: MarketDataset): [string, string][] => [
   ],
 ]
 
+const marketAccountingDefinitions: [string, string][] = [
+  [
+    "Market-token value",
+    "The totalSupply() value, including accrued interest and unfunded queued tokens. This is not original deposited principal.",
+  ],
+  [
+    "Total market obligations",
+    "Total owed to lenders plus outstanding protocol fees.",
+  ],
+  [
+    "Outstanding protocol fees",
+    "Protocol fees accrued through the snapshot that have not yet been collected.",
+  ],
+  [
+    "Lender earnings accrued",
+    "Closing lender obligations minus opening obligations, plus payouts and minus deposits during the actual snapshot interval. Includes interest not yet recorded by an update and contract base-unit rounding.",
+  ],
+  [
+    "Protocol fees accrued",
+    "Closing outstanding fees minus opening outstanding fees, plus fees collected during the interval.",
+  ],
+  [
+    "Recorded interest and fees",
+    "Amounts emitted by updates recorded in the selected period. An update can cover accrual from an earlier date; see interest_accrual.csv for both timestamps.",
+  ],
+]
+
 const commonDefinitions: [string, string][] = [
-  ["Owed to lenders", "The current total value of lender market tokens."],
+  [
+    "Owed to lenders",
+    "Market-token value including interest, plus funded withdrawal claims that lenders have not yet collected. Unfunded queued tokens are already included in market-token value.",
+  ],
   [
     "Liquid reserves",
     "Underlying assets held by the market and available for withdrawals.",
   ],
   [
     "APR",
-    "An annualised percentage rate; realised period rates are weighted by elapsed seconds.",
+    "End-of-day APR is the closing rate. Period-average APR weights rates by the seconds they applied between the actual snapshot boundaries. Lender growth APR annualises scale-factor growth over that interval.",
   ],
   ["Position value", "The current on-chain value of market tokens."],
   [
@@ -283,6 +314,66 @@ const commonDefinitions: [string, string][] = [
   ],
 ]
 
+const obligationsSection = (dataset: MarketDataset) => {
+  const row = latestDaily(dataset)
+  return {
+    title: "Obligations at the snapshot",
+    blocks: [
+      {
+        type: "table" as const,
+        headers: ["Measure", dataset.market.assetSymbol],
+        rows: [
+          [
+            "Market-token value including interest",
+            amount(dataset, BigInt(row.market_token_value_raw)),
+          ],
+          [
+            "Funded, unclaimed withdrawals",
+            amount(dataset, BigInt(row.normalized_unclaimed_withdrawals_raw)),
+          ],
+          [
+            "Total owed to lenders",
+            amount(dataset, BigInt(row.total_lender_obligation_raw)),
+          ],
+          [
+            "Outstanding protocol fees",
+            amount(dataset, BigInt(row.outstanding_protocol_fees_raw)),
+          ],
+          [
+            "Total market obligations",
+            amount(dataset, BigInt(row.total_debt_obligation_raw)),
+          ],
+        ],
+      },
+    ],
+  }
+}
+
+const dailyRowsInPeriod = (dataset: MarketDataset, period: ReportingPeriod) =>
+  dataset.dailySeries.filter(
+    (row) => row.date_utc >= period.startDate && row.date_utc <= period.endDate,
+  )
+
+const dailyTotal = (rows: MarketDataset["dailySeries"], field: string) =>
+  rows.reduce((sum, row) => sum + BigInt(row[field]), 0n)
+
+const accruedRows = (
+  dataset: MarketDataset,
+  period: ReportingPeriod,
+): string[][] => {
+  const rows = dailyRowsInPeriod(dataset, period)
+  return [
+    [
+      "Lender earnings accrued",
+      amount(dataset, dailyTotal(rows, "lender_earnings_accrued_raw")),
+    ],
+    [
+      "Protocol fees accrued",
+      amount(dataset, dailyTotal(rows, "protocol_fees_accrued_raw")),
+    ],
+  ]
+}
+
 export function marketConditionStatement(
   dataset: MarketDataset,
   request: CanonicalExportRequest,
@@ -292,7 +383,7 @@ export function marketConditionStatement(
     timestampInPeriod(transaction.timestamp, period),
   )
   const accruals = dataset.interestAccruals.filter((accrual) =>
-    timestampInPeriod(accrual.periodEnd, period),
+    timestampInPeriod(accrual.recordedTimestamp, period),
   )
   const daily = latestDaily(dataset)
   const episodes = dataset.manifest.delinquencyEpisodes.filter((episode) =>
@@ -316,7 +407,7 @@ export function marketConditionStatement(
   const requested = transactionTotal(transactions, "withdrawalQueuedRaw")
   const paid = transactionTotal(transactions, "withdrawalExecutedRaw")
   const reserves = BigInt(daily.total_assets_held_raw ?? "0")
-  const owed = BigInt(daily.outstanding_principal_raw ?? "0")
+  const owed = BigInt(daily.total_lender_obligation_raw)
   const reservePercent =
     owed === 0n
       ? "0.00"
@@ -346,8 +437,9 @@ export function marketConditionStatement(
   return {
     title: "Market Condition Statement",
     metadata: [...commonMetadata(dataset), ["Reporting period", period.label]],
-    lead: `The market owes lenders ${daily.outstanding_principal} ${dataset.market.assetSymbol} and holds ${daily.total_assets_held} ${dataset.market.assetSymbol} in liquid reserves (${reservePercent}% of the amount owed).`,
+    lead: `The market owes lenders ${daily.total_lender_obligation} ${dataset.market.assetSymbol} and holds ${daily.total_assets_held} ${dataset.market.assetSymbol} in liquid reserves (${reservePercent}% of the amount owed).`,
     sections: [
+      obligationsSection(dataset),
       {
         title: "Condition at a glance",
         blocks: [
@@ -457,6 +549,7 @@ export function marketConditionStatement(
                 "Interest recorded at market updates",
                 amount(dataset, interestTotal(accruals)),
               ],
+              ...accruedRows(dataset, period),
             ],
           },
           {
@@ -466,106 +559,82 @@ export function marketConditionStatement(
         ],
       },
     ],
-    definitions: commonDefinitions.filter(([term]) =>
-      [
-        "Owed to lenders",
-        "Liquid reserves",
-        "APR",
-        "Position value",
-        "Delinquent",
-        "Penalty rate",
-        "Grace period",
-        "Capacity",
-        "Withdrawal batch",
-        "Open withdrawal claims",
-        "Depositor",
-        "Position holder",
-      ].includes(term),
-    ),
+    definitions: [
+      ...marketAccountingDefinitions,
+      ...commonDefinitions.filter(([term]) =>
+        [
+          "Owed to lenders",
+          "Liquid reserves",
+          "APR",
+          "Position value",
+          "Delinquent",
+          "Penalty rate",
+          "Grace period",
+          "Capacity",
+          "Withdrawal batch",
+          "Open withdrawal claims",
+          "Depositor",
+          "Position holder",
+        ].includes(term),
+      ),
+    ],
   }
 }
 
 const monthKey = (timestamp: number) =>
   new Date(timestamp * 1_000).toISOString().slice(0, 7)
 
-const percentageMillionths = (value: string) => {
-  const [whole, fraction = ""] = value.split(".")
-  return (
-    BigInt(whole) * 1_000_000n + BigInt(fraction.padEnd(6, "0").slice(0, 6))
-  )
-}
-
-const weightedDailyPercentage = (
-  dataset: MarketDataset,
-  period: ReportingPeriod,
-  month: string,
-  field: string,
-) => {
-  const rows = dataset.dailySeries.filter(
-    (row) =>
-      row.date_utc.startsWith(month) &&
-      row.date_utc >= period.startDate &&
-      row.date_utc <= period.endDate,
-  )
-  const seconds = rows.reduce(
-    (sum, row) => sum + BigInt(row.period_elapsed_seconds),
-    0n,
-  )
-  if (seconds === 0n) return "0.000000"
-  const weighted = rows.reduce(
-    (sum, row) =>
-      sum +
-      percentageMillionths(row[field]) * BigInt(row.period_elapsed_seconds),
-    0n,
-  )
-  return formatFixed((weighted + seconds / 2n) / seconds, 6)
-}
+const periodBaseApr = (rows: MarketDataset["dailySeries"]) =>
+  percentagesFromRateSeconds(
+    {
+      baseBipsSeconds: dailyTotal(rows, "base_rate_bips_seconds"),
+      penaltyBipsSeconds: dailyTotal(rows, "penalty_rate_bips_seconds"),
+      protocolBipsSquaredSeconds: dailyTotal(
+        rows,
+        "protocol_fee_rate_bips_squared_seconds",
+      ),
+    },
+    Number(dailyTotal(rows, "period_elapsed_seconds")),
+  ).baseApr
 
 function borrowerMonthlyRows(dataset: MarketDataset, period: ReportingPeriod) {
-  const first = period.startDate.slice(0, 7)
-  const last = period.endDate.slice(0, 7)
-  const months: string[] = []
-  const cursor = new Date(`${first}-01T00:00:00Z`)
-  const end = new Date(`${last}-01T00:00:00Z`)
-  while (cursor <= end) {
-    months.push(cursor.toISOString().slice(0, 7))
-    cursor.setUTCMonth(cursor.getUTCMonth() + 1)
-  }
+  const days = dailyRowsInPeriod(dataset, period)
+  const months = [
+    ...new Set(days.map((row) => row.date_utc.slice(0, 7))),
+  ].sort()
   return months.map((month) => {
     const transactions = dataset.transactions.filter(
       (row) =>
         monthKey(row.timestamp) === month &&
         timestampInPeriod(row.timestamp, period),
     )
-    const accruals = dataset.interestAccruals.filter(
-      (row) =>
-        monthKey(row.periodEnd) === month &&
-        timestampInPeriod(row.periodEnd, period),
-    )
-    const flow = (field: keyof MarketDataset["transactions"][number]) =>
-      transactions.reduce((sum, row) => {
-        const value = row[field]
-        return sum + (typeof value === "bigint" ? value : 0n)
-      }, 0n)
-    const interest = accruals.reduce(
-      (sum, row) =>
-        sum + row.baseInterestAssetsRaw + row.penaltyInterestAssetsRaw,
-      0n,
-    )
-    return [
-      month,
-      amount(dataset, flow("borrowedRaw")),
-      amount(dataset, flow("repaidRaw")),
-      amount(dataset, flow("depositedRaw")),
-      amount(dataset, flow("withdrawalExecutedRaw")),
-      amount(dataset, interest),
-      `${weightedDailyPercentage(
-        dataset,
-        period,
+    const monthDays = days.filter((row) => row.date_utc.startsWith(month))
+    const baseApr = periodBaseApr(monthDays)
+    return {
+      flows: [
         month,
-        "base_apr_pct_time_weighted",
-      )}%`,
-    ]
+        ...(
+          [
+            "borrowedRaw",
+            "repaidRaw",
+            "depositedRaw",
+            "withdrawalExecutedRaw",
+          ] as const
+        ).map((field) =>
+          amount(dataset, transactionTotal(transactions, field)),
+        ),
+      ],
+      earnings: [
+        month,
+        ...[
+          "lender_interest_recorded_raw",
+          "lender_earnings_accrued_raw",
+          "protocol_fees_recorded_raw",
+          "protocol_fees_accrued_raw",
+        ].map((field) => amount(dataset, dailyTotal(monthDays, field))),
+        baseApr ? `${baseApr}%` : "Not applicable",
+      ],
+    }
   })
 }
 
@@ -573,35 +642,18 @@ const borrowerAnnualRows = (
   dataset: MarketDataset,
   period: ReportingPeriod,
 ) => {
-  const periodAccruals = dataset.interestAccruals.filter((row) =>
-    timestampInPeriod(row.periodEnd, period),
-  )
-  const years = [
-    ...new Set(
-      periodAccruals.map((row) =>
-        String(new Date(row.periodEnd * 1_000).getUTCFullYear()),
-      ),
-    ),
-  ].sort()
+  const days = dailyRowsInPeriod(dataset, period)
+  const years = [...new Set(days.map((row) => row.date_utc.slice(0, 4)))].sort()
   return years.map((year) => {
-    const accruals = periodAccruals.filter(
-      (row) =>
-        String(new Date(row.periodEnd * 1_000).getUTCFullYear()) === year,
-    )
+    const yearDays = days.filter((row) => row.date_utc.startsWith(year))
     return [
       year,
-      amount(
-        dataset,
-        accruals.reduce(
-          (sum, row) =>
-            sum + row.baseInterestAssetsRaw + row.penaltyInterestAssetsRaw,
-          0n,
-        ),
-      ),
-      amount(
-        dataset,
-        accruals.reduce((sum, row) => sum + row.protocolFeesRaw, 0n),
-      ),
+      ...[
+        "lender_interest_recorded_raw",
+        "protocol_fees_recorded_raw",
+        "lender_earnings_accrued_raw",
+        "protocol_fees_accrued_raw",
+      ].map((field) => amount(dataset, dailyTotal(yearDays, field))),
     ]
   })
 }
@@ -611,11 +663,12 @@ export function borrowerStatement(
   request: CanonicalExportRequest,
 ): StatementModel {
   const period = reportingPeriod(dataset, request)
+  const months = borrowerMonthlyRows(dataset, period)
   const transactions = dataset.transactions.filter((transaction) =>
     timestampInPeriod(transaction.timestamp, period),
   )
   const accruals = dataset.interestAccruals.filter((accrual) =>
-    timestampInPeriod(accrual.periodEnd, period),
+    timestampInPeriod(accrual.recordedTimestamp, period),
   )
   const daily = latestDaily(dataset)
   const lenders = lenderSummary(dataset)
@@ -641,8 +694,9 @@ export function borrowerStatement(
       ["Prepared for", "Borrower"],
       ["Period", period.label],
     ],
-    lead: `You currently owe lenders ${daily.outstanding_principal} ${dataset.market.assetSymbol}. The market holds ${daily.total_assets_held} ${dataset.market.assetSymbol} in liquid reserves.`,
+    lead: `You currently owe lenders ${daily.total_lender_obligation} ${dataset.market.assetSymbol}. The market holds ${daily.total_assets_held} ${dataset.market.assetSymbol} in liquid reserves.`,
     sections: [
+      obligationsSection(dataset),
       {
         title: period.isFullHistory
           ? "Activity since market creation"
@@ -676,6 +730,7 @@ export function borrowerStatement(
                 amount(dataset, interestTotal(accruals)),
               ],
               ["Protocol fees recorded", amount(dataset, fees)],
+              ...accruedRows(dataset, period),
             ],
           },
           ...(period.isFullHistory
@@ -699,17 +754,32 @@ export function borrowerStatement(
               "Repaid",
               "Lender deposits",
               "Paid to lenders",
-              "Interest recorded",
-              "Time-weighted base APR",
             ],
-            rows: borrowerMonthlyRows(dataset, period),
+            rows: months.map((month) => month.flows),
+          },
+        ],
+      },
+      {
+        title: "Monthly interest and fees",
+        blocks: [
+          {
+            type: "table",
+            headers: [
+              "Month",
+              "Interest recorded",
+              "Earnings accrued",
+              "Fees recorded",
+              "Fees accrued",
+              "Average base APR",
+            ],
+            rows: months.map((month) => month.earnings),
           },
         ],
       },
       {
         title: period.isFullHistory
-          ? "Obligations by calendar year"
-          : "Obligations in the reporting period",
+          ? "Interest and fees by calendar year"
+          : "Interest and fees in the reporting period",
         blocks: [
           {
             type: "table",
@@ -717,6 +787,8 @@ export function borrowerStatement(
               "Year",
               "Lender interest recorded",
               "Protocol fees recorded",
+              "Lender earnings accrued",
+              "Protocol fees accrued",
             ],
             rows: borrowerAnnualRows(dataset, period),
           },
@@ -756,7 +828,18 @@ export function borrowerStatement(
       },
     ],
     definitions: [
-      ...commonDefinitions,
+      ...commonDefinitions.filter(([term]) =>
+        [
+          "Owed to lenders",
+          "Liquid reserves",
+          "APR",
+          "Delinquent",
+          "Penalty rate",
+          "Grace period",
+          "Open withdrawal claims",
+        ].includes(term),
+      ),
+      ...marketAccountingDefinitions,
       [
         "Loans drawn",
         "Underlying assets moved out of the market by the borrower.",
@@ -771,12 +854,8 @@ export function borrowerStatement(
         "Fees accrued to the protocol fee recipient rather than lenders.",
       ],
       [
-        "Recorded interest and fees",
-        "Amounts emitted by market accrual events. The current amount owed also includes interest accumulated after the latest event through the statement snapshot.",
-      ],
-      [
         "Time-weighted APR",
-        "The annualised rate weighted by the seconds each rate applied during the period.",
+        "The rate weighted by actual elapsed seconds, including changes within each day. Monthly rates are calculated from exact rate-seconds before rounding.",
       ],
     ],
   }
@@ -789,7 +868,7 @@ export function positionStatement(
 ): StatementModel {
   const period = reportingPeriod(dataset, request)
   const daily = latestDaily(dataset)
-  const totalSupply = BigInt(daily.outstanding_principal_raw ?? "0")
+  const totalSupply = BigInt(daily.market_token_value_raw ?? "0")
   const share =
     totalSupply === 0n
       ? "0.0"

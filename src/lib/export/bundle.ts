@@ -3,6 +3,7 @@
 import JSZip from "jszip"
 
 import { formatUnits, RAY, rayDiv } from "./bigint"
+import { dataDictionary } from "./dataDictionary"
 import { createCsv } from "./serialize/csv"
 import {
   borrowerStatement,
@@ -13,6 +14,7 @@ import {
   StatementModel,
 } from "./statements/render"
 import { CanonicalExportRequest, MarketDataset } from "./types"
+import { EXPORT_SCHEMA_VERSION } from "./version"
 
 const transactionHeaders = [
   "market_address",
@@ -83,6 +85,7 @@ const accrualHeaders = [
   "block_number",
   "tx_hash",
   "log_index",
+  "timestamp_utc",
   "period_start_utc",
   "period_end_utc",
   "period_seconds",
@@ -100,6 +103,7 @@ const accrualHeaders = [
   "is_delinquent",
   "annual_interest_bips",
   "delinquency_fee_bips",
+  "protocol_fee_bips",
 ] as const
 
 const iso = (timestamp: number) => new Date(timestamp * 1000).toISOString()
@@ -127,6 +131,14 @@ const marketAggregate = (dataset: MarketDataset) => {
   )
   const penaltyInterest = dataset.interestAccruals.reduce(
     (sum, row) => sum + row.penaltyInterestAssetsRaw,
+    0n,
+  )
+  const accruedEarnings = dataset.dailySeries.reduce(
+    (sum, row) => sum + BigInt(row.lender_earnings_accrued_raw),
+    0n,
+  )
+  const accruedFees = dataset.dailySeries.reduce(
+    (sum, row) => sum + BigInt(row.protocol_fees_accrued_raw),
     0n,
   )
   const lenders = new Map<string, bigint>()
@@ -195,7 +207,9 @@ const marketAggregate = (dataset: MarketDataset) => {
     removed_at_block: dataset.market.removedAtBlock ?? null,
     is_closed: latest?.market_closed_eod === "true",
     closed_at_utc: marketClosed ? iso(marketClosed.timestamp) : null,
-    total_supply_raw: latest?.outstanding_principal_raw,
+    total_supply_raw: latest?.market_token_value_raw,
+    total_lender_obligation_raw: latest?.total_lender_obligation_raw,
+    outstanding_protocol_fees_raw: latest?.outstanding_protocol_fees_raw,
     total_assets_raw: latest?.total_assets_held_raw,
     total_debts_raw: latest?.total_debt_obligation_raw,
     parameters_at_snapshot: {
@@ -219,18 +233,23 @@ const marketAggregate = (dataset: MarketDataset) => {
       borrowed_raw: String(totalField(dataset, "borrowedRaw")),
       repaid: decimal(totalField(dataset, "repaidRaw")),
       repaid_raw: String(totalField(dataset, "repaidRaw")),
-      base_interest_accrued: decimal(baseInterest),
-      base_interest_accrued_raw: String(baseInterest),
-      penalty_interest_accrued: decimal(penaltyInterest),
-      penalty_interest_accrued_raw: String(penaltyInterest),
-      protocol_fees_accrued: decimal(protocolFees),
-      protocol_fees_accrued_raw: String(protocolFees),
+      base_interest_recorded: decimal(baseInterest),
+      base_interest_recorded_raw: String(baseInterest),
+      penalty_interest_recorded: decimal(penaltyInterest),
+      penalty_interest_recorded_raw: String(penaltyInterest),
+      protocol_fees_recorded: decimal(protocolFees),
+      protocol_fees_recorded_raw: String(protocolFees),
+      lender_earnings_accrued: decimal(accruedEarnings),
+      lender_earnings_accrued_raw: String(accruedEarnings),
+      protocol_fees_accrued: decimal(accruedFees),
+      protocol_fees_accrued_raw: String(accruedFees),
       active_lender_count: [...lenders.values()].filter((value) => value > 0n)
         .length,
       distinct_lender_count: lenders.size,
       net_lender_flow_raw: dataset.manifest.netLenderFlowRaw,
       open_withdrawal_claims_raw: dataset.manifest.openWithdrawalClaimsRaw,
-      protocol_fees_by_year_raw: dataset.manifest.protocolFeesByYearRaw,
+      protocol_fees_recorded_by_year_raw:
+        dataset.manifest.protocolFeesByYearRaw,
     },
     delinquency_episodes: dataset.manifest.delinquencyEpisodes.map(
       (episode) => ({
@@ -345,6 +364,7 @@ const accrualRows = (dataset: MarketDataset) =>
     block_number: row.blockNumber,
     tx_hash: row.transactionHash,
     log_index: row.logIndex,
+    timestamp_utc: iso(row.recordedTimestamp),
     period_start_utc: iso(row.periodStart),
     period_end_utc: iso(row.periodEnd),
     period_seconds: row.periodEnd - row.periodStart,
@@ -375,7 +395,8 @@ const accrualRows = (dataset: MarketDataset) =>
   }))
 
 const singleMarketReadme = `Wildcat export bundle.
-README.txt describes this bundle.
+DATA_DICTIONARY.md defines every CSV field, accounting formula, reporting interval and coverage limit.
+Schema 2.0 uses interval-based rates and distinguishes recorded interest from accrued earnings.
 statements/ contains the requested informational summaries.
 data/transactions.csv contains one row per market-touching transaction.
 data/events.csv contains every decoded market event.
@@ -386,7 +407,8 @@ All times are UTC and all values come from public on-chain data.
 This export is informational and is not tax, accounting or investment advice.`
 
 const multiMarketReadme = `Wildcat multi-market export bundle.
-README.txt describes this bundle.
+DATA_DICTIONARY.md defines every CSV field, accounting formula, reporting interval and coverage limit.
+Schema 2.0 uses interval-based rates and distinguishes recorded interest from accrued earnings.
 markets/ contains one folder per market, named with its symbol and address.
 Each market folder contains its requested statements/ summaries.
 Each market folder contains data/transactions.csv and data/events.csv.
@@ -434,7 +456,7 @@ export async function buildExportBundle(
         `${root}/manifest.json`,
         `${JSON.stringify(
           {
-            schema_version: "1.0",
+            schema_version: EXPORT_SCHEMA_VERSION,
             pipeline_version: dataset.pipelineVersion,
             generated_at_utc: generatedAt,
             scope: "full_market",
@@ -624,6 +646,7 @@ export async function buildExportBundle(
     isMultiMarket ? multiMarketReadme : singleMarketReadme,
     options,
   )
+  zip.file("DATA_DICTIONARY.md", dataDictionary, options)
   for (const [name, content] of [...statementFiles].sort(([left], [right]) =>
     left.localeCompare(right),
   )) {

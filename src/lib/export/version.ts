@@ -1,2 +1,3 @@
-export const EXPORT_PIPELINE_VERSION = "10"
-export const EXPORT_BUNDLE_FORMAT_VERSION = "4"
+export const EXPORT_PIPELINE_VERSION = "11"
+export const EXPORT_BUNDLE_FORMAT_VERSION = "5"
+export const EXPORT_SCHEMA_VERSION = "2.0"

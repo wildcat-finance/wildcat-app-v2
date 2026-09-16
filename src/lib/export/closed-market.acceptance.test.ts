@@ -52,7 +52,7 @@ describe("recorded reference market C", () => {
     expect(
       Number(
         dataset.dailySeries.find((row) => row.date_utc === "2025-10-15")
-          ?.base_apr_pct_time_weighted,
+          ?.base_apr_pct_period,
       ).toFixed(1),
     ).toBe("16.0")
     expect(dataset.manifest.reconciliation.differenceRaw).toBe("0")

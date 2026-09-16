@@ -133,6 +133,7 @@ export type InterestAccrualRow = {
   blockNumber: number
   transactionHash: string
   logIndex: number
+  recordedTimestamp: number
   periodStart: number
   periodEnd: number
   baseInterestRay: bigint

@@ -112,7 +112,8 @@ describe("recorded reference market A", () => {
     expect(dataset.transactions).toHaveLength(200)
     expect(dataset.events).toHaveLength(888)
     expect(dataset.interestAccruals).toHaveLength(219)
-    expect(Object.keys(dataset.dailySeries[0])).toHaveLength(60)
+    expect(dataset.dailySeries[0]).not.toHaveProperty("outstanding_principal")
+    expect(dataset.dailySeries[0]).not.toHaveProperty("borrowed_outstanding")
     expect(dataset.manifest.protocolFeesByYearRaw).toEqual({
       "2025": "33729528171",
       "2026": "34682959349",
@@ -120,19 +121,21 @@ describe("recorded reference market A", () => {
     expect(
       Number(
         dataset.dailySeries.find((row) => row.date_utc === "2026-07-20")
-          ?.penalty_apr_pct_realised,
+          ?.penalty_apr_pct_period,
       ).toFixed(2),
-    ).toBe("14.77")
+      // The penalty applies throughout this actual daily interval. The old
+      // posting-period expectation (14.77%) included earlier unpenalised time.
+    ).toBe("18.50")
     const accrualDays = dataset.dailySeries.filter(
       (row) => Number(row.accrual_events) > 0,
     )
     expect(accrualDays).not.toHaveLength(0)
-    expect(new Set(accrualDays.map((row) => row.protocol_fee_apr_pct))).toEqual(
-      new Set(["0.900000"]),
-    )
+    expect(
+      new Set(accrualDays.map((row) => row.protocol_fee_apr_pct_period)),
+    ).toEqual(new Set(["0.900000"]))
     accrualDays.forEach((row) => {
-      expect(Number(row.borrower_all_in_apr_pct)).toBeCloseTo(
-        Number(row.effective_lender_apr_pct_realised) + 0.9,
+      expect(Number(row.borrower_all_in_apr_pct_period)).toBeCloseTo(
+        Number(row.effective_lender_apr_pct_period) + 0.9,
         6,
       )
     })
@@ -180,6 +183,76 @@ describe("recorded reference market A", () => {
     })
   })
 
+  it("separates posting totals from interval earnings and includes all lender claims", () => {
+    const sum = (field: string) =>
+      dataset.dailySeries.reduce((total, row) => total + BigInt(row[field]), 0n)
+    const latest = dataset.dailySeries.at(-1)!
+    const deposits = dataset.transactions.reduce(
+      (total, row) => total + row.depositedRaw,
+      0n,
+    )
+    const payouts = dataset.transactions.reduce(
+      (total, row) => total + row.withdrawalExecutedRaw,
+      0n,
+    )
+    const collections = dataset.transactions.reduce(
+      (total, row) => total + row.feesCollectedRaw,
+      0n,
+    )
+    expect(sum("lender_earnings_accrued_raw")).toBe(
+      BigInt(latest.total_lender_obligation_raw) + payouts - deposits,
+    )
+    expect(sum("protocol_fees_accrued_raw")).toBe(
+      BigInt(latest.outstanding_protocol_fees_raw) + collections,
+    )
+    expect(sum("lender_interest_recorded_raw")).toBe(
+      dataset.interestAccruals.reduce(
+        (total, row) =>
+          total + row.baseInterestAssetsRaw + row.penaltyInterestAssetsRaw,
+        0n,
+      ),
+    )
+    expect(sum("protocol_fees_recorded_raw")).toBe(
+      dataset.interestAccruals.reduce(
+        (total, row) => total + row.protocolFeesRaw,
+        0n,
+      ),
+    )
+    expect(
+      dataset.dailySeries.some(
+        (row) =>
+          row.accrual_events === "0" &&
+          BigInt(row.lender_earnings_accrued_raw) > 0n &&
+          row.lender_interest_recorded_raw === "0",
+      ),
+    ).toBe(true)
+    for (const row of dataset.dailySeries) {
+      expect(BigInt(row.total_lender_obligation_raw)).toBe(
+        BigInt(row.market_token_value_raw) +
+          BigInt(row.normalized_unclaimed_withdrawals_raw),
+      )
+      expect(BigInt(row.total_debt_obligation_raw)).toBe(
+        BigInt(row.total_lender_obligation_raw) +
+          BigInt(row.outstanding_protocol_fees_raw),
+      )
+    }
+    const models = [
+      borrowerStatement(dataset, request),
+      marketConditionStatement(dataset, request),
+    ]
+    for (const model of models) {
+      expect(model.lead).toContain(latest.total_lender_obligation)
+      for (const section of model.sections) {
+        for (const block of section.blocks) {
+          if (block.type === "table")
+            block.rows.forEach((row) =>
+              expect(row).toHaveLength(block.headers.length),
+            )
+        }
+      }
+    }
+  })
+
   it("produces deterministic entries and self-contained statement figures", async () => {
     const bundleProgress: string[] = []
     const [leftBuffer, rightBuffer] = await Promise.all([
@@ -199,6 +272,18 @@ describe("recorded reference market A", () => {
       JSZip.loadAsync(leftBuffer),
       JSZip.loadAsync(rightBuffer),
     ])
+    const dictionary = await left.file("DATA_DICTIONARY.md")!.async("string")
+    for (const name of [
+      "daily_series",
+      "transactions",
+      "events",
+      "interest_accrual",
+    ]) {
+      const csv = await left.file(`data/${name}.csv`)!.async("string")
+      for (const field of csv.split("\n")[0].trim().split(","))
+        expect(dictionary).toContain(field)
+    }
+    expect(dictionary).toContain("direct_only")
     const leftNames = Object.keys(left.files)
     const rightNames = Object.keys(right.files)
     expect(leftNames).toEqual(rightNames)
@@ -220,6 +305,13 @@ describe("recorded reference market A", () => {
         rightManifest.generated_at_utc = null
         expect(leftManifest).toEqual(rightManifest)
 
+        expect(leftManifest.schema_version).toBe("2.0")
+        expect(leftManifest.markets[0].aggregates).toHaveProperty(
+          "base_interest_recorded_raw",
+        )
+        expect(leftManifest.markets[0].aggregates).not.toHaveProperty(
+          "base_interest_accrued_raw",
+        )
         const position = leftManifest.position_summaries[0]
         const market = leftManifest.markets[0]
         const statementEntries = leftNames.filter((entry) =>
@@ -328,6 +420,7 @@ describe("recorded reference market A", () => {
     expect(Object.keys(zip.files).sort()).toEqual(
       [
         "README.txt",
+        "DATA_DICTIONARY.md",
         ...marketFiles.map((name) => `${firstRoot}/${name}`),
         ...marketFiles.map((name) => `${secondRoot}/${name}`),
       ].sort(),
@@ -385,7 +478,8 @@ describe("recorded reference market A", () => {
     expect(borrowerActivityRows).toContainEqual(["Loans drawn", "2800000 USDC"])
 
     const borrowerAnnual = borrower.sections.find(
-      (section) => section.title === "Obligations in the reporting period",
+      (section) =>
+        section.title === "Interest and fees in the reporting period",
     )
     const borrowerAnnualRows = borrowerAnnual?.blocks.flatMap((block) =>
       block.type === "table" ? block.rows : [],
@@ -424,7 +518,7 @@ describe("recorded reference market A", () => {
     const first = await renderPdf(model, dataset.snapshotTimestamp)
     const second = await renderPdf(model, dataset.snapshotTimestamp)
     expect(first).toEqual(second)
-    expect((await PDFDocument.load(first)).getPageCount()).toBe(1)
+    expect((await PDFDocument.load(first)).getPageCount()).toBe(2)
 
     const borrower = await renderPdf(
       borrowerStatement(dataset, request),
@@ -455,9 +549,7 @@ describe("recorded reference market A", () => {
     for (const statement of statements) {
       const pdf = await PDFDocument.load(await statement.async("nodebuffer"))
       expect(pdf.getPageCount()).toBeGreaterThan(0)
-      expect(pdf.getPageCount()).toBeLessThanOrEqual(
-        statement.name.includes("market_condition") ? 1 : 2,
-      )
+      expect(pdf.getPageCount()).toBeLessThanOrEqual(2)
     }
   }, 120_000)
 })

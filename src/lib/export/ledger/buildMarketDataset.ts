@@ -4,7 +4,7 @@ import { BigNumber, constants, utils } from "ethers"
 
 import {
   advanceRateState,
-  aggregateAccrualsForDay,
+  integrateRateEvents,
   percentagesFromRateSeconds,
 } from "./dailyRates"
 import {
@@ -14,10 +14,9 @@ import {
 } from "../abi/registry"
 import {
   BIPS,
-  addPercentages,
   formatUnits,
   percentFromBips,
-  percentFromRay,
+  multiplyPercentByBips,
   percentFromScaleFactors,
   RAY,
   rayDiv,
@@ -637,6 +636,7 @@ export function buildInterestAccruals(
       blockNumber: event.blockNumber,
       transactionHash: event.transactionHash,
       logIndex: event.logIndex,
+      recordedTimestamp: event.timestamp,
       periodStart,
       periodEnd,
       baseInterestRay,
@@ -1079,9 +1079,12 @@ async function buildDailySeries(
   let cumulativeRepaid = 0n
   let previousTimestamp = deploymentTimestamp
   let previousScaleFactor = RAY
+  let previousLenderObligation = 0n
+  let previousProtocolFees = 0n
+  let previousBlock = market.deploymentBlock - 1
   if (preservedRows.length > 0) {
     const previousRow = preservedRows[preservedRows.length - 1]
-    const previousBlock = Number(previousRow.snapshot_block)
+    previousBlock = Number(previousRow.snapshot_block)
     const previousState = await contractRead<CurrentState>(
       rpc,
       market.address,
@@ -1093,6 +1096,8 @@ async function buildDailySeries(
       Date.parse(previousRow.snapshot_timestamp_utc) / 1_000,
     )
     previousScaleFactor = asBigInt(previousState.scaleFactor)
+    previousLenderObligation = BigInt(previousRow.total_lender_obligation_raw)
+    previousProtocolFees = asBigInt(previousState.accruedProtocolFees)
     cumulativeBorrowed = BigInt(previousRow.cumulative_borrowed_raw)
     cumulativeRepaid = BigInt(previousRow.cumulative_repaid_raw)
     previousRateState = {
@@ -1108,6 +1113,7 @@ async function buildDailySeries(
     index,
     { day, dayStart, targetEnd, periodEnd },
   ] of daySpecs.entries()) {
+    const openingBlock = previousBlock
     const offset = index * 4
     const state = stateReads[offset] as CurrentState
     const totalAssetsValue = stateReads[offset + 1]
@@ -1117,7 +1123,14 @@ async function buildDailySeries(
     const totalDebts = asBigInt(totalDebtsValue)
     const totalSupply = asBigInt(totalSupplyValue)
     const dailyTransactions = transactions.filter(
-      (transaction) => isoDate(transaction.timestamp) === day,
+      (transaction) =>
+        transaction.blockNumber > openingBlock &&
+        transaction.blockNumber <= dayEndBlocks[index],
+    )
+    const dailyEvents = events.filter(
+      (event) =>
+        event.blockNumber > openingBlock &&
+        event.blockNumber <= dayEndBlocks[index],
     )
     const borrowed = dailyTransactions.reduce(
       (sum, row) => sum + row.borrowedRaw,
@@ -1130,39 +1143,38 @@ async function buildDailySeries(
     cumulativeBorrowed += borrowed
     cumulativeRepaid += repaid
     const rowTimestamp = fromHex(dayEndBlockData[index].timestamp)
-    const elapsed = Math.max(1, rowTimestamp - previousTimestamp)
-    const fallbackState = { ...previousRateState }
-    const fallbackRates = percentagesFromRateSeconds(
-      advanceRateState(
-        fallbackState,
-        rowTimestamp,
-        delinquencyFeeBips,
-        gracePeriod,
-      ),
-      elapsed,
+    const elapsed = rowTimestamp - previousTimestamp
+    const rateState = { ...previousRateState }
+    const rateSeconds = integrateRateEvents(
+      rateState,
+      dailyEvents,
+      rowTimestamp,
+      delinquencyFeeBips,
+      gracePeriod,
     )
-    const dailyAccruals = aggregateAccrualsForDay(accruals, day)
-    const baseApr =
-      dailyAccruals.seconds > 0
-        ? percentFromRay(dailyAccruals.baseRay, dailyAccruals.seconds)
-        : fallbackRates.baseApr
-    const penaltyApr =
-      dailyAccruals.seconds > 0
-        ? percentFromRay(dailyAccruals.penaltyRay, dailyAccruals.seconds)
-        : fallbackRates.penaltyApr
-    const protocolFeeApr =
-      dailyAccruals.seconds > 0
-        ? percentFromRay(dailyAccruals.protocolRay, dailyAccruals.seconds)
-        : fallbackRates.protocolFeeApr
-    const effectiveApr = addPercentages(baseApr, penaltyApr)
+    const { baseApr, penaltyApr, protocolFeeApr, effectiveApr, borrowerApr } =
+      percentagesFromRateSeconds(rateSeconds, elapsed)
+    const dailyAccruals = accruals.filter(
+      (row) =>
+        row.blockNumber > openingBlock &&
+        row.blockNumber <= dayEndBlocks[index],
+    )
+    const recordedInterest = dailyAccruals.reduce(
+      (sum, row) =>
+        sum + row.baseInterestAssetsRaw + row.penaltyInterestAssetsRaw,
+      0n,
+    )
+    const recordedFees = dailyAccruals.reduce(
+      (sum, row) => sum + row.protocolFeesRaw,
+      0n,
+    )
     const annualBips = asNumber(state.annualInterestBips)
     const protocolBips = asNumber(state.protocolFeeBips)
     if (
-      dailyAccruals.events === 0 &&
-      (fallbackState.annualInterestBips !== annualBips ||
-        fallbackState.protocolFeeBips !== protocolBips ||
-        fallbackState.isDelinquent !== state.isDelinquent ||
-        fallbackState.timeDelinquent !== asNumber(state.timeDelinquent))
+      rateState.annualInterestBips !== annualBips ||
+      rateState.protocolFeeBips !== protocolBips ||
+      rateState.isDelinquent !== state.isDelinquent ||
+      rateState.timeDelinquent !== asNumber(state.timeDelinquent)
     ) {
       throw new Error(
         `Daily rate-state reconciliation failed for ${market.address} at block ${dayEndBlocks[index]}`,
@@ -1204,7 +1216,22 @@ async function buildDailySeries(
       scaleFactor,
       elapsed,
     )
-    const borrowedOutstanding = totalSupply - totalAssets
+    const lenderObligation =
+      totalSupply + asBigInt(state.normalizedUnclaimedWithdrawals)
+    const protocolFees = asBigInt(state.accruedProtocolFees)
+    // Economic earnings are the change in all lender claims, adjusted for cash
+    // supplied/returned. This includes contract rounding and pending accrual.
+    const lenderEarnings =
+      lenderObligation -
+      previousLenderObligation +
+      dailyTransactions.reduce(
+        (sum, row) => sum + row.withdrawalExecutedRaw - row.depositedRaw,
+        0n,
+      )
+    const accruedFees =
+      protocolFees -
+      previousProtocolFees +
+      dailyTransactions.reduce((sum, row) => sum + row.feesCollectedRaw, 0n)
     const loanBalance = totalDebts > totalAssets ? totalDebts - totalAssets : 0n
     const amount = (value: bigint) => formatUnits(value, market.assetDecimals)
     const timeDelinquent = asNumber(state.timeDelinquent)
@@ -1242,14 +1269,16 @@ async function buildDailySeries(
       normalized_unclaimed_withdrawals_raw: String(
         state.normalizedUnclaimedWithdrawals,
       ),
-      outstanding_principal: amount(totalSupply),
-      outstanding_principal_raw: String(totalSupply),
+      market_token_value: amount(totalSupply),
+      market_token_value_raw: String(totalSupply),
+      total_lender_obligation: amount(lenderObligation),
+      total_lender_obligation_raw: String(lenderObligation),
+      outstanding_protocol_fees: amount(protocolFees),
+      outstanding_protocol_fees_raw: String(protocolFees),
       total_debt_obligation: amount(totalDebts),
       total_debt_obligation_raw: String(totalDebts),
       total_assets_held: amount(totalAssets),
       total_assets_held_raw: String(totalAssets),
-      borrowed_outstanding: amount(borrowedOutstanding),
-      borrowed_outstanding_raw: String(borrowedOutstanding),
       outstanding_loan_balance: amount(loanBalance),
       outstanding_loan_balance_raw: String(loanBalance),
       capacity: amount(asBigInt(state.maxTotalSupply)),
@@ -1264,7 +1293,20 @@ async function buildDailySeries(
       cumulative_repaid_raw: String(cumulativeRepaid),
       base_apr_bips_eod: String(annualBips),
       base_apr_pct_eod: percentFromBips(annualBips),
-      base_apr_pct_time_weighted: baseApr,
+      lender_earnings_accrued: amount(lenderEarnings),
+      lender_earnings_accrued_raw: String(lenderEarnings),
+      protocol_fees_accrued: amount(accruedFees),
+      protocol_fees_accrued_raw: String(accruedFees),
+      lender_interest_recorded: amount(recordedInterest),
+      lender_interest_recorded_raw: String(recordedInterest),
+      protocol_fees_recorded: amount(recordedFees),
+      protocol_fees_recorded_raw: String(recordedFees),
+      base_rate_bips_seconds: String(rateSeconds.baseBipsSeconds),
+      penalty_rate_bips_seconds: String(rateSeconds.penaltyBipsSeconds),
+      protocol_fee_rate_bips_squared_seconds: String(
+        rateSeconds.protocolBipsSquaredSeconds,
+      ),
+      base_apr_pct_period: baseApr,
       effective_apr_bips_eod: String(
         annualBips + (penaltyActive ? delinquencyFeeBips : 0),
       ),
@@ -1273,11 +1315,15 @@ async function buildDailySeries(
       ),
       penalty_apr_bips_nominal: String(delinquencyFeeBips),
       penalty_apr_pct_nominal: percentFromBips(delinquencyFeeBips),
-      penalty_apr_pct_realised: penaltyApr,
-      effective_lender_apr_pct_realised: effectiveApr,
-      realized_lender_apr_pct_period: realisedScaleApr,
-      protocol_fee_apr_pct: protocolFeeApr,
-      borrower_all_in_apr_pct: addPercentages(effectiveApr, protocolFeeApr),
+      penalty_apr_pct_period: penaltyApr,
+      effective_lender_apr_pct_period: effectiveApr,
+      lender_growth_apr_pct_period: elapsed > 0 ? realisedScaleApr : "",
+      protocol_fee_apr_pct_eod: multiplyPercentByBips(
+        percentFromBips(annualBips),
+        protocolBips,
+      ),
+      protocol_fee_apr_pct_period: protocolFeeApr,
+      borrower_all_in_apr_pct_period: borrowerApr,
       protocol_fee_bips_eod: String(protocolBips),
       reserve_ratio_bips_eod: String(asNumber(state.reserveRatioBips)),
       is_delinquent_eod: String(state.isDelinquent),
@@ -1288,10 +1334,13 @@ async function buildDailySeries(
       withdrawal_cycle_seconds: String(withdrawalCycle),
       withdrawal_cycle_hours: String(withdrawalCycle / 3600),
       market_closed_eod: String(state.isClosed),
-      accrual_events: String(dailyAccruals.events),
+      accrual_events: String(dailyAccruals.length),
     })
     previousTimestamp = rowTimestamp
     previousScaleFactor = scaleFactor
+    previousLenderObligation = lenderObligation
+    previousProtocolFees = protocolFees
+    previousBlock = dayEndBlocks[index]
   }
   return [...preservedRows, ...rows]
 }
@@ -2194,7 +2243,7 @@ export async function buildMarketDataset(
     [
       ...new Set(
         interestAccruals.map((row) =>
-          String(new Date(row.periodEnd * 1_000).getUTCFullYear()),
+          String(new Date(row.recordedTimestamp * 1_000).getUTCFullYear()),
         ),
       ),
     ]
@@ -2205,8 +2254,9 @@ export async function buildMarketDataset(
           interestAccruals
             .filter(
               (row) =>
-                String(new Date(row.periodEnd * 1_000).getUTCFullYear()) ===
-                year,
+                String(
+                  new Date(row.recordedTimestamp * 1_000).getUTCFullYear(),
+                ) === year,
             )
             .reduce((sum, row) => sum + row.protocolFeesRaw, 0n),
         ),
