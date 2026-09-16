@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.21.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.20.0...v2.21.0) (2026-09-16)
+
+
+### Features
+
+* **changes:** aggregated develop to main  ([858a893](https://github.com/wildcat-finance/wildcat-app-v2/commit/858a893040ca4df6be4e60e8e6cd1e0f14513378))
+
 ## [2.20.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.19.0...v2.20.0) (2026-08-20)
 
 
