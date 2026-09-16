@@ -101,7 +101,13 @@ Storage together. See `docs/export-operations.md`.
 Every ZIP includes `DATA_DICTIONARY.md` with CSV fields, formulas, units, rounding,
 interval boundaries, manifest conventions and transaction coverage. The schema
 is versioned separately from the pipeline and bundle-cache format. Pipeline 11
-and bundle format 5 prevent reuse of data or ZIPs with the old definitions.
+and bundle format 6 prevent reuse of data or ZIPs with the old definitions.
+
+Bundle format 6 uses standard PDF Helvetica and Helvetica Bold. No font files
+are bundled or downloaded. PDF text supports the fonts' Western European
+character set; other scripts and emoji produce an actionable error directing
+the user to XLSX or CSV-only export. XLSX and CSV retain Unicode text. The
+pipeline and CSV schema are unchanged.
 
 Breaking changes for CSV/JSON consumers:
 
