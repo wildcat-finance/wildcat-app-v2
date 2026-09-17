@@ -1,14 +1,14 @@
 {
   "counts": {
-    "bytes_binary": 2495808,
+    "bytes_binary": 4097562,
     "bytes_generated": 9015991,
-    "bytes_lockfile": 1895407,
+    "bytes_lockfile": 2178869,
     "files_skipped_unreadable": 0,
-    "files_walked": 1064
+    "files_walked": 1145
   },
   "entries": [
     {
-      "bytes": 1895407,
+      "bytes": 2178869,
       "category": "lockfile",
       "evidence": "lockfile name package-lock.json",
       "grade": "hard",
@@ -90,6 +90,20 @@
       "evidence": "linguist-generated for 'src/config/elfs-by-country.json' in .gitattributes",
       "grade": "hard",
       "path": "src/config/elfs-by-country.json"
+    },
+    {
+      "bytes": 767912,
+      "category": "binary",
+      "evidence": "file signature gzip",
+      "grade": "hard",
+      "path": "src/lib/export/__fixtures__/reference-market-a-25632396.json.gz"
+    },
+    {
+      "bytes": 833842,
+      "category": "binary",
+      "evidence": "file signature gzip",
+      "grade": "hard",
+      "path": "src/lib/export/__fixtures__/reference-market-c-25632396.json.gz"
     },
     {
       "bytes": 7567063,
