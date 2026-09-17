@@ -7,9 +7,9 @@
       "suffix": ".js"
     },
     {
-      "boundary_bytes": 3350318,
-      "bytes": 3626299,
-      "files": 17,
+      "boundary_bytes": 3633780,
+      "bytes": 3910290,
+      "files": 18,
       "suffix": ".json"
     },
     {
@@ -20,9 +20,21 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 1844301,
-      "files": 353,
+      "bytes": 1911755,
+      "files": 357,
       "suffix": ".tsx"
+    },
+    {
+      "boundary_bytes": 1601754,
+      "bytes": 1601754,
+      "files": 2,
+      "suffix": ".gz"
+    },
+    {
+      "boundary_bytes": 0,
+      "bytes": 1400784,
+      "files": 604,
+      "suffix": ".ts"
     },
     {
       "boundary_bytes": 1125208,
@@ -32,14 +44,8 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 944112,
-      "files": 536,
-      "suffix": ".ts"
-    },
-    {
-      "boundary_bytes": 0,
-      "bytes": 298878,
-      "files": 17,
+      "bytes": 302032,
+      "files": 19,
       "suffix": ".sql"
     },
     {
@@ -68,8 +74,8 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 45298,
-      "files": 6,
+      "bytes": 61491,
+      "files": 9,
       "suffix": ".md"
     },
     {
@@ -79,22 +85,22 @@
       "suffix": ".html"
     },
     {
-      "boundary_bytes": 675,
-      "bytes": 12879,
-      "files": 13,
-      "suffix": ".css"
-    },
-    {
       "boundary_bytes": 0,
-      "bytes": 12156,
+      "bytes": 12958,
       "files": 2,
       "suffix": ".mjs"
     },
     {
       "boundary_bytes": 0,
-      "bytes": 10926,
+      "bytes": 12932,
       "files": 1,
       "suffix": ".prisma"
+    },
+    {
+      "boundary_bytes": 675,
+      "bytes": 12879,
+      "files": 13,
+      "suffix": ".css"
     },
     {
       "boundary_bytes": 0,
@@ -110,13 +116,13 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 1081,
-      "files": 1,
+      "bytes": 3125,
+      "files": 2,
       "suffix": ".sh"
     },
     {
       "boundary_bytes": 0,
-      "bytes": 833,
+      "bytes": 1306,
       "files": 6,
       "suffix": "(no suffix)"
     },
@@ -141,6 +147,6 @@
   ],
   "schema": 1,
   "tool": "horos",
-  "total_bytes": 17166393,
-  "total_files": 1136
+  "total_bytes": 19600936,
+  "total_files": 1217
 }
