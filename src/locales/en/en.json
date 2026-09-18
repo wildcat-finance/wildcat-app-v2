@@ -808,6 +808,7 @@
     },
     "telegramBanner": {
       "button": "Subscribe",
+      "compact": "Market’s Updates in Our Bot",
       "subtitle": "Receive notifications for market events",
       "title": "Subscribe to our Telegram Bot"
     },
