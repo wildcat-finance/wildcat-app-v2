@@ -1261,6 +1261,9 @@
         "buttons": {
           "claim": "Claim Assets"
         },
+        "failed": {
+          "subtitle": "The claim transaction did not complete. Check your wallet and try again."
+        },
         "subtitle": "No assets available to claim from this market.",
         "title": {
           "claim": "{{claimableAmount}} ready to claim",
