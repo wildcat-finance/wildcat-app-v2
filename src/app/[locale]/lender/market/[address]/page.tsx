@@ -703,7 +703,7 @@ export default function LenderMarketDetails({
 
   if (isMobile && isMobileHistoryOpen)
     return (
-      <Box>
+      <Box sx={{ display: "flex", flexDirection: "column", flex: "1 0 auto" }}>
         <MobileMarketHistoryModal
           market={market}
           setIsMobileHistoryOpen={setIsMobileHistoryOpen}
