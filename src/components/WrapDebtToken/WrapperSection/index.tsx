@@ -142,7 +142,6 @@ export const WrapperSection = ({
 
   const [showSuccess, setShowSuccess] = React.useState(false)
   const [showError, setShowError] = React.useState(false)
-  const [errorMessage, setErrorMessage] = React.useState<string | undefined>()
   const [txHash, setTxHash] = React.useState<string | undefined>()
   const [awaitingSafeSignatures, setAwaitingSafeSignatures] =
     React.useState(false)
@@ -443,7 +442,6 @@ export const WrapperSection = ({
     setSuccessSnapshot(null)
     setShowError(false)
     setShowSuccess(false)
-    setErrorMessage(undefined)
   }
 
   const handleUnitChange = (
@@ -457,7 +455,6 @@ export const WrapperSection = ({
     setSuccessSnapshot(null)
     setShowError(false)
     setShowSuccess(false)
-    setErrorMessage(undefined)
   }
 
   const handleClose = () => {
@@ -616,7 +613,6 @@ export const WrapperSection = ({
         finalAsset: outputToken.symbol,
       })
       setShowError(false)
-      setErrorMessage(undefined)
       setTxHash(undefined)
     },
     mutationFn: async () => {
@@ -756,10 +752,9 @@ export const WrapperSection = ({
       setExactAmount(undefined)
       setShowSuccess(true)
     },
-    onError: (error: Error) => {
+    onError: () => {
       setIsSubmitTransitioning(false)
       setSuccessSnapshot(null)
-      setErrorMessage(error.message)
       setShowError(true)
     },
   })
@@ -799,7 +794,6 @@ export const WrapperSection = ({
     setSuccessSnapshot(null)
     setShowError(false)
     setShowSuccess(false)
-    setErrorMessage(undefined)
     dispatch(setIsMobileOpenedState(true))
   }
 
@@ -1120,7 +1114,7 @@ export const WrapperSection = ({
           {showError && (
             <ErrorWrapperAlert
               isWrapping={isWrapTab}
-              message={errorMessage}
+              message={t("marketDetails.lender.wrapDebtToken.failed.subtitle")}
               txHash={txHash}
             />
           )}

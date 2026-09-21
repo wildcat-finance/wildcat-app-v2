@@ -1290,6 +1290,9 @@
           "verificationFailed": "Unable to verify wrapper availability."
         },
         "estimatesMayChangeCurrentConversion": "Estimates may change with the current conversion rate.",
+        "failed": {
+          "subtitle": "The transaction did not complete. Check your wallet and try again."
+        },
         "marketTokens": "Market tokens",
         "oopsSomethingGoesWrong": "Oops! Something goes wrong.",
         "see": "See",
