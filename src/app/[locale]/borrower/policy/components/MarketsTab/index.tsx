@@ -3,11 +3,12 @@ import * as React from "react"
 import { Box, Skeleton } from "@mui/material"
 import { DataGrid, GridColDef, GridRowsProp } from "@mui/x-data-grid"
 import { Market, TokenAmount } from "@wildcatfi/wildcat-sdk"
-import { BigNumber } from "ethers"
 import Link from "next/link"
+import { useTranslation } from "react-i18next"
 
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { TotalDebtHeader } from "@/components/TotalDebtHeader"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { capacityComparator, statusComparator } from "@/utils/comparators"
@@ -16,6 +17,7 @@ import {
   formatBps,
   formatTokenWithCommas,
 } from "@/utils/formatters"
+import { getMarketTotalDebt } from "@/utils/marketDebt"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -38,6 +40,8 @@ export type MarketsTableModel = {
 }
 
 export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
+  const { t } = useTranslation()
+
   const columns: GridColDef[] = [
     {
       field: "status",
@@ -136,7 +140,8 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
     },
     {
       field: "debt",
-      headerName: "Total Debt",
+      headerName: t("utils.marketDebt.totalDebt"),
+      renderHeader: () => <TotalDebtHeader />,
       minWidth: 110,
       headerAlign: "right",
       align: "right",
@@ -183,7 +188,6 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
 
   const rows: GridRowsProp<MarketsTableModel> = markets.map((market) => {
     const { address, name, underlyingToken, annualInterestBips } = market
-    const { borrowed } = market.getTotalDebtBreakdown()
 
     const marketStatus = getMarketStatusChip(market)
     const marketType = getMarketTypeChip(market)
@@ -196,9 +200,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
       name,
       asset: underlyingToken.symbol,
       apr: annualInterestBips,
-      debt: borrowed.raw.lt(0)
-        ? new TokenAmount(BigNumber.from(0), underlyingToken)
-        : borrowed,
+      debt: getMarketTotalDebt(market),
     }
   })
 
