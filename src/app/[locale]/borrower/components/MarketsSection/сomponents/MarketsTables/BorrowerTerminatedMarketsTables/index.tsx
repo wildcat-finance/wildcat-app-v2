@@ -20,6 +20,7 @@ import {
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
+import { TotalDebtHeader } from "@/components/TotalDebtHeader"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
@@ -31,6 +32,7 @@ import {
   formatSecsToHours,
   formatTokenWithCommas,
 } from "@/utils/formatters"
+import { getMarketTotalDebt } from "@/utils/marketDebt"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -86,7 +88,6 @@ export const BorrowerTerminatedMarketsTables = ({
         underlyingToken,
         annualInterestBips,
         borrowableAssets,
-        totalSupply,
         withdrawalBatchDuration,
         chainId,
       } = market
@@ -103,7 +104,7 @@ export const BorrowerTerminatedMarketsTables = ({
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
         borrowable: borrowableAssets,
-        debt: totalSupply,
+        debt: getMarketTotalDebt(market),
         withdrawalBatchDuration,
         hasEverInteracted: account.hasEverInteracted,
       }
@@ -263,6 +264,9 @@ export const BorrowerTerminatedMarketsTables = ({
     {
       field: "debt",
       headerName: t("dashboard.markets.tables.header.debt"),
+      renderHeader: () => (
+        <TotalDebtHeader label={t("dashboard.markets.tables.header.debt")} />
+      ),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",

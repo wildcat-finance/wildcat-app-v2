@@ -571,7 +571,6 @@
         "repayRemaining": "You need to repay all outstanding debt before/when terminating a market.",
         "learnMore": "Learn More",
         "totalAssets": "Total Assets In Market",
-        "totalDebt": "Total Debt",
         "remainingDebt": "Remaining Debt",
         "debts": "Debts",
         "total": "Total",
@@ -1721,6 +1720,10 @@
     "time": {
       "oneYear": "one year",
       "twoYears": "two years"
+    },
+    "marketDebt": {
+      "totalDebt": "Total Debt",
+      "totalDebtTooltip": "What the borrower still owes lenders, including withdrawals from expired cycles that have not been funded yet, but not withdrawals already set aside in the market and waiting to be claimed."
     }
   }
 }
