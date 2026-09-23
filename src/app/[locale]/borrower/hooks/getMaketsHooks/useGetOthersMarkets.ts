@@ -8,8 +8,7 @@ import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
-import { EXCLUDED_MARKETS } from "@/utils/constants"
-import { isNotExcludedMarket } from "@/utils/filters"
+import { excludedMarketsFilter, isNotExcludedMarket } from "@/utils/filters"
 import { refetchOnMountIfInvalidated } from "@/utils/queryRefetch"
 
 import { GetMarketsProps } from "./interface"
@@ -29,7 +28,7 @@ export function useGetOthersMarketsQuery({
       chainId,
       fetchPolicy: "network-only",
       signerOrProvider: provider,
-      filter: { excludeAddresses: EXCLUDED_MARKETS },
+      filter: { ...excludedMarketsFilter() },
     })
     return markets.filter(
       (market) =>

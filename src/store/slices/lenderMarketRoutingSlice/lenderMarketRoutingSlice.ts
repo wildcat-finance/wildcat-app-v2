@@ -12,6 +12,7 @@ export enum LenderMarketSections {
 
 export type LenderMarketRoutingSliceType = {
   currentSection: LenderMarketSections
+  hasSelectedSection: boolean
   isLoading: boolean
   isLender: boolean
   withdrawalsCount: number
@@ -19,6 +20,7 @@ export type LenderMarketRoutingSliceType = {
 
 const initialState: LenderMarketRoutingSliceType = {
   currentSection: LenderMarketSections.TRANSACTIONS,
+  hasSelectedSection: false,
   isLoading: true,
   isLender: false,
   withdrawalsCount: 0,
@@ -30,6 +32,11 @@ const lenderMarketRoutingSlice = createSlice({
   reducers: {
     setSection: (state, action: PayloadAction<LenderMarketSections>) => {
       state.currentSection = action.payload
+      state.hasSelectedSection = true
+    },
+    setDefaultSection: (state, action: PayloadAction<LenderMarketSections>) => {
+      // Late account reads must not override a section the user selected.
+      if (!state.hasSelectedSection) state.currentSection = action.payload
     },
     setIsLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload
@@ -46,6 +53,7 @@ const lenderMarketRoutingSlice = createSlice({
 
 export const {
   setSection,
+  setDefaultSection,
   setIsLoading,
   setIsLender,
   setWithdrawalsCount,

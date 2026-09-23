@@ -17,11 +17,11 @@ import { getAdsTooltipComponent } from "@/components/AdsBanners/adsHelpers"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { NetworkIcon } from "@/components/NetworkIcon"
 import { Trans } from "@/components/Translation"
+import { useMarketHref } from "@/hooks/useMarketHref"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import {
   buildBorrowerProfileHref,
-  buildMarketHref,
   formatBps,
   formatSecsToHours,
 } from "@/utils/formatters"
@@ -342,6 +342,7 @@ export const MobileMarketCard = ({
   displayName,
 }: MobileMarketCardProps) => {
   const { t } = useTranslation()
+  const buildMarketHref = useMarketHref()
 
   const deposited = marketItem.deposited ?? marketItem.debt
   const capacity =

@@ -9,7 +9,9 @@ import { useTranslation } from "react-i18next"
 
 import {
   DataGridCells,
-  MarketWithdrawalRequetstCell,
+  WithdrawalRequestsEntry,
+  WithdrawalRequestsEntryStack,
+  withdrawalRequestsFirstEntry,
 } from "@/app/[locale]/borrower/market/[address]/components/MarketWithdrawalRequests/style"
 import { TableProps } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests/interface"
 import LinkIcon from "@/assets/icons/link_icon.svg"
@@ -46,17 +48,9 @@ export const ClaimableTable = ({
         minWidth: 176,
         headerAlign: "left",
         align: "left",
-        renderCell: ({ value }) => (
-          <Box
-            sx={{
-              height: "100%",
-              padding: "16px 0",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "flex-start",
-            }}
-          >
-            <Box sx={MarketWithdrawalRequetstCell}>
+        renderCell: ({ value, row }) => (
+          <Box sx={WithdrawalRequestsEntryStack}>
+            <Box sx={withdrawalRequestsFirstEntry(row.transactionId.length)}>
               <Typography variant="text3">{trimAddress(value)}</Typography>
               <Link
                 href={getAddressUrl(value)}
@@ -81,18 +75,10 @@ export const ClaimableTable = ({
         headerAlign: "left",
         align: "left",
         renderCell: ({ value, row }) => (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              flexWrap: "wrap",
-              gap: "20px",
-              padding: "16px 0",
-            }}
-          >
+          <Box sx={WithdrawalRequestsEntryStack}>
             {value.map((date: string, index: number) => (
               <Box
-                sx={MarketWithdrawalRequetstCell}
+                sx={WithdrawalRequestsEntry}
                 key={row.transactionId?.[index] ?? `${date}-${index}`}
               >
                 <Typography variant="text3">{date}</Typography>
@@ -109,17 +95,9 @@ export const ClaimableTable = ({
         headerAlign: "left",
         align: "left",
         renderCell: ({ value }) => (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              flexWrap: "wrap",
-              gap: "20px",
-              padding: "16px 0",
-            }}
-          >
+          <Box sx={WithdrawalRequestsEntryStack}>
             {value.map((txID: string) => (
-              <Box sx={MarketWithdrawalRequetstCell}>
+              <Box sx={WithdrawalRequestsEntry} key={txID}>
                 <Typography variant="text3">{trimAddress(txID)}</Typography>
 
                 <LinkGroup linkValue={getTxUrl(txID)} copyValue={txID} />
@@ -136,18 +114,13 @@ export const ClaimableTable = ({
         flex: 1,
         headerAlign: "right",
         align: "right",
-        renderCell: ({ value }) => (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              flexWrap: "wrap",
-              gap: "20px",
-              padding: "16px 0",
-            }}
-          >
-            {value.map((amount: string) => (
-              <Box sx={MarketWithdrawalRequetstCell}>
+        renderCell: ({ value, row }) => (
+          <Box sx={WithdrawalRequestsEntryStack}>
+            {value.map((amount: string, index: number) => (
+              <Box
+                sx={{ ...WithdrawalRequestsEntry, justifyContent: "flex-end" }}
+                key={row.transactionId?.[index] ?? `${amount}-${index}`}
+              >
                 <Typography variant="text3">{amount}</Typography>
               </Box>
             ))}

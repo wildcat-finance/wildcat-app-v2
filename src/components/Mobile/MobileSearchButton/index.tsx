@@ -18,7 +18,7 @@ import { useTranslation } from "react-i18next"
 import Cross from "@/assets/icons/cross_icon.svg"
 import Filter from "@/assets/icons/filter_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
-import { ROUTES } from "@/routes"
+import { useMarketHref } from "@/hooks/useMarketHref"
 import { COLORS } from "@/theme/colors"
 
 export type MobileSearchButtonProps = {
@@ -35,6 +35,7 @@ export const MobileSearchButton = ({
   isExplorePage,
 }: MobileSearchButtonProps) => {
   const { t } = useTranslation()
+  const buildMarketHref = useMarketHref()
 
   const [open, setOpen] = useState<boolean>(false)
 
@@ -241,7 +242,10 @@ export const MobileSearchButton = ({
           {marketAccounts.map((market) => (
             <Link
               key={market.market.address}
-              href={`${ROUTES.lender.market}/${market.market.address}`}
+              href={buildMarketHref(
+                market.market.address,
+                market.market.chainId,
+              )}
               style={{ textDecoration: "none" }}
             >
               <MenuItem

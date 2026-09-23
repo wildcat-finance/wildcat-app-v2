@@ -19,6 +19,9 @@ export const isExcludedMarket = (market: Market | string) => {
 export const isNotExcludedMarket = (market: Market | string) =>
   !isExcludedMarket(market)
 
+export const excludedMarketsFilter = (): { excludeAddresses?: string[] } =>
+  EXCLUDED_MARKETS.length > 0 ? { excludeAddresses: EXCLUDED_MARKETS } : {}
+
 export const filterMarketAccounts = (
   marketAccounts: MarketAccount[] | undefined,
   search: string,
