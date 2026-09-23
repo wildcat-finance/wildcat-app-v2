@@ -48,6 +48,11 @@ jest.mock("@/components/Profile/shared/AnalyticsDataGrid", () => ({
   analyticsDataGridSx: {},
   autoHeightAnalyticsDataGridSx: {},
 }))
+jest.mock("@/assets/icons/circledQuestion_icon.svg", () => ({
+  __esModule: true,
+  default: () => null,
+}))
+
 jest.mock("@/components/@extended/MarketStatusChip", () => ({
   MarketStatusChip: () => null,
 }))
@@ -103,7 +108,7 @@ const makeMarket = (
     marketToken,
     totalDebts: underlyingToken.parseAmount(debt),
     maxTotalSupply: marketToken.parseAmount("100000000000"),
-    totalSupply: marketToken.getAmount(0n),
+    totalSupply: marketToken.parseAmount(debt),
     withdrawalBatchDuration: 86_400,
     currentAprDisplayBips: {
       isRevolving: false,

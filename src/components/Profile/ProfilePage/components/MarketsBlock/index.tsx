@@ -13,6 +13,7 @@ import {
   analyticsDataGridSx,
   autoHeightAnalyticsDataGridSx,
 } from "@/components/Profile/shared/AnalyticsDataGrid"
+import { TotalDebtHeader } from "@/components/TotalDebtHeader"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import {
@@ -26,6 +27,7 @@ import {
   formatTokenWithCommas,
 } from "@/utils/formatters"
 import { getDisplayLenderAprBips } from "@/utils/marketApr"
+import { getMarketTotalDebt } from "@/utils/marketDebt"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -50,7 +52,6 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
         address: marketAddress,
         name,
         underlyingToken,
-        totalDebts,
         maxTotalSupply,
         totalSupply,
         withdrawalBatchDuration,
@@ -73,7 +74,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
         asset: underlyingToken.symbol,
         apr: getDisplayLenderAprBips(market),
         term: getMarketTypeChip(market),
-        debt: totalDebts,
+        debt: getMarketTotalDebt(market),
         capacity: maxTotalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
         utilisation,
@@ -224,6 +225,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     {
       field: "debt",
       headerName: t("common.fields.totalDebt"),
+      renderHeader: () => <TotalDebtHeader />,
       flex: 1,
       minWidth: 100,
       headerAlign: "right",

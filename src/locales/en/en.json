@@ -673,6 +673,7 @@
       "terminatedMarkets": "Terminated Markets",
       "tokenSymbol": "Token Symbol",
       "totalDebt": "Total Debt",
+      "totalDebtTooltip": "What the borrower still owes lenders, including withdrawals from expired cycles that have not been funded yet, but not withdrawals already set aside in the market and waiting to be claimed.",
       "totalDebtRemaining": "Total Debt / Remaining",
       "transaction": "Transaction",
       "transactionId": "Transaction ID",
