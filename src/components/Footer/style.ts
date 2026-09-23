@@ -5,7 +5,7 @@ export const ContentContainer = {
   width: "100%",
   display: "flex",
   flexDirection: "column",
-  padding: "20px 16px",
+  padding: "6px 16px 20px 16px",
 }
 
 export const DeployInfoSx = {

@@ -98,6 +98,9 @@ import {
   shouldShowLenderTransactions,
 } from "./utils"
 
+const FlowChartsLoading = () =>
+  useMobileResolution() ? null : <ChartSectionSkeleton sections={3} />
+
 const LenderFlowCharts = dynamic(
   () =>
     import("./components/LenderFlowCharts").then(
@@ -105,7 +108,7 @@ const LenderFlowCharts = dynamic(
     ),
   {
     ssr: false,
-    loading: () => <ChartSectionSkeleton sections={3} />,
+    loading: () => <FlowChartsLoading />,
   },
 )
 
@@ -703,7 +706,7 @@ export default function LenderMarketDetails({
 
   if (isMobile && isMobileHistoryOpen)
     return (
-      <Box>
+      <Box sx={{ display: "flex", flexDirection: "column", flex: "1 0 auto" }}>
         <MobileMarketHistoryModal
           market={market}
           setIsMobileHistoryOpen={setIsMobileHistoryOpen}
@@ -773,17 +776,15 @@ export default function LenderMarketDetails({
             sx={{ margin: "8px 0 4px" }}
           />
 
-          <Box id="depositWithdraw">
-            {marketAccount && !isWithdrawalsLoading ? (
+          {marketAccount && !isWithdrawalsLoading && (
+            <Box id="depositWithdraw">
               <BarCharts
                 marketAccount={marketAccount}
                 withdrawals={withdrawals}
                 isLender={authorizedInMarket}
               />
-            ) : (
-              <ChartSectionSkeleton sections={authorizedInMarket ? 3 : 1} />
-            )}
-          </Box>
+            </Box>
+          )}
 
           {analyticsUiEnabled && hasLenderInteracted && (
             <LenderAnalyticsSummary

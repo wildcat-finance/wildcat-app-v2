@@ -808,6 +808,7 @@
     },
     "telegramBanner": {
       "button": "Subscribe",
+      "compact": "Market’s Updates in Our Bot",
       "subtitle": "Receive notifications for market events",
       "title": "Subscribe to our Telegram Bot"
     },
@@ -1190,6 +1191,7 @@
           "failed": {
             "subtitle": "The withdrawal transaction did not complete. Check your wallet and try again."
           },
+          "mobileTitle": "Available To Withdraw",
           "periodicTooltip": "The amount of underlying asset debt that the connected address can request for withdrawal. Periodic markets accept withdrawal requests only during scheduled withdrawal windows.",
           "periodicWindow": {
             "closed": "Withdrawals are only available during this market's withdrawal window.",
@@ -1260,6 +1262,9 @@
         "buttons": {
           "claim": "Claim Assets"
         },
+        "failed": {
+          "subtitle": "The claim transaction did not complete. Check your wallet and try again."
+        },
         "subtitle": "No assets available to claim from this market.",
         "title": {
           "claim": "{{claimableAmount}} ready to claim",
@@ -1286,6 +1291,9 @@
           "verificationFailed": "Unable to verify wrapper availability."
         },
         "estimatesMayChangeCurrentConversion": "Estimates may change with the current conversion rate.",
+        "failed": {
+          "subtitle": "The transaction did not complete. Check your wallet and try again."
+        },
         "marketTokens": "Market tokens",
         "oopsSomethingGoesWrong": "Oops! Something goes wrong.",
         "see": "See",
