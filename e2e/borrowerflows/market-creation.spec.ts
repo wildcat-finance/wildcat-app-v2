@@ -52,7 +52,7 @@ import {
   type Address,
 } from "../lib/env"
 import { connectAs, ensureConnected } from "../lib/page"
-import { attachAgreement, step } from "../lib/step"
+import { attachAgreement, infra, requirements, step } from "../lib/step"
 import * as subgraph from "../lib/subgraph"
 import { expect, test } from "../lib/test"
 
@@ -147,7 +147,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     return row
   }
 
-  test("setup: fixtures — chain time, funds, borrower profile row, registration", async () => {
+  test("setup: fixtures — chain time, funds, borrower profile row, registration", infra("setup"), async () => {
     // Rerun-accumulation ceiling: beyond this, virtualized lists and first:50 subgraph queries
     // start missing this run's entities. Fail loudly instead of flaking (review finding 14).
     const existing = await borrowerMarketIds()
@@ -198,14 +198,14 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("setup: borrower ToU acceptance (wall-clock personal_sign)", async ({
+  test("setup: borrower ToU acceptance (wall-clock personal_sign)", infra("setup"), async ({
     page,
   }) => {
     await connectAs(page, 3)
     await ensureBorrowerTouSigned(page)
   })
 
-  test("MKT-01: new policy created through market creation; listed with its access type", async ({
+  test("MKT-01: new policy created through market creation; listed with its access type", requirements(["REQ-BOP-037", "REQ-BOP-041", "REQ-PROTO-001", "REQ-PROTO-004"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -283,7 +283,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-03: every open-term parameter settable; review units and formatting; on-chain agreement", async () => {
+  test("MKT-03: every open-term parameter settable; review units and formatting; on-chain agreement", requirements(["REQ-BOP-053", "REQ-BOP-054", "REQ-BOP-055", "REQ-BOP-056", "REQ-BOP-065", "REQ-PROTO-001"]), async () => {
     // The parameters were all set through the UI in MKT-01 (same deploy); this test audits the
     // captured review screen plus the three-way page/chain/subgraph agreement.
     expect(Object.keys(reviewD1).length).toBeGreaterThan(0)
@@ -333,7 +333,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-02: existing policy selectable; second market deploys under it", async ({
+  test("MKT-02: existing policy selectable; second market deploys under it", requirements(["REQ-BOP-037"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -385,7 +385,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-04: fixed-term market with early termination + maturity reduction", async ({
+  test("MKT-04: fixed-term market with early termination + maturity reduction", requirements(["REQ-BOP-041", "REQ-BOP-043", "REQ-BOP-044", "REQ-PROTO-002"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -493,7 +493,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-05: revolving market — commitment fee + utilisation APR; 0% reserve ratio", async ({
+  test("MKT-05: revolving market — commitment fee + utilisation APR; 0% reserve ratio", requirements(["REQ-BOP-040", "REQ-BOP-058", "REQ-PROTO-005", "REQ-PROTO-006", "REQ-PROTO-007"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -536,7 +536,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-06: periodic-term market — schedule fields + unit toggle", async ({
+  test("MKT-06: periodic-term market — schedule fields + unit toggle", requirements(["REQ-BOP-041", "REQ-BOP-045", "REQ-BOP-046", "REQ-BOP-047", "REQ-BOP-048", "REQ-MKT-014", "REQ-MKT-015", "REQ-MKT-016", "REQ-PROTO-003", "REQ-PROTO-006"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -588,7 +588,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-07: revolving + periodic combined type deploys with both parameter sets", async ({
+  test("MKT-07: revolving + periodic combined type deploys with both parameter sets", requirements(["REQ-PROTO-007"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -636,7 +636,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-08: invalid financial inputs cannot produce a deployable state", async ({
+  test("MKT-08: invalid financial inputs cannot produce a deployable state", requirements(["REQ-BOP-066", "REQ-BOP-131", "REQ-PROTO-102"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -716,7 +716,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-09: periodic timing violations rejected at entry; Tab/Enter cannot bypass", async ({
+  test("MKT-09: periodic timing violations rejected at entry; Tab/Enter cannot bypass", requirements(["REQ-BOP-049", "REQ-BOP-050", "REQ-BOP-051"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -776,7 +776,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-10: step navigation stays usable from the confirmation screen", async ({
+  test("MKT-10: step navigation stays usable from the confirmation screen", requirements(["REQ-BOP-065", "REQ-BOP-066"]), async ({
     page,
   }) => {
     // The wizard gates every "Next" (and the sidebar steps) on per-step validity, so an invalid
@@ -822,7 +822,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-11: grace period shorter than withdrawal cycle raises the warning", async ({
+  test("MKT-11: grace period shorter than withdrawal cycle raises the warning", requirements(["REQ-BOP-057"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -853,7 +853,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     await expect(warning).toHaveCount(0)
   })
 
-  test("MKT-12: self-onboarding market — a fresh address gains a credential and deposits", async () => {
+  test("MKT-12: self-onboarding market — a fresh address gains a credential and deposits", requirements(["REQ-BOP-052", "REQ-LEN-110", "REQ-PROTO-011"]), async () => {
     const row = (await subgraphMarket(d1.market))!
     expect(row.hooksConfig?.depositRequiresAccess).toBe(true)
     const instance = (await hooksInstance(d1.hooks))!
@@ -877,7 +877,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-13: allowlist market — non-approved addresses cannot deposit", async ({
+  test("MKT-13: allowlist market — non-approved addresses cannot deposit", requirements(["REQ-BOP-052", "REQ-BOP-059", "REQ-LEN-111", "REQ-PROTO-011", "REQ-PROTO-105"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -930,7 +930,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-14: access control switched after signing — final selection wins, no silent lock-in", async ({
+  test("MKT-14: access control switched after signing — final selection wins, no silent lock-in", requirements(["REQ-BOP-052", "REQ-BOP-132"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -1019,7 +1019,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-15: policy labels match their true access type", async ({
+  test("MKT-15: policy labels match their true access type", requirements(["REQ-BOP-133"]), async ({
     page,
   }) => {
     // Chain truth first.
@@ -1042,7 +1042,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-16: Wildcat template MLA — pre-signed by the borrower; full document readable", async ({
+  test("MKT-16: Wildcat template MLA — pre-signed by the borrower; full document readable", requirements(["REQ-BOP-030", "REQ-BOP-064"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -1093,7 +1093,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-17: refusal wording references market identity; MLA <-> refusal switch forces re-sign", async ({
+  test("MKT-17: refusal wording references market identity; MLA <-> refusal switch forces re-sign", requirements(["REQ-BOP-030", "REQ-BOP-064", "REQ-BOP-071"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -1192,14 +1192,14 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     // Abandoned on purpose — no deploy in this case.
   })
 
-  test.fixme("MKT-18: Safe + MLA deployment", async () => {
+  test.fixme("MKT-18: Safe + MLA deployment", requirements(["REQ-BOP-068"]), async () => {
     // Requires a Safe (Gnosis) wallet + the Safe Apps SDK transport; the harness only drives the
     // Local Anvil EOA connector. The Safe draft/resume plumbing exists in the app
     // (createMarketSigningDraftsSlice, pendingSafeMessagesSlice) but cannot be exercised without
     // a Safe signer set + the Safe UI. Infrastructure gap — manual test.
   })
 
-  test("MKT-19: staged deploy (1/3 token, 2/3 market, 3/3 wrapper) + exact token identity + MLA upload", async () => {
+  test("MKT-19: staged deploy (1/3 token, 2/3 market, 3/3 wrapper) + exact token identity + MLA upload", requirements(["REQ-BOP-067", "REQ-BOP-137", "REQ-MKT-011"]), async () => {
     // Observations recorded during the MKT-16 deploy (same staged pipeline).
     const stepToasts = d16.toasts.filter((t) => /Step \d\/3/.test(t))
     expect(
@@ -1235,7 +1235,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-20: completion modal — Close is the only exit; no re-signable state behind it", async ({
+  test("MKT-20: completion modal — Close is the only exit; no re-signable state behind it", requirements(["REQ-BOP-070"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -1296,7 +1296,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-21: new markets appear on the borrower overview; indexing lag recorded", async ({
+  test("MKT-21: new markets appear on the borrower overview; indexing lag recorded", requirements(["REQ-BOP-134"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -1328,7 +1328,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-22: wrapper opted in at creation is deployed and linked", async ({
+  test("MKT-22: wrapper opted in at creation is deployed and linked", requirements(["REQ-BOP-063", "REQ-WRP-012"]), async ({
     page,
   }) => {
     const wrapper = await registeredWrapper(d16.market)
@@ -1348,7 +1348,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     attachAgreement("MKT-22 wrapper", { market: d16.market, wrapper })
   })
 
-  test("MKT-23: market without wrapper offers post-hoc deployment on both sides", async ({
+  test("MKT-23: market without wrapper offers post-hoc deployment on both sides", requirements(["REQ-WRP-008", "REQ-WRP-009"]), async ({
     page,
   }) => {
     expect(await registeredWrapper(d1.market)).toBe(zeroAddress)
@@ -1396,7 +1396,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     // Actual post-hoc wrapper deployment is covered on sheet 6.
   })
 
-  test("MKT-24: market description — borrower login, edit, save; renders for lenders", async ({
+  test("MKT-24: market description — borrower login, edit, save; renders for lenders", requirements(["REQ-BOP-032"]), async ({
     page,
   }) => {
     const description = `E2E market description ${stamp} — set by the automated borrower.`
@@ -1471,7 +1471,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     attachAgreement("MKT-24 description", { market: d1.market, description })
   })
 
-  test("teardown: suite left the shared fixtures intact", async () => {
+  test("teardown: suite left the shared fixtures intact", infra("teardown"), async () => {
     // This suite only adds markets/policies under borrower #3 (discovery oracles recompute);
     // assert we did not disturb the shared lender accounts' ToU/positions.
     expect(await borrowerTouState()).toBe("signedCurrent")
