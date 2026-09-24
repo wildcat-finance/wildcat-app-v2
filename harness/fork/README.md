@@ -129,6 +129,14 @@ the per-requirement `observations` the capability ledger derives outcomes from, 
 `uat-run/2` until the specs carry their declarations — see `e2e/CONVENTIONS.md` § Declaring
 requirements for how a row and a step declare one, and what the validator checks.
 
+`UAT_LEDGER=<path to ledger.json> npm run board` additionally lets the CAPABILITY LEDGER decide,
+per version, whether each row is an expected failure, is blocked, or is not applicable here — so no
+spec carries `test.fail`/`test.skip` for any of those reasons. `UAT_LEDGER_VERSION` says which
+version this checkout is (`v25` on this branch, `main` on main); `board` and `board:one` set it, and
+the harness learns its variant from nothing else. Both unset is the default and the fixture is then
+inert: it says so once and every row runs unchanged. `e2e/CONVENTIONS.md` § Declaring requirements
+has the decision table and the signature rule.
+
 ## Smoke test (`npm run test:e2e -- e2e/fork.smoke.spec.ts`)
 Serial Playwright spec `e2e/fork.smoke.spec.ts` (boots `dev:fork` if the app is not running):
 health + pins → faucet (ETH + market underlying) → real lender ToU signature (the harness DB's prior
