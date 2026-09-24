@@ -344,7 +344,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-03: every open-term parameter settable; review units and formatting; on-chain agreement", requirements(["REQ-BOP-053", "REQ-BOP-054", "REQ-BOP-055", "REQ-BOP-056", "REQ-BOP-065", "REQ-PROTO-001"]), async ({
+  test("MKT-03: every open-term parameter settable; review units and formatting; on-chain agreement", requirements(["REQ-BOP-053", "REQ-BOP-055", "REQ-BOP-056", "REQ-BOP-065", "REQ-PROTO-001"]), async ({
     page,
   }) => {
     // The parameters were all set through the UI in MKT-01 (same deploy); this test audits the
@@ -405,11 +405,12 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
       { req: ["REQ-BOP-056"] },
     )
 
+    // The term, read where each app puts it: v2.5 splits the market type and the term into
+    // two review rows; main renders one "Market Type" row that IS the term.
     await step(
       page,
       "the confirmation screen names the open-term loan",
       async () => {
-        // main renders no separate term row: the single "Market Type" row IS the term.
         expect(reviewD1["Market Type"]).toBe("Open Term Loan")
       },
       { req: ["REQ-PROTO-001"] },
@@ -885,7 +886,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-13: allowlist market — non-approved addresses cannot deposit", requirements(["REQ-BOP-052", "REQ-BOP-059", "REQ-LEN-111", "REQ-PROTO-011", "REQ-PROTO-105"]), async ({
+  test("MKT-13: allowlist market — non-approved addresses cannot deposit", requirements(["REQ-BOP-052", "REQ-LEN-111", "REQ-PROTO-011", "REQ-PROTO-105"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -1264,7 +1265,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     // a Safe signer set + the Safe UI. Infrastructure gap — manual test.
   })
 
-  test("MKT-19: staged deploy (1/3 token, 2/3 market, 3/3 wrapper) + exact token identity + MLA upload", requirements(["REQ-BOP-067", "REQ-BOP-137", "REQ-MKT-011"]), async ({
+  test("MKT-19: staged deploy (1/3 token, 2/3 market, 3/3 wrapper) + exact token identity + MLA upload", requirements(["REQ-BOP-067", "REQ-BOP-137"]), async ({
     page,
   }) => {
     // Observations recorded during the MKT-16 deploy (same staged pipeline).
@@ -1443,7 +1444,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-22: wrapper opted in at creation is deployed and linked", requirements(["REQ-BOP-063", "REQ-WRP-012"]), async ({
+  test("MKT-22: wrapper opted in at creation is deployed and linked", requirements(["REQ-BOP-063"]), async ({
     page,
   }) => {
     const wrapper = await wrapperForMarket(d16.market)
