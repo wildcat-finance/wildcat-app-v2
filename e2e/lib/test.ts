@@ -4,6 +4,7 @@ import { test as base, type Page, type TestInfo } from "@playwright/test"
 import { publicClient } from "./chain"
 import { ANVIL_ACCOUNTS } from "./env"
 import * as journal from "./journal"
+import { ledgerFixture } from "./ledger"
 
 const pages = new WeakMap<TestInfo, Page>()
 
@@ -201,6 +202,7 @@ export const test = base.extend<{ uatJournal: void }>({
     },
     { auto: true },
   ],
+  ...ledgerFixture,
 })
 
 export { expect } from "@playwright/test"
