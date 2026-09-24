@@ -177,6 +177,55 @@ declaration ported from the v2.5 worktree is only correct once `ledger.draft.jso
 under `versions.main` as well — the validator checks the mapping in both directions and rejects a
 row that declares what this branch's ledger entry does not.
 
+**How the harness applies the ledger.** A spec asserts the DESIRED behaviour, identically on both
+versions. It must NOT carry `test.fail` / `test.skip` / `test.fixme` because *this version is
+broken*, *this cannot run here*, or *this version does not owe it* — those are ledger facts, they
+differ per version, and a spec that hard-codes one has to be edited every time the ledger moves.
+`e2e/lib/ledger.ts` reads them at run time and applies them to the row with Playwright's own
+mechanisms; the wiring is one auto fixture, spread into `e2e/lib/test.ts` beside `uatJournal`. The
+ledger's operational home is the `@wildcatfi/e2e` package (repo `wildcat-finance/wildcat-e2e`, local
+until published) — `UAT_LEDGER` points at its `ledger.json`.
+
+    UAT_LEDGER=<path to ledger.json> npm run board
+
+Two environment variables, and nothing else:
+
+- `UAT_LEDGER` — the ledger file. **Unset and the fixture is inert**: it says so once per worker and
+  every row runs exactly as it does today. Inert is also what a ledger that will not parse gets — a
+  broken ledger never excuses anything.
+- `UAT_LEDGER_VERSION` — `v25` or `main`, which version THIS checkout is. The harness has no variant
+  plumbing and learns its variant from nothing else, so the `board` / `board:one` scripts set it per
+  branch (`main` here). Without it the fixture is inert rather than guessing.
+
+What the fixture does with a row's `requirements` annotation, per version (`capability-ledger/
+SCHEMA.md` §5.2, §5.4, §5.5):
+
+| decision | when | applied as |
+|---|---|---|
+| `not-applicable` | EVERY declared requirement derives `intentionally-absent` | `testInfo.skip` |
+| `expect-failure` | ANY declared requirement is a `known-defect` here | `testInfo.fail` |
+| `blocked` | EVERY declared requirement has `coverage: blocked` here | `testInfo.skip` |
+| `run` | everything else, including ids the ledger does not know | nothing |
+
+`effectiveApplicability` (§5.2) is what the first row reads, so a **proposed** ruling and a
+**candidate** behaviour both derive `required` and the row keeps running: only an approved ruling on
+an approved requirement can take a row out. `intentionally-different` is NOT a skip — §5.2 derives it
+identically to `required`; it changes what the test asserts, never whether the version owes it. The
+two skips carry distinct reason prefixes (`ledger: not applicable`, `ledger: blocked`), and
+`not-applicable` is decided first because §5.5 puts R1a/R1b above R2a.
+
+**An expected failure still has to be the DOCUMENTED failure.** When `expect-failure` applies, the
+fixture compares what actually broke — the `step()` the journal shows the row fell over in, the
+error head, the assertion message — against the known issue's signature (§5.4). A miss annotates
+`ledger-signature: no-match` AND puts `expectedStatus` back, so the row reports as an ordinary
+failure and the validator derives `unexpected-failure`. A timeout, a broken locator or a different
+revert on a known-defect requirement is never filed as the documented defect.
+
+Every decision is recorded twice, so a skipped or excused row is readable from the archive alone: as
+a journal `data` entry named `ledger decision`, and as a `{ type: "ledger" }` annotation the
+reporter copies verbatim into `uat-run/3`. `__tests__/ledger.test.ts` covers every branch on inline
+ledgers and applies each decision to a fake `TestInfo`.
+
 ## Structure
 - One spec file per runsheet area; `test.describe.serial`; `step(page, ...)` for major actions
   (screenshot film strip); `attachAgreement` for every page/chain/subgraph comparison; `test.fixme`
