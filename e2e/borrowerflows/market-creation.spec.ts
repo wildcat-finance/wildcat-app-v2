@@ -252,15 +252,6 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
 
     await step(
       page,
-      "the confirmation screen names the standard market implementation",
-      async () => {
-        expect(reviewD1["Market Type"]).toBe("Standard")
-      },
-      { req: ["REQ-PROTO-004"] },
-    )
-
-    await step(
-      page,
       "deploy is locked until the refusal is signed",
       async () => {
         await expect(deployButton(page)).toBeDisabled()
@@ -274,6 +265,21 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     indexingLags["MKT-01"] = outcome.indexingLagMs
     d1 = { ...outcome, marketName: `${namePrefix} ${asset.name}`, namePrefix }
     await closeSuccessDialog(page)
+
+    // Both lines moved here from MKT-03: the implementation the wizard restated and the one the
+    // subgraph recorded are the same claim, and `d1.market` only exists after the deploy. The
+    // subgraph read is a DRIVER and stays outside the checkpoint. main has neither line — no
+    // separate Market Type row, no MarketKind in SDK 3.1.17 (REQ-PROTO-004 is `missing` there).
+    const d1Row = (await subgraphMarket(d1.market))!
+    await step(
+      page,
+      "the confirmation screen names the standard market implementation",
+      async () => {
+        expect(reviewD1["Market Type"]).toBe("Standard")
+        expect(d1Row.marketKind).toBe("STANDARD")
+      },
+      { req: ["REQ-PROTO-004"] },
+    )
 
     // Policy exists on the subgraph with the given name and self-onboarding access.
     const instance = (await hooksInstance(d1.hooks))!
@@ -309,7 +315,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-03: every open-term parameter settable; review units and formatting; on-chain agreement", requirements(["REQ-BOP-053", "REQ-BOP-054", "REQ-BOP-055", "REQ-BOP-056", "REQ-BOP-065", "REQ-PROTO-001"]), async ({
+  test("MKT-03: every open-term parameter settable; review units and formatting; on-chain agreement", requirements(["REQ-BOP-053", "REQ-BOP-055", "REQ-BOP-056", "REQ-BOP-065", "REQ-PROTO-001"]), async ({
     page,
   }) => {
     // The parameters were all set through the UI in MKT-01 (same deploy); this test audits the
@@ -370,10 +376,8 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
       { req: ["REQ-BOP-056"] },
     )
 
-    // v2.5 only: the review screen splits the market IMPLEMENTATION from the term. MKT-01
-    // carries the same line for REQ-PROTO-004; this copy is deliberately not de-duplicated.
-    expect(reviewD1["Market Type"]).toBe("Standard")
-
+    // The term, read where each app puts it: v2.5 splits the market type and the term into
+    // two review rows; main renders one "Market Type" row that IS the term.
     await step(
       page,
       "the confirmation screen names the open-term loan",
@@ -421,8 +425,6 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
 
     // Subgraph agreement.
     const row = (await subgraphMarket(d1.market))!
-    // v2.5 only: main's SDK models no MarketKind (REQ-PROTO-004 is `missing` there).
-    expect(row.marketKind).toBe("STANDARD")
     await step(
       page,
       "the subgraph agrees with the chain on every financial parameter",
@@ -1165,7 +1167,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-13: allowlist market — non-approved addresses cannot deposit", requirements(["REQ-BOP-052", "REQ-BOP-059", "REQ-LEN-111", "REQ-PROTO-011", "REQ-PROTO-105"]), async ({
+  test("MKT-13: allowlist market — non-approved addresses cannot deposit", requirements(["REQ-BOP-052", "REQ-LEN-111", "REQ-PROTO-011", "REQ-PROTO-105"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -1544,7 +1546,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     // a Safe signer set + the Safe UI. Infrastructure gap — manual test.
   })
 
-  test("MKT-19: staged deploy (1/3 token, 2/3 market, 3/3 wrapper) + exact token identity + MLA upload", requirements(["REQ-BOP-067", "REQ-BOP-137", "REQ-MKT-011"]), async ({
+  test("MKT-19: staged deploy (1/3 token, 2/3 market, 3/3 wrapper) + exact token identity + MLA upload", requirements(["REQ-BOP-067", "REQ-BOP-137"]), async ({
     page,
   }) => {
     // Observations recorded during the MKT-16 deploy (same staged pipeline).
@@ -1711,7 +1713,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-22: wrapper opted in at creation is deployed and linked", requirements(["REQ-BOP-063", "REQ-WRP-012"]), async ({
+  test("MKT-22: wrapper opted in at creation is deployed and linked", requirements(["REQ-BOP-063"]), async ({
     page,
   }) => {
     const wrapper = await registeredWrapper(d16.market)
