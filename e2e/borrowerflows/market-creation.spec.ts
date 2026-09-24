@@ -344,51 +344,137 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-03: every open-term parameter settable; review units and formatting; on-chain agreement", requirements(["REQ-BOP-053", "REQ-BOP-054", "REQ-BOP-055", "REQ-BOP-056", "REQ-BOP-065", "REQ-PROTO-001"]), async () => {
+  test("MKT-03: every open-term parameter settable; review units and formatting; on-chain agreement", requirements(["REQ-BOP-053", "REQ-BOP-054", "REQ-BOP-055", "REQ-BOP-056", "REQ-BOP-065", "REQ-PROTO-001"]), async ({
+    page,
+  }) => {
     // The parameters were all set through the UI in MKT-01 (same deploy); this test audits the
     // captured review screen plus the three-way page/chain/subgraph agreement.
-    expect(Object.keys(reviewD1).length).toBeGreaterThan(0)
+    await step(
+      page,
+      "the confirmation screen produced review rows to audit",
+      async () => {
+        expect(Object.keys(reviewD1).length).toBeGreaterThan(0)
+      },
+      { req: ["REQ-BOP-065"] },
+    )
 
-    // The review screen renders raw form values rather than localised ones, so the assertions
-    // normalise PRESENTATION rather than gate on it:
-    //   capacity   `${getValues("maxTotalSupply")} ${symbol}` -> "1000000 DAI", not "1,000,000".
-    //   durations  `${getValues(...)} hours` -> "1 hours", not a humanized "1 hour".
-    // Asserting the number and the unit (not the punctuation or the plural) keeps the case honest
-    // without pinning copy; the exact on-chain values are asserted below and are the real oracle.
-    const capacity = reviewD1["Maximum Borrowing Capacity"].replace(/,/g, "")
-    expect(capacity).toContain("1000000")
-    expect(capacity).toContain(asset.symbol)
-    expect(reviewD1["Grace Period Duration"]).toMatch(/^1(\.0+)? hours?$/)
-    expect(reviewD1["Withdrawal Cycle Duration"]).toMatch(/^1(\.0+)? hours?$/)
-    expect(reviewD1["Base APR"]).toMatch(/^10(\.0+)?%$/)
-    expect(reviewD1["Penalty APR"]).toMatch(/^10(\.0+)?%$/)
-    expect(reviewD1["Reserve Ratio"]).toMatch(/^20(\.0+)?%$/)
-    expect(reviewD1["Minimum Deposit"]).toContain("100")
-    // The single "Market Type" row IS the term.
-    expect(reviewD1["Market Type"]).toBe("Open Term Loan")
-    expect(reviewD1["Access Control"]).toBe("Lender Self-Onboarding")
-    expect(reviewD1["Policy Name"]).toBe(policyA)
+    // Review formatting, UNIFIED on v2.5's display strings (plan 1.2, controller ruling on
+    // blocker 5): the confirmation screen groups the capacity in thousands and humanises the
+    // durations (head a5620443 "unify duration units on confirmation screen" + 3d68d06f "stop
+    // rounding review durations": "1.00 hours" -> "1 hour"). main renders the raw form values
+    // ("1000000 DAI", "1 hours") and is expected to fail the first line here — that failure is
+    // the finding the board must show, never something to normalise away.
+    await step(
+      page,
+      "the confirmation screen restates capacity and durations as a human reads them",
+      async () => {
+        expect(
+          reviewD1["Maximum Borrowing Capacity"],
+          "the confirmation screen groups the capacity in thousands",
+        ).toContain("1,000,000")
+        expect(reviewD1["Maximum Borrowing Capacity"]).toContain(asset.symbol)
+        expect(
+          reviewD1["Grace Period Duration"],
+          "the confirmation screen humanises the grace period",
+        ).toBe("1 hour")
+        expect(
+          reviewD1["Withdrawal Cycle Duration"],
+          "the confirmation screen humanises the withdrawal cycle",
+        ).toBe("1 hour")
+      },
+      { req: ["REQ-BOP-065"] },
+    )
+
+    await step(
+      page,
+      "the confirmation screen restates the rates and the reserve ratio",
+      async () => {
+        expect(reviewD1["Base APR"]).toMatch(/^10(\.0+)?%$/)
+        expect(reviewD1["Penalty APR"]).toMatch(/^10(\.0+)?%$/)
+        expect(reviewD1["Reserve Ratio"]).toMatch(/^20(\.0+)?%$/)
+      },
+      { req: ["REQ-BOP-055"] },
+    )
+
+    await step(
+      page,
+      "the confirmation screen restates the optional minimum deposit",
+      async () => {
+        expect(reviewD1["Minimum Deposit"]).toContain("100")
+      },
+      { req: ["REQ-BOP-056"] },
+    )
+
+    await step(
+      page,
+      "the confirmation screen names the open-term loan",
+      async () => {
+        // main renders no separate term row: the single "Market Type" row IS the term.
+        expect(reviewD1["Market Type"]).toBe("Open Term Loan")
+      },
+      { req: ["REQ-PROTO-001"] },
+    )
+
+    await step(
+      page,
+      "the confirmation screen restates the policy and its access control",
+      async () => {
+        expect(reviewD1["Access Control"]).toBe("Lender Self-Onboarding")
+        expect(reviewD1["Policy Name"]).toBe(policyA)
+      },
+      { req: ["REQ-BOP-065"] },
+    )
 
     // Chain vs configured values (the mock asset re-deploys with 18 decimals on testnet).
     const onChain = await readNewMarket(d1.market)
     expect(onChain.borrower.toLowerCase()).toBe(borrower.toLowerCase())
-    expect(onChain.annualInterestBips).toBe(1000n)
-    expect(onChain.delinquencyFeeBips).toBe(1000n)
-    expect(onChain.reserveRatioBips).toBe(2000n)
-    expect(onChain.delinquencyGracePeriod).toBe(3600n)
-    expect(onChain.withdrawalBatchDuration).toBe(3600n)
-    expect(onChain.maxTotalSupply).toBe(parseUnits("1000000", 18))
-    expect(onChain.name).toBe(d1.marketName)
+    await step(
+      page,
+      "the chain carries every financial parameter that was set",
+      async () => {
+        expect(onChain.annualInterestBips).toBe(1000n)
+        expect(onChain.delinquencyFeeBips).toBe(1000n)
+        expect(onChain.reserveRatioBips).toBe(2000n)
+        expect(onChain.delinquencyGracePeriod).toBe(3600n)
+        expect(onChain.withdrawalBatchDuration).toBe(3600n)
+        expect(onChain.maxTotalSupply).toBe(parseUnits("1000000", 18))
+      },
+      { req: ["REQ-BOP-055"] },
+    )
+
+    await step(
+      page,
+      "the market deployed under the name entered on the basic setup step",
+      async () => {
+        expect(onChain.name).toBe(d1.marketName)
+      },
+      { req: ["REQ-BOP-053"] },
+    )
 
     // Subgraph agreement.
     const row = (await subgraphMarket(d1.market))!
-    expect(BigInt(row.annualInterestBips)).toBe(onChain.annualInterestBips)
-    expect(BigInt(row.delinquencyFeeBips)).toBe(onChain.delinquencyFeeBips)
-    expect(BigInt(row.reserveRatioBips)).toBe(onChain.reserveRatioBips)
-    expect(Number(row.delinquencyGracePeriod)).toBe(3600)
-    expect(Number(row.withdrawalBatchDuration)).toBe(3600)
-    expect(BigInt(row.hooksConfig?.minimumDeposit ?? "0")).toBe(
-      parseUnits("100", 18),
+    await step(
+      page,
+      "the subgraph agrees with the chain on every financial parameter",
+      async () => {
+        expect(BigInt(row.annualInterestBips)).toBe(onChain.annualInterestBips)
+        expect(BigInt(row.delinquencyFeeBips)).toBe(onChain.delinquencyFeeBips)
+        expect(BigInt(row.reserveRatioBips)).toBe(onChain.reserveRatioBips)
+        expect(Number(row.delinquencyGracePeriod)).toBe(3600)
+        expect(Number(row.withdrawalBatchDuration)).toBe(3600)
+      },
+      { req: ["REQ-BOP-055"] },
+    )
+
+    await step(
+      page,
+      "the subgraph carries the minimum deposit that was set",
+      async () => {
+        expect(BigInt(row.hooksConfig?.minimumDeposit ?? "0")).toBe(
+          parseUnits("100", 18),
+        )
+      },
+      { req: ["REQ-BOP-056"] },
     )
     attachAgreement("MKT-03 parameters", {
       review: reviewD1,
@@ -667,38 +753,44 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
       },
     )
 
+    // The sidebar is a CHAIN, not a set of visited steps: each form enables only the step
+    // after it, and stepping back to Basic Market Setup re-runs that form's effect, which
+    // enables Financial and leaves Confirmation disabled (measured on main: the click hung on
+    // "element is not enabled" until the test timeout). Going forward is Next, not a jump —
+    // so assert the disabled entry and walk. The runsheet's intent (navigation stays usable
+    // for fixing values, deploy stays locked unsigned) is unchanged. UNIFIED on main's
+    // assertion (plan 1.2, controller ruling on blocker 5): v2.5 used to click the Confirmation
+    // tab straight through and asserted nothing here, so if v2.5 does not gate, the failure
+    // this raises is the finding the board must show, not something to normalise away.
+    const confirmationTab = page
+      .getByRole("button", { name: /Confirmation/ })
+      .first()
     await step(
       page,
-      "and forward again to Confirmation",
+      "the sidebar chain gates each step on the previous one",
       async () => {
-        const confirmationTab = page
-          .getByRole("button", { name: /Confirmation/ })
-          .first()
-        // The sidebar is a CHAIN, not a set of visited steps: each form enables only the step
-        // after it, and stepping back to Basic Market Setup re-runs that form's effect, which
-        // enables Financial and leaves Confirmation disabled (measured: the click hung on
-        // "element is not enabled" until the test timeout). Going forward is Next, not a jump —
-        // so assert the disabled entry and walk. The runsheet's intent (navigation stays usable
-        // for fixing values, deploy stays locked unsigned) is unchanged.
         await expect(
           confirmationTab,
           "each sidebar step is gated on the previous one",
         ).toBeDisabled()
-        for (
-          let i = 0;
-          i < 6 &&
-          !(await deployButton(page)
-            .isVisible()
-            .catch(() => false));
-          i += 1
-        ) {
-          await clickNext(page)
-        }
-        await expect(deployButton(page)).toBeVisible({ timeout: 15_000 })
-        await expect(deployButton(page), "unsigned: deploy locked").toBeDisabled()
       },
       { req: ["REQ-BOP-066"] },
     )
+    // DRIVER: going forward is Next, not a jump.
+    for (
+      let i = 0;
+      i < 6 &&
+      !(await deployButton(page)
+        .isVisible()
+        .catch(() => false));
+      i += 1
+    ) {
+      await clickNext(page)
+    }
+    await step(page, "and forward again to Confirmation", async () => {
+      await expect(deployButton(page)).toBeVisible({ timeout: 15_000 })
+      await expect(deployButton(page), "unsigned: deploy locked").toBeDisabled()
+    })
     attachAgreement("MKT-10 partial coverage", {
       note:
         "Invalid configurations cannot reach the confirmation screen (per-step gating, " +
@@ -726,22 +818,45 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     const warning = page.getByText(
       /Grace Period is shorter than Withdrawal Cycle Duration/,
     )
-    await expect(warning).toBeVisible({ timeout: 15_000 })
-    await expect(warning).toContainText(
-      "cannot be changed after market creation",
+    await step(
+      page,
+      "a grace period shorter than the cycle raises the permanence warning",
+      async () => {
+        await expect(warning).toBeVisible({ timeout: 15_000 })
+        await expect(warning).toContainText(
+          "cannot be changed after market creation",
+        )
+        // Conscious proceed is possible…
+        await expect(nextButton(page)).toBeEnabled()
+      },
+      { req: ["REQ-BOP-057"] },
     )
-    // Conscious proceed is possible…
-    await expect(nextButton(page)).toBeEnabled()
-    // …and correcting the value clears the warning.
+    // …and correcting the value clears the warning. DRIVER: the correction itself.
     await fillField(page, "Grace Period Duration", "2")
-    await expect(warning).toHaveCount(0)
+    await step(
+      page,
+      "correcting the grace period clears the warning",
+      async () => {
+        await expect(warning).toHaveCount(0)
+      },
+      { req: ["REQ-BOP-057"] },
+    )
   })
 
-  test("MKT-12: self-onboarding market — a fresh address gains a credential and deposits", requirements(["REQ-BOP-052", "REQ-LEN-110", "REQ-PROTO-011"]), async () => {
+  test("MKT-12: self-onboarding market — a fresh address gains a credential and deposits", requirements(["REQ-BOP-052", "REQ-LEN-110", "REQ-PROTO-011"]), async ({
+    page,
+  }) => {
     const row = (await subgraphMarket(d1.market))!
-    expect(row.hooksConfig?.depositRequiresAccess).toBe(true)
     const instance = (await hooksInstance(d1.hooks))!
-    expect(hasOpenAccessProvider(instance)).toBe(true)
+    await step(
+      page,
+      "the deployed policy carries the self-onboarding selection",
+      async () => {
+        expect(row.hooksConfig?.depositRequiresAccess).toBe(true)
+        expect(hasOpenAccessProvider(instance)).toBe(true)
+      },
+      { req: ["REQ-BOP-052", "REQ-PROTO-011"] },
+    )
 
     // The deposit hook pulls a credential from the open-access provider on the fly:
     // a brand-new lender deposits with no prior approval transaction.
@@ -752,7 +867,16 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     const before = await chain.marketBalance(d1.market as Address, coLender)
     await chain.depositUpTo(coLender, d1.market as Address, amount)
     const after = await chain.marketBalance(d1.market as Address, coLender)
-    expect(after > before, "market tokens minted to the new lender").toBe(true)
+    await step(
+      page,
+      "a brand-new lender gains the credential and deposits",
+      async () => {
+        expect(after > before, "market tokens minted to the new lender").toBe(
+          true,
+        )
+      },
+      { req: ["REQ-LEN-110"] },
+    )
     await syncSubgraph()
     attachAgreement("MKT-12 self-onboarding deposit", {
       market: d1.market,
@@ -780,11 +904,18 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     await closeSuccessDialog(page)
 
     const instance = (await hooksInstance(d13.hooks))!
-    expect(instance.name.trim()).toBe(policyC)
-    expect(
-      hasOpenAccessProvider(instance),
-      "no open-access (self-onboarding) provider on an allowlist policy",
-    ).toBe(false)
+    await step(
+      page,
+      "the allowlist policy deploys with no self-onboarding provider",
+      async () => {
+        expect(instance.name.trim()).toBe(policyC)
+        expect(
+          hasOpenAccessProvider(instance),
+          "no open-access (self-onboarding) provider on an allowlist policy",
+        ).toBe(false)
+      },
+      { req: ["REQ-BOP-052", "REQ-PROTO-011"] },
+    )
 
     // A stranger's deposit reverts (no credential; borrower must add them via the policy).
     const row = (await subgraphMarket(d13.market))!
@@ -804,7 +935,14 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     } catch {
       reverted = true
     }
-    expect(reverted, "non-approved deposit reverts").toBe(true)
+    await step(
+      page,
+      "an address the borrower has not allowlisted cannot deposit",
+      async () => {
+        expect(reverted, "non-approved deposit reverts").toBe(true)
+      },
+      { req: ["REQ-LEN-111", "REQ-PROTO-105"] },
+    )
     // NOTE: the approve-then-deposit half (borrower adds a lender via the policy) is exercised
     // by the lenders-list flows on sheet 4; here the policy shape + the block are the oracle.
     attachAgreement("MKT-13 allowlist", {
@@ -912,17 +1050,38 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     // Chain truth first.
     const selfOnboarding = (await hooksInstance(d1.hooks))!
     const allowlist = (await hooksInstance(d13.hooks))!
-    expect(hasOpenAccessProvider(selfOnboarding)).toBe(true)
-    expect(hasOpenAccessProvider(allowlist)).toBe(false)
+    await step(
+      page,
+      "the two policies differ on chain by their access provider",
+      async () => {
+        expect(hasOpenAccessProvider(selfOnboarding)).toBe(true)
+        expect(hasOpenAccessProvider(allowlist)).toBe(false)
+      },
+      { req: ["REQ-BOP-133"] },
+    )
 
     await connectAs(page, 3)
     const rowA = await revealPolicyRow(page, policyA)
-    await expect(rowA).toContainText("Self-Onboard")
+    await step(
+      page,
+      "the self-onboarding policy is labelled Self-Onboard",
+      async () => {
+        await expect(rowA).toContainText("Self-Onboard")
+      },
+      { req: ["REQ-BOP-133"] },
+    )
 
     const rowC = await revealPolicyRow(page, policyC)
-    // Manual-approval policies must NOT be labeled self-onboarding.
-    await expect(rowC).toContainText("Manual Approval")
-    await expect(rowC).not.toContainText("Self-Onboard")
+    await step(
+      page,
+      "the allowlist policy is labelled Manual Approval and never Self-Onboard",
+      async () => {
+        // Manual-approval policies must NOT be labeled self-onboarding.
+        await expect(rowC).toContainText("Manual Approval")
+        await expect(rowC).not.toContainText("Self-Onboard")
+      },
+      { req: ["REQ-BOP-133"] },
+    )
     attachAgreement("MKT-15 labels", {
       [policyA]: "Self-Onboard",
       [policyC]: "Manual Approval",
@@ -1105,34 +1264,50 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     // a Safe signer set + the Safe UI. Infrastructure gap — manual test.
   })
 
-  test("MKT-19: staged deploy (1/3 token, 2/3 market, 3/3 wrapper) + exact token identity + MLA upload", requirements(["REQ-BOP-067", "REQ-BOP-137", "REQ-MKT-011"]), async () => {
+  test("MKT-19: staged deploy (1/3 token, 2/3 market, 3/3 wrapper) + exact token identity + MLA upload", requirements(["REQ-BOP-067", "REQ-BOP-137", "REQ-MKT-011"]), async ({
+    page,
+  }) => {
     // Observations recorded during the MKT-16 deploy (same staged pipeline).
     const stepToasts = d16.toasts.filter((t) => /Step \d\/3/.test(t))
-    expect(
-      stepToasts.some((t) => /Step 1\/3/.test(t) && /Mock Token/i.test(t)),
-      `mock-token stage announced (saw: ${JSON.stringify(stepToasts)})`,
-    ).toBe(true)
-    expect(
-      stepToasts.some((t) => /Step 2\/3/.test(t) && /Market/i.test(t)),
-      "market stage announced",
-    ).toBe(true)
-    expect(
-      stepToasts.some((t) => /Step 3\/3/.test(t) && /Wrapper/i.test(t)),
-      "wrapper stage announced",
-    ).toBe(true)
-    expect(
-      d16.toasts.some((t) => /MLA selection/i.test(t)),
-      "MLA upload step announced",
-    ).toBe(true)
+    await step(
+      page,
+      "the staged deploy announced each of its three stages and the MLA step",
+      async () => {
+        expect(
+          stepToasts.some((t) => /Step 1\/3/.test(t) && /Mock Token/i.test(t)),
+          `mock-token stage announced (saw: ${JSON.stringify(stepToasts)})`,
+        ).toBe(true)
+        expect(
+          stepToasts.some((t) => /Step 2\/3/.test(t) && /Market/i.test(t)),
+          "market stage announced",
+        ).toBe(true)
+        expect(
+          stepToasts.some((t) => /Step 3\/3/.test(t) && /Wrapper/i.test(t)),
+          "wrapper stage announced",
+        ).toBe(true)
+        expect(
+          d16.toasts.some((t) => /MLA selection/i.test(t)),
+          "MLA upload step announced",
+        ).toBe(true)
+      },
+      { req: ["REQ-BOP-067"] },
+    )
 
     // Token name and symbol deploy exactly as entered (no auto-suffix), on both the freshly
     // deployed mock asset and the market token derived from it.
     const onChain = await readNewMarket(d16.market)
     const assetMeta = await erc20Meta(onChain.asset)
-    expect(assetMeta.name).toBe(asset.name)
-    expect(assetMeta.symbol).toBe(asset.symbol)
-    expect(onChain.name).toBe(`${d16.namePrefix} ${asset.name}`)
-    expect(onChain.symbol).toBe(`${d16.symbolPrefix}${asset.symbol}`)
+    await step(
+      page,
+      "the token deployed with exactly the name and symbol entered",
+      async () => {
+        expect(assetMeta.name).toBe(asset.name)
+        expect(assetMeta.symbol).toBe(asset.symbol)
+        expect(onChain.name).toBe(`${d16.namePrefix} ${asset.name}`)
+        expect(onChain.symbol).toBe(`${d16.symbolPrefix}${asset.symbol}`)
+      },
+      { req: ["REQ-BOP-137"] },
+    )
     attachAgreement("MKT-19 staged deploy", {
       toasts: d16.toasts.filter((t) => /Step \d\/3|MLA/i.test(t)),
       assetMeta,
@@ -1233,25 +1408,35 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     // response DID carry the market (name + deployedEvent, isClosed false), and the final frame
     // is a connected /borrower with an empty "Your Markets" table.
     const newest = page.getByText(d20.marketName).first()
-    await expect
-      .poll(
-        async () => {
-          const seen = await newest
-            .waitFor({ state: "visible", timeout: 20_000 })
-            .then(() => true)
-            .catch(() => false)
-          if (!seen) {
-            await page.reload()
-            await ensureConnected(page, borrower)
-          }
-          return seen
-        },
-        { timeout: 180_000, message: "newest market visible on the overview" },
-      )
-      .toBe(true)
-    await expect(page.getByText(d1.marketName).first()).toBeVisible({
-      timeout: 60_000,
-    })
+    await step(
+      page,
+      "the newest market appears on the borrower overview",
+      async () => {
+        await expect
+          .poll(
+            async () => {
+              const seen = await newest
+                .waitFor({ state: "visible", timeout: 20_000 })
+                .then(() => true)
+                .catch(() => false)
+              if (!seen) {
+                await page.reload()
+                await ensureConnected(page, borrower)
+              }
+              return seen
+            },
+            {
+              timeout: 180_000,
+              message: "newest market visible on the overview",
+            },
+          )
+          .toBe(true)
+        await expect(page.getByText(d1.marketName).first()).toBeVisible({
+          timeout: 60_000,
+        })
+      },
+      { req: ["REQ-BOP-134"] },
+    )
     attachAgreement("MKT-21 visibility", {
       subgraphIndexingLagMsByCase: indexingLags,
       note: "lag measured from deploy-success dialog to the market appearing in the fork subgraph",
@@ -1262,9 +1447,23 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     page,
   }) => {
     const wrapper = await wrapperForMarket(d16.market)
-    expect(wrapper, "market records its wrapper").not.toBe(zeroAddress)
+    await step(
+      page,
+      "the market records a deployed wrapper",
+      async () => {
+        expect(wrapper, "market records its wrapper").not.toBe(zeroAddress)
+      },
+      { req: ["REQ-BOP-063"] },
+    )
     const code = await getCode(wrapper as Address)
-    expect(code && code !== "0x", "wrapper has code").toBe(true)
+    await step(
+      page,
+      "the recorded wrapper address holds contract code",
+      async () => {
+        expect(code && code !== "0x", "wrapper has code").toBe(true)
+      },
+      { req: ["REQ-BOP-063"] },
+    )
 
     await connectAs(page, 3)
     await page.goto(`/borrower/market/${d16.market.toLowerCase()}`)
@@ -1273,8 +1472,16 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
       .getByRole("button", { name: /Wrapped Debt Token/ })
       .first()
       .click()
-    // VERIFY: with a wrapper present the section shows the wrapper UI, not the deploy CTA.
-    await expect(page.getByText("No wrapper deployed")).toHaveCount(0)
+    await step(
+      page,
+      "the market page shows the wrapper instead of the deploy CTA",
+      async () => {
+        // VERIFY: with a wrapper present the section shows the wrapper UI, not
+        // the deploy CTA.
+        await expect(page.getByText("No wrapper deployed")).toHaveCount(0)
+      },
+      { req: ["REQ-BOP-063"] },
+    )
     attachAgreement("MKT-22 wrapper", { market: d16.market, wrapper })
   })
 
@@ -1468,7 +1675,9 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
  * The probe is read-only: `previewDeployMarket` plus `callStatic`. Nothing is mined.
  */
 test.describe("borrower flows: market creation — M5 deploy-parameter probe", () => {
-  test("M5: an undefined fixedTermEndTime reproduces the app's `invalid BigNumber value`", requirements(["REQ-PROTO-111"]), async () => {
+  test("M5: an undefined fixedTermEndTime reproduces the app's `invalid BigNumber value`", requirements(["REQ-PROTO-111"]), async ({
+    page,
+  }) => {
     /* eslint-disable global-require, @typescript-eslint/no-var-requires */
     const { ethers, constants } = require("ethers")
     const sdkRoot = require("@wildcatfi/wildcat-sdk")
@@ -1580,13 +1789,26 @@ test.describe("borrower flows: market creation — M5 deploy-parameter probe", (
       fixedTermEndTimeSet: fixedSet,
     })
 
-    // The chain is not the problem: the very same shape deploys once the value is present.
-    expect(openTerm.outcome, "open-term deploy is unaffected").toBe("deployed")
-    expect(fixedSet.outcome, "fixed-term deploy with a maturity").toBe(
-      "deployed",
+    // Q6: this probe is DEFERRED out of the pilot — declared and checkpointed, assertion left
+    // exactly as it is. It asserts the DEFECT, not REQ-PROTO-111's desired rejection, so the
+    // row passes while the ledger's `known-defect` expects a failure: an accepted
+    // `unexpected-pass`, named in the report. Rewriting it to assert the rejection is Task 11.
+    await step(
+      page,
+      "a missing fixed-term end time reproduces the deploy crash",
+      async () => {
+        // The chain is not the problem: the very same shape deploys once the value is present.
+        expect(openTerm.outcome, "open-term deploy is unaffected").toBe(
+          "deployed",
+        )
+        expect(fixedSet.outcome, "fixed-term deploy with a maturity").toBe(
+          "deployed",
+        )
+        // …and the app's reported failure is reproduced, byte for byte, by one missing value.
+        expect(fixedUndefined.outcome).toBe("threw")
+        expect(fixedUndefined.message, "M5's exact error").toMatch(M5)
+      },
+      { req: ["REQ-PROTO-111"] },
     )
-    // …and the app's reported failure is reproduced, byte for byte, by one missing value.
-    expect(fixedUndefined.outcome).toBe("threw")
-    expect(fixedUndefined.message, "M5's exact error").toMatch(M5)
   })
 })
