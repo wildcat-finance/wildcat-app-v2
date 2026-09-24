@@ -15,9 +15,6 @@ import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
-import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
-import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
-import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import { useApprovalModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
 import { useApprove } from "@/app/[locale]/borrower/market/[address]/hooks/useGetApproval"
 import { BorrowerPenaltyWarning } from "@/app/[locale]/lender/market/[address]/components/BorrowerPenaltyWarning"
@@ -36,6 +33,7 @@ import { TooltipButton } from "@/components/TooltipButton"
 import { Trans } from "@/components/Translation"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { TxStatusPanel, TxStatusSheet } from "@/components/TxStatusPanel"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useDepositAgreementGate } from "@/hooks/useDepositAgreementGate"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -1011,25 +1009,16 @@ export const DepositModal = ({
           </Box>
         </Box>
 
-        <Dialog
+        <TxStatusSheet
           open={isDepositing || showErrorPopup || showSuccessPopup}
-          sx={{
-            backdropFilter: "blur(10px)",
-
-            "& .MuiDialog-paper": {
-              height: "353px",
-              width: "100%",
-              border: "none",
-              borderRadius: "20px",
-              padding: "24px 0",
-              margin: "auto 0 4px",
-            },
-          }}
         >
-          {txView === "loading" && <LoadingModal txHash={txHash} />}
+          {txView === "loading" && (
+            <TxStatusPanel status="loading" txHash={txHash} />
+          )}
           {txView === "error" && (
-            <ErrorModal
-              onTryAgain={handleTryAgain}
+            <TxStatusPanel
+              status="error"
+              onAction={handleTryAgain}
               onClose={() => {
                 setShowErrorPopup(false)
                 resetDeposit()
@@ -1040,7 +1029,8 @@ export const DepositModal = ({
             />
           )}
           {txView === "success" && (
-            <SuccessModal
+            <TxStatusPanel
+              status="success"
               onClose={() => {
                 setShowSuccessPopup(false)
                 resetDeposit()
@@ -1050,7 +1040,7 @@ export const DepositModal = ({
               txHash={txHash}
             />
           )}
-        </Dialog>
+        </TxStatusSheet>
       </>
     )
 
@@ -1551,10 +1541,13 @@ export const DepositModal = ({
                 flexDirection: "column",
               }}
             >
-              {txView === "loading" && <LoadingModal txHash={txHash} />}
+              {txView === "loading" && (
+                <TxStatusPanel status="loading" txHash={txHash} />
+              )}
               {txView === "error" && (
-                <ErrorModal
-                  onTryAgain={handleTryAgain}
+                <TxStatusPanel
+                  status="error"
+                  onAction={handleTryAgain}
                   onClose={() => {
                     setShowErrorPopup(false)
                     resetDeposit()
@@ -1564,7 +1557,8 @@ export const DepositModal = ({
                 />
               )}
               {txView === "success" && (
-                <SuccessModal
+                <TxStatusPanel
+                  status="success"
                   onClose={modal.handleCloseModal}
                   txHash={txHash}
                 />
