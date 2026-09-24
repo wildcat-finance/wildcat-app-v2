@@ -243,6 +243,24 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
 
     await step(
       page,
+      "the confirmation screen restates the market term that was picked",
+      async () => {
+        expect(reviewD1["Market Term"]).toBe("Open Term Loan")
+      },
+      { req: ["REQ-BOP-041"] },
+    )
+
+    await step(
+      page,
+      "the confirmation screen names the standard market implementation",
+      async () => {
+        expect(reviewD1["Market Type"]).toBe("Standard")
+      },
+      { req: ["REQ-PROTO-004"] },
+    )
+
+    await step(
+      page,
       "deploy is locked until the refusal is signed",
       async () => {
         await expect(deployButton(page)).toBeDisabled()
@@ -259,11 +277,18 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
 
     // Policy exists on the subgraph with the given name and self-onboarding access.
     const instance = (await hooksInstance(d1.hooks))!
-    expect(instance, "hooks instance indexed").not.toBeNull()
-    expect(instance.name.trim()).toBe(policyA)
-    expect(instance.kind).toBe("OpenTerm")
-    expect(hasOpenAccessProvider(instance), "self-onboarding provider").toBe(
-      true,
+    await step(
+      page,
+      "the new policy is indexed with its name, kind and access",
+      async () => {
+        expect(instance, "hooks instance indexed").not.toBeNull()
+        expect(instance.name.trim()).toBe(policyA)
+        expect(instance.kind).toBe("OpenTerm")
+        expect(hasOpenAccessProvider(instance), "self-onboarding provider").toBe(
+          true,
+        )
+      },
+      { req: ["REQ-BOP-037", "REQ-PROTO-001"] },
     )
 
     await step(
@@ -275,6 +300,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
         // VERIFY: PoliciesSection renders "Self-Onboard" for open-access policies.
         await expect(row).toContainText("Self-Onboard")
       },
+      { req: ["REQ-BOP-037"] },
     )
     attachAgreement("MKT-01 policy", {
       market: d1.market,
@@ -364,21 +390,26 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     expect(marketIds).toContain(d1.market.toLowerCase())
     expect(marketIds).toContain(d2.market.toLowerCase())
 
-    await step(page, "policy page lists both markets", async () => {
-      await page.goto(`/borrower/policy?policy=${d1.hooks}`)
-      await ensureConnected(page, borrower)
-      // VERIFY: the policy page's Markets tab lists assigned market names (tab may need a click).
-      const marketsTab = page.getByRole("tab", { name: /markets/i })
-      if (await marketsTab.isVisible({ timeout: 5_000 }).catch(() => false)) {
-        await marketsTab.click()
-      }
-      await expect(page.getByText(d1.marketName).first()).toBeVisible({
-        timeout: 60_000,
-      })
-      await expect(page.getByText(d2.marketName).first()).toBeVisible({
-        timeout: 60_000,
-      })
-    })
+    await step(
+      page,
+      "policy page lists both markets",
+      async () => {
+        await page.goto(`/borrower/policy?policy=${d1.hooks}`)
+        await ensureConnected(page, borrower)
+        // VERIFY: the policy page's Markets tab lists assigned market names (tab may need a click).
+        const marketsTab = page.getByRole("tab", { name: /markets/i })
+        if (await marketsTab.isVisible({ timeout: 5_000 }).catch(() => false)) {
+          await marketsTab.click()
+        }
+        await expect(page.getByText(d1.marketName).first()).toBeVisible({
+          timeout: 60_000,
+        })
+        await expect(page.getByText(d2.marketName).first()).toBeVisible({
+          timeout: 60_000,
+        })
+      },
+      { req: ["REQ-BOP-037"] },
+    )
     attachAgreement("MKT-02 policy reuse", {
       policy: d1.hooks,
       markets: marketIds,
@@ -418,11 +449,16 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     const before = new Set(await borrowerMarketIds())
     await walkToConfirmation(page, cfg, "refusal")
 
-    await step(page, "both toggles shown on review", async () => {
-      expect(await reviewValue(page, "Permit Early Termination")).toBe("Yes")
-      expect(await reviewValue(page, "Permit Maturity Reduction")).toBe("Yes")
-      expect(await reviewValue(page, "Market Term")).toBe("Fixed Term Loan")
-    })
+    await step(
+      page,
+      "both toggles shown on review",
+      async () => {
+        expect(await reviewValue(page, "Permit Early Termination")).toBe("Yes")
+        expect(await reviewValue(page, "Permit Maturity Reduction")).toBe("Yes")
+        expect(await reviewValue(page, "Market Term")).toBe("Fixed Term Loan")
+      },
+      { req: ["REQ-BOP-041", "REQ-BOP-043", "REQ-BOP-044"] },
+    )
 
     await signMlaRefusal(page)
     const outcome = await deployAndAwait(page, before)
@@ -430,12 +466,33 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     await closeSuccessDialog(page)
 
     const row = (await subgraphMarket(outcome.market))!
-    expect(row.hooks?.kind).toBe("FixedTerm")
+    await step(
+      page,
+      "the fixed-term hooks template was deployed",
+      async () => {
+        expect(row.hooks?.kind).toBe("FixedTerm")
+      },
+      { req: ["REQ-PROTO-002"] },
+    )
     expect(Number(row.hooksConfig?.fixedTermEndTime)).toBe(
       fixedTermExpectedUnix,
     )
-    expect(row.hooksConfig?.allowClosureBeforeTerm).toBe(true)
-    expect(row.hooksConfig?.allowTermReduction).toBe(true)
+    await step(
+      page,
+      "closure before maturity is permitted on chain",
+      async () => {
+        expect(row.hooksConfig?.allowClosureBeforeTerm).toBe(true)
+      },
+      { req: ["REQ-BOP-043"] },
+    )
+    await step(
+      page,
+      "maturity reduction is permitted on chain",
+      async () => {
+        expect(row.hooksConfig?.allowTermReduction).toBe(true)
+      },
+      { req: ["REQ-BOP-044"] },
+    )
 
     // SECOND fixed-term market, same case. BOP-24 closes a permitted fixed-term market BEFORE its
     // maturity, which is destructive: doing it on the market above would leave BOP-15/BOP-18 (and
@@ -513,12 +570,17 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     const before = new Set(await borrowerMarketIds())
     await walkToConfirmation(page, cfg, "refusal")
 
-    await step(page, "both pricing fields labeled on review", async () => {
-      expect(await reviewValue(page, "Market Type")).toBe("Revolving")
-      expect(await reviewValue(page, "Utilization APR")).toMatch(/^10(\.0+)?%$/)
-      expect(await reviewValue(page, "Commitment Fee")).toMatch(/^2(\.0+)?%$/)
-      expect(await reviewValue(page, "Reserve Ratio")).toMatch(/^0(\.0+)?%$/)
-    })
+    await step(
+      page,
+      "both pricing fields labeled on review",
+      async () => {
+        expect(await reviewValue(page, "Market Type")).toBe("Revolving")
+        expect(await reviewValue(page, "Utilization APR")).toMatch(/^10(\.0+)?%$/)
+        expect(await reviewValue(page, "Commitment Fee")).toMatch(/^2(\.0+)?%$/)
+        expect(await reviewValue(page, "Reserve Ratio")).toMatch(/^0(\.0+)?%$/)
+      },
+      { req: ["REQ-BOP-040", "REQ-BOP-058"] },
+    )
 
     await signMlaRefusal(page)
     const outcome = await deployAndAwait(page, before)
@@ -526,8 +588,22 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     await closeSuccessDialog(page)
 
     const row = (await subgraphMarket(outcome.market))!
-    expect(row.marketKind).toBe("REVOLVING")
-    expect(Number(row.commitmentFeeBips)).toBe(200)
+    await step(
+      page,
+      "the revolving implementation was deployed",
+      async () => {
+        expect(row.marketKind).toBe("REVOLVING")
+      },
+      { req: ["REQ-PROTO-005", "REQ-PROTO-006", "REQ-PROTO-007"] },
+    )
+    await step(
+      page,
+      "the commitment fee is recorded on chain",
+      async () => {
+        expect(Number(row.commitmentFeeBips)).toBe(200)
+      },
+      { req: ["REQ-BOP-058"] },
+    )
     expect(Number(row.reserveRatioBips)).toBe(0)
     attachAgreement("MKT-05 revolving", {
       market: outcome.market,
@@ -568,6 +644,17 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
           await reviewValue(page, "First Withdrawal Window [UTC]"),
         ).toMatch(/\d{2}\/\d{2}\/\d{4} \d{2}:\d{2} UTC/)
       },
+      {
+        req: [
+          "REQ-BOP-045",
+          "REQ-BOP-046",
+          "REQ-BOP-047",
+          "REQ-BOP-048",
+          "REQ-MKT-014",
+          "REQ-MKT-015",
+          "REQ-MKT-016",
+        ],
+      },
     )
 
     await signMlaRefusal(page)
@@ -576,11 +663,25 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     await closeSuccessDialog(page)
 
     const row = (await subgraphMarket(outcome.market))!
-    expect(row.hooks?.kind).toBe("PeriodicTerm")
-    expect(Number(row.hooksConfig?.periodDuration)).toBe(30 * 60)
-    expect(Number(row.hooksConfig?.withdrawalWindowDuration)).toBe(10 * 60)
-    expect(Number(row.hooksConfig?.firstWithdrawalWindowStart)).toBe(
-      start.expectedUnix,
+    await step(
+      page,
+      "the periodic-term hooks template was deployed",
+      async () => {
+        expect(row.hooks?.kind).toBe("PeriodicTerm")
+      },
+      { req: ["REQ-BOP-041", "REQ-PROTO-003", "REQ-PROTO-006"] },
+    )
+    await step(
+      page,
+      "the schedule is recorded on chain exactly as entered",
+      async () => {
+        expect(Number(row.hooksConfig?.periodDuration)).toBe(30 * 60)
+        expect(Number(row.hooksConfig?.withdrawalWindowDuration)).toBe(10 * 60)
+        expect(Number(row.hooksConfig?.firstWithdrawalWindowStart)).toBe(
+          start.expectedUnix,
+        )
+      },
+      { req: ["REQ-BOP-045", "REQ-BOP-046", "REQ-BOP-047", "REQ-BOP-048"] },
     )
     attachAgreement("MKT-06 periodic", {
       market: outcome.market,
@@ -651,19 +752,29 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     await fillBasicStep(page, cfg)
     await clickNext(page)
 
-    await step(page, "blank form: Next disabled", async () => {
-      await expect(nextButton(page)).toBeDisabled()
-    })
+    await step(
+      page,
+      "blank form: Next disabled",
+      async () => {
+        await expect(nextButton(page)).toBeDisabled()
+      },
+      { req: ["REQ-BOP-066", "REQ-BOP-131"] },
+    )
 
-    await step(page, "0 capacity is not accepted as valid", async () => {
-      await fillField(page, "Maximum Borrowing Capacity", "0")
-      await fillField(page, "Base APR", "10")
-      await fillField(page, "Penalty APR", "10")
-      await fillField(page, "Reserve Ratio", "20")
-      await fillField(page, "Grace Period Duration", "1")
-      await fillField(page, "Withdrawal Cycle Duration", "1")
-      await expect(nextButton(page)).toBeDisabled()
-    })
+    await step(
+      page,
+      "0 capacity is not accepted as valid",
+      async () => {
+        await fillField(page, "Maximum Borrowing Capacity", "0")
+        await fillField(page, "Base APR", "10")
+        await fillField(page, "Penalty APR", "10")
+        await fillField(page, "Reserve Ratio", "20")
+        await fillField(page, "Grace Period Duration", "1")
+        await fillField(page, "Withdrawal Cycle Duration", "1")
+        await expect(nextButton(page)).toBeDisabled()
+      },
+      { req: ["REQ-BOP-131"] },
+    )
 
     await step(
       page,
@@ -677,6 +788,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
         expect(Number(value)).toBeLessThanOrEqual(100)
         expect(value).not.toBe("150")
       },
+      { req: ["REQ-BOP-131", "REQ-PROTO-102"] },
     )
 
     await step(
@@ -688,32 +800,48 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
         await reserve.pressSequentially("120")
         expect(Number(await reserve.inputValue())).toBeLessThanOrEqual(100)
       },
+      { req: ["REQ-BOP-131", "REQ-PROTO-102"] },
     )
 
-    await step(page, "negative values cannot be typed", async () => {
-      const penalty = controlIn(page, "Penalty APR", "textbox")
-      await penalty.fill("")
-      await penalty.pressSequentially("-5")
-      expect((await penalty.inputValue()).includes("-")).toBe(false)
-    })
+    await step(
+      page,
+      "negative values cannot be typed",
+      async () => {
+        const penalty = controlIn(page, "Penalty APR", "textbox")
+        await penalty.fill("")
+        await penalty.pressSequentially("-5")
+        expect((await penalty.inputValue()).includes("-")).toBe(false)
+      },
+      { req: ["REQ-BOP-131"] },
+    )
 
-    await step(page, "minimum deposit is capped at the capacity", async () => {
-      await fillField(page, "Maximum Borrowing Capacity", "1000")
-      const minDeposit = controlIn(page, "Minimum Deposit", "textbox")
-      await minDeposit.fill("")
-      await minDeposit.pressSequentially("5000")
-      const value = Number((await minDeposit.inputValue()).replace(/,/g, ""))
-      expect(value).toBeLessThanOrEqual(1000)
-    })
+    await step(
+      page,
+      "minimum deposit is capped at the capacity",
+      async () => {
+        await fillField(page, "Maximum Borrowing Capacity", "1000")
+        const minDeposit = controlIn(page, "Minimum Deposit", "textbox")
+        await minDeposit.fill("")
+        await minDeposit.pressSequentially("5000")
+        const value = Number((await minDeposit.inputValue()).replace(/,/g, ""))
+        expect(value).toBeLessThanOrEqual(1000)
+      },
+      { req: ["REQ-BOP-131", "REQ-PROTO-102"] },
+    )
 
-    await step(page, "valid values unlock Next", async () => {
-      await fillField(page, "Maximum Borrowing Capacity", "1000000")
-      await fillField(page, "Base APR", "10")
-      await fillField(page, "Penalty APR", "10")
-      await fillField(page, "Reserve Ratio", "20")
-      await fillField(page, "Minimum Deposit", "100")
-      await expect(nextButton(page)).toBeEnabled({ timeout: 15_000 })
-    })
+    await step(
+      page,
+      "valid values unlock Next",
+      async () => {
+        await fillField(page, "Maximum Borrowing Capacity", "1000000")
+        await fillField(page, "Base APR", "10")
+        await fillField(page, "Penalty APR", "10")
+        await fillField(page, "Reserve Ratio", "20")
+        await fillField(page, "Minimum Deposit", "100")
+        await expect(nextButton(page)).toBeEnabled({ timeout: 15_000 })
+      },
+      { req: ["REQ-BOP-066", "REQ-BOP-131"] },
+    )
   })
 
   test("MKT-09: periodic timing violations rejected at entry; Tab/Enter cannot bypass", requirements(["REQ-BOP-049", "REQ-BOP-050", "REQ-BOP-051"]), async ({
@@ -745,6 +873,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
         ).toBeVisible({ timeout: 15_000 })
         await expect(nextButton(page)).toBeDisabled()
       },
+      { req: ["REQ-BOP-050"] },
     )
 
     await step(
@@ -763,17 +892,23 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
         ).toBeVisible({ timeout: 15_000 })
         await expect(nextButton(page)).toBeDisabled()
       },
+      { req: ["REQ-BOP-051"] },
     )
 
-    await step(page, "correcting the values clears the errors", async () => {
-      await controlIn(page, "Withdrawal Window", "textbox").fill("5")
-      await expect(
-        page.getByText(
-          "Withdrawal window must be shorter than the withdrawal period",
-        ),
-      ).toHaveCount(0)
-      await expect(nextButton(page)).toBeEnabled({ timeout: 15_000 })
-    })
+    await step(
+      page,
+      "correcting the values clears the errors",
+      async () => {
+        await controlIn(page, "Withdrawal Window", "textbox").fill("5")
+        await expect(
+          page.getByText(
+            "Withdrawal window must be shorter than the withdrawal period",
+          ),
+        ).toHaveCount(0)
+        await expect(nextButton(page)).toBeEnabled({ timeout: 15_000 })
+      },
+      { req: ["REQ-BOP-051"] },
+    )
   })
 
   test("MKT-10: step navigation stays usable from the confirmation screen", requirements(["REQ-BOP-065", "REQ-BOP-066"]), async ({
@@ -807,14 +942,19 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
       },
     )
 
-    await step(page, "and forward again to Confirmation", async () => {
-      await page
-        .getByRole("button", { name: /Confirmation/ })
-        .first()
-        .click()
-      await expect(deployButton(page)).toBeVisible({ timeout: 15_000 })
-      await expect(deployButton(page), "unsigned: deploy locked").toBeDisabled()
-    })
+    await step(
+      page,
+      "and forward again to Confirmation",
+      async () => {
+        await page
+          .getByRole("button", { name: /Confirmation/ })
+          .first()
+          .click()
+        await expect(deployButton(page)).toBeVisible({ timeout: 15_000 })
+        await expect(deployButton(page), "unsigned: deploy locked").toBeDisabled()
+      },
+      { req: ["REQ-BOP-065"] },
+    )
     attachAgreement("MKT-10 partial coverage", {
       note:
         "Invalid configurations cannot reach the confirmation screen (per-step gating, " +
@@ -971,6 +1111,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
         await expect(deployButton(page)).toBeDisabled()
         await signMlaRefusal(page)
       },
+      { req: ["REQ-BOP-052", "REQ-BOP-132"] },
     )
 
     const outcome = await deployAndAwait(page, before)
@@ -1011,6 +1152,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
         // Back discarded the signature again (same mechanism as above).
         await expect(deployButton(page), "re-sign forced again").toBeDisabled()
       },
+      { req: ["REQ-BOP-052", "REQ-BOP-132"] },
     )
     attachAgreement("MKT-14 access lock-in", {
       deployed: outcome.market,
@@ -1058,23 +1200,33 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     const before = new Set(await borrowerMarketIds())
     await walkToConfirmation(page, cfg, { template: "Wildcat MLA" })
 
-    await step(page, "View MLA renders the full document", async () => {
-      await expect(deployButton(page), "unsigned: deploy locked").toBeDisabled()
-      await page.getByRole("button", { name: "View MLA" }).click()
-      // The MLA renders in an iframe (srcDoc) inside the modal.
-      const doc = page.frameLocator("iframe").last().locator("body")
-      await expect(doc).toContainText(BORROWER_LEGAL_NAME, { timeout: 60_000 })
-      // The template's execution block reads "Signed by" (no "signature" wording).
-      await expect(doc).toContainText(/signed by/i, { timeout: 15_000 })
-      const { length } = await doc.innerText()
-      expect(length, "document has substance").toBeGreaterThan(2_000)
-      await page.keyboard.press("Escape")
-    })
+    await step(
+      page,
+      "View MLA renders the full document",
+      async () => {
+        await expect(deployButton(page), "unsigned: deploy locked").toBeDisabled()
+        await page.getByRole("button", { name: "View MLA" }).click()
+        // The MLA renders in an iframe (srcDoc) inside the modal.
+        const doc = page.frameLocator("iframe").last().locator("body")
+        await expect(doc).toContainText(BORROWER_LEGAL_NAME, { timeout: 60_000 })
+        // The template's execution block reads "Signed by" (no "signature" wording).
+        await expect(doc).toContainText(/signed by/i, { timeout: 15_000 })
+        const { length } = await doc.innerText()
+        expect(length, "document has substance").toBeGreaterThan(2_000)
+        await page.keyboard.press("Escape")
+      },
+      { req: ["REQ-BOP-030"] },
+    )
 
-    await step(page, "borrower must sign before deployment", async () => {
-      await expect(deployButton(page)).toBeDisabled()
-      await signMlaThroughModal(page)
-    })
+    await step(
+      page,
+      "borrower must sign before deployment",
+      async () => {
+        await expect(deployButton(page)).toBeDisabled()
+        await signMlaThroughModal(page)
+      },
+      { req: ["REQ-BOP-064"] },
+    )
 
     const outcome = await deployAndAwait(page, before)
     indexingLags["MKT-16"] = outcome.indexingLagMs
@@ -1143,6 +1295,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
         expect(message).not.toMatch(/^Sign/i)
         attachAgreement("MKT-17 refusal message", { message })
       },
+      { req: ["REQ-BOP-030", "REQ-BOP-064"] },
     )
     await page.unroute(/127\.0\.0\.1:18545/)
 
@@ -1170,6 +1323,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
         ).toHaveCount(0)
         await expect(deployButton(page)).toBeEnabled({ timeout: 15_000 })
       },
+      { req: ["REQ-BOP-071"] },
     )
 
     await step(
@@ -1188,6 +1342,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
           page.getByRole("button", { name: "Sign", exact: true }),
         ).toBeEnabled({ timeout: 30_000 })
       },
+      { req: ["REQ-BOP-030", "REQ-BOP-064"] },
     )
     // Abandoned on purpose — no deploy in this case.
   })
@@ -1421,53 +1576,63 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
       }
     })
 
-    await step(page, "borrower logs in and saves a description", async () => {
-      await page.goto(`/borrower/market/${d1.market.toLowerCase()}`)
-      await ensureConnected(page, borrower)
-      await page
-        .getByRole("button", { name: /Market Description/ })
-        .first()
-        .click()
-      // AuthWrapper: description editing requires the signed API login (personal_sign).
-      const login = page.getByRole("button", {
-        name: "Log in to change the description",
-      })
-      if (await login.isVisible({ timeout: 10_000 }).catch(() => false)) {
-        await login.click()
-      }
-      const add = page.getByRole("button", { name: /^(Add|Edit)$/ }).first()
-      await expect(add).toBeVisible({ timeout: 60_000 })
-      await add.click()
-      // VERIFY: MDXEditor edit surface is the contenteditable region.
-      const editor = page.locator('[contenteditable="true"]').first()
-      await expect(editor).toBeVisible({ timeout: 30_000 })
-      await editor.click()
-      await editor.pressSequentially(description)
-      await page.getByRole("button", { name: "Save", exact: true }).click()
-      await expect
-        .poll(
-          async () => {
-            const res = await fetch(summaryUrl)
-            if (!res.ok) return ""
-            const json = (await res.json()) as { description?: string } | null
-            return json?.description ?? ""
-          },
-          { timeout: 60_000 },
-        )
-        .toContain(`E2E market description ${stamp}`)
-    })
+    await step(
+      page,
+      "borrower logs in and saves a description",
+      async () => {
+        await page.goto(`/borrower/market/${d1.market.toLowerCase()}`)
+        await ensureConnected(page, borrower)
+        await page
+          .getByRole("button", { name: /Market Description/ })
+          .first()
+          .click()
+        // AuthWrapper: description editing requires the signed API login (personal_sign).
+        const login = page.getByRole("button", {
+          name: "Log in to change the description",
+        })
+        if (await login.isVisible({ timeout: 10_000 }).catch(() => false)) {
+          await login.click()
+        }
+        const add = page.getByRole("button", { name: /^(Add|Edit)$/ }).first()
+        await expect(add).toBeVisible({ timeout: 60_000 })
+        await add.click()
+        // VERIFY: MDXEditor edit surface is the contenteditable region.
+        const editor = page.locator('[contenteditable="true"]').first()
+        await expect(editor).toBeVisible({ timeout: 30_000 })
+        await editor.click()
+        await editor.pressSequentially(description)
+        await page.getByRole("button", { name: "Save", exact: true }).click()
+        await expect
+          .poll(
+            async () => {
+              const res = await fetch(summaryUrl)
+              if (!res.ok) return ""
+              const json = (await res.json()) as { description?: string } | null
+              return json?.description ?? ""
+            },
+            { timeout: 60_000 },
+          )
+          .toContain(`E2E market description ${stamp}`)
+      },
+      { req: ["REQ-BOP-032"] },
+    )
 
-    await step(page, "description renders on the lender side", async () => {
-      await page.goto(`/lender/market/${d1.market.toLowerCase()}`)
-      await ensureConnected(page, borrower)
-      await page
-        .getByRole("button", { name: /Market Description/ })
-        .first()
-        .click()
-      await expect(
-        page.getByText(`E2E market description ${stamp}`, { exact: false }),
-      ).toBeVisible({ timeout: 60_000 })
-    })
+    await step(
+      page,
+      "description renders on the lender side",
+      async () => {
+        await page.goto(`/lender/market/${d1.market.toLowerCase()}`)
+        await ensureConnected(page, borrower)
+        await page
+          .getByRole("button", { name: /Market Description/ })
+          .first()
+          .click()
+        await expect(
+          page.getByText(`E2E market description ${stamp}`, { exact: false }),
+        ).toBeVisible({ timeout: 60_000 })
+      },
+      { req: ["REQ-BOP-032"] },
+    )
     attachAgreement("MKT-24 description", { market: d1.market, description })
   })
 
