@@ -1423,24 +1423,36 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
           .locator('xpath=ancestor::div[contains(@class,"MuiDialog-root")]')
           .locator(".MuiDialog-container")
         await container.click({ position: { x: 5, y: 5 } }) // outside the centred paper = backdrop click
-        await expect(successTitle).toBeVisible()
+        await expect(
+          successTitle,
+          "a backdrop click does not dismiss the completion dialog",
+        ).toBeVisible()
         await page.keyboard.press("Escape")
-        await expect(successTitle).toBeVisible()
+        await expect(
+          successTitle,
+          "an Escape press does not dismiss the completion dialog",
+        ).toBeVisible()
       },
+      { req: ["REQ-BOP-070"] },
     )
 
-    await step(page, "no path back to a re-signable review state", async () => {
-      // Refusal flow: the only exit is the overview button (no MLA download button).
-      await expect(
-        page.getByRole("button", { name: "View/Download MLA" }),
-      ).toHaveCount(0)
-      await closeSuccessDialog(page)
-      // Regression (re-prompt bug): landing page must not ask for another signature.
-      await expect(page.getByText("Market created!")).toHaveCount(0)
-      await expect(
-        page.getByRole("button", { name: "Sign MLA Refusal" }),
-      ).toHaveCount(0)
-    })
+    await step(
+      page,
+      "no path back to a re-signable review state",
+      async () => {
+        // Refusal flow: the only exit is the overview button (no MLA download button).
+        await expect(
+          page.getByRole("button", { name: "View/Download MLA" }),
+        ).toHaveCount(0)
+        await closeSuccessDialog(page)
+        // Regression (re-prompt bug): landing page must not ask for another signature.
+        await expect(page.getByText("Market created!")).toHaveCount(0)
+        await expect(
+          page.getByRole("button", { name: "Sign MLA Refusal" }),
+        ).toHaveCount(0)
+      },
+      { req: ["REQ-BOP-070"] },
+    )
   })
 
   test("MKT-21: new markets appear on the borrower overview; indexing lag recorded", requirements(["REQ-BOP-134"]), async ({
