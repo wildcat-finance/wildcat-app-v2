@@ -27,8 +27,8 @@
     "prepare": "husky",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "board": "sh -c '[ -f harness/fork/.env.fork ] && export $(grep -v \"^#\" harness/fork/.env.fork | xargs) WILDCAT_ENV_FORK_APPLIED=1; PW_VIDEO=on playwright test --grep-invert \"BOP-14\"'; node e2e/tools/check-board.mjs",
-    "board:one": "sh -c '[ -f harness/fork/.env.fork ] && export $(grep -v \"^#\" harness/fork/.env.fork | xargs) WILDCAT_ENV_FORK_APPLIED=1; node e2e/tools/board-one.mjs \"$@\"' _",
+    "board": "sh -c '[ -f harness/fork/.env.fork ] && export $(grep -v \"^#\" harness/fork/.env.fork | xargs) WILDCAT_ENV_FORK_APPLIED=1; PW_VIDEO=on UAT_LEDGER_VERSION=v25 playwright test --grep-invert \"BOP-14\"'; node e2e/tools/check-board.mjs",
+    "board:one": "sh -c '[ -f harness/fork/.env.fork ] && export $(grep -v \"^#\" harness/fork/.env.fork | xargs) WILDCAT_ENV_FORK_APPLIED=1; UAT_LEDGER_VERSION=v25 node e2e/tools/board-one.mjs \"$@\"' _",
     "report": "node e2e/tools/render-report.mjs"
   },
   "dependencies": {
