@@ -529,7 +529,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-08: invalid financial inputs cannot produce a deployable state", requirements(["REQ-BOP-066", "REQ-BOP-131", "REQ-PROTO-102"]), async ({
+  test("MKT-08: invalid financial inputs cannot produce a deployable state", requirements(["REQ-BOP-131", "REQ-PROTO-102"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -550,7 +550,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
       async () => {
         await expect(nextButton(page)).toBeDisabled()
       },
-      { req: ["REQ-BOP-066", "REQ-BOP-131"] },
+      { req: ["REQ-BOP-131"] },
     )
 
     await step(
@@ -632,11 +632,11 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
         await fillField(page, "Minimum Deposit", "100")
         await expect(nextButton(page)).toBeEnabled({ timeout: 15_000 })
       },
-      { req: ["REQ-BOP-066", "REQ-BOP-131"] },
+      { req: ["REQ-BOP-131"] },
     )
   })
 
-  test("MKT-10: step navigation stays usable from the confirmation screen", requirements(["REQ-BOP-065", "REQ-BOP-066"]), async ({
+  test("MKT-10: step navigation stays usable from the confirmation screen", requirements(["REQ-BOP-066"]), async ({
     page,
   }) => {
     // The wizard gates every "Next" (and the sidebar steps) on per-step validity, so an invalid
@@ -697,7 +697,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
         await expect(deployButton(page)).toBeVisible({ timeout: 15_000 })
         await expect(deployButton(page), "unsigned: deploy locked").toBeDisabled()
       },
-      { req: ["REQ-BOP-065", "REQ-BOP-066"] },
+      { req: ["REQ-BOP-066"] },
     )
     attachAgreement("MKT-10 partial coverage", {
       note:
@@ -852,17 +852,24 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
         await expect(deployButton(page)).toBeDisabled()
         await signMlaRefusal(page)
       },
-      { req: ["REQ-BOP-052", "REQ-BOP-132"] },
+      { req: ["REQ-BOP-052"] },
     )
 
     const outcome = await deployAndAwait(page, before)
     indexingLags["MKT-14"] = outcome.indexingLagMs
     await closeSuccessDialog(page)
     const instance = (await hooksInstance(outcome.hooks))!
-    expect(
-      hasOpenAccessProvider(instance),
-      "deployed policy matches the FINAL (allowlist) selection",
-    ).toBe(false)
+    await step(
+      page,
+      "the deployed policy carries the final access selection",
+      async () => {
+        expect(
+          hasOpenAccessProvider(instance),
+          "deployed policy matches the FINAL (allowlist) selection",
+        ).toBe(false)
+      },
+      { req: ["REQ-BOP-132"] },
+    )
 
     await step(
       page,
@@ -890,7 +897,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
         // Back discarded the signature again (same mechanism as above).
         await expect(deployButton(page), "re-sign forced again").toBeDisabled()
       },
-      { req: ["REQ-BOP-052", "REQ-BOP-132"] },
+      { req: ["REQ-BOP-052"] },
     )
     attachAgreement("MKT-14 access lock-in", {
       deployed: outcome.market,
