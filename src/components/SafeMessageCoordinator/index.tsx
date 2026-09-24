@@ -18,7 +18,6 @@ import { SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS } from "@/utils/serviceAgreeme
 const POLL_INTERVAL_MS = 15_000
 
 const flowLabels: Record<PendingSafeMessage["flow"], string> = {
-  login: "login",
   "initial-tou": "Terms of Use acceptance",
   "tou-accept": "Terms of Use acceptance",
   "tou-decline": "Terms of Use decline",

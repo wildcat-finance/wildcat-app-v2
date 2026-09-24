@@ -54,7 +54,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
 
-  const token = await createApiToken(address, body.chainId)
+  const token = await createApiToken(
+    address,
+    body.chainId,
+    result.kind === "GnosisOwnerECDSA" ? result.owner : address,
+  )
 
   if (!token) {
     return NextResponse.json({ error: "Server error" }, { status: 500 })

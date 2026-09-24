@@ -85,7 +85,7 @@ export default function EditProfileForm({
   const { t } = useTranslation()
 
   const token = useAuthToken()
-  const { mutate: login } = useLogin()
+  const { mutate: login, isPending: isLoggingIn } = useLogin()
   const isAdminForChain =
     !!isAdmin && token?.isAdmin && token.chainId === targetChainId
 
@@ -856,6 +856,7 @@ export default function EditProfileForm({
             variant="contained"
             size="large"
             onClick={() => login(address as string)}
+            disabled={isLoggingIn}
           >
             {t("borrowerProfile.edit.buttons.login")}
           </Button>
