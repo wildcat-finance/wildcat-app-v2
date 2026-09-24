@@ -1161,49 +1161,57 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     d20 = { ...outcome, marketName: `${namePrefix} ${asset.name}` }
 
     const successTitle = page.getByText("Market created!")
-    await step(page, "what dismisses the completion dialog", async () => {
-      // A deterministic backdrop click: MUI's Dialog treats a click on its own
-      // `.MuiDialog-container` (which spans the backdrop) as a backdrop-click, whereas a raw
-      // viewport coordinate like (5, 5) can land on whatever overlay happens to be there.
-      // Click the completion dialog's own container, outside its centred paper, so this closes
-      // it for a reason the test controls rather than by luck.
-      //
-      // Measured (main, fresh-fork board): a backdrop click on this container CLOSES the
-      // completion dialog — the runsheet's "Close is the only exit" does not hold on main. This
-      // is a plain MUI Dialog with default dismissal, so Escape closes it too (KNOWN-ISSUES M9,
-      // widened: the modal dismisses on Escape AND on a backdrop click).
-      const completion = page
-        .getByRole("dialog")
-        .filter({ hasText: "Market created!" })
-      await expect(completion).toBeVisible()
-      await expect(
-        page.getByRole("dialog"),
-        "only the completion dialog is open",
-      ).toHaveCount(1)
-      const container = completion
-        .locator('xpath=ancestor::div[contains(@class,"MuiDialog-root")]')
-        .locator(".MuiDialog-container")
-      await container.click({ position: { x: 5, y: 5 } }) // outside the centred paper = backdrop click
-      await expect(
-        successTitle,
-        "a backdrop click dismisses the completion dialog (KNOWN-ISSUES M9)",
-      ).toHaveCount(0, { timeout: 15_000 })
-    })
+    await step(
+      page,
+      "clicking outside does not dismiss the dialog",
+      async () => {
+        // A deterministic backdrop click: MUI's Dialog treats a click on its own
+        // `.MuiDialog-container` (which spans the backdrop) as a backdrop-click, whereas a raw
+        // viewport coordinate like (5, 5) can land on whatever overlay happens to be there.
+        // Click the completion dialog's own container, outside its centred paper, so this
+        // leaves it open for a reason the test controls rather than by luck.
+        const completion = page
+          .getByRole("dialog")
+          .filter({ hasText: "Market created!" })
+        await expect(completion).toBeVisible()
+        await expect(
+          page.getByRole("dialog"),
+          "only the completion dialog is open",
+        ).toHaveCount(1)
+        const container = completion
+          .locator('xpath=ancestor::div[contains(@class,"MuiDialog-root")]')
+          .locator(".MuiDialog-container")
+        await container.click({ position: { x: 5, y: 5 } }) // outside the centred paper = backdrop click
+        await expect(
+          successTitle,
+          "a backdrop click does not dismiss the completion dialog",
+        ).toBeVisible()
+        await page.keyboard.press("Escape")
+        await expect(
+          successTitle,
+          "an Escape press does not dismiss the completion dialog",
+        ).toBeVisible()
+      },
+      { req: ["REQ-BOP-070"] },
+    )
 
-    await step(page, "no path back to a re-signable review state", async () => {
-      if (await successTitle.isVisible().catch(() => false)) {
+    await step(
+      page,
+      "no path back to a re-signable review state",
+      async () => {
         // Refusal flow: the only exit is the overview button (no MLA download button).
         await expect(
           page.getByRole("button", { name: "View/Download MLA" }),
         ).toHaveCount(0)
         await closeSuccessDialog(page)
-      }
-      // Regression (re-prompt bug): landing page must not ask for another signature.
-      await expect(page.getByText("Market created!")).toHaveCount(0)
-      await expect(
-        page.getByRole("button", { name: "Sign MLA Refusal" }),
-      ).toHaveCount(0)
-    })
+        // Regression (re-prompt bug): landing page must not ask for another signature.
+        await expect(page.getByText("Market created!")).toHaveCount(0)
+        await expect(
+          page.getByRole("button", { name: "Sign MLA Refusal" }),
+        ).toHaveCount(0)
+      },
+      { req: ["REQ-BOP-070"] },
+    )
   })
 
   test("MKT-21: new markets appear on the borrower overview; indexing lag recorded", requirements(["REQ-BOP-134"]), async ({
