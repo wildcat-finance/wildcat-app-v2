@@ -75,6 +75,11 @@ export async function middleware(request: NextRequest) {
     )
   }
 
+  const { pathname } = request.nextUrl
+  if (pathname === "/embed" || pathname.startsWith("/embed/")) {
+    return NextResponse.next()
+  }
+
   return i18nRouter(request, i18nConfig)
 }
 
