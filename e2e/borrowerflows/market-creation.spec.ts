@@ -550,7 +550,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-05: revolving market — commitment fee + utilisation APR; 0% reserve ratio", requirements(["REQ-BOP-040", "REQ-BOP-058", "REQ-PROTO-005", "REQ-PROTO-006", "REQ-PROTO-007"]), async ({
+  test("MKT-05: revolving market — commitment fee + utilisation APR; 0% reserve ratio", requirements(["REQ-BOP-040", "REQ-BOP-058", "REQ-PROTO-005", "REQ-PROTO-007"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -594,7 +594,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
       async () => {
         expect(row.marketKind).toBe("REVOLVING")
       },
-      { req: ["REQ-PROTO-005", "REQ-PROTO-006", "REQ-PROTO-007"] },
+      { req: ["REQ-PROTO-005", "REQ-PROTO-007"] },
     )
     await step(
       page,
@@ -612,7 +612,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-06: periodic-term market — schedule fields + unit toggle", requirements(["REQ-BOP-041", "REQ-BOP-045", "REQ-BOP-046", "REQ-BOP-047", "REQ-BOP-048", "REQ-MKT-014", "REQ-MKT-015", "REQ-MKT-016", "REQ-PROTO-003", "REQ-PROTO-006"]), async ({
+  test("MKT-06: periodic-term market — schedule fields + unit toggle", requirements(["REQ-BOP-041", "REQ-BOP-045", "REQ-BOP-046", "REQ-BOP-047", "REQ-BOP-048", "REQ-PROTO-003", "REQ-PROTO-006"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -644,17 +644,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
           await reviewValue(page, "First Withdrawal Window [UTC]"),
         ).toMatch(/\d{2}\/\d{2}\/\d{4} \d{2}:\d{2} UTC/)
       },
-      {
-        req: [
-          "REQ-BOP-045",
-          "REQ-BOP-046",
-          "REQ-BOP-047",
-          "REQ-BOP-048",
-          "REQ-MKT-014",
-          "REQ-MKT-015",
-          "REQ-MKT-016",
-        ],
-      },
+      { req: ["REQ-BOP-045", "REQ-BOP-046", "REQ-BOP-047", "REQ-BOP-048"] },
     )
 
     await signMlaRefusal(page)
@@ -737,7 +727,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     })
   })
 
-  test("MKT-08: invalid financial inputs cannot produce a deployable state", requirements(["REQ-BOP-066", "REQ-BOP-131", "REQ-PROTO-102"]), async ({
+  test("MKT-08: invalid financial inputs cannot produce a deployable state", requirements(["REQ-BOP-131", "REQ-PROTO-102"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -758,7 +748,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
       async () => {
         await expect(nextButton(page)).toBeDisabled()
       },
-      { req: ["REQ-BOP-066", "REQ-BOP-131"] },
+      { req: ["REQ-BOP-131"] },
     )
 
     await step(
@@ -840,11 +830,11 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
         await fillField(page, "Minimum Deposit", "100")
         await expect(nextButton(page)).toBeEnabled({ timeout: 15_000 })
       },
-      { req: ["REQ-BOP-066", "REQ-BOP-131"] },
+      { req: ["REQ-BOP-131"] },
     )
   })
 
-  test("MKT-09: periodic timing violations rejected at entry; Tab/Enter cannot bypass", requirements(["REQ-BOP-049", "REQ-BOP-050", "REQ-BOP-051"]), async ({
+  test("MKT-09: periodic timing violations rejected at entry; Tab/Enter cannot bypass", requirements(["REQ-BOP-050", "REQ-BOP-051"]), async ({
     page,
   }) => {
     await connectAs(page, 3)
@@ -911,7 +901,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     )
   })
 
-  test("MKT-10: step navigation stays usable from the confirmation screen", requirements(["REQ-BOP-065", "REQ-BOP-066"]), async ({
+  test("MKT-10: step navigation stays usable from the confirmation screen", requirements(["REQ-BOP-066"]), async ({
     page,
   }) => {
     // The wizard gates every "Next" (and the sidebar steps) on per-step validity, so an invalid
@@ -942,19 +932,14 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
       },
     )
 
-    await step(
-      page,
-      "and forward again to Confirmation",
-      async () => {
-        await page
-          .getByRole("button", { name: /Confirmation/ })
-          .first()
-          .click()
-        await expect(deployButton(page)).toBeVisible({ timeout: 15_000 })
-        await expect(deployButton(page), "unsigned: deploy locked").toBeDisabled()
-      },
-      { req: ["REQ-BOP-065"] },
-    )
+    await step(page, "and forward again to Confirmation", async () => {
+      await page
+        .getByRole("button", { name: /Confirmation/ })
+        .first()
+        .click()
+      await expect(deployButton(page)).toBeVisible({ timeout: 15_000 })
+      await expect(deployButton(page), "unsigned: deploy locked").toBeDisabled()
+    })
     attachAgreement("MKT-10 partial coverage", {
       note:
         "Invalid configurations cannot reach the confirmation screen (per-step gating, " +
@@ -1111,17 +1096,24 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
         await expect(deployButton(page)).toBeDisabled()
         await signMlaRefusal(page)
       },
-      { req: ["REQ-BOP-052", "REQ-BOP-132"] },
+      { req: ["REQ-BOP-052"] },
     )
 
     const outcome = await deployAndAwait(page, before)
     indexingLags["MKT-14"] = outcome.indexingLagMs
     await closeSuccessDialog(page)
     const instance = (await hooksInstance(outcome.hooks))!
-    expect(
-      hasOpenAccessProvider(instance),
-      "deployed policy matches the FINAL (allowlist) selection",
-    ).toBe(false)
+    await step(
+      page,
+      "the deployed policy carries the final access selection",
+      async () => {
+        expect(
+          hasOpenAccessProvider(instance),
+          "deployed policy matches the FINAL (allowlist) selection",
+        ).toBe(false)
+      },
+      { req: ["REQ-BOP-132"] },
+    )
 
     await step(
       page,
@@ -1152,7 +1144,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
         // Back discarded the signature again (same mechanism as above).
         await expect(deployButton(page), "re-sign forced again").toBeDisabled()
       },
-      { req: ["REQ-BOP-052", "REQ-BOP-132"] },
+      { req: ["REQ-BOP-052"] },
     )
     attachAgreement("MKT-14 access lock-in", {
       deployed: outcome.market,
