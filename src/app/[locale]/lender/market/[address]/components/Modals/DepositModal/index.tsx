@@ -45,6 +45,7 @@ import {
 } from "@/utils/constants"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas, formatUtcMaturity } from "@/utils/formatters"
+import { getStepProgress } from "@/utils/stepProgress"
 
 import { EarningsProjection } from "./EarningsProjection"
 import { DepositModalProps } from "./interface"
@@ -56,6 +57,8 @@ type BorrowerIdentityDisclosureProps = {
   legalName: string | undefined
   alias: string | undefined
 }
+
+const DEPOSIT_FLOW_STEPS = 3
 
 const BorrowerIdentityDisclosure = ({
   legalName,
@@ -653,11 +656,10 @@ export const DepositModal = ({
   }
 
   const progressAmount = () => {
-    if (modal.gettingValueStep) return 33
-    if (isDepositing) return 66
-    if (showSuccessPopup) return 100
-
-    return 0
+    if (txView === "success" || isDeposed)
+      return getStepProgress(2, DEPOSIT_FLOW_STEPS)
+    if (txView || isDepositError) return getStepProgress(1, DEPOSIT_FLOW_STEPS)
+    return getStepProgress(0, DEPOSIT_FLOW_STEPS)
   }
 
   if (isMobile && isMobileOpen)

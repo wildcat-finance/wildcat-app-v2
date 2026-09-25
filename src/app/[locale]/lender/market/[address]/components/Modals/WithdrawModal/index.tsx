@@ -27,6 +27,7 @@ import { COLORS } from "@/theme/colors"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 import { isPeriodicWithdrawalWindowClosed } from "@/utils/periodicWithdrawalWindow"
+import { getStepProgress } from "@/utils/stepProgress"
 
 import { WithdrawForm } from "./components/WithdrawForm"
 import { StepRow, WithdrawSteps } from "./components/WithdrawSteps"
@@ -35,7 +36,7 @@ import { WithdrawModalProps } from "./interface"
 /** Fixed dialog height: every view is laid out inside the same box. */
 const DIALOG_HEIGHT = "493px"
 
-const MAX_PROGRESS_STAGES = 3
+const SINGLE_TRANSACTION_STEPS = 3
 
 export const WithdrawModal = ({
   marketAccount,
@@ -115,16 +116,14 @@ export const WithdrawModal = ({
   })()
 
   const progress = React.useMemo(() => {
-    if (view === "form") return Math.round((1 / MAX_PROGRESS_STAGES) * 100)
+    if (view === "form") return getStepProgress(0, SINGLE_TRANSACTION_STEPS)
 
     const legCount = flow.legs.length || previewLegCount || 1
-    const stages = legCount + 1
-    const settled =
-      view === "done" || view === "proposed" ? legCount : flow.currentLeg
+    const steps = legCount + 2
+    const step =
+      view === "done" || view === "proposed" ? steps - 1 : flow.currentLeg + 1
 
-    const value = Math.round(((settled + 1) / stages) * 100)
-    // Never 0: TransactionHeader guards on truthiness and would print the digit.
-    return Number.isFinite(value) ? Math.min(100, Math.max(1, value)) : 100
+    return getStepProgress(step, steps)
   }, [flow.legs.length, flow.currentLeg, previewLegCount, view])
 
   const handleClose = () => {
