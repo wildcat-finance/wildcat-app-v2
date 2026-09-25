@@ -1486,70 +1486,43 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     attachAgreement("MKT-22 wrapper", { market: d16.market, wrapper })
   })
 
-  test("MKT-23: market without wrapper offers no post-hoc deployment on either side", requirements(["REQ-WRP-008", "REQ-WRP-009"]), async ({
+  test("MKT-23: market without wrapper offers post-hoc deployment on both sides", requirements(["REQ-WRP-009"]), async ({
     page,
   }) => {
+    // DRIVER (per branch): registeredWrapper on v2.5, wrapperForMarket on main.
     expect(await wrapperForMarket(d1.market)).toBe(zeroAddress)
 
     await connectAs(page, 3)
+    // DRIVER: retry through the late deep-link bounce (KNOWN-ISSUES #1) — navigation, not an assertion about REQ-WRP-009.
+    await expect(async () => {
+      if (!page.url().includes(d1.market.toLowerCase())) {
+        await page.goto(`/borrower/market/${d1.market.toLowerCase()}`)
+        await ensureConnected(page, borrower)
+      }
+      await page
+        .getByRole("button", { name: /Wrapped Debt Token/ })
+        .first()
+        .click()
+      await expect(page.getByText("No wrapper deployed")).toBeVisible({
+        timeout: 15_000,
+      })
+    }).toPass({ timeout: 120_000 })
     await step(
       page,
-      "borrower side shows no wrapper and offers no deployment",
+      "borrower side offers wrapper deployment",
       async () => {
-        await expect(async () => {
-          if (!page.url().includes(d1.market.toLowerCase())) {
-            await page.goto(`/borrower/market/${d1.market.toLowerCase()}`)
-            await ensureConnected(page, borrower)
-          }
-          await page
-            .getByRole("button", { name: /Wrapped Debt Token/ })
-            .first()
-            .click()
-          await expect(page.getByText("No wrapper deployed")).toBeVisible({
-            timeout: 15_000,
-          })
-        }).toPass({ timeout: 120_000 })
-        // main hardcodes canCreateWrapper={false} on the borrower side (WrapDebtToken/index.tsx:49,55).
         await expect(
           page.getByRole("button", { name: "Deploy Wrapper" }),
-        ).toHaveCount(0)
+          "a market without a wrapper offers a Deploy Wrapper control",
+        ).toBeVisible({ timeout: 30_000 })
       },
-    )
-
-    await step(
-      page,
-      "lender side also offers no wrapper deployment under the harness",
-      async () => {
-        // Retry through the late deep-link bounce (KNOWN-ISSUES #1).
-        await expect(async () => {
-          if (!page.url().includes(d1.market.toLowerCase())) {
-            await page.goto(`/lender/market/${d1.market.toLowerCase()}`)
-            await ensureConnected(page, borrower)
-          }
-          await page
-            .getByRole("button", { name: /Wrapped Debt Token/ })
-            .first()
-            .click()
-          await expect(page.getByText("No wrapper deployed")).toBeVisible({
-            timeout: 15_000,
-          })
-        }).toPass({ timeout: 120_000 })
-        // Lender-side deployment is gated on `isAuthorizedLender && hasFactory && an ethers
-        // Signer && !isDifferentChain` (lender/market/[address]/components/WrapDebtToken/
-        // index.tsx:111-116; KNOWN-ISSUES M12). The harness connects the market's BORROWER
-        // account (anvil #3) on the lender page through the Local Anvil connector, and under
-        // that connector the "Deploy Wrapper" control never renders here — asserting the
-        // observed absence, not which of the four conditions produces it.
-        await expect(
-          page.getByRole("button", { name: "Deploy Wrapper" }),
-        ).toHaveCount(0)
-      },
+      { req: ["REQ-WRP-009"] },
     )
     attachAgreement("MKT-23 wrapper deploy controls", {
       market: d1.market,
-      borrowerSide: "no deploy control (canCreateWrapper hardcoded false)",
-      lenderSide: "no deploy control under the harness connector (M12)",
+      borrowerSide: "Deploy Wrapper control expected on a market with no wrapper",
     })
+    // Actual post-hoc wrapper deployment is covered on sheet 6.
   })
 
   test("MKT-24: market description — borrower login, edit, save; renders for lenders", requirements(["REQ-BOP-032"]), async ({
@@ -1635,6 +1608,45 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
       { req: ["REQ-BOP-032"] },
     )
     attachAgreement("MKT-24 description", { market: d1.market, description })
+  })
+
+  test("MKT-23b: market without wrapper offers post-hoc deployment on the lender side", requirements(["REQ-WRP-008"]), async ({
+    page,
+  }) => {
+    // DRIVER (per branch): registeredWrapper on v2.5, wrapperForMarket on main.
+    expect(await wrapperForMarket(d1.market)).toBe(zeroAddress)
+
+    await connectAs(page, 3)
+    // DRIVER: retry through the late deep-link bounce (KNOWN-ISSUES #1), same as MKT-23.
+    await expect(async () => {
+      if (!page.url().includes(d1.market.toLowerCase())) {
+        await page.goto(`/lender/market/${d1.market.toLowerCase()}`)
+        await ensureConnected(page, borrower)
+      }
+      await page
+        .getByRole("button", { name: /Wrapped Debt Token/ })
+        .first()
+        .click()
+      await expect(page.getByText("No wrapper deployed")).toBeVisible({
+        timeout: 15_000,
+      })
+    }).toPass({ timeout: 120_000 })
+    await step(
+      page,
+      "lender side offers wrapper deployment too",
+      async () => {
+        await expect(
+          page.getByRole("button", { name: "Deploy Wrapper" }),
+          "a market without a wrapper offers a Deploy Wrapper control",
+        ).toBeVisible({ timeout: 30_000 })
+      },
+      { req: ["REQ-WRP-008"] },
+    )
+    attachAgreement("MKT-23b wrapper deploy controls", {
+      market: d1.market,
+      lenderSide: "Deploy Wrapper control expected on a market with no wrapper",
+    })
+    // Actual post-hoc wrapper deployment is covered on sheet 6.
   })
 
   test("teardown: suite left the shared fixtures intact", infra("teardown"), async () => {
