@@ -1035,29 +1035,9 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
       },
     )
 
-    // The sidebar is a CHAIN, not a set of visited steps: each form enables only the step
-    // after it, and stepping back to Basic Market Setup re-runs that form's effect, which
-    // enables Financial and leaves Confirmation disabled (measured on main: the click hung on
-    // "element is not enabled" until the test timeout). Going forward is Next, not a jump —
-    // so assert the disabled entry and walk. The runsheet's intent (navigation stays usable
-    // for fixing values, deploy stays locked unsigned) is unchanged. UNIFIED on main's
-    // assertion (plan 1.2, controller ruling on blocker 5): v2.5 used to click the Confirmation
-    // tab straight through and asserted nothing here, so if v2.5 does not gate, the failure
-    // this raises is the finding the board must show, not something to normalise away.
-    const confirmationTab = page
-      .getByRole("button", { name: /Confirmation/ })
-      .first()
-    await step(
-      page,
-      "the sidebar chain gates each step on the previous one",
-      async () => {
-        await expect(
-          confirmationTab,
-          "each sidebar step is gated on the previous one",
-        ).toBeDisabled()
-      },
-      { req: ["REQ-BOP-066"] },
-    )
+    // Going forward is Next, not a jump: main's sidebar enables only the step after the current one,
+    // v2.5's keeps every completed step reachable. Which of those is desired is MKT-10b's question
+    // (REQ-BOP-139); this row only needs a route back to Confirmation that exists on both.
     // DRIVER: going forward is Next, not a jump.
     for (
       let i = 0;
@@ -1916,6 +1896,43 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
       lenderSide: "Deploy Wrapper control expected on a market with no wrapper",
     })
     // Actual post-hoc wrapper deployment is covered on sheet 6.
+  })
+
+  // Last row before teardown on purpose: this row shares no market with the rows above, so a
+  // failure here skips only the teardown. It asks the one question MKT-10 no longer asks — how the
+  // wizard sidebar behaves once steps are completed — and asserts main's chain semantics on both
+  // versions. v2.5 keeps completed steps reachable instead; the ledger proposes that as
+  // intentionally-different for product (REQ-BOP-139), and until product rules, the failure this
+  // raises is the finding the board must show.
+  test("MKT-10b: the wizard sidebar chains steps — each step enables only the next", requirements(["REQ-BOP-139"]), async ({
+    page,
+  }) => {
+    await connectAs(page, 3)
+    await gotoCreateMarket(page)
+    const cfg = baseCfg({
+      policy: { kind: "new", name: `E2E Pol V10b ${stamp}` },
+      namePrefix: `E2E MC10b ${stamp}`,
+      symbolPrefix: "E2EY",
+    })
+    await walkToConfirmation(page, cfg, "refusal")
+    // DRIVER: hop back to the first form; the assertion is about what that leaves enabled.
+    await page
+      .getByRole("button", { name: /Basic Market Setup/ })
+      .first()
+      .click()
+    await expect(controlIn(page, "Market Token Name", "textbox")).toBeVisible({ timeout: 15_000 })
+
+    await step(
+      page,
+      "the sidebar chain gates each step on the previous one",
+      async () => {
+        await expect(
+          page.getByRole("button", { name: /Confirmation/ }).first(),
+          "each sidebar step is gated on the previous one",
+        ).toBeDisabled()
+      },
+      { req: ["REQ-BOP-139"] },
+    )
   })
 
   test("teardown: suite left the shared fixtures intact", infra("teardown"), async () => {

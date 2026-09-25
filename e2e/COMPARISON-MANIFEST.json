@@ -97,6 +97,10 @@
       "relation": "v25-improves",
       "reason": "split from MKT-23 in the market-creation pilot (lender side, REQ-WRP-008). v2.5 offers post-hoc wrapper deployment on the lender side; on main the control does not render under the harness connector (gated on an authorised lender with an ethers signer), unverified with a real wallet, so the ledger records main's implementation as unknown rather than a known defect."
     },
+    "MKT-10b": {
+      "relation": "intentionally-different",
+      "reason": "split from MKT-10 in the market-creation pilot (sidebar chain semantics, REQ-BOP-139, intentionally-different proposed). main's wizard sidebar chains steps — completing one enables only the next — and MKT-10b asserts that on both versions; v2.5 keeps every completed step reachable instead (all six ticked and clickable after a hop back to Basic Market Setup), so v2.5 fails this row until product rules on the proposal."
+    },
     "BOP-02": {
       "relation": "identical",
       "note": "main renders the same 'Lenders were edited' confirmation, hard-coded rather than from the locale file; runs on main once borrower-ops uses a borrower-administered allowlist fixture (W6.4)"
