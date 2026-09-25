@@ -162,7 +162,12 @@ export const MarketsFilterSelect = ({
         onClick={handleClear}
         size="small"
         variant="text"
-        sx={{ width: "100%", paddingY: "7px", borderRadius: "0 0 8px 8px" }}
+        sx={{
+          width: "100%",
+          flexShrink: 0,
+          paddingY: "7px",
+          borderRadius: "0 0 8px 8px",
+        }}
       >
         {t("common.buttons.reset")}
       </Button>
