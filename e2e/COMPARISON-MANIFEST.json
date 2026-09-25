@@ -79,7 +79,7 @@
     },
     "MKT-10": {
       "relation": "identical",
-      "note": "step navigation mechanism differs: main's sidebar is a chain (each step enables only the next, so the test walks forward with Next) while v2.5 jumps directly to Confirmation via the sidebar tab; the asserted facts (nav stays usable, unsigned deploy stays locked) hold on both"
+      "note": "step navigation mechanism differs: main's sidebar is a chain (each step enables only the next, so the test walks forward with Next) while v2.5 jumps directly to Confirmation via the sidebar tab; the sidebar-chain semantics are MKT-10b's question (REQ-BOP-139) — MKT-10 itself asserts only that left-nav stays usable and the unsigned deploy stays locked, and both of those hold on both versions"
     },
     "MKT-17": {
       "relation": "intentionally-different",
@@ -100,6 +100,10 @@
     "MKT-10b": {
       "relation": "intentionally-different",
       "reason": "split from MKT-10 in the market-creation pilot (sidebar chain semantics, REQ-BOP-139, intentionally-different proposed). main's wizard sidebar chains steps — completing one enables only the next — and MKT-10b asserts that on both versions; v2.5 keeps every completed step reachable instead (all six ticked and clickable after a hop back to Basic Market Setup), so v2.5 fails this row until product rules on the proposal."
+    },
+    "MKT-03b": {
+      "relation": "intentionally-different",
+      "reason": "split from MKT-03 in the market-creation pilot (confirmation-screen formatting, REQ-BOP-140, intentionally-different proposed). v2.5's confirmation screen groups the capacity in thousands and humanises durations (1,000,000 DAI, 1 hour) and MKT-03b asserts that on both versions; main renders the raw form values instead (1000000 DAI, 1 hours), so main fails this row until product rules on the proposal."
     },
     "BOP-02": {
       "relation": "identical",
