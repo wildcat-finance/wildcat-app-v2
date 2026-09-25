@@ -87,6 +87,29 @@ import { expect, test } from "../lib/test"
 
 const stamp = Date.now().toString(36)
 
+let asset: { address: string; name: string; symbol: string }
+const financialDefaults = {
+  capacity: "1000000",
+  apr: "10",
+  penalty: "10",
+  reserve: "20",
+  grace: "1",
+  cycle: "1",
+  minimumDeposit: "100",
+}
+
+const baseCfg = (
+  overrides: Partial<CreateMarketConfig> &
+    Pick<CreateMarketConfig, "policy" | "namePrefix" | "symbolPrefix">,
+): CreateMarketConfig => ({
+  implementation: "Standard",
+  term: "Open Term Loan",
+  access: "Lender Self-Onboarding",
+  asset,
+  financial: { ...financialDefaults },
+  ...overrides,
+})
+
 test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
   // ------------------------------------------------------------------------------------------
   // RUNS IN BOTH VARIANTS (2026-09-07). It used to be v2.5-only as a block, for two reasons that
@@ -121,17 +144,6 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
   // need more than 300s on the fork (MKT-01 deployed successfully and then ran out of budget).
   test.setTimeout(540_000)
 
-  let asset: { address: string; name: string; symbol: string }
-  const financialDefaults = {
-    capacity: "1000000",
-    apr: "10",
-    penalty: "10",
-    reserve: "20",
-    grace: "1",
-    cycle: "1",
-    minimumDeposit: "100",
-  }
-
   const policyA = `E2E Pol A ${stamp}` // self-onboarding, open term (MKT-01/03)
   const policyC = `E2E Pol C ${stamp}` // allowlist (MKT-13)
   const policyD = `E2E Pol D ${stamp}` // access switcheroo (MKT-14)
@@ -146,18 +158,6 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
   let d16: DeployOutcome & { namePrefix: string; symbolPrefix: string }
   let d20: DeployOutcome & { marketName: string }
   const indexingLags: Record<string, number> = {}
-
-  const baseCfg = (
-    overrides: Partial<CreateMarketConfig> &
-      Pick<CreateMarketConfig, "policy" | "namePrefix" | "symbolPrefix">,
-  ): CreateMarketConfig => ({
-    implementation: "Standard",
-    term: "Open Term Loan",
-    access: "Lender Self-Onboarding",
-    asset,
-    financial: { ...financialDefaults },
-    ...overrides,
-  })
 
   const revealPolicyRow = async (
     page: import("@playwright/test").Page,
@@ -358,29 +358,14 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
       { req: ["REQ-BOP-065"] },
     )
 
-    // Review formatting, UNIFIED on v2.5's display strings (plan 1.2, controller ruling on
-    // blocker 5): the confirmation screen groups the capacity in thousands and humanises the
-    // durations (head a5620443 "unify duration units on confirmation screen" + 3d68d06f "stop
-    // rounding review durations": "1.00 hours" -> "1 hour"). main renders the raw form values
-    // ("1000000 DAI", "1 hours") and is expected to fail the first line here — that failure is
-    // the finding the board must show, never something to normalise away.
+    // How the values are FORMATTED (thousands grouping, humanised durations) is MKT-03b's
+    // question (REQ-BOP-140); this checkpoint only asks that the capacity is stated in the
+    // asset's units.
     await step(
       page,
-      "the confirmation screen restates capacity and durations as a human reads them",
+      "the confirmation screen states the capacity in the asset's units",
       async () => {
-        expect(
-          reviewD1["Maximum Borrowing Capacity"],
-          "the confirmation screen groups the capacity in thousands",
-        ).toContain("1,000,000")
         expect(reviewD1["Maximum Borrowing Capacity"]).toContain(asset.symbol)
-        expect(
-          reviewD1["Grace Period Duration"],
-          "the confirmation screen humanises the grace period",
-        ).toBe("1 hour")
-        expect(
-          reviewD1["Withdrawal Cycle Duration"],
-          "the confirmation screen humanises the withdrawal cycle",
-        ).toBe("1 hour")
       },
       { req: ["REQ-BOP-065"] },
     )
@@ -1629,12 +1614,25 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     // Actual post-hoc wrapper deployment is covered on sheet 6.
   })
 
-  // Last row before teardown on purpose: this row shares no market with the rows above, so a
-  // failure here skips only the teardown. It asks the one question MKT-10 no longer asks — how the
-  // wizard sidebar behaves once steps are completed — and asserts main's chain semantics on both
-  // versions. v2.5 keeps completed steps reachable instead; the ledger proposes that as
-  // intentionally-different for product (REQ-BOP-139), and until product rules, the failure this
-  // raises is the finding the board must show.
+  test("teardown: suite left the shared fixtures intact", infra("teardown"), async () => {
+    // This suite only adds markets/policies under borrower #3 (discovery oracles recompute);
+    // assert we did not disturb the shared lender accounts' ToU/positions.
+    expect(await borrowerTouState()).toBe("signedCurrent")
+    const markets = await borrowerMarketIds()
+    attachAgreement("market-creation end state", {
+      borrower,
+      marketsDeployed: markets,
+      indexingLagsMs: indexingLags,
+    })
+  })
+})
+
+// Findings under PROPOSED rulings live outside the serial group on purpose: each of these rows
+// asserts the same desired behaviour on both versions, the ledger proposes one version as
+// intentionally-different, and until product rules the failure is the finding the board must
+// show. Outside serial mode a failure here skips nothing. Every row walks its own wizard and
+// shares no market with the rows above.
+test.describe("borrower flows: market creation — findings under proposed rulings", () => {
   test("MKT-10b: the wizard sidebar chains steps — each step enables only the next", requirements(["REQ-BOP-139"]), async ({
     page,
   }) => {
@@ -1666,16 +1664,42 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     )
   })
 
-  test("teardown: suite left the shared fixtures intact", infra("teardown"), async () => {
-    // This suite only adds markets/policies under borrower #3 (discovery oracles recompute);
-    // assert we did not disturb the shared lender accounts' ToU/positions.
-    expect(await borrowerTouState()).toBe("signedCurrent")
-    const markets = await borrowerMarketIds()
-    attachAgreement("market-creation end state", {
-      borrower,
-      marketsDeployed: markets,
-      indexingLagsMs: indexingLags,
+  test("MKT-03b: the confirmation screen restates capacity and durations as a human reads them", requirements(["REQ-BOP-140"]), async ({
+    page,
+  }) => {
+    await connectAs(page, 3)
+    await gotoCreateMarket(page)
+    const cfg = baseCfg({
+      policy: { kind: "new", name: `E2E Pol V03b ${stamp}` },
+      namePrefix: `E2E MC03b ${stamp}`,
+      symbolPrefix: "E2EZ",
     })
+    await walkToConfirmation(page, cfg, "refusal")
+    // DRIVER: read the review rows; the assertions are about how they are formatted.
+    const review: Record<string, string> = {}
+    for (const label of ["Maximum Borrowing Capacity", "Grace Period Duration", "Withdrawal Cycle Duration"]) {
+      review[label] = await reviewValue(page, label)
+    }
+
+    await step(
+      page,
+      "the confirmation screen restates capacity and durations as a human reads them",
+      async () => {
+        expect(
+          review["Maximum Borrowing Capacity"],
+          "the confirmation screen groups the capacity in thousands",
+        ).toContain("1,000,000")
+        expect(
+          review["Grace Period Duration"],
+          "the confirmation screen humanises the grace period",
+        ).toBe("1 hour")
+        expect(
+          review["Withdrawal Cycle Duration"],
+          "the confirmation screen humanises the withdrawal cycle",
+        ).toBe("1 hour")
+      },
+      { req: ["REQ-BOP-140"] },
+    )
   })
 })
 
