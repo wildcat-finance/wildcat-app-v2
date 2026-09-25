@@ -109,6 +109,19 @@ const baseCfg = (
   ...overrides,
 })
 
+// The mock asset every market here uses (the openTerm pin's underlying "DAI"). The serial
+// group's setup row pins it; the findings group re-pins it because a failed row recycles the
+// worker, which reloads this file and drops file-scope state.
+const pinAsset = async () => {
+  const pinned = await subgraph.market(pins.markets.openTerm)
+  expect(pinned, "pinned openTerm market on the fork subgraph").not.toBeNull()
+  asset = {
+    address: pinned!.asset.address,
+    name: "Dai Stablecoin",
+    symbol: pinned!.asset.symbol,
+  }
+}
+
 test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
   // Full-wizard tests (walk + wall-clock signing + deploy + chain/subgraph/UI oracles) proved to
   // need more than 300s on the fork (MKT-01 deployed successfully and then ran out of budget).
@@ -174,14 +187,7 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
     await ensureBorrowerRegistered()
     seedBorrowerProfile()
 
-    // The mock asset that every market here uses (the openTerm pin's underlying "DAI").
-    const pinned = await subgraph.market(pins.markets.openTerm)
-    expect(pinned, "pinned openTerm market on the fork subgraph").not.toBeNull()
-    asset = {
-      address: pinned!.asset.address,
-      name: "Dai Stablecoin",
-      symbol: pinned!.asset.symbol,
-    }
+    await pinAsset()
 
     // Profile row visible through the app API (needed by ToU + MLA ceremonies).
     const profile = await (
@@ -1902,6 +1908,10 @@ test.describe.serial("borrower flows: market creation (MKT-01…24)", () => {
 // show. Outside serial mode a failure here skips nothing. Every row walks its own wizard and
 // shares no market with the rows above.
 test.describe("borrower flows: market creation — findings under proposed rulings", () => {
+  test.beforeAll(async () => {
+    if (!asset) await pinAsset()
+  })
+
   test("MKT-10b: the wizard sidebar chains steps — each step enables only the next", requirements(["REQ-BOP-139"]), async ({
     page,
   }) => {
