@@ -91,7 +91,11 @@
     },
     "MKT-23": {
       "relation": "v25-improves",
-      "reason": "v2.5 offers post-hoc wrapper deployment on the borrower side; on main neither side offers it under the harness (borrower side hardcoded false; lender side gated on an authorised lender with an ethers signer — main KNOWN-ISSUES M12, unverified with a real wallet)"
+      "reason": "v2.5 offers post-hoc wrapper deployment on the borrower side; main hardcodes canCreateWrapper={false} there (main KNOWN-ISSUES M12). Borrower side only since the MKT-23 / MKT-23b split; the lender side is MKT-23b."
+    },
+    "MKT-23b": {
+      "relation": "v25-improves",
+      "reason": "split from MKT-23 in the market-creation pilot (lender side, REQ-WRP-008). v2.5 offers post-hoc wrapper deployment on the lender side; on main the control does not render under the harness connector (gated on an authorised lender with an ethers signer), unverified with a real wallet, so the ledger records main's implementation as unknown rather than a known defect."
     },
     "BOP-02": {
       "relation": "identical",
