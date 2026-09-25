@@ -8,6 +8,7 @@ import { useGetServiceAgreementStatus } from "@/app/[locale]/borrower/hooks/useG
 import { useBorrowerAggregateStats } from "@/app/[locale]/borrower/profile/hooks/analytics/useBorrowerAggregateStats"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { Footer } from "@/components/Footer"
+import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
 import { ToUStatusBlock } from "@/components/Profile/components/ToUStatusBlock"
 import { BorrowerProfileVerificationDisclosure } from "@/components/Profile/components/VerificationDisclosure"
 import { ProfileTabBar } from "@/components/Profile/shared/ProfileTabBar"
@@ -25,13 +26,20 @@ import { countMarketsInDefault } from "@/utils/marketStatus"
 
 import { BorrowerChartsTab } from "./components/BorrowerChartsTab"
 import { MarketsBlock } from "./components/MarketsBlock"
+import { MobileMarketsFilterBar } from "./components/MobileMarketsFilterBar"
 import { MobileNamePageBlockWrapper } from "./components/MobileNamePageBlockWrapper"
 import { OverviewTab } from "./components/OverviewTab"
 import { ProfilePageSkeleton } from "./components/PageSkeleton"
 import { ProfileNamePageBlock } from "./components/ProfileNamePageBlock"
 import { WithdrawalsDelinquencyTab } from "./components/WithdrawalsDelinquencyTab"
+import { useMobileMarketFilters } from "./hooks/useMobileMarketFilters"
 import { ProfilePageProps } from "./interface"
-import { MobileContentContainer, PageContentContainer } from "./style"
+import {
+  DesktopProfileGrid,
+  MobileContentContainer,
+  MobileVerificationCard,
+  PageContentContainer,
+} from "./style"
 import { OverallBlock } from "../components/OverallBlock"
 
 const AnalyticsProfilePage = ({
@@ -168,6 +176,7 @@ const CoreProfilePage = ({
   const accountName = profileData?.name ?? trimAddress(profileAddress ?? "")
 
   const [section, setSection] = useState<"markets" | "info">("markets")
+  const mobileMarketFilters = useMobileMarketFilters(activeMarkets ?? [])
 
   useEffect(() => {
     setSection(marketsAmount === 0 ? "info" : "markets")
@@ -196,8 +205,25 @@ const CoreProfilePage = ({
           />
         </MobileNamePageBlockWrapper>
 
+        {section === "markets" && marketsAmount !== 0 && (
+          <MobileMarketsFilterBar
+            tabs={mobileMarketFilters.statusTabs}
+            tabsLabel={mobileMarketFilters.statusTabsLabel}
+            activeTab={mobileMarketFilters.status}
+            onTabChange={mobileMarketFilters.selectStatus}
+            actions={
+              <MobileFilterButton {...mobileMarketFilters.filterButtonProps} />
+            }
+          />
+        )}
+
         {section === "markets" && (
-          <MarketsBlock markets={borrowerMarkets} isLoading={isLoading} />
+          <MarketsBlock
+            key={mobileMarketFilters.resetKey}
+            markets={mobileMarketFilters.filteredMarkets}
+            isLoading={isLoading}
+            mobileSort={mobileMarketFilters.sort}
+          />
         )}
 
         {section === "info" && (
@@ -208,10 +234,12 @@ const CoreProfilePage = ({
               defaults={defaults}
               externalChainId={chainId}
             />
-            <BorrowerProfileVerificationDisclosure
-              variant="inline"
-              showModal={false}
-            />
+            <Box sx={MobileVerificationCard}>
+              <BorrowerProfileVerificationDisclosure
+                variant="inline"
+                showModal={false}
+              />
+            </Box>
             <ToUStatusBlock
               address={profileAddress}
               status={touStatus}
@@ -230,41 +258,49 @@ const CoreProfilePage = ({
 
   return (
     <Box sx={PageContentContainer}>
-      <ProfileNamePageBlock
-        {...profileData}
-        name={accountName}
-        marketsAmount={marketsAmount}
-        isExternal={isExternal}
-        isMobile={isMobile}
-      />
+      <Box sx={DesktopProfileGrid}>
+        <Box sx={{ gridArea: "header", minWidth: 0 }}>
+          <ProfileNamePageBlock
+            {...profileData}
+            name={accountName}
+            marketsAmount={marketsAmount}
+            isExternal={isExternal}
+            isMobile={isMobile}
+          />
+          <Divider sx={{ marginTop: "32px" }} />
+        </Box>
 
-      <Divider sx={{ marginY: "32px" }} />
+        <Box sx={{ gridArea: "overall", minWidth: 0, paddingTop: "32px" }}>
+          <OverallBlock
+            {...profileData}
+            marketsAmount={marketsAmount}
+            defaults={defaults}
+            externalChainId={chainId}
+            isPage
+          />
+        </Box>
 
-      <Box sx={{ position: "relative" }}>
-        <OverallBlock
-          {...profileData}
-          marketsAmount={marketsAmount}
-          defaults={defaults}
-          externalChainId={chainId}
-          isPage
-        />
+        <Box sx={{ gridArea: "card", minWidth: 0 }}>
+          <BorrowerProfileVerificationDisclosure />
+        </Box>
 
-        <BorrowerProfileVerificationDisclosure />
+        <Box sx={{ gridArea: "tou", minWidth: 0 }}>
+          <Divider sx={{ marginY: "32px" }} />
+          <ToUStatusBlock
+            address={profileAddress}
+            status={touStatus}
+            isLoading={isTouStatusLoading}
+            externalChainId={chainId}
+            isPage
+          />
+        </Box>
+
+        {marketsAmount !== 0 && (
+          <Box sx={{ gridArea: "markets", minWidth: 0, marginTop: "32px" }}>
+            <MarketsBlock markets={activeMarkets} isLoading={isLoading} />
+          </Box>
+        )}
       </Box>
-
-      <Divider sx={{ marginY: "32px" }} />
-
-      <ToUStatusBlock
-        address={profileAddress}
-        status={touStatus}
-        isLoading={isTouStatusLoading}
-        externalChainId={chainId}
-        isPage
-      />
-
-      {marketsAmount !== 0 && (
-        <MarketsBlock markets={activeMarkets} isLoading={isLoading} />
-      )}
     </Box>
   )
 }

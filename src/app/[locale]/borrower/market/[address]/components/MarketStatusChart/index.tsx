@@ -8,6 +8,7 @@ import { MarketBarChartItem } from "@/components/BarChart/BarItem/interface"
 import { LegendItem } from "@/components/BarChart/LegendItem"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
+import { getMarketTotalDebt } from "@/utils/marketDebt"
 
 import { CollateralObligationsData } from "./CollateralObligations/CollateralObligationsData"
 import { DelinquentCollateralObligations } from "./CollateralObligations/DelinquentCollateralObligations"
@@ -86,8 +87,7 @@ export const MarketStatusChart = ({
           }}
         >
           <Typography variant="title3">
-            {breakdown.totalDebt &&
-              `${formatTokenWithCommas(breakdown.totalDebt)}`}
+            {`${formatTokenWithCommas(getMarketTotalDebt(market))}`}
           </Typography>
           <Typography variant="text4" sx={{ marginTop: "4px" }}>
             {market.underlyingToken.symbol}

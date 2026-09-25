@@ -6,13 +6,11 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
+import { DataGridSx } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/style"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
-import {
-  analyticsDataGridSx,
-  autoHeightAnalyticsDataGridSx,
-} from "@/components/Profile/shared/AnalyticsDataGrid"
+import { TotalDebtHeader } from "@/components/TotalDebtHeader"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import {
@@ -26,6 +24,7 @@ import {
   formatTokenWithCommas,
 } from "@/utils/formatters"
 import { getDisplayLenderAprBips } from "@/utils/marketApr"
+import { getMarketTotalDebt } from "@/utils/marketDebt"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -34,7 +33,11 @@ import { isBorrowerContextPath } from "@/utils/profileRoutes"
 import { MarketsBlockProps } from "./interface"
 import { LinkCell } from "./style"
 
-export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
+export const MarketsBlock = ({
+  markets,
+  isLoading,
+  mobileSort,
+}: MarketsBlockProps) => {
   const { t } = useTranslation()
   const isMobile = useMobileResolution()
 
@@ -50,7 +53,6 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
         address: marketAddress,
         name,
         underlyingToken,
-        totalDebts,
         maxTotalSupply,
         totalSupply,
         withdrawalBatchDuration,
@@ -73,7 +75,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
         asset: underlyingToken.symbol,
         apr: getDisplayLenderAprBips(market),
         term: getMarketTypeChip(market),
-        debt: totalDebts,
+        debt: getMarketTotalDebt(market),
         capacity: maxTotalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
         utilisation,
@@ -224,6 +226,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     {
       field: "debt",
       headerName: t("common.fields.totalDebt"),
+      renderHeader: () => <TotalDebtHeader />,
       flex: 1,
       minWidth: 100,
       headerAlign: "right",
@@ -247,6 +250,16 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     },
   ]
 
+  if (isMobile && mobileSort) {
+    return (
+      <MobileMarketList
+        markets={rows as Parameters<typeof MobileMarketList>[0]["markets"]}
+        isLoading={!!isLoading}
+        sort={mobileSort}
+      />
+    )
+  }
+
   if (isMobile) {
     const uniqueAssets = new Set(rows.map((r) => r.asset)).size
     return (
@@ -260,28 +273,17 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     )
   }
 
-  const hasScrollableRows = rows.length > 7
-
   return (
-    <Box marginTop="24px" marginBottom="20px">
+    <Box sx={{ width: "100%", minWidth: 0, overflowX: "auto" }}>
       <DataGrid
-        autoHeight={!hasScrollableRows}
-        getRowHeight={() => "auto"}
+        disableVirtualization
         hideFooter
         disableColumnMenu
         disableRowSelectionOnClick
-        sx={{
-          ...(hasScrollableRows
-            ? analyticsDataGridSx
-            : autoHeightAnalyticsDataGridSx),
-          ...(hasScrollableRows && {
-            height: 560,
-          }),
-          marginTop: "12px",
-          minWidth: 980,
-        }}
+        sx={{ ...DataGridSx, padding: 0 }}
         rows={rows}
         columns={columns}
+        columnHeaderHeight={40}
       />
     </Box>
   )

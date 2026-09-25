@@ -15,7 +15,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material"
-import { HooksKind } from "@wildcatfi/wildcat-sdk"
+import { HooksKind, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
@@ -25,6 +25,7 @@ import SortDescIcon from "@/assets/icons/tableSort-descSort_icon.svg"
 import { getMarketImplementationVariantForType } from "@/components/market-implementation-variants"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
+import { tokenAmountComparator } from "@/utils/comparators"
 import { MarketStatus } from "@/utils/marketStatus"
 import { getPaginationRange } from "@/utils/pagination"
 import { isBorrowerContextPath } from "@/utils/profileRoutes"
@@ -35,6 +36,9 @@ const ITEMS_PER_PAGE = 20
 
 type SortField = "debt" | "apr" | "capacity" | "withdrawal" | "name"
 type SortDir = "desc" | "asc"
+
+export type MobileMarketSortField = SortField
+export type MobileMarketSortDir = SortDir
 type StatusFilter = "all" | "healthy" | "issues"
 type TermFilter = "all" | "open" | "fixed"
 
@@ -53,6 +57,17 @@ const stripAssetSuffix = (name: string, asset: string) => {
     : name
 }
 
+const compareAmounts = (
+  a: TokenAmount | undefined,
+  b: TokenAmount | undefined,
+  sign: number,
+) => {
+  if (!a && !b) return 0
+  if (!a) return 1
+  if (!b) return -1
+  return tokenAmountComparator(a, b) * sign
+}
+
 const sortRows = (
   rows: MobileMarketItem[],
   field: SortField,
@@ -61,26 +76,12 @@ const sortRows = (
   const sign = dir === "desc" ? -1 : 1
   const compare = (a: MobileMarketItem, b: MobileMarketItem) => {
     switch (field) {
-      case "debt": {
-        const aRaw = a.debt?.raw
-        const bRaw = b.debt?.raw
-        if (!aRaw && !bRaw) return 0
-        if (!aRaw) return 1 * sign
-        if (!bRaw) return -1 * sign
-        if (aRaw.eq(bRaw)) return 0
-        return aRaw.gt(bRaw) ? 1 * sign : -1 * sign
-      }
+      case "debt":
+        return compareAmounts(a.debt, b.debt, sign)
       case "apr":
         return (a.apr - b.apr) * sign
-      case "capacity": {
-        const aRaw = a.capacityLeft?.raw
-        const bRaw = b.capacityLeft?.raw
-        if (!aRaw && !bRaw) return 0
-        if (!aRaw) return 1 * sign
-        if (!bRaw) return -1 * sign
-        if (aRaw.eq(bRaw)) return 0
-        return aRaw.gt(bRaw) ? 1 * sign : -1 * sign
-      }
+      case "capacity":
+        return compareAmounts(a.capacityLeft, b.capacityLeft, sign)
       case "withdrawal":
         return (a.withdrawalBatchDuration - b.withdrawalBatchDuration) * sign
       case "name":
@@ -143,12 +144,14 @@ export const MobileMarketList = ({
   variant = "lender-action",
   groupByAsset = false,
   enableToolbar = false,
+  sort,
 }: {
   markets: MobileMarketItem[]
   isLoading: boolean
   variant?: MobileMarketCardVariant
   groupByAsset?: boolean
   enableToolbar?: boolean
+  sort?: { field: MobileMarketSortField; dir: MobileMarketSortDir }
 }) => {
   const { t } = useTranslation()
 
@@ -195,8 +198,17 @@ export const MobileMarketList = ({
     if (assetFilter.size > 0) {
       rows = rows.filter((m) => assetFilter.has(m.asset))
     }
-    return sortRows(rows, sortField, sortDir)
-  }, [markets, statusFilter, termFilter, assetFilter, sortField, sortDir])
+    return sortRows(rows, sort?.field ?? sortField, sort?.dir ?? sortDir)
+  }, [
+    markets,
+    statusFilter,
+    termFilter,
+    assetFilter,
+    sortField,
+    sortDir,
+    sort?.field,
+    sort?.dir,
+  ])
 
   const grouped = groupByAsset && assetFilter.size !== 1
   const orderedRows = useMemo(() => {
