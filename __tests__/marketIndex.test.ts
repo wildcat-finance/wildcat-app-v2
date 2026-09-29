@@ -402,6 +402,19 @@ describe("buildMarketIndex", () => {
       expect(card.txs.map((t) => t.block)).not.toContain("1030")
   })
 
+  it("drops a chain-time change that happened before the market existed", () => {
+    const tests = fixture()
+    // MKT-01's row jumps chain time at block 1005, five blocks before its deploy tx (1010).
+    tests[1].journal.splice(1, 0, chainTime(86_400, "1005"))
+    const m = byAddr(
+      buildMarketIndex(tests, FACTS, FORK, "run", PINS),
+      CREATED,
+    )!
+    expect(m.txs[0].hash).toBe("0xdeploy")
+    expect(m.txs.map((t) => t.block)).not.toContain("1005")
+    expect(m.txs.map((t) => t.seq)).toEqual([1, 2, 3, 4, 5])
+  })
+
   it("passes derivedAt through", () => {
     for (const d of ["run", "render"] as const)
       for (const m of buildMarketIndex(fixture(), FACTS, FORK, d, PINS))
