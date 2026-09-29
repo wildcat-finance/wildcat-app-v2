@@ -125,6 +125,8 @@ const toMarketTx = (p: Placed, seq: number): MarketTx => {
   return m
 }
 
+type RankKey = { rank: number; block: number; at: string; pos: number }
+
 const ORIGIN_RANK: Record<MarketIndexEntry["origin"], number> = {
   created: 0,
   forked: 1,
@@ -176,8 +178,7 @@ export const buildMarketIndex = (
     if (p.e.enriched?.target?.kind === "market" && ADDRESS.test(lc(p.e.to)))
       candidates.add(lc(p.e.to))
 
-  const ranked: { entry: MarketIndexEntry; key: [number, number | string] }[] =
-    []
+  const ranked: { entry: MarketIndexEntry; key: RankKey }[] = []
   for (const addr of candidates) {
     const fact = factsLc[addr]
     const creator = fact?.deployedTx
@@ -230,22 +231,25 @@ export const buildMarketIndex = (
         txHash: creator.e.hash ?? "",
       }
     if (fact?.parameters) entry.parameters = fact.parameters
-    // Created markets first by creation block, then forked, then unknown, each by first tx `at`.
-    const firstAt = history[0]?.e.at ?? ""
+    // Created markets first by creation block, then forked, then unknown; ties (and every
+    // forked/unknown market) by the first history entry's `at`, then journal position.
     ranked.push({
       entry,
-      key:
-        origin === "created"
-          ? [0, fact?.deployedBlock ?? 0]
-          : [ORIGIN_RANK[origin], firstAt],
+      key: {
+        rank: ORIGIN_RANK[origin],
+        block: origin === "created" ? fact?.deployedBlock ?? 0 : 0,
+        at: history[0]?.e.at ?? "",
+        pos: history[0]?.pos ?? 0,
+      },
     })
   }
 
-  ranked.sort(({ key: [ra, a] }, { key: [rb, b] }) => {
-    if (ra !== rb) return ra - rb
-    if (typeof a === "number" && typeof b === "number") return a - b
-    if (a === b) return 0
-    return String(a) < String(b) ? -1 : 1
+  ranked.sort(({ key: a, entry: x }, { key: b, entry: y }) => {
+    if (a.rank !== b.rank) return a.rank - b.rank
+    if (a.block !== b.block) return a.block - b.block
+    if (a.at !== b.at) return a.at < b.at ? -1 : 1
+    if (a.pos !== b.pos) return a.pos - b.pos
+    return x.address < y.address ? -1 : 1
   })
   return ranked.map((r) => r.entry)
 }
@@ -259,7 +263,7 @@ type GqlMarket = Record<string, unknown> & { id: string }
  * subgraph is v2.1.8) costs its group, not the whole map. The last group is v2.5.11-only.
  */
 const FACT_GROUPS = [
-  "id name symbol deployedEvent { blockNumber transactionHash } asset { address symbol }",
+  "id name symbol deployedEvent { blockNumber transactionHash } asset { address symbol decimals }",
   "id annualInterestBips reserveRatioBips delinquencyFeeBips delinquencyGracePeriod withdrawalBatchDuration maxTotalSupply",
   "id hooks { id name kind } hooksConfig { minimumDeposit transfersDisabled depositRequiresAccess fixedTermEndTime allowClosureBeforeTerm allowTermReduction firstWithdrawalWindowStart periodDuration withdrawalWindowDuration }",
   "id marketKind commitmentFeeBips",
@@ -267,12 +271,27 @@ const FACT_GROUPS = [
 
 const FACTS_TIMEOUT_MS = 10_000
 
+type GqlReply = {
+  data?: { markets?: GqlMarket[] }
+  errors?: { message?: string }[]
+}
+
+const warnGroup = (fields: string, why: string) =>
+  // eslint-disable-next-line no-console
+  console.warn(`[marketIndex] facts group "${fields}" skipped: ${why}`)
+
+/**
+ * One field group. Only the NETWORK is caught here — fetch, abort (timeout) and a body that is not
+ * JSON — and each is reported with the group, then costs that group alone. Anything else is a bug
+ * and propagates to the caller's guard.
+ */
 const queryGroup = async (
   gqlUrl: string,
   fields: string,
 ): Promise<GqlMarket[]> => {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), FACTS_TIMEOUT_MS)
+  let reply: GqlReply
   try {
     const res = await fetch(gqlUrl, {
       method: "POST",
@@ -280,15 +299,30 @@ const queryGroup = async (
       body: JSON.stringify({ query: `{ markets(first: 1000) { ${fields} } }` }),
       signal: controller.signal,
     })
-    const j = (await res.json()) as {
-      data?: { markets?: GqlMarket[] }
-      errors?: unknown
+    if (!res.ok) {
+      warnGroup(fields, `HTTP ${res.status}`)
+      return []
     }
-    if (j.errors || !Array.isArray(j.data?.markets)) return []
-    return j.data!.markets!
+    reply = (await res.json()) as GqlReply
+  } catch (e) {
+    warnGroup(
+      fields,
+      e instanceof Error ? `${e.name}: ${e.message}` : String(e),
+    )
+    return []
   } finally {
     clearTimeout(timer)
   }
+  if (Array.isArray(reply?.errors) && reply.errors.length > 0) {
+    warnGroup(fields, `GraphQL: ${reply.errors[0]?.message ?? "(no message)"}`)
+    return []
+  }
+  const markets = reply?.data?.markets
+  if (!Array.isArray(markets)) {
+    warnGroup(fields, "no data.markets in the reply")
+    return []
+  }
+  return markets
 }
 
 const scalar = (v: unknown): ParamValue | undefined => {
@@ -324,6 +358,8 @@ const parametersOf = (
       ? [asset.symbol, asset.address].filter((x) => x != null).join(" ") || null
       : null,
   )
+  // Lets the renderer show maxTotalSupply / minimumDeposit in token units; the raw values stay.
+  opt("assetDecimals", asset?.decimals)
   opt("marketKind", m.marketKind)
   opt("commitmentFeeBips", m.commitmentFeeBips)
   req(
@@ -360,39 +396,36 @@ const parametersOf = (
 }
 
 /**
- * Read the markets' facts from the fork subgraph. Never throws: unreachable ⇒ `{}` and every
- * market the index cannot place from pins alone classifies `unknown`.
+ * Read the markets' facts from the fork subgraph. The network never makes it throw: an unreachable
+ * subgraph, a timeout or a refused group yields `{}` or a partial map (each warned), and every
+ * market the index cannot place from pins alone classifies `unknown`. A programming error DOES
+ * throw — the reporter's guard logs it — so a bug is visible rather than an empty index.
  */
 export const fetchMarketFacts = async (
   gqlUrl: string,
 ): Promise<MarketFacts> => {
-  try {
-    const groups = await Promise.allSettled(
-      FACT_GROUPS.map((fields) => queryGroup(gqlUrl, fields)),
-    )
-    const merged = new Map<string, Record<string, unknown>>()
-    for (const g of groups) {
-      if (g.status !== "fulfilled") continue
-      for (const m of g.value) {
-        if (typeof m?.id !== "string") continue
-        const id = lc(m.id)
-        merged.set(id, { ...(merged.get(id) ?? {}), ...m })
-      }
+  const groups = await Promise.all(
+    FACT_GROUPS.map((fields) => queryGroup(gqlUrl, fields)),
+  )
+  const merged = new Map<string, Record<string, unknown>>()
+  for (const group of groups) {
+    for (const m of group) {
+      if (typeof m?.id !== "string") continue
+      const id = lc(m.id)
+      merged.set(id, { ...(merged.get(id) ?? {}), ...m })
     }
-    const facts: MarketFacts = {}
-    for (const [id, m] of merged) {
-      const ev = obj(m.deployedEvent)
-      const block = ev?.blockNumber != null ? Number(ev.blockNumber) : NaN
-      const fact: MarketFact = { parameters: parametersOf(m) }
-      if (typeof m.name === "string") fact.name = m.name
-      if (typeof m.symbol === "string") fact.symbol = m.symbol
-      if (Number.isFinite(block)) fact.deployedBlock = block
-      if (typeof ev?.transactionHash === "string")
-        fact.deployedTx = ev.transactionHash
-      facts[id] = fact
-    }
-    return facts
-  } catch {
-    return {}
   }
+  const facts: MarketFacts = {}
+  for (const [id, m] of merged) {
+    const ev = obj(m.deployedEvent)
+    const block = ev?.blockNumber != null ? Number(ev.blockNumber) : NaN
+    const fact: MarketFact = { parameters: parametersOf(m) }
+    if (typeof m.name === "string") fact.name = m.name
+    if (typeof m.symbol === "string") fact.symbol = m.symbol
+    if (Number.isFinite(block)) fact.deployedBlock = block
+    if (typeof ev?.transactionHash === "string")
+      fact.deployedTx = ev.transactionHash
+    facts[id] = fact
+  }
+  return facts
 }

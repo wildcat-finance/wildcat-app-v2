@@ -669,8 +669,11 @@ class SummaryReporter implements Reporter {
           "run",
           (pins as { markets?: Record<string, string> }).markets ?? {},
         )
-      } catch {
-        /* presentation only */
+      } catch (err) {
+        // Presentation only, so never fatal to onEnd — but a bug here must show in the board
+        // log rather than as a silently absent index. (Network failures are handled, and
+        // warned per group, inside fetchMarketFacts; anything reaching here is a defect.)
+        console.warn("[summaryReporter] market index skipped:", err)
       }
     }
 

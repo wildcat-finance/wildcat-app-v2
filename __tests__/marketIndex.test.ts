@@ -415,6 +415,150 @@ describe("buildMarketIndex", () => {
     expect(m.txs.map((t) => t.seq)).toEqual([1, 2, 3, 4, 5])
   })
 
+  it("tolerates case and a missing 0x: checksummed to / raw / input, input without 0x", () => {
+    const A = "0x07878e16a64ed6daacebe8a6537902a048de8f2d"
+    const CHECKSUM = "0x07878E16A64ed6daacebe8a6537902A048de8F2d"
+    const facts: MarketFacts = {
+      [CHECKSUM]: { name: "Mixed", deployedBlock: 900, parameters: {} },
+    }
+    clock = 0
+    const t = row({
+      title: "LEN-30: case",
+      suite: "lender flows",
+      journal: [
+        step("s"),
+        tx({ hash: "0xto", block: "1001", to: CHECKSUM, functionName: "f" }),
+        tx({
+          hash: "0xraw",
+          block: "1002",
+          to: TOKEN,
+          enriched: en({
+            params: [{ name: "spender", value: "m", raw: CHECKSUM }],
+          }),
+        }),
+        tx({
+          hash: "0xinput",
+          block: "1003",
+          to: TOKEN,
+          input: `0x095ea7b3${"0".repeat(24)}${CHECKSUM.slice(
+            2,
+          ).toUpperCase()}`,
+        }),
+        tx({
+          hash: "0xbare",
+          block: "1004",
+          to: TOKEN,
+          input: `095ea7b3${"0".repeat(24)}${A.slice(2)}`,
+        }),
+      ],
+    })
+    const [m] = buildMarketIndex([t], facts, FORK, "run")
+    expect(m.address).toBe(A)
+    expect(m.origin).toBe("forked")
+    expect(m.txs.map((x) => x.hash)).toEqual([
+      "0xto",
+      "0xraw",
+      "0xinput",
+      "0xbare",
+    ])
+  })
+
+  it("orders two created markets sharing a block by their creators' journal time, and forked by first `at`", () => {
+    const [C1, C2, F1, F2] = ["1", "2", "3", "4"].map(
+      (d) => `0x${d.repeat(40)}`,
+    )
+    const facts: MarketFacts = {
+      // Insertion order is the REVERSE of the expected order, so a pass is not an accident.
+      [F2]: { name: "F2", deployedBlock: 10, parameters: {} },
+      [F1]: { name: "F1", deployedBlock: 20, parameters: {} },
+      [C2]: {
+        name: "C2",
+        deployedBlock: 1_050,
+        deployedTx: "0xc2",
+        parameters: {},
+      },
+      [C1]: {
+        name: "C1",
+        deployedBlock: 1_050,
+        deployedTx: "0xc1",
+        parameters: {},
+      },
+    }
+    clock = 0
+    const t = row({
+      title: "MKT-30: two in one block",
+      suite: "market creation",
+      journal: [
+        step("deploy"),
+        tx({
+          hash: "0xc1",
+          block: "1050",
+          to: FACTORY,
+          functionName: "deploy",
+        }),
+        tx({
+          hash: "0xc2",
+          block: "1050",
+          to: FACTORY,
+          functionName: "deploy",
+        }),
+        tx({
+          hash: "0xf1",
+          block: "1051",
+          to: F1,
+          functionName: "updateState",
+        }),
+        tx({
+          hash: "0xf2",
+          block: "1052",
+          to: F2,
+          functionName: "updateState",
+        }),
+      ],
+    })
+    expect(
+      buildMarketIndex([t], facts, FORK, "run").map((m) => m.name),
+    ).toEqual(["C1", "C2", "F1", "F2"])
+  })
+
+  it("finds a market known only to the run's address book (enriched.target.kind market)", () => {
+    const BOOK = `0x${"8".repeat(40)}`
+    clock = 0
+    const t = row({
+      title: "LEN-31: book-only",
+      suite: "lender flows",
+      journal: [
+        step("s"),
+        tx({
+          hash: "0xbook",
+          block: "1001",
+          to: BOOK,
+          enriched: en({
+            target: {
+              name: 'market "Book Only"',
+              kind: "market",
+              address: BOOK,
+            },
+            call: "updateState()",
+          }),
+        }),
+        // A token the book labelled a token is NOT a market.
+        tx({
+          hash: "0xtoken",
+          block: "1002",
+          to: TOKEN,
+          enriched: en({
+            target: { name: "DAI", kind: "token", address: TOKEN },
+          }),
+        }),
+      ],
+    })
+    const idx = buildMarketIndex([t], {}, FORK, "run")
+    expect(idx.map((m) => [m.address, m.name, m.origin])).toEqual([
+      [BOOK, 'market "Book Only"', "unknown"],
+    ])
+  })
+
   it("passes derivedAt through", () => {
     for (const d of ["run", "render"] as const)
       for (const m of buildMarketIndex(fixture(), FACTS, FORK, d, PINS))
@@ -471,6 +615,8 @@ describe("fetchMarketFacts", () => {
                 : "other"
         if (broken.includes(group))
           return {
+            ok: true,
+            status: 200,
             json: async () => ({
               errors: [
                 { message: `Type \`Market\` has no field \`${group}\`` },
@@ -483,7 +629,7 @@ describe("fetchMarketFacts", () => {
             name: "Created Market",
             symbol: "cMKT",
             deployedEvent: { blockNumber: "1010", transactionHash: "0xdeploy" },
-            asset: { address: TOKEN, symbol: "DAI" },
+            asset: { address: TOKEN, symbol: "DAI", decimals: 18 },
           })
         if (group === "rates")
           Object.assign(market, {
@@ -518,7 +664,11 @@ describe("fetchMarketFacts", () => {
             marketKind: "OpenTerm",
             commitmentFeeBips: 0,
           })
-        return { json: async () => ({ data: { markets: [market] } }) }
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ data: { markets: [market] } }),
+        }
       },
     )
     return { fetchMock, queries }
@@ -538,6 +688,7 @@ describe("fetchMarketFacts", () => {
         name: "Created Market",
         symbol: "cMKT",
         asset: `DAI ${TOKEN}`,
+        assetDecimals: 18,
         marketKind: "OpenTerm",
         commitmentFeeBips: 0,
         hooks: "OpenTerm open-term policy",
@@ -565,10 +716,80 @@ describe("fetchMarketFacts", () => {
     expect("marketKind" in facts[M].parameters).toBe(false)
   })
 
-  it("never throws: an unreachable subgraph yields {}", async () => {
+  it("never throws on the network: an unreachable subgraph yields {}", async () => {
     globalThis.fetch = (async () => {
       throw new Error("ECONNREFUSED")
     }) as never
     await expect(fetchMarketFacts(GQL)).resolves.toEqual({})
+  })
+
+  describe("diagnostics", () => {
+    let warn: jest.SpyInstance
+    beforeEach(() => {
+      warn = jest.spyOn(console, "warn").mockImplementation(() => undefined)
+    })
+    afterEach(() => {
+      warn.mockRestore()
+      jest.useRealTimers()
+    })
+
+    const warnings = () => warn.mock.calls.map((c) => c.map(String).join(" "))
+
+    it("warns with the group name and the first GraphQL error when a group is refused", async () => {
+      const { fetchMock } = subgraph(["v25"])
+      globalThis.fetch = fetchMock as never
+      await fetchMarketFacts(GQL)
+      expect(
+        warnings().some(
+          (w) =>
+            w.includes("marketKind commitmentFeeBips") &&
+            w.includes("Type `Market` has no field `v25`"),
+        ),
+      ).toBe(true)
+    })
+
+    it("warns and drops the group on an HTTP failure", async () => {
+      globalThis.fetch = (async () => ({
+        ok: false,
+        status: 502,
+        json: async () => {
+          throw new SyntaxError("Unexpected token <")
+        },
+      })) as never
+      await expect(fetchMarketFacts(GQL)).resolves.toEqual({})
+      expect(warnings().some((w) => w.includes("HTTP 502"))).toBe(true)
+    })
+
+    it("aborts a group that hangs past the timeout and yields what the others returned", async () => {
+      jest.useFakeTimers()
+      globalThis.fetch = ((_url: unknown, init?: { signal?: AbortSignal }) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () =>
+            reject(
+              new DOMException("The operation was aborted.", "AbortError"),
+            ),
+          )
+        })) as never
+      const pending = fetchMarketFacts(GQL)
+      await jest.advanceTimersByTimeAsync(10_000)
+      await expect(pending).resolves.toEqual({})
+      expect(warnings().some((w) => /abort/i.test(w))).toBe(true)
+    })
+
+    it("lets a programming error propagate instead of returning {}", async () => {
+      const market = { id: M }
+      Object.defineProperty(market, "name", {
+        enumerable: true,
+        get() {
+          throw new TypeError("bug in the merge")
+        },
+      })
+      globalThis.fetch = (async () => ({
+        ok: true,
+        status: 200,
+        json: async () => ({ data: { markets: [market] } }),
+      })) as never
+      await expect(fetchMarketFacts(GQL)).rejects.toThrow(TypeError)
+    })
   })
 })

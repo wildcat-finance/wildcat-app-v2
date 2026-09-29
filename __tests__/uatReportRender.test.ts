@@ -925,6 +925,63 @@ describe("market provenance — the Markets section", () => {
     )
   })
 
+  it("labels a forked card “forked at block N” and an unresolved one “origin unknown”", () => {
+    const html = renderUatReport(withMarkets())
+    const summaryOf = (addr: string) => {
+      const at = html.indexOf(`id="market-${addr}"`)
+      return html.slice(
+        html.indexOf("<summary>", at),
+        html.indexOf("</summary>", at),
+      )
+    }
+    expect(summaryOf(FORKED)).toContain("· forked at block 11584253")
+    expect(summaryOf(FORKED)).not.toContain("origin unknown")
+    expect(summaryOf(GONE)).toContain("· origin unknown")
+    expect(summaryOf(GONE)).not.toContain("forked at")
+  })
+
+  it("closes every card with the muted footer saying time travel outside a row is not journaled", () => {
+    const html = renderUatReport(withMarkets())
+    const footers = html.match(
+      /<p class="muted market-foot">[^<]*time travel outside a row is not journaled[^<]*<\/p>/g,
+    )
+    expect(footers).toHaveLength(4)
+  })
+
+  it("shows token amounts in the asset's units, raw wei in the title; raw when decimals are unknown", () => {
+    const r = withMarkets()
+    r.markets![0].parameters = {
+      asset: "DAI 0x4f148643e3a5ac817ca68f7083da20f7283966c5",
+      assetDecimals: 18,
+      maxTotalSupply: "1000000000000000000000000",
+      minimumDeposit: "100000000000000000000",
+    }
+    r.markets![1].parameters = {
+      asset: "USDC 0x94a9d9ac8a22534e3faca9f4e7f2e2cf85d5e4c8",
+      assetDecimals: 6,
+      maxTotalSupply: "1500000",
+      minimumDeposit: "0",
+    }
+    r.markets![2].parameters = {
+      asset: "WEIRD 0x0000000000000000000000000000000000000001",
+      maxTotalSupply: "123456789",
+      minimumDeposit: null,
+    }
+    const html = renderUatReport(r)
+    expect(html).toContain(
+      '<td title="1000000000000000000000000">1,000,000 DAI</td>',
+    )
+    expect(html).toContain('<td title="100000000000000000000">100 DAI</td>')
+    expect(html).toContain('<td title="1500000">1.5 USDC</td>')
+    expect(html).toContain('<td title="0">0 USDC</td>')
+    // No decimals on record: the raw value, unhumanised.
+    expect(html).toContain('<td class="mono">123456789</td>')
+    // run.json's values are untouched by rendering.
+    expect(r.markets![0].parameters!.maxTotalSupply).toBe(
+      "1000000000000000000000000",
+    )
+  })
+
   it("renders no section for an absent or empty index", () => {
     expect(renderUatReport(run())).not.toContain('class="markets"')
     const empty = run()

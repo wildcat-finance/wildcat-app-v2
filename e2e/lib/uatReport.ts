@@ -808,11 +808,47 @@ const humanSeconds = (s: number): string =>
         : `${trimNum(s / 86_400)} d`
 
 /** A parameter value cell: humanised where it helps, the raw value kept in a title. */
+const AMOUNT_KEYS: ReadonlySet<string> = new Set([
+  "maxTotalSupply",
+  "minimumDeposit",
+])
+
+/** 10^24 wei at 18 decimals → "1,000,000"; at most 6 fraction digits, trailing zeros dropped. */
+const tokenUnits = (raw: string, decimals: number): string => {
+  const scale = 10n ** BigInt(decimals)
+  const v = BigInt(raw)
+  const int = (v / scale).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+  const frac = (v % scale)
+    .toString()
+    .padStart(decimals, "0")
+    .slice(0, 6)
+    .replace(/0+$/, "")
+  return frac ? `${int}.${frac}` : int
+}
+
+/** The asset's symbol and decimals, when the parameters carry them (subgraph facts). */
+const assetUnits = (
+  params: Record<string, string | number | boolean | null>,
+): { symbol: string; decimals: number } | undefined => {
+  const decimals = Number(params.assetDecimals)
+  const symbol =
+    typeof params.asset === "string" ? params.asset.split(" ")[0] : ""
+  return Number.isInteger(decimals) && decimals >= 0 && decimals <= 77 && symbol
+    ? { symbol, decimals }
+    : undefined
+}
+
 const paramCell = (
   key: string,
   v: string | number | boolean | null,
+  params: Record<string, string | number | boolean | null> = {},
 ): string => {
   if (v === null) return `<td class="muted">not reported by the subgraph</td>`
+  const units = AMOUNT_KEYS.has(key) ? assetUnits(params) : undefined
+  if (units && /^\d+$/.test(String(v)))
+    return `<td title="${esc(v)}">${esc(
+      `${tokenUnits(String(v), units.decimals)} ${units.symbol}`,
+    )}</td>`
   const n =
     typeof v === "number"
       ? v
@@ -872,7 +908,11 @@ const renderMarketCard = (m: MarketIndexEntry): string => {
 <div class="scroll-x"><table class="market-params"><tbody>${params
           .map(
             ([k, v]) =>
-              `<tr><th class="mono">${esc(k)}</th>${paramCell(k, v)}</tr>`,
+              `<tr><th class="mono">${esc(k)}</th>${paramCell(
+                k,
+                v,
+                m.parameters,
+              )}</tr>`,
           )
           .join("")}</tbody></table></div>`
       : ""
