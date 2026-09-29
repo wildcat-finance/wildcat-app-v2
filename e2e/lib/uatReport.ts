@@ -901,7 +901,10 @@ const renderMarketCard = (m: MarketIndexEntry): string => {
             )}</a> at block ${esc(m.createdBy.block)}`
           : "created after the fork, outside this run's journal"
         : "origin unknown"
-  const params = Object.entries(m.parameters ?? {})
+  // `assetDecimals` is carried for the amount formatting above, not a market parameter.
+  const params = Object.entries(m.parameters ?? {}).filter(
+    ([k]) => k !== "assetDecimals",
+  )
   const paramTable =
     params.length > 0
       ? `<h4>Parameters as deployed</h4>

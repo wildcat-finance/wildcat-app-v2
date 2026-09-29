@@ -971,6 +971,7 @@ describe("market provenance — the Markets section", () => {
     expect(html).toContain(
       '<td title="1000000000000000000000000">1,000,000 DAI</td>',
     )
+    expect(html).not.toContain('<th class="mono">assetDecimals</th>')
     expect(html).toContain('<td title="100000000000000000000">100 DAI</td>')
     expect(html).toContain('<td title="1500000">1.5 USDC</td>')
     expect(html).toContain('<td title="0">0 USDC</td>')
