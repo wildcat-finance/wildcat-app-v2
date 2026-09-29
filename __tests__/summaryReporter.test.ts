@@ -836,8 +836,10 @@ describe("SummaryReporter.onEnd — market provenance", () => {
   /** A subgraph that knows the pinned market (deployed before the fork) — no network in jest. */
   const factsFetch = (async (_url: unknown, init?: { body?: string }) => {
     const body = JSON.parse(init?.body ?? "{}") as { query?: string }
-    if (!body.query) return { json: async () => ({}) } // chain-lead RPC: no result
+    if (!body.query) return { ok: true, json: async () => ({}) } // chain-lead RPC: no result
     return {
+      ok: true,
+      status: 200,
       json: async () => ({
         data: {
           markets: [
@@ -894,6 +896,42 @@ describe("SummaryReporter.onEnd — market provenance", () => {
     expect(run.markets).toHaveLength(1)
     expect(run.markets[0]).toMatchObject({ address: MARKET, origin: "forked" })
     expect(existsSync(join(dir, "uat-report", "index.html"))).toBe(true)
+  })
+
+  it("uat-run/3: a bug in the index is logged, never fatal — run.json and the report still land", async () => {
+    const buggy = { id: MARKET }
+    Object.defineProperty(buggy, "name", {
+      enumerable: true,
+      get() {
+        throw new TypeError("bug in the facts merge")
+      },
+    })
+    globalThis.fetch = (async (_url: unknown, init?: { body?: string }) => {
+      const body = JSON.parse(init?.body ?? "{}") as { query?: string }
+      if (!body.query || body.query.includes("hooksInstances"))
+        return { ok: true, json: async () => ({}) }
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ data: { markets: [buggy] } }),
+      }
+    }) as never
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => undefined)
+    try {
+      const { run } = await writeRun("3", [stepEntry, txEntry])
+      expect(run.schema).toBe("uat-run/3")
+      expect(run.markets).toBeUndefined()
+      expect(existsSync(join(dir, "uat-report", "index.html"))).toBe(true)
+      expect(
+        warn.mock.calls.some(
+          (c) =>
+            c[0] === "[summaryReporter] market index skipped:" &&
+            c[1] instanceof TypeError,
+        ),
+      ).toBe(true)
+    } finally {
+      warn.mockRestore()
+    }
   })
 
   it("uat-run/2: no market index, whatever the subgraph says", async () => {
