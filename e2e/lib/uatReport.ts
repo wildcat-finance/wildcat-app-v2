@@ -741,7 +741,7 @@ ${kv(
 )}
 ${
   run.markets
-    ? kv(
+    ? `${kv(
         "Markets",
         `${["created", "forked", "unknown"]
           .map(
@@ -751,10 +751,9 @@ ${
               }`,
           )
           .join(" · ")} <a href="#markets">summary</a>`,
-      )
+      )}\n`
     : ""
-}
-${kv(
+}${kv(
   "Run",
   `${esc(run.startedAt ?? "?")} · ${fmtDuration(run.durationMs ?? 0)} · ${
     run.tests.length
