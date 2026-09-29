@@ -15,12 +15,11 @@ import {
   chainTimeText,
   type MarketIndexEntry,
   type MarketTx,
+  type MarketType,
   type UatJournalEntry,
   type UatTest,
 } from "./uatModel"
 import { anchorOf } from "./uatReport"
-
-type ParamValue = string | number | boolean | null
 
 export type MarketFact = {
   name?: string
@@ -29,7 +28,8 @@ export type MarketFact = {
   deployedBlock?: number
   /** deployedEvent.transactionHash — the ONLY key that identifies the creating tx. */
   deployedTx?: string
-  parameters: Record<string, ParamValue>
+  /** The market's type and its config; absent when no group returned anything to type it by. */
+  type?: MarketType
 }
 
 /** lowercased market address → what the subgraph says about it. */
@@ -230,7 +230,7 @@ export const buildMarketIndex = (
         block: creator.e.block ?? String(fact?.deployedBlock ?? ""),
         txHash: creator.e.hash ?? "",
       }
-    if (fact?.parameters) entry.parameters = fact.parameters
+    if (fact?.type) entry.type = fact.type
     // Created markets first by creation block, then forked, then unknown; ties (and every
     // forked/unknown market) by the first history entry's `at`, then journal position.
     ranked.push({
@@ -260,13 +260,25 @@ type GqlMarket = Record<string, unknown> & { id: string }
 
 /**
  * Field GROUPS, one request each: a field one subgraph version lacks (main's deployed fork
- * subgraph is v2.1.8) costs its group, not the whole map. The last group is v2.5.11-only.
+ * subgraph is v2.1.8) costs its group, not the whole map. Only what the market's TYPE needs:
+ * identity + deploy event, the hooks kind + the term config, and the v2.5.11-only kind/fee.
  */
-const FACT_GROUPS = [
-  "id name symbol deployedEvent { blockNumber transactionHash } asset { address symbol decimals }",
-  "id annualInterestBips reserveRatioBips delinquencyFeeBips delinquencyGracePeriod withdrawalBatchDuration maxTotalSupply",
-  "id hooks { id name kind } hooksConfig { minimumDeposit transfersDisabled depositRequiresAccess fixedTermEndTime allowClosureBeforeTerm allowTermReduction firstWithdrawalWindowStart periodDuration withdrawalWindowDuration }",
-  "id marketKind commitmentFeeBips",
+type FactGroup = {
+  fields: string
+  /** Absent from a pre-2.5 schema: "has no field" there is expected, so it is not warned. */
+  v25Only?: boolean
+}
+
+const FACT_GROUPS: FactGroup[] = [
+  {
+    fields:
+      "id name symbol deployedEvent { blockNumber transactionHash } asset { address symbol }",
+  },
+  {
+    fields:
+      "id hooks { kind } hooksConfig { depositRequiresAccess transfersDisabled fixedTermEndTime allowClosureBeforeTerm allowTermReduction periodDuration withdrawalWindowDuration firstWithdrawalWindowStart }",
+  },
+  { fields: "id marketKind commitmentFeeBips", v25Only: true },
 ]
 
 const FACTS_TIMEOUT_MS = 10_000
@@ -287,7 +299,7 @@ const warnGroup = (fields: string, why: string) =>
  */
 const queryGroup = async (
   gqlUrl: string,
-  fields: string,
+  { fields, v25Only }: FactGroup,
 ): Promise<GqlMarket[]> => {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), FACTS_TIMEOUT_MS)
@@ -314,7 +326,14 @@ const queryGroup = async (
     clearTimeout(timer)
   }
   if (Array.isArray(reply?.errors) && reply.errors.length > 0) {
-    warnGroup(fields, `GraphQL: ${reply.errors[0]?.message ?? "(no message)"}`)
+    const schemaLacksIt = reply.errors.every((x) =>
+      /has no field/.test(x?.message ?? ""),
+    )
+    if (!(v25Only && schemaLacksIt))
+      warnGroup(
+        fields,
+        `GraphQL: ${reply.errors[0]?.message ?? "(no message)"}`,
+      )
     return []
   }
   const markets = reply?.data?.markets
@@ -325,74 +344,80 @@ const queryGroup = async (
   return markets
 }
 
-const scalar = (v: unknown): ParamValue | undefined => {
-  if (v === null || v === undefined) return undefined
-  if (typeof v === "string" || typeof v === "number" || typeof v === "boolean")
-    return v
-  return String(v)
-}
-
 const obj = (v: unknown): Record<string, unknown> | undefined =>
   v && typeof v === "object" ? (v as Record<string, unknown>) : undefined
 
-/** The as-deployed parameters, one shape for every market: null where the subgraph was silent. */
-const parametersOf = (
-  m: Record<string, unknown>,
-): Record<string, ParamValue> => {
-  const p: Record<string, ParamValue> = {}
-  const req = (k: string, v: unknown) => {
-    p[k] = scalar(v) ?? null
-  }
-  const opt = (k: string, v: unknown) => {
-    const s = scalar(v)
-    if (s !== undefined) p[k] = s
-  }
+const TERMS: Record<string, MarketType["term"]> = {
+  OpenTerm: "open-term",
+  FixedTerm: "fixed-term",
+  PeriodicTerm: "periodic-term",
+}
+
+const KINDS: Record<string, NonNullable<MarketType["kind"]>> = {
+  STANDARD: "standard",
+  REVOLVING: "revolving",
+}
+
+/** A number the subgraph sent as Int or BigInt string; undefined when it is neither. */
+const num = (v: unknown): number | undefined => {
+  if (typeof v === "number" && Number.isFinite(v)) return v
+  if (typeof v === "string" && /^\d+$/.test(v)) return Number(v)
+  return undefined
+}
+
+/** Unix seconds → "2026-09-29T00:00:00Z"; 0 (unset) and nonsense → undefined. */
+const iso = (v: unknown): string | undefined => {
+  const n = num(v)
+  if (n === undefined || n <= 0 || n > 8_640_000_000_000) return undefined
+  return new Date(n * 1000).toISOString().replace(".000Z", "Z")
+}
+
+/**
+ * The market's type and ONLY the config relevant to it. `undefined` when no group returned
+ * anything to type the market by (identity alone still gives the asset, so that still types it,
+ * as `term: "unknown"`).
+ */
+const typeOf = (m: Record<string, unknown>): MarketType | undefined => {
   const asset = obj(m.asset)
   const hooks = obj(m.hooks)
-  const cfg = obj(m.hooksConfig) ?? {}
-  req("name", m.name)
-  req("symbol", m.symbol)
-  req(
-    "asset",
-    asset
-      ? [asset.symbol, asset.address].filter((x) => x != null).join(" ") || null
-      : null,
-  )
-  // Lets the renderer show maxTotalSupply / minimumDeposit in token units; the raw values stay.
-  opt("assetDecimals", asset?.decimals)
-  opt("marketKind", m.marketKind)
-  opt("commitmentFeeBips", m.commitmentFeeBips)
-  req(
-    "hooks",
-    hooks
-      ? [hooks.kind, hooks.name].filter((x) => x != null).join(" ") || null
-      : null,
-  )
-  for (const k of [
-    "annualInterestBips",
-    "reserveRatioBips",
-    "delinquencyFeeBips",
-    "delinquencyGracePeriod",
-    "withdrawalBatchDuration",
-    "maxTotalSupply",
-  ])
-    req(k, m[k])
-  for (const k of [
-    "minimumDeposit",
-    "transfersDisabled",
-    "depositRequiresAccess",
-  ])
-    req(k, cfg[k])
-  for (const k of [
-    "fixedTermEndTime",
-    "allowClosureBeforeTerm",
-    "allowTermReduction",
-    "periodDuration",
-    "withdrawalWindowDuration",
-    "firstWithdrawalWindowStart",
-  ])
-    opt(k, cfg[k])
-  return p
+  const cfg = obj(m.hooksConfig)
+  const kind =
+    typeof m.marketKind === "string" ? KINDS[m.marketKind] : undefined
+  if (!asset && !hooks && !cfg && m.marketKind === undefined) return undefined
+
+  const term =
+    (typeof hooks?.kind === "string" ? TERMS[hooks.kind] : undefined) ??
+    "unknown"
+  const config: MarketType["config"] = {}
+  const put = (k: string, v: string | number | boolean | undefined) => {
+    if (v !== undefined) config[k] = v
+  }
+  const bool = (v: unknown) => (typeof v === "boolean" ? v : undefined)
+  if (cfg && term === "fixed-term") {
+    put("maturity", iso(cfg.fixedTermEndTime))
+    put("allowClosureBeforeTerm", bool(cfg.allowClosureBeforeTerm))
+    put("allowTermReduction", bool(cfg.allowTermReduction))
+  }
+  if (cfg && term === "periodic-term") {
+    put("periodDuration", num(cfg.periodDuration))
+    put("withdrawalWindowDuration", num(cfg.withdrawalWindowDuration))
+    put("firstWithdrawalWindowStart", iso(cfg.firstWithdrawalWindowStart))
+  }
+  if (kind === "revolving") put("commitmentFeeBips", num(m.commitmentFeeBips))
+  if (cfg) {
+    put("depositRequiresAccess", bool(cfg.depositRequiresAccess))
+    put("transfersDisabled", bool(cfg.transfersDisabled))
+  }
+
+  const t: MarketType = { term, config }
+  if (kind) t.kind = kind
+  const assetText = asset
+    ? [asset.symbol, asset.address]
+        .filter((x) => typeof x === "string" && x !== "")
+        .join(" ")
+    : ""
+  if (assetText) t.asset = assetText
+  return t
 }
 
 /**
@@ -405,7 +430,7 @@ export const fetchMarketFacts = async (
   gqlUrl: string,
 ): Promise<MarketFacts> => {
   const groups = await Promise.all(
-    FACT_GROUPS.map((fields) => queryGroup(gqlUrl, fields)),
+    FACT_GROUPS.map((group) => queryGroup(gqlUrl, group)),
   )
   const merged = new Map<string, Record<string, unknown>>()
   for (const group of groups) {
@@ -419,12 +444,14 @@ export const fetchMarketFacts = async (
   for (const [id, m] of merged) {
     const ev = obj(m.deployedEvent)
     const block = ev?.blockNumber != null ? Number(ev.blockNumber) : NaN
-    const fact: MarketFact = { parameters: parametersOf(m) }
+    const fact: MarketFact = {}
     if (typeof m.name === "string") fact.name = m.name
     if (typeof m.symbol === "string") fact.symbol = m.symbol
     if (Number.isFinite(block)) fact.deployedBlock = block
     if (typeof ev?.transactionHash === "string")
       fact.deployedTx = ev.transactionHash
+    const type = typeOf(m)
+    if (type) fact.type = type
     facts[id] = fact
   }
   return facts

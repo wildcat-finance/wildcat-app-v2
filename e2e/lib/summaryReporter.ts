@@ -657,7 +657,7 @@ class SummaryReporter implements Reporter {
       tests: this.uatTests,
     }
 
-    // uat-run/3: market provenance — origin, as-deployed parameters and per-market history,
+    // uat-run/3: market provenance — origin, market type + config and per-market history,
     // derived from the (now enriched) journal and the subgraph's facts. Never blocks run.json:
     // offline the facts are {} and pinned markets still classify forked.
     if (schema === "uat-run/3") {
