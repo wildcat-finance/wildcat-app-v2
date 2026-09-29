@@ -772,17 +772,25 @@ describe("market provenance — chain time in the narrative", () => {
   })
 })
 
-describe("market provenance — the Markets section", () => {
+describe("market provenance — the Markets summary and each row's “How this state was reached”", () => {
   const CREATED = `0x${"c".repeat(40)}`
   const FORKED = "0x07878e16a64ed6daacebe8a6537902a048de8f2d"
   const LATE = `0x${"d".repeat(40)}`
   const GONE = `0x${"e".repeat(40)}`
+  const H = (d: string) => `0x${d.repeat(64)}`
 
+  const byTitle = (r: UatRun, title: string) =>
+    r.tests.find((x) => x.title === title)!
   const withdrawalAnchor = (r: UatRun) =>
-    anchorOf(
-      r.tests.find((x) => x.title === "queue a withdrawal through the UI")!,
-    )
+    anchorOf(byTitle(r, "queue a withdrawal through the UI"))
+  const bopAnchor = (r: UatRun) =>
+    anchorOf(byTitle(r, "BOP-17b: the permissionless APR reduction path"))
 
+  /**
+   * One created market touched by three rows in run order — the creator (MKT-01), a deposit row
+   * with a chain-time jump (LEN-01), a withdrawal row — and then a LATER row (BOP-17b). One forked
+   * market LEN-01 also touched. A created market outside the journal and an unresolved one.
+   */
   const withMarkets = (): UatRun => {
     const r = run()
     r.schema = "uat-run/3"
@@ -795,16 +803,20 @@ describe("market provenance — the Markets section", () => {
           row: "MKT-01",
           anchor: "uat-MKT-01",
           block: "11584300",
-          txHash: `0x${"1".repeat(64)}`,
+          txHash: H("1"),
         },
-        parameters: {
-          name: "Created Market",
-          annualInterestBips: 1000,
-          withdrawalBatchDuration: 360,
-          delinquencyGracePeriod: 86_400,
-          maxTotalSupply: "1000000000000000000000",
-          transfersDisabled: false,
-          fixedTermEndTime: null,
+        type: {
+          term: "fixed-term",
+          kind: "revolving",
+          asset: "DAI 0x4f148643e3a5ac817ca68f7083da20f7283966c5",
+          config: {
+            maturity: "2026-10-29T00:00:00Z",
+            allowClosureBeforeTerm: true,
+            allowTermReduction: false,
+            commitmentFeeBips: 200,
+            depositRequiresAccess: true,
+            transfersDisabled: false,
+          },
         },
         txs: [
           {
@@ -816,7 +828,7 @@ describe("market provenance — the Markets section", () => {
             from: "account #3 (borrower)",
             call: "deployMarketAndHooks(…)",
             status: "success",
-            hash: `0x${"1".repeat(64)}`,
+            hash: H("1"),
             kind: "tx",
           },
           {
@@ -824,8 +836,38 @@ describe("market provenance — the Markets section", () => {
             row: "LEN-01",
             anchor: "uat-LEN-01",
             block: "11584301",
+            call: "depositUpTo(amount: 100 DAI)",
+            status: "success",
+            hash: H("2"),
+            kind: "tx",
+          },
+          {
+            seq: 3,
+            row: "LEN-01",
+            anchor: "uat-LEN-01",
+            block: "11584302",
             call: "chain time +3,600 s → 2026-09-26T07:02:02Z",
             kind: "chain-time",
+          },
+          {
+            seq: 4,
+            row: "queue a withdrawal through the UI",
+            anchor: withdrawalAnchor(r),
+            block: "11584303",
+            call: "queueWithdrawal(amount: 40 DAI)",
+            status: "reverted",
+            hash: H("3"),
+            kind: "tx",
+          },
+          {
+            seq: 5,
+            row: "BOP-17b",
+            anchor: bopAnchor(r),
+            block: "11584304",
+            call: "setAnnualInterestBips(apr: 5.00%)",
+            status: "success",
+            hash: H("4"),
+            kind: "tx",
           },
         ],
         derivedAt: "run",
@@ -835,15 +877,21 @@ describe("market provenance — the Markets section", () => {
         name: "TEST DAI KW 3",
         origin: "forked",
         forkBlock: 11584253,
+        type: {
+          term: "open-term",
+          kind: "standard",
+          asset: "DAI 0x112bdd9b1649898c2ab2ed8f8866fc46a2eb52e6",
+          config: { depositRequiresAccess: false, transfersDisabled: false },
+        },
         txs: [
           {
             seq: 1,
-            row: "queue a withdrawal through the UI",
-            anchor: withdrawalAnchor(r),
-            block: "11584310",
-            call: "queueWithdrawal(amount: 40 DAI)",
-            status: "reverted",
-            hash: `0x${"2".repeat(64)}`,
+            row: "LEN-01",
+            anchor: "uat-LEN-01",
+            block: "11584305",
+            call: "approve(spender: market, amount: 5 DAI)",
+            status: "success",
+            hash: H("5"),
             kind: "tx",
           },
         ],
@@ -852,6 +900,17 @@ describe("market provenance — the Markets section", () => {
       {
         address: LATE,
         origin: "created",
+        type: {
+          term: "periodic-term",
+          kind: "standard",
+          config: {
+            periodDuration: 1_800,
+            withdrawalWindowDuration: 3_600,
+            firstWithdrawalWindowStart: "2026-09-29T21:10:00Z",
+            depositRequiresAccess: true,
+            transfersDisabled: false,
+          },
+        },
         txs: [],
         derivedAt: "run",
       },
@@ -866,128 +925,230 @@ describe("market provenance — the Markets section", () => {
     return r
   }
 
-  it("renders one card per market, with origin in the summary line", () => {
-    const html = renderUatReport(withMarkets())
-    expect(html).toContain('<section class="markets"')
-    expect(html).toContain(`<details class="market" id="market-${CREATED}">`)
-    expect(html).toContain(`<details class="market" id="market-${FORKED}">`)
-    expect(html).toMatch(
-      /Created Market<\/span> · created by <a href="#uat-MKT-01">MKT-01<\/a> at block 11584300/,
+  /** The row's "How this state was reached" section, or "" when it has none. */
+  const reachedOf = (html: string, anchor: string): string => {
+    const at = html.indexOf(`id="${anchor}"`)
+    expect(at).toBeGreaterThan(-1)
+    const row = html.slice(at)
+    const end = row.indexOf("<h3>What happened</h3>")
+    const head = end === -1 ? row : row.slice(0, end)
+    const s = head.indexOf('<section class="reached">')
+    return s === -1 ? "" : head.slice(s, head.indexOf("</section>", s))
+  }
+  /** The steps of one market's block inside a row's section, as text. */
+  const stepsOf = (section: string, addr: string): string[] => {
+    const at = section.indexOf(`href="#market-${addr}"`)
+    expect(at).toBeGreaterThan(-1)
+    const block = section.slice(at, section.indexOf("</ol>", at))
+    return (block.match(/<li[^>]*>[\s\S]*?<\/li>/g) ?? []).map((li) =>
+      li
+        .replace(/<[^>]+>/g, "")
+        .replace(/\s+/g, " ")
+        .trim(),
     )
-    expect(html).toContain("TEST DAI KW 3</span> · forked at block 11584253")
-    expect(html).toContain("created after the fork, outside this run's journal")
-    expect(html).toContain("· origin unknown")
-    // The section sits after the answers and before the page nav.
+  }
+
+  it("the summary table: one row per market with origin, type and config chips — no tx or rows column", () => {
+    const html = renderUatReport(withMarkets())
+    expect(html).toContain('<section class="markets" id="markets">')
+    expect(html).toContain("<h2>Markets in this run</h2>")
+    expect(html).toContain(
+      "4 markets · 2 created by this run · 1 forked · 1 unresolved",
+    )
+    const table = html.slice(
+      html.indexOf('<table class="summary">'),
+      html.indexOf("</table>", html.indexOf('<table class="summary">')),
+    )
+    expect(table).toContain(
+      "<th>market</th><th>origin</th><th>type</th><th>config relevant to the type</th></tr>",
+    )
+    expect(table).not.toContain("<th>txs</th>")
+    expect(table).not.toContain("<th>rows</th>")
+    expect(table).toContain(`<tr id="market-${CREATED}">`)
+    expect(table).toContain(
+      'created by <a href="#uat-MKT-01">MKT-01</a> at block 11584300',
+    )
+    expect(table).toContain("forked at block 11584253")
+    expect(table).toContain(
+      "created after the fork, outside this run's journal",
+    )
+    expect(table).toContain("origin unknown")
+    expect(table).toContain("<b>Fixed term · revolving</b>")
+    expect(table).toContain("<b>Open term · standard</b>")
+    expect(table).toContain("<b>Periodic term · standard</b>")
+    expect(table).toContain(
+      '<span class="chip"><span class="k">maturity</span> 2026-10-29T00:00:00Z</span>',
+    )
+    expect(table).toContain(
+      '<span class="chip"><span class="k">commitmentFeeBips</span> 200</span>',
+    )
+    // Durations humanised, timestamps ISO.
+    expect(table).toContain(
+      '<span class="chip"><span class="k">periodDuration</span> 30 min</span>',
+    )
+    expect(table).toContain(
+      '<span class="chip"><span class="k">withdrawalWindowDuration</span> 1 h</span>',
+    )
+    expect(table).toContain(
+      '<span class="chip"><span class="k">firstWithdrawalWindowStart</span> 2026-09-29T21:10:00Z</span>',
+    )
+    // No facts: no type.
+    const gone = table.slice(table.indexOf(`id="market-${GONE}"`))
+    expect(gone.slice(0, gone.indexOf("</tr>"))).toContain(
+      '<span class="muted">unknown</span>',
+    )
+    // The summary sits after the answers and before the page nav; no per-market cards.
     expect(html.indexOf('<section class="markets"')).toBeLessThan(
       html.indexOf('<nav class="pagenav">'),
     )
+    expect(html).not.toContain('<details class="market"')
+    expect(html).not.toContain("Parameters as deployed")
   })
 
-  it("humanises the as-deployed parameters and keeps the raw value in a title", () => {
-    const html = renderUatReport(withMarkets())
-    expect(html).toContain('<td title="1000">10.00%</td>')
-    expect(html).toContain('<td title="360">6 min</td>')
-    expect(html).toContain('<td title="86400">1 d</td>')
-    expect(html).toContain("not reported by the subgraph")
-  })
-
-  it("links both ways: card rows to the row anchors, and each row to the markets it touched", () => {
-    const html = renderUatReport(withMarkets())
-    expect(html).toContain('<a href="#uat-MKT-01">MKT-01</a>')
-    expect(withdrawalAnchor(run())).toMatch(/^row-/)
-    expect(html).toContain(
-      `<a href="#${withdrawalAnchor(
-        run(),
-      )}">queue a withdrawal through the UI</a>`,
-    )
-    const mkt01 = html.slice(html.indexOf('id="uat-MKT-01"'))
-    expect(mkt01.slice(0, mkt01.indexOf("</details>"))).toContain(
-      `Markets touched: <a href="#market-${CREATED}">Created Market</a>`,
-    )
-    const len01 = html.slice(html.indexOf('id="uat-LEN-01"'))
-    expect(len01.slice(0, len01.indexOf("</details>"))).toContain(
-      `href="#market-${CREATED}"`,
-    )
-  })
-
-  it("renders a chain-time row as one full-width muted row", () => {
-    const html = renderUatReport(withMarkets())
-    expect(html).toMatch(
-      /<tr class="chain-time"><td>2<\/td><td colspan="\d+">.*chain time \+3,600 s → 2026-09-26T07:02:02Z/,
-    )
-    expect(html).toContain("time travel outside a row is not journaled")
-  })
-
-  it("notes a render-time derivation", () => {
-    const html = renderUatReport(withMarkets())
-    expect(html).toContain(
-      "derived at render time from the journal; created markets could not be resolved against the current fork",
-    )
-  })
-
-  it("labels a forked card “forked at block N” and an unresolved one “origin unknown”", () => {
-    const html = renderUatReport(withMarkets())
-    const summaryOf = (addr: string) => {
-      const at = html.indexOf(`id="market-${addr}"`)
-      return html.slice(
-        html.indexOf("<summary>", at),
-        html.indexOf("</summary>", at),
-      )
-    }
-    expect(summaryOf(FORKED)).toContain("· forked at block 11584253")
-    expect(summaryOf(FORKED)).not.toContain("origin unknown")
-    expect(summaryOf(GONE)).toContain("· origin unknown")
-    expect(summaryOf(GONE)).not.toContain("forked at")
-  })
-
-  it("closes every card with the muted footer saying time travel outside a row is not journaled", () => {
-    const html = renderUatReport(withMarkets())
-    const footers = html.match(
-      /<p class="muted market-foot">[^<]*time travel outside a row is not journaled[^<]*<\/p>/g,
-    )
-    expect(footers).toHaveLength(4)
-  })
-
-  it("shows token amounts in the asset's units, raw wei in the title; raw when decimals are unknown", () => {
+  it("the summary shortens an infra creator row to 24 characters, the full title in `title`", () => {
     const r = withMarkets()
-    r.markets![0].parameters = {
-      asset: "DAI 0x4f148643e3a5ac817ca68f7083da20f7283966c5",
-      assetDecimals: 18,
-      maxTotalSupply: "1000000000000000000000000",
-      minimumDeposit: "100000000000000000000",
-    }
-    r.markets![1].parameters = {
-      asset: "USDC 0x94a9d9ac8a22534e3faca9f4e7f2e2cf85d5e4c8",
-      assetDecimals: 6,
-      maxTotalSupply: "1500000",
-      minimumDeposit: "0",
-    }
-    r.markets![2].parameters = {
-      asset: "WEIRD 0x0000000000000000000000000000000000000001",
-      maxTotalSupply: "123456789",
-      minimumDeposit: null,
+    const title =
+      "provision: register the borrower and deploy the open-term fixtures via the factory"
+    r.markets![0].createdBy = {
+      row: title,
+      anchor: "row-provision-register",
+      block: "11584300",
+      txHash: H("1"),
     }
     const html = renderUatReport(r)
+    const table = html.slice(
+      html.indexOf('<table class="summary">'),
+      html.indexOf("</table>", html.indexOf('<table class="summary">')),
+    )
+    expect(table).toContain(
+      `created by <a href="#row-provision-register" title="${title}">provision: register the…</a> at block 11584300`,
+    )
+    // The row's own section keeps the full title.
     expect(html).toContain(
-      '<td title="1000000000000000000000000">1,000,000 DAI</td>',
+      `created by <a href="#row-provision-register">${title}</a> at block 11584300`,
     )
-    expect(html).not.toContain('<th class="mono">assetDecimals</th>')
-    expect(html).toContain('<td title="100000000000000000000">100 DAI</td>')
-    expect(html).toContain('<td title="1500000">1.5 USDC</td>')
-    expect(html).toContain('<td title="0">0 USDC</td>')
-    // No decimals on record: the raw value, unhumanised.
-    expect(html).toContain('<td class="mono">123456789</td>')
-    // run.json's values are untouched by rendering.
-    expect(r.markets![0].parameters!.maxTotalSupply).toBe(
-      "1000000000000000000000000",
+  })
+
+  it("the provenance header carries the market counts", () => {
+    const html = renderUatReport(withMarkets())
+    const prov = html.slice(
+      html.indexOf('<section class="prov">'),
+      html.indexOf("</section>", html.indexOf('<section class="prov">')),
     )
+    expect(prov).toMatch(
+      /Markets<\/dt>\s*<dd>2 created · 1 forked · 1 unresolved/,
+    )
+    expect(renderUatReport(run())).not.toMatch(/Markets<\/dt>/)
+  })
+
+  it("the withdrawal row: creation, the deposit, the chain time, its own tx marked — nothing after", () => {
+    const r = withMarkets()
+    const html = renderUatReport(r)
+    const sec = reachedOf(html, withdrawalAnchor(r))
+    expect(sec).toContain("<h3>How this state was reached</h3>")
+    expect(stepsOf(sec, CREATED)).toEqual([
+      "MKT-01: created the market — deployMarketAndHooks(…) (block 11584300)",
+      "LEN-01: depositUpTo(amount: 100 DAI) (block 11584301)",
+      "LEN-01: chain time +3,600 s (1 h) (block 11584302)",
+      // A reverted tx changed no state; it says so.
+      "queue a withdrawal through the UI: queueWithdrawal(amount: 40 DAI) reverted (block 11584303) (this row)",
+    ])
+    expect(sec).not.toContain("setAnnualInterestBips")
+    // The chain-time step keeps the target time in a title.
+    expect(sec).toContain('title="2026-09-26T07:02:02Z"')
+    // Header: name — type · origin, then the chips.
+    expect(sec).toMatch(
+      new RegExp(
+        `<a href="#market-${CREATED}"[^>]*>Created Market</a> — <b>Fixed term · revolving</b> · created by <a href="#uat-MKT-01">MKT-01</a> at block 11584300`,
+      ),
+    )
+    expect(sec).toContain(
+      '<span class="chip"><span class="k">maturity</span> 2026-10-29T00:00:00Z</span>',
+    )
+    // The section comes before "What happened".
+    const row = html.slice(html.indexOf(`id="${withdrawalAnchor(r)}"`))
+    expect(row.indexOf("How this state was reached")).toBeLessThan(
+      row.indexOf("<h3>What happened</h3>"),
+    )
+  })
+
+  it("the creator row lists only the creation, marked as its own", () => {
+    const html = renderUatReport(withMarkets())
+    expect(stepsOf(reachedOf(html, "uat-MKT-01"), CREATED)).toEqual([
+      "MKT-01: created the market — deployMarketAndHooks(…) (block 11584300) (this row)",
+    ])
+  })
+
+  it("a row touching two markets gets one block each; a forked market carries the fork note", () => {
+    const html = renderUatReport(withMarkets())
+    const sec = reachedOf(html, "uat-LEN-01")
+    expect(stepsOf(sec, CREATED)).toEqual([
+      "MKT-01: created the market — deployMarketAndHooks(…) (block 11584300)",
+      "LEN-01: depositUpTo(amount: 100 DAI) (block 11584301) (this row)",
+      "LEN-01: chain time +3,600 s (1 h) (block 11584302) (this row)",
+    ])
+    expect(stepsOf(sec, FORKED)).toEqual([
+      "LEN-01: approve(spender: market, amount: 5 DAI) (block 11584305) (this row)",
+    ])
+    expect(sec).toContain("forked at block 11584253")
+    expect(sec).toContain(
+      "state before the fork block is Sepolia's and not shown",
+    )
+    // The fork note belongs to the forked market's block only.
+    expect(sec.match(/state before the fork block/g)).toHaveLength(1)
+    expect(sec).toContain("time travel outside a row is not journaled")
+  })
+
+  it("a row that touched no market gets no section, and the old “Markets touched” line is gone", () => {
+    const html = renderUatReport(withMarkets())
+    expect(
+      reachedOf(html, anchorOf(byTitle(withMarkets(), "LEN-01: discovery"))),
+    ).not.toBe("")
+    ;[
+      "setup: fixtures",
+      "stack is healthy and the pinned market exists",
+    ].forEach((title) =>
+      expect(reachedOf(html, anchorOf(byTitle(withMarkets(), title)))).toBe(""),
+    )
+    expect(html).not.toContain("Markets touched")
+  })
+
+  it("a row's only chain-time entry does not make it a toucher", () => {
+    const r = withMarkets()
+    r.markets![0].txs.push({
+      seq: 6,
+      row: "stack is healthy and the pinned market exists",
+      anchor: anchorOf(
+        byTitle(r, "stack is healthy and the pinned market exists"),
+      ),
+      block: "11584306",
+      call: "chain time +60 s",
+      kind: "chain-time",
+    })
+    const html = renderUatReport(r)
+    expect(
+      reachedOf(
+        html,
+        anchorOf(byTitle(r, "stack is healthy and the pinned market exists")),
+      ),
+    ).toBe("")
+  })
+
+  it("notes a render-time derivation once, in the summary", () => {
+    const html = renderUatReport(withMarkets())
+    expect(
+      html.match(
+        /derived at render time from the journal; created markets could not be resolved against the current fork/g,
+      ),
+    ).toHaveLength(1)
   })
 
   it("renders no section for an absent or empty index", () => {
     expect(renderUatReport(run())).not.toContain('class="markets"')
+    expect(renderUatReport(run())).not.toContain("How this state was reached")
     const empty = run()
     empty.markets = []
     expect(renderUatReport(empty)).not.toContain('class="markets"')
-    expect(renderUatReport(empty)).not.toContain("Markets touched")
+    expect(renderUatReport(empty)).not.toContain("How this state was reached")
   })
 })

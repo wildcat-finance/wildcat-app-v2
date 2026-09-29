@@ -95,6 +95,23 @@ export type MarketTx = {
   kind: "tx" | "chain-time"
 }
 
+/**
+ * A market's type as the subgraph sees it, and ONLY the config relevant to that type:
+ *   fixed-term    maturity (ISO), allowClosureBeforeTerm, allowTermReduction
+ *   periodic-term periodDuration, withdrawalWindowDuration (seconds), firstWithdrawalWindowStart (ISO)
+ *   revolving     commitmentFeeBips (when the subgraph returns it)
+ *   every market  depositRequiresAccess, transfersDisabled
+ * `term` is "unknown" when the facts carry no hooks kind; `kind` is absent on a subgraph without
+ * `marketKind` (main's v2.1.x).
+ */
+export type MarketType = {
+  term: "open-term" | "fixed-term" | "periodic-term" | "unknown"
+  kind?: "standard" | "revolving"
+  /** "<symbol> <address>" */
+  asset?: string
+  config: Record<string, string | number | boolean>
+}
+
 /** uat-run/3: where a market the run transacted with came from, and what the run did to it. */
 export type MarketIndexEntry = {
   address: string
@@ -105,8 +122,8 @@ export type MarketIndexEntry = {
   /** origin created AND the creating tx is in this run's journal; absent ⇒ created after the fork
    *  outside this run's journal. */
   createdBy?: { row: string; anchor: string; block: string; txHash: string }
-  /** As deployed, from the subgraph. */
-  parameters?: Record<string, string | number | boolean | null>
+  /** The market's type and the config relevant to it, from the subgraph; absent without facts. */
+  type?: MarketType
   txs: MarketTx[]
   /** Reporter onEnd ("run") vs the render-report fallback ("render"). */
   derivedAt: "run" | "render"

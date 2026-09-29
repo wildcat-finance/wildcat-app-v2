@@ -27,7 +27,7 @@ import {
   groupByPage,
   suitePageOverride,
   type MarketIndexEntry,
-  type MarketTx,
+  type MarketType,
   type Outcome,
   type PageGroup,
   type UatJournalEntry,
@@ -739,6 +739,21 @@ ${kv(
     m.pwVideo ? ` · PW_VIDEO=${esc(m.pwVideo)}` : ""
   }`,
 )}
+${
+  run.markets
+    ? kv(
+        "Markets",
+        `${["created", "forked", "unknown"]
+          .map(
+            (o) =>
+              `${run.markets!.filter((x) => x.origin === o).length} ${
+                o === "unknown" ? "unresolved" : o
+              }`,
+          )
+          .join(" · ")} <a href="#markets">summary</a>`,
+      )
+    : ""
+}
 ${kv(
   "Run",
   `${esc(run.startedAt ?? "?")} · ${fmtDuration(run.durationMs ?? 0)} · ${
@@ -755,14 +770,15 @@ ${kv(
 
 // ---------- market provenance (uat-run/3 `markets`) ----------
 
-/** row anchor → the markets that row transacted with (or created), in index order. */
+/** row anchor → the markets that row transacted with (a tx of its own, the creation included). */
 type TouchedIndex = Map<string, MarketIndexEntry[]>
 
 const touchedIndex = (markets?: MarketIndexEntry[]): TouchedIndex => {
   const idx: TouchedIndex = new Map()
   for (const m of markets ?? []) {
-    const anchors = new Set(m.txs.map((x) => x.anchor))
-    if (m.createdBy) anchors.add(m.createdBy.anchor)
+    const anchors = new Set(
+      m.txs.filter((x) => x.kind === "tx").map((x) => x.anchor),
+    )
     for (const a of anchors) idx.set(a, [...(idx.get(a) ?? []), m])
   }
   return idx
@@ -770,29 +786,6 @@ const touchedIndex = (markets?: MarketIndexEntry[]): TouchedIndex => {
 
 const marketLabel = (m: MarketIndexEntry): string =>
   m.name ?? `${m.address.slice(0, 6)}…${m.address.slice(-4)}`
-
-/** "Markets touched: <links to the market cards>" — one line above a row's tx table. */
-const renderTouched = (t: UatTest, touched: TouchedIndex): string => {
-  const ms = touched.get(anchorOf(t))
-  if (!ms || ms.length === 0) return ""
-  return `<p class="touched">Markets touched: ${ms
-    .map(
-      (m) => `<a href="#market-${esc(m.address)}">${esc(marketLabel(m))}</a>`,
-    )
-    .join(" · ")}</p>
-`
-}
-
-const SECONDS_KEYS: ReadonlySet<string> = new Set([
-  "delinquencyGracePeriod",
-  "withdrawalBatchDuration",
-  "periodDuration",
-  "withdrawalWindowDuration",
-])
-const TIMESTAMP_KEYS: ReadonlySet<string> = new Set([
-  "fixedTermEndTime",
-  "firstWithdrawalWindowStart",
-])
 
 const trimNum = (n: number): string =>
   Number.isInteger(n) ? String(n) : n.toFixed(1).replace(/\.0$/, "")
@@ -807,157 +800,173 @@ const humanSeconds = (s: number): string =>
         ? `${trimNum(s / 3_600)} h`
         : `${trimNum(s / 86_400)} d`
 
-/** A parameter value cell: humanised where it helps, the raw value kept in a title. */
-const AMOUNT_KEYS: ReadonlySet<string> = new Set([
-  "maxTotalSupply",
-  "minimumDeposit",
+/** Config keys whose values are durations in seconds (timestamps arrive as ISO already). */
+const DURATION_KEYS: ReadonlySet<string> = new Set([
+  "periodDuration",
+  "withdrawalWindowDuration",
 ])
 
-/** 10^24 wei at 18 decimals → "1,000,000"; at most 6 fraction digits, trailing zeros dropped. */
-const tokenUnits = (raw: string, decimals: number): string => {
-  const scale = 10n ** BigInt(decimals)
-  const v = BigInt(raw)
-  const int = (v / scale).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-  const frac = (v % scale)
-    .toString()
-    .padStart(decimals, "0")
-    .slice(0, 6)
-    .replace(/0+$/, "")
-  return frac ? `${int}.${frac}` : int
+const TERM_LABEL: Record<MarketType["term"], string> = {
+  "open-term": "Open term",
+  "fixed-term": "Fixed term",
+  "periodic-term": "Periodic term",
+  unknown: "unknown",
 }
 
-/** The asset's symbol and decimals, when the parameters carry them (subgraph facts). */
-const assetUnits = (
-  params: Record<string, string | number | boolean | null>,
-): { symbol: string; decimals: number } | undefined => {
-  const decimals = Number(params.assetDecimals)
-  const symbol =
-    typeof params.asset === "string" ? params.asset.split(" ")[0] : ""
-  return Number.isInteger(decimals) && decimals >= 0 && decimals <= 77 && symbol
-    ? { symbol, decimals }
-    : undefined
-}
+/** "Fixed term · revolving" in bold; "unknown" muted when there are no facts to type it by. */
+const typeLabel = (m: MarketIndexEntry): string =>
+  m.type
+    ? `<b>${esc(
+        [TERM_LABEL[m.type.term], m.type.kind].filter(Boolean).join(" · "),
+      )}</b>`
+    : `<span class="muted">unknown</span>`
 
-const paramCell = (
-  key: string,
-  v: string | number | boolean | null,
-  params: Record<string, string | number | boolean | null> = {},
-): string => {
-  if (v === null) return `<td class="muted">not reported by the subgraph</td>`
-  const units = AMOUNT_KEYS.has(key) ? assetUnits(params) : undefined
-  if (units && /^\d+$/.test(String(v)))
-    return `<td title="${esc(v)}">${esc(
-      `${tokenUnits(String(v), units.decimals)} ${units.symbol}`,
-    )}</td>`
-  const n =
-    typeof v === "number"
-      ? v
-      : typeof v === "string" && /^\d+$/.test(v)
-        ? Number(v)
-        : NaN
-  if (Number.isFinite(n)) {
-    if (/Bips$/.test(key))
-      return `<td title="${esc(v)}">${(n / 100).toFixed(2)}%</td>`
-    if (SECONDS_KEYS.has(key))
-      return `<td title="${esc(v)}">${esc(humanSeconds(n))}</td>`
-    if (TIMESTAMP_KEYS.has(key) && n > 1_600_000_000 && n < 4_100_000_000)
-      return `<td title="${esc(v)}">${esc(
-        new Date(n * 1000).toISOString().replace(".000Z", "Z"),
-      )}</td>`
+const configChips = (m: MarketIndexEntry): string =>
+  Object.entries(m.type?.config ?? {})
+    .map(
+      ([k, v]) =>
+        `<span class="chip"><span class="k">${esc(k)}</span> ${esc(
+          DURATION_KEYS.has(k) && typeof v === "number" ? humanSeconds(v) : v,
+        )}</span>`,
+    )
+    .join(" ")
+
+/** A row link; `short` cuts an infra row's (no uatId) long title to 24 characters, full in `title`. */
+const rowLink = (row: string, anchor: string, short = false): string =>
+  short && anchor.startsWith("row-") && row.length > 24
+    ? `<a href="#${esc(anchor)}" title="${esc(row)}">${esc(
+        `${row.slice(0, 24).trimEnd()}…`,
+      )}</a>`
+    : `<a href="#${esc(anchor)}">${esc(row)}</a>`
+
+const originText = (m: MarketIndexEntry, short = false): string =>
+  m.origin === "forked"
+    ? `forked at block ${esc(m.forkBlock ?? "?")}`
+    : m.origin === "created"
+      ? m.createdBy
+        ? `created by ${rowLink(
+            m.createdBy.row,
+            m.createdBy.anchor,
+            short,
+          )} at block ${esc(m.createdBy.block)}`
+        : "created after the fork, outside this run's journal"
+      : "origin unknown"
+
+/** "chain time +3,600 s → <ISO>" → "chain time +3,600 s (1 h)", the ISO kept for a title. */
+const chainTimeStep = (call: string): { text: string; to?: string } => {
+  const m = /^chain time ([+−-])([\d,]+) s(?: → (\S+))?/.exec(call)
+  if (!m) return { text: call }
+  const secs = Number(m[2].replace(/,/g, ""))
+  return {
+    text: `chain time ${m[1]}${m[2]} s${
+      secs >= 60 ? ` (${humanSeconds(secs)})` : ""
+    }`,
+    to: m[3],
   }
-  return `<td class="mono">${esc(v)}</td>`
 }
 
-const renderMarketTxRow = (x: MarketTx): string => {
-  const rowLink = `<a href="#${esc(x.anchor)}">${esc(x.row)}</a>`
-  if (x.kind === "chain-time")
-    return `<tr class="chain-time"><td>${
-      x.seq
-    }</td><td colspan="7">${rowLink} · ${esc(x.call)}${
-      x.block ? ` <span class="mono">(block ${esc(x.block)})</span>` : ""
-    }</td></tr>`
-  const hash = x.hash
-    ? `<details class="tx-hash"><summary class="mono">${esc(
-        `${x.hash.slice(0, 10)}…`,
-      )}</summary><span class="mono">${esc(x.hash)}</span></details>`
-    : ""
-  return `<tr><td>${x.seq}</td><td>${rowLink}</td><td class="tx-during">${esc(
-    x.during ?? "",
-  )}</td><td>${esc(x.from ?? "")}</td><td><code class="tx-call">${esc(
-    x.call,
-  )}</code></td><td>${
-    x.status ? txBadge(x.status) : ""
-  }</td><td class="mono">${esc(x.block ?? "")}</td><td>${hash}</td></tr>`
+const MARKET_FOOT = `<p class="muted market-foot">Type and config from the subgraph's view of the market; history from this run's journal; time travel outside a row is not journaled.</p>`
+
+/**
+ * How this row's state was reached, per market it touched: the market's history up to this row's
+ * last entry — this row's own entries plus those of rows that came before it in run order (their
+ * first entry on the market precedes this row's). Nothing from later rows.
+ */
+const renderReached = (t: UatTest, touched: TouchedIndex): string => {
+  const anchor = anchorOf(t)
+  const ms = touched.get(anchor)
+  if (!ms || ms.length === 0) return ""
+  const blocks = ms.map((m) => {
+    const first = new Map<string, number>()
+    for (const x of m.txs) if (!first.has(x.anchor)) first.set(x.anchor, x.seq)
+    const own = m.txs.filter((x) => x.anchor === anchor)
+    const mine = first.get(anchor) ?? Infinity
+    const lastOwn = Math.max(...own.map((x) => x.seq))
+    const steps = m.txs
+      .filter(
+        (x) =>
+          x.anchor === anchor ||
+          ((first.get(x.anchor) ?? Infinity) < mine && x.seq < lastOwn),
+      )
+      .sort((a, b) => a.seq - b.seq)
+      .map((x) => {
+        const isOwn = x.anchor === anchor
+        const link = rowLink(x.row, x.anchor)
+        const block = x.block
+          ? ` <span class="mono muted">(block ${esc(x.block)})</span>`
+          : ""
+        const mark = isOwn ? ` <b class="this-row">(this row)</b>` : ""
+        if (x.kind === "chain-time") {
+          const ct = chainTimeStep(x.call)
+          return `<li class="chain-time">${link}: <span${
+            ct.to ? ` title="${esc(ct.to)}"` : ""
+          }>${esc(ct.text)}</span>${block}${mark}</li>`
+        }
+        const creation =
+          m.createdBy && x.hash && x.hash === m.createdBy.txHash
+            ? "created the market — "
+            : ""
+        const reverted = x.status === "reverted" ? ` ${txBadge(x.status)}` : ""
+        return `<li${
+          isOwn ? ' class="own"' : ""
+        }>${link}: ${creation}<code class="tx-call">${esc(
+          x.call,
+        )}</code>${reverted}${block}${mark}</li>`
+      })
+    return `<div class="reached-market">
+<p class="reached-head"><a href="#market-${esc(
+      m.address,
+    )}" class="market-name">${esc(marketLabel(m))}</a> — ${typeLabel(
+      m,
+    )} · ${originText(m)}</p>${
+      m.type && Object.keys(m.type.config).length > 0
+        ? `\n<p class="chips">${configChips(m)}</p>`
+        : ""
+    }
+<ol class="reached-steps">${steps.join("")}</ol>${
+      m.origin === "forked"
+        ? `\n<p class="muted">state before the fork block is Sepolia's and not shown</p>`
+        : ""
+    }
+</div>`
+  })
+  return `<section class="reached"><h3>How this state was reached</h3>
+${blocks.join("\n")}
+${MARKET_FOOT}
+</section>
+`
 }
 
-const renderMarketCard = (m: MarketIndexEntry): string => {
-  const origin =
-    m.origin === "forked"
-      ? `forked at block ${esc(m.forkBlock ?? "?")}`
-      : m.origin === "created"
-        ? m.createdBy
-          ? `created by <a href="#${esc(m.createdBy.anchor)}">${esc(
-              m.createdBy.row,
-            )}</a> at block ${esc(m.createdBy.block)}`
-          : "created after the fork, outside this run's journal"
-        : "origin unknown"
-  // `assetDecimals` is carried for the amount formatting above, not a market parameter.
-  const params = Object.entries(m.parameters ?? {}).filter(
-    ([k]) => k !== "assetDecimals",
-  )
-  const paramTable =
-    params.length > 0
-      ? `<h4>Parameters as deployed</h4>
-<div class="scroll-x"><table class="market-params"><tbody>${params
-          .map(
-            ([k, v]) =>
-              `<tr><th class="mono">${esc(k)}</th>${paramCell(
-                k,
-                v,
-                m.parameters,
-              )}</tr>`,
-          )
-          .join("")}</tbody></table></div>`
-      : ""
-  const txTable =
-    m.txs.length > 0
-      ? `<h4>Transactions in this run</h4>
-<div class="scroll-x"><table class="txs market-txs">
-<thead><tr><th>#</th><th>row</th><th>during</th><th>actor</th><th>call</th><th>status</th><th>block</th><th>hash</th></tr></thead>
-<tbody>${m.txs.map(renderMarketTxRow).join("\n")}</tbody>
-</table></div>`
-      : `<p class="muted">No transaction of this run is on record for this market.</p>`
-  return `<details class="market" id="market-${esc(m.address)}">
-<summary><span class="market-name">${esc(
+/** One summary row: the market (anchor target for the rows' sections), origin, type, config. */
+const renderMarketSummaryRow = (m: MarketIndexEntry): string =>
+  `<tr id="market-${esc(m.address)}"><td><span class="market-name">${esc(
     marketLabel(m),
-  )}</span> · ${origin} <span class="mono muted">${esc(
+  )}</span><div class="muted mono small">${esc(
     m.address,
-  )}</span> <span class="muted">${m.txs.length} entr${
-    m.txs.length === 1 ? "y" : "ies"
-  }</span></summary>
-<div class="market-body">${
-    m.derivedAt === "render"
-      ? `<p class="muted">derived at render time from the journal; created markets could not be resolved against the current fork</p>`
-      : ""
-  }${paramTable}
-${txTable}
-<p class="muted market-foot">Origin from the subgraph's deploy event against the fork block; history from this run's journal; time travel outside a row is not journaled.</p>
-</div>
-</details>`
-}
+  )}</div></td><td>${originText(m, true)}</td><td>${typeLabel(
+    m,
+  )}</td><td>${configChips(m)}</td></tr>`
 
-/** The Markets section: one card per market the run transacted with. Absent/empty ⇒ nothing. */
+/** The Markets summary: one table row per market the run transacted with. Absent/empty ⇒ nothing. */
 const renderMarkets = (run: UatRun): string => {
   const markets = run.markets ?? []
   if (markets.length === 0) return ""
   const n = (o: MarketIndexEntry["origin"]) =>
     markets.filter((m) => m.origin === o).length
   return `
-<section class="markets" id="markets">
-<h3>Markets <span class="muted">${markets.length} seen · ${n(
-    "created",
-  )} created · ${n("forked")} forked · ${n("unknown")} unresolved</span></h3>
-${markets.map(renderMarketCard).join("\n")}
+<section class="markets" id="markets"><h2>Markets in this run</h2>
+<p class="muted">${markets.length} market${
+    markets.length === 1 ? "" : "s"
+  } · ${n("created")} created by this run · ${n("forked")} forked · ${n(
+    "unknown",
+  )} unresolved. Origin from the subgraph's deploy event against the fork block; type and config from the market's hooks; each row's “How this state was reached” lists the transactions that led to it, from this run's journal.</p>${
+    markets.some((m) => m.derivedAt === "render")
+      ? `\n<p class="muted">derived at render time from the journal; created markets could not be resolved against the current fork</p>`
+      : ""
+  }
+<div class="scroll-x"><table class="summary"><thead><tr><th>market</th><th>origin</th><th>type</th><th>config relevant to the type</th></tr></thead><tbody>${markets
+    .map(renderMarketSummaryRow)
+    .join("")}</tbody></table></div>
 </section>`
 }
 
@@ -1212,9 +1221,9 @@ ${
     ${stack}
   </div>
 </div>
-${renderWhatHappened(t)}
+${renderReached(t, touched)}${renderWhatHappened(t)}
 ${renderWhatWasVerified(t)}
-${renderTouched(t, touched)}${renderTxTable(t.journal)}
+${renderTxTable(t.journal)}
 <h3>Artefacts</h3>
 ${renderFilmStrip(t)}
 ${video}
@@ -1253,9 +1262,9 @@ const renderUnexpectedPassCard = (
   <p class="muted">No failure screenshot or error text exists for this row, and that is expected:
   the reporter captures failure media only for results that actually failed.</p>
 </div>
-${renderWhatHappened(t)}
+${renderReached(t, touched)}${renderWhatHappened(t)}
 ${renderWhatWasVerified(t)}
-${renderTouched(t, touched)}${renderTxTable(t.journal)}
+${renderTxTable(t.journal)}
 ${
   t.video
     ? `<details class="blob"><summary>▶ video (${fmtDuration(
@@ -1294,9 +1303,9 @@ const renderQuietRow = (
         }${video}`
       : ""
   const body = [
+    renderReached(t, touched),
     renderWhatHappened(t),
     renderWhatWasVerified(t),
-    renderTouched(t, touched),
     renderTxTable(t.journal),
     artefacts,
   ]
@@ -1439,17 +1448,28 @@ li.step-failed .step-what{color:var(--red)}
 
 /* market provenance */
 section.markets{margin:0 0 26px}
-details.market{background:var(--card);border:1px solid var(--line);border-radius:8px;
-  margin:6px 0;padding:8px 14px}
-details.market>summary{cursor:pointer;font-size:14px}
-details.market .market-name{font-weight:600}
-details.market .market-body{margin-top:6px}
-table.market-params{border-collapse:collapse;font-size:13px;margin:4px 0}
-table.market-params th{text-align:left;font-weight:500;color:var(--muted);padding:2px 14px 2px 0}
-table.market-params td{padding:2px 0}
-table.market-txs tr.chain-time td{color:var(--muted);font-style:italic;background:#fafafa}
+section.markets .market-name,section.reached .market-name{font-weight:600}
+section.markets .chip,section.reached .chip{display:inline-block;text-transform:none;letter-spacing:0;
+  border:1px solid var(--line);border-radius:12px;padding:1px 8px;margin:2px 4px 2px 0;font-size:12px;
+  font-weight:400;color:var(--ink);background:#fff}
+section.markets .chip .k,section.reached .chip .k{color:#6b7785;font-family:var(--mono)}
+table.summary{border-collapse:collapse;font-size:13px}
+table.summary td,table.summary th{vertical-align:top;padding:6px 8px;text-transform:none;letter-spacing:0;
+  border-top:1px solid var(--line)}
+table.summary td:nth-child(2){max-width:220px}
+table.summary a{overflow-wrap:anywhere}
+table.summary th{text-align:left;color:#6b7785;font-size:12px;font-weight:500}
+.small{font-size:11px}
+section.reached{margin:10px 0 4px}
+.reached-market{margin:6px 0 10px}
+.reached-head{margin:4px 0 2px;font-size:14px}
+p.chips{margin:2px 0 4px}
+ol.reached-steps{margin:4px 0;padding-left:26px;font-size:13px}
+ol.reached-steps li{margin:2px 0}
+ol.reached-steps li.own{background:#f3f7ff}
+ol.reached-steps li.chain-time{color:var(--muted);font-style:italic}
+.this-row{font-weight:600;color:var(--ink);font-style:normal}
 .market-foot{font-size:12px;margin:8px 0 0}
-p.touched{font-size:13px;margin:10px 0 4px}
 .pre-steps{font-size:12.5px;color:var(--muted);margin:6px 0}
 
 /* what was verified: one evidence card per agreement */

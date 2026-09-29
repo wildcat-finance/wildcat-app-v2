@@ -854,9 +854,13 @@ describe("SummaryReporter.onEnd — market provenance", () => {
               asset: {
                 address: `0x${"7".repeat(40)}`,
                 symbol: "DAI",
-                decimals: 18,
               },
-              annualInterestBips: 1000,
+              hooks: { kind: "OpenTerm" },
+              hooksConfig: {
+                depositRequiresAccess: false,
+                transfersDisabled: false,
+              },
+              marketKind: "STANDARD",
             },
           ],
         },
@@ -876,7 +880,13 @@ describe("SummaryReporter.onEnd — market provenance", () => {
       forkBlock: run.meta.forkBlock,
       derivedAt: "run",
     })
-    expect(m.parameters.annualInterestBips).toBe(1000)
+    expect(m.type).toEqual({
+      term: "open-term",
+      kind: "standard",
+      asset: `DAI 0x${"7".repeat(40)}`,
+      config: { depositRequiresAccess: false, transfersDisabled: false },
+    })
+    expect("parameters" in m).toBe(false)
     expect(
       m.txs.map((t: { kind: string; seq: number }) => [t.seq, t.kind]),
     ).toEqual([

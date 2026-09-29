@@ -10,7 +10,7 @@ import {
   fetchMarketFacts,
   type MarketFacts,
 } from "../e2e/lib/marketIndex"
-import type { UatJournalEntry, UatTest } from "../e2e/lib/uatModel"
+import type { MarketType, UatJournalEntry, UatTest } from "../e2e/lib/uatModel"
 import { anchorOf } from "../e2e/lib/uatReport"
 
 const FORK = 1_000
@@ -89,20 +89,12 @@ const row = (
   ...p,
 })
 
-const params = (name: string) => ({
-  name,
-  symbol: "cMKT",
+/** The type the subgraph gives an open-term standard market: only the keys every term carries. */
+const openType = (): MarketType => ({
+  term: "open-term",
+  kind: "standard",
   asset: `DAI ${TOKEN}`,
-  hooks: "OpenTerm open-term policy",
-  annualInterestBips: 1_000,
-  reserveRatioBips: 2_000,
-  delinquencyFeeBips: 500,
-  delinquencyGracePeriod: 86_400,
-  withdrawalBatchDuration: 360,
-  maxTotalSupply: "1000000000000000000000",
-  minimumDeposit: "0",
-  transfersDisabled: false,
-  depositRequiresAccess: false,
+  config: { depositRequiresAccess: false, transfersDisabled: false },
 })
 
 const FACTS: MarketFacts = {
@@ -111,27 +103,27 @@ const FACTS: MarketFacts = {
     symbol: "cMKT",
     deployedBlock: 1_010,
     deployedTx: "0xdeploy",
-    parameters: params("Created Market"),
+    type: openType(),
   },
   [LATE]: {
     name: "Late Market",
     symbol: "lMKT",
     deployedBlock: 1_020,
     deployedTx: "0xnotinthisrun",
-    parameters: params("Late Market"),
+    type: openType(),
   },
   [FORKED]: {
     name: "Forked Market",
     symbol: "fMKT",
     deployedBlock: 900,
     deployedTx: "0xold",
-    parameters: params("Forked Market"),
+    type: openType(),
   },
   [UNTOUCHED]: {
     name: "Nobody Touched Me",
     symbol: "nMKT",
     deployedBlock: 950,
-    parameters: params("Nobody Touched Me"),
+    type: openType(),
   },
 }
 
@@ -320,8 +312,21 @@ describe("buildMarketIndex", () => {
       kind: "tx",
     })
     expect(m.txs.map((t) => t.hash)).not.toContain("0xsameblock")
-    expect(m.parameters).toEqual(params("Created Market"))
+    expect(m.type).toEqual(openType())
+    expect("parameters" in m).toBe(false)
     expect(m.name).toBe("Created Market")
+  })
+
+  it("carries the subgraph's type on a market with facts, and no type on one without", () => {
+    const idx = buildMarketIndex(fixture(), FACTS, FORK, "run", PINS)
+    expect(byAddr(idx, FORKED)!.type).toEqual(openType())
+    // Known only through the run's own address book / the pins: no facts, so no type.
+    for (const a of [UNKNOWN, PINNED]) {
+      const m = byAddr(idx, a)!
+      expect(m).toBeDefined()
+      expect("type" in m).toBe(false)
+      expect("parameters" in m).toBe(false)
+    }
   })
 
   it("links a provision row without a uatId to its row-… anchor", () => {
@@ -419,7 +424,7 @@ describe("buildMarketIndex", () => {
     const A = "0x07878e16a64ed6daacebe8a6537902a048de8f2d"
     const CHECKSUM = "0x07878E16A64ed6daacebe8a6537902A048de8F2d"
     const facts: MarketFacts = {
-      [CHECKSUM]: { name: "Mixed", deployedBlock: 900, parameters: {} },
+      [CHECKSUM]: { name: "Mixed", deployedBlock: 900 },
     }
     clock = 0
     const t = row({
@@ -469,19 +474,17 @@ describe("buildMarketIndex", () => {
     )
     const facts: MarketFacts = {
       // Insertion order is the REVERSE of the expected order, so a pass is not an accident.
-      [F2]: { name: "F2", deployedBlock: 10, parameters: {} },
-      [F1]: { name: "F1", deployedBlock: 20, parameters: {} },
+      [F2]: { name: "F2", deployedBlock: 10 },
+      [F1]: { name: "F1", deployedBlock: 20 },
       [C2]: {
         name: "C2",
         deployedBlock: 1_050,
         deployedTx: "0xc2",
-        parameters: {},
       },
       [C1]: {
         name: "C1",
         deployedBlock: 1_050,
         deployedTx: "0xc1",
-        parameters: {},
       },
     }
     clock = 0
@@ -596,8 +599,24 @@ describe("fetchMarketFacts", () => {
   })
 
   const M = `0x${"c".repeat(40)}`
-  /** A subgraph that answers each field group; `broken` groups answer with a GraphQL error. */
-  const subgraph = (broken: string[] = []) => {
+  const MATURITY = 1_790_640_000 // 2026-09-29T00:00:00Z
+  const FIRST_WINDOW = 1_790_600_000 // 2026-09-28T12:53:20Z
+
+  type Shape = {
+    hooksKind?: string
+    marketKind?: string
+    commitmentFeeBips?: string
+  }
+
+  /**
+   * A subgraph that answers each field group; `broken` groups answer with a GraphQL error. The
+   * hooksConfig carries EVERY term's fields, non-zero, so a key that shows up for the wrong term
+   * is the derivation's fault, not the fixture's.
+   */
+  const subgraph = (
+    broken: string[] = [],
+    shape: Shape = { hooksKind: "OpenTerm", marketKind: "STANDARD" },
+  ) => {
     const queries: string[] = []
     const fetchMock = jest.fn(
       async (url: unknown, init?: { body?: string }) => {
@@ -606,20 +625,23 @@ describe("fetchMarketFacts", () => {
         queries.push(query)
         const group = query.includes("deployedEvent")
           ? "identity"
-          : query.includes("annualInterestBips")
-            ? "rates"
-            : query.includes("hooksConfig")
-              ? "hooks"
-              : query.includes("marketKind")
-                ? "v25"
-                : "other"
+          : query.includes("hooksConfig")
+            ? "hooks"
+            : query.includes("marketKind")
+              ? "v25"
+              : "other"
         if (broken.includes(group))
           return {
             ok: true,
             status: 200,
             json: async () => ({
               errors: [
-                { message: `Type \`Market\` has no field \`${group}\`` },
+                {
+                  message:
+                    group === "v25"
+                      ? "Type `Market` has no field `marketKind`"
+                      : `Type \`Market\` has no field \`${group}\``,
+                },
               ],
             }),
           }
@@ -629,40 +651,26 @@ describe("fetchMarketFacts", () => {
             name: "Created Market",
             symbol: "cMKT",
             deployedEvent: { blockNumber: "1010", transactionHash: "0xdeploy" },
-            asset: { address: TOKEN, symbol: "DAI", decimals: 18 },
-          })
-        if (group === "rates")
-          Object.assign(market, {
-            annualInterestBips: 1000,
-            reserveRatioBips: 2000,
-            delinquencyFeeBips: 500,
-            delinquencyGracePeriod: 86400,
-            withdrawalBatchDuration: 360,
-            maxTotalSupply: "1000000000000000000000",
+            asset: { address: TOKEN, symbol: "DAI" },
           })
         if (group === "hooks")
           Object.assign(market, {
-            hooks: {
-              id: "0xhooks",
-              name: "open-term policy",
-              kind: "OpenTerm",
-            },
+            hooks: shape.hooksKind ? { kind: shape.hooksKind } : null,
             hooksConfig: {
-              minimumDeposit: "0",
               transfersDisabled: false,
-              depositRequiresAccess: false,
-              fixedTermEndTime: null,
-              allowClosureBeforeTerm: null,
-              allowTermReduction: null,
-              firstWithdrawalWindowStart: null,
-              periodDuration: null,
-              withdrawalWindowDuration: null,
+              depositRequiresAccess: true,
+              fixedTermEndTime: MATURITY,
+              allowClosureBeforeTerm: true,
+              allowTermReduction: false,
+              firstWithdrawalWindowStart: FIRST_WINDOW,
+              periodDuration: 1_800,
+              withdrawalWindowDuration: 600,
             },
           })
         if (group === "v25")
           Object.assign(market, {
-            marketKind: "OpenTerm",
-            commitmentFeeBips: 0,
+            marketKind: shape.marketKind,
+            commitmentFeeBips: shape.commitmentFeeBips ?? "0",
           })
         return {
           ok: true,
@@ -674,46 +682,143 @@ describe("fetchMarketFacts", () => {
     return { fetchMock, queries }
   }
 
-  it("merges the field groups into one fact per market, with the as-deployed parameters", async () => {
+  const ALL = { depositRequiresAccess: true, transfersDisabled: false }
+  const FIXED = {
+    maturity: "2026-09-29T00:00:00Z",
+    allowClosureBeforeTerm: true,
+    allowTermReduction: false,
+  }
+  const PERIODIC = {
+    periodDuration: 1_800,
+    withdrawalWindowDuration: 600,
+    firstWithdrawalWindowStart: "2026-09-28T12:53:20Z",
+  }
+
+  it("merges the field groups into one fact per market: identity plus the market type", async () => {
     const { fetchMock, queries } = subgraph()
     globalThis.fetch = fetchMock as never
     const facts = await fetchMarketFacts(GQL)
-    expect(queries).toHaveLength(4)
+    expect(queries).toHaveLength(3)
     expect(facts[M]).toEqual({
       name: "Created Market",
       symbol: "cMKT",
       deployedBlock: 1010,
       deployedTx: "0xdeploy",
-      parameters: {
-        name: "Created Market",
-        symbol: "cMKT",
+      type: {
+        term: "open-term",
+        kind: "standard",
         asset: `DAI ${TOKEN}`,
-        assetDecimals: 18,
-        marketKind: "OpenTerm",
-        commitmentFeeBips: 0,
-        hooks: "OpenTerm open-term policy",
-        annualInterestBips: 1000,
-        reserveRatioBips: 2000,
-        delinquencyFeeBips: 500,
-        delinquencyGracePeriod: 86400,
-        withdrawalBatchDuration: 360,
-        maxTotalSupply: "1000000000000000000000",
-        minimumDeposit: "0",
-        transfersDisabled: false,
-        depositRequiresAccess: false,
+        config: ALL,
       },
     })
+    expect("parameters" in facts[M]).toBe(false)
   })
 
-  it("loses only the failing group — a field main's subgraph lacks costs its group, not the map", async () => {
-    const { fetchMock } = subgraph(["v25", "rates"])
+  it("asks only for what the type needs — no rates, supply or decimals", async () => {
+    const { fetchMock, queries } = subgraph()
+    globalThis.fetch = fetchMock as never
+    await fetchMarketFacts(GQL)
+    const all = queries.join(" ")
+    for (const gone of [
+      "annualInterestBips",
+      "maxTotalSupply",
+      "minimumDeposit",
+      "decimals",
+    ])
+      expect(all).not.toContain(gone)
+    expect(all).toContain("hooks { kind }")
+  })
+
+  it.each([
+    ["OpenTerm", "STANDARD", "0", "open-term", "standard", ALL],
+    [
+      "OpenTerm",
+      "REVOLVING",
+      "200",
+      "open-term",
+      "revolving",
+      { commitmentFeeBips: 200, ...ALL },
+    ],
+    [
+      "FixedTerm",
+      "STANDARD",
+      "0",
+      "fixed-term",
+      "standard",
+      { ...FIXED, ...ALL },
+    ],
+    [
+      "FixedTerm",
+      "REVOLVING",
+      "150",
+      "fixed-term",
+      "revolving",
+      { ...FIXED, commitmentFeeBips: 150, ...ALL },
+    ],
+    [
+      "PeriodicTerm",
+      "STANDARD",
+      "0",
+      "periodic-term",
+      "standard",
+      { ...PERIODIC, ...ALL },
+    ],
+    [
+      "PeriodicTerm",
+      "REVOLVING",
+      "150",
+      "periodic-term",
+      "revolving",
+      { ...PERIODIC, commitmentFeeBips: 150, ...ALL },
+    ],
+  ])(
+    "hooks %s + marketKind %s (fee %s) → %s/%s with only that term's config",
+    async (hooksKind, marketKind, fee, term, kind, config) => {
+      const { fetchMock } = subgraph([], {
+        hooksKind,
+        marketKind,
+        commitmentFeeBips: fee,
+      })
+      globalThis.fetch = fetchMock as never
+      const facts = await fetchMarketFacts(GQL)
+      expect(facts[M].type).toEqual({
+        term,
+        kind,
+        asset: `DAI ${TOKEN}`,
+        config,
+      })
+    },
+  )
+
+  it("main's subgraph (no marketKind): term and config still resolve, no kind, no fee", async () => {
+    const { fetchMock } = subgraph(["v25"], { hooksKind: "FixedTerm" })
     globalThis.fetch = fetchMock as never
     const facts = await fetchMarketFacts(GQL)
-    expect(facts[M].deployedTx).toBe("0xdeploy")
-    expect(facts[M].parameters.hooks).toBe("OpenTerm open-term policy")
-    expect(facts[M].parameters.annualInterestBips).toBeNull()
-    expect(facts[M].parameters.maxTotalSupply).toBeNull()
-    expect("marketKind" in facts[M].parameters).toBe(false)
+    expect(facts[M].type).toEqual({
+      term: "fixed-term",
+      asset: `DAI ${TOKEN}`,
+      config: { ...FIXED, ...ALL },
+    })
+    expect("kind" in facts[M].type!).toBe(false)
+  })
+
+  it("term is unknown when the hooks are missing — the hooks group refused, or no hooks on record", async () => {
+    const refused = subgraph(["hooks"])
+    globalThis.fetch = refused.fetchMock as never
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => undefined)
+    const a = await fetchMarketFacts(GQL)
+    warn.mockRestore()
+    expect(a[M].deployedTx).toBe("0xdeploy")
+    expect(a[M].type).toEqual({
+      term: "unknown",
+      kind: "standard",
+      asset: `DAI ${TOKEN}`,
+      config: {},
+    })
+    const none = subgraph([], { marketKind: "STANDARD" })
+    globalThis.fetch = none.fetchMock as never
+    const b = await fetchMarketFacts(GQL)
+    expect(b[M].type!.term).toBe("unknown")
   })
 
   it("never throws on the network: an unreachable subgraph yields {}", async () => {
@@ -736,14 +841,47 @@ describe("fetchMarketFacts", () => {
     const warnings = () => warn.mock.calls.map((c) => c.map(String).join(" "))
 
     it("warns with the group name and the first GraphQL error when a group is refused", async () => {
-      const { fetchMock } = subgraph(["v25"])
+      const { fetchMock } = subgraph(["hooks"])
       globalThis.fetch = fetchMock as never
       await fetchMarketFacts(GQL)
       expect(
         warnings().some(
           (w) =>
+            w.includes("hooks { kind }") &&
+            w.includes("Type `Market` has no field `hooks`"),
+        ),
+      ).toBe(true)
+    })
+
+    it("stays silent when a pre-2.5 subgraph lacks the v2.5-only fields — that refusal is expected on main", async () => {
+      const { fetchMock } = subgraph(["v25"])
+      globalThis.fetch = fetchMock as never
+      const facts = await fetchMarketFacts(GQL)
+      expect(facts[M].type!.term).toBe("open-term")
+      expect(warnings()).toEqual([])
+    })
+
+    it("still warns when the v2.5-only group fails for any other reason", async () => {
+      globalThis.fetch = (async (_u: unknown, init?: { body?: string }) => {
+        const { query } = JSON.parse(init?.body ?? "{}") as { query: string }
+        if (query.includes("marketKind"))
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({ errors: [{ message: "indexer overloaded" }] }),
+          }
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ data: { markets: [] } }),
+        }
+      }) as never
+      await fetchMarketFacts(GQL)
+      expect(
+        warnings().some(
+          (w) =>
             w.includes("marketKind commitmentFeeBips") &&
-            w.includes("Type `Market` has no field `v25`"),
+            w.includes("indexer overloaded"),
         ),
       ).toBe(true)
     })
