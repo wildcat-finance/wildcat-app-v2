@@ -188,8 +188,14 @@ export const buildMarketIndex = (
 
     const touchedTests = new Set<UatTest>(naming.map((p) => p.t))
     if (creator) touchedTests.add(creator.t)
+    // A chain-time change before the market existed was not applied to it: a created market's
+    // history starts at its deploy tx.
+    const bornAt = creator ? creator.sortBlock : -Infinity
     const times = placed.filter(
-      (p) => p.e.kind === "chain-time" && touchedTests.has(p.t),
+      (p) =>
+        p.e.kind === "chain-time" &&
+        touchedTests.has(p.t) &&
+        p.sortBlock >= bornAt,
     )
     const rest = [...naming, ...times].sort(
       (a, b) => a.sortBlock - b.sortBlock || a.pos - b.pos,
