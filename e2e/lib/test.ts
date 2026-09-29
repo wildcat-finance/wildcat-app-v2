@@ -2,9 +2,15 @@
 import { test as base, type Page, type TestInfo } from "@playwright/test"
 
 import { publicClient } from "./chain"
-import { ANVIL_ACCOUNTS } from "./env"
+import { ANVIL_ACCOUNTS, setChainTimeRecorder } from "./env"
 import * as journal from "./journal"
 import { ledgerFixture } from "./ledger"
+
+// uat-run/3 only: journal every chain-time change. Gating at the SOURCE is what keeps a uat-run/2
+// board byte-identical — no chain-time entry ever reaches its journal, run.json or report.md.
+// Time travel outside a row (beforeAll) records against no test and is dropped by `record`.
+if (process.env.UAT_RUN_SCHEMA === "3")
+  setChainTimeRecorder((change) => journal.record(change))
 
 const pages = new WeakMap<TestInfo, Page>()
 

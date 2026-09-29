@@ -42,6 +42,17 @@ export type JournalEntry = { at: string } & (
       duringStep?: string
     }
   | { kind: "data"; name: string; data: unknown }
+  /**
+   * uat-run/3: chain time moved (`advanceTime` in env.ts, reported through its recorder, which
+   * lib/test.ts registers only under UAT_RUN_SCHEMA=3). `block` is the head after the mine.
+   */
+  | {
+      kind: "chain-time"
+      seconds: number
+      fromTs?: number
+      toTs?: number
+      block?: string
+    }
 )
 
 type DistributiveOmit<T, K extends keyof T> = T extends unknown

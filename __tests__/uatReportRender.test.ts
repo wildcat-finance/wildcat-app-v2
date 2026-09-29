@@ -5,7 +5,7 @@ import {
   type UatRun,
   type UatTest,
 } from "../e2e/lib/uatModel"
-import { renderUatReport } from "../e2e/lib/uatReport"
+import { anchorOf, renderUatReport } from "../e2e/lib/uatReport"
 
 const t = (
   p: Partial<UatTest> & { title: string; suite: string },
@@ -698,7 +698,7 @@ describe("renderUatReport row detail", () => {
       index: 2,
     })
     expect(step).toContain(
-      'Failed during checkpoint <b>the matured amount is claimable</b> (#2).',
+      "Failed during checkpoint <b>the matured amount is claimable</b> (#2).",
     )
 
     expect(siteProse({ kind: "arrange" })).toContain(
@@ -745,5 +745,191 @@ describe("renderUatReport row detail", () => {
       expect(section).not.toContain("failed here")
       expect(section).not.toContain("step-failed")
     }
+  })
+})
+
+describe("market provenance — chain time in the narrative", () => {
+  it("narrates a chain-time entry inside its step as “chain time +N s → <ISO>”", () => {
+    const r = run()
+    const row = r.tests.find((x) => x.uatId === "LEN-01")!
+    row.journal = [
+      {
+        at: "2026-09-26T07:00:00.000Z",
+        kind: "step",
+        name: "let the batch expire",
+      },
+      {
+        at: "2026-09-26T07:00:01.000Z",
+        kind: "chain-time",
+        seconds: 3_600,
+        fromTs: 1_790_402_521,
+        toTs: 1_790_406_122,
+        block: "11584664",
+      },
+    ]
+    const html = renderUatReport(r)
+    expect(html).toContain("chain time +3,600 s → 2026-09-26T07:02:02Z")
+  })
+})
+
+describe("market provenance — the Markets section", () => {
+  const CREATED = `0x${"c".repeat(40)}`
+  const FORKED = "0x07878e16a64ed6daacebe8a6537902a048de8f2d"
+  const LATE = `0x${"d".repeat(40)}`
+  const GONE = `0x${"e".repeat(40)}`
+
+  const withdrawalAnchor = (r: UatRun) =>
+    anchorOf(
+      r.tests.find((x) => x.title === "queue a withdrawal through the UI")!,
+    )
+
+  const withMarkets = (): UatRun => {
+    const r = run()
+    r.schema = "uat-run/3"
+    r.markets = [
+      {
+        address: CREATED,
+        name: "Created Market",
+        origin: "created",
+        createdBy: {
+          row: "MKT-01",
+          anchor: "uat-MKT-01",
+          block: "11584300",
+          txHash: `0x${"1".repeat(64)}`,
+        },
+        parameters: {
+          name: "Created Market",
+          annualInterestBips: 1000,
+          withdrawalBatchDuration: 360,
+          delinquencyGracePeriod: 86_400,
+          maxTotalSupply: "1000000000000000000000",
+          transfersDisabled: false,
+          fixedTermEndTime: null,
+        },
+        txs: [
+          {
+            seq: 1,
+            row: "MKT-01",
+            anchor: "uat-MKT-01",
+            during: "deploy",
+            block: "11584300",
+            from: "account #3 (borrower)",
+            call: "deployMarketAndHooks(…)",
+            status: "success",
+            hash: `0x${"1".repeat(64)}`,
+            kind: "tx",
+          },
+          {
+            seq: 2,
+            row: "LEN-01",
+            anchor: "uat-LEN-01",
+            block: "11584301",
+            call: "chain time +3,600 s → 2026-09-26T07:02:02Z",
+            kind: "chain-time",
+          },
+        ],
+        derivedAt: "run",
+      },
+      {
+        address: FORKED,
+        name: "TEST DAI KW 3",
+        origin: "forked",
+        forkBlock: 11584253,
+        txs: [
+          {
+            seq: 1,
+            row: "queue a withdrawal through the UI",
+            anchor: withdrawalAnchor(r),
+            block: "11584310",
+            call: "queueWithdrawal(amount: 40 DAI)",
+            status: "reverted",
+            hash: `0x${"2".repeat(64)}`,
+            kind: "tx",
+          },
+        ],
+        derivedAt: "run",
+      },
+      {
+        address: LATE,
+        origin: "created",
+        txs: [],
+        derivedAt: "run",
+      },
+      {
+        address: GONE,
+        name: 'market "Gone"',
+        origin: "unknown",
+        txs: [],
+        derivedAt: "render",
+      },
+    ]
+    return r
+  }
+
+  it("renders one card per market, with origin in the summary line", () => {
+    const html = renderUatReport(withMarkets())
+    expect(html).toContain('<section class="markets"')
+    expect(html).toContain(`<details class="market" id="market-${CREATED}">`)
+    expect(html).toContain(`<details class="market" id="market-${FORKED}">`)
+    expect(html).toMatch(
+      /Created Market<\/span> · created by <a href="#uat-MKT-01">MKT-01<\/a> at block 11584300/,
+    )
+    expect(html).toContain("TEST DAI KW 3</span> · forked at block 11584253")
+    expect(html).toContain("created after the fork, outside this run's journal")
+    expect(html).toContain("· origin unknown")
+    // The section sits after the answers and before the page nav.
+    expect(html.indexOf('<section class="markets"')).toBeLessThan(
+      html.indexOf('<nav class="pagenav">'),
+    )
+  })
+
+  it("humanises the as-deployed parameters and keeps the raw value in a title", () => {
+    const html = renderUatReport(withMarkets())
+    expect(html).toContain('<td title="1000">10.00%</td>')
+    expect(html).toContain('<td title="360">6 min</td>')
+    expect(html).toContain('<td title="86400">1 d</td>')
+    expect(html).toContain("not reported by the subgraph")
+  })
+
+  it("links both ways: card rows to the row anchors, and each row to the markets it touched", () => {
+    const html = renderUatReport(withMarkets())
+    expect(html).toContain('<a href="#uat-MKT-01">MKT-01</a>')
+    expect(withdrawalAnchor(run())).toMatch(/^row-/)
+    expect(html).toContain(
+      `<a href="#${withdrawalAnchor(
+        run(),
+      )}">queue a withdrawal through the UI</a>`,
+    )
+    const mkt01 = html.slice(html.indexOf('id="uat-MKT-01"'))
+    expect(mkt01.slice(0, mkt01.indexOf("</details>"))).toContain(
+      `Markets touched: <a href="#market-${CREATED}">Created Market</a>`,
+    )
+    const len01 = html.slice(html.indexOf('id="uat-LEN-01"'))
+    expect(len01.slice(0, len01.indexOf("</details>"))).toContain(
+      `href="#market-${CREATED}"`,
+    )
+  })
+
+  it("renders a chain-time row as one full-width muted row", () => {
+    const html = renderUatReport(withMarkets())
+    expect(html).toMatch(
+      /<tr class="chain-time"><td>2<\/td><td colspan="\d+">.*chain time \+3,600 s → 2026-09-26T07:02:02Z/,
+    )
+    expect(html).toContain("time travel outside a row is not journaled")
+  })
+
+  it("notes a render-time derivation", () => {
+    const html = renderUatReport(withMarkets())
+    expect(html).toContain(
+      "derived at render time from the journal; created markets could not be resolved against the current fork",
+    )
+  })
+
+  it("renders no section for an absent or empty index", () => {
+    expect(renderUatReport(run())).not.toContain('class="markets"')
+    const empty = run()
+    empty.markets = []
+    expect(renderUatReport(empty)).not.toContain('class="markets"')
+    expect(renderUatReport(empty)).not.toContain("Markets touched")
   })
 })

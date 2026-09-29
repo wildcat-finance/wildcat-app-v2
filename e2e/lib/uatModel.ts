@@ -17,7 +17,7 @@ import type { EnrichedTx } from "./txDecode"
 
 export type UatJournalEntry = {
   at: string
-  kind: "step" | "nav" | "tx" | "data"
+  kind: "step" | "nav" | "tx" | "data" | "chain-time"
   name?: string
   /** uat-run/3: the requirement ids this step() checkpoint asserts (SCHEMA.md §5.1 rule 1).
    *  Only ever set on `kind: "step"`. A step with no `req` asserts nothing the ledger names —
@@ -40,6 +40,76 @@ export type UatJournalEntry = {
   source?: string
   duringStep?: string
   enriched?: EnrichedTx
+  /** uat-run/3 `chain-time`: the jump requested, and the chain timestamps either side of it. */
+  seconds?: number
+  fromTs?: number
+  toTs?: number
+}
+
+/**
+ * uat-run/3: a chain-time change the run applied (`advanceTime` in lib/env.ts). `block` is the head
+ * after the mine, so the entry can be ordered against the transactions around it.
+ */
+export type ChainTimeEntry = {
+  at: string
+  kind: "chain-time"
+  seconds: number
+  fromTs?: number
+  toTs?: number
+  block?: string
+}
+
+/** "chain time +3,600 s → 2026-09-26T07:02:02Z" — the one wording every artefact uses. */
+export const chainTimeText = (e: {
+  seconds?: number
+  toTs?: number
+}): string => {
+  const s = Number(e.seconds ?? 0)
+  const grouped = String(Math.abs(Math.trunc(s))).replace(
+    /\B(?=(\d{3})+(?!\d))/g,
+    ",",
+  )
+  const head = `chain time ${s < 0 ? "−" : "+"}${grouped} s`
+  return typeof e.toTs === "number" && Number.isFinite(e.toTs)
+    ? `${head} → ${new Date(e.toTs * 1000).toISOString().replace(".000Z", "Z")}`
+    : head
+}
+
+/** One transaction (or chain-time change) in a market's history, in run order. */
+export type MarketTx = {
+  /** 1-based, run order; restarts per market. */
+  seq: number
+  /** uatId, or the title for a row without one. */
+  row: string
+  /** Exactly `anchorOf(test)` in uatReport.ts — the link target. */
+  anchor: string
+  /** Step name (enriched.during ?? duringStep). */
+  during?: string
+  block?: string
+  /** Account label from the address book, else the address. */
+  from?: string
+  /** enriched.call, else `fn(args)`, else `selector 0x…`; chain-time rows carry their text here. */
+  call: string
+  status?: "success" | "reverted"
+  hash?: string
+  kind: "tx" | "chain-time"
+}
+
+/** uat-run/3: where a market the run transacted with came from, and what the run did to it. */
+export type MarketIndexEntry = {
+  address: string
+  name?: string
+  origin: "forked" | "created" | "unknown"
+  /** origin forked. */
+  forkBlock?: number
+  /** origin created AND the creating tx is in this run's journal; absent ⇒ created after the fork
+   *  outside this run's journal. */
+  createdBy?: { row: string; anchor: string; block: string; txHash: string }
+  /** As deployed, from the subgraph. */
+  parameters?: Record<string, string | number | boolean | null>
+  txs: MarketTx[]
+  /** Reporter onEnd ("run") vs the render-report fallback ("render"). */
+  derivedAt: "run" | "render"
 }
 
 /** Playwright annotation: test.skip/fixme/fail carry their reason in `description`. */
@@ -211,6 +281,8 @@ export type UatRun = {
   durationMs?: number
   meta: RunMeta
   tests: UatTest[]
+  /** uat-run/3 only: the market provenance index (lib/marketIndex.ts). */
+  markets?: MarketIndexEntry[]
 }
 
 /**
