@@ -102,6 +102,12 @@ const run = (): UatRun => {
 }
 
 describe("renderUatReport", () => {
+  it("emits no empty line in the provenance header when a run carries no markets index", () => {
+    const html = renderUatReport(run())
+    const dl = html.slice(html.indexOf('<section class="prov">'), html.indexOf("</section>", html.indexOf('<section class="prov">')))
+    expect(dl).not.toMatch(/\n\s*\n/)
+    expect(dl).not.toContain("Markets")
+  })
   it("renders provenance, page sections in runsheet order and a reason under a skipped row", () => {
     const html = renderUatReport(run(), {
       knownIssuesMd:
