@@ -671,3 +671,235 @@ describe("SummaryReporter.onEnd", () => {
     }
   })
 })
+
+/**
+ * Market provenance (Tasks 1 and 3). The chain-time entry and the `markets` index are uat-run/3
+ * additions; under uat-run/2 the reporter must write what it always wrote. The recorder that
+ * produces chain-time entries is registered only under /3 (lib/test.ts, see chainTime.test.ts),
+ * so a /2 journal never carries one.
+ */
+describe("SummaryReporter.onEnd — market provenance", () => {
+  let originalCwd: string
+  let originalArgv: string[]
+  let originalSchema: string | undefined
+  let originalFetch: typeof globalThis.fetch
+  let dir: string
+
+  const MARKET = "0x07878e16a64ed6daacebe8a6537902a048de8f2d"
+  const LENDER = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+
+  const stepEntry = {
+    at: "2026-09-26T07:00:00.000Z",
+    kind: "step",
+    name: "queue a partial withdrawal",
+  }
+  const chainTimeEntry = {
+    at: "2026-09-26T07:01:00.000Z",
+    kind: "chain-time",
+    seconds: 3_600,
+    fromTs: 1_790_402_521,
+    toTs: 1_790_406_122,
+    block: "11584664",
+  }
+  const txEntry = {
+    at: "2026-09-26T07:02:02.000Z",
+    kind: "tx",
+    hash: "0x08cccdcd4e977ed9a7830af55205fbeda117d58a549e0d1b9c6bcd22e2b8d847",
+    status: "success",
+    block: "11584665",
+    gasUsed: "171036",
+    from: LENDER,
+    to: MARKET,
+    functionName: "queueWithdrawal",
+    args: ["40000000000000000000"],
+    source: "lib",
+  }
+
+  const writeRun = async (
+    schema: "2" | "3",
+    journal: Record<string, unknown>[],
+  ) => {
+    if (schema === "3") process.env.UAT_RUN_SCHEMA = "3"
+    else delete process.env.UAT_RUN_SCHEMA
+    const reporter = new SummaryReporter()
+    const entries = journal.map((e) => ({ ...e }))
+    ;(reporter as unknown as { tests: unknown[] }).tests = [
+      {
+        title: "lender flows › LEN-18: queue a withdrawal",
+        status: "failed",
+        expectedStatus: "passed",
+        outcome: "failed",
+        durationMs: 10,
+        error: "Error: boom",
+        journal: entries,
+        screenshots: [],
+        agreements: [],
+      },
+    ]
+    ;(reporter as unknown as { uatTests: unknown[] }).uatTests = [
+      {
+        uatId: "LEN-18",
+        page: 5,
+        title: "LEN-18: queue a withdrawal",
+        file: "e2e/lenderflows/lender.spec.ts",
+        suite: "lender flows",
+        status: "failed",
+        expectedStatus: "passed",
+        outcome: "failed",
+        annotations: [],
+        durationMs: 10,
+        journal: entries,
+        stepShots: [],
+        agreements: [],
+      },
+    ]
+    process.argv = ["node", "playwright", "test"]
+    await reporter.onEnd({
+      status: "failed",
+      startTime: new Date("2026-09-26T07:00:00.000Z"),
+      duration: 10,
+    })
+    return {
+      run: JSON.parse(
+        readFileSync(join(dir, "uat-report", "run.json"), "utf8"),
+      ),
+      md: readFileSync(join(dir, "playwright-report.md"), "utf8"),
+      summary: JSON.parse(
+        readFileSync(join(dir, "playwright-summary.json"), "utf8"),
+      ),
+    }
+  }
+
+  beforeEach(() => {
+    originalCwd = process.cwd()
+    originalArgv = process.argv
+    originalSchema = process.env.UAT_RUN_SCHEMA
+    originalFetch = globalThis.fetch
+    // No network in jest: the address book and the market facts both see an unreachable subgraph.
+    globalThis.fetch = (async () => {
+      throw new Error("offline")
+    }) as never
+    dir = mkdtempSync(join(tmpdir(), "summary-reporter-markets-"))
+    process.chdir(dir)
+  })
+
+  afterEach(() => {
+    process.chdir(originalCwd)
+    process.argv = originalArgv
+    globalThis.fetch = originalFetch
+    if (originalSchema === undefined) delete process.env.UAT_RUN_SCHEMA
+    else process.env.UAT_RUN_SCHEMA = originalSchema
+    rmSync(dir, { recursive: true, force: true })
+  })
+
+  it("uat-run/2: a journal without chain-time (the recorder is never registered) is written exactly as before", async () => {
+    const { run, md, summary } = await writeRun("2", [stepEntry, txEntry])
+    expect(run.schema).toBe("uat-run/2")
+    expect(Object.keys(run)).toEqual([
+      "schema",
+      "status",
+      "startedAt",
+      "durationMs",
+      "meta",
+      "tests",
+    ])
+    expect(run.tests[0].journal.map((e: { kind: string }) => e.kind)).toEqual([
+      "step",
+      "tx",
+    ])
+    expect(summary.tests[0].journal).toHaveLength(2)
+    // The reproduction list is the pre-existing format, line for line.
+    const repro = md.slice(md.indexOf("**Reproduction steps:**"))
+    expect(repro.split("\n").slice(0, 5)).toEqual([
+      "**Reproduction steps:**",
+      "",
+      "1. do: queue a partial withdrawal",
+      `2. tx: account #0 (lender) → queueWithdrawal(amount: 40000000000000000000) on pinned market "openTerm" — success (block 11584665)`,
+      "",
+    ])
+  })
+
+  it("uat-run/3: the chain-time entry is carried in run.json and printed in the reproduction steps", async () => {
+    const { run, md } = await writeRun("3", [
+      stepEntry,
+      chainTimeEntry,
+      txEntry,
+    ])
+    expect(run.schema).toBe("uat-run/3")
+    expect(run.tests[0].journal[1]).toEqual(chainTimeEntry)
+    expect(md).toContain(
+      "2. chain time +3,600 s → 2026-09-26T07:02:02Z (block 11584664)",
+    )
+    expect(md).not.toContain("data: undefined")
+  })
+
+  /** A subgraph that knows the pinned market (deployed before the fork) — no network in jest. */
+  const factsFetch = (async (_url: unknown, init?: { body?: string }) => {
+    const body = JSON.parse(init?.body ?? "{}") as { query?: string }
+    if (!body.query) return { json: async () => ({}) } // chain-lead RPC: no result
+    return {
+      json: async () => ({
+        data: {
+          markets: [
+            {
+              id: MARKET,
+              name: "TEST DAI KW 3 Dai Stablecoin",
+              symbol: "twDAI",
+              deployedEvent: {
+                blockNumber: "11000000",
+                transactionHash: "0xold",
+              },
+              asset: {
+                address: `0x${"7".repeat(40)}`,
+                symbol: "DAI",
+                decimals: 18,
+              },
+              annualInterestBips: 1000,
+            },
+          ],
+        },
+      }),
+    }
+  }) as never
+
+  it("uat-run/3: run.json carries the market index, derived at run time", async () => {
+    globalThis.fetch = factsFetch
+    const { run } = await writeRun("3", [stepEntry, chainTimeEntry, txEntry])
+    expect(run.markets).toHaveLength(1)
+    const [m] = run.markets
+    expect(m).toMatchObject({
+      address: MARKET,
+      name: "TEST DAI KW 3 Dai Stablecoin",
+      origin: "forked",
+      forkBlock: run.meta.forkBlock,
+      derivedAt: "run",
+    })
+    expect(m.parameters.annualInterestBips).toBe(1000)
+    expect(
+      m.txs.map((t: { kind: string; seq: number }) => [t.seq, t.kind]),
+    ).toEqual([
+      [1, "chain-time"],
+      [2, "tx"],
+    ])
+    expect(m.txs[1]).toMatchObject({
+      row: "LEN-18",
+      anchor: "uat-LEN-18",
+      hash: txEntry.hash,
+      status: "success",
+    })
+  })
+
+  it("uat-run/3 offline: the pinned market still classifies forked; the report still renders", async () => {
+    const { run } = await writeRun("3", [stepEntry, txEntry])
+    expect(run.markets).toHaveLength(1)
+    expect(run.markets[0]).toMatchObject({ address: MARKET, origin: "forked" })
+    expect(existsSync(join(dir, "uat-report", "index.html"))).toBe(true)
+  })
+
+  it("uat-run/2: no market index, whatever the subgraph says", async () => {
+    globalThis.fetch = factsFetch
+    const { run } = await writeRun("2", [stepEntry, txEntry])
+    expect(run.markets).toBeUndefined()
+    expect("markets" in run).toBe(false)
+  })
+})

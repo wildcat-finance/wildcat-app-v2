@@ -20,11 +20,13 @@ import type {
   TestResult,
 } from "@playwright/test/reporter"
 
-import { FORK_RPC, pins } from "./env"
+import { FORK_GQL, FORK_RPC, pins } from "./env"
+import { buildMarketIndex, fetchMarketFacts } from "./marketIndex"
 import { buildAddressBook, enrichTransactions } from "./txDecode"
 import {
   assignPages,
   attributeDidNotRun,
+  chainTimeText,
   declareAndObserve,
   deriveOutcome,
   journalStepIndexOf,
@@ -655,6 +657,23 @@ class SummaryReporter implements Reporter {
       tests: this.uatTests,
     }
 
+    // uat-run/3: market provenance — origin, as-deployed parameters and per-market history,
+    // derived from the (now enriched) journal and the subgraph's facts. Never blocks run.json:
+    // offline the facts are {} and pinned markets still classify forked.
+    if (schema === "uat-run/3") {
+      try {
+        run.markets = buildMarketIndex(
+          this.uatTests,
+          await fetchMarketFacts(FORK_GQL),
+          meta.forkBlock,
+          "run",
+          (pins as { markets?: Record<string, string> }).markets ?? {},
+        )
+      } catch {
+        /* presentation only */
+      }
+    }
+
     // run.json BEFORE the HTML and the archive copy (recommendations §2: the machine-readable
     // artefact must survive a crash in rendering). The video-trim loop and the tx enrichment DO
     // still run before this point — the records name the trimmed files and carry the enriched
@@ -804,7 +823,11 @@ class SummaryReporter implements Reporter {
                     ? e.enriched
                       ? `tx: ${e.enriched.line} (block ${e.block})`
                       : `tx ${e.hash} (${e.status}, block ${e.block})`
-                    : `data: ${e.name} = ${JSON.stringify(e.data)}`
+                    : e.kind === "chain-time"
+                      ? `${chainTimeText(e)}${
+                          e.block ? ` (block ${e.block})` : ""
+                        }`
+                      : `data: ${e.name} = ${JSON.stringify(e.data)}`
             lines.push(`${i + 1}. ${desc}`)
           })
           lines.push("")

@@ -22,9 +22,12 @@ import type { Manifest } from "./manifest"
 import {
   OUTCOME_ORDER,
   annotationReason,
+  chainTimeText,
   countByOutcome,
   groupByPage,
   suitePageOverride,
+  type MarketIndexEntry,
+  type MarketTx,
   type Outcome,
   type PageGroup,
   type UatJournalEntry,
@@ -354,10 +357,24 @@ const txNote = (e: UatJournalEntry): string => {
  * `framenavigated` twice for the same route often enough that "-> /admin -> /admin" would
  * otherwise read like a bug in the app rather than noise in the recorder.
  */
+/** Inline note for a chain-time change (uat-run/3): "chain time +3,600 s → <ISO>". */
+const chainTimeNote = (e: UatJournalEntry): string =>
+  `<span class="note chain-time"${
+    e.block ? ` title="head ${esc(e.block)} after the mine"` : ""
+  }>${esc(chainTimeText(e))}</span>`
+
 const noteList = (entries: UatJournalEntry[]): string[] =>
   entries
-    .filter((e) => e.kind === "nav" || e.kind === "tx")
-    .map((e) => (e.kind === "nav" ? navNote(e) : txNote(e)))
+    .filter(
+      (e) => e.kind === "nav" || e.kind === "tx" || e.kind === "chain-time",
+    )
+    .map((e) =>
+      e.kind === "nav"
+        ? navNote(e)
+        : e.kind === "chain-time"
+          ? chainTimeNote(e)
+          : txNote(e),
+    )
     .filter((note, i, all) => note !== all[i - 1])
 
 const stepNotes = (entries: UatJournalEntry[]): string => {
@@ -599,7 +616,7 @@ const slugAnchor = (s: string): string =>
     .toLowerCase()
     .slice(0, 80)
 
-const anchorOf = (t: UatTest): string =>
+export const anchorOf = (t: UatTest): string =>
   t.uatId ? `uat-${t.uatId}` : `row-${slugAnchor(`${t.suite} ${t.title}`)}`
 
 /** One line under the badge: why this row is not an ordinary green. */
@@ -733,6 +750,171 @@ ${kv(
   }`,
 )}
 </dl>
+</section>`
+}
+
+// ---------- market provenance (uat-run/3 `markets`) ----------
+
+/** row anchor → the markets that row transacted with (or created), in index order. */
+type TouchedIndex = Map<string, MarketIndexEntry[]>
+
+const touchedIndex = (markets?: MarketIndexEntry[]): TouchedIndex => {
+  const idx: TouchedIndex = new Map()
+  for (const m of markets ?? []) {
+    const anchors = new Set(m.txs.map((x) => x.anchor))
+    if (m.createdBy) anchors.add(m.createdBy.anchor)
+    for (const a of anchors) idx.set(a, [...(idx.get(a) ?? []), m])
+  }
+  return idx
+}
+
+const marketLabel = (m: MarketIndexEntry): string =>
+  m.name ?? `${m.address.slice(0, 6)}…${m.address.slice(-4)}`
+
+/** "Markets touched: <links to the market cards>" — one line above a row's tx table. */
+const renderTouched = (t: UatTest, touched: TouchedIndex): string => {
+  const ms = touched.get(anchorOf(t))
+  if (!ms || ms.length === 0) return ""
+  return `<p class="touched">Markets touched: ${ms
+    .map(
+      (m) => `<a href="#market-${esc(m.address)}">${esc(marketLabel(m))}</a>`,
+    )
+    .join(" · ")}</p>
+`
+}
+
+const SECONDS_KEYS: ReadonlySet<string> = new Set([
+  "delinquencyGracePeriod",
+  "withdrawalBatchDuration",
+  "periodDuration",
+  "withdrawalWindowDuration",
+])
+const TIMESTAMP_KEYS: ReadonlySet<string> = new Set([
+  "fixedTermEndTime",
+  "firstWithdrawalWindowStart",
+])
+
+const trimNum = (n: number): string =>
+  Number.isInteger(n) ? String(n) : n.toFixed(1).replace(/\.0$/, "")
+
+/** 360 → "6 min", 86400 → "1 d". */
+const humanSeconds = (s: number): string =>
+  s < 60
+    ? `${trimNum(s)} s`
+    : s < 3_600
+      ? `${trimNum(s / 60)} min`
+      : s < 86_400
+        ? `${trimNum(s / 3_600)} h`
+        : `${trimNum(s / 86_400)} d`
+
+/** A parameter value cell: humanised where it helps, the raw value kept in a title. */
+const paramCell = (
+  key: string,
+  v: string | number | boolean | null,
+): string => {
+  if (v === null) return `<td class="muted">not reported by the subgraph</td>`
+  const n =
+    typeof v === "number"
+      ? v
+      : typeof v === "string" && /^\d+$/.test(v)
+        ? Number(v)
+        : NaN
+  if (Number.isFinite(n)) {
+    if (/Bips$/.test(key))
+      return `<td title="${esc(v)}">${(n / 100).toFixed(2)}%</td>`
+    if (SECONDS_KEYS.has(key))
+      return `<td title="${esc(v)}">${esc(humanSeconds(n))}</td>`
+    if (TIMESTAMP_KEYS.has(key) && n > 1_600_000_000 && n < 4_100_000_000)
+      return `<td title="${esc(v)}">${esc(
+        new Date(n * 1000).toISOString().replace(".000Z", "Z"),
+      )}</td>`
+  }
+  return `<td class="mono">${esc(v)}</td>`
+}
+
+const renderMarketTxRow = (x: MarketTx): string => {
+  const rowLink = `<a href="#${esc(x.anchor)}">${esc(x.row)}</a>`
+  if (x.kind === "chain-time")
+    return `<tr class="chain-time"><td>${
+      x.seq
+    }</td><td colspan="7">${rowLink} · ${esc(x.call)}${
+      x.block ? ` <span class="mono">(block ${esc(x.block)})</span>` : ""
+    }</td></tr>`
+  const hash = x.hash
+    ? `<details class="tx-hash"><summary class="mono">${esc(
+        `${x.hash.slice(0, 10)}…`,
+      )}</summary><span class="mono">${esc(x.hash)}</span></details>`
+    : ""
+  return `<tr><td>${x.seq}</td><td>${rowLink}</td><td class="tx-during">${esc(
+    x.during ?? "",
+  )}</td><td>${esc(x.from ?? "")}</td><td><code class="tx-call">${esc(
+    x.call,
+  )}</code></td><td>${
+    x.status ? txBadge(x.status) : ""
+  }</td><td class="mono">${esc(x.block ?? "")}</td><td>${hash}</td></tr>`
+}
+
+const renderMarketCard = (m: MarketIndexEntry): string => {
+  const origin =
+    m.origin === "forked"
+      ? `forked at block ${esc(m.forkBlock ?? "?")}`
+      : m.origin === "created"
+        ? m.createdBy
+          ? `created by <a href="#${esc(m.createdBy.anchor)}">${esc(
+              m.createdBy.row,
+            )}</a> at block ${esc(m.createdBy.block)}`
+          : "created after the fork, outside this run's journal"
+        : "origin unknown"
+  const params = Object.entries(m.parameters ?? {})
+  const paramTable =
+    params.length > 0
+      ? `<h4>Parameters as deployed</h4>
+<div class="scroll-x"><table class="market-params"><tbody>${params
+          .map(
+            ([k, v]) =>
+              `<tr><th class="mono">${esc(k)}</th>${paramCell(k, v)}</tr>`,
+          )
+          .join("")}</tbody></table></div>`
+      : ""
+  const txTable =
+    m.txs.length > 0
+      ? `<h4>Transactions in this run</h4>
+<div class="scroll-x"><table class="txs market-txs">
+<thead><tr><th>#</th><th>row</th><th>during</th><th>actor</th><th>call</th><th>status</th><th>block</th><th>hash</th></tr></thead>
+<tbody>${m.txs.map(renderMarketTxRow).join("\n")}</tbody>
+</table></div>`
+      : `<p class="muted">No transaction of this run is on record for this market.</p>`
+  return `<details class="market" id="market-${esc(m.address)}">
+<summary><span class="market-name">${esc(
+    marketLabel(m),
+  )}</span> · ${origin} <span class="mono muted">${esc(
+    m.address,
+  )}</span> <span class="muted">${m.txs.length} entr${
+    m.txs.length === 1 ? "y" : "ies"
+  }</span></summary>
+<div class="market-body">${
+    m.derivedAt === "render"
+      ? `<p class="muted">derived at render time from the journal; created markets could not be resolved against the current fork</p>`
+      : ""
+  }${paramTable}
+${txTable}
+<p class="muted market-foot">Origin from the subgraph's deploy event against the fork block; history from this run's journal; time travel outside a row is not journaled.</p>
+</div>
+</details>`
+}
+
+/** The Markets section: one card per market the run transacted with. Absent/empty ⇒ nothing. */
+const renderMarkets = (run: UatRun): string => {
+  const markets = run.markets ?? []
+  if (markets.length === 0) return ""
+  const n = (o: MarketIndexEntry["origin"]) =>
+    markets.filter((m) => m.origin === o).length
+  return `
+<section class="markets" id="markets">
+<h3>Markets <span class="muted">${markets.length} seen · ${n(
+    "created",
+  )} created · ${n("forked")} forked · ${n("unknown")} unresolved</span></h3>
+${markets.map(renderMarketCard).join("\n")}
 </section>`
 }
 
@@ -883,6 +1065,7 @@ const renderFailedCard = (
   anchor: string,
   overlay: Overlay | null,
   issues: KnownIssue[],
+  touched: TouchedIndex = new Map(),
 ): string => {
   const shot = t.failureShot
     ? `<figure class="hero-fig"><a href="${esc(
@@ -988,7 +1171,7 @@ ${
 </div>
 ${renderWhatHappened(t)}
 ${renderWhatWasVerified(t)}
-${renderTxTable(t.journal)}
+${renderTouched(t, touched)}${renderTxTable(t.journal)}
 <h3>Artefacts</h3>
 ${renderFilmStrip(t)}
 ${video}
@@ -1006,6 +1189,7 @@ const renderUnexpectedPassCard = (
   t: UatTest,
   anchor: string,
   overlay: Overlay | null,
+  touched: TouchedIndex = new Map(),
 ): string => {
   const annotated = annotationReason(t.annotations)
   return `<article class="card failed" id="${esc(anchor)}">
@@ -1028,7 +1212,7 @@ const renderUnexpectedPassCard = (
 </div>
 ${renderWhatHappened(t)}
 ${renderWhatWasVerified(t)}
-${renderTxTable(t.journal)}
+${renderTouched(t, touched)}${renderTxTable(t.journal)}
 ${
   t.video
     ? `<details class="blob"><summary>▶ video (${fmtDuration(
@@ -1045,6 +1229,7 @@ const renderQuietRow = (
   t: UatTest,
   overlay: Overlay | null,
   issues: KnownIssue[],
+  touched: TouchedIndex = new Map(),
 ): string => {
   const reason = rowReason(t, issues)
   const chain = stepChain(t)
@@ -1068,6 +1253,7 @@ const renderQuietRow = (
   const body = [
     renderWhatHappened(t),
     renderWhatWasVerified(t),
+    renderTouched(t, touched),
     renderTxTable(t.journal),
     artefacts,
   ]
@@ -1100,17 +1286,19 @@ const renderTest = (
   t: UatTest,
   overlay: Overlay | null,
   issues: KnownIssue[],
+  touched: TouchedIndex = new Map(),
 ): string =>
   t.outcome === "unexpected-pass"
-    ? renderUnexpectedPassCard(t, anchorOf(t), overlay)
+    ? renderUnexpectedPassCard(t, anchorOf(t), overlay, touched)
     : HERO.has(t.outcome)
-      ? renderFailedCard(t, anchorOf(t), overlay, issues)
-      : renderQuietRow(t, overlay, issues)
+      ? renderFailedCard(t, anchorOf(t), overlay, issues, touched)
+      : renderQuietRow(t, overlay, issues, touched)
 
 const renderSection = (
   g: PageGroup,
   overlay: Overlay | null,
   issues: KnownIssue[],
+  touched: TouchedIndex = new Map(),
 ): string =>
   `<section class="page" id="page-${g.page}">
 <h2 class="page-head">${esc(g.label)} <span class="counts">${countStrip(
@@ -1121,7 +1309,9 @@ ${g.suites
     const ov = suitePageOverride(s.suite)
     return `<h3 class="suite">${esc(s.suite)}${
       ov ? ` <span class="muted">${esc(ov.note)}</span>` : ""
-    }</h3>\n${s.tests.map((t) => renderTest(t, overlay, issues)).join("\n")}`
+    }</h3>\n${s.tests
+      .map((t) => renderTest(t, overlay, issues, touched))
+      .join("\n")}`
   })
   .join("\n")}
 </section>`
@@ -1202,6 +1392,21 @@ li.step-failed .step-what{color:var(--red)}
 .note{display:inline-block;font-size:12px;color:var(--muted);background:#f2f3f5;
   border-radius:4px;padding:1px 7px;margin:2px 5px 0 0;font-family:var(--mono)}
 .note.bad{background:var(--red-bg);color:var(--red)}
+.note.chain-time{background:#fff4e0;color:#8a5a00}
+
+/* market provenance */
+section.markets{margin:0 0 26px}
+details.market{background:var(--card);border:1px solid var(--line);border-radius:8px;
+  margin:6px 0;padding:8px 14px}
+details.market>summary{cursor:pointer;font-size:14px}
+details.market .market-name{font-weight:600}
+details.market .market-body{margin-top:6px}
+table.market-params{border-collapse:collapse;font-size:13px;margin:4px 0}
+table.market-params th{text-align:left;font-weight:500;color:var(--muted);padding:2px 14px 2px 0}
+table.market-params td{padding:2px 0}
+table.market-txs tr.chain-time td{color:var(--muted);font-style:italic;background:#fafafa}
+.market-foot{font-size:12px;margin:8px 0 0}
+p.touched{font-size:13px;margin:10px 0 4px}
 .pre-steps{font-size:12.5px;color:var(--muted);margin:6px 0}
 
 /* what was verified: one evidence card per agreement */
@@ -1327,6 +1532,7 @@ export const renderUatReport = (
       : null
   const issues = opts.knownIssuesMd ? parseKnownIssues(opts.knownIssuesMd) : []
   const groups = groupByPage(run.tests)
+  const touched = touchedIndex(run.markets)
   const nav = groups
     .map(
       (g) =>
@@ -1366,9 +1572,9 @@ ${renderAnswers(
   opts.otherLabel ?? "main",
   issues,
   opts.coverageMd,
-)}
+)}${renderMarkets(run)}
 <nav class="pagenav">${nav}</nav>
-${groups.map((g) => renderSection(g, overlay, issues)).join("\n")}
+${groups.map((g) => renderSection(g, overlay, issues, touched)).join("\n")}
 ${overlay ? renderOnlyInOther(overlay.onlyInOther) : ""}
 <footer>
 Self-contained report — safe to open via file://. Traces need <code>npx playwright show-trace</code>.

@@ -101,10 +101,59 @@ export const nudge = async () => {
   await rpc("anvil_mine", ["0x1"])
 }
 
+/**
+ * uat-run/3 chain-time journaling. env.ts must not import journal.ts (render-report loads env.ts
+ * through loadTs, which cannot resolve @playwright/test), so lib/test.ts registers the recorder.
+ * Unregistered — every uat-run/2 run — `advanceTime` does exactly what it always did.
+ */
+type ChainTimeChange = {
+  kind: "chain-time"
+  seconds: number
+  fromTs?: number
+  toTs?: number
+  block?: string
+}
+let chainTimeRecorder: ((change: ChainTimeChange) => unknown) | undefined
+export const setChainTimeRecorder = (
+  fn: ((change: ChainTimeChange) => unknown) | undefined,
+) => {
+  chainTimeRecorder = fn
+}
+/** Head timestamp + number; undefined on any RPC hiccup (journaling never fails a test). */
+const headClock = async () => {
+  try {
+    const b = await rpc<{ number: string; timestamp: string }>(
+      "eth_getBlockByNumber",
+      ["latest", false],
+    )
+    return {
+      ts: Number(BigInt(b.timestamp)),
+      block: BigInt(b.number).toString(),
+    }
+  } catch {
+    return undefined
+  }
+}
+
 /** Advance chain time by `seconds` and mine a block (test-only time travel). */
 export const advanceTime = async (seconds: number) => {
+  const recorder = chainTimeRecorder
+  const before = recorder ? await headClock() : undefined
   await rpc("evm_increaseTime", [seconds])
   await rpc("anvil_mine", ["0x1"])
+  if (!recorder) return
+  const after = await headClock()
+  try {
+    const change: ChainTimeChange = { kind: "chain-time", seconds }
+    if (before) change.fromTs = before.ts
+    if (after) {
+      change.toTs = after.ts
+      change.block = after.block
+    }
+    recorder(change)
+  } catch {
+    /* journaling is reporting, not testing */
+  }
 }
 
 /** Fast-forward chain time to wall clock (never backwards). The app classifies time-dependent state

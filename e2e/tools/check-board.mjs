@@ -41,6 +41,10 @@ const journalPct = executed.length
 
 console.log(`board: ${run.tests?.length ?? 0} tests · ${Object.entries(counts).map(([k, v]) => `${v} ${k}`).join(" · ")}`)
 console.log(`journal:  ${withJournal.length} of ${executed.length} executed rows carry a journal (${journalPct.toFixed(0)}%)`)
+// uat-run/3 market provenance (run.markets): printed, never enforced.
+const markets = Array.isArray(run.markets) ? run.markets : []
+const byOrigin = (o) => markets.filter((m) => m.origin === o).length
+console.log(`markets:  ${markets.length} seen · ${byOrigin("created")} created · ${byOrigin("forked")} forked · ${byOrigin("unknown")} unresolved`)
 console.log(`archived: ${run.meta?.archiveDir ?? "(not archived)"}`)
 console.log(`report:   ${reportPath}`)
 
