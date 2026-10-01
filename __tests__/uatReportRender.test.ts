@@ -6,6 +6,7 @@ import {
   type UatTest,
 } from "../e2e/lib/uatModel"
 import { anchorOf, renderUatReport } from "../e2e/lib/uatReport"
+import { verdictOf } from "../e2e/lib/verdict"
 
 const t = (
   p: Partial<UatTest> & { title: string; suite: string },
@@ -136,8 +137,11 @@ describe("renderUatReport", () => {
   it("renders an unexpected pass as its own card, never as a failure card", () => {
     const html = renderUatReport(run())
     expect(html).toContain('id="uat-BOP-17b"')
-    expect(html).toContain("and it PASSED")
-    expect(html).toContain("KNOWN-ISSUES #20: SphereX blocks the path")
+    // A uat-run/2 `test.fail()` row has no ledger known issue to name: the annotation stands in.
+    expect(html).toContain(
+      "Passed where a failure was expected (&quot;KNOWN-ISSUES #20: SphereX blocks the path&quot;). Either the issue is fixed or the check no longer exercises it.",
+    )
+    expect(html).toContain("<b>Next:</b> register owner")
     // The two strings renderFailedCard would have produced for a row with no failure media.
     expect(html).not.toContain(
       "No failure screenshot (page was already closed).",
@@ -407,9 +411,13 @@ describe("renderUatReport row detail", () => {
     const html = renderUatReport(runOf([APR_ROW()]))
     const row = sectionOf(html, "uat-LEN-07")
 
-    expect(row).toContain("What happened")
-    expect(row).toContain("the lender opens the market page")
-    expect(row).toContain("parameters name the UTILISATION APR")
+    expect(row).not.toContain("What happened")
+    expect(row).toContain(
+      '<span class="step-name">the lender opens the market page</span>',
+    )
+    expect(row).toContain(
+      '<span class="step-name">parameters name the UTILISATION APR</span>',
+    )
     // Step 1 spans 02:00:01 → 02:00:04; the last step runs to startedAt + durationMs (02:00:09).
     expect(row).toContain("3.0s")
     expect(row).toContain("5.0s")
@@ -419,19 +427,27 @@ describe("renderUatReport row detail", () => {
     expect(row).toContain(
       'title="http://localhost:3001/lender/market/0x1234567890abcdef1234567890abcdef12345678"',
     )
-    // A transaction inside a step reads as one short note.
-    expect(row).toContain("tx setAnnualInterestBips · success · block 11584301")
+    // A transaction sits inline in its checkpoint: call, status, block, short hash.
+    const tx = row.slice(row.indexOf('class="ev tx'))
+    expect(tx).toContain('<code class="tx-call">setAnnualInterestBips</code>')
+    expect(tx).toContain('<span class="txmeta ok">success</span>')
+    expect(tx).toContain("block 11584301")
+    expect(tx).toContain("0xfeedface…")
+    // …inside the second checkpoint, not the first.
+    expect(row.indexOf('class="ev tx')).toBeGreaterThan(
+      row.indexOf("parameters name the UTILISATION APR</span>"),
+    )
     // The navigation before the first step is attributed, not silently dropped.
-    expect(row).toContain("Before the first checkpoint:")
+    expect(row).toContain("arrange — before the first checkpoint")
     // A repeated navigation to the same route is collapsed to one note.
     expect(row.match(/→ \/lender\/market\/0x1234…5678/g)?.length).toBe(1)
-    // Sections in narrative order.
-    expect(row.indexOf("What happened")).toBeLessThan(
-      row.indexOf("What was verified"),
+    // One timeline: the checkpoints, then the evidence; the separate tables are gone.
+    expect(row.indexOf('<span class="step-name">')).toBeLessThan(
+      row.indexOf('<h4 class="ev-head">'),
     )
-    expect(row.indexOf("What was verified")).toBeLessThan(
-      row.indexOf("Transactions"),
-    )
+    expect(row).not.toContain("What was verified")
+    expect(row).not.toContain("<h3>Transactions</h3>")
+    expect(row).not.toContain('<table class="txs">')
     // The old dump is gone.
     expect(row).not.toContain("Reproduction timeline")
   })
@@ -552,13 +568,13 @@ describe("renderUatReport row detail", () => {
     const html = renderUatReport(runOf([row]))
     const section = sectionOf(html, "uat-BOP-09")
 
-    expect(section).toContain('<span class="badge bad">failed here</span>')
-    expect(section).toContain('class="step step-failed"')
-    // Inside the narrative (the hero's "Failed during checkpoint …" line names the step too),
+    expect(section).toContain('<span class="here">failed here</span>')
+    expect(section).toContain('class="tl-node step failed"')
+    // Inside the timeline (the verdict's "Failed during checkpoint …" line names the step too),
     // the step that PASSED comes first and is not marked.
     const narrative = section.slice(
-      section.indexOf("What happened"),
-      section.indexOf("What was verified"),
+      section.indexOf('<ol class="tl">'),
+      section.indexOf('class="tl-node verdict'),
     )
     const submitted = narrative.indexOf(
       "the borrower submits the APR reduction",
@@ -568,26 +584,22 @@ describe("renderUatReport row detail", () => {
     expect(submitted).toBeLessThan(appeared)
     expect(narrative.slice(submitted, appeared)).not.toContain("failed here")
     // A reverted tx inside the step is flagged.
-    expect(section).toContain(
-      "tx setAnnualInterestBips · reverted · block 11584310",
+    expect(section).toContain('class="ev tx bad"')
+    expect(section).toContain('<span class="txmeta bad">reverted</span>')
+    // Checkpoints, then the evidence, then the verdict block with the failure screenshot.
+    expect(section.indexOf('<span class="step-name">')).toBeLessThan(
+      section.indexOf('<h4 class="ev-head">'),
     )
-    // Narrative first, then the evidence, then the transactions, then the artefacts.
-    expect(section.indexOf("What happened")).toBeLessThan(
-      section.indexOf("What was verified"),
+    expect(section.indexOf('<h4 class="ev-head">')).toBeLessThan(
+      section.indexOf('class="tl-node verdict'),
     )
-    expect(section.indexOf("What was verified")).toBeLessThan(
-      section.indexOf("Transactions"),
-    )
-    expect(section.indexOf("Transactions")).toBeLessThan(
-      section.indexOf("Artefacts"),
-    )
-    // The film strip must not claim the row ran without checkpoints — it just listed two.
-    expect(section).toContain("the checkpoints above did run")
-    expect(section).not.toContain("ran without <code>step()</code> checkpoints")
-    // The failure screenshot still leads the card.
     expect(section).toContain("assets/t9-failure.png")
-    expect(section.indexOf("assets/t9-failure.png")).toBeLessThan(
-      section.indexOf("What happened"),
+    expect(section.indexOf('class="tl-node verdict')).toBeLessThan(
+      section.indexOf("assets/t9-failure.png"),
+    )
+    // The verdict block: error head, then the page-state line and the stack toggle.
+    expect(section).toContain(
+      '<div class="headline">expect(locator).toContainText(expected)</div>',
     )
   })
 
@@ -736,8 +748,8 @@ describe("renderUatReport row detail", () => {
       name: "the matured amount is claimable",
       index: 2,
     })
-    expect(step).toContain('<span class="badge bad">failed here</span>')
-    expect(step).toContain('class="step step-failed"')
+    expect(step).toContain('<span class="here">failed here</span>')
+    expect(step).toContain('class="tl-node step failed"')
 
     for (const site of [
       { kind: "hook", name: "Before Hooks" },
@@ -749,7 +761,7 @@ describe("renderUatReport row detail", () => {
     ]) {
       const section = siteProse(site)
       expect(section).not.toContain("failed here")
-      expect(section).not.toContain("step-failed")
+      expect(section).not.toContain("tl-node step failed")
     }
   })
 })
@@ -931,15 +943,19 @@ describe("market provenance — the Markets summary and each row's “How this s
     return r
   }
 
-  /** The row's "How this state was reached" section, or "" when it has none. */
+  /** The row's "starting state" timeline nodes, or "" when it has none. */
   const reachedOf = (html: string, anchor: string): string => {
     const at = html.indexOf(`id="${anchor}"`)
     expect(at).toBeGreaterThan(-1)
-    const row = html.slice(at)
-    const end = row.indexOf("<h3>What happened</h3>")
-    const head = end === -1 ? row : row.slice(0, end)
-    const s = head.indexOf('<section class="reached">')
-    return s === -1 ? "" : head.slice(s, head.indexOf("</section>", s))
+    const rest = html.slice(at + 1)
+    const next = rest.search(/id="(uat-|row-|page-)/)
+    const row = next >= 0 ? rest.slice(0, next) : rest
+    const s = row.indexOf('<li class="tl-node state">')
+    if (s === -1) return ""
+    const after = row
+      .slice(s + 1)
+      .search(/class="tl-node (?!state")|<details class="harness"/)
+    return after === -1 ? row.slice(s) : row.slice(s, s + 1 + after)
   }
   /** The steps of one market's block inside a row's section, as text. */
   const stepsOf = (section: string, addr: string): string[] => {
@@ -1047,18 +1063,18 @@ describe("market provenance — the Markets summary and each row's “How this s
     expect(renderUatReport(run())).not.toMatch(/Markets<\/dt>/)
   })
 
-  it("the withdrawal row: creation, the deposit, the chain time, its own tx marked — nothing after", () => {
+  it("the withdrawal row: creation, the deposit, the chain time as earlier actions — its own tx and nothing after", () => {
     const r = withMarkets()
     const html = renderUatReport(r)
     const sec = reachedOf(html, withdrawalAnchor(r))
-    expect(sec).toContain("<h3>How this state was reached</h3>")
+    expect(sec).toContain('<div class="tl-kicker">starting state</div>')
+    expect(sec).toContain("3 earlier actions by rows MKT-01, LEN-01")
     expect(stepsOf(sec, CREATED)).toEqual([
       "MKT-01: created the market — deployMarketAndHooks(…) (block 11584300)",
       "LEN-01: depositUpTo(amount: 100 DAI) (block 11584301)",
       "LEN-01: chain time +3,600 s (1 h) (block 11584302)",
-      // A reverted tx changed no state; it says so.
-      "queue a withdrawal through the UI: queueWithdrawal(amount: 40 DAI) reverted (block 11584303) (this row)",
     ])
+    expect(sec).not.toContain("queueWithdrawal")
     expect(sec).not.toContain("setAnnualInterestBips")
     // The chain-time step keeps the target time in a title.
     expect(sec).toContain('title="2026-09-26T07:02:02Z"')
@@ -1071,31 +1087,37 @@ describe("market provenance — the Markets summary and each row's “How this s
     expect(sec).toContain(
       '<span class="chip"><span class="k">maturity</span> 2026-10-29T00:00:00Z</span>',
     )
-    // The section comes before "What happened".
+    // The starting state leads the timeline: it is the card's first node.
     const row = html.slice(html.indexOf(`id="${withdrawalAnchor(r)}"`))
-    expect(row.indexOf("How this state was reached")).toBeLessThan(
-      row.indexOf("<h3>What happened</h3>"),
+    expect(row.indexOf('<li class="tl-node state">')).toBe(
+      row.indexOf('<li class="tl-node'),
     )
   })
 
-  it("the creator row lists only the creation, marked as its own", () => {
+  it("a reverted earlier action says so", () => {
+    const r = withMarkets()
+    const html = renderUatReport(r)
+    expect(stepsOf(reachedOf(html, bopAnchor(r)), CREATED)).toContain(
+      "queue a withdrawal through the UI: queueWithdrawal(amount: 40 DAI) reverted (block 11584303)",
+    )
+  })
+
+  it("the creator row has no earlier actions and says it created the market", () => {
     const html = renderUatReport(withMarkets())
-    expect(stepsOf(reachedOf(html, "uat-MKT-01"), CREATED)).toEqual([
-      "MKT-01: created the market — deployMarketAndHooks(…) (block 11584300) (this row)",
-    ])
+    const sec = reachedOf(html, "uat-MKT-01")
+    expect(sec).toContain("created by this row at block 11584300")
+    expect(sec).toContain("No earlier actions — this row created it.")
+    expect(sec).not.toContain('<details class="prior"')
   })
 
   it("a row touching two markets gets one block each; a forked market carries the fork note", () => {
     const html = renderUatReport(withMarkets())
     const sec = reachedOf(html, "uat-LEN-01")
+    expect(sec.match(/<li class="tl-node state">/g)).toHaveLength(2)
     expect(stepsOf(sec, CREATED)).toEqual([
       "MKT-01: created the market — deployMarketAndHooks(…) (block 11584300)",
-      "LEN-01: depositUpTo(amount: 100 DAI) (block 11584301) (this row)",
-      "LEN-01: chain time +3,600 s (1 h) (block 11584302) (this row)",
     ])
-    expect(stepsOf(sec, FORKED)).toEqual([
-      "LEN-01: approve(spender: market, amount: 5 DAI) (block 11584305) (this row)",
-    ])
+    expect(sec).toContain("No earlier actions on it in this run.")
     expect(sec).toContain("forked at block 11584253")
     expect(sec).toContain(
       "state before the fork block is Sepolia's and not shown",
@@ -1105,7 +1127,7 @@ describe("market provenance — the Markets summary and each row's “How this s
     expect(sec).toContain("time travel outside a row is not journaled")
   })
 
-  it("a row that touched no market gets no section, and the old “Markets touched” line is gone", () => {
+  it("a row that touched no market gets no starting state, and the old “Markets touched” line is gone", () => {
     const html = renderUatReport(withMarkets())
     expect(
       reachedOf(html, anchorOf(byTitle(withMarkets(), "LEN-01: discovery"))),
@@ -1151,10 +1173,752 @@ describe("market provenance — the Markets summary and each row's “How this s
 
   it("renders no section for an absent or empty index", () => {
     expect(renderUatReport(run())).not.toContain('class="markets"')
-    expect(renderUatReport(run())).not.toContain("How this state was reached")
+    expect(renderUatReport(run())).not.toContain('class="tl-node state"')
     const empty = run()
     empty.markets = []
     expect(renderUatReport(empty)).not.toContain('class="markets"')
-    expect(renderUatReport(empty)).not.toContain("How this state was reached")
+    expect(renderUatReport(empty)).not.toContain('class="tl-node state"')
+  })
+})
+
+/**
+ * The per-test card (2026-10-01 redesign): a header line, a verdict sentence derived from the
+ * row's data, one timeline (starting state → arrange → checkpoints → verdict block) and a closed
+ * harness footer.
+ */
+describe("per-test card — verdict sentence", () => {
+  const M9_LEDGER = {
+    version: "main",
+    decision: "expect-failure",
+    reason:
+      "ledger: known defect on main — REQ-BOP-070 (main#M9). A failure is only excused if it matches the signature.",
+    requirements: [
+      {
+        requirementId: "REQ-BOP-070",
+        known: true,
+        storedApplicability: "required",
+        effectiveApplicability: "required",
+        implementation: "known-defect",
+        coverage: "automated",
+      },
+    ],
+    knownIssues: [
+      {
+        register: "main",
+        id: "M9",
+        signature: {
+          requirementId: "REQ-BOP-070",
+          assertion: "a backdrop click does not dismiss the completion dialog",
+        },
+      },
+    ],
+  }
+  const STEP = "clicking outside does not dismiss the dialog"
+
+  /** MKT-20 on main: a known-defect row; `assertion` is what the run failed on. */
+  const mkt20 = (assertion: string, signature: "match" | "no-match") =>
+    t({
+      title: "MKT-20: the completion dialog stays until dismissed",
+      suite: "market creation",
+      page: 3,
+      status: "failed",
+      expectedStatus: signature === "match" ? "failed" : "passed",
+      outcome: signature === "match" ? "expected-failure" : "failed",
+      requirements: ["REQ-BOP-070"],
+      errorHead: `Error: ${assertion}`,
+      failedDuring: { kind: "step", name: STEP, index: 1 },
+      annotations: [
+        { type: "requirements", description: "REQ-BOP-070" },
+        { type: "ledger", description: JSON.stringify(M9_LEDGER) },
+        { type: "fail", description: M9_LEDGER.reason },
+        ...(signature === "no-match"
+          ? [{ type: "ledger-signature", description: "no-match" }]
+          : []),
+      ],
+      journal: [
+        {
+          at: "2026-09-29T20:40:54.000Z",
+          kind: "step",
+          name: STEP,
+          req: ["REQ-BOP-070"],
+        },
+        {
+          at: "2026-09-29T20:41:27.000Z",
+          kind: "data",
+          name: "ledger signature",
+          data: {
+            result: signature,
+            observed: { step: STEP, failedAssertion: assertion },
+          },
+        },
+      ],
+      observations: [
+        {
+          requirementId: "REQ-BOP-070",
+          status: "fail",
+          attribution: "step",
+          step: STEP,
+          stepIndex: 1,
+          failedAssertion: assertion,
+          error: `Error: ${assertion}`,
+        },
+      ],
+    })
+
+  it("expected failure, signature matched: names the known issue and the version; no Next", () => {
+    const v = verdictOf(
+      mkt20("a backdrop click does not dismiss the completion dialog", "match"),
+    )
+    expect(v.sentence).toBe(
+      "Failed as known issue M9 predicts (expected on main).",
+    )
+    expect(v.next).toBeUndefined()
+    expect(v.open).toBe(true)
+  })
+
+  it("expected failure, no match: quotes both assertions and refuses the attribution", () => {
+    const v = verdictOf(
+      mkt20(
+        "an Escape press does not dismiss the completion dialog",
+        "no-match",
+      ),
+    )
+    expect(v.sentence).toBe(
+      'Failed, but not the way known issue M9 predicts. M9 expects "a backdrop click does not dismiss the completion dialog" to fail; this run failed on "an Escape press does not dismiss the completion dialog". Not attributed to M9.',
+    )
+    expect(v.next).toBe("engineering — compare the two assertions")
+    expect(v.sentence).not.toContain("signature mismatch")
+  })
+
+  it("unexpected pass against a ledger known issue", () => {
+    const row = mkt20("unused", "match")
+    const v = verdictOf({
+      ...row,
+      status: "passed",
+      expectedStatus: "failed",
+      outcome: "unexpected-pass",
+      errorHead: undefined,
+      failedDuring: undefined,
+      observations: [],
+    })
+    expect(v.sentence).toBe(
+      "Passed where known issue M9 predicted a failure. Either the issue is fixed or the check no longer exercises it.",
+    )
+    expect(v.next).toBe("register owner")
+  })
+
+  /** MKT-10b on v2.5: a finding under a proposed intentionally-different ruling. */
+  const mkt10b = (applicabilityStatus: "proposed" | "approved") =>
+    t({
+      title: "MKT-10b: the sidebar gates each step",
+      suite: "market creation › findings under proposed rulings",
+      page: 3,
+      status: "failed",
+      outcome: "failed",
+      requirements: ["REQ-BOP-139"],
+      errorHead: "Error: each sidebar step is gated on the previous one",
+      failedDuring: {
+        kind: "step",
+        name: "the sidebar chain gates each step on the previous one",
+        index: 1,
+      },
+      annotations: [
+        {
+          type: "ledger",
+          description: JSON.stringify({
+            version: "v25",
+            decision: "run",
+            reason: "ledger: v25 owes these behaviours and can exercise them",
+            requirements: [
+              {
+                requirementId: "REQ-BOP-139",
+                known: true,
+                storedApplicability: "intentionally-different",
+                applicabilityStatus,
+                effectiveApplicability: "required",
+                implementation: "unknown",
+                coverage: "automated",
+              },
+            ],
+          }),
+        },
+      ],
+      journal: [
+        {
+          at: "2026-09-25T18:00:00.000Z",
+          kind: "step",
+          name: "the sidebar chain gates each step on the previous one",
+          req: ["REQ-BOP-139"],
+        },
+      ],
+      observations: [
+        {
+          requirementId: "REQ-BOP-139",
+          status: "fail",
+          attribution: "step",
+          step: "the sidebar chain gates each step on the previous one",
+          stepIndex: 1,
+          failedAssertion: "each sidebar step is gated on the previous one",
+        },
+      ],
+    })
+
+  it("a proposed intentionally-* ruling is read from the ledger annotation, never the suite title", () => {
+    const v = verdictOf(mkt10b("proposed"))
+    expect(v.sentence).toBe(
+      "Fails the proposed behaviour; product ruling pending (REQ-BOP-139).",
+    )
+    expect(v.next).toBe("product")
+    // Same suite title, approved ruling: an ordinary attributed failure.
+    expect(verdictOf(mkt10b("approved")).kind).toBe("did-not-hold")
+  })
+
+  it("an attributed failure: the failed assertion did not hold", () => {
+    const v = verdictOf(mkt10b("approved"))
+    expect(v.sentence).toBe(
+      "each sidebar step is gated on the previous one did not hold (REQ-BOP-139).",
+    )
+    expect(v.next).toBe("engineering")
+  })
+
+  it("an arrange failure did not reach the behaviour under test", () => {
+    const v = verdictOf(
+      t({
+        title: "LEN-05: deposit appears in the lender's positions",
+        suite: "lender flows",
+        status: "failed",
+        outcome: "failed",
+        requirements: ["REQ-LEN-010"],
+        errorHead: "TimeoutError: page.goto: Timeout 30000ms exceeded.",
+        failedDuring: { kind: "arrange" },
+        observations: [
+          { requirementId: null, status: "unattributed", attribution: "row" },
+        ],
+      }),
+    )
+    expect(v.sentence).toBe(
+      "Did not reach the behaviour under test: broke while arranging — page.goto: Timeout 30000ms exceeded. Nothing proven or disproven.",
+    )
+    expect(v.next).toBe("engineering — triage fixture / app state")
+  })
+
+  it("a uat-run/2 row (no observations, no ledger) failing in a checkpoint degrades to the old wording", () => {
+    const v = verdictOf(
+      t({
+        title: "BOP-09: the borrower reduces the APR",
+        suite: "borrower ops",
+        status: "failed",
+        outcome: "failed",
+        errorHead: "expect(locator).toContainText(expected)",
+        failedDuring: { kind: "step", name: "the new APR appears", index: 2 },
+      }),
+    )
+    expect(v.kind).toBe("failed")
+    expect(v.sentence).toBe("Failed: expect(locator).toContainText(expected).")
+    expect(v.next).toBeUndefined()
+  })
+
+  it("passed, skipped and did-not-run rows carry no sentence and stay closed", () => {
+    ;(["passed", "skipped", "did-not-run"] as const).forEach((outcome) => {
+      const v = verdictOf(t({ title: "X-01: x", suite: "s", outcome }))
+      expect(v.open).toBe(false)
+      expect(v.sentence).toBeUndefined()
+    })
+  })
+
+  it("the page-5 LEN-18 row reads “Did not reach…”, with the revert in plain words", () => {
+    const len18 = t({
+      title:
+        "LEN-18: partial withdrawal request enters the cycle; cycle end shown",
+      suite: "lender flows › deposit → withdrawal cycle",
+      page: 5,
+      status: "failed",
+      outcome: "failed",
+      requirements: [],
+      startedAt: "2026-09-25T18:57:30.000Z",
+      durationMs: 12_640,
+      errorHead:
+        'ContractFunctionExecutionError: The contract function "balanceOf" reverted with the following reason:',
+      errorDetail:
+        "Arithmetic operation resulted in underflow or overflow.\n\nContract Call:\n  function:  balanceOf(address account)",
+      failedDuring: {
+        kind: "step",
+        name: "queue a partial withdrawal",
+        index: 1,
+      },
+      failureShot: "assets/t132-failure.png",
+      failureState: {
+        url: "http://127.0.0.1:3000/lender/market/0x07878e16a64ed6daacebe8a6537902a048de8f2d",
+        chainBlock: "11584665",
+        chainTimestamp: "2026-09-26T07:02:02.000Z",
+        wallClock: "2026-09-25T18:57:42.640Z",
+      },
+      journal: [
+        {
+          at: "2026-09-25T18:57:31.000Z",
+          kind: "nav",
+          url: "http://127.0.0.1:3000/lender/market/0x07878e16a64ed6daacebe8a6537902a048de8f2d",
+        },
+        {
+          at: "2026-09-25T18:57:33.000Z",
+          kind: "step",
+          name: "queue a partial withdrawal",
+        },
+      ],
+      observations: [
+        {
+          requirementId: null,
+          status: "unattributed",
+          attribution: "row",
+          step: "queue a partial withdrawal",
+        },
+      ],
+    })
+    const sentence =
+      "Did not reach the behaviour under test: broke while arranging (queue a partial withdrawal) — balanceOf() reverted (Arithmetic operation resulted in underflow or overflow). Nothing proven or disproven."
+    expect(verdictOf(len18).sentence).toBe(sentence)
+    const r = { ...run(), schema: "uat-run/3" as const, tests: [len18] }
+    assignPages(r.tests)
+    const html = renderUatReport(r)
+    const page5 = html.slice(html.indexOf('id="page-5"'))
+    expect(page5).toContain(`<p class="verdict-sentence">${sentence}</p>`)
+    expect(page5).toContain(
+      '<p class="verdict-next"><b>Next:</b> engineering — triage fixture / app state</p>',
+    )
+    // The verdict block: page, block, chain time and the clock skew on one line.
+    expect(page5).toContain("chain is <b>+12.1 h</b> ahead of the wall clock")
+  })
+})
+
+describe("per-test card — header, timeline, footer, toolbar", () => {
+  const MKT = `0x${"a".repeat(40)}`
+  const H = (d: string) => `0x${d.repeat(64)}`
+  const STEP1 = "the deployed policy carries the self-onboarding selection"
+  const STEP2 = "a brand-new lender gains the credential and deposits"
+
+  const tx = (
+    at: string,
+    block: string,
+    call: string,
+    during: string,
+    hash: string,
+    source = "lib",
+  ) => ({
+    at,
+    kind: "tx" as const,
+    hash,
+    status: "success",
+    block,
+    source,
+    to: MKT,
+    enriched: {
+      hash,
+      status: "success",
+      block,
+      source,
+      during,
+      actor: "account #1 (lender)",
+      target: { name: "E2E Market", kind: "market", address: MKT },
+      fn: call.replace(/\(.*$/, ""),
+      params: [],
+      call,
+      line: call,
+    },
+  })
+
+  /** A created market, MKT-01 deploys it, MKT-12 (passed) and MKT-13 (failed) transact on it. */
+  const cardRun = (): UatRun => {
+    const tests = [
+      t({
+        title: "MKT-01: new policy created",
+        suite: "market creation",
+        page: 3,
+        requirements: ["REQ-BOP-037"],
+        observations: [
+          {
+            requirementId: "REQ-BOP-037",
+            status: "pass",
+            attribution: "step",
+            step: "deploy",
+            stepIndex: 1,
+          },
+        ],
+      }),
+      t({
+        title: "MKT-12: self-onboarding policy",
+        suite: "market creation",
+        page: 3,
+        startedAt: "2026-09-29T20:50:43.000Z",
+        durationMs: 8_000,
+        requirements: ["REQ-BOP-052", "REQ-LEN-110"],
+        observations: [
+          {
+            requirementId: "REQ-BOP-052",
+            status: "pass",
+            attribution: "step",
+            step: STEP1,
+            stepIndex: 1,
+          },
+          {
+            requirementId: "REQ-LEN-110",
+            status: "pass",
+            attribution: "step",
+            step: STEP2,
+            stepIndex: 2,
+          },
+        ],
+        tracePath: "test-results/mkt-12/trace.zip",
+        journal: [
+          {
+            at: "2026-09-29T20:50:43.984Z",
+            kind: "step",
+            name: STEP1,
+            req: ["REQ-BOP-052"],
+          },
+          tx(
+            "2026-09-29T20:50:44.471Z",
+            "11584321",
+            "depositUpTo(amount: 200 DAI)",
+            STEP1,
+            H("2"),
+          ),
+          tx(
+            "2026-09-29T20:50:44.480Z",
+            "11584320",
+            "approve(amount: 200 DAI)",
+            STEP1,
+            H("1"),
+          ),
+          {
+            at: "2026-09-29T20:50:44.489Z",
+            kind: "step",
+            name: STEP2,
+            req: ["REQ-LEN-110"],
+          },
+          {
+            at: "2026-09-29T20:50:48.576Z",
+            kind: "data",
+            name: "MKT-12 self-onboarding deposit",
+            data: { deposited: "200 DAI", subgraphDelta: "200 DAI" },
+          },
+          {
+            at: "2026-09-29T20:50:49.000Z",
+            kind: "data",
+            name: "console.error",
+            data: "Warning: a key",
+          },
+          // Recorded late (receipt time), but it ran during step 2 at an earlier block.
+          tx(
+            "2026-09-29T20:53:35.000Z",
+            "11584318",
+            "mint()",
+            STEP2,
+            H("3"),
+            "ui",
+          ),
+        ],
+        agreements: [
+          {
+            name: "agreement: MKT-12 self-onboarding deposit",
+            json: { deposited: "200 DAI", subgraphDelta: "200 DAI" },
+          },
+        ],
+      }),
+      t({
+        title: "MKT-13: lender withdraws",
+        suite: "market creation",
+        page: 3,
+        status: "failed",
+        outcome: "failed",
+        requirements: ["REQ-LEN-120"],
+        errorHead: "Error: the withdrawal is queued",
+        failedDuring: { kind: "step", name: "withdraw", index: 1 },
+        journal: [
+          {
+            at: "2026-09-29T20:55:00.000Z",
+            kind: "step",
+            name: "withdraw",
+            req: ["REQ-LEN-120"],
+          },
+          tx(
+            "2026-09-29T20:55:01.000Z",
+            "11584330",
+            "queueWithdrawal(amount: 50 DAI)",
+            "withdraw",
+            H("4"),
+          ),
+        ],
+        observations: [
+          {
+            requirementId: "REQ-LEN-120",
+            status: "fail",
+            attribution: "step",
+            step: "withdraw",
+            stepIndex: 1,
+            failedAssertion: "the withdrawal is queued",
+          },
+        ],
+      }),
+      t({
+        title: "MKT-18: Safe + MLA deployment",
+        suite: "market creation",
+        page: 3,
+        status: "skipped",
+        expectedStatus: "skipped",
+        outcome: "skipped",
+        requirements: ["REQ-BOP-068"],
+        annotations: [{ type: "fixme" }],
+        observations: [
+          {
+            requirementId: "REQ-BOP-068",
+            status: "skipped",
+            attribution: "row",
+          },
+        ],
+        durationMs: 0,
+      }),
+    ]
+    assignPages(tests)
+    const r = { ...run(), schema: "uat-run/3" as const, tests }
+    r.markets = [
+      {
+        address: MKT,
+        name: "E2E Market",
+        origin: "created",
+        createdBy: {
+          row: "MKT-01",
+          anchor: "uat-MKT-01",
+          block: "11584300",
+          txHash: H("0"),
+        },
+        type: {
+          term: "fixed-term",
+          kind: "revolving",
+          config: { maturity: "2026-10-29T00:00:00Z" },
+        },
+        txs: [
+          {
+            seq: 1,
+            row: "MKT-01",
+            anchor: "uat-MKT-01",
+            block: "11584300",
+            call: "deployMarketAndHooks(…)",
+            status: "success",
+            hash: H("0"),
+            kind: "tx",
+          },
+          {
+            seq: 2,
+            row: "MKT-12",
+            anchor: "uat-MKT-12",
+            block: "11584318",
+            call: "mint()",
+            status: "success",
+            hash: H("3"),
+            kind: "tx",
+          },
+          {
+            seq: 3,
+            row: "MKT-12",
+            anchor: "uat-MKT-12",
+            block: "11584320",
+            call: "approve(amount: 200 DAI)",
+            status: "success",
+            hash: H("1"),
+            kind: "tx",
+          },
+          {
+            seq: 4,
+            row: "MKT-13",
+            anchor: "uat-MKT-13",
+            block: "11584330",
+            call: "queueWithdrawal(amount: 50 DAI)",
+            status: "success",
+            hash: H("4"),
+            kind: "tx",
+          },
+        ],
+        derivedAt: "run",
+      },
+    ]
+    return r
+  }
+
+  const rowOf = (html: string, anchor: string): string => {
+    const start = html.indexOf(`id="${anchor}"`)
+    expect(start).toBeGreaterThan(-1)
+    const rest = html.slice(start + 1)
+    const next = rest.search(/id="(uat-|row-|page-)/)
+    return next >= 0 ? rest.slice(0, next) : rest
+  }
+  const summaryOf = (row: string): string =>
+    row.slice(row.indexOf("<summary"), row.indexOf("</summary>"))
+  const cardTag = (html: string, anchor: string): string => {
+    const at = html.indexOf(`id="${anchor}"`)
+    return html.slice(
+      html.lastIndexOf("<details", at),
+      html.indexOf(">", at) + 1,
+    )
+  }
+
+  it("the header line: market chip, one chip per requirement with its result, duration", () => {
+    const html = renderUatReport(cardRun())
+    const head = summaryOf(rowOf(html, "uat-MKT-12"))
+    expect(head).toContain('<span class="id mono">MKT-12</span>')
+    expect(head).toContain('<span class="ttl">self-onboarding policy</span>')
+    expect(head).toContain(
+      `<span class="mchip" title="E2E Market · ${MKT}"><b>Fixed term · revolving</b> E2E Market</span>`,
+    )
+    expect(head).toContain(
+      '<span class="req pass" title="REQ-BOP-052: pass">✓ REQ-BOP-052</span>',
+    )
+    expect(head).toContain(
+      '<span class="req pass" title="REQ-LEN-110: pass">✓ REQ-LEN-110</span>',
+    )
+    expect(head).toContain('<span class="dur">8.0s</span>')
+    // No step breadcrumb in the header any more.
+    expect(head).not.toContain(STEP1)
+    const failed = summaryOf(rowOf(html, "uat-MKT-13"))
+    expect(failed).toContain(
+      '<span class="req fail" title="REQ-LEN-120: fail">✗ REQ-LEN-120</span>',
+    )
+    // The second line: the failed assertion in plain words, and a flag.
+    expect(failed).toContain(
+      '<div class="teaser">the withdrawal is queued <span class="flag bad">did not hold</span></div>',
+    )
+    expect(summaryOf(rowOf(html, "uat-MKT-18"))).toContain(
+      '<span class="req skipped" title="REQ-BOP-068: skipped">– REQ-BOP-068</span>',
+    )
+  })
+
+  it("passed and skipped rows are one closed line; failed rows open with the verdict sentence", () => {
+    const html = renderUatReport(cardRun())
+    expect(cardTag(html, "uat-MKT-12")).toBe(
+      '<details class="tcard passed quiet" id="uat-MKT-12">',
+    )
+    expect(cardTag(html, "uat-MKT-18")).toBe(
+      '<details class="tcard skipped quiet" id="uat-MKT-18">',
+    )
+    expect(cardTag(html, "uat-MKT-13")).toBe(
+      '<details class="tcard did-not-hold" id="uat-MKT-13" open>',
+    )
+    expect(rowOf(html, "uat-MKT-12")).not.toContain("verdict-sentence")
+    expect(rowOf(html, "uat-MKT-13")).toContain(
+      '<p class="verdict-sentence">the withdrawal is queued did not hold (REQ-LEN-120).</p>',
+    )
+  })
+
+  it("the starting state's earlier actions are closed on a passed row and open on a failed one", () => {
+    const html = renderUatReport(cardRun())
+    const passed = rowOf(html, "uat-MKT-12")
+    expect(passed).toContain(
+      '<details class="prior"><summary>1 earlier action by rows MKT-01</summary>',
+    )
+    const failed = rowOf(html, "uat-MKT-13")
+    expect(failed).toContain(
+      '<details class="prior" open><summary>3 earlier actions by rows MKT-01, MKT-12</summary>',
+    )
+    expect(failed).toContain("Fixed term · revolving")
+    expect(failed).toContain(
+      '<span class="k">maturity</span> 2026-10-29T00:00:00Z',
+    )
+  })
+
+  it("transactions sit inline under the checkpoint they ran in, in block order", () => {
+    const html = renderUatReport(cardRun())
+    const row = rowOf(html, "uat-MKT-12")
+    const s1 = row.indexOf(`<span class="step-name">${STEP1}</span>`)
+    const s2 = row.indexOf(`<span class="step-name">${STEP2}</span>`)
+    const approve = row.indexOf("approve(amount: 200 DAI)")
+    const deposit = row.indexOf("depositUpTo(amount: 200 DAI)")
+    const mint = row.indexOf('<code class="tx-call">mint()</code>')
+    expect(s1).toBeGreaterThan(-1)
+    // Block 11584320 before 11584321, both inside checkpoint 1.
+    expect(s1).toBeLessThan(approve)
+    expect(approve).toBeLessThan(deposit)
+    expect(deposit).toBeLessThan(s2)
+    // The late-recorded UI mint belongs to checkpoint 2.
+    expect(mint).toBeGreaterThan(s2)
+    expect(row).toContain('<span class="badge ui">via app UI</span>')
+    expect(row).toContain('<span class="badge lib">by test</span>')
+    // The evidence the step attached sits in its checkpoint, after the transactions.
+    expect(
+      row.indexOf('<h4 class="ev-head">MKT-12 self-onboarding deposit</h4>'),
+    ).toBeGreaterThan(s2)
+    // …once, not again as a loose card.
+    expect(row.match(/MKT-12 self-onboarding deposit<\/h4>/g)).toHaveLength(1)
+    // Console noise stays out of the timeline.
+    expect(
+      row.slice(0, row.indexOf('<details class="harness">')),
+    ).not.toContain("Warning: a key")
+    // The checkpoint carries its requirement chip.
+    expect(row.slice(s1, approve)).toContain("✓ REQ-BOP-052")
+  })
+
+  it("no Transactions table anywhere; the harness footer is closed and holds the maintainer detail", () => {
+    const html = renderUatReport(cardRun())
+    expect(html).not.toContain("<h3>Transactions</h3>")
+    expect(html).not.toContain("What was verified")
+    expect(html).not.toContain("How this state was reached")
+    const row = rowOf(html, "uat-MKT-12")
+    const foot = row.slice(row.indexOf('<details class="harness">'))
+    expect(foot).toMatch(
+      /^<details class="harness"><summary>Harness details<\/summary>/,
+    )
+    expect(foot).toContain(
+      "npx playwright show-trace test-results/mkt-12/trace.zip",
+    )
+    expect(foot).toContain("2 step · 0 nav · 3 tx · 2 data · 0 chain-time")
+    expect(foot).toContain("1 console error")
+    expect(foot).toContain("&quot;subgraphDelta&quot;")
+  })
+
+  it("the ledger decision is a table in the harness footer", () => {
+    const r = cardRun()
+    const row = r.tests.find((x) => x.uatId === "MKT-13")!
+    row.annotations = [
+      {
+        type: "ledger",
+        description: JSON.stringify({
+          version: "v25",
+          decision: "run",
+          reason: "ledger: v25 owes these behaviours and can exercise them",
+          requirements: [
+            {
+              requirementId: "REQ-LEN-120",
+              known: true,
+              storedApplicability: "required",
+              effectiveApplicability: "required",
+              implementation: "implemented",
+              coverage: "automated",
+            },
+          ],
+        }),
+      },
+    ]
+    const html = renderUatReport(r)
+    const foot = rowOf(html, "uat-MKT-13").slice(
+      rowOf(html, "uat-MKT-13").indexOf('<details class="harness">'),
+    )
+    expect(foot).toContain('<table class="ledger">')
+    expect(foot).toContain(
+      '<tr><td class="mono">REQ-LEN-120</td><td>required</td><td>required</td><td>implemented</td><td>automated</td><td></td></tr>',
+    )
+    expect(foot).toContain("decision <b>run</b>")
+  })
+
+  it("the toolbar: a needs-attention filter and expand/collapse all", () => {
+    const html = renderUatReport(cardRun())
+    expect(html).toContain('<input type="checkbox" id="attention-only">')
+    expect(html).toContain("Needs attention only")
+    expect(html).toContain(
+      '<button type="button" data-expand="1">Expand all</button>',
+    )
+    expect(html).toContain(
+      '<button type="button" data-expand="0">Collapse all</button>',
+    )
+    expect(html.indexOf('class="toolbar"')).toBeLessThan(
+      html.indexOf('id="page-3"'),
+    )
   })
 })

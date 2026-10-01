@@ -34,6 +34,7 @@ import {
   type UatRun,
   type UatTest,
 } from "./uatModel"
+import { ledgerOf, signatureResultOf, verdictOf, type Verdict } from "./verdict"
 
 const esc = (s: unknown): string =>
   String(s ?? "")
@@ -74,9 +75,6 @@ const txBadge = (status?: string) =>
   `<span class="badge ${status === "success" ? "ok" : "bad"}">${esc(
     status ?? "?",
   )}</span>`
-
-const uiBadge = (source?: string) =>
-  source === "ui" ? ` <span class="badge ui">via app UI</span>` : ""
 
 // ---------- row detail: what happened / what was verified ----------
 
@@ -305,82 +303,14 @@ const evidenceCard = (label: string, data: unknown): string => {
 const evidenceLabel = (name: string): string =>
   name.replace(/^agreement:\s*/i, "").trim() || name
 
-/**
- * Every oracle comparison the row recorded: the `agreement:` attachments, plus journal `data`
- * entries (console errors, page errors, ad-hoc oracles) that are not already an agreement. Keyed
- * on label AND content so a genuine second reading under the same label still shows.
- */
-const evidenceItems = (t: UatTest): { label: string; data: unknown }[] => {
-  const out: { label: string; data: unknown }[] = []
-  const seen = new Set<string>()
-  const add = (label: string, data: unknown) => {
-    const key = `${label} ${json(data) ?? "undefined"}`
-    if (seen.has(key)) return
-    seen.add(key)
-    out.push({ label, data })
-  }
-  for (const a of t.agreements) add(evidenceLabel(a.name), a.json)
-  for (const e of t.journal)
-    if (e.kind === "data") add(evidenceLabel(e.name ?? "data"), e.data)
-  return out
-}
+/** Browser console output: counted in the harness footer, never narrated in the timeline. */
+const isConsole = (e: UatJournalEntry): boolean =>
+  e.kind === "data" && /^console\./.test(e.name ?? "")
 
-const renderWhatWasVerified = (t: UatTest): string => {
-  const items = evidenceItems(t)
-  if (items.length === 0) return ""
-  return `<h3>What was verified</h3>\n${items
-    .map((i) => evidenceCard(i.label, i.data))
-    .join("\n")}`
-}
-
-/** Inline note for a navigation that happened inside a step. */
-const navNote = (e: UatJournalEntry): string =>
-  `<span class="note nav" title="${esc(e.url ?? "")}">→ ${esc(
-    shortenHexIn(routeOf(e.url ?? "")),
-  )}</span>`
-
-/** Inline note for a transaction that happened inside a step. */
-const txNote = (e: UatJournalEntry): string => {
-  const fn = e.enriched?.fn ?? e.functionName ?? e.fn
-  const parts = [
-    `tx ${fn ?? "transaction"}`,
-    e.status ?? "?",
-    e.block ? `block ${e.block}` : "",
-  ].filter(Boolean)
-  return `<span class="note tx${
-    e.status === "reverted" ? " bad" : ""
-  }" title="${esc(e.hash ?? "")}">${esc(parts.join(" · "))}</span>`
-}
-
-/**
- * The nav/tx notes for a span, with consecutive duplicates collapsed: a client-side router fires
- * `framenavigated` twice for the same route often enough that "-> /admin -> /admin" would
- * otherwise read like a bug in the app rather than noise in the recorder.
- */
-/** Inline note for a chain-time change (uat-run/3): "chain time +3,600 s → <ISO>". */
-const chainTimeNote = (e: UatJournalEntry): string =>
-  `<span class="note chain-time"${
-    e.block ? ` title="head ${esc(e.block)} after the mine"` : ""
-  }>${esc(chainTimeText(e))}</span>`
-
-const noteList = (entries: UatJournalEntry[]): string[] =>
-  entries
-    .filter(
-      (e) => e.kind === "nav" || e.kind === "tx" || e.kind === "chain-time",
-    )
-    .map((e) =>
-      e.kind === "nav"
-        ? navNote(e)
-        : e.kind === "chain-time"
-          ? chainTimeNote(e)
-          : txNote(e),
-    )
-    .filter((note, i, all) => note !== all[i - 1])
-
-const stepNotes = (entries: UatJournalEntry[]): string => {
-  const notes = noteList(entries)
-  return notes.length > 0 ? `<span class="notes">${notes.join(" ")}</span>` : ""
-}
+/** The ledger's own journal entries: the footer shows them as the decision table. */
+const isLedgerEntry = (e: UatJournalEntry): boolean =>
+  e.kind === "data" &&
+  (e.name === "ledger decision" || e.name === "ledger signature")
 
 const msBetween = (a?: string, b?: string): number | undefined => {
   if (!a || !b) return undefined
@@ -388,163 +318,238 @@ const msBetween = (a?: string, b?: string): number | undefined => {
   return Number.isFinite(d) && d >= 0 ? d : undefined
 }
 
-/**
- * The numbered narrative: every `step()` checkpoint as a sentence, with the navigations and
- * transactions that happened inside it, and the checkpoint the row failed at called out.
- */
-const renderWhatHappened = (t: UatTest): string => {
-  const head = `<h3>What happened</h3>`
-  const entries = t.journal
-  const stepIdx = entries.flatMap((e, i) => (e.kind === "step" ? [i] : []))
-  if (stepIdx.length === 0) {
-    const loose = noteList(entries)
-    if (loose.length === 0)
-      return `${head}<p class="muted">No steps were journalled for this row — it recorded no <code>step()</code> checkpoints, navigations or transactions.</p>`
-    return `${head}<ol class="steps">${loose
-      .map(
-        (note) =>
-          `<li class="step"><span class="step-what">${note}</span></li>`,
-      )
-      .join(
-        "\n",
-      )}</ol><p class="muted">No <code>step()</code> checkpoints were recorded — the list above is the raw navigation and transaction trace.</p>`
-  }
+/** A navigation inside the timeline: the route, long hex shortened, the full URL on hover. */
+const navItem = (e: UatJournalEntry): string =>
+  `<li class="ev nav" title="${esc(e.url ?? "")}"><span class="mono">→ ${esc(
+    shortenHexIn(routeOf(e.url ?? "")),
+  )}</span></li>`
 
-  const f = t.failedDuring
-  const failName =
-    f && (f.kind === "step" || f.kind === "between") ? f.name : undefined
-  let failAt = failName
-    ? stepIdx.findIndex((i) => entries[i].name === failName)
-    : -1
-  if (failAt < 0 && f?.kind === "step" && f.index !== undefined)
-    failAt = f.index - 1
-
-  const endOfRun =
-    t.startedAt && Number.isFinite(t.durationMs)
-      ? new Date(Date.parse(t.startedAt) + t.durationMs).toISOString()
-      : undefined
-
-  const preamble = noteList(entries.slice(0, stepIdx[0]))
-  const lead =
-    preamble.length > 0
-      ? `<p class="pre-steps"><b>Before the first checkpoint:</b> ${preamble.join(
-          " ",
-        )}</p>`
+/** A transaction inside the timeline: actor, call, target, who signed it, status, block, hash. */
+const txItem = (e: UatJournalEntry): string => {
+  const en = e.enriched
+  const status = e.status ?? en?.status
+  const ok = status === "success"
+  const source = en?.source ?? e.source
+  const who = en?.actor ?? (e.from ? shortHex(e.from) : undefined)
+  const call = en?.call ?? e.fn ?? e.functionName ?? "transaction"
+  const block = e.block ?? en?.block
+  const hash = e.hash ?? en?.hash
+  const gas = e.gasUsed ?? en?.gasUsed
+  return `<li class="ev tx${ok ? "" : " bad"}">${
+    who ? `<span class="who">${esc(who)}</span> ` : ""
+  }<code class="tx-call">${esc(call)}</code>${
+    en?.target?.name
+      ? ` <span class="muted">on</span> <span title="${esc(
+          en.target.address ?? en.to ?? "",
+        )}">${esc(en.target.name)}</span>`
       : ""
-
-  const items = stepIdx
-    .map((start, n) => {
-      const e = entries[start]
-      const next = stepIdx[n + 1]
-      const inside = entries.slice(start + 1, next ?? entries.length)
-      const ms = msBetween(
-        e.at,
-        next !== undefined ? entries[next].at : endOfRun,
-      )
-      const failed = n === failAt
-      const marker = failed
-        ? f?.kind === "between"
-          ? `<span class="badge warn">last checkpoint before the failure</span>`
-          : `<span class="badge bad">failed here</span>`
+  }${
+    source === "ui"
+      ? ` <span class="badge ui">via app UI</span>`
+      : source
+        ? ` <span class="badge lib">by test</span>`
         : ""
-      return `<li class="step${failed ? " step-failed" : ""}">
-<span class="step-what">${esc(e.name ?? "(unnamed checkpoint)")}</span>${
-        ms !== undefined
-          ? ` <span class="step-ms">${fmtDuration(ms)}</span>`
-          : ""
-      } ${marker}
-${stepNotes(inside)}</li>`
-    })
-    .join("\n")
-  return `${head}${lead}<ol class="steps">${items}</ol>`
+  } <span class="txmeta ${ok ? "ok" : "bad"}">${esc(status ?? "?")}</span>${
+    block
+      ? ` <span class="mono muted"${
+          gas ? ` title="gas ${esc(gas)}"` : ""
+        }>block ${esc(block)}</span>`
+      : ""
+  }${
+    hash
+      ? ` <span class="mono muted hash" title="${esc(hash)}">${esc(
+          hash.slice(0, 10),
+        )}…</span>`
+      : ""
+  }</li>`
 }
 
-const renderTxTable = (entries: UatJournalEntry[]): string => {
-  const txs = entries.filter((e) => e.kind === "tx")
-  if (txs.length === 0) return ""
-  // Enriched layout: # | during | actor | target | call | status | block | gas (hash expandable).
-  // Without enrichment (decoder offline) fall back to the raw hash table.
-  if (!txs.some((e) => e.enriched)) {
-    const rows = txs
-      .map(
-        (tx, i) =>
-          `<tr><td>${i + 1}</td><td class="mono">${esc(
-            tx.hash,
-          )}</td><td>${txBadge(tx.status)}</td><td class="mono">${esc(
-            tx.block,
-          )}</td><td class="mono">${esc(tx.gasUsed ?? "")}</td></tr>`,
-      )
-      .join("\n")
-    return `<h3>Transactions</h3>
-<div class="scroll-x"><table class="txs">
-<thead><tr><th>#</th><th>hash</th><th>status</th><th>block</th><th>gas</th></tr></thead>
-<tbody>${rows}</tbody>
-</table></div>`
+/** A chain-time change inside the timeline: "chain time +3,600 s → <ISO>". */
+const chainTimeItem = (e: UatJournalEntry): string =>
+  `<li class="ev chain-time"${
+    e.block ? ` title="head ${esc(e.block)} after the mine"` : ""
+  }>${esc(chainTimeText(e))}</li>`
+
+const evidenceItem = (e: UatJournalEntry): string =>
+  `<li class="ev data">${evidenceCard(
+    evidenceLabel(e.name ?? "data"),
+    e.data,
+  )}</li>`
+
+/**
+ * A segment's items in reading order: navigations (a repeat of the same route collapsed — the
+ * client router fires `framenavigated` twice often enough that "→ /admin → /admin" would read
+ * like an app bug), then transactions in block order, then chain-time changes, then evidence.
+ */
+const itemsHtml = (items: UatJournalEntry[]): string => {
+  const navs = items
+    .filter((e) => e.kind === "nav")
+    .filter((e, i, all) => i === 0 || e.url !== all[i - 1].url)
+  const txs = items
+    .filter((e) => e.kind === "tx")
+    .map((e, i) => ({ e, i, b: Number(e.block ?? e.enriched?.block) }))
+    .sort((x, y) =>
+      Number.isFinite(x.b) && Number.isFinite(y.b) && x.b !== y.b
+        ? x.b - y.b
+        : x.i - y.i,
+    )
+    .map((x) => x.e)
+  return [
+    ...navs.map(navItem),
+    ...txs.map(txItem),
+    ...items.filter((e) => e.kind === "chain-time").map(chainTimeItem),
+    ...items.filter((e) => e.kind === "data").map(evidenceItem),
+  ].join("")
+}
+
+type Segment = {
+  step?: UatJournalEntry
+  /** 1-based checkpoint number; 0 for the arrange segment before the first checkpoint. */
+  index: number
+  items: UatJournalEntry[]
+}
+
+/**
+ * The journal cut into the arrange segment and one segment per `step()` checkpoint. A transaction
+ * belongs to the step it ran DURING (`enriched.during` / `duringStep`) — its journal position is
+ * the receipt time, which can trail the step — and `during: "setup"` means arrange.
+ */
+const segmentsOf = (t: UatTest): { pre: Segment; steps: Segment[] } => {
+  const pre: Segment = { index: 0, items: [] }
+  const steps: Segment[] = []
+  const byName = new Map<string, Segment>()
+  const txs: { e: UatJournalEntry; fallback: Segment }[] = []
+  let cur = pre
+  for (const e of t.journal) {
+    if (e.kind === "step") {
+      cur = { step: e, index: steps.length + 1, items: [] }
+      steps.push(cur)
+      if (e.name && !byName.has(e.name)) byName.set(e.name, cur)
+    } else if (e.kind === "tx") txs.push({ e, fallback: cur })
+    else if (!isConsole(e) && !isLedgerEntry(e)) cur.items.push(e)
   }
-  const rows = txs
-    .map((tx, i) => {
-      const en = tx.enriched
-      const target = en
-        ? `<div class="tx-target">${esc(en.target.name)}${
-            en.target.kind
-              ? ` <span class="chip">${esc(en.target.kind)}</span>`
-              : ""
-          }${
-            en.to
-              ? `<div class="mono sub" title="${esc(en.to)}">${esc(
-                  `${en.to.slice(0, 10)}…${en.to.slice(-6)}`,
-                )}</div>`
-              : ""
-          }</div>`
-        : `<span class="mono">${esc(tx.to ?? "?")}</span>`
-      const call = en
-        ? `<code class="tx-call">${esc(en.call)}</code>${uiBadge(
-            en.source,
-          )}<details class="tx-hash"><summary>hash</summary><span class="mono">${esc(
-            tx.hash,
-          )}</span></details>`
-        : `<span class="mono">${esc(tx.hash)}</span>`
-      return `<tr><td>${i + 1}</td><td class="tx-during">${esc(
-        en?.during ?? "",
-      )}</td><td>${esc(
-        en?.actor ?? tx.from ?? "?",
-      )}</td><td>${target}</td><td>${call}</td><td>${txBadge(
-        tx.status,
-      )}</td><td class="mono">${esc(tx.block)}</td><td class="mono">${esc(
-        tx.gasUsed ?? "",
-      )}</td></tr>`
-    })
-    .join("\n")
-  return `<h3>Transactions</h3>
-<div class="scroll-x"><table class="txs">
-<thead><tr><th>#</th><th>during</th><th>actor</th><th>target</th><th>call</th><th>status</th><th>block</th><th>gas</th></tr></thead>
-<tbody>${rows}</tbody>
-</table></div>`
+  for (const { e, fallback } of txs) {
+    const during = e.enriched?.during ?? e.duringStep
+    const seg =
+      during === "setup" ? pre : (during && byName.get(during)) || fallback
+    seg.items.push(e)
+  }
+  return { pre, steps }
 }
 
-const renderFailureState = (state?: Record<string, unknown>): string => {
+/** The 0-based checkpoint the row failed at (or right after, for `between`); -1 for none. */
+const failedStepIndex = (t: UatTest, steps: Segment[]): number => {
+  const f = t.failedDuring
+  if (!f || t.status !== "failed") return -1
+  const name = f.kind === "step" || f.kind === "between" ? f.name : undefined
+  let at = name ? steps.findIndex((s) => s.step?.name === name) : -1
+  if (at < 0 && f.kind === "step" && f.index !== undefined) at = f.index - 1
+  return at
+}
+
+const REQ_GLYPH: Record<string, string> = {
+  pass: "✓",
+  fail: "✗",
+  skipped: "–",
+  "not-run": "–",
+  none: "–",
+}
+const REQ_CLASS: Record<string, string> = {
+  pass: "pass",
+  fail: "fail",
+  skipped: "skipped",
+  "not-run": "skipped",
+  none: "skipped",
+}
+
+const reqChip = (id: string, status: string, known = false): string =>
+  `<span class="req ${
+    known && status === "fail" ? "known" : REQ_CLASS[status] ?? "skipped"
+  }" title="${esc(id)}: ${esc(status === "none" ? "not observed" : status)}">${
+    REQ_GLYPH[status] ?? "–"
+  } ${esc(id)}</span>`
+
+/** One result per requirement the row declares or observed: fail > pass > skipped > none. */
+const requirementResults = (t: UatTest): [string, string][] => {
+  const rank: Record<string, number> = {
+    fail: 4,
+    pass: 3,
+    skipped: 2,
+    "not-run": 1,
+    none: 0,
+  }
+  const out = new Map<string, string>()
+  for (const id of t.requirements ?? []) out.set(id, "none")
+  for (const o of t.observations ?? []) {
+    const cur = o.requirementId ? out.get(o.requirementId) ?? "none" : ""
+    if (o.requirementId && (rank[o.status] ?? 0) >= (rank[cur] ?? 0))
+      out.set(o.requirementId, o.status)
+  }
+  return [...out.entries()]
+}
+
+/** How many times `lines[at, at+k)` repeats back to back from `at` (1 = no repeat). */
+const repeatsAt = (lines: string[], at: number, k: number): number => {
+  const block = lines.slice(at, at + k)
+  const same = (n: number): boolean =>
+    at + (n + 1) * k <= lines.length &&
+    block.every((l, j) => lines[at + n * k + j] === l)
+  let n = 1
+  while (same(n)) n += 1
+  return n
+}
+
+/** Collapse a block of 1-3 lines repeated back to back ("… repeated ×9"): MKT-10b's call log. */
+const foldRepeats = (text: string): string => {
+  const lines = text.split("\n")
+  const out: string[] = []
+  let i = 0
+  while (i < lines.length) {
+    const at = i
+    const k = [1, 2, 3].find(
+      (w) =>
+        at + 2 * w <= lines.length &&
+        lines.slice(at, at + w).some((l) => l.trim() !== "") &&
+        repeatsAt(lines, at, w) > 1,
+    )
+    if (k === undefined) {
+      out.push(lines[i])
+      i += 1
+    } else {
+      const n = repeatsAt(lines, at, k)
+      out.push(...lines.slice(at, at + k), `  … repeated ×${n}`)
+      i += n * k
+    }
+  }
+  return out.join("\n")
+}
+
+/** page · block · chain time · clock skew — the state the app was in when the check failed. */
+const renderFailureFacts = (state?: Record<string, unknown>): string => {
   if (!state) return ""
-  const rows: string[] = []
-  const add = (label: string, html: string) =>
-    rows.push(`<div class="kv"><dt>${label}</dt><dd>${html}</dd></div>`)
-  if (state.url)
-    add("URL", `<a href="${esc(state.url)}" class="mono">${esc(state.url)}</a>`)
+  const parts: string[] = []
+  if (typeof state.url === "string")
+    parts.push(
+      `page <a href="${esc(state.url)}" class="mono" title="${esc(
+        state.url,
+      )}">${esc(shortenHexIn(routeOf(state.url)))}</a>`,
+    )
   if (state.chainBlock !== undefined)
-    add("Chain block", `<span class="mono">${esc(state.chainBlock)}</span>`)
+    parts.push(`block <span class="mono">${esc(state.chainBlock)}</span>`)
   const chainTs =
     typeof state.chainTimestamp === "string" ? state.chainTimestamp : undefined
   const wall = typeof state.wallClock === "string" ? state.wallClock : undefined
-  if (chainTs) add("Chain time", `<span class="mono">${esc(chainTs)}</span>`)
-  if (wall) add("Wall clock", `<span class="mono">${esc(wall)}</span>`)
+  if (chainTs)
+    parts.push(`chain time <span class="mono">${esc(chainTs)}</span>`)
+  else if (wall) parts.push(`wall clock <span class="mono">${esc(wall)}</span>`)
   if (chainTs && wall) {
     const skewMs = Date.parse(chainTs) - Date.parse(wall)
     if (Number.isFinite(skewMs) && Math.abs(skewMs) > 60_000) {
       const hours = skewMs / 3_600_000
-      add(
-        "Clock skew",
-        `chain is <b>${hours > 0 ? "+" : ""}${hours.toFixed(
-          1,
-        )}h</b> vs wall clock (time-travelled fork)`,
+      parts.push(
+        `chain is <b>${hours > 0 ? "+" : ""}${hours.toFixed(1)} h</b> ${
+          hours > 0 ? "ahead of" : "behind"
+        } the wall clock`,
       )
     }
   }
@@ -552,19 +557,13 @@ const renderFailureState = (state?: Record<string, unknown>): string => {
   Object.entries(state)
     .filter(([k]) => !shown.includes(k))
     .forEach(([k, v]) =>
-      add(esc(k), `<span class="mono">${esc(json(v))}</span>`),
+      parts.push(`${esc(k)} <span class="mono">${esc(json(v))}</span>`),
     )
-  if (rows.length === 0) return ""
-  return `<h4>State at failure</h4><dl class="state">${rows.join("\n")}</dl>`
+  return parts.length > 0 ? `<p class="facts">${parts.join(" · ")}</p>` : ""
 }
 
 const renderFilmStrip = (t: UatTest): string => {
-  if (t.stepShots.length === 0)
-    // Do not tell the reader the row ran without checkpoints when the narrative above just
-    // listed them — that is a different (and fixable) gap: the shots never reached the report.
-    return t.journal.some((e) => e.kind === "step")
-      ? `<p class="muted">No step screenshots reached the report for this row — the checkpoints above did run. The video below shows the whole run.</p>`
-      : `<p class="muted">No step screenshots for this test — the failing section ran without <code>step()</code> checkpoints. The video below shows the whole run.</p>`
+  if (t.stepShots.length === 0) return ""
   const frames = t.stepShots
     .map(
       (s, i) =>
@@ -577,12 +576,6 @@ const renderFilmStrip = (t: UatTest): string => {
     .join("\n")
   return `<div class="filmstrip">${frames}</div>`
 }
-
-const stepChain = (t: UatTest): string =>
-  t.journal
-    .filter((e) => e.kind === "step")
-    .map((e) => e.name)
-    .join(" → ")
 
 /** Seconds from test start until the browser first navigated (chain-only setup shows as white
  *  video). Exported: the reporter uses it to physically trim that lead with ffmpeg. */
@@ -866,75 +859,117 @@ const chainTimeStep = (call: string): { text: string; to?: string } => {
 
 const MARKET_FOOT = `<p class="muted market-foot">Type and config from the subgraph's view of the market; history from this run's journal; time travel outside a row is not journaled.</p>`
 
+/** A row name for a list: an infra row's (no uatId) long title cut to 24 characters. */
+const shortRow = (row: string, anchor: string): string =>
+  anchor.startsWith("row-") && row.length > 24
+    ? `${row.slice(0, 24).trimEnd()}…`
+    : row
+
 /**
- * How this row's state was reached, per market it touched: the market's history up to this row's
- * last entry — this row's own entries plus those of rows that came before it in run order (their
- * first entry on the market precedes this row's). Nothing from later rows.
+ * The starting state of each market this row transacted with: the market (type, origin, config)
+ * and the earlier actions that led to it — entries of rows that came before this one in run order
+ * (their first entry on the market precedes this row's), up to this row's last entry. This row's
+ * own entries are not repeated here: they sit in its checkpoints. One timeline node per market;
+ * the earlier actions are a `<details>`, open only when the card is a failure.
  */
-const renderReached = (t: UatTest, touched: TouchedIndex): string => {
+const renderReached = (
+  t: UatTest,
+  touched: TouchedIndex,
+  open: boolean,
+): string => {
   const anchor = anchorOf(t)
   const ms = touched.get(anchor)
   if (!ms || ms.length === 0) return ""
-  const blocks = ms.map((m) => {
-    const first = new Map<string, number>()
-    for (const x of m.txs) if (!first.has(x.anchor)) first.set(x.anchor, x.seq)
-    const own = m.txs.filter((x) => x.anchor === anchor)
-    const mine = first.get(anchor) ?? Infinity
-    const lastOwn = Math.max(...own.map((x) => x.seq))
-    const steps = m.txs
-      .filter(
-        (x) =>
-          x.anchor === anchor ||
-          ((first.get(x.anchor) ?? Infinity) < mine && x.seq < lastOwn),
-      )
-      .sort((a, b) => a.seq - b.seq)
-      .map((x) => {
-        const isOwn = x.anchor === anchor
+  return ms
+    .map((m, n) => {
+      const first = new Map<string, number>()
+      for (const x of m.txs)
+        if (!first.has(x.anchor)) first.set(x.anchor, x.seq)
+      const own = m.txs.filter((x) => x.anchor === anchor)
+      const mine = first.get(anchor) ?? Infinity
+      const lastOwn = Math.max(...own.map((x) => x.seq))
+      const prior = m.txs
+        .filter(
+          (x) =>
+            x.anchor !== anchor &&
+            (first.get(x.anchor) ?? Infinity) < mine &&
+            x.seq < lastOwn,
+        )
+        .sort((a, b) => a.seq - b.seq)
+      const items = prior.map((x) => {
         const link = rowLink(x.row, x.anchor)
         const block = x.block
           ? ` <span class="mono muted">(block ${esc(x.block)})</span>`
           : ""
-        const mark = isOwn ? ` <b class="this-row">(this row)</b>` : ""
         if (x.kind === "chain-time") {
           const ct = chainTimeStep(x.call)
           return `<li class="chain-time">${link}: <span${
             ct.to ? ` title="${esc(ct.to)}"` : ""
-          }>${esc(ct.text)}</span>${block}${mark}</li>`
+          }>${esc(ct.text)}</span>${block}</li>`
         }
         const creation =
           m.createdBy && x.hash && x.hash === m.createdBy.txHash
             ? "created the market — "
             : ""
         const reverted = x.status === "reverted" ? ` ${txBadge(x.status)}` : ""
-        return `<li${
-          isOwn ? ' class="own"' : ""
-        }>${link}: ${creation}<code class="tx-call">${esc(
+        return `<li>${link}: ${creation}<code class="tx-call">${esc(
           x.call,
-        )}</code>${reverted}${block}${mark}</li>`
+        )}</code>${reverted}${block}</li>`
       })
-    return `<div class="reached-market">
-<p class="reached-head"><a href="#market-${esc(
-      m.address,
-    )}" class="market-name">${esc(marketLabel(m))}</a> — ${typeLabel(
-      m,
-    )} · ${originText(m)}</p>${
-      m.type && Object.keys(m.type.config).length > 0
-        ? `\n<p class="chips">${configChips(m)}</p>`
-        : ""
-    }
-<ol class="reached-steps">${steps.join("")}</ol>${
-      m.origin === "forked"
-        ? `\n<p class="muted">state before the fork block is Sepolia's and not shown</p>`
-        : ""
-    }
-</div>`
-  })
-  return `<section class="reached"><h3>How this state was reached</h3>
-${blocks.join("\n")}
-${MARKET_FOOT}
-</section>
-`
+      const rows = [...new Map(prior.map((x) => [x.anchor, x.row])).entries()]
+        .map(([a, r]) => esc(shortRow(r, a)))
+        .join(", ")
+      const createdHere = m.createdBy?.anchor === anchor
+      const origin = createdHere
+        ? `created by this row at block ${esc(m.createdBy?.block ?? "?")}`
+        : originText(m)
+      const history =
+        prior.length > 0
+          ? `<details class="prior"${open ? " open" : ""}><summary>${
+              prior.length
+            } earlier action${
+              prior.length === 1 ? "" : "s"
+            } by rows ${rows}</summary><ol class="prior-list">${items.join(
+              "",
+            )}</ol></details>`
+          : `<p class="muted">${
+              createdHere
+                ? "No earlier actions — this row created it."
+                : "No earlier actions on it in this run."
+            }</p>`
+      return `<li class="tl-node state"><div class="dot"></div><div class="tl-body"><div class="tl-kicker">starting state</div>
+<p class="state-head"><a href="#market-${esc(
+        m.address,
+      )}" class="market-name">${esc(marketLabel(m))}</a> — ${typeLabel(
+        m,
+      )} · ${origin}</p>${
+        m.type && Object.keys(m.type.config).length > 0
+          ? `\n<p class="chips">${configChips(m)}</p>`
+          : ""
+      }
+${history}${
+        m.origin === "forked"
+          ? `\n<p class="muted">state before the fork block is Sepolia's and not shown</p>`
+          : ""
+      }${n === ms.length - 1 ? `\n${MARKET_FOOT}` : ""}</div></li>`
+    })
+    .join("\n")
 }
+
+/** Header chips: one per market the row transacted with, "type · kind" then the name. */
+const marketChips = (t: UatTest, touched: TouchedIndex): string =>
+  (touched.get(anchorOf(t)) ?? [])
+    .map(
+      (m) =>
+        `<span class="mchip" title="${esc(marketLabel(m))} · ${esc(
+          m.address,
+        )}"><b>${esc(
+          m.type
+            ? [TERM_LABEL[m.type.term], m.type.kind].filter(Boolean).join(" · ")
+            : "unknown type",
+        )}</b> ${esc(marketLabel(m))}</span>`,
+    )
+    .join("")
 
 /** One summary row: the market (anchor target for the rows' sections), origin, type, config. */
 const renderMarketSummaryRow = (m: MarketIndexEntry): string =>
@@ -958,7 +993,7 @@ const renderMarkets = (run: UatRun): string => {
     markets.length === 1 ? "" : "s"
   } · ${n("created")} created by this run · ${n("forked")} forked · ${n(
     "unknown",
-  )} unresolved. Origin from the subgraph's deploy event against the fork block; type and config from the market's hooks; each row's “How this state was reached” lists the transactions that led to it, from this run's journal.</p>${
+  )} unresolved. Origin from the subgraph's deploy event against the fork block; type and config from the market's hooks; each row's starting state lists the earlier transactions that led to it, from this run's journal.</p>${
     markets.some((m) => m.derivedAt === "render")
       ? `\n<p class="muted">derived at render time from the journal; created markets could not be resolved against the current fork</p>`
       : ""
@@ -1111,246 +1146,399 @@ ${cells
   .join("\n")}
 </section>`
 
-const renderFailedCard = (
-  t: UatTest,
-  anchor: string,
-  overlay: Overlay | null,
-  issues: KnownIssue[],
-  touched: TouchedIndex = new Map(),
-): string => {
+/**
+ * WHERE it failed, one sentence per failure SITE. `uat-run/2` only ever writes `step`, `arrange`
+ * and `between`; `uat-run/3` adds `hook`, `fixture`, `teardown` and `unknown` (see
+ * e2e/CONVENTIONS.md and `run.schema.json`), and those four have no journal position at all. So
+ * the `#n` suffix is written ONLY when the site actually carries an index — a `/3` `between`
+ * whose checkpoint the journal never recorded has none either, and "(#undefined)" is never a
+ * thing a reader should see.
+ */
+const failureWhere = (t: UatTest): string => {
+  const f = t.failedDuring
+  if (!f) return ""
+  const at = f.index !== undefined ? ` (#${f.index})` : ""
+  const named = f.name ? ` (<b>${esc(f.name)}</b>)` : ""
+  switch (f.kind) {
+    case "step":
+      return `<p class="where">Failed during checkpoint <b>${esc(
+        f.name ?? "?",
+      )}</b>${at}.</p>`
+    case "arrange":
+      return `<p class="where warn">⚠ Failed in the test's <b>setup/arrange phase</b> — before its first checkpoint. The behavior this test verifies was <b>never exercised</b>; fix the precondition, not the assertion.</p>`
+    case "hook":
+      return `<p class="where warn">⚠ Failed in a test hook before/after the body${named} — outside every <code>step()</code> checkpoint, so no checkpoint owns this failure. Fix the hook, not an assertion.</p>`
+    case "fixture":
+      return `<p class="where warn">⚠ Failed while a fixture was set up or torn down${named} — the harness around the test broke, not a checkpoint inside it.</p>`
+    case "teardown":
+      return `<p class="where">Failed during teardown, after the last checkpoint${named} — every checkpoint of the body had already run, so the behaviour under test was exercised.</p>`
+    case "unknown":
+      return `<p class="where warn">⚠ Failed outside any journalled checkpoint (site not attributable)${named} — the journal recorded no checkpoint at this position, so there is none to cite.</p>`
+    case "between":
+      return `<p class="where">Failed <b>after</b> checkpoint <b>${esc(
+        f.name ?? "?",
+      )}</b>${at}, before the next — follow-up assertions of that phase.</p>`
+    default:
+      return `<p class="where warn">⚠ Failed at an unrecognised site <code>${esc(
+        f.kind,
+      )}</code>${named}${at}.</p>`
+  }
+}
+
+/** The video link, with the note on the white lead (chain-only setup before any page opened). */
+const videoLink = (t: UatTest): string => {
+  if (!t.video) return ""
+  const trimmed = t.videoTrimmedLeadSeconds
+  const idle = trimmed !== undefined ? 0 : browserIdleSeconds(t)
+  const note =
+    trimmed !== undefined
+      ? ` <span class="muted">first ~${trimmed}s of chain-only setup trimmed — add ${trimmed}s to video timestamps when matching journal times</span>`
+      : idle > 0
+        ? ` <span class="muted">browser idle (white) for the first ~${idle}s; playback starts at the first page activity</span>`
+        : ""
+  return `<p class="vlink"><a href="${esc(t.video)}${
+    idle > 0 ? `#t=${idle}` : ""
+  }" target="_blank">▶ video (${fmtDuration(t.durationMs)})</a>${note}</p>`
+}
+
+/**
+ * The verdict block that closes a failed row's timeline: error head, where it failed, the error
+ * text with repeats folded, the app at the moment of failure, and the state line.
+ */
+const renderVerdictBlock = (t: UatTest): string => {
   const shot = t.failureShot
-    ? `<figure class="hero-fig"><a href="${esc(
+    ? `<figure class="shot-fig"><a href="${esc(
         t.failureShot,
-      )}" data-lightbox><img class="hero-shot" src="${esc(
+      )}" data-lightbox><img class="shot" src="${esc(
         t.failureShot,
-      )}" alt="app at failure"></a><figcaption>Final app state at the moment of failure — the assertion read its text from this page.</figcaption></figure>`
-    : `<div class="no-shot">No failure screenshot (page was already closed).</div>`
-  // WHERE it failed, one sentence per failure SITE. `uat-run/2` only ever writes `step`,
-  // `arrange` and `between`; `uat-run/3` adds `hook`, `fixture`, `teardown` and `unknown` (see
-  // e2e/CONVENTIONS.md and `run.schema.json`), and those four have no journal position at all.
-  // So the `#n` suffix is written ONLY when the site actually carries an index — a `/3`
-  // `between` whose checkpoint the journal never recorded has none either, and "(#undefined)"
-  // is never a thing a reader should see.
-  const where = (() => {
-    const f = t.failedDuring
-    if (!f) return ""
-    const at = f.index !== undefined ? ` (#${f.index})` : ""
-    const named = f.name ? ` (<b>${esc(f.name)}</b>)` : ""
-    switch (f.kind) {
-      case "step":
-        return `<p class="where">Failed during checkpoint <b>${esc(
-          f.name ?? "?",
-        )}</b>${at}.</p>`
-      case "arrange":
-        return `<p class="where warn">⚠ Failed in the test's <b>setup/arrange phase</b> — before its first checkpoint. The behavior this test verifies was <b>never exercised</b>; fix the precondition, not the assertion.</p>`
-      case "hook":
-        return `<p class="where warn">⚠ Failed in a test hook before/after the body${named} — outside every <code>step()</code> checkpoint, so no checkpoint owns this failure. Fix the hook, not an assertion.</p>`
-      case "fixture":
-        return `<p class="where warn">⚠ Failed while a fixture was set up or torn down${named} — the harness around the test broke, not a checkpoint inside it.</p>`
-      case "teardown":
-        return `<p class="where">Failed during teardown, after the last checkpoint${named} — every checkpoint of the body had already run, so the behaviour under test was exercised.</p>`
-      case "unknown":
-        return `<p class="where warn">⚠ Failed outside any journalled checkpoint (site not attributable)${named} — the journal recorded no checkpoint at this position, so there is none to cite.</p>`
-      case "between":
-        return `<p class="where">Failed <b>after</b> checkpoint <b>${esc(
-          f.name ?? "?",
-        )}</b>${at}, before the next — follow-up assertions of that phase.</p>`
-      default:
-        return `<p class="where warn">⚠ Failed at an unrecognised site <code>${esc(
-          f.kind,
-        )}</code>${named}${at}.</p>`
-    }
-  })()
+      )}" alt="app at failure" loading="lazy"></a><figcaption>The app at the moment of failure — the assertion read its text from this page.</figcaption></figure>`
+    : t.video
+      ? `<figure class="shot-fig"><video controls preload="metadata" src="${esc(
+          t.video,
+        )}"></video><figcaption>No failure screenshot; the video of the run.</figcaption></figure>`
+      : `<div class="no-shot">No failure screenshot (page was already closed).</div>`
   const patternNote = /Expected pattern/i.test(t.errorDetail ?? "")
     ? `<p class="muted">“Expected pattern” is a regex that was <b>not found</b> on the page — that is the failure. “Received” is the page text that WAS there (whitespace-flattened by innerText).</p>`
     : ""
   const detail = t.errorDetail
     ? `<pre class="err-detail">${renderErrorDetail(
-        t.errorDetail,
+        foldRepeats(t.errorDetail),
       )}</pre>${patternNote}`
     : ""
-  const stack = t.errorStack
-    ? `<details class="stack"><summary>Stack trace</summary><pre>${esc(
-        t.errorStack,
+  const full = t.errorStack ?? t.errorDetail
+  const stack = full
+    ? `<details class="stack"><summary>full error and stack</summary><pre>${esc(
+        full,
       )}</pre></details>`
     : ""
-  const trimmed = t.videoTrimmedLeadSeconds
-  const idle = trimmed !== undefined ? 0 : browserIdleSeconds(t)
-  const idleNote =
-    trimmed !== undefined
-      ? `<p class="muted">First ~${trimmed}s of chain-only setup (browser idle, white screen) trimmed from this video — add ${trimmed}s to video timestamps when matching journal times.</p>`
-      : idle > 0
-        ? `<p class="muted">Browser idle (white) for the first ~${idle}s — chain-only setup before any page was opened. Playback starts at first page activity; drag back for the full run.</p>`
-        : ""
-  const video = t.video
-    ? `<details class="blob" open><summary>▶ video (${fmtDuration(
-        t.durationMs,
-      )})</summary>${idleNote}<video controls preload="metadata" width="800"><source src="${esc(
-        t.video,
-      )}${
-        idle > 0 ? `#t=${idle}` : ""
-      }" type="video/webm">Your browser cannot play WebM video.</video></details>`
-    : ""
-  const trace = t.tracePath
-    ? `<p class="muted">Full trace: <code>npx playwright show-trace ${esc(
-        t.tracePath,
-      )}</code></p>`
-    : ""
-  return `<article class="card failed" id="${esc(anchor)}">
-<header class="card-head">
-  ${outcomeBadge(t.outcome)}
-  <h2>${esc(t.title)}</h2>
-  <span class="meta">${esc(t.suite)} · ${fmtDuration(t.durationMs)}</span>
-  ${overlayCell(t, overlay)}
-</header>
-${
-  rowReason(t, issues)
-    ? `<p class="reason">${esc(rowReason(t, issues))}</p>`
-    : ""
+  return `<li class="tl-node verdict bad"><div class="dot"></div><div class="tl-body"><div class="vgrid">
+<div class="vtext"><div class="headline">${esc(
+    t.errorHead ?? "Test failed (no error message)",
+  )}</div>
+${failureWhere(t)}${detail}${renderFailureFacts(
+    t.failureState,
+  )}${stack}${videoLink(t)}</div>
+${shot}
+</div></div></li>`
 }
-<div class="hero">
-  <div class="hero-left">${shot}</div>
-  <div class="hero-right">
-    <div class="headline">${esc(
-      t.errorHead ?? "Test failed (no error message)",
-    )}</div>
-    ${where}
-    ${detail}
-    ${renderFailureState(t.failureState)}
-    ${stack}
-  </div>
-</div>
-${renderReached(t, touched)}${renderWhatHappened(t)}
-${renderWhatWasVerified(t)}
-${renderTxTable(t.journal)}
-<h3>Artefacts</h3>
-${renderFilmStrip(t)}
-${video}
-${trace}
-</article>`
+
+/** Agreements the journal did not position (no matching `data` entry): one node after the checkpoints. */
+const looseEvidence = (t: UatTest): { label: string; data: unknown }[] => {
+  const journalled = new Set(
+    t.journal
+      .filter((e) => e.kind === "data")
+      .map((e) => `${evidenceLabel(e.name ?? "data")} ${json(e.data) ?? ""}`),
+  )
+  const out: { label: string; data: unknown }[] = []
+  const seen = new Set<string>()
+  for (const a of t.agreements) {
+    const label = evidenceLabel(a.name)
+    const key = `${label} ${json(a.json) ?? ""}`
+    if (!journalled.has(key) && !seen.has(key)) {
+      seen.add(key)
+      out.push({ label, data: a.json })
+    }
+  }
+  return out
+}
+
+const tlNode = (cls: string, dot: string, body: string): string =>
+  `<li class="tl-node ${cls}"><div class="dot">${dot}</div><div class="tl-body">${body}</div></li>`
+
+/**
+ * One timeline: starting state → arrange → each checkpoint with its transactions, navigations,
+ * chain-time changes and evidence inline → loose evidence → the verdict block of a failed row.
+ */
+const renderTimeline = (t: UatTest, starting: string): string => {
+  const { pre, steps } = segmentsOf(t)
+  const nodes: string[] = starting ? [starting] : []
+  const preHtml = itemsHtml(pre.items)
+  if (steps.length === 0) {
+    if (preHtml)
+      nodes.push(
+        tlNode(
+          "arrange",
+          "",
+          `<div class="tl-kicker">what the row did</div><ul class="evs">${preHtml}</ul><p class="muted">No <code>step()</code> checkpoints were recorded — the list above is the raw navigation and transaction trace.</p>`,
+        ),
+      )
+    else if (t.outcome !== "skipped" && t.outcome !== "did-not-run")
+      nodes.push(
+        tlNode(
+          "arrange",
+          "",
+          `<p class="muted">No steps were journalled for this row — it recorded no <code>step()</code> checkpoints, navigations or transactions.</p>`,
+        ),
+      )
+  } else if (preHtml)
+    nodes.push(
+      tlNode(
+        "arrange",
+        "",
+        `<div class="tl-kicker">arrange — before the first checkpoint</div><ul class="evs">${preHtml}</ul>`,
+      ),
+    )
+
+  const failAt = failedStepIndex(t, steps)
+  const endOfRun =
+    t.startedAt && Number.isFinite(t.durationMs)
+      ? new Date(Date.parse(t.startedAt) + t.durationMs).toISOString()
+      : undefined
+  steps.forEach((s, n) => {
+    const e = s.step as UatJournalEntry
+    const ms = msBetween(e.at, steps[n + 1]?.step?.at ?? endOfRun)
+    const failed = n === failAt
+    const between = failed && t.failedDuring?.kind === "between"
+    const marker = failed
+      ? between
+        ? ` <span class="here warn">last checkpoint before the failure</span>`
+        : ` <span class="here">failed here</span>`
+      : ""
+    const chips = (e.req ?? [])
+      .map((id) => {
+        const o = (t.observations ?? []).find(
+          (x) => x.requirementId === id && x.stepIndex === s.index,
+        )
+        const st =
+          o?.status ??
+          (failAt < 0
+            ? t.status === "passed"
+              ? "pass"
+              : "none"
+            : n < failAt || between
+              ? n <= failAt
+                ? "pass"
+                : "none"
+              : n === failAt
+                ? "fail"
+                : "none")
+        return reqChip(id, st, t.outcome === "expected-failure")
+      })
+      .join("")
+    const inner = itemsHtml(s.items)
+    nodes.push(
+      tlNode(
+        `step${failed && !between ? " failed" : ""}`,
+        String(s.index),
+        `<div class="step-line"><span class="step-name">${esc(
+          e.name ?? "(unnamed checkpoint)",
+        )}</span>${chips ? ` ${chips}` : ""}${
+          ms !== undefined
+            ? ` <span class="step-ms">${fmtDuration(ms)}</span>`
+            : ""
+        }${marker}</div>${inner ? `<ul class="evs">${inner}</ul>` : ""}`,
+      ),
+    )
+  })
+
+  const loose = looseEvidence(t)
+  if (loose.length > 0)
+    nodes.push(
+      tlNode(
+        "evidence",
+        "",
+        `<div class="tl-kicker">evidence</div>${loose
+          .map((x) => evidenceCard(x.label, x.data))
+          .join("\n")}`,
+      ),
+    )
+  if (t.status === "failed") nodes.push(renderVerdictBlock(t))
+  const strip = renderFilmStrip(t)
+  if (strip) nodes.push(tlNode("shots", "", strip))
+  return nodes.length > 0 ? `<ol class="tl">${nodes.join("\n")}</ol>` : ""
+}
+
+const ledgerTable = (t: UatTest): string => {
+  const l = ledgerOf(t)
+  if (!l) return ""
+  const rows = (l.requirements ?? [])
+    .map(
+      (r) =>
+        `<tr><td class="mono">${esc(r.requirementId)}</td><td>${esc(
+          r.storedApplicability ?? (r.known ? "" : "unknown to the ledger"),
+        )}${
+          r.applicabilityStatus ? ` (${esc(r.applicabilityStatus)})` : ""
+        }</td><td>${esc(r.effectiveApplicability ?? "")}</td><td>${esc(
+          r.implementation ?? "",
+        )}</td><td>${esc(r.coverage ?? "")}</td><td>${
+          r.knownIssue
+            ? esc(`${r.knownIssue.register ?? l.version}#${r.knownIssue.id}`)
+            : ""
+        }</td></tr>`,
+    )
+    .join("")
+  return `<div class="scroll-x"><table class="ledger"><thead><tr><th>requirement</th><th>applicability</th><th>effective</th><th>implementation</th><th>coverage</th><th>known issue</th></tr></thead><tbody>${rows}</tbody></table></div><p>decision <b>${esc(
+    l.decision,
+  )}</b> on ${esc(l.version)} — ${esc(l.reason)}</p>`
+}
+
+/** The maintainer's detail, closed: suite, ledger decision, journal counts, trace, raw evidence. */
+const renderHarnessFooter = (
+  t: UatTest,
+  v: Verdict,
+  reason?: string,
+): string => {
+  const rows: string[] = [
+    kv("Suite", esc(t.suite)),
+    kv("Spec", `<span class="mono">${esc(t.file)}</span>`),
+  ]
+  if (reason && v.open) rows.push(kv("Annotation", esc(reason)))
+  const ledger = ledgerTable(t)
+  if (ledger) rows.push(kv("Ledger", ledger))
+  const sig = signatureResultOf(t)
+  if (sig)
+    rows.push(kv("Signature check", `<span class="mono">${esc(sig)}</span>`))
+  rows.push(
+    kv(
+      "Journal",
+      `${(["step", "nav", "tx", "data", "chain-time"] as const)
+        .map((k) => `${t.journal.filter((e) => e.kind === k).length} ${k}`)
+        .join(" · ")}${
+        t.needsAnnotation
+          ? ` · <span class="c-warn">needs a requirements annotation</span>`
+          : ""
+      }`,
+    ),
+  )
+  const consoles = t.journal.filter(isConsole)
+  if (consoles.length > 0) {
+    const errors = consoles.filter((e) => e.name === "console.error").length
+    rows.push(
+      kv(
+        "Console",
+        `<details class="raw"><summary>${errors} console error${
+          errors === 1 ? "" : "s"
+        }${
+          consoles.length > errors
+            ? ` · ${consoles.length - errors} other message${
+                consoles.length - errors === 1 ? "" : "s"
+              }`
+            : ""
+        }</summary><ul class="console">${consoles
+          .map(
+            (e) =>
+              `<li><span class="mono">${esc(
+                (e.name ?? "").replace("console.", ""),
+              )}</span> ${esc(
+                (typeof e.data === "string" ? e.data : json(e.data))
+                  .split("\n")[0]
+                  .slice(0, 240),
+              )}</li>`,
+          )
+          .join("")}</ul></details>`,
+      ),
+    )
+  }
+  if (t.tracePath)
+    rows.push(
+      kv("Trace", `<code>npx playwright show-trace ${esc(t.tracePath)}</code>`),
+    )
+  if (t.video && t.status !== "failed") rows.push(kv("Video", videoLink(t)))
+  if (t.agreements.length > 0)
+    rows.push(
+      kv(
+        "Evidence",
+        `<details class="raw"><summary>raw JSON of ${
+          t.agreements.length
+        } agreement${t.agreements.length === 1 ? "" : "s"}</summary><pre>${esc(
+          json(
+            t.agreements.map((a) => ({
+              name: evidenceLabel(a.name),
+              json: a.json,
+            })),
+          ),
+        )}</pre></details>`,
+      ),
+    )
+  return `<details class="harness"><summary>Harness details</summary><dl class="state">${rows.join(
+    "",
+  )}</dl></details>`
+}
+
+type CardContext = {
+  overlay: Overlay | null
+  issues: KnownIssue[]
+  touched: TouchedIndex
 }
 
 /**
- * A `test.fail()` row that PASSED. There is no failure media to show — by construction: the
- * reporter materialises screenshots and error text only for results that actually failed. So this
- * card says what the row MEANS and what to do about it, and shows the evidence that does exist
- * (the journal, the transactions, the agreements).
+ * One row, one card. The header line is the whole card for passed / skipped / setup rows (closed
+ * `<details>`); every other row opens with its verdict sentence and Next line, then one timeline,
+ * then the closed harness footer.
  */
-const renderUnexpectedPassCard = (
-  t: UatTest,
-  anchor: string,
-  overlay: Overlay | null,
-  touched: TouchedIndex = new Map(),
-): string => {
-  const annotated = annotationReason(t.annotations)
-  return `<article class="card failed" id="${esc(anchor)}">
-<header class="card-head">
-  ${outcomeBadge(t.outcome)}
-  <h2>${esc(t.title)}</h2>
-  <span class="meta">${esc(t.suite)} · ${fmtDuration(t.durationMs)}</span>
-  ${overlayCell(t, overlay)}
-</header>
-<div class="unexpected">
-  <p><b>This row is annotated <code>test.fail()</code>${
-    annotated ? ` — “${esc(annotated)}”` : ""
-  } — and it PASSED.</b></p>
-  <p>One of two things is true, and the board cannot tell them apart: the documented defect is
-  fixed, or the test no longer exercises it. Resolve it before the report is shown to anyone —
-  confirm the behaviour by hand, then either close the KNOWN-ISSUES entry and drop the
-  <code>test.fail()</code>, or fix the test so it exercises the defect again.</p>
-  <p class="muted">No failure screenshot or error text exists for this row, and that is expected:
-  the reporter captures failure media only for results that actually failed.</p>
-</div>
-${renderReached(t, touched)}${renderWhatHappened(t)}
-${renderWhatWasVerified(t)}
-${renderTxTable(t.journal)}
-${
-  t.video
-    ? `<details class="blob"><summary>▶ video (${fmtDuration(
-        t.durationMs,
-      )})</summary><video controls preload="none" src="${esc(
-        t.video,
-      )}"></video></details>`
-    : ""
-}
-</article>`
-}
-
-const renderQuietRow = (
-  t: UatTest,
-  overlay: Overlay | null,
-  issues: KnownIssue[],
-  touched: TouchedIndex = new Map(),
-): string => {
-  const reason = rowReason(t, issues)
-  const chain = stepChain(t)
-  const video = t.video
-    ? `<details class="blob"><summary>▶ video (${fmtDuration(
-        t.durationMs,
-      )})</summary><video controls preload="none" src="${esc(
-        t.video,
-      )}"></video></details>`
-    : ""
-  // stepShots on a green row are reachable but effectively dead today: the reporter materialises
-  // them only for results that actually failed (see summaryReporter's `failed` guard), and failed
-  // / expected-failure rows go to renderFailedCard instead. Kept because a step strip on green
-  // rows is wanted, and when it lands the change is on the reporter side, not here.
-  const artefacts =
-    t.stepShots.length > 0 || video
-      ? `<h3>Artefacts</h3>${
-          t.stepShots.length > 0 ? renderFilmStrip(t) : ""
-        }${video}`
+const renderTest = (t: UatTest, ctx: CardContext): string => {
+  const v = verdictOf(t)
+  const anchor = anchorOf(t)
+  const reason = rowReason(t, ctx.issues)
+  const reqs = requirementResults(t)
+    .map(([id, st]) => reqChip(id, st, v.kind === "known-issue"))
+    .join("")
+  const dur =
+    t.durationMs > 0
+      ? `<span class="dur">${fmtDuration(t.durationMs)}</span>`
       : ""
+  const title =
+    t.uatId && t.title.startsWith(`${t.uatId}:`)
+      ? t.title.slice(t.uatId.length + 1).trim()
+      : t.title
+  const teaser =
+    v.open && v.headline
+      ? `<div class="teaser">${esc(v.headline)}${
+          v.flag
+            ? ` <span class="flag ${v.flag.tone}">${esc(v.flag.text)}</span>`
+            : ""
+        }</div>`
+      : ""
+  const summary = `<summary>${outcomeBadge(t.outcome)}${
+    t.uatId ? `<span class="id mono">${esc(t.uatId)}</span>` : ""
+  }<span class="ttl">${esc(title)}</span><span class="right">${marketChips(
+    t,
+    ctx.touched,
+  )}${reqs}${dur}${overlayCell(t, ctx.overlay)}</span>${teaser}</summary>`
+  const verdict = v.sentence
+    ? `<div class="verdict"><p class="verdict-sentence">${esc(v.sentence)}</p>${
+        v.next ? `<p class="verdict-next"><b>Next:</b> ${esc(v.next)}</p>` : ""
+      }</div>`
+    : ""
   const body = [
-    renderReached(t, touched),
-    renderWhatHappened(t),
-    renderWhatWasVerified(t),
-    renderTxTable(t.journal),
-    artefacts,
+    !v.open && reason ? `<p class="reason">${esc(reason)}</p>` : "",
+    verdict,
+    renderTimeline(t, renderReached(t, ctx.touched, v.failure)),
+    renderHarnessFooter(t, v, reason),
   ]
     .filter(Boolean)
     .join("\n")
-  return `<details class="row ${OUTCOME_CLASS[t.outcome]}" id="${anchorOf(t)}">
-<summary>
-  ${outcomeBadge(t.outcome)}
-  <span class="row-title">${
-    t.uatId ? `<span class="mono id">${esc(t.uatId)}</span> ` : ""
-  }${esc(t.title.replace(/^[^:]*:\s*/, ""))}</span>
-  <span class="row-meta">${fmtDuration(t.durationMs)}${
-    chain ? ` · ${esc(chain)}` : ""
-  }</span>
-  ${overlayCell(t, overlay)}
-</summary>
-<div class="row-body">${
-    reason ? `<p class="reason">${esc(reason)}</p>` : ""
-  }${body}</div>
+  return `<details class="tcard ${v.kind}${v.open ? "" : " quiet"}${
+    t.infra ? " infra" : ""
+  }" id="${esc(anchor)}"${v.open ? " open" : ""}>
+${summary}
+<div class="tbody">
+${body}
+</div>
 </details>`
 }
 
-const HERO: ReadonlySet<Outcome> = new Set<Outcome>([
-  "failed",
-  "unexpected-pass",
-  "expected-failure",
-])
-
-const renderTest = (
-  t: UatTest,
-  overlay: Overlay | null,
-  issues: KnownIssue[],
-  touched: TouchedIndex = new Map(),
-): string =>
-  t.outcome === "unexpected-pass"
-    ? renderUnexpectedPassCard(t, anchorOf(t), overlay, touched)
-    : HERO.has(t.outcome)
-      ? renderFailedCard(t, anchorOf(t), overlay, issues, touched)
-      : renderQuietRow(t, overlay, issues, touched)
-
-const renderSection = (
-  g: PageGroup,
-  overlay: Overlay | null,
-  issues: KnownIssue[],
-  touched: TouchedIndex = new Map(),
-): string =>
+const renderSection = (g: PageGroup, ctx: CardContext): string =>
   `<section class="page" id="page-${g.page}">
 <h2 class="page-head">${esc(g.label)} <span class="counts">${countStrip(
     g.counts,
@@ -1360,17 +1548,18 @@ ${g.suites
     const ov = suitePageOverride(s.suite)
     return `<h3 class="suite">${esc(s.suite)}${
       ov ? ` <span class="muted">${esc(ov.note)}</span>` : ""
-    }</h3>\n${s.tests
-      .map((t) => renderTest(t, overlay, issues, touched))
-      .join("\n")}`
+    }</h3>\n${s.tests.map((t) => renderTest(t, ctx)).join("\n")}`
   })
   .join("\n")}
 </section>`
+
+const TOOLBAR = `<div class="toolbar"><label><input type="checkbox" id="attention-only"> Needs attention only</label><button type="button" data-expand="1">Expand all</button><button type="button" data-expand="0">Collapse all</button><span class="muted">hides passed, skipped and setup rows</span></div>`
 
 const CSS = `
 :root{
   --bg:#f6f7f9; --card:#ffffff; --ink:#1c2330; --muted:#68707e; --line:#e3e6ea;
   --green:#1a7f37; --green-bg:#e6f4ea; --red:#c92a2a; --red-bg:#fdecec; --grey:#8b939e;
+  --amber:#a35b00; --amber-bg:#fdf6e3; --violet:#6b3fa0; --violet-bg:#f3edfa;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
 }
 *{box-sizing:border-box}
@@ -1401,28 +1590,113 @@ pre{white-space:pre-wrap;word-break:break-word;background:#f2f3f5;border:1px sol
 .counts .c-skip{color:var(--grey)}
 .runbar .meta{color:var(--muted);font-size:13px}
 
-/* cards */
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;
-  padding:20px 24px 24px;margin-bottom:28px}
-.card.failed{border-left:5px solid var(--red)}
-.card-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:16px}
-.card-head .meta{color:var(--muted);font-size:13px}
+/* per-test card: header line */
+details.tcard{background:var(--card);border:1px solid var(--line);border-radius:8px;margin-bottom:6px}
+details.tcard[open]{margin:10px 0 14px}
+details.tcard.did-not-hold,details.tcard.did-not-reach,details.tcard.known-issue-mismatch,details.tcard.failed{border-left:4px solid var(--red)}
+details.tcard.ruling-pending{border-left:4px solid var(--violet)}
+details.tcard.unexpected-pass,details.tcard.known-issue,details.tcard.flaky{border-left:4px solid var(--amber)}
+details.tcard.infra{border-style:dashed}
+details.tcard>summary{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:7px 14px;min-height:38px;cursor:pointer;list-style:none}
+details.tcard>summary::-webkit-details-marker{display:none}
+details.tcard[open]>summary{border-bottom:1px solid var(--line);padding:10px 14px}
+details.tcard>summary .badge{min-width:74px;text-align:center}
+.id{font-weight:700;font-size:13.5px;flex:none}
+.ttl{font-weight:600;flex:1 1 300px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+details.tcard[open] .ttl{white-space:normal}
+details.tcard.skipped .ttl,details.tcard.did-not-run .ttl,details.tcard.infra .ttl{color:var(--muted);font-weight:500}
+.right{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:auto}
+.mchip{font-size:12px;border:1px solid var(--line);border-radius:12px;padding:0 8px;white-space:nowrap}
+.mchip b{font-weight:600}
+.req{font-size:11.5px;font-family:var(--mono);border-radius:4px;padding:0 5px;white-space:nowrap;background:#eef0f2;color:var(--muted)}
+.req.pass{background:var(--green-bg);color:var(--green)}.req.fail{background:var(--red-bg);color:var(--red)}
+.req.known{background:var(--amber-bg);color:var(--amber)}
+.dur{color:var(--muted);font-size:12px;min-width:42px;text-align:right}
+.teaser{flex-basis:100%;color:var(--red);font-size:13.5px;font-weight:600;padding-left:84px}
+details.tcard.unexpected-pass .teaser,details.tcard.known-issue .teaser{color:var(--amber)}
+details.tcard.ruling-pending .teaser{color:var(--violet)}
+.flag.known{background:var(--amber-bg);color:var(--amber)}.flag.ruling{background:var(--violet-bg);color:var(--violet)}
+@media (max-width:700px){.teaser{padding-left:0}.right{margin-left:0}}
+.tbody{padding:4px 0 6px}
+.tbody>.reason{margin:10px 18px 4px}
+.verdict{margin:12px 18px 4px;padding:8px 12px;border-radius:6px;background:#f7f7f9}
+details.tcard.did-not-hold .verdict,details.tcard.did-not-reach .verdict,details.tcard.known-issue-mismatch .verdict,details.tcard.failed .verdict{background:var(--red-bg)}
+details.tcard.ruling-pending .verdict{background:var(--violet-bg)}
+details.tcard.unexpected-pass .verdict,details.tcard.known-issue .verdict,details.tcard.flaky .verdict{background:var(--amber-bg)}
+.verdict-sentence{margin:0;font-size:14.5px;font-weight:600}
+.verdict-next{margin:3px 0 0;font-size:13px}
 
-/* failed hero */
-.hero{display:grid;grid-template-columns:minmax(320px,7fr) minmax(300px,5fr);gap:22px;align-items:start}
-@media (max-width:900px){.hero{grid-template-columns:1fr}}
-.hero-shot{width:100%;border:1px solid var(--line);border-radius:8px;display:block;cursor:zoom-in}
-.no-shot{border:1px dashed var(--line);border-radius:8px;padding:40px;text-align:center;color:var(--muted)}
-.headline{font-size:17px;font-weight:700;color:var(--red);margin-bottom:10px}
-.where{font-size:13px;margin:0 0 10px;padding:6px 10px;border-left:3px solid var(--line);background:#f7f7f9;border-radius:4px}
+/* per-test card: one timeline */
+ol.tl{list-style:none;margin:0;padding:12px 18px 2px}
+.tl-node{position:relative;padding:0 0 12px 34px}
+.tl-node::before{content:"";position:absolute;left:10px;top:4px;bottom:-4px;width:2px;background:var(--line)}
+.tl-node:last-child::before{display:none}
+.tl-node .dot{position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid #c3c9d1;
+  font-size:10px;font-weight:700;line-height:12px;text-align:center;color:var(--muted)}
+.tl-node.step .dot{width:22px;height:22px;left:0;top:0;line-height:18px;font-size:11px;border-color:#9aa4b1;color:var(--ink)}
+.tl-node.state .dot{border-style:dashed}
+.tl-node.step.failed .dot,.tl-node.verdict .dot{border-color:var(--red);background:var(--red);color:#fff}
+.tl-kicker{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:1px}
+.tl-body{font-size:13.5px;min-width:0}
+.state-head{margin:0 0 2px;font-size:13.5px}
+.market-name{font-weight:600}
+.chips{margin:2px 0 4px}
+.chips .chip,table.summary .chip{display:inline-block;text-transform:none;letter-spacing:0;border:1px solid var(--line);border-radius:12px;
+  padding:1px 8px;margin:2px 4px 2px 0;font-size:12px;font-weight:400;color:var(--ink);background:#fff}
+.chips .chip .k,table.summary .chip .k{color:#6b7785;font-family:var(--mono)}
+details.prior>summary{cursor:pointer;font-size:13px}
+ol.prior-list{margin:4px 0;padding-left:24px;font-size:12.5px}
+ol.prior-list li{margin:2px 0}
+ol.prior-list li.chain-time{color:var(--muted);font-style:italic}
+.market-foot{font-size:11.5px;margin:4px 0 0}
+.step-line{padding-top:1px}
+.step-name{font-weight:600}
+.tl-node.step.failed .step-name{color:var(--red)}
+.step-ms{color:var(--muted);font-size:11.5px;font-variant-numeric:tabular-nums}
+.here{font-size:10.5px;font-weight:700;text-transform:uppercase;color:var(--red);letter-spacing:.04em}
+.here.warn{color:var(--amber)}
+ul.evs{list-style:none;margin:3px 0 0;padding:0}
+li.ev{margin:2px 0;font-size:12.5px}
+li.ev.nav{color:var(--muted)}
+li.ev.tx .who{color:var(--muted)}
+li.ev.tx.bad .tx-call{color:var(--red)}
+li.ev.chain-time{color:#8a5a00}
+code.tx-call{background:#f2f3f5;border-radius:4px;padding:0 4px;word-break:break-word}
+.badge.lib{background:#eef0f2;color:var(--muted)}
+.txmeta{font-size:11px;font-weight:700}.txmeta.ok{color:var(--green)}.txmeta.bad{color:var(--red)}
+.hash{font-size:11px}
+.vgrid{display:grid;grid-template-columns:minmax(0,5fr) minmax(260px,6fr);gap:18px;align-items:start}
+@media (max-width:900px){.vgrid{grid-template-columns:1fr}}
+.headline{font-size:16px;font-weight:700;color:var(--red);margin-bottom:8px;line-height:1.35}
+.where{font-size:13px;margin:0 0 8px;padding:6px 10px;border-left:3px solid var(--line);background:#f7f7f9;border-radius:4px}
 .where.warn{border-left-color:#e2a000;background:#fdf6e3}
 .err-detail{background:#fff8f8;border-color:#f3d6d6}
 .err-detail .exp{color:var(--green)} .err-detail .rcv{color:var(--red)}
-.stack summary{cursor:pointer;color:var(--muted);font-size:13px}
-dl.state{margin:6px 0 0;display:grid;grid-template-columns:max-content 1fr;gap:4px 14px}
+.facts{font-size:12.5px;margin:6px 0}
+.stack summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+.vlink{margin:6px 0;font-size:13px}
+figure.shot-fig{margin:0}
+img.shot{width:100%;border:1px solid var(--line);border-radius:8px;display:block;cursor:zoom-in}
+figure.shot-fig figcaption{font-size:11.5px;color:var(--muted);margin-top:3px}
+.no-shot{border:1px dashed var(--line);border-radius:8px;padding:30px;text-align:center;color:var(--muted)}
+dl.state{margin:6px 0 0;display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 14px}
 dl.state .kv{display:contents}
 dl.state dt{color:var(--muted);font-size:12.5px;padding-top:1px}
-dl.state dd{margin:0;font-size:13px}
+dl.state dd{margin:0;font-size:13px;min-width:0;word-break:break-word}
+
+/* per-test card: harness footer */
+details.harness{margin:0 18px 8px 52px;font-size:12.5px}
+details.harness>summary{cursor:pointer;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.05em}
+table.ledger{border-collapse:collapse;font-size:12px;margin:2px 0}
+table.ledger th,table.ledger td{border:1px solid var(--line);padding:2px 7px;text-align:left}
+table.ledger th{background:#f2f3f5;font-weight:600;color:var(--muted)}
+ul.console{margin:2px 0;padding-left:16px;color:var(--muted);font-size:12px}
+
+/* toolbar */
+.toolbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--bg);
+  padding:8px 0;margin:0 0 4px;font-size:13px;border-bottom:1px solid var(--line)}
+.toolbar button{font:inherit;font-size:12.5px;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:2px 10px;cursor:pointer}
+body.attention-only details.tcard.quiet{display:none}
 
 /* film strip */
 .filmstrip{display:flex;gap:12px;overflow-x:auto;padding:6px 2px 10px}
@@ -1432,26 +1706,9 @@ dl.state dd{margin:0;font-size:13px}
 .filmstrip figcaption{font-size:12px;color:var(--muted);margin-top:4px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-/* what happened: the numbered narrative */
-ol.steps{margin:6px 0;padding-left:24px}
-ol.steps li.step{margin:5px 0;padding-left:2px}
-.step-what{font-weight:600}
-.step-ms{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
-li.step-failed{background:var(--red-bg);border-radius:5px;padding:4px 6px;margin-left:-6px}
-li.step-failed .step-what{color:var(--red)}
-.notes{display:block;margin-top:2px}
-.note{display:inline-block;font-size:12px;color:var(--muted);background:#f2f3f5;
-  border-radius:4px;padding:1px 7px;margin:2px 5px 0 0;font-family:var(--mono)}
-.note.bad{background:var(--red-bg);color:var(--red)}
-.note.chain-time{background:#fff4e0;color:#8a5a00}
-
-/* market provenance */
+/* markets summary */
 section.markets{margin:0 0 26px}
-section.markets .market-name,section.reached .market-name{font-weight:600}
-section.markets .chip,section.reached .chip{display:inline-block;text-transform:none;letter-spacing:0;
-  border:1px solid var(--line);border-radius:12px;padding:1px 8px;margin:2px 4px 2px 0;font-size:12px;
-  font-weight:400;color:var(--ink);background:#fff}
-section.markets .chip .k,section.reached .chip .k{color:#6b7785;font-family:var(--mono)}
+section.markets .market-name{font-weight:600}
 table.summary{border-collapse:collapse;font-size:13px}
 table.summary td,table.summary th{vertical-align:top;padding:6px 8px;text-transform:none;letter-spacing:0;
   border-top:1px solid var(--line)}
@@ -1459,21 +1716,10 @@ table.summary td:nth-child(2){max-width:220px}
 table.summary a{overflow-wrap:anywhere}
 table.summary th{text-align:left;color:#6b7785;font-size:12px;font-weight:500}
 .small{font-size:11px}
-section.reached{margin:10px 0 4px}
-.reached-market{margin:6px 0 10px}
-.reached-head{margin:4px 0 2px;font-size:14px}
-p.chips{margin:2px 0 4px}
-ol.reached-steps{margin:4px 0;padding-left:26px;font-size:13px}
-ol.reached-steps li{margin:2px 0}
-ol.reached-steps li.own{background:#f3f7ff}
-ol.reached-steps li.chain-time{color:var(--muted);font-style:italic}
-.this-row{font-weight:600;color:var(--ink);font-style:normal}
-.market-foot{font-size:12px;margin:8px 0 0}
-.pre-steps{font-size:12.5px;color:var(--muted);margin:6px 0}
 
-/* what was verified: one evidence card per agreement */
+/* evidence: one card per agreement */
 section.ev{border:1px solid var(--line);border-left:3px solid #c9d3e0;border-radius:6px;
-  background:#fbfcfd;padding:10px 14px;margin:8px 0}
+  background:#fbfcfd;padding:8px 12px;margin:6px 0}
 .ev-head{margin:0 0 6px;font-size:13px;text-transform:none;letter-spacing:0;color:var(--ink);
   font-weight:600}
 .ev-note{margin:0 0 8px;font-size:13px}
@@ -1488,40 +1734,30 @@ table.ev-table{border-collapse:collapse;font-size:12.5px;margin:2px 0}
 table.ev-table th,table.ev-table td{border:1px solid var(--line);padding:3px 8px;
   text-align:left;vertical-align:top}
 table.ev-table th{background:#f2f3f5;font-weight:600;color:var(--muted)}
-details.raw{margin:8px 0 0}
+details.raw{margin:6px 0 0}
 details.raw summary{cursor:pointer;color:var(--muted);font-size:11.5px;
   text-transform:uppercase;letter-spacing:.05em}
 .badge{font-size:11px;font-weight:700;border-radius:4px;padding:1px 7px;text-transform:uppercase}
 .badge.ok{background:var(--green-bg);color:var(--green)}
 .badge.bad{background:var(--red-bg);color:var(--red)}
-.badge.ui{background:#e8f0fe;color:#0b57d0;margin-left:6px}
+.badge.ui{background:#e8f0fe;color:#0b57d0}
 
-/* tx table */
+/* coverage table */
 table.txs{border-collapse:collapse;font-size:13px;min-width:520px}
 table.txs th,table.txs td{border:1px solid var(--line);padding:5px 10px;text-align:left;vertical-align:top}
 table.txs th{background:#f2f3f5;font-weight:600}
-.chip{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);
-  background:#eef0f2;border-radius:4px;padding:1px 5px;vertical-align:middle}
-.sub{color:var(--muted);font-size:11.5px;margin-top:2px}
-.tx-target{min-width:150px}
-.tx-during{color:var(--muted);max-width:180px}
-code.tx-call{display:block;max-width:420px;white-space:pre-wrap;word-break:break-word}
-details.tx-hash{margin-top:3px}
-details.tx-hash summary{cursor:pointer;color:var(--muted);font-size:11px}
-details.tx-hash .mono{font-size:11px;word-break:break-all;user-select:all}
 
 /* blobs */
 details.blob{margin:6px 0}
 details.blob summary{cursor:pointer;font-family:var(--mono);font-size:13px}
 
-/* quiet rows */
+/* rows only the other branch ran */
 details.row{background:var(--card);border:1px solid var(--line);border-radius:8px;
   margin-bottom:8px;padding:0 14px}
 details.row summary{display:flex;align-items:center;gap:10px;min-height:40px;
   cursor:pointer;list-style:none}
 details.row summary::-webkit-details-marker{display:none}
 .row-title{font-weight:600;flex:none;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.row-meta{color:var(--muted);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 details.row.skip .row-title{color:var(--muted);font-weight:500}
 .row-body{padding:4px 4px 14px}
 video{max-width:100%;border:1px solid var(--line);border-radius:8px;background:#000}
@@ -1549,9 +1785,6 @@ h3.suite{font-size:12px;margin:14px 0 6px;color:var(--muted)}
 .rel{background:#eef0f2;border-radius:4px;padding:1px 6px;margin-left:5px;font-size:11px}
 .flag{border-radius:4px;padding:1px 6px;margin-left:5px;font-size:11px;font-weight:700}
 .flag.bad{background:var(--red-bg);color:var(--red)} .flag.warn{background:#fdf6e3;color:#a35b00}
-/* unexpected-pass card */
-.unexpected{background:var(--red-bg);border-left:4px solid var(--red);border-radius:6px;padding:10px 16px;margin-bottom:16px}
-.unexpected p{margin:6px 0}
 h3.suite .muted{font-weight:400;text-transform:none}
 `
 
@@ -1573,6 +1806,24 @@ const JS = `
   document.addEventListener("keydown", function (ev) {
     if (ev.key === "Escape") { box.classList.remove("open"); img.src = "" }
   })
+  var only = document.getElementById("attention-only")
+  if (only) only.addEventListener("change", function () {
+    document.body.classList.toggle("attention-only", only.checked)
+  })
+  Array.prototype.forEach.call(document.querySelectorAll("[data-expand]"), function (b) {
+    b.addEventListener("click", function () {
+      var open = b.getAttribute("data-expand") === "1"
+      Array.prototype.forEach.call(document.querySelectorAll("details.tcard"), function (d) { d.open = open })
+    })
+  })
+  // A link to a row (#uat-…) opens that row's card, so a closed passed row is never a dead end.
+  function openTarget() {
+    var id = location.hash.slice(1)
+    var el = id ? document.getElementById(decodeURIComponent(id)) : null
+    if (el && el.tagName === "DETAILS") el.open = true
+  }
+  window.addEventListener("hashchange", openTarget)
+  openTarget()
 })()
 `
 
@@ -1594,7 +1845,11 @@ export const renderUatReport = (
       : null
   const issues = opts.knownIssuesMd ? parseKnownIssues(opts.knownIssuesMd) : []
   const groups = groupByPage(run.tests)
-  const touched = touchedIndex(run.markets)
+  const ctx: CardContext = {
+    overlay,
+    issues,
+    touched: touchedIndex(run.markets),
+  }
   const nav = groups
     .map(
       (g) =>
@@ -1635,8 +1890,9 @@ ${renderAnswers(
   issues,
   opts.coverageMd,
 )}${renderMarkets(run)}
+${TOOLBAR}
 <nav class="pagenav">${nav}</nav>
-${groups.map((g) => renderSection(g, overlay, issues, touched)).join("\n")}
+${groups.map((g) => renderSection(g, ctx)).join("\n")}
 ${overlay ? renderOnlyInOther(overlay.onlyInOther) : ""}
 <footer>
 Self-contained report — safe to open via file://. Traces need <code>npx playwright show-trace</code>.
