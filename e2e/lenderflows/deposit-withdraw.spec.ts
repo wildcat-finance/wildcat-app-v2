@@ -41,7 +41,7 @@ import {
   readOngoingAmounts,
   readWithdrawalsStatus,
 } from "../lib/page"
-import { attachAgreement, step } from "../lib/step"
+import { attachAgreement, infra, requirements, step } from "../lib/step"
 import * as subgraph from "../lib/subgraph"
 import { expect, test } from "../lib/test"
 
@@ -71,13 +71,40 @@ test.describe.serial("lender flows: deposit & withdraw (LEN-15…22)", () => {
   const WITHDRAW = 40n
   let withdraw: bigint
 
+  /** Untagged READINESS WAIT (a driver, not an assertion — deliberately no `expect`): poll a
+   *  chain read until it returns without throwing and satisfies `ready`, swallowing transient
+   *  reverts (the market's balanceOf can revert with an arithmetic under/overflow while a burn
+   *  settles — 2026-09-25 v2.5 board). On timeout the LAST error is rethrown so the cause stays
+   *  visible, and it fails BETWEEN checkpoints instead of being attributed to a requirement. */
+  const waitForChainRead = async (
+    read: () => Promise<bigint>,
+    ready: (value: bigint) => boolean,
+    what: string,
+  ) => {
+    const deadline = Date.now() + 120_000
+    let lastError: unknown = new Error(`${what}: not ready`)
+    for (;;) {
+      try {
+        const value = await read()
+        if (ready(value)) return
+        lastError = new Error(`${what}: not ready (read ${value})`)
+      } catch (error) {
+        lastError = error
+      }
+      if (Date.now() >= deadline) throw lastError
+      await new Promise((resolve) => {
+        setTimeout(resolve, 1_000)
+      })
+    }
+  }
+
   // cross-test state
   let expiry18 = 0
   let expiry22 = 0
   let expiry21 = 0
   let claimable19 = 0n
 
-  test("setup: chain hygiene — settle unpaid batches, claim leftovers, fund accounts", async () => {
+  test("setup: chain hygiene — settle unpaid batches, claim leftovers, fund accounts", infra("setup"), async () => {
     const m = await subgraph.market(market)
     expect(m, "pinned openTerm market exists").not.toBeNull()
     expect(m!.isClosed, "market is open").toBe(false)
@@ -116,7 +143,7 @@ test.describe.serial("lender flows: deposit & withdraw (LEN-15…22)", () => {
     )
   })
 
-  test("setup: agreements on the wall clock (ToU + no-MLA acknowledgement)", async ({
+  test("setup: agreements on the wall clock (ToU + no-MLA acknowledgement)", infra("setup"), async ({
     page,
   }) => {
     // Signature endpoints validate timeSigned against the server wall clock, so this test uses
@@ -125,7 +152,7 @@ test.describe.serial("lender flows: deposit & withdraw (LEN-15…22)", () => {
     await ensureNoMlaAcknowledged(page, account0, market)
   })
 
-  test("LEN-15: self-onboarding market — minimum enforced, approve + deposit, 1:1 mint", async ({
+  test("LEN-15: self-onboarding market — minimum enforced, approve + deposit, 1:1 mint", requirements(["REQ-MKT-019", "REQ-PROTO-012", "REQ-LEN-115", "REQ-LEN-007", "REQ-PROTO-104"]), async ({
     page,
   }) => {
     // Runs in BOTH variants. It used to be v2.5-only, but the only thing that actually diverges
@@ -142,36 +169,45 @@ test.describe.serial("lender flows: deposit & withdraw (LEN-15…22)", () => {
     await gotoMarket(page, market)
     await ensureConnected(page, account0)
 
+    // No summary row here — MarketParameters renders "Deposit Access: Open Deposits"
+    // (src/components/MarketParameters/index.tsx:526-532). Only Status & Details renders it,
+    // so it doubles as the "the section really opened" signal openSection retries on.
+    const label = /^deposit access$/i
+    const value = /^open deposits$/i
+    const accessLabel = page.getByText(label)
+    await openSection(page, /status and details/i, accessLabel)
     await step(
       page,
       "open deposit access surfaced in Status & Details",
       async () => {
-        // No summary row here — MarketParameters renders "Deposit Access: Open Deposits"
-        // (src/components/MarketParameters/index.tsx:526-532). Only Status & Details renders it,
-        // so it doubles as the "the section really opened" signal openSection retries on.
-        const label = /^deposit access$/i
-        const value = /^open deposits$/i
-        const accessLabel = page.getByText(label)
-        await openSection(page, /status and details/i, accessLabel)
         await expect(accessLabel.first()).toBeVisible({
           timeout: 30_000,
         })
         await expect(page.getByText(value).first()).toBeVisible({
           timeout: 15_000,
         })
-        await openSection(page, /deposit & withdraw/i)
       },
+      { req: ["REQ-MKT-019", "REQ-PROTO-012"] },
     )
+    await openSection(page, /deposit & withdraw/i)
 
     const dialog = await openDepositDialog(page)
 
-    if (minimumDeposit > 0n) {
-      await step(page, "below-minimum deposit is blocked", async () => {
-        const below = minimumDeposit - parseUnits("1", decimals)
-        await dialog
-          .getByRole("textbox")
-          .first()
-          .fill(formatUnits(below, decimals))
+    // Fixture precondition (untagged; controller ruling, was an `if` guard): the pinned openTerm
+    // market must enforce a minimum, otherwise REQ-LEN-115 below would be declared but unobserved.
+    expect(
+      minimumDeposit > 0n,
+      "pinned openTerm market enforces a minimum deposit",
+    ).toBe(true)
+    const below = minimumDeposit - parseUnits("1", decimals)
+    await dialog
+      .getByRole("textbox")
+      .first()
+      .fill(formatUnits(below, decimals))
+    await step(
+      page,
+      "below-minimum deposit is blocked",
+      async () => {
         // SDK_ERRORS_MAPPING.deposit.BelowMinimumDeposit
         await expect(
           dialog.getByText("Your deposit is below the minimum for this market"),
@@ -179,8 +215,9 @@ test.describe.serial("lender flows: deposit & withdraw (LEN-15…22)", () => {
         await expect(
           dialog.getByRole("button", { name: /^deposit$/i }),
         ).toBeDisabled()
-      })
-    }
+      },
+      { req: ["REQ-LEN-115"] },
+    )
 
     await step(page, "approve + deposit at minimum + 1", async () => {
       await dialog.getByRole("textbox").first().fill(depositUnits)
@@ -190,20 +227,35 @@ test.describe.serial("lender flows: deposit & withdraw (LEN-15…22)", () => {
     await syncSubgraph()
     const balAfter = await chain.marketBalance(market, account0)
     const acctAfter = await subgraph.lenderAccount(market, account0)
-    expect(acctAfter, "lender account exists after deposit").not.toBeNull()
-    const depositedAfter = BigInt(acctAfter!.totalDeposited)
+    const depositedAfter = await step(
+      page,
+      "the deposit is recorded in full against the lender",
+      async () => {
+        expect(acctAfter, "lender account exists after deposit").not.toBeNull()
+        const depositedAfter = BigInt(acctAfter!.totalDeposited)
 
-    // 1:1 mint: the indexer records the exact normalized deposit; the live balance may have
-    // already accrued a hair of interest on top.
-    expect(depositedAfter - depositedBefore, "subgraph deposit is exact").toBe(
-      deposit,
+        // 1:1 mint: the indexer records the exact normalized deposit; the live balance may have
+        // already accrued a hair of interest on top.
+        expect(depositedAfter - depositedBefore, "subgraph deposit is exact").toBe(
+          deposit,
+        )
+        return depositedAfter
+      },
+      { req: ["REQ-LEN-007"] },
     )
     const minted = balAfter - balBefore
-    expect(minted >= deposit, "at least 1:1 market tokens received").toBe(true)
-    expect(
-      minted - deposit <= parseUnits("0.05", decimals),
-      "no more than dust-level accrual on top of 1:1",
-    ).toBe(true)
+    await step(
+      page,
+      "market tokens are minted one for one",
+      async () => {
+        expect(minted >= deposit, "at least 1:1 market tokens received").toBe(true)
+        expect(
+          minted - deposit <= parseUnits("0.05", decimals),
+          "no more than dust-level accrual on top of 1:1",
+        ).toBe(true)
+      },
+      { req: ["REQ-PROTO-104"] },
+    )
     attachAgreement("LEN-15 deposit 1:1", {
       deposit,
       mintedOnChain: minted,
@@ -211,7 +263,7 @@ test.describe.serial("lender flows: deposit & withdraw (LEN-15…22)", () => {
     })
   })
 
-  test("LEN-17: balance rebases upward at the configured APR", async ({
+  test("LEN-17: balance rebases upward at the configured APR", requirements(["REQ-LEN-104"]), async ({
     page,
   }) => {
     const b0 = await chain.marketBalance(market, account0)
@@ -231,12 +283,19 @@ test.describe.serial("lender flows: deposit & withdraw (LEN-15…22)", () => {
     const expected = (b0 * apr * dt) / (10000n * 31536000n)
     const delta = b1 - b0
 
-    expect(delta > 0n, "balance rebased upward").toBe(true)
-    expect(
-      absDiff(delta, expected) <= expected / 20n + 10n,
-      `accrual ≈ APR: got ${delta}, expected ~${expected} (${apr} bips over ${dt}s)`,
-    ).toBe(true)
-    expect(scaled1, "rebase only — scaled balance unchanged").toBe(scaled0)
+    await step(
+      page,
+      "the balance rebases upward at the configured APR",
+      async () => {
+        expect(delta > 0n, "balance rebased upward").toBe(true)
+        expect(
+          absDiff(delta, expected) <= expected / 20n + 10n,
+          `accrual ≈ APR: got ${delta}, expected ~${expected} (${apr} bips over ${dt}s)`,
+        ).toBe(true)
+        expect(scaled1, "rebase only — scaled balance unchanged").toBe(scaled0)
+      },
+      { req: ["REQ-LEN-104"] },
+    )
 
     await gotoMarket(page, market)
     await ensureConnected(page, account0)
@@ -254,88 +313,122 @@ test.describe.serial("lender flows: deposit & withdraw (LEN-15…22)", () => {
     })
   })
 
-  test("LEN-18: partial withdrawal request enters the cycle; cycle end shown", async ({
+  test("LEN-18: partial withdrawal request enters the cycle; cycle end shown", requirements(["REQ-LEN-017", "REQ-LEN-112"]), async ({
     page,
   }) => {
     await gotoMarket(page, market)
     await ensureConnected(page, account0)
 
-    await step(page, "queue a partial withdrawal", async () => {
-      await page
-        .getByRole("button", { name: /^withdraw$/i })
-        .first()
-        .click()
-      const dialog = page.getByRole("dialog")
-      await expect(dialog).toBeVisible({ timeout: 30_000 })
-      await dialog.getByRole("textbox").first().fill(WITHDRAW.toString())
-      const confirm = dialog.getByRole("button", {
-        name: new RegExp(`^withdraw ${WITHDRAW}`, "i"),
-      })
-      await expect(confirm).toBeEnabled({ timeout: 30_000 })
-      const balanceBeforeQueue = await chain.marketBalance(market, account0)
-      await confirm.click()
-      // The refetch can unmount the modal around the success view; the durable signal is the
-      // on-chain burn of the queued (partial) amount.
-      await expect
-        .poll(
-          async () =>
-            balanceBeforeQueue - (await chain.marketBalance(market, account0)),
-          { timeout: 120_000 },
-        )
-        .toBeGreaterThan(0n)
-      // Optional dismiss: the button can be visible yet pointer-blocked by a closing overlay —
-      // an unbounded click then eats the whole test budget (observed once under full-board
-      // conditions). Bounded click; Escape closes the modal just as well when it's stuck.
-      const backToMarket = page.getByRole("button", { name: /back to market/i })
-      if (await backToMarket.isVisible().catch(() => false)) {
-        const clicked = await backToMarket
-          .click({ timeout: 10_000 })
-          .then(() => true)
-          .catch(() => false)
-        if (!clicked) await page.keyboard.press("Escape")
-      }
-    })
+    // Driver (untagged): open the modal, fill, confirm. The dialog/confirm expects are waits.
+    const balanceBeforeQueue = await step(
+      page,
+      "queue a partial withdrawal",
+      async () => {
+        await page
+          .getByRole("button", { name: /^withdraw$/i })
+          .first()
+          .click()
+        const dialog = page.getByRole("dialog")
+        await expect(dialog).toBeVisible({ timeout: 30_000 })
+        await dialog.getByRole("textbox").first().fill(WITHDRAW.toString())
+        const confirm = dialog.getByRole("button", {
+          name: new RegExp(`^withdraw ${WITHDRAW}`, "i"),
+        })
+        await expect(confirm).toBeEnabled({ timeout: 30_000 })
+        const balanceBeforeQueue = await chain.marketBalance(market, account0)
+        await confirm.click()
+        return balanceBeforeQueue
+      },
+    )
+    await waitForChainRead(
+      () => chain.marketBalance(market, account0),
+      (balance) => balance < balanceBeforeQueue,
+      "LEN-18 queued burn readable",
+    )
+    // The refetch can unmount the modal around the success view; the durable signal is the
+    // on-chain burn of the queued (partial) amount. The chain read IS the assertion here.
+    await step(
+      page,
+      "the queued amount leaves the balance",
+      async () => {
+        await expect
+          .poll(
+            async () =>
+              balanceBeforeQueue - (await chain.marketBalance(market, account0)),
+            { timeout: 120_000 },
+          )
+          .toBeGreaterThan(0n)
+      },
+      { req: ["REQ-LEN-017"] },
+    )
+    // Optional dismiss: the button can be visible yet pointer-blocked by a closing overlay —
+    // an unbounded click then eats the whole test budget (observed once under full-board
+    // conditions). Bounded click; Escape closes the modal just as well when it's stuck.
+    const backToMarket = page.getByRole("button", { name: /back to market/i })
+    if (await backToMarket.isVisible().catch(() => false)) {
+      const clicked = await backToMarket
+        .click({ timeout: 10_000 })
+        .then(() => true)
+        .catch(() => false)
+      if (!clicked) await page.keyboard.press("Escape")
+    }
 
     await syncSubgraph()
     const queuedAt = await chain.blockTimestamp()
     expiry18 = await findOpenBatchExpiry(market, account0, cycle)
-    expect(expiry18, "expiry in the future").toBeGreaterThan(queuedAt)
-    expect(
-      expiry18 - queuedAt <= cycle + 5,
-      "request entered the current cycle",
-    ).toBe(true)
-
     const batch = (await subgraph.withdrawalBatch(market, expiry18))!
-    expect(BigInt(batch.totalNormalizedRequests)).toBe(withdraw)
     const onChainBatch = await chain.getWithdrawalBatch(market, expiry18)
-    expectAgreement("LEN-18 batch scaled total", {
-      chain: onChainBatch.scaledTotalAmount,
-      subgraph: batch.scaledTotalAmount,
-      decimals,
-    })
+    await step(
+      page,
+      "the request is recorded in the current cycle's batch",
+      async () => {
+        expect(expiry18, "expiry in the future").toBeGreaterThan(queuedAt)
+        expect(
+          expiry18 - queuedAt <= cycle + 5,
+          "request entered the current cycle",
+        ).toBe(true)
+        expect(BigInt(batch.totalNormalizedRequests)).toBe(withdraw)
+        expectAgreement("LEN-18 batch scaled total", {
+          chain: onChainBatch.scaledTotalAmount,
+          subgraph: batch.scaledTotalAmount,
+          decimals,
+        })
+      },
+      { req: ["REQ-LEN-017"] },
+    )
 
-    await step(page, "cycle end time surfaced in the header", async () => {
-      // MarketHeader shows "Ongoing Cycle · <time> left" while a batch is pending.
-      await gotoMarket(page, market)
-      await ensureConnected(page, account0)
-      await expect(page.getByText(/ongoing cycle/i).first()).toBeVisible({
-        timeout: 30_000,
-      })
-      // VERIFY: countdown text is humanized ("5 minutes left"); prefix match keeps it stable.
-      await expect(page.getByText(/ left$/).first()).toBeVisible({
-        timeout: 30_000,
-      })
-    })
+    // MarketHeader shows "Ongoing Cycle · <time> left" while a batch is pending.
+    await gotoMarket(page, market)
+    await ensureConnected(page, account0)
+    await step(
+      page,
+      "cycle end time surfaced in the header",
+      async () => {
+        await expect(page.getByText(/ongoing cycle/i).first()).toBeVisible({
+          timeout: 30_000,
+        })
+        // VERIFY: countdown text is humanized ("5 minutes left"); prefix match keeps it stable.
+        await expect(page.getByText(/ left$/).first()).toBeVisible({
+          timeout: 30_000,
+        })
+      },
+      { req: ["REQ-LEN-112"] },
+    )
 
-    await step(page, "ongoing request row", async () => {
-      await openWithdrawalRequests(page)
-      const ongoing = await readOngoingAmounts(page)
-      expect(ongoing.length).toBeGreaterThanOrEqual(1)
-      expectFormattedEquals(ongoing[0], withdraw, decimals)
-    })
+    await openWithdrawalRequests(page)
+    const ongoing = await readOngoingAmounts(page)
+    await step(
+      page,
+      "ongoing request row",
+      async () => {
+        expect(ongoing.length).toBeGreaterThanOrEqual(1)
+        expectFormattedEquals(ongoing[0], withdraw, decimals)
+      },
+      { req: ["REQ-LEN-017"] },
+    )
   })
 
-  test("LEN-19: claim succeeds on the first try after the cycle ends", async ({
+  test("LEN-19: claim succeeds on the first try after the cycle ends", requirements(["REQ-LEN-024", "REQ-LEN-113"]), async ({
     page,
   }) => {
     const now = await chain.blockTimestamp()
@@ -362,33 +455,45 @@ test.describe.serial("lender flows: deposit & withdraw (LEN-15…22)", () => {
     expect(before.claimableRaw, "page claimable equals chain").toBe(claimable19)
     const tokenBefore = await chain.erc20Balance(token, account0)
 
-    await step(page, "single claim click — no retry", async () => {
-      await page
-        .getByRole("button", { name: /claim assets/i })
-        .first()
-        .click()
-      // First-try success (gas-estimation regression): claimable must reach zero without any
-      // error modal / "Try Again" interaction — this poll never clicks anything else.
-      await expect
-        .poll(async () => (await readWithdrawalsStatus(page)).claimableRaw, {
-          timeout: 120_000,
-        })
-        .toBe(0n)
-      expect(
-        await page.getByRole("button", { name: /try again/i }).count(),
-        "no failed-first-claim retry surfaced",
-      ).toBe(0)
-    })
+    await page
+      .getByRole("button", { name: /claim assets/i })
+      .first()
+      .click()
+    await step(
+      page,
+      "single claim click — no retry",
+      async () => {
+        // First-try success (gas-estimation regression): claimable must reach zero without any
+        // error modal / "Try Again" interaction — this poll never clicks anything else.
+        await expect
+          .poll(async () => (await readWithdrawalsStatus(page)).claimableRaw, {
+            timeout: 120_000,
+          })
+          .toBe(0n)
+        expect(
+          await page.getByRole("button", { name: /try again/i }).count(),
+          "no failed-first-claim retry surfaced",
+        ).toBe(0)
+      },
+      { req: ["REQ-LEN-113", "REQ-LEN-024"] },
+    )
 
     await syncSubgraph()
     const tokenAfter = await chain.erc20Balance(token, account0)
-    expect(tokenAfter - tokenBefore, "underlying received").toBe(claimable19)
     const status = (await subgraph.lenderWithdrawalStatus(
       market,
       expiry18,
       account0,
     ))!
-    expect(status.isCompleted).toBe(true)
+    await step(
+      page,
+      "the claimed assets arrive and the withdrawal completes",
+      async () => {
+        expect(tokenAfter - tokenBefore, "underlying received").toBe(claimable19)
+        expect(status.isCompleted).toBe(true)
+      },
+      { req: ["REQ-LEN-024"] },
+    )
     attachAgreement("LEN-19 claim", {
       claimable: claimable19,
       received: tokenAfter - tokenBefore,
@@ -396,7 +501,9 @@ test.describe.serial("lender flows: deposit & withdraw (LEN-15…22)", () => {
     })
   })
 
-  test("LEN-22: pro-rata payout when three lenders request more than reserves", async () => {
+  test("LEN-22: pro-rata payout when three lenders request more than reserves", requirements(["REQ-LEN-123"]), async ({
+    page,
+  }) => {
     // Co-lenders deposit chain-side (anvil signs); depositUpTo self-caps at market capacity.
     const coDeposit = parseUnits("300000", decimals)
     for (const account of [account1, account2]) {
@@ -463,7 +570,13 @@ test.describe.serial("lender flows: deposit & withdraw (LEN-15…22)", () => {
     expect(unpaid[0], "FIFO head is our batch").toBe(expiry22)
 
     // Pro-rata: each lender's claimable share of the paid amount tracks their scaled share.
+    // Chain reads first (outside the checkpoint), then the comparison as the checkpoint.
     const proRata: Record<string, unknown> = {}
+    const shares = [] as {
+      account: Address
+      claimable: bigint
+      expected: bigint
+    }[]
     for (const account of [account0, account1, account2]) {
       const claimable = await chain.getAvailableWithdrawalAmount(
         market,
@@ -478,12 +591,22 @@ test.describe.serial("lender flows: deposit & withdraw (LEN-15…22)", () => {
       const expected =
         (onChainBatch.normalizedAmountPaid * st.scaledAmount) /
         onChainBatch.scaledTotalAmount
-      expect(
-        claimable === expected,
-        `pro-rata claimable for ${account}: ${claimable} vs ${expected}`,
-      ).toBe(true)
+      shares.push({ account, claimable, expected })
       proRata[account] = { claimable, scaled: st.scaledAmount, expected }
     }
+    await step(
+      page,
+      "each lender's claimable share is pro rata to their request",
+      async () => {
+        for (const { account, claimable, expected } of shares) {
+          expect(
+            claimable === expected,
+            `pro-rata claimable for ${account}: ${claimable} vs ${expected}`,
+          ).toBe(true)
+        }
+      },
+      { req: ["REQ-LEN-123"] },
+    )
     attachAgreement("LEN-22 pro-rata", {
       requested: totalRequested,
       assetsAtQueue: assets,
@@ -531,7 +654,7 @@ test.describe.serial("lender flows: deposit & withdraw (LEN-15…22)", () => {
     await syncSubgraph()
   })
 
-  test("LEN-21: full exit — entire balance withdrawn and claimed, lender leaves", async ({
+  test("LEN-21: full exit — entire balance withdrawn and claimed, lender leaves", requirements(["REQ-LEN-116"]), async ({
     page,
   }) => {
     // Fresh position for the UI full-exit (LEN-22 exited everyone).
@@ -583,10 +706,18 @@ test.describe.serial("lender flows: deposit & withdraw (LEN-15…22)", () => {
 
     await syncSubgraph()
     expiry21 = await findOpenBatchExpiry(market, account0, cycle)
-    expect(
-      await chain.marketBalance(market, account0),
-      "entire balance moved into the batch",
-    ).toBe(0n)
+    // The chain read IS the assertion (the lender's whole balance left the market).
+    await step(
+      page,
+      "the entire balance moves into the batch",
+      async () => {
+        expect(
+          await chain.marketBalance(market, account0),
+          "entire balance moved into the batch",
+        ).toBe(0n)
+      },
+      { req: ["REQ-LEN-116"] },
+    )
 
     const now = await chain.blockTimestamp()
     if (now <= expiry21) await advanceTime(expiry21 - now + 1)
@@ -620,7 +751,6 @@ test.describe.serial("lender flows: deposit & withdraw (LEN-15…22)", () => {
     await syncSubgraph()
 
     const received = (await chain.erc20Balance(token, account0)) - tokenBefore
-    expect(received).toBe(claimable)
     // Exit dust: whatever of the request never came back must be scale-factor rounding only.
     const st = (await subgraph.lenderWithdrawalStatus(
       market,
@@ -629,21 +759,48 @@ test.describe.serial("lender flows: deposit & withdraw (LEN-15…22)", () => {
     ))!
     const requested = BigInt(st.totalNormalizedRequests)
     const withdrawn = BigInt(st.normalizedAmountWithdrawn)
-    expect(
-      requested - withdrawn <= 20n,
-      `exit dust beyond rounding: requested ${requested}, withdrawn ${withdrawn}`,
-    ).toBe(true)
-    expect(st.isCompleted).toBe(true)
-
-    // Lender has left the market everywhere.
-    expect(await chain.marketBalance(market, account0)).toBe(0n)
-    expect(await marketScaledBalance(market, account0)).toBe(0n)
     const acct = await subgraph.lenderAccount(market, account0)
-    expect(BigInt(acct?.scaledBalance ?? "0")).toBe(0n)
+    // Readiness waits (untagged): the two inline reads below ARE the assertion subjects, so only
+    // their readability is awaited here — a persistent revert fails between checkpoints.
+    await waitForChainRead(
+      () => chain.marketBalance(market, account0),
+      () => true,
+      "LEN-21 market balance readable",
+    )
+    await waitForChainRead(
+      () => marketScaledBalance(market, account0),
+      () => true,
+      "LEN-21 scaled balance readable",
+    )
+    await step(
+      page,
+      "the lender leaves the market with no dust beyond rounding",
+      async () => {
+        expect(received).toBe(claimable)
+        expect(
+          requested - withdrawn <= 20n,
+          `exit dust beyond rounding: requested ${requested}, withdrawn ${withdrawn}`,
+        ).toBe(true)
+        expect(st.isCompleted).toBe(true)
+
+        // Lender has left the market everywhere. These two chain reads ARE the assertions.
+        expect(await chain.marketBalance(market, account0)).toBe(0n)
+        expect(await marketScaledBalance(market, account0)).toBe(0n)
+        expect(BigInt(acct?.scaledBalance ?? "0")).toBe(0n)
+      },
+      { req: ["REQ-LEN-116"] },
+    )
     await gotoMarket(page, market)
     await ensureConnected(page, account0)
-    const after = await waitAvailableToWithdraw(page, 0n)
-    expect(after.raw, "page shows no remaining position").toBe(0n)
+    await step(
+      page,
+      "the page shows no remaining position",
+      async () => {
+        const after = await waitAvailableToWithdraw(page, 0n)
+        expect(after.raw, "page shows no remaining position").toBe(0n)
+      },
+      { req: ["REQ-LEN-116"] },
+    )
     attachAgreement("LEN-21 full exit", {
       deposited: deposit,
       requested,
@@ -653,7 +810,7 @@ test.describe.serial("lender flows: deposit & withdraw (LEN-15…22)", () => {
     })
   })
 
-  test("teardown: record the openTerm end-state for the next suite", async () => {
+  test("teardown: record the openTerm end-state for the next suite", infra("teardown"), async () => {
     // Guard against accidental unpaid leftovers for the next suite on this shared fork.
     const sim = await simulateMarketWrite({
       account: account0,

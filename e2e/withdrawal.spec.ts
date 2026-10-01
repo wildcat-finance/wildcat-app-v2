@@ -21,6 +21,7 @@ import {
   readOngoingAmounts,
   readWithdrawalsStatus,
 } from "./lib/page"
+import { infra, requirements, step } from "./lib/step"
 import * as subgraph from "./lib/subgraph"
 import { expect, test } from "./lib/test"
 
@@ -43,7 +44,7 @@ test.describe.serial("lender withdrawal: queue → expiry → claim", () => {
   let expiry: number
   let tokenBalanceBefore: bigint
 
-  test("setup: fund and deposit through the chain (UI deposit is covered by the smoke)", async () => {
+  test("setup: fund and deposit through the chain (UI deposit is covered by the smoke)", infra("setup"), async () => {
     const m = await subgraph.market(market)
     expect(m, "pinned market exists").not.toBeNull()
     decimals = m!.asset.decimals
@@ -87,20 +88,27 @@ test.describe.serial("lender withdrawal: queue → expiry → claim", () => {
     tokenBalanceBefore = await chain.erc20Balance(token, account)
   })
 
-  test("page shows the available balance that chain and subgraph report", async ({
+  test("page shows the available balance that chain and subgraph report", requirements(["REQ-LEN-139"]), async ({
     page,
   }) => {
     await gotoMarket(page, market)
     await ensureConnected(page, account)
     const onChain = await chain.marketBalance(market, account)
-    const available = await waitAvailableToWithdraw(page, onChain)
-    expect(available.raw, "data-value equals market balance").toBe(onChain)
-    expectFormattedEquals(available.text, onChain, decimals)
+    await step(
+      page,
+      "the page shows the live market balance as available, formatted",
+      async () => {
+        const available = await waitAvailableToWithdraw(page, onChain)
+        expect(available.raw, "data-value equals market balance").toBe(onChain)
+        expectFormattedEquals(available.text, onChain, decimals)
+      },
+      { req: ["REQ-LEN-139"] },
+    )
     const status = await readWithdrawalsStatus(page)
     expect(status.claimableRaw).toBe(0n)
   })
 
-  test("queue a withdrawal through the UI", async ({ page }) => {
+  test("queue a withdrawal through the UI", requirements(["REQ-LEN-017"]), async ({ page }) => {
     await gotoMarket(page, market)
     await ensureConnected(page, account)
     await page
@@ -116,9 +124,16 @@ test.describe.serial("lender withdrawal: queue → expiry → claim", () => {
     await expect(confirm).toBeEnabled({ timeout: 30_000 })
     await confirm.click()
     // The withdraw modal has its own success view; the title is the success signal.
-    await expect(page.getByText("Withdrawal Requested")).toBeVisible({
-      timeout: 120_000,
-    })
+    await step(
+      page,
+      "the withdraw modal confirms the request",
+      async () => {
+        await expect(page.getByText("Withdrawal Requested")).toBeVisible({
+          timeout: 120_000,
+        })
+      },
+      { req: ["REQ-LEN-017"] },
+    )
     await syncSubgraph()
 
     // Which batch did it land in? The batch expiry is the cycle end for the block the tx was in.
@@ -129,7 +144,7 @@ test.describe.serial("lender withdrawal: queue → expiry → claim", () => {
         ts - cycle * 2
       } }, orderBy: expiry, orderDirection: desc, first: 5) { expiry } }`,
     )
-    const found = []
+    const found: number[] = []
     for (const b of candidates.withdrawalBatches) {
       const st = await subgraph.lenderWithdrawalStatus(
         market,
@@ -138,12 +153,19 @@ test.describe.serial("lender withdrawal: queue → expiry → claim", () => {
       )
       if (st && !st.isCompleted) found.push(Number(b.expiry))
     }
-    expect(found.length, "exactly one open batch for this lender").toBe(1)
-    expiry = found[0]
-    expect(expiry, "expiry is in the future").toBeGreaterThan(ts)
+    await step(
+      page,
+      "the request lands in one open batch that expires in the future",
+      async () => {
+        expect(found.length, "exactly one open batch for this lender").toBe(1)
+        expiry = found[0]
+        expect(expiry, "expiry is in the future").toBeGreaterThan(ts)
+      },
+      { req: ["REQ-LEN-017"] },
+    )
   })
 
-  test("after queueing: page, chain and subgraph agree", async ({ page }) => {
+  test("after queueing: page, chain and subgraph agree", requirements(["REQ-LEN-025"]), async ({ page }) => {
     const batch = (await subgraph.withdrawalBatch(market, expiry))!
     const status = (await subgraph.lenderWithdrawalStatus(
       market,
@@ -179,40 +201,61 @@ test.describe.serial("lender withdrawal: queue → expiry → claim", () => {
       remaining,
     )
     const st = await readWithdrawalsStatus(page)
-    expect(st.claimableRaw, "nothing claimable before expiry").toBe(0n)
     await openWithdrawalRequests(page)
     const ongoing = await readOngoingAmounts(page)
-    expect(ongoing.length, "one ongoing request row").toBeGreaterThanOrEqual(1)
-    expectFormattedEquals(ongoing[0], withdraw, decimals)
+    await step(
+      page,
+      "the lender sees the request as ongoing and nothing claimable",
+      async () => {
+        expect(st.claimableRaw, "nothing claimable before expiry").toBe(0n)
+        expect(
+          ongoing.length,
+          "one ongoing request row",
+        ).toBeGreaterThanOrEqual(1)
+        expectFormattedEquals(ongoing[0], withdraw, decimals)
+      },
+      { req: ["REQ-LEN-025"] },
+    )
   })
 
-  test("time travel past the cycle; the batch expires and is paid on the next state update", async () => {
+  test("time travel past the cycle; the batch expires and is paid on the next state update", requirements(["REQ-PROTO-115"]), async ({
+    page,
+  }) => {
     const now = await chain.blockTimestamp()
     await advanceTime(Math.max(1, expiry - now) + 1)
     await chain.updateState(account, market) // keeper tx: processes the expired batch
     await syncSubgraph()
     const batch = (await subgraph.withdrawalBatch(market, expiry))!
-    expect(batch.isExpired, "subgraph marks the batch expired").toBe(true)
-    // Scale-factor rounding can leave the paid amount 1 wei short of the request.
-    expect(
-      BigInt(batch.normalizedAmountPaid) >= withdraw - 10n,
-      "batch fully paid up to rounding dust (market has liquidity)",
-    ).toBe(true)
     const onChainBatch = await chain.getWithdrawalBatch(market, expiry)
-    expectAgreement("normalizedAmountPaid", {
-      chain: onChainBatch.normalizedAmountPaid,
-      subgraph: batch.normalizedAmountPaid,
-      decimals,
-    })
     const claimable = await chain.getAvailableWithdrawalAmount(
       market,
       account,
       expiry,
     )
-    expect(claimable > 0n, "lender has a claimable amount on-chain").toBe(true)
+    await step(
+      page,
+      "the expired batch is paid in full at the next state update",
+      async () => {
+        expect(batch.isExpired, "subgraph marks the batch expired").toBe(true)
+        // Scale-factor rounding can leave the paid amount 1 wei short of the request.
+        expect(
+          BigInt(batch.normalizedAmountPaid) >= withdraw - 10n,
+          "batch fully paid up to rounding dust (market has liquidity)",
+        ).toBe(true)
+        expectAgreement("normalizedAmountPaid", {
+          chain: onChainBatch.normalizedAmountPaid,
+          subgraph: batch.normalizedAmountPaid,
+          decimals,
+        })
+        expect(claimable > 0n, "lender has a claimable amount on-chain").toBe(
+          true,
+        )
+      },
+      { req: ["REQ-PROTO-115"] },
+    )
   })
 
-  test("claim through the UI; final state agrees everywhere", async ({
+  test("claim through the UI; final state agrees everywhere", requirements(["REQ-LEN-024", "REQ-LEN-113"]), async ({
     page,
   }) => {
     await gotoMarket(page, market)
@@ -234,35 +277,59 @@ test.describe.serial("lender withdrawal: queue → expiry → claim", () => {
       .click()
     // On success the app refetches, claimable drops to 0 and the alert block (with its success
     // dialog) unmounts almost immediately — the durable success signal is the claimed page state.
-    await expect
-      .poll(async () => (await readWithdrawalsStatus(page)).claimableRaw, {
-        timeout: 120_000,
-      })
-      .toBe(0n)
+    // One click, no retry: reaching 0 here is the first-attempt success.
+    await step(
+      page,
+      "a single claim clears the claimable amount",
+      async () => {
+        await expect
+          .poll(async () => (await readWithdrawalsStatus(page)).claimableRaw, {
+            timeout: 120_000,
+          })
+          .toBe(0n)
+      },
+      { req: ["REQ-LEN-024", "REQ-LEN-113"] },
+    )
     await syncSubgraph()
 
     const tokenBalance = await chain.erc20Balance(token, account)
-    expect(tokenBalance - tokenBalanceBefore, "underlying received").toBe(
-      claimableOnChain,
-    )
     const status = (await subgraph.lenderWithdrawalStatus(
       market,
       expiry,
       account,
     ))!
-    expect(status.isCompleted, "subgraph: lender withdrawal completed").toBe(
-      true,
+    // The chain side of the agreement is read inline: it IS one side of the assertion.
+    await step(
+      page,
+      "the claimed assets arrive and page, chain and subgraph agree",
+      async () => {
+        expect(tokenBalance - tokenBalanceBefore, "underlying received").toBe(
+          claimableOnChain,
+        )
+        expect(status.isCompleted, "subgraph: lender withdrawal completed").toBe(
+          true,
+        )
+        expect(status.executionsCount).toBeGreaterThanOrEqual(1)
+        expectAgreement("normalizedAmountWithdrawn", {
+          chain: (
+            await chain.getAccountWithdrawalStatus(market, account, expiry)
+          ).normalizedAmountWithdrawn,
+          subgraph: status.normalizedAmountWithdrawn,
+          decimals,
+        })
+      },
+      { req: ["REQ-LEN-024"] },
     )
-    expect(status.executionsCount).toBeGreaterThanOrEqual(1)
-    expectAgreement("normalizedAmountWithdrawn", {
-      chain: (await chain.getAccountWithdrawalStatus(market, account, expiry))
-        .normalizedAmountWithdrawn,
-      subgraph: status.normalizedAmountWithdrawn,
-      decimals,
-    })
     await page.reload()
     await ensureConnected(page, account)
     const after = await readWithdrawalsStatus(page)
-    expect(after.claimableRaw, "nothing left to claim").toBe(0n)
+    await step(
+      page,
+      "nothing is left to claim",
+      async () => {
+        expect(after.claimableRaw, "nothing left to claim").toBe(0n)
+      },
+      { req: ["REQ-LEN-024"] },
+    )
   })
 })
