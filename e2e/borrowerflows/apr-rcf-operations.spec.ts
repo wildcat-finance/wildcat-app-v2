@@ -53,7 +53,7 @@ import {
   gotoMarket,
   readAvailableToWithdraw,
 } from "../lib/page"
-import { attachAgreement, step } from "../lib/step"
+import { attachAgreement, infra, requirements, step } from "../lib/step"
 import { expect, test, type Locator, type Page } from "../lib/test"
 
 /**
@@ -377,7 +377,7 @@ test.describe
     ).toMatch(/^Current utilization: [\d.]+% of deposited capital is drawn\.$/)
   }
 
-  test("setup: discover the MKT-05 revolving fixture and arrange a lender position", async ({
+  test("setup: discover the MKT-05 revolving fixture and arrange a lender position", infra("setup"), async ({
     page,
   }) => {
     test.setTimeout(600_000)
@@ -515,7 +515,7 @@ test.describe
     })
   })
 
-  test("BOP-16: RCF market — utilisation APR dialog", async ({ page }) => {
+  test("BOP-16: RCF market — utilisation APR dialog", requirements(["REQ-MKT-021", "REQ-BOP-009", "REQ-BOP-114"]), async ({ page }) => {
     requireRcf()
     test.setTimeout(600_000)
 
@@ -541,33 +541,37 @@ test.describe
     await gotoBorrowerMarket(page, market)
     await ensureConnected(page, BORROWER)
 
-    await step(page, "parameters name the UTILISATION APR", async () => {
-      await openStatusDetails(page)
-      // The runsheet's first expectation: this market prices a utilisation APR and the app
-      // must not call it a base APR (src/utils/marketApr.ts:69-76).
-      await expect(parameterRow(page, "Utilization APR")).toHaveCount(1, {
-        timeout: 90_000,
-      })
-      // "Base Lender APR" is the STANDARD variant's label for the same row
-      // (market-implementation-variants/legacy.ts:10 -> marketParameters.baseAPR): its presence
-      // here would mean the app fell back to the standard copy on a revolving market.
-      await expect(parameterRow(page, "Base Lender APR")).toHaveCount(0)
-      expect(await readParameterValue(page, "Utilization APR")).toBe(
-        `${formatBps(aprBefore)}%`,
-      )
-      expect(await readParameterValue(page, "Commitment APR")).toBe(
-        `${formatBps(commitmentBefore)}%`,
-      )
-    })
-
+    await openStatusDetails(page)
     await step(
       page,
-      "increase the utilisation APR through the UI",
+      "parameters name the UTILISATION APR",
       async () => {
-        const opener = await aprOpener(page)
-        await opener.click()
+        // The runsheet's first expectation: this market prices a utilisation APR and the app
+        // must not call it a base APR (src/utils/marketApr.ts:69-76).
+        await expect(parameterRow(page, "Utilization APR")).toHaveCount(1, {
+          timeout: 90_000,
+        })
+        // "Base Lender APR" is the STANDARD variant's label for the same row
+        // (market-implementation-variants/legacy.ts:10 -> marketParameters.baseAPR): its presence
+        // here would mean the app fell back to the standard copy on a revolving market.
+        await expect(parameterRow(page, "Base Lender APR")).toHaveCount(0)
+        expect(await readParameterValue(page, "Utilization APR")).toBe(
+          `${formatBps(aprBefore)}%`,
+        )
+        expect(await readParameterValue(page, "Commitment APR")).toBe(
+          `${formatBps(commitmentBefore)}%`,
+        )
+      },
+      { req: ["REQ-MKT-021"] },
+    )
 
-        const dialog = page.getByRole("dialog")
+    const opener = await aprOpener(page)
+    await opener.click()
+    const dialog = page.getByRole("dialog")
+    await step(
+      page,
+      "the adjust dialog names the utilisation APR, never a base APR",
+      async () => {
         await expect(dialog).toBeVisible({ timeout: 30_000 })
         // The dialog itself must be utilisation-labelled, never "Base APR".
         await expect(
@@ -576,7 +580,14 @@ test.describe
         await expect(
           dialog.getByText("Current Base APR", { exact: true }),
         ).toHaveCount(0)
+      },
+      { req: ["REQ-BOP-009"] },
+    )
 
+    await step(
+      page,
+      "increase the utilisation APR through the UI",
+      async () => {
         await dialog
           .getByRole("textbox")
           .first()
@@ -592,52 +603,63 @@ test.describe
     )
 
     // The write must actually land: a success modal is not evidence (KNOWN-ISSUES #5).
-    expect(
-      await marketApr(market),
-      "the dialog targets the market's utilisation APR (annualInterestBips)",
-    ).toBe(target)
-    expect(
-      await commitmentFeeBips(market),
-      "commitment component unchanged — WildcatMarketRevolving.sol:17 immutable, no setter",
-    ).toBe(commitmentBefore)
+    await step(
+      page,
+      "the raise lands on the utilisation APR and leaves the commitment fee alone",
+      async () => {
+        expect(
+          await marketApr(market),
+          "the dialog targets the market's utilisation APR (annualInterestBips)",
+        ).toBe(target)
+        expect(
+          await commitmentFeeBips(market),
+          "commitment component unchanged — WildcatMarketRevolving.sol:17 immutable, no setter",
+        ).toBe(commitmentBefore)
+      },
+      { req: ["REQ-BOP-114"] },
+    )
     utilizationAprBips = target
 
-    await step(page, "page reflects the new utilisation APR", async () => {
-      await page.reload()
-      await openStatusDetails(page)
-      await expect(parameterRow(page, "Utilization APR")).toContainText(
-        `${formatBps(target)}%`,
-        { timeout: 120_000 },
-      )
-      expect(
-        await readParameterValue(page, "Commitment APR"),
-        "commitment APR row unchanged by a utilisation-APR adjustment",
-      ).toBe(`${formatBps(commitmentBefore)}%`)
-    })
+    await page.reload()
+    await openStatusDetails(page)
+    await step(
+      page,
+      "page reflects the new utilisation APR",
+      async () => {
+        await expect(parameterRow(page, "Utilization APR")).toContainText(
+          `${formatBps(target)}%`,
+          { timeout: 120_000 },
+        )
+        expect(
+          await readParameterValue(page, "Commitment APR"),
+          "commitment APR row unchanged by a utilisation-APR adjustment",
+        ).toBe(`${formatBps(commitmentBefore)}%`)
+      },
+      { req: ["REQ-BOP-114"] },
+    )
 
     // Runsheet: "dialog layout stays stable when the reduction notice appears". A reduction on
     // this OPEN-term revolving market pegs a TEMPORARY reserve ratio for two weeks
     // (MarketConstraintHooks.sol:249), which would move `borrowableAssets` and the delinquency
     // headroom the BOP-33/LEN-26 ladder depends on. The notice is therefore inspected WITHOUT
     // submitting; the reduction transaction itself is out of scope for this shared fixture.
-    const reductionNotice = await step(
+    // Drivers: open the dialog, read the pre-notice ratio, type the reduction (no submit).
+    await (await aprOpener(page)).click()
+    // Same locator as the increase dialog above: the opener re-mounts the one APR dialog.
+    await expect(dialog).toBeVisible({ timeout: 30_000 })
+
+    const ratioBefore = await readModalRow(dialog, "Reserve Ratio")
+    await dialog
+      .getByRole("textbox")
+      .first()
+      .fill((Number(reductionTarget) / 100).toFixed(2))
+
+    // The temporary-reserve-ratio line IS the reduction notice.
+    const timer = dialog.getByText(/Temporary reserve ratio in force until/i)
+    const ratioAfterShown = await step(
       page,
       "reduction notice renders without breaking the dialog",
       async () => {
-        await (await aprOpener(page)).click()
-        const dialog = page.getByRole("dialog")
-        await expect(dialog).toBeVisible({ timeout: 30_000 })
-
-        const ratioBefore = await readModalRow(dialog, "Reserve Ratio")
-        await dialog
-          .getByRole("textbox")
-          .first()
-          .fill((Number(reductionTarget) / 100).toFixed(2))
-
-        // The temporary-reserve-ratio line IS the reduction notice.
-        const timer = dialog.getByText(
-          /Temporary reserve ratio in force until/i,
-        )
         await expect(timer).toBeVisible({ timeout: 30_000 })
         const ratioAfter = await readModalRow(dialog, "Reserve Ratio")
         expect(
@@ -666,12 +688,18 @@ test.describe
         await expect(
           dialog.getByRole("button", { name: /^confirm$/i }),
         ).toBeEnabled({ timeout: 30_000 })
-
-        const notice = (await timer.innerText()).trim()
-        await closeDialog(page)
-        return { notice, ratioBefore, ratioAfter }
+        return ratioAfter
       },
+      { req: ["REQ-BOP-009"] },
     )
+
+    const notice = (await timer.innerText()).trim()
+    await closeDialog(page)
+    const reductionNotice = {
+      notice,
+      ratioBefore,
+      ratioAfter: ratioAfterShown,
+    }
 
     expect(
       await marketApr(market),
@@ -693,7 +721,7 @@ test.describe
     })
   })
 
-  test("BOP-33: RCF draw pricing", async ({ page }) => {
+  test("BOP-33: RCF draw pricing", requirements(["REQ-BOP-115"]), async ({ page }) => {
     requireRcf()
     test.setTimeout(1_200_000)
 
@@ -776,38 +804,45 @@ test.describe
     })
 
     // ---- oracle: every window's scale factor and protocol fee, to the wei ----
-    for (const p of phases) {
-      const measuredProtocolFee =
-        p.after.accruedProtocolFees - p.before.accruedProtocolFees
-      const lenderInterest =
-        normalizeAmount(p.scaledTotalSupply, p.after.scaleFactor) -
-        normalizeAmount(p.scaledTotalSupply, p.before.scaleFactor)
+    await step(
+      page,
+      "every window accrues exactly what the revolving pricing formula predicts",
+      async () => {
+        for (const p of phases) {
+          const measuredProtocolFee =
+            p.after.accruedProtocolFees - p.before.accruedProtocolFees
+          const lenderInterest =
+            normalizeAmount(p.scaledTotalSupply, p.after.scaleFactor) -
+            normalizeAmount(p.scaledTotalSupply, p.before.scaleFactor)
 
-      expect(
-        absDiffBig(p.after.scaleFactor, p.predicted.scaleFactorAfter) <= 2n,
-        `${p.label}: scale factor matches the revolving formula ` +
-          `(measured ${p.after.scaleFactor}, predicted ${p.predicted.scaleFactorAfter})`,
-      ).toBe(true)
-      expect(
-        absDiffBig(measuredProtocolFee, p.predicted.protocolFee) <= 2n,
-        `${p.label}: protocol fee matches applyProtocolFee ` +
-          `(measured ${measuredProtocolFee}, predicted ${p.predicted.protocolFee})`,
-      ).toBe(true)
-      expect(
-        absDiffBig(
-          lenderInterest + measuredProtocolFee,
-          p.predicted.borrowerCost,
-        ) <= 4n,
-        `${p.label}: borrower cost = lender interest + protocol fee ` +
-          `(measured ${lenderInterest + measuredProtocolFee}, predicted ${
-            p.predicted.borrowerCost
-          })`,
-      ).toBe(true)
-      expect(
-        measuredProtocolFee > 0n,
-        `${p.label}: the protocol fee accrues separately from lender interest`,
-      ).toBe(true)
-    }
+          expect(
+            absDiffBig(p.after.scaleFactor, p.predicted.scaleFactorAfter) <= 2n,
+            `${p.label}: scale factor matches the revolving formula ` +
+              `(measured ${p.after.scaleFactor}, predicted ${p.predicted.scaleFactorAfter})`,
+          ).toBe(true)
+          expect(
+            absDiffBig(measuredProtocolFee, p.predicted.protocolFee) <= 2n,
+            `${p.label}: protocol fee matches applyProtocolFee ` +
+              `(measured ${measuredProtocolFee}, predicted ${p.predicted.protocolFee})`,
+          ).toBe(true)
+          expect(
+            absDiffBig(
+              lenderInterest + measuredProtocolFee,
+              p.predicted.borrowerCost,
+            ) <= 4n,
+            `${p.label}: borrower cost = lender interest + protocol fee ` +
+              `(measured ${lenderInterest + measuredProtocolFee}, predicted ${
+                p.predicted.borrowerCost
+              })`,
+          ).toBe(true)
+          expect(
+            measuredProtocolFee > 0n,
+            `${p.label}: the protocol fee accrues separately from lender interest`,
+          ).toBe(true)
+        }
+      },
+      { req: ["REQ-BOP-115"] },
+    )
 
     // ---- the runsheet's two pricing claims, measured ----
     const lenderRateOf = (p: Phase) =>
@@ -826,11 +861,18 @@ test.describe
     ).toBe(0n)
     // "Commitment fee always accrues on deposits": at 0% utilisation the entire lender rate IS
     // the commitment fee.
-    expect(
-      absDiffBig(undrawnRate, commitmentBips * 100n) <= commitmentBips,
-      `undrawn lender rate is the commitment fee (measured ${undrawnRate} centibips, ` +
-        `commitment ${commitmentBips * 100n} centibips)`,
-    ).toBe(true)
+    await step(
+      page,
+      "an undrawn facility costs exactly the commitment fee",
+      async () => {
+        expect(
+          absDiffBig(undrawnRate, commitmentBips * 100n) <= commitmentBips,
+          `undrawn lender rate is the commitment fee (measured ${undrawnRate} centibips, ` +
+            `commitment ${commitmentBips * 100n} centibips)`,
+        ).toBe(true)
+      },
+      { req: ["REQ-BOP-115"] },
+    )
 
     // "Utilisation APR scales linearly with drawn proportion": recovering annualInterestBips
     // from each drawn phase must return the configured rate.
@@ -853,16 +895,23 @@ test.describe
       linearity.length >= 2,
       "at least two distinct non-zero utilisation phases were measured",
     ).toBe(true)
-    for (const row of linearity) {
-      const recovered = BigInt(row.recoveredUtilizationAprCentiBips)
-      const configured = utilizationAprBips * 100n
-      expect(
-        absDiffBig(recovered, configured) <= configured / 50n,
-        `${row.label}: the utilisation APR recovered from the measured accrual is the ` +
-          `configured rate (recovered ${recovered} centibips, configured ${configured}) — ` +
-          `linear in utilisation`,
-      ).toBe(true)
-    }
+    await step(
+      page,
+      "the market APR is charged on the drawn portion only, linearly in utilisation",
+      async () => {
+        for (const row of linearity) {
+          const recovered = BigInt(row.recoveredUtilizationAprCentiBips)
+          const configured = utilizationAprBips * 100n
+          expect(
+            absDiffBig(recovered, configured) <= configured / 50n,
+            `${row.label}: the utilisation APR recovered from the measured accrual is the ` +
+              `configured rate (recovered ${recovered} centibips, configured ${configured}) — ` +
+              `linear in utilisation`,
+          ).toBe(true)
+        }
+      },
+      { req: ["REQ-BOP-115"] },
+    )
 
     // Distinct utilisation levels really were exercised.
     const u = phases.map((p) => p.measuredUtilizationBips)
@@ -919,7 +968,7 @@ test.describe
     })
   })
 
-  test("LEN-26: RCF yield across utilisation phases", async ({ page }) => {
+  test("LEN-26: RCF yield across utilisation phases", requirements(["REQ-LEN-127"]), async ({ page }) => {
     requireRcf()
     test.setTimeout(600_000)
     test.skip(
@@ -943,24 +992,31 @@ test.describe
       return { p, expected, measured, rate, expectedRateBips }
     })
 
-    for (const { p, expected, measured, rate, expectedRateBips } of rows) {
-      expect(
-        measured > 0n,
-        `${p.label}: the lender earns in every phase — the commitment fee accrues on deposits ` +
-          `even at zero utilisation (WildcatMarketRevolving.sol:143)`,
-      ).toBe(true)
-      // The lender's balance is a pure rebase of an unchanged scaled balance.
-      expect(
-        absDiffBig(measured, expected) <= 2n,
-        `${p.label}: lender balance growth is the scale-factor rebase ` +
-          `(measured ${measured}, expected ${expected})`,
-      ).toBe(true)
-      expect(
-        absDiffBig(rate, expectedRateBips * 100n) <= expectedRateBips,
-        `${p.label}: lender yield rate ${rate} centibips ≈ commitment + utilisation-weighted ` +
-          `${expectedRateBips * 100n} centibips`,
-      ).toBe(true)
-    }
+    await step(
+      page,
+      "the lender earns commitment plus utilisation-weighted APR in every phase",
+      async () => {
+        for (const { p, expected, measured, rate, expectedRateBips } of rows) {
+          expect(
+            measured > 0n,
+            `${p.label}: the lender earns in every phase — the commitment fee accrues on deposits ` +
+              `even at zero utilisation (WildcatMarketRevolving.sol:143)`,
+          ).toBe(true)
+          // The lender's balance is a pure rebase of an unchanged scaled balance.
+          expect(
+            absDiffBig(measured, expected) <= 2n,
+            `${p.label}: lender balance growth is the scale-factor rebase ` +
+              `(measured ${measured}, expected ${expected})`,
+          ).toBe(true)
+          expect(
+            absDiffBig(rate, expectedRateBips * 100n) <= expectedRateBips,
+            `${p.label}: lender yield rate ${rate} centibips ≈ commitment + utilisation-weighted ` +
+              `${expectedRateBips * 100n} centibips`,
+          ).toBe(true)
+        }
+      },
+      { req: ["REQ-LEN-127"] },
+    )
 
     // Yield is a rebase, not new units.
     const scaledBalances = new Set(phases.map((p) => p.lenderScaled.toString()))
@@ -973,14 +1029,21 @@ test.describe
     )
 
     // Yield tracks utilisation.
-    expect(
-      rows[1].rate > rows[0].rate && rows[1].rate < rows[2].rate,
-      `partial draw sits between undrawn and near-full (${rows[0].rate} < ${rows[1].rate} < ${rows[2].rate} centibips)`,
-    ).toBe(true)
-    expect(
-      rows[3].rate < rows[2].rate && rows[3].rate > rows[0].rate,
-      `yield falls back after the repayment but stays above the undrawn rate (${rows[3].rate} centibips)`,
-    ).toBe(true)
+    await step(
+      page,
+      "lender yield rises and falls with utilisation",
+      async () => {
+        expect(
+          rows[1].rate > rows[0].rate && rows[1].rate < rows[2].rate,
+          `partial draw sits between undrawn and near-full (${rows[0].rate} < ${rows[1].rate} < ${rows[2].rate} centibips)`,
+        ).toBe(true)
+        expect(
+          rows[3].rate < rows[2].rate && rows[3].rate > rows[0].rate,
+          `yield falls back after the repayment but stays above the undrawn rate (${rows[3].rate} centibips)`,
+        ).toBe(true)
+      },
+      { req: ["REQ-LEN-127"] },
+    )
 
     await step(page, "lender page shows the accrued position", async () => {
       await connectAs(page, 1)
@@ -1029,7 +1092,7 @@ test.describe
     })
   })
 
-  test("BOP-16b: RCF utilisation APR REDUCTION submits through the dialog (runs LAST — creates the reserve-ratio peg)", async ({
+  test("BOP-16b: RCF utilisation APR REDUCTION submits through the dialog (runs LAST — creates the reserve-ratio peg)", requirements(["REQ-BOP-114"]), async ({
     page,
   }) => {
     // Reviewer follow-up: BOP-16 inspects the reduction notice without submitting, so reduction
@@ -1104,14 +1167,21 @@ test.describe
     })
 
     // The write must land (success modals are not evidence — KNOWN-ISSUES #5 history).
-    expect(
-      await marketApr(market),
-      "the reduction applied to the utilisation APR",
-    ).toBe(reductionTarget)
-    expect(
-      await commitmentFeeBips(market),
-      "commitment component untouched by the reduction",
-    ).toBe(commitmentBefore)
+    await step(
+      page,
+      "the reduction lands on the utilisation APR and leaves the commitment fee alone",
+      async () => {
+        expect(
+          await marketApr(market),
+          "the reduction applied to the utilisation APR",
+        ).toBe(reductionTarget)
+        expect(
+          await commitmentFeeBips(market),
+          "commitment component untouched by the reduction",
+        ).toBe(commitmentBefore)
+      },
+      { req: ["REQ-BOP-114"] },
+    )
     // A >25% reduction pegs the temporary reserve ratio with a ~2-week expiry.
     // temporaryExcessReserveRatio(market) => [originalAnnualInterestBips, originalReserveRatioBips,
     // expiry] (abis.ts): the peg's 2-week clock is peg[2] (expiry), NOT peg[1] — peg[1] is the

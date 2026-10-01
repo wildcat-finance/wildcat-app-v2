@@ -51,7 +51,7 @@ import * as chain from "../lib/chain"
 import { faucet, syncSubgraph, type Address } from "../lib/env"
 import * as journal from "../lib/journal"
 import { connectAs, ensureConnected } from "../lib/page"
-import { attachAgreement, step } from "../lib/step"
+import { attachAgreement, infra, requirements, step } from "../lib/step"
 import { expect, test, type Page } from "../lib/test"
 
 /**
@@ -215,7 +215,7 @@ test.describe.serial("borrower flows: periodic APR reduction (BOP-17)", () => {
     return dialog
   }
 
-  test("setup: locate the MKT-06 periodic fixture, sign ceremonies, arrange lenders", async ({
+  test("setup: locate the MKT-06 periodic fixture, sign ceremonies, arrange lenders", infra("setup"), async ({
     page,
   }) => {
     test.setTimeout(900_000)
@@ -443,7 +443,7 @@ test.describe.serial("borrower flows: periodic APR reduction (BOP-17)", () => {
     })
   })
 
-  test("BOP-17: periodic-market APR reduction (windows + proposal flow)", async ({
+  test("BOP-17: periodic-market APR reduction (windows + proposal flow)", requirements(["REQ-MKT-022", "REQ-BOP-008", "REQ-BOP-018", "REQ-BOP-019", "REQ-BOP-021"]), async ({
     page,
   }) => {
     requirePeriodic()
@@ -527,113 +527,153 @@ test.describe.serial("borrower flows: periodic APR reduction (BOP-17)", () => {
     // ---------------------------------------------------------------- branch 2
     let responseWindowStart = 0
     let responseWindowEnd = 0
-    await step(
-      page,
-      "2 — propose outside a window with lenders present",
-      async () => {
-        const windowStart = nextWindowStartAt(
-          schedule,
-          (await chain.blockTimestamp()) - schedule.periodDuration,
-        )
-        await advanceChainTo(
-          windowStart + schedule.withdrawalWindowDuration + 60,
-          "close the withdrawal window",
-        )
-        expect(
-          await withdrawalWindowOpen(hooks, market),
-          "the withdrawal window has closed",
-        ).toBe(false)
+    {
+      const { proposalAt, dialog } = await step(
+        page,
+        "2 — propose outside a window with lenders present",
+        async () => {
+          const windowStart = nextWindowStartAt(
+            schedule,
+            (await chain.blockTimestamp()) - schedule.periodDuration,
+          )
+          await advanceChainTo(
+            windowStart + schedule.withdrawalWindowDuration + 60,
+            "close the withdrawal window",
+          )
+          expect(
+            await withdrawalWindowOpen(hooks, market),
+            "the withdrawal window has closed",
+          ).toBe(false)
 
-        const proposalAt = await chain.blockTimestamp()
+          const at = await chain.blockTimestamp()
 
-        await refreshAtChainTime(page)
-        const dialog = await openAprDialog(page, proposedBips)
-        // The periodic path must offer a PROPOSAL, not a direct set (AprModal:135-146).
-        const propose = dialog.getByRole("button", {
-          name: /^propose reduction$/i,
-        })
-        await expect(propose).toBeVisible({ timeout: 30_000 })
-        await dialog.getByRole("button", { name: /^confirm$/i }).click()
-        await dialog.getByRole("checkbox").check()
-        await expect(propose).toBeEnabled({ timeout: 30_000 })
-        await propose.click()
-        await waitBorrowerTxSuccess(page)
-        await closeDialog(page)
+          await refreshAtChainTime(page)
+          return {
+            proposalAt: at,
+            dialog: await openAprDialog(page, proposedBips),
+          }
+        },
+      )
+      // The periodic path must offer a PROPOSAL, not a direct set (AprModal:135-146).
+      const propose = dialog.getByRole("button", {
+        name: /^propose reduction$/i,
+      })
+      await step(
+        page,
+        "the periodic dialog offers a reduction proposal, not a direct set",
+        async () => {
+          await expect(propose).toBeVisible({ timeout: 30_000 })
+        },
+        { req: ["REQ-BOP-008"] },
+      )
+      await dialog.getByRole("button", { name: /^confirm$/i }).click()
+      await dialog.getByRole("checkbox").check()
+      await expect(propose).toBeEnabled({ timeout: 30_000 })
+      await propose.click()
+      await waitBorrowerTxSuccess(page)
+      await closeDialog(page)
 
-        const pending = await pendingAprProposal(hooks, market)
-        expect(pending, "the hook holds a pending proposal").toBeDefined()
-        expect(
-          pending!.proposedAprBips,
-          "the proposal carries the requested rate",
-        ).toBe(Number(proposedBips))
-        // Independently derived from the schedule, anchored on the proposal's OWN block
-        // timestamp (which the hook stored), not read back from the app.
-        const expectedStart = nextWindowStartAt(
-          schedule,
-          pending!.proposalTimestamp,
-        )
-        const expectedEnd = expectedStart + schedule.withdrawalWindowDuration
-        expect(
-          pending!.proposalTimestamp >= proposalAt,
-          "the stored proposal timestamp is the transaction's block time",
-        ).toBe(true)
-        expect(
-          pending!.responseWindowStart,
-          "response window starts at the next scheduled withdrawal window (PeriodicTermHooks.sol:379)",
-        ).toBe(expectedStart)
-        expect(
-          pending!.responseWindowEnd,
-          "response window ends one window duration later (:381)",
-        ).toBe(expectedEnd)
-        responseWindowStart = pending!.responseWindowStart
-        responseWindowEnd = pending!.responseWindowEnd
+      const pending = await pendingAprProposal(hooks, market)
+      await step(
+        page,
+        "the reduction is held as a proposal with a lender response window; the active APR is unchanged",
+        async () => {
+          expect(pending, "the hook holds a pending proposal").toBeDefined()
+          expect(
+            pending!.proposedAprBips,
+            "the proposal carries the requested rate",
+          ).toBe(Number(proposedBips))
+          // Independently derived from the schedule, anchored on the proposal's OWN block
+          // timestamp (which the hook stored), not read back from the app.
+          const expectedStart = nextWindowStartAt(
+            schedule,
+            pending!.proposalTimestamp,
+          )
+          const expectedEnd = expectedStart + schedule.withdrawalWindowDuration
+          expect(
+            pending!.proposalTimestamp >= proposalAt,
+            "the stored proposal timestamp is the transaction's block time",
+          ).toBe(true)
+          expect(
+            pending!.responseWindowStart,
+            "response window starts at the next scheduled withdrawal window (PeriodicTermHooks.sol:379)",
+          ).toBe(expectedStart)
+          expect(
+            pending!.responseWindowEnd,
+            "response window ends one window duration later (:381)",
+          ).toBe(expectedEnd)
 
-        expect(
-          await marketApr(market),
-          "the ACTIVE APR is unchanged by a proposal",
-        ).toBe(aprBefore)
+          expect(
+            await marketApr(market),
+            "the ACTIVE APR is unchanged by a proposal",
+          ).toBe(aprBefore)
+        },
+        { req: ["REQ-BOP-008"] },
+      )
+      responseWindowStart = pending!.responseWindowStart
+      responseWindowEnd = pending!.responseWindowEnd
 
-        // App: banner FIRST — MarketTransactions (which owns it) mounts only in the default
-        // "Borrow and Repay" section, so it is not on the page once Status & Details is open.
-        // The banner's proposal fields are subgraph-derived (SDK market.js:826), hence the
-        // syncSubgraph before the reload.
-        await syncSubgraph()
-        await refreshAtChainTime(page)
-        const bannerTitle = `Pending base APR reduction: ${formatBps(
-          aprBefore,
-        )}% → ${formatBps(proposedBips)}%`
-        await expect(page.getByText(bannerTitle)).toBeVisible({
-          timeout: 180_000,
-        })
-        const readyAt = formatWindowStart(responseWindowEnd)
-        await expect(
-          page.getByText(
-            `Lenders can respond until ${readyAt}. The reduction can be applied once the response window closes.`,
-          ),
-        ).toBeVisible({ timeout: 60_000 })
+      // App: banner FIRST — MarketTransactions (which owns it) mounts only in the default
+      // "Borrow and Repay" section, so it is not on the page once Status & Details is open.
+      // The banner's proposal fields are subgraph-derived (SDK market.js:826), hence the
+      // syncSubgraph before the reload.
+      await syncSubgraph()
+      await refreshAtChainTime(page)
+      const bannerTitle = `Pending base APR reduction: ${formatBps(
+        aprBefore,
+      )}% → ${formatBps(proposedBips)}%`
+      await step(
+        page,
+        "the borrower banner names the current and proposed rates",
+        async () => {
+          await expect(page.getByText(bannerTitle)).toBeVisible({
+            timeout: 180_000,
+          })
+        },
+        { req: ["REQ-BOP-018"] },
+      )
+      const readyAt = formatWindowStart(responseWindowEnd)
+      await step(
+        page,
+        "the banner says when the lender response window ends",
+        async () => {
+          await expect(
+            page.getByText(
+              `Lenders can respond until ${readyAt}. The reduction can be applied once the response window closes.`,
+            ),
+          ).toBeVisible({ timeout: 60_000 })
+        },
+        { req: ["REQ-BOP-019"] },
+      )
 
-        // Then the parameters rows, which live in the other section.
-        await openStatusDetails(page)
-        await expect(parameterRow(page, "Pending Base APR")).toContainText(
-          `${formatBps(proposedBips)}%`,
-          { timeout: 120_000 },
-        )
-        expect(
-          await readParameterValue(page, "Base Lender APR"),
-          "the active APR row still shows the old rate",
-        ).toBe(`${formatBps(aprBefore)}%`)
+      // Then the parameters rows, which live in the other section.
+      await openStatusDetails(page)
+      await step(
+        page,
+        "the parameters panel shows the pending rate alongside the current one",
+        async () => {
+          await expect(parameterRow(page, "Pending Base APR")).toContainText(
+            `${formatBps(proposedBips)}%`,
+            { timeout: 120_000 },
+          )
+          expect(
+            await readParameterValue(page, "Base Lender APR"),
+            "the active APR row still shows the old rate",
+          ).toBe(`${formatBps(aprBefore)}%`)
+        },
+        { req: ["REQ-MKT-022"] },
+      )
 
-        record.branch2 = {
-          proposalAt,
-          proposedAprBips: Number(proposedBips),
-          activeAprBips: Number(aprBefore),
-          responseWindowStart,
-          responseWindowEnd,
-          responseWindowEndUtc: readyAt,
-          bannerTitle,
-        }
-      },
-    )
+      record.branch2 = {
+        proposalAt,
+        proposedAprBips: Number(proposedBips),
+        activeAprBips: Number(aprBefore),
+        responseWindowStart,
+        responseWindowEnd,
+        responseWindowEndUtc: readyAt,
+        bannerTitle,
+      }
+    }
 
     // ---------------------------------------------------------------- branch 3
     await step(
@@ -701,7 +741,7 @@ test.describe.serial("borrower flows: periodic APR reduction (BOP-17)", () => {
     )
 
     // ---------------------------------------------------------------- branch 4
-    await step(
+    const branch4 = await step(
       page,
       "4 — a withdrawal queued in the response window blocks application",
       async () => {
@@ -759,21 +799,30 @@ test.describe.serial("borrower flows: periodic APR reduction (BOP-17)", () => {
         // App: the banner now offers settlement rather than a bare Apply.
         await syncSubgraph()
         await refreshAtChainTime(page)
-        const settle = page.getByRole("button", {
-          name: /settle and apply|process unpaid batches/i,
-        })
-        await expect(settle.first()).toBeVisible({ timeout: 180_000 })
-
-        record.branch4 = {
-          requested: formatUnits(request, decimals),
-          scaledPendingWithdrawals: queued.scaledPendingWithdrawals.toString(),
-          executionRevert: exec.message.split("\n").slice(0, 3).join(" | "),
-          settlementButton: (await settle.first().innerText()).trim(),
-          chainNow: await chain.blockTimestamp(),
-          proposalExpiresAt: responseWindowStart + schedule.periodDuration, // validityPeriods = 1
-        }
+        return { request, queued, exec }
       },
     )
+    const settle4 = page.getByRole("button", {
+      name: /settle and apply|process unpaid batches/i,
+    })
+    await step(
+      page,
+      "the banner offers settle-and-apply while unpaid withdrawals block the change",
+      async () => {
+        const settle = settle4
+        await expect(settle.first()).toBeVisible({ timeout: 180_000 })
+      },
+      { req: ["REQ-BOP-021"] },
+    )
+    record.branch4 = {
+      requested: formatUnits(branch4.request, decimals),
+      scaledPendingWithdrawals:
+        branch4.queued.scaledPendingWithdrawals.toString(),
+      executionRevert: branch4.exec.message.split("\n").slice(0, 3).join(" | "),
+      settlementButton: (await settle4.first().innerText()).trim(),
+      chainNow: await chain.blockTimestamp(),
+      proposalExpiresAt: responseWindowStart + schedule.periodDuration, // validityPeriods = 1
+    }
 
     // ---------------------------------------------------------------- branch 5
     await step(
@@ -1051,7 +1100,9 @@ test.describe.serial("borrower flows: periodic APR reduction (BOP-17)", () => {
     })
   })
 
-  test("BOP-17b: the app itself applies the matured reduction (KNOWN-ISSUES #20 — SphereX blocks the executor)", async () => {
+  test("BOP-17b: the app itself applies the matured reduction (KNOWN-ISSUES #20 — SphereX blocks the executor)", requirements(["REQ-BOP-120"]), async ({
+    page,
+  }) => {
     // EXPECTED FAILURE while KNOWN-ISSUES #20 stands: the settle-and-apply plan's execution
     // half (permissionless executePendingAnnualInterestBipsReduction, selector 0x09b70bc7)
     // reverts "SphereX error: disallowed tx pattern" on its success path, so the app has no
@@ -1062,11 +1113,18 @@ test.describe.serial("borrower flows: periodic APR reduction (BOP-17)", () => {
     // BOP-17's fallback both come out.
     test.fail()
     test.skip(!fx, "no periodic fixture — see setup")
-    expect(
-      appliedThroughUi,
-      `the borrower flow applied the matured reduction through the UI (blocked: ${
-        uiExecutionBlock ?? "see the BOP-17 journal"
-      })`,
-    ).toBe(true)
+    await step(
+      page,
+      "the app itself lands the matured reduction on chain",
+      async () => {
+        expect(
+          appliedThroughUi,
+          `the borrower flow applied the matured reduction through the UI (blocked: ${
+            uiExecutionBlock ?? "see the BOP-17 journal"
+          })`,
+        ).toBe(true)
+      },
+      { req: ["REQ-BOP-120"] },
+    )
   })
 })
