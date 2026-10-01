@@ -96,7 +96,7 @@ import {
   gql,
 } from "../lib/env"
 import { connectAs, ensureConnected, gotoMarket } from "../lib/page"
-import { attachAgreement, step } from "../lib/step"
+import { attachAgreement, infra, requirements, step } from "../lib/step"
 import { expect, test } from "../lib/test"
 
 /**
@@ -264,7 +264,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       (m.hooksConfig?.fixedTermEndTime ?? 0) <= chainNow ||
       !!m.hooksConfig?.allowClosureBeforeTerm)
 
-  test("setup: discover the fixture borrower's markets, chain hygiene", async () => {
+  test("setup: discover the fixture borrower's markets, chain hygiene", infra("setup"), async () => {
     await syncChainTimeToWallClock()
     all = await borrowerMarkets()
     const open = all.filter((m) => !m.isClosed)
@@ -419,7 +419,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     )
   })
 
-  test("setup: borrower ToU (wall clock) + market page reachable / MLA guard", async ({
+  test("setup: borrower ToU (wall clock) + market page reachable / MLA guard", infra("setup"), async ({
     page,
   }) => {
     requireMarket()
@@ -456,7 +456,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     await expect(borrowRepay).toBeVisible({ timeout: 30_000 })
   })
 
-  test("BOP-01: policies page lists policies with type, access label and linked markets", async ({
+  test("BOP-01: policies page lists policies with type, access label and linked markets", requirements(["REQ-BOP-101"]), async ({
     page,
   }) => {
     requireMarket()
@@ -464,9 +464,9 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     await page.goto("/borrower")
     await ensureConnected(page, BORROWER)
 
+    // The sidebar "Policies" item is a role-less Typography span — click by text.
+    await page.getByText("Policies", { exact: true }).first().click()
     await step(page, "dashboard → Policies section", async () => {
-      // The sidebar "Policies" item is a role-less Typography span — click by text.
-      await page.getByText("Policies", { exact: true }).first().click()
       // Policy row: name + hooks kind + access requirements + linked market names.
       await expect(
         page.getByText(primary!.hooks!.name || "Unnamed Policy").first(),
@@ -477,10 +477,10 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       // UI observation: the list's "Assigned to Markets" column renders EMPTY on this build —
       // linked market names appear only on the policy detail page (asserted below). Recorded as a
       // gap rather than asserted here.
-    })
+    }, { req: ["REQ-BOP-101"] })
 
+    await page.goto(`/borrower/policy?policy=${hooksAddr}`)
     await step(page, "click into the policy (Details/Markets)", async () => {
-      await page.goto(`/borrower/policy?policy=${hooksAddr}`)
       await expect(page.getByText(/policy info/i).first()).toBeVisible({
         timeout: 60_000,
       })
@@ -488,11 +488,13 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       await expect(
         page.getByText(/open term|fixed term|periodic/i).first(),
       ).toBeVisible({ timeout: 30_000 })
-      await page.getByRole("tab", { name: /^markets$/i }).click()
+    }, { req: ["REQ-BOP-101"] })
+    await page.getByRole("tab", { name: /^markets$/i }).click()
+    await step(page, "the policy's Markets tab lists the linked market", async () => {
       await expect(page.getByText(primary!.name).first()).toBeVisible({
         timeout: 30_000,
       })
-    })
+    }, { req: ["REQ-BOP-101"] })
     attachAgreement("BOP-01 policy", {
       hooks: hooksAddr,
       name: primary!.hooks!.name,
@@ -501,7 +503,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     })
   })
 
-  test("BOP-02: add lenders on the policy allowlist (unblocks LEN-16)", async ({
+  test("BOP-02: add lenders on the policy allowlist (unblocks LEN-16)", requirements(["REQ-PROTO-014", "REQ-BOP-073"]), async ({
     page,
   }) => {
     requireMarket()
@@ -572,13 +574,15 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     // chain oracle: ACCESS_LIST membership. The provider is a PULL provider — the hooks' stored
     // credential stays empty until the lender first interacts (verified on-chain during
     // run-and-fix), so membership + a passing deposit simulation are the honest oracles here.
-    expect(
-      providerAddr,
-      "allowlist policy has an ACCESS_LIST provider",
-    ).toBeTruthy()
-    for (const l of [account1, account2, SCRATCH]) {
-      expect(await providerIsMember(providerAddr!, l), `member ${l}`).toBe(true)
-    }
+    await step(page, "the added lenders are members of the policy's access list", async () => {
+      expect(
+        providerAddr,
+        "allowlist policy has an ACCESS_LIST provider",
+      ).toBeTruthy()
+      for (const l of [account1, account2, SCRATCH]) {
+        expect(await providerIsMember(providerAddr!, l), `member ${l}`).toBe(true)
+      }
+    }, { req: ["REQ-BOP-073"] })
     // Behavioral proof for account #1 (the LEN-16 unblock): a deposit now passes simulation.
     faucet(account1, deposit, token)
     await chain.approve(account1, token, market, deposit)
@@ -588,16 +592,20 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       functionName: "depositUpTo",
       args: [deposit],
     })
-    expect(depositSim.reverted, "allowlisted deposit simulates clean").toBe(
-      false,
-    )
+    await step(page, "an allowlisted lender's deposit simulates clean", async () => {
+      expect(depositSim.reverted, "allowlisted deposit simulates clean").toBe(
+        false,
+      )
+    }, { req: ["REQ-PROTO-014", "REQ-BOP-073"] })
     // Membership oracle, read from the provider contract. (LenderHooksAccess /
     // AccountAccessGranted index hook credentials, which a PULL provider only mints on first use;
     // the provider's own `isMember()` is what an allowlist edit actually writes.)
-    expect(
-      await providerMembershipIndexed(providerAddr!, account1),
-      "provider membership on-chain for account #1",
-    ).toBe(true)
+    await step(page, "the membership is recorded for account #1", async () => {
+      expect(
+        await providerMembershipIndexed(providerAddr!, account1),
+        "provider membership on-chain for account #1",
+      ).toBe(true)
+    }, { req: ["REQ-BOP-073"] })
 
     // UI GAP (verified live, app defect candidate): BOTH the market's Lenders section and the
     // policy's own Lenders tab render from LenderHooksAccess (hook credentials) — a PULL provider
@@ -612,7 +620,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     })
   })
 
-  test("BOP-03: strike-through / Undo mechanics on a staged lender row (full removal blocked by the allowlist visibility gap)", async ({
+  test("BOP-03: strike-through / Undo mechanics on a staged lender row (full removal blocked by the allowlist visibility gap)", requirements(["REQ-BOP-102"]), async ({
     page,
   }) => {
     requireMarket()
@@ -633,37 +641,42 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     // Source semantics (EditLendersTable): a STAGED (NEW) row's cross opens a DeleteModal;
     // strike-through + Undo exist only for OLD rows — i.e. credentialed lenders, which the
     // visibility gap (defect candidate 4) makes unreachable here. Exercise cancel + confirm.
-    await step(page, "cross → DeleteModal → cancel keeps the row", async () => {
-      await strikeLenderRow(page, STAGED)
-      const dialog = page.getByRole("dialog")
+    const dialog = page.getByRole("dialog")
+    await strikeLenderRow(page, STAGED)
+    await step(page, "the cross on a staged row opens the delete dialog", async () => {
       await expect(dialog).toBeVisible({ timeout: 15_000 })
-      await dialog
-        .getByRole("button", { name: /cancel|back|close/i })
-        .first()
-        .click()
+    }, { req: ["REQ-BOP-102"] })
+    await dialog
+      .getByRole("button", { name: /cancel|back|close/i })
+      .first()
+      .click()
+    await step(page, "cross → DeleteModal → cancel keeps the row", async () => {
       await expect(dialog).toBeHidden({ timeout: 15_000 })
       await expect(row, "cancel keeps the staged row").toBeVisible()
-    })
+    }, { req: ["REQ-BOP-102"] })
 
-    await step(page, "cross → DeleteModal → confirm un-stages", async () => {
-      await strikeLenderRow(page, STAGED)
-      const dialog = page.getByRole("dialog")
+    await strikeLenderRow(page, STAGED)
+    await step(page, "the cross opens the delete dialog again", async () => {
       await expect(dialog).toBeVisible({ timeout: 15_000 })
-      await dialog
-        .getByRole("button", { name: /delete|remove|confirm/i })
-        .first()
-        .click()
+    }, { req: ["REQ-BOP-102"] })
+    await dialog
+      .getByRole("button", { name: /delete|remove|confirm/i })
+      .first()
+      .click()
+    await step(page, "cross → DeleteModal → confirm un-stages", async () => {
       await expect(row, "confirmed delete un-stages the row").toBeHidden({
         timeout: 15_000,
       })
-    })
+    }, { req: ["REQ-BOP-102"] })
 
     // Discard any staging; the tab must come back empty (nothing was submitted).
     await gotoPolicyLenders(page, hooksAddr)
-    await expect(lenderRow(page, STAGED)).toBeHidden({ timeout: 15_000 })
+    await step(page, "after a reload the undone row was never submitted", async () => {
+      await expect(lenderRow(page, STAGED)).toBeHidden({ timeout: 15_000 })
+    }, { req: ["REQ-BOP-102"] })
   })
 
-  test("BOP-04: self-onboarding policy hides add-lender controls upfront", async ({
+  test("BOP-04: self-onboarding policy hides add-lender controls upfront", requirements(["REQ-BOP-074"]), async ({
     page,
   }) => {
     requireMarket()
@@ -692,23 +705,25 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     // Access Source column and shows the onboard-themselves notice alongside; with no credentialed
     // lenders yet it renders "No Active Lenders" instead. Either way there is no allowlist to
     // edit — the add/submit controls stay hidden (the actual point of this case).
-    await expect(
-      page
-        .getByText(/lenders onboard themselves/i)
-        .or(page.getByText(/no active lenders/i))
-        .first(),
-    ).toBeVisible({ timeout: 60_000 })
-    // The tab can briefly render the edit controls while the provider kind resolves — allow the
-    // resolution window before requiring them gone.
-    await expect(page.getByRole("button", { name: /add lender/i })).toBeHidden({
-      timeout: 30_000,
-    })
-    await expect(page.getByRole("button", { name: /^submit$/i })).toBeHidden({
-      timeout: 15_000,
-    })
+    await step(page, "the lenders tab is read-only and says why", async () => {
+      await expect(
+        page
+          .getByText(/lenders onboard themselves/i)
+          .or(page.getByText(/no active lenders/i))
+          .first(),
+      ).toBeVisible({ timeout: 60_000 })
+      // The tab can briefly render the edit controls while the provider kind resolves — allow the
+      // resolution window before requiring them gone.
+      await expect(page.getByRole("button", { name: /add lender/i })).toBeHidden({
+        timeout: 30_000,
+      })
+      await expect(page.getByRole("button", { name: /^submit$/i })).toBeHidden({
+        timeout: 15_000,
+      })
+    }, { req: ["REQ-BOP-074"] })
   })
 
-  test("setup: lender deposits into the primary market (chain)", async () => {
+  test("setup: lender deposits into the primary market (chain)", infra("setup"), async () => {
     requireMarket()
     // Deposits need credentials on allowlist policies (granted in BOP-02); on self-onboard
     // policies they work without. Both lenders deposit so BOP-05 can prove known-lender rights.
@@ -724,7 +739,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     expect(await marketTotalSupply(market)).toBeGreaterThan(deposit)
   })
 
-  test("BOP-05: removed-after-deposit lender keeps withdrawal rights (known lender)", async ({
+  test("BOP-05: removed-after-deposit lender keeps withdrawal rights (known lender)", requirements(["REQ-BOP-104"]), async ({
     page,
   }) => {
     requireMarket()
@@ -762,14 +777,18 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       functionName: "depositUpTo",
       args: [deposit],
     })
-    expect(dep.reverted, "new deposit blocked after removal").toBe(true)
+    await step(page, "the removed lender can no longer deposit", async () => {
+      expect(dep.reverted, "new deposit blocked after removal").toBe(true)
+    }, { req: ["REQ-BOP-104"] })
     const wd = await simulateFrom({
       account: account2,
       address: market,
       functionName: "queueWithdrawal",
       args: [(await chain.marketBalance(market, account2)) / 2n],
     })
-    expect(wd.reverted, "known lender retains withdrawal rights").toBe(false)
+    await step(page, "the removed lender can still withdraw", async () => {
+      expect(wd.reverted, "known lender retains withdrawal rights").toBe(false)
+    }, { req: ["REQ-BOP-104"] })
     attachAgreement("BOP-05", {
       lender: account2,
       depositBlocked: dep.message ?? "",
@@ -777,7 +796,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     })
   })
 
-  test("BOP-06: borrow part, then the full available amount (chain-level; UI flow blocked by defect 5)", async ({
+  test("BOP-06: borrow part, then the full available amount (chain-level; UI flow blocked by defect 5)", requirements(["REQ-BOP-002"]), async ({
     page,
   }) => {
     requireMarket()
@@ -792,38 +811,48 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     const supply = await marketTotalSupply(market)
     const rr = await marketReserveRatio(market)
     const reserveFloor = (supply * rr) / 10_000n
-    expect(chainBorrowable <= assets - reserveFloor + supply / 1000n).toBe(true)
-    // The anchor is a live react-query value; tolerate rebase drift (≤0.1% + dust).
-    expect(
-      absDiff(anchor.raw, chainBorrowable) <= chainBorrowable / 1000n + 10n,
-    ).toBe(true)
+    await step(page, "the page and the chain agree on what is available to borrow", async () => {
+      expect(chainBorrowable <= assets - reserveFloor + supply / 1000n).toBe(true)
+      // The anchor is a live react-query value; tolerate rebase drift (≤0.1% + dust).
+      expect(
+        absDiff(anchor.raw, chainBorrowable) <= chainBorrowable / 1000n + 10n,
+      ).toBe(true)
+    }, { req: ["REQ-BOP-002"] })
 
     const balBefore = await chain.erc20Balance(token, BORROWER)
     const part = chainBorrowable / 4n
     await borrowOnChain(market, part)
     const partReceived = (await chain.erc20Balance(token, BORROWER)) - balBefore
-    expect(absDiff(partReceived, part) <= part / 1000n + 10n).toBe(true)
+    await step(page, "the borrower receives the partial draw", async () => {
+      expect(absDiff(partReceived, part) <= part / 1000n + 10n).toBe(true)
+    }, { req: ["REQ-BOP-002"] })
 
     // borrowableAssets SHRINKS as interest accrues — shave a hair to avoid racing the accrual.
     const remaining = ((await marketBorrowable(market)) * 999n) / 1000n
     await borrowOnChain(market, remaining)
     const after = await marketBorrowable(market)
-    expect(after < chainBorrowable / 100n, "available drained to dust").toBe(
-      true,
-    )
+    await step(page, "the full remaining amount is drawn", async () => {
+      expect(after < chainBorrowable / 100n, "available drained to dust").toBe(
+        true,
+      )
+    }, { req: ["REQ-BOP-002"] })
 
     await syncSubgraph()
     const borrows = await latestBorrowRecords(market, 3)
-    expect(borrows.length).toBeGreaterThanOrEqual(2)
+    await step(page, "both draws are indexed", async () => {
+      expect(borrows.length).toBeGreaterThanOrEqual(2)
+    }, { req: ["REQ-BOP-002"] })
 
     // UI oracle: the page reflects the drained availability and grown Borrowed figure.
     await gotoBorrowerMarket(page, market)
     await ensureConnected(page, BORROWER)
     const anchorAfter = await readAnchor(page, "borrower-available-to-borrow")
-    expect(
-      anchorAfter.raw <= chainBorrowable / 50n,
-      "page shows availability drained",
-    ).toBe(true)
+    await step(page, "the page shows availability drained", async () => {
+      expect(
+        anchorAfter.raw <= chainBorrowable / 50n,
+        "page shows availability drained",
+      ).toBe(true)
+    }, { req: ["REQ-BOP-002"] })
     attachAgreement("BOP-06", {
       part: part.toString(),
       remaining: remaining.toString(),
@@ -831,7 +860,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     })
   })
 
-  test("BOP-07: borrow is executable whenever the UI shows available capacity", async ({
+  test("BOP-07: borrow is executable whenever the UI shows available capacity", requirements(["REQ-BOP-001", "REQ-BOP-002"]), async ({
     page,
   }) => {
     requireMarket()
@@ -849,16 +878,31 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     await gotoBorrowerMarket(page, market)
     await ensureConnected(page, BORROWER)
     const anchor = await readAnchor(page, "borrower-available-to-borrow")
-    expect(anchor.raw).toBeGreaterThan(0n)
     // Whenever available > 0 the Borrow button must be enabled and the borrow must execute.
+    await step(page, "the owner sees borrow and repay controls with capacity available", async () => {
+      expect(anchor.raw).toBeGreaterThan(0n)
+      await expect(
+        page.getByRole("button", { name: /^borrow$/i }).first(),
+        "the Borrow control is enabled while capacity is available",
+      ).toBeEnabled({ timeout: 30_000 })
+      await expect(
+        page.getByRole("button", { name: /^repay$/i }).first(),
+        "the Repay control is shown to the owner",
+      ).toBeVisible({ timeout: 30_000 })
+    }, { req: ["REQ-BOP-001"] })
     const small = parseUnits("1", decimals)
-    await borrowThroughUi(
-      page,
-      formatAmountForInput(
-        small < anchor.raw ? small : anchor.raw / 2n,
-        decimals,
-      ),
-    )
+    const borrowed = small < anchor.raw ? small : anchor.raw / 2n
+    const walletBefore = await chain.erc20Balance(token, BORROWER)
+    await borrowThroughUi(page, formatAmountForInput(borrowed, decimals))
+    const received = (await chain.erc20Balance(token, BORROWER)) - walletBefore
+    // The app's success view ignores receipt.status (a reverted borrow still reads
+    // "Transaction Successful!"), so the wallet delta is the proof the borrow executed.
+    await step(page, "the wallet receives the borrowed amount", async () => {
+      expect(
+        absDiff(received, borrowed) <= borrowed / 1000n + 10n,
+        "the UI borrow delivered the amount to the wallet",
+      ).toBe(true)
+    }, { req: ["REQ-BOP-002"] })
     // The deregistered-borrower half (B8C case) needs a borrower removed from the
     // archcontroller — no such account exists on this fork; recorded as not runnable.
     attachAgreement("BOP-07", {
@@ -867,7 +911,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     })
   })
 
-  test("BOP-29: collateral obligations shown in the underlying asset on both sections", async ({
+  test("BOP-29: collateral obligations shown in the underlying asset on both sections", requirements(["REQ-BOP-123"]), async ({
     page,
   }) => {
     requireMarket()
@@ -906,27 +950,29 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       readMinReserves,
     )
 
-    for (const text of [borrowRepayText, statusText]) {
-      expect(text, "denominated in the underlying").toContain(underlying)
+    await step(page, "minimum reserves are stated in the underlying asset on both sections", async () => {
+      for (const text of [borrowRepayText, statusText]) {
+        expect(text, "denominated in the underlying").toContain(underlying)
+        expect(
+          text.includes(marketSymbol) && marketSymbol !== underlying,
+          `must not use the market token symbol (${marketSymbol})`,
+        ).toBe(false)
+        // Amount and currency separated by a space: "1,234.56 SYM".
+        expect(text).toMatch(new RegExp(`[\\d,.]+\\s${underlying}`))
+      }
       expect(
-        text.includes(marketSymbol) && marketSymbol !== underlying,
-        `must not use the market token symbol (${marketSymbol})`,
-      ).toBe(false)
-      // Amount and currency separated by a space: "1,234.56 SYM".
-      expect(text).toMatch(new RegExp(`[\\d,.]+\\s${underlying}`))
-    }
-    expect(
-      Math.abs(
-        parseFormattedAmount(borrowRepayText) -
-          parseFormattedAmount(statusText),
-      ),
-    ).toBeLessThanOrEqual(
-      Math.max(0.01, parseFormattedAmount(borrowRepayText) * 0.001),
-    )
+        Math.abs(
+          parseFormattedAmount(borrowRepayText) -
+            parseFormattedAmount(statusText),
+        ),
+      ).toBeLessThanOrEqual(
+        Math.max(0.01, parseFormattedAmount(borrowRepayText) * 0.001),
+      )
+    }, { req: ["REQ-BOP-123"] })
     attachAgreement("BOP-29", { borrowRepayText, statusText, underlying })
   })
 
-  test("BOP-08: repay a specific amount — reserves increase", async ({
+  test("BOP-08: repay a specific amount — reserves increase", requirements(["REQ-BOP-003"]), async ({
     page,
   }) => {
     requireMarket()
@@ -949,19 +995,27 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
 
     const assetsAfter = await marketTotalAssets(market)
     const delta = assetsAfter - assetsBefore
-    expect(absDiff(delta, amount) <= amount / 1000n + 10n).toBe(true)
+    await step(page, "the repaid amount lands in the market's reserves", async () => {
+      expect(absDiff(delta, amount) <= amount / 1000n + 10n).toBe(true)
+    }, { req: ["REQ-BOP-003"] })
 
     await syncSubgraph()
     const repays = await latestRepayRecords(market, 1)
-    expect(repays.length).toBeGreaterThan(0)
-    expect(
-      absDiff(BigInt(repays[0].assetAmount), amount) <= amount / 1000n + 10n,
-    ).toBe(true)
+    await step(page, "the repayment is indexed for the amount repaid", async () => {
+      expect(repays.length).toBeGreaterThan(0)
+      expect(
+        absDiff(BigInt(repays[0].assetAmount), amount) <= amount / 1000n + 10n,
+      ).toBe(true)
+    }, { req: ["REQ-BOP-003"] })
     const row = await marketRow(market)
-    expect(row!.isDelinquent, "no delinquency after repay").toBe(false)
+    await step(page, "the market is not delinquent after the repay", async () => {
+      expect(row!.isDelinquent, "no delinquency after repay").toBe(false)
+    })
     // UI reflects the reduced debt.
     const after = await readAnchor(page, "borrower-to-repay")
-    expect(after.raw < toRepay.raw).toBe(true)
+    await step(page, "the page shows the reduced debt", async () => {
+      expect(after.raw < toRepay.raw).toBe(true)
+    }, { req: ["REQ-BOP-003"] })
     attachAgreement("BOP-08", {
       requested: amount,
       reservesDelta: delta,
@@ -969,7 +1023,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     })
   })
 
-  test("BOP-09: repay N days — dialog covers obligations + N days interest; APR maths bounds the interest component", async ({
+  test("BOP-09: repay N days — dialog covers obligations + N days interest; APR maths bounds the interest component", requirements(["REQ-BOP-106"]), async ({
     page,
   }) => {
     requireMarket()
@@ -1004,7 +1058,9 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     // component (the "~ X" adornment).
     const dialogText = (await dialog.innerText()).replace(/\s+/g, " ")
     const m = dialogText.match(/Amount To Repay\s*([\d,.]+)/i)
-    expect(m, "dialog shows Amount To Repay").toBeTruthy()
+    await step(page, "the days-mode dialog quotes an amount to repay", async () => {
+      expect(m, "dialog shows Amount To Repay").toBeTruthy()
+    }, { req: ["REQ-BOP-106"] })
     const required = parseUnits(m![1].replace(/,/g, ""), decimals)
     // NOTE: the "~ X" adornment is the "Interest Remaining" line, not the 1-day figure — record
     // it, don't bound it (the committed Amount To Repay below is the real oracle).
@@ -1028,15 +1084,17 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     const repays = await latestRepayRecords(market, 1)
     const repaid = BigInt(repays[0].assetAmount)
     // 5% either side of the dialog's committed amount (accrual drift between quote and mine).
-    expect(
-      repaid >= (required * 95n) / 100n && repaid <= (required * 105n) / 100n,
-      "repaid amount matches the dialog's Amount To Repay",
-    ).toBe(true)
-    // Sanity: the dialog's requirement itself must cover at least ~a day of APR interest.
-    expect(
-      required >= (base * 90n) / 100n,
-      "Amount To Repay covers at least the day's interest per APR maths",
-    ).toBe(true)
+    await step(page, "the quoted amount covers a day of interest and is what gets repaid", async () => {
+      expect(
+        repaid >= (required * 95n) / 100n && repaid <= (required * 105n) / 100n,
+        "repaid amount matches the dialog's Amount To Repay",
+      ).toBe(true)
+      // Sanity: the dialog's requirement itself must cover at least ~a day of APR interest.
+      expect(
+        required >= (base * 90n) / 100n,
+        "Amount To Repay covers at least the day's interest per APR maths",
+      ).toBe(true)
+    }, { req: ["REQ-BOP-106"] })
     attachAgreement("BOP-09", {
       estimateShown: estimateText,
       expectedBase: base,
@@ -1045,7 +1103,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     })
   })
 
-  test("BOP-28: queued withdrawal requests visible to the borrower (ongoing)", async ({
+  test("BOP-28: queued withdrawal requests visible to the borrower (ongoing)", requirements(["REQ-BOP-125"]), async ({
     page,
   }) => {
     requireMarket()
@@ -1068,9 +1126,6 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     await gotoBorrowerMarket(page, market)
     await ensureConnected(page, BORROWER)
     await openBorrowerSection(page, /withdrawal requests/i)
-    await expect(page.getByText(/open withdrawals/i).first()).toBeVisible({
-      timeout: 60_000,
-    })
     // VERIFY: the Ongoing table renders one request row per lender (Lender / Date / Tx / Amount
     // columns). The lender cell shows the trimmed address; the amount cell is data-field=amount.
     const row = page
@@ -1078,25 +1133,31 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
         hasText: new RegExp(account1.slice(0, 6), "i"),
       })
       .first()
-    await expect(row).toBeVisible({ timeout: 60_000 })
     const amountCell = row.locator('.MuiDataGrid-cell[data-field="amount"]')
-    const amountShown = (await amountCell.innerText()).trim()
-    expect(
-      Math.abs(
-        parseFormattedAmount(amountShown) -
-          Number(formatUnits(withdrawAmount, decimals)),
-      ),
-    ).toBeLessThanOrEqual(
-      Math.max(0.01, Number(formatUnits(withdrawAmount, decimals)) * 0.001),
-    )
+    const shown = await step(page, "the borrower sees the queued request with its amount", async () => {
+      await expect(page.getByText(/open withdrawals/i).first()).toBeVisible({
+        timeout: 60_000,
+      })
+      await expect(row).toBeVisible({ timeout: 60_000 })
+      const amountShown = (await amountCell.innerText()).trim()
+      expect(
+        Math.abs(
+          parseFormattedAmount(amountShown) -
+            Number(formatUnits(withdrawAmount, decimals)),
+        ),
+      ).toBeLessThanOrEqual(
+        Math.max(0.01, Number(formatUnits(withdrawAmount, decimals)) * 0.001),
+      )
+      return amountShown
+    }, { req: ["REQ-BOP-125"] })
     attachAgreement("BOP-28 ongoing", {
       queued: withdrawAmount,
-      amountShown,
+      amountShown: shown,
       lender: account1,
     })
   })
 
-  test("BOP-28b: expired batch surfaces as outstanding and can be serviced", async ({
+  test("BOP-28b: expired batch surfaces as outstanding and can be serviced", infra("setup"), async ({
     page,
   }) => {
     requireMarket()
@@ -1114,32 +1175,34 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       timeout: 60_000,
     })
 
-    if (unpaid.length > 0) {
-      // Underfunded expiry: the batch joined the unpaid FIFO and the market is delinquent —
-      // service it (repay via the market page, then process the stored queue).
-      await step(page, "service the unpaid batch (repay Max)", async () => {
-        const owed =
-          (await marketTotalDebts(market)) - (await marketTotalAssets(market))
-        faucet(BORROWER, owed * 2n, token)
-        // The withdrawal view offers Repay while delinquent; fall back to Borrow & Repay if
-        // the shortcut button is not rendered.
-        const repayButton = page.getByRole("button", { name: /^repay$/i })
-        if (
-          !(await repayButton
-            .first()
-            .isVisible()
-            .catch(() => false))
-        )
-          await openBorrowerSection(page, /borrow and repay/i)
-        const dialog = await openRepayDialog(page)
-        await dialog.getByRole("button", { name: /^max$/i }).click()
-        await submitRepayDialog(page, dialog)
-      })
-      // Repay restores liquidity; the stored FIFO still needs explicit processing.
-      await settleUnpaidBatches(BORROWER, market, token, decimals)
-      await syncSubgraph()
-      expect(await unpaidBatchExpiries(market)).toEqual([])
-    }
+    // Precondition: BOP-28 drained the reserves, so the expired batch must have joined the unpaid
+    // FIFO. (This row settles that state for the rows after it; settleUnpaidBatches repays the
+    // deficit on chain itself, so nothing here proves the borrower's servicing — infra.)
+    expect(unpaid.length, "the drained market has unpaid batches").toBeGreaterThan(0)
+    // Underfunded expiry: the batch joined the unpaid FIFO and the market is delinquent —
+    // service it (repay via the market page, then process the stored queue).
+    await step(page, "service the unpaid batch (repay Max)", async () => {
+      const owed =
+        (await marketTotalDebts(market)) - (await marketTotalAssets(market))
+      faucet(BORROWER, owed * 2n, token)
+      // The withdrawal view offers Repay while delinquent; fall back to Borrow & Repay if
+      // the shortcut button is not rendered.
+      const repayButton = page.getByRole("button", { name: /^repay$/i })
+      if (
+        !(await repayButton
+          .first()
+          .isVisible()
+          .catch(() => false))
+      )
+        await openBorrowerSection(page, /borrow and repay/i)
+      const dialog = await openRepayDialog(page)
+      await dialog.getByRole("button", { name: /^max$/i }).click()
+      await submitRepayDialog(page, dialog)
+    })
+    // Repay restores liquidity; the stored FIFO still needs explicit processing.
+    await settleUnpaidBatches(BORROWER, market, token, decimals)
+    await syncSubgraph()
+    expect(await unpaidBatchExpiries(market)).toEqual([])
 
     // Either path ends with the batch claimable by the lender on the first try.
     const available = await chain.getAvailableWithdrawalAmount(
@@ -1157,7 +1220,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     })
   })
 
-  test("BOP-11: third-party repay via direct ERC-20 transfer counts toward reserves", async () => {
+  test("BOP-11: third-party repay via direct ERC-20 transfer counts toward reserves", requirements(["REQ-BOP-109"]), async ({ page }) => {
     requireMarket()
     const amount = parseUnits("5", decimals)
     faucet(account0, amount * 2n, token)
@@ -1166,9 +1229,11 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     await chain.updateState(account0, market)
     const assetsAfter = await marketTotalAssets(market)
     // updateState also accrues a sliver of protocol fees out of totalAssets; tolerate dust.
-    expect(
-      absDiff(assetsAfter - assetsBefore, amount) <= amount / 100n + 10n,
-    ).toBe(true)
+    await step(page, "the transfer counts toward the market's reserves", async () => {
+      expect(
+        absDiff(assetsAfter - assetsBefore, amount) <= amount / 100n + 10n,
+      ).toBe(true)
+    }, { req: ["REQ-BOP-109"] })
     await syncSubgraph()
     const row = await marketRow(market)
     attachAgreement("BOP-11", {
@@ -1181,7 +1246,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     })
   })
 
-  test("BOP-10: over-repayment — UI clamps to outstanding debt; protocol permits the overshoot", async ({
+  test("BOP-10: over-repayment — UI clamps to outstanding debt; protocol permits the overshoot", requirements(["REQ-BOP-108"]), async ({
     page,
   }) => {
     requireMarket()
@@ -1219,11 +1284,13 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       .fill(formatAmountForInput(extra, decimals))
     // With zero outstanding debt the dialog shows "Amount To Repay 0" (the "Up to" cap line does
     // not render at all) and the typed amount is clamped — assert the visible truth.
-    await expect
-      .poll(async () => (await dialog.innerText()).replace(/\s+/g, " "), {
-        timeout: 15_000,
-      })
-      .toMatch(/amount to repay 0(\.\d+)?\s/i)
+    await step(page, "with no debt the dialog offers nothing to repay", async () => {
+      await expect
+        .poll(async () => (await dialog.innerText()).replace(/\s+/g, " "), {
+          timeout: 15_000,
+        })
+        .toMatch(/amount to repay 0(\.\d+)?\s/i)
+    }, { req: ["REQ-BOP-108"] })
     const typedResult = (
       await dialog.getByRole("textbox").first().inputValue()
     ).replace(/,/g, "")
@@ -1249,7 +1316,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     })
   })
 
-  test("BOP-12: APR increase applies immediately and is logged", async ({
+  test("BOP-12: APR increase applies immediately and is logged", requirements(["REQ-BOP-006", "REQ-BOP-110"]), async ({
     page,
   }) => {
     requireMarket()
@@ -1263,18 +1330,22 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     await adjustAprThroughUi(page, (Number(newApr) / 100).toFixed(2))
     await ensureAprApplied(market, newApr)
 
-    expect(await marketApr(market), "effective immediately").toBe(newApr)
-    expect(await marketReserveRatio(market), "ratio untouched").toBe(rr0)
+    await step(page, "the raised APR is effective immediately", async () => {
+      expect(await marketApr(market), "effective immediately").toBe(newApr)
+      expect(await marketReserveRatio(market), "ratio untouched").toBe(rr0)
+    }, { req: ["REQ-BOP-006"] })
     await syncSubgraph()
     const records = await latestAprRecords(market, 1)
-    expect(records[0]).toEqual({
-      oldAnnualInterestBips: Number(apr0),
-      newAnnualInterestBips: Number(newApr),
-    })
+    await step(page, "the APR change is logged", async () => {
+      expect(records[0]).toEqual({
+        oldAnnualInterestBips: Number(apr0),
+        newAnnualInterestBips: Number(newApr),
+      })
+    }, { req: ["REQ-BOP-110"] })
     attachAgreement("BOP-12", { apr0, newApr, record: records[0] })
   })
 
-  test("BOP-13: APR cut of ≤25% applies with no reserve penalty", async ({
+  test("BOP-13: APR cut of ≤25% applies with no reserve penalty", requirements(["REQ-BOP-111"]), async ({
     page,
   }) => {
     requireMarket()
@@ -1295,10 +1366,12 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       .getByRole("textbox")
       .first()
       .fill((Number(newApr) / 100).toFixed(2))
-    // No temporary-ratio warning for a ≤25% cut.
-    await expect(
-      dialog.getByText(/temporary reserve ratio in force until/i),
-    ).toBeHidden()
+    await step(page, "the dialog raises no temporary-ratio warning for a ≤25% cut", async () => {
+      // No temporary-ratio warning for a ≤25% cut.
+      await expect(
+        dialog.getByText(/temporary reserve ratio in force until/i),
+      ).toBeHidden()
+    }, { req: ["REQ-BOP-111"] })
     await dialog.getByRole("button", { name: /^confirm$/i }).click()
     await dialog.getByRole("checkbox").check()
     await dialog.getByRole("button", { name: /^adjust$/i }).click()
@@ -1306,10 +1379,12 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     await closeDialog(page)
     await ensureAprApplied(market, newApr)
 
-    expect(await marketApr(market)).toBe(newApr)
-    expect(await marketReserveRatio(market), "reserve ratio untouched").toBe(
-      rr0,
-    )
+    await step(page, "the cut applies with the reserve ratio untouched", async () => {
+      expect(await marketApr(market)).toBe(newApr)
+      expect(await marketReserveRatio(market), "reserve ratio untouched").toBe(
+        rr0,
+      )
+    }, { req: ["REQ-BOP-111"] })
     // PROTOCOL TRUTH (MarketConstraintHooks.onSetAnnualInterestAndReserveRatioBips): ANY
     // reduction below the original APR records the temporary mapping with a 2-week expiry to PEG
     // the originals for the window — for a ≤25% cut the RATIO stays unchanged (that is the
@@ -1345,7 +1420,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     })
   })
 
-  test("BOP-26: market history loads fully on first render after recent actions", async ({
+  test("BOP-26: market history loads fully on first render after recent actions", requirements(["REQ-MKT-107"]), async ({
     page,
   }) => {
     requireMarket()
@@ -1355,17 +1430,20 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     // Straight to Market History WITHOUT reloading (regression on the partial-load bug).
     await openBorrowerSection(page, /market history/i)
     const rows = page.locator(".MuiDataGrid-row")
-    await expect(rows.first()).toBeVisible({ timeout: 60_000 })
-    const count = await rows.count()
-    expect(count).toBeGreaterThan(2)
-    // The APR changes from BOP-12/13 must already be visible on first render. Scope the oracle
-    // to the history rows themselves — page-wide text matches static labels and would stay green
-    // through the exact partial-load regression this test names (review finding 5).
-    const aprRows = rows.filter({ hasText: /apr|interest/i })
-    expect(
-      await aprRows.count(),
-      "history rows recording the BOP-12/13 APR changes",
-    ).toBeGreaterThanOrEqual(2)
+    const count = await step(page, "the whole history renders on first load", async () => {
+      await expect(rows.first()).toBeVisible({ timeout: 60_000 })
+      const count = await rows.count()
+      expect(count).toBeGreaterThan(2)
+      // The APR changes from BOP-12/13 must already be visible on first render. Scope the oracle
+      // to the history rows themselves — page-wide text matches static labels and would stay green
+      // through the exact partial-load regression this test names (review finding 5).
+      const aprRows = rows.filter({ hasText: /apr|interest/i })
+      expect(
+        await aprRows.count(),
+        "history rows recording the BOP-12/13 APR changes",
+      ).toBeGreaterThanOrEqual(2)
+      return count
+    }, { req: ["REQ-MKT-107"] })
     // Filters render — this build's history controls are a Search-by-ID input and a page-size
     // selector (no type filter, no column sorting, no export — runsheet's "sort and export"
     // expectation recorded as a UI gap, not an automatable assertion).
@@ -1378,7 +1456,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     })
   })
 
-  test("BOP-20: capacity raise applies; deposits above the old cap now accepted", async ({
+  test("BOP-20: capacity raise applies; deposits above the old cap now accepted", requirements(["REQ-BOP-005", "REQ-BOP-118"]), async ({
     page,
   }) => {
     requireMarket()
@@ -1393,9 +1471,11 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       .first()
       .click()
     const dialog = page.getByRole("dialog")
-    await expect(dialog.getByText(/current capacity/i)).toBeVisible({
-      timeout: 30_000,
-    })
+    await step(page, "the capacity dialog shows the current capacity", async () => {
+      await expect(dialog.getByText(/current capacity/i)).toBeVisible({
+        timeout: 30_000,
+      })
+    }, { req: ["REQ-BOP-005"] })
     await dialog
       .getByRole("textbox")
       .first()
@@ -1405,31 +1485,39 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     await closeDialog(page)
     await ensureCapacityApplied(market, newCap)
 
-    expect(await marketMaxTotalSupply(market)).toBe(newCap)
+    await step(page, "the raised capacity applies", async () => {
+      expect(await marketMaxTotalSupply(market)).toBe(newCap)
+    }, { req: ["REQ-BOP-005"] })
     await syncSubgraph()
     const records = await latestCapacityRecords(market, 1)
-    expect(BigInt(records[0].newMaxTotalSupply)).toBe(newCap)
+    await step(page, "the capacity change is indexed", async () => {
+      expect(BigInt(records[0].newMaxTotalSupply)).toBe(newCap)
+    }, { req: ["REQ-BOP-005"] })
     // A deposit pushing supply beyond the OLD cap simulates fine now (account #1 still has
     // deposit access).
     const supply = await marketTotalSupply(market)
     const overOldCap = oldCap - supply + parseUnits("1", decimals)
-    // Guard: the probe amount must clear the minimum-deposit hook or the simulation would
+    // Precondition: the probe amount must clear the minimum-deposit hook or the simulation would
     // revert for the wrong reason.
-    if (overOldCap >= deposit && overOldCap < newCap - supply) {
-      faucet(account1, overOldCap * 2n, token)
-      await chain.approve(account1, token, market, overOldCap * 2n)
-      const sim = await simulateFrom({
-        account: account1,
-        address: market,
-        functionName: "depositUpTo",
-        args: [overOldCap],
-      })
+    expect(
+      overOldCap >= deposit && overOldCap < newCap - supply,
+      "the fixture leaves room above the old cap",
+    ).toBe(true)
+    faucet(account1, overOldCap * 2n, token)
+    await chain.approve(account1, token, market, overOldCap * 2n)
+    const sim = await simulateFrom({
+      account: account1,
+      address: market,
+      functionName: "depositUpTo",
+      args: [overOldCap],
+    })
+    await step(page, "a deposit above the old cap is accepted", async () => {
       expect(sim.reverted, "deposit above old cap accepted").toBe(false)
-    }
+    }, { req: ["REQ-BOP-118"] })
     attachAgreement("BOP-20", { oldCap, newCap, record: records[0] })
   })
 
-  test("BOP-21: capacity below current supply allowed; new deposits blocked", async ({
+  test("BOP-21: capacity below current supply allowed; new deposits blocked", requirements(["REQ-BOP-005", "REQ-BOP-119"]), async ({
     page,
   }) => {
     requireMarket()
@@ -1456,9 +1544,11 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     await ensureCapacityApplied(market, newCap)
 
     const capNow = await marketMaxTotalSupply(market)
-    expect(capNow < supply, "cap below supply accepted (no forced exits)").toBe(
-      true,
-    )
+    await step(page, "a capacity below current supply is accepted with no forced exits", async () => {
+      expect(capNow < supply, "cap below supply accepted (no forced exits)").toBe(
+        true,
+      )
+    }, { req: ["REQ-BOP-005", "REQ-BOP-119"] })
     // New deposits revert while supply exceeds the cap (depositUpTo mints nothing).
     faucet(account1, deposit, token)
     await chain.approve(account1, token, market, deposit)
@@ -1468,16 +1558,18 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       functionName: "depositUpTo",
       args: [deposit],
     })
-    expect(sim.reverted, "no new deposits until supply drops below cap").toBe(
-      true,
-    )
+    await step(page, "new deposits are blocked while supply exceeds the cap", async () => {
+      expect(sim.reverted, "no new deposits until supply drops below cap").toBe(
+        true,
+      )
+    }, { req: ["REQ-BOP-119"] })
     // Restore the previous capacity on-chain so later tests keep headroom.
     await setMaxTotalSupplyOnChain(market, capBefore)
     await syncSubgraph()
     attachAgreement("BOP-21", { supply, newCap, restoredCap: capBefore })
   })
 
-  test("BOP-19: minimum deposit change enforced on new deposits", async ({
+  test("BOP-19: minimum deposit change enforced on new deposits", requirements(["REQ-BOP-012", "REQ-BOP-116"]), async ({
     page,
   }) => {
     requireMarket()
@@ -1496,9 +1588,11 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       .first()
       .click()
     const dialog = page.getByRole("dialog")
-    await expect(dialog.getByText(/current minimum deposit/i)).toBeVisible({
-      timeout: 30_000,
-    })
+    await step(page, "the dialog shows the current minimum deposit", async () => {
+      await expect(dialog.getByText(/current minimum deposit/i)).toBeVisible({
+        timeout: 30_000,
+      })
+    }, { req: ["REQ-BOP-012"] })
     await dialog
       .getByRole("textbox")
       .first()
@@ -1509,7 +1603,9 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
 
     await syncSubgraph()
     const row = await marketRow(market)
-    expect(BigInt(row!.hooksConfig?.minimumDeposit ?? "0")).toBe(newMin)
+    await step(page, "the new minimum deposit is recorded", async () => {
+      expect(BigInt(row!.hooksConfig?.minimumDeposit ?? "0")).toBe(newMin)
+    }, { req: ["REQ-BOP-012"] })
     // A below-minimum deposit reverts.
     const below = newMin - parseUnits("1", decimals)
     faucet(account1, newMin * 2n, token)
@@ -1520,7 +1616,9 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       functionName: "depositUpTo",
       args: [below],
     })
-    expect(sim.reverted, "deposit below the new minimum rejected").toBe(true)
+    await step(page, "a deposit below the new minimum is rejected", async () => {
+      expect(sim.reverted, "deposit below the new minimum rejected").toBe(true)
+    }, { req: ["REQ-BOP-116"] })
 
     // Restore: reruns would otherwise double the minimum every pass (review finding 12).
     if (oldMin > 0n) {
@@ -1545,7 +1643,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     attachAgreement("BOP-19", { oldMin, newMin, restored: oldMin > 0n })
   })
 
-  test("BOP-30: portfolio views and read-only access to other borrowers' markets", async ({
+  test("BOP-30: portfolio views and read-only access to other borrowers' markets", requirements(["REQ-BOP-124"]), async ({
     page,
   }) => {
     requireMarket()
@@ -1560,17 +1658,17 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       expect(await link.getAttribute("href")).toMatch(/t\.me|telegram/i)
     })
 
+    await page.goto("/borrower")
     await step(page, "own markets list", async () => {
-      await page.goto("/borrower")
       await expect(page.getByText(primary!.name).first()).toBeVisible({
         timeout: 60_000,
       })
-    })
+    }, { req: ["REQ-BOP-124"] })
 
+    await page.goto(
+      `/borrower/market/${pinnedMarkets.openTerm.toLowerCase()}`,
+    )
     await step(page, "other borrower's market is read-only", async () => {
-      await page.goto(
-        `/borrower/market/${pinnedMarkets.openTerm.toLowerCase()}`,
-      )
       // Non-owner: no Borrow and Repay section, no Terminate button.
       await expect(
         page.getByRole("button", { name: /status and details/i }),
@@ -1581,10 +1679,10 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       await expect(
         page.getByRole("button", { name: /terminate market/i }),
       ).toBeHidden()
-    })
+    }, { req: ["REQ-BOP-124"] })
   })
 
-  test("BOP-32: protocol fee accrues on top of lender APR and is collectable", async () => {
+  test("BOP-32: protocol fee accrues on top of lender APR and is collectable", requirements(["REQ-BOP-122", "REQ-BOP-136"]), async ({ page }) => {
     requireMarket()
     test.skip(
       (primary!.protocolFeeBips ?? 0) === 0,
@@ -1595,17 +1693,22 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     await syncSubgraph()
     const before = await marketRow(market)
     const pending = BigInt(before!.pendingProtocolFees)
-    expect(pending, "fees accrued over the hour").toBeGreaterThan(0n)
+    await step(page, "the protocol fee accrues over the hour", async () => {
+      expect(pending, "fees accrued over the hour").toBeGreaterThan(0n)
+    }, { req: ["REQ-BOP-122"] })
 
     const assetsBefore = await marketTotalAssets(market)
     await collectFeesOnChain(account0, market) // anyone may trigger; fees go to feeRecipient
     const assetsAfter = await marketTotalAssets(market)
     await syncSubgraph()
     const records = await feesCollectedRecords(market)
-    expect(records.length).toBeGreaterThan(0)
-    const collected = BigInt(records[0].feesCollected)
-    expect(collected).toBeGreaterThan(0n)
-    expect(absDiff(assetsBefore - assetsAfter, collected) <= 10n).toBe(true)
+    const collected = await step(page, "the accrued fee is collected out of the market", async () => {
+      expect(records.length).toBeGreaterThan(0)
+      const collected = BigInt(records[0].feesCollected)
+      expect(collected).toBeGreaterThan(0n)
+      expect(absDiff(assetsBefore - assetsAfter, collected) <= 10n).toBe(true)
+      return collected
+    }, { req: ["REQ-BOP-136"] })
     attachAgreement("BOP-32", {
       protocolFeeBips: primary!.protocolFeeBips,
       pendingBefore: pending,
@@ -1688,7 +1791,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     expect(await marketApr(ft)).toBe(apr0 + 50n)
   })
 
-  test("BOP-18: fixed-term maturity reduction accepted, extension rejected", async ({
+  test("BOP-18: fixed-term maturity reduction accepted, extension rejected", requirements(["REQ-BOP-011", "REQ-MKT-013"]), async ({
     page,
     browser,
   }) => {
@@ -1734,43 +1837,49 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     await gotoBorrowerMarket(page, ft)
     await ensureConnected(page, BORROWER)
 
-    await step(page, "reduce the maturity through the dialog", async () => {
-      const dialog = await openMaturityDialog(page)
+    let dialog = await openMaturityDialog(page)
+    await step(page, "the dialog shows the current maturity in UTC", async () => {
       // ModalDataItem "Current Maturity" renders formatUtcMaturity() — the stored instant in UTC.
       expect(await readDialogText(dialog)).toContain(maturityWithTimeLabel(before))
-      await typeDateDigits(maturityInput(dialog), maturityDigits(reduced))
-      const confirm = dialog.getByRole("button", { name: /^confirm$/i })
+    }, { req: ["REQ-MKT-013"] })
+    await typeDateDigits(maturityInput(dialog), maturityDigits(reduced))
+    const confirm = dialog.getByRole("button", { name: /^confirm$/i })
+    await step(page, "reduce the maturity through the dialog", async () => {
       await expect(confirm).toBeEnabled({ timeout: 30_000 })
-      await confirm.click()
-      await waitBorrowerTxSuccess(page)
-      await closeDialog(page)
-    })
+    }, { req: ["REQ-BOP-011"] })
+    await confirm.click()
+    await waitBorrowerTxSuccess(page)
+    await closeDialog(page)
 
     // The hooks instance is the authority; the indexed copy only catches up on the next block.
-    expect(
-      await fixedTermEndTimeOnChain(ftHooks, ft),
-      "on-chain maturity moved to the chosen calendar day",
-    ).toBe(reduced)
+    await step(page, "the maturity moves on chain to the chosen day", async () => {
+      expect(
+        await fixedTermEndTimeOnChain(ftHooks, ft),
+        "on-chain maturity moved to the chosen calendar day",
+      ).toBe(reduced)
+    }, { req: ["REQ-BOP-011"] })
     await syncSubgraph()
-    await expect
-      .poll(
-        async () => Number((await marketRow(ft))!.hooksConfig?.fixedTermEndTime),
-        { timeout: 60_000, message: "subgraph indexes the reduced maturity" },
-      )
-      .toBe(reduced)
+    await step(page, "the subgraph indexes the reduced maturity", async () => {
+      await expect
+        .poll(
+          async () => Number((await marketRow(ft))!.hooksConfig?.fixedTermEndTime),
+          { timeout: 60_000, message: "subgraph indexes the reduced maturity" },
+        )
+        .toBe(reduced)
+    }, { req: ["REQ-BOP-011"] })
 
+    // Reload first: the picker's own maxDate is the CURRENT maturity read from the market
+    // account, so an extension attempt only means anything once the page has the reduced value.
+    // A refetch-in-flight page would offer the old bound and the rejection would prove nothing.
+    await gotoBorrowerMarket(page, ft)
+    await ensureConnected(page, BORROWER)
+    dialog = await openMaturityDialog(page)
+    await expect(
+      dialog.getByText(maturityWithTimeLabel(reduced)).first(),
+      "dialog shows the reduced maturity before the extension is attempted",
+    ).toBeVisible({ timeout: 60_000 })
+    await typeDateDigits(maturityInput(dialog), maturityDigits(before))
     await step(page, "extension back to the old date is refused", async () => {
-      // Reload first: the picker's own maxDate is the CURRENT maturity read from the market
-      // account, so an extension attempt only means anything once the page has the reduced value.
-      // A refetch-in-flight page would offer the old bound and the rejection would prove nothing.
-      await gotoBorrowerMarket(page, ft)
-      await ensureConnected(page, BORROWER)
-      const dialog = await openMaturityDialog(page)
-      await expect(
-        dialog.getByText(maturityWithTimeLabel(reduced)).first(),
-        "dialog shows the reduced maturity before the extension is attempted",
-      ).toBeVisible({ timeout: 60_000 })
-      await typeDateDigits(maturityInput(dialog), maturityDigits(before))
       // MaturityModal maps SetFixedTermEndTimeStatus.FixedTermEndTimeIncrease to this helper text
       // and keeps Confirm disabled; the chain's own guard behind it is
       // FixedTermHooks.setFixedTermEndTime → IncreaseFixedTerm() (FixedTermHooks.sol:280).
@@ -1780,12 +1889,14 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       await expect(
         dialog.getByRole("button", { name: /^confirm$/i }),
       ).toBeDisabled()
-      await closeDialog(page)
-    })
-    expect(
-      await fixedTermEndTimeOnChain(ftHooks, ft),
-      "the refused extension left the maturity untouched",
-    ).toBe(reduced)
+    }, { req: ["REQ-BOP-011"] })
+    await closeDialog(page)
+    await step(page, "the refused extension left the maturity untouched", async () => {
+      expect(
+        await fixedTermEndTimeOnChain(ftHooks, ft),
+        "the refused extension left the maturity untouched",
+      ).toBe(reduced)
+    }, { req: ["REQ-BOP-011"] })
 
     // ---- timezone triple ----------------------------------------------------------------
     // The runsheet asks for ONE maturity rendered consistently across dialog, detail page and
@@ -1833,17 +1944,19 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     }
 
     // One instant, three formats — all derived from `reduced`, none from the viewer's offset.
-    expect(surfaces.dialog, "dialog shows the UTC maturity").toContain(
-      maturityWithTimeLabel(reduced),
-    )
     // Detail page: formatUtcMaturity() ("05 Aug 2026 00:00 UTC").
     const expectedDetail = maturityWithTimeLabel(reduced)
-    expect(surfaces.detail, "detail page shows the same UTC day").toBe(
-      expectedDetail,
-    )
-    expect(surfaces.list, "market-list chip shows the same UTC day").toContain(
-      maturityDateLabel(reduced),
-    )
+    await step(page, "one maturity reads the same day on the dialog, detail page and market list", async () => {
+      expect(surfaces.dialog, "dialog shows the UTC maturity").toContain(
+        maturityWithTimeLabel(reduced),
+      )
+      expect(surfaces.detail, "detail page shows the same UTC day").toBe(
+        expectedDetail,
+      )
+      expect(surfaces.list, "market-list chip shows the same UTC day").toContain(
+        maturityDateLabel(reduced),
+      )
+    }, { req: ["REQ-MKT-013"] })
 
     attachAgreement("BOP-18 maturity reduction", {
       market: ft,
@@ -1863,7 +1976,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     })
   })
 
-  test("BOP-24: fixed-term early close before maturity", async ({ page }) => {
+  test("BOP-24: fixed-term early close before maturity", requirements(["REQ-BOP-027"]), async ({ page }) => {
     requireMarket()
     // Early close is DESTRUCTIVE and consumes its market, so it gets its own fixture: closing
     // BOP-15/BOP-18's market would leave them nothing to assert on the next board, and closing a
@@ -1974,23 +2087,25 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       },
     )
 
-    expect(await marketIsClosed(target)).toBe(true)
     // Closing INSIDE the term pulls the term end forward to the closing block
     // (FixedTermHooks.onCloseMarket, v2.5-protocol/src/access/FixedTermHooks.sol:495-500) —
     // the early close IS a maturity change, and it is what unlocks lender withdrawals below.
     const maturityAfter = await fixedTermEndTimeOnChain(hooks2, target)
-    expect(
-      maturityAfter,
-      "closure before term pulled the maturity to the closing block",
-    ).toBeLessThan(maturity)
-    expect(maturityAfter).toBeLessThanOrEqual(closedAt)
+    await step(page, "the market closes before maturity and the term end moves to the close", async () => {
+      expect(await marketIsClosed(target)).toBe(true)
+      expect(
+        maturityAfter,
+        "closure before term pulled the maturity to the closing block",
+      ).toBeLessThan(maturity)
+      expect(maturityAfter).toBeLessThanOrEqual(closedAt)
+    }, { req: ["REQ-BOP-027"] })
 
+    const sf1 = await marketScaleFactor(target)
+    await advanceTime(600)
+    await chain.updateState(BORROWER, target)
     await step(page, "accrual stops at closure", async () => {
-      const sf1 = await marketScaleFactor(target)
-      await advanceTime(600)
-      await chain.updateState(BORROWER, target)
       expect(await marketScaleFactor(target), "scale factor frozen").toBe(sf1)
-    })
+    }, { req: ["REQ-BOP-027"] })
 
     // ---- the lender can still get out --------------------------------------------------
     // Closed-market exit semantics (zero-duration batch, no cycle wait) are established by
@@ -2053,36 +2168,44 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     await chain.updateState(account1, target)
     await syncSubgraph()
     const expiry = await latestWithdrawalBatchExpiry(target)
-    expect(
-      cycle2,
-      "the market does have an ordinary withdrawal cycle",
-    ).toBeGreaterThan(0)
-    expect(expiry, "the batch belongs to this request").toBeGreaterThanOrEqual(
-      closedAt,
-    )
-    // An ordinary batch would expire a whole cycle after the queue block; this one expires AT it.
-    expect(
-      expiry - queuedAt,
-      "no ordinary cycle delay on a closed market",
-    ).toBeLessThan(cycle2)
+    await step(page, "the closed market's batch carries no cycle delay", async () => {
+      expect(
+        cycle2,
+        "the market does have an ordinary withdrawal cycle",
+      ).toBeGreaterThan(0)
+      expect(expiry, "the batch belongs to this request").toBeGreaterThanOrEqual(
+        closedAt,
+      )
+      // An ordinary batch would expire a whole cycle after the queue block; this one expires AT it.
+      expect(
+        expiry - queuedAt,
+        "no ordinary cycle delay on a closed market",
+      ).toBeLessThan(cycle2)
+    }, { req: ["REQ-BOP-027"] })
     const claimable = await chain.getAvailableWithdrawalAmount(
       target,
       account1,
       expiry,
     )
-    expect(claimable, "the request is payable immediately").toBeGreaterThan(0n)
+    await step(page, "the lender's request is payable at once", async () => {
+      expect(claimable, "the request is payable immediately").toBeGreaterThan(0n)
+    }, { req: ["REQ-BOP-027"] })
     const assetBefore = await chain.erc20Balance(token2, account1)
     await chain.executeWithdrawal(account1, target, account1, expiry)
-    expect(
-      (await chain.erc20Balance(token2, account1)) - assetBefore,
-      "the lender receives the underlying",
-    ).toBe(claimable)
-    expect(await chain.marketBalance(target, account1)).toBe(0n)
+    await step(page, "the lender receives the underlying and exits fully", async () => {
+      expect(
+        (await chain.erc20Balance(token2, account1)) - assetBefore,
+        "the lender receives the underlying",
+      ).toBe(claimable)
+      expect(await chain.marketBalance(target, account1)).toBe(0n)
+    }, { req: ["REQ-BOP-027"] })
 
     await syncSubgraph()
     const row = await marketRow(target)
-    expect(row!.isClosed).toBe(true)
-    expect((await marketClosedRecords(target)).length).toBeGreaterThan(0)
+    await step(page, "the closure is indexed", async () => {
+      expect(row!.isClosed).toBe(true)
+      expect((await marketClosedRecords(target)).length).toBeGreaterThan(0)
+    }, { req: ["REQ-BOP-027"] })
     attachAgreement("BOP-24 early close before maturity", {
       market: target,
       name: earlyCloseTerm!.name,
@@ -2099,7 +2222,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     })
   })
 
-  test("BOP-22: terminate an empty market", async ({ page }) => {
+  test("BOP-22: terminate an empty market", requirements(["REQ-BOP-014"]), async ({ page }) => {
     requireMarket()
     test.skip(
       !closeEmptyTarget,
@@ -2117,9 +2240,11 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     // VERIFY: a never-active market takes the simple TerminateFlow ("Are you sure…"). If dust
     // debt (accrued protocol fees) routed it into RepayAndTerminateFlow instead, drive that
     // flow's Approve → "Repay and Terminate" buttons.
-    await expect(dialog.getByText(/are you sure/i)).toBeVisible({
-      timeout: 30_000,
-    })
+    await step(page, "the empty market takes the simple terminate confirmation", async () => {
+      await expect(dialog.getByText(/are you sure/i)).toBeVisible({
+        timeout: 30_000,
+      })
+    }, { req: ["REQ-BOP-014"] })
     await dialog.getByRole("button", { name: /terminate market/i }).click()
     await waitBorrowerTxSuccess(page)
     await closeDialog(page)
@@ -2129,15 +2254,19 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       closeEmptyTarget!.asset.decimals,
     )
 
-    expect(await marketIsClosed(target)).toBe(true)
+    await step(page, "the market is closed on chain", async () => {
+      expect(await marketIsClosed(target)).toBe(true)
+    }, { req: ["REQ-BOP-014"] })
     await syncSubgraph()
     const row = await marketRow(target)
-    expect(row!.isClosed).toBe(true)
-    expect((await marketClosedRecords(target)).length).toBeGreaterThan(0)
+    await step(page, "the closure is indexed", async () => {
+      expect(row!.isClosed).toBe(true)
+      expect((await marketClosedRecords(target)).length).toBeGreaterThan(0)
+    }, { req: ["REQ-BOP-014"] })
     attachAgreement("BOP-22", { market: target, name: closeEmptyTarget!.name })
   })
 
-  test("BOP-23: repay + terminate in one flow (creates the LEN-20 fixture)", async ({
+  test("BOP-23: repay + terminate in one flow (creates the LEN-20 fixture)", requirements(["REQ-PROTO-109", "REQ-BOP-015"]), async ({
     page,
   }) => {
     requireMarket()
@@ -2192,9 +2321,11 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       .first()
       .click()
     const dialog = page.getByRole("dialog")
-    await expect(dialog.getByText(/debts/i).first()).toBeVisible({
-      timeout: 30_000,
-    })
+    await step(page, "the terminate dialog states the debts to repay", async () => {
+      await expect(dialog.getByText(/debts/i).first()).toBeVisible({
+        timeout: 30_000,
+      })
+    }, { req: ["REQ-BOP-015"] })
     const approve = dialog.getByRole("button", { name: /^approve$/i })
     if (await approve.isEnabled({ timeout: 5_000 }).catch(() => false)) {
       await approve.click()
@@ -2205,7 +2336,9 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     const closeBtn = dialog.getByRole("button", {
       name: /repay and terminate/i,
     })
-    await expect(closeBtn).toBeEnabled({ timeout: 60_000 })
+    await step(page, "repay and terminate is offered as one action", async () => {
+      await expect(closeBtn).toBeEnabled({ timeout: 60_000 })
+    }, { req: ["REQ-BOP-015"] })
     await closeBtn.click()
     await waitBorrowerTxSuccess(page)
     await closeDialog(page)
@@ -2215,13 +2348,15 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       closeRepayTarget!.asset.decimals,
     )
 
-    expect(await marketIsClosed(target)).toBe(true)
+    await step(page, "the market is closed by the single flow", async () => {
+      expect(await marketIsClosed(target)).toBe(true)
+    }, { req: ["REQ-BOP-015"] })
+    const sf1 = await marketScaleFactor(target)
+    await advanceTime(600)
+    await chain.updateState(BORROWER, target)
     await step(page, "interest stopped after close", async () => {
-      const sf1 = await marketScaleFactor(target)
-      await advanceTime(600)
-      await chain.updateState(BORROWER, target)
       expect(await marketScaleFactor(target), "scale factor frozen").toBe(sf1)
-    })
+    }, { req: ["REQ-PROTO-109"] })
 
     await step(
       page,
@@ -2253,8 +2388,10 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
 
     await syncSubgraph()
     const row = await marketRow(target)
-    expect(row!.isClosed).toBe(true)
-    expect((await marketClosedRecords(target)).length).toBeGreaterThan(0)
+    await step(page, "the closure is indexed", async () => {
+      expect(row!.isClosed).toBe(true)
+      expect((await marketClosedRecords(target)).length).toBeGreaterThan(0)
+    }, { req: ["REQ-BOP-015"] })
     closedMarketName = closeRepayTarget!.name
     attachAgreement("BOP-23 / LEN-20 fixture", {
       market: target,
@@ -2264,7 +2401,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     })
   })
 
-  test("BOP-25: terminated market moves to 'Your Terminated Markets'", async ({
+  test("BOP-25: terminated market moves to 'Your Terminated Markets'", requirements(["REQ-BOP-121"]), async ({
     page,
   }) => {
     requireMarket()
@@ -2283,16 +2420,18 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       .getByRole("button", { name: /your terminated markets/i })
       .first()
       .click()
-    await expect(page.getByText(closedMarketName!).first()).toBeVisible({
-      timeout: 120_000,
-    })
+    await step(page, "the closed market is listed under Your Terminated Markets", async () => {
+      await expect(page.getByText(closedMarketName!).first()).toBeVisible({
+        timeout: 120_000,
+      })
+    }, { req: ["REQ-BOP-121"] })
     attachAgreement("BOP-25", {
       market: closedMarketName,
       displayLagMs: Date.now() - t0,
     })
   })
 
-  test("BOP-14: APR cut >25% activates the doubled temporary reserve ratio", async ({
+  test("BOP-14: APR cut >25% activates the doubled temporary reserve ratio", requirements(["REQ-BOP-007", "REQ-BOP-112", "REQ-BOP-016"]), async ({
     page,
   }) => {
     requireMarket()
@@ -2335,7 +2474,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
       await expect(
         dialog.getByText(/temporary reserve ratio in force until/i),
       ).toBeVisible()
-    })
+    }, { req: ["REQ-BOP-007"] })
 
     await dialog.getByRole("button", { name: /^confirm$/i }).click()
     await dialog.getByRole("checkbox").check()
@@ -2345,33 +2484,39 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     await ensureAprApplied(market, newApr)
 
     // chain oracles
-    expect(await marketApr(market)).toBe(newApr)
-    expect(await marketReserveRatio(market)).toBe(expectedRr)
     const [tApr, tRr, tExpiry] = await tempExcessReserveRatio(hooksAddr, market)
-    expect(BigInt(tApr)).toBe(apr0)
-    expect(BigInt(tRr)).toBe(rr0)
     const now = await chain.blockTimestamp()
-    // expiry == tx block timestamp + 2 weeks (1,209,600 s exact); allow the polling gap.
-    expect(Math.abs(tExpiry - (now + 1_209_600))).toBeLessThanOrEqual(120)
+    await step(page, "the cut applies and the reserve ratio rises in proportion for two weeks", async () => {
+      expect(await marketApr(market)).toBe(newApr)
+      expect(await marketReserveRatio(market)).toBe(expectedRr)
+      expect(BigInt(tApr)).toBe(apr0)
+      expect(BigInt(tRr)).toBe(rr0)
+      // expiry == tx block timestamp + 2 weeks (1,209,600 s exact); allow the polling gap.
+      expect(Math.abs(tExpiry - (now + 1_209_600))).toBeLessThanOrEqual(120)
+    }, { req: ["REQ-BOP-112"] })
 
     // subgraph oracles
     await syncSubgraph()
     const row = await marketRow(market)
-    expect(row!.temporaryReserveRatioActive).toBe(true)
-    expect(row!.originalAnnualInterestBips).toBe(Number(apr0))
-    expect(row!.originalReserveRatioBips).toBe(Number(rr0))
-    expect(row!.temporaryReserveRatioExpiry).toBe(tExpiry)
     const rrRecords = await latestReserveRatioRecords(market, 1)
-    expect(rrRecords[0]).toEqual({
-      oldReserveRatioBips: Number(rr0),
-      newReserveRatioBips: Number(expectedRr),
-    })
+    await step(page, "the subgraph records the temporary reserve ratio", async () => {
+      expect(row!.temporaryReserveRatioActive).toBe(true)
+      expect(row!.originalAnnualInterestBips).toBe(Number(apr0))
+      expect(row!.originalReserveRatioBips).toBe(Number(rr0))
+      expect(row!.temporaryReserveRatioExpiry).toBe(tExpiry)
+      expect(rrRecords[0]).toEqual({
+        oldReserveRatioBips: Number(rr0),
+        newReserveRatioBips: Number(expectedRr),
+      })
+    }, { req: ["REQ-BOP-112"] })
 
     // UI oracle: the borrower banner carries the on-chain expiry.
     await gotoBorrowerMarket(page, market)
     const banner = page.getByTestId("borrower-temp-ratio-active")
-    await expect(banner).toBeVisible({ timeout: 60_000 })
-    expect(Number(await banner.getAttribute("data-expiry"))).toBe(tExpiry)
+    await step(page, "the borrower is told the temporary ratio is active and when it lifts", async () => {
+      await expect(banner).toBeVisible({ timeout: 60_000 })
+      expect(Number(await banner.getAttribute("data-expiry"))).toBe(tExpiry)
+    }, { req: ["REQ-BOP-016"] })
     attachAgreement("BOP-14 activation", {
       apr0,
       newApr,
@@ -2387,7 +2532,7 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
    * Verifies the runsheet's expiry-reset TBD: nothing auto-reverts at expiry; the borrower
    * must send a reset transaction (BOP-14 pilot, MarketConstraintHooks.sol L221-237).
    */
-  test("BOP-14b: 2-week jump — lock expires, borrower resets the ratio", async ({
+  test("BOP-14b: 2-week jump — lock expires, borrower resets the ratio", requirements(["REQ-BOP-017", "REQ-BOP-034"]), async ({
     page,
   }) => {
     requireMarket()
@@ -2409,43 +2554,49 @@ test.describe.serial("borrower flows: borrower ops (BOP-01…32)", () => {
     await connectAs(page, BORROWER_CONNECT)
     await gotoBorrowerMarket(page, market) // fresh page → clock at post-jump chain time
     await ensureConnected(page, BORROWER)
-    await expect(page.getByTestId("borrower-temp-ratio-expired")).toBeVisible({
-      timeout: 60_000,
-    })
+    await step(page, "the borrower is told the temporary ratio has expired", async () => {
+      await expect(page.getByTestId("borrower-temp-ratio-expired")).toBeVisible({
+        timeout: 60_000,
+      })
+    }, { req: ["REQ-BOP-017"] })
 
+    await page
+      .getByRole("button", { name: /^adjust base apr$/i })
+      .first()
+      .click()
+    const dialog = page.getByRole("dialog")
+    const current = await marketApr(market)
+    // Typing any APR below the current one flips the modal into needs-reset mode.
+    await dialog
+      .getByRole("textbox")
+      .first()
+      .fill((Number((current * 9n) / 10n) / 100).toFixed(2))
+    const reset = dialog.getByRole("button", {
+      name: /reset temporary reserve ratio/i,
+    })
     await step(page, "APR modal offers the reset", async () => {
-      await page
-        .getByRole("button", { name: /^adjust base apr$/i })
-        .first()
-        .click()
-      const dialog = page.getByRole("dialog")
-      const current = await marketApr(market)
-      // Typing any APR below the current one flips the modal into needs-reset mode.
-      await dialog
-        .getByRole("textbox")
-        .first()
-        .fill((Number((current * 9n) / 10n) / 100).toFixed(2))
       await expect(
         dialog.getByText(/temporary reserve ratio has expired/i),
       ).toBeVisible({ timeout: 30_000 })
-      const reset = dialog.getByRole("button", {
-        name: /reset temporary reserve ratio/i,
-      })
       await expect(reset).toBeEnabled({ timeout: 30_000 })
-      await reset.click()
-      await waitBorrowerTxSuccess(page)
-      await closeDialog(page)
-    })
+    }, { req: ["REQ-BOP-017", "REQ-BOP-034"] })
+    await reset.click()
+    await waitBorrowerTxSuccess(page)
+    await closeDialog(page)
     await ensureRatioReset(market, BigInt(rr0))
 
     // chain: original ratio restored, hooks mapping cleared (Expired path).
-    expect(await marketReserveRatio(market)).toBe(BigInt(rr0))
     const [a, b, c] = await tempExcessReserveRatio(hooksAddr, market)
-    expect([a, b, c]).toEqual([0, 0, 0])
+    await step(page, "the reset restores the original ratio and clears the mapping", async () => {
+      expect(await marketReserveRatio(market)).toBe(BigInt(rr0))
+      expect([a, b, c]).toEqual([0, 0, 0])
+    }, { req: ["REQ-BOP-034"] })
     await syncSubgraph()
     const row = await marketRow(market)
-    expect(row!.temporaryReserveRatioActive).toBe(false)
-    expect(row!.reserveRatioBips).toBe(rr0)
+    await step(page, "the subgraph shows the original ratio again", async () => {
+      expect(row!.temporaryReserveRatioActive).toBe(false)
+      expect(row!.reserveRatioBips).toBe(rr0)
+    }, { req: ["REQ-BOP-034"] })
 
     // Tidy: restore the pre-BOP-14 APR (a plain increase — unconstrained) and confirm the
     // expired banner is gone for the next suite run.
