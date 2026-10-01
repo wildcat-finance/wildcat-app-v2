@@ -23,15 +23,23 @@
  * harness has no variant plumbing and learns its variant from nothing else.
  */
 import { readFileSync } from "node:fs"
+import { dirname, join } from "node:path"
 
 import type { Fixtures, TestInfo } from "@playwright/test"
 
 import * as journal from "./journal"
 import {
+  buildRowSpec,
+  runsheetIndex,
+  specAnnotation,
+  type RunsheetIndex,
+} from "./rowSpec"
+import {
   failedAssertionOf,
   INFRA_ANNOTATION,
   OBSERVATION_ERROR_CAP,
   parseRequirements,
+  parseUatId,
   type UatAnnotation,
   type UatJournalEntry,
 } from "./uatModel"
@@ -89,13 +97,15 @@ export type LedgerVersionEntry = {
     class: CoverageClass
     blockedBy?: { kind?: string; detail?: string }
     reason?: string
+    /** The rows that cover the requirement on this version (display: the ledger's mapping). */
+    tests?: Array<{ uatId?: string; file?: string }>
   }
 }
 
 export type LedgerRequirement = {
   id: string
   statement?: string
-  desired?: { status?: DesiredStatus }
+  desired?: { status?: DesiredStatus; text?: string }
   versions?: Record<string, LedgerVersionEntry | undefined>
 }
 
@@ -647,7 +657,25 @@ export const checkSignatureAndRecord = (
 
 /* ---------------------------------------------------------------------------- the wiring ----- */
 
-export type LedgerContext = { ledger: Ledger; version: LedgerVersionId }
+export type LedgerContext = {
+  ledger: Ledger
+  version: LedgerVersionId
+  /** The runsheet rows, display only: `UAT_RUNSHEET`, else `runsheet.json` beside the ledger. */
+  runsheet?: RunsheetIndex
+}
+
+/** The env var naming the runsheet file; unset ⇒ `runsheet.json` beside `UAT_LEDGER`. */
+export const RUNSHEET_PATH_ENV = "UAT_RUNSHEET"
+
+/** The runsheet for the spec text — display only, so anything unreadable is simply absent. */
+const loadRunsheet = (path: string): RunsheetIndex | undefined => {
+  try {
+    const index = runsheetIndex(JSON.parse(readFileSync(path, "utf8")))
+    return index.size > 0 ? index : undefined
+  } catch {
+    return undefined
+  }
+}
 
 let context: LedgerContext | undefined
 let resolved = false
@@ -686,6 +714,10 @@ export const ledgerContext = (
   try {
     context = { ledger: loadLedger(path), version }
     sayOnce(`ledger: applying ${path} as ${version}.`)
+    const runsheet = loadRunsheet(
+      env[RUNSHEET_PATH_ENV]?.trim() || join(dirname(path), "runsheet.json"),
+    )
+    if (runsheet) context.runsheet = runsheet
   } catch (e) {
     sayOnce(`ledger: ${(e as Error).message} — no expectations are applied.`)
     context = undefined
@@ -701,6 +733,31 @@ export const resetLedgerContext = () => {
 
 const isInfraRow = (annotations: UatAnnotation[]): boolean =>
   annotations.some((a) => a.type === INFRA_ANNOTATION)
+
+/**
+ * Attach the row's display-only `spec` annotation (`rowSpec.ts`): its runsheet text and the
+ * ledger's statement of each requirement it declares — or, for a row that declares none, the
+ * requirements the ledger maps to it on this version. Infra rows describe no behaviour and get
+ * none. NEVER throws and never touches the decision: it is text for the report and nothing else.
+ */
+export const attachSpec = (
+  testInfo: { title: string; annotations: UatAnnotation[] },
+  ctx: LedgerContext | undefined,
+): void => {
+  try {
+    if (!ctx || isInfraRow(testInfo.annotations)) return
+    const spec = buildRowSpec({
+      ledger: ctx.ledger,
+      version: ctx.version,
+      uatId: parseUatId(testInfo.title),
+      declared: parseRequirements(testInfo.annotations),
+      runsheet: ctx.runsheet,
+    })
+    if (spec) testInfo.annotations.push(specAnnotation(spec))
+  } catch {
+    // display only: a row without its spec text is still the same row
+  }
+}
 
 /**
  * THE AUTO FIXTURE. Wired into `e2e/lib/test.ts` with one line — `.extend(ledgerFixture)` — and
@@ -720,6 +777,9 @@ export const ledgerFixture: Fixtures<{ uatLedger: void }> = {
       let applied: AppliedDecision | undefined
       if (ctx && !isInfraRow(testInfo.annotations)) {
         const ids = parseRequirements(testInfo.annotations)
+        // The spec text goes on FIRST: a skipping decision throws, and a skipped row should still
+        // say what it would have tested.
+        attachSpec(testInfo, ctx)
         // `applyDecision` THROWS on a skip — nothing after it runs, which is what a skip means.
         if (ids.length > 0)
           applied = applyDecision(

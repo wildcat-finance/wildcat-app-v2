@@ -24,6 +24,7 @@ import { test as base } from "@playwright/test"
 import {
   annotationFor,
   applyDecision,
+  attachSpec,
   BLOCKED_PREFIX,
   checkSignature,
   checkSignatureAndRecord,
@@ -52,7 +53,13 @@ import {
   type LedgerVersionEntry,
   type LedgerVersionId,
 } from "../e2e/lib/ledger"
-import type { UatAnnotation, UatJournalEntry } from "../e2e/lib/uatModel"
+import { buildRowSpec, runsheetIndex, runsheetRowFor } from "../e2e/lib/rowSpec"
+import {
+  parseSpec,
+  SPEC_ANNOTATION,
+  type UatAnnotation,
+  type UatJournalEntry,
+} from "../e2e/lib/uatModel"
 
 const FIXTURES = resolve(__dirname, "../e2e/lib/__fixtures__")
 const AT = "2026-01-03T00:00:00.000Z"
@@ -1077,6 +1084,447 @@ describe("the fixture", () => {
     expect(Object.keys(registered)).toEqual(["uatJournal", "uatLedger"])
     expect((registered.uatLedger as [unknown, { auto: boolean }])[1]).toEqual({
       auto: true,
+    })
+  })
+})
+
+/* ============================================ the spec annotation: what a row is testing ===== */
+
+/**
+ * Display-only text for the report's "What it tests" tab: the runsheet row the test implements and
+ * the ledger's statement of every requirement it proves. Nothing here may decide an outcome — the
+ * fixture writes it next to the decision, never instead of one.
+ */
+describe("the spec annotation (display only)", () => {
+  const RUNSHEET = {
+    rows: [
+      {
+        page: 1,
+        pageTitle: "1 Admin",
+        uatId: "ADM-03",
+        title: "Invitation status",
+        preconditions: null,
+        steps:
+          "After Borrower A accepts the invite in the app, refresh the admin panel.",
+        expected:
+          "Borrower status changes to 'Accepted' and shows acceptance timestamp.",
+        notes: null,
+        applicability: {},
+        defectRefs: [],
+      },
+      {
+        page: 3,
+        pageTitle: "3 Market Creation",
+        uatId: "MKT-23",
+        title: "Escape closes the dialog",
+        preconditions: "A borrower with a market",
+        steps: "Press Escape on the completion dialog.",
+        expected: "The dialog closes.",
+        notes: "see M12",
+      },
+      { page: 0, pageTitle: "0 Setup", uatId: null, title: "Environment" },
+    ],
+    defects: [],
+  }
+
+  const specLedger = (): Ledger => ({
+    schema: "capability-ledger/2",
+    areas: [
+      {
+        id: "ADM",
+        capabilities: [
+          {
+            id: "CAP-ADM",
+            requirements: [
+              {
+                id: "REQ-ADM-006",
+                statement: "Show when the invitee signed the Terms of Use.",
+                desired: {
+                  status: "candidate",
+                  text: "Each row states the ToU timestamp.",
+                },
+                versions: {
+                  v25: {
+                    ...entry(),
+                    coverage: {
+                      class: "automated",
+                      tests: [{ uatId: "ADM-03" }],
+                    },
+                  },
+                  main: {
+                    ...entry(),
+                    coverage: {
+                      class: "automated",
+                      tests: [{ uatId: "ADM-09" }],
+                    },
+                  },
+                },
+              },
+              {
+                id: "REQ-MKT-140",
+                statement: "Escape dismisses the completion dialog.",
+                desired: { status: "candidate", text: "Escape closes it." },
+                versions: {
+                  v25: {
+                    applicability: {
+                      class: "intentionally-different",
+                      status: "proposed",
+                    },
+                    implementation: {
+                      class: "known-defect",
+                      knownIssue: {
+                        register: "main",
+                        id: "M12",
+                        signature: {
+                          requirementId: "REQ-MKT-140",
+                          maxLength: 400,
+                        },
+                      },
+                    },
+                    coverage: {
+                      class: "automated",
+                      tests: [{ uatId: "MKT-23b" }],
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  })
+
+  it("indexes the runsheet by uatId and falls back from a b-suffixed id to its base row", () => {
+    const idx = runsheetIndex(RUNSHEET)
+    expect(idx.size).toBe(2)
+    expect(runsheetRowFor(idx, "ADM-03")?.uatId).toBe("ADM-03")
+    expect(runsheetRowFor(idx, "MKT-23b")?.uatId).toBe("MKT-23")
+    expect(runsheetRowFor(idx, "MKT-99")).toBeUndefined()
+    expect(runsheetRowFor(idx, null)).toBeUndefined()
+    // A bare array of rows is accepted too; garbage is an empty index, never a throw.
+    expect(runsheetIndex(RUNSHEET.rows).size).toBe(2)
+    expect(runsheetIndex("nonsense").size).toBe(0)
+    expect(runsheetIndex(null).size).toBe(0)
+  })
+
+  it("a declared row: the runsheet text and every declared requirement's ledger text", () => {
+    const spec = buildRowSpec({
+      ledger: specLedger(),
+      version: "v25",
+      uatId: "ADM-03",
+      declared: ["REQ-ADM-006", "REQ-XXX-999"],
+      runsheet: runsheetIndex(RUNSHEET),
+    })
+    expect(spec).toEqual({
+      source: "declared",
+      runsheet: {
+        uatId: "ADM-03",
+        page: 1,
+        pageTitle: "1 Admin",
+        title: "Invitation status",
+        preconditions: null,
+        steps:
+          "After Borrower A accepts the invite in the app, refresh the admin panel.",
+        expected:
+          "Borrower status changes to 'Accepted' and shows acceptance timestamp.",
+        notes: null,
+      },
+      requirements: [
+        {
+          id: "REQ-ADM-006",
+          statement: "Show when the invitee signed the Terms of Use.",
+          desired: "Each row states the ToU timestamp.",
+          applicability: "required",
+          implementation: "conforming",
+        },
+        // An id the ledger does not know is kept, and said to be unknown — never dropped.
+        { id: "REQ-XXX-999", known: false },
+      ],
+    })
+  })
+
+  it("a b-suffixed row reads its base runsheet row; tags carry the ruling status and the known issue", () => {
+    const spec = buildRowSpec({
+      ledger: specLedger(),
+      version: "v25",
+      uatId: "MKT-23b",
+      declared: ["REQ-MKT-140"],
+      runsheet: runsheetIndex(RUNSHEET),
+    })
+    expect(spec?.runsheet?.uatId).toBe("MKT-23")
+    expect(spec?.runsheet?.title).toBe("Escape closes the dialog")
+    expect(spec?.requirements).toEqual([
+      {
+        id: "REQ-MKT-140",
+        statement: "Escape dismisses the completion dialog.",
+        desired: "Escape closes it.",
+        applicability: "intentionally-different",
+        applicabilityStatus: "proposed",
+        implementation: "known-defect",
+        knownIssue: "main#M12",
+      },
+    ])
+  })
+
+  it("an UNDECLARED row: the ledger's coverage mapping for THIS version, marked as such", () => {
+    const v25 = buildRowSpec({
+      ledger: specLedger(),
+      version: "v25",
+      uatId: "ADM-03",
+      declared: [],
+      runsheet: runsheetIndex(RUNSHEET),
+    })
+    expect(v25?.source).toBe("ledger-mapping")
+    expect(v25?.requirements.map((r) => r.id)).toEqual(["REQ-ADM-006"])
+    // main maps REQ-ADM-006 to a different row: ADM-03 proves nothing there.
+    const main = buildRowSpec({
+      ledger: specLedger(),
+      version: "main",
+      uatId: "ADM-03",
+      declared: [],
+      runsheet: runsheetIndex(RUNSHEET),
+    })
+    expect(main?.source).toBe("ledger-mapping")
+    expect(main?.requirements).toEqual([])
+    expect(main?.runsheet?.title).toBe("Invitation status")
+  })
+
+  it("omits the runsheet when there is none, and returns nothing when there is nothing to say", () => {
+    const spec = buildRowSpec({
+      ledger: specLedger(),
+      version: "v25",
+      uatId: "ADM-03",
+      declared: ["REQ-ADM-006"],
+    })
+    expect(spec).toBeDefined()
+    expect("runsheet" in (spec as object)).toBe(false)
+    expect(
+      buildRowSpec({
+        ledger: specLedger(),
+        version: "v25",
+        uatId: "ZZZ-01",
+        declared: [],
+        runsheet: runsheetIndex(RUNSHEET),
+      }),
+    ).toBeUndefined()
+    expect(
+      buildRowSpec({
+        ledger: specLedger(),
+        version: "v25",
+        uatId: null,
+        declared: [],
+      }),
+    ).toBeUndefined()
+  })
+
+  it("never throws on a malformed ledger", () => {
+    const broken = {
+      areas: [
+        null,
+        {
+          capabilities: [
+            { requirements: [null, { id: "REQ-ADM-006", versions: null }] },
+          ],
+        },
+      ],
+    } as unknown as Ledger
+    expect(() =>
+      buildRowSpec({
+        ledger: broken,
+        version: "v25",
+        uatId: "ADM-03",
+        declared: [],
+      }),
+    ).not.toThrow()
+    expect(() =>
+      buildRowSpec({
+        ledger: broken,
+        version: "v25",
+        uatId: "ADM-03",
+        declared: ["REQ-ADM-006"],
+      }),
+    ).not.toThrow()
+  })
+
+  it("attachSpec writes one `spec` annotation that parseSpec reads back; inert without a ledger or on an infra row", () => {
+    const ctx = {
+      ledger: specLedger(),
+      version: "v25" as const,
+      runsheet: runsheetIndex(RUNSHEET),
+    }
+    const info = {
+      title: "ADM-03: invitation status",
+      annotations: [] as UatAnnotation[],
+    }
+    attachSpec(info, ctx)
+    expect(
+      info.annotations.filter((a) => a.type === SPEC_ANNOTATION),
+    ).toHaveLength(1)
+    const spec = parseSpec(info.annotations)
+    expect(spec?.source).toBe("ledger-mapping")
+    expect(spec?.runsheet?.title).toBe("Invitation status")
+    expect(spec?.requirements[0]?.id).toBe("REQ-ADM-006")
+
+    const none = {
+      title: "ADM-03: invitation status",
+      annotations: [] as UatAnnotation[],
+    }
+    attachSpec(none, undefined)
+    expect(none.annotations).toEqual([])
+
+    const infra = {
+      title: "setup: fixtures",
+      annotations: [{ type: "infra", description: "setup" }] as UatAnnotation[],
+    }
+    attachSpec(infra, ctx)
+    expect(infra.annotations).toHaveLength(1)
+
+    // Never throws, whatever the context holds.
+    const odd = { title: "ADM-03: x", annotations: [] as UatAnnotation[] }
+    expect(() =>
+      attachSpec(odd, { ledger: null, version: "v25" } as unknown as Parameters<
+        typeof attachSpec
+      >[1]),
+    ).not.toThrow()
+  })
+
+  it("parseSpec ignores a malformed annotation", () => {
+    expect(
+      parseSpec([{ type: SPEC_ANNOTATION, description: "{not json" }]),
+    ).toBeUndefined()
+    expect(
+      parseSpec([{ type: SPEC_ANNOTATION, description: "[]" }]),
+    ).toBeUndefined()
+    expect(parseSpec([])).toBeUndefined()
+  })
+
+  describe("through ledgerContext and the fixture", () => {
+    let dir: string
+    let log: jest.SpyInstance
+    const saved: Record<string, string | undefined> = {}
+    const ENV = ["UAT_LEDGER", "UAT_LEDGER_VERSION", "UAT_RUNSHEET"]
+    beforeEach(() => {
+      dir = mkdtempSync(join(tmpdir(), "ledger-spec-"))
+      writeFileSync(join(dir, "ledger.json"), JSON.stringify(specLedger()))
+      writeFileSync(join(dir, "runsheet.json"), JSON.stringify(RUNSHEET))
+      ENV.forEach((k) => {
+        saved[k] = process.env[k]
+      })
+      log = jest.spyOn(console, "log").mockImplementation(() => {})
+      resetLedgerContext()
+    })
+    afterEach(() => {
+      ENV.forEach((k) => {
+        if (saved[k] === undefined) delete process.env[k]
+        else process.env[k] = saved[k]
+      })
+      log.mockRestore()
+      resetLedgerContext()
+      rmSync(dir, { recursive: true, force: true })
+    })
+
+    it("reads runsheet.json beside the ledger, or UAT_RUNSHEET", () => {
+      const ctx = ledgerContext({
+        UAT_LEDGER: join(dir, "ledger.json"),
+        UAT_LEDGER_VERSION: "v25",
+      })
+      expect(ctx?.runsheet?.size).toBe(2)
+      resetLedgerContext()
+      writeFileSync(
+        join(dir, "other.json"),
+        JSON.stringify({ rows: [{ uatId: "ADM-99", title: "elsewhere" }] }),
+      )
+      const other = ledgerContext({
+        UAT_LEDGER: join(dir, "ledger.json"),
+        UAT_LEDGER_VERSION: "v25",
+        UAT_RUNSHEET: join(dir, "other.json"),
+      })
+      expect([...(other?.runsheet?.keys() ?? [])]).toEqual(["ADM-99"])
+      resetLedgerContext()
+      // No runsheet anywhere: the ledger still applies, the spec just carries no runsheet text.
+      rmSync(join(dir, "runsheet.json"))
+      const bare = ledgerContext({
+        UAT_LEDGER: join(dir, "ledger.json"),
+        UAT_LEDGER_VERSION: "v25",
+      })
+      expect(bare?.version).toBe("v25")
+      expect(bare?.runsheet).toBeUndefined()
+    })
+
+    const runFixture = async (info: {
+      title: string
+      annotations: UatAnnotation[]
+    }) => {
+      const fake = Object.assign(
+        fakeTestInfo({ annotations: info.annotations }),
+        { title: info.title, status: "passed" },
+      )
+      const fn = (
+        ledgerFixture.uatLedger as unknown as [
+          (
+            deps: object,
+            use: () => Promise<void>,
+            ti: unknown,
+          ) => Promise<void>,
+        ]
+      )[0]
+      let thrown: unknown
+      try {
+        await fn({}, async () => {}, fake)
+      } catch (e) {
+        thrown = e
+      }
+      return { fake, thrown }
+    }
+
+    it("the fixture attaches the spec to an undeclared row, beside no decision", async () => {
+      process.env.UAT_LEDGER = join(dir, "ledger.json")
+      process.env.UAT_LEDGER_VERSION = "v25"
+      delete process.env.UAT_RUNSHEET
+      const { fake, thrown } = await runFixture({
+        title: "ADM-03: invitation status",
+        annotations: [],
+      })
+      expect(thrown).toBeUndefined()
+      expect(fake.annotations.map((a) => a.type)).toEqual([SPEC_ANNOTATION])
+      expect(parseSpec(fake.annotations)?.source).toBe("ledger-mapping")
+    })
+
+    it("the fixture writes the spec BEFORE a decision that skips the row", async () => {
+      const ledger = specLedger()
+      // REQ-ADM-006 as an APPROVED intentionally-absent ruling on v25: decision not-applicable.
+      const req = ledger.areas![0].capabilities![0].requirements![0]
+      req.desired = {
+        status: "approved",
+        text: "Each row states the ToU timestamp.",
+      }
+      req.versions!.v25!.applicability = {
+        class: "intentionally-absent",
+        status: "approved",
+      }
+      writeFileSync(join(dir, "ledger.json"), JSON.stringify(ledger))
+      process.env.UAT_LEDGER = join(dir, "ledger.json")
+      process.env.UAT_LEDGER_VERSION = "v25"
+      delete process.env.UAT_RUNSHEET
+      const { fake, thrown } = await runFixture({
+        title: "ADM-03: invitation status",
+        annotations: [{ type: "requirements", description: "REQ-ADM-006" }],
+      })
+      expect(thrown).toBeInstanceOf(FakeSkipError)
+      expect(fake.annotations.map((a) => a.type)).toEqual([
+        "requirements",
+        SPEC_ANNOTATION,
+        LEDGER_ANNOTATION,
+        "skip",
+      ])
+      const spec = parseSpec(fake.annotations)
+      expect(spec?.source).toBe("declared")
+      expect(spec?.requirements[0]).toMatchObject({
+        id: "REQ-ADM-006",
+        applicability: "intentionally-absent",
+        applicabilityStatus: "approved",
+      })
     })
   })
 })

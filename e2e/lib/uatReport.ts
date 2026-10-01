@@ -32,6 +32,7 @@ import {
   type PageGroup,
   type UatJournalEntry,
   type UatRun,
+  type UatSpecRequirement,
   type UatTest,
 } from "./uatModel"
 import { ledgerOf, signatureResultOf, verdictOf, type Verdict } from "./verdict"
@@ -1004,7 +1005,7 @@ const renderMarkets = (run: UatRun): string => {
   const n = (o: MarketIndexEntry["origin"]) =>
     markets.filter((m) => m.origin === o).length
   return `
-<section class="markets" id="markets"><h2>Markets in this run</h2>
+<section class="markets" id="markets" data-tab-pane="markets"><h2>Markets in this run</h2>
 <p class="muted">${markets.length} market${
     markets.length === 1 ? "" : "s"
   } · ${n("created")} created by this run · ${n("forked")} forked · ${n(
@@ -1485,6 +1486,124 @@ type CardContext = {
   touched: TouchedIndex
 }
 
+// ---------- "What it tests": the runsheet row and the requirements, in plain English ----------
+
+const specRow = (label: string, value?: string | null): string =>
+  value ? `<dt>${esc(label)}</dt><dd>${esc(value)}</dd>` : ""
+
+const specTags = (r: UatSpecRequirement): string =>
+  [
+    r.known === false
+      ? `<span class="tag unknown">not in the ledger</span>`
+      : "",
+    r.applicability && r.applicability !== "required"
+      ? `<span class="tag ruling">${esc(r.applicability)}${
+          r.applicabilityStatus ? ` · ${esc(r.applicabilityStatus)}` : ""
+        }</span>`
+      : "",
+    r.implementation === "known-defect"
+      ? `<span class="tag defect">known defect${
+          r.knownIssue ? ` ${esc(r.knownIssue)}` : ""
+        }</span>`
+      : "",
+  ].join("")
+
+/**
+ * The "What it tests" pane: the runsheet row (what the tester does, what should happen), the
+ * requirements the row proves with the ledger's own words, how the test checks them (its
+ * checkpoints, in order, with the requirement ids each one carries), then the spec file. Display
+ * only — built from `t.spec`, which no outcome or verdict reads.
+ */
+const renderSpecPane = (t: UatTest): string => {
+  const sp = t.spec
+  const parts: string[] = []
+  if (!sp)
+    parts.push(
+      `<p class="muted no-spec">No runsheet or ledger text for this row in this run.</p>`,
+    )
+  const rs = sp?.runsheet
+  if (rs) {
+    const head = [rs.pageTitle, rs.uatId].filter(Boolean).join(" · ")
+    parts.push(
+      `<h5>Runsheet — ${esc(head)}</h5><div class="rs">${
+        rs.title ? `<div class="rs-title">${esc(rs.title)}</div>` : ""
+      }<dl>${specRow("Preconditions", rs.preconditions)}${specRow(
+        "What the tester does",
+        rs.steps,
+      )}${specRow("What should happen", rs.expected)}${specRow(
+        "Notes",
+        rs.notes,
+      )}</dl></div>${
+        t.uatId && rs.uatId !== t.uatId
+          ? `<p class="muted small">${esc(
+              t.uatId,
+            )} is a further test of runsheet row ${esc(rs.uatId)}.</p>`
+          : ""
+      }`,
+    )
+  }
+  if (sp) {
+    const reqs = sp.requirements ?? []
+    parts.push(
+      `<h5>Requirements this row proves (${reqs.length})</h5>${
+        sp.source === "ledger-mapping"
+          ? `<p class="spec-note">These are mapped by the ledger, not declared by the test — the row carries no <code>requirements()</code> declaration yet.</p>`
+          : ""
+      }${
+        reqs.length === 0
+          ? `<p class="muted">None — ${
+              sp.source === "ledger-mapping"
+                ? "the ledger maps no requirement to this row on this version."
+                : "the row declares no requirement."
+            }</p>`
+          : reqs
+              .map(
+                (r) =>
+                  `<div class="sreq"><div class="sreq-head"><span class="mono rid">${esc(
+                    r.id,
+                  )}</span>${specTags(r)}</div>${
+                    r.statement
+                      ? `<div class="sreq-stmt">${esc(r.statement)}</div>`
+                      : ""
+                  }${
+                    r.desired && r.desired !== r.statement
+                      ? `<div class="sreq-desired">${esc(r.desired)}</div>`
+                      : ""
+                  }</div>`,
+              )
+              .join("")
+      }`,
+    )
+  }
+  const checks = t.journal.filter((e) => e.kind === "step")
+  parts.push(
+    `<h5>How the test checks it</h5>${
+      checks.length === 0
+        ? `<p class="muted">No checkpoints were journalled for this row in this run.</p>`
+        : `<ol class="checks">${checks
+            .map(
+              (e) =>
+                `<li>${esc(e.name ?? "(unnamed checkpoint)")}${
+                  e.req?.length
+                    ? ` <span class="rids">${e.req
+                        .map((id) => `<span class="mono">${esc(id)}</span>`)
+                        .join(" ")}</span>`
+                    : ""
+                }</li>`,
+            )
+            .join("")}</ol>`
+    }<p class="muted small spec-file">Spec file <span class="mono">${esc(
+      t.file,
+    )}</span></p>`,
+  )
+  return `<div class="cpane tests">
+<h4 class="cpane-head">What it tests</h4>
+<div class="spec">${parts.join("\n")}</div>
+</div>`
+}
+
+const CARD_SWITCH = `<div class="cswitch"><button type="button" class="on" data-cpane="ran">What ran</button><button type="button" data-cpane="tests">What it tests</button></div>`
+
 /**
  * One row, one card. The header line is the whole card for passed / skipped / setup rows (closed
  * `<details>`); every other row opens with its verdict sentence and Next line, then one timeline,
@@ -1515,7 +1634,9 @@ const renderTest = (t: UatTest, ctx: CardContext): string => {
       : ""
   const summary = `<summary>${outcomeBadge(t.outcome)}${
     t.uatId ? `<span class="id mono">${esc(t.uatId)}</span>` : ""
-  }<span class="ttl">${esc(title)}</span><span class="right">${marketChips(
+  }<span class="ttl">${esc(title)}</span><a class="speclink" href="#${esc(
+    anchor,
+  )}" data-spec-link>what it tests</a><span class="right">${marketChips(
     t,
     ctx.touched,
   )}${reqs}${dur}${overlayCell(t, ctx.overlay)}</span>${teaser}</summary>`
@@ -1524,11 +1645,18 @@ const renderTest = (t: UatTest, ctx: CardContext): string => {
         v.next ? `<p class="verdict-next"><b>Next:</b> ${esc(v.next)}</p>` : ""
       }</div>`
     : ""
+  const ran = [
+    renderTimeline(t, renderReached(t, ctx.touched, v.failure)),
+    renderHarnessFooter(t, v, reason),
+  ]
+    .filter(Boolean)
+    .join("\n")
   const body = [
     !v.open && reason ? `<p class="reason">${esc(reason)}</p>` : "",
     verdict,
-    renderTimeline(t, renderReached(t, ctx.touched, v.failure)),
-    renderHarnessFooter(t, v, reason),
+    CARD_SWITCH,
+    `<div class="cpane ran">\n${ran}\n</div>`,
+    renderSpecPane(t),
   ]
     .filter(Boolean)
     .join("\n")
@@ -1546,13 +1674,18 @@ ${body}
 const allQuiet = (tests: UatTest[]): boolean =>
   tests.every((t) => !verdictOf(t).open)
 
-const renderSection = (g: PageGroup, ctx: CardContext): string =>
-  `<section class="page${
-    allQuiet(g.suites.flatMap((s) => s.tests)) ? " quiet-only" : ""
-  }" id="page-${g.page}">
+const renderSection = (g: PageGroup, ctx: CardContext): string => {
+  const quiet = allQuiet(g.suites.flatMap((s) => s.tests))
+  return `<section class="page${quiet ? " quiet-only" : ""}" id="page-${
+    g.page
+  }" data-tab-pane="page-${g.page}">
 <h2 class="page-head">${esc(g.label)} <span class="counts">${countStrip(
     g.counts,
-  )}</span></h2>
+  )}</span></h2>${
+    quiet
+      ? `\n<p class="quiet-note">Every row on this page passed, was skipped or is setup — nothing here needs attention.</p>`
+      : ""
+  }
 ${g.suites
   .map((s) => {
     const ov = suitePageOverride(s.suite)
@@ -1564,6 +1697,97 @@ ${g.suites
   })
   .join("\n")}
 </section>`
+}
+
+// ---------- the Overview tab and the tab bar ----------
+
+/** A row the Overview lists: a failure, an unexpected pass, or an expected failure that did not
+ *  fail the documented way. Excused (matched) expected failures, passes and skips are not. */
+const needsAttention = (t: UatTest): boolean =>
+  t.outcome === "failed" ||
+  t.outcome === "unexpected-pass" ||
+  verdictOf(t).kind === "known-issue-mismatch"
+
+const groupRows = (g: PageGroup): UatTest[] => g.suites.flatMap((s) => s.tests)
+
+const renderTabs = (groups: PageGroup[], run: UatRun): string =>
+  `<nav class="tabs" aria-label="Report sections"><a href="#home" data-tab="home">Overview</a>${groups
+    .map(
+      (g) =>
+        `<a href="#page-${g.page}" data-tab="page-${g.page}">${esc(
+          g.label,
+        )} <span class="tn">${groupRows(g).length}</span>${
+          groupRows(g).some(needsAttention)
+            ? `<span class="tdot" title="needs attention"></span>`
+            : ""
+        }</a>`,
+    )
+    .join("")}${
+    run.markets?.length
+      ? `<a href="#markets" data-tab="markets">Markets <span class="tn">${run.markets.length}</span></a>`
+      : ""
+  }</nav>`
+
+const renderTiles = (groups: PageGroup[], run: UatRun): string => {
+  const markets = run.markets ?? []
+  const tiles = groups.map(
+    (g) =>
+      `<a class="tile${
+        groupRows(g).some(needsAttention) ? " bad" : ""
+      }" href="#page-${g.page}"><span class="tile-name">${esc(
+        g.label,
+      )}</span><span class="tile-n">${groupRows(g).length} row${
+        groupRows(g).length === 1 ? "" : "s"
+      }</span><span class="tile-c">${countStrip(g.counts)}</span></a>`,
+  )
+  if (markets.length > 0)
+    tiles.push(
+      `<a class="tile markets" href="#markets"><span class="tile-name">Markets in this run</span><span class="tile-n">${
+        markets.length
+      } market${
+        markets.length === 1 ? "" : "s"
+      }</span><span class="tile-c muted">${(
+        ["created", "forked", "unknown"] as const
+      )
+        .map(
+          (o) =>
+            `${markets.filter((m) => m.origin === o).length} ${
+              o === "unknown" ? "unresolved" : o
+            }`,
+        )
+        .join(" · ")}</span></a>`,
+    )
+  return `<h3>Runsheet pages</h3>\n<div class="tiles">${tiles.join("")}</div>`
+}
+
+const renderAttention = (groups: PageGroup[]): string => {
+  const items = groups.flatMap((g) =>
+    groupRows(g)
+      .filter(needsAttention)
+      .map((t) => {
+        const v = verdictOf(t)
+        const title =
+          t.uatId && t.title.startsWith(`${t.uatId}:`)
+            ? t.title.slice(t.uatId.length + 1).trim()
+            : t.title
+        const flag = v.flag
+          ? `<span class="flag ${v.flag.tone}">${esc(v.flag.text)}</span>`
+          : `<span class="flag bad">${esc(t.outcome)}</span>`
+        return `<li><a href="#${esc(anchorOf(t))}">${
+          t.uatId ? `<span class="mono id">${esc(t.uatId)}</span> ` : ""
+        }${esc(title)}</a> ${flag} <span class="muted">· ${esc(
+          g.label,
+        )}</span>${
+          v.headline ? `<div class="attn-why">${esc(v.headline)}</div>` : ""
+        }</li>`
+      }),
+  )
+  return `<h3>Needs attention</h3>\n${
+    items.length === 0
+      ? `<p class="muted">Nothing needs attention: no failed row, no unexpected pass and no expected failure that failed another way.</p>`
+      : `<ul class="attn">${items.join("\n")}</ul>`
+  }`
+}
 
 const TOOLBAR = `<div class="toolbar"><label><input type="checkbox" id="attention-only"> Needs attention only</label><button type="button" data-expand="1">Expand all</button><button type="button" data-expand="0">Collapse all</button><span class="muted">hides passed, skipped and setup rows</span></div>`
 
@@ -1707,8 +1931,8 @@ table.ledger th{background:#f2f3f5;font-weight:600;color:var(--muted)}
 ul.console{margin:2px 0;padding-left:16px;color:var(--muted);font-size:12px}
 
 /* toolbar */
-.toolbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--bg);
-  padding:8px 0;margin:0 0 4px;font-size:13px;border-bottom:1px solid var(--line)}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--bg);
+  padding:6px 0;margin:0;font-size:13px}
 .toolbar button{font:inherit;font-size:12.5px;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:2px 10px;cursor:pointer}
 body.attention-only details.tcard.quiet,body.attention-only .quiet-only{display:none}
 
@@ -1790,7 +2014,6 @@ footer{margin-top:40px;color:var(--muted);font-size:12.5px}
 .badge.warn{background:#fdf6e3;color:#a35b00} .badge.skip{background:#eef0f2;color:var(--grey)}
 .badge.none{background:#eef0f2;color:var(--grey)}
 ul.blockers{margin:6px 0 0;padding-left:20px} ul.blockers li{margin:3px 0}
-.pagenav{margin:8px 0 20px;font-size:13px}
 .page-head{font-size:16px;margin:28px 0 6px;text-transform:none;letter-spacing:0;color:var(--ink)}
 h3.suite{font-size:12px;margin:14px 0 6px;color:var(--muted)}
 .reason{margin:4px 0 8px;padding:5px 10px;border-left:3px solid var(--line);background:#f7f7f9;border-radius:4px;font-size:13px}
@@ -1800,45 +2023,143 @@ h3.suite{font-size:12px;margin:14px 0 6px;color:var(--muted)}
 .flag{border-radius:4px;padding:1px 6px;margin-left:5px;font-size:11px;font-weight:700}
 .flag.bad{background:var(--red-bg);color:var(--red)} .flag.warn{background:#fdf6e3;color:#a35b00}
 h3.suite .muted{font-weight:400;text-transform:none}
+
+/* layout: sticky tab bar, Overview, tab panes */
+.topbar{position:sticky;top:0;z-index:6;background:var(--bg);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1200px;margin:0 auto;padding:8px 20px 0}
+nav.tabs{display:flex;flex-wrap:wrap;gap:2px}
+nav.tabs a{padding:6px 12px;border:1px solid transparent;border-bottom:0;border-radius:6px 6px 0 0;color:#334;font-size:13px;word-break:normal;white-space:nowrap}
+nav.tabs a:hover{background:var(--card);text-decoration:none}
+nav.tabs a.on{background:var(--card);border-color:var(--line);font-weight:600}
+nav.tabs .tn{color:var(--grey);font-size:11px;font-weight:400}
+nav.tabs .tdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-left:5px;vertical-align:middle}
+body.js[data-tab="home"] .toolbar,body.js[data-tab="markets"] .toolbar{display:none}
+body.js [data-tab-pane]:not(.active){display:none}
+details.tcard,[data-tab-pane]{scroll-margin-top:130px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:8px 0 18px}
+.tile{display:flex;flex-direction:column;gap:2px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--green);
+  border-radius:8px;padding:10px 12px;color:inherit;word-break:normal}
+.tile:hover{text-decoration:none;border-color:#c9d3e0}
+.tile.bad{border-left-color:var(--red)} .tile.markets{border-left-color:var(--grey)}
+.tile-name{font-weight:600} .tile-n{color:var(--muted);font-size:12px} .tile-c{font-size:12px}
+ul.attn{margin:6px 0 18px;padding-left:20px} ul.attn li{margin:5px 0} ul.attn .id{font-weight:700}
+.attn-why{color:var(--muted);font-size:13px}
+.quiet-note{display:none;color:var(--muted)}
+body.js.attention-only section.page.quiet-only.active{display:block}
+body.js.attention-only section.page.quiet-only.active .quiet-note{display:block}
+
+/* card: What ran / What it tests */
+.speclink{font-size:11.5px;color:#0b57d0;white-space:nowrap}
+.cswitch{display:flex;gap:4px;margin:8px 18px 0;border-bottom:1px solid var(--line)}
+.cswitch button{font:inherit;font-size:12.5px;border:0;background:none;padding:5px 10px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.cswitch button.on{color:var(--ink);font-weight:600;border-bottom-color:#0b57d0}
+body:not(.js) .cswitch{display:none}
+body.js .cpane-head{display:none}
+body.js .cpane.tests{display:none}
+body.js details.tcard.show-tests .cpane.tests{display:block}
+body.js details.tcard.show-tests .cpane.ran{display:none}
+.cpane.tests{padding:4px 18px 10px}
+.spec{font-size:13.5px}
+.spec h5{margin:14px 0 5px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.spec .rs{background:#f8fafc;border:1px solid var(--line);border-radius:6px;padding:8px 12px}
+.spec .rs-title{font-weight:600}
+.spec .rs dl{margin:2px 0 0} .spec .rs dt{font-weight:600;margin-top:6px} .spec .rs dd{margin:1px 0 0}
+.spec .sreq{border-left:3px solid #c9d3e0;padding:3px 10px;margin:6px 0}
+.spec .rid{font-size:11.5px;color:var(--muted)}
+.spec .sreq-stmt{font-weight:600} .spec .sreq-desired{color:var(--muted)}
+.spec .tag{font-size:10.5px;border-radius:3px;padding:1px 6px;margin-left:6px;background:#eef0f2;color:var(--muted)}
+.spec .tag.ruling{background:var(--violet-bg);color:var(--violet)} .spec .tag.defect{background:var(--amber-bg);color:var(--amber)}
+.spec .tag.unknown{background:var(--red-bg);color:var(--red)}
+.spec .spec-note{font-size:12.5px;color:var(--amber);margin:2px 0 6px}
+.spec ol.checks{margin:4px 0;padding-left:22px} .spec ol.checks li{margin:2px 0}
+.spec .rids .mono{font-size:11px;color:var(--muted);margin-left:4px}
 `
 
 const JS = `
 (function () {
+  var body = document.body
+  body.classList.add("js")
+  var each = function (list, fn) { Array.prototype.forEach.call(list, fn) }
   var box = document.getElementById("lightbox")
-  var img = box.querySelector("img")
+  var img = box ? box.querySelector("img") : null
+
+  // One card's switch: "What ran" (the timeline) or "What it tests" (runsheet + requirements).
+  function setPane(card, name) {
+    card.classList.toggle("show-tests", name === "tests")
+    each(card.querySelectorAll(".cswitch [data-cpane]"), function (b) {
+      b.classList.toggle("on", b.getAttribute("data-cpane") === name)
+    })
+  }
+
   document.addEventListener("click", function (ev) {
-    var a = ev.target && ev.target.closest ? ev.target.closest("[data-lightbox]") : null
-    if (a) {
+    var t = ev.target && ev.target.closest ? ev.target : null
+    if (!t) return
+    var a = t.closest("[data-lightbox]")
+    if (a && box) {
       ev.preventDefault()
       img.src = a.getAttribute("href")
       box.classList.add("open")
-    } else if (ev.target === box || ev.target === img) {
+      return
+    }
+    if (box && (t === box || t === img)) {
       box.classList.remove("open")
       img.src = ""
+      return
+    }
+    var sw = t.closest(".cswitch [data-cpane]")
+    if (sw) {
+      var card = sw.closest("details.tcard")
+      if (card) setPane(card, sw.getAttribute("data-cpane"))
+      return
+    }
+    // The header's "what it tests" link: open the card on that pane, without toggling it shut.
+    var sl = t.closest("[data-spec-link]")
+    if (sl) {
+      ev.preventDefault()
+      var c = sl.closest("details.tcard")
+      if (c) { c.open = true; setPane(c, "tests") }
     }
   })
   document.addEventListener("keydown", function (ev) {
-    if (ev.key === "Escape") { box.classList.remove("open"); img.src = "" }
+    if (ev.key === "Escape" && box) { box.classList.remove("open"); img.src = "" }
   })
   var only = document.getElementById("attention-only")
   if (only) only.addEventListener("change", function () {
-    document.body.classList.toggle("attention-only", only.checked)
+    body.classList.toggle("attention-only", only.checked)
   })
-  Array.prototype.forEach.call(document.querySelectorAll("[data-expand]"), function (b) {
+  // Expand / collapse act within the tab on screen.
+  each(document.querySelectorAll("[data-expand]"), function (b) {
     b.addEventListener("click", function () {
       var open = b.getAttribute("data-expand") === "1"
-      Array.prototype.forEach.call(document.querySelectorAll("details.tcard"), function (d) { d.open = open })
+      var scope = document.querySelector("[data-tab-pane].active") || document
+      each(scope.querySelectorAll("details.tcard"), function (d) { d.open = open })
     })
   })
-  // A link to a row (#uat-…) opens that row's card, so a closed passed row is never a dead end.
-  function openTarget() {
-    var id = location.hash.slice(1)
-    var el = null
-    try { el = id ? document.getElementById(decodeURIComponent(id)) : null } catch (e) { el = null }
-    if (el && el.tagName === "DETAILS") el.open = true
+
+  // Tabs. #home, #page-N and #markets select a tab; any other anchor (#uat-…, #row-…, #market-…)
+  // selects the tab holding it, opens the card and scrolls to it. Unknown or malformed ⇒ Overview.
+  // Without this script every pane shows in document order and the tabs are plain anchor links.
+  var panes = document.querySelectorAll("[data-tab-pane]")
+  function show(name) {
+    each(panes, function (p) { p.classList.toggle("active", p.getAttribute("data-tab-pane") === name) })
+    each(document.querySelectorAll("nav.tabs [data-tab]"), function (a) {
+      a.classList.toggle("on", a.getAttribute("data-tab") === name)
+    })
+    body.setAttribute("data-tab", name)
   }
-  window.addEventListener("hashchange", openTarget)
-  openTarget()
+  function route() {
+    var id = ""
+    try { id = decodeURIComponent(location.hash.slice(1)) } catch (e) { id = "" }
+    var el = id ? document.getElementById(id) : null
+    var pane = el ? (el.hasAttribute("data-tab-pane") ? el : el.closest("[data-tab-pane]")) : null
+    if (!pane) { show("home"); return }
+    show(pane.getAttribute("data-tab-pane"))
+    if (el === pane) { if (window.pageYOffset) window.scrollTo(0, 0); return }
+    if (el.tagName === "DETAILS") el.open = true
+    if (el.scrollIntoView) el.scrollIntoView({ block: "start" })
+  }
+  window.addEventListener("hashchange", route)
+  route()
 })()
 `
 
@@ -1865,17 +2186,6 @@ export const renderUatReport = (
     issues,
     touched: touchedIndex(run.markets),
   }
-  const nav = groups
-    .map(
-      (g) =>
-        `<a href="#page-${g.page}">${esc(
-          g.label,
-        )} <span class="muted">${g.suites.reduce(
-          (n, s) => n + s.tests.length,
-          0,
-        )}</span></a>`,
-    )
-    .join(" · ")
   const pillClass =
     run.status === "passed"
       ? "passed"
@@ -1891,24 +2201,29 @@ export const renderUatReport = (
 <style>${CSS}</style>
 </head>
 <body>
+<header class="topbar"><div class="topbar-in">${renderTabs(groups, run)}
+${TOOLBAR}</div></header>
 <main>
+<section class="overview" id="home" data-tab-pane="home">
 <div class="runbar"><span class="pill ${pillClass}">${esc(
     run.status,
   )}</span><span class="counts">${countStrip(
     countByOutcome(run.tests),
   )}</span></div>
-${renderProvenance(run)}
 ${renderAnswers(
   run,
   overlay,
   opts.otherLabel ?? "main",
   issues,
   opts.coverageMd,
-)}${renderMarkets(run)}
-${TOOLBAR}
-<nav class="pagenav">${nav}</nav>
-${groups.map((g) => renderSection(g, ctx)).join("\n")}
+)}
+${renderTiles(groups, run)}
+${renderAttention(groups)}
+${renderProvenance(run)}
 ${overlay ? renderOnlyInOther(overlay.onlyInOther) : ""}
+</section>
+${groups.map((g) => renderSection(g, ctx)).join("\n")}
+${renderMarkets(run)}
 <footer>
 Self-contained report — safe to open via file://. Traces need <code>npx playwright show-trace</code>.
 Re-render an archived run with <code>node e2e/tools/render-report.mjs --run uat-runs/&lt;stamp&gt;</code>.

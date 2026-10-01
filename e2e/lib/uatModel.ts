@@ -181,6 +181,39 @@ export type UatObservation = {
   blockedBy?: string
 }
 
+/** The runsheet row a test implements, as the runsheet states it (`uatId` is the row read). */
+export type UatSpecRunsheet = {
+  uatId: string
+  page?: number | null
+  pageTitle?: string | null
+  title?: string | null
+  preconditions?: string | null
+  steps?: string | null
+  expected?: string | null
+  notes?: string | null
+}
+
+/** One requirement a row proves, with the ledger's text and this version's classes. */
+export type UatSpecRequirement = {
+  id: string
+  statement?: string
+  desired?: string
+  applicability?: string
+  applicabilityStatus?: string
+  implementation?: string
+  /** `register#id` of the documented defect, when the implementation is a known defect. */
+  knownIssue?: string
+  /** false when the ledger has no requirement with this id. */
+  known?: false
+}
+
+export type UatSpec = {
+  /** `declared`: the row's own `requirements()`; `ledger-mapping`: the ledger's coverage map. */
+  source: "declared" | "ledger-mapping"
+  runsheet?: UatSpecRunsheet
+  requirements: UatSpecRequirement[]
+}
+
 export type UatTest = {
   /** UAT id parsed from the title; null for setup:/teardown:/smoke rows. Pairing key. */
   uatId: string | null
@@ -240,6 +273,14 @@ export type UatTest = {
   tracePath?: string
   failureState?: Record<string, unknown>
   agreements: { name: string; json: unknown }[]
+  /**
+   * uat-run/3, DISPLAY ONLY: what the row is testing, in plain English — its runsheet row and the
+   * ledger's statement of each requirement it proves. Written by the ledger fixture as a `spec`
+   * annotation (`e2e/lib/rowSpec.ts`), lifted out of `annotations` by the reporter. No outcome,
+   * verdict or decision ever reads it. Absent on a uat-run/2 archive and on a run without a ledger;
+   * `render-report.mjs --ledger` backfills it at render time.
+   */
+  spec?: UatSpec
 }
 
 export type RunMeta = {
@@ -515,6 +556,8 @@ export const REQUIREMENT_ID_RE = /^REQ-[A-Z]{3,5}-[0-9]{3}$/
 export const REQUIREMENTS_ANNOTATION = "requirements"
 /** The annotation type an infrastructure row marks itself with. */
 export const INFRA_ANNOTATION = "infra"
+/** The annotation type the ledger fixture carries a row's display-only spec text on. */
+export const SPEC_ANNOTATION = "spec"
 /** `error` on an observation is the failure's first line, capped. */
 export const OBSERVATION_ERROR_CAP = 2_000
 
@@ -535,6 +578,30 @@ export const parseRequirements = (annotations: UatAnnotation[]): string[] => {
         if (id && !ids.includes(id)) ids.push(id)
       }
   return ids
+}
+
+/**
+ * The row's `spec` annotation, parsed. Tolerant by design — the text is display only, so anything
+ * malformed is simply absent, never an error.
+ */
+export const parseSpec = (
+  annotations: UatAnnotation[],
+): UatSpec | undefined => {
+  const a = annotations.find((x) => x.type === SPEC_ANNOTATION)
+  if (!a?.description) return undefined
+  try {
+    const v: unknown = JSON.parse(a.description)
+    if (
+      typeof v === "object" &&
+      v !== null &&
+      !Array.isArray(v) &&
+      Array.isArray((v as UatSpec).requirements)
+    )
+      return v as UatSpec
+  } catch {
+    // malformed: no spec
+  }
+  return undefined
 }
 
 /**

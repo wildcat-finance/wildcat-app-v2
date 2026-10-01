@@ -30,8 +30,10 @@ import {
   declareAndObserve,
   deriveOutcome,
   journalStepIndexOf,
+  parseSpec,
   parseUatId,
   runsheetPageOf,
+  SPEC_ANNOTATION,
   type Outcome,
   type RunMeta,
   type UatAnnotation,
@@ -446,10 +448,17 @@ class SummaryReporter implements Reporter {
       video: videoDest,
       agreements,
     })
-    const annotations: UatAnnotation[] = test.annotations.map((a) => ({
-      type: a.type,
-      description: a.description,
-    }))
+    // The ledger fixture's `spec` annotation is display text, not an annotation a reader of
+    // run.json acts on: uat-run/3 lifts it into `spec`, uat-run/2 drops it (the frozen format
+    // stays byte-identical whether or not the fixture wrote one).
+    const annotations: UatAnnotation[] = test.annotations
+      .filter((a) => a.type !== SPEC_ANNOTATION)
+      .map((a) => ({
+        type: a.type,
+        description: a.description,
+      }))
+    const spec =
+      runSchema() === "uat-run/3" ? parseSpec(test.annotations) : undefined
     const shortTitle = titlePath[titlePath.length - 1] ?? test.title
     const uatId = parseUatId(shortTitle)
     this.uatTests.push({
@@ -482,6 +491,7 @@ class SummaryReporter implements Reporter {
       tracePath,
       failureState,
       agreements,
+      ...(spec ? { spec } : {}),
     })
   }
 

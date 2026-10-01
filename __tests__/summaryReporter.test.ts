@@ -607,6 +607,104 @@ describe("SummaryReporter.onEnd", () => {
     })
   })
 
+  describe("the spec annotation (display only)", () => {
+    let originalSchema: string | undefined
+    beforeEach(() => {
+      originalSchema = process.env.UAT_RUN_SCHEMA
+    })
+    afterEach(() => {
+      if (originalSchema === undefined) delete process.env.UAT_RUN_SCHEMA
+      else process.env.UAT_RUN_SCHEMA = originalSchema
+    })
+
+    const SPEC = {
+      source: "ledger-mapping",
+      runsheet: {
+        uatId: "ADM-03",
+        page: 1,
+        pageTitle: "1 Admin",
+        title: "Invitation status",
+        preconditions: null,
+        steps: "Refresh the admin panel.",
+        expected: "Status Accepted with a timestamp.",
+        notes: null,
+      },
+      requirements: [
+        {
+          id: "REQ-ADM-006",
+          statement: "Show when the invitee signed the ToU.",
+          applicability: "required",
+          implementation: "conforming",
+        },
+      ],
+    }
+
+    const rowJson = async (
+      schema: "2" | "3",
+      annotations: { type: string; description?: string }[],
+    ) => {
+      if (schema === "3") process.env.UAT_RUN_SCHEMA = "3"
+      else delete process.env.UAT_RUN_SCHEMA
+      // A fresh archive slot each time, so two runs in one test name the same archiveDir.
+      rmSync(join(dir, "uat-runs"), { recursive: true, force: true })
+      const reporter = new SummaryReporter()
+      reporter.onTestEnd(
+        {
+          annotations,
+          expectedStatus: "passed",
+          location: { file: "/repo/e2e/admin/admin.spec.ts" },
+          title: "ADM-03: invitation status",
+          titlePath: () => [
+            "",
+            "chromium",
+            "admin.spec.ts",
+            "ADM-03: invitation status",
+          ],
+        } as never,
+        {
+          status: "passed",
+          retry: 0,
+          duration: 5,
+          startTime: new Date("2026-01-03T00:00:00.000Z"),
+          attachments: [],
+          steps: [],
+        } as never,
+      )
+      await reporter.onEnd({
+        status: "passed",
+        startTime: new Date("2026-01-03T00:00:00.000Z"),
+        duration: 5,
+      })
+      return readFileSync(join(dir, "uat-report", "run.json"), "utf8")
+    }
+
+    const LEDGER = { type: "ledger", description: '{"decision":"run"}' }
+    const SPEC_A = { type: "spec", description: JSON.stringify(SPEC) }
+
+    it("uat-run/3 carries `spec` parsed from the annotation, and drops the annotation itself", async () => {
+      const t = JSON.parse(await rowJson("3", [LEDGER, SPEC_A])).tests[0]
+      expect(t.spec).toEqual(SPEC)
+      expect(t.annotations).toEqual([LEDGER])
+    })
+
+    it("uat-run/3 ignores a malformed spec annotation — no `spec`, no throw", async () => {
+      const t = JSON.parse(
+        await rowJson("3", [LEDGER, { type: "spec", description: "{oops" }]),
+      ).tests[0]
+      expect(t.spec).toBeUndefined()
+      expect(t.annotations).toEqual([LEDGER])
+    })
+
+    it("uat-run/2 is byte-identical with and without the spec annotation", async () => {
+      const without = await rowJson("2", [LEDGER])
+      const withSpec = await rowJson("2", [LEDGER, SPEC_A])
+      expect(withSpec).toBe(without)
+      const t = JSON.parse(withSpec).tests[0]
+      expect(t.spec).toBeUndefined()
+      expect(JSON.stringify(t)).not.toContain("Invitation status")
+    })
+  })
+
   it("still archives run.json when rendering throws (a malformed UAT_OTHER_RUN)", async () => {
     const originalOther = process.env.UAT_OTHER_RUN
     const badOtherPath = join(dir, "not-json.txt")
