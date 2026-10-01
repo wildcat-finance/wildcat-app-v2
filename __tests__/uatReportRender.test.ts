@@ -972,7 +972,9 @@ describe("market provenance — the Markets summary and each row's “How this s
 
   it("the summary table: one row per market with origin, type and config chips — no tx or rows column", () => {
     const html = renderUatReport(withMarkets())
-    expect(html).toContain('<section class="markets" id="markets">')
+    expect(html).toContain(
+      '<section class="markets" id="markets" data-tab-pane="markets">',
+    )
     expect(html).toContain("<h2>Markets in this run</h2>")
     expect(html).toContain(
       "4 markets · 2 created by this run · 1 forked · 1 unresolved",
@@ -1019,9 +1021,9 @@ describe("market provenance — the Markets summary and each row's “How this s
     expect(gone.slice(0, gone.indexOf("</tr>"))).toContain(
       '<span class="muted">unknown</span>',
     )
-    // The summary sits after the answers and before the page nav; no per-market cards.
-    expect(html.indexOf('<section class="markets"')).toBeLessThan(
-      html.indexOf('<nav class="pagenav">'),
+    // The summary is its own tab, after every page; no per-market cards.
+    expect(html.indexOf('<section class="markets"')).toBeGreaterThan(
+      html.indexOf('data-tab-pane="page-'),
     )
     expect(html).not.toContain('<details class="market"')
     expect(html).not.toContain("Parameters as deployed")
@@ -1992,9 +1994,13 @@ describe("per-test card — header, timeline, footer, toolbar", () => {
     // run(): page 3's "market creation" rows are passed/skipped only; page 4 holds the open
     // BOP-17b unexpected pass.
     const html = renderUatReport(run())
-    expect(html).toContain('<section class="page quiet-only" id="page-3">')
+    expect(html).toContain(
+      '<section class="page quiet-only" id="page-3" data-tab-pane="page-3">',
+    )
     expect(html).toContain('<h3 class="suite quiet-only">market creation</h3>')
-    expect(html).toContain('<section class="page" id="page-4">')
+    expect(html).toContain(
+      '<section class="page" id="page-4" data-tab-pane="page-4">',
+    )
     expect(html).toContain('<h3 class="suite">borrower ops</h3>')
     expect(html).toContain("body.attention-only .quiet-only{display:none}")
   })
@@ -2011,6 +2017,466 @@ describe("per-test card — header, timeline, footer, toolbar", () => {
     )
     expect(html.indexOf('class="toolbar"')).toBeLessThan(
       html.indexOf('id="page-3"'),
+    )
+  })
+})
+
+/* ================================== layout: tabs, Overview, Markets tab, “What it tests” ===== */
+
+describe("layout — tab bar, Overview, page tabs and the Markets tab", () => {
+  const FORKED = "0x07878e16a64ed6daacebe8a6537902a048de8f2d"
+
+  /** run() plus a failed row on page 5, an excused expected failure, and (optionally) a market. */
+  const layoutRun = (markets = true): UatRun => {
+    const r = run()
+    r.schema = "uat-run/3"
+    r.tests.push(
+      t({
+        title: "LEN-02: deposit into a market",
+        suite: "lender discovery",
+        page: 5,
+        status: "failed",
+        outcome: "failed",
+        failedDuring: { kind: "arrange" },
+        errorHead: "Error: the fixture market is gone",
+      }),
+      t({
+        title: "MKT-20: completion dialog",
+        suite: "market creation",
+        page: 3,
+        status: "failed",
+        expectedStatus: "failed",
+        outcome: "expected-failure",
+        annotations: [{ type: "fail", description: "KNOWN-ISSUES #9" }],
+      }),
+    )
+    if (markets)
+      r.markets = [
+        {
+          address: FORKED,
+          name: "TEST DAI KW 3",
+          origin: "forked",
+          forkBlock: 11584253,
+          txs: [
+            {
+              seq: 1,
+              row: "LEN-01",
+              anchor: "uat-LEN-01",
+              call: "depositUpTo(1)",
+              kind: "tx",
+              status: "success",
+              block: "11584300",
+            },
+          ],
+          derivedAt: "run",
+        },
+      ]
+    return r
+  }
+
+  const paneOf = (html: string, id: string): string => {
+    const at = html.indexOf(`id="${id}" data-tab-pane="${id}"`)
+    expect(at).toBeGreaterThan(-1)
+    const start = html.lastIndexOf("<section", at)
+    const rest = html.slice(at)
+    const next = rest.search(/<section class="[^"]*" id="[^"]+" data-tab-pane=/)
+    const end = rest.indexOf("<footer>")
+    const stop = [next, end].filter((n) => n > 0)
+    return html.slice(start, at + Math.min(...stop))
+  }
+
+  it("a sticky tab bar first in the page: Overview, one tab per page with its row count and a red dot on failure, Harness rows, Markets", () => {
+    const html = renderUatReport(layoutRun())
+    const nav = html.slice(
+      html.indexOf('<nav class="tabs"'),
+      html.indexOf("</nav>", html.indexOf('<nav class="tabs"')),
+    )
+    expect(html.indexOf('<nav class="tabs"')).toBeGreaterThan(-1)
+    expect(html.indexOf('<nav class="tabs"')).toBeLessThan(
+      html.indexOf('class="runbar"'),
+    )
+    expect(nav).toContain('<a href="#home" data-tab="home">Overview</a>')
+    // Page 3 (all quiet or excused), page 4 (BOP-17b unexpected pass), page 5 (LEN-02 failed).
+    const tab = (n: number) => {
+      const at = nav.indexOf(`data-tab="page-${n}"`)
+      return nav.slice(at, nav.indexOf("</a>", at))
+    }
+    expect(tab(3)).toContain("3 Market Creation")
+    expect(tab(3)).toContain('<span class="tn">4</span>')
+    expect(tab(3)).not.toContain("tdot")
+    expect(tab(4)).toContain('class="tdot"')
+    expect(tab(5)).toContain('class="tdot"')
+    expect(tab(99)).toContain("Harness rows")
+    expect(nav).toContain('<a href="#markets" data-tab="markets">Markets')
+    expect(nav.indexOf('data-tab="page-99"')).toBeLessThan(
+      nav.indexOf('data-tab="markets"'),
+    )
+    // The old in-flow page nav is gone; the CSS makes the bar sticky.
+    expect(html).not.toContain('<nav class="pagenav">')
+    expect(html).toMatch(/\.topbar\{[^}]*position:sticky/)
+    // No markets index ⇒ no Markets tab.
+    expect(renderUatReport(layoutRun(false))).not.toContain(
+      '<a href="#markets" data-tab="markets">',
+    )
+  })
+
+  it("the Overview tab: run status, answers, one tile per page, a Markets tile, Needs attention, provenance", () => {
+    const html = renderUatReport(layoutRun())
+    const home = paneOf(html, "home")
+    expect(home).toContain('class="runbar"')
+    expect(home).toContain('<section class="answers">')
+    expect(home).toContain('<section class="prov">')
+    // One tile per page; a red edge where something needs attention.
+    expect(home).toContain('<a class="tile" href="#page-3">')
+    expect(home).toContain('<a class="tile bad" href="#page-4">')
+    expect(home).toContain('<a class="tile bad" href="#page-5">')
+    expect(home).toContain('<a class="tile" href="#page-99">')
+    expect(home).toContain('<a class="tile markets" href="#markets">')
+    // Needs attention: the failure and the unexpected pass, each with its verdict flag; never the
+    // excused expected failure, a passed or a skipped row.
+    const attn = home.slice(
+      home.indexOf('<ul class="attn">'),
+      home.indexOf("</ul>", home.indexOf('<ul class="attn">')),
+    )
+    expect(attn).toContain('href="#uat-LEN-02"')
+    expect(attn).toContain('href="#uat-BOP-17b"')
+    expect(attn).toContain('class="flag')
+    expect(attn).not.toContain("MKT-20")
+    expect(attn).not.toContain("MKT-01")
+    expect(attn).not.toContain("MKT-18")
+    // Overview holds no row cards and no markets table.
+    expect(home).not.toContain('<details class="tcard')
+    expect(home).not.toContain('id="markets"')
+  })
+
+  it("Needs attention says so when nothing needs it", () => {
+    const r = run()
+    r.tests = r.tests.filter((x) => x.outcome !== "unexpected-pass")
+    const home = paneOf(renderUatReport(r), "home")
+    expect(home).not.toContain('<ul class="attn">')
+    expect(home).toContain("Nothing needs attention")
+  })
+
+  it("each page is its own tab pane; the Markets section lives only in its tab, after the pages", () => {
+    const html = renderUatReport(layoutRun())
+    ;[3, 4, 5, 99].forEach((n) =>
+      expect(html).toContain(`id="page-${n}" data-tab-pane="page-${n}"`),
+    )
+    expect(html).toContain(
+      '<section class="markets" id="markets" data-tab-pane="markets">',
+    )
+    expect(html.split('id="markets"')).toHaveLength(2)
+    expect(html.indexOf('id="markets"')).toBeGreaterThan(
+      html.indexOf('id="page-99"'),
+    )
+    expect(paneOf(html, "markets")).toContain("<h2>Markets in this run</h2>")
+    expect(paneOf(html, "page-5")).toContain('id="uat-LEN-02"')
+    expect(paneOf(html, "page-5")).not.toContain("Markets in this run")
+  })
+
+  it("the comparison's “only in main” rows live in the Overview tab", () => {
+    const other: UatRun = {
+      ...run(),
+      tests: [
+        t({ title: "V2P-01: protocol invariant", suite: "protocol", page: 90 }),
+      ],
+    }
+    const manifest: Manifest = {
+      $schema: "comparison-manifest/1",
+      variants: { a: "v2.5", b: "main" },
+      rows: {
+        "LEN-01": { relation: "v25-only", reason: "no periodic markets" },
+        "V2P-01": { relation: "main-only", reason: "chain-level suite" },
+      },
+    }
+    const html = renderUatReport(layoutRun(), { other, manifest })
+    expect(paneOf(html, "home")).toContain(
+      "Rows main ran that this branch does not have",
+    )
+  })
+
+  it("the needs-attention toolbar sits in the sticky header; an all-quiet page tab says why it is empty", () => {
+    const html = renderUatReport(layoutRun())
+    const header = html.slice(
+      html.indexOf('<header class="topbar">'),
+      html.indexOf("</header>"),
+    )
+    expect(header).toContain('<nav class="tabs"')
+    expect(header).toContain('<input type="checkbox" id="attention-only">')
+    expect(paneOf(html, "page-99")).toContain('<p class="quiet-note">')
+  })
+
+  // ---------------------------------------------------------- behaviour, in jsdom -----------
+
+  const load = (html: string) => {
+    const doc = new DOMParser().parseFromString(
+      html.replace(/<script>[\s\S]*?<\/script>/g, ""),
+      "text/html",
+    )
+    document.replaceChild(
+      document.importNode(doc.documentElement, true),
+      document.documentElement,
+    )
+    const js = /<script>([\s\S]*?)<\/script>/.exec(html)?.[1] ?? ""
+    // eslint-disable-next-line no-new-func
+    new Function(js)()
+  }
+  const go = (hash: string) => {
+    window.history.replaceState(null, "", hash || " ")
+    window.dispatchEvent(new HashChangeEvent("hashchange"))
+  }
+  const active = () =>
+    Array.from(document.querySelectorAll("[data-tab-pane].active")).map((p) =>
+      p.getAttribute("data-tab-pane"),
+    )
+  const onTab = () =>
+    Array.from(document.querySelectorAll("nav.tabs a.on")).map((a) =>
+      a.getAttribute("data-tab"),
+    )
+
+  beforeEach(() => {
+    window.history.replaceState(null, "", "/")
+  })
+
+  it("routes #home, #page-N, #markets and card anchors to the right tab; a malformed hash lands on Overview", () => {
+    load(renderUatReport(layoutRun()))
+    expect(document.body.classList.contains("js")).toBe(true)
+    expect(active()).toEqual(["home"])
+    expect(onTab()).toEqual(["home"])
+
+    go("#page-4")
+    expect(active()).toEqual(["page-4"])
+    expect(onTab()).toEqual(["page-4"])
+
+    go("#markets")
+    expect(active()).toEqual(["markets"])
+
+    // A card anchor selects its page's tab and opens the (closed, passed) card.
+    const card = document.getElementById("uat-MKT-01") as HTMLDetailsElement
+    expect(card.open).toBe(false)
+    go("#uat-MKT-01")
+    expect(active()).toEqual(["page-3"])
+    expect(card.open).toBe(true)
+
+    // A market row anchor lives in the Markets tab.
+    go(`#market-${FORKED}`)
+    expect(active()).toEqual(["markets"])
+
+    go("#home")
+    expect(active()).toEqual(["home"])
+    go("#page-4")
+    go("#%E0%A4%A")
+    expect(active()).toEqual(["home"])
+    go("#page-4")
+    go("#no-such-anchor")
+    expect(active()).toEqual(["home"])
+  })
+
+  it("the card switch flips between What ran and What it tests; the header link opens the card on What it tests", () => {
+    load(renderUatReport(layoutRun()))
+    go("#page-3")
+    const card = document.getElementById("uat-MKT-01") as HTMLDetailsElement
+    const btn = (p: string) =>
+      card.querySelector(`.cswitch [data-cpane="${p}"]`) as HTMLButtonElement
+    expect(btn("ran").classList.contains("on")).toBe(true)
+    btn("tests").click()
+    expect(card.classList.contains("show-tests")).toBe(true)
+    expect(btn("tests").classList.contains("on")).toBe(true)
+    expect(btn("ran").classList.contains("on")).toBe(false)
+    btn("ran").click()
+    expect(card.classList.contains("show-tests")).toBe(false)
+
+    card.open = false
+    ;(card.querySelector("summary [data-spec-link]") as HTMLElement).click()
+    expect(card.open).toBe(true)
+    expect(card.classList.contains("show-tests")).toBe(true)
+  })
+
+  it("Expand all acts within the active tab only", () => {
+    load(renderUatReport(layoutRun()))
+    go("#page-3")
+    ;(document.querySelector('[data-expand="1"]') as HTMLElement).click()
+    expect(
+      (document.getElementById("uat-MKT-01") as HTMLDetailsElement).open,
+    ).toBe(true)
+    expect(
+      (document.getElementById("uat-LEN-01") as HTMLDetailsElement).open,
+    ).toBe(false)
+  })
+})
+
+describe("per-test card — “What it tests”", () => {
+  const SPEC: NonNullable<UatTest["spec"]> = {
+    source: "declared",
+    runsheet: {
+      uatId: "MKT-23",
+      page: 3,
+      pageTitle: "3 Market Creation",
+      title: "Escape closes the dialog",
+      preconditions: "A borrower with a <b>market</b>",
+      steps: "Press Escape on the completion dialog.",
+      expected: "The dialog closes.",
+      notes: "see M12",
+    },
+    requirements: [
+      {
+        id: "REQ-MKT-140",
+        statement: "Escape dismisses the completion dialog.",
+        desired: "Pressing Escape closes the completion dialog.",
+        applicability: "intentionally-different",
+        applicabilityStatus: "proposed",
+        implementation: "known-defect",
+        knownIssue: "main#M12",
+      },
+      {
+        id: "REQ-MKT-141",
+        statement: "A backdrop click dismisses it.",
+        desired: "Clicking the backdrop closes it.",
+        applicability: "required",
+        implementation: "conforming",
+      },
+      { id: "REQ-XXX-999", known: false },
+    ],
+  }
+
+  const specRun = (): UatRun => {
+    const r = run()
+    r.schema = "uat-run/3"
+    r.tests.push(
+      t({
+        title: "MKT-23b: Escape closes the completion dialog",
+        suite: "market creation",
+        page: 3,
+        file: "e2e/borrowerflows/market-creation.spec.ts",
+        spec: SPEC,
+        journal: [
+          {
+            at: "2026-09-11T02:00:00.000Z",
+            kind: "step",
+            name: "open the completion dialog",
+          },
+          {
+            at: "2026-09-11T02:00:01.000Z",
+            kind: "step",
+            name: "Escape closes it",
+            req: ["REQ-MKT-140"],
+          },
+          {
+            at: "2026-09-11T02:00:02.000Z",
+            kind: "step",
+            name: "the backdrop closes it",
+            req: ["REQ-MKT-141", "REQ-MKT-140"],
+          },
+        ],
+      }),
+      t({
+        title: "ADM-03: invitation status",
+        suite: "admin",
+        page: 1,
+        spec: {
+          source: "ledger-mapping",
+          requirements: [
+            {
+              id: "REQ-ADM-006",
+              statement: "Show when the invitee signed the ToU.",
+              applicability: "required",
+              implementation: "conforming",
+            },
+          ],
+        },
+      }),
+    )
+    return r
+  }
+
+  const paneTests = (html: string, anchor: string): string => {
+    const card = html.slice(html.indexOf(`id="${anchor}"`))
+    const s = card.indexOf('<div class="cpane tests">')
+    expect(s).toBeGreaterThan(-1)
+    return card.slice(s, card.indexOf("</details>", s))
+  }
+
+  it("every card has the two-button switch, What ran first and on; the timeline sits under What ran", () => {
+    const html = renderUatReport(specRun())
+    const at = html.indexOf('id="uat-MKT-23b"')
+    const card = html.slice(
+      at,
+      html.indexOf("</details>", html.indexOf('<div class="cpane tests">', at)),
+    )
+    expect(card).toContain(
+      '<div class="cswitch"><button type="button" class="on" data-cpane="ran">What ran</button><button type="button" data-cpane="tests">What it tests</button></div>',
+    )
+    expect(card.indexOf('<div class="cpane ran">')).toBeLessThan(
+      card.indexOf('<ol class="tl">'),
+    )
+    expect(card.indexOf('<ol class="tl">')).toBeLessThan(
+      card.indexOf('<div class="cpane tests">'),
+    )
+    // The collapsed line gains the small link.
+    const summary = card.slice(0, card.indexOf("</summary>"))
+    expect(summary).toContain(
+      '<a class="speclink" href="#uat-MKT-23b" data-spec-link>what it tests</a>',
+    )
+    // Infra rows get the switch too.
+    expect(html.split('<div class="cswitch">').length - 1).toBe(
+      specRun().tests.length,
+    )
+  })
+
+  it("the runsheet row, the requirements with their tags, the checkpoints with their req ids, then the spec file", () => {
+    const pane = paneTests(renderUatReport(specRun()), "uat-MKT-23b")
+    expect(pane).toContain("3 Market Creation · MKT-23")
+    expect(pane).toContain("Escape closes the dialog")
+    expect(pane).toContain(
+      "<dt>Preconditions</dt><dd>A borrower with a &lt;b&gt;market&lt;/b&gt;</dd>",
+    )
+    expect(pane).toContain(
+      "<dt>What the tester does</dt><dd>Press Escape on the completion dialog.</dd>",
+    )
+    expect(pane).toContain(
+      "<dt>What should happen</dt><dd>The dialog closes.</dd>",
+    )
+    expect(pane).toContain("<dt>Notes</dt><dd>see M12</dd>")
+    expect(pane).toContain("Requirements this row proves")
+    expect(pane).toContain("REQ-MKT-140")
+    expect(pane).toContain("Escape dismisses the completion dialog.")
+    expect(pane).toContain("Pressing Escape closes the completion dialog.")
+    expect(pane).toContain(
+      '<span class="tag ruling">intentionally-different · proposed</span>',
+    )
+    expect(pane).toContain(
+      '<span class="tag defect">known defect main#M12</span>',
+    )
+    expect(pane).toContain('<span class="tag unknown">not in the ledger</span>')
+    expect(pane).not.toContain("mapped by the ledger")
+    expect(pane).toContain("How the test checks it")
+    const checks = pane.slice(pane.indexOf('<ol class="checks">'))
+    expect(checks.indexOf("open the completion dialog")).toBeLessThan(
+      checks.indexOf("Escape closes it"),
+    )
+    expect(checks.indexOf("Escape closes it")).toBeLessThan(
+      checks.indexOf("the backdrop closes it"),
+    )
+    expect(checks).toContain(
+      'the backdrop closes it <span class="rids"><span class="mono">REQ-MKT-141</span> <span class="mono">REQ-MKT-140</span></span>',
+    )
+    expect(pane).toContain("e2e/borrowerflows/market-creation.spec.ts")
+    expect(pane.indexOf("How the test checks it")).toBeLessThan(
+      pane.indexOf("e2e/borrowerflows/market-creation.spec.ts"),
+    )
+  })
+
+  it("a ledger-mapped row says it was mapped by the ledger, not declared by the test", () => {
+    const pane = paneTests(renderUatReport(specRun()), "uat-ADM-03")
+    expect(pane).toContain("mapped by the ledger, not declared by the test")
+    expect(pane).toContain("REQ-ADM-006")
+    expect(pane).not.toContain("What the tester does")
+  })
+
+  it("a row with no spec data says so", () => {
+    const pane = paneTests(renderUatReport(specRun()), "uat-MKT-01")
+    expect(pane).toContain(
+      "No runsheet or ledger text for this row in this run.",
     )
   })
 })

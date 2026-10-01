@@ -7,6 +7,11 @@
 //        --other <path to main's run.json> --manifest e2e/COMPARISON-MANIFEST.json
 //        [--gql <fork subgraph url>]   (market index for a uat-run/3 archive that lacks one;
 //                                       default: FORK_GQL from e2e/lib/env.ts)
+//        [--ledger <ledger.json> [--runsheet <runsheet.json>] [--ledger-version v25|main]]
+//                                      ("What it tests" for rows without a `spec`: the runsheet
+//                                       text and the ledger's requirement statements; the runsheet
+//                                       defaults to runsheet.json beside the ledger, the version to
+//                                       UAT_LEDGER_VERSION, else the rows' own ledger decisions)
 import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -56,6 +61,49 @@ if (run.schema === "uat-run/3" && !run.markets) {
     console.log(`markets: ${run.markets.length} derived at render time (${Object.keys(facts).length} subgraph facts${gql ? ` from ${gql}` : ""})`)
   } catch (e) {
     console.error(`market index not derived (${e.message}) — rendering without it`)
+  }
+}
+
+// "What it tests": backfill `spec` for rows that lack one, RENDER-ONLY — never written back to
+// run.json. Display text only; nothing the renderer derives an outcome from is touched.
+const ledgerPath = arg("ledger")
+if (ledgerPath) {
+  try {
+    const ledger = JSON.parse(readFileSync(ledgerPath, "utf8"))
+    const runsheetPath = arg("runsheet", join(dirname(ledgerPath), "runsheet.json"))
+    const { buildRowSpec, runsheetIndex } = await loadTs(join(here, "../lib/rowSpec.ts"))
+    const { parseRequirements, INFRA_ANNOTATION } = await loadTs(join(here, "../lib/uatModel.ts"))
+    const runsheet = existsSync(runsheetPath)
+      ? runsheetIndex(JSON.parse(readFileSync(runsheetPath, "utf8")))
+      : undefined
+    // The version is this archive's, not this checkout's: the rows' ledger decisions name it.
+    const decided = run.tests
+      .flatMap((t) => t.annotations ?? [])
+      .filter((a) => a.type === "ledger" && a.description)
+      .map((a) => {
+        try {
+          return JSON.parse(a.description).version
+        } catch {
+          return undefined
+        }
+      })
+      .find((v) => v === "v25" || v === "main")
+    const version = arg("ledger-version", process.env.UAT_LEDGER_VERSION || decided)
+    let filled = 0
+    for (const t of run.tests) {
+      if (t.spec || t.infra || (t.annotations ?? []).some((a) => a.type === INFRA_ANNOTATION)) continue
+      const declared = t.requirements?.length ? t.requirements : parseRequirements(t.annotations ?? [])
+      const spec = buildRowSpec({ ledger, version, uatId: t.uatId, declared, runsheet })
+      if (spec) {
+        t.spec = spec
+        filled += 1
+      }
+    }
+    console.log(
+      `spec: ${filled} row${filled === 1 ? "" : "s"} backfilled from the ledger (version ${version ?? "unknown — no coverage mapping"}; ${runsheet ? `${runsheet.size} runsheet rows` : "no runsheet"})`,
+    )
+  } catch (e) {
+    console.error(`spec not backfilled (${e.message}) — rendering without it`)
   }
 }
 

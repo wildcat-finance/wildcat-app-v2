@@ -96,3 +96,117 @@ describe("render-report derives the market index at render time", () => {
     expect(html).toContain("derived at render time from the journal")
   })
 })
+
+/**
+ * “What it tests” (2026-10-01 layout): `--ledger` backfills each row's `spec` for an archive that
+ * predates the annotation — the runsheet text and the ledger's requirement statements — RENDER-ONLY.
+ */
+describe("render-report backfills the spec from --ledger", () => {
+  let dir: string
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), "render-report-spec-"))
+  })
+  afterEach(() => rmSync(dir, { recursive: true, force: true }))
+
+  const ledger = {
+    schema: "capability-ledger/2",
+    areas: [
+      {
+        id: "LEN",
+        capabilities: [
+          {
+            id: "CAP-LEN",
+            requirements: [
+              {
+                id: "REQ-LEN-120",
+                statement: "Queue a withdrawal from an open market.",
+                desired: {
+                  status: "candidate",
+                  text: "The queued amount appears in the withdrawal cycle.",
+                },
+                versions: {
+                  v25: {
+                    applicability: { class: "required" },
+                    implementation: { class: "conforming" },
+                    coverage: {
+                      class: "automated",
+                      tests: [{ uatId: "LEN-18" }],
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  }
+  const runsheet = {
+    rows: [
+      {
+        page: 5,
+        pageTitle: "5 Lender Flows",
+        uatId: "LEN-18",
+        title: "Partial withdrawal request",
+        preconditions: null,
+        steps: "Request a partial withdrawal.",
+        expected: "The request enters the current withdrawal cycle.",
+        notes: null,
+      },
+    ],
+  }
+
+  it("fills an undeclared row from the ledger's mapping (version from the row's ledger annotation) and never rewrites run.json", () => {
+    const a = archive()
+    a.tests[0].annotations = [
+      {
+        type: "ledger",
+        description: JSON.stringify({
+          decision: "run",
+          version: "v25",
+          reason: "ledger: run",
+          requirements: [],
+        }),
+      },
+    ] as never
+    const runJson = join(dir, "run.json")
+    writeFileSync(runJson, JSON.stringify(a))
+    writeFileSync(join(dir, "ledger.json"), JSON.stringify(ledger))
+    writeFileSync(join(dir, "runsheet.json"), JSON.stringify(runsheet))
+    const before = readFileSync(runJson)
+    const r = spawnSync(
+      process.execPath,
+      [
+        TOOL,
+        "--run",
+        dir,
+        "--gql",
+        "http://127.0.0.1:9/none",
+        "--ledger",
+        join(dir, "ledger.json"),
+      ],
+      { encoding: "utf8", timeout: 60_000 },
+    )
+    expect(r.status).toBe(0)
+    expect(r.stdout).toContain("spec: 1 row")
+    expect(readFileSync(runJson).equals(before)).toBe(true)
+    const html = readFileSync(join(dir, "index.html"), "utf8")
+    expect(html).toContain("Partial withdrawal request")
+    expect(html).toContain("The request enters the current withdrawal cycle.")
+    expect(html).toContain("Queue a withdrawal from an open market.")
+    expect(html).toContain("mapped by the ledger, not declared by the test")
+  })
+
+  it("without --ledger the tab says there is no spec text", () => {
+    writeFileSync(join(dir, "run.json"), JSON.stringify(archive()))
+    const r = spawnSync(
+      process.execPath,
+      [TOOL, "--run", dir, "--gql", "http://127.0.0.1:9/none"],
+      { encoding: "utf8", timeout: 60_000 },
+    )
+    expect(r.status).toBe(0)
+    expect(readFileSync(join(dir, "index.html"), "utf8")).toContain(
+      "No runsheet or ledger text for this row in this run.",
+    )
+  })
+})
