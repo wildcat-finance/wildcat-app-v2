@@ -10,7 +10,7 @@ import {
 import * as chain from "../lib/chain"
 import { faucet, syncSubgraph } from "../lib/env"
 import { ensureConnected, gotoMarket } from "../lib/page"
-import { attachAgreement, step } from "../lib/step"
+import { attachAgreement, requirements, step } from "../lib/step"
 import { expect, test } from "../lib/test"
 
 /**
@@ -23,8 +23,10 @@ import { expect, test } from "../lib/test"
  */
 test.describe.serial("lender flows: fixed term (LEN-35)", () => {
   let fixed: FixedTermFixture | null = null
+  // withdraw-availability reason copy — the same constant v2.5's LEN-35 asserts (periodic.spec.ts)
+  const FIXED_TERM_STATUS = "Withdrawal requests open when the fixed term ends."
 
-  test("LEN-35: before maturity, withdrawal requests are blocked with maturity messaging", async ({
+  test("LEN-35: before maturity, withdrawal requests are blocked with maturity messaging", requirements(["REQ-LEN-018", "REQ-LEN-134"]), async ({
     page,
   }) => {
     const now = await chain.blockTimestamp()
@@ -56,23 +58,38 @@ test.describe.serial("lender flows: fixed term (LEN-35)", () => {
 
     await gotoMarket(page, fixed!.market)
     await ensureConnected(page, account0)
-    await step(page, "locked state offers no withdraw action", async () => {
-      await expect(
-        page.getByText("Available For Withdraw Requests").first(),
-        "the withdraw surface rendered",
-      ).toBeVisible({ timeout: 60_000 })
-      await expect(
-        page.getByRole("button", { name: /^withdraw$/i }),
-        "no withdraw action before maturity",
-      ).toHaveCount(0)
-      // KNOWN-ISSUES M10: MarketActions mounts WithdrawModal only when withdrawalAvailability is
-      // Ready, so the whole control is absent and nothing explains why. Asserted as the real
-      // rendering; a fix that adds reason copy should update this expectation.
-      await expect(
-        page.getByText("Withdrawal requests open when the fixed term ends."),
-        "main renders no pre-maturity reason copy (KNOWN-ISSUES M10)",
-      ).toHaveCount(0)
-    })
+    await step(
+      page,
+      "locked state offers no withdraw action",
+      async () => {
+        await expect(
+          page.getByText("Available For Withdraw Requests").first(),
+          "the withdraw surface rendered",
+        ).toBeVisible({ timeout: 60_000 })
+        await expect(
+          page.getByRole("button", { name: /^withdraw$/i }),
+          "no withdraw action before maturity",
+        ).toHaveCount(0)
+      },
+      { req: ["REQ-LEN-134"] },
+    )
+
+    // Shared signature assertion (identical on v2.5). Expected to FAIL on main while
+    // KNOWN-ISSUES M10 stands: MarketActions mounts WithdrawModal only when withdrawalAvailability
+    // is Ready, so the whole control is absent and nothing explains why (REQ-LEN-018 known-defect).
+    await step(
+      page,
+      "locked state names the fixed term",
+      async () => {
+        await expect(
+          page.getByText(FIXED_TERM_STATUS).first(),
+          "the locked market names the fixed term",
+        ).toBeVisible({
+          timeout: 30_000,
+        })
+      },
+      { req: ["REQ-LEN-018"] },
+    )
     attachAgreement("LEN-35 before maturity", {
       market: fixed!.market,
       name: fixed!.name,
@@ -81,7 +98,7 @@ test.describe.serial("lender flows: fixed term (LEN-35)", () => {
       chainNow: now,
       hoursOfTermRemaining: Math.round(((end - now) / 3_600) * 10) / 10,
       withdrawActionOffered: false,
-      reasonCopyRendered: false,
+      reasonCopyRendered: true,
       transitionRunsIn: "e2e/zz-final-phase/fixed-term-maturity.spec.ts",
     })
   })
