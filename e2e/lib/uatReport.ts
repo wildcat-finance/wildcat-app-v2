@@ -462,6 +462,22 @@ const REQ_CLASS: Record<string, string> = {
   none: "skipped",
 }
 
+/**
+ * A checkpoint's requirement result when no observation names it (uat-run/2, or a step the
+ * emitter skipped): every checkpoint of a passed row passed; before the failing one passed; the
+ * failing one failed (or, for a `between` site, passed — the failure came after it); after it, none.
+ */
+const stepChipStatus = (
+  t: UatTest,
+  n: number,
+  failAt: number,
+  between: boolean,
+): string => {
+  if (failAt < 0) return t.status === "passed" ? "pass" : "none"
+  if (n < failAt || (n === failAt && between)) return "pass"
+  return n === failAt ? "fail" : "none"
+}
+
 const reqChip = (id: string, status: string, known = false): string =>
   `<span class="req ${
     known && status === "fail" ? "known" : REQ_CLASS[status] ?? "skipped"
@@ -1319,19 +1335,7 @@ const renderTimeline = (t: UatTest, starting: string): string => {
         const o = (t.observations ?? []).find(
           (x) => x.requirementId === id && x.stepIndex === s.index,
         )
-        const st =
-          o?.status ??
-          (failAt < 0
-            ? t.status === "passed"
-              ? "pass"
-              : "none"
-            : n < failAt || between
-              ? n <= failAt
-                ? "pass"
-                : "none"
-              : n === failAt
-                ? "fail"
-                : "none")
+        const st = o?.status ?? stepChipStatus(t, n, failAt, between)
         return reqChip(id, st, t.outcome === "expected-failure")
       })
       .join("")
@@ -1538,17 +1542,25 @@ ${body}
 </details>`
 }
 
+/** True when every row is a closed (quiet) card: the "Needs attention only" filter hides the heading too. */
+const allQuiet = (tests: UatTest[]): boolean =>
+  tests.every((t) => !verdictOf(t).open)
+
 const renderSection = (g: PageGroup, ctx: CardContext): string =>
-  `<section class="page" id="page-${g.page}">
+  `<section class="page${
+    allQuiet(g.suites.flatMap((s) => s.tests)) ? " quiet-only" : ""
+  }" id="page-${g.page}">
 <h2 class="page-head">${esc(g.label)} <span class="counts">${countStrip(
     g.counts,
   )}</span></h2>
 ${g.suites
   .map((s) => {
     const ov = suitePageOverride(s.suite)
-    return `<h3 class="suite">${esc(s.suite)}${
-      ov ? ` <span class="muted">${esc(ov.note)}</span>` : ""
-    }</h3>\n${s.tests.map((t) => renderTest(t, ctx)).join("\n")}`
+    return `<h3 class="suite${allQuiet(s.tests) ? " quiet-only" : ""}">${esc(
+      s.suite,
+    )}${ov ? ` <span class="muted">${esc(ov.note)}</span>` : ""}</h3>\n${s.tests
+      .map((t) => renderTest(t, ctx))
+      .join("\n")}`
   })
   .join("\n")}
 </section>`
@@ -1593,7 +1605,8 @@ pre{white-space:pre-wrap;word-break:break-word;background:#f2f3f5;border:1px sol
 /* per-test card: header line */
 details.tcard{background:var(--card);border:1px solid var(--line);border-radius:8px;margin-bottom:6px}
 details.tcard[open]{margin:10px 0 14px}
-details.tcard.did-not-hold,details.tcard.did-not-reach,details.tcard.known-issue-mismatch,details.tcard.failed{border-left:4px solid var(--red)}
+details.tcard.did-not-hold,details.tcard.did-not-reach,details.tcard.known-issue-mismatch,details.tcard.failed,
+details.tcard.failed-in-teardown,details.tcard.failed-between,details.tcard.assertion-not-reached{border-left:4px solid var(--red)}
 details.tcard.ruling-pending{border-left:4px solid var(--violet)}
 details.tcard.unexpected-pass,details.tcard.known-issue,details.tcard.flaky{border-left:4px solid var(--amber)}
 details.tcard.infra{border-style:dashed}
@@ -1620,7 +1633,8 @@ details.tcard.ruling-pending .teaser{color:var(--violet)}
 .tbody{padding:4px 0 6px}
 .tbody>.reason{margin:10px 18px 4px}
 .verdict{margin:12px 18px 4px;padding:8px 12px;border-radius:6px;background:#f7f7f9}
-details.tcard.did-not-hold .verdict,details.tcard.did-not-reach .verdict,details.tcard.known-issue-mismatch .verdict,details.tcard.failed .verdict{background:var(--red-bg)}
+details.tcard.did-not-hold .verdict,details.tcard.did-not-reach .verdict,details.tcard.known-issue-mismatch .verdict,details.tcard.failed .verdict,
+details.tcard.failed-in-teardown .verdict,details.tcard.failed-between .verdict,details.tcard.assertion-not-reached .verdict{background:var(--red-bg)}
 details.tcard.ruling-pending .verdict{background:var(--violet-bg)}
 details.tcard.unexpected-pass .verdict,details.tcard.known-issue .verdict,details.tcard.flaky .verdict{background:var(--amber-bg)}
 .verdict-sentence{margin:0;font-size:14.5px;font-weight:600}
@@ -1696,7 +1710,7 @@ ul.console{margin:2px 0;padding-left:16px;color:var(--muted);font-size:12px}
 .toolbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--bg);
   padding:8px 0;margin:0 0 4px;font-size:13px;border-bottom:1px solid var(--line)}
 .toolbar button{font:inherit;font-size:12.5px;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:2px 10px;cursor:pointer}
-body.attention-only details.tcard.quiet{display:none}
+body.attention-only details.tcard.quiet,body.attention-only .quiet-only{display:none}
 
 /* film strip */
 .filmstrip{display:flex;gap:12px;overflow-x:auto;padding:6px 2px 10px}
@@ -1819,7 +1833,8 @@ const JS = `
   // A link to a row (#uat-…) opens that row's card, so a closed passed row is never a dead end.
   function openTarget() {
     var id = location.hash.slice(1)
-    var el = id ? document.getElementById(decodeURIComponent(id)) : null
+    var el = null
+    try { el = id ? document.getElementById(decodeURIComponent(id)) : null } catch (e) { el = null }
     if (el && el.tagName === "DETAILS") el.open = true
   }
   window.addEventListener("hashchange", openTarget)
