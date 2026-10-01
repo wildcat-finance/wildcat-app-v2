@@ -1,4 +1,3 @@
-/* eslint-disable no-nested-ternary */
 /**
  * The per-test verdict: ONE plain sentence saying what a row's result means, and who acts next.
  *
@@ -12,7 +11,12 @@
  *   3. unexpected pass                       -> "Passed where known issue <id> predicted a failure …"
  *   4. failed on a requirement whose ruling is a PROPOSED intentionally-* -> product ruling pending
  *   5. failed with an attributed observation -> "<failed assertion> did not hold (<req>)."
- *   6. failed outside every checkpoint, or with no attributed observation -> "Did not reach …"
+ *   6. no attributed observation: by failure site —
+ *        teardown                         -> "Checkpoints held; failed while tearing down …"
+ *        between                          -> "Checkpoint N held; failed between checkpoints …"
+ *        a checkpoint carrying `req`      -> "Failed inside checkpoint … before its assertion …"
+ *        arrange/fixture/hook, a checkpoint without `req`, or nothing attributed
+ *                                         -> "Did not reach the behaviour under test …"
  *   7. anything else                         -> "Failed: <error head>."
  *
  * A uat-run/2 row carries no observations and no ledger annotations, so rules 1-5 cannot fire and
@@ -35,6 +39,9 @@ export type VerdictKind =
   | "ruling-pending"
   | "did-not-hold"
   | "did-not-reach"
+  | "failed-in-teardown"
+  | "failed-between"
+  | "assertion-not-reached"
   | "failed"
 
 export type VerdictFlag = {
@@ -145,13 +152,11 @@ export const plainError = (t: UatTest): string => {
   return plain || "no error message was recorded"
 }
 
-/** Failure sites outside every checkpoint: the behaviour under test was never reached. */
+/** Failure sites before the first checkpoint: the behaviour under test was never reached. */
 const OUTSIDE_SITES: ReadonlySet<string> = new Set([
   "arrange",
-  "between",
   "hook",
   "fixture",
-  "teardown",
 ])
 
 /** "broke while <…>" for each failure site. */
@@ -160,20 +165,13 @@ const whileDoing = (t: UatTest): string => {
   switch (f?.kind) {
     case "arrange":
       return "arranging"
-    case "step": {
-      const step = t.journal.find((e) => e.kind === "step" && e.name === f.name)
-      return (step?.req ?? []).length > 0
-        ? "running the checkpoint"
-        : "arranging"
-    }
-    case "between":
-      return "finishing a checkpoint"
+    case "step":
+      // Only a checkpoint WITHOUT `req` gets here: it asserts nothing the ledger names.
+      return "arranging"
     case "hook":
       return "running a test hook"
     case "fixture":
       return "setting up a fixture"
-    case "teardown":
-      return "tearing down"
     case "unknown":
       return "running code outside any checkpoint"
     default:
@@ -332,12 +330,56 @@ export const verdictOf = (
     }
   }
 
-  // 6: the row broke before the behaviour it checks.
-  if (
-    OUTSIDE_SITES.has(t.failedDuring?.kind ?? "") ||
-    t.observations !== undefined
-  ) {
-    const name = t.failedDuring?.name
+  // 6: where the row broke decides what was and was not exercised.
+  const f = t.failedDuring
+  const failedStep =
+    f?.kind === "step"
+      ? t.journal.find((e) => e.kind === "step" && e.name === f.name)
+      : undefined
+  if (f?.kind === "teardown")
+    return {
+      kind: "failed-in-teardown",
+      open: true,
+      failure: true,
+      sentence: `Checkpoints held; failed while tearing down — ${headline}. The behaviour under test was exercised; the failure is in cleanup.`,
+      next: "engineering — triage teardown",
+      headline,
+      flag: { text: "failed in teardown", tone: "bad" },
+    }
+  if (f?.kind === "between") {
+    const steps = t.journal.filter((e) => e.kind === "step")
+    const at =
+      f.index ?? (f.name ? steps.findIndex((e) => e.name === f.name) + 1 : 0)
+    const held = at > 0 ? String(at) : `"${f.name ?? "?"}"`
+    const nextOne = at > 0 ? String(at + 1) : "the next"
+    return {
+      kind: "failed-between",
+      open: true,
+      failure: true,
+      sentence: `Checkpoint ${held} held; failed between checkpoints before ${nextOne} — ${headline}. Behaviour up to checkpoint ${held} is proven; later checkpoints were not reached.`,
+      next: "engineering",
+      headline,
+      flag: { text: "failed between checkpoints", tone: "bad" },
+    }
+  }
+  if (failedStep && (failedStep.req ?? []).length > 0)
+    return {
+      kind: "assertion-not-reached",
+      open: true,
+      failure: true,
+      sentence: `Failed inside checkpoint "${
+        failedStep.name ?? "?"
+      }" before its assertion — ${headline}. The assertion for ${(
+        failedStep.req ?? []
+      ).join(", ")} was not reached.`,
+      next: "engineering",
+      headline,
+      flag: { text: "assertion not reached", tone: "bad" },
+    }
+  // The row broke before the behaviour it checks: arrange, a fixture, a hook, a checkpoint that
+  // asserts nothing the ledger names, or (uat-run/3) no attributed observation at all.
+  if (OUTSIDE_SITES.has(f?.kind ?? "") || t.observations !== undefined) {
+    const name = f?.name
     return {
       kind: "did-not-reach",
       open: true,

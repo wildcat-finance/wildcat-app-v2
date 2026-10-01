@@ -1402,6 +1402,87 @@ describe("per-test card — verdict sentence", () => {
     expect(v.next).toBe("engineering — triage fixture / app state")
   })
 
+  /** A uat-run/3 failed row whose only variable is its failure site; two journalled checkpoints. */
+  const siteVerdict = (failedDuring: UatTest["failedDuring"]) =>
+    verdictOf(
+      t({
+        title: "LEN-40: the lender claims a matured withdrawal",
+        suite: "lender flows",
+        status: "failed",
+        outcome: "failed",
+        requirements: ["REQ-LEN-130", "REQ-LEN-131"],
+        errorHead: "TimeoutError: locator.click: Timeout 5000ms exceeded.",
+        failedDuring,
+        journal: [
+          {
+            at: "2026-09-29T20:00:01.000Z",
+            kind: "step",
+            name: "the claims tab lists the batch",
+            req: ["REQ-LEN-130"],
+          },
+          {
+            at: "2026-09-29T20:00:04.000Z",
+            kind: "step",
+            name: "the matured amount is claimable",
+            req: ["REQ-LEN-131"],
+          },
+        ],
+        observations: [
+          {
+            requirementId: null,
+            status: "unattributed",
+            attribution: "row",
+          },
+        ],
+      }),
+    )
+
+  it("fixture and hook sites did not reach the behaviour under test", () => {
+    const fixture = siteVerdict({ kind: "fixture", name: "fixture: page" })
+    expect(fixture.sentence).toBe(
+      "Did not reach the behaviour under test: broke while setting up a fixture (fixture: page) — locator.click: Timeout 5000ms exceeded. Nothing proven or disproven.",
+    )
+    expect(fixture.next).toBe("engineering — triage fixture / app state")
+    const hook = siteVerdict({ kind: "hook", name: "Before Hooks" })
+    expect(hook.sentence).toBe(
+      "Did not reach the behaviour under test: broke while running a test hook (Before Hooks) — locator.click: Timeout 5000ms exceeded. Nothing proven or disproven.",
+    )
+    expect(hook.next).toBe("engineering — triage fixture / app state")
+  })
+
+  it("a teardown failure says the checkpoints held and the failure is in cleanup", () => {
+    const v = siteVerdict({ kind: "teardown", name: "After Hooks" })
+    expect(v.sentence).toBe(
+      "Checkpoints held; failed while tearing down — locator.click: Timeout 5000ms exceeded. The behaviour under test was exercised; the failure is in cleanup.",
+    )
+    expect(v.next).toBe("engineering — triage teardown")
+    expect(v.sentence).not.toContain("Did not reach")
+  })
+
+  it("a failure between checkpoints names the checkpoint that held and the one not reached", () => {
+    const v = siteVerdict({
+      kind: "between",
+      name: "the claims tab lists the batch",
+      index: 1,
+    })
+    expect(v.sentence).toBe(
+      "Checkpoint 1 held; failed between checkpoints before 2 — locator.click: Timeout 5000ms exceeded. Behaviour up to checkpoint 1 is proven; later checkpoints were not reached.",
+    )
+    expect(v.next).toBe("engineering")
+  })
+
+  it("a checkpoint that broke before its assertion names the requirement it did not reach", () => {
+    const v = siteVerdict({
+      kind: "step",
+      name: "the matured amount is claimable",
+      index: 2,
+    })
+    expect(v.sentence).toBe(
+      'Failed inside checkpoint "the matured amount is claimable" before its assertion — locator.click: Timeout 5000ms exceeded. The assertion for REQ-LEN-131 was not reached.',
+    )
+    expect(v.next).toBe("engineering")
+  })
+
   it("a uat-run/2 row (no observations, no ledger) failing in a checkpoint degrades to the old wording", () => {
     const v = verdictOf(
       t({
@@ -1905,6 +1986,17 @@ describe("per-test card — header, timeline, footer, toolbar", () => {
       '<tr><td class="mono">REQ-LEN-120</td><td>required</td><td>required</td><td>implemented</td><td>automated</td><td></td></tr>',
     )
     expect(foot).toContain("decision <b>run</b>")
+  })
+
+  it("the needs-attention filter also hides a suite or page heading whose rows are all quiet", () => {
+    // run(): page 3's "market creation" rows are passed/skipped only; page 4 holds the open
+    // BOP-17b unexpected pass.
+    const html = renderUatReport(run())
+    expect(html).toContain('<section class="page quiet-only" id="page-3">')
+    expect(html).toContain('<h3 class="suite quiet-only">market creation</h3>')
+    expect(html).toContain('<section class="page" id="page-4">')
+    expect(html).toContain('<h3 class="suite">borrower ops</h3>')
+    expect(html).toContain("body.attention-only .quiet-only{display:none}")
   })
 
   it("the toolbar: a needs-attention filter and expand/collapse all", () => {
