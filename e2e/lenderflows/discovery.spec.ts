@@ -30,7 +30,7 @@ import {
   type Address,
 } from "../lib/env"
 import { connectAs, ensureConnected } from "../lib/page"
-import { attachAgreement, step } from "../lib/step"
+import { attachAgreement, infra, requirements, step } from "../lib/step"
 import * as subgraph from "../lib/subgraph"
 import { expect, test } from "../lib/test"
 
@@ -70,13 +70,13 @@ const expectCounts = async (
 // After a harness reset the app DB snapshot holds NO ToU acceptance for our accounts, and every
 // /lender page redirects to the agreement gate ("Are Loading..." forever from a test's viewpoint).
 // Make the suite self-sufficient instead of depending on agreements.spec.ts having run first.
-test("setup: current ToU acceptance for the reading account", async ({
+test("setup: current ToU acceptance for the reading account", infra("setup"), async ({
   page,
 }) => {
   await ensureTouSigned(page, account, pins.markets.openTerm)
 })
 
-test("LEN-05: explorer filters & search", async ({ page }) => {
+test("LEN-05: explorer filters & search", requirements(["REQ-MKT-004", "REQ-MKT-005"]), async ({ page }) => {
   test.setTimeout(420_000)
   await gotoAligned(page, ALL_MARKETS)
   await ensureConnected(page, account)
@@ -104,6 +104,7 @@ test("LEN-05: explorer filters & search", async ({ page }) => {
         oracle: oracle.other,
       })
     },
+    { req: ["REQ-MKT-005"] },
   )
 
   // Fork-state note (not an upstream change): account #0 now holds a
@@ -157,10 +158,10 @@ test("LEN-05: explorer filters & search", async ({ page }) => {
     await expectCounts(page, baseline, "counts restored after clearing search")
   })
 
+  const assetMenu = await openFilterMenu(page, "Asset")
+  await assetMenu.getByRole("checkbox", { name: "WETH", exact: true }).check()
+  await closeFilterMenu(page)
   await step(page, "asset filter: WETH", async () => {
-    const menu = await openFilterMenu(page, "Asset")
-    await menu.getByRole("checkbox", { name: "WETH", exact: true }).check()
-    await closeFilterMenu(page)
     const expected = pick(other.filter((m) => m.asset.symbol === "WETH"))
     await expectCounts(page, expected, "asset=WETH")
     const assets = await rowsIn(page, "self-onboard")
@@ -168,12 +169,12 @@ test("LEN-05: explorer filters & search", async ({ page }) => {
       .allInnerTexts()
     for (const a of assets) expect(a.trim()).toBe("WETH")
     attachAgreement("LEN-05 asset filter", { asset: "WETH", expected })
-  })
+  }, { req: ["REQ-MKT-004"] })
 
+  const cycleMenu = await openFilterMenu(page, "Withdrawal Cycle")
+  await cycleMenu.getByRole("checkbox", { name: "≤ 24h", exact: true }).check()
+  await closeFilterMenu(page)
   await step(page, "combine asset + withdrawal cycle (≤ 24h)", async () => {
-    const menu = await openFilterMenu(page, "Withdrawal Cycle")
-    await menu.getByRole("checkbox", { name: "≤ 24h", exact: true }).check()
-    await closeFilterMenu(page)
     const expected = pick(
       other.filter(
         (m) => m.asset.symbol === "WETH" && m.withdrawalBatchDuration <= 86400,
@@ -181,31 +182,31 @@ test("LEN-05: explorer filters & search", async ({ page }) => {
     )
     await expectCounts(page, expected, "asset=WETH & cycle<=24h")
     attachAgreement("LEN-05 combined filters", { expected })
-  })
+  }, { req: ["REQ-MKT-004"] })
 
+  const cycleResetMenu = await openFilterMenu(page, "Withdrawal Cycle")
+  await cycleResetMenu.getByRole("option", { name: "Reset" }).click()
+  await closeFilterMenu(page)
+  const assetResetMenu = await openFilterMenu(page, "Asset")
+  await assetResetMenu.getByRole("option", { name: "Reset" }).click()
+  await closeFilterMenu(page)
   await step(page, "reset both selects from their menus", async () => {
-    const cycleMenu = await openFilterMenu(page, "Withdrawal Cycle")
-    await cycleMenu.getByRole("option", { name: "Reset" }).click()
-    await closeFilterMenu(page)
-    const assetMenu = await openFilterMenu(page, "Asset")
-    await assetMenu.getByRole("option", { name: "Reset" }).click()
-    await closeFilterMenu(page)
     await expectCounts(page, baseline, "counts restored after reset")
-  })
+  }, { req: ["REQ-MKT-004"] })
 
+  // Verified live on head d335b59b: the explorer's Status filter offers
+  // exactly the live-market statuses (marketStatusesMock — which has never
+  // contained TERMINATED, on base ae0335f3 or head). Closed markets are not
+  // a status-filter value; they live in the dedicated #other-terminated
+  // accordion asserted below and in LEN-06. Pin the option set so an
+  // upstream change (e.g. adding a Terminated option) fails loudly here.
+  const statusMenu = await openFilterMenu(page, "Status")
+  const options = (await statusMenu.locator("label").allInnerTexts()).map(
+    (t) => t.trim(),
+  )
+  await closeFilterMenu(page)
   await step(page, "status options; Terminated maps to isClosed", async () => {
-    // Verified live on head d335b59b: the explorer's Status filter offers
-    // exactly the live-market statuses (marketStatusesMock — which has never
-    // contained TERMINATED, on base ae0335f3 or head). Closed markets are not
-    // a status-filter value; they live in the dedicated #other-terminated
-    // accordion asserted below and in LEN-06. Pin the option set so an
-    // upstream change (e.g. adding a Terminated option) fails loudly here.
-    const menu = await openFilterMenu(page, "Status")
-    const options = (await menu.locator("label").allInnerTexts()).map((t) =>
-      t.trim(),
-    )
     expect(new Set(options)).toEqual(new Set(["Healthy", "Pending", "Penalty"]))
-    await closeFilterMenu(page)
     // "Terminated maps to isClosed": every row of the terminated accordion —
     // populated from isClosed markets (see helpers.ts#classify) — renders the
     // Terminated status chip, and its count equals the oracle's bucket.
@@ -216,15 +217,17 @@ test("LEN-05: explorer filters & search", async ({ page }) => {
     expect(statuses.length).toBeGreaterThan(0)
     for (const s of statuses) expect(s).toContain("Terminated")
     attachAgreement("LEN-05 status options", { options })
-  })
+  }, { req: ["REQ-MKT-004"] })
 
+  const healthyMenu = await openFilterMenu(page, "Status")
+  await healthyMenu
+    .getByRole("checkbox", { name: "Healthy", exact: true })
+    .check()
+  await closeFilterMenu(page)
   await step(
     page,
     "status filter: Healthy shows only healthy rows",
     async () => {
-      const menu = await openFilterMenu(page, "Status")
-      await menu.getByRole("checkbox", { name: "Healthy", exact: true }).check()
-      await closeFilterMenu(page)
       // Healthy/Pending depend on live delinquency (willBeDelinquent is chain-
       // time derived), so assert the invariant on rendered rows, not exact counts.
       const counts = await readOtherMarketsCounts(page)
@@ -238,11 +241,19 @@ test("LEN-05: explorer filters & search", async ({ page }) => {
       expect(statuses.length).toBeGreaterThan(0)
       for (const s of statuses) expect(s).toContain("Healthy")
       attachAgreement("LEN-05 status=Healthy", { counts, baseline })
-      const reset = await openFilterMenu(page, "Status")
-      await reset.getByRole("option", { name: "Reset" }).click()
-      await closeFilterMenu(page)
+    },
+    { req: ["REQ-MKT-004"] },
+  )
+  const reset = await openFilterMenu(page, "Status")
+  await reset.getByRole("option", { name: "Reset" }).click()
+  await closeFilterMenu(page)
+  await step(
+    page,
+    "the status reset restores the unfiltered counts",
+    async () => {
       await expectCounts(page, baseline, "counts restored after status reset")
     },
+    { req: ["REQ-MKT-004"] },
   )
 
   // Filters named in the runsheet that do not exist on this build's explorer
@@ -267,7 +278,7 @@ test("LEN-05: explorer filters & search", async ({ page }) => {
   })
 })
 
-test("LEN-06: market counts reconcile (nav vs content vs subgraph; lender, borrower, disconnected)", async ({
+test("LEN-06: market counts reconcile (nav vs content vs subgraph; lender, borrower, disconnected)", requirements(["REQ-MKT-101"]), async ({
   page,
 }) => {
   test.setTimeout(480_000)
@@ -325,35 +336,38 @@ test("LEN-06: market counts reconcile (nav vs content vs subgraph; lender, borro
         oracle: oracle.other,
       })
     },
+    { req: ["REQ-MKT-101"] },
   )
 
+  const content = await readOtherMarketsCounts(page)
+  const firstPageRows = await rowsIn(page, "self-onboard").count()
+  // Walk the terminated table to its last page: header == total rendered rows.
+  const lastPage = Math.ceil(content.terminated / 50)
+  if (lastPage > 1)
+    await page
+      .locator("#other-terminated")
+      .getByRole("button", { name: `Go to page ${lastPage}` })
+      .click()
   await step(
     page,
     "header count equals rendered rows (incl. last page)",
     async () => {
-      const content = await readOtherMarketsCounts(page)
-      const firstPageRows = await rowsIn(page, "self-onboard").count()
       expect(firstPageRows).toBe(Math.min(50, content.self))
-      // Walk the terminated table to its last page: header == total rendered rows.
-      const lastPage = Math.ceil(content.terminated / 50)
       if (lastPage > 1) {
-        await page
-          .locator("#other-terminated")
-          .getByRole("button", { name: `Go to page ${lastPage}` })
-          .click()
         await expect(rowsIn(page, "other-terminated")).toHaveCount(
           content.terminated - 50 * (lastPage - 1),
         )
       }
     },
+    { req: ["REQ-MKT-101"] },
   )
 
+  await gotoAligned(page, MY_MARKETS)
+  await ensureConnected(page, account)
   await step(
     page,
     "my-markets: section counts equal the position oracle",
     async () => {
-      await gotoAligned(page, MY_MARKETS)
-      await ensureConnected(page, account)
       await expect
         .poll(async () => readAccordionCount(page, "deposited"), {
           message: "deposited accordion settles",
@@ -381,25 +395,21 @@ test("LEN-06: market counts reconcile (nav vs content vs subgraph; lender, borro
         positions: oracle.positions,
       })
     },
+    { req: ["REQ-MKT-101"] },
   )
 
+  await gotoAligned(page, "/borrower")
+  await ensureConnected(page, account)
+  await dismissTouDialogIfPresent(page)
   await step(page, "borrower side: 'Other Markets' totals agree", async () => {
-    await gotoAligned(page, "/borrower")
-    await ensureConnected(page, account)
-    await dismissTouDialogIfPresent(page)
     const borrowed = oracle.markets.filter(
       (m) => m.borrower.toLowerCase() === account.toLowerCase(),
     ).length
     const expectedOther = oracle.markets.length - borrowed
-    // Defect: the borrower page's two "Other Markets" badges disagree with each other. The
-    // SIDEBAR (BorrowerDashboardSidebar) sums selfOnboard + manual + terminatedOther; the
-    // CONTENT switcher (MarketSectionSwitcher) sums only selfOnboard + manual, dropping every
-    // terminated market. Assert the observed shape rather than papering over it —
-    // KNOWN-ISSUES [main-variant] #M2.
-    const terminatedOther = oracle.markets.filter(
-      (m) => m.isClosed && m.borrower.toLowerCase() !== account.toLowerCase(),
-    ).length
-    const allowed = [expectedOther, expectedOther - terminatedOther]
+    // KNOWN-ISSUES [main-variant] #M2: on main the SIDEBAR (BorrowerDashboardSidebar) sums
+    // selfOnboard + manual + terminatedOther while the CONTENT switcher (MarketSectionSwitcher)
+    // drops terminated markets, so the shared assertion below is expected to fail here with the
+    // M2 signature.
     const readCounts = async () => {
       const text = (await page.locator("body").innerText()).replace(/\n/g, " ")
       return [...text.matchAll(/Other Markets\s*(\d+)/g)].map((m) =>
@@ -417,25 +427,23 @@ test("LEN-06: market counts reconcile (nav vs content vs subgraph; lender, borro
       counts.length,
       "badge appears in nav and content",
     ).toBeGreaterThanOrEqual(2)
-    for (const c of counts) expect(allowed).toContain(c)
-    attachAgreement("LEN-06 borrower side", {
-      counts,
-      expectedOther,
-      borrowed,
-      terminatedOther,
-      note: "sidebar includes terminated markets, content switcher does not (KNOWN-ISSUES [main-variant] #M2)",
-    })
-  })
+    for (const c of counts)
+      expect(
+        c,
+        "the Other Markets badge in both the navigation and the content area equals the single expected total",
+      ).toBe(expectedOther)
+    attachAgreement("LEN-06 borrower side", { counts, expectedOther, borrowed })
+  }, { req: ["REQ-MKT-101"] })
 
+  await gotoAligned(page, ALL_MARKETS)
+  await ensureConnected(page, account)
+  await readOtherMarketsCounts(page) // wait for the initial load
+  await page.getByRole("button", { name: /0xf39F.*2266/i }).click()
+  await page.getByRole("button", { name: "Disconnect" }).click()
+  await expect(
+    page.getByRole("button", { name: /connect wallet/i }).first(),
+  ).toBeVisible({ timeout: 30_000 })
   await step(page, "disconnected: own markets move into 'other'", async () => {
-    await gotoAligned(page, ALL_MARKETS)
-    await ensureConnected(page, account)
-    await readOtherMarketsCounts(page) // wait for the initial load
-    await page.getByRole("button", { name: /0xf39F.*2266/i }).click()
-    await page.getByRole("button", { name: "Disconnect" }).click()
-    await expect(
-      page.getByRole("button", { name: /connect wallet/i }).first(),
-    ).toBeVisible({ timeout: 30_000 })
     const everything = classify(oracle.markets)
     await expect
       .poll(async () => readOtherMarketsCounts(page), {
@@ -454,13 +462,13 @@ test("LEN-06: market counts reconcile (nav vs content vs subgraph; lender, borro
       oracle.other.all + oracle.mineActive + oracle.mineTerminated,
     )
     attachAgreement("LEN-06 disconnected", { nav, everything })
-  })
+  }, { req: ["REQ-MKT-101"] })
 })
 
 // On main, borrower chips in lender lists link to the clicked borrower's
 // profile at /lender/profile/<addr> (ProfilePage type="external"); the
 // profile page's Back control returns to the lender area.
-test("LEN-07: back from a borrower profile returns to the lender area", async ({
+test("LEN-07: back from a borrower profile returns to the lender area", requirements(["REQ-ONB-015"]), async ({
   page,
 }) => {
   await gotoAligned(page, ALL_MARKETS)
@@ -482,7 +490,14 @@ test("LEN-07: back from a borrower profile returns to the lender area", async ({
       return href
     },
   )
-  expect(profileHref).toMatch(/^\/lender\/profile\/0x[0-9a-f]{40}$/i)
+  await step(
+    page,
+    "the borrower chip links to that borrower's profile",
+    async () => {
+      expect(profileHref).toMatch(/^\/lender\/profile\/0x[0-9a-f]{40}$/i)
+    },
+    { req: ["REQ-ONB-015"] },
+  )
 
   await step(page, "a Back control returns to the lender area", async () => {
     const explainer = page.getByRole("button", { name: "I understand" })
@@ -501,7 +516,7 @@ test("LEN-07: back from a borrower profile returns to the lender area", async ({
 // On main, the borrower chip's /lender/profile/<addr> page renders
 // <ProfilePage profileAddress={address} type="external" />, i.e. the CLICKED
 // borrower's profile — not the connected lender's own profile.
-test("LEN-07b: borrower chip routes to the borrower's public profile", async ({
+test("LEN-07b: borrower chip routes to the borrower's public profile", requirements(["REQ-ONB-015"]), async ({
   page,
 }) => {
   await gotoAligned(page, ALL_MARKETS)
@@ -537,12 +552,12 @@ test("LEN-07b: borrower chip routes to the borrower's public profile", async ({
         .first(),
     ).toBeVisible({ timeout: 60_000 })
     attachAgreement("LEN-07b borrower identity", { address, trimmed })
-  })
+  }, { req: ["REQ-ONB-015"] })
 })
 
 // Periodic markets are hidden from every list on main (isFrontendVisibleMarket),
 // so there is no periodic row to check.
-test("LEN-08: term column across open and fixed-term markets", async ({
+test("LEN-08: term column across open and fixed-term markets", requirements(["REQ-MKT-007"]), async ({
   page,
 }) => {
   test.setTimeout(300_000)
@@ -627,21 +642,22 @@ test("LEN-08: term column across open and fixed-term markets", async ({
         expect(termText).toMatch(/ (left|ago)$/)
       }
     },
+    { req: ["REQ-MKT-007"] },
   )
 })
 
-test("LEN-09: asset filter contents (observational)", async ({ page }) => {
+test("LEN-09: asset filter contents (observational)", requirements(["REQ-MKT-104"]), async ({ page }) => {
   await gotoAligned(page, ALL_MARKETS)
   await ensureConnected(page, account)
   await readOtherMarketsCounts(page)
 
-  await step(page, "read the asset filter options", async () => {
-    const menu = await openFilterMenu(page, "Asset")
-    const options = (await menu.locator("label").allInnerTexts()).map((t) =>
-      t.trim(),
-    )
-    await closeFilterMenu(page)
+  const menu = await openFilterMenu(page, "Asset")
+  const options = (await menu.locator("label").allInnerTexts()).map((t) =>
+    t.trim(),
+  )
+  await closeFilterMenu(page)
 
+  await step(page, "read the asset filter options", async () => {
     expect(options.length, "asset filter is populated").toBeGreaterThan(0)
 
     // The options mirror the SDK's getAllTokensWithMarkets (subgraph `tokens`,
@@ -670,10 +686,10 @@ test("LEN-09: asset filter contents (observational)", async ({ page }) => {
       notUnderlyingOfAnyMarket: notAnUnderlying,
       note: "Wrapped debt tokens (v-*) and market-token symbols DO appear in the asset filter on this build; whether they should is the open product decision the runsheet flags.",
     })
-  })
+  }, { req: ["REQ-MKT-104"] })
 })
 
-test("LEN-10: market detail renders every section; no column overlap", async ({
+test("LEN-10: market detail renders every section; no column overlap", requirements(["REQ-MKT-102"]), async ({
   page,
 }) => {
   test.setTimeout(420_000)
@@ -685,7 +701,13 @@ test("LEN-10: market detail renders every section; no column overlap", async ({
   await gotoAligned(page, `/lender/market/${market}`)
   await ensureConnected(page, account)
 
-  const sections: Array<{ nav: RegExp; probe: () => Promise<void> }> = [
+  // `after` runs once the section's checkpoint has closed: driver clean-up and checks that do
+  // not belong to REQ-MKT-102.
+  const sections: Array<{
+    nav: RegExp
+    probe: () => Promise<void>
+    after?: () => Promise<void>
+  }> = [
     {
       nav: /^Deposit & Withdraw$/,
       probe: async () => {
@@ -735,6 +757,8 @@ test("LEN-10: market detail renders every section; no column overlap", async ({
         await expect(
           page.getByText("Profile Verification").first(),
         ).toBeVisible()
+      },
+      after: async () => {
         // First visit pops the "How Wildcat checks this profile" explainer,
         // which blocks the sidebar; acknowledge it before moving on.
         const explainer = page.getByRole("button", { name: "I understand" })
@@ -795,10 +819,11 @@ test("LEN-10: market detail renders every section; no column overlap", async ({
   ]
 
   for (const s of sections) {
+    await page.getByRole("button", { name: s.nav }).click()
     await step(page, `section ${s.nav}`, async () => {
-      await page.getByRole("button", { name: s.nav }).click()
       await s.probe()
-    })
+    }, { req: ["REQ-MKT-102"] })
+    if (s.after) await s.after()
   }
 
   await step(page, "record raw i18n keys leaking into the page", async () => {
@@ -829,12 +854,12 @@ test("LEN-10: market detail renders every section; no column overlap", async ({
     ).toEqual([])
   })
 
+  await gotoAligned(page, MY_MARKETS)
+  await ensureConnected(page, account)
+  await expect(rowsIn(page, "deposited").first()).toBeVisible({
+    timeout: 60_000,
+  })
   await step(page, "list tables: adjacent cells never overlap", async () => {
-    await gotoAligned(page, MY_MARKETS)
-    await ensureConnected(page, account)
-    await expect(rowsIn(page, "deposited").first()).toBeVisible({
-      timeout: 60_000,
-    })
     const overlaps = await page.evaluate(() => {
       const bad: string[] = []
       document
@@ -856,7 +881,7 @@ test("LEN-10: market detail renders every section; no column overlap", async ({
       return bad
     })
     expect(overlaps, "Remaining/Asset and neighbours never overlap").toEqual([])
-  })
+  }, { req: ["REQ-MKT-102"] })
 
   await step(page, "number formatting in Remaining / Total Debt", async () => {
     const numberCells = [
@@ -875,13 +900,13 @@ test("LEN-10: market detail renders every section; no column overlap", async ({
     attachAgreement("LEN-10 sampled amount cells", { numberCells })
   })
 
+  const markets = await fetchAllMarkets()
+  const longest = markets
+    .filter((m) => !m.isClosed)
+    .reduce((a, b) => (b.name.length > a.name.length ? b : a))
+  await gotoAligned(page, `/lender/market/${longest.id}`)
+  await ensureConnected(page, account)
   await step(page, "longest-name market detail still renders", async () => {
-    const markets = await fetchAllMarkets()
-    const longest = markets
-      .filter((m) => !m.isClosed)
-      .reduce((a, b) => (b.name.length > a.name.length ? b : a))
-    await gotoAligned(page, `/lender/market/${longest.id}`)
-    await ensureConnected(page, account)
     await expect(page.getByText(longest.name).first()).toBeVisible({
       timeout: 90_000,
     })
@@ -893,13 +918,13 @@ test("LEN-10: market detail renders every section; no column overlap", async ({
       name: longest.name,
       nameLength: longest.name.length,
     })
-  })
+  }, { req: ["REQ-MKT-102"] })
 })
 
 test.describe("LEN-11: links and copy on Status & Details", () => {
   test.use({ permissions: ["clipboard-read", "clipboard-write"] })
 
-  test("LEN-11: copy buttons and explorer links for the four addresses", async ({
+  test("LEN-11: copy buttons and explorer links for the four addresses", requirements(["REQ-MKT-103"]), async ({
     page,
   }) => {
     test.setTimeout(300_000)
@@ -945,16 +970,13 @@ test.describe("LEN-11: links and copy on Status & Details", () => {
 
         await row.getByTestId("copy-button").click()
         const copied = await page.evaluate(() => navigator.clipboard.readText())
-        // Defect: the Market Token row passes the EXPLORER URL as the copy value
-        // (`copy={getTokenUrl(market.marketToken.address)}` in MarketParameters), so its copy
-        // button yields a URL where every other row yields a bare address. Asserted as the
-        // observed behaviour — see KNOWN-ISSUES [main-variant] #M1.
-        const copiesExplorerUrl = c.title === "Market Token"
-        expect(copied.toLowerCase(), `${c.title} copied value`).toBe(
-          copiesExplorerUrl
-            ? `https://sepolia.etherscan.io/${c.linkKind}/${c.address}`.toLowerCase()
-            : c.address.toLowerCase(),
-        )
+        // KNOWN-ISSUES [main-variant] #M1: on main the Market Token row passes the EXPLORER URL
+        // as the copy value (`copy={getTokenUrl(market.marketToken.address)}` in
+        // MarketParameters), so this shared assertion is expected to fail for that row only.
+        expect(
+          copied.toLowerCase(),
+          "the copy control copies the bare address for every row",
+        ).toBe(c.address.toLowerCase())
 
         const href = await row.getByTestId("link-button").getAttribute("href")
         expect(href?.toLowerCase(), `${c.title} explorer href`).toBe(
@@ -965,7 +987,7 @@ test.describe("LEN-11: links and copy on Status & Details", () => {
           href,
           expected: c.address,
         })
-      })
+      }, { req: ["REQ-MKT-103"] })
     }
 
     // The runsheet's 'add market token' / 'add wrapped token' MetaMask flows
@@ -982,7 +1004,7 @@ test.describe("LEN-11: links and copy on Status & Details", () => {
   })
 })
 
-test("LEN-12: profile entry matches the toggled side", async ({ page }) => {
+test("LEN-12: profile entry matches the toggled side", requirements(["REQ-ONB-024"]), async ({ page }) => {
   test.setTimeout(300_000)
   await gotoAligned(page, "/lender")
   await ensureConnected(page, account)
@@ -1009,15 +1031,16 @@ test("LEN-12: profile entry matches the toggled side", async ({ page }) => {
     return text
   }
 
-  const lenderDialog = await step(
+  const lenderDialog = await readWalletDialog()
+  await step(
     page,
     "lender side: wallet dialog",
     async () => {
-      const text = await readWalletDialog()
+      const text = lenderDialog
       // Never the other side's entry while toggled to lender.
       expect(text).not.toContain("View Borrower Profile")
-      return text
     },
+    { req: ["REQ-ONB-024"] },
   )
 
   await step(page, "toggle to the borrower side", async () => {
@@ -1026,15 +1049,16 @@ test("LEN-12: profile entry matches the toggled side", async ({ page }) => {
     await dismissTouDialogIfPresent(page)
   })
 
-  const borrowerDialog = await step(
+  const borrowerDialog = await readWalletDialog()
+  await step(
     page,
     "borrower side: wallet dialog",
     async () => {
-      const text = await readWalletDialog()
+      const text = borrowerDialog
       // Never the other side's entry while toggled to borrower.
       expect(text).not.toContain("View Lender Profile")
-      return text
     },
+    { req: ["REQ-ONB-024"] },
   )
 
   await step(page, "toggle back to the lender side", async () => {
