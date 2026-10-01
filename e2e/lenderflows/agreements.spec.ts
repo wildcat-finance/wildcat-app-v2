@@ -13,7 +13,7 @@ import {
   type Address,
 } from "../lib/env"
 import { ensureConnected } from "../lib/page"
-import { attachAgreement, step } from "../lib/step"
+import { attachAgreement, requirements, step } from "../lib/step"
 import * as subgraph from "../lib/subgraph"
 import { expect, test, type Page } from "../lib/test"
 
@@ -160,7 +160,7 @@ test.describe.serial("lender flows: ToU / privacy / MLA agreements", () => {
     }
   })
 
-  test("LEN-01: fresh wallet signs the ToU; version shown; download; state persists", async ({
+  test("LEN-01: fresh wallet signs the ToU; version shown; download; state persists", requirements(["REQ-ONB-001", "REQ-ONB-002", "REQ-ONB-003", "REQ-ONB-005"]), async ({
     page,
   }) => {
     await step(
@@ -190,11 +190,20 @@ test.describe.serial("lender flows: ToU / privacy / MLA agreements", () => {
           timeout: 30_000,
         })
       },
+      { req: ["REQ-ONB-001"] },
+    )
+
+    const sign = page.getByRole("button", { name: /^sign/i })
+    await step(
+      page,
+      "a never-signed lender is offered the Sign control",
+      async () => {
+        await expect(sign).toBeVisible({ timeout: 30_000 })
+      },
+      { req: ["REQ-ONB-003"] },
     )
 
     await step(page, "sign the Terms of Use (personal_sign)", async () => {
-      const sign = page.getByRole("button", { name: /^sign/i })
-      await expect(sign).toBeVisible({ timeout: 30_000 })
       await sign.click()
       await expect(sign).toBeHidden({ timeout: 60_000 })
       await expect
@@ -218,9 +227,9 @@ test.describe.serial("lender flows: ToU / privacy / MLA agreements", () => {
       ),
     ).toBeGreaterThanOrEqual(1)
 
+    // Signing navigates back; return to the agreement page in review mode.
+    await page.goto("/lender/agreement")
     await step(page, "document downloads from the agreement page", async () => {
-      // Signing navigates back; return to the agreement page in review mode.
-      await page.goto("/lender/agreement")
       // Upstream a5700145 replaced the Download BUTTON with a native download LINK.
       await expect(
         page
@@ -233,13 +242,13 @@ test.describe.serial("lender flows: ToU / privacy / MLA agreements", () => {
       )
       expect(res.status).toBe(200)
       expect((await res.text()).length).toBeGreaterThan(1000)
-    })
+    }, { req: ["REQ-ONB-002"] })
 
+    await page.reload()
     await step(
       page,
       "state persists across a reload (review mode)",
       async () => {
-        await page.reload()
         await expect(page.getByText("Wildcat Terms Of Use")).toBeVisible({
           timeout: 30_000,
         })
@@ -252,10 +261,11 @@ test.describe.serial("lender flows: ToU / privacy / MLA agreements", () => {
         ).toHaveCount(0)
         expect((await fetchSla("Lender")).state).toBe("signedCurrent")
       },
+      { req: ["REQ-ONB-005"] },
     )
   })
 
-  test("LEN-02: legacy signer sees both versions in the re-sign prompt and updates to current", async ({
+  test("LEN-02: legacy signer sees both versions in the re-sign prompt and updates to current", requirements(["REQ-ONB-004", "REQ-LEN-102"]), async ({
     page,
   }) => {
     await step(
@@ -274,8 +284,8 @@ test.describe.serial("lender flows: ToU / privacy / MLA agreements", () => {
     await connectOnMarketPage(page)
 
     const dialog = page.getByRole("dialog")
+    await page.getByRole("button", { name: "Terms of Use status" }).click()
     await step(page, "open the ToU status prompt from the footer", async () => {
-      await page.getByRole("button", { name: "Terms of Use status" }).click()
       await expect(dialog).toBeVisible({ timeout: 30_000 })
       await expect(dialog.getByText("Updated Terms of Use")).toBeVisible()
     })
@@ -298,16 +308,17 @@ test.describe.serial("lender flows: ToU / privacy / MLA agreements", () => {
           newRow: `New ${CURRENT_TOU_LABEL}`,
         })
       },
+      { req: ["REQ-LEN-102"] },
     )
 
+    await dialog.getByRole("button", { name: /^sign terms of use$/i }).click()
     await step(page, "sign the new version from the prompt", async () => {
-      await dialog.getByRole("button", { name: /^sign terms of use$/i }).click()
       await expect
         .poll(async () => (await fetchSla("Lender")).state, {
           timeout: 60_000,
         })
         .toBe("signedCurrent")
-    })
+    }, { req: ["REQ-ONB-004", "REQ-LEN-102"] })
 
     await step(
       page,
@@ -317,13 +328,21 @@ test.describe.serial("lender flows: ToU / privacy / MLA agreements", () => {
           dialog.getByText(`Signed ${CURRENT_TOU_LABEL}`),
         ).toBeVisible({ timeout: 30_000 })
         await expect(dialog.getByText(/up to date/i)).toBeVisible()
-        await dialog.getByRole("button", { name: /^close$/i }).click()
-        await expect(dialog).toBeHidden({ timeout: 15_000 })
       },
+      { req: ["REQ-LEN-102"] },
     )
+    await dialog.getByRole("button", { name: /^close$/i }).click()
+    await expect(dialog).toBeHidden({ timeout: 15_000 })
 
     const sla = await fetchSla("Lender")
-    expect(sla.acceptedVersion?.version).toBe(CURRENT_TOU_VERSION)
+    await step(
+      page,
+      "the accepted version is now the current one",
+      async () => {
+        expect(sla.acceptedVersion?.version).toBe(CURRENT_TOU_VERSION)
+      },
+      { req: ["REQ-LEN-102"] },
+    )
     attachAgreement("LEN-02 ToU state after re-sign", { api: sla })
     // Tidy up the fabricated legacy row; the real current acceptance remains.
     dbExec(
@@ -331,15 +350,21 @@ test.describe.serial("lender flows: ToU / privacy / MLA agreements", () => {
     )
   })
 
-  test("LEN-03: ToU state across lender/borrower sides is capacity-scoped and never traps", async ({
+  test("LEN-03: ToU state across lender/borrower sides is capacity-scoped and never traps", requirements(["REQ-LEN-103"]), async ({
     page,
   }) => {
     // The gate is capacity-scoped by design: the same wallet has independent Lender and
     // Borrower records. #0 signed as Lender (LEN-02) and is not a registered borrower.
     const lenderBefore = await fetchSla("Lender")
     const borrowerBefore = await fetchSla("Borrower")
-    expect(lenderBefore.state).toBe("signedCurrent")
-    expect(borrowerBefore.state).toBe("neverSigned")
+    await step(
+      page,
+      "each side holds its own acceptance before toggling",
+      async () => {
+        expect(lenderBefore.state).toBe("signedCurrent")
+        expect(borrowerBefore.state).toBe("neverSigned")
+      },
+    )
     attachAgreement("LEN-03 per-side ToU state (before toggling)", {
       lender: lenderBefore,
       borrower: borrowerBefore,
@@ -371,24 +396,31 @@ test.describe.serial("lender flows: ToU / privacy / MLA agreements", () => {
         await page.keyboard.press("Escape")
         await expect(dialog).toBeHidden({ timeout: 15_000 })
       },
+      { req: ["REQ-LEN-103"] },
     )
 
+    await page.getByRole("link", { name: "Lender" }).click()
+    await page.waitForURL(/\/lender/, { timeout: 30_000 })
+    await ensureConnected(page, account)
     await step(page, "toggle back to the lender side: no prompt", async () => {
-      await page.getByRole("link", { name: "Lender" }).click()
-      await page.waitForURL(/\/lender/, { timeout: 30_000 })
-      await ensureConnected(page, account)
       // signedCurrent as Lender: the re-acceptance prompt must not auto-open.
       await expect(page.getByText("Updated Terms of Use")).toHaveCount(0)
       await expect(
         page.getByText("Terms of Use Signature Required"),
       ).toHaveCount(0)
-    })
+    }, { req: ["REQ-LEN-103"] })
 
     const lenderAfter = await fetchSla("Lender")
     const borrowerAfter = await fetchSla("Borrower")
-    // Toggling sides changes nothing: both capacities keep their own state.
-    expect(lenderAfter.state).toBe("signedCurrent")
-    expect(borrowerAfter.state).toBe("neverSigned")
+    await step(
+      page,
+      "toggling sides leaves both acceptances unchanged",
+      async () => {
+        // Toggling sides changes nothing: both capacities keep their own state.
+        expect(lenderAfter.state).toBe("signedCurrent")
+        expect(borrowerAfter.state).toBe("neverSigned")
+      },
+    )
     attachAgreement("LEN-03 per-side ToU state (after toggling)", {
       lender: lenderAfter,
       borrower: borrowerAfter,
@@ -396,7 +428,7 @@ test.describe.serial("lender flows: ToU / privacy / MLA agreements", () => {
     })
   })
 
-  test("LEN-04: privacy policy opens from the footer link", async ({
+  test("LEN-04: privacy policy opens from the footer link", requirements(["REQ-LEN-101"]), async ({
     page,
   }) => {
     // There is no separate privacy-policy signature in this app: the ToU acceptance (LEN-01)
@@ -410,27 +442,27 @@ test.describe.serial("lender flows: ToU / privacy / MLA agreements", () => {
       await expect(link).toBeVisible({ timeout: 30_000 })
       await expect(link).toHaveAttribute("target", "_blank")
       await expect(link.getByText("Privacy Policy")).toBeVisible()
-    })
+    }, { req: ["REQ-LEN-101"] })
 
+    const popupPromise = page.waitForEvent("popup", { timeout: 30_000 })
+    // The next-dev overlay badge (<nextjs-portal>) floats over the footer corner and
+    // intercepts pointer events in dev mode; dispatch the click on the anchor itself.
+    await link.dispatchEvent("click")
+    const popup = await popupPromise
+    // The external site may be unreachable from the harness; the committed URL is the oracle.
+    await popup.waitForLoadState("domcontentloaded").catch(() => undefined)
     await step(page, "clicking opens the document in a new tab", async () => {
-      const popupPromise = page.waitForEvent("popup", { timeout: 30_000 })
-      // The next-dev overlay badge (<nextjs-portal>) floats over the footer corner and
-      // intercepts pointer events in dev mode; dispatch the click on the anchor itself.
-      await link.dispatchEvent("click")
-      const popup = await popupPromise
-      // The external site may be unreachable from the harness; the committed URL is the oracle.
-      await popup.waitForLoadState("domcontentloaded").catch(() => undefined)
       expect(popup.url()).toContain("protocol-ui-privacy-policy")
       attachAgreement("LEN-04 privacy policy link", {
         href: "https://docs.wildcat.finance/legal/protocol-ui-privacy-policy",
         target: "_blank",
         popupUrl: popup.url(),
       })
-      await popup.close()
-    })
+    }, { req: ["REQ-LEN-101"] })
+    await popup.close()
   })
 
-  test("LEN-13: MLA market — deposit gated until the MLA is countersigned; signed MLA downloadable", async ({
+  test("LEN-13: MLA market — deposit gated until the MLA is countersigned; signed MLA downloadable", requirements(["REQ-LEN-009"]), async ({
     page,
   }) => {
     const m = await subgraph.market(MLA_MARKET)
@@ -503,6 +535,7 @@ test.describe.serial("lender flows: ToU / privacy / MLA agreements", () => {
           page.getByRole("button", { name: /^deposit$/i }),
         ).toHaveCount(0)
       },
+      { req: ["REQ-LEN-009"] },
     )
 
     await step(page, "countersign the MLA (personal_sign)", async () => {
@@ -537,22 +570,22 @@ test.describe.serial("lender flows: ToU / privacy / MLA agreements", () => {
       })
     })
 
+    await page.keyboard.press("Escape") // close the MLA modal
+    const balanceBefore = await chain.marketBalance(MLA_MARKET, account)
+    const deposit = page.getByRole("button", { name: /^deposit$/i }).first()
+    await expect(deposit).toBeVisible({ timeout: 60_000 })
+    await deposit.click()
+    await completeDepositDialog(page, units)
+    await syncSubgraph()
     await step(page, "deposit unblocks and completes", async () => {
-      await page.keyboard.press("Escape") // close the MLA modal
-      const balanceBefore = await chain.marketBalance(MLA_MARKET, account)
-      const deposit = page.getByRole("button", { name: /^deposit$/i }).first()
-      await expect(deposit).toBeVisible({ timeout: 60_000 })
-      await deposit.click()
-      await completeDepositDialog(page, units)
-      await syncSubgraph()
       const balanceAfter = await chain.marketBalance(MLA_MARKET, account)
       expect(balanceAfter > balanceBefore, "market balance increased").toBe(
         true,
       )
-    })
+    }, { req: ["REQ-LEN-009"] })
   })
 
-  test("LEN-14: no-MLA market — first deposit requires the acknowledgement; recorded; deposit proceeds", async ({
+  test("LEN-14: no-MLA market — first deposit requires the acknowledgement; recorded; deposit proceeds", requirements(["REQ-LEN-010"]), async ({
     page,
   }) => {
     const m = await subgraph.market(NO_MLA_MARKET)
@@ -593,20 +626,20 @@ test.describe.serial("lender flows: ToU / privacy / MLA agreements", () => {
 
     await connectOnMarketPage(page, NO_MLA_MARKET)
 
-    await step(page, "market surfaces the borrower's MLA refusal", async () => {
-      await expect(
-        page.getByRole("button", { name: "Borrower Declined to Set An MLA" }),
-      ).toBeVisible({ timeout: 60_000 })
-    })
+    // Precondition (fixture state, not the requirement): the market surfaces the borrower's
+    // MLA refusal.
+    await expect(
+      page.getByRole("button", { name: "Borrower Declined to Set An MLA" }),
+    ).toBeVisible({ timeout: 60_000 })
 
     const dialog = page.getByRole("dialog")
+    const deposit = page.getByRole("button", { name: /^deposit$/i }).first()
+    await expect(deposit).toBeEnabled({ timeout: 60_000 })
+    await deposit.click()
     await step(
       page,
       "first deposit attempt prompts the no-MLA acknowledgement",
       async () => {
-        const deposit = page.getByRole("button", { name: /^deposit$/i }).first()
-        await expect(deposit).toBeEnabled({ timeout: 60_000 })
-        await deposit.click()
         await expect(
           dialog.getByText("No Master Loan Agreement", { exact: true }),
         ).toBeVisible({ timeout: 30_000 })
@@ -616,14 +649,15 @@ test.describe.serial("lender flows: ToU / privacy / MLA agreements", () => {
           ),
         ).toBeVisible()
       },
+      { req: ["REQ-LEN-010"] },
     )
 
+    const acknowledge = dialog.getByRole("button", {
+      name: /^acknowledge$/i,
+    })
+    await expect(acknowledge).toBeEnabled({ timeout: 60_000 })
+    await acknowledge.click()
     await step(page, "sign the acknowledgement (personal_sign)", async () => {
-      const acknowledge = dialog.getByRole("button", {
-        name: /^acknowledge$/i,
-      })
-      await expect(acknowledge).toBeEnabled({ timeout: 60_000 })
-      await acknowledge.click()
       // Recorded server-side, then the deposit dialog opens automatically.
       await expect
         .poll(
@@ -645,32 +679,32 @@ test.describe.serial("lender flows: ToU / privacy / MLA agreements", () => {
         lender: ADDR,
         acknowledgementTextVersion: ack?.acknowledgementTextVersion,
       })
-    })
+    }, { req: ["REQ-LEN-010"] })
 
+    const balanceBefore = await chain.marketBalance(NO_MLA_MARKET, account)
+    // The deposit dialog auto-opens once the acknowledgement query refreshes.
+    await completeDepositDialog(page, units)
+    await syncSubgraph()
     await step(page, "deposit proceeds after acknowledging", async () => {
-      const balanceBefore = await chain.marketBalance(NO_MLA_MARKET, account)
-      // The deposit dialog auto-opens once the acknowledgement query refreshes.
-      await completeDepositDialog(page, units)
-      await syncSubgraph()
       const balanceAfter = await chain.marketBalance(NO_MLA_MARKET, account)
       expect(balanceAfter > balanceBefore, "market balance increased").toBe(
         true,
       )
-    })
+    }, { req: ["REQ-LEN-010"] })
 
+    await page.keyboard.press("Escape")
+    await expect(dialog)
+      .toBeHidden({ timeout: 15_000 })
+      .catch(() => undefined)
+    await page.reload()
+    await ensureConnected(page, account)
+    // `deposit` re-resolves after the reload (locators are lazy).
+    await expect(deposit).toBeEnabled({ timeout: 60_000 })
+    await deposit.click()
     await step(page, "no re-prompt on the next deposit attempt", async () => {
-      await page.keyboard.press("Escape")
-      await expect(dialog)
-        .toBeHidden({ timeout: 15_000 })
-        .catch(() => undefined)
-      await page.reload()
-      await ensureConnected(page, account)
-      const deposit = page.getByRole("button", { name: /^deposit$/i }).first()
-      await expect(deposit).toBeEnabled({ timeout: 60_000 })
-      await deposit.click()
       // Straight to the deposit dialog: the acknowledgement is remembered.
       await expect(dialog).toBeVisible({ timeout: 30_000 })
       await expect(dialog.getByText("No Master Loan Agreement")).toHaveCount(0)
-    })
+    }, { req: ["REQ-LEN-010"] })
   })
 })

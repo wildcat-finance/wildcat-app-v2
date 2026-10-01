@@ -11,7 +11,7 @@ import {
 import { ensureTouSigned } from "./lib"
 import { ANVIL_ACCOUNTS, pins, type Address } from "../lib/env"
 import { connectAs, ensureConnected } from "../lib/page"
-import { attachAgreement, step } from "../lib/step"
+import { attachAgreement, infra, requirements, step } from "../lib/step"
 import * as subgraph from "../lib/subgraph"
 import { expect, test } from "../lib/test"
 
@@ -27,13 +27,13 @@ const MY_MARKETS = "/lender/my-markets"
 // After a harness reset the app DB snapshot holds NO ToU acceptance for our accounts, and every
 // /lender page redirects to the agreement gate ("Are Loading..." forever from a test's viewpoint).
 // Make the suite self-sufficient instead of depending on agreements.spec.ts having run first.
-test("setup: current ToU acceptance for the reading account", async ({
+test("setup: current ToU acceptance for the reading account", infra("setup"), async ({
   page,
 }) => {
   await ensureTouSigned(page, account, pins.markets.openTerm)
 })
 
-test("LEN-27: RCF pricing on the detail page and market list", async ({
+test("LEN-27: RCF pricing on the detail page and market list", requirements(["REQ-MKT-020", "REQ-LEN-128"]), async ({
   page,
 }) => {
   test.setTimeout(300_000)
@@ -46,24 +46,24 @@ test("LEN-27: RCF pricing on the detail page and market list", async ({
   const commitmentBips = Number(rcf.commitmentFeeBips ?? "0")
   const utilizationBips = rcf.annualInterestBips
 
+  await gotoAligned(page, `/lender/market/${rcf.id}`)
+  await ensureConnected(page, account)
+  // Open-access markets land on Deposit & Withdraw; open Status & Details.
+  const statusButton = page.getByRole("button", {
+    name: /^Status and Details$/,
+  })
+  await expect(statusButton).toBeVisible({ timeout: 90_000 })
+  await statusButton.click()
+  await expect(page.getByText("Parameters", { exact: true })).toBeVisible({
+    timeout: 90_000,
+  })
+
+  const row = (title: string) =>
+    page
+      .getByTestId("parameters-item")
+      .filter({ has: page.getByText(title, { exact: true }) })
+
   await step(page, "detail page: both APRs are discoverable", async () => {
-    await gotoAligned(page, `/lender/market/${rcf.id}`)
-    await ensureConnected(page, account)
-    // Open-access markets land on Deposit & Withdraw; open Status & Details.
-    const statusButton = page.getByRole("button", {
-      name: /^Status and Details$/,
-    })
-    await expect(statusButton).toBeVisible({ timeout: 90_000 })
-    await statusButton.click()
-    await expect(page.getByText("Parameters", { exact: true })).toBeVisible({
-      timeout: 90_000,
-    })
-
-    const row = (title: string) =>
-      page
-        .getByTestId("parameters-item")
-        .filter({ has: page.getByText(title, { exact: true }) })
-
     await expect(row("Type")).toContainText("Revolving")
     await expect(row("Commitment APR")).toContainText(
       formatBpsPercent(commitmentBips),
@@ -81,7 +81,7 @@ test("LEN-27: RCF pricing on the detail page and market list", async ({
       utilizationAprShown: formatBpsPercent(utilizationBips),
       effectiveLenderAprRow: effectiveText,
     })
-  })
+  }, { req: ["REQ-MKT-020", "REQ-LEN-128"] })
 
   await step(page, "market list: interim single blended APR", async () => {
     await gotoAligned(page, ALL_MARKETS)
@@ -112,7 +112,7 @@ test("LEN-27: RCF pricing on the detail page and market list", async ({
   })
 })
 
-test("LEN-32: positions vs explorer separation; withdrawal indicators", async ({
+test("LEN-32: positions vs explorer separation; withdrawal indicators", requirements(["REQ-LEN-025"]), async ({
   page,
 }) => {
   test.setTimeout(420_000)
@@ -170,29 +170,26 @@ test("LEN-32: positions vs explorer separation; withdrawal indicators", async ({
     await searchField(page).fill("")
   })
 
+  const market = pins.markets.openTerm.toLowerCase()
+  const openExpiries = await subgraph.openWithdrawalExpiries(market, account)
+  await gotoAligned(page, `/lender/market/${market}`)
+  await ensureConnected(page, account)
+
+  const requestsButton = page.getByRole("button", {
+    name: /^Withdrawal Requests/,
+  })
+  await expect(requestsButton).toBeVisible({ timeout: 60_000 })
+  const badgeText = (await requestsButton.innerText()).replace(
+    /Withdrawal Requests/,
+    "",
+  )
+  const badge = Number(badgeText.match(/(\d+)/)?.[1] ?? "0")
+
+  await requestsButton.click()
   await step(
     page,
     "open-withdrawal indicator on the position market",
     async () => {
-      const market = pins.markets.openTerm.toLowerCase()
-      const openExpiries = await subgraph.openWithdrawalExpiries(
-        market,
-        account,
-      )
-      await gotoAligned(page, `/lender/market/${market}`)
-      await ensureConnected(page, account)
-
-      const requestsButton = page.getByRole("button", {
-        name: /^Withdrawal Requests/,
-      })
-      await expect(requestsButton).toBeVisible({ timeout: 60_000 })
-      const badgeText = (await requestsButton.innerText()).replace(
-        /Withdrawal Requests/,
-        "",
-      )
-      const badge = Number(badgeText.match(/(\d+)/)?.[1] ?? "0")
-
-      await requestsButton.click()
       await expect(page.getByTestId("withdrawals-ongoing")).toBeVisible({
         timeout: 60_000,
       })
@@ -218,6 +215,7 @@ test("LEN-32: positions vs explorer separation; withdrawal indicators", async ({
         note: "The market-list tables on this build carry no outstanding-withdrawal tag column; the only withdrawal indicator is the count badge on the market page's 'Withdrawal Requests' sidebar entry (ongoing+claimable+outstanding). Recorded per runsheet.",
       })
     },
+    { req: ["REQ-LEN-025"] },
   )
 
   await step(page, "terminated positions (observational)", async () => {
