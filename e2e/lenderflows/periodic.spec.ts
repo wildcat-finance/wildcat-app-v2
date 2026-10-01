@@ -34,7 +34,7 @@ import {
   readAvailableToWithdraw,
   readWithdrawalsStatus,
 } from "../lib/page"
-import { attachAgreement, step } from "../lib/step"
+import { attachAgreement, infra, requirements, step } from "../lib/step"
 import * as subgraph from "../lib/subgraph"
 import { expect, test } from "../lib/test"
 
@@ -99,7 +99,7 @@ test.describe
       await advanceTime(timing.nextWindowStart - now + 15)
   }
 
-  test("setup: schedule, hygiene, agreements, position", async ({ page }) => {
+  test("setup: schedule, hygiene, agreements, position", infra("setup"), async ({ page }) => {
     const m = await subgraph.market(market)
     expect(m, "pinned periodic market exists").not.toBeNull()
     token = m!.asset.address as Address
@@ -143,7 +143,7 @@ test.describe
     await syncSubgraph()
   })
 
-  test("LEN-23: outside the window, withdrawals are blocked with a countdown", async ({
+  test("LEN-23: outside the window, withdrawals are blocked with a countdown", requirements(["REQ-LEN-019", "REQ-LEN-021"]), async ({
     page,
   }) => {
     await ensureClosedWindow()
@@ -154,39 +154,60 @@ test.describe
     await gotoMarket(page, market)
     await ensureConnected(page, account0)
 
-    await step(page, "blocked state with next-window countdown", async () => {
-      const available = await readAvailableToWithdraw(page)
-      expect(available.raw > 0n, "lender holds a position").toBe(true)
-      await expect(page.getByText(CLOSED_STATUS).first()).toBeVisible({
-        timeout: 30_000,
-      })
-      await expect(
-        page.getByRole("button", { name: /^withdraw$/i }),
-        "no withdraw action while the window is closed",
-      ).toHaveCount(0)
-      // Notice: "Next window opens {D MMM YYYY, HH:mm UTC} ({countdown})"
-      const notice = page.getByText(/next window opens/i).first()
-      await expect(notice).toBeVisible({ timeout: 30_000 })
-      const noticeText = (await notice.innerText()).trim()
-      expect(
-        noticeText,
-        "countdown names the next scheduled window start",
-      ).toContain(formatWindowStart(timing.nextWindowStart))
-      // Seconds-level countdown: the text re-renders as the clock ticks.
-      await expect
-        .poll(async () => (await notice.innerText()).trim(), {
-          timeout: 15_000,
+    const available = await readAvailableToWithdraw(page)
+    expect(available.raw > 0n, "lender holds a position").toBe(true)
+    await step(
+      page,
+      "blocked state with next-window countdown",
+      async () => {
+        await expect(page.getByText(CLOSED_STATUS).first()).toBeVisible({
+          timeout: 30_000,
         })
-        .not.toBe(noticeText)
-      attachAgreement("LEN-23 closed window", {
-        chainNow: now,
-        nextWindowStart: timing.nextWindowStart,
-        notice: noticeText,
-      })
+        await expect(
+          page.getByRole("button", { name: /^withdraw$/i }),
+          "no withdraw action while the window is closed",
+        ).toHaveCount(0)
+      },
+      { req: ["REQ-LEN-019"] },
+    )
+
+    // Notice: "Next window opens {D MMM YYYY, HH:mm UTC} ({countdown})"
+    const notice = page.getByText(/next window opens/i).first()
+    const noticeText = await step(
+      page,
+      "the notice names when the next window opens",
+      async () => {
+        await expect(notice).toBeVisible({ timeout: 30_000 })
+        const noticeText = (await notice.innerText()).trim()
+        expect(
+          noticeText,
+          "countdown names the next scheduled window start",
+        ).toContain(formatWindowStart(timing.nextWindowStart))
+        return noticeText
+      },
+      { req: ["REQ-LEN-021"] },
+    )
+
+    await step(
+      page,
+      "the countdown to the next window ticks live",
+      async () => {
+        // Seconds-level countdown: the text re-renders as the clock ticks.
+        await expect
+          .poll(async () => (await notice.innerText()).trim(), {
+            timeout: 15_000,
+          })
+          .not.toBe(noticeText)
+      },
+    )
+    attachAgreement("LEN-23 closed window", {
+      chainNow: now,
+      nextWindowStart: timing.nextWindowStart,
+      notice: noticeText,
     })
   })
 
-  test("LEN-23b: inside the window, request and claim both work", async ({
+  test("LEN-23b: inside the window, request and claim both work", requirements(["REQ-LEN-124"]), async ({
     page,
   }) => {
     await ensureOpenWindow()
@@ -201,11 +222,19 @@ test.describe
     await gotoMarket(page, market)
     await ensureConnected(page, account0)
 
+    const withdrawButton = page
+      .getByRole("button", { name: /^withdraw$/i })
+      .first()
+    await step(
+      page,
+      "the withdraw action is offered inside the window",
+      async () => {
+        await expect(withdrawButton).toBeVisible({ timeout: 30_000 })
+      },
+      { req: ["REQ-LEN-124"] },
+    )
+
     await step(page, "queue a withdrawal inside the window", async () => {
-      const withdrawButton = page
-        .getByRole("button", { name: /^withdraw$/i })
-        .first()
-      await expect(withdrawButton).toBeVisible({ timeout: 30_000 })
       await withdrawButton.click()
       const dialog = page.getByRole("dialog")
       await expect(dialog).toBeVisible({ timeout: 30_000 })
@@ -215,10 +244,18 @@ test.describe
       })
       await expect(confirm).toBeEnabled({ timeout: 30_000 })
       await confirm.click()
-      await expect(page.getByText("Withdrawal Requested")).toBeVisible({
-        timeout: 120_000,
-      })
     })
+
+    await step(
+      page,
+      "the withdrawal request is accepted inside the window",
+      async () => {
+        await expect(page.getByText("Withdrawal Requested")).toBeVisible({
+          timeout: 120_000,
+        })
+      },
+      { req: ["REQ-LEN-124"] },
+    )
 
     await syncSubgraph()
     expiry23 = await findOpenBatchExpiry(market, account0, cycle)
@@ -234,45 +271,64 @@ test.describe
     await chain.updateState(account0, market)
     await syncSubgraph()
     const batch = (await subgraph.withdrawalBatch(market, expiry23))!
-    expect(batch.isExpired).toBe(true)
-    expect(
-      BigInt(batch.normalizedAmountPaid) >= withdraw - 10n,
-      "batch paid up to rounding dust",
-    ).toBe(true)
-    expectAgreement("LEN-23b batch paid", {
-      chain: (await chain.getWithdrawalBatch(market, expiry23))
-        .normalizedAmountPaid,
-      subgraph: batch.normalizedAmountPaid,
-      decimals,
-    })
-
-    await step(page, "claim inside the window", async () => {
-      await gotoMarket(page, market)
-      await ensureConnected(page, account0)
-      const claimable = await chain.getAvailableWithdrawalAmount(
-        market,
-        account0,
-        expiry23,
-      )
-      const before = await chain.erc20Balance(token, account0)
-      const pageStatus = await readWithdrawalsStatus(page)
-      expect(pageStatus.claimableRaw).toBe(claimable)
-      await page
-        .getByRole("button", { name: /claim assets/i })
-        .first()
-        .click()
-      await expect
-        .poll(async () => (await readWithdrawalsStatus(page)).claimableRaw, {
-          timeout: 120_000,
+    await step(
+      page,
+      "the in-window batch expires and is paid",
+      async () => {
+        expect(batch.isExpired).toBe(true)
+        expect(
+          BigInt(batch.normalizedAmountPaid) >= withdraw - 10n,
+          "batch paid up to rounding dust",
+        ).toBe(true)
+        expectAgreement("LEN-23b batch paid", {
+          chain: (await chain.getWithdrawalBatch(market, expiry23))
+            .normalizedAmountPaid,
+          subgraph: batch.normalizedAmountPaid,
+          decimals,
         })
-        .toBe(0n)
-      expect((await chain.erc20Balance(token, account0)) - before).toBe(
-        claimable,
-      )
-    })
+      },
+      { req: ["REQ-LEN-124"] },
+    )
+
+    await gotoMarket(page, market)
+    await ensureConnected(page, account0)
+    const claimable = await chain.getAvailableWithdrawalAmount(
+      market,
+      account0,
+      expiry23,
+    )
+    const before = await chain.erc20Balance(token, account0)
+    await step(
+      page,
+      "the page offers the whole claimable amount",
+      async () => {
+        const pageStatus = await readWithdrawalsStatus(page)
+        expect(pageStatus.claimableRaw).toBe(claimable)
+      },
+      { req: ["REQ-LEN-124"] },
+    )
+    await page
+      .getByRole("button", { name: /claim assets/i })
+      .first()
+      .click()
+    await step(
+      page,
+      "claim inside the window",
+      async () => {
+        await expect
+          .poll(async () => (await readWithdrawalsStatus(page)).claimableRaw, {
+            timeout: 120_000,
+          })
+          .toBe(0n)
+        expect((await chain.erc20Balance(token, account0)) - before).toBe(
+          claimable,
+        )
+      },
+      { req: ["REQ-LEN-124"] },
+    )
   })
 
-  test("LEN-23c: the market re-locks on schedule", async ({ page }) => {
+  test("LEN-23c: the market re-locks on schedule", requirements(["REQ-LEN-137"]), async ({ page }) => {
     // No manual intervention on-chain: the hook's modular schedule closes the window by itself;
     // the harness only moves time forward across the boundary.
     await ensureClosedWindow()
@@ -282,11 +338,18 @@ test.describe
 
     await gotoMarket(page, market)
     await ensureConnected(page, account0)
-    await expect(page.getByText(CLOSED_STATUS).first()).toBeVisible({
-      timeout: 30_000,
-    })
-    await expect(page.getByRole("button", { name: /^withdraw$/i })).toHaveCount(
-      0,
+    await step(
+      page,
+      "withdrawals are blocked again once the window has closed",
+      async () => {
+        await expect(page.getByText(CLOSED_STATUS).first()).toBeVisible({
+          timeout: 30_000,
+        })
+        await expect(page.getByRole("button", { name: /^withdraw$/i })).toHaveCount(
+          0,
+        )
+      },
+      { req: ["REQ-LEN-137"] },
     )
     attachAgreement("LEN-23c re-lock", {
       chainNow: now,
@@ -294,7 +357,7 @@ test.describe
     })
   })
 
-  test("LEN-25: deposit while the withdrawal window is closed", async ({
+  test("LEN-25: deposit while the withdrawal window is closed", requirements(["REQ-LEN-126"]), async ({
     page,
   }) => {
     await ensureClosedWindow()
@@ -337,10 +400,17 @@ test.describe
     const balAfter = await chain.marketBalance(market, account0)
     const acctAfter = await subgraph.lenderAccount(market, account0)
     const depositedAfter = BigInt(acctAfter?.totalDeposited ?? "0")
-    expect(depositedAfter - depositedBefore, "deposit recorded 1:1").toBe(
-      amount,
+    await step(
+      page,
+      "the deposit is accepted while the window is closed",
+      async () => {
+        expect(depositedAfter - depositedBefore, "deposit recorded 1:1").toBe(
+          amount,
+        )
+        expect(balAfter > balBefore, "balance increased").toBe(true)
+      },
+      { req: ["REQ-LEN-126"] },
     )
-    expect(balAfter > balBefore, "balance increased").toBe(true)
     // Runsheet asks to RECORD the behaviour: deposits are window-independent by design.
     attachAgreement("LEN-25 deposit in closed window", {
       windowOpen: false,
@@ -351,7 +421,7 @@ test.describe
     })
   })
 
-  test("LEN-35: before maturity, withdrawal requests are blocked with maturity messaging", async ({
+  test("LEN-35: before maturity, withdrawal requests are blocked with maturity messaging", requirements(["REQ-LEN-018", "REQ-LEN-134"]), async ({
     page,
   }) => {
     const now = await chain.blockTimestamp()
@@ -387,26 +457,42 @@ test.describe
 
     await gotoMarket(page, fixed!.market)
     await ensureConnected(page, account0)
-    await step(page, "locked state names the fixed term", async () => {
-      // SHARED half — asserted identically in the main worktree's copy of this test. The withdraw
-      // surface must RENDER (otherwise "no withdraw button" would just mean a broken page) and
-      // must offer no withdrawal action while the term runs.
-      await expect(
-        page.getByText("Available For Withdraw Requests").first(),
-        "the withdraw surface rendered",
-      ).toBeVisible({ timeout: 60_000 })
-      await expect(
-        page.getByRole("button", { name: /^withdraw$/i }),
-        "no withdraw action before maturity",
-      ).toHaveCount(0)
+    await step(
+      page,
+      "locked state offers no withdraw action",
+      async () => {
+        // SHARED half — asserted identically in the main worktree's copy of this test. The withdraw
+        // surface must RENDER (otherwise "no withdraw button" would just mean a broken page) and
+        // must offer no withdrawal action while the term runs.
+        await expect(
+          page.getByText("Available For Withdraw Requests").first(),
+          "the withdraw surface rendered",
+        ).toBeVisible({ timeout: 60_000 })
+        await expect(
+          page.getByRole("button", { name: /^withdraw$/i }),
+          "no withdraw action before maturity",
+        ).toHaveCount(0)
+      },
+      { req: ["REQ-LEN-134"] },
+    )
 
-      // The page also NAMES the reason the withdraw action is unavailable
-      // (marketDetails.lender.transactions.withdraw.unavailable.fixed-term); assert the reason
-      // copy is visible.
-      await expect(page.getByText(FIXED_TERM_STATUS).first()).toBeVisible({
-        timeout: 30_000,
-      })
-    })
+    // Shared signature assertion (identical on main, where it is a known defect — main#M10).
+    await step(
+      page,
+      "locked state names the fixed term",
+      async () => {
+        // The page also NAMES the reason the withdraw action is unavailable
+        // (marketDetails.lender.transactions.withdraw.unavailable.fixed-term); assert the reason
+        // copy is visible.
+        await expect(
+          page.getByText(FIXED_TERM_STATUS).first(),
+          "the locked market names the fixed term",
+        ).toBeVisible({
+          timeout: 30_000,
+        })
+      },
+      { req: ["REQ-LEN-018"] },
+    )
     attachAgreement("LEN-35 before maturity", {
       market: fixed!.market,
       name: fixed!.name,

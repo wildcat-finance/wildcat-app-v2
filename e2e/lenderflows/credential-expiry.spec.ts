@@ -48,7 +48,7 @@ import {
   readAvailableToWithdraw,
   readWithdrawalsStatus,
 } from "../lib/page"
-import { attachAgreement, step } from "../lib/step"
+import { attachAgreement, infra, requirements, step } from "../lib/step"
 import * as subgraph from "../lib/subgraph"
 import { expect, test } from "../lib/test"
 
@@ -143,7 +143,7 @@ test.describe.serial("lender flows: credential expiry (LEN-34)", () => {
     )
   })
 
-  test("setup: pick a spare allowlist policy (never LEN-16's)", async () => {
+  test("setup: pick a spare allowlist policy (never LEN-16's)", infra("setup"), async () => {
     await syncChainTimeToWallClock()
     const all = await borrowerMarkets()
     const candidates: BorrowerMarketRow[] = []
@@ -175,7 +175,7 @@ test.describe.serial("lender flows: credential expiry (LEN-34)", () => {
     })
   })
 
-  test("LEN-34: an expiring credential blocks new deposits while withdrawal rights survive", async ({
+  test("LEN-34: an expiring credential blocks new deposits while withdrawal rights survive", requirements(["REQ-PROTO-014", "REQ-LEN-005", "REQ-LEN-133"]), async ({
     page,
   }) => {
     requireFixture()
@@ -256,17 +256,22 @@ test.describe.serial("lender flows: credential expiry (LEN-34)", () => {
     // pull providers (BaseAccessControls.sol:500-511).
     await gotoMarket(page, market)
     await ensureConnected(page, LENDER)
-    await step(page, "control: the member is offered a deposit", async () => {
-      await openSection(
-        page,
-        /deposit & withdraw/i,
-        page.getByText(/available to deposit/i),
-      )
-      await expect(
-        page.getByRole("button", { name: /^deposit$/i }).first(),
-        "an allowlisted, funded lender is offered the deposit action",
-      ).toBeVisible({ timeout: 90_000 })
-    })
+    await openSection(
+      page,
+      /deposit & withdraw/i,
+      page.getByText(/available to deposit/i),
+    )
+    await step(
+      page,
+      "control: the member is offered a deposit",
+      async () => {
+        await expect(
+          page.getByRole("button", { name: /^deposit$/i }).first(),
+          "an allowlisted, funded lender is offered the deposit action",
+        ).toBeVisible({ timeout: 90_000 })
+      },
+      { req: ["REQ-PROTO-014"] },
+    )
 
     // ---------- arrange: the ACTIVE position (this mints the cached credential) ----------
     const beforeDepositTs = await chain.blockTimestamp()
@@ -274,13 +279,20 @@ test.describe.serial("lender flows: credential expiry (LEN-34)", () => {
     await syncSubgraph()
     const credential = await storedLenderStatus(hooks, LENDER)
     const mintedAt = Number(credential.lastApprovalTimestamp)
-    expect(mintedAt, "the deposit minted a hooks credential").toBeGreaterThan(0)
-    expect(
-      mintedAt,
-      "the credential is FRESH (a stale cached one would make the cache-window maths wrong)",
-    ).toBeGreaterThanOrEqual(beforeDepositTs - 5)
-    expect(credential.lastProvider.toLowerCase()).toBe(
-      providerAddr!.toLowerCase(),
+    await step(
+      page,
+      "the deposit minted a credential from the access-list provider",
+      async () => {
+        expect(mintedAt, "the deposit minted a hooks credential").toBeGreaterThan(0)
+        expect(
+          mintedAt,
+          "the credential is FRESH (a stale cached one would make the cache-window maths wrong)",
+        ).toBeGreaterThanOrEqual(beforeDepositTs - 5)
+        expect(credential.lastProvider.toLowerCase()).toBe(
+          providerAddr!.toLowerCase(),
+        )
+      },
+      { req: ["REQ-PROTO-014"] },
     )
     const position = await chain.marketBalance(market, LENDER)
     expect(position, "the lender holds an active position").toBeGreaterThan(0n)
@@ -343,19 +355,26 @@ test.describe.serial("lender flows: credential expiry (LEN-34)", () => {
       market,
       amount: deposit,
     })
-    expect(deniedSim.reverted, "the expired credential blocks the deposit").toBe(
-      true,
-    )
-    expect(
-      deniedSim.errorName,
-      `revert reason must be the ACCESS error, got: ${deniedSim.message}`,
-    ).toBe("NotApprovedLender")
     // The live view refreshes before answering; with membership gone there is nothing to refresh.
     const live = await liveLenderStatus(hooks, LENDER)
-    expect(
-      Number(live.lastApprovalTimestamp),
-      "no provider will issue this lender a credential any more",
-    ).toBe(0)
+    await step(
+      page,
+      "the expired credential blocks the deposit for access",
+      async () => {
+        expect(deniedSim.reverted, "the expired credential blocks the deposit").toBe(
+          true,
+        )
+        expect(
+          deniedSim.errorName,
+          `revert reason must be the ACCESS error, got: ${deniedSim.message}`,
+        ).toBe("NotApprovedLender")
+        expect(
+          Number(live.lastApprovalTimestamp),
+          "no provider will issue this lender a credential any more",
+        ).toBe(0)
+      },
+      { req: ["REQ-LEN-133"] },
+    )
     expect(
       await lenderBlockedFromDeposits(hooks, LENDER),
       "the hook-local block is NOT the mechanism here (that is BOP-03b/BOP-05)",
@@ -398,30 +417,35 @@ test.describe.serial("lender flows: credential expiry (LEN-34)", () => {
     let uiGate = ""
     await gotoMarket(page, market)
     await ensureConnected(page, LENDER)
-    await step(page, "the UI offers no deposit path any more", async () => {
-      // Two legitimate shapes, exactly as LEN-16's non-member half documents: the lender
-      // surface renders with the deposit action withheld, or the page falls back to the
-      // request-access banner.
-      const withdrawBlock = page
-        .getByText(/available for withdraw requests/i)
-        .first()
-      const requestBanner = page.getByText(/lend through wildcat/i).first()
-      await expect(withdrawBlock.or(requestBanner)).toBeVisible({
-        timeout: 90_000,
-      })
-      if (await requestBanner.isVisible().catch(() => false)) {
-        uiGate = "request-access banner"
-      } else {
-        uiGate = "deposit action withheld"
-        await expect(
-          page.getByRole("button", { name: /^deposit$/i }),
-        ).toHaveCount(0)
-      }
-      // The wallet still holds underlying, so this is the access gate and not the funding gate.
-      await expect(page.getByRole("button", { name: /^faucet$/i })).toHaveCount(
-        0,
-      )
-    })
+    await step(
+      page,
+      "the UI offers no deposit path any more",
+      async () => {
+        // Two legitimate shapes, exactly as LEN-16's non-member half documents: the lender
+        // surface renders with the deposit action withheld, or the page falls back to the
+        // request-access banner.
+        const withdrawBlock = page
+          .getByText(/available for withdraw requests/i)
+          .first()
+        const requestBanner = page.getByText(/lend through wildcat/i).first()
+        await expect(withdrawBlock.or(requestBanner)).toBeVisible({
+          timeout: 90_000,
+        })
+        if (await requestBanner.isVisible().catch(() => false)) {
+          uiGate = "request-access banner"
+        } else {
+          uiGate = "deposit action withheld"
+          await expect(
+            page.getByRole("button", { name: /^deposit$/i }),
+          ).toHaveCount(0)
+        }
+        // The wallet still holds underlying, so this is the access gate and not the funding gate.
+        await expect(page.getByRole("button", { name: /^faucet$/i })).toHaveCount(
+          0,
+        )
+      },
+      { req: ["REQ-LEN-133"] },
+    )
 
     // ---------- assert: withdrawal rights RETAINED (chain, then through the UI) ----------
     const livePosition = await chain.marketBalance(market, LENDER)
@@ -431,17 +455,32 @@ test.describe.serial("lender flows: credential expiry (LEN-34)", () => {
       functionName: "queueWithdrawal",
       args: [livePosition / 2n],
     })
-    expect(
-      withdrawSim.reverted,
-      `a known lender keeps withdrawal rights: ${withdrawSim.message ?? ""}`,
-    ).toBe(false)
+    await step(
+      page,
+      "a known lender keeps withdrawal rights on chain",
+      async () => {
+        expect(
+          withdrawSim.reverted,
+          `a known lender keeps withdrawal rights: ${withdrawSim.message ?? ""}`,
+        ).toBe(false)
+      },
+      { req: ["REQ-LEN-133"] },
+    )
+
+    await step(
+      page,
+      "the action panel still offers the position for withdrawal",
+      async () => {
+        await expect
+          .poll(async () => (await readAvailableToWithdraw(page)).raw, {
+            timeout: 90_000,
+          })
+          .toBeGreaterThan(0n)
+      },
+      { req: ["REQ-LEN-005"] },
+    )
 
     await step(page, "queue the full exit through the UI", async () => {
-      await expect
-        .poll(async () => (await readAvailableToWithdraw(page)).raw, {
-          timeout: 90_000,
-        })
-        .toBeGreaterThan(0n)
       await page
         .getByRole("button", { name: /^withdraw$/i })
         .first()
@@ -460,22 +499,30 @@ test.describe.serial("lender flows: credential expiry (LEN-34)", () => {
         .first()
       await expect(confirm).toBeEnabled({ timeout: 30_000 })
       await confirm.click()
-      // The refetch can unmount the modal around the success view; the durable signal is the
-      // on-chain burn (CONVENTIONS "UI waits").
-      await expect
-        .poll(async () => chain.marketBalance(market, LENDER), {
-          timeout: 120_000,
-        })
-        .toBe(0n)
-      const back = page.getByRole("button", { name: /back to market/i })
-      if (await back.isVisible().catch(() => false)) {
-        const clicked = await back
-          .click({ timeout: 10_000 })
-          .then(() => true)
-          .catch(() => false)
-        if (!clicked) await page.keyboard.press("Escape")
-      }
     })
+
+    await step(
+      page,
+      "the full exit is queued despite the expired credential",
+      async () => {
+        // The refetch can unmount the modal around the success view; the durable signal is the
+        // on-chain burn (CONVENTIONS "UI waits").
+        await expect
+          .poll(async () => chain.marketBalance(market, LENDER), {
+            timeout: 120_000,
+          })
+          .toBe(0n)
+      },
+      { req: ["REQ-LEN-133"] },
+    )
+    const back = page.getByRole("button", { name: /back to market/i })
+    if (await back.isVisible().catch(() => false)) {
+      const clicked = await back
+        .click({ timeout: 10_000 })
+        .then(() => true)
+        .catch(() => false)
+      if (!clicked) await page.keyboard.press("Escape")
+    }
 
     await syncSubgraph()
     const expiry = await latestWithdrawalBatchExpiry(market)
@@ -517,41 +564,60 @@ test.describe.serial("lender flows: credential expiry (LEN-34)", () => {
     const claimTs = await chain.blockTimestamp()
     await page.clock.setSystemTime(claimTs * 1000)
 
-    await step(page, "claim the exit through the UI", async () => {
-      await gotoMarket(page, market)
-      await ensureConnected(page, LENDER)
-      await expect
-        .poll(async () => (await readWithdrawalsStatus(page)).claimableRaw, {
-          timeout: 120_000,
-        })
-        .toBe(claimable)
-      await page
-        .getByRole("button", { name: /claim assets/i })
-        .first()
-        .click()
-      await expect
-        .poll(async () => (await readWithdrawalsStatus(page)).claimableRaw, {
-          timeout: 120_000,
-        })
-        .toBe(0n)
-    })
+    await gotoMarket(page, market)
+    await ensureConnected(page, LENDER)
+    await step(
+      page,
+      "the action panel shows the whole exit as claimable",
+      async () => {
+        await expect
+          .poll(async () => (await readWithdrawalsStatus(page)).claimableRaw, {
+            timeout: 120_000,
+          })
+          .toBe(claimable)
+      },
+      { req: ["REQ-LEN-005"] },
+    )
+    await page
+      .getByRole("button", { name: /claim assets/i })
+      .first()
+      .click()
+    await step(
+      page,
+      "claim the exit through the UI",
+      async () => {
+        await expect
+          .poll(async () => (await readWithdrawalsStatus(page)).claimableRaw, {
+            timeout: 120_000,
+          })
+          .toBe(0n)
+      },
+      { req: ["REQ-LEN-133"] },
+    )
 
     await syncSubgraph()
     const received = (await chain.erc20Balance(token, LENDER)) - assetBefore
-    expect(received, "the underlying actually arrived").toBe(claimable)
     const status = (await subgraph.lenderWithdrawalStatus(
       market,
       expiry,
       LENDER,
     ))!
-    expect(status, "the exit is indexed").not.toBeNull()
-    expect(
-      BigInt(status.totalNormalizedRequests) -
-        BigInt(status.normalizedAmountWithdrawn) <=
-        20n,
-      "exit dust beyond scale rounding",
-    ).toBe(true)
-    expect(await chain.marketBalance(market, LENDER)).toBe(0n)
+    await step(
+      page,
+      "the exit is paid in full and indexed",
+      async () => {
+        expect(received, "the underlying actually arrived").toBe(claimable)
+        expect(status, "the exit is indexed").not.toBeNull()
+        expect(
+          BigInt(status.totalNormalizedRequests) -
+            BigInt(status.normalizedAmountWithdrawn) <=
+            20n,
+          "exit dust beyond scale rounding",
+        ).toBe(true)
+        expect(await chain.marketBalance(market, LENDER)).toBe(0n)
+      },
+      { req: ["REQ-LEN-133"] },
+    )
 
     attachAgreement("LEN-34 withdrawal rights retained", {
       market,
@@ -588,10 +654,17 @@ test.describe.serial("lender flows: credential expiry (LEN-34)", () => {
       market,
       amount: deposit,
     })
-    expect(
-      zeroTtlGrant.reverted,
-      `zero-TTL: membership is honoured on the NEXT credential-gated call (${zeroTtlGrant.message})`,
-    ).toBe(false)
+    await step(
+      page,
+      "zero-TTL: access-list membership grants access on the next call",
+      async () => {
+        expect(
+          zeroTtlGrant.reverted,
+          `zero-TTL: membership is honoured on the NEXT credential-gated call (${zeroTtlGrant.message})`,
+        ).toBe(false)
+      },
+      { req: ["REQ-PROTO-014"] },
+    )
 
     await removeAccessListMembers(providerAddr!, [LENDER])
     const revokeTs = await chain.blockTimestamp()

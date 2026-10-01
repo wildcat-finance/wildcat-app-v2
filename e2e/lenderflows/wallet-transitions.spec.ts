@@ -42,7 +42,7 @@ import {
   readOngoingAmounts,
   readWithdrawalsStatus,
 } from "../lib/page"
-import { attachAgreement, step } from "../lib/step"
+import { attachAgreement, infra, requirements, step } from "../lib/step"
 import * as subgraph from "../lib/subgraph"
 import { expect, test, type Page } from "../lib/test"
 
@@ -226,7 +226,7 @@ test.describe.serial("wallet transitions (WAL-05…07)", () => {
     return chain.marketBalance(market, account)
   }
 
-  test("setup: open-access fixture, agreements, positions and a claimable batch", async ({
+  test("setup: open-access fixture, agreements, positions and a claimable batch", infra("setup"), async ({
     page,
     browser,
   }) => {
@@ -388,7 +388,7 @@ test.describe.serial("wallet transitions (WAL-05…07)", () => {
     ).toBe(true)
   })
 
-  test("WAL-05: disconnecting mid-flow returns a clean disconnected state; reconnecting recovers the pending request and the claimable position", async ({
+  test("WAL-05: disconnecting mid-flow returns a clean disconnected state; reconnecting recovers the pending request and the claimable position", requirements(["REQ-WAL-105"]), async ({
     page,
   }) => {
     requireMarket()
@@ -517,11 +517,19 @@ test.describe.serial("wallet transitions (WAL-05…07)", () => {
         )
         return expectNoWhiteScreen(page, "disconnected market page")
       },
+      { req: ["REQ-WAL-105"] },
     )
-    expect(
-      await readPageMark(page),
+    await step(
+      page,
       "the disconnect did not reload the page",
-    ).toBe("WAL-05")
+      async () => {
+        expect(
+          await readPageMark(page),
+          "the disconnect did not reload the page",
+        ).toBe("WAL-05")
+      },
+      { req: ["REQ-WAL-105"] },
+    )
 
     // ---------- RECONNECT as the same account, same page session ----------
     const after = await step(
@@ -571,36 +579,43 @@ test.describe.serial("wallet transitions (WAL-05…07)", () => {
       },
     })
 
-    expect(
-      await readPageMark(page),
-      "the whole disconnect/reconnect cycle ran on ONE page session (no reload)",
-    ).toBe("WAL-05")
-    // The position rebases every block, so it may only grow; the request set and the claimable
-    // state must come back intact.
-    expect(
-      after.available.raw >= before.available.raw,
-      `position recovered after reconnect (before ${before.available.raw}, after ${after.available.raw})`,
-    ).toBe(true)
-    expect(after.ongoing, "the pending request recovered").toEqual(
-      before.ongoing,
+    await step(
+      page,
+      "reconnecting recovers the pending request and the claimable position",
+      async () => {
+        expect(
+          await readPageMark(page),
+          "the whole disconnect/reconnect cycle ran on ONE page session (no reload)",
+        ).toBe("WAL-05")
+        // The position rebases every block, so it may only grow; the request set and the claimable
+        // state must come back intact.
+        expect(
+          after.available.raw >= before.available.raw,
+          `position recovered after reconnect (before ${before.available.raw}, after ${after.available.raw})`,
+        ).toBe(true)
+        expect(after.ongoing, "the pending request recovered").toEqual(
+          before.ongoing,
+        )
+        expect(
+          after.status.claimableRaw >= before.status.claimableRaw,
+          `claimable recovered (before ${before.status.claimableRaw}, after ${after.status.claimableRaw})`,
+        ).toBe(true)
+        expect(
+          after.status.text,
+          "the claimable state is spelled out again after reconnect",
+        ).toMatch(/ready to claim/i)
+        expect(
+          after.dialogs.filter((text) =>
+            /terms of use|service agreement|acknowledge|master loan/i.test(text),
+          ),
+          "reconnecting raised no duplicate agreement prompt",
+        ).toEqual([])
+      },
+      { req: ["REQ-WAL-105"] },
     )
-    expect(
-      after.status.claimableRaw >= before.status.claimableRaw,
-      `claimable recovered (before ${before.status.claimableRaw}, after ${after.status.claimableRaw})`,
-    ).toBe(true)
-    expect(
-      after.status.text,
-      "the claimable state is spelled out again after reconnect",
-    ).toMatch(/ready to claim/i)
-    expect(
-      after.dialogs.filter((text) =>
-        /terms of use|service agreement|acknowledge|master loan/i.test(text),
-      ),
-      "reconnecting raised no duplicate agreement prompt",
-    ).toEqual([])
   })
 
-  test("WAL-06: switching the wallet account on an open market page refreshes balances, claimable and requests without a reload", async ({
+  test("WAL-06: switching the wallet account on an open market page refreshes balances, claimable and requests without a reload", requirements(["REQ-WAL-106"]), async ({
     page,
   }) => {
     requireMarket()
@@ -658,15 +673,15 @@ test.describe.serial("wallet transitions (WAL-05…07)", () => {
       ).toBeVisible({ timeout: 60_000 })
     })
 
-    const after = await step(
+    await openSection(
+      page,
+      /deposit & withdraw/i,
+      page.getByTestId("lender-available-withdraw"),
+    )
+    await step(
       page,
       "the page re-renders for account #1 with no manual reload",
       async () => {
-        await openSection(
-          page,
-          /deposit & withdraw/i,
-          page.getByTestId("lender-available-withdraw"),
-        )
         // Balances: the new account's position, read from the chain, must appear on its own.
         await expect
           .poll(() => availableRaw(page), { timeout: 120_000 })
@@ -676,14 +691,25 @@ test.describe.serial("wallet transitions (WAL-05…07)", () => {
         await expect
           .poll(() => claimableRaw(page), { timeout: 120_000 })
           .toBe(0n)
-        const available = await readAvailableToWithdraw(page)
-        const status = await readWithdrawalsStatus(page)
-        await openWithdrawalRequests(page)
-        await expect.poll(() => ongoingRowCount(page), { timeout: 60_000 }).toBe(0)
-        const ongoing = await ongoingRowCount(page)
-        return { available, status, ongoing }
       },
+      { req: ["REQ-WAL-106"] },
     )
+    const afterAvailable = await readAvailableToWithdraw(page)
+    const afterStatus = await readWithdrawalsStatus(page)
+    await openWithdrawalRequests(page)
+    await step(
+      page,
+      "account #1's request table re-renders empty",
+      async () => {
+        await expect.poll(() => ongoingRowCount(page), { timeout: 60_000 }).toBe(0)
+      },
+      { req: ["REQ-WAL-106"] },
+    )
+    const after = {
+      available: afterAvailable,
+      status: afterStatus,
+      ongoing: await ongoingRowCount(page),
+    }
 
     attachAgreement("WAL-06 account switch", {
       market,
@@ -707,32 +733,39 @@ test.describe.serial("wallet transitions (WAL-05…07)", () => {
       },
     })
 
-    expect(
-      await readPageMark(page),
-      "the switch was picked up on the SAME page session (no reload)",
-    ).toBe("WAL-06")
-    expect(page.url(), "the switch did not navigate away").toBe(marketUrl)
-    expect(
-      after.available.raw,
-      "the position shown is account #1's, not the stale one",
-    ).toBe(position1)
-    expect(
-      after.available.raw !== before.available.raw,
-      "the rendered position actually changed",
-    ).toBe(true)
-    // Withdrawal state is per-lender: account #1 queued nothing, so both the claimable amount
-    // and the request table must come back empty for it.
-    expect(
-      after.status.claimableRaw,
-      "account #1 has no claimable amount",
-    ).toBe(0n)
-    expect(
-      after.ongoing,
-      "account #1 has no listed withdrawal requests",
-    ).toBe(0)
+    await step(
+      page,
+      "the switch refreshed account #1's state on the same page session",
+      async () => {
+        expect(
+          await readPageMark(page),
+          "the switch was picked up on the SAME page session (no reload)",
+        ).toBe("WAL-06")
+        expect(page.url(), "the switch did not navigate away").toBe(marketUrl)
+        expect(
+          after.available.raw,
+          "the position shown is account #1's, not the stale one",
+        ).toBe(position1)
+        expect(
+          after.available.raw !== before.available.raw,
+          "the rendered position actually changed",
+        ).toBe(true)
+        // Withdrawal state is per-lender: account #1 queued nothing, so both the claimable amount
+        // and the request table must come back empty for it.
+        expect(
+          after.status.claimableRaw,
+          "account #1 has no claimable amount",
+        ).toBe(0n)
+        expect(
+          after.ongoing,
+          "account #1 has no listed withdrawal requests",
+        ).toBe(0)
+      },
+      { req: ["REQ-WAL-106"] },
+    )
   })
 
-  test("WAL-07: a wallet-rejected deposit surfaces an actionable error, leaves no pending or phantom success, and the retry lands", async ({
+  test("WAL-07: a wallet-rejected deposit surfaces an actionable error, leaves no pending or phantom success, and the retry lands", requirements(["REQ-WAL-107"]), async ({
     page,
   }) => {
     requireMarket()
@@ -814,38 +847,47 @@ test.describe.serial("wallet transitions (WAL-05…07)", () => {
       scaledBefore,
     })
 
-    expect(
-      rejected.sawModal || !!rejected.toastText,
-      "a rejected signature surfaces an error (modal or toast), never silence",
-    ).toBe(true)
-    if (!rejected.sawModal)
-      expect(
-        rejected.toastText ?? "",
-        "the toast carries an actual error message",
-      ).toMatch(/error|fail|reject|denied/i)
-    expect(
-      sendsAfterRejection,
-      "a WALLET rejection never reaches the RPC (this is not EDG-13's underpriced send)",
-    ).toBe(0)
-    // No phantom success, no stuck pending. (toHaveCount, not toBeHidden: these anchors are
-    // conditionally rendered, and a multi-match locator would trip strict mode instead of
-    // asserting.)
-    await expect(page.getByText("Transaction Successful!")).toHaveCount(0)
-    await expect(page.locator('[data-tx-status="success"]')).toHaveCount(0)
-    await expect(page.locator('[data-tx-status="pending"]')).toHaveCount(0)
-    await expectNoWhiteScreen(page, "deposit modal after a rejected signature")
-    expect(
-      await marketScaledBalance(market, account0),
-      "nothing was minted by the rejected deposit",
-    ).toBe(scaledBefore)
+    await step(
+      page,
+      "a rejected signature surfaces an error and leaves nothing pending or minted",
+      async () => {
+        expect(
+          rejected.sawModal || !!rejected.toastText,
+          "a rejected signature surfaces an error (modal or toast), never silence",
+        ).toBe(true)
+        if (!rejected.sawModal)
+          expect(
+            rejected.toastText ?? "",
+            "the toast carries an actual error message",
+          ).toMatch(/error|fail|reject|denied/i)
+        expect(
+          sendsAfterRejection,
+          "a WALLET rejection never reaches the RPC (this is not EDG-13's underpriced send)",
+        ).toBe(0)
+        // No phantom success, no stuck pending. (toHaveCount, not toBeHidden: these anchors are
+        // conditionally rendered, and a multi-match locator would trip strict mode instead of
+        // asserting.)
+        await expect(page.getByText("Transaction Successful!")).toHaveCount(0)
+        await expect(page.locator('[data-tx-status="success"]')).toHaveCount(0)
+        await expect(page.locator('[data-tx-status="pending"]')).toHaveCount(0)
+        await expectNoWhiteScreen(page, "deposit modal after a rejected signature")
+        expect(
+          await marketScaledBalance(market, account0),
+          "nothing was minted by the rejected deposit",
+        ).toBe(scaledBefore)
+        if (rejected.sawModal) {
+          expect(rejected.retryVisible, "the ErrorModal offers Try Again").toBe(
+            true,
+          )
+        }
+      },
+      { req: ["REQ-WAL-107"] },
+    )
 
     // ---------- recovery: the user retries and the retry lands ----------
     // One rejection was armed and has been consumed, so the connector forwards again.
-    await step(page, "retry the deposit; it lands", async () => {
+    await step(page, "re-drive the deposit after the rejection", async () => {
       if (rejected.sawModal) {
-        expect(rejected.retryVisible, "the ErrorModal offers Try Again").toBe(
-          true,
-        )
         await page.getByRole("button", { name: "Try Again" }).click()
       } else {
         // The toast route has no in-place retry (KNOWN-ISSUES #13): re-drive the dialog.
@@ -859,17 +901,24 @@ test.describe.serial("wallet transitions (WAL-05…07)", () => {
         await expect(submit).toBeEnabled({ timeout: 90_000 })
         await submit.click()
       }
-      await expect
-        .poll(() => marketScaledBalance(market, account0), {
-          timeout: 180_000,
-          message: "the retry after a wallet rejection mints the deposit",
-        })
-        .toBeGreaterThan(scaledBefore)
     })
-    expect(
-      sendsSeen,
-      "the retry produced exactly one send at the RPC",
-    ).toBeGreaterThan(sendsAfterRejection)
+    await step(
+      page,
+      "retry the deposit; it lands",
+      async () => {
+        await expect
+          .poll(() => marketScaledBalance(market, account0), {
+            timeout: 180_000,
+            message: "the retry after a wallet rejection mints the deposit",
+          })
+          .toBeGreaterThan(scaledBefore)
+        expect(
+          sendsSeen,
+          "the retry produced exactly one send at the RPC",
+        ).toBeGreaterThan(sendsAfterRejection)
+      },
+      { req: ["REQ-WAL-107"] },
+    )
     await page.unroute(/127\.0\.0\.1:18545/)
     await page.keyboard.press("Escape")
     await syncSubgraph()
@@ -879,7 +928,7 @@ test.describe.serial("wallet transitions (WAL-05…07)", () => {
   // Wallet-integration lane — not automatable on this harness (manual / release pass)
   // ---------------------------------------------------------------------------
 
-  test.fixme("WAL-01: Safe connect", async () => {
+  test.fixme("WAL-01: Safe connect", requirements(["REQ-WAL-002", "REQ-WAL-101"]), async () => {
     // The harness only drives the Local Anvil EOA connector. The `safe()` connector IS registered
     // (src/lib/client-config.ts:18-21) but only authorizes inside a Safe app iframe (allowedDomains
     // gnosis-safe.io / app.safe.global), which the local fork has no way to provide.
@@ -889,7 +938,7 @@ test.describe.serial("wallet transitions (WAL-05…07)", () => {
     // automated board rather than converting this row to a green EOA test.
   })
 
-  test.fixme("WAL-02: Safe lender run", async () => {
+  test.fixme("WAL-02: Safe lender run", requirements(["REQ-WAL-102", "REQ-WRP-007"]), async () => {
     // Same infrastructure gap as WAL-01, plus the part an EOA cannot prove at all: the ToU and MLA
     // ceremonies are off-chain signatures, and a Safe validates them through EIP-1271, not
     // secp256k1 recovery. Anvil EOA signing establishes nothing about that path.
@@ -897,14 +946,14 @@ test.describe.serial("wallet transitions (WAL-05…07)", () => {
     // borrower side; keep both stubs in step.
   })
 
-  test.fixme("WAL-03: Safe borrower run", async () => {
+  test.fixme("WAL-03: Safe borrower run", requirements(["REQ-WAL-103"]), async () => {
     // Same as WAL-02 for the borrower loop (deploy incl. MLA pre-sign, borrow, repay, terminate).
     // The app's Safe draft/resume plumbing exists (createMarketSigningDraftsSlice,
     // pendingSafeMessagesSlice) but needs a Safe signer set and the Safe UI to exercise; see
     // MKT-18, which is the same case on page 3.
   })
 
-  test.fixme("WAL-04: Rabby lender run", async () => {
+  test.fixme("WAL-04: Rabby lender run", requirements(["REQ-WAL-104"]), async () => {
     // Needs the real Rabby browser extension (its own tx simulation and signing UI) loaded into a
     // persistent browser context with a funded key. The harness runs headless Chromium with no
     // extensions, and the runsheet's expectation ("Rabby's tx simulation shows sane previews") is

@@ -42,7 +42,7 @@ import {
   readAvailableToWithdraw,
   readWithdrawalsStatus,
 } from "../lib/page"
-import { attachAgreement, step } from "../lib/step"
+import { attachAgreement, infra, requirements, step } from "../lib/step"
 import * as subgraph from "../lib/subgraph"
 import { expect, test } from "../lib/test"
 
@@ -97,7 +97,7 @@ test.describe.serial("lender flows: allowlist & closure", () => {
       "no CLOSED borrower-#3 market with a remaining account-#1 balance — BOP-23 (page 4) builds this fixture; LEN-20 must never close a market itself",
     )
 
-  test("setup: locate the BOP-02 allowlist market and the BOP-23 closed market", async () => {
+  test("setup: locate the BOP-02 allowlist market and the BOP-23 closed market", infra("setup"), async () => {
     await syncChainTimeToWallClock()
     const all = await borrowerMarkets()
 
@@ -140,7 +140,7 @@ test.describe.serial("lender flows: allowlist & closure", () => {
     })
   })
 
-  test("LEN-16: allowlisted lender deposits through the UI; a non-member is blocked for access", async ({
+  test("LEN-16: allowlisted lender deposits through the UI; a non-member is blocked for access", requirements(["REQ-LEN-002", "REQ-LEN-007", "REQ-LEN-111"]), async ({
     page,
     browser,
   }) => {
@@ -205,32 +205,50 @@ test.describe.serial("lender flows: allowlist & closure", () => {
     // POLL for the mint, don't read once: the UI's deposit-success signal can fire a beat before
     // the mint settles on chain (observed as a 7s vs 15s split on a fresh board — a single read
     // caught balBefore and failed "1:1 minted"). Wait for the position to actually appear.
-    await expect
-      .poll(() => chain.marketBalance(market, account1), {
-        timeout: 60_000,
-        message: "the UI deposit mints at least the tendered amount on chain",
-      })
-      .toBeGreaterThanOrEqual(balBefore + deposit)
-    const balAfter = await chain.marketBalance(market, account1)
-    const minted = balAfter - balBefore
-    expect(minted >= deposit, "at least 1:1 market tokens minted").toBe(true)
-    // Market tokens rebase upward every block, so the live balance can exceed the tender by a
-    // hair of accrual — but never by a material amount (CONVENTIONS "Amounts").
-    expect(
-      minted - deposit <= parseUnits("0.05", decimals),
-      `minted ${minted} is more than dust above the ${deposit} deposit`,
-    ).toBe(true)
+    const mintedOnChain = await step(
+      page,
+      "the UI deposit mints the position on chain",
+      async () => {
+        await expect
+          .poll(() => chain.marketBalance(market, account1), {
+            timeout: 60_000,
+            message: "the UI deposit mints at least the tendered amount on chain",
+          })
+          .toBeGreaterThanOrEqual(balBefore + deposit)
+        const balAfter = await chain.marketBalance(market, account1)
+        const minted = balAfter - balBefore
+        expect(minted >= deposit, "at least 1:1 market tokens minted").toBe(true)
+        // Market tokens rebase upward every block, so the live balance can exceed the tender by a
+        // hair of accrual — but never by a material amount (CONVENTIONS "Amounts").
+        expect(
+          minted - deposit <= parseUnits("0.05", decimals),
+          `minted ${minted} is more than dust above the ${deposit} deposit`,
+        ).toBe(true)
+        return minted
+      },
+      { req: ["REQ-LEN-007"] },
+    )
 
     const acctAfter = await subgraph.lenderAccount(market, account1)
-    expect(acctAfter, "lender account indexed after the deposit").not.toBeNull()
-    expect(
-      BigInt(acctAfter!.totalDeposited) - depositedBefore,
-      "subgraph records the exact normalized deposit",
-    ).toBe(deposit)
-    expect(
-      acctAfter!.deposits.length - depositEntitiesBefore,
-      "exactly one new indexed Deposit entity",
-    ).toBe(1)
+    await step(
+      page,
+      "the deposit is indexed exactly once",
+      async () => {
+        expect(
+          acctAfter,
+          "lender account indexed after the deposit",
+        ).not.toBeNull()
+        expect(
+          BigInt(acctAfter!.totalDeposited) - depositedBefore,
+          "subgraph records the exact normalized deposit",
+        ).toBe(deposit)
+        expect(
+          acctAfter!.deposits.length - depositEntitiesBefore,
+          "exactly one new indexed Deposit entity",
+        ).toBe(1)
+      },
+      { req: ["REQ-LEN-007"] },
+    )
 
     // The ACCESS_LIST provider is a PULL provider: the hooks' stored credential is minted on the
     // lender's FIRST interaction, so a successful deposit is what makes it appear (BOP-02 could
@@ -247,24 +265,29 @@ test.describe.serial("lender flows: allowlist & closure", () => {
     ).not.toBeNull()
 
     const positionOnChain = await chain.marketBalance(market, account1)
-    await step(page, "market page shows the new position", async () => {
-      await gotoMarket(page, market)
-      await ensureConnected(page, account1)
-      // Nothing mines while the page polls, so balanceOf is stable: poll the page until it
-      // catches up with the chain value read above.
-      await expect
-        .poll(async () => (await readAvailableToWithdraw(page)).raw, {
-          timeout: 90_000,
-        })
-        .toBe(positionOnChain)
-    })
+    await gotoMarket(page, market)
+    await ensureConnected(page, account1)
+    await step(
+      page,
+      "market page shows the new position",
+      async () => {
+        // Nothing mines while the page polls, so balanceOf is stable: poll the page until it
+        // catches up with the chain value read above.
+        await expect
+          .poll(async () => (await readAvailableToWithdraw(page)).raw, {
+            timeout: 90_000,
+          })
+          .toBe(positionOnChain)
+      },
+      { req: ["REQ-LEN-007"] },
+    )
 
     attachAgreement("LEN-16 allowlisted deposit", {
       market,
       provider: providerAddr,
       memberBeforeTest: wasMember,
       deposit,
-      mintedOnChain: minted,
+      mintedOnChain,
       subgraphDelta: BigInt(acctAfter!.totalDeposited) - depositedBefore,
       newDepositEntities: acctAfter!.deposits.length - depositEntitiesBefore,
       credentialTimestamp: credential.lastApprovalTimestamp,
@@ -325,11 +348,18 @@ test.describe.serial("lender flows: allowlist & closure", () => {
       market,
       amount: deposit,
     })
-    expect(negSim.reverted, "non-member deposit simulation reverts").toBe(true)
-    expect(
-      negSim.errorName,
-      `revert reason must be the access error, got: ${negSim.message}`,
-    ).toBe("NotApprovedLender")
+    await step(
+      page,
+      "the chain refuses the non-member's deposit for access",
+      async () => {
+        expect(negSim.reverted, "non-member deposit simulation reverts").toBe(true)
+        expect(
+          negSim.errorName,
+          `revert reason must be the access error, got: ${negSim.message}`,
+        ).toBe("NotApprovedLender")
+      },
+      { req: ["REQ-LEN-111"] },
+    )
 
     // Control: the SAME simulation from the allowlisted lender does not revert for access.
     // (It may still be capped by the wallet's balance — assert only that access passes.)
@@ -402,18 +432,19 @@ test.describe.serial("lender flows: allowlist & closure", () => {
             negPage.getByRole("button", { name: /^faucet$/i }),
           ).toHaveCount(0)
         },
+        { req: ["REQ-LEN-111"] },
       )
 
+      // MarketParameters renders getLenderOnboardingType(market.onboardingMode); an
+      // access-list provider is explicitly NOT self-onboarding
+      // (src/utils/marketCapabilities.ts#hasActiveLenderOnboardingRoleProvider), so the
+      // market's own access statement is "Managed".
+      const label = negPage.getByText(/^lender onboarding$/i)
+      await openSection(negPage, /status and details/i, label)
       await step(
         negPage,
         "market states managed (borrower-approved) onboarding",
         async () => {
-          // MarketParameters renders getLenderOnboardingType(market.onboardingMode); an
-          // access-list provider is explicitly NOT self-onboarding
-          // (src/utils/marketCapabilities.ts#hasActiveLenderOnboardingRoleProvider), so the
-          // market's own access statement is "Managed".
-          const label = negPage.getByText(/^lender onboarding$/i)
-          await openSection(negPage, /status and details/i, label)
           await expect(label.first()).toBeVisible({ timeout: 30_000 })
           await expect(negPage.getByText(/^managed$/i).first()).toBeVisible({
             timeout: 30_000,
@@ -421,20 +452,20 @@ test.describe.serial("lender flows: allowlist & closure", () => {
         },
       )
 
+      // The catalogue is where the app names the reason: a Managed market the wallet cannot
+      // deposit into renders the "Request" CTA (ExploreMarketsTable/index.tsx:695-731 ->
+      // getLenderMarketAction -> LenderMarketAction.RequestAccess) in the "Onboard by
+      // Borrower" (#manual) accordion.
+      await negPage.goto("/lender/all-markets")
+      await ensureConnected(negPage, negative!.address)
+      await searchField(negPage).fill(allowlist!.name)
+      const row = rowsIn(negPage, "manual").filter({
+        hasText: allowlist!.name,
+      })
       await step(
         negPage,
         "all-markets row offers Request, not Deposit",
         async () => {
-          // The catalogue is where the app names the reason: a Managed market the wallet cannot
-          // deposit into renders the "Request" CTA (ExploreMarketsTable/index.tsx:695-731 ->
-          // getLenderMarketAction -> LenderMarketAction.RequestAccess) in the "Onboard by
-          // Borrower" (#manual) accordion.
-          await negPage.goto("/lender/all-markets")
-          await ensureConnected(negPage, negative!.address)
-          await searchField(negPage).fill(allowlist!.name)
-          const row = rowsIn(negPage, "manual").filter({
-            hasText: allowlist!.name,
-          })
           await expect(row).toHaveCount(1, { timeout: 90_000 })
           await expect(
             row.getByRole("button", { name: /^request$/i }),
@@ -443,6 +474,7 @@ test.describe.serial("lender flows: allowlist & closure", () => {
             row.getByRole("button", { name: /^deposit$/i }),
           ).toHaveCount(0)
         },
+        { req: ["REQ-LEN-002", "REQ-LEN-111"] },
       )
     } finally {
       await negContext.close()
@@ -462,7 +494,7 @@ test.describe.serial("lender flows: allowlist & closure", () => {
     })
   })
 
-  test("LEN-20: terminated-market exit — Max request and claim with no cycle wait", async ({
+  test("LEN-20: terminated-market exit — Max request and claim with no cycle wait", requirements(["REQ-LEN-114"]), async ({
     page,
   }) => {
     requireClosed()
@@ -533,6 +565,12 @@ test.describe.serial("lender flows: allowlist & closure", () => {
         })
         await expect(confirm).toBeEnabled({ timeout: 30_000 })
         await confirm.click()
+      },
+    )
+    await step(
+      page,
+      "the entire balance is queued on the terminated market",
+      async () => {
         // The refetch can unmount the modal around the success view; the durable signal is the
         // on-chain burn (CONVENTIONS "UI waits").
         await expect
@@ -540,18 +578,19 @@ test.describe.serial("lender flows: allowlist & closure", () => {
             timeout: 120_000,
           })
           .toBe(0n)
-        const backToMarket = page.getByRole("button", {
-          name: /back to market/i,
-        })
-        if (await backToMarket.isVisible().catch(() => false)) {
-          const clicked = await backToMarket
-            .click({ timeout: 10_000 })
-            .then(() => true)
-            .catch(() => false)
-          if (!clicked) await page.keyboard.press("Escape")
-        }
       },
+      { req: ["REQ-LEN-114"] },
     )
+    const backToMarket = page.getByRole("button", {
+      name: /back to market/i,
+    })
+    if (await backToMarket.isVisible().catch(() => false)) {
+      const clicked = await backToMarket
+        .click({ timeout: 10_000 })
+        .then(() => true)
+        .catch(() => false)
+      if (!clicked) await page.keyboard.press("Escape")
+    }
 
     // The queue transaction is the last thing that mined — its block timestamp is the baseline
     // the batch duration is measured from (`tsAtQueue` was read before the UI ceremony and lags
@@ -565,14 +604,21 @@ test.describe.serial("lender flows: allowlist & closure", () => {
     // (v2.5-protocol src/market/WildcatMarketWithdrawals.sol:96-99), so a terminated market's
     // batch expires in the block it was created in — no withdrawal cycle is imposed. The only
     // adjustment is the +1 collision guard when a batch already exists at that key (:102-107).
-    expect(
-      expiry >= queueBlockTs - 1 && expiry <= queueBlockTs + 1,
-      `closed-market batch must carry ZERO duration: expiry ${expiry} vs the queue block's ${queueBlockTs}`,
-    ).toBe(true)
-    expect(
-      expiry < queueBlockTs + cycle,
-      `expiry ${expiry} must not be pushed a full ${cycle}s cycle out`,
-    ).toBe(true)
+    await step(
+      page,
+      "the closed-market batch carries no withdrawal cycle",
+      async () => {
+        expect(
+          expiry >= queueBlockTs - 1 && expiry <= queueBlockTs + 1,
+          `closed-market batch must carry ZERO duration: expiry ${expiry} vs the queue block's ${queueBlockTs}`,
+        ).toBe(true)
+        expect(
+          expiry < queueBlockTs + cycle,
+          `expiry ${expiry} must not be pushed a full ${cycle}s cycle out`,
+        ).toBe(true)
+      },
+      { req: ["REQ-LEN-114"] },
+    )
 
     // PROTOCOL: getAvailableWithdrawalAmount / _getUpdatedState require the expiry to be
     // STRICTLY in the past (`gt(timestamp(), expiry)` — src/libraries/MarketState.sol:182-188,
@@ -599,47 +645,52 @@ test.describe.serial("lender flows: allowlist & closure", () => {
       account1,
       expiry,
     )
-    expect(claimable > 0n, "the whole request is payable (closed market)").toBe(
-      true,
+    await step(
+      page,
+      "the whole request is payable at once",
+      async () => {
+        expect(claimable > 0n, "the whole request is payable (closed market)").toBe(
+          true,
+        )
+      },
+      { req: ["REQ-LEN-114"] },
     )
     const tokenBefore = await chain.erc20Balance(token, account1)
 
-    await step(page, "claim the exit — no cycle wait", async () => {
-      await gotoMarket(page, market)
-      await ensureConnected(page, account1)
-      await expect
-        .poll(async () => (await readWithdrawalsStatus(page)).claimableRaw, {
-          timeout: 120_000,
-        })
-        .toBe(claimable)
-      await page
-        .getByRole("button", { name: /claim assets/i })
-        .first()
-        .click()
-      await expect
-        .poll(async () => (await readWithdrawalsStatus(page)).claimableRaw, {
-          timeout: 120_000,
-        })
-        .toBe(0n)
-    })
+    await gotoMarket(page, market)
+    await ensureConnected(page, account1)
+    await step(
+      page,
+      "the page offers the whole exit to claim",
+      async () => {
+        await expect
+          .poll(async () => (await readWithdrawalsStatus(page)).claimableRaw, {
+            timeout: 120_000,
+          })
+          .toBe(claimable)
+      },
+      { req: ["REQ-LEN-114"] },
+    )
+    await page
+      .getByRole("button", { name: /claim assets/i })
+      .first()
+      .click()
+    await step(
+      page,
+      "claim the exit — no cycle wait",
+      async () => {
+        await expect
+          .poll(async () => (await readWithdrawalsStatus(page)).claimableRaw, {
+            timeout: 120_000,
+          })
+          .toBe(0n)
+      },
+      { req: ["REQ-LEN-114"] },
+    )
 
     await syncSubgraph()
     const received = (await chain.erc20Balance(token, account1)) - tokenBefore
-    expect(received, "underlying received equals the claimed amount").toBe(
-      claimable,
-    )
-
     const tsAfterClaim = await chain.blockTimestamp()
-    expect(
-      tsAfterClaim - tsAtQueue < cycle,
-      `the whole request+claim took ${
-        tsAfterClaim - tsAtQueue
-      }s of chain time — a terminated market must not impose its ${cycle}s cycle`,
-    ).toBe(true)
-
-    // Complete exit: nothing left on chain, in the indexer, or on the page.
-    expect(await chain.marketBalance(market, account1)).toBe(0n)
-    expect(await marketScaledBalance(market, account1)).toBe(0n)
     const status = (await subgraph.lenderWithdrawalStatus(
       market,
       expiry,
@@ -647,21 +698,41 @@ test.describe.serial("lender flows: allowlist & closure", () => {
     ))!
     const requested = BigInt(status.totalNormalizedRequests)
     const withdrawn = BigInt(status.normalizedAmountWithdrawn)
-    // Scale-factor rounding can leave a few wei behind (CONVENTIONS "Amounts").
-    expect(
-      requested - withdrawn <= 20n,
-      `exit dust beyond rounding: requested ${requested}, withdrawn ${withdrawn}`,
-    ).toBe(true)
-    expect(status.isCompleted).toBe(true)
+    await step(
+      page,
+      "the exit is paid in full with no cycle imposed",
+      async () => {
+        expect(received, "underlying received equals the claimed amount").toBe(
+          claimable,
+        )
+        expect(
+          tsAfterClaim - tsAtQueue < cycle,
+          `the whole request+claim took ${
+            tsAfterClaim - tsAtQueue
+          }s of chain time — a terminated market must not impose its ${cycle}s cycle`,
+        ).toBe(true)
 
-    await expect
-      .poll(async () => (await readAvailableToWithdraw(page)).raw, {
-        timeout: 90_000,
-      })
-      .toBe(0n)
-    await expect(page.getByTestId("lender-withdrawals-status")).toHaveText(
-      /nothing to claim/i,
-      { timeout: 60_000 },
+        // Complete exit: nothing left on chain, in the indexer, or on the page.
+        expect(await chain.marketBalance(market, account1)).toBe(0n)
+        expect(await marketScaledBalance(market, account1)).toBe(0n)
+        // Scale-factor rounding can leave a few wei behind (CONVENTIONS "Amounts").
+        expect(
+          requested - withdrawn <= 20n,
+          `exit dust beyond rounding: requested ${requested}, withdrawn ${withdrawn}`,
+        ).toBe(true)
+        expect(status.isCompleted).toBe(true)
+
+        await expect
+          .poll(async () => (await readAvailableToWithdraw(page)).raw, {
+            timeout: 90_000,
+          })
+          .toBe(0n)
+        await expect(page.getByTestId("lender-withdrawals-status")).toHaveText(
+          /nothing to claim/i,
+          { timeout: 60_000 },
+        )
+      },
+      { req: ["REQ-LEN-114"] },
     )
 
     attachAgreement("LEN-20 terminated-market exit", {

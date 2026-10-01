@@ -23,7 +23,7 @@ import {
   syncSubgraph,
   type Address,
 } from "../lib/env"
-import { attachAgreement } from "../lib/step"
+import { attachAgreement, infra, requirements, step } from "../lib/step"
 import * as subgraph from "../lib/subgraph"
 import { expect, test } from "../lib/test"
 
@@ -125,7 +125,7 @@ test.describe.serial(
       }
     }
 
-    test("setup: schedule, hygiene, two funded positions", async () => {
+    test("setup: schedule, hygiene, two funded positions", infra("setup"), async () => {
       await syncChainTimeToWallClock()
       const m = await subgraph.market(market)
       expect(m, "pinned periodic market exists on the fork subgraph").not.toBeNull()
@@ -199,7 +199,7 @@ test.describe.serial(
       await syncSubgraph()
     })
 
-    test("LEN-24: two lenders request more than one cycle apart inside one window", async () => {
+    test("LEN-24: two lenders request more than one cycle apart inside one window", requirements(["REQ-LEN-125"]), async ({ page }) => {
       requireFixture()
 
       // Room for: request A, a full cycle + margin, request B, and B's own cycle + margin.
@@ -284,42 +284,49 @@ test.describe.serial(
 
       // ---------- consistency: chain and subgraph tell the same story ----------
       // These are the real assertions. They hold whatever the grouping turns out to be.
-      for (const [label, lender, batchExpiry] of [
-        ["A", lenderA, expiryA],
-        ["B", lenderB, expiryB],
-      ] as const) {
-        const onChain = await chain.getAccountWithdrawalStatus(
-          market,
-          lender,
-          batchExpiry,
-        )
-        const indexed = await subgraph.lenderWithdrawalStatus(
-          market,
-          batchExpiry,
-          lender,
-        )
-        expect(
-          onChain.scaledAmount,
-          `request ${label} exists on chain in batch ${batchExpiry}`,
-        ).toBeGreaterThan(0n)
-        expect(
-          indexed,
-          `request ${label} is indexed against the same batch`,
-        ).not.toBeNull()
-        expect(
-          Number(indexed!.batchExpiry),
-          `request ${label}: chain batch key == indexed batch key`,
-        ).toBe(batchExpiry)
-        expect(
-          BigInt(indexed!.totalNormalizedRequests),
-          `request ${label}: the indexed request is what the lender asked for`,
-        ).toBe(withdrawAmount)
-      }
-      expect(
-        batchA,
-        "batch A is indexed (a grouped observation reads the same row twice — still valid)",
-      ).not.toBeNull()
-      expect(batchB, "batch B is indexed").not.toBeNull()
+      await step(
+        page,
+        "both requests are recorded on chain and indexed against their batch",
+        async () => {
+          for (const [label, lender, batchExpiry] of [
+            ["A", lenderA, expiryA],
+            ["B", lenderB, expiryB],
+          ] as const) {
+            const onChain = await chain.getAccountWithdrawalStatus(
+              market,
+              lender,
+              batchExpiry,
+            )
+            const indexed = await subgraph.lenderWithdrawalStatus(
+              market,
+              batchExpiry,
+              lender,
+            )
+            expect(
+              onChain.scaledAmount,
+              `request ${label} exists on chain in batch ${batchExpiry}`,
+            ).toBeGreaterThan(0n)
+            expect(
+              indexed,
+              `request ${label} is indexed against the same batch`,
+            ).not.toBeNull()
+            expect(
+              Number(indexed!.batchExpiry),
+              `request ${label}: chain batch key == indexed batch key`,
+            ).toBe(batchExpiry)
+            expect(
+              BigInt(indexed!.totalNormalizedRequests),
+              `request ${label}: the indexed request is what the lender asked for`,
+            ).toBe(withdrawAmount)
+          }
+          expect(
+            batchA,
+            "batch A is indexed (a grouped observation reads the same row twice — still valid)",
+          ).not.toBeNull()
+          expect(batchB, "batch B is indexed").not.toBeNull()
+        },
+        { req: ["REQ-LEN-125"] },
+      )
 
       // ---------- claims: settle whatever grouping produced, and record the outcome ----------
       const lastExpiry = Math.max(expiryA, expiryB)
@@ -331,6 +338,7 @@ test.describe.serial(
       const settledAt = await chain.blockTimestamp()
 
       const claims: Record<string, unknown>[] = []
+      const paid: { label: string; received: bigint }[] = []
       for (const [label, lender, batchExpiry] of [
         ["A", lenderA, expiryA],
         ["B", lenderB, expiryB],
@@ -354,35 +362,52 @@ test.describe.serial(
           claimInsideWindow: periodicTiming(cfg, await chain.blockTimestamp())
             .isOpen,
         })
-        // Invariant regardless of grouping: the lender is paid what they requested (scale
-        // rounding can leave a couple of wei behind — CONVENTIONS "Amounts").
-        expect(
-          withdrawAmount - received <= 20n,
-          `request ${label} paid in full: asked ${withdrawAmount}, received ${received}`,
-        ).toBe(true)
+        paid.push({ label, received })
       }
+      await step(
+        page,
+        "both lenders are paid what they requested",
+        async () => {
+          for (const { label, received } of paid) {
+            // Invariant regardless of grouping: the lender is paid what they requested (scale
+            // rounding can leave a couple of wei behind — CONVENTIONS "Amounts").
+            expect(
+              withdrawAmount - received <= 20n,
+              `request ${label} paid in full: asked ${withdrawAmount}, received ${received}`,
+            ).toBe(true)
+          }
+        },
+        { req: ["REQ-LEN-125"] },
+      )
 
       await syncSubgraph()
-      for (const [label, lender, batchExpiry] of [
-        ["A", lenderA, expiryA],
-        ["B", lenderB, expiryB],
-      ] as const) {
-        const indexed = await subgraph.lenderWithdrawalStatus(
-          market,
-          batchExpiry,
-          lender,
-        )
-        expect(
-          indexed!.isCompleted,
-          `request ${label} is settled in the indexer too`,
-        ).toBe(true)
-        expect(
-          BigInt(indexed!.totalNormalizedRequests) -
-            BigInt(indexed!.normalizedAmountWithdrawn) <=
-            20n,
-          `request ${label}: nothing but dust outstanding`,
-        ).toBe(true)
-      }
+      await step(
+        page,
+        "both requests are settled in the indexer",
+        async () => {
+          for (const [label, lender, batchExpiry] of [
+            ["A", lenderA, expiryA],
+            ["B", lenderB, expiryB],
+          ] as const) {
+            const indexed = await subgraph.lenderWithdrawalStatus(
+              market,
+              batchExpiry,
+              lender,
+            )
+            expect(
+              indexed!.isCompleted,
+              `request ${label} is settled in the indexer too`,
+            ).toBe(true)
+            expect(
+              BigInt(indexed!.totalNormalizedRequests) -
+                BigInt(indexed!.normalizedAmountWithdrawn) <=
+                20n,
+              `request ${label}: nothing but dust outstanding`,
+            ).toBe(true)
+          }
+        },
+        { req: ["REQ-LEN-125"] },
+      )
       expect(
         await unpaidBatchExpiries(market),
         "the observation leaves no unpaid batch behind for periodic.spec.ts",
