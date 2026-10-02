@@ -1079,7 +1079,8 @@
       "marketHistory": "Market History",
       "borrowerProfile": "About Borrower",
       "description": "Market Description",
-      "wrapDebtToken": "Wrapped Debt Token"
+      "wrapDebtToken": "Wrapped Debt Token",
+      "destinations": "Composability"
     },
     "buttons": {
       "addToken": "Add Debt Token To Wallet",
@@ -1715,6 +1716,103 @@
           "again": "Try Again"
         }
       }
+    }
+  },
+  "destinations": {
+    "badge": "Composable · {{count}}",
+    "badgeLabel": "Show where this market's token can be used",
+    "column": "Composable",
+    "chip_one": "{{count}} destination",
+    "chip_other": "{{count}} destinations",
+    "cardToggle": "{{count}} composable",
+    "composableOnly": "Composable only",
+    "noComposableMarkets": "No composable markets match these filters",
+    "panel": {
+      "title": "Use this token elsewhere",
+      "subtitle": "Third-party platforms that accept this market's token. Wildcat doesn't operate them.",
+      "stale": "Couldn't refresh. Showing the last data we have.",
+      "footer": "Rates and liquidity come from the platform and are not quoted by Wildcat. Using your position elsewhere adds that platform's risks, including liquidation, on top of this market's credit risk.",
+      "whatYouCanDo": "What you can do with",
+      "destinationCount_one": "{{word}} destination",
+      "destinationCount_other": "{{word}} destinations",
+      "routeCount_one": "{{word}} route type",
+      "routeCount_other": "{{word}} route types",
+      "summary": "{{destinations}} across {{routes}}.",
+      "carry": "The market pays {{apr}}%, so a borrower cost under that carries positively.",
+      "disclaimer": "Rates and depths move constantly and are not quoted by Wildcat.",
+      "liquidationRisk": "Borrowing against a {{cycle}}-cycle credit position can be liquidated into a thin market.",
+      "cycleHours": "{{count}}-hour",
+      "cycleMinutes": "{{count}}-minute",
+      "loopable": "Loopable {{multiple}}x",
+      "open": "Open →",
+      "openAria": "Open {{title}} on {{platform}}",
+      "tokenRequired": "{{symbol}} required",
+      "collapse": "Hide destinations",
+      "close": "Close"
+    },
+    "numberWords": {
+      "1": "one",
+      "2": "two",
+      "3": "three",
+      "4": "four",
+      "5": "five",
+      "6": "six",
+      "7": "seven",
+      "8": "eight",
+      "9": "nine",
+      "10": "ten"
+    },
+    "columns": {
+      "type": "Type & Mechanics",
+      "lltv": "LLTV",
+      "borrowApy": "Borrow APY",
+      "riskFlag": "Risk flag"
+    },
+    "riskFlags": {
+      "affiliated": "Affiliated",
+      "affiliatedTooltip": "Most of the liquidity here comes from vaults run by this market's borrower, {{entity}}.",
+      "thinLiquidity": "Low liquidity",
+      "thinLiquidityTooltip": "Less than $20K is available to borrow right now.",
+      "unrated": "Unrated",
+      "unratedTooltip": "Wildcat hasn't reviewed this platform's risks."
+    },
+    "route": {
+      "BORROW_AGAINST": "Borrow Against"
+    },
+    "card": {
+      "wrapperNote": "Accepts {{symbol}}, the wrapped form of this market's token",
+      "lltv": "Liquidation LTV",
+      "borrowApy": "Borrow APY, 6h avg",
+      "liquidity": "Available to borrow",
+      "curatedBy": "Curated by {{names}}",
+      "asOf": "Data from {{platform}} · {{time}}",
+      "open": "Open on {{platform}}"
+    },
+    "time": {
+      "justNow": "just now",
+      "minutes": "{{count}} min ago",
+      "hours": "{{count}} h ago"
+    },
+    "affiliation": {
+      "affiliated": "Affiliated with {{entity}}",
+      "affiliatedTooltip": "Liquidity here is supplied by a vault linked to this market's borrower.",
+      "notReviewed": "Not reviewed by Wildcat",
+      "notReviewedTooltip": "Wildcat hasn't checked who supplies the liquidity on this platform."
+    },
+    "notices": {
+      "THIN_LIQUIDITY": "Low liquidity"
+    },
+    "section": {
+      "title": "Destinations",
+      "empty": "No third-party platform accepts this market's token right now.",
+      "error": "Destinations are unavailable right now. Try again later."
+    },
+    "gate": {
+      "title": "You are leaving Wildcat",
+      "body": "This link opens a third-party platform not affiliated with Wildcat. Its own terms, risks and smart contracts apply. Wildcat does not verify the figures shown and cannot recover funds lost there.",
+      "confirm": "I understand the risks and want to continue",
+      "continue": "Continue",
+      "stay": "Stay on Wildcat"
     }
   },
   "utils": {

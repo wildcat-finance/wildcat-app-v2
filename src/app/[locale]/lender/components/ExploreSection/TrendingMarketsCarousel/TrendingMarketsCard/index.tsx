@@ -10,6 +10,7 @@ import PopularIcon from "@/assets/icons/popularCard_icon.svg"
 import ProvenIcon from "@/assets/icons/provenCard_icon.svg"
 import TopFundedIcon from "@/assets/icons/topFundedCard_icon.svg"
 import TrendingIcon from "@/assets/icons/trendingCard_icon.svg"
+import { ComposableCardToggle } from "@/components/Destinations"
 import { NetworkIcon } from "@/components/NetworkIcon"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
@@ -103,6 +104,11 @@ type TrendingMarketCardProps = {
   status: ReturnType<typeof getMarketStatusChip>
   termLabel: string
   isMobile: boolean
+  composableCount?: number
+  composableExpanded?: boolean
+  onToggleComposable?: () => void
+  showComposableFooter?: boolean
+  composableControls?: string
 }
 
 export const TrendingMarketCard = ({
@@ -123,8 +129,14 @@ export const TrendingMarketCard = ({
   status,
   termLabel,
   isMobile,
+  composableCount = 0,
+  composableExpanded = false,
+  onToggleComposable,
+  showComposableFooter = false,
+  composableControls,
 }: TrendingMarketCardProps) => {
   const badge = VARIANT_BADGE[variant]
+  const borderAccent = composableExpanded ? COLORS.blueRibbon : badge.accent
   const badgeContext = context ?? badge.context
   const growthTooltip =
     badgeContext === "Unavailable"
@@ -144,9 +156,10 @@ export const TrendingMarketCard = ({
       sx={{
         ...CardContainerStyle,
         borderTop: {
-          xs: `3px solid ${badge.accent}`,
-          md: `2px solid ${badge.accent}`,
+          xs: `3px solid ${borderAccent}`,
+          md: `2px solid ${borderAccent}`,
         },
+        ...(composableExpanded && { borderColor: COLORS.blueRibbon }),
       }}
     >
       <Box sx={CardHeaderStyle}>
@@ -340,6 +353,15 @@ export const TrendingMarketCard = ({
             </Typography>
           </>
         </Box>
+
+        {showComposableFooter && (
+          <ComposableCardToggle
+            count={composableCount}
+            expanded={composableExpanded}
+            onToggle={() => onToggleComposable?.()}
+            controls={composableControls}
+          />
+        )}
       </Box>
     </Box>
   )

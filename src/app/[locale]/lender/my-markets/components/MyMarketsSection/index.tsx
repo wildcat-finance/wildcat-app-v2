@@ -8,6 +8,7 @@ import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
+import { ComposableOnlySwitch } from "@/components/Destinations"
 import { FilterTextField } from "@/components/FilterTextfield"
 import { MarketsFilterSelect } from "@/components/MarketsFilterSelect"
 import { MarketsFilterSelectItem } from "@/components/MarketsFilterSelect/interface"
@@ -15,6 +16,7 @@ import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
 import { MobileSearchButton } from "@/components/Mobile/MobileSearchButton"
 import { RepeatingSkeletons } from "@/components/RepeatingSkeletons"
 import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
+import { useDestinations } from "@/hooks/destinations/useDestinations"
 import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -51,8 +53,12 @@ export const MyMarketsSection = () => {
   const {
     isWrongNetwork,
     chainId: targetChainId,
+    targetChainId: selectedChainId,
     isTestnet,
   } = useCurrentNetwork()
+
+  const [composableOnly, setComposableOnly] = useState(false)
+  const { markets: destinationsByMarket } = useDestinations(selectedChainId)
 
   const {
     marketAccounts,
@@ -189,12 +195,30 @@ export const MyMarketsSection = () => {
     ],
   )
 
+  const composableMarketAccounts = useMemo(
+    () =>
+      filteredMarketAccounts.filter(
+        (account) =>
+          (destinationsByMarket[account.market.address.toLowerCase()]?.length ??
+            0) > 0,
+      ),
+    [filteredMarketAccounts, destinationsByMarket],
+  )
+
+  const composableCount = composableMarketAccounts.length
+  const composableFilterActive = composableOnly && !isMobile
+  const showComposableSwitch = composableCount > 0 || composableOnly
+
+  const visibleMarketAccounts = composableFilterActive
+    ? composableMarketAccounts
+    : filteredMarketAccounts
+
   const {
     active: filteredActiveMarkets,
     terminated: filteredTerminatedMarkets,
   } = useMemo(
     () =>
-      filteredMarketAccounts.reduce(
+      visibleMarketAccounts.reduce(
         (all, account) => {
           if (!account.market.isClosed) {
             all.active.push(account)
@@ -208,7 +232,7 @@ export const MyMarketsSection = () => {
           terminated: [] as MarketAccount[],
         },
       ),
-    [filteredMarketAccounts],
+    [visibleMarketAccounts],
   )
 
   const { data: tokensRaw } = useAllTokensWithMarkets()
@@ -400,7 +424,7 @@ export const MyMarketsSection = () => {
               padding: "0 16px",
             }}
           >
-            <Box sx={{ display: "flex", gap: "6px" }}>
+            <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
               <MarketsFilterSelect
                 placeholder={t("dashboard.markets.filters.assets")}
                 options={
@@ -424,6 +448,12 @@ export const MyMarketsSection = () => {
                 selected={marketWithdrawalCycles}
                 setSelected={setMarketWithdrawalCycles}
               />
+              {showComposableSwitch && (
+                <ComposableOnlySwitch
+                  checked={composableOnly}
+                  onChange={setComposableOnly}
+                />
+              )}
             </Box>
 
             <FilterTextField
@@ -442,6 +472,8 @@ export const MyMarketsSection = () => {
             marketAccounts={filteredActiveMarkets}
             borrowers={borrowers ?? []}
             isLoading={isLoading}
+            destinationsByMarket={destinationsByMarket}
+            composableOnly={composableFilterActive}
             filters={filters}
           />
         )}
@@ -451,6 +483,8 @@ export const MyMarketsSection = () => {
             marketAccounts={filteredTerminatedMarkets}
             borrowers={borrowers ?? []}
             isLoading={isLoading}
+            destinationsByMarket={destinationsByMarket}
+            composableOnly={composableFilterActive}
             filters={filters}
           />
         )}

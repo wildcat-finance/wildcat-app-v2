@@ -22,6 +22,7 @@ import { NonMlaAcknowledgementModal } from "@/app/[locale]/lender/market/[addres
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
+import { MarketDestinationsSection } from "@/components/Destinations"
 import { Footer } from "@/components/Footer"
 import { ConnectWalletDialog } from "@/components/Header/HeaderButton/ConnectWalletDialog"
 import { LeadBanner } from "@/components/LeadBanner"
@@ -30,6 +31,7 @@ import { MarketParameters } from "@/components/MarketParameters"
 import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
+import { useMarketDestinations } from "@/hooks/destinations/useDestinations"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketAccount } from "@/hooks/useMarketAccount"
 import { useMarketMla } from "@/hooks/useMarketMla"
@@ -47,6 +49,7 @@ import {
   setIsLoading,
   setSection,
   resetPageState,
+  setDestinationsCount,
   setWithdrawalsCount,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import {
@@ -238,6 +241,27 @@ export default function LenderMarketDetails({
   useEffect(() => {
     dispatch(setWithdrawalsCount(totalWithdrawalsCount))
   }, [totalWithdrawalsCount])
+
+  const { destinations } = useMarketDestinations(
+    market?.chainId,
+    market?.address,
+  )
+
+  useEffect(() => {
+    dispatch(setDestinationsCount(destinations.length))
+    if (
+      destinations.length === 0 &&
+      currentSection === LenderMarketSections.DESTINATIONS
+    ) {
+      dispatch(
+        setSection(
+          authorizedInMarket
+            ? LenderMarketSections.TRANSACTIONS
+            : LenderMarketSections.STATUS,
+        ),
+      )
+    }
+  }, [destinations.length])
 
   useEffect(() => {
     if (currentSection !== LenderMarketSections.WRAP_DEBT_TOKEN) {
@@ -554,6 +578,18 @@ export default function LenderMarketDetails({
             />
           </Box>
 
+          {destinations.length > 0 && (
+            <Box id="destinations">
+              <MarketDestinationsSection
+                chainId={market.chainId}
+                marketAddress={market.address}
+                marketSymbol={market.marketToken.symbol}
+                aprBips={market.annualInterestBips}
+                withdrawalBatchDuration={market.withdrawalBatchDuration}
+              />
+            </Box>
+          )}
+
           <Box id="requests">
             <WithdrawalRequests
               withdrawals={withdrawals}
@@ -761,6 +797,15 @@ export default function LenderMarketDetails({
             <Box marginTop="12px">
               <PaginatedMarketRecordsTable market={market} />
             </Box>
+          )}
+          {currentSection === LenderMarketSections.DESTINATIONS && (
+            <MarketDestinationsSection
+              chainId={market.chainId}
+              marketAddress={market.address}
+              marketSymbol={market.marketToken.symbol}
+              aprBips={market.annualInterestBips}
+              withdrawalBatchDuration={market.withdrawalBatchDuration}
+            />
           )}
           {currentSection === LenderMarketSections.WRAP_DEBT_TOKEN && (
             <WrapDebtToken

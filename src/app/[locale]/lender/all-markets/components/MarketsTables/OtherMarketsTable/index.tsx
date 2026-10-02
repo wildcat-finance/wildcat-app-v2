@@ -23,6 +23,11 @@ import {
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
+import {
+  ComposableChipCell,
+  ComposableExpansionProvider,
+  ComposableRowPanel,
+} from "@/components/Destinations"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { TablePagination } from "@/components/TablePagination"
@@ -54,14 +59,28 @@ import { getMarketTypeChip } from "@/utils/marketType"
 import { OtherMarketsTableModel, OtherMarketsTableProps } from "./interface"
 import { DataGridSx } from "../style"
 
+const NO_DESTINATIONS_BY_MARKET: NonNullable<
+  OtherMarketsTableProps["destinationsByMarket"]
+> = {}
+
 const MarketLinkRow = (props: GridRowProps) => (
-  <Link
-    href={buildMarketHref(props.row.id, props.row.chainId)}
-    style={{ display: "contents", color: "inherit" }}
-    tabIndex={-1}
-  >
-    <GridRow {...props} />
-  </Link>
+  <>
+    <Link
+      href={buildMarketHref(props.row.id, props.row.chainId)}
+      style={{ display: "contents", color: "inherit" }}
+      tabIndex={-1}
+    >
+      <GridRow {...props} />
+    </Link>
+    <ComposableRowPanel
+      rowId={props.row.id}
+      chainId={props.row.chainId}
+      marketSymbol={props.row.marketTokenSymbol}
+      aprBips={props.row.apr}
+      withdrawalBatchDuration={props.row.withdrawalBatchDuration}
+      dividerBelow
+    />
+  </>
 )
 
 const clickableGridSx = {
@@ -79,6 +98,7 @@ export const OtherMarketsTable = ({
   borrowers,
   isLoading,
   filters,
+  destinationsByMarket = NO_DESTINATIONS_BY_MARKET,
 }: OtherMarketsTableProps) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
@@ -156,9 +176,14 @@ export const OtherMarketsTable = ({
         depositStatus: account.depositAvailability,
         button: address,
         chainId,
+        destinationsCount:
+          destinationsByMarket[address.toLowerCase()]?.length ?? 0,
+        marketTokenSymbol: market.marketToken.symbol,
       }
     },
   )
+
+  const showComposableColumn = Object.keys(destinationsByMarket).length > 0
 
   const terminated = rows.filter((market) => {
     const account = marketAccounts.find((a) => a.market.address === market.id)
@@ -376,6 +401,27 @@ export const OtherMarketsTable = ({
         </Box>
       ),
     },
+    ...(showComposableColumn
+      ? [
+          {
+            field: "destinationsCount",
+            headerName: t("destinations.column"),
+            minWidth: 128,
+            flex: 1,
+            headerAlign: "right",
+            align: "right",
+            sortable: true,
+            renderCell: (
+              params: GridRenderCellParams<OtherMarketsTableModel, number>,
+            ) => (
+              <ComposableChipCell
+                rowId={params.row.id}
+                count={params.row.destinationsCount}
+              />
+            ),
+          } satisfies TypeSafeColDef<OtherMarketsTableModel>,
+        ]
+      : []),
     {
       sortable: false,
       field: "button",
@@ -450,13 +496,13 @@ export const OtherMarketsTable = ({
       page: 0,
     })
 
-  const { assetFilter, statusFilter, nameFilter } = filters
+  const { assetFilter, statusFilter, nameFilter, composableOnly } = filters
 
   useEffect(() => {
     setSelfOnboardPaginationModel((prevState) => ({ ...prevState, page: 0 }))
     setManualPaginationModel((prevState) => ({ ...prevState, page: 0 }))
     setTerminatedPaginationModel((prevState) => ({ ...prevState, page: 0 }))
-  }, [assetFilter, statusFilter, nameFilter])
+  }, [assetFilter, statusFilter, nameFilter, composableOnly])
 
   if (isMobile)
     return (
@@ -487,91 +533,102 @@ export const OtherMarketsTable = ({
         paddingBottom: "26px",
       }}
     >
-      <Box id="self-onboard" ref={selfOnboardRef}>
-        <MarketsTableAccordion
-          label={t("dashboard.markets.tables.other.selfOnboard")}
-          marketsLength={selfOnboard.length}
-          isLoading={isLoading}
-          isOpen
-          nameFilter={filters.nameFilter}
-          assetFilter={filters.assetFilter}
-          statusFilter={filters.statusFilter}
-          showNoFilteredMarkets
-        >
-          <DataGrid
-            disableVirtualization
-            sx={clickableGridSx}
-            rowHeight={66}
-            rows={selfOnboard}
-            columns={columns}
-            columnHeaderHeight={40}
-            paginationModel={selfOnboardPaginationModel}
-            onPaginationModelChange={setSelfOnboardPaginationModel}
-            slots={{
-              row: MarketLinkRow,
-              pagination: TablePagination,
-            }}
-            hideFooter={false}
-          />
-        </MarketsTableAccordion>
-      </Box>
-      <Box id="manual" ref={manualRef}>
-        <MarketsTableAccordion
-          label={t("dashboard.markets.tables.other.manual")}
-          isLoading={isLoading}
-          isOpen
-          marketsLength={manual.length}
-          nameFilter={filters.nameFilter}
-          assetFilter={filters.assetFilter}
-          statusFilter={filters.statusFilter}
-          showNoFilteredMarkets
-        >
-          <DataGrid
-            disableVirtualization
-            sx={clickableGridSx}
-            rowHeight={66}
-            rows={manual}
-            columns={columns}
-            columnHeaderHeight={40}
-            paginationModel={manualPaginationModel}
-            onPaginationModelChange={setManualPaginationModel}
-            slots={{
-              row: MarketLinkRow,
-              pagination: TablePagination,
-            }}
-            hideFooter={false}
-          />
-        </MarketsTableAccordion>
-      </Box>
+      <ComposableExpansionProvider>
+        <Box id="self-onboard" ref={selfOnboardRef}>
+          <MarketsTableAccordion
+            label={t("dashboard.markets.tables.other.selfOnboard")}
+            marketsLength={selfOnboard.length}
+            isLoading={isLoading}
+            isOpen
+            nameFilter={filters.nameFilter}
+            assetFilter={filters.assetFilter}
+            statusFilter={filters.statusFilter}
+            showNoFilteredMarkets
+            noMarketsTitle={
+              composableOnly ? t("destinations.noComposableMarkets") : undefined
+            }
+          >
+            <DataGrid
+              disableVirtualization
+              sx={clickableGridSx}
+              rowHeight={66}
+              rows={selfOnboard}
+              columns={columns}
+              columnHeaderHeight={40}
+              paginationModel={selfOnboardPaginationModel}
+              onPaginationModelChange={setSelfOnboardPaginationModel}
+              slots={{
+                row: MarketLinkRow,
+                pagination: TablePagination,
+              }}
+              hideFooter={false}
+            />
+          </MarketsTableAccordion>
+        </Box>
+        <Box id="manual" ref={manualRef}>
+          <MarketsTableAccordion
+            label={t("dashboard.markets.tables.other.manual")}
+            isLoading={isLoading}
+            isOpen
+            marketsLength={manual.length}
+            nameFilter={filters.nameFilter}
+            assetFilter={filters.assetFilter}
+            statusFilter={filters.statusFilter}
+            showNoFilteredMarkets
+            noMarketsTitle={
+              composableOnly ? t("destinations.noComposableMarkets") : undefined
+            }
+          >
+            <DataGrid
+              disableVirtualization
+              sx={clickableGridSx}
+              rowHeight={66}
+              rows={manual}
+              columns={columns}
+              columnHeaderHeight={40}
+              paginationModel={manualPaginationModel}
+              onPaginationModelChange={setManualPaginationModel}
+              slots={{
+                row: MarketLinkRow,
+                pagination: TablePagination,
+              }}
+              hideFooter={false}
+            />
+          </MarketsTableAccordion>
+        </Box>
 
-      <Box id="other-terminated" ref={terminatedRef}>
-        <MarketsTableAccordion
-          label={t("dashboard.markets.tables.other.terminated")}
-          marketsLength={terminated.length}
-          isLoading={isLoading}
-          isOpen
-          nameFilter={filters.nameFilter}
-          assetFilter={filters.assetFilter}
-          statusFilter={filters.statusFilter}
-          showNoFilteredMarkets
-        >
-          <DataGrid
-            disableVirtualization
-            sx={clickableGridSx}
-            rowHeight={66}
-            rows={terminated}
-            columns={columns}
-            columnHeaderHeight={40}
-            paginationModel={terminatedPaginationModel}
-            onPaginationModelChange={setTerminatedPaginationModel}
-            slots={{
-              row: MarketLinkRow,
-              pagination: TablePagination,
-            }}
-            hideFooter={false}
-          />
-        </MarketsTableAccordion>
-      </Box>
+        <Box id="other-terminated" ref={terminatedRef}>
+          <MarketsTableAccordion
+            label={t("dashboard.markets.tables.other.terminated")}
+            marketsLength={terminated.length}
+            isLoading={isLoading}
+            isOpen
+            nameFilter={filters.nameFilter}
+            assetFilter={filters.assetFilter}
+            statusFilter={filters.statusFilter}
+            showNoFilteredMarkets
+            noMarketsTitle={
+              composableOnly ? t("destinations.noComposableMarkets") : undefined
+            }
+          >
+            <DataGrid
+              disableVirtualization
+              sx={clickableGridSx}
+              rowHeight={66}
+              rows={terminated}
+              columns={columns}
+              columnHeaderHeight={40}
+              paginationModel={terminatedPaginationModel}
+              onPaginationModelChange={setTerminatedPaginationModel}
+              slots={{
+                row: MarketLinkRow,
+                pagination: TablePagination,
+              }}
+              hideFooter={false}
+            />
+          </MarketsTableAccordion>
+        </Box>
+      </ComposableExpansionProvider>
     </Box>
   )
 }

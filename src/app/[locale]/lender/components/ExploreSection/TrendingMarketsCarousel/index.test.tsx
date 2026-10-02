@@ -38,6 +38,9 @@ jest.mock("@/utils/marketType", () => ({
 jest.mock("./useTrendingUsdPrices", () => ({
   useTrendingUsdPrices: jest.fn(),
 }))
+jest.mock("@/hooks/destinations/useDestinations", () => ({
+  useDestinations: () => ({ markets: {}, stale: false }),
+}))
 jest.mock("./TrendingMarketsCard", () => ({
   TrendingMarketCard: ({
     variant,

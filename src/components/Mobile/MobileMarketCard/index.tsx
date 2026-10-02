@@ -12,6 +12,7 @@ import { MarketStatusAndTermChip } from "@/components/@extended/MarketStatusAndT
 import { getAdsConfig } from "@/components/AdsBanners/adsConfig"
 import { getAdsTooltipComponent } from "@/components/AdsBanners/adsHelpers"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
+import { DestinationsBadge } from "@/components/Destinations"
 import { NetworkIcon } from "@/components/NetworkIcon"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
@@ -309,10 +310,12 @@ export const MobileMarketCard = ({
   marketItem,
   showBorrower = true,
   baseRoute = ROUTES.lender.market,
+  showDestinations = false,
 }: {
   marketItem: LenderMobileMarketItem
   showBorrower?: boolean
   baseRoute?: string
+  showDestinations?: boolean
 }) => {
   const deposited = marketItem.deposited ?? marketItem.debt
   const capacity =
@@ -437,6 +440,12 @@ export const MobileMarketCard = ({
             asset={marketItem.asset}
             chainId={marketItem.chainId}
           />
+          {showDestinations && (
+            <DestinationsBadge
+              chainId={marketItem.chainId}
+              marketAddress={marketItem.id}
+            />
+          )}
         </Box>
 
         <MarketPointsChip

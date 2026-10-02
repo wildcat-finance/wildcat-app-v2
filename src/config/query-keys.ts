@@ -420,6 +420,10 @@ const MARKET_QUERY_KEYS = {
     ]),
 } as const
 
+const DESTINATIONS_QUERY_KEYS = {
+  BY_CHAIN: (chainId: number) => k(["destinations", "BY_CHAIN", chainId]),
+} as const
+
 export const QueryKeys = {
   Borrower: BORROWER_QUERY_KEYS,
   Admin: ADMIN_QUERY_KEYS,
@@ -429,4 +433,5 @@ export const QueryKeys = {
   Wrapper: WRAPPER_QUERY_KEYS,
   Markets: MARKET_QUERY_KEYS,
   ServiceAgreement: SERVICE_AGREEMENT_QUERY_KEYS,
+  Destinations: DESTINATIONS_QUERY_KEYS,
 } as const
