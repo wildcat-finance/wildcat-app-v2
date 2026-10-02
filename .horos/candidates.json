@@ -1,6 +1,6 @@
 {
   "counts": {
-    "bytes_asset": 204371,
+    "bytes_asset": 206742,
     "bytes_binary": 102801,
     "bytes_blob": 186479,
     "bytes_generated": 302032
@@ -259,6 +259,13 @@
       "path": "src/assets/icons/backArrow_icon.svg"
     },
     {
+      "bytes": 1352,
+      "category": "asset",
+      "evidence": "svg root element in the first 4096 bytes",
+      "grade": "candidate",
+      "path": "src/assets/icons/borrowAgainst_icon.svg"
+    },
+    {
       "bytes": 819,
       "category": "asset",
       "evidence": "svg root element in the first 4096 bytes",
@@ -299,6 +306,13 @@
       "evidence": "svg root element in the first 4096 bytes",
       "grade": "candidate",
       "path": "src/assets/icons/check_icon.svg"
+    },
+    {
+      "bytes": 241,
+      "category": "asset",
+      "evidence": "svg root element in the first 4096 bytes",
+      "grade": "candidate",
+      "path": "src/assets/icons/chevronSmallUp_icon.svg"
     },
     {
       "bytes": 896,
@@ -425,6 +439,13 @@
       "evidence": "svg root element in the first 4096 bytes",
       "grade": "candidate",
       "path": "src/assets/icons/edit_icon.svg"
+    },
+    {
+      "bytes": 778,
+      "category": "asset",
+      "evidence": "svg root element in the first 4096 bytes",
+      "grade": "candidate",
+      "path": "src/assets/icons/externalLink_icon.svg"
     },
     {
       "bytes": 2853,

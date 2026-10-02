@@ -3,10 +3,7 @@ import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 
 import { QueryKeys } from "@/config/query-keys"
-import {
-  DESTINATIONS_ENABLED,
-  MAX_DATA_AGE_SEC,
-} from "@/lib/destinations/constants"
+import { MAX_DATA_AGE_SEC } from "@/lib/destinations/constants"
 import type {
   Destination,
   DestinationsResponse,
@@ -17,10 +14,20 @@ const STALE_TIME_MS = 5 * 60 * 1000
 const NO_DESTINATIONS: Destination[] = []
 const NO_MARKETS: Record<string, Destination[]> = {}
 
-export const useDestinations = (chainId: number | undefined) => {
+export type DestinationsState = {
+  data: DestinationsResponse | undefined
+  markets: Record<string, Destination[]>
+  stale: boolean
+  isLoading: boolean
+  isError: boolean
+}
+
+export const useDestinations = (
+  chainId: number | undefined,
+): DestinationsState => {
   const query = useQuery({
     queryKey: QueryKeys.Destinations.BY_CHAIN(chainId ?? 0),
-    enabled: DESTINATIONS_ENABLED && !!chainId,
+    enabled: !!chainId,
     staleTime: STALE_TIME_MS,
     refetchInterval: STALE_TIME_MS,
     refetchOnWindowFocus: false,
@@ -34,10 +41,10 @@ export const useDestinations = (chainId: number | undefined) => {
     },
   })
 
-  const { data, errorUpdatedAt } = query
+  const { data, dataUpdatedAt, errorUpdatedAt } = query
   const markets = useMemo(() => {
     if (!data) return NO_MARKETS
-    const nowSec = Date.now() / 1000
+    const nowSec = Math.max(dataUpdatedAt, errorUpdatedAt) / 1000
     const fresh: Record<string, Destination[]> = {}
     Object.entries(data.markets).forEach(([market, destinations]) => {
       const current = destinations.filter(
@@ -46,13 +53,14 @@ export const useDestinations = (chainId: number | undefined) => {
       if (current.length > 0) fresh[market] = current
     })
     return fresh
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, errorUpdatedAt])
+  }, [data, dataUpdatedAt, errorUpdatedAt])
 
   return {
-    ...query,
+    data,
     markets,
     stale: !!data?.stale || query.isRefetchError,
+    isLoading: query.isLoading,
+    isError: query.isError,
   }
 }
 
@@ -60,9 +68,9 @@ export const useMarketDestinations = (
   chainId: number | undefined,
   marketAddress: string | undefined,
 ) => {
-  const query = useDestinations(chainId)
+  const state = useDestinations(chainId)
   const destinations =
-    (marketAddress && query.markets[marketAddress.toLowerCase()]) ||
+    (marketAddress && state.markets[marketAddress.toLowerCase()]) ||
     NO_DESTINATIONS
-  return { ...query, destinations }
+  return { ...state, destinations }
 }

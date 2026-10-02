@@ -17,6 +17,9 @@ export const formatFractionPercent = (fraction: number | null) => {
   return `${(Math.trunc(fraction * 10_000) / 100).toFixed(2)}%`
 }
 
+export const formatFractionPercentTrimmed = (fraction: number) =>
+  `${Number((Math.trunc(fraction * 10_000) / 100).toFixed(2))}%`
+
 export const formatLiquidity = (
   amount: number,
   symbol: string,

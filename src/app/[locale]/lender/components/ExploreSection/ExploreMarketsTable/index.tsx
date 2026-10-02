@@ -37,7 +37,12 @@ import {
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
-import { DestinationsBadge } from "@/components/Destinations"
+import {
+  ComposableChipCell,
+  ComposableExpansionProvider,
+  ComposableOnlySwitch,
+  ComposableRowPanel,
+} from "@/components/Destinations"
 import { MarketsFilterSelect } from "@/components/MarketsFilterSelect"
 import { MarketsFilterSelectItem } from "@/components/MarketsFilterSelect/interface"
 import { MarketsTableWrapper } from "@/components/MarketsTableWrapper"
@@ -49,7 +54,6 @@ import { useDestinations } from "@/hooks/destinations/useDestinations"
 import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
-import { DESTINATIONS_ENABLED } from "@/lib/destinations/constants"
 import { marketStatusesMock } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
@@ -181,6 +185,8 @@ export type LenderOtherMarketsTableModel = {
   depositStatus: DepositStatus
   button?: string
   capacityLeft: TokenAmount
+  destinationsCount: number
+  marketTokenSymbol: string
 }
 
 // Native 11×9 box — sizing via fontSize puts the arrow in a square em-box,
@@ -217,7 +223,16 @@ const MarketClickableRow = (props: GridRowProps) => {
   }
 
   return (
-    <GridRow {...props} onClick={handleClick} onAuxClick={handleAuxClick} />
+    <>
+      <GridRow {...props} onClick={handleClick} onAuxClick={handleAuxClick} />
+      <ComposableRowPanel
+        rowId={props.row.id}
+        chainId={props.row.chainId}
+        marketSymbol={props.row.marketTokenSymbol}
+        aprBips={props.row.apr}
+        withdrawalBatchDuration={props.row.withdrawalBatchDuration}
+      />
+    </>
   )
 }
 
@@ -439,6 +454,9 @@ export const ExploreMarketsTable = () => {
           depositStatus: account.depositAvailability,
           button: address,
           chainId,
+          destinationsCount:
+            destinationsByMarket[address.toLowerCase()]?.length ?? 0,
+          marketTokenSymbol: market.marketToken.symbol,
         }
       }),
     }
@@ -458,6 +476,7 @@ export const ExploreMarketsTable = () => {
     visibleMobileRows,
     paginationModel.pageSize,
     composableMarkets,
+    destinationsByMarket,
     showComposableOnly,
   ])
 
@@ -472,11 +491,11 @@ export const ExploreMarketsTable = () => {
     [rows.length, paginationModel],
   )
 
-  const showComposableToggle =
-    DESTINATIONS_ENABLED && (composableCount > 0 || showComposableOnly)
+  const showComposableToggle = composableCount > 0 || showComposableOnly
   const composableLabel = `${t(
     "destinations.composableOnly",
   )} (${composableCount})`
+  const hasAnyDestinations = Object.keys(destinationsByMarket).length > 0
 
   // Stable identity: a fresh columns array makes the DataGrid rebuild column
   // state and re-render every cell on each keystroke/filter/poll render
@@ -525,36 +544,18 @@ export const ExploreMarketsTable = () => {
                 {params.value}
               </Typography>
             </Link>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-                minWidth: 0,
-                maxWidth: "100%",
-              }}
-            >
-              {params.row.borrowerAddress ? (
-                <Link
-                  href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
-                  prefetch={false}
-                  onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                  style={{
-                    display: "flex",
-                    minWidth: 0,
-                    textDecoration: "none",
-                  }}
-                >
-                  <BorrowerProfileChip borrower={params.row.borrower} />
-                </Link>
-              ) : (
+            {params.row.borrowerAddress ? (
+              <Link
+                href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+                prefetch={false}
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                style={{ display: "flex", textDecoration: "none" }}
+              >
                 <BorrowerProfileChip borrower={params.row.borrower} />
-              )}
-              <DestinationsBadge
-                chainId={params.row.chainId}
-                marketAddress={params.row.id}
-              />
-            </Box>
+              </Link>
+            ) : (
+              <BorrowerProfileChip borrower={params.row.borrower} />
+            )}
           </Box>
         ),
       },
@@ -729,6 +730,27 @@ export const ExploreMarketsTable = () => {
           )
         },
       },
+      ...(hasAnyDestinations
+        ? [
+            {
+              field: "destinationsCount",
+              headerName: t("destinations.column"),
+              minWidth: 128,
+              flex: 1,
+              headerAlign: "right",
+              align: "right",
+              sortable: true,
+              renderCell: (
+                params: GridRenderCellParams<LenderOtherMarketsTableModel>,
+              ) => (
+                <ComposableChipCell
+                  rowId={params.row.id}
+                  count={params.row.destinationsCount}
+                />
+              ),
+            } satisfies TypeSafeColDef<LenderOtherMarketsTableModel>,
+          ]
+        : []),
       {
         sortable: false,
         field: "button",
@@ -790,7 +812,7 @@ export const ExploreMarketsTable = () => {
         },
       },
     ],
-    [t],
+    [t, hasAnyDestinations],
   )
 
   if (isMobile)
@@ -1026,27 +1048,9 @@ export const ExploreMarketsTable = () => {
         </Typography>
 
         {showComposableToggle && (
-          <FormControlLabel
-            label={composableLabel}
-            control={
-              <ExtendedCheckbox
-                checked={showComposableOnly}
-                onChange={(e) => setShowComposableOnly(e.target.checked)}
-                sx={{
-                  "& ::before": {
-                    transform: "translate(-3px, -3px) scale(0.75)",
-                  },
-                }}
-              />
-            }
-            sx={{
-              marginRight: 0,
-              "& .MuiTypography-root": {
-                fontSize: pxToRem(13),
-                lineHeight: lh(20, 13),
-                whiteSpace: "nowrap",
-              },
-            }}
+          <ComposableOnlySwitch
+            checked={showComposableOnly}
+            onChange={setShowComposableOnly}
           />
         )}
       </Box>
@@ -1173,26 +1177,28 @@ export const ExploreMarketsTable = () => {
           noMarketsSubtitle="There are no markets to display at the moment."
           highlightNoMarketsBanner
         >
-          <DataGrid
-            disableVirtualization
-            sx={DataGridSx}
-            rowHeight={GRID_ROW_HEIGHT}
-            rows={rows}
-            columns={columns}
-            columnHeaderHeight={GRID_HEADER_HEIGHT}
-            slots={{ row: MarketClickableRow }}
-            loading={isLoading}
-            sortModel={sortModel}
-            onSortModelChange={setSortModel}
-            paginationModel={gridPaginationModel}
-            onPaginationModelChange={(model) => {
-              if (gridPaginationModel === paginationModel) {
-                setPaginationModel(model)
-              }
-            }}
-            pageSizeOptions={[gridPaginationModel.pageSize]}
-            hideFooter
-          />
+          <ComposableExpansionProvider>
+            <DataGrid
+              disableVirtualization
+              sx={DataGridSx}
+              rowHeight={GRID_ROW_HEIGHT}
+              rows={rows}
+              columns={columns}
+              columnHeaderHeight={GRID_HEADER_HEIGHT}
+              slots={{ row: MarketClickableRow }}
+              loading={isLoading}
+              sortModel={sortModel}
+              onSortModelChange={setSortModel}
+              paginationModel={gridPaginationModel}
+              onPaginationModelChange={(model) => {
+                if (gridPaginationModel === paginationModel) {
+                  setPaginationModel(model)
+                }
+              }}
+              pageSizeOptions={[gridPaginationModel.pageSize]}
+              hideFooter
+            />
+          </ComposableExpansionProvider>
         </MarketsTableWrapper>
       </Box>
 

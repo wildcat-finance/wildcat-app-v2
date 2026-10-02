@@ -24,6 +24,7 @@ export type Destination = {
   platformName: string
   venueId: string
   venueName: string
+  title: string
   token: { address: string; symbol: string; form: "wrapper" }
   loanAsset: { address: string; symbol: string }
   url: string

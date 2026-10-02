@@ -1,10 +1,10 @@
 {
   "counts": {
-    "bytes_binary": 4097562,
+    "bytes_binary": 4102227,
     "bytes_generated": 9015991,
     "bytes_lockfile": 2178869,
     "files_skipped_unreadable": 0,
-    "files_walked": 1160
+    "files_walked": 1167
   },
   "entries": [
     {
@@ -20,6 +20,13 @@
       "evidence": "marker 'do not edit' on a comment-led line in the first 4096 bytes",
       "grade": "hard",
       "path": "prisma/migrations/migration_lock.toml"
+    },
+    {
+      "bytes": 4665,
+      "category": "binary",
+      "evidence": "file signature png",
+      "grade": "hard",
+      "path": "src/assets/companies-icons/morpho_icon.png"
     },
     {
       "bytes": 3434,

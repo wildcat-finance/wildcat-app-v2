@@ -29,6 +29,7 @@ query Destinations($collaterals: [String!]!, $chainIds: [Int!]!, $first: Int!, $
       warnings { type level }
       state { timestamp supplyAssets supplyAssetsUsd liquidityAssets liquidityAssetsUsd avgBorrowApy }
       supplyingVaults {
+        name
         listed
         state {
           owner
@@ -38,6 +39,7 @@ query Destinations($collaterals: [String!]!, $chainIds: [Int!]!, $first: Int!, $
         }
       }
       supplyingVaultV2s {
+        name
         listed
         owner { address }
         curator { address }
@@ -87,6 +89,7 @@ const marketSchema = z.object({
   supplyingVaults: z
     .array(
       z.object({
+        name: z.string().nullish(),
         listed: z.boolean(),
         state: z
           .object({
@@ -109,6 +112,7 @@ const marketSchema = z.object({
   supplyingVaultV2s: z
     .array(
       z.object({
+        name: z.string().nullish(),
         listed: z.boolean(),
         owner: z.object({ address: z.string() }).nullish(),
         curator: z.object({ address: z.string() }).nullish(),
@@ -214,6 +218,7 @@ export const fetchMorphoMarkets = async (
 }
 
 export type CuratedVault = {
+  name: string | null
   share: number
   curators: string[]
   addresses: string[]
@@ -233,6 +238,7 @@ export type MorphoCandidate = {
   notices: DestinationNotice[]
   curators: string[]
   vaults: CuratedVault[]
+  leadVaultName: string | null
 }
 
 const slug = (value: string) => value.toLowerCase().replace(/[^a-z0-9-]/g, "")
@@ -283,6 +289,7 @@ export const evaluateMorphoMarket = ({
   let curatedRaw = BigInt(0)
   const vaults: CuratedVault[] = []
   const addVault = (
+    name: string | null | undefined,
     supplied: bigint,
     curatorEntries: z.infer<typeof curatorSchema>[] | null | undefined,
     ownAddresses: (string | null | undefined)[],
@@ -295,6 +302,7 @@ export const evaluateMorphoMarket = ({
       ),
     ].flatMap((address) => (address ? [address.toLowerCase()] : []))
     vaults.push({
+      name: name || null,
       share: shareOfSupply(supplied),
       curators: (curatorEntries ?? []).flatMap((curator) =>
         curator.name ? [curator.name] : [],
@@ -310,7 +318,7 @@ export const evaluateMorphoMarket = ({
     )
     const supplied = allocation ? toBigInt(allocation.supplyAssets) : null
     if (!supplied || supplied <= BigInt(0)) return
-    addVault(supplied, vault.state.curators, [
+    addVault(vault.name, supplied, vault.state.curators, [
       vault.state.owner,
       vault.state.curator,
     ])
@@ -330,7 +338,7 @@ export const evaluateMorphoMarket = ({
       return sum + (toBigInt(cap.allocation) ?? BigInt(0))
     }, BigInt(0))
     if (supplied <= BigInt(0)) return
-    addVault(supplied, vault.curators?.items, [
+    addVault(vault.name, supplied, vault.curators?.items, [
       vault.owner?.address,
       vault.curator?.address,
     ])
@@ -375,5 +383,8 @@ export const evaluateMorphoMarket = ({
     notices,
     curators: Array.from(new Set(vaults.flatMap((vault) => vault.curators))),
     vaults,
+    leadVaultName:
+      [...vaults].sort((a, b) => b.share - a.share).find((vault) => vault.name)
+        ?.name ?? null,
   }
 }

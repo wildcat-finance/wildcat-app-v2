@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { DESTINATIONS_ENABLED } from "@/lib/destinations/constants"
 import { getDestinations } from "@/lib/destinations/server/getDestinations"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
@@ -8,10 +7,6 @@ export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 export async function GET(request: NextRequest) {
-  if (!DESTINATIONS_ENABLED) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 })
-  }
-
   const chainId = validateChainIdParam(request)
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })

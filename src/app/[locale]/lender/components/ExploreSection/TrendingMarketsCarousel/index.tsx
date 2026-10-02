@@ -5,6 +5,7 @@ import * as React from "react"
 
 import { Box, Skeleton, Typography } from "@mui/material"
 import { HooksKind, Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 import { formatUnits } from "viem"
 
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
@@ -12,6 +13,8 @@ import {
   RecentDepositsData,
   useRecentDeposits,
 } from "@/app/[locale]/lender/hooks/useRecentDeposits"
+import { DestinationsPanel } from "@/components/Destinations"
+import { useDestinations } from "@/hooks/destinations/useDestinations"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { toHuman } from "@/lib/protocol-stats/format"
@@ -288,7 +291,10 @@ const usePeekOnFirstVisit = (
   }, [ref, ready])
 }
 
+const TRENDING_PANEL_ID = "trending-composable-panel"
+
 export const TrendingMarketsCarousel = () => {
+  const { t } = useTranslation()
   const { marketAccounts, borrowers, isLoadingInitial } =
     useLenderMarketsContext()
   const {
@@ -357,6 +363,8 @@ export const TrendingMarketsCarousel = () => {
   )
 
   const { chainId } = useSelectedNetwork()
+  const { markets: destinationsByMarket, stale } = useDestinations(chainId)
+  const [expandedSlotKey, setExpandedSlotKey] = useState<string | null>(null)
   const tokenAddresses = useMemo(
     () =>
       Array.from(
@@ -580,6 +588,32 @@ export const TrendingMarketsCarousel = () => {
     !isMobile && !isLoading && slots.length > 0,
   )
 
+  const showComposableFooter =
+    !isMobile && Object.keys(destinationsByMarket).length > 0
+
+  const expandedSlot =
+    showComposableFooter && !isLoading && expandedSlotKey !== null
+      ? slots.find((slot) => slot.key === expandedSlotKey)
+      : undefined
+  const expandedDestinations = expandedSlot
+    ? destinationsByMarket[expandedSlot.account.market.address.toLowerCase()] ??
+      []
+    : []
+
+  useEffect(() => {
+    if (expandedSlotKey !== null && expandedDestinations.length === 0) {
+      setExpandedSlotKey(null)
+    }
+  }, [expandedSlotKey, expandedDestinations.length])
+
+  const closeComposablePanel = () => {
+    const trigger = document.querySelector<HTMLElement>(
+      `[aria-controls="${TRENDING_PANEL_ID}"][aria-expanded="true"]`,
+    )
+    setExpandedSlotKey(null)
+    trigger?.focus()
+  }
+
   const renderCard = (slot: Slot) => {
     const { market } = slot.account
     const borrower = (borrowers ?? []).find(
@@ -622,6 +656,19 @@ export const TrendingMarketsCarousel = () => {
         status={getMarketStatusChip(market)}
         termLabel={termLabel}
         isMobile={isMobile}
+        composableCount={
+          destinationsByMarket[market.address.toLowerCase()]?.length ?? 0
+        }
+        composableExpanded={
+          showComposableFooter && expandedSlotKey === slot.key
+        }
+        onToggleComposable={() =>
+          setExpandedSlotKey((current) =>
+            current === slot.key ? null : slot.key,
+          )
+        }
+        showComposableFooter={showComposableFooter}
+        composableControls={TRENDING_PANEL_ID}
       />
     )
   }
@@ -778,7 +825,7 @@ export const TrendingMarketsCarousel = () => {
               (key, index) => (
                 <Skeleton
                   key={key}
-                  height="297px"
+                  height={showComposableFooter ? "321px" : "297px"}
                   sx={{
                     flex: "1 0 222px",
                     minWidth: "222px",
@@ -805,6 +852,32 @@ export const TrendingMarketsCarousel = () => {
               </Box>
             ))}
       </Box>
+
+      {expandedSlot && expandedDestinations.length > 0 && (
+        <Box
+          id={TRENDING_PANEL_ID}
+          role="region"
+          aria-label={`${t("destinations.panel.whatYouCanDo")} ${
+            expandedSlot.account.market.marketToken.symbol
+          }`}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") closeComposablePanel()
+          }}
+          sx={{ mx: "16px", mt: "4px" }}
+        >
+          <DestinationsPanel
+            destinations={expandedDestinations}
+            stale={stale}
+            marketSymbol={expandedSlot.account.market.marketToken.symbol}
+            aprBips={expandedSlot.account.market.annualInterestBips}
+            withdrawalBatchDuration={
+              expandedSlot.account.market.withdrawalBatchDuration
+            }
+            closeVariant="close"
+            onClose={closeComposablePanel}
+          />
+        </Box>
+      )}
     </Box>
   )
 }

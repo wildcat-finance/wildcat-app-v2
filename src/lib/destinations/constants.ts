@@ -1,6 +1,3 @@
-export const DESTINATIONS_ENABLED =
-  process.env.NEXT_PUBLIC_DESTINATIONS_ENABLED === "true"
-
 export const MORPHO_CHAIN_IDS = [1] as const
 
 export const MORPHO_API_URL = "https://api.morpho.org/graphql"

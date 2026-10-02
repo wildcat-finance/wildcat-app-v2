@@ -73,6 +73,7 @@ const buildDestinations = async (
       platformName: "Morpho",
       venueId: candidate.marketId,
       venueName: candidate.venueName,
+      title: candidate.leadVaultName ?? candidate.venueName,
       token: {
         address: candidate.collateral.address,
         symbol: candidate.collateral.symbol,

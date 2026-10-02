@@ -46,8 +46,12 @@ export const COLORS = {
   blueRibbon: "#4971FF",
   blueRibbon01: "#4971FF1A",
   cornflowerBlue: "#6688FF",
+  cornflowerBlue05: "#6688FF80",
   hawkesBlue: "#D2DDFF",
   glitter: "#E4EBFE",
   lightGreen: "#E4F5E0",
   caribbeanGreen: "#28CA7C",
+
+  mediumRedViolet: "#A4298C",
+  pinkLace: "#FFDEF8",
 }

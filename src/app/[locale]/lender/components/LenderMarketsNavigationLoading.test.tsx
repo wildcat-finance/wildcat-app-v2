@@ -46,6 +46,12 @@ jest.mock("@/components/Mobile/MobileSearchButton", () => ({
 jest.mock("@/components/WrongNetworkAlert", () => ({
   WrongNetworkAlert: () => null,
 }))
+jest.mock("@/components/Destinations", () => ({
+  ComposableOnlySwitch: () => null,
+}))
+jest.mock("@/hooks/destinations/useDestinations", () => ({
+  useDestinations: () => ({ markets: {} }),
+}))
 jest.mock("@/app/[locale]/lender/all-markets/components/MobileHeader", () => ({
   MobileHeader: () => null,
 }))

@@ -2,6 +2,7 @@ import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
+import type { Destination } from "@/lib/destinations/types"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -22,12 +23,16 @@ export type TerminatedMarketsTableModel = {
   hasEverInteracted: boolean
   button?: string
   hasTokens?: boolean
+  destinationsCount: number
+  marketTokenSymbol: string
 }
 
 export type TerminatedMarketsTableProps = {
   marketAccounts: MarketAccount[]
   borrowers: BorrowerWithName[]
   isLoading: boolean
+  destinationsByMarket: Record<string, Destination[]>
+  composableOnly: boolean
   filters: {
     nameFilter: string
     assetFilter: SmallFilterSelectItem[]
