@@ -1,6 +1,6 @@
 {
   "counts": {
-    "bytes_asset": 206742,
+    "bytes_asset": 207430,
     "bytes_binary": 102801,
     "bytes_blob": 186479,
     "bytes_generated": 302032
@@ -390,6 +390,13 @@
       "evidence": "svg root element in the first 4096 bytes",
       "grade": "candidate",
       "path": "src/assets/icons/collateralContract_icon.svg"
+    },
+    {
+      "bytes": 688,
+      "category": "asset",
+      "evidence": "svg root element in the first 4096 bytes",
+      "grade": "candidate",
+      "path": "src/assets/icons/composability_icon.svg"
     },
     {
       "bytes": 2876,

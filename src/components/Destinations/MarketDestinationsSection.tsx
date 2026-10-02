@@ -5,23 +5,104 @@ import { useTranslation } from "react-i18next"
 
 import { useMarketDestinations } from "@/hooks/destinations/useDestinations"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import type { Destination } from "@/lib/destinations/types"
 import { COLORS } from "@/theme/colors"
 
 import { DestinationsList } from "./DestinationsList"
+import { DestinationRows, useDestinationsCopy } from "./DestinationsPanel"
+
+type MarketDestinationsSectionProps = {
+  chainId: number
+  marketAddress: string
+  marketSymbol: string
+  aprBips: number
+  withdrawalBatchDuration: number
+}
+
+const DesktopSectionBody = ({
+  destinations,
+  stale,
+  marketSymbol,
+  aprBips,
+  withdrawalBatchDuration,
+}: {
+  destinations: Destination[]
+  stale: boolean
+  marketSymbol: string
+  aprBips: number
+  withdrawalBatchDuration: number
+}) => {
+  const { t } = useTranslation()
+  const { summary, footer } = useDestinationsCopy({
+    destinations,
+    stale,
+    aprBips,
+    withdrawalBatchDuration,
+  })
+
+  return (
+    <>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <Typography
+            sx={{
+              fontSize: "20px",
+              lineHeight: "32px",
+              fontWeight: 500,
+              color: COLORS.blackRock,
+            }}
+          >
+            {t("destinations.panel.whatYouCanDo")}
+          </Typography>
+          <Box
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "2px 8px",
+              borderRadius: "20px",
+              backgroundColor: COLORS.whiteSmoke,
+            }}
+          >
+            <Typography variant="text1" color={COLORS.blackRock}>
+              {marketSymbol}
+            </Typography>
+          </Box>
+        </Box>
+        <Typography
+          sx={{
+            fontSize: "14px",
+            lineHeight: "20px",
+            fontWeight: 500,
+            color: COLORS.blackRock,
+            opacity: 0.8,
+          }}
+        >
+          {summary}
+        </Typography>
+      </Box>
+
+      <DestinationRows destinations={destinations} variant="section" />
+
+      <Typography variant="text3" color={COLORS.matteSilver}>
+        {footer}
+      </Typography>
+    </>
+  )
+}
 
 export const MarketDestinationsSection = ({
   chainId,
   marketAddress,
-}: {
-  chainId: number
-  marketAddress: string
-}) => {
+  marketSymbol,
+  aprBips,
+  withdrawalBatchDuration,
+}: MarketDestinationsSectionProps) => {
   const { t } = useTranslation()
   const isMobile = useMobileResolution()
   const { destinations, data, stale, isLoading, isError } =
     useMarketDestinations(chainId, marketAddress)
 
-  const renderBody = () => {
+  const renderState = () => {
     if (isLoading) {
       return (
         <Skeleton
@@ -51,8 +132,31 @@ export const MarketDestinationsSection = ({
         </Typography>
       )
     }
+    return null
+  }
+
+  const state = renderState()
+
+  if (!isMobile) {
     return (
-      <DestinationsList destinations={destinations} stale={stale} columns={2} />
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "16px",
+          paddingTop: "24px",
+        }}
+      >
+        {state ?? (
+          <DesktopSectionBody
+            destinations={destinations}
+            stale={stale}
+            marketSymbol={marketSymbol}
+            aprBips={aprBips}
+            withdrawalBatchDuration={withdrawalBatchDuration}
+          />
+        )}
+      </Box>
     )
   }
 
@@ -61,24 +165,27 @@ export const MarketDestinationsSection = ({
       sx={{
         display: "flex",
         flexDirection: "column",
-        gap: isMobile ? "12px" : "16px",
-        padding: isMobile ? "12px 16px 24px" : "12px 0 0",
-        backgroundColor: isMobile ? COLORS.white : "transparent",
-        borderRadius: isMobile ? "14px" : 0,
+        gap: "12px",
+        padding: "12px 16px 24px",
+        backgroundColor: COLORS.white,
+        borderRadius: "14px",
       }}
     >
       <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-        <Typography variant={isMobile ? "mobH3" : "title3"}>
+        <Typography variant="mobH3">
           {t("destinations.section.title")}
         </Typography>
-        <Typography
-          variant={isMobile ? "mobText3" : "text3"}
-          color={COLORS.santasGrey}
-        >
+        <Typography variant="mobText3" color={COLORS.santasGrey}>
           {t("destinations.panel.subtitle")}
         </Typography>
       </Box>
-      {renderBody()}
+      {state ?? (
+        <DestinationsList
+          destinations={destinations}
+          stale={stale}
+          columns={2}
+        />
+      )}
     </Box>
   )
 }

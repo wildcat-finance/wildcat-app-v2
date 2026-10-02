@@ -1080,7 +1080,7 @@
       "borrowerProfile": "About Borrower",
       "description": "Market Description",
       "wrapDebtToken": "Wrapped Debt Token",
-      "destinations": "Destinations"
+      "destinations": "Composability"
     },
     "buttons": {
       "addToken": "Add Debt Token To Wallet",
@@ -1746,6 +1746,7 @@
       "loopable": "Loopable {{multiple}}x",
       "open": "Open →",
       "openAria": "Open {{title}} on {{platform}}",
+      "tokenRequired": "{{symbol}} required",
       "collapse": "Hide destinations",
       "close": "Close"
     },

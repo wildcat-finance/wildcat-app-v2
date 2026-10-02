@@ -25,8 +25,19 @@ import { formatFractionPercent, formatFractionPercentTrimmed } from "./format"
 
 const NO_ESCAPE = { escapeValue: false }
 
-const COLUMNS =
-  "minmax(0, 256fr) minmax(0, 342fr) minmax(0, 117fr) minmax(0, 117fr) minmax(0, 178fr) 103px"
+export type DestinationRowsVariant = "panel" | "section"
+
+const COLUMNS: Record<DestinationRowsVariant, string> = {
+  panel:
+    "minmax(0, 256fr) minmax(0, 342fr) minmax(0, 117fr) minmax(0, 117fr) minmax(0, 178fr) 103px",
+  section:
+    "minmax(172px, 175fr) minmax(0, 220fr) minmax(0, 99fr) minmax(0, 99fr) minmax(0, 110fr) 103px",
+}
+
+const SUBTLE_CHIP_BG: Record<DestinationRowsVariant, string> = {
+  panel: COLORS.whiteSmoke,
+  section: COLORS.blackHaze,
+}
 
 const PLATFORM_LOGOS: Record<Destination["platform"], typeof MorphoLogo> = {
   "morpho-blue": MorphoLogo,
@@ -61,7 +72,6 @@ const Label = ({ children }: { children: React.ReactNode }) => (
       lineHeight: "16px",
       fontWeight: 500,
       color: COLORS.manate,
-      whiteSpace: "nowrap",
     }}
   >
     {children}
@@ -72,10 +82,14 @@ const SmallText = ({
   children,
   color = COLORS.blackRock,
   opacity,
+  wrap = false,
+  ellipsis = false,
 }: {
   children: React.ReactNode
   color?: string
   opacity?: number
+  wrap?: boolean
+  ellipsis?: boolean
 }) => (
   <Typography
     component="span"
@@ -85,7 +99,8 @@ const SmallText = ({
       fontWeight: 500,
       color,
       opacity,
-      whiteSpace: "nowrap",
+      whiteSpace: wrap ? "normal" : "nowrap",
+      ...(ellipsis && { overflow: "hidden", textOverflow: "ellipsis" }),
     }}
   >
     {children}
@@ -96,10 +111,12 @@ const Flag = ({
   label,
   tooltip,
   tone,
+  greyBackground,
 }: {
   label: string
   tooltip: string
   tone: "amber" | "grey"
+  greyBackground: string
 }) => (
   <Tooltip title={tooltip} placement="top" enterTouchDelay={0} describeChild>
     <Box
@@ -108,9 +125,12 @@ const Flag = ({
       sx={{
         display: "inline-flex",
         alignItems: "center",
+        maxWidth: "100%",
+        minWidth: 0,
+        overflow: "hidden",
         padding: "0 6px",
         borderRadius: tone === "amber" ? "12px" : "20px",
-        backgroundColor: tone === "amber" ? COLORS.oasis : COLORS.whiteSmoke,
+        backgroundColor: tone === "amber" ? COLORS.oasis : greyBackground,
         cursor: "help",
         "&:focus-visible": {
           outline: `2px solid ${COLORS.ultramarineBlue}`,
@@ -118,7 +138,10 @@ const Flag = ({
         },
       }}
     >
-      <SmallText color={tone === "amber" ? COLORS.amberText : COLORS.blackRock}>
+      <SmallText
+        color={tone === "amber" ? COLORS.amberText : COLORS.blackRock}
+        ellipsis
+      >
         {label}
       </SmallText>
     </Box>
@@ -127,9 +150,11 @@ const Flag = ({
 
 const DestinationRow = ({
   destination,
+  variant,
   onOpen,
 }: {
   destination: Destination
+  variant: DestinationRowsVariant
   onOpen: (destination: Destination) => void
 }) => {
   const { t } = useTranslation()
@@ -140,11 +165,18 @@ const DestinationRow = ({
     <Box
       sx={{
         display: "grid",
-        gridTemplateColumns: COLUMNS,
-        minHeight: "66px",
-        "&:not(:last-of-type)": {
-          borderBottom: `1px solid ${COLORS.athensGrey}`,
-        },
+        gridTemplateColumns: COLUMNS[variant],
+        ...(variant === "section"
+          ? {
+              minHeight: "86px",
+              borderTop: `1px solid ${COLORS.athensGrey}`,
+            }
+          : {
+              minHeight: "66px",
+              "&:not(:last-of-type)": {
+                borderBottom: `1px solid ${COLORS.athensGrey}`,
+              },
+            }),
       }}
     >
       <Box
@@ -159,6 +191,7 @@ const DestinationRow = ({
         <Typography
           variant="text3"
           color={COLORS.blackRock}
+          title={destination.title}
           sx={{
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -208,7 +241,8 @@ const DestinationRow = ({
           flexDirection: "column",
           justifyContent: "center",
           gap: "8px",
-          padding: "12px 20px 10px 0",
+          padding:
+            variant === "section" ? "12px 8px 10px 0" : "12px 20px 10px 0",
           minWidth: 0,
         }}
       >
@@ -226,15 +260,19 @@ const DestinationRow = ({
               display: "inline-flex",
               alignItems: "center",
               gap: "2px",
+              maxWidth: "100%",
               padding: "0 6px 0 4px",
               borderRadius: "12px",
               backgroundColor: COLORS.pinkLace,
             }}
           >
-            <SvgIcon viewBox="0 0 12 12" sx={{ fontSize: "12px" }}>
+            <SvgIcon
+              viewBox="0 0 12 12"
+              sx={{ fontSize: "12px", flexShrink: 0 }}
+            >
               <BorrowAgainst />
             </SvgIcon>
-            <SmallText color={COLORS.mediumRedViolet}>
+            <SmallText color={COLORS.mediumRedViolet} wrap>
               {t(`destinations.route.${destination.route}`)}
               {loopMultiple &&
                 ` ・${t("destinations.panel.loopable", {
@@ -246,12 +284,21 @@ const DestinationRow = ({
             sx={{
               display: "inline-flex",
               alignItems: "center",
+              maxWidth: "100%",
               padding: "0 6px",
               borderRadius: "20px",
-              backgroundColor: COLORS.white,
+              backgroundColor:
+                variant === "section" ? COLORS.blackHaze : COLORS.white,
             }}
           >
-            <SmallText>{destination.token.symbol}</SmallText>
+            <SmallText wrap>
+              {variant === "section"
+                ? t("destinations.panel.tokenRequired", {
+                    symbol: destination.token.symbol,
+                    interpolation: NO_ESCAPE,
+                  })
+                : destination.token.symbol}
+            </SmallText>
           </Box>
         </Box>
       </Box>
@@ -303,6 +350,7 @@ const DestinationRow = ({
                 interpolation: NO_ESCAPE,
               })}
               tone="amber"
+              greyBackground={SUBTLE_CHIP_BG[variant]}
             />
           )}
           {destination.notices.includes("THIN_LIQUIDITY") && (
@@ -310,12 +358,14 @@ const DestinationRow = ({
               label={t("destinations.riskFlags.thinLiquidity")}
               tooltip={t("destinations.riskFlags.thinLiquidityTooltip")}
               tone="amber"
+              greyBackground={SUBTLE_CHIP_BG[variant]}
             />
           )}
           <Flag
             label={t("destinations.riskFlags.unrated")}
             tooltip={t("destinations.riskFlags.unratedTooltip")}
             tone="grey"
+            greyBackground={SUBTLE_CHIP_BG[variant]}
           />
         </Box>
       </Box>
@@ -329,7 +379,7 @@ const DestinationRow = ({
         }}
       >
         <Button
-          variant="outlined"
+          variant={variant === "section" ? "contained" : "outlined"}
           size="small"
           onClick={() => onOpen(destination)}
           aria-label={t("destinations.panel.openAria", {
@@ -337,17 +387,21 @@ const DestinationRow = ({
             platform: destination.platformName,
             interpolation: NO_ESCAPE,
           })}
-          sx={{
-            padding: "6px 12px",
-            borderColor: COLORS.glitter,
-            backgroundColor: COLORS.white,
-            color: COLORS.blackRock,
-            whiteSpace: "nowrap",
-            "&:hover": {
-              borderColor: COLORS.hawkesBlue,
-              backgroundColor: COLORS.white,
-            },
-          }}
+          sx={
+            variant === "section"
+              ? { padding: "6px 12px", whiteSpace: "nowrap" }
+              : {
+                  padding: "6px 12px",
+                  borderColor: COLORS.glitter,
+                  backgroundColor: COLORS.white,
+                  color: COLORS.blackRock,
+                  whiteSpace: "nowrap",
+                  "&:hover": {
+                    borderColor: COLORS.hawkesBlue,
+                    backgroundColor: COLORS.white,
+                  },
+                }
+          }
         >
           {t("destinations.panel.open")}
         </Button>
@@ -356,28 +410,42 @@ const DestinationRow = ({
   )
 }
 
-export type DestinationsPanelProps = {
-  destinations: Destination[]
-  stale: boolean
-  marketSymbol: string
-  aprBips: number
-  withdrawalBatchDuration: number
-  closeVariant: "collapse" | "close"
-  onClose: () => void
-}
-
-export const DestinationsPanel = ({
+export const DestinationRows = ({
   destinations,
-  stale,
-  marketSymbol,
-  aprBips,
-  withdrawalBatchDuration,
-  closeVariant,
-  onClose,
-}: DestinationsPanelProps) => {
-  const { t } = useTranslation()
+  variant,
+}: {
+  destinations: Destination[]
+  variant: DestinationRowsVariant
+}) => {
   const [target, setTarget] = React.useState<ExternalLinkTarget | null>(null)
 
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column" }}>
+      {destinations.map((destination) => (
+        <DestinationRow
+          key={destination.id}
+          destination={destination}
+          variant={variant}
+          onOpen={({ url, urlHost }) => setTarget({ url, host: urlHost })}
+        />
+      ))}
+      <ExternalLinkGate target={target} onClose={() => setTarget(null)} />
+    </Box>
+  )
+}
+
+export const useDestinationsCopy = ({
+  destinations,
+  stale,
+  aprBips,
+  withdrawalBatchDuration,
+}: {
+  destinations: Destination[]
+  stale: boolean
+  aprBips: number
+  withdrawalBatchDuration: number
+}) => {
+  const { t } = useTranslation()
   const routeCount = new Set(destinations.map((d) => d.route)).size
   const borrowsAgainst = destinations.some((d) => d.route === "BORROW_AGAINST")
 
@@ -410,6 +478,36 @@ export const DestinationsPanel = ({
   ]
     .filter(Boolean)
     .join(" ")
+
+  return { summary, footer }
+}
+
+export type DestinationsPanelProps = {
+  destinations: Destination[]
+  stale: boolean
+  marketSymbol: string
+  aprBips: number
+  withdrawalBatchDuration: number
+  closeVariant: "collapse" | "close"
+  onClose: () => void
+}
+
+export const DestinationsPanel = ({
+  destinations,
+  stale,
+  marketSymbol,
+  aprBips,
+  withdrawalBatchDuration,
+  closeVariant,
+  onClose,
+}: DestinationsPanelProps) => {
+  const { t } = useTranslation()
+  const { summary, footer } = useDestinationsCopy({
+    destinations,
+    stale,
+    aprBips,
+    withdrawalBatchDuration,
+  })
 
   return (
     <Box
@@ -526,15 +624,7 @@ export const DestinationsPanel = ({
           backgroundColor: COLORS.white,
         }}
       >
-        <Box sx={{ display: "flex", flexDirection: "column" }}>
-          {destinations.map((destination) => (
-            <DestinationRow
-              key={destination.id}
-              destination={destination}
-              onOpen={({ url, urlHost }) => setTarget({ url, host: urlHost })}
-            />
-          ))}
-        </Box>
+        <DestinationRows destinations={destinations} variant="panel" />
 
         <Typography
           variant="text3"
@@ -544,8 +634,6 @@ export const DestinationsPanel = ({
           {footer}
         </Typography>
       </Box>
-
-      <ExternalLinkGate target={target} onClose={() => setTarget(null)} />
     </Box>
   )
 }
