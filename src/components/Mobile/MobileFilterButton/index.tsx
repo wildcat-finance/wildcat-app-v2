@@ -35,6 +35,11 @@ export type MobileFilterButtonProps = {
   setShowSelfOnboard?: React.Dispatch<React.SetStateAction<boolean>>
   showOnboardByBorrower?: boolean
   setShowOnboardByBorrower?: React.Dispatch<React.SetStateAction<boolean>>
+  composableOnly?: {
+    label: string
+    checked: boolean
+    onChange: (checked: boolean) => void
+  }
 }
 
 export const MobileFilterButton = ({
@@ -51,6 +56,7 @@ export const MobileFilterButton = ({
   setShowSelfOnboard,
   showOnboardByBorrower,
   setShowOnboardByBorrower,
+  composableOnly,
 }: MobileFilterButtonProps) => {
   const [open, setOpen] = useState<boolean>(false)
 
@@ -279,6 +285,23 @@ export const MobileFilterButton = ({
                 <ExtendedCheckbox
                   checked={showOnboardByBorrower}
                   onChange={(e) => setShowOnboardByBorrower(e.target.checked)}
+                  sx={{
+                    "& ::before": {
+                      transform: "translate(-3px, -3px) scale(0.75)",
+                    },
+                  }}
+                />
+              }
+            />
+          )}
+
+          {composableOnly && (
+            <FormControlLabel
+              label={composableOnly.label}
+              control={
+                <ExtendedCheckbox
+                  checked={composableOnly.checked}
+                  onChange={(e) => composableOnly.onChange(e.target.checked)}
                   sx={{
                     "& ::before": {
                       transform: "translate(-3px, -3px) scale(0.75)",

@@ -1079,7 +1079,8 @@
       "marketHistory": "Market History",
       "borrowerProfile": "About Borrower",
       "description": "Market Description",
-      "wrapDebtToken": "Wrapped Debt Token"
+      "wrapDebtToken": "Wrapped Debt Token",
+      "destinations": "Destinations"
     },
     "buttons": {
       "addToken": "Add Debt Token To Wallet",
@@ -1715,6 +1716,56 @@
           "again": "Try Again"
         }
       }
+    }
+  },
+  "destinations": {
+    "badge": "Composable · {{count}}",
+    "badgeLabel": "Show where this market's token can be used",
+    "composableOnly": "Composable only",
+    "noComposableMarkets": "No composable markets match these filters",
+    "panel": {
+      "title": "Use this token elsewhere",
+      "subtitle": "Third-party platforms that accept this market's token. Wildcat doesn't operate them.",
+      "stale": "Couldn't refresh. Showing the last data we have.",
+      "footer": "Rates and liquidity come from the platform and are not quoted by Wildcat. Using your position elsewhere adds that platform's risks, including liquidation, on top of this market's credit risk."
+    },
+    "route": {
+      "BORROW_AGAINST": "Borrow against"
+    },
+    "card": {
+      "wrapperNote": "Accepts {{symbol}}, the wrapped form of this market's token",
+      "lltv": "Liquidation LTV",
+      "borrowApy": "Borrow APY, 6h avg",
+      "liquidity": "Available to borrow",
+      "curatedBy": "Curated by {{names}}",
+      "asOf": "Data from {{platform}} · {{time}}",
+      "open": "Open on {{platform}}"
+    },
+    "time": {
+      "justNow": "just now",
+      "minutes": "{{count}} min ago",
+      "hours": "{{count}} h ago"
+    },
+    "affiliation": {
+      "affiliated": "Affiliated with {{entity}}",
+      "affiliatedTooltip": "Liquidity here is supplied by a vault linked to this market's borrower.",
+      "notReviewed": "Not reviewed by Wildcat",
+      "notReviewedTooltip": "Wildcat hasn't checked who supplies the liquidity on this platform."
+    },
+    "notices": {
+      "THIN_LIQUIDITY": "Low liquidity"
+    },
+    "section": {
+      "title": "Destinations",
+      "empty": "No third-party platform accepts this market's token right now.",
+      "error": "Destinations are unavailable right now. Try again later."
+    },
+    "gate": {
+      "title": "You are leaving Wildcat",
+      "body": "You're about to open {{host}}. It's a third-party platform: Wildcat doesn't operate it and doesn't verify its rates, liquidity or terms.",
+      "confirm": "I understand I'm leaving Wildcat",
+      "cancel": "Cancel",
+      "continue": "Continue"
     }
   },
   "utils": {
