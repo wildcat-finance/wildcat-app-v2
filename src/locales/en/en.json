@@ -504,7 +504,7 @@
           "edit": "Edit Profile"
         },
         "defaults": {
-          "tooltip": "The number of markets owned by this borrower that have incurred the penalty rate continuously for at least 90 days."
+          "tooltip": "The number of this borrower's markets that have defaulted due to prolonged delinquency or a missed repayment deadline. Defaults remain counted after repayment or closure."
         },
         "empty": {
           "noMarkets": "Borrower has no active markets."

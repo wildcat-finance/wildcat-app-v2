@@ -17,12 +17,12 @@ import {
   useProfileTab,
 } from "@/components/Profile/shared/profileTabs"
 import { analyticsUiEnabled } from "@/config/featureFlags"
+import { useMarketsInDefault } from "@/hooks/useMarketsInDefault"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { isSubgraphPricingConfigured } from "@/lib/subgraphCapabilities"
 import { pageCalcHeights } from "@/utils/constants"
 import { trimAddress } from "@/utils/formatters"
-import { countMarketsInDefault } from "@/utils/marketStatus"
 
 import { BorrowerChartsTab } from "./components/BorrowerChartsTab"
 import { MarketsBlock } from "./components/MarketsBlock"
@@ -53,8 +53,11 @@ const AnalyticsProfilePage = ({
 
   const { data: profileData, isLoading: isProfileLoading } =
     useGetBorrowerProfile(profileAddress, chainId)
-  const { data: borrowerMarkets, isLoading: isMarketsLoading } =
-    useGetBorrowerMarkets(profileAddress, chainId)
+  const {
+    data: borrowerMarkets,
+    isLoading: isMarketsLoading,
+    isError: isMarketsError,
+  } = useGetBorrowerMarkets(profileAddress, chainId)
   const { data: touStatus, isLoading: isTouStatusLoading } =
     useGetServiceAgreementStatus(profileAddress, chainId)
   const borrowerAnalyticsQuery = useBorrowerAggregateStats(
@@ -68,7 +71,10 @@ const AnalyticsProfilePage = ({
   const activeMarkets =
     borrowerMarkets?.filter((market) => !market.isClosed) ?? []
   const marketsAmount = borrowerMarkets?.length ?? 0
-  const defaults = countMarketsInDefault(borrowerMarkets)
+  const defaults = useMarketsInDefault(
+    isMarketsError ? undefined : borrowerMarkets,
+    chainId,
+  )
   const accountName = profileData?.name ?? trimAddress(profileAddress ?? "")
 
   if (isProfileLoading || isMarketsLoading) {
@@ -162,8 +168,11 @@ const CoreProfilePage = ({
   const chainId = profileChainId ?? selectedChainId
   const { data: profileData, isLoading: isProfileLoading } =
     useGetBorrowerProfile(profileAddress, chainId)
-  const { data: borrowerMarkets, isLoading: isMarketsLoading } =
-    useGetBorrowerMarkets(profileAddress, chainId)
+  const {
+    data: borrowerMarkets,
+    isLoading: isMarketsLoading,
+    isError: isMarketsError,
+  } = useGetBorrowerMarkets(profileAddress, chainId)
   const { data: touStatus, isLoading: isTouStatusLoading } =
     useGetServiceAgreementStatus(profileAddress, chainId)
   const isMobile = useMobileResolution()
@@ -172,7 +181,10 @@ const CoreProfilePage = ({
   const isLoading = isMarketsLoading || isProfileLoading
   const activeMarkets = borrowerMarkets?.filter((market) => !market.isClosed)
   const marketsAmount = (activeMarkets ?? []).length
-  const defaults = countMarketsInDefault(borrowerMarkets)
+  const defaults = useMarketsInDefault(
+    isMarketsError ? undefined : borrowerMarkets,
+    chainId,
+  )
   const accountName = profileData?.name ?? trimAddress(profileAddress ?? "")
 
   const [section, setSection] = useState<"markets" | "info">("markets")

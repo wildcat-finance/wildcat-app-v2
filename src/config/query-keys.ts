@@ -430,6 +430,8 @@ const WRAPPER_QUERY_KEYS = {
 } as const
 
 const MARKET_QUERY_KEYS = {
+  GET_DEFAULT_COUNT: (chainId: number, marketStates?: readonly unknown[]) =>
+    k(["markets", "GET_DEFAULT_COUNT", chainId, marketStates]),
   // GET_ALL_TOKENS_WITH_MARKETS_KEY
   GET_ALL_TOKENS_WITH_MARKETS: (chainId: number) =>
     k(["markets", "GET_ALL_TOKENS_WITH_MARKETS", chainId]),
