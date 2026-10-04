@@ -68,6 +68,7 @@ export const WithdrawModal = ({
   routeRef.current = routing.route
 
   const notMature =
+    !market.hasReachedRepaymentDate &&
     market.hooksConfig?.kind === HooksKind.FixedTerm &&
     market.hooksConfig?.fixedTermEndTime !== undefined &&
     market.hooksConfig.fixedTermEndTime * 1000 >= Date.now()

@@ -47,7 +47,11 @@ export const getMarketTypeChip = (market: Market) => {
       return {
         kind,
         periodicWindow: {
-          isTermClosed: Boolean(config.periodicTermClosed || market.isClosed),
+          isTermClosed: Boolean(
+            config.periodicTermClosed ||
+              market.isClosed ||
+              market.hasReachedRepaymentDate,
+          ),
           firstWithdrawalWindowStart: config.firstWithdrawalWindowStart,
           periodDuration: config.periodDuration,
           withdrawalWindowDuration: config.withdrawalWindowDuration,

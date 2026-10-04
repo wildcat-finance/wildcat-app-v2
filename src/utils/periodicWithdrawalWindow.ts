@@ -57,7 +57,7 @@ export type PeriodicScheduleTiming = {
 }
 
 export type PeriodicWindowTiming = PeriodicScheduleTiming & {
-  /** Whether the periodic term has been permanently closed (windows always open). */
+  /** Whether window restrictions have ended through closure or scheduled repayment. */
   isTermClosed: boolean
 }
 
@@ -107,7 +107,7 @@ export const getPeriodicWindowTiming = (
   const config = market.periodicHooksConfig
   if (!config || !config.periodDuration) return undefined
 
-  if (config.periodicTermClosed) {
+  if (config.periodicTermClosed || market.hasReachedRepaymentDate) {
     return {
       isOpen: true,
       isTermClosed: true,
@@ -121,14 +121,13 @@ export const getPeriodicWindowTiming = (
 
 /**
  * Whether queueing a withdrawal is currently blocked by the recurring window.
- * A closed market (or closed periodic term) never blocks: the hook contract
- * treats both as always-open.
+ * A closed market, closed periodic term or observed repayment date never blocks.
  */
 export const isPeriodicWithdrawalWindowClosed = (
   market: Market,
   nowSec: number = Date.now() / 1000,
 ) => {
-  if (market.isClosed) return false
+  if (market.isClosed || market.hasReachedRepaymentDate) return false
   const timing = getPeriodicWindowTiming(market, nowSec)
   return !!timing && !timing.isOpen
 }

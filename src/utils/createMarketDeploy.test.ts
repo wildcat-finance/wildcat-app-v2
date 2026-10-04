@@ -1,12 +1,17 @@
+/** @jest-environment node */
 import {
   encodeAccessListRoleProviderDeploymentInputs,
   DeployMarketPreview,
   DeployMarketStatus,
   getDeploymentAddress,
+  getHooksFactoryDeploymentAbi,
+  getStandardHooksFactoryContract,
+  getRevolvingHooksFactoryContract,
+  SignerOrProvider,
   SupportedChainId,
   TransferAccess,
 } from "@wildcatfi/wildcat-sdk"
-import { zeroAddress } from "viem"
+import { decodeFunctionData, Hex, zeroAddress } from "viem"
 
 import {
   assertWrapperDeploymentCompatible,
@@ -21,6 +26,59 @@ import {
 describe("createMarketDeploy", () => {
   const borrower = "0x0000000000000000000000000000000000000010"
   const salt = `${borrower}${"11".repeat(12)}`
+
+  it.each([
+    ["standard", "deployMarket"],
+    ["standard", "deployMarketAndHooks"],
+    ["revolving", "deployMarket"],
+    ["revolving", "deployMarketAndHooks"],
+  ] as const)(
+    "encodes unscheduled Sepolia %s/%s with the new factory tuple",
+    (kind, fn) => {
+      const factory =
+        kind === "standard"
+          ? getStandardHooksFactoryContract(
+              SupportedChainId.Sepolia,
+              {} as SignerOrProvider,
+            )
+          : getRevolvingHooksFactoryContract(
+              SupportedChainId.Sepolia,
+              {} as SignerOrProvider,
+            )
+      const parameters = {
+        asset: borrower,
+        namePrefix: "Market",
+        symbolPrefix: "M",
+        maxTotalSupply: BigInt(1000),
+        annualInterestBips: 1000,
+        delinquencyFeeBips: 500,
+        withdrawalBatchDuration: 3600,
+        reserveRatioBips: 2000,
+        delinquencyGracePeriod: 3600,
+        hooks: BigInt(0),
+      }
+      const args = [
+        ...(fn === "deployMarketAndHooks" ? [borrower, "0x"] : []),
+        parameters,
+        "0x",
+        ...(kind === "revolving" ? ["0x"] : []),
+        salt,
+        zeroAddress,
+        BigInt(0),
+      ]
+      const data = factory.interface.encodeFunctionData(fn, args) as Hex
+      const decoded = decodeFunctionData({
+        abi: getHooksFactoryDeploymentAbi(SupportedChainId.Sepolia, kind),
+        data,
+      })
+      expect(decoded.functionName).toBe(fn)
+      expect(decoded.args?.[fn === "deployMarket" ? 0 : 2]).toMatchObject({
+        asset: borrower,
+        repaymentDate: 0,
+        repaymentPeriod: 0,
+      })
+    },
+  )
 
   it("creates one borrower-administered access list for a fresh v2.5 policy", () => {
     expect(
@@ -197,6 +255,14 @@ describe("createMarketDeploy", () => {
   })
 
   it.each<[Exclude<DeployMarketStatus, DeployMarketStatus.Ready>, string]>([
+    [
+      DeployMarketStatus.InvalidRepaymentTerms,
+      "The repayment date and period are invalid",
+    ],
+    [
+      DeployMarketStatus.RepaymentTermsUnsupported,
+      "Scheduled repayment is not supported by this deployment target",
+    ],
     [
       DeployMarketStatus.InvalidAccessConfiguration,
       "Restricted withdrawals require restricted deposits and restricted or disabled transfers",

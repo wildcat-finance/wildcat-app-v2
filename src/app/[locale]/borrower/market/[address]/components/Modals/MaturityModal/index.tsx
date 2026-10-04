@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ChangeEvent, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 
 import { Box, Button, Dialog, SvgIcon } from "@mui/material"
 import { DesktopDatePicker } from "@mui/x-date-pickers"
@@ -8,7 +8,6 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
 import {
   HooksKind,
   MarketAccount,
-  SetFixedTermEndTimePreview,
   SetFixedTermEndTimeStatus,
 } from "@wildcatfi/wildcat-sdk"
 import { Dayjs } from "dayjs"
@@ -21,12 +20,11 @@ import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/component
 import { useApprovalModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
 import { TxModalDialog } from "@/app/[locale]/borrower/market/[address]/components/Modals/style"
 import ArrowLeftIcon from "@/assets/icons/sharpArrow_icon.svg"
-import { NumberTextField } from "@/components/NumberTextfield"
-import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
+import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import {
   formatUtcMaturity,
   pickerDateToUtcMaturity,
@@ -67,12 +65,6 @@ export const MaturityModal = ({
   const [maturity, setMaturity] = useState<Dayjs | null | undefined>(undefined)
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
-  const [maturityError, setMaturityError] = useState<string | undefined>(
-    undefined,
-  )
-  const [preview, setPreview] = useState<
-    SetFixedTermEndTimePreview | undefined
-  >()
   const modal = useApprovalModal(
     setShowSuccessPopup,
     setShowErrorPopup,
@@ -89,39 +81,15 @@ export const MaturityModal = ({
 
   const { market } = marketAccount
 
-  // todo: write hook for mutation
-
-  const handleMaturityChange = (value: Dayjs | null) => {
-    setMaturity(value)
-
-    const newPreview = value
-      ? marketAccount.previewSetFixedTermEndTime(pickerDateToUtcMaturity(value))
+  const preview = maturity?.isValid()
+    ? marketAccount.previewSetFixedTermEndTime(
+        pickerDateToUtcMaturity(maturity),
+      )
+    : undefined
+  const maturityError =
+    preview && preview.status !== SetFixedTermEndTimeStatus.Ready
+      ? SDK_ERRORS_MAPPING.setMaturity[preview.status]
       : undefined
-    setPreview(newPreview)
-    if (newPreview && newPreview.status !== SetFixedTermEndTimeStatus.Ready) {
-      const errorMessages: {
-        [key in Exclude<
-          SetFixedTermEndTimeStatus,
-          SetFixedTermEndTimeStatus.Ready
-        >]: string
-      } = {
-        [SetFixedTermEndTimeStatus.FixedTermEndTimeIncrease]:
-          "You cannot increase the maturity date",
-        [SetFixedTermEndTimeStatus.FixedTermEndTimeNotChangeable]:
-          "This market does not allow modifications to the maturity date",
-        [SetFixedTermEndTimeStatus.NotFixedTermMarket]:
-          "This is not a fixed term market. How did you get here?",
-        [SetFixedTermEndTimeStatus.NotBorrower]:
-          "You are not a borrower. How did you get here?",
-        [SetFixedTermEndTimeStatus.NotV2Market]:
-          "This is not a V2 market. How did you get here?",
-      }
-      const errorMessage = errorMessages[newPreview.status]
-      setMaturityError(errorMessage)
-    } else {
-      setMaturityError(undefined)
-    }
-  }
 
   const handleOpen = () => {
     modal.handleOpenModal()
@@ -139,10 +107,11 @@ export const MaturityModal = ({
     setShowSuccessPopup(false)
   }
 
-  const disableAdjustMaturity = market.isClosed
+  const disableAdjustMaturity =
+    market.isClosed || market.hasFrozenHookParameters
 
   const disableConfirm =
-    !maturity || preview?.status !== SetFixedTermEndTimeStatus.Ready
+    disableAdjustMaturity || preview?.status !== SetFixedTermEndTimeStatus.Ready
 
   const showForm = !(isPending || showSuccessPopup || showErrorPopup)
 
@@ -211,7 +180,7 @@ export const MaturityModal = ({
                 format="DD/MM/YYYY"
                 value={maturity}
                 onChange={(v) => {
-                  handleMaturityChange(v)
+                  setMaturity(v)
                 }}
                 minDate={today}
                 maxDate={utcMaturityToPickerDate(hooksConfig!.fixedTermEndTime)}

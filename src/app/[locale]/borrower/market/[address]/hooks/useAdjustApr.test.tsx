@@ -43,11 +43,13 @@ const createWrapper = () => {
 }
 
 describe("useAdjustAPR", () => {
+  const update = jest.fn()
   const proposeAnnualInterestBips = jest.fn()
   const setAnnualInterestBips = jest.fn()
   const marketAccount = {
     chainId: 11155111,
     market: {
+      update,
       chainId: 11155111,
       address: "0x2222222222222222222222222222222222222222",
       periodicHooksConfig: {
@@ -60,6 +62,18 @@ describe("useAdjustAPR", () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    update.mockReset()
+    update.mockResolvedValue(undefined)
+    marketAccount.market.isClosed = false
+    marketAccount.market.repaymentDate = 0
+    Object.defineProperty(marketAccount.market, "hasReachedRepaymentDate", {
+      configurable: true,
+      get: () => marketAccount.market.repaymentDate !== 0,
+    })
+    Object.defineProperty(marketAccount.market, "hasFrozenHookParameters", {
+      configurable: true,
+      get: () => marketAccount.market.hasReachedRepaymentDate,
+    })
     proposeAnnualInterestBips.mockResolvedValue(HASH)
     setAnnualInterestBips.mockResolvedValue(HASH)
     waitForSubmittedTransactionMock.mockResolvedValue({
@@ -80,6 +94,9 @@ describe("useAdjustAPR", () => {
     })
 
     expect(proposeAnnualInterestBips).toHaveBeenCalledWith(200)
+    expect(update.mock.invocationCallOrder[0]).toBeLessThan(
+      proposeAnnualInterestBips.mock.invocationCallOrder[0],
+    )
     expect(setAnnualInterestBips).not.toHaveBeenCalled()
     expect(setTxHash).toHaveBeenNthCalledWith(1, HASH)
     expect(setTxHash).toHaveBeenNthCalledWith(2, TRANSACTION_HASH)
@@ -98,5 +115,39 @@ describe("useAdjustAPR", () => {
 
     expect(setAnnualInterestBips).toHaveBeenCalledWith(1_100)
     expect(proposeAnnualInterestBips).not.toHaveBeenCalled()
+  })
+
+  it.each(["set", "propose"] as const)(
+    "blocks %s if repayment starts after the dialog preview",
+    async (mode) => {
+      update.mockImplementationOnce(async () => {
+        marketAccount.market.repaymentDate = 1
+      })
+      const { result } = renderHook(
+        () => useAdjustAPR(marketAccount, jest.fn()),
+        { wrapper: createWrapper() },
+      )
+      await act(async () => {
+        await expect(
+          result.current.mutateAsync({ apr: 2, mode }),
+        ).rejects.toThrow("after the repayment date")
+      })
+      expect(setAnnualInterestBips).not.toHaveBeenCalled()
+      expect(proposeAnnualInterestBips).not.toHaveBeenCalled()
+    },
+  )
+
+  it("does not submit when the state refresh fails", async () => {
+    update.mockRejectedValueOnce(new Error("RPC unavailable"))
+    const { result } = renderHook(
+      () => useAdjustAPR(marketAccount, jest.fn()),
+      { wrapper: createWrapper() },
+    )
+    await act(async () => {
+      await expect(result.current.mutateAsync(11)).rejects.toThrow(
+        "RPC unavailable",
+      )
+    })
+    expect(setAnnualInterestBips).not.toHaveBeenCalled()
   })
 })

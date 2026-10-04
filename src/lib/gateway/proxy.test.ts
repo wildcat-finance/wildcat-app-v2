@@ -94,7 +94,7 @@ describe("gateway proxy routes", () => {
     const response = await graphPost(makeRequest("graph"), context)
     await response.text()
     expect(mockFetch).toHaveBeenCalledWith(
-      "https://graph.wildcat.finance/sepolia/v2.5.12",
+      "https://graph.wildcat.finance/sepolia/v2.5.14",
       expect.objectContaining({ body: JSON.stringify(graphBody) }),
     )
   })

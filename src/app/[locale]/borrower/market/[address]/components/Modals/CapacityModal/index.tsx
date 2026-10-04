@@ -2,7 +2,7 @@ import * as React from "react"
 import { ChangeEvent, useEffect, useState } from "react"
 
 import { Box, Button, Dialog, Typography } from "@mui/material"
-import { MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { MarketAccount, SetMaxTotalSupplyStatus } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
@@ -19,6 +19,7 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 export const CapacityModal = ({
@@ -63,9 +64,20 @@ export const CapacityModal = ({
 
   const showForm = !(isPending || showSuccessPopup || showErrorPopup)
 
-  const disableCapacity = market.isClosed
+  const preview =
+    amount !== ""
+      ? marketAccount.previewSetMaxTotalSupply(
+          market.underlyingToken.parseAmount(amount),
+        )
+      : undefined
+  const capacityError =
+    preview && preview.status !== SetMaxTotalSupplyStatus.Ready
+      ? SDK_ERRORS_MAPPING.setCapacity[preview.status]
+      : undefined
+  const disableCapacity = market.isClosed || market.hasFrozenHookParameters
 
-  const disableConfirm = amount === ""
+  const disableConfirm =
+    disableCapacity || preview?.status !== SetMaxTotalSupplyStatus.Ready
 
   useEffect(() => {
     if (isError) {
@@ -123,6 +135,8 @@ export const CapacityModal = ({
               style={{ width: "100%" }}
               value={amount}
               onChange={handleAmountChange}
+              error={!!capacityError}
+              helperText={capacityError}
               endAdornment={
                 <TextfieldChip
                   text={market.underlyingToken.symbol}

@@ -10,6 +10,7 @@ import {
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { getAprChangeError } from "@/utils/marketParameterChanges"
 import { invalidateMarketStateQueries } from "@/utils/marketStateQueries"
 import {
   toSdkTransactionRequest,
@@ -38,6 +39,10 @@ export const useResetTempReserveRatio = (
       }
 
       const { market } = marketAccount
+
+      await market.update()
+      const error = getAprChangeError(market)
+      if (error) throw Error(error)
 
       const resetRatio = async () => {
         const tx = prepareTransaction({

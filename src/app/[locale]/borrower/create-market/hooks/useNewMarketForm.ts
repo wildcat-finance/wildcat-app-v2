@@ -20,7 +20,10 @@ import {
   getPeriodicTermIssues,
   marketRefinementCallback,
 } from "@/app/[locale]/borrower/create-market/validation/validationSchema"
-import { formatConstrainToNumber } from "@/utils/formatters"
+import {
+  formatConstrainToNumber,
+  RequiredMarketConstraint,
+} from "@/utils/formatters"
 
 export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
   implementationType: "standard",
@@ -60,7 +63,7 @@ function getValidationSchema(
   isTestnet: boolean,
   maxLabel: string,
 ) {
-  const getFormattedConstrain = (key: keyof MarketParameterConstraints) =>
+  const getFormattedConstrain = (key: RequiredMarketConstraint) =>
     formatConstrainToNumber(constraints, key)
 
   const baseObjectSchema = createBaseMarketSchemaObject(isTestnet, maxLabel)

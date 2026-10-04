@@ -43,6 +43,15 @@ export const useBorrow = (
       const tokenAmount =
         marketAccount.market.underlyingToken.parseAmount(amount)
 
+      await marketAccount.market.update()
+      if (
+        marketAccount.market.isClosed ||
+        marketAccount.market.hasReachedRepaymentDate ||
+        tokenAmount.gt(marketAccount.market.borrowableAssets)
+      ) {
+        throw Error("The requested amount is no longer available to borrow")
+      }
+
       const borrow = async () => {
         const hash = await marketAccount.borrow(tokenAmount)
 

@@ -174,6 +174,12 @@ export const getCreateMarketDeployRouting = ({
 export const getDeployMarketPreviewError = (
   status: Exclude<DeployMarketStatus, DeployMarketStatus.Ready>,
 ) => {
+  if (status === DeployMarketStatus.InvalidRepaymentTerms) {
+    return "The repayment date and period are invalid"
+  }
+  if (status === DeployMarketStatus.RepaymentTermsUnsupported) {
+    return "Scheduled repayment is not supported by this deployment target"
+  }
   if (status === DeployMarketStatus.InvalidAccessConfiguration) {
     return "Restricted withdrawals require restricted deposits and restricted or disabled transfers"
   }

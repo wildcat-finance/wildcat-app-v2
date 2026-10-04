@@ -15,6 +15,7 @@ import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { isUSDTLikeToken } from "@/utils/constants"
+import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { invalidateMarketStateQueries } from "@/utils/marketStateQueries"
 import { waitForSubmittedTransaction } from "@/utils/transactions"
 
@@ -51,6 +52,7 @@ export const useDeposit = (
         throw Error("Signing account does not match market account")
       }
 
+      await marketAccount.market.update()
       const step = marketAccount.previewDeposit(tokenAmount)
 
       const gnosisTransactions: SafeTransactionInput[] = []
@@ -76,7 +78,8 @@ export const useDeposit = (
           )
         } else {
           throw Error(
-            `Should not be able to reach useDeposit when status not ready and not connected to safe`,
+            SDK_ERRORS_MAPPING.deposit[step.status] ??
+              "Deposit approval is required",
           )
         }
       }
