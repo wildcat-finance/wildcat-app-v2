@@ -7,7 +7,7 @@ export const METRIC_BASIS = {
   currentUsd:
     "Latest-price USD estimate using the most recent available token price.",
   analyticsDebtUsd:
-    "Analytics USD debt snapshot; compare to market pages only after converting live token debt to the same USD basis.",
+    "USD value of debt to lenders across active markets, including unfunded withdrawals from expired cycles. Excludes funded withdrawals awaiting collection and protocol fees. Uses indexed market balances and the latest available token prices.",
 } as const
 
 export type MetricBasis = keyof typeof METRIC_BASIS

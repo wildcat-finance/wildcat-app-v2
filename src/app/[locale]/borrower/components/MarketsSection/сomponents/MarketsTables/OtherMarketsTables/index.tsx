@@ -26,6 +26,7 @@ import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { LiveMarketDataValue } from "@/components/MarketLiveData"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { TablePagination } from "@/components/TablePagination"
+import { TotalDebtHeader } from "@/components/TotalDebtHeader"
 import { useMarketRowPrefetchHandlers } from "@/hooks/usePrefetchMarketDetailMetadata"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -46,6 +47,7 @@ import {
 } from "@/utils/formatters"
 import { getDisplayLenderAprBips } from "@/utils/marketApr"
 import { isSelfOnboardMarketAccount } from "@/utils/marketCapabilities"
+import { getMarketTotalDebt } from "@/utils/marketDebt"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -142,7 +144,7 @@ export const OtherMarketsTables = ({
         apr: getDisplayLenderAprBips(market),
         capacityLeft: maxTotalSupply.sub(totalSupply),
         borrowable: borrowableAssets,
-        debt: totalSupply,
+        debt: getMarketTotalDebt(market),
         withdrawalBatchDuration,
         isSelfOnboard: isSelfOnboardMarketAccount(account),
       }
@@ -453,6 +455,7 @@ export const OtherMarketsTables = ({
     {
       field: "debt",
       headerName: t("common.fields.totalDebt"),
+      renderHeader: () => <TotalDebtHeader />,
       minWidth: 100,
       flex: 1,
       headerAlign: "right",

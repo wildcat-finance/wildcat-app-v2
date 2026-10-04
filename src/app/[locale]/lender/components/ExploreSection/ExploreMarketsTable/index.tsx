@@ -45,6 +45,7 @@ import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
 import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
 import { MobileSearchButton } from "@/components/Mobile/MobileSearchButton"
 import { RepeatingSkeletons } from "@/components/RepeatingSkeletons"
+import { TotalDebtHeader } from "@/components/TotalDebtHeader"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useMarketHref } from "@/hooks/useMarketHref"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -66,6 +67,7 @@ import {
   trimAddress,
 } from "@/utils/formatters"
 import { getDisplayLenderAprBips } from "@/utils/marketApr"
+import { getMarketTotalDebt } from "@/utils/marketDebt"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import {
   getLenderMarketAction,
@@ -448,7 +450,7 @@ export const ExploreMarketsTable = () => {
           asset: underlyingToken.symbol,
           apr: getDisplayLenderAprBips(market),
           withdrawalBatchDuration,
-          debt: totalSupply,
+          debt: getMarketTotalDebt(market),
           capacity: maxTotalSupply,
           capacityLeft: maxTotalSupply.sub(totalSupply),
           onboardingMode: getKnownMarketOnboardingMode(
@@ -636,6 +638,9 @@ export const ExploreMarketsTable = () => {
       {
         field: "debt",
         headerName: t("common.fields.totalDebtRemaining"),
+        renderHeader: () => (
+          <TotalDebtHeader label={t("common.fields.totalDebtRemaining")} />
+        ),
         minWidth: 200,
         flex: 1.5,
         headerAlign: "right",

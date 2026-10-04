@@ -25,6 +25,7 @@ import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
+import { TotalDebtHeader } from "@/components/TotalDebtHeader"
 import { useMarketHref } from "@/hooks/useMarketHref"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -43,6 +44,7 @@ import {
   trimAddress,
 } from "@/utils/formatters"
 import { getDisplayLenderAprBips } from "@/utils/marketApr"
+import { getMarketTotalDebt } from "@/utils/marketDebt"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -135,7 +137,7 @@ export const ActiveMarketsTables = ({
         apr: getDisplayLenderAprBips(market),
         withdrawalBatchDuration,
         loan: marketBalance,
-        debt: totalSupply,
+        debt: getMarketTotalDebt(market),
         capacity: maxTotalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
         hasEverInteracted,
@@ -309,6 +311,7 @@ export const ActiveMarketsTables = ({
     {
       field: "debt",
       headerName: t("common.fields.totalDebt"),
+      renderHeader: () => <TotalDebtHeader />,
       minWidth: 100,
       flex: 1,
       headerAlign: "right",

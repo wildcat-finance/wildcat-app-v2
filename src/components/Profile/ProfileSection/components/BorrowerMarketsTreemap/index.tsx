@@ -21,6 +21,7 @@ import { formatUsd } from "@/components/Profile/shared/analytics"
 import { AnalyticsChartCard } from "@/components/Profile/shared/AnalyticsChartCard"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
+import { getMarketTotalDebt } from "@/utils/marketDebt"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 
 type BorrowerMarketsTreemapProps = {
@@ -94,7 +95,7 @@ const buildTreemapRows = (
     const { status } = getMarketStatusChip(market)
     const statusStyle = STATUS_STYLE[status]
     const price = getMarketPrice(market, priceMap)
-    const debt = getTokenAmountValue(market.totalDebts)
+    const debt = getTokenAmountValue(getMarketTotalDebt(market))
     const capacity = getTokenAmountValue(market.maxTotalSupply)
     const supply = getTokenAmountValue(market.totalSupply)
     const debtUsd = debt * price
@@ -144,7 +145,7 @@ const buildTreemapData = (
       rawSize,
     } = row
     const apr = formatApr(market.annualInterestBips)
-    const debtLabel = formatTokenOrUsd(debtUsd, market.totalDebts)
+    const debtLabel = formatTokenOrUsd(debtUsd, getMarketTotalDebt(market))
     const capacityLabel = formatTokenOrUsd(capacityUsd, market.maxTotalSupply)
     const supplyLabel = formatTokenOrUsd(supplyUsd, market.totalSupply)
     const utilization =

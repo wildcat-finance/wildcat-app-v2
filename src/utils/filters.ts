@@ -3,6 +3,7 @@ import { Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import { getMarketStatus } from "@/utils/marketStatus"
+import { getMarketTypeChip } from "@/utils/marketType"
 
 import { EXCLUDED_MARKETS, EXCLUDED_BORROWERS } from "./constants"
 
@@ -22,6 +23,69 @@ export const isNotExcludedMarket = (market: Market | string) =>
 export const excludedMarketsFilter = (): { excludeAddresses?: string[] } =>
   EXCLUDED_MARKETS.length > 0 ? { excludeAddresses: EXCLUDED_MARKETS } : {}
 
+const matchesStatuses = (market: Market, statuses: SmallFilterSelectItem[]) =>
+  statuses.length === 0 ||
+  statuses
+    .map((status) => status.name)
+    .includes(
+      getMarketStatus(
+        market.isClosed,
+        market.isDelinquent || market.willBeDelinquent,
+        market.isIncurringPenalties,
+      ),
+    )
+
+const matchesAssets = (market: Market, assets: SmallFilterSelectItem[]) =>
+  assets.length === 0 ||
+  assets.map((asset) => asset.name).includes(market.underlyingToken.symbol)
+
+export const WITHDRAWAL_CYCLE_FILTER_OPTIONS = [
+  { id: "0-86400", name: "≤ 24h" },
+  { id: "86401-259200", name: "1 - 3 days" },
+  { id: "259201-604800", name: "3 - 7 days" },
+  { id: "604801-Infinity", name: "7+ days" },
+]
+
+const matchesWithdrawalCycles = (
+  market: Market,
+  withdrawalCycles: SmallFilterSelectItem[],
+) =>
+  withdrawalCycles.length === 0 ||
+  withdrawalCycles.some((cycle) => {
+    const [min, max] = cycle.id.split("-").map(Number)
+    return (
+      market.withdrawalBatchDuration >= min &&
+      market.withdrawalBatchDuration <= max
+    )
+  })
+
+// Term ids are HooksKind values (OpenTerm / PeriodicTerm / FixedTerm).
+const matchesTerms = (market: Market, terms: SmallFilterSelectItem[]) =>
+  terms.length === 0 ||
+  terms.some((term) => term.id === getMarketTypeChip(market).kind)
+
+export const filterMarkets = (
+  markets: Market[] | undefined,
+  {
+    statuses = [],
+    assets = [],
+    withdrawalCycles = [],
+    terms = [],
+  }: {
+    statuses?: SmallFilterSelectItem[]
+    assets?: SmallFilterSelectItem[]
+    withdrawalCycles?: SmallFilterSelectItem[]
+    terms?: SmallFilterSelectItem[]
+  },
+) =>
+  (markets ?? []).filter(
+    (market) =>
+      matchesStatuses(market, statuses) &&
+      matchesAssets(market, assets) &&
+      matchesWithdrawalCycles(market, withdrawalCycles) &&
+      matchesTerms(market, terms),
+  )
+
 export const filterMarketAccounts = (
   marketAccounts: MarketAccount[] | undefined,
   search: string,
@@ -33,8 +97,6 @@ export const filterMarketAccounts = (
   if (!marketAccounts) return []
 
   let filteredMarkets = marketAccounts
-
-  const assetsNames = assets.map((asset) => asset.name)
 
   if (filteredMarkets && search !== "") {
     const searchString = search.toLowerCase()
@@ -69,37 +131,10 @@ export const filterMarketAccounts = (
     })
   }
 
-  if (filteredMarkets && statuses.length > 0) {
-    const statusesNames = statuses.map((status) => status.name)
-
-    filteredMarkets = filteredMarkets.filter(({ market }) =>
-      statusesNames.includes(
-        getMarketStatus(
-          market.isClosed,
-          market.isDelinquent || market.willBeDelinquent,
-          market.isIncurringPenalties,
-        ),
-      ),
-    )
-  }
-
-  if (filteredMarkets && assets.length > 0) {
-    filteredMarkets = filteredMarkets.filter(({ market }) =>
-      assetsNames.includes(market.underlyingToken.symbol),
-    )
-  }
-
-  if (filteredMarkets && withdrawalCycles.length > 0) {
-    filteredMarkets = filteredMarkets.filter(({ market }) =>
-      withdrawalCycles.some((cycle) => {
-        const [min, max] = cycle.id.split("-").map(Number)
-        return (
-          market.withdrawalBatchDuration >= min &&
-          market.withdrawalBatchDuration <= max
-        )
-      }),
-    )
-  }
-
-  return filteredMarkets
+  return filteredMarkets.filter(
+    ({ market }) =>
+      matchesStatuses(market, statuses) &&
+      matchesAssets(market, assets) &&
+      matchesWithdrawalCycles(market, withdrawalCycles),
+  )
 }

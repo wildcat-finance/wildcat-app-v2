@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next"
 import { MarketImplementationChip } from "@/components/@extended/MarketImplementationChip"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { TotalDebtHeader } from "@/components/TotalDebtHeader"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import {
@@ -22,6 +23,7 @@ import {
   formatTokenWithCommas,
 } from "@/utils/formatters"
 import { getDisplayLenderAprBips } from "@/utils/marketApr"
+import { getMarketTotalDebt } from "@/utils/marketDebt"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -175,6 +177,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
     {
       field: "debt",
       headerName: t("common.fields.totalDebt"),
+      renderHeader: () => <TotalDebtHeader />,
       minWidth: 110,
       headerAlign: "right",
       align: "right",
@@ -221,8 +224,6 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
 
   const rows: GridRowsProp<MarketsTableModel> = markets.map((market) => {
     const { address, name, underlyingToken } = market
-    const { borrowed } = market.getTotalDebtBreakdown()
-
     const marketStatus = getMarketStatusChip(market)
     const implementationType = getMarketImplementationType(market)
     const term = getMarketTypeChip(market)
@@ -236,7 +237,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
       name,
       asset: underlyingToken.symbol,
       apr: getDisplayLenderAprBips(market),
-      debt: borrowed.lt(0) ? underlyingToken.getAmount(0) : borrowed,
+      debt: getMarketTotalDebt(market),
     }
   })
 

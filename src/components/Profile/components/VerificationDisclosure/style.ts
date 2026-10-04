@@ -7,7 +7,6 @@ export type VerificationDisclosureVariant = "desktop" | "market" | "inline"
 const NOTE_LAYOUT = {
   desktop: {
     width: "320px",
-    right: "clamp(20px, 2vw, 40px)",
   },
   market: {
     width: "280px",
@@ -17,20 +16,15 @@ const NOTE_LAYOUT = {
 
 const DESKTOP_NOTE_GAP = "36px"
 
-export const BORROWER_PROFILE_VERIFICATION_GUTTER = `calc(${NOTE_LAYOUT.desktop.right} + ${NOTE_LAYOUT.desktop.width} + ${DESKTOP_NOTE_GAP})`
+export const BORROWER_PROFILE_VERIFICATION_COLUMN = {
+  width: NOTE_LAYOUT.desktop.width,
+  gap: DESKTOP_NOTE_GAP,
+} as const
 
 const getVerificationNoteWidth = (variant: VerificationDisclosureVariant) => {
   if (variant === "inline") return "100%"
 
   return NOTE_LAYOUT[variant].width
-}
-
-const getVerificationNoteRightOffset = (
-  variant: VerificationDisclosureVariant,
-) => {
-  if (variant === "inline") return undefined
-
-  return NOTE_LAYOUT[variant].right
 }
 
 export const VerificationNoteContainer =
@@ -44,13 +38,12 @@ export const VerificationNoteContainer =
     padding: variant === "inline" ? "20px 22px" : "14px 16px",
     ...(variant !== "inline"
       ? {
-          position: variant === "desktop" ? "absolute" : "fixed",
-          top: variant === "desktop" ? "-32px" : "118px",
-          right:
-            variant === "desktop"
-              ? `calc(0px - ${NOTE_LAYOUT.desktop.width} - ${DESKTOP_NOTE_GAP})`
-              : getVerificationNoteRightOffset(variant),
-          zIndex: 1,
+          ...(variant === "market" && {
+            position: "fixed" as const,
+            top: "118px",
+            right: NOTE_LAYOUT.market.right,
+            zIndex: 1,
+          }),
           maxHeight: "calc(100vh - 142px)",
           overflowY: "auto",
           [theme.breakpoints.down(variant === "market" ? "xl" : "lg")]: {

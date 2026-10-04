@@ -248,7 +248,6 @@ export const BorrowerProfileVerificationDisclosure = ({
               padding: 0,
               minWidth: 0,
               gap: "6px",
-              display: "flex",
               width: "fit-content",
               fontSize: compactNote ? "12px" : undefined,
               lineHeight: compactNote ? "18px" : undefined,
@@ -256,18 +255,11 @@ export const BorrowerProfileVerificationDisclosure = ({
               color: COLORS.blueRibbon,
               "&:hover": {
                 backgroundColor: "transparent",
+                color: COLORS.cornflowerBlue,
               },
             }}
           >
             {t("borrower.profile.view.verification.detailsLink")}
-            <SvgIcon
-              sx={{
-                fontSize: "11px",
-                "& path": { stroke: COLORS.blueRibbon },
-              }}
-            >
-              <ArrowRightIcon />
-            </SvgIcon>
           </Button>
         </Box>
       )}
