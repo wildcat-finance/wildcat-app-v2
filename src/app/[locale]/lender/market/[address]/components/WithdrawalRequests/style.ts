@@ -41,7 +41,6 @@ export const MarketWithdrawalRequestsContainer = (
 })
 export const DataGridCells = {
   padding: "0px 16px 0px 16px",
-  "& .MuiDataGrid-topContainer": { marginBottom: "8px" },
   "& .MuiDataGrid-cell": { padding: "0px", minHeight: "52px", height: "auto" },
   "& .MuiDataGrid-columnHeader": { padding: "0px" },
 }

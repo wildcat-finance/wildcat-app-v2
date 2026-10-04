@@ -462,9 +462,7 @@ export const MobileMarketActions = ({
         <Box
           sx={{
             display: "flex",
-            flexDirection:
-              actionState.surface === "switch-network" ? "column" : "row",
-            gap: actionState.surface === "switch-network" ? 0 : "8px",
+            flexDirection: "column",
             padding: "12px",
             backgroundColor: COLORS.bunker,
             borderRadius: "14px",
@@ -472,104 +470,126 @@ export const MobileMarketActions = ({
             width: "100%",
           }}
         >
-          {actionState.surface === "switch-network" && (
-            <SwitchChainAlert desiredChainId={market.chainId} />
-          )}
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              flexDirection:
+                actionState.surface === "switch-network" ? "column" : "row",
+              gap: actionState.surface === "switch-network" ? 0 : "8px",
+            }}
+          >
+            {actionState.surface === "switch-network" && (
+              <SwitchChainAlert desiredChainId={market.chainId} />
+            )}
 
-          {actionState.surface !== "switch-network" &&
-            showQueueWithdrawalBlock && (
+            {actionState.surface !== "switch-network" &&
+              showQueueWithdrawalBlock && (
+                <Box
+                  sx={{
+                    flex: 1,
+                    minWidth: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                  }}
+                >
+                  <MobileMarketTransactionItem
+                    title={t(
+                      "marketDetails.lender.transactions.withdraw.mobileTitle",
+                    )}
+                    tooltip={withdrawTooltip}
+                    amount={formatTokenWithCommas(combinedAvailable)}
+                    asset={market.underlyingToken.symbol}
+                  />
+
+                  {hasWrappedPosition && wrappedAvailable && (
+                    <Box sx={{ marginTop: "4px" }}>
+                      <Typography
+                        variant="mobText3"
+                        sx={{ color: COLORS.white06, display: "block" }}
+                      >
+                        {t(
+                          "marketDetails.lender.transactions.withdraw.splitDirect",
+                          {
+                            amount: formatTokenWithCommas(
+                              marketAccount.marketBalance,
+                            ),
+                          },
+                        )}
+                      </Typography>
+                      <Typography
+                        variant="mobText3"
+                        sx={{ color: COLORS.white06, display: "block" }}
+                      >
+                        {t(
+                          "marketDetails.lender.transactions.withdraw.splitWrapped",
+                          { amount: formatTokenWithCommas(wrappedAvailable) },
+                        )}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  <Box sx={{ width: "100%", marginTop: "auto" }}>
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      size="large"
+                      fullWidth
+                      onClick={() =>
+                        setIsMobileWithdrawalOpen(!isMobileWithdrawalOpen)
+                      }
+                      disabled={!actionState.canWithdraw}
+                      sx={{ padding: "10px 20px", marginTop: "16px" }}
+                    >
+                      ↑{" "}
+                      {withdrawalActionState === "fixed-term"
+                        ? t(
+                            "marketDetails.lender.transactions.withdraw.buttonLocked",
+                          )
+                        : t(
+                            "marketDetails.lender.transactions.withdraw.button",
+                          )}
+                    </Button>
+                  </Box>
+                </Box>
+              )}
+
+            {actionState.surface === "actions" && (
               <Box
                 sx={{
-                  width: "100%",
+                  flex: 1,
+                  minWidth: 0,
                   display: "flex",
                   flexDirection: "column",
-                  alignItems: "flex-start",
+                  alignItems: "flex-end",
                 }}
               >
                 <MobileMarketTransactionItem
-                  title={t("marketDetails.lender.transactions.withdraw.title")}
-                  tooltip={withdrawTooltip}
-                  amount={formatTokenWithCommas(combinedAvailable)}
+                  title={t("marketDetails.lender.transactions.deposit.title")}
+                  tooltip={depositTooltip}
+                  amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
                   asset={market.underlyingToken.symbol}
                 />
 
-                {hasWrappedPosition && wrappedAvailable && (
-                  <Box sx={{ marginTop: "4px" }}>
-                    <Typography
-                      variant="mobText3"
-                      sx={{ color: COLORS.white06, display: "block" }}
-                    >
-                      {t(
-                        "marketDetails.lender.transactions.withdraw.splitDirect",
-                        {
-                          amount: formatTokenWithCommas(
-                            marketAccount.marketBalance,
-                          ),
-                        },
-                      )}
-                    </Typography>
-                    <Typography
-                      variant="mobText3"
-                      sx={{ color: COLORS.white06, display: "block" }}
-                    >
-                      {t(
-                        "marketDetails.lender.transactions.withdraw.splitWrapped",
-                        { amount: formatTokenWithCommas(wrappedAvailable) },
-                      )}
-                    </Typography>
-                  </Box>
-                )}
-
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  size="large"
-                  fullWidth
-                  onClick={() =>
-                    setIsMobileWithdrawalOpen(!isMobileWithdrawalOpen)
-                  }
-                  disabled={!actionState.canWithdraw}
-                  sx={{ padding: "10px 20px", marginTop: "16px" }}
-                >
-                  ↑{" "}
-                  {withdrawalActionState === "fixed-term"
-                    ? t(
-                        "marketDetails.lender.transactions.withdraw.buttonLocked",
-                      )
-                    : t("marketDetails.lender.transactions.withdraw.button")}
-                </Button>
-
-                {withdrawalActionState !== "ready" && (
-                  <Typography
-                    variant="mobText3"
-                    color={COLORS.white06}
-                    marginTop="12px"
-                  >
-                    {withdrawalUnavailableText}
-                  </Typography>
-                )}
+                <Box sx={{ width: "100%", marginTop: "auto" }}>
+                  {depositAction}
+                </Box>
               </Box>
             )}
+          </Box>
 
-          {actionState.surface === "actions" && (
-            <Box
-              sx={{
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-end",
-              }}
-            >
-              <MobileMarketTransactionItem
-                title={t("marketDetails.lender.transactions.deposit.title")}
-                tooltip={depositTooltip}
-                amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
-                asset={market.underlyingToken.symbol}
-              />
-
-              {depositAction}
-            </Box>
-          )}
+          {actionState.surface !== "switch-network" &&
+            showQueueWithdrawalBlock &&
+            withdrawalActionState !== "ready" && (
+              <Typography
+                variant="mobText3"
+                color={COLORS.white06}
+                marginTop="12px"
+              >
+                {withdrawalUnavailableText}
+              </Typography>
+            )}
         </Box>
       )}
     </Box>

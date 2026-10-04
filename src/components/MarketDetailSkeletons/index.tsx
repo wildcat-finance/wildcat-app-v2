@@ -1,5 +1,9 @@
 import { Box, Divider, Skeleton } from "@mui/material"
 
+import {
+  MarketHeaderTitleContainer,
+  MarketHeaderUpperContainer,
+} from "@/components/MarketHeader/style"
 import { COLORS } from "@/theme/colors"
 
 const skeletonStyle = {
@@ -11,6 +15,20 @@ const sectionWidth = {
   width: "100%",
   maxWidth: "807px",
 }
+
+export const MarketHeaderSkeleton = () => (
+  <Box sx={MarketHeaderUpperContainer}>
+    <Box sx={{ ...MarketHeaderTitleContainer, alignItems: "flex-start" }}>
+      <Skeleton height="40px" width="320px" sx={skeletonStyle} />
+      <Skeleton height="16px" width="48px" sx={skeletonStyle} />
+    </Box>
+    <Skeleton
+      height="20px"
+      width="66px"
+      sx={{ ...skeletonStyle, borderRadius: "4px" }}
+    />
+  </Box>
+)
 
 export const TransactionCardsSkeleton = () => (
   <Box
@@ -55,6 +73,35 @@ export const AccountRowsSkeleton = () => (
     <Skeleton height="36px" width="100%" sx={skeletonStyle} />
     <Skeleton height="36px" width="100%" sx={skeletonStyle} />
     <Skeleton height="36px" width="100%" sx={skeletonStyle} />
+  </Box>
+)
+
+export const MarketRecordsSkeleton = ({
+  isMobile = false,
+}: {
+  isMobile?: boolean
+}) => (
+  <Box
+    display="flex"
+    flexDirection="column"
+    padding={isMobile ? "8px 0" : "32px 16px"}
+    rowGap="8px"
+  >
+    <Skeleton
+      height={isMobile ? "60px" : "52px"}
+      width="100%"
+      sx={{ bgcolor: COLORS.athensGrey }}
+    />
+    <Skeleton
+      height={isMobile ? "60px" : "52px"}
+      width="100%"
+      sx={{ bgcolor: COLORS.athensGrey }}
+    />
+    <Skeleton
+      height={isMobile ? "60px" : "52px"}
+      width="100%"
+      sx={{ bgcolor: COLORS.athensGrey }}
+    />
   </Box>
 )
 

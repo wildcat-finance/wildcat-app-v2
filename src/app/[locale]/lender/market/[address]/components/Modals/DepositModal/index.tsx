@@ -15,9 +15,6 @@ import { DepositStatus, Signer, HooksKind } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
-import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
-import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
-import { SuccessModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import { useApprovalModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/hooks/useApprovalModal"
 import { useApprove } from "@/app/[locale]/borrower/market/[address]/hooks/useGetApproval"
 import { BorrowerPenaltyWarning } from "@/app/[locale]/lender/market/[address]/components/BorrowerPenaltyWarning"
@@ -36,6 +33,7 @@ import { TooltipButton } from "@/components/TooltipButton"
 import { Trans } from "@/components/Translation"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { TxStatusPanel, TxStatusSheet } from "@/components/TxStatusPanel"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useDepositAgreementGate } from "@/hooks/useDepositAgreementGate"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -47,6 +45,7 @@ import {
 } from "@/utils/constants"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas, formatUtcMaturity } from "@/utils/formatters"
+import { getStepProgress } from "@/utils/stepProgress"
 
 import { EarningsProjection } from "./EarningsProjection"
 import { DepositModalProps } from "./interface"
@@ -58,6 +57,8 @@ type BorrowerIdentityDisclosureProps = {
   legalName: string | undefined
   alias: string | undefined
 }
+
+const DEPOSIT_FLOW_STEPS = 3
 
 const BorrowerIdentityDisclosure = ({
   legalName,
@@ -285,11 +286,12 @@ export const DepositModal = ({
       return
 
     setTxHash("")
+    setShowErrorPopup(false)
+    setShowSuccessPopup(false)
     deposit(depositTokenAmount)
   }
 
   const handleTryAgain = () => {
-    setTxHash("")
     handleDeposit()
   }
 
@@ -442,6 +444,36 @@ export const DepositModal = ({
       : false
 
   const showForm = !(isDepositing || showSuccessPopup || showErrorPopup)
+
+  /**
+   * The transaction view, as a single value rather than three independent
+   * conditions rendered side by side. A pending transaction outranks a stored
+   * outcome, and a success outranks a stale failure, so a flag left over from
+   * an earlier attempt can no longer put two states on screen at once.
+   */
+  const txView = (() => {
+    if (isDepositing) return "loading" as const
+    if (showSuccessPopup) return "success" as const
+    if (showErrorPopup) return "error" as const
+    return null
+  })()
+
+  const [formNode, setFormNode] = useState<HTMLDivElement | null>(null)
+  const [formHeight, setFormHeight] = useState<number>()
+
+  useEffect(() => {
+    if (!formNode) return undefined
+
+    const measure = () => {
+      const height = formNode.offsetHeight
+      if (height > 0) setFormHeight(height)
+    }
+    measure()
+
+    const observer = new ResizeObserver(measure)
+    observer.observe(formNode)
+    return () => observer.disconnect()
+  }, [formNode])
 
   const underlyingBalanceIsZero = marketAccount.underlyingBalance.eq(0)
 
@@ -624,11 +656,10 @@ export const DepositModal = ({
   }
 
   const progressAmount = () => {
-    if (modal.gettingValueStep) return 33
-    if (isDepositing) return 66
-    if (showSuccessPopup) return 100
-
-    return 0
+    if (txView === "success" || isDeposed)
+      return getStepProgress(2, DEPOSIT_FLOW_STEPS)
+    if (txView || isDepositError) return getStepProgress(1, DEPOSIT_FLOW_STEPS)
+    return getStepProgress(0, DEPOSIT_FLOW_STEPS)
   }
 
   if (isMobile && isMobileOpen)
@@ -980,25 +1011,16 @@ export const DepositModal = ({
           </Box>
         </Box>
 
-        <Dialog
+        <TxStatusSheet
           open={isDepositing || showErrorPopup || showSuccessPopup}
-          sx={{
-            backdropFilter: "blur(10px)",
-
-            "& .MuiDialog-paper": {
-              height: "353px",
-              width: "100%",
-              border: "none",
-              borderRadius: "20px",
-              padding: "24px 0",
-              margin: "auto 0 4px",
-            },
-          }}
         >
-          {isDepositing && <LoadingModal txHash={txHash} />}
-          {showErrorPopup && (
-            <ErrorModal
-              onTryAgain={handleTryAgain}
+          {txView === "loading" && (
+            <TxStatusPanel status="loading" txHash={txHash} />
+          )}
+          {txView === "error" && (
+            <TxStatusPanel
+              status="error"
+              onAction={handleTryAgain}
               onClose={() => {
                 setShowErrorPopup(false)
                 resetDeposit()
@@ -1008,8 +1030,9 @@ export const DepositModal = ({
               txHash={txHash}
             />
           )}
-          {showSuccessPopup && (
-            <SuccessModal
+          {txView === "success" && (
+            <TxStatusPanel
+              status="success"
               onClose={() => {
                 setShowSuccessPopup(false)
                 resetDeposit()
@@ -1019,7 +1042,7 @@ export const DepositModal = ({
               txHash={txHash}
             />
           )}
-        </Dialog>
+        </TxStatusSheet>
       </>
     )
 
@@ -1091,7 +1114,7 @@ export const DepositModal = ({
               border: "none",
               borderRadius: "20px",
               margin: 0,
-              padding: showForm ? 0 : "24px 0",
+              padding: 0,
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
@@ -1099,7 +1122,15 @@ export const DepositModal = ({
           }}
         >
           {showForm && (
-            <>
+            <Box
+              ref={setFormNode}
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                flex: 1,
+                minHeight: 0,
+              }}
+            >
               <Box
                 flexShrink={0}
                 paddingTop="14px"
@@ -1446,72 +1477,92 @@ export const DepositModal = ({
                   </>
                 )}
               </Box>
-            </>
+
+              <Box
+                sx={{
+                  flexShrink: 0,
+                  padding: "12px 0 24px",
+                  backgroundColor: COLORS.white,
+                }}
+              >
+                <Box sx={{ height: "44px" }}>
+                  {txHash !== "" && (
+                    <LinkGroup
+                      type="etherscan"
+                      linkValue={getTxUrl(txHash as string)}
+                      groupSX={{ padding: "8px", marginBottom: "8px" }}
+                    />
+                  )}
+                </Box>
+
+                {gate.gateActive ? (
+                  <TxModalFooter
+                    mainBtnText={t(
+                      borrowerPenaltyVerificationUnavailable
+                        ? "marketDetails.lender.modals.deposit.gate.unavailableButton"
+                        : "marketDetails.lender.modals.deposit.gate.button",
+                    )}
+                    mainBtnOnClick={gate.accept}
+                    disableMainBtn={!gate.acknowledged}
+                    hideButtons={!showForm}
+                  />
+                ) : (
+                  <TxModalFooter
+                    mainBtnText={t(
+                      "marketDetails.lender.transactions.deposit.button",
+                    )}
+                    secondBtnText={
+                      // eslint-disable-next-line no-nested-ternary
+                      isConnectedToSafe
+                        ? undefined
+                        : isApprovedButton
+                          ? t("common.buttons.approved")
+                          : t("common.buttons.approve")
+                    }
+                    secondBtnIcon={isApprovedButton && !isConnectedToSafe}
+                    mainBtnOnClick={handleDeposit}
+                    secondBtnOnClick={handleApprove}
+                    disableMainBtn={disableDeposit}
+                    disableSecondBtn={disableApprove}
+                    secondBtnLoading={isApproving}
+                    hideButtons={!showForm}
+                  />
+                )}
+              </Box>
+            </Box>
           )}
 
-          {isDepositing && <LoadingModal txHash={txHash} />}
-          {showErrorPopup && (
-            <ErrorModal
-              onTryAgain={handleTryAgain}
-              onClose={() => {
-                setShowErrorPopup(false)
-                resetDeposit()
-                modal.handleCloseModal()
-              }}
-              txHash={txHash}
-            />
-          )}
-          {showSuccessPopup && (
-            <SuccessModal onClose={modal.handleCloseModal} txHash={txHash} />
-          )}
-
-          {showForm && (
+          {!showForm && (
             <Box
               sx={{
-                flexShrink: 0,
-                padding: "12px 0 24px",
-                backgroundColor: COLORS.white,
+                height: formHeight,
+                minHeight: "353px",
+                boxSizing: "border-box",
+                padding: "24px 0",
+                display: "flex",
+                flexDirection: "column",
               }}
             >
-              {txHash !== "" && (
-                <LinkGroup
-                  type="etherscan"
-                  linkValue={getTxUrl(txHash as string)}
-                  groupSX={{ padding: "8px", marginBottom: "8px" }}
+              {txView === "loading" && (
+                <TxStatusPanel status="loading" txHash={txHash} />
+              )}
+              {txView === "error" && (
+                <TxStatusPanel
+                  status="error"
+                  onAction={handleTryAgain}
+                  onClose={() => {
+                    setShowErrorPopup(false)
+                    resetDeposit()
+                    modal.handleCloseModal()
+                  }}
+                  txHash={txHash}
                 />
               )}
-
-              {gate.gateActive ? (
-                <TxModalFooter
-                  mainBtnText={t(
-                    borrowerPenaltyVerificationUnavailable
-                      ? "marketDetails.lender.modals.deposit.gate.unavailableButton"
-                      : "marketDetails.lender.modals.deposit.gate.button",
-                  )}
-                  mainBtnOnClick={gate.accept}
-                  disableMainBtn={!gate.acknowledged}
-                  hideButtons={!showForm}
-                />
-              ) : (
-                <TxModalFooter
-                  mainBtnText={t(
-                    "marketDetails.lender.transactions.deposit.button",
-                  )}
-                  secondBtnText={
-                    // eslint-disable-next-line no-nested-ternary
-                    isConnectedToSafe
-                      ? undefined
-                      : isApprovedButton
-                        ? t("common.buttons.approved")
-                        : t("common.buttons.approve")
-                  }
-                  secondBtnIcon={isApprovedButton && !isConnectedToSafe}
-                  mainBtnOnClick={handleDeposit}
-                  secondBtnOnClick={handleApprove}
-                  disableMainBtn={disableDeposit}
-                  disableSecondBtn={disableApprove}
-                  secondBtnLoading={isApproving}
-                  hideButtons={!showForm}
+              {txView === "success" && (
+                <TxStatusPanel
+                  status="success"
+                  onClose={modal.handleCloseModal}
+                  txHash={txHash}
                 />
               )}
             </Box>

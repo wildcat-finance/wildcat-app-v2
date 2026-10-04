@@ -11,6 +11,7 @@ import { formatUnits } from "viem"
 
 import { ROUTES } from "@/routes"
 import { dayjs } from "@/utils/dayjs"
+import { LenderMarketOrigin } from "@/utils/lenderMarketOrigin"
 
 // <---- TIMESTAMP TO DATE FORMATTERS ---->
 
@@ -247,10 +248,16 @@ export const formatTokenAmountPercentage = (
 export const buildMarketHref = (
   marketAddress: string,
   chainId?: number,
-  baseRoute: string = ROUTES.lender.market,
+  baseRoute?: string,
+  from?: LenderMarketOrigin,
 ) => {
-  const base = `${baseRoute}/${marketAddress}`
-  return chainId ? `${base}?chainId=${chainId}` : base
+  const route = baseRoute ?? ROUTES.lender.market
+  const base = `${route}/${marketAddress}`
+  const query = new URLSearchParams()
+  if (chainId) query.set("chainId", String(chainId))
+  if (from && route === ROUTES.lender.market) query.set("from", from)
+  const search = query.toString()
+  return search ? `${base}?${search}` : base
 }
 
 export const buildBorrowerProfileHref = (

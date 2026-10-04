@@ -36,6 +36,7 @@ const renderWarning = async (warning: WithdrawalBatchJoinWarningResult) => {
 }
 
 const baseWarning = {
+  isChecking: false,
   expiry: 1,
   openedSecondsAgo: 52 * 60,
   remainingSeconds: 2 * 60 * 60 + 8 * 60,
@@ -43,6 +44,20 @@ const baseWarning = {
 }
 
 describe("WithdrawalBatchJoinWarning", () => {
+  it("keeps the warning area empty during routine batch discovery", async () => {
+    const { container } = await renderWarning({
+      ...baseWarning,
+      state: "clear",
+      isChecking: true,
+      estimate: undefined,
+      expiry: undefined,
+    })
+
+    expect(container.textContent).toBe("")
+    expect(screen.queryByRole("note")).toBeNull()
+    expect(screen.queryByRole("status")).toBeNull()
+  })
+
   it("shows the estimated payout, reallocation, expiry, and docs link", async () => {
     const { container } = await renderWarning({
       ...baseWarning,

@@ -18,7 +18,7 @@ import { useTranslation } from "react-i18next"
 import Cross from "@/assets/icons/cross_icon.svg"
 import Filter from "@/assets/icons/filter_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
-import { ROUTES } from "@/routes"
+import { useMarketHref } from "@/hooks/useMarketHref"
 import { COLORS } from "@/theme/colors"
 
 export type MobileSearchButtonProps = {
@@ -35,6 +35,7 @@ export const MobileSearchButton = ({
   isExplorePage,
 }: MobileSearchButtonProps) => {
   const { t } = useTranslation()
+  const buildMarketHref = useMarketHref()
 
   const [open, setOpen] = useState<boolean>(false)
 
@@ -171,24 +172,15 @@ export const MobileSearchButton = ({
         open={open}
         onClose={handleToggleOpen}
         sx={{
-          height: "calc(100dvh - 64px)",
-          marginTop: "auto",
-          zIndex: 4,
-
+          backdropFilter: "blur(10px)",
           "& .MuiPaper-root.MuiDialog-paper": {
             maxWidth: "100%",
-            maxHeight: "100%",
             height: "100%",
             border: "none",
-            margin: "0 4px 4px",
+            borderRadius: "14px",
+            margin: "auto 4px 4px",
             width: "100%",
             padding: "8px",
-          },
-          "& .MuiBackdrop-root": {
-            marginTop: "auto",
-            height: "100dvh",
-            backgroundColor: "transparent",
-            backdropFilter: "blur(10px)",
           },
         }}
       >
@@ -241,7 +233,10 @@ export const MobileSearchButton = ({
           {marketAccounts.map((market) => (
             <Link
               key={market.market.address}
-              href={`${ROUTES.lender.market}/${market.market.address}`}
+              href={buildMarketHref(
+                market.market.address,
+                market.market.chainId,
+              )}
               style={{ textDecoration: "none" }}
             >
               <MenuItem
@@ -258,24 +253,15 @@ export const MobileSearchButton = ({
           ))}
         </Box>
 
-        <Box sx={{ display: "flex", gap: "4px", paddingTop: "8px" }}>
-          <Button
-            onClick={handleClickErase}
-            size="medium"
-            variant="outlined"
-            color="secondary"
-            fullWidth
-          >
-            {t("common.buttons.reset")}
-          </Button>
-
+        <Box sx={{ paddingTop: "8px" }}>
           <Button
             onClick={handleToggleOpen}
             size="medium"
             variant="contained"
+            color="secondary"
             fullWidth
           >
-            {t("common.buttons.search")}
+            {t("common.buttons.close")}
           </Button>
         </Box>
       </Dialog>

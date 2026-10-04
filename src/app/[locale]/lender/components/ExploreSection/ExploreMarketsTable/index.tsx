@@ -45,7 +45,9 @@ import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
 import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
 import { MobileSearchButton } from "@/components/Mobile/MobileSearchButton"
 import { RepeatingSkeletons } from "@/components/RepeatingSkeletons"
+import { TotalDebtHeader } from "@/components/TotalDebtHeader"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { useMarketHref } from "@/hooks/useMarketHref"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { marketStatusesMock } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
@@ -59,13 +61,13 @@ import {
 import { filterMarketAccounts } from "@/utils/filters"
 import {
   buildBorrowerProfileHref,
-  buildMarketHref,
   formatBps,
   formatSecsToHours,
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
 import { getDisplayLenderAprBips } from "@/utils/marketApr"
+import { getMarketTotalDebt } from "@/utils/marketDebt"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import {
   getLenderMarketAction,
@@ -196,6 +198,7 @@ const ActionArrowIcon = (
 
 const MarketClickableRow = (props: GridRowProps) => {
   const router = useRouter()
+  const buildMarketHref = useMarketHref()
   const href = buildMarketHref(props.row.id, props.row.chainId)
 
   const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -223,6 +226,7 @@ const MarketClickableRow = (props: GridRowProps) => {
 }
 
 export const ExploreMarketsTable = () => {
+  const buildMarketHref = useMarketHref()
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const { marketAccounts, borrowers, isLoadingInitial, onboardingByMarket } =
@@ -446,7 +450,7 @@ export const ExploreMarketsTable = () => {
           asset: underlyingToken.symbol,
           apr: getDisplayLenderAprBips(market),
           withdrawalBatchDuration,
-          debt: totalSupply,
+          debt: getMarketTotalDebt(market),
           capacity: maxTotalSupply,
           capacityLeft: maxTotalSupply.sub(totalSupply),
           onboardingMode: getKnownMarketOnboardingMode(
@@ -634,6 +638,9 @@ export const ExploreMarketsTable = () => {
       {
         field: "debt",
         headerName: t("common.fields.totalDebtRemaining"),
+        renderHeader: () => (
+          <TotalDebtHeader label={t("common.fields.totalDebtRemaining")} />
+        ),
         minWidth: 200,
         flex: 1.5,
         headerAlign: "right",
@@ -778,7 +785,7 @@ export const ExploreMarketsTable = () => {
         },
       },
     ],
-    [t],
+    [t, buildMarketHref],
   )
 
   if (isMobile)
@@ -934,10 +941,10 @@ export const ExploreMarketsTable = () => {
                 </Typography>
                 {isFilteredEmpty && (
                   <Button
-                    variant="text"
+                    variant="contained"
                     size="small"
                     onClick={resetFilters}
-                    sx={{ display: "block", margin: "8px auto 0" }}
+                    sx={{ marginTop: "8px" }}
                   >
                     {t("common.buttons.resetFilters")}
                   </Button>

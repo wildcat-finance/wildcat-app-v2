@@ -16,6 +16,7 @@ const routerPushMock = jest.fn()
 
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: routerPushMock }),
+  usePathname: () => "/lender/my-markets",
 }))
 
 jest.mock("react-i18next", () => ({
@@ -91,6 +92,16 @@ describe("getMobileMarketTermLabel", () => {
 })
 
 describe("MobileMarketCard borrower profile navigation", () => {
+  it("includes the lender page and chain when opening a market", () => {
+    render(
+      React.createElement(MobileMarketCard, { marketItem: clickableMarket }),
+    )
+
+    expect(screen.getByRole("link").getAttribute("href")).toBe(
+      "/lender/market/0x1111111111111111111111111111111111111111?chainId=11155111&from=my-markets",
+    )
+  })
+
   it("opens the public borrower profile from a lender market list", () => {
     render(
       React.createElement(MobileMarketCard, { marketItem: clickableMarket }),

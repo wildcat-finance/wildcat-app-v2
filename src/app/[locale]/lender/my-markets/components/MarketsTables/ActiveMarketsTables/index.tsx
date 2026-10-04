@@ -25,6 +25,8 @@ import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
+import { TotalDebtHeader } from "@/components/TotalDebtHeader"
+import { useMarketHref } from "@/hooks/useMarketHref"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
@@ -36,13 +38,13 @@ import {
 import { pageCalcHeights } from "@/utils/constants"
 import {
   buildBorrowerProfileHref,
-  buildMarketHref,
   formatBps,
   formatSecsToHours,
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
 import { getDisplayLenderAprBips } from "@/utils/marketApr"
+import { getMarketTotalDebt } from "@/utils/marketDebt"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -50,15 +52,19 @@ import { getMarketTypeChip } from "@/utils/marketType"
 import { ActiveMarketsTableModel, ActiveMarketsTableProps } from "./interface"
 import { DataGridSx } from "../style"
 
-const MarketLinkRow = (props: GridRowProps) => (
-  <Link
-    href={buildMarketHref(props.row.id, props.row.chainId)}
-    style={{ display: "contents", color: "inherit" }}
-    tabIndex={-1}
-  >
-    <GridRow {...props} />
-  </Link>
-)
+const MarketLinkRow = (props: GridRowProps) => {
+  const buildMarketHref = useMarketHref()
+
+  return (
+    <Link
+      href={buildMarketHref(props.row.id, props.row.chainId)}
+      style={{ display: "contents", color: "inherit" }}
+      tabIndex={-1}
+    >
+      <GridRow {...props} />
+    </Link>
+  )
+}
 
 const clickableGridSx = {
   ...DataGridSx,
@@ -131,7 +137,7 @@ export const ActiveMarketsTables = ({
         apr: getDisplayLenderAprBips(market),
         withdrawalBatchDuration,
         loan: marketBalance,
-        debt: totalSupply,
+        debt: getMarketTotalDebt(market),
         capacity: maxTotalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
         hasEverInteracted,
@@ -305,6 +311,7 @@ export const ActiveMarketsTables = ({
     {
       field: "debt",
       headerName: t("common.fields.totalDebt"),
+      renderHeader: () => <TotalDebtHeader />,
       minWidth: 100,
       flex: 1,
       headerAlign: "right",

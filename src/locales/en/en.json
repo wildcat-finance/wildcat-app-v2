@@ -623,6 +623,7 @@
       "baseApr": "Base APR",
       "borrowable": "Borrowable",
       "capacity": "Capacity",
+      "capacityLeft": "Capacity Left",
       "credential": "Credential",
       "currency": "Currency",
       "date": "Date",
@@ -673,6 +674,7 @@
       "terminatedMarkets": "Terminated Markets",
       "tokenSymbol": "Token Symbol",
       "totalDebt": "Total Debt",
+      "totalDebtTooltip": "What the borrower still owes lenders, including withdrawals from expired cycles that have not been funded yet. Excludes withdrawals already set aside in the market and waiting to be claimed, and protocol fees.",
       "totalDebtRemaining": "Total Debt / Remaining",
       "transaction": "Transaction",
       "transactionId": "Transaction ID",
@@ -722,6 +724,8 @@
       "pending": "Pending",
       "requiredPercentageMarketFundsMust": "A required percentage of market funds that must remain liquid and unavailable for borrowing.",
       "restricted": "Restricted",
+      "sortBy": "Sort by",
+      "sortDirection": "Sort direction",
       "terminated": "Terminated",
       "termsUse": "Terms of Use",
       "timeLeft": "{{time}} left",
@@ -808,6 +812,7 @@
     },
     "telegramBanner": {
       "button": "Subscribe",
+      "compact": "Market’s Updates in Our Bot",
       "subtitle": "Receive notifications for market events",
       "title": "Subscribe to our Telegram Bot"
     },
@@ -1160,8 +1165,6 @@
         },
         "withdraw": {
           "batchJoin": {
-            "checkingBody": "Calculating the batch's current blended rate before you continue.",
-            "checkingTitle": "Checking the current withdrawal batch",
             "closesIn": "Batch closes in {{remaining}}",
             "title": "You are joining a batch that opened {{elapsed}} ago",
             "unknownBody": "We couldn't confirm whether an in-progress batch would reduce this request's claimable amount. Continuing may make less than the requested amount claimable. Any difference goes to lenders who entered the batch earlier by protocol design, not as a fee. <docs>Read the docs</docs>",
@@ -1189,6 +1192,10 @@
             "exceeds": "Above the {{amount}} {{symbol}} available from this source",
             "tooSmall": "Amount is below the {{amount}} {{symbol}} minimum"
           },
+          "failed": {
+            "subtitle": "The withdrawal transaction did not complete. Check your wallet and try again."
+          },
+          "mobileTitle": "Available To Withdraw",
           "periodicTooltip": "The amount of underlying asset debt that the connected address can request for withdrawal. Periodic markets accept withdrawal requests only during scheduled withdrawal windows.",
           "periodicWindow": {
             "closed": "Withdrawals are only available during this market's withdrawal window.",
@@ -1259,6 +1266,9 @@
         "buttons": {
           "claim": "Claim Assets"
         },
+        "failed": {
+          "subtitle": "The claim transaction did not complete. Check your wallet and try again."
+        },
         "subtitle": "No assets available to claim from this market.",
         "title": {
           "claim": "{{claimableAmount}} ready to claim",
@@ -1285,6 +1295,9 @@
           "verificationFailed": "Unable to verify wrapper availability."
         },
         "estimatesMayChangeCurrentConversion": "Estimates may change with the current conversion rate.",
+        "failed": {
+          "subtitle": "The transaction did not complete. Check your wallet and try again."
+        },
         "marketTokens": "Market tokens",
         "oopsSomethingGoesWrong": "Oops! Something goes wrong.",
         "see": "See",
@@ -1365,6 +1378,8 @@
         "marketHistory": "Market History"
       },
       "statusChart": {
+        "totalObligations": "Total Obligations",
+        "totalObligationsTooltip": "Debt to lenders, funded withdrawals awaiting collection, and accrued protocol fees. This breakdown includes amounts already held by the market.",
         "claimableWds": "Claimable WDs",
         "collateralObligations": "Collateral Obligations",
         "currentReserves": "Current Reserves",

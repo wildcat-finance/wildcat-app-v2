@@ -563,6 +563,7 @@ export const MarketAuthorisedLenders = ({
           <DataGrid
             sx={{
               ...DataGridCells,
+              "& .MuiDataGrid-topContainer": { marginBottom: "8px" },
               "& .MuiDataGrid-columnHeader": {
                 marginBottom: "6px",
                 padding: "0 8px",
@@ -599,6 +600,7 @@ export const MarketAuthorisedLenders = ({
             <DataGrid
               sx={{
                 ...DataGridCells,
+                "& .MuiDataGrid-topContainer": { marginBottom: "8px" },
                 "& .MuiDataGrid-columnHeader": {
                   marginBottom: "6px",
                   padding: "0 8px",

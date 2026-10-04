@@ -21,6 +21,7 @@ import {
   getConfiguredSubgraphClient,
   isSubgraphPricingConfigured,
 } from "@/lib/subgraphCapabilities"
+import { getMarketTotalDebt } from "@/utils/marketDebt"
 
 const MARKET_PAGE_SIZE = 1_000
 
@@ -149,7 +150,7 @@ export const useBorrowerAggregateStats = (
             (sum, market) =>
               sum +
               toHumanAmount(
-                market.totalDebts.raw,
+                getMarketTotalDebt(market).raw,
                 market.underlyingToken.decimals,
               ) *
                 (marketPriceMap[market.address] as number),
@@ -177,7 +178,7 @@ export const useBorrowerAggregateStats = (
           activeMarkets.reduce((sum, market) => {
             const debt =
               toHumanAmount(
-                market.totalDebts.raw,
+                getMarketTotalDebt(market).raw,
                 market.underlyingToken.decimals,
               ) * (marketPriceMap[market.address] as number)
             return sum + (market.annualInterestBips / 100) * debt

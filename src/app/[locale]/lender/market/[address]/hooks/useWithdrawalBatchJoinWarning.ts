@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useMemo } from "react"
 
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import {
+  Market,
   MarketAccount,
   MarketVersion,
   rayMul,
@@ -12,6 +13,7 @@ import {
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useLiveNowSeconds } from "@/hooks/useLiveNowSeconds"
+import { cloneSdkObject } from "@/lib/sdk-object"
 
 import {
   estimateWithdrawalBatchJoin,
@@ -19,11 +21,7 @@ import {
   WithdrawalBatchJoinEstimate,
 } from "./withdrawalBatchJoin"
 
-export type WithdrawalBatchJoinWarningState =
-  | "clear"
-  | "loading"
-  | "warning"
-  | "unknown"
+export type WithdrawalBatchJoinWarningState = "clear" | "warning" | "unknown"
 
 export type WithdrawalBatchJoinWarningEstimate = {
   estimatedPayout: TokenAmount
@@ -32,15 +30,15 @@ export type WithdrawalBatchJoinWarningEstimate = {
 }
 
 type BatchSnapshot = {
-  batch: WithdrawalBatch
+  batch: WithdrawalBatch | null
   scaleFactor: bigint
+  withdrawalBatchDuration: number
 }
 
 const getActiveBatchExpiry = (
-  marketAccount: MarketAccount,
+  market: Market,
   nowSeconds: number,
 ): number | undefined => {
-  const { market } = marketAccount
   const expiry = market.pendingWithdrawalExpiry
 
   if (
@@ -71,59 +69,55 @@ export const useWithdrawalBatchJoinWarning = ({
   enabled: boolean
 }) => {
   const { market } = marketAccount
-  const queryClient = useQueryClient()
-  const nowSeconds = useLiveNowSeconds(
-    enabled &&
-      market.version === MarketVersion.V2 &&
-      !market.isClosed &&
-      market.pendingWithdrawalExpiry > 0,
-  )
-  const activeExpiry = getActiveBatchExpiry(marketAccount, nowSeconds)
-  const [isDecisionRefreshPending, setIsDecisionRefreshPending] =
-    useState(false)
-  const [decisionRefreshFailed, setDecisionRefreshFailed] = useState(false)
+  const shouldCheck =
+    enabled && market.version === MarketVersion.V2 && !market.isClosed
 
-  useEffect(() => {
-    if (!enabled) {
-      setIsDecisionRefreshPending(false)
-      setDecisionRefreshFailed(false)
-    }
-  }, [enabled])
-
-  const queryKey = QueryKeys.Lender.GET_WITHDRAWAL_BATCH_JOIN(
-    market.chainId,
-    market.address,
-    activeExpiry,
-  )
+  // Discover the batch on open, even before an amount is entered or when the
+  // page's cached market says none exists. A null batch is a checked result.
   const batchQuery = useQuery<BatchSnapshot>({
-    queryKey,
-    enabled: enabled && activeExpiry !== undefined,
+    queryKey: QueryKeys.Lender.GET_WITHDRAWAL_BATCH_JOIN(
+      market.chainId,
+      market.address,
+    ),
+    enabled: shouldCheck,
     queryFn: async () => {
-      if (activeExpiry === undefined) {
-        throw new Error("No active withdrawal batch")
+      // SDK update() mutates the market and its hooks config. Keep this read
+      // separate from the page's cached market and the lender's amount form.
+      const snapshotMarket = cloneSdkObject(market)
+      if (market.hooksConfig) {
+        snapshotMarket.hooksConfig = cloneSdkObject(market.hooksConfig)
       }
-
-      const batch = await WithdrawalBatch.getWithdrawalBatch(
-        market,
-        activeExpiry,
-      )
-      return { batch, scaleFactor: market.scaleFactor }
+      await snapshotMarket.update()
+      const expiry = getActiveBatchExpiry(snapshotMarket, Date.now() / 1000)
+      const batch =
+        expiry === undefined
+          ? null
+          : await WithdrawalBatch.getWithdrawalBatch(snapshotMarket, expiry)
+      return {
+        batch,
+        scaleFactor: snapshotMarket.scaleFactor,
+        withdrawalBatchDuration: snapshotMarket.withdrawalBatchDuration,
+      }
     },
     refetchInterval: POLLING_INTERVAL,
-    staleTime: POLLING_INTERVAL,
+    staleTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     retry: 1,
     retryDelay: 250,
   })
-
-  useEffect(() => {
-    if (batchQuery.data) setDecisionRefreshFailed(false)
-  }, [batchQuery.data])
+  const { refetch } = batchQuery
+  const nowSeconds = useLiveNowSeconds(shouldCheck && !!batchQuery.data?.batch)
+  const batchExpiry = batchQuery.data?.batch?.expiry
+  const activeExpiry =
+    batchExpiry !== undefined && batchExpiry > nowSeconds
+      ? batchExpiry
+      : undefined
 
   const calculateEstimate = useCallback(
     (snapshot: BatchSnapshot): WithdrawalBatchJoinEstimate | undefined => {
       const { batch, scaleFactor } = snapshot
+      if (!batch || batch.expiry <= Date.now() / 1000) return undefined
       const requestScaledAmount = useExactScaledBalance
         ? marketAccount.scaledMarketBalance
         : scaleWithdrawalRequest(
@@ -152,27 +146,22 @@ export const useWithdrawalBatchJoinWarning = ({
   )
 
   const estimate = useMemo(
-    () => (batchQuery.data ? calculateEstimate(batchQuery.data) : undefined),
-    [batchQuery.data, calculateEstimate],
+    () =>
+      activeExpiry !== undefined && batchQuery.data
+        ? calculateEstimate(batchQuery.data)
+        : undefined,
+    [activeExpiry, batchQuery.data, calculateEstimate],
   )
 
   const hasMaterialLoss =
     !!estimate && estimate.estimatedLossRaw >= dustFloor.raw
 
   let state: WithdrawalBatchJoinWarningState = "clear"
-  if (enabled && requestIsValid) {
-    if (isDecisionRefreshPending) {
-      state = "loading"
-    } else if (decisionRefreshFailed) {
+  if (shouldCheck && requestIsValid) {
+    if (batchQuery.isError) {
       state = "unknown"
-    } else if (activeExpiry !== undefined) {
-      if (batchQuery.isPending) {
-        state = "loading"
-      } else if (batchQuery.isError || !batchQuery.data) {
-        state = "unknown"
-      } else if (hasMaterialLoss) {
-        state = "warning"
-      }
+    } else if (hasMaterialLoss) {
+      state = "warning"
     }
   }
 
@@ -195,61 +184,35 @@ export const useWithdrawalBatchJoinWarning = ({
    */
   const refresh =
     useCallback(async (): Promise<WithdrawalBatchJoinWarningState> => {
-      if (!enabled || !requestIsValid || market.version !== MarketVersion.V2) {
+      if (!shouldCheck || !requestIsValid) {
         return "clear"
       }
 
-      setIsDecisionRefreshPending(true)
-      setDecisionRefreshFailed(false)
-      try {
-        await market.update()
-        const now = Date.now() / 1000
-        const latestExpiry = getActiveBatchExpiry(marketAccount, now)
-        if (latestExpiry === undefined) return "clear"
+      // Share a read already in flight instead of cancelling/restarting it.
+      const result = await refetch({ cancelRefetch: false })
+      if (result.isError || !result.data) return "unknown"
 
-        const batch = await WithdrawalBatch.getWithdrawalBatch(
-          market,
-          latestExpiry,
-        )
-        const snapshot = { batch, scaleFactor: market.scaleFactor }
-        queryClient.setQueryData(
-          QueryKeys.Lender.GET_WITHDRAWAL_BATCH_JOIN(
-            market.chainId,
-            market.address,
-            latestExpiry,
-          ),
-          snapshot,
-        )
-
-        const latestEstimate = calculateEstimate(snapshot)
-        if (!latestEstimate) return "clear"
-        return latestEstimate.estimatedLossRaw >= dustFloor.raw
-          ? "warning"
-          : "clear"
-      } catch {
-        setDecisionRefreshFailed(true)
-        return "unknown"
-      } finally {
-        setIsDecisionRefreshPending(false)
-      }
-    }, [
-      calculateEstimate,
-      dustFloor.raw,
-      enabled,
-      market,
-      marketAccount,
-      queryClient,
-      requestIsValid,
-    ])
+      const latestEstimate = calculateEstimate(result.data)
+      return latestEstimate && latestEstimate.estimatedLossRaw >= dustFloor.raw
+        ? "warning"
+        : "clear"
+    }, [calculateEstimate, dustFloor.raw, refetch, requestIsValid, shouldCheck])
 
   return {
     state,
+    // Pending reads affect the submit button, never the warning or layout.
+    isChecking:
+      shouldCheck &&
+      (batchQuery.isPending || batchQuery.fetchStatus !== "idle"),
     estimate: warningEstimate,
     expiry: activeExpiry,
     openedSecondsAgo: activeExpiry
       ? Math.max(
           0,
-          nowSeconds - (activeExpiry - market.withdrawalBatchDuration),
+          nowSeconds -
+            (activeExpiry -
+              (batchQuery.data?.withdrawalBatchDuration ??
+                market.withdrawalBatchDuration)),
         )
       : 0,
     remainingSeconds: activeExpiry ? Math.max(0, activeExpiry - nowSeconds) : 0,

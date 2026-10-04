@@ -57,28 +57,31 @@ export const ErrorWrapperAlert = ({
         {t("marketDetails.lender.wrapDebtToken.tokensAgain")}
       </Typography>
 
-      <Box sx={{ display: "flex", gap: "2px" }}>
-        <Typography variant="text4" color={COLORS.dullRed08}>
-          {message || "Explanatory message about the problem."}
-        </Typography>
+      {/* The message and the explorer link flow as one paragraph, and long
+          unbroken strings wrap instead of widening the alert past the card. */}
+      <Typography
+        variant="text4"
+        color={COLORS.dullRed08}
+        sx={{ overflowWrap: "anywhere" }}
+      >
+        {message || "Explanatory message about the problem."}
 
         {txHash && (
-          <Link
-            href={getTxUrl(txHash)}
-            target="_blank"
-            style={{
-              display: "flex",
-              color: COLORS.dullRed08,
-              textDecorationLine: "underline",
-            }}
-          >
-            <Typography variant="text4" color={COLORS.dullRed08}>
-              {" "}
+          <>
+            {" "}
+            <Link
+              href={getTxUrl(txHash)}
+              target="_blank"
+              style={{
+                color: COLORS.dullRed08,
+                textDecorationLine: "underline",
+              }}
+            >
               {t("marketDetails.lender.wrapDebtToken.viewEtherscan")}
-            </Typography>
-          </Link>
+            </Link>
+          </>
         )}
-      </Box>
+      </Typography>
     </Box>
   )
 }

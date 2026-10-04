@@ -22,13 +22,13 @@ import { BackButton } from "@/components/BackButton"
 import { usePrefetchMarketRecords } from "@/components/PaginatedMarketRecordsTable/hooks/usePrefetchMarketRecords"
 import { MenuItemButton } from "@/components/Sidebar/MarketSidebar/style"
 import { useGetMarket } from "@/hooks/useGetMarket"
-import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   LenderMarketSections,
   setSection,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import { COLORS } from "@/theme/colors"
+import { resolveLenderMarketBackLink } from "@/utils/lenderMarketOrigin"
 
 export const LenderMarketSidebar = () => {
   const { t } = useTranslation()
@@ -45,6 +45,7 @@ export const LenderMarketSidebar = () => {
     address: params.address,
     chainId: marketChainId,
   })
+  const backLink = resolveLenderMarketBackLink(searchParams.get("from"))
   const prefetchMarketHistory = usePrefetchMarketRecords(market)
 
   const currentSection = useAppSelector(
@@ -79,7 +80,7 @@ export const LenderMarketSidebar = () => {
       }}
     >
       <Box position="sticky" top="32px">
-        <BackButton title={t("nav.backMarkets")} link={ROUTES.lender.root} />
+        <BackButton title={t("nav.backMarkets")} link={backLink} />
 
         {isLoading && (
           <Box display="flex" flexDirection="column" rowGap="4px" width="100%">

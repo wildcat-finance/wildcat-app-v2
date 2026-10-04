@@ -13,6 +13,14 @@ export const MenuPropsStyle = {
     fontFamily: "inherit",
     padding: "0px",
     marginTop: "2px",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+  },
+  "& .MuiMenu-list": {
+    display: "flex",
+    flexDirection: "column",
+    minHeight: 0,
   },
 }
 
@@ -37,6 +45,7 @@ export const MenuHeaderStyle = {
   justifyContent: "space-between",
   padding: "12px 12px 8px",
   borderBottom: `1px solid ${COLORS.athensGrey}`,
+  flexShrink: 0,
 }
 
 export const MenuTitleStyle = {
@@ -51,4 +60,6 @@ export const MenuBodyStyle = {
   flexDirection: "column",
   gap: "18px",
   borderBottom: `1px solid ${COLORS.athensGrey}`,
+  minHeight: 0,
+  overflowY: "auto",
 }

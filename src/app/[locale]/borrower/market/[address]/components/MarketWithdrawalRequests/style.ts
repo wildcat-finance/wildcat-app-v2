@@ -21,6 +21,27 @@ export const MarketWithdrawalRequetstCell = {
   gap: "4px",
 }
 
+export const WithdrawalRequestsEntryStack = {
+  height: "100%",
+  width: "100%",
+  display: "flex",
+  flexDirection: "column",
+  padding: "16px 0",
+  boxSizing: "border-box",
+}
+
+export const WithdrawalRequestsEntry = {
+  ...MarketWithdrawalRequetstCell,
+  flex: 1,
+  minHeight: "20px",
+  alignItems: "center",
+}
+
+export const withdrawalRequestsFirstEntry = (count: number) => ({
+  ...WithdrawalRequestsEntry,
+  flex: `0 0 ${100 / Math.max(count, 1)}%`,
+})
+
 export const MarketWithdrawalRequestsContainer = (
   theme: Theme,
 ): SxProps<Theme> => ({
@@ -37,7 +58,6 @@ export const MarketWithdrawalRequestsContainer = (
 
 export const DataGridCells = {
   padding: "0px 16px 0px 16px",
-  "& .MuiDataGrid-topContainer": { marginBottom: "8px" },
   "& .MuiDataGrid-cell": { padding: "0px", minHeight: "52px", height: "auto" },
   "& .MuiDataGrid-columnHeader": { padding: "0px" },
 }

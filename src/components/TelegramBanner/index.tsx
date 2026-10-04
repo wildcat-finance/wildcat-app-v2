@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react"
 
-import { Box, Button, SvgIcon, Typography } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
-import TelegramFlyIcon from "@/assets/icons/telegramFly_icon.svg"
-import BannerBg from "@/assets/pictures/telegram_banner_bg.svg"
+import TelegramSendIcon from "@/assets/icons/telegramSend_icon.svg"
+import BannerBg from "@/assets/pictures/telegramPillBanner_bg.svg"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
@@ -61,90 +61,92 @@ export const TelegramBanner = () => {
   return (
     <Box
       component="aside"
-      aria-label={t("header.telegramBanner.title")}
+      aria-label={t("header.telegramBanner.compact")}
       sx={{
-        mb: "10px",
         mx: "auto",
         width: "232px",
-        height: "218px",
-        boxSizing: "border-box",
-        borderRadius: "20px",
-        overflow: "hidden",
-        position: "relative",
-        isolation: "isolate",
-        padding: "24px",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        gap: "22px",
       }}
     >
-      <BannerBg
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          zIndex: -1,
-        }}
-      />
-
-      <SvgIcon
-        aria-hidden="true"
-        sx={{
-          fontSize: "36px",
-          "& path": { fill: COLORS.white },
-        }}
-      >
-        <TelegramFlyIcon />
-      </SvgIcon>
-
       <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "4px",
-        }}
-      >
-        <Typography variant="text2" textAlign="center" color={COLORS.white}>
-          {t("header.telegramBanner.title")}
-        </Typography>
-
-        <Typography
-          variant="text4"
-          textAlign="center"
-          color={COLORS.white}
-          sx={{ opacity: 0.8 }}
-        >
-          {t("header.telegramBanner.subtitle")}
-        </Typography>
-      </Box>
-
-      <Button
         component={Link}
         href={EXTERNAL_LINKS.TELEGRAM_BOT}
         target="_blank"
         rel="noopener noreferrer"
-        variant="contained"
-        size="small"
         sx={{
-          bgcolor: COLORS.white,
-          color: COLORS.bunker,
-          fontWeight: 600,
-          fontSize: "12px",
-          borderRadius: "20px",
-          px: "16px",
-          py: "6px",
-          "&:hover": {
-            bgcolor: COLORS.whiteLilac,
-          },
+          width: "100%",
+          height: "40px",
+          boxSizing: "border-box",
+          borderRadius: "10px",
+          bgcolor: COLORS.bunker,
+          overflow: "hidden",
+          position: "relative",
+          isolation: "isolate",
+          padding: "6px 6px 6px 16px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "20px",
+          textDecoration: "none",
+
+          "&:hover .TelegramBanner-action": { bgcolor: COLORS.white03 },
         }}
       >
-        {t("header.telegramBanner.button")}
-      </Button>
+        <BannerBg
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            left: "-124px",
+            top: "-460px",
+            width: "755px",
+            height: "646px",
+            zIndex: -1,
+          }}
+        />
+
+        <Box sx={{ display: "flex", flex: "1 0 0", minWidth: 0 }}>
+          <Typography
+            variant="text4Highlighted"
+            color={COLORS.white}
+            sx={{ whiteSpace: "nowrap" }}
+          >
+            {t("header.telegramBanner.compact")}
+          </Typography>
+        </Box>
+
+        <Box
+          className="TelegramBanner-action"
+          aria-hidden="true"
+          sx={{
+            flexShrink: 0,
+            width: "28px",
+            height: "28px",
+            borderRadius: "20px",
+            bgcolor: COLORS.white02,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
+            transition: "background-color 0.2s",
+
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              inset: 0,
+              borderRadius: "inherit",
+              padding: "1px",
+              background:
+                "linear-gradient(334deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.6))",
+              WebkitMask:
+                "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+              WebkitMaskComposite: "xor",
+              maskComposite: "exclude",
+              pointerEvents: "none",
+            },
+          }}
+        >
+          <TelegramSendIcon />
+        </Box>
+      </Box>
     </Box>
   )
 }

@@ -1,4 +1,16 @@
-import { formatNumberWithCommas } from "./formatters"
+import { buildMarketHref, formatNumberWithCommas } from "./formatters"
+
+describe("buildMarketHref", () => {
+  it("preserves market links without navigation context", () => {
+    expect(buildMarketHref("0xmarket")).toBe("/lender/market/0xmarket")
+    expect(buildMarketHref("0xmarket", 11155111)).toBe(
+      "/lender/market/0xmarket?chainId=11155111",
+    )
+    expect(buildMarketHref("0xmarket", 1, "/borrower/market")).toBe(
+      "/borrower/market/0xmarket?chainId=1",
+    )
+  })
+})
 
 describe("formatNumberWithCommas", () => {
   it("groups thousands", () => {

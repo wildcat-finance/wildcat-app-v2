@@ -12,9 +12,10 @@ import ProvenIcon from "@/assets/icons/provenCard_icon.svg"
 import TopFundedIcon from "@/assets/icons/topFundedCard_icon.svg"
 import TrendingIcon from "@/assets/icons/trendingCard_icon.svg"
 import { NetworkIcon } from "@/components/NetworkIcon"
+import { useMarketHref } from "@/hooks/useMarketHref"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
-import { buildMarketHref, formatBps } from "@/utils/formatters"
+import { formatBps } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 
 import {
@@ -126,6 +127,7 @@ export const TrendingMarketCard = ({
   isMobile,
 }: TrendingMarketCardProps) => {
   const { t } = useTranslation()
+  const buildMarketHref = useMarketHref()
 
   const badge = VARIANT_BADGE[variant]
   const badgeContext = context ?? badge.context
