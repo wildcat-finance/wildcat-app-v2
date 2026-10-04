@@ -103,17 +103,35 @@ const CONSTRAINTS_IN_SECONDS: Array<keyof MarketParameterConstraints> = [
   "maximumDelinquencyGracePeriod",
   "minimumWithdrawalBatchDuration",
   "maximumWithdrawalBatchDuration",
+  "maximumRepaymentPeriod",
+  "maximumRepaymentDateDelay",
 ]
 
+export type RequiredMarketConstraint = {
+  [Key in keyof MarketParameterConstraints]-?: undefined extends MarketParameterConstraints[Key]
+    ? never
+    : Key
+}[keyof MarketParameterConstraints]
+
+export function formatConstrainToNumber(
+  constraints: MarketParameterConstraints,
+  key: RequiredMarketConstraint,
+): number
+export function formatConstrainToNumber(
+  constraints: MarketParameterConstraints,
+  key: keyof MarketParameterConstraints,
+): number | undefined
 export function formatConstrainToNumber(
   constraints: MarketParameterConstraints,
   key: keyof MarketParameterConstraints,
 ) {
+  const value = constraints[key]
+  if (value === undefined) return undefined
   if (CONSTRAINTS_IN_SECONDS.indexOf(key) !== -1) {
-    return constraints[key] / 60 / 60
+    return value / 60 / 60
   }
 
-  return constraints[key] / 100
+  return value / 100
 }
 
 export const formatSecsToHours = (seconds: number, short?: boolean) => {

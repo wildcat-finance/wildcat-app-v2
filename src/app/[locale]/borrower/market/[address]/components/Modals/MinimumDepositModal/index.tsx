@@ -2,11 +2,7 @@ import { ChangeEvent, useEffect, useState } from "react"
 import * as React from "react"
 
 import { Box, Button, Dialog } from "@mui/material"
-import {
-  MarketAccount,
-  SetMinimumDepositPreview,
-  SetMinimumDepositStatus,
-} from "@wildcatfi/wildcat-sdk"
+import { MarketAccount, SetMinimumDepositStatus } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { ModalDataItem } from "@/app/[locale]/borrower/market/[address]/components/Modals/components/ModalDataItem"
@@ -19,6 +15,7 @@ import { NumberTextField } from "@/components/NumberTextfield"
 import { TextfieldChip } from "@/components/TextfieldAdornments/TextfieldChip"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { useSetMinimumDeposit } from "../../../hooks/useSetMinimumDeposit"
@@ -32,7 +29,6 @@ export const MinimumDepositModal = ({
   const [amount, setAmount] = useState("")
   const [showSuccessPopup, setShowSuccessPopup] = useState(false)
   const [showErrorPopup, setShowErrorPopup] = useState(false)
-  const [preview, setPreview] = useState<SetMinimumDepositPreview | undefined>()
 
   const { mutate, isPending, isError, isSuccess } = useSetMinimumDeposit(
     marketAccount,
@@ -50,17 +46,17 @@ export const MinimumDepositModal = ({
 
   const { market } = marketAccount
 
-  // todo: write hook for mutation
-
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
     setAmount(value)
-
-    const newPreview = marketAccount.previewSetMinimumDeposit(
-      marketAccount.market.underlyingToken.parseAmount(value),
-    )
-    setPreview(newPreview)
   }
+
+  const preview =
+    amount !== ""
+      ? marketAccount.previewSetMinimumDeposit(
+          market.underlyingToken.parseAmount(amount),
+        )
+      : undefined
 
   const handleConfirm = () => {
     mutate(amount)
@@ -72,20 +68,15 @@ export const MinimumDepositModal = ({
     setShowSuccessPopup(false)
   }
 
-  const disableMinDeposit = market.isClosed
+  const disableMinDeposit = market.isClosed || market.hasFrozenHookParameters
 
   const disableConfirm =
-    amount === "" || preview?.status !== SetMinimumDepositStatus.Ready
+    disableMinDeposit || preview?.status !== SetMinimumDepositStatus.Ready
 
-  const minimumDepositError = (() => {
-    if (preview?.status === SetMinimumDepositStatus.MinimumDepositTooHigh) {
-      return "Minimum deposit is too large for this periodic market."
-    }
-    if (preview?.status === SetMinimumDepositStatus.DepositHookNotEnabled) {
-      return "This market does not support a positive minimum deposit."
-    }
-    return undefined
-  })()
+  const minimumDepositError =
+    preview && preview.status !== SetMinimumDepositStatus.Ready
+      ? SDK_ERRORS_MAPPING.setMinimumDeposit[preview.status]
+      : undefined
 
   const showForm = !(isPending || showSuccessPopup || showErrorPopup)
 

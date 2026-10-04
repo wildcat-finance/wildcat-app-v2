@@ -30,6 +30,9 @@ export const useSetMaxTotalSupply = (
         )
       }
 
+      await marketAccount.market.update()
+      if (marketAccount.market.isClosed) throw Error("Market is closed")
+
       const supplyTokenAmount =
         marketAccount.market.underlyingToken.parseAmount(newMaxTotalSupply)
 

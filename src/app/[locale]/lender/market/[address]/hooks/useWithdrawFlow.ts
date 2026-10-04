@@ -221,7 +221,8 @@ export const useWithdrawFlow = ({
    * can close, a credential can lapse. Re-check before spending a signature,
    * so we do not strand a lender holding unwrapped market tokens.
    */
-  const assertCanQueue = useCallback(() => {
+  const assertCanQueue = useCallback(async () => {
+    await marketAccount.market.update()
     const availability = marketAccount.withdrawalAvailability
     if (availability !== QueueWithdrawalStatus.Ready) {
       throw new Error(
@@ -340,7 +341,6 @@ export const useWithdrawFlow = ({
   const runQueue = useCallback(
     async (route: WithdrawRoute) => {
       if (!address) throw new Error("No account")
-      assertCanQueue()
 
       // Measure against the LIVE balance: the direct part and the
       // just-unwrapped part are scaled independently, so the intended sum can
@@ -385,14 +385,13 @@ export const useWithdrawFlow = ({
         txHash: hash,
       })
     },
-    [address, market, assertCanQueue, submitQueueTransaction, decodeQueued],
+    [address, market, submitQueueTransaction, decodeQueued],
   )
 
   const runBatched = useCallback(
     async (route: WithdrawRoute) => {
       if (!sdk) throw new Error("No Safe SDK")
       if (!address) throw new Error("No account")
-      assertCanQueue()
       bindWrapperSigner()
 
       const txs: SafeTransactionInput[] = []
@@ -487,7 +486,6 @@ export const useWithdrawFlow = ({
       wrapper,
       market,
       isMultisig,
-      assertCanQueue,
       bindWrapperSigner,
       staticQueueRaw,
       decodeQueued,
@@ -515,6 +513,7 @@ export const useWithdrawFlow = ({
 
       try {
         assertReady()
+        await assertCanQueue()
         if (leg.kind === WithdrawLegKind.Unwrap) {
           await runUnwrap(route)
         } else if (leg.kind === WithdrawLegKind.Batched) {
@@ -533,7 +532,7 @@ export const useWithdrawFlow = ({
         setBusy(false)
       }
     },
-    [assertReady, runUnwrap, runBatched, runQueue, invalidate],
+    [assertReady, assertCanQueue, runUnwrap, runBatched, runQueue, invalidate],
   )
 
   const signCurrent = useCallback(() => {

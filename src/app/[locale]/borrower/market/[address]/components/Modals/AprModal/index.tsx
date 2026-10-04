@@ -31,6 +31,7 @@ import {
   TOKEN_FORMAT_DECIMALS,
 } from "@/utils/formatters"
 import { getMarketAprDisplayBips } from "@/utils/marketApr"
+import { getAprChangeError } from "@/utils/marketParameterChanges"
 import { getPendingPeriodicAprChange } from "@/utils/periodicApr"
 
 import { DifferenceChip } from "./components/DifferenceChip"
@@ -102,9 +103,6 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   )
 
   const [apr, setApr] = useState("")
-  const [aprPreview, setAprPreview] = useState<SetAprPreview>()
-  const [aprError, setAprError] = useState<string | undefined>()
-  const [aprFixedReduction, setAprFixReduction] = useState<boolean>(false)
 
   const [notified, setNotified] = useState<boolean>(false)
 
@@ -167,63 +165,44 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const handleClose = () => {
     resetAdjustMutation()
     modal.handleCloseModal()
-    setAprPreview(undefined)
-    setAprError(undefined)
-    setAprFixReduction(false)
     setShowResetErrorPopup(false)
     setShowResetSuccessPopup(false)
   }
 
   const handleAprChange = (evt: ChangeEvent<HTMLInputElement>) => {
-    const { value } = evt.target
-    setApr(value)
-    setAprPreview(undefined)
-    setAprFixReduction(false)
-
-    if (value === "" || value === "0") {
-      setAprError(undefined)
-      return
-    }
-
-    const parsedNewApr = parseAprBips(value)
-    if (parsedNewApr === undefined) {
-      setAprError(SDK_ERRORS_MAPPING.setApr.InvalidApr)
-      return
-    }
-
-    if (isPeriodicTerm && parsedNewApr < currentConfiguredAprBips) {
-      const preview =
-        marketAccount.previewProposeAnnualInterestBips(parsedNewApr)
-      if (preview.status !== "Ready") {
-        setAprError(SDK_ERRORS_MAPPING.proposeApr[preview.status])
-        return
-      }
-
-      setAprError(undefined)
-      return
-    }
-
-    const preview = marketAccount.previewSetAPR(parsedNewApr)
-    setAprPreview(preview)
-    setAprFixReduction(isFixedTerm && parsedNewApr < currentConfiguredAprBips)
-
-    if (preview.status === "InsufficientReserves") {
-      setAprError(
-        `Missing Reserves – ${preview.missingReserves.format(
-          TOKEN_FORMAT_DECIMALS,
-          true,
-        )} for collateral obligation. Increase percent.`,
-      )
-      return
-    }
-
-    if (preview.status !== "Ready") {
-      setAprError(SDK_ERRORS_MAPPING.setApr[preview.status])
-      return
-    }
-
-    setAprError(undefined)
+    setApr(evt.target.value)
   }
+
+  // Re-evaluate against each polled market snapshot, including while the dialog is open.
+  const aprChangeError = getAprChangeError(market, isPeriodicAprReduction)
+  const aprPreview: SetAprPreview | undefined =
+    aprBips !== undefined && aprBips > 0 && !isPeriodicAprReduction
+      ? marketAccount.previewSetAPR(aprBips)
+      : undefined
+  const proposalPreview =
+    aprBips !== undefined && isPeriodicAprReduction
+      ? marketAccount.previewProposeAnnualInterestBips(aprBips)
+      : undefined
+  const aprFixedReduction =
+    isFixedTerm && aprBips !== undefined && aprBips < currentConfiguredAprBips
+  const aprError = (() => {
+    if (aprChangeError) return aprChangeError
+    if (apr === "" || apr === "0") return undefined
+    if (aprBips === undefined) return SDK_ERRORS_MAPPING.setApr.InvalidApr
+    if (proposalPreview && proposalPreview.status !== "Ready") {
+      return SDK_ERRORS_MAPPING.proposeApr[proposalPreview.status]
+    }
+    if (aprPreview?.status === "InsufficientReserves") {
+      return `Missing Reserves – ${aprPreview.missingReserves.format(
+        TOKEN_FORMAT_DECIMALS,
+        true,
+      )} for collateral obligation. Increase percent.`
+    }
+    if (aprPreview && aprPreview.status !== "Ready") {
+      return SDK_ERRORS_MAPPING.setApr[aprPreview.status]
+    }
+    return undefined
+  })()
 
   const handleConfirm = () => {
     modal.setFlowStep(ModalSteps.approved)
@@ -240,14 +219,7 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
   const handleAdjust = () => {
     if (aprBips === undefined) return
 
-    if (aprChangeMode === "propose") {
-      const preview = marketAccount.previewProposeAnnualInterestBips(aprBips)
-      if (preview.status !== "Ready") {
-        setAprError(SDK_ERRORS_MAPPING.proposeApr[preview.status])
-        modal.setFlowStep(ModalSteps.gettingValues)
-        return
-      }
-    }
+    if (aprError) return
 
     mutate({ apr: aprBips / 100, mode: aprChangeMode })
   }
@@ -403,7 +375,11 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
         color="secondary"
         size="small"
         onClick={handleOpen}
-        disabled={market.isClosed}
+        disabled={
+          market.isClosed ||
+          (!!market.hasReachedRepaymentDate &&
+            (!isPeriodicTerm || market.hasFrozenHookParameters))
+        }
       >
         {adjustAprLabel}
       </Button>
@@ -860,7 +836,9 @@ export const AprModal = ({ marketAccount }: AprModalProps) => {
               }
               mainBtnOnClick={needsReset ? () => resetMutate() : handleAdjust}
               secondBtnOnClick={needsReset ? undefined : handleConfirm}
-              disableMainBtn={needsReset ? false : disableAdjust}
+              disableMainBtn={
+                !!aprChangeError || (needsReset ? false : disableAdjust)
+              }
               disableSecondBtn={needsReset ? true : disableConfirm}
               secondBtnIcon={modal.approvedStep}
               hideButtons={!showForm}

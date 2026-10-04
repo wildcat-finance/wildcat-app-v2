@@ -32,6 +32,7 @@ import {
   isFixedTermMarket,
   isHooksManagedMarket,
 } from "@/utils/marketCapabilities"
+import { getAprChangeError } from "@/utils/marketParameterChanges"
 import { getPendingPeriodicAprChange } from "@/utils/periodicApr"
 
 import { MarketTransactionsProps } from "./interface"
@@ -130,9 +131,11 @@ export const MarketTransactions = ({
     pendingPeriodicAprChange?.proposedAprBips,
     !!pendingPeriodicAprChange?.isResponseWindowElapsed,
   )
+  const aprChangeError = getAprChangeError(market)
   const pendingAprNeedsSettlement =
+    !aprChangeError &&
     pendingAprSettlementQuote?.status ===
-    PeriodicAprSettlementStatus.NeedsSettlement
+      PeriodicAprSettlementStatus.NeedsSettlement
   const pendingAprExecutionErrorStatus =
     pendingAprSettlementQuote &&
     pendingAprSettlementQuote.status !== PeriodicAprSettlementStatus.Ready &&
@@ -141,10 +144,11 @@ export const MarketTransactions = ({
       ? pendingAprSettlementQuote.status
       : undefined
   const pendingAprExecutionError =
-    pendingAprExecutionErrorStatus ===
+    aprChangeError ??
+    (pendingAprExecutionErrorStatus ===
     PeriodicAprSettlementStatus.ExecutionNotEnabled
       ? t("marketParameters.pendingPeriodicApr.executionNotEnabled")
-      : pendingAprExecutionErrorStatus
+      : pendingAprExecutionErrorStatus)
   const aprDisplay = getMarketAprDisplayBips(market)
   const aprCopy = getMarketAprCopy(market)
   const currentAprFormatted = formatBps(
@@ -164,6 +168,7 @@ export const MarketTransactions = ({
         .format("D MMM YYYY, HH:mm [UTC]")
     : undefined
   const canExecutePendingApr =
+    !aprChangeError &&
     !!pendingPeriodicAprChange?.isResponseWindowElapsed &&
     pendingAprSettlementQuote?.status === PeriodicAprSettlementStatus.Ready
   const pendingAprNoticeKey = (() => {

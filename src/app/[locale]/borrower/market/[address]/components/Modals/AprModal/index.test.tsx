@@ -245,3 +245,35 @@ describe("AprModal", () => {
     })
   })
 })
+
+describe("APR repayment gating", () => {
+  it("disables an open proposal form when fresh state reaches repayment", () => {
+    const account = makePeriodicRcfAccount()
+    const { rerender } = render(<AprModal marketAccount={account} />)
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "marketDetails.borrower.modals.apr.adjustUtilization",
+      }),
+    )
+    fireEvent.change(screen.getByLabelText("apr"), { target: { value: "2" } })
+    expect(
+      (
+        screen.getByRole("button", {
+          name: "common.buttons.confirm",
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(false)
+    Object.assign(account.market, {
+      hasReachedRepaymentDate: true,
+      hasFrozenHookParameters: true,
+    })
+    rerender(<AprModal marketAccount={account} />)
+    expect(
+      (
+        screen.getByRole("button", {
+          name: "common.buttons.confirm",
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true)
+  })
+})

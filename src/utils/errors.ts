@@ -5,6 +5,9 @@ import type {
   ProposeAnnualInterestBipsStatus,
   SetAprStatus,
   QueueWithdrawalStatus,
+  SetMaxTotalSupplyStatus,
+  SetMinimumDepositStatus,
+  SetFixedTermEndTimeStatus,
 } from "@wildcatfi/wildcat-sdk"
 
 type ExcludeReady<T> = T extends "Ready" ? never : T
@@ -35,6 +38,9 @@ type SDKErrorsMapping = {
   closeMarket: CloseMarketErrorStatuses
   setApr: SetAPRErrorStatuses
   proposeApr: ProposeAPRErrorStatuses
+  setCapacity: Record<ExcludeReady<SetMaxTotalSupplyStatus>, string>
+  setMinimumDeposit: Record<ExcludeReady<SetMinimumDepositStatus>, string>
+  setMaturity: Record<ExcludeReady<SetFixedTermEndTimeStatus>, string>
 }
 
 export const SDK_ERRORS_MAPPING: SDKErrorsMapping = {
@@ -48,6 +54,7 @@ export const SDK_ERRORS_MAPPING: SDKErrorsMapping = {
     BelowMinimumDeposit: "Your deposit is below the minimum for this market",
     InsufficientAllowance: undefined,
     MarketClosed: "Market is closed",
+    MarketInRepayment: "Deposits are unavailable after the repayment date",
     Blocked:
       "Lender restricted to withdrawing existing debt, no further deposits",
     RequiresAccess: "Lender lacks the necessary credentials to deposit",
@@ -99,6 +106,8 @@ export const SDK_ERRORS_MAPPING: SDKErrorsMapping = {
   },
 
   proposeApr: {
+    MarketInRepayment:
+      "New APR reduction proposals are unavailable after the repayment date",
     NotBorrower: "Address attempting to propose APR is not the borrower",
     NotV2Market: "APR proposals are only supported for V2 markets",
     NotPeriodicTermMarket:
@@ -107,5 +116,29 @@ export const SDK_ERRORS_MAPPING: SDKErrorsMapping = {
     NotReduction: "Periodic APR proposals must reduce the current APR",
     WithdrawalWindowOpen:
       "APR reductions can only be proposed outside withdrawal windows",
+  },
+  setCapacity: {
+    MarketInRepayment: "Capacity cannot be changed after the repayment date",
+    NotBorrower: "Only the borrower can change capacity",
+    BelowCurrentSupply: "Capacity cannot be below the current supply",
+  },
+  setMinimumDeposit: {
+    MarketInRepayment:
+      "Minimum deposit cannot be changed after the repayment date",
+    NotBorrower: "Only the borrower can change the minimum deposit",
+    NotV2Market: "This market does not support a minimum deposit",
+    DepositHookNotEnabled:
+      "This market does not support a positive minimum deposit.",
+    MinimumDepositTooHigh:
+      "Minimum deposit is too large for this periodic market.",
+  },
+  setMaturity: {
+    MarketInRepayment: "Maturity cannot be changed after the repayment date",
+    NotBorrower: "Only the borrower can change maturity",
+    NotV2Market: "This market does not support maturity changes",
+    NotFixedTermMarket: "This is not a fixed term market",
+    FixedTermEndTimeIncrease: "You cannot increase the maturity date",
+    FixedTermEndTimeNotChangeable:
+      "This market does not allow modifications to the maturity date",
   },
 }

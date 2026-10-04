@@ -97,6 +97,7 @@ export const getLenderMarketAction = (
   if (
     onboardingMode === MarketOnboardingMode.Managed &&
     depositStatus !== DepositStatus.Blocked &&
+    depositStatus !== DepositStatus.MarketInRepayment &&
     depositStatus !== DepositStatus.MarketClosed
   ) {
     return LenderMarketAction.RequestAccess

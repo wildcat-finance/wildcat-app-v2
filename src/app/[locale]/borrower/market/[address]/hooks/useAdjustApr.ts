@@ -6,6 +6,7 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { getAprChangeError } from "@/utils/marketParameterChanges"
 import { invalidateMarketStateQueries } from "@/utils/marketStateQueries"
 import { waitForSubmittedTransaction } from "@/utils/transactions"
 
@@ -46,6 +47,12 @@ export const useAdjustAPR = (
 
       const submitAprChange = async () => {
         const { apr, mode } = normalizeAdjustAprInput(input)
+        await marketAccount.market.update()
+        const error = getAprChangeError(
+          marketAccount.market,
+          mode === "propose",
+        )
+        if (error) throw Error(error)
         const aprBips = Math.round(apr * 100)
         const hash =
           mode === "propose"

@@ -23,6 +23,9 @@ export const useSetFixedTermEndTime = (
         return
       }
 
+      await marketAccount.market.update()
+      if (marketAccount.market.isClosed) throw Error("Market is closed")
+
       const setFixedTermEndTime = async () => {
         const hash =
           await marketAccount.setFixedTermEndTime(newFixedTermEndTime)

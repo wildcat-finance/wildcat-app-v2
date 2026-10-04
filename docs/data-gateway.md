@@ -1,6 +1,6 @@
 # App data gateway
 
-The app uses `@wildcatfi/wildcat-sdk@3.2.12-beta`. Browser RPC and subgraph
+The app uses `@wildcatfi/wildcat-sdk@3.2.14-beta`. Browser RPC and subgraph
 requests go through these same-origin POST routes:
 
 - `/api/gateway/rpc/{chainId}`
@@ -10,9 +10,11 @@ The routes derive their upstream URLs from the SDK. Subgraph releases stay
 pinned in the SDK; the browser cannot select an upstream URL or another release.
 SDK metadata checks use the same proxy as normal subgraph queries.
 
-On Sepolia, this SDK selects the protocol V2.5.4 factories and lens with
-subgraph V2.5.12. See [the SDK integration notes](./sdk-v3.2.10-integration.md)
-for historical wrapper compatibility and verification.
+On Sepolia, this SDK selects the protocol V2.5.5 factories and lens, the
+V2.5.6 hook templates, and subgraph V2.5.14. See the
+[current integration notes](./sdk-v3.2.14-integration.md) for compatibility
+changes and verification. The [earlier notes](./sdk-v3.2.10-integration.md)
+preserve the historical-wrapper checks.
 
 Server RPC reads, registrar lookups, and market discovery call the gateway
 directly. Protocol statistics run in the browser and use the proxy. Wallet
@@ -90,7 +92,8 @@ npm test -- --runInBand src/lib/gateway src/lib/provider.test.ts
 The app's unit suites expect `NEXT_PUBLIC_TARGET_NETWORK=Mainnet`. The existing
 `src/app/api/profiles/profile.test.ts` suite additionally requires a dedicated
 test database and server RPC configuration; do not point it at production.
-Live checks through a local production app server passed for RPC and SDK
-subgraph queries on all four chains, plus Sepolia metadata validation and
-server-side market discovery. The Vercel smoke checks above still need to run
-after deployment.
+The SDK 3.2.10 integration included live checks through a local production app
+server on all four chains. The current integration passed direct SDK metadata
+and indexed reads through the Sepolia gateway; authenticated app-proxy checks
+remain pending because this checkout has no gateway credential. Run the Vercel
+smoke checks above after deployment.

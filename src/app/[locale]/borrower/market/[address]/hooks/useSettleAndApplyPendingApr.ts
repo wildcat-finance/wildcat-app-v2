@@ -13,6 +13,7 @@ import {
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { getAprChangeError } from "@/utils/marketParameterChanges"
 import { invalidateMarketStateQueries } from "@/utils/marketStateQueries"
 import {
   toSdkTransactionRequest,
@@ -85,6 +86,10 @@ export const useSettleAndApplyPendingApr = (
         )
       }
 
+      await marketAccount.market.update()
+      const error = getAprChangeError(marketAccount.market)
+      if (error) throw Error(error)
+
       const plan = await populatePeriodicAprReductionPlan(
         marketAccount,
         proposedAprBips,
@@ -119,6 +124,9 @@ export const useSettleAndApplyPendingApr = (
       for (let index = 0; index < plan.transactions.length; index += 1) {
         const planned = plan.transactions[index]
         if (planned.kind === "executeApr" && index > 0) {
+          await marketAccount.market.update()
+          const executionError = getAprChangeError(marketAccount.market)
+          if (executionError) throw Error(executionError)
           const refreshedQuote = await getPeriodicAprReductionSettlementQuote(
             marketAccount,
             proposedAprBips,

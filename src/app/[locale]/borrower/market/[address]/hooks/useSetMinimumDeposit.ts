@@ -23,6 +23,9 @@ export const useSetMinimumDeposit = (
         return
       }
 
+      await marketAccount.market.update()
+      if (marketAccount.market.isClosed) throw Error("Market is closed")
+
       const tokenAmount =
         marketAccount.market.underlyingToken.parseAmount(newMinDeposit)
 
