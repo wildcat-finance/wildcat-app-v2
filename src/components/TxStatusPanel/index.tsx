@@ -8,6 +8,7 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
 import CircledCrossRed from "@/assets/icons/circledCrossRed_icon.svg"
@@ -72,6 +73,7 @@ export const TxStatusPanel = ({
   onAction,
   actionLabel,
 }: TxStatusPanelProps) => {
+  const { t } = useTranslation()
   const isMobile = useMobileResolution()
   const { getTxUrl } = useBlockExplorer()
 
@@ -84,7 +86,11 @@ export const TxStatusPanel = ({
     >
       <Box sx={TxStatusPanelHeader}>
         {onClose && (
-          <IconButton disableRipple onClick={onClose}>
+          <IconButton
+            disableRipple
+            onClick={onClose}
+            aria-label={t("common.buttons.close")}
+          >
             <SvgIcon fontSize="big" sx={TxStatusPanelCloseIcon}>
               <Cross />
             </SvgIcon>

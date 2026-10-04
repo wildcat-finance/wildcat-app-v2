@@ -14,6 +14,11 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import { I18nextProvider } from "react-i18next"
 
+import {
+  LegStatus,
+  useWithdrawFlow,
+  WithdrawLegKind,
+} from "@/app/[locale]/lender/market/[address]/hooks/useWithdrawFlow"
 import type { useWithdrawRouting } from "@/app/[locale]/lender/market/[address]/hooks/useWithdrawRouting"
 import initTranslations from "@/app/i18n"
 import en from "@/locales/en/en.json"
@@ -23,8 +28,12 @@ import { WithdrawModal } from "."
 const begin = jest.fn()
 let mockIsMobile = false
 let mockRouting: ReturnType<typeof useWithdrawRouting>
+let mockFlow: ReturnType<typeof useWithdrawFlow>
 
 jest.mock("wagmi", () => ({}))
+jest.mock("@/assets/icons/cross_icon.svg", () => () => null)
+jest.mock("@/assets/icons/circledCheckBlue_icon.svg", () => () => null)
+jest.mock("@/assets/icons/circledCrossRed_icon.svg", () => () => null)
 jest.mock("@/hooks/useMobileResolution", () => ({
   useMobileResolution: () => mockIsMobile,
 }))
@@ -41,12 +50,7 @@ jest.mock(
     ...jest.requireActual(
       "@/app/[locale]/lender/market/[address]/hooks/useWithdrawFlow",
     ),
-    useWithdrawFlow: () => ({
-      legs: [],
-      reset: jest.fn(),
-      begin,
-      isBatched: false,
-    }),
+    useWithdrawFlow: () => mockFlow,
   }),
 )
 jest.mock("@/components/TxModalComponents/TxModalHeader", () => ({
@@ -57,7 +61,20 @@ jest.mock("@/components/TxModalComponents/TxModalHeader", () => ({
   ),
 }))
 jest.mock("@/components/Mobile/TransactionHeader", () => ({
-  TransactionHeader: () => null,
+  TransactionHeader: ({
+    progress,
+    crossOnClick,
+  }: {
+    progress: number
+    crossOnClick: () => void
+  }) => (
+    <>
+      <progress value={progress} max={100} />
+      <button type="button" onClick={crossOnClick}>
+        Close
+      </button>
+    </>
+  ),
 }))
 
 const token = new Token(
@@ -101,16 +118,27 @@ const mountModal = async (account = makeAccount()) => {
     en: { en },
   })
   const queryClient = new QueryClient()
-  const view = render(
+  const setIsMobileOpen = jest.fn()
+  const tree = () => (
     <QueryClientProvider client={queryClient}>
       <I18nextProvider i18n={i18n}>
-        <WithdrawModal marketAccount={account} isMobileOpen={mockIsMobile} />
+        <WithdrawModal
+          marketAccount={account}
+          isMobileOpen={mockIsMobile}
+          setIsMobileOpen={setIsMobileOpen}
+        />
       </I18nextProvider>
-    </QueryClientProvider>,
+    </QueryClientProvider>
   )
+  const view = render(tree())
   if (!mockIsMobile)
     fireEvent.click(screen.getByRole("button", { name: "Withdraw" }))
-  return { ...view, account }
+  return {
+    ...view,
+    account,
+    refresh: () => view.rerender(tree()),
+    setIsMobileOpen,
+  }
 }
 
 const confirmButton = () =>
@@ -119,6 +147,15 @@ const confirmButton = () =>
 beforeEach(() => {
   begin.mockClear()
   mockIsMobile = false
+  mockFlow = {
+    legs: [],
+    currentLeg: 0,
+    reset: jest.fn(),
+    signCurrent: jest.fn(),
+    begin,
+    isBatched: false,
+    legStatus: () => LegStatus.Active,
+  } as unknown as ReturnType<typeof useWithdrawFlow>
   const amount = token.getAmount(200_000_000n)
   const zero = token.getAmount(0)
   mockRouting = {
@@ -256,4 +293,114 @@ describe("withdrawal batch check presentation", () => {
     )
     unmount()
   })
+})
+
+describe("withdrawal transaction presentation", () => {
+  const useWrappedRoute = () => {
+    mockRouting.route = {
+      ...mockRouting.route,
+      usesWrapped: true,
+      fromDirect: token.getAmount(0),
+      fromWrapped: mockRouting.route.amount,
+    }
+  }
+
+  const startFlow = (wrapped: boolean) => {
+    mockFlow.snapshot = mockRouting.route
+    mockFlow.legs = wrapped
+      ? [
+          { kind: WithdrawLegKind.Unwrap, n: 1 },
+          { kind: WithdrawLegKind.Queue, n: 2 },
+        ]
+      : [{ kind: WithdrawLegKind.Queue, n: 1 }]
+  }
+
+  it.each([false, true])(
+    "advances mobile progress through each transaction (wrapped: %s)",
+    async (wrapped) => {
+      mockIsMobile = true
+      if (wrapped) useWrappedRoute()
+      const { refresh } = await mountModal()
+      const progress = () =>
+        (
+          screen.getByRole("progressbar", {
+            hidden: true,
+          }) as HTMLProgressElement
+        ).value
+      expect(progress()).toBeCloseTo(wrapped ? 25 : 100 / 3)
+
+      startFlow(wrapped)
+      refresh()
+      expect(progress()).toBeCloseTo(wrapped ? 50 : 200 / 3)
+      if (wrapped) {
+        mockFlow.currentLeg = 1
+        refresh()
+        expect(progress()).toBe(75)
+      }
+      mockFlow.currentLeg = mockFlow.legs.length
+      mockFlow.isComplete = true
+      refresh()
+      expect(progress()).toBe(100)
+      expect(screen.getAllByRole("button", { name: "Close" })).toHaveLength(1)
+      expect(
+        screen.queryByRole("button", { name: "Back to Market" }),
+      ).toBeNull()
+    },
+  )
+
+  it("counts a Safe batched unwrap and queue as one transaction", async () => {
+    mockIsMobile = true
+    mockFlow.isBatched = true
+    useWrappedRoute()
+    await mountModal()
+    expect(
+      (screen.getByRole("progressbar") as HTMLProgressElement).value,
+    ).toBeCloseTo(100 / 3)
+  })
+
+  it.each([0, 1])(
+    "shows the error sheet and retries only failed wrapped leg %s",
+    async (currentLeg) => {
+      mockIsMobile = true
+      useWrappedRoute()
+      const { refresh } = await mountModal()
+      startFlow(true)
+      mockFlow.currentLeg = currentLeg
+      mockFlow.failed = true
+      mockFlow.error = "User rejected the request"
+      mockFlow.txHash = `0x${"1".repeat(64)}`
+      const reset = mockFlow.reset as jest.Mock
+      reset.mockClear()
+      refresh()
+
+      expect(screen.getByRole("alert").textContent).toContain(
+        "The withdrawal transaction did not complete",
+      )
+      expect(screen.getByRole("alert").querySelector("a")).toBeNull()
+      fireEvent.click(screen.getByRole("button", { name: "Try Again" }))
+      expect(mockFlow.signCurrent).toHaveBeenCalledTimes(1)
+      expect(mockFlow.currentLeg).toBe(currentLeg)
+      expect(reset).not.toHaveBeenCalled()
+      expect(begin).not.toHaveBeenCalled()
+    },
+  )
+
+  it.each([false, true])(
+    "allows closing the completed flow (mobile: %s)",
+    async (mobile) => {
+      mockIsMobile = mobile
+      const { refresh, setIsMobileOpen } = await mountModal()
+      startFlow(false)
+      mockFlow.isComplete = true
+      refresh()
+      fireEvent.click(
+        screen.getByRole("button", {
+          name: mobile ? "Close" : /Back to Market/i,
+        }),
+      )
+      expect(mockFlow.reset).toHaveBeenCalled()
+      if (mobile) expect(setIsMobileOpen).toHaveBeenCalledWith(false)
+      else await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
+    },
+  )
 })

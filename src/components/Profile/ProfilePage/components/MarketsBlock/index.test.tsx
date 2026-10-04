@@ -130,6 +130,24 @@ const clickHeader = (name: string) =>
   fireEvent.click(screen.getByRole("columnheader", { name }))
 
 describe("borrower profile market sorting", () => {
+  it("displays and sorts lender debt without funded claims or protocol fees", () => {
+    const funded = makeMarket(1, "Funded claims", 100, "10")
+    Object.defineProperty(funded, "totalDebts", {
+      value: funded.underlyingToken.parseAmount("1000"),
+    })
+    const higherSupply = makeMarket(2, "Higher supply", 100, "20")
+    render(<MarketsBlock markets={[higherSupply, funded]} />)
+
+    clickHeader("Total Debt")
+    expect(displayedNames()).toEqual(["Funded claims", "Higher supply"])
+    const fundedRow = screen
+      .getAllByRole("row")
+      .find((row) => row.getAttribute("data-id") === funded.address)!
+    expect(fundedRow.querySelector('[data-field="debt"]')?.textContent).toBe(
+      "10",
+    )
+  })
+
   it("cycles numeric lender APR sorting repeatedly without crashing", () => {
     const markets = [
       makeMarket(1, "Ten percent", 1000, "10"),

@@ -674,7 +674,7 @@
       "terminatedMarkets": "Terminated Markets",
       "tokenSymbol": "Token Symbol",
       "totalDebt": "Total Debt",
-      "totalDebtTooltip": "What the borrower still owes lenders, including withdrawals from expired cycles that have not been funded yet, but not withdrawals already set aside in the market and waiting to be claimed.",
+      "totalDebtTooltip": "What the borrower still owes lenders, including withdrawals from expired cycles that have not been funded yet. Excludes withdrawals already set aside in the market and waiting to be claimed, and protocol fees.",
       "totalDebtRemaining": "Total Debt / Remaining",
       "transaction": "Transaction",
       "transactionId": "Transaction ID",
@@ -1378,6 +1378,8 @@
         "marketHistory": "Market History"
       },
       "statusChart": {
+        "totalObligations": "Total Obligations",
+        "totalObligationsTooltip": "Debt to lenders, funded withdrawals awaiting collection, and accrued protocol fees. This breakdown includes amounts already held by the market.",
         "claimableWds": "Claimable WDs",
         "collateralObligations": "Collateral Obligations",
         "currentReserves": "Current Reserves",

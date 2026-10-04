@@ -6,9 +6,9 @@ import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hook
 import { BarItem } from "@/components/BarChart/BarItem"
 import { MarketBarChartItem } from "@/components/BarChart/BarItem/interface"
 import { LegendItem } from "@/components/BarChart/LegendItem"
+import { TooltipButton } from "@/components/TooltipButton"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
-import { getMarketTotalDebt } from "@/utils/marketDebt"
 
 import { CollateralObligationsData } from "./CollateralObligations/CollateralObligationsData"
 import { DelinquentCollateralObligations } from "./CollateralObligations/DelinquentCollateralObligations"
@@ -77,7 +77,16 @@ export const MarketStatusChart = ({
   return (
     <Box marginTop="12px">
       <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography variant="title3">{t("common.fields.totalDebt")}</Typography>
+        <Box display="flex" alignItems="center" gap="4px">
+          <Typography variant="title3">
+            {t("marketDetails.shared.statusChart.totalObligations")}
+          </Typography>
+          <TooltipButton
+            value={t(
+              "marketDetails.shared.statusChart.totalObligationsTooltip",
+            )}
+          />
+        </Box>
 
         <Box
           sx={{
@@ -87,7 +96,7 @@ export const MarketStatusChart = ({
           }}
         >
           <Typography variant="title3">
-            {`${formatTokenWithCommas(getMarketTotalDebt(market))}`}
+            {formatTokenWithCommas(breakdown.totalDebt)}
           </Typography>
           <Typography variant="text4" sx={{ marginTop: "4px" }}>
             {market.underlyingToken.symbol}

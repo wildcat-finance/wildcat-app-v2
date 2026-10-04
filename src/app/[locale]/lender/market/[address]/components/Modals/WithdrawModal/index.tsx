@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import * as React from "react"
 
-import { Box, Button, Dialog, Typography } from "@mui/material"
+import { Box, Button, Dialog } from "@mui/material"
 import {
   HooksKind,
   QueueWithdrawalStatus,
@@ -35,8 +35,6 @@ import { WithdrawModalProps } from "./interface"
 
 /** Fixed dialog height: every view is laid out inside the same box. */
 const DIALOG_HEIGHT = "493px"
-
-const SINGLE_TRANSACTION_STEPS = 3
 
 export const WithdrawModal = ({
   marketAccount,
@@ -110,16 +108,16 @@ export const WithdrawModal = ({
     if (!flow.snapshot) return "form" as const
     if (flow.proposed) return "proposed" as const
     if (flow.isComplete) return "done" as const
-    if (isSingleLeg)
-      return flow.failed ? ("error" as const) : ("loading" as const)
+    if (flow.failed) return "error" as const
+    if (isSingleLeg) return "loading" as const
     return "steps" as const
   })()
 
   const progress = React.useMemo(() => {
-    if (view === "form") return getStepProgress(0, SINGLE_TRANSACTION_STEPS)
-
     const legCount = flow.legs.length || previewLegCount || 1
     const steps = legCount + 2
+    if (view === "form") return getStepProgress(0, steps)
+
     const step =
       view === "done" || view === "proposed" ? steps - 1 : flow.currentLeg + 1
 
@@ -363,32 +361,6 @@ export const WithdrawModal = ({
         )} ${symbol}`}
         rows={stepRows}
       />
-      {flow.failed && !!flow.error && (
-        <Box
-          role="alert"
-          sx={{
-            width: "100%",
-            padding: "14px 16px",
-            borderRadius: "10px",
-            backgroundColor: COLORS.remy,
-            border: `1px solid ${COLORS.dullRed08}`,
-            color: COLORS.dullRed,
-          }}
-        >
-          <Typography
-            variant="text3"
-            sx={{ display: "block", fontWeight: 600, lineHeight: "20px" }}
-          >
-            {t("common.states.error")}
-          </Typography>
-          <Typography
-            variant="text3"
-            sx={{ display: "block", marginTop: "4px", lineHeight: "20px" }}
-          >
-            {failureSubtitle}
-          </Typography>
-        </Box>
-      )}
     </Box>
   )
 
@@ -442,7 +414,8 @@ export const WithdrawModal = ({
         flow.signCurrent()
       }}
       onClose={handleClose}
-      txHash={flow.txHash}
+      // A rejected queue signature can leave the successful unwrap's hash here.
+      txHash={isSingleLeg ? flow.txHash : undefined}
       subtitle={failureSubtitle}
     />
   )
