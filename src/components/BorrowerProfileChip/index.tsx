@@ -10,13 +10,13 @@ import { COLORS } from "@/theme/colors"
 const CHIP_SIZE_STYLES = {
   small: {
     avatar: "12px",
-    gap: "5px",
-    padding: "2px 7px 2px 5px",
-    radius: "10px",
+    gap: "4px",
+    padding: "0 8px 0 2px",
+    radius: "12px",
     initialFont: "6px",
     initialLineHeight: "8px",
-    fontSize: "10px",
-    lineHeight: "14px",
+    fontSize: "11px",
+    lineHeight: "16px",
   },
   default: {
     avatar: "12px",

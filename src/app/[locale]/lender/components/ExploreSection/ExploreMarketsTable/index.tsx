@@ -19,7 +19,7 @@ import {
   GridRowsProp,
   GridSortModel,
 } from "@mui/x-data-grid"
-import { DepositStatus, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { DepositStatus, HooksKind, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
@@ -117,11 +117,11 @@ const MAX_GRID_PAGE_SIZE = 100
 // Desktop: the table grows past EXPLORE_PAGE_SIZE to fill the viewport,
 // recomputed on resize. These mirror the DataGrid row/header sizes.
 const GRID_ROW_HEIGHT = 66
-const GRID_HEADER_HEIGHT = 40
-// "Go to All Markets" button + its 18px top margin + page bottom padding
-const GRID_RESERVED_BELOW = 74
+const GRID_HEADER_HEIGHT = 36
+// "Go to All Markets" button + its 14px top margin + page bottom padding
+const GRID_RESERVED_BELOW = 78
 
-const DATA_GRID_MIN_HEIGHT = "106px"
+const DATA_GRID_MIN_HEIGHT = "102px"
 
 export const DataGridSx = {
   overflow: "visible",
@@ -155,6 +155,12 @@ export const DataGridSx = {
   },
   "& .MuiDataGrid-columnHeader": {
     padding: 0,
+    color: COLORS.manate,
+    lineHeight: "16px",
+    borderBottomColor: COLORS.whiteLilac,
+    "& .MuiDataGrid-columnHeaderTitleContainer": { margin: 0, gap: "8px" },
+    "& .MuiDataGrid-columnHeaderTitle": { lineHeight: "16px" },
+    "& .MuiDataGrid-sortIcon path": { fill: COLORS.manate },
   },
   "& .MuiDataGrid-row": {
     minHeight: "66px !important",
@@ -165,7 +171,41 @@ export const DataGridSx = {
     padding: "0px",
     minHeight: "66px",
     height: "auto",
+    borderColor: COLORS.whiteLilac,
   },
+  "& .MuiDataGrid-cell[data-field='apr']": {
+    overflow: "visible",
+  },
+  "& .MuiDataGrid-row:last-child .MuiDataGrid-cell": {
+    borderBottom: "none",
+    borderTopColor: COLORS.whiteLilac,
+  },
+}
+
+const ExploreFilterSelectsSx = {
+  display: "flex",
+  alignItems: "center",
+  gap: "6px",
+  "& .MuiInputBase-root.MuiFilledInput-root": {
+    paddingLeft: "3px",
+    borderColor: COLORS.iron,
+    "&:hover": { borderColor: COLORS.greySuit },
+    "&.Mui-focused": { borderColor: COLORS.black07 },
+  },
+  "& .MuiInputBase-root .MuiSelect-select.MuiInputBase-input": {
+    paddingRight: "31px",
+  },
+  "& .MuiInputBase-root .MuiSelect-select > .MuiBox-root > .MuiTypography-root":
+    { color: COLORS.blackRock },
+  "& .MuiInputBase-root .MuiSelect-icon": {
+    transform: "scale(0.8)",
+    "&.MuiSelect-iconOpen": { transform: "scale(0.8) rotate(180deg)" },
+  },
+}
+
+const ActionButtonSx = {
+  color: COLORS.blackRock,
+  "& .MuiButton-endIcon": { marginLeft: "4px", marginRight: 0 },
 }
 
 export type LenderOtherMarketsTableModel = {
@@ -195,7 +235,7 @@ const ActionArrowIcon = (
   <SvgIcon
     component={ArrowRightIcon}
     inheritViewBox
-    sx={{ width: "11px", height: "9px" }}
+    sx={{ width: "11px", height: "9px", "& path": { stroke: "currentColor" } }}
   />
 )
 
@@ -504,8 +544,8 @@ export const ExploreMarketsTable = () => {
       {
         field: "name",
         headerName: "Market",
-        flex: 2.5,
-        minWidth: 200,
+        flex: 212,
+        minWidth: 212,
         headerAlign: "left",
         align: "left",
         renderCell: (params) => (
@@ -518,6 +558,10 @@ export const ExploreMarketsTable = () => {
               alignItems: "flex-start",
               gap: "6px",
               minWidth: 0,
+              "& > a:last-child > .MuiBox-root, & > .MuiBox-root:last-child": {
+                paddingLeft: "4px",
+                "& > .MuiTypography-root": { color: COLORS.blackRock },
+              },
             }}
           >
             <Link
@@ -539,6 +583,7 @@ export const ExploreMarketsTable = () => {
                   overflow: "hidden",
                   whiteSpace: "nowrap",
                   textOverflow: "ellipsis",
+                  color: COLORS.blackRock,
                 }}
               >
                 {params.value}
@@ -562,13 +607,19 @@ export const ExploreMarketsTable = () => {
       {
         field: "status",
         headerName: t("dashboard.markets.tables.header.status"),
-        minWidth: 100,
-        flex: 1,
+        flex: 104,
+        minWidth: 104,
         headerAlign: "left",
         align: "left",
         sortComparator: statusComparator,
         renderCell: (params) => (
-          <Box sx={{ ...LinkCell, justifyContent: "flex-start" }}>
+          <Box
+            sx={{
+              ...LinkCell,
+              justifyContent: "flex-start",
+              "& .MuiChip-icon": { fontSize: "12px" },
+            }}
+          >
             <Box width="120px">
               <MarketStatusChip status={params.value} />
             </Box>
@@ -578,13 +629,25 @@ export const ExploreMarketsTable = () => {
       {
         field: "term",
         headerName: t("dashboard.markets.tables.header.term"),
-        minWidth: 100,
-        flex: 1,
+        flex: 112,
+        minWidth: 112,
         headerAlign: "left",
         align: "left",
         sortComparator: typeComparator,
         renderCell: (params) => (
-          <Box sx={{ ...LinkCell, justifyContent: "flex-start" }}>
+          <Box
+            sx={{
+              ...LinkCell,
+              justifyContent: "flex-start",
+              paddingLeft:
+                params.value.kind === HooksKind.OpenTerm ? "6px" : "4px",
+              "& .MuiTypography-root": {
+                fontSize: pxToRem(11),
+                lineHeight: lh(16, 11),
+                color: COLORS.blackRock,
+              },
+            }}
+          >
             <Box minWidth="170px">
               <MarketTypeChip type="table" {...params.value} />
             </Box>
@@ -594,8 +657,8 @@ export const ExploreMarketsTable = () => {
       {
         field: "apr",
         headerName: t("dashboard.markets.tables.header.apr"),
-        minWidth: 100,
-        flex: 1,
+        flex: 78,
+        minWidth: 78,
         headerAlign: "right",
         align: "right",
         renderCell: (params) => {
@@ -610,7 +673,19 @@ export const ExploreMarketsTable = () => {
           )
 
           return (
-            <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
+            <Box
+              sx={{
+                ...LinkCell,
+                justifyContent: "flex-end",
+                "& .MuiTypography-root": { color: COLORS.blackRock },
+                "& > .MuiBox-root > .MuiBox-root:first-of-type > .MuiBox-root:first-of-type":
+                  {
+                    border: 0,
+                    boxShadow: `inset 0 0 0 1px ${COLORS.whiteLilac}`,
+                    paddingRight: "4px",
+                  },
+              }}
+            >
               <AprChip
                 isBonus={!!adsCellProps}
                 baseApr={formatBps(params.value)}
@@ -624,8 +699,8 @@ export const ExploreMarketsTable = () => {
       {
         field: "withdrawalBatchDuration",
         headerName: t("dashboard.markets.tables.header.withdrawal"),
-        minWidth: 100,
-        flex: 1,
+        flex: 78,
+        minWidth: 78,
         headerAlign: "right",
         align: "right",
         renderCell: (params) => (
@@ -637,8 +712,8 @@ export const ExploreMarketsTable = () => {
       {
         field: "asset",
         headerName: t("dashboard.markets.tables.header.asset"),
-        minWidth: 112,
-        flex: 0.5,
+        flex: 104,
+        minWidth: 104,
         headerAlign: "right",
         align: "right",
         renderCell: (params) => (
@@ -650,8 +725,8 @@ export const ExploreMarketsTable = () => {
       {
         field: "debt",
         headerName: "Total Debt / Remaining",
-        minWidth: 200,
-        flex: 1.5,
+        flex: 191,
+        minWidth: 191,
         headerAlign: "right",
         align: "right",
         sortComparator: tokenAmountComparator,
@@ -681,7 +756,7 @@ export const ExploreMarketsTable = () => {
               <Box
                 sx={{
                   position: "relative",
-                  top: "11px",
+                  top: "12px",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "flex-end",
@@ -690,7 +765,7 @@ export const ExploreMarketsTable = () => {
               >
                 <Box
                   sx={{
-                    width: "120px",
+                    width: "110px",
                     maxWidth: "100%",
                     height: "4px",
                     borderRadius: "2px",
@@ -702,6 +777,7 @@ export const ExploreMarketsTable = () => {
                     sx={{
                       height: "100%",
                       width: `${debtPct}%`,
+                      minWidth: debtRaw > BigInt(0) ? "5px" : 0,
                       borderRadius: "inherit",
                       backgroundColor: COLORS.blackRock,
                     }}
@@ -735,8 +811,8 @@ export const ExploreMarketsTable = () => {
             {
               field: "destinationsCount",
               headerName: t("destinations.column"),
-              minWidth: 128,
-              flex: 1,
+              flex: 144,
+              minWidth: 144,
               headerAlign: "right",
               align: "right",
               sortable: true,
@@ -755,8 +831,8 @@ export const ExploreMarketsTable = () => {
         sortable: false,
         field: "button",
         headerName: "",
-        minWidth: 100,
-        flex: 1,
+        flex: 112,
+        minWidth: 112,
         headerAlign: "right",
         align: "right",
         renderCell: (params) => {
@@ -773,6 +849,7 @@ export const ExploreMarketsTable = () => {
                   variant="contained"
                   color="secondary"
                   endIcon={ActionArrowIcon}
+                  sx={ActionButtonSx}
                 >
                   {t("dashboard.markets.tables.other.depositBTN")}
                 </Button>
@@ -789,6 +866,7 @@ export const ExploreMarketsTable = () => {
                     variant="contained"
                     color="secondary"
                     endIcon={ActionArrowIcon}
+                    sx={ActionButtonSx}
                   >
                     {t("dashboard.markets.tables.other.requestBTN")}
                   </Button>
@@ -1041,7 +1119,7 @@ export const ExploreMarketsTable = () => {
           variant="title3"
           sx={{
             display: "block",
-            color: COLORS.blackRock,
+            color: COLORS.bunker,
           }}
         >
           Top Markets
@@ -1059,18 +1137,20 @@ export const ExploreMarketsTable = () => {
         sx={{
           width: "100%",
           display: "flex",
+          flexWrap: "wrap",
           justifyContent: "space-between",
           alignItems: "center",
-          margin: "16px 0 18px",
+          rowGap: "8px",
+          margin: "16px 0",
         }}
       >
-        <Box sx={{ display: "flex", gap: "4px" }}>
+        <Box sx={{ display: "flex", gap: "4px", flexShrink: 0 }}>
           {isLoading
             ? Array.from({ length: 4 }, (_, i) => `skeleton-row-${i}`).map(
                 (key) => (
                   <Skeleton
                     key={key}
-                    height="36px"
+                    height="32px"
                     width="106px"
                     sx={{
                       borderRadius: "20px",
@@ -1085,8 +1165,13 @@ export const ExploreMarketsTable = () => {
                   variant="text"
                   onClick={() => handleSortModeChange(option)}
                   sx={{
-                    borderRadius: "20px",
-                    fontWeight: sortMode === option ? 600 : 500,
+                    minWidth: 0,
+                    padding: sortMode === option ? "6px 14px" : "6px 8px",
+                    borderRadius: "30px",
+                    lineHeight: "20px",
+                    fontWeight: 600,
+                    color: COLORS.blackRock,
+                    whiteSpace: "nowrap",
                     backgroundColor:
                       sortMode === option ? COLORS.whiteSmoke : "transparent",
                   }}
@@ -1096,7 +1181,16 @@ export const ExploreMarketsTable = () => {
               ))}
         </Box>
 
-        <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            gap: "8px 6px",
+            marginLeft: "auto",
+          }}
+        >
           <FormControlLabel
             label="Self-Onboard"
             control={
@@ -1115,6 +1209,7 @@ export const ExploreMarketsTable = () => {
               "& .MuiTypography-root": {
                 fontSize: pxToRem(13),
                 lineHeight: lh(20, 13),
+                color: COLORS.blackRock,
                 whiteSpace: "nowrap",
               },
             }}
@@ -1138,29 +1233,32 @@ export const ExploreMarketsTable = () => {
               "& .MuiTypography-root": {
                 fontSize: pxToRem(13),
                 lineHeight: lh(20, 13),
+                color: COLORS.blackRock,
                 whiteSpace: "nowrap",
               },
             }}
           />
 
-          <MarketsFilterSelect
-            placeholder={t("dashboard.markets.filters.assets")}
-            options={
-              tokens?.map((token) => ({
-                id: token.address,
-                name: token.symbol,
-              })) ?? []
-            }
-            selected={assets}
-            setSelected={setAssets}
-          />
+          <Box sx={ExploreFilterSelectsSx}>
+            <MarketsFilterSelect
+              placeholder={t("dashboard.markets.filters.assets")}
+              options={
+                tokens?.map((token) => ({
+                  id: token.address,
+                  name: token.symbol,
+                })) ?? []
+              }
+              selected={assets}
+              setSelected={setAssets}
+            />
 
-          <MarketsFilterSelect
-            placeholder="Withdrawal Cycle"
-            options={withdrawalCycleOptions}
-            selected={withdrawalCycles}
-            setSelected={setWithdrawalCycles}
-          />
+            <MarketsFilterSelect
+              placeholder="Withdrawal Cycle"
+              options={withdrawalCycleOptions}
+              selected={withdrawalCycles}
+              setSelected={setWithdrawalCycles}
+            />
+          </Box>
         </Box>
       </Box>
 
@@ -1203,12 +1301,12 @@ export const ExploreMarketsTable = () => {
       </Box>
 
       <Box
-        sx={{ display: "flex", justifyContent: "center", marginTop: "18px" }}
+        sx={{ display: "flex", justifyContent: "center", marginTop: "14px" }}
       >
         {isLoading ? (
           <Skeleton
-            height="28px"
-            width="127px"
+            height="36px"
+            width="136px"
             sx={{
               borderRadius: "10px",
               bgcolor: COLORS.athensGrey,
@@ -1221,6 +1319,13 @@ export const ExploreMarketsTable = () => {
             size="small"
             variant="contained"
             color="secondary"
+            sx={{
+              padding: "8px 14px",
+              borderRadius: "10px",
+              fontSize: pxToRem(13),
+              lineHeight: "20px",
+              color: COLORS.blackRock,
+            }}
           >
             Go to All Markets
           </Button>

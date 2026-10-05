@@ -40,24 +40,24 @@ const AssetChip = ({
       width: "fit-content",
       display: "flex",
       alignItems: "center",
-      gap: "4px",
-      padding: { xs: "2px 7px", md: "2px 7px 2px 5px" },
-      borderRadius: { xs: "12px", md: "10px" },
-      backgroundColor: COLORS.whiteSmoke,
+      gap: { xs: "4px", md: "2px" },
+      padding: { xs: "2px 7px", md: "0 6px 0 4px" },
+      borderRadius: { xs: "12px", md: "20px" },
+      backgroundColor: { xs: COLORS.whiteSmoke, md: COLORS.blackHaze },
     }}
   >
     {chainId && (
       <NetworkIcon
         chainId={chainId as SupportedChainId}
-        width={isMobile ? 12 : 11}
-        height={isMobile ? 12 : 11}
+        width={isMobile ? 12 : 10}
+        height={isMobile ? 12 : 10}
       />
     )}
     <Typography
       variant="mobText3"
       sx={{
-        fontSize: { xs: "12px", md: "10px" },
-        lineHeight: { xs: "16px", md: "14px" },
+        fontSize: { xs: "12px", md: "11px" },
+        lineHeight: { xs: "16px", md: "16px" },
       }}
     >
       {asset}
@@ -85,8 +85,10 @@ export const TrendingMarketDetails = ({
       sx={{
         display: "flex",
         flexDirection: "column",
-        gap: { xs: "12px", md: "8px" },
-        padding: { xs: "14px 0 16px", md: "16px 0 18px" },
+        gap: { xs: "12px", md: 0 },
+        margin: { md: "0 3px" },
+        padding: { xs: "14px 0 16px", md: "13px 3px 9px" },
+        borderTop: { md: `1px solid ${COLORS.iron}` },
       }}
     >
       <MarketStatusAndTermChip status={status} termLabel={termLabel} />
@@ -95,24 +97,31 @@ export const TrendingMarketDetails = ({
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: { xs: "5px", md: "8px" },
-          marginTop: { md: "3px" },
+          gap: { xs: "5px", md: "6px" },
+          marginTop: { md: "10px" },
         }}
       >
         <Typography
           variant="mobText1"
           sx={{
             overflow: "hidden",
-            fontSize: { xs: "16px", md: "13px" },
+            color: { md: COLORS.blackRock },
+            fontSize: { xs: "16px", md: "14px" },
             fontWeight: 600,
-            lineHeight: { xs: "22px", md: "18px" },
+            lineHeight: { xs: "22px", md: "20px" },
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
           }}
         >
           {marketName}
         </Typography>
-        <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: { xs: "4px", md: "2px" },
+          }}
+        >
           <BorrowerProfileChip
             borrower={borrower}
             size={isMobile ? "medium" : "small"}
@@ -122,7 +131,7 @@ export const TrendingMarketDetails = ({
         </Box>
       </Box>
 
-      <Box sx={{ ...SupplyProgressTrackStyle, marginTop: { md: "8px" } }}>
+      <Box sx={{ ...SupplyProgressTrackStyle, marginTop: { md: "16px" } }}>
         <Box
           sx={{
             ...SupplyProgressFillStyle,
@@ -134,9 +143,10 @@ export const TrendingMarketDetails = ({
       <Typography
         variant="mobText3"
         sx={{
-          color: COLORS.matteSilver,
-          fontSize: { xs: "13px", md: "10px" },
-          lineHeight: { xs: "18px", md: "14px" },
+          marginTop: { md: "5px" },
+          color: { xs: COLORS.matteSilver, md: COLORS.manate },
+          fontSize: { xs: "13px", md: "11px" },
+          lineHeight: { xs: "18px", md: "16px" },
         }}
       >
         {supplied} {asset} / {capacity} {asset} supplied

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import * as React from "react"
 
-import { Box, Skeleton, Typography } from "@mui/material"
+import { Box, Collapse, Fade, Skeleton, Typography } from "@mui/material"
 import { HooksKind, Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 import { formatUnits } from "viem"
@@ -606,6 +606,16 @@ export const TrendingMarketsCarousel = () => {
     }
   }, [expandedSlotKey, expandedDestinations.length])
 
+  const isPanelOpen = !!expandedSlot && expandedDestinations.length > 0
+  const [panelSlotKey, setPanelSlotKey] = useState<string | null>(null)
+  if (isPanelOpen && expandedSlotKey !== panelSlotKey) {
+    setPanelSlotKey(expandedSlotKey)
+  }
+  const panelSlot = slots.find((slot) => slot.key === panelSlotKey)
+  const panelDestinations = panelSlot
+    ? destinationsByMarket[panelSlot.account.market.address.toLowerCase()] ?? []
+    : []
+
   const closeComposablePanel = () => {
     const trigger = document.querySelector<HTMLElement>(
       `[aria-controls="${TRENDING_PANEL_ID}"][aria-expanded="true"]`,
@@ -799,7 +809,7 @@ export const TrendingMarketsCarousel = () => {
     <Box sx={{ width: "100%", marginTop: "30px" }}>
       <Typography
         variant="title3"
-        sx={{ color: COLORS.blackRock, paddingLeft: "16px" }}
+        sx={{ color: COLORS.bunker, paddingLeft: "16px" }}
       >
         Trending Markets
       </Typography>
@@ -825,7 +835,7 @@ export const TrendingMarketsCarousel = () => {
               (key, index) => (
                 <Skeleton
                   key={key}
-                  height={showComposableFooter ? "321px" : "297px"}
+                  height={showComposableFooter ? "305px" : "277px"}
                   sx={{
                     flex: "1 0 222px",
                     minWidth: "222px",
@@ -853,31 +863,46 @@ export const TrendingMarketsCarousel = () => {
             ))}
       </Box>
 
-      {expandedSlot && expandedDestinations.length > 0 && (
-        <Box
-          id={TRENDING_PANEL_ID}
-          role="region"
-          aria-label={`${t("destinations.panel.whatYouCanDo")} ${
-            expandedSlot.account.market.marketToken.symbol
-          }`}
-          onKeyDown={(event) => {
-            if (event.key === "Escape") closeComposablePanel()
-          }}
-          sx={{ mx: "16px", mt: "4px" }}
-        >
-          <DestinationsPanel
-            destinations={expandedDestinations}
-            stale={stale}
-            marketSymbol={expandedSlot.account.market.marketToken.symbol}
-            aprBips={expandedSlot.account.market.annualInterestBips}
-            withdrawalBatchDuration={
-              expandedSlot.account.market.withdrawalBatchDuration
-            }
-            closeVariant="close"
-            onClose={closeComposablePanel}
-          />
-        </Box>
-      )}
+      <Collapse
+        in={isPanelOpen}
+        timeout={250}
+        onExited={() => setPanelSlotKey(null)}
+        unmountOnExit
+      >
+        <Fade in={isPanelOpen} timeout={250}>
+          <Box sx={{ padding: "4px 16px 0", marginBottom: "-4px" }}>
+            {panelSlot && panelDestinations.length > 0 && (
+              <Box
+                id={TRENDING_PANEL_ID}
+                role="region"
+                aria-label={`${t("destinations.panel.whatYouCanDo")} ${
+                  panelSlot.account.market.marketToken.symbol
+                }`}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") closeComposablePanel()
+                }}
+                sx={{
+                  borderRadius: "12px",
+                  boxShadow:
+                    "0 4px 4px -2px rgba(153, 153, 153, 0.02), 0 10px 6px -6px rgba(153, 153, 153, 0.03), 0 50px 64px -34px rgba(153, 153, 153, 0.16)",
+                }}
+              >
+                <DestinationsPanel
+                  destinations={panelDestinations}
+                  stale={stale}
+                  marketSymbol={panelSlot.account.market.marketToken.symbol}
+                  aprBips={panelSlot.account.market.annualInterestBips}
+                  withdrawalBatchDuration={
+                    panelSlot.account.market.withdrawalBatchDuration
+                  }
+                  closeVariant="close"
+                  onClose={closeComposablePanel}
+                />
+              </Box>
+            )}
+          </Box>
+        </Fade>
+      </Collapse>
     </Box>
   )
 }

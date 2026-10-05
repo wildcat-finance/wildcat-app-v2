@@ -5,7 +5,7 @@ export {
   ComposableRowPanel,
   useComposableExpansion,
 } from "./ComposableExpansion"
-export { ComposableCardToggle, ComposableChip } from "./ComposableToggles"
+export { ComposableCardFooter, ComposableChip } from "./ComposableToggles"
 export { DestinationsBadge } from "./DestinationsBadge"
 export { DestinationsPanel } from "./DestinationsPanel"
 export { MarketDestinationsSection } from "./MarketDestinationsSection"

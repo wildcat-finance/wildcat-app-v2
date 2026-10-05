@@ -391,7 +391,8 @@ const DestinationRow = ({
             variant === "section"
               ? { padding: "6px 12px", whiteSpace: "nowrap" }
               : {
-                  padding: "6px 12px",
+                  minWidth: 0,
+                  padding: "5px 12px",
                   borderColor: COLORS.glitter,
                   backgroundColor: COLORS.white,
                   color: COLORS.blackRock,
@@ -556,7 +557,7 @@ export const DestinationsPanel = ({
                 alignItems: "center",
                 padding: "0 8px",
                 borderRadius: "20px",
-                border: `1px solid ${COLORS.cornflowerBlue05}`,
+                boxShadow: `inset 0 0 0 1px ${COLORS.cornflowerBlue05}`,
                 backgroundColor: COLORS.hawkesBlue,
               }}
             >

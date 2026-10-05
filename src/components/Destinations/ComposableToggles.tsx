@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { ButtonBase, SvgIcon, Typography } from "@mui/material"
+import { Box, ButtonBase, SvgIcon, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import ChevronSmallUp from "@/assets/icons/chevronSmallUp_icon.svg"
@@ -45,11 +45,16 @@ export const ComposableChip = ({
         gap: "2px",
         padding: "0 4px 0 8px",
         borderRadius: "12px",
-        border: `1px solid ${expanded ? COLORS.hawkesBlue : COLORS.whiteLilac}`,
+        boxShadow: `inset 0 0 0 1px ${
+          expanded ? COLORS.hawkesBlue : COLORS.whiteLilac
+        }`,
         backgroundColor: expanded ? COLORS.glitter : COLORS.athensGrey,
         "&.Mui-focusVisible": {
           outline: `2px solid ${COLORS.ultramarineBlue}`,
           outlineOffset: "-2px",
+        },
+        "@media (forced-colors: active)": {
+          border: "1px solid ButtonText",
         },
       }}
     >
@@ -80,7 +85,7 @@ export const ComposableChip = ({
   )
 }
 
-export const ComposableCardToggle = ({
+export const ComposableCardFooter = ({
   count,
   expanded,
   onToggle,
@@ -92,33 +97,13 @@ export const ComposableCardToggle = ({
   controls?: string
 }) => {
   const { t } = useTranslation()
-  const color = count > 0 ? COLORS.blueRibbon : COLORS.santasGrey
+  const active = count > 0
+  const color = active ? COLORS.blueRibbon : COLORS.santasGrey
 
-  return (
-    <ButtonBase
-      disabled={count === 0}
-      aria-expanded={expanded}
-      aria-controls={controls}
-      onClick={(event) => {
-        stopRowNavigation(event)
-        onToggle()
-      }}
-      onAuxClick={stopRowNavigation}
-      sx={{
-        width: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "3px",
-        padding: "4px 0",
-        borderRadius: "8px",
-        "&.Mui-focusVisible": {
-          outline: `2px solid ${COLORS.ultramarineBlue}`,
-          outlineOffset: "-2px",
-        },
-      }}
-    >
-      <Typography
+  const content = (
+    <>
+      <Box
+        component="span"
         sx={{
           fontSize: "11px",
           lineHeight: "16px",
@@ -128,17 +113,67 @@ export const ComposableCardToggle = ({
         }}
       >
         {t("destinations.cardToggle", { count })}
-      </Typography>
+      </Box>
       <SvgIcon
         viewBox="0 0 20 20"
         sx={{
           fontSize: "12px",
           transform: expanded ? "rotate(180deg)" : "none",
+          transition: "transform 200ms ease",
           "& path": { fill: color },
         }}
       >
         <DownArrow />
       </SvgIcon>
-    </ButtonBase>
+    </>
+  )
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        padding: "4px 0",
+      }}
+    >
+      {active ? (
+        <Box
+          component="button"
+          type="button"
+          aria-expanded={expanded}
+          aria-controls={controls}
+          onClick={(event: React.MouseEvent) => {
+            stopRowNavigation(event)
+            onToggle()
+          }}
+          onAuxClick={stopRowNavigation}
+          sx={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "3px",
+            margin: 0,
+            padding: 0,
+            border: "none",
+            borderRadius: "4px",
+            background: "none",
+            font: "inherit",
+            cursor: "pointer",
+            "&:focus-visible": {
+              outline: `2px solid ${COLORS.ultramarineBlue}`,
+              outlineOffset: "2px",
+            },
+          }}
+        >
+          {content}
+        </Box>
+      ) : (
+        <Box
+          component="span"
+          sx={{ display: "inline-flex", alignItems: "center", gap: "3px" }}
+        >
+          {content}
+        </Box>
+      )}
+    </Box>
   )
 }

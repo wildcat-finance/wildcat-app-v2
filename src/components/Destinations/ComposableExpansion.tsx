@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { Box, FormControlLabel, Switch } from "@mui/material"
+import { Box, Collapse, Fade, FormControlLabel, Switch } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { useMarketDestinations } from "@/hooks/destinations/useDestinations"
@@ -103,20 +103,14 @@ export const ComposableRowPanel = ({
   const expanded = expandedId === rowId.toLowerCase()
   const { destinations, stale } = useMarketDestinations(chainId, rowId)
   const ref = React.useRef<HTMLDivElement>(null)
-  const wasExpanded = React.useRef(expanded)
+  const [mounted, setMounted] = React.useState(expanded)
+  if (expanded && !mounted) setMounted(true)
 
   React.useEffect(() => {
     if (expanded && destinations.length === 0) close()
   }, [expanded, destinations.length, close])
 
-  React.useEffect(() => {
-    if (expanded && !wasExpanded.current) {
-      ref.current?.scrollIntoView({ block: "nearest" })
-    }
-    wasExpanded.current = expanded
-  }, [expanded])
-
-  if (!expanded || destinations.length === 0) return null
+  if (!mounted || destinations.length === 0) return null
 
   const closeAndRefocus = () => {
     const trigger = document.querySelector<HTMLElement>(
@@ -133,36 +127,51 @@ export const ComposableRowPanel = ({
       sx={{
         width: "var(--DataGrid-rowWidth)",
         maxWidth: "100%",
-        boxSizing: "border-box",
-        padding: "4px 0 16px",
         cursor: "default",
-        ...(dividerBelow
-          ? { borderBottom: `1px solid ${COLORS.athensGrey}` }
-          : {
-              "&:last-child": {
-                borderBottom: `1px solid ${COLORS.athensGrey}`,
-              },
-            }),
       }}
     >
-      <Box
-        role="gridcell"
-        id={panelId(rowId)}
-        aria-label={`${t("destinations.panel.whatYouCanDo")} ${marketSymbol}`}
-        onKeyDown={(event) => {
-          if (event.key === "Escape") closeAndRefocus()
-        }}
+      <Collapse
+        appear
+        in={expanded}
+        timeout={250}
+        onEntered={() =>
+          ref.current?.scrollIntoView({ block: "nearest", behavior: "smooth" })
+        }
+        onExited={() => setMounted(false)}
       >
-        <DestinationsPanel
-          destinations={destinations}
-          stale={stale}
-          marketSymbol={marketSymbol}
-          aprBips={aprBips}
-          withdrawalBatchDuration={withdrawalBatchDuration}
-          closeVariant="collapse"
-          onClose={closeAndRefocus}
-        />
-      </Box>
+        <Fade in={expanded} timeout={250}>
+          <Box
+            sx={{
+              boxSizing: "border-box",
+              padding: "4px 0 16px",
+              ...(dividerBelow && {
+                borderBottom: `1px solid ${COLORS.athensGrey}`,
+              }),
+            }}
+          >
+            <Box
+              role="gridcell"
+              id={panelId(rowId)}
+              aria-label={`${t(
+                "destinations.panel.whatYouCanDo",
+              )} ${marketSymbol}`}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") closeAndRefocus()
+              }}
+            >
+              <DestinationsPanel
+                destinations={destinations}
+                stale={stale}
+                marketSymbol={marketSymbol}
+                aprBips={aprBips}
+                withdrawalBatchDuration={withdrawalBatchDuration}
+                closeVariant="collapse"
+                onClose={closeAndRefocus}
+              />
+            </Box>
+          </Box>
+        </Fade>
+      </Collapse>
     </Box>
   )
 }

@@ -1744,7 +1744,7 @@
       "cycleHours": "{{count}}-hour",
       "cycleMinutes": "{{count}}-minute",
       "loopable": "Loopable {{multiple}}x",
-      "open": "Open →",
+      "open": "Open",
       "openAria": "Open {{title}} on {{platform}}",
       "tokenRequired": "{{symbol}} required",
       "collapse": "Hide destinations",

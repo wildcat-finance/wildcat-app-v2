@@ -7,21 +7,26 @@ export const CardContainerStyle = {
   height: "100%",
   display: "flex",
   flexDirection: "column",
+  gap: { md: "4px" },
+  padding: { md: "3px" },
   overflow: "hidden",
-  border: `1px solid ${COLORS.whiteLilac}`,
+  border: "1px solid",
+  borderColor: { xs: COLORS.whiteLilac, md: COLORS.iron },
   borderRadius: { xs: "24px", md: "12px" },
   backgroundColor: COLORS.white,
 }
 
 export const CardHeaderStyle = {
   width: "100%",
-  minHeight: { xs: "38px", md: "32px" },
+  minHeight: { xs: "38px", md: "30px" },
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  padding: { xs: "9px 20px", md: "7px 14px" },
-  borderBottom: `1px solid ${COLORS.whiteLilac}`,
-  backgroundColor: COLORS.hintOfRed,
+  gap: { md: "8px" },
+  padding: { xs: "9px 20px", md: "6px 8px 7px" },
+  borderBottom: "1px solid",
+  borderBottomColor: { xs: COLORS.whiteLilac, md: COLORS.iron },
+  backgroundColor: { xs: COLORS.hintOfRed, md: COLORS.white },
 }
 
 export const CardIconStyle = {
@@ -35,7 +40,8 @@ export const CardContentStyle = {
   flexGrow: 1,
   display: "flex",
   flexDirection: "column",
-  padding: { xs: "12px 20px", md: "12px 14px" },
+  gap: { md: "4px" },
+  padding: { xs: "12px 20px", md: 0 },
 }
 
 export const MarketContainerStyle = {
@@ -48,8 +54,8 @@ export const MarketContainerStyle = {
   marginLeft: { xs: "-12px", md: 0 },
   marginRight: { xs: "-12px", md: 0 },
   gap: "6px",
-  padding: { xs: "12px", md: "7px 12px" },
-  borderRadius: { xs: "16px", md: "8px" },
+  padding: { xs: "12px", md: "8px 12px" },
+  borderRadius: { xs: "16px", md: "10px" },
   backgroundColor: COLORS.bunker,
   color: COLORS.white,
   textDecoration: "none",
@@ -57,10 +63,11 @@ export const MarketContainerStyle = {
 }
 
 export const SupplyProgressTrackStyle = {
-  width: "100%",
-  height: { xs: "7px", md: "4px" },
-  borderRadius: { xs: "4px", md: "2px" },
-  backgroundColor: COLORS.athensGrey,
+  width: { xs: "100%", md: "calc(100% - 4px)" },
+  height: { xs: "7px", md: "3px" },
+  margin: { md: "0 2px" },
+  borderRadius: { xs: "4px", md: "1.5px" },
+  backgroundColor: { xs: COLORS.athensGrey, md: COLORS.whiteLilac },
   overflow: "hidden",
 }
 
@@ -68,4 +75,5 @@ export const SupplyProgressFillStyle = {
   height: "100%",
   borderRadius: "inherit",
   backgroundColor: COLORS.blueRibbon,
+  opacity: { md: 0.8 },
 }
