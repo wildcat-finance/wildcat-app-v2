@@ -77,3 +77,6 @@ The operator requested two steps. Commit and integrate this compatibility
 branch first, then branch from it for new repayment-scheduling and
 surplus-recovery controls. Repayment/default history and lifecycle presentation
 can be designed with those controls. This branch does not add them.
+
+The subsequent implementation is documented in
+[market lifecycle controls](market-lifecycle-controls.md).

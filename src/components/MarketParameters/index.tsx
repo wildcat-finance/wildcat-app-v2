@@ -82,6 +82,7 @@ import {
   MarketParametersContainer,
   MarketParametersContainerColumn,
 } from "./style"
+import { MarketRepaymentDetails } from "../MarketRepaymentDetails"
 import { ParametersItem } from "../ParametersItem"
 import { TooltipButton } from "../TooltipButton"
 
@@ -491,6 +492,7 @@ export const MarketParameters = ({
       >
         {t("marketDetails.shared.header.parameters")}
       </Typography>
+      <MarketRepaymentDetails market={market} />
       <Box sx={MarketParametersContainer(theme)}>
         <Box sx={MarketParametersContainerColumn(theme)}>
           <ParametersItem

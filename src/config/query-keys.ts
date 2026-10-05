@@ -447,6 +447,8 @@ const MARKET_QUERY_KEYS = {
   // GET_MARKET_KEY
   GET_MARKET: (chainId: number, marketAddress?: string) =>
     k(["markets", "GET_MARKET", chainId, marketAddress]),
+  GET_REPAYMENT_HISTORY: (chainId: number, marketAddress?: string) =>
+    k(["markets", "GET_REPAYMENT_HISTORY", chainId, marketAddress]),
   GET_INDEXED_MARKET: (chainId: number, marketAddress?: string) =>
     k(["markets", "GET_MARKET", chainId, marketAddress, "indexed"]),
   // GET_MARKET_LENDERS_KEY

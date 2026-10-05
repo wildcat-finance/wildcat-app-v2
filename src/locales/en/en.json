@@ -330,6 +330,14 @@
           "unavailableWhenTransfersDisabled": "A wrapper requires transferable market tokens. Enable transfers to deploy a wrapper."
         },
         "title": "Wrapper Contract"
+      },
+      "repayment": {
+        "enable": "Schedule repayment",
+        "explanation": "These terms cannot be changed after deployment. At the repayment date, deposits and borrowing end and lenders can queue withdrawals at any time. Fully funding the market then closes it automatically.",
+        "unsupported": "Scheduled repayment is not supported by this deployment target. Turn it off to continue.",
+        "dateUtc": "Repayment date (UTC)",
+        "deadline": "Repayment deadline: {{deadline}}",
+        "zeroPeriod": "A zero-hour period makes the repayment date the deadline. Failing to repay by the deadline can leave a permanent default record."
       }
     },
     "editLenders": {
@@ -1399,6 +1407,46 @@
         "noOutstanding": "No outstanding withdrawals from previous cycles.",
         "openWithdrawals": "Open Withdrawals"
       }
+    },
+    "repayment": {
+      "title": "Repayment",
+      "date": "Repayment date",
+      "period": "Repayment period",
+      "deadline": "Repayment deadline",
+      "closed": "Closed",
+      "active": "In repayment",
+      "scheduled": "Scheduled",
+      "unscheduled": "No scheduled repayment",
+      "defaultedAt": "Defaulted at",
+      "activeNotice": "Deposits and borrowing have ended. Lenders can queue withdrawals regardless of withdrawal windows or access credentials. Fully funding the market closes it automatically when its state is updated.",
+      "defaultNotice": "This market has a recorded default. Repayment or closure does not remove that record.",
+      "showHistory": "View repayment history",
+      "hideHistory": "Hide repayment history",
+      "loadingHistory": "Loading repayment history…",
+      "historyError": "Repayment history is unavailable. Try again.",
+      "termsRecorded": "Repayment terms set",
+      "activated": "Repayment started",
+      "defaultRecorded": "Default recorded",
+      "effectiveAt": "Effective: {{date}}",
+      "recordedAt": "Recorded: {{date}} · block {{block}}",
+      "noHistory": "No repayment events have been indexed yet.",
+      "historyNotice": "An event may be recorded after its effective date. Missing events do not establish whether the repayment deadline was met.",
+      "repayNotice": "Repaying the full outstanding debt will automatically close this market.",
+      "hours_one": "{{count}} hour",
+      "hours_other": "{{count}} hours"
+    },
+    "recovery": {
+      "button": "Recover surplus",
+      "description": "Recover the underlying tokens held above all remaining lender and protocol-fee liabilities in this closed market.",
+      "executionNotice": "All available surplus is sent to the borrower. The final amount is calculated when the transaction executes.",
+      "loading": "Refreshing available surplus…",
+      "quoteError": "Unable to obtain a live surplus quote. Try again.",
+      "unsupported": "This market does not support surplus recovery.",
+      "notBorrower": "Only the market borrower can recover surplus.",
+      "marketOpen": "The market must be closed before surplus can be recovered.",
+      "noSurplus": "There is no surplus available to recover.",
+      "success": "Surplus recovered",
+      "failed": "Surplus recovery was not completed. Refresh the quote before trying again."
     }
   },
   "marketList": {

@@ -44,6 +44,7 @@ import {
 import { AprModal } from "../Modals/AprModal"
 import { BorrowModal } from "../Modals/BorrowModal"
 import { CapacityModal } from "../Modals/CapacityModal"
+import { RecoverUnderlyingModal } from "../Modals/RecoverUnderlyingModal"
 import { RepayModal } from "../Modals/RepayModal"
 
 export const MarketTransactions = ({
@@ -262,6 +263,9 @@ export const MarketTransactions = ({
           {/* </Button> */}
           <CapacityModal marketAccount={marketAccount} />
           <AprModal marketAccount={marketAccount} />
+          {market.isClosed && market.repaymentDate !== undefined && (
+            <RecoverUnderlyingModal marketAccount={marketAccount} />
+          )}
           {allowSetMinDeposit && (
             <MinimumDepositModal marketAccount={marketAccount} />
           )}

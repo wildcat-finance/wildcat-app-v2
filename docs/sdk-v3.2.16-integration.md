@@ -115,7 +115,8 @@ their original default timestamps after simulated keeper timestamp advancement.
 The SDK's `docs/releases/3.2.16-beta.md` owns the underlying reproduction and
 protocol comparison.
 
-Operator commit, push and integration merge remain pending. Repayment-scheduling
-and surplus-recovery controls remain the subsequent feature branch, following
-the two-step integration plan. The prior compatibility behavior and deployment
+The operator committed and pushed the integration on 2026-10-04. Integration
+merge remains pending. The subsequent feature branch is documented in
+[market lifecycle controls](market-lifecycle-controls.md), following the
+two-step integration plan. The prior compatibility behavior and deployment
 smoke-check limits are documented in [3.2.14 integration](./sdk-v3.2.14-integration.md).

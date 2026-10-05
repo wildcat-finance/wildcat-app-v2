@@ -61,6 +61,36 @@ const formValues: MarketValidationSchemaType = {
 }
 
 describe("create-market MLA provenance", () => {
+  it.each(["standard", "fixedTerm", "periodicTerm"])(
+    "exposes precise UTC repayment terms for %s agreement templates",
+    (marketType) => {
+      const values = getFieldValuesForBorrowerFromForm(
+        {
+          ...formValues,
+          marketType,
+          scheduleRepayment: true,
+          repaymentDate: 1_893_499_200,
+          repaymentPeriod: 0,
+        },
+        {
+          address: "0x0000000000000000000000000000000000000002",
+          name: "Borrower",
+        },
+        1_700_000_000,
+        "0x0000000000000000000000000000000000000003",
+        token,
+        { chainId: SupportedChainId.Sepolia } as NetworkInfo,
+      )
+      expect(values.get("market.repaymentDate")).toBe(
+        "01 Jan 2030, 12:00:00 UTC",
+      )
+      expect(values.get("market.repaymentDeadline")).toBe(
+        "01 Jan 2030, 12:00:00 UTC",
+      )
+      expect(values.get("market.repaymentPeriod")).toBe("0 seconds")
+    },
+  )
+
   it("uses the committed historical factory instead of the configured target", () => {
     const values = getFieldValuesForBorrowerFromForm(
       formValues,

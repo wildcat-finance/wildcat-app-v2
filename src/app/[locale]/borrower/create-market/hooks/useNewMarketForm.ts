@@ -25,6 +25,11 @@ import {
   RequiredMarketConstraint,
 } from "@/utils/formatters"
 
+import {
+  CORE_REPAYMENT_CONSTRAINTS,
+  getRepaymentTermIssues,
+} from "../validation/repaymentTerms"
+
 export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
   implementationType: "standard",
   marketType: "",
@@ -37,6 +42,9 @@ export const defaultMarketForm: Partial<MarketValidationSchemaType> = {
   delinquencyGracePeriod: undefined,
   withdrawalBatchDuration: undefined,
   fixedTermEndTime: undefined,
+  scheduleRepayment: false,
+  repaymentDate: undefined,
+  repaymentPeriod: 0,
   firstWithdrawalWindowStart: undefined,
   periodDuration: undefined,
   withdrawalWindowDuration: undefined,
@@ -91,13 +99,16 @@ function getValidationSchema(
 
 export type NewMarketFormType = UseFormReturn<MarketValidationSchemaType>
 
-const withPeriodicTermIssues =
+const withTermIssues =
   (
     resolver: Resolver<MarketValidationSchemaType>,
   ): Resolver<MarketValidationSchemaType> =>
   async (values, context, options) => {
     const result = await resolver(values, context, options)
-    const issues = getPeriodicTermIssues(values)
+    const issues = [
+      ...getPeriodicTermIssues(values),
+      ...getRepaymentTermIssues(values, CORE_REPAYMENT_CONSTRAINTS),
+    ]
 
     if (issues.length === 0) return result
 
@@ -125,7 +136,7 @@ export const useNewMarketForm = (isTestnet: boolean): NewMarketFormType => {
 
   const form = useForm<MarketValidationSchemaType>({
     defaultValues: defaultMarketForm,
-    resolver: withPeriodicTermIssues(zodResolver(validationSchemaAsync)),
+    resolver: withTermIssues(zodResolver(validationSchemaAsync)),
     mode: "onBlur",
   })
 

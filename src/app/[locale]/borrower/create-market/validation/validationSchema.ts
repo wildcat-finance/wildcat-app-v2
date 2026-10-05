@@ -19,6 +19,11 @@ import {
 import { isLetterNumber, isLetterNumberSpace } from "@/utils/validations"
 
 import {
+  CORE_REPAYMENT_CONSTRAINTS,
+  getRepaymentTermIssues,
+  RepaymentFormValues,
+} from "./repaymentTerms"
+import {
   formatDurationFromSeconds,
   PERIODIC_DURATION_UNITS,
 } from "../utils/units"
@@ -118,6 +123,9 @@ export const baseMarketSchemaFields = {
   policyName: z.string(),
   // fixedTermEndTime validation is added dynamically based on network
   fixedTermEndTime: z.coerce.number().optional(),
+  scheduleRepayment: z.boolean().optional(),
+  repaymentDate: z.number().optional(),
+  repaymentPeriod: z.number().optional(),
   firstWithdrawalWindowStart: z.coerce.number().optional(),
   periodDuration: z.coerce.number().optional(),
   withdrawalWindowDuration: z.coerce.number().optional(),
@@ -253,7 +261,7 @@ export const marketRefinementCallback = (
     depositRequiresAccess: boolean
     withdrawalRequiresAccess: boolean
     deployWrapper?: boolean
-  },
+  } & RepaymentFormValues,
   ctx: z.RefinementCtx,
 ) => {
   if (
@@ -306,6 +314,11 @@ export const marketRefinementCallback = (
   }
 
   getPeriodicTermIssues(data, { requireValues: true }).forEach(
+    ({ path, message }) => {
+      ctx.addIssue({ message, path: [path], code: "custom" })
+    },
+  )
+  getRepaymentTermIssues(data, CORE_REPAYMENT_CONSTRAINTS).forEach(
     ({ path, message }) => {
       ctx.addIssue({ message, path: [path], code: "custom" })
     },

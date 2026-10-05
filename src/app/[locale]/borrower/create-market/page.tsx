@@ -100,6 +100,11 @@ import {
   getCreateMarketFormFingerprint,
   getCreateMarketSignatureFingerprint,
 } from "./validation/deployFingerprint"
+import {
+  getRepaymentDeploymentTerms,
+  getRepaymentTermIssues,
+  supportsRepaymentSchedule,
+} from "./validation/repaymentTerms"
 import { MarketValidationSchemaType } from "./validation/validationSchema"
 import { getMlaFromForm } from "../hooks/mla/usePreviewMla"
 import {
@@ -176,6 +181,9 @@ const FIELD_TO_STEP: Partial<
   minimumDeposit: CreateMarketSteps.FINANCIAL,
   delinquencyGracePeriod: CreateMarketSteps.FINANCIAL,
   withdrawalBatchDuration: CreateMarketSteps.FINANCIAL,
+  scheduleRepayment: CreateMarketSteps.FINANCIAL,
+  repaymentDate: CreateMarketSteps.FINANCIAL,
+  repaymentPeriod: CreateMarketSteps.FINANCIAL,
   depositRequiresAccess: CreateMarketSteps.LRESTRICTIONS,
   withdrawalRequiresAccess: CreateMarketSteps.LRESTRICTIONS,
   transferRequiresAccess: CreateMarketSteps.LRESTRICTIONS,
@@ -552,6 +560,28 @@ export default function CreateMarketPage() {
     [signer],
   )
 
+  const validateRepaymentTerms = useCallback(() => {
+    const values = newMarketForm.getValues()
+    if (!values.scheduleRepayment) return true
+    const issues = getRepaymentTermIssues(
+      values,
+      selectedHooksInstance?.constraints,
+    )
+    if (!supportsRepaymentSchedule(targetChainId, values.implementationType)) {
+      issues.unshift({
+        path: "repaymentDate",
+        message: t("borrower.createMarket.repayment.unsupported"),
+      })
+    }
+    if (!issues.length) return true
+    issues.forEach(({ path, message }) =>
+      newMarketForm.setError(path, { type: "validate", message }),
+    )
+    toastError(issues[0].message)
+    dispatch(setCreatingStep(CreateMarketSteps.FINANCIAL))
+    return false
+  }, [dispatch, newMarketForm, selectedHooksInstance, t, targetChainId])
+
   const handleSignMla = useCallback(
     (args: SignMlaFromFormInputs) => {
       const resumedDraft =
@@ -566,6 +596,8 @@ export default function CreateMarketPage() {
       )
         ? resumedDraft
         : undefined
+
+      if (!resumedCommittedDraft && !validateRepaymentTerms()) return
 
       setSignatureRequested(true)
       setSignedFormFingerprint(
@@ -670,6 +702,7 @@ export default function CreateMarketPage() {
       signingDraft,
       targetChainId,
       timeSigned,
+      validateRepaymentTerms,
     ],
   )
 
@@ -912,7 +945,7 @@ export default function CreateMarketPage() {
     }
   }
 
-  const handleDeployMarket = newMarketForm.handleSubmit(() => {
+  const deployMarketFromForm = () => {
     const marketParams = newMarketForm.getValues()
     const deployRouting = getCreateMarketDeployRouting({
       implementationType: marketParams.implementationType,
@@ -977,6 +1010,7 @@ export default function CreateMarketPage() {
       selectedHooksTemplate &&
       mlaSignature
     ) {
+      if (!validateRepaymentTerms()) return
       const roleProviderInputs = getCreateMarketRoleProviderInputs({
         accessControl: marketParams.accessControl,
         borrower: address,
@@ -999,6 +1033,7 @@ export default function CreateMarketPage() {
           Number(marketParams.delinquencyGracePeriod) * 60 * 60,
         withdrawalBatchDuration:
           Number(marketParams.withdrawalBatchDuration) * 60 * 60,
+        ...getRepaymentDeploymentTerms(marketParams),
         maxTotalSupply: marketParams.maxTotalSupply,
         assetData: tokenAsset,
         depositAccess: marketParams.depositRequiresAccess
@@ -1047,7 +1082,22 @@ export default function CreateMarketPage() {
     } else {
       toastError(t("borrower.createMarket.toasts.deploymentNotReady"))
     }
-  }, handleInvalidDeploy)
+  }
+
+  const handleDeployMarket = () => {
+    // A Safe proposal or deployed market must retain its signed terms even if
+    // its repayment date has now passed. Resume that operation; future-date
+    // validation applies only before submitting a new deployment.
+    if (
+      isSafeSigning &&
+      signingDraft?.id === activeDraftId &&
+      hasCommittedCreateMarketDeployment(signingDraft)
+    ) {
+      deployMarketFromForm()
+      return
+    }
+    newMarketForm.handleSubmit(deployMarketFromForm, handleInvalidDeploy)()
+  }
 
   const handleClickDeploy = async () => {
     const activeSafeDraft =
@@ -1383,6 +1433,8 @@ export default function CreateMarketPage() {
           <flowVariant.FinancialForm
             form={newMarketForm}
             tokenAsset={tokenAsset}
+            repaymentChainId={targetChainId}
+            repaymentConstraints={selectedHooksInstance?.constraints}
           />
         )}
 

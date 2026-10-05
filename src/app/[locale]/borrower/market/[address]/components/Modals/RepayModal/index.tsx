@@ -414,6 +414,11 @@ export const RepayModal = ({
 
         {showForm && (
           <Box width="100%" height="100%" padding="0 24px">
+            {marketAccount.market.isInRepayment && (
+              <Typography variant="text3" component="p" sx={{ my: "16px" }}>
+                {t("marketDetails.repayment.repayNotice")}
+              </Typography>
+            )}
             {modal.gettingValueStep && (
               <Tabs
                 value={type}
