@@ -1,6 +1,6 @@
 # App data gateway
 
-The app uses `@wildcatfi/wildcat-sdk@3.2.14-beta`. Browser RPC and subgraph
+The app uses `@wildcatfi/wildcat-sdk@3.2.17-beta`. Browser RPC and subgraph
 requests go through these same-origin POST routes:
 
 - `/api/gateway/rpc/{chainId}`
@@ -10,9 +10,9 @@ The routes derive their upstream URLs from the SDK. Subgraph releases stay
 pinned in the SDK; the browser cannot select an upstream URL or another release.
 SDK metadata checks use the same proxy as normal subgraph queries.
 
-On Sepolia, this SDK selects the protocol V2.5.5 factories and lens, the
-V2.5.6 hook templates, and subgraph V2.5.14. See the
-[current integration notes](./sdk-v3.2.14-integration.md) for compatibility
+On Sepolia, this SDK selects the protocol V2.5.7 factories and lens, the
+reused V2.5.6 hook templates, and subgraph V2.5.15. See the
+[current integration notes](./sdk-v3.2.17-integration.md) for compatibility
 changes and verification. The [earlier notes](./sdk-v3.2.10-integration.md)
 preserve the historical-wrapper checks.
 
@@ -93,7 +93,9 @@ The app's unit suites expect `NEXT_PUBLIC_TARGET_NETWORK=Mainnet`. The existing
 `src/app/api/profiles/profile.test.ts` suite additionally requires a dedicated
 test database and server RPC configuration; do not point it at production.
 The SDK 3.2.10 integration included live checks through a local production app
-server on all four chains. The current integration passed direct SDK metadata
-and indexed reads through the Sepolia gateway; authenticated app-proxy checks
-remain pending because this checkout has no gateway credential. Run the Vercel
-smoke checks above after deployment.
+server on all four chains. The 3.2.17 integration passed authenticated Graph
+and RPC checks through a local production app server on Sepolia and Mainnet,
+with the gateway credential supplied only to the server process. The linked
+integration note records the scope and observations. These local checks do
+not establish a deployed app release; run the Vercel smoke checks above after
+deployment.

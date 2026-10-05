@@ -1,0 +1,112 @@
+{
+  "observedFrom": "2026-10-05T08:02:53.016Z",
+  "sdk": "3.2.17-beta",
+  "appBaseCommit": "da13712b5802917410dbafe764dfd272527268fe",
+  "scope": "Installed npm SDK through the local production app Graph/RPC proxy, using the app viem-provider adapter. Read-only; no wallet or public-chain writes.",
+  "metadata": {
+    "chainId": 11155111,
+    "network": "sepolia",
+    "graphNetwork": "sepolia",
+    "schemaRelease": "2.5",
+    "configDigest": "f1814d20789e9e33cce9448e2a2a4c10cb24d3b6dc22ac0f11f0a950d644b081",
+    "archController": "0xc003f20f2642c76b81e5e1620c6d8cdee826408f",
+    "sanctionsSentinel": "0xfbce262ec835be5e6a458ce1722eece0e453316b",
+    "analyticsEnabled": true,
+    "collateralEnabled": true,
+    "wrappersEnabled": true,
+    "pricingMode": "synthetic-testnet",
+    "firstObserved": {
+      "blockNumber": "4796511",
+      "blockTimestamp": "1701364608",
+      "transactionHash": "0xc729e47b6f2100802c1c7523cd755ce00c3a5ac80d6eb99b1a041070f3622eca",
+      "logIndex": "8"
+    }
+  },
+  "blockNumber": 11847563,
+  "factories": [
+    {
+      "address": "0x2f0e18ae9134cd16b7ec0c63cc4b11b38eadb2af",
+      "generation": "v2.5.7",
+      "marketKind": "revolving"
+    },
+    {
+      "address": "0xae525051d16912d13b63eca01f52adf576fc4380",
+      "generation": "v2.5.7",
+      "marketKind": "standard"
+    }
+  ],
+  "hooks": {
+    "borrower": "0x1717503ee3f56e644cf8b1058e3f83f03a71b2e1",
+    "templateCount": 51,
+    "instanceCount": 5,
+    "isRegisteredBorrower": true,
+    "eligibleTemplates": [
+      {
+        "factory": "0x2f0E18ae9134cD16b7Ec0C63cC4B11B38eAdB2aF",
+        "template": "0x79DA352868305d37D0179f460Ded88886D4eE524",
+        "kind": "PeriodicTerm"
+      },
+      {
+        "factory": "0x2f0E18ae9134cD16b7Ec0C63cC4B11B38eAdB2aF",
+        "template": "0xa3FE06137cc893E19C2E4764a4A7b001E988ba2B",
+        "kind": "FixedTerm"
+      },
+      {
+        "factory": "0x2f0E18ae9134cD16b7Ec0C63cC4B11B38eAdB2aF",
+        "template": "0xBcA425d384Da256040779DF532B6D2E8d3B3f1aD",
+        "kind": "OpenTerm"
+      },
+      {
+        "factory": "0xae525051d16912D13b63eCa01f52ADF576FC4380",
+        "template": "0x79DA352868305d37D0179f460Ded88886D4eE524",
+        "kind": "PeriodicTerm"
+      },
+      {
+        "factory": "0xae525051d16912D13b63eCa01f52ADF576FC4380",
+        "template": "0xa3FE06137cc893E19C2E4764a4A7b001E988ba2B",
+        "kind": "FixedTerm"
+      },
+      {
+        "factory": "0xae525051d16912D13b63eCa01f52ADF576FC4380",
+        "template": "0xBcA425d384Da256040779DF532B6D2E8d3B3f1aD",
+        "kind": "OpenTerm"
+      }
+    ]
+  },
+  "marketCount": 484,
+  "historicalHydration": [
+    {
+      "address": "0x00e01c5d6ea5ba136f24acce0399b1a6119d4bb0",
+      "hooksFactory": "0x76fe050d91940a72133e1819bf34c1042d8dbe73",
+      "marketKind": "revolving",
+      "stateSource": "live"
+    },
+    {
+      "address": "0x4c02b9e4e699b9ec5f984510946656ea3c80d5a5",
+      "hooksFactory": "0x89797b782ca5b4bbfc975146b98ba3941fe26c56",
+      "marketKind": "standard",
+      "stateSource": "live"
+    }
+  ],
+  "historicalWrapper": {
+    "market": "0x4c02b9e4e699b9ec5f984510946656ea3c80d5a5",
+    "wrapper": "0x4a8e8baecd16e871ce6633d5b285fef20c044d88"
+  },
+  "mainnetControl": {
+    "market": "0x262dd546703760adda0c06279508e04bd1f60dee",
+    "marketKind": "standard",
+    "chainId": 1
+  },
+  "status": "passed",
+  "observedThrough": "2026-10-05T08:03:03.637Z",
+  "clientBearerHeaders": false,
+  "httpStatusCounts": {
+    "200": 41
+  },
+  "routes": [
+    "/api/gateway/graph/11155111",
+    "/api/gateway/rpc/11155111",
+    "/api/gateway/rpc/1",
+    "/api/gateway/graph/1"
+  ]
+}
