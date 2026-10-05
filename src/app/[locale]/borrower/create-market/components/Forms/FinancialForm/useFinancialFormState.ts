@@ -9,10 +9,18 @@ import {
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 
 import { FinancialFormProps } from "./interface"
+import {
+  getRepaymentTermIssues,
+  supportsRepaymentSchedule,
+} from "../../../validation/repaymentTerms"
 
 export const useFinancialFormState = (
   form: FinancialFormProps["form"],
   additionalValidityTerms: boolean[] = [],
+  repayment: Pick<
+    FinancialFormProps,
+    "repaymentChainId" | "repaymentConstraints"
+  > = {},
 ) => {
   const dispatch = useAppDispatch()
   const {
@@ -26,6 +34,16 @@ export const useFinancialFormState = (
   const ratioWatch = watch("reserveRatioBips")
   const delinquencyGracePeriodWatch = watch("delinquencyGracePeriod")
   const withdrawalBatchDurationWatch = watch("withdrawalBatchDuration")
+  const repaymentValues = watch()
+  const isRepaymentValid =
+    !repaymentValues.scheduleRepayment ||
+    (repayment.repaymentChainId !== undefined &&
+      supportsRepaymentSchedule(
+        repayment.repaymentChainId,
+        repaymentValues.implementationType,
+      ) &&
+      getRepaymentTermIssues(repaymentValues, repayment.repaymentConstraints)
+        .length === 0)
   const delinquencyGracePeriodNumber = Number(delinquencyGracePeriodWatch)
   const withdrawalBatchDurationNumber = Number(withdrawalBatchDurationWatch)
 
@@ -42,6 +60,7 @@ export const useFinancialFormState = (
     delinquencyGracePeriodNumber < withdrawalBatchDurationNumber
 
   const isFormValid =
+    isRepaymentValid &&
     !!capacityWatch &&
     !errors.maxTotalSupply &&
     !!baseAprWatch &&

@@ -32,6 +32,7 @@ import {
   hoursInputToSeconds,
   percentInputToBips,
 } from "../../create-market/utils/units"
+import { getRepaymentDeploymentTerms } from "../../create-market/validation/repaymentTerms"
 import { MarketValidationSchemaType } from "../../create-market/validation/validationSchema"
 
 const MARKET_TYPE_TO_HOOKS_KIND: Record<string, HooksKind | undefined> = {
@@ -88,6 +89,7 @@ export function getFieldValuesForBorrowerFromForm(
   )
   const isFixedTerm = marketParams.marketType === "fixedTerm"
   const isPeriodicTerm = marketParams.marketType === "periodicTerm"
+  const repaymentTerms = getRepaymentDeploymentTerms(marketParams)
 
   const params = {
     market: {
@@ -105,6 +107,10 @@ export function getFieldValuesForBorrowerFromForm(
       minimumDeposit: asset.parseAmount(marketParams.minimumDeposit ?? 0),
       delinquencyGracePeriod,
       withdrawalBatchDuration,
+      ...repaymentTerms,
+      repaymentDeadline:
+        (repaymentTerms.repaymentDate ?? 0) +
+        (repaymentTerms.repaymentPeriod ?? 0),
       fixedTermEndTime: isFixedTerm ? marketParams.fixedTermEndTime : undefined,
       firstWithdrawalWindowStart: isPeriodicTerm
         ? marketParams.firstWithdrawalWindowStart

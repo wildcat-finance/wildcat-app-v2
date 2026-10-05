@@ -18,6 +18,7 @@ import { ACCEPT_MLA_MESSAGE } from "@/config/mla-acceptance"
 import { NETWORKS_BY_ID } from "@/config/network"
 import { getLegalEntityFormName } from "@/lib/legalEntityForms"
 import { formatAddress, formatDate } from "@/lib/mlaFormatters"
+import { dayjs } from "@/utils/dayjs"
 import { formatBps } from "@/utils/formatters"
 import { getMarketAprDisplayBips } from "@/utils/marketApr"
 
@@ -76,6 +77,9 @@ export type MlaBorrowerFields = {
     delinquencyGracePeriod: number
     withdrawalBatchDuration: number
     fixedTermEndTime: number | undefined
+    repaymentDate?: number
+    repaymentPeriod?: number
+    repaymentDeadline?: number
     firstWithdrawalWindowStart: number | undefined
     periodDuration: number | undefined
     withdrawalWindowDuration: number | undefined
@@ -132,8 +136,11 @@ export const MlaFieldValueKeys = [
   "market.withdrawalBatchDuration",
   "market.periodDuration",
   "market.withdrawalWindowDuration",
+  "market.repaymentPeriod",
   // Date
   "market.fixedTermEndTime",
+  "market.repaymentDate",
+  "market.repaymentDeadline",
   "market.firstWithdrawalWindowStart",
   "market.nextWithdrawalWindowStart",
   "borrower.timeSigned",
@@ -245,6 +252,9 @@ const getMarketParams = (market: Market): MlaBorrowerFields["market"] => {
     minimumDeposit: hooksConfig?.minimumDeposit,
     delinquencyGracePeriod: market.delinquencyGracePeriod,
     withdrawalBatchDuration: market.withdrawalBatchDuration,
+    repaymentDate: market.repaymentDate,
+    repaymentPeriod: market.repaymentPeriod,
+    repaymentDeadline: market.repaymentDeadline,
     fixedTermEndTime:
       hooksConfig?.kind === HooksKind.FixedTerm
         ? hooksConfig.fixedTermEndTime
@@ -327,6 +337,10 @@ export function getFieldValuesForBorrower({
     market.marketTerm === HooksKind.PeriodicTerm
       ? formatDuration(value) ?? "N/A"
       : "N/A"
+  const formatRepaymentDate = (value: number | undefined) =>
+    market.repaymentDate && value !== undefined
+      ? dayjs.unix(value).utc().format("DD MMM YYYY, HH:mm:ss [UTC]")
+      : "N/A"
 
   const allData: Map<MlaFieldValueKey, string | undefined> = new Map([
     // number
@@ -397,6 +411,12 @@ export function getFieldValuesForBorrower({
       formatDuration(market.withdrawalBatchDuration),
     ],
     ["market.periodDuration", formatPeriodicDuration(market.periodDuration)],
+    [
+      "market.repaymentPeriod",
+      market.repaymentDate ? formatDuration(market.repaymentPeriod) : "N/A",
+    ],
+    ["market.repaymentDate", formatRepaymentDate(market.repaymentDate)],
+    ["market.repaymentDeadline", formatRepaymentDate(market.repaymentDeadline)],
     [
       "market.withdrawalWindowDuration",
       formatPeriodicDuration(market.withdrawalWindowDuration),

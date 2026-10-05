@@ -13,6 +13,8 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import { decodeFunctionData, Hex, zeroAddress } from "viem"
 
+import { getRepaymentDeploymentTerms } from "@/app/[locale]/borrower/create-market/validation/repaymentTerms"
+
 import {
   assertWrapperDeploymentCompatible,
   canDismissCreateMarketDeployDialog,
@@ -27,14 +29,16 @@ describe("createMarketDeploy", () => {
   const borrower = "0x0000000000000000000000000000000000000010"
   const salt = `${borrower}${"11".repeat(12)}`
 
-  it.each([
-    ["standard", "deployMarket"],
-    ["standard", "deployMarketAndHooks"],
-    ["revolving", "deployMarket"],
-    ["revolving", "deployMarketAndHooks"],
-  ] as const)(
-    "encodes unscheduled Sepolia %s/%s with the new factory tuple",
-    (kind, fn) => {
+  it.each(
+    (["standard", "revolving"] as const).flatMap((kind) =>
+      (["deployMarket", "deployMarketAndHooks"] as const).flatMap((fn) =>
+        [false, true].map((scheduled) => ({ kind, fn, scheduled })),
+      ),
+    ),
+  )(
+    "encodes Sepolia $kind/$fn with scheduled=$scheduled for the EOA/Safe factory call",
+    ({ kind, fn, scheduled }) => {
+      const repaymentDate = Math.floor(Date.now() / 1000) + 86400
       const factory =
         kind === "standard"
           ? getStandardHooksFactoryContract(
@@ -56,6 +60,13 @@ describe("createMarketDeploy", () => {
         reserveRatioBips: 2000,
         delinquencyGracePeriod: 3600,
         hooks: BigInt(0),
+        ...(scheduled
+          ? getRepaymentDeploymentTerms({
+              scheduleRepayment: true,
+              repaymentDate,
+              repaymentPeriod: 3600,
+            })
+          : {}),
       }
       const args = [
         ...(fn === "deployMarketAndHooks" ? [borrower, "0x"] : []),
@@ -74,8 +85,8 @@ describe("createMarketDeploy", () => {
       expect(decoded.functionName).toBe(fn)
       expect(decoded.args?.[fn === "deployMarket" ? 0 : 2]).toMatchObject({
         asset: borrower,
-        repaymentDate: 0,
-        repaymentPeriod: 0,
+        repaymentDate: scheduled ? repaymentDate : 0,
+        repaymentPeriod: scheduled ? 3600 : 0,
       })
     },
   )

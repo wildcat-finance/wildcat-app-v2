@@ -13,6 +13,7 @@ import {
   WithdrawalCycleField,
 } from "./fields"
 import { FinancialFormProps } from "./interface"
+import { RepaymentTermsSection } from "./RepaymentTermsSection"
 import { useFinancialFormState } from "./useFinancialFormState"
 import { FormFooter } from "../../FormFooter"
 import { FormContainer, SectionGrid } from "../style"
@@ -20,6 +21,8 @@ import { FormContainer, SectionGrid } from "../style"
 export const RevolvingFinancialForm = ({
   form,
   tokenAsset,
+  repaymentChainId,
+  repaymentConstraints,
 }: FinancialFormProps) => {
   const { t } = useTranslation()
   const commitmentFeePercent = form.watch("commitmentFeePercent")
@@ -30,9 +33,11 @@ export const RevolvingFinancialForm = ({
     handleNextClick,
     isFormValid,
     showGraceVsWithdrawalWarning,
-  } = useFinancialFormState(form, [
-    hasCommitmentFeeValue && !form.formState.errors.commitmentFeePercent,
-  ])
+  } = useFinancialFormState(
+    form,
+    [hasCommitmentFeeValue && !form.formState.errors.commitmentFeePercent],
+    { repaymentChainId, repaymentConstraints },
+  )
 
   return (
     <Box sx={FormContainer}>
@@ -53,6 +58,11 @@ export const RevolvingFinancialForm = ({
       </Box>
 
       <MinimumDepositField form={form} tokenAsset={tokenAsset} />
+      <RepaymentTermsSection
+        form={form}
+        repaymentChainId={repaymentChainId}
+        repaymentConstraints={repaymentConstraints}
+      />
 
       <FormFooter
         backOnClick={handleBackClick}

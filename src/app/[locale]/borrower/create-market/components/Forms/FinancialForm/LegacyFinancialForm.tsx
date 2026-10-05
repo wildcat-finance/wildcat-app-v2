@@ -12,6 +12,7 @@ import {
   WithdrawalCycleField,
 } from "./fields"
 import { FinancialFormProps } from "./interface"
+import { RepaymentTermsSection } from "./RepaymentTermsSection"
 import { useFinancialFormState } from "./useFinancialFormState"
 import { FormFooter } from "../../FormFooter"
 import { FormContainer, SectionGrid } from "../style"
@@ -19,6 +20,8 @@ import { FormContainer, SectionGrid } from "../style"
 export const LegacyFinancialForm = ({
   form,
   tokenAsset,
+  repaymentChainId,
+  repaymentConstraints,
 }: FinancialFormProps) => {
   const { t } = useTranslation()
   const {
@@ -26,7 +29,10 @@ export const LegacyFinancialForm = ({
     handleNextClick,
     isFormValid,
     showGraceVsWithdrawalWarning,
-  } = useFinancialFormState(form)
+  } = useFinancialFormState(form, [], {
+    repaymentChainId,
+    repaymentConstraints,
+  })
 
   return (
     <Box sx={FormContainer}>
@@ -46,6 +52,11 @@ export const LegacyFinancialForm = ({
       </Box>
 
       <MinimumDepositField form={form} tokenAsset={tokenAsset} />
+      <RepaymentTermsSection
+        form={form}
+        repaymentChainId={repaymentChainId}
+        repaymentConstraints={repaymentConstraints}
+      />
 
       <FormFooter
         backOnClick={handleBackClick}

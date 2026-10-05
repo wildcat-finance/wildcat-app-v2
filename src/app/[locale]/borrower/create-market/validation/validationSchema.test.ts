@@ -1,3 +1,4 @@
+import { getRepaymentTermIssues } from "./repaymentTerms"
 import {
   createMarketValidationSchema,
   getPeriodicTermIssues,
@@ -34,6 +35,35 @@ const baseData = {
 }
 
 describe("create market validation schema", () => {
+  it("leaves policy bounds to the selected instance rather than overriding wider limits in the shared schema", () => {
+    const values = {
+      ...baseData,
+      scheduleRepayment: true,
+      repaymentDate: Math.floor(Date.now() / 1000) + 86400,
+      repaymentPeriod: 91 * 86400,
+    }
+    expect(schema.safeParse(values).success).toBe(true)
+    expect(getRepaymentTermIssues(values)).toHaveLength(1)
+    expect(
+      getRepaymentTermIssues(values, { maximumRepaymentPeriod: 91 * 86400 }),
+    ).toEqual([])
+  })
+  it("revalidates a schedule that has expired before submission", () => {
+    const repaymentDate = Math.floor(Date.now() / 1000) + 60
+    const scheduled = {
+      ...baseData,
+      scheduleRepayment: true,
+      repaymentDate,
+      repaymentPeriod: 0,
+    }
+    expect(schema.safeParse(scheduled).success).toBe(true)
+    const now = jest.spyOn(Date, "now").mockReturnValue(repaymentDate * 1000)
+    expect(schema.safeParse(scheduled).error?.issues).toContainEqual(
+      expect.objectContaining({ path: ["repaymentDate"] }),
+    )
+    now.mockRestore()
+  })
+
   it("accepts standard markets without commitment fee", () => {
     const result = schema.safeParse(baseData)
 

@@ -10,10 +10,10 @@ import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/use
 import { LenderAnalyticsSummary } from "@/app/[locale]/lender/market/[address]/components/LenderAnalyticsSummary"
 import { AnalyticsUnavailableNotice } from "@/components/Profile/shared/AnalyticsUnavailableNotice"
 import { buildBorrowerSummaryItems } from "@/components/Profile/shared/borrowerSummaryItems"
+import { useMarketsInDefault } from "@/hooks/useMarketsInDefault"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { isSubgraphPricingConfigured } from "@/lib/subgraphCapabilities"
 import { buildBorrowerProfileHref } from "@/utils/formatters"
-import { countMarketsInDefault } from "@/utils/marketStatus"
 
 import { BorrowerMarketsTreemap } from "./components/BorrowerMarketsTreemap"
 import { ProfileSectionNameBlock } from "./components/ProfileSectionNameBlock"
@@ -31,8 +31,11 @@ export const AnalyticsProfileSection = ({
   const chainId = externalChainId ?? selectedChainId
   const analyticsAvailable = isSubgraphPricingConfigured(chainId)
   const { data: profileData } = useGetBorrowerProfile(profileAddress, chainId)
-  const { data: borrowerMarkets, isLoading: isMarketsLoading } =
-    useGetBorrowerMarkets(profileAddress, chainId)
+  const {
+    data: borrowerMarkets,
+    isLoading: isMarketsLoading,
+    isError: isMarketsError,
+  } = useGetBorrowerMarkets(profileAddress, chainId)
   const borrowerAnalyticsQuery = useBorrowerAggregateStats(
     profileAddress,
     chainId,
@@ -40,7 +43,10 @@ export const AnalyticsProfileSection = ({
 
   const activeMarkets = borrowerMarkets?.filter((market) => !market.isClosed)
   const marketsAmount = (activeMarkets ?? []).length
-  const defaults = countMarketsInDefault(borrowerMarkets)
+  const defaults = useMarketsInDefault(
+    isMarketsError ? undefined : borrowerMarkets,
+    chainId,
+  )
   const summaryItems = buildBorrowerSummaryItems(borrowerAnalyticsQuery.data)
   const profileHref = profileAddress
     ? buildBorrowerProfileHref(profileAddress, chainId)

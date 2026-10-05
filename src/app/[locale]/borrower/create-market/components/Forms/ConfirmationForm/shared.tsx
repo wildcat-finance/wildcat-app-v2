@@ -31,6 +31,7 @@ import { marketImplementationOptions } from "@/utils/marketImplementation"
 
 import { ConfirmationFormProps } from "./interface"
 import { PeriodicTermsConfirmation } from "./PeriodicTermsConfirmation"
+import { RepaymentTermsConfirmation } from "./RepaymentTermsConfirmation"
 import { AlertContainer, DividerStyle, SubtitleStyle } from "./style"
 import { MarketValidationSchemaType } from "../../../validation/validationSchema"
 import { ConfirmationFormItem } from "../../ConfirmationFormItem"
@@ -358,6 +359,7 @@ export const SharedConfirmationForm = ({
       {isPeriodicTerm && <PeriodicTermsConfirmation form={form} />}
 
       <FinancialSection form={form} tokenAsset={tokenAsset} />
+      <RepaymentTermsConfirmation form={form} />
 
       <Divider sx={DividerStyle} />
 
