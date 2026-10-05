@@ -87,3 +87,13 @@ stale surplus and transaction failures. Browser layout checks use local fixtures
 not public-chain writes. Wallet execution and a newly deployed scheduled market
 remain operator acceptance checks; these checks do not establish deployed app
 behavior.
+
+A repayment-layout follow-up on 2026-10-05 lets fields grow around validation
+messages, applies the app's input theme to the date picker, and groups the
+deadline and explanation beneath the inputs. Local Chromium fixtures rendered
+the complete standard and revolving financial forms with the real app theme.
+Checks covered 320px/390px mobile screens, a narrow desktop form, wrapping errors,
+six-week calendars, popup bounds, UTC time selection from a non-UTC browser,
+zero-hour deadlines and schedule toggling. The 29 focused repayment tests,
+TypeScript and lint also passed. This verifies local source rendering, not the
+deployed preview.
