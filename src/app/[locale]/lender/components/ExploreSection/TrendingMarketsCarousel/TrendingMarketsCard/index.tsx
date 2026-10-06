@@ -24,10 +24,6 @@ import {
   MarketContainerStyle,
 } from "./style"
 
-const GROWTH_TOOLTIP =
-  "Net new capital in the last 7 days. " +
-  "The % shows growth compared to the start of the week"
-
 export type TrendingMarketCardVariant =
   | "fastestGrowing"
   | "popular"
@@ -93,6 +89,7 @@ type TrendingMarketCardProps = {
   value: string
   /** Small colored companion stat rendered beside the value (e.g. growth rate) */
   secondaryValue?: string
+  context?: string
   marketName: string
   marketAddress: string
   chainId?: number
@@ -112,6 +109,7 @@ export const TrendingMarketCard = ({
   variant,
   value,
   secondaryValue,
+  context,
   marketName,
   marketAddress,
   chainId,
@@ -127,6 +125,11 @@ export const TrendingMarketCard = ({
   isMobile,
 }: TrendingMarketCardProps) => {
   const badge = VARIANT_BADGE[variant]
+  const badgeContext = context ?? badge.context
+  const growthTooltip =
+    badgeContext === "Unavailable"
+      ? "Recent capital activity is temporarily unavailable"
+      : `Net new capital in the ${badgeContext.toLowerCase()}. The % shows growth compared to the start of that period`
 
   const statisticTitle = {
     fastestGrowing: "Fresh Capital",
@@ -176,7 +179,7 @@ export const TrendingMarketCard = ({
           </Typography>
         </Box>
 
-        {badge.context && (
+        {badgeContext && (
           <Typography
             variant="text4"
             sx={{
@@ -186,7 +189,7 @@ export const TrendingMarketCard = ({
               whiteSpace: "nowrap",
             }}
           >
-            {badge.context}
+            {badgeContext}
           </Typography>
         )}
       </Box>
@@ -212,7 +215,7 @@ export const TrendingMarketCard = ({
             {statisticTitle}
           </Typography>
           <Tooltip
-            title={variant === "fastestGrowing" ? GROWTH_TOOLTIP : ""}
+            title={variant === "fastestGrowing" ? growthTooltip : ""}
             placement="bottom-start"
             enterTouchDelay={0}
             leaveTouchDelay={4000}

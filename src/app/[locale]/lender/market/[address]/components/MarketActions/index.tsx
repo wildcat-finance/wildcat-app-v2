@@ -47,6 +47,14 @@ const DepositStatusContainer = {
   gap: "6px",
 }
 
+const MarketUpdatingStatus = () => (
+  <Box sx={DepositStatusContainer}>
+    <Typography variant="text3" color={COLORS.santasGrey}>
+      Updating market...
+    </Typography>
+  </Box>
+)
+
 const FaucetButton = ({ marketAccount }: { marketAccount: MarketAccount }) => {
   const {
     mutate: faucet,
@@ -75,6 +83,7 @@ export const MarketActions = ({
   showBorrowerPenaltyWarning,
   wrapper,
   hasWrapper,
+  isLiveMarketReady,
 }: MarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
@@ -314,6 +323,8 @@ export const MarketActions = ({
             rows={depositRows}
           >
             {(() => {
+              if (!isLiveMarketReady) return <MarketUpdatingStatus />
+
               if (mlaLoading || signedMlaLoading) {
                 return (
                   <Box sx={DepositStatusContainer}>
@@ -395,7 +406,10 @@ export const MarketActions = ({
             }
             rows={withdrawRows}
           >
-            {!combinedAvailable.raw.isZero() &&
+            {!isLiveMarketReady ? (
+              <MarketUpdatingStatus />
+            ) : (
+              !combinedAvailable.raw.isZero() &&
               marketAccount.withdrawalAvailability ===
                 QueueWithdrawalStatus.Ready && (
                 <WithdrawModal
@@ -403,7 +417,8 @@ export const MarketActions = ({
                   wrapper={wrapper}
                   hasWrapper={hasWrapper}
                 />
-              )}
+              )
+            )}
           </TransactionBlock>
         </Box>
       </Box>

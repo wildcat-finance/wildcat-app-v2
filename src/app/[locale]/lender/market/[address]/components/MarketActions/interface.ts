@@ -8,4 +8,5 @@ export type MarketActionsProps = {
   showBorrowerPenaltyWarning?: boolean
   wrapper?: TokenWrapper
   hasWrapper?: boolean
+  isLiveMarketReady: boolean
 }

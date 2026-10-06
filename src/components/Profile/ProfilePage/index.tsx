@@ -9,6 +9,7 @@ import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/use
 import { Footer } from "@/components/Footer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { trimAddress } from "@/utils/formatters"
+import { countMarketsInDefault } from "@/utils/marketStatus"
 
 import { MarketsBlock } from "./components/MarketsBlock"
 import { MobileNamePageBlockWrapper } from "./components/MobileNamePageBlockWrapper"
@@ -38,6 +39,7 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
   const isLoading = isMarketsLoading || isProfileLoading
   const activeMarkets = borrowerMarkets?.filter((market) => !market.isClosed)
   const marketsAmount = (activeMarkets ?? []).length
+  const defaults = countMarketsInDefault(borrowerMarkets)
   const accountName = profileData?.name ?? trimAddress(profileAddress as string)
 
   // Mobile
@@ -79,7 +81,11 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
 
         {section === "info" && (
           <>
-            <OverallBlock {...profileData} marketsAmount={marketsAmount} />
+            <OverallBlock
+              {...profileData}
+              marketsAmount={marketsAmount}
+              defaults={defaults}
+            />
             <BorrowerProfileVerificationDisclosure
               variant="inline"
               showModal={false}
@@ -111,7 +117,12 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
       <Divider sx={{ marginY: "32px" }} />
 
       <Box sx={{ position: "relative" }}>
-        <OverallBlock {...profileData} marketsAmount={marketsAmount} isPage />
+        <OverallBlock
+          {...profileData}
+          marketsAmount={marketsAmount}
+          defaults={defaults}
+          isPage
+        />
 
         <BorrowerProfileVerificationDisclosure />
       </Box>

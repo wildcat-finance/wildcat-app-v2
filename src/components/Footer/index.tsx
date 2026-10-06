@@ -61,7 +61,7 @@ const getCommitInfo = (isMobile: boolean) => {
           color: { xs: COLORS.white06, md: COLORS.santasGrey },
         }}
       >
-        {dayjs(process.env.BUILD_TIME).format(DEPLOY_DATE_FORMAT)}
+        {dayjs(process.env.BUILD_TIME).utc().format(DEPLOY_DATE_FORMAT)}
       </Typography>
     </Box>
   )
