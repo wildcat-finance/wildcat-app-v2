@@ -42,7 +42,7 @@ export const MobileLenderBanner = ({
         variant="mobH3"
         color={COLORS.white}
         textAlign="center"
-        marginTop="12px"
+        marginTop="4px"
       >
         {title}
       </Typography>
@@ -51,7 +51,7 @@ export const MobileLenderBanner = ({
         variant="mobText3"
         textAlign="center"
         color={COLORS.white06}
-        marginTop="8px"
+        marginTop="4px"
       >
         {subtitle}
       </Typography>
@@ -60,8 +60,8 @@ export const MobileLenderBanner = ({
         {...(href ? { component: Link, href } : {})}
         variant="contained"
         color="secondary"
-        size="large"
-        sx={{ mt: "24px" }}
+        size="medium"
+        sx={{ mt: "12px" }}
         onClick={onButtonClick}
       >
         {buttonText}

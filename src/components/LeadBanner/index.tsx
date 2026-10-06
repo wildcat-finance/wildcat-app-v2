@@ -15,6 +15,7 @@ export type LeadBannerProps = {
   buttonText?: string
   buttonLink?: Link
   buttonOnClick?: () => void
+  compact?: boolean
 }
 
 export const LeadBanner = ({
@@ -23,6 +24,7 @@ export const LeadBanner = ({
   buttonText,
   buttonLink,
   buttonOnClick,
+  compact = false,
 }: LeadBannerProps) => (
   <Box
     sx={{
@@ -30,10 +32,12 @@ export const LeadBanner = ({
       height: "min-content",
 
       display: "flex",
-      flexDirection: "column",
+      flexDirection: compact ? "row" : "column",
+      alignItems: compact ? "center" : undefined,
+      justifyContent: compact ? "space-between" : undefined,
       gap: "24px",
 
-      padding: "28px 40px 32px 32px",
+      padding: compact ? "20px 24px" : "28px 40px 32px 32px",
       borderRadius: "16px",
       color: "white",
 
@@ -45,7 +49,9 @@ export const LeadBanner = ({
   >
     <Box
       sx={{
-        width: "400px",
+        width: compact ? "auto" : "400px",
+        flex: compact ? 1 : undefined,
+        minWidth: 0,
         display: "flex",
         flexDirection: "column",
         gap: "8px",
@@ -72,7 +78,7 @@ export const LeadBanner = ({
         variant="contained"
         color="secondary"
         size="medium"
-        sx={{ width: "fit-content" }}
+        sx={{ width: "fit-content", flexShrink: 0 }}
       >
         {buttonText}
       </Button>

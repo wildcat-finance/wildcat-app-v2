@@ -56,13 +56,10 @@ export const AllMarketsSection = () => {
 
   const {
     marketAccounts,
-    isLoadingInitial,
-    isLoadingUpdate,
+    isLoadingInitial: isLoading,
     onboardingByMarket,
     borrowers,
   } = useLenderMarketsContext()
-
-  const isLoading = isLoadingInitial || isLoadingUpdate
 
   const marketFilters = useAppSelector((s) => s.marketFilters.lender)
   const {
