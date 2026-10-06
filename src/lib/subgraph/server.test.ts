@@ -32,14 +32,15 @@ describe("getServerSubgraphClient", () => {
     createSubgraphClient.mockClear()
   })
 
-  it("uses the SDK URL when no override is set", () => {
+  it("uses the current hosted Sepolia graph when no override is set", () => {
     delete process.env.WILDCAT_SERVER_SUBGRAPH_URL_SEPOLIA
     jest.isolateModules(() => {
       // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
       const { getServerSubgraphClient } = require("./server")
       expect(getServerSubgraphClient(11155111)).toEqual({
         chainId: 11155111,
-        endpoint: "https://goldsky/sepolia",
+        endpoint:
+          "https://api.goldsky.com/api/public/project_cmheai1ym00jyx7p27qn46qtm/subgraphs/sepolia/v2.5.15/gn",
       })
     })
   })

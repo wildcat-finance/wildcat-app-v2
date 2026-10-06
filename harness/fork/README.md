@@ -5,6 +5,13 @@ primary, one app Postgres restored from a sanitized snapshot; the app is bound t
 startup. This file describes what is in `harness/fork/` and how to run it. The e2e suites that run
 against it are documented in `e2e/CONVENTIONS.md`; the tested tuple is `pins.json`.
 
+The app's hosted Sepolia default is Goldsky `sepolia/v2.5.15`, for both browser
+and server reads. `npm run dev:fork` supplies `NEXT_PUBLIC_SUBGRAPH_URL_SEPOLIA`
+and `WILDCAT_SERVER_SUBGRAPH_URL_SEPOLIA`, which take priority and keep fork
+queries on the local graph. The SDK and local subgraph remain at the versions
+recorded in `pins.json`: upgrading the SDK also changes contract targets, so a
+fork upgrade requires a compatible block, graph and fixture revalidation.
+
 **The stack is shared with the `main` variant.** The compose project is named `wildcat-fork` and is
 keyed on that name, not on the directory, so the `main`-variant checkout (branch
 `feat/local-fork-harness-main`, app on :3001) addresses the SAME containers. This branch owns the
