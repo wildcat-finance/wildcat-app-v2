@@ -27,9 +27,11 @@ import { DeleteModal } from "../Modals/DeleteModal"
 export const EditLendersTable = ({
   filteredLenders,
   isFiltered,
+  canEditLenders,
 }: {
   filteredLenders: LendersItem[]
   isFiltered: boolean
+  canEditLenders: boolean
 }) => {
   const dispatch = useAppDispatch()
   const { t } = useTranslation()
@@ -195,11 +197,15 @@ export const EditLendersTable = ({
     },
   ]
 
+  const visibleColumns = canEditLenders
+    ? columns
+    : columns.filter((column) => column.field !== "delete")
+
   return (
     <>
       {!noLenders && (
         <DataGrid
-          columns={columns}
+          columns={visibleColumns}
           rows={filteredLenders}
           columnHeaderHeight={40}
           sx={EditLendersTableStyles}

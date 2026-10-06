@@ -3,7 +3,7 @@ import { TOKENS } from "@/theme/colors"
 export const DataGridSx = {
   overflow: "visible",
   height: "auto !important",
-  maxWidth: "calc(100vw - 267px)",
+  maxWidth: "100%",
   padding: "0 16px",
   "& .MuiDataGrid-main": {
     overflow: "visible",
@@ -21,6 +21,12 @@ export const DataGridSx = {
   "& .MuiDataGrid-virtualScrollerRenderZone": {
     position: "static !important" as const,
     transform: "none !important",
+  },
+  "& .MuiDataGrid-scrollbar": {
+    display: "none",
+  },
+  "& .MuiDataGrid-scrollbarFiller": {
+    display: "none",
   },
   // The column headers row is sticky-positioned, so it must stay opaque to
   // prevent rows from bleeding through when scrolling. We pin it to the same

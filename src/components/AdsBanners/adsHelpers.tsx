@@ -13,10 +13,11 @@ import { AdsProposalChip } from "@/components/AdsBanners/components/AdsProposalC
  * if the market has no active ad campaign.
  */
 export function getAdsTooltipComponent(
+  chainId: number,
   marketId: string,
   baseAPR: string,
 ): ReactNode | undefined {
-  const config = getAdsConfig(marketId)
+  const config = getAdsConfig(chainId, marketId)
   if (!config) return undefined
 
   return (
@@ -34,9 +35,10 @@ export function getAdsTooltipComponent(
  * if the market has no active ad campaign.
  */
 export function getAdsCellProps(
+  chainId: number,
   marketId: string,
 ): { isBonus: true; icons: JSX.Element[] } | undefined {
-  const config = getAdsConfig(marketId)
+  const config = getAdsConfig(chainId, marketId)
   if (!config) return undefined
 
   return {
@@ -49,8 +51,11 @@ export function getAdsCellProps(
  * Returns the mobile ads content component, or undefined
  * if the market has no active ad campaign.
  */
-export function getAdsMobileContent(marketId: string): ReactNode | undefined {
-  const config = getAdsConfig(marketId)
+export function getAdsMobileContent(
+  chainId: number,
+  marketId: string,
+): ReactNode | undefined {
+  const config = getAdsConfig(chainId, marketId)
   if (!config) return undefined
 
   return (
@@ -67,9 +72,10 @@ export function getAdsMobileContent(marketId: string): ReactNode | undefined {
  * or null if the market has no active ad campaign.
  */
 export function getAdsMarketParameterComponent(
+  chainId: number,
   marketId: string,
 ): ReactNode | null {
-  const config = getAdsConfig(marketId)
+  const config = getAdsConfig(chainId, marketId)
   if (!config) return null
 
   return (

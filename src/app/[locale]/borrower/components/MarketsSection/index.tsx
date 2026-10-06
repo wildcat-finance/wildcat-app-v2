@@ -1,11 +1,7 @@
 import React, { useEffect, useMemo, useCallback, useState } from "react"
 
 import { Box, Button, Divider, Typography } from "@mui/material"
-import {
-  DepositStatus,
-  MarketAccount,
-  MarketVersion,
-} from "@wildcatfi/wildcat-sdk"
+import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
@@ -17,7 +13,6 @@ import { OtherMarketsTables } from "@/app/[locale]/borrower/components/MarketsSe
 import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/useBorrowerInvitationRedirect"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { FilterTextField } from "@/components/FilterTextfield"
-import { LeadBanner } from "@/components/LeadBanner"
 import { MarketsFilterSelect } from "@/components/MarketsFilterSelect"
 import { MarketsFilterSelectItem } from "@/components/MarketsFilterSelect/interface"
 import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
@@ -31,8 +26,13 @@ import { BorrowerMarketDashboardSections } from "@/store/slices/borrowerDashboar
 import { setMarketFilters } from "@/store/slices/marketFiltersSlice/marketFiltersSlice"
 import { COLORS } from "@/theme/colors"
 import { filterMarketAccounts } from "@/utils/filters"
+import {
+  getKnownMarketOnboardingMode,
+  MarketOnboardingMode,
+} from "@/utils/marketOnboarding"
 import { MarketStatus } from "@/utils/marketStatus"
 
+import { LeadBanner } from "../../../../../components/LeadBanner"
 import { useBorrowerNames } from "../../hooks/useBorrowerNames"
 
 export const MarketsSection = () => {
@@ -178,6 +178,7 @@ export const MarketsSection = () => {
     data: marketAccounts,
     isLoadingInitial,
     isLoadingUpdate,
+    onboardingByMarket,
   } = useLendersMarkets()
 
   const isLoading = isLoadingInitial || isLoadingUpdate
@@ -281,19 +282,21 @@ export const MarketsSection = () => {
   const selfOnboardAmount = othersMarkets.filter(
     (account) =>
       !account.market.isClosed &&
-      !account.hasEverInteracted &&
-      account.market.version === MarketVersion.V2 &&
-      account.depositAvailability === DepositStatus.Ready,
+      getKnownMarketOnboardingMode(
+        account.market.version,
+        account.market.address,
+        onboardingByMarket,
+      ) === MarketOnboardingMode.SelfOnboard,
   ).length
 
   const manualAmount = othersMarkets.filter(
     (account) =>
       !account.market.isClosed &&
-      !(
-        !account.hasEverInteracted &&
-        account.market.version === MarketVersion.V2 &&
-        account.depositAvailability === DepositStatus.Ready
-      ),
+      getKnownMarketOnboardingMode(
+        account.market.version,
+        account.market.address,
+        onboardingByMarket,
+      ) === MarketOnboardingMode.BorrowerApproval,
   ).length
 
   const terminatedOtherAmount = othersMarkets.filter(
@@ -359,12 +362,17 @@ export const MarketsSection = () => {
     <Box
       sx={{
         width: "100%",
+        flex: "1 1 0",
+        minHeight: 0,
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
+          flexShrink: 0,
         }}
       >
         <Box
@@ -480,7 +488,7 @@ export const MarketsSection = () => {
           <Box padding="24px 24px 0">
             <LeadBanner
               title={bannerDisplayConfig.title}
-              text={bannerDisplayConfig.message}
+              subtitle={bannerDisplayConfig.message}
               buttonText={bannerDisplayConfig.button}
               buttonLink={bannerDisplayConfig.link}
             />
@@ -516,6 +524,7 @@ export const MarketsSection = () => {
         !isWrongNetwork && (
           <OtherMarketsTables
             marketAccounts={filteredOtherMarketAccounts}
+            onboardingByMarket={onboardingByMarket}
             isLoading={isLoading}
             filters={filters}
           />

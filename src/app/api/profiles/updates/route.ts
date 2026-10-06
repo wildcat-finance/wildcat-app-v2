@@ -16,7 +16,7 @@ import {
   BorrowerProfileUpdateResponseDTO,
 } from "./dto"
 import { BorrowerProfileUpdateResponse } from "./interface"
-import { verifyApiToken } from "../../auth/verify-header"
+import { isAdminForChain, verifyApiToken } from "../../auth/verify-header"
 
 /// POST /api/profiles/updates
 /// Route to submit a new borrower profile update request.
@@ -29,24 +29,39 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
   let data: BorrowerProfileInput
+  let adminForChain = false
   try {
     const {
       address: inputAddress,
       avatar: base64Avatar,
       ...input
     } = await request.json()
-    // Admin can update profiles for any address
-    const address = inputAddress && token.isAdmin ? inputAddress : token.address
-    data = {
-      ...BorrowerProfileInputDTO.parse(input),
-      address,
-    }
+    const parsedInput = BorrowerProfileInputDTO.parse(input)
 
-    if (!data.chainId || !isSupportedChainId(data.chainId)) {
+    if (!parsedInput.chainId || !isSupportedChainId(parsedInput.chainId)) {
       return NextResponse.json(
         { error: "Chain ID is required" },
         { status: 400 },
       )
+    }
+    if (token.chainId !== parsedInput.chainId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+    adminForChain = await isAdminForChain(token, parsedInput.chainId)
+    const requestedAddress = inputAddress?.toLowerCase()
+    if (
+      requestedAddress &&
+      requestedAddress !== token.address.toLowerCase() &&
+      !adminForChain
+    ) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+    // Admin can update profiles for any address on their admin chain.
+    const address =
+      requestedAddress && adminForChain ? requestedAddress : token.address
+    data = {
+      ...parsedInput,
+      address,
     }
     if (base64Avatar) {
       const avatar = await uploadProfilePicture(base64Avatar, address)
@@ -134,7 +149,7 @@ export async function POST(request: NextRequest) {
       | null
   } = {}
   const keys = [
-    ...(token.isAdmin
+    ...(adminForChain
       ? ([
           "name",
           "alias",
@@ -205,6 +220,13 @@ export async function GET(request: NextRequest) {
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
   }
+  const token = await verifyApiToken(request)
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+  if (!(await isAdminForChain(token, chainId))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
   const borrower = request.nextUrl.searchParams.get("borrower") || undefined
   const pendingStr = request.nextUrl.searchParams.get("pending")
   const onlyPending = pendingStr === null || pendingStr === "true"
@@ -222,9 +244,6 @@ export async function PUT(request: NextRequest) {
   const token = await verifyApiToken(request)
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  }
-  if (!token.isAdmin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
   let data: BorrowerProfileUpdateResponse
   try {
@@ -245,6 +264,9 @@ export async function PUT(request: NextRequest) {
       { error: `Update request ${updateId} does not exist` },
       { status: 404 },
     )
+  }
+  if (!(await isAdminForChain(token, updateRequest.chainId))) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
   const proms: Prisma.PrismaPromise<unknown>[] = []

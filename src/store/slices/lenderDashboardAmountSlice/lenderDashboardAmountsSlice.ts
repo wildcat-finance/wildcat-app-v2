@@ -8,6 +8,7 @@ export type LenderDashboardAmountsType = {
   selfOnboard: number
   manual: number
   terminatedOther: number
+  allMarkets: number
 }
 
 export const initialState: LenderDashboardAmountsType = {
@@ -18,6 +19,7 @@ export const initialState: LenderDashboardAmountsType = {
   selfOnboard: 0,
   manual: 0,
   terminatedOther: 0,
+  allMarkets: 0,
 }
 
 const lenderDashboardAmountsSlice = createSlice({

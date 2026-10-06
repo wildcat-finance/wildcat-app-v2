@@ -17,6 +17,7 @@
  * ======================================================================= */
 
 :root {
+  --color-caribbean-green: #28ca7c;
   /* ----- Raw brand palette (light mode values) ----- */
   --color-black: #000000;
   --color-black-01: #0000001a;
@@ -405,4 +406,10 @@ select:-webkit-autofill:focus {
 .MuiDataGrid-root {
   --DataGrid-containerBackground: var(--surface-card) !important;
   --DataGrid-pinnedBackground: var(--surface-card) !important;
+}
+
+@media (max-width: 1000px) {
+  html {
+    scroll-padding-top: 64px;
+  }
 }

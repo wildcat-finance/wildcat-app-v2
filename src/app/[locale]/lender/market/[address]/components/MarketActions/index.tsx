@@ -6,21 +6,25 @@ import {
   MarketAccount,
   QueueWithdrawalStatus,
 } from "@wildcatfi/wildcat-sdk"
+import humanizeDuration from "humanize-duration"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
-import { LenderMlaModal } from "@/app/[locale]/lender/components/LenderMlaModal"
 import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
+import { LenderMlaModal } from "@/app/[locale]/lender/market/[address]/components/MarketActions/LenderMlaModal"
 import { TransactionsContainer } from "@/app/[locale]/lender/market/[address]/components/MarketActions/styles"
 import { ClaimModal } from "@/app/[locale]/lender/market/[address]/components/Modals/ClaimModal"
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import TelegramIcon from "@/assets/icons/telegram_icon.svg"
+import { toastError } from "@/components/Toasts"
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { useWrapperLimits } from "@/hooks/wrapper/useWrapperLimits"
 import { useAppDispatch } from "@/store/hooks"
 import {
   LenderMarketSections,
@@ -31,6 +35,25 @@ import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { MarketActionsProps } from "./interface"
 import { useFaucet } from "../../hooks/useFaucet"
+
+// Compact status content for the deposit block's action slot. The
+// TransactionBlock is a fixed-width row whose right slot is sized for a
+// ~150px button - oversized status text warps the whole panel.
+const DepositStatusContainer = {
+  maxWidth: "200px",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  gap: "6px",
+}
+
+const MarketUpdatingStatus = () => (
+  <Box sx={DepositStatusContainer}>
+    <Typography variant="text3" color={COLORS.santasGrey}>
+      Updating market...
+    </Typography>
+  </Box>
+)
 
 const FaucetButton = ({ marketAccount }: { marketAccount: MarketAccount }) => {
   const {
@@ -57,20 +80,56 @@ const FaucetButton = ({ marketAccount }: { marketAccount: MarketAccount }) => {
 export const MarketActions = ({
   marketAccount,
   withdrawals,
+  showBorrowerPenaltyWarning,
+  wrapper,
+  hasWrapper,
+  isLiveMarketReady,
 }: MarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
   const { isTestnet } = useSelectedNetwork()
+  const { address } = useAccount()
 
-  const { data: mla, isLoading: mlaLoading } = useMarketMla(market.address)
+  // Authoritative wrapped ceiling — the same source the withdraw routing uses.
+  const { data: wrapperLimits } = useWrapperLimits(
+    market.chainId,
+    wrapper,
+    address,
+  )
+  const wrappedCap =
+    hasWrapper && wrapper ? wrapperLimits?.maxWithdraw : undefined
+
+  // Only count the wrapped position when it is actually withdrawable: dust
+  // shares render as "0" and must not produce an "≈ 0 wrapped" breakdown.
+  const hasWrappedPosition =
+    !!wrappedCap &&
+    wrappedCap.gte(market.underlyingToken.parseAmount("0.00001"))
+
+  const wrappedAvailable = hasWrappedPosition ? wrappedCap : undefined
+
+  /** Everything the lender can request, across both positions. */
+  const combinedAvailable = wrappedAvailable
+    ? marketAccount.marketBalance.add(wrappedAvailable)
+    : marketAccount.marketBalance
+
+  const {
+    data: mla,
+    isLoading: mlaLoading,
+    isError: isMlaError,
+    refetch: refetchMla,
+  } = useMarketMla(market.address, market.chainId)
 
   const { canAddToken, handleAddToken, isAddingToken } = useAddToken(
     market?.marketToken,
   )
 
   const mlaResponse = mla && "noMLA" in mla ? null : mla
-  const { data: signedMla, isLoading: signedMlaLoading } =
-    useGetSignedMla(mlaResponse)
+  const {
+    data: signedMla,
+    isLoading: signedMlaLoading,
+    isError: isSignedMlaError,
+    refetch: refetchSignedMla,
+  } = useGetSignedMla(mlaResponse)
   const mlaRequiredAndUnsigned =
     signedMla === null && !!mla && !("noMLA" in mla)
 
@@ -84,10 +143,6 @@ export const MarketActions = ({
     isTestnet &&
     market.underlyingToken.isMock &&
     marketAccount.underlyingBalance.raw.isZero()
-
-  const hideWithdraw =
-    marketAccount.marketBalance.raw.isZero() ||
-    marketAccount.withdrawalAvailability !== QueueWithdrawalStatus.Ready
 
   const ongoingCount = (
     withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
@@ -162,6 +217,41 @@ export const MarketActions = ({
     marketAccount.marketBalance.lt(smallestTokenAmountValue) &&
     !marketAccount.marketBalance.raw.isZero()
 
+  const humanizeDays = (seconds: number) =>
+    humanizeDuration(seconds * 1000, { largest: 1, round: true })
+
+  const depositRows = [
+    {
+      label: t("lenderMarketDetails.transactions.deposit.rows.walletBalance"),
+      value: `${formatTokenWithCommas(marketAccount.underlyingBalance)} ${
+        market.underlyingToken.symbol
+      }`,
+    },
+    ...(market.hooksConfig?.minimumDeposit
+      ? [
+          {
+            label: t(
+              "lenderMarketDetails.transactions.deposit.rows.minimumDeposit",
+            ),
+            value: `${formatTokenWithCommas(
+              market.hooksConfig.minimumDeposit,
+            )} ${market.underlyingToken.symbol}`,
+          },
+        ]
+      : []),
+  ]
+
+  const withdrawRows = [
+    {
+      label: t("lenderMarketDetails.transactions.withdraw.rows.cycle"),
+      value: humanizeDays(market.withdrawalBatchDuration),
+    },
+    {
+      label: t("lenderMarketDetails.transactions.withdraw.rows.gracePeriod"),
+      value: humanizeDays(market.delinquencyGracePeriod),
+    },
+  ]
+
   return (
     <>
       <Box display="flex" columnGap="6px" flexWrap="wrap" rowGap="6px">
@@ -217,57 +307,120 @@ export const MarketActions = ({
       <Divider sx={{ margin: "32px 0" }} />
 
       <Box width="100%" display="flex" flexDirection="column">
-        {(() => {
-          if (mlaLoading || signedMlaLoading) {
-            return <Typography variant="title3">Loading MLA Data...</Typography>
-          }
+        <Box sx={TransactionsContainer}>
+          <TransactionBlock
+            title={t("lenderMarketDetails.transactions.deposit.title")}
+            tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
+            amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
+            asset={market.underlyingToken.symbol}
+            subtitle={
+              // the breakdown line drives both cards: when there is no wrapped
+              // position neither card shows a sub-line, so their dividers align
+              hasWrappedPosition
+                ? t("lenderMarketDetails.transactions.deposit.subtitle")
+                : undefined
+            }
+            rows={depositRows}
+          >
+            {(() => {
+              if (!isLiveMarketReady) return <MarketUpdatingStatus />
 
-          if (mlaRequiredAndUnsigned) {
-            return (
-              <>
-                <Typography variant="title3" sx={{ marginBottom: "8px" }}>
-                  Loan Agreement Signature Required
-                </Typography>
-                <Typography
-                  variant="text3"
-                  sx={{ marginBottom: isClaimableZero ? "0" : "24px" }}
-                  color={COLORS.santasGrey}
-                >
-                  You need to sign the MLA before you can access this market.
-                </Typography>
-              </>
-            )
-          }
+              if (mlaLoading || signedMlaLoading) {
+                return (
+                  <Box sx={DepositStatusContainer}>
+                    <Typography variant="text3" color={COLORS.santasGrey}>
+                      Loading MLA Data...
+                    </Typography>
+                  </Box>
+                )
+              }
 
-          return (
-            <Box sx={TransactionsContainer}>
-              <TransactionBlock
-                title={t("lenderMarketDetails.transactions.deposit.title")}
-                tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
-                amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
-                asset={market.underlyingToken.symbol}
-              >
-                {!showFaucet && <DepositModal marketAccount={marketAccount} />}
-                {showFaucet && <FaucetButton marketAccount={marketAccount} />}
-              </TransactionBlock>
+              if (isMlaError || isSignedMlaError) {
+                return (
+                  <Box sx={DepositStatusContainer}>
+                    <Typography variant="text3" color={COLORS.santasGrey}>
+                      Couldn&apos;t load agreement data
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      sx={{ alignSelf: "flex-start" }}
+                      onClick={() => {
+                        toastError("Couldn't load agreement data — retrying")
+                        Promise.all([
+                          refetchMla(),
+                          ...(mlaResponse ? [refetchSignedMla()] : []),
+                        ]).catch(() => undefined)
+                      }}
+                    >
+                      Retry agreement data
+                    </Button>
+                  </Box>
+                )
+              }
 
-              <TransactionBlock
-                title={t("lenderMarketDetails.transactions.withdraw.title")}
-                tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
-                amount={
-                  isTooSmallMarketBalance
-                    ? `< 0.00001`
-                    : formatTokenWithCommas(marketAccount.marketBalance)
-                }
-                asset={market.underlyingToken.symbol}
-              >
-                {!hideWithdraw && (
-                  <WithdrawModal marketAccount={marketAccount} />
-                )}
-              </TransactionBlock>
-            </Box>
-          )
-        })()}
+              if (mlaRequiredAndUnsigned) {
+                return (
+                  <Box sx={DepositStatusContainer}>
+                    <Typography variant="text3" sx={{ fontWeight: 600 }}>
+                      Loan Agreement Signature Required
+                    </Typography>
+                    <Typography variant="text4" color={COLORS.santasGrey}>
+                      You need to sign the MLA before you can deposit into this
+                      market.
+                    </Typography>
+                  </Box>
+                )
+              }
+
+              return (
+                <>
+                  {!showFaucet && !hideDeposit && (
+                    <DepositModal
+                      marketAccount={marketAccount}
+                      showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
+                    />
+                  )}
+                  {showFaucet && <FaucetButton marketAccount={marketAccount} />}
+                </>
+              )
+            })()}
+          </TransactionBlock>
+
+          <TransactionBlock
+            title={t("lenderMarketDetails.transactions.withdraw.title")}
+            tooltip={t("lenderMarketDetails.transactions.withdraw.tooltip")}
+            amount={
+              isTooSmallMarketBalance && !hasWrappedPosition
+                ? `< 0.00001`
+                : formatTokenWithCommas(combinedAvailable)
+            }
+            asset={market.underlyingToken.symbol}
+            subtitle={
+              hasWrappedPosition && wrappedAvailable
+                ? t("lenderMarketDetails.transactions.withdraw.split", {
+                    direct: formatTokenWithCommas(marketAccount.marketBalance),
+                    wrapped: formatTokenWithCommas(wrappedAvailable),
+                  })
+                : undefined
+            }
+            rows={withdrawRows}
+          >
+            {!isLiveMarketReady ? (
+              <MarketUpdatingStatus />
+            ) : (
+              !combinedAvailable.raw.isZero() &&
+              marketAccount.withdrawalAvailability ===
+                QueueWithdrawalStatus.Ready && (
+                <WithdrawModal
+                  marketAccount={marketAccount}
+                  wrapper={wrapper}
+                  hasWrapper={hasWrapper}
+                />
+              )
+            )}
+          </TransactionBlock>
+        </Box>
       </Box>
 
       <Divider sx={{ margin: "32px 0 40px" }} />

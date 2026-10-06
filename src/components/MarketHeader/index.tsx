@@ -8,16 +8,19 @@ import {
   Typography,
   useTheme,
 } from "@mui/material"
+import { MarketVersion } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import Link from "next/link"
+import { useAccount } from "wagmi"
 
-import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { useGetBorrowerProfile } from "@/app/[locale]/lender/profile/hooks/useGetBorrowerProfile"
 import Avatar from "@/assets/icons/avatar_icon.svg"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
+import { ExportModal } from "@/components/ExportModal"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
 import { MobileMoreButton } from "@/components/Mobile/MobileMoreButton"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { EXPORT_CHAIN_IDS, ExportChainId } from "@/lib/export/types"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
@@ -31,51 +34,51 @@ import {
 } from "./style"
 
 export const MarketHeader = ({
+  market,
   marketAccount,
   mla,
   hasMarketDescription,
 }: MarketHeaderProps) => {
   const theme = useTheme()
   const isMobile = useMobileResolution()
+  const { address: connectedAddress } = useAccount()
+  const [isExportOpen, setIsExportOpen] = React.useState(false)
+  const supportsExport =
+    market.version === MarketVersion.V2 &&
+    EXPORT_CHAIN_IDS.some((chainId) => chainId === market.chainId)
 
   const [remainingTime, setRemainingTime] = React.useState<string>("")
 
-  const { market } = marketAccount
-
-  const { data } = useGetWithdrawals(market)
-
-  const cycleStart = data.activeWithdrawal?.requests[0]?.blockTimestamp
-
   React.useEffect(() => {
-    const cycleEnd =
-      cycleStart !== undefined ? cycleStart + market.withdrawalBatchDuration : 0
+    const cycleEnd = market.pendingWithdrawalExpiry
 
-    if (cycleStart) {
-      const updateRemainingTime = () => {
-        const now = Math.floor(Date.now() / 1000)
-        const timeLeft = cycleEnd - now
-        if (timeLeft > 0) {
-          setRemainingTime(
-            humanizeDuration(timeLeft * 1000, {
-              round: true,
-              largest: 1,
-              units: ["h", "m", "s"],
-            }),
-          )
-        } else {
-          setRemainingTime("")
-        }
-      }
-
-      updateRemainingTime()
-
-      const intervalId = setInterval(updateRemainingTime, 1000)
-
-      return () => clearInterval(intervalId)
+    if (!cycleEnd) {
+      setRemainingTime("")
+      return undefined
     }
 
-    return undefined
-  }, [data, market.withdrawalBatchDuration, cycleStart])
+    const updateRemainingTime = () => {
+      const now = Math.floor(Date.now() / 1000)
+      const timeLeft = cycleEnd - now
+      if (timeLeft > 0) {
+        setRemainingTime(
+          humanizeDuration(timeLeft * 1000, {
+            round: true,
+            largest: 1,
+            units: ["h", "m", "s"],
+          }),
+        )
+      } else {
+        setRemainingTime("")
+      }
+    }
+
+    updateRemainingTime()
+
+    const intervalId = setInterval(updateRemainingTime, 1000)
+
+    return () => clearInterval(intervalId)
+  }, [market.pendingWithdrawalExpiry])
 
   const marketStatus = getMarketStatusChip(market)
   const shouldShowCycleChip =
@@ -93,6 +96,17 @@ export const MarketHeader = ({
 
     return trimAddress(market.borrower)
   }
+
+  const exportModal = supportsExport && (
+    <ExportModal
+      open={isExportOpen}
+      onClose={() => setIsExportOpen(false)}
+      chainId={market.chainId as ExportChainId}
+      marketAddress={market.address}
+      borrowerAddress={market.borrower}
+      defaultAddress={connectedAddress}
+    />
+  )
 
   if (isMobile)
     return (
@@ -151,7 +165,9 @@ export const MarketHeader = ({
               {market.name}
             </Typography>
 
-            <MobileMoreButton marketAccount={marketAccount} />
+            {marketAccount && (
+              <MobileMoreButton marketAccount={marketAccount} />
+            )}
           </Box>
 
           <Box
@@ -280,6 +296,24 @@ export const MarketHeader = ({
           >
             Withdrawal Requests
           </Button>
+          {supportsExport && (
+            <Button
+              variant="text"
+              size="small"
+              sx={{
+                minWidth: "fit-content",
+                padding: "6px 8px",
+                flexShrink: 0,
+                fontSize: 10,
+                fontWeight: 600,
+                lineHeight: "16px",
+                backgroundColor: COLORS.hintOfRed,
+              }}
+              onClick={() => setIsExportOpen(true)}
+            >
+              Export
+            </Button>
+          )}
           {mla && !("noMLA" in mla) && (
             <Button
               variant="text"
@@ -300,6 +334,7 @@ export const MarketHeader = ({
             </Button>
           )}
         </Box>
+        {exportModal}
       </Box>
     )
 
@@ -347,7 +382,17 @@ export const MarketHeader = ({
         {shouldShowCycleChip && (
           <MarketCycleChip status={marketStatus.status} time={remainingTime} />
         )}
+        {supportsExport && (
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => setIsExportOpen(true)}
+          >
+            Export
+          </Button>
+        )}
       </Box>
+      {exportModal}
     </Box>
   )
 }

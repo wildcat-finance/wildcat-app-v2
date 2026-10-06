@@ -1,4 +1,4 @@
-import { LenderRole, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { LenderRole, Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { LenderStatus } from "./interface"
 
@@ -17,3 +17,50 @@ export const getEffectiveLenderRole = (
       return LenderStatus.Null
   }
 }
+
+export const borrowerPenaltyWarningThresholdSeconds = 30 * 24 * 60 * 60
+
+export const getPenaltySecondsPastGrace = (market: Market) =>
+  market.timeDelinquent - market.delinquencyGracePeriod
+
+export const shouldMarketTriggerBorrowerPenaltyWarning = (market: Market) =>
+  !market.isClosed &&
+  market.isIncurringPenalties &&
+  getPenaltySecondsPastGrace(market) >= borrowerPenaltyWarningThresholdSeconds
+
+export const shouldShowLenderRequestBanner = ({
+  isConnected,
+  isDifferentChain,
+  authorizedInMarket,
+}: {
+  isConnected: boolean
+  isDifferentChain: boolean
+  authorizedInMarket: boolean | undefined
+}) => isConnected && !isDifferentChain && authorizedInMarket === false
+
+export const getLenderMarketLoadingState = ({
+  isMarketReady,
+  hasLiveMarket,
+  apiLoading,
+  isDiscoveringChainId,
+  hasMarketAccount,
+  isWithdrawalsLoading,
+  authorizedInMarket,
+  isDifferentChain,
+}: {
+  isMarketReady: boolean
+  hasLiveMarket: boolean
+  apiLoading: boolean
+  isDiscoveringChainId: boolean
+  hasMarketAccount: boolean
+  isWithdrawalsLoading: boolean
+  authorizedInMarket: boolean
+  isDifferentChain: boolean
+}) => ({
+  isPageLoading: !isMarketReady || apiLoading || isDiscoveringChainId,
+  isTransactionsLoading:
+    !hasMarketAccount ||
+    (authorizedInMarket && !isDifferentChain && isWithdrawalsLoading),
+  isBarChartsLoading: !hasMarketAccount || isWithdrawalsLoading,
+  isMarketActionsLoading: !hasLiveMarket,
+})

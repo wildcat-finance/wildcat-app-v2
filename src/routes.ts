@@ -2,9 +2,12 @@ const BORROWER_ROOT = "/borrower"
 const LENDER_ROOT = "/lender"
 
 export const ROUTES = {
+  // Legacy lender onboarding URL. New navigation should use the explicit
+  // lender/borrower agreement routes below.
   agreement: "/agreement",
   borrower: {
     root: BORROWER_ROOT,
+    agreement: `${BORROWER_ROOT}/agreement`,
     market: `${BORROWER_ROOT}/market`,
     newMarket: `${BORROWER_ROOT}/new-market`,
     createMarket: `${BORROWER_ROOT}/create-market`,
@@ -19,6 +22,10 @@ export const ROUTES = {
   },
   lender: {
     root: LENDER_ROOT,
+    agreement: `${LENDER_ROOT}/agreement`,
+    explore: LENDER_ROOT,
+    myMarkets: `${LENDER_ROOT}/my-markets`,
+    allMarkets: `${LENDER_ROOT}/all-markets`,
     market: `${LENDER_ROOT}/market`,
     profile: `${LENDER_ROOT}/profile`,
   },

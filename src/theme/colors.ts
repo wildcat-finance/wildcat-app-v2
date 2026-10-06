@@ -62,6 +62,7 @@ export const COLORS = {
   hawkesBlue: "var(--color-hawkes-blue)",
   glitter: "var(--color-glitter)",
   lightGreen: "var(--color-light-green)",
+  caribbeanGreen: "var(--color-caribbean-green)",
 
   // ===== Static (theme-invariant) =====
   staticWhiteAlpha10: "var(--static-white-01)",

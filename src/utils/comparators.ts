@@ -132,5 +132,7 @@ export const tokenAmountComparator = (v1: TokenAmount, v2: TokenAmount) => {
     return v1Num - v2Num
   }
 
-  return v1.gte(v2) ? 1 : -1
+  if (v1.eq(v2)) return 0
+
+  return v1.gt(v2) ? 1 : -1
 }

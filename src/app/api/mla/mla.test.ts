@@ -11,7 +11,6 @@
 // // import { Body, createMocks, createRequest } from "node-mocks-http"
 
 // import { TargetChainId } from "@/config/network"
-// import AgreementText from "@/config/wildcat-service-agreement-acknowledgement.json"
 // import { getProviderForServer } from "@/lib/provider"
 
 // import { GET as getMla, POST as postMla } from "./[market]/route"
@@ -139,7 +138,6 @@
 //     })
 
 //     test("[PUT] Fails if EOA signature is from other account", async () => {
-//       let agreementText = AgreementText
 //       const dateSigned = new Date().toISOString()
 //       if (dateSigned) {
 //         agreementText = `${agreementText}\n\nDate: ${dateSigned}`
@@ -159,7 +157,6 @@
 //     })
 
 //     test("[PUT] Accepts EOA signature", async () => {
-//       let agreementText = AgreementText
 //       const dateSigned = new Date().toISOString()
 //       if (dateSigned) {
 //         agreementText = `${agreementText}\n\nDate: ${dateSigned}`

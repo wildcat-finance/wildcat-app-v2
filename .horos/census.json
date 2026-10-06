@@ -1,0 +1,152 @@
+{
+  "rows": [
+    {
+      "boundary_bytes": 6220365,
+      "bytes": 6220438,
+      "files": 45,
+      "suffix": ".js"
+    },
+    {
+      "boundary_bytes": 3633780,
+      "bytes": 3910290,
+      "files": 18,
+      "suffix": ".json"
+    },
+    {
+      "boundary_bytes": 2310374,
+      "bytes": 2310374,
+      "files": 5,
+      "suffix": ".webp"
+    },
+    {
+      "boundary_bytes": 0,
+      "bytes": 1923215,
+      "files": 359,
+      "suffix": ".tsx"
+    },
+    {
+      "boundary_bytes": 1601754,
+      "bytes": 1601754,
+      "files": 2,
+      "suffix": ".gz"
+    },
+    {
+      "boundary_bytes": 0,
+      "bytes": 1408333,
+      "files": 605,
+      "suffix": ".ts"
+    },
+    {
+      "boundary_bytes": 1125208,
+      "bytes": 1125208,
+      "files": 4,
+      "suffix": ".map"
+    },
+    {
+      "boundary_bytes": 0,
+      "bytes": 302032,
+      "files": 19,
+      "suffix": ".sql"
+    },
+    {
+      "boundary_bytes": 1292,
+      "bytes": 205663,
+      "files": 98,
+      "suffix": ".svg"
+    },
+    {
+      "boundary_bytes": 193296,
+      "bytes": 193296,
+      "files": 4,
+      "suffix": ".woff2"
+    },
+    {
+      "boundary_bytes": 185434,
+      "bytes": 185434,
+      "files": 4,
+      "suffix": ".png"
+    },
+    {
+      "boundary_bytes": 0,
+      "bytes": 102801,
+      "files": 1,
+      "suffix": ".ico"
+    },
+    {
+      "boundary_bytes": 0,
+      "bytes": 61764,
+      "files": 9,
+      "suffix": ".md"
+    },
+    {
+      "boundary_bytes": 675,
+      "bytes": 26419,
+      "files": 13,
+      "suffix": ".css"
+    },
+    {
+      "boundary_bytes": 15675,
+      "bytes": 15908,
+      "files": 3,
+      "suffix": ".html"
+    },
+    {
+      "boundary_bytes": 0,
+      "bytes": 12958,
+      "files": 2,
+      "suffix": ".mjs"
+    },
+    {
+      "boundary_bytes": 0,
+      "bytes": 12932,
+      "files": 1,
+      "suffix": ".prisma"
+    },
+    {
+      "boundary_bytes": 0,
+      "bytes": 5102,
+      "files": 4,
+      "suffix": ".yml"
+    },
+    {
+      "boundary_bytes": 4443,
+      "bytes": 4443,
+      "files": 13,
+      "suffix": ".txt"
+    },
+    {
+      "boundary_bytes": 0,
+      "bytes": 3125,
+      "files": 2,
+      "suffix": ".sh"
+    },
+    {
+      "boundary_bytes": 0,
+      "bytes": 1306,
+      "files": 6,
+      "suffix": "(no suffix)"
+    },
+    {
+      "boundary_bytes": 0,
+      "bytes": 476,
+      "files": 1,
+      "suffix": ".example"
+    },
+    {
+      "boundary_bytes": 0,
+      "bytes": 361,
+      "files": 1,
+      "suffix": ".cjs"
+    },
+    {
+      "boundary_bytes": 126,
+      "bytes": 126,
+      "files": 1,
+      "suffix": ".toml"
+    }
+  ],
+  "schema": 1,
+  "tool": "horos",
+  "total_bytes": 19633758,
+  "total_files": 1220
+}

@@ -31,6 +31,10 @@ export type MobileFilterButtonProps = {
   setMarketWithdrawalCycles: React.Dispatch<
     React.SetStateAction<SmallFilterSelectItem[]>
   >
+  showSelfOnboard?: boolean
+  setShowSelfOnboard?: React.Dispatch<React.SetStateAction<boolean>>
+  showOnboardByBorrower?: boolean
+  setShowOnboardByBorrower?: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export const MobileFilterButton = ({
@@ -43,6 +47,10 @@ export const MobileFilterButton = ({
   setMarketStatuses,
   marketWithdrawalCycles,
   setMarketWithdrawalCycles,
+  showSelfOnboard,
+  setShowSelfOnboard,
+  showOnboardByBorrower,
+  setShowOnboardByBorrower,
 }: MobileFilterButtonProps) => {
   const [open, setOpen] = useState<boolean>(false)
 
@@ -251,6 +259,40 @@ export const MobileFilterButton = ({
             padding: "0px 12px",
           }}
         >
+          {setShowSelfOnboard && (
+            <FormControlLabel
+              label="Self-Onboard"
+              control={
+                <ExtendedCheckbox
+                  checked={showSelfOnboard}
+                  onChange={(e) => setShowSelfOnboard(e.target.checked)}
+                  sx={{
+                    "& ::before": {
+                      transform: "translate(-3px, -3px) scale(0.75)",
+                    },
+                  }}
+                />
+              }
+            />
+          )}
+
+          {setShowOnboardByBorrower && (
+            <FormControlLabel
+              label="Onboard by Borrower"
+              control={
+                <ExtendedCheckbox
+                  checked={showOnboardByBorrower}
+                  onChange={(e) => setShowOnboardByBorrower(e.target.checked)}
+                  sx={{
+                    "& ::before": {
+                      transform: "translate(-3px, -3px) scale(0.75)",
+                    },
+                  }}
+                />
+              }
+            />
+          )}
+
           <FormControlLabel
             label="Markets"
             control={
@@ -268,7 +310,6 @@ export const MobileFilterButton = ({
               />
             }
           />
-
           {statusesOptions.map((item) => (
             <FormControlLabel
               key={item.id}
@@ -298,7 +339,6 @@ export const MobileFilterButton = ({
               }
             />
           ))}
-
           <FormControlLabel
             label="Withdrawal Cycle"
             control={
@@ -317,7 +357,6 @@ export const MobileFilterButton = ({
               />
             }
           />
-
           {withdrawalCycleOptions.map((item) => (
             <FormControlLabel
               key={item.id}
@@ -349,7 +388,6 @@ export const MobileFilterButton = ({
               }
             />
           ))}
-
           <FormControlLabel
             label="Currency"
             control={
@@ -365,7 +403,6 @@ export const MobileFilterButton = ({
               />
             }
           />
-
           {assetsOptions.map((item) => (
             <FormControlLabel
               key={item.id}

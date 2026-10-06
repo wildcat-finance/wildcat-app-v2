@@ -9,8 +9,13 @@ export function useCancelInvite() {
   const client = useQueryClient()
   const { chainId } = useSelectedNetwork()
   const { mutate: removeBadToken } = useRemoveBadApiToken()
+  const isAdminForChain = token?.isAdmin && token.chainId === chainId
   return useMutation({
+    mutationKey: ["cancelInvite", chainId],
     mutationFn: async (address: string) => {
+      if (!token || !isAdminForChain) {
+        throw Error("Not authorized to cancel invitations on this chain")
+      }
       const response = await fetch(
         `/api/invite?address=${address.toLowerCase()}&chainId=${chainId}`,
         {

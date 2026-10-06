@@ -2,7 +2,6 @@
 import { WildcatMarket__factory } from "@wildcatfi/wildcat-sdk/dist/typechain"
 import { NextRequest, NextResponse } from "next/server"
 
-import { TargetChainId } from "@/config/network"
 import { prisma } from "@/lib/db"
 import { getProviderForServer } from "@/lib/provider"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
@@ -51,6 +50,9 @@ export async function POST(
     return getZodParseError(err)
   }
   const token = await verifyApiToken(request)
+  if (!token || token.chainId !== chainId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
   // eslint-disable-next-line camelcase
   const borrower = await WildcatMarket__factory.connect(
     parsedBody.marketAddress,
@@ -59,19 +61,19 @@ export async function POST(
     .borrower()
     .then((t) => t.toLowerCase())
 
-  if (borrower !== token?.address.toLowerCase()) {
+  if (borrower !== token.address.toLowerCase()) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   await prisma.marketDescription.upsert({
     where: {
       chainId_marketAddress: {
-        chainId: TargetChainId,
+        chainId,
         marketAddress: parsedBody.marketAddress,
       },
     },
     create: {
-      chainId: TargetChainId,
+      chainId,
       marketAddress: parsedBody.marketAddress,
       description: parsedBody.description,
     },
