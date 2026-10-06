@@ -225,8 +225,12 @@ export const BorrowerMarketHealthTable = ({
       align: "left",
       renderCell: (params) => {
         const baseApr = formatPercent(params.value / 100)
-        const adsComponent = getAdsTooltipComponent(params.row.id, baseApr)
-        const adsCellProps = getAdsCellProps(params.row.id)
+        const adsComponent = getAdsTooltipComponent(
+          params.row.chainId,
+          params.row.id,
+          baseApr,
+        )
+        const adsCellProps = getAdsCellProps(params.row.chainId, params.row.id)
 
         return (
           <Box

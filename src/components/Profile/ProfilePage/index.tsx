@@ -4,6 +4,7 @@ import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHo
 import { useBorrowerAggregateStats } from "@/app/[locale]/borrower/profile/hooks/analytics/useBorrowerAggregateStats"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { Footer } from "@/components/Footer"
+import { BorrowerProfileVerificationDisclosure } from "@/components/Profile/components/VerificationDisclosure"
 import { ProfileTabBar } from "@/components/Profile/shared/ProfileTabBar"
 import {
   BORROWER_PROFILE_TABS,
@@ -69,6 +70,7 @@ export const ProfilePage = ({
         }),
       }}
     >
+      <BorrowerProfileVerificationDisclosure showNote={false} />
       {isMobile && (
         <ProfileTabBar tabs={BORROWER_PROFILE_TABS} defaultTab="overview" />
       )}

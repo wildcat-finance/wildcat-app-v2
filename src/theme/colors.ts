@@ -49,4 +49,5 @@ export const COLORS = {
   hawkesBlue: "#D2DDFF",
   glitter: "#E4EBFE",
   lightGreen: "#E4F5E0",
+  caribbeanGreen: "#28CA7C",
 }

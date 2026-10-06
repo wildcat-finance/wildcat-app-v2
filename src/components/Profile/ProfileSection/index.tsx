@@ -12,11 +12,13 @@ import { buildBorrowerSummaryItems } from "@/components/Profile/shared/borrowerS
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { isHinterlightSupported } from "@/lib/hinterlight"
 import { buildBorrowerProfileHref } from "@/utils/formatters"
+import { countMarketsInDefault } from "@/utils/marketStatus"
 
 import { BorrowerMarketsTreemap } from "./components/BorrowerMarketsTreemap"
 import { ProfileSectionNameBlock } from "./components/ProfileSectionNameBlock"
 import { ProfileSectionProps } from "./interface"
 import { OverallBlock } from "../components/OverallBlock"
+import { BorrowerProfileVerificationDisclosure } from "../components/VerificationDisclosure"
 
 export const ProfileSection = ({
   profileAddress,
@@ -35,6 +37,7 @@ export const ProfileSection = ({
 
   const activeMarkets = borrowerMarkets?.filter((market) => !market.isClosed)
   const marketsAmount = (activeMarkets ?? []).length
+  const defaults = countMarketsInDefault(borrowerMarkets)
   const summaryItems = buildBorrowerSummaryItems(borrowerAnalyticsQuery.data)
   const profileHref = profileAddress
     ? buildBorrowerProfileHref(profileAddress, chainId)
@@ -64,13 +67,14 @@ export const ProfileSection = ({
       ) : (
         <AnalyticsUnavailableNotice
           title="Aggregate KPIs unavailable on this network"
-          description="Borrower analytics are sourced from the Hinterlight analytics subgraph on Ethereum mainnet and Sepolia."
+          description="Borrower analytics are available on Ethereum mainnet and Sepolia."
         />
       )}
 
       <OverallBlock
         {...profileData}
         marketsAmount={marketsAmount}
+        defaults={defaults}
         externalChainId={chainId}
         borrowed={
           analyticsAvailable
@@ -79,6 +83,8 @@ export const ProfileSection = ({
             : undefined
         }
       />
+
+      <BorrowerProfileVerificationDisclosure variant="market" />
 
       <BorrowerMarketsTreemap
         markets={borrowerMarkets ?? []}

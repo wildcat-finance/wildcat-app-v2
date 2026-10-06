@@ -27,11 +27,14 @@ import { COLORS } from "@/theme/colors"
 import { MarketStatus } from "@/utils/marketStatus"
 import { getPaginationRange } from "@/utils/pagination"
 
+import { MobileMarketCard } from "../MobileMarketCard"
 import {
-  MobileMarketCard,
-  MobileMarketCardVariant,
-  MobileMarketItem,
-} from "../MobileMarketCard"
+  BorrowerMobileMarketCard,
+  BorrowerMobileMarketItem,
+} from "../MobileMarketCard/BorrowerMobileMarketCard"
+
+type MobileMarketItem = BorrowerMobileMarketItem
+type MobileMarketCardVariant = "lender-action" | "borrower-context"
 
 const ITEMS_PER_PAGE = 20
 
@@ -56,7 +59,7 @@ const stripAssetSuffix = (name: string, asset: string) => {
 }
 
 const sortRows = (
-  rows: MobileMarketItem[],
+  rows: readonly MobileMarketItem[],
   field: SortField,
   dir: SortDir,
 ): MobileMarketItem[] => {
@@ -141,13 +144,13 @@ const segmentedSx = {
 
 export const MobileMarketList = ({
   markets,
-  isLoading,
+  isLoading = false,
   variant = "lender-action",
   groupByAsset = false,
   enableToolbar = false,
 }: {
-  markets: MobileMarketItem[]
-  isLoading: boolean
+  markets: readonly MobileMarketItem[]
+  isLoading?: boolean
   variant?: MobileMarketCardVariant
   groupByAsset?: boolean
   enableToolbar?: boolean
@@ -169,6 +172,9 @@ export const MobileMarketList = ({
   const isLenderProfilePage = pathname.includes(ROUTES.lender.profile)
 
   const showBorrowerInCard = !isBorrowerProfilePage && !isLenderProfilePage
+  const baseRoute = pathname.includes(ROUTES.borrower.profile)
+    ? ROUTES.borrower.market
+    : ROUTES.lender.market
 
   const uniqueAssets = useMemo(
     () => Array.from(new Set(markets.map((m) => m.asset))).sort(),
@@ -433,7 +439,6 @@ export const MobileMarketList = ({
       <Box
         sx={{
           height: "100%",
-          overflowY: "auto",
           display: "flex",
           flexDirection: "column",
           gap: "8px",
@@ -487,17 +492,23 @@ export const MobileMarketList = ({
                     {headerLabel}
                   </Typography>
                 )}
-                <MobileMarketCard
-                  adsComponent={getAdsMobileContent(marketItem.id)}
-                  marketItem={marketItem}
-                  buttonText={
-                    variant === "lender-action" ? "Deposit" : undefined
-                  }
-                  buttonIcon={variant === "lender-action"}
-                  showBorrower={showBorrowerInCard}
-                  variant={variant}
-                  displayName={displayName}
-                />
+                {variant === "borrower-context" ? (
+                  <BorrowerMobileMarketCard
+                    marketItem={marketItem}
+                    displayName={displayName}
+                    adsComponent={getAdsMobileContent(
+                      marketItem.chainId,
+                      marketItem.id,
+                    )}
+                    baseRoute={baseRoute}
+                  />
+                ) : (
+                  <MobileMarketCard
+                    marketItem={marketItem}
+                    showBorrower={showBorrowerInCard}
+                    baseRoute={baseRoute}
+                  />
+                )}
               </React.Fragment>
             )
           })}
@@ -506,7 +517,7 @@ export const MobileMarketList = ({
             <Skeleton
               sx={{
                 width: "100%",
-                height: "155px",
+                height: "182px",
                 backgroundColor: COLORS.white06,
                 borderRadius: "14px",
               }}
@@ -514,7 +525,7 @@ export const MobileMarketList = ({
             <Skeleton
               sx={{
                 width: "100%",
-                height: "155px",
+                height: "182px",
                 backgroundColor: COLORS.white06,
                 borderRadius: "14px",
               }}
@@ -522,7 +533,7 @@ export const MobileMarketList = ({
             <Skeleton
               sx={{
                 width: "100%",
-                height: "155px",
+                height: "182px",
                 backgroundColor: COLORS.white06,
                 borderRadius: "14px",
               }}

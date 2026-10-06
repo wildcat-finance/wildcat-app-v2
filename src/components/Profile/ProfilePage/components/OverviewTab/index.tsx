@@ -56,7 +56,7 @@ export const OverviewTab = ({
   const totalCount = markets.length
   const activeCount = markets.filter((market) => !market.isClosed).length
 
-  // Source the export's market set from the analytics (Hinterlight) universe —
+  // Source the export's market set from the analytics query's market set —
   // the same place the export events come from — rather than the SDK market
   // list, which drops periodic/excluded markets and depends on a connected
   // wallet. Otherwise those markets' events are silently missing from the CSV.
@@ -130,7 +130,7 @@ export const OverviewTab = ({
         ) : (
           <AnalyticsUnavailableNotice
             title="Aggregate KPIs unavailable on this network"
-            description="Analytics for this profile are sourced from the Hinterlight analytics subgraph (mainnet + Sepolia). Switch networks to view them."
+            description="Profile analytics are available on Ethereum mainnet and Sepolia. Switch networks to view them."
           />
         )}
       </Box>

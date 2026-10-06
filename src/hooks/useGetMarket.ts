@@ -62,6 +62,23 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
       QueryKeys.Markets.GET_MARKET(effectiveChainId ?? 0, marketAddressLower),
     [effectiveChainId, marketAddressLower],
   )
+  const indexedMarket = useMemo(() => {
+    if (!effectiveChainId || !subgraphMarket || !signerOrProvider) {
+      return undefined
+    }
+
+    try {
+      return Market.fromSubgraphMarketData(
+        effectiveChainId,
+        signerOrProvider,
+        subgraphMarket,
+      )
+    } catch {
+      // Don't let the early fallback take down the page. The live query still
+      // owns the error if the subgraph data is busted.
+      return undefined
+    }
+  }, [effectiveChainId, signerOrProvider, subgraphMarket])
 
   const query = useQuery({
     queryKey: marketQueryKey,
@@ -111,6 +128,7 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
 
   return {
     ...query,
+    indexedMarket,
     isDiscoveringChainId: api.isLoading,
     discoveredChainId: effectiveChainId,
     apiError: api.error,

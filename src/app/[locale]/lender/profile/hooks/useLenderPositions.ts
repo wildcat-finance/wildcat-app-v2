@@ -22,7 +22,7 @@ import { formatBigIntDecimal } from "@/utils/csvExport"
 
 const GET_LENDER_PROFILE_POSITIONS = gql`
   query getLenderProfilePositions(
-    $address: String!
+    $address: Bytes!
     $statsId: ID!
     $first: Int!
     $skip: Int!
@@ -190,7 +190,8 @@ export const useLenderPositions = (
       if (!normalizedAddress) throw new Error("Missing lender address")
 
       const client = getHinterlightClient(chainId)
-      if (!client) throw new Error("Hinterlight not supported on this network")
+      if (!client)
+        throw new Error("Analytics are not supported on this network")
 
       const pageState: {
         lenderStats: LenderProfilePositionsQuery["lenderStats"]

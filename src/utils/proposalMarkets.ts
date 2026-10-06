@@ -1,9 +1,11 @@
 export const proposalMarkets = {
-  sepolia: {
-    test: "0x8fa1b736a98631c2851c3a7fd684f2131dca423f",
+  mainnet: {
+    ethena: {
+      auros: "0x18b3794b9f0ffd999442815e537fe603b67fa029",
+      kappaLab: "0xe79ca848ae0182fce1db61a968b89627c9a0c948",
+    },
   },
-  ethena: {
-    auros: "0x18b3794b9f0ffd999442815e537fe603b67fa029",
-    kappaLab: "0xe79ca848ae0182fce1db61a968b89627c9a0c948",
+  sepolia: {
+    testPoints: "0x0506eb1e3098c00117d3c805ce68a8b087e59fc7",
   },
 }

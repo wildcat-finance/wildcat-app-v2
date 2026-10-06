@@ -9,4 +9,5 @@ export type ParametersItemProps = {
   alarmState?: boolean
   copy?: string
   link?: string
+  verified?: boolean
 }

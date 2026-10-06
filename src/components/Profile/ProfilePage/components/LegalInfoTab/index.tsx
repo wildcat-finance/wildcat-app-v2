@@ -8,9 +8,11 @@ import { Market } from "@wildcatfi/wildcat-sdk"
 import { useGetServiceAgreementStatus } from "@/app/[locale]/borrower/hooks/useGetServiceAgreementStatus"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { trimAddress } from "@/utils/formatters"
+import { countMarketsInDefault } from "@/utils/marketStatus"
 
 import { OverallBlock } from "../../../components/OverallBlock"
 import { ToUStatusBlock } from "../../../components/ToUStatusBlock"
+import { BorrowerProfileVerificationDisclosure } from "../../../components/VerificationDisclosure"
 import { ProfileNamePageBlock } from "../ProfileNamePageBlock"
 
 type LegalInfoTabProps = {
@@ -37,6 +39,7 @@ export const LegalInfoTab = ({
 
   const accountName = profileData?.name ?? trimAddress(profileAddress ?? "")
   const marketsAmount = markets.filter((market) => !market.isClosed).length
+  const defaults = countMarketsInDefault(markets)
   const isExternal = type === "external"
 
   if (isMobile) {
@@ -50,7 +53,15 @@ export const LegalInfoTab = ({
           isMobile
         />
 
-        <OverallBlock {...profileData} marketsAmount={marketsAmount} />
+        <OverallBlock
+          {...profileData}
+          marketsAmount={marketsAmount}
+          defaults={defaults}
+        />
+        <BorrowerProfileVerificationDisclosure
+          variant="inline"
+          showModal={false}
+        />
 
         <ToUStatusBlock
           address={profileAddress}
@@ -73,7 +84,15 @@ export const LegalInfoTab = ({
 
       <Divider sx={{ marginY: "32px" }} />
 
-      <OverallBlock {...profileData} marketsAmount={marketsAmount} isPage />
+      <Box sx={{ position: "relative" }}>
+        <OverallBlock
+          {...profileData}
+          marketsAmount={marketsAmount}
+          defaults={defaults}
+          isPage
+        />
+        <BorrowerProfileVerificationDisclosure showModal={false} />
+      </Box>
 
       <Divider sx={{ marginY: "32px" }} />
 

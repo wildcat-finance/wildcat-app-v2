@@ -1,6 +1,6 @@
 import { QueryObserverResult, RefetchOptions } from "@tanstack/react-query"
 
-export type TwoStepQueryHookResult<T> = {
+export type TwoStepQueryHookResult<T, U = T> = {
   data: T
   isLoadingInitial: boolean
   isErrorInitial: boolean
@@ -15,5 +15,5 @@ export type TwoStepQueryHookResult<T> = {
   errorUpdate: Error | null
   refetchUpdate: (
     options?: RefetchOptions,
-  ) => Promise<QueryObserverResult<T, Error>>
+  ) => Promise<QueryObserverResult<U, Error>>
 }

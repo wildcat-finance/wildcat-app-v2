@@ -77,7 +77,8 @@ export const useBorrowerBatches = (
     staleTime: 60_000,
     queryFn: async () => {
       const client = getHinterlightClient(chainId)
-      if (!client) throw new Error("Hinterlight not supported on this network")
+      if (!client)
+        throw new Error("Analytics are not supported on this network")
 
       const withdrawalBatches = await fetchAllGraphqlPages<
         BorrowerWithdrawalBatchesQuery,

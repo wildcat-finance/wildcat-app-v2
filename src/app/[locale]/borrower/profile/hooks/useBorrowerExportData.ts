@@ -242,7 +242,7 @@ const GET_BORROWER_EXPORT_WITHDRAWAL_EXECUTIONS = gql`
 `
 
 const GET_BORROWER_EXPORT_MARKETS = gql`
-  query getBorrowerExportMarkets($marketIds: [String!]!) {
+  query getBorrowerExportMarkets($marketIds: [ID!]!) {
     markets(where: { id_in: $marketIds }, first: 500) {
       id
       name
@@ -724,7 +724,7 @@ export const useBorrowerExportData = ({
       if (!borrowerAddress) throw new Error("Missing borrower address")
       const client = getHinterlightClient(chainId)
       if (!client) {
-        throw new Error("Hinterlight not supported on this network")
+        throw new Error("Analytics are not supported on this network")
       }
       return fetchBorrowerExportData(client, {
         borrowerAddress,

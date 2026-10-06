@@ -73,16 +73,10 @@ export const useApprove = (
     },
     onSuccess() {
       client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
           market.chainId,
           market.address,
-        ),
-      })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_BORROWER_MARKET_ACCOUNT_LEGACY(
-          market.chainId,
           address,
-          market.address,
         ),
       })
     },

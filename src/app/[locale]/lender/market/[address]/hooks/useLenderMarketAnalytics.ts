@@ -10,7 +10,7 @@ import { fetchAllGraphqlPages } from "@/lib/paginated-query"
 import { LenderWithdrawalsForMarketResult } from "./useGetLenderWithdrawals"
 
 const GET_ACTIVE_LENDERS = gql`
-  query getActiveLenders($market: ID!, $first: Int!, $skip: Int!) {
+  query getActiveLenders($market: String!, $first: Int!, $skip: Int!) {
     lenderAccounts(
       where: { market: $market, scaledBalance_gt: "0" }
       first: $first

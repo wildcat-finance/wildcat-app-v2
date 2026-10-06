@@ -1,7 +1,12 @@
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketController, PartialTransaction } from "@wildcatfi/wildcat-sdk"
-import type { HooksInstance } from "@wildcatfi/wildcat-sdk/dist/access"
+import {
+  FixedTermHooks,
+  HooksInstance,
+  OpenTermHooks,
+  PeriodicTermHooks,
+} from "@wildcatfi/wildcat-sdk/dist/access"
 
 import { toastRequest, ToastRequestConfig } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
@@ -9,6 +14,11 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useAppDispatch } from "@/store/hooks"
 import { resetEditPolicyState } from "@/store/slices/editPolicySlice/editPolicySlice"
+import { trimAddress } from "@/utils/formatters"
+import {
+  getBlockedLenders,
+  getLenderUpdateSafeBatch,
+} from "@/utils/lenderAccess"
 
 export type SubmitPolicyUpdatesInputs = {
   addLenders?: string[]
@@ -51,7 +61,6 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         return
       }
 
-      const gnosisTransactions: PartialTransaction[] = []
       console.log(
         `useDeployMarket :: isTestnet: ${isTestnet} :: isConnectedToSafe: ${isConnectedToSafe} :: gnosisSafeSDK: ${!!gnosisSafeSDK}`,
       )
@@ -60,7 +69,39 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       if (addLenders && addLenders.length) {
         console.log(`adding lenders`)
         console.log(addLenders)
-        if (policy instanceof MarketController) {
+        if (
+          policy instanceof OpenTermHooks ||
+          policy instanceof FixedTermHooks ||
+          policy instanceof PeriodicTermHooks
+        ) {
+          console.log(`adding lenders to v2 policy`)
+
+          const policyContract = policy.contract
+          const blockedLenders = await getBlockedLenders(
+            addLenders,
+            "getLenderStatus" in policyContract
+              ? (lender) => policyContract.getLenderStatus(lender)
+              : undefined,
+          )
+          blockedLenders.forEach((lender) => {
+            txs.push({
+              ...policy.populateUnblockLender(lender),
+              pending: `Restoring deposit access for ${trimAddress(lender)}`,
+              success: `Restored deposit access for ${trimAddress(lender)}`,
+              error: `Failed to restore access for ${trimAddress(lender)}`,
+            })
+          })
+
+          const tx = policy.populateAddLenders(
+            addLenders.map((lender) => ({ lender })),
+          )
+          txs.push({
+            ...tx,
+            pending: `Adding ${addLenders.length} lenders`,
+            success: `Added ${addLenders.length} lenders`,
+            error: `Failed to add ${addLenders.length} lenders`,
+          })
+        } else {
           console.log(`adding lenders to v1 policy`)
           const tx = marketsToUpdate?.length
             ? policy.populateAuthorizeLendersAndUpdateMarkets(
@@ -74,17 +115,6 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
             success: `Added ${addLenders.length} lenders`,
             error: `Failed to add ${addLenders.length} lenders`,
           })
-        } else {
-          console.log(`adding lenders to v2 policy`)
-          const tx = policy.populateAddLenders(
-            addLenders.map((lender) => ({ lender })),
-          )
-          txs.push({
-            ...tx,
-            pending: `Adding ${addLenders.length} lenders`,
-            success: `Added ${addLenders.length} lenders`,
-            error: `Failed to add ${addLenders.length} lenders`,
-          })
         }
       }
       if (removeLenders && removeLenders.length) {
@@ -92,7 +122,19 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         console.log(removeLenders)
         console.log(`policy address: ${policy.address}`)
         console.log(`policy address: ${policy.contract.address}`)
-        if (policy instanceof MarketController) {
+        if (
+          policy instanceof OpenTermHooks ||
+          policy instanceof FixedTermHooks ||
+          policy instanceof PeriodicTermHooks
+        ) {
+          const tx = policy.populateBlockLenders(removeLenders)
+          txs.push({
+            ...tx,
+            pending: `Removing ${removeLenders.length} lenders`,
+            success: `Removed ${removeLenders.length} lenders`,
+            error: `Failed to remove ${removeLenders.length} lenders`,
+          })
+        } else {
           const tx = marketsToUpdate?.length
             ? policy.populateDeauthorizeLendersAndUpdateMarkets(
                 removeLenders,
@@ -105,19 +147,10 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
             success: `Removed ${removeLenders.length} lenders`,
             error: `Failed to remove ${removeLenders.length} lenders`,
           })
-        } else {
-          const tx = policy.populateBlockLenders(removeLenders)
-          txs.push({
-            ...tx,
-            pending: `Removing ${removeLenders.length} lenders`,
-            success: `Removed ${removeLenders.length} lenders`,
-            error: `Failed to remove ${removeLenders.length} lenders`,
-          })
         }
       }
 
-      const useGnosisMultiSend =
-        isConnectedToSafe && isTestnet && txs.length > 1
+      const safeBatch = getLenderUpdateSafeBatch(isConnectedToSafe, txs)
       if (txs.length > 1) {
         txs.forEach((tx, i) => {
           tx.pending = `Step ${i + 1}/${txs.length}: ${tx.pending}`
@@ -126,8 +159,8 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
         })
       }
 
-      if (useGnosisMultiSend) {
-        const tx = gnosisSafeSDK.txs.send({ txs: gnosisTransactions })
+      if (safeBatch) {
+        const tx = gnosisSafeSDK.txs.send({ txs: safeBatch })
         await toastRequest(tx, {
           pending: "Submitting gnosis transaction batch to update lenders...",
           success: "Lenders updated!",

@@ -7,7 +7,9 @@ import {
   Skeleton,
   SvgIcon,
   TextField,
+  Typography,
 } from "@mui/material"
+import { useTranslation } from "react-i18next"
 
 import { useSubmitUpdates } from "@/app/[locale]/borrower/policy/hooks/useSubmitUpdates"
 import useTrackPolicyLendersChanges from "@/app/[locale]/borrower/policy/hooks/useTrackLendersChanges"
@@ -15,6 +17,7 @@ import Cross from "@/assets/icons/cross_icon.svg"
 import Search from "@/assets/icons/search_icon.svg"
 import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
+import { hasActivePullRoleProvider } from "@/utils/marketCapabilities"
 
 import { EditLendersTable } from "./components/EditLendersTable"
 import { AddModal } from "./components/Modals/AddModal"
@@ -28,6 +31,12 @@ export const LendersTab = ({
   policy,
   controller,
 }: LendersTabProps) => {
+  const { t } = useTranslation()
+
+  const isSelfOnboardPolicy = hasActivePullRoleProvider(
+    policy?.roleProviders ?? [],
+  )
+
   const initialLendersList = useAppSelector(
     (state) => state.policyLenders.initialLenders,
   )
@@ -161,23 +170,34 @@ export const LendersTab = ({
           }}
         />
 
-        <Box sx={{ display: "flex", gap: "6px" }}>
-          <AddModal disabled={isLoading || isSubmitting} />
+        {isSelfOnboardPolicy ? (
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Typography variant="text3" color={COLORS.santasGrey}>
+              {t("policy.lenders.selfOnboardNotice")}
+            </Typography>
+          </Box>
+        ) : (
+          <Box sx={{ display: "flex", gap: "6px" }}>
+            <AddModal disabled={isLoading || isSubmitting} />
 
-          <ConfirmModal
-            open={isConfirmModalOpen}
-            setIsOpen={setIsConfirmModalOpen}
-            policyName={policyName}
-            disableConfirm={!isLendersHaveChanges || isLoading || isSubmitting}
-            handleClickSubmit={handleClickSubmit}
-          />
-        </Box>
+            <ConfirmModal
+              open={isConfirmModalOpen}
+              setIsOpen={setIsConfirmModalOpen}
+              policyName={policyName}
+              disableConfirm={
+                !isLendersHaveChanges || isLoading || isSubmitting
+              }
+              handleClickSubmit={handleClickSubmit}
+            />
+          </Box>
+        )}
       </Box>
 
       {!isLoading && !isSubmitting && (
         <EditLendersTable
           filteredLenders={filteredLenders}
           isFiltered={!!lendersFilter}
+          canEditLenders={!isSelfOnboardPolicy}
         />
       )}
 

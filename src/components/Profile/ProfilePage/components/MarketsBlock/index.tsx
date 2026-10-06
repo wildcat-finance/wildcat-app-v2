@@ -9,6 +9,7 @@ import { useAccount } from "wagmi"
 
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { LenderMobileMarketItem } from "@/components/Mobile/MobileMarketCard"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import {
   analyticsDataGridSx,
@@ -43,7 +44,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     ? ROUTES.borrower.market
     : ROUTES.lender.market
 
-  const rows: GridRowsProp = (markets ?? [])
+  const rows: GridRowsProp<LenderMobileMarketItem> = (markets ?? [])
     .filter((market) => !market.isClosed)
     .map((market) => {
       const {
@@ -73,6 +74,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
         apr: annualInterestBips,
         term: getMarketTypeChip(market),
         debt: totalDebts,
+        deposited: totalSupply,
         capacity: maxTotalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
         utilisation,

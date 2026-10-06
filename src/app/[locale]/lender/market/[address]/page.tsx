@@ -11,6 +11,7 @@ import { useAccount } from "wagmi"
 
 import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
 import { BorrowerPenaltyWarning } from "@/app/[locale]/lender/market/[address]/components/BorrowerPenaltyWarning"
+import { MobileLenderBanner } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileLenderBanner"
 import { MobileMarketActions } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMarketActions"
 import { MobileMlaAlert } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaAlert"
 import { MobileMlaModal } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileMlaModal/MobileMlaModal"
@@ -22,18 +23,23 @@ import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
 import { Footer } from "@/components/Footer"
+import { ConnectWalletDialog } from "@/components/Header/HeaderButton/ConnectWalletDialog"
+import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
+import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
 import { METRIC_BASIS } from "@/components/Profile/shared/metricBasis"
 import { useGetMarket } from "@/hooks/useGetMarket"
+import { useMarketAccount } from "@/hooks/useMarketAccount"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { useTokenWrapper } from "@/hooks/wrapper/useTokenWrapper"
 import { useWrapperForMarket } from "@/hooks/wrapper/useWrapperForMarket"
+import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { hideDescriptionSection } from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
 import {
@@ -60,18 +66,30 @@ import { MarketSummary } from "./components/MarketSummary"
 import { WrapDebtToken } from "./components/WrapDebtToken"
 import { useBorrowerPenaltyWarning } from "./hooks/useBorrowerPenaltyWarning"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
-import { useLenderMarketAccount } from "./hooks/useLenderMarketAccount"
 import { useLenderMarketAnalytics } from "./hooks/useLenderMarketAnalytics"
 import { useMarketDailyFlows } from "./hooks/useMarketDailyFlows"
 import { useMarketDelinquencyHistory } from "./hooks/useMarketDelinquencyHistory"
 import { LenderStatus } from "./interface"
 import {
+  LenderBannerWrapper,
   MarketContentColumn,
   SectionContainer,
   SkeletonContainer,
   SkeletonStyle,
 } from "./style"
-import { getEffectiveLenderRole } from "./utils"
+import {
+  getEffectiveLenderRole,
+  getLenderMarketLoadingState,
+  shouldShowLenderRequestBanner,
+} from "./utils"
+
+const AccountSectionSkeleton = () => (
+  <Box sx={SkeletonContainer} flexDirection="column" gap="20px">
+    <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+    <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+    <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+  </Box>
+)
 
 export default function LenderMarketDetails({
   params: { address },
@@ -83,6 +101,10 @@ export default function LenderMarketDetails({
   const dispatch = useAppDispatch()
   const { isConnected } = useAccount()
 
+  const [isConnectDialogOpen, setIsConnectDialogOpen] = useState(false)
+  const openConnectDialog = () => setIsConnectDialogOpen(true)
+  const closeConnectDialog = () => setIsConnectDialogOpen(false)
+
   const searchParams = useSearchParams()
   const marketChainIdRaw = parseInt(searchParams.get("chainId") ?? "", 10)
   const marketChainId = Number.isFinite(marketChainIdRaw)
@@ -90,13 +112,17 @@ export default function LenderMarketDetails({
     : undefined
 
   const {
-    data: market,
-    isLoading: isMarketLoading,
+    data: liveMarket,
+    indexedMarket,
     apiError,
+    apiLoading,
+    isDiscoveringChainId,
   } = useGetMarket({
     address,
     chainId: marketChainId,
   })
+  const market = liveMarket ?? indexedMarket
+  const hasLiveMarket = !!liveMarket
 
   const { isWrongNetwork, isSelectionMismatch, selectedChainId } =
     useNetworkGate({
@@ -105,7 +131,7 @@ export default function LenderMarketDetails({
     })
 
   const { data: marketAccount, isLoadingInitial: isMarketAccountLoading } =
-    useLenderMarketAccount(market)
+    useMarketAccount(market)
   const { data: withdrawals, isLoadingInitial: isWithdrawalsLoading } =
     useGetLenderWithdrawals(market)
   const analytics = useLenderMarketAnalytics(market, withdrawals)
@@ -201,13 +227,14 @@ export default function LenderMarketDetails({
 
   const isDifferentChain = isSelectionMismatch || isWrongNetwork
 
-  const authorizedInMarket =
+  const authorizedInMarket = Boolean(
     marketAccount &&
-    isConnected &&
-    !isWrongNetwork &&
-    [LenderStatus.DepositAndWithdraw, LenderStatus.WithdrawOnly].includes(
-      getEffectiveLenderRole(marketAccount),
-    )
+      isConnected &&
+      !isWrongNetwork &&
+      [LenderStatus.DepositAndWithdraw, LenderStatus.WithdrawOnly].includes(
+        getEffectiveLenderRole(marketAccount),
+      ),
+  )
 
   const {
     wrapperAddress,
@@ -225,12 +252,32 @@ export default function LenderMarketDetails({
     wrapperAddress,
   )
 
-  const isLoading =
-    isMarketLoading ||
-    isMarketAccountLoading ||
-    isWithdrawalsLoading ||
-    authorizedInMarket === undefined
-
+  const {
+    isPageLoading: isLoading,
+    isTransactionsLoading,
+    isBarChartsLoading,
+    isMarketActionsLoading,
+  } = getLenderMarketLoadingState({
+    isMarketReady: !!market,
+    hasLiveMarket,
+    apiLoading,
+    isDiscoveringChainId,
+    hasMarketAccount: !!marketAccount,
+    isWithdrawalsLoading,
+    authorizedInMarket,
+    isDifferentChain,
+  })
+  const isAuthorizationPending =
+    !!market &&
+    isConnected &&
+    !isWrongNetwork &&
+    !marketAccount &&
+    isMarketAccountLoading
+  const showLenderRequestBanner = shouldShowLenderRequestBanner({
+    isConnected,
+    isDifferentChain,
+    authorizedInMarket: isAuthorizationPending ? undefined : authorizedInMarket,
+  })
   const currentSection = useAppSelector(
     (state) => state.lenderMarketRouting.currentSection,
   )
@@ -240,14 +287,16 @@ export default function LenderMarketDetails({
   }, [isLoading])
 
   useEffect(() => {
+    if (isAuthorizationPending) return
+
     if (!authorizedInMarket) {
-      dispatch(setIsLender(!!authorizedInMarket))
+      dispatch(setIsLender(authorizedInMarket))
       dispatch(setSection(LenderMarketSections.STATUS))
     } else {
       dispatch(setIsLender(authorizedInMarket))
       dispatch(setSection(LenderMarketSections.TRANSACTIONS))
     }
-  }, [authorizedInMarket])
+  }, [authorizedInMarket, dispatch, isAuthorizationPending])
 
   const ongoingCount = (
     withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
@@ -332,6 +381,17 @@ export default function LenderMarketDetails({
 
   if (!mounted) return null
 
+  if (apiError)
+    return (
+      <Box sx={{ padding: "52px 20px 0 44px" }}>
+        <Box sx={{ width: "69%" }}>
+          <Typography variant="title2">
+            Failed to load market data. Please try again later.
+          </Typography>
+        </Box>
+      </Box>
+    )
+
   if (isLoading && isMobile)
     return (
       <Box
@@ -392,18 +452,7 @@ export default function LenderMarketDetails({
       </Box>
     )
 
-  if (apiError)
-    return (
-      <Box sx={{ padding: "52px 20px 0 44px" }}>
-        <Box sx={{ width: "69%" }}>
-          <Typography variant="title2">
-            Failed to load market data. Please try again later.
-          </Typography>
-        </Box>
-      </Box>
-    )
-
-  if (!marketAccount || !market)
+  if (!market)
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
         <Box sx={{ width: "69%" }}>
@@ -430,7 +479,7 @@ export default function LenderMarketDetails({
       />
     )
 
-  if (isMobile && isMobileDepositOpen)
+  if (isMobile && isMobileDepositOpen && marketAccount)
     return (
       <DepositModal
         isMobileOpen={isMobileDepositOpen}
@@ -440,10 +489,12 @@ export default function LenderMarketDetails({
       />
     )
 
-  if (isMobile && isMobileWithdrawalOpen)
+  if (isMobile && isMobileWithdrawalOpen && marketAccount)
     return (
       <WithdrawModal
         marketAccount={marketAccount}
+        wrapper={wrapper}
+        hasWrapper={hasWrapper}
         isMobileOpen={isMobileWithdrawalOpen}
         setIsMobileOpen={setIsMobileWithdrawalOpen}
       />
@@ -469,18 +520,23 @@ export default function LenderMarketDetails({
           setIsMobileDescriptionOpen={setIsMobileDescriptionOpen}
         />
 
-        {(authorizedInMarket || isDifferentChain) && (
-          <MobileMarketActions
-            marketAccount={marketAccount}
-            withdrawals={withdrawals}
-            isMobileWithdrawalOpen={isMobileWithdrawalOpen}
-            setIsMobileDepositOpen={setIsMobileDepositOpen}
-            setIsMobileAckOpen={setIsMobileAckOpen}
-            setIsMobileWithdrawalOpen={setIsMobileWithdrawalOpen}
-            isMLAOpen={isMobileMLAOpen}
-            setIsMLAOpen={setIsMobileMLAOpen}
-          />
-        )}
+        {marketAccount &&
+          !isWithdrawalsLoading &&
+          (authorizedInMarket || isDifferentChain) && (
+            <MobileMarketActions
+              marketAccount={marketAccount}
+              withdrawals={withdrawals}
+              wrapper={wrapper}
+              hasWrapper={hasWrapper}
+              isLiveMarketReady={!isMarketActionsLoading}
+              isMobileWithdrawalOpen={isMobileWithdrawalOpen}
+              setIsMobileDepositOpen={setIsMobileDepositOpen}
+              setIsMobileAckOpen={setIsMobileAckOpen}
+              setIsMobileWithdrawalOpen={setIsMobileWithdrawalOpen}
+              isMLAOpen={isMobileMLAOpen}
+              setIsMLAOpen={setIsMobileMLAOpen}
+            />
+          )}
 
         <Footer showFooter={false} />
       </Box>
@@ -494,18 +550,23 @@ export default function LenderMarketDetails({
           setIsMobileHistoryOpen={setIsMobileHistoryOpen}
         />
 
-        {(authorizedInMarket || isDifferentChain) && (
-          <MobileMarketActions
-            marketAccount={marketAccount}
-            withdrawals={withdrawals}
-            isMobileWithdrawalOpen={isMobileWithdrawalOpen}
-            setIsMobileDepositOpen={setIsMobileDepositOpen}
-            setIsMobileAckOpen={setIsMobileAckOpen}
-            setIsMobileWithdrawalOpen={setIsMobileWithdrawalOpen}
-            isMLAOpen={isMobileMLAOpen}
-            setIsMLAOpen={setIsMobileMLAOpen}
-          />
-        )}
+        {marketAccount &&
+          !isWithdrawalsLoading &&
+          (authorizedInMarket || isDifferentChain) && (
+            <MobileMarketActions
+              marketAccount={marketAccount}
+              withdrawals={withdrawals}
+              wrapper={wrapper}
+              hasWrapper={hasWrapper}
+              isLiveMarketReady={!isMarketActionsLoading}
+              isMobileWithdrawalOpen={isMobileWithdrawalOpen}
+              setIsMobileDepositOpen={setIsMobileDepositOpen}
+              setIsMobileAckOpen={setIsMobileAckOpen}
+              setIsMobileWithdrawalOpen={setIsMobileWithdrawalOpen}
+              isMLAOpen={isMobileMLAOpen}
+              setIsMLAOpen={setIsMobileMLAOpen}
+            />
+          )}
 
         <Footer showFooter={false} />
       </Box>
@@ -522,7 +583,7 @@ export default function LenderMarketDetails({
           isWrapperLoading={isWrapperLoading}
           isWrapperLookupLoading={isWrapperLookupLoading}
           isWrapperError={isWrapperError}
-          isAuthorizedLender={authorizedInMarket as boolean}
+          isAuthorizedLender={authorizedInMarket}
           isDifferentChain={isDifferentChain}
         />
 
@@ -541,6 +602,7 @@ export default function LenderMarketDetails({
           }}
         >
           <MarketHeader
+            market={market}
             marketAccount={marketAccount}
             mla={mla}
             hasMarketDescription={hasMarketDescription}
@@ -549,11 +611,15 @@ export default function LenderMarketDetails({
           {showBorrowerPenaltyWarning && <BorrowerPenaltyWarning />}
 
           <Box id="depositWithdraw">
-            <BarCharts
-              marketAccount={marketAccount}
-              withdrawals={withdrawals}
-              isLender={authorizedInMarket as boolean}
-            />
+            {!isBarChartsLoading && marketAccount ? (
+              <BarCharts
+                marketAccount={marketAccount}
+                withdrawals={withdrawals}
+                isLender={authorizedInMarket}
+              />
+            ) : (
+              <AccountSectionSkeleton />
+            )}
           </Box>
 
           {hasLenderInteracted && (
@@ -616,21 +682,17 @@ export default function LenderMarketDetails({
               isWrapperLoading={isWrapperLoading}
               isWrapperLookupLoading={isWrapperLookupLoading}
               isWrapperError={isWrapperError}
-              isAuthorizedLender={authorizedInMarket as boolean}
+              isAuthorizedLender={authorizedInMarket}
               isDifferentChain={isDifferentChain}
             />
           )}
 
-          {(authorizedInMarket || isDifferentChain) && (
-            <MobileMarketActions
-              marketAccount={marketAccount}
-              withdrawals={withdrawals}
-              isMobileWithdrawalOpen={isMobileWithdrawalOpen}
-              setIsMobileDepositOpen={setIsMobileDepositOpen}
-              setIsMobileAckOpen={setIsMobileAckOpen}
-              setIsMobileWithdrawalOpen={setIsMobileWithdrawalOpen}
-              isMLAOpen={isMobileMLAOpen}
-              setIsMLAOpen={setIsMobileMLAOpen}
+          {!isConnected && (
+            <MobileLenderBanner
+              title="Connect Your Wallet"
+              subtitle="Connect a wallet to deposit into this market, view your position, and manage withdrawals."
+              buttonText="Connect Wallet"
+              onButtonClick={openConnectDialog}
             />
           )}
 
@@ -645,6 +707,39 @@ export default function LenderMarketDetails({
               symbol={symbol}
             />
           </Box>
+          {showLenderRequestBanner && (
+            <MobileLenderBanner
+              title="Lend through Wildcat"
+              subtitle="Interested in lending through Wildcat? Click the link below to connect with this borrower!"
+              buttonText="Leave a Request"
+              href={`${ROUTES.lender.profile}/${market.borrower.toLowerCase()}`}
+            />
+          )}
+
+          {!isConnected && (
+            <MobileConnectWallet
+              open={isConnectDialogOpen}
+              handleClose={closeConnectDialog}
+            />
+          )}
+
+          {marketAccount &&
+            !isWithdrawalsLoading &&
+            (authorizedInMarket || isDifferentChain) && (
+              <MobileMarketActions
+                marketAccount={marketAccount}
+                withdrawals={withdrawals}
+                wrapper={wrapper}
+                hasWrapper={hasWrapper}
+                isLiveMarketReady={!isMarketActionsLoading}
+                isMobileWithdrawalOpen={isMobileWithdrawalOpen}
+                setIsMobileDepositOpen={setIsMobileDepositOpen}
+                setIsMobileAckOpen={setIsMobileAckOpen}
+                setIsMobileWithdrawalOpen={setIsMobileWithdrawalOpen}
+                isMLAOpen={isMobileMLAOpen}
+                setIsMLAOpen={setIsMobileMLAOpen}
+              />
+            )}
         </Box>
 
         <Footer showFooter={false} />
@@ -653,30 +748,74 @@ export default function LenderMarketDetails({
 
   return (
     <Box>
-      <MarketHeader marketAccount={marketAccount} />
+      <MarketHeader market={market} marketAccount={marketAccount} />
 
       {isDifferentChain && (
         <SwitchChainAlert desiredChainId={market?.chainId} />
       )}
 
       <Box sx={MarketContentColumn(theme, isDifferentChain)}>
+        {!isConnected && (
+          <Box sx={LenderBannerWrapper}>
+            <LeadBanner
+              title="Connect Your Wallet"
+              subtitle="Connect a wallet to deposit into this market, view your position, and manage withdrawals."
+              buttonText="Connect Wallet"
+              buttonOnClick={openConnectDialog}
+              compact
+            />
+          </Box>
+        )}
+
+        {showLenderRequestBanner && (
+          <Box sx={LenderBannerWrapper}>
+            <LeadBanner
+              title="Lend through Wildcat"
+              subtitle="Interested in lending through Wildcat? Click the link below to connect with this borrower!"
+              buttonText="Leave a Request"
+              buttonLink={{
+                isExternal: false,
+                url: `${
+                  ROUTES.lender.profile
+                }/${market.borrower.toLowerCase()}`,
+              }}
+            />
+          </Box>
+        )}
+
+        {!isConnected && (
+          <ConnectWalletDialog
+            open={isConnectDialogOpen}
+            handleClose={closeConnectDialog}
+          />
+        )}
+
         {showBorrowerPenaltyWarning && <BorrowerPenaltyWarning />}
 
         <Box sx={SectionContainer(theme)}>
           {currentSection === LenderMarketSections.TRANSACTIONS && (
             <Box>
-              {authorizedInMarket && !isDifferentChain && (
-                <MarketActions
-                  marketAccount={marketAccount}
-                  withdrawals={withdrawals}
-                  showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
-                />
+              {isTransactionsLoading || !marketAccount ? (
+                <AccountSectionSkeleton />
+              ) : (
+                <>
+                  {authorizedInMarket && !isDifferentChain && (
+                    <MarketActions
+                      marketAccount={marketAccount}
+                      withdrawals={withdrawals}
+                      showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
+                      wrapper={wrapper}
+                      hasWrapper={hasWrapper}
+                      isLiveMarketReady={!isMarketActionsLoading}
+                    />
+                  )}
+                  <CapacityBarChart
+                    marketAccount={marketAccount}
+                    legendType="big"
+                    isLender={authorizedInMarket}
+                  />
+                </>
               )}
-              <CapacityBarChart
-                marketAccount={marketAccount}
-                legendType="big"
-                isLender={authorizedInMarket}
-              />
               {hasLenderInteracted && (
                 <Box sx={{ marginTop: "32px" }}>
                   <LenderAnalyticsSummary
@@ -701,12 +840,18 @@ export default function LenderMarketDetails({
 
           {currentSection === LenderMarketSections.STATUS && (
             <Box marginTop="12px">
-              <BarCharts
-                marketAccount={marketAccount}
-                withdrawals={withdrawals}
-                isLender={authorizedInMarket as boolean}
-              />
-              <Divider sx={{ margin: "40px 0 44px" }} />
+              {!isBarChartsLoading && marketAccount ? (
+                <>
+                  <BarCharts
+                    marketAccount={marketAccount}
+                    withdrawals={withdrawals}
+                    isLender={authorizedInMarket}
+                  />
+                  <Divider sx={{ margin: "40px 0 44px" }} />
+                </>
+              ) : (
+                <AccountSectionSkeleton />
+              )}
               <MarketParameters
                 market={market}
                 viewerType="lender"
@@ -726,7 +871,7 @@ export default function LenderMarketDetails({
 
           {currentSection === LenderMarketSections.BORROWER_PROFILE && (
             <ProfileSection
-              profileAddress={marketAccount.market.borrower as `0x${string}`}
+              profileAddress={market.borrower as `0x${string}`}
               externalChainId={marketChainId}
             />
           )}
@@ -753,7 +898,7 @@ export default function LenderMarketDetails({
               isWrapperLoading={isWrapperLoading}
               isWrapperLookupLoading={isWrapperLookupLoading}
               isWrapperError={isWrapperError}
-              isAuthorizedLender={authorizedInMarket as boolean}
+              isAuthorizedLender={authorizedInMarket}
               isDifferentChain={isDifferentChain}
             />
           )}

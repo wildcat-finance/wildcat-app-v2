@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 import { buildTime } from './scripts/build.js'
+import { withWorkflow } from 'workflow/next'
 
 const CSP_REPORT_GROUP = 'csp-endpoint'
 const reportingEndpoints = `${CSP_REPORT_GROUP}="/api/csp-report"`
@@ -110,6 +111,9 @@ const manifestHeaders = [
 
 const nextConfig = {
   productionBrowserSourceMaps: !!process.env.SOURCE_MAPS,
+  // @vercel/queue imports this CommonJS helper at runtime. Bundling it removes
+  // require.main/process.argv context and breaks Workflow's local world.
+  serverExternalPackages: ['xdg-app-paths', '@sparticuz/chromium'],
 
   webpack(config) {
     // Fix pino-pretty and lokijs resolve
@@ -221,7 +225,21 @@ const nextConfig = {
   env: {
     BUILD_TIME: buildTime,
     // COMMIT_HASH: commitHash
-  }
-};
+  },
+}
 
-export default nextConfig;
+const workflowConfig = withWorkflow(nextConfig)
+
+export default async (phase, context) => {
+  const config = await workflowConfig(phase, context)
+  // workflow@4 uses the Next 15+ config names. This app is on Next 14, where
+  // the same external-package setting still lives under `experimental` and
+  // Turbopack does not consume the generated rule.
+  config.experimental = {
+    ...config.experimental,
+    serverComponentsExternalPackages: config.serverExternalPackages,
+  }
+  delete config.serverExternalPackages
+  delete config.turbopack
+  return config
+}

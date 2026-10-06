@@ -37,6 +37,8 @@ import {
   markCreateMarketDraftDeployed,
 } from "@/store/slices/createMarketSigningDraftsSlice/createMarketSigningDraftsSlice"
 
+import { getCreateMarketFormFingerprint } from "../validation/deployFingerprint"
+
 export type DeployNewV2MarketParams = (
   | (Omit<
       FixedTermMarketDeploymentArgs,
@@ -61,6 +63,7 @@ export type DeployNewV2MarketParams = (
   mlaTemplateId: number | undefined
   mlaSignature: string
   deployWrapper?: boolean
+  deployFingerprint: string
 }
 
 export const useDeployV2Market = () => {
@@ -100,9 +103,12 @@ export const useDeployV2Market = () => {
   // Deploy progress survives an MLA-upload failure so a retry can skip the
   // (already successful) deployment. Keyed by salt: a signature belongs to
   // the CREATE2 address its salt produces, so a discarded-and-re-signed
-  // attempt (new salt) must never reuse an earlier deployment.
+  // attempt (new salt) must never reuse an earlier deployment. The parameter
+  // fingerprint is carried alongside because re-signing on the confirmation
+  // step keeps the salt: without it, changed settings would be uploaded as an
+  // agreement for the market deployed from the previous ones.
   const [deployed, setDeployed] = useState<
-    { salt: string; market: string } | undefined
+    { salt: string; fingerprint: string; market: string } | undefined
   >()
   const dispatch = useAppDispatch()
   const store = useAppStore()
@@ -157,6 +163,7 @@ export const useDeployV2Market = () => {
       mlaTemplateId,
       mlaSignature,
       deployWrapper,
+      deployFingerprint,
       ...marketParams
     }: DeployNewV2MarketParams) => {
       if (!signer) throw Error("No signer")
@@ -179,10 +186,27 @@ export const useDeployV2Market = () => {
             getCreateMarketSigningDraftScope(draftScopeAddress, targetChainId)
           ]
         : undefined
+      const alreadyDeployedWithOtherParams = () => {
+        throw Error(
+          "A market was already deployed for this signature with different settings. Restore those settings to complete its agreement, or start a new market.",
+        )
+      }
       let reusableMarket: string | undefined
       if (deployed?.salt === marketParams.salt) {
+        if (deployed.fingerprint !== deployFingerprint) {
+          alreadyDeployedWithOtherParams()
+        }
         reusableMarket = deployed.market
-      } else if (persistedDraft?.salt === marketParams.salt) {
+      } else if (
+        persistedDraft?.salt === marketParams.salt &&
+        persistedDraft.deployedMarket
+      ) {
+        if (
+          getCreateMarketFormFingerprint(persistedDraft.formValues) !==
+          deployFingerprint
+        ) {
+          alreadyDeployedWithOtherParams()
+        }
         reusableMarket = persistedDraft.deployedMarket
       }
       let marketAddress: string | undefined
@@ -203,7 +227,11 @@ export const useDeployV2Market = () => {
           )
           if ((await lookupFactory.provider.getCode(predicted)) !== "0x") {
             marketAddress = predicted
-            setDeployed({ salt: marketParams.salt, market: predicted })
+            setDeployed({
+              salt: marketParams.salt,
+              fingerprint: deployFingerprint,
+              market: predicted,
+            })
             if (draftScopeAddress) {
               dispatch(
                 markCreateMarketDraftDeployed({
@@ -410,7 +438,11 @@ export const useDeployV2Market = () => {
           log.topics,
         ) as unknown as MarketDeployedEvent["args"]
         marketAddress = event.market
-        setDeployed({ salt: marketParams.salt, market: marketAddress })
+        setDeployed({
+          salt: marketParams.salt,
+          fingerprint: deployFingerprint,
+          market: marketAddress,
+        })
         // Persist deploy progress on the signing draft (if one exists) so a
         // reload can resume with the MLA upload instead of re-deploying into
         // an already-occupied CREATE2 address. No-ops for EOA flows, which

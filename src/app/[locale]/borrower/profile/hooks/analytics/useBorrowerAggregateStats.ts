@@ -15,7 +15,7 @@ import { fetchAllGraphqlPages } from "@/lib/paginated-query"
 
 const GET_BORROWER_PROFILE_ANALYTICS = gql`
   query getBorrowerProfileAnalytics(
-    $borrower: String!
+    $borrower: Bytes!
     $statsId: ID!
     $first: Int!
     $skip: Int!
@@ -141,7 +141,8 @@ export const useBorrowerAggregateStats = (
       if (!normalizedAddress) throw new Error("Missing borrower address")
 
       const client = getHinterlightClient(chainId)
-      if (!client) throw new Error("Hinterlight not supported on this network")
+      if (!client)
+        throw new Error("Analytics are not supported on this network")
 
       const pageState: {
         borrowerStats: BorrowerProfileAnalyticsQuery["borrowerStats"]

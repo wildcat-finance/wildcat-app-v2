@@ -10,7 +10,11 @@ import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { dayjs } from "@/utils/dayjs"
 import { formatServiceAgreementVersionLabel } from "@/utils/serviceAgreementVersions"
 
-import { InfoDivider, MobileInfoDivider } from "../OverallBlock/style"
+import {
+  InfoDivider,
+  MobileInfoDivider,
+  MobileInfoSectionContainer,
+} from "../OverallBlock/style"
 
 export type ToUStatusBlockProps = {
   address: string | undefined
@@ -31,6 +35,8 @@ export const ToUStatusBlock = ({
   const isMobile = useMobileResolution()
   const { chainId: selectedChainId } = useSelectedNetwork()
   const chainId = externalChainId ?? selectedChainId
+  const containerSx = isMobile ? MobileInfoSectionContainer : undefined
+  const titleSx = isMobile ? { marginTop: "12px" } : undefined
 
   const getTitleVariant = () => {
     if (isMobile) return "mobH3"
@@ -40,8 +46,8 @@ export const ToUStatusBlock = ({
 
   if (isLoading) {
     return (
-      <Box>
-        <Typography variant={getTitleVariant()}>
+      <Box sx={containerSx}>
+        <Typography variant={getTitleVariant()} sx={titleSx}>
           {t("borrowerProfile.profile.touStatus.title")}
         </Typography>
         <Box sx={{ marginTop: isPage ? "24px" : "16px" }}>
@@ -103,8 +109,8 @@ export const ToUStatusBlock = ({
   }
 
   return (
-    <Box>
-      <Typography variant={getTitleVariant()}>
+    <Box sx={containerSx}>
+      <Typography variant={getTitleVariant()} sx={titleSx}>
         {t("borrowerProfile.profile.touStatus.title")}
       </Typography>
 

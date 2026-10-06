@@ -30,6 +30,7 @@ import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { formatPercent, formatUsd } from "@/components/Profile/shared/analytics"
 import { TablePagination } from "@/components/TablePagination"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { buildBorrowerProfileHref, buildMarketHref } from "@/utils/formatters"
@@ -66,6 +67,7 @@ export const ProfileHealthTable = ({
   lenderAddress,
   lenderData,
 }: ProfileHealthTableProps) => {
+  const { chainId } = useSelectedNetwork()
   const { data: borrowers } = useBorrowerNames()
   const { data: interestBreakdown } = useLenderInterestBreakdown({
     lenderAddress,
@@ -295,10 +297,11 @@ export const ProfileHealthTable = ({
       headerAlign: "right",
       renderCell: (params) => {
         const adsComponent = getAdsTooltipComponent(
+          chainId,
           params.row.id,
           formatPercent(params.value),
         )
-        const adsCellProps = getAdsCellProps(params.row.id)
+        const adsCellProps = getAdsCellProps(chainId, params.row.id)
 
         return (
           <Box

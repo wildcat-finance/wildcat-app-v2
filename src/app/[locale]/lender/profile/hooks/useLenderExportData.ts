@@ -255,7 +255,7 @@ export const useLenderExportData = ({
       if (!lenderAddress) throw new Error("Missing lender address")
       const client = getHinterlightClient(chainId)
       if (!client) {
-        throw new Error("Hinterlight not supported on this network")
+        throw new Error("Analytics are not supported on this network")
       }
       return fetchLenderExportData(client, {
         lenderAddress,
