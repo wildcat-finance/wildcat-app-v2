@@ -1,6 +1,6 @@
 {
   "name": "wildcat-app-v2",
-  "version": "2.17.0",
+  "version": "2.21.0",
   "private": true,
   "packageManager": "npm@11.12.0",
   "engines": {
@@ -15,6 +15,7 @@
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
     "test": "jest",
     "check:exact-versions": "node scripts/check-exact-versions.mjs",
+    "record:export-fixture": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"CommonJS\",\"moduleResolution\":\"node\"}' ts-node --transpile-only scripts/record-export-fixtures.ts",
     "prepare": "husky"
   },
   "dependencies": {
@@ -40,11 +41,12 @@
     "@types/humanize-duration": "3.27.4",
     "@types/react-scroll": "1.8.10",
     "@types/redux-mock-store": "1.0.6",
-    "@wildcatfi/wildcat-sdk": "3.1.4-beta",
+    "@wildcatfi/wildcat-sdk": "3.1.17",
     "base64-arraybuffer": "1.0.2",
     "classnames": "2.5.1",
     "dayjs": "1.11.10",
     "ethers": "5.7.2",
+    "exceljs": "4.4.0",
     "humanize-duration": "3.32.1",
     "i18next": "23.10.1",
     "i18next-resources-to-backend": "1.2.0",
@@ -53,6 +55,7 @@
     "jszip": "3.10.1",
     "next": "16.2.10",
     "next-i18n-router": "5.5.8",
+    "pdf-lib": "1.17.1",
     "puppeteer": "23.10.3",
     "react": "19.2.7",
     "react-dom": "19.2.7",
@@ -71,7 +74,8 @@
     "remark-gfm": "4.0.1",
     "remark-rehype": "11.1.2",
     "viem": "2.9.3",
-    "wagmi": "2.12.8",
+    "wagmi": "2.12.24",
+    "workflow": "4.7.0",
     "zod": "3.23.8",
     "zustand": "4.5.7"
   },

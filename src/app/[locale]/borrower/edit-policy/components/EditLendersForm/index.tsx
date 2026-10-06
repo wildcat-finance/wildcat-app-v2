@@ -29,9 +29,13 @@ import { EditLendersTable } from "./EditLendersTable"
 
 export type EditLendersFormProps = {
   isLoading: boolean
+  canEditLenders: boolean
 }
 
-export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
+export const EditLendersForm = ({
+  isLoading,
+  canEditLenders,
+}: EditLendersFormProps) => {
   const { t } = useTranslation()
   // Constants
   const dispatch = useAppDispatch()
@@ -192,28 +196,36 @@ export const EditLendersForm = ({ isLoading }: EditLendersFormProps) => {
           }}
         />
 
-        <Box sx={{ display: "flex", gap: "6px" }}>
-          <AddModal />
+        {canEditLenders ? (
+          <Box sx={{ display: "flex", gap: "6px" }}>
+            <AddModal />
 
-          <Button
-            onClick={handleClickConfirm}
-            disabled={!isLendersHaveChanges}
-            variant="contained"
-            size="small"
-            sx={{
-              height: "32px",
-              width: "69px",
-              fontSize: pxToRem(13),
-              lineHeight: lh(16, 13),
-              fontWeight: 600,
-            }}
-          >
-            {t("editPolicy.forms.edit.submit")}
-          </Button>
-        </Box>
+            <Button
+              onClick={handleClickConfirm}
+              disabled={!isLendersHaveChanges}
+              variant="contained"
+              size="small"
+              sx={{
+                height: "32px",
+                width: "69px",
+                fontSize: pxToRem(13),
+                lineHeight: lh(16, 13),
+                fontWeight: 600,
+              }}
+            >
+              {t("editPolicy.forms.edit.submit")}
+            </Button>
+          </Box>
+        ) : (
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Typography variant="text3" color={COLORS.santasGrey}>
+              {t("policy.lenders.selfOnboardNotice")}
+            </Typography>
+          </Box>
+        )}
       </Box>
 
-      {!noLenders && <EditLendersTable />}
+      {!noLenders && <EditLendersTable canEditLenders={canEditLenders} />}
 
       {noLenders && (
         <Box sx={{ height: "100%", display: "flex" }}>

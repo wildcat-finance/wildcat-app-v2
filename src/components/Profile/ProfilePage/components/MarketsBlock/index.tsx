@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next"
 
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
+import { LenderMobileMarketItem } from "@/components/Mobile/MobileMarketCard"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
@@ -36,7 +37,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     ? ROUTES.borrower.market
     : ROUTES.lender.market
 
-  const rows: GridRowsProp = (markets ?? [])
+  const rows: GridRowsProp<LenderMobileMarketItem> = (markets ?? [])
     .filter((market) => !market.isClosed)
     .map((market) => {
       const {
@@ -62,6 +63,8 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
         apr: annualInterestBips,
         term: getMarketTypeChip(market),
         debt: totalDebts,
+        deposited: totalSupply,
+        capacity: maxTotalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
         withdrawalBatchDuration,
       }
@@ -227,8 +230,6 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
   ]
 
   if (isMobile) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
     return <MobileMarketList markets={rows} isLoading={isLoading} />
   }
 

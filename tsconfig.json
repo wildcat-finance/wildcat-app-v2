@@ -1,10 +1,7 @@
 {
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "target": "ES2020",
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -25,8 +22,7 @@
       "@/*": [
         "./src/*"
       ]
-    },
-    "target": "ES2017"
+    }
   },
   "include": [
     "svgr.d.ts",

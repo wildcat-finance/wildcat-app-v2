@@ -1,5 +1,4 @@
 import { configureStore } from "@reduxjs/toolkit"
-import { persistStore } from "redux-persist"
 
 import borrowerDashboardAmountsSlice from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
 import borrowerDashboardSlice from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
@@ -14,6 +13,7 @@ import wrapDebtTokenFlowSlice from "@/store/slices/wrapDebtTokenFlowSlice/wrapDe
 import apiTokensSlice from "./slices/apiTokensSlice/apiTokensSlice"
 import borrowerLendersTabSidebarSlice from "./slices/borrowerLendersTabSidebarSlice/borrowerLendersTabSidebarSlice"
 import borrowerOverviewSlice from "./slices/borrowerOverviewSlice/borrowerOverviewSlice"
+import createMarketSigningDraftsSlice from "./slices/createMarketSigningDraftsSlice/createMarketSigningDraftsSlice"
 import editLendersListSlice from "./slices/editLendersListSlice/editLendersListSlice"
 import editPolicySlice from "./slices/editPolicySlice/editPolicySlice"
 import highlightSidebarSlice from "./slices/highlightSidebarSlice/highlightSidebarSlice"
@@ -23,8 +23,10 @@ import marketFiltersSlice from "./slices/marketFiltersSlice/marketFiltersSlice"
 import marketsOverviewSidebarSlice from "./slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
 import notificationsSidebarSlice from "./slices/notificationsSidebarSlice/notificationsSidebarSlice"
 import notificationsSlice from "./slices/notificationsSlice/notificationsSlice"
+import pendingSafeMessagesSlice from "./slices/pendingSafeMessagesSlice/pendingSafeMessagesSlice"
 import routingSlice from "./slices/routingSlice/routingSlice"
 import selectedNetworkSlice from "./slices/selectedNetworkSlice/selectedNetworkSlice"
+import touModalSlice from "./slices/touModalSlice/touModalSlice"
 
 export const makeStore = () => {
   const store = configureStore({
@@ -52,6 +54,9 @@ export const makeStore = () => {
       cookieBanner: cookieBannerSlice,
       selectedNetwork: selectedNetworkSlice,
       marketFilters: marketFiltersSlice,
+      touModal: touModalSlice,
+      pendingSafeMessages: pendingSafeMessagesSlice,
+      createMarketSigningDrafts: createMarketSigningDraftsSlice,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
@@ -60,8 +65,6 @@ export const makeStore = () => {
         },
       }),
   })
-
-  persistStore(store)
 
   return store
 }

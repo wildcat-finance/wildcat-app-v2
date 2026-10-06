@@ -10,9 +10,13 @@ export const useInviteBorrower = (address?: string) => {
   const client = useQueryClient()
   const { chainId } = useSelectedNetwork()
   const { mutate: removeBadToken } = useRemoveBadApiToken()
+  const isAdminForChain = token?.isAdmin && token.chainId === chainId
   return useMutation({
-    mutationKey: ["inviteBorrower", address],
+    mutationKey: ["inviteBorrower", chainId, address],
     mutationFn: async (data: BorrowerInvitationInput) => {
+      if (!token || !isAdminForChain || data.chainId !== chainId) {
+        throw Error("Not authorized to invite borrower on this chain")
+      }
       const response = await fetch("/api/invite", {
         method: "POST",
         body: JSON.stringify(data),

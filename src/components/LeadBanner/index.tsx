@@ -1,38 +1,87 @@
-"use client"
-
 import { Box, Button, Typography } from "@mui/material"
 import Link from "next/link"
 
+import Image from "@/assets/pictures/bannerBG.webp"
 import { COLORS } from "@/theme/colors"
 
-import { BannerProps } from "./interface"
-import { MarketListAlertContainer, RequestButton, TextContainer } from "./style"
+type Link = {
+  isExternal: boolean
+  url: string
+}
+
+export type LeadBannerProps = {
+  title?: string
+  subtitle?: string
+  buttonText?: string
+  buttonLink?: Link
+  buttonOnClick?: () => void
+  compact?: boolean
+}
 
 export const LeadBanner = ({
   title,
-  text,
+  subtitle,
   buttonText,
   buttonLink,
-  onClick,
-}: BannerProps) => (
-  <Box sx={MarketListAlertContainer}>
-    <Box sx={TextContainer}>
-      <Typography variant="title2" sx={{ color: COLORS.white }}>
+  buttonOnClick,
+  compact = false,
+}: LeadBannerProps) => (
+  <Box
+    sx={{
+      width: "100%",
+      height: "min-content",
+
+      display: "flex",
+      flexDirection: compact ? "row" : "column",
+      alignItems: compact ? "center" : undefined,
+      justifyContent: compact ? "space-between" : undefined,
+      gap: "24px",
+
+      padding: compact ? "20px 24px" : "28px 40px 32px 32px",
+      borderRadius: "16px",
+      color: "white",
+
+      backgroundImage: `url(${Image.src})`,
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
+      backgroundSize: "cover",
+    }}
+  >
+    <Box
+      sx={{
+        width: compact ? "auto" : "400px",
+        flex: compact ? 1 : undefined,
+        minWidth: 0,
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+      }}
+    >
+      <Typography variant="title2" color={COLORS.white}>
         {title}
       </Typography>
-      <Typography variant="text2" sx={{ color: COLORS.white04 }}>
-        {text}
+      <Typography variant="text2" color={COLORS.white} sx={{ opacity: 0.8 }}>
+        {subtitle}
       </Typography>
     </Box>
-    {buttonLink && (
-      <Link
-        href={buttonLink.url || ""}
-        target={buttonLink.isExternal ? "_blank" : "_self"}
+
+    {Boolean(buttonText && (buttonLink || buttonOnClick)) && (
+      <Button
+        {...(buttonLink
+          ? {
+              component: Link,
+              href: buttonLink.url,
+              target: buttonLink.isExternal ? "_blank" : "_self",
+            }
+          : {})}
+        onClick={buttonOnClick}
+        variant="contained"
+        color="secondary"
+        size="medium"
+        sx={{ width: "fit-content", flexShrink: 0 }}
       >
-        <Button size="large" sx={RequestButton} onClick={onClick}>
-          {buttonText}
-        </Button>
-      </Link>
+        {buttonText}
+      </Button>
     )}
   </Box>
 )

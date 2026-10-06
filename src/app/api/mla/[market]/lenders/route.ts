@@ -21,6 +21,9 @@ export async function GET(
   if (!token) {
     return new NextResponse(null, { status: 401 })
   }
+  if (token.chainId !== chainId) {
+    return new NextResponse(null, { status: 403 })
+  }
   const market = params.market.toLowerCase()
   const mla = await getSignedMasterLoanAgreement(market, chainId)
   if (!mla) {

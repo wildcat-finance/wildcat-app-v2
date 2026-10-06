@@ -1,0 +1,45 @@
+name: horos
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: ['**']
+  push:
+    branches: ['**']
+    tags-ignore: ['**']
+
+permissions:
+  contents: read
+
+env:
+  HOROS_REPO: wildcat-finance/skills
+  HOROS_REF: 12cbe2e6ed95decd6d9d355740f2dbd052956abe
+  HOROS_SCRIPT: .horos-classifier/plugins/horos/skills/horos/scripts/horos.py
+
+jobs:
+  boundary:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+
+      - name: Checkout the pinned Horos classifier
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.HOROS_REPO }}
+          ref: ${{ env.HOROS_REF }}
+          path: .horos-classifier
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Print tool versions
+        run: |
+          python3 --version
+          git -C .horos-classifier rev-parse HEAD
+
+      - name: Check the committed reading boundary
+        run: python3 "$HOROS_SCRIPT" check .

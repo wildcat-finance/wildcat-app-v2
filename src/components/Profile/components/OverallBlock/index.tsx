@@ -27,6 +27,7 @@ const makeInformationItem = (
     tooltipText?: string
     link?: string
     copy?: string
+    verified?: boolean
   },
 ): ProfileItem => ({
   title,
@@ -34,6 +35,7 @@ const makeInformationItem = (
   tooltipText: opts?.tooltipText,
   link: opts?.link,
   copy: opts?.copy,
+  verified: opts?.verified,
 })
 
 export const OverallBlock = ({
@@ -69,10 +71,12 @@ export const OverallBlock = ({
   const normalizedMarkets =
     marketsAmount !== undefined ? String(marketsAmount) : "0"
 
-  const normalizedDefaults = defaults !== undefined ? String(defaults) : "0"
+  const normalizedDefaults = defaults !== undefined ? String(defaults) : "—"
 
   const profileInfo: ProfileItem[] = [
-    makeInformationItem(t("borrowerProfile.profile.overallInfo.name"), name),
+    makeInformationItem(t("borrowerProfile.profile.overallInfo.name"), name, {
+      verified: true,
+    }),
     makeInformationItem(t("borrowerProfile.profile.overallInfo.alias"), alias),
     makeInformationItem(
       t("borrowerProfile.profile.overallInfo.address"),
@@ -80,19 +84,23 @@ export const OverallBlock = ({
       {
         link: address ? getAddressUrl(address) : undefined,
         copy: address,
+        verified: true,
       },
     ),
     makeInformationItem(
       t("borrowerProfile.profile.overallInfo.headquarters"),
       jurisdictionText,
+      { verified: true },
     ),
     makeInformationItem(
       t("borrowerProfile.profile.overallInfo.entityKind"),
       entityKindText,
+      { verified: true },
     ),
     makeInformationItem(
       t("borrowerProfile.profile.overallInfo.founded"),
       founded,
+      { verified: true },
     ),
     makeInformationItem(
       t("borrowerProfile.profile.overallInfo.markets"),
@@ -138,6 +146,7 @@ export const OverallBlock = ({
                 tooltipText={item.tooltipText}
                 link={item.link}
                 copy={item.copy}
+                verified={item.verified}
               />
 
               {index < existingData.length - 1 && (
@@ -165,6 +174,7 @@ export const OverallBlock = ({
                 tooltipText={item.tooltipText}
                 link={item.link}
                 copy={item.copy}
+                verified={item.verified}
               />
               <Divider sx={InfoDivider} />
             </Box>
@@ -180,6 +190,7 @@ export const OverallBlock = ({
                 tooltipText={item.tooltipText}
                 link={item.link}
                 copy={item.copy}
+                verified={item.verified}
               />
               <Divider sx={InfoDivider} />
             </Box>

@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 import { buildTime } from './scripts/build.js'
+import { withWorkflow } from 'workflow/next'
 
 const CSP_REPORT_GROUP = 'csp-endpoint'
 const reportingEndpoints = `${CSP_REPORT_GROUP}="/api/csp-report"`
@@ -110,6 +111,9 @@ const manifestHeaders = [
 
 const nextConfig = {
   productionBrowserSourceMaps: !!process.env.SOURCE_MAPS,
+  // @vercel/queue imports this CommonJS helper at runtime. Bundling it removes
+  // require.main/process.argv context and breaks Workflow's local world.
+  serverExternalPackages: ['xdg-app-paths', '@sparticuz/chromium'],
 
   webpack(config) {
     // Fix pino-pretty and lokijs resolve
@@ -147,6 +151,11 @@ const nextConfig = {
       {
         source: '/',
         destination: '/lender',
+        permanent: true,
+      },
+      {
+        source: '/pdf/Wildcat_Terms_of_Use.pdf',
+        destination: '/api/service-agreement/current/download',
         permanent: true,
       },
     ]
@@ -216,7 +225,7 @@ const nextConfig = {
   env: {
     BUILD_TIME: buildTime,
     // COMMIT_HASH: commitHash
-  }
-};
+  },
+}
 
-export default nextConfig;
+export default withWorkflow(nextConfig)

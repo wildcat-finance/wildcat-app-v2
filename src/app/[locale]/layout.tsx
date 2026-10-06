@@ -21,10 +21,11 @@ import initTranslations from "@/app/i18n"
 import Header from "@/components/Header"
 import { HelpModal } from "@/components/HelpModal"
 import HotjarConsent from "@/components/HotjarConsent"
-import PollingRegistration from "@/components/PollingRegistration"
+import { SafeMessageCoordinator } from "@/components/SafeMessageCoordinator"
 import { Sidebar } from "@/components/Sidebar"
 import StoreProvider from "@/components/StoreProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
+import { ToUReacceptanceModal } from "@/components/ToUReacceptanceModal"
 import TranslationsProvider from "@/components/TranslationsProvider"
 import { config } from "@/lib/config"
 import { RedirectsProvider } from "@/providers/RedirectsProvider"
@@ -85,7 +86,6 @@ export default async function RootLayout(props: {
                     locale={locale}
                     resources={resources}
                   >
-                    {/* <PollingRegistration /> */}
                     <ThemeRegistry>
                       <Box sx={BackgroundContainer} />
                       <Box sx={RootScaffold}>
@@ -101,6 +101,8 @@ export default async function RootLayout(props: {
                         </Box>
                       </Box>
                       <HelpModal />
+                      <SafeMessageCoordinator />
+                      <ToUReacceptanceModal />
                     </ThemeRegistry>
                   </TranslationsProvider>
                 </SubgraphProvider>

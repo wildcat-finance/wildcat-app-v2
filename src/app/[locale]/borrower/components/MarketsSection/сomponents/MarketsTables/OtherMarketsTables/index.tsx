@@ -1,14 +1,9 @@
 import { useEffect, useRef } from "react"
 import * as React from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
-import {
-  DepositStatus,
-  MarketAccount,
-  MarketVersion,
-  TokenAmount,
-} from "@wildcatfi/wildcat-sdk"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -44,12 +39,17 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import {
+  getKnownMarketOnboardingMode,
+  MarketOnboardingByAddress,
+  MarketOnboardingMode,
+} from "@/utils/marketOnboarding"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 export type OtherMarketsTableModel = {
   id: string
-  chainId?: number
+  chainId: number
   status: ReturnType<typeof getMarketStatusChip>
   term: ReturnType<typeof getMarketTypeChip>
   name: string
@@ -59,15 +59,18 @@ export type OtherMarketsTableModel = {
   debt: TokenAmount | undefined
   capacityLeft: TokenAmount
   withdrawalBatchDuration: number
-  isSelfOnboard: boolean
+  onboardingMode: MarketOnboardingMode | undefined
   borrowable: TokenAmount
 }
 
 export const OtherMarketsTables = ({
   marketAccounts,
+  onboardingByMarket,
   isLoading,
   filters,
-}: MarketsTablesProps) => {
+}: MarketsTablesProps & {
+  onboardingByMarket: MarketOnboardingByAddress
+}) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
@@ -137,10 +140,11 @@ export const OtherMarketsTables = ({
         borrowable: borrowableAssets,
         debt: totalSupply,
         withdrawalBatchDuration,
-        isSelfOnboard:
-          !account.hasEverInteracted &&
-          market.version === MarketVersion.V2 &&
-          account.depositAvailability === DepositStatus.Ready,
+        onboardingMode: getKnownMarketOnboardingMode(
+          market.version,
+          market.address,
+          onboardingByMarket,
+        ),
       }
     },
   )
@@ -155,8 +159,12 @@ export const OtherMarketsTables = ({
     return !account?.market.isClosed
   })
 
-  const selfOnboard = activeRows.filter((market) => market.isSelfOnboard)
-  const manual = activeRows.filter((market) => !market.isSelfOnboard)
+  const selfOnboard = activeRows.filter(
+    (market) => market.onboardingMode === MarketOnboardingMode.SelfOnboard,
+  )
+  const manual = activeRows.filter(
+    (market) => market.onboardingMode === MarketOnboardingMode.BorrowerApproval,
+  )
 
   const columns: TypeSafeColDef<OtherMarketsTableModel>[] = [
     {
@@ -267,10 +275,11 @@ export const OtherMarketsTables = ({
       align: "right",
       renderCell: (params) => {
         const adsComponent = getAdsTooltipComponent(
+          params.row.chainId,
           params.row.id,
           formatBps(params.value),
         )
-        const adsCellProps = getAdsCellProps(params.row.id)
+        const adsCellProps = getAdsCellProps(params.row.chainId, params.row.id)
 
         return (
           <Link

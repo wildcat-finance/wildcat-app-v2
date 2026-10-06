@@ -14,6 +14,11 @@ import {
 import { unstable_cache } from "next/cache"
 import { NextRequest, NextResponse } from "next/server"
 
+import {
+  MARKET_CACHE_PAYLOAD_VERSION,
+  recoverIncompatibleMarketPayload,
+} from "./cache"
+
 export const runtime = "nodejs"
 
 type SupportedChainId = keyof typeof SubgraphUrls
@@ -85,17 +90,21 @@ async function findMarketAcrossChains(addressLower: string) {
   )
 }
 
+const fetchMarket = (addressLower: string, chainIdParam?: SupportedChainId) => {
+  if (chainIdParam) {
+    return fetchMarketFromChain(addressLower, chainIdParam).then((market) =>
+      market ? { chainId: chainIdParam, market } : null,
+    )
+  }
+  return findMarketAcrossChains(addressLower)
+}
+
 const getCached = (addressLower: string, chainIdParam?: SupportedChainId) =>
   unstable_cache(
-    async () => {
-      if (chainIdParam) {
-        const market = await fetchMarketFromChain(addressLower, chainIdParam)
-        return market ? { chainId: chainIdParam, market } : null
-      }
-      return findMarketAcrossChains(addressLower)
-    },
+    () => fetchMarket(addressLower, chainIdParam),
     [
       "marketGet",
+      MARKET_CACHE_PAYLOAD_VERSION,
       addressLower,
       chainIdParam ? String(chainIdParam) : "discover",
     ],
@@ -117,7 +126,10 @@ export async function GET(req: NextRequest) {
     if (isSupportedChainId(n)) chainIdParam = n
   }
 
-  const found = await getCached(address, chainIdParam)
+  const cached = await getCached(address, chainIdParam)
+  const found = await recoverIncompatibleMarketPayload(cached, () =>
+    fetchMarket(address, chainIdParam),
+  )
 
   const res = NextResponse.json(
     found

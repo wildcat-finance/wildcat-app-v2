@@ -6,12 +6,22 @@ import {
   Web3TransactionReceiptObject,
 } from "@safe-global/safe-apps-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import {
+  MarketAccount,
+  minTokenAmount,
+  TokenAmount,
+} from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { isUSDTLikeToken } from "@/utils/constants"
+
+export type DepositRequest = {
+  amount: TokenAmount
+  // A maximum is an upper bound captured when the user submits.
+  mode: "exact" | "maximum"
+}
 
 export const useDeposit = (
   marketAccount: MarketAccount,
@@ -19,7 +29,7 @@ export const useDeposit = (
 ) => {
   const signer = useEthersSigner()
   const client = useQueryClient()
-  const { connected: safeConnected, sdk } = useSafeAppsSDK()
+  const { connected: safeConnected, sdk, safe } = useSafeAppsSDK()
   const { targetChainId } = useCurrentNetwork()
 
   const waitForTransaction = async (safeTxHash: string) => {
@@ -35,16 +45,55 @@ export const useDeposit = (
   }
 
   return useMutation({
-    mutationFn: async (tokenAmount: TokenAmount) => {
+    mutationFn: async ({ amount, mode }: DepositRequest) => {
       if (!marketAccount || !signer) throw Error()
-      if (marketAccount.market.chainId !== targetChainId) {
+      const signingChainId = safeConnected ? safe.chainId : signer.chainId
+      const signingAddress = safeConnected
+        ? safe.safeAddress
+        : await signer.getAddress()
+      if (
+        marketAccount.market.chainId !== targetChainId ||
+        marketAccount.market.chainId !== signingChainId
+      ) {
         throw Error(
-          `Market chainId does not match target chainId:` +
+          `Market chainId does not match active chainId:` +
             ` Market ${marketAccount.market.chainId},` +
-            ` Target ${targetChainId}`,
+            ` Target ${targetChainId}, Signing ${signingChainId}`,
         )
       }
+      if (
+        !signingAddress ||
+        signingAddress.toLowerCase() !== marketAccount.account.toLowerCase()
+      ) {
+        throw Error("Signing account does not match market account")
+      }
 
+      const { market } = marketAccount
+      if (
+        amount.token.chainId !== market.chainId ||
+        amount.token.address.toLowerCase() !==
+          market.underlyingToken.address.toLowerCase()
+      ) {
+        throw Error("Deposit asset does not match market")
+      }
+      // Keep the SDK's transaction-signer check when calling depositUpTo directly.
+      const marketSignerAddress = await market.signer.getAddress()
+      if (
+        marketSignerAddress.toLowerCase() !==
+        marketAccount.account.toLowerCase()
+      ) {
+        throw Error("Market signer does not match market account")
+      }
+
+      const tokenAmount =
+        mode === "maximum"
+          ? minTokenAmount(amount, marketAccount.maximumDeposit)
+          : amount
+      if (tokenAmount.lte(0)) throw Error("No amount available to deposit")
+      const minimumDeposit = market.hooksConfig?.minimumDeposit
+      if (minimumDeposit && tokenAmount.lt(minimumDeposit)) {
+        throw Error("Deposit amount is below the market minimum")
+      }
       const step = marketAccount.previewDeposit(tokenAmount)
 
       const gnosisTransactions: BaseTransaction[] = []
@@ -95,10 +144,14 @@ export const useDeposit = (
         if (gnosisTransactions.length) {
           gnosisTransactions.push({
             to: marketAccount.market.address,
-            data: marketAccount.market.contract.interface.encodeFunctionData(
-              "deposit",
-              [tokenAmount.raw],
-            ),
+            data:
+              mode === "maximum"
+                ? market.contract.interface.encodeFunctionData("depositUpTo", [
+                    tokenAmount.raw,
+                  ])
+                : market.contract.interface.encodeFunctionData("deposit", [
+                    tokenAmount.raw,
+                  ]),
             value: "0",
           })
           console.log(`Sending gnosis transactions...`)
@@ -114,7 +167,12 @@ export const useDeposit = (
           return receipt
         }
 
-        const tx = await marketAccount.deposit(tokenAmount)
+        // Capacity can shrink again before execution as interest accrues.
+        // depositUpTo caps on-chain while preserving the submitted upper bound.
+        const tx =
+          mode === "maximum"
+            ? await market.contract.depositUpTo(tokenAmount.raw)
+            : await marketAccount.deposit(tokenAmount)
 
         if (!safeConnected) setTxHash(tx.hash)
 
@@ -135,7 +193,7 @@ export const useDeposit = (
         ),
       })
       client.invalidateQueries({
-        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT(
+        queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
           marketAccount.market.chainId,
           marketAccount.market.address,
         ),

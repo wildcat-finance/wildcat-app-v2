@@ -3,10 +3,8 @@ import React, { useState } from "react"
 import { Box, Button, Skeleton, Typography } from "@mui/material"
 import { usePathname } from "next/navigation"
 
-import { getAdsMobileContent } from "@/components/AdsBanners/adsHelpers"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-import { formatBps } from "@/utils/formatters"
 import { getPaginationRange } from "@/utils/pagination"
 
 import { LenderMobileMarketItem, MobileMarketCard } from "../MobileMarketCard"
@@ -15,10 +13,10 @@ const ITEMS_PER_PAGE = 20
 
 export const MobileMarketList = ({
   markets,
-  isLoading,
+  isLoading = false,
 }: {
-  markets: LenderMobileMarketItem[]
-  isLoading: boolean
+  markets: readonly LenderMobileMarketItem[]
+  isLoading?: boolean
 }) => {
   const [page, setPage] = useState(0)
   const pathname = usePathname()
@@ -27,6 +25,9 @@ export const MobileMarketList = ({
   const isLenderProfilePage = pathname.includes(ROUTES.lender.profile)
 
   const showBorrowerInCard = !isBorrowerProfilePage && !isLenderProfilePage
+  const baseRoute = isBorrowerProfilePage
+    ? ROUTES.borrower.market
+    : ROUTES.lender.market
 
   const totalPages = Math.ceil(markets.length / ITEMS_PER_PAGE)
   const startIndex = page * ITEMS_PER_PAGE
@@ -72,7 +73,6 @@ export const MobileMarketList = ({
       <Box
         sx={{
           height: "100%",
-          overflowY: "auto",
           display: "flex",
           flexDirection: "column",
           gap: "4px",
@@ -81,12 +81,10 @@ export const MobileMarketList = ({
         {!isLoading &&
           currentItems.map((marketItem) => (
             <MobileMarketCard
-              adsComponent={getAdsMobileContent(marketItem.id)}
               key={marketItem.id}
               marketItem={marketItem}
-              buttonText="Deposit"
-              buttonIcon
               showBorrower={showBorrowerInCard}
+              baseRoute={baseRoute}
             />
           ))}
         {isLoading && (
@@ -94,7 +92,7 @@ export const MobileMarketList = ({
             <Skeleton
               sx={{
                 width: "100%",
-                height: "155px",
+                height: "182px",
                 backgroundColor: COLORS.white06,
                 borderRadius: "14px",
               }}
@@ -102,7 +100,7 @@ export const MobileMarketList = ({
             <Skeleton
               sx={{
                 width: "100%",
-                height: "155px",
+                height: "182px",
                 backgroundColor: COLORS.white06,
                 borderRadius: "14px",
               }}
@@ -110,7 +108,7 @@ export const MobileMarketList = ({
             <Skeleton
               sx={{
                 width: "100%",
-                height: "155px",
+                height: "182px",
                 backgroundColor: COLORS.white06,
                 borderRadius: "14px",
               }}

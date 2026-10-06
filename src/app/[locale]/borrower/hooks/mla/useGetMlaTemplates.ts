@@ -11,7 +11,7 @@ export const useGetMlaTemplates = () => {
   return useQuery({
     queryKey: QueryKeys.Borrower.GET_MLA_TEMPLATES(chainId),
     queryFn: async () => {
-      const response = await fetch("/api/mla/templates")
+      const response = await fetch(`/api/mla/templates?chainId=${chainId}`)
       return response.json() as Promise<MlaTemplateMetadata[]>
     },
     enabled: !!chainId,
