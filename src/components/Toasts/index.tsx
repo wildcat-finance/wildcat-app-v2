@@ -3,13 +3,19 @@ import toast from "react-hot-toast"
 
 import Check from "@/assets/icons/check_icon.svg"
 import { Icon } from "@/components/Toasts/style"
-import { COLORS } from "@/theme/colors"
+import { COLORS, TOKENS } from "@/theme/colors"
 
+/* Toasts float over the entire app and need to read on any background.
+ * We use the inverse surface token so they appear as a high-contrast
+ * pill in both light (dark pill on light bg) and dark (light pill — via
+ * the inverse token's dark-mode value — on dark bg) modes. */
 const defaultStyle = {
   borderRadius: "24px",
-  background: COLORS.blackRock,
-  color: COLORS.white,
+  background: TOKENS.surfaceInverse,
+  color: TOKENS.textOnInverse,
   fontFamily: "Roboto, sans-serif",
+  border: "1px solid rgba(255, 255, 255, 0.06)",
+  boxShadow: TOKENS.shadowPopover,
 }
 
 export type ToastRequestConfig = {
@@ -74,3 +80,6 @@ export const toastSuccess = (message: string, style: object = {}) =>
       ...style,
     },
   })
+
+// Re-exports kept for backward compatibility
+export { COLORS }

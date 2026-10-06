@@ -1,3 +1,5 @@
+import { TOKENS } from "@/theme/colors"
+
 export const baseContainerStyle = {
   display: "flex",
   justifyContent: "space-between",
@@ -30,7 +32,7 @@ export const DotStyle = {
   minWidth: "4px",
   height: "4px",
   borderRadius: "50%",
-  backgroundColor: "#3D68FF",
+  backgroundColor: TOKENS.brandPrimary,
 }
 
 export const ErrorStyle = {
@@ -38,5 +40,5 @@ export const ErrorStyle = {
   minWidth: "12px",
   height: "12px",
   borderRadius: "50%",
-  backgroundColor: "#F1464B",
+  backgroundColor: TOKENS.statusErrorFg,
 }

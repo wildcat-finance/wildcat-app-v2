@@ -107,7 +107,7 @@ export const MarketSelect = () => {
       onChange={handleChangeMarket}
       displayEmpty
       renderValue={() => (
-        <Typography variant="text3" color={COLORS.white}>
+        <Typography variant="text3" color={COLORS.staticWhite}>
           {marketFilter?.name || "All Markets"}
         </Typography>
       )}
@@ -164,7 +164,7 @@ export const MarketSelect = () => {
           value={market.name}
           sx={MarketSelectMenuItemStyles}
         >
-          <Typography variant="text3" color={COLORS.white}>
+          <Typography variant="text3" color={COLORS.staticWhite}>
             {market.name}
           </Typography>
         </MenuItem>

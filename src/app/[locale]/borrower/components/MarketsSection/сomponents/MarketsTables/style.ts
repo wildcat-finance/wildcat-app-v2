@@ -1,4 +1,4 @@
-import { COLORS } from "@/theme/colors"
+import { TOKENS } from "@/theme/colors"
 
 export const DataGridSx = {
   overflow: "visible",
@@ -28,11 +28,16 @@ export const DataGridSx = {
   "& .MuiDataGrid-scrollbarFiller": {
     display: "none",
   },
+  // The column headers row is sticky-positioned, so it must stay opaque to
+  // prevent rows from bleeding through when scrolling. We pin it to the same
+  // surface-soft bg the accordion uses, so the whole "card" — summary row +
+  // header row + body — reads as one continuous surface with no inset patch
+  // before the sidebar.
   "& .MuiDataGrid-columnHeaders": {
     position: "sticky",
     top: 0,
     zIndex: 2,
-    backgroundColor: COLORS.white,
+    backgroundColor: TOKENS.surfaceCard,
   },
   "& .MuiDataGrid-columnHeader": {
     padding: 0,

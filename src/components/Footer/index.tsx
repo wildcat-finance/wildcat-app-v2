@@ -11,7 +11,7 @@ import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { useAppDispatch } from "@/store/hooks"
 import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
 import { setTouModalOpen } from "@/store/slices/touModalSlice/touModalSlice"
-import { COLORS } from "@/theme/colors"
+import { COLORS, TOKENS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
 import { isServiceAgreementPath } from "@/utils/serviceAgreementParty"
 
@@ -19,7 +19,7 @@ import { ContentContainer, DeployInfoSx } from "./style"
 
 const DEPLOY_DATE_FORMAT = "DD.MM.YYYY HH:mm"
 
-const getCommitInfo = (isMobile: boolean) => {
+const getCommitInfo = () => {
   if (
     process.env.NODE_ENV !== "production" ||
     !process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
@@ -34,13 +34,10 @@ const getCommitInfo = (isMobile: boolean) => {
         style={{
           display: "flex",
           justifyContent: "center",
-          color: isMobile ? COLORS.white06 : COLORS.santasGrey,
+          color: TOKENS.textTertiary,
         }}
       >
-        <Typography
-          variant="text4"
-          color={isMobile ? COLORS.white06 : COLORS.santasGrey}
-        >
+        <Typography variant="text4" color={TOKENS.textTertiary}>
           {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.slice(0, 7)}
         </Typography>
       </Link>
@@ -50,7 +47,7 @@ const getCommitInfo = (isMobile: boolean) => {
           width: "2px",
           height: "2px",
           borderRadius: "50%",
-          bgcolor: { xs: COLORS.white06, md: COLORS.santasGrey },
+          bgcolor: TOKENS.textTertiary,
         }}
       />
 
@@ -58,7 +55,7 @@ const getCommitInfo = (isMobile: boolean) => {
         variant="text4"
         sx={{
           textAlign: { xs: "center", md: "left" },
-          color: { xs: COLORS.white06, md: COLORS.santasGrey },
+          color: TOKENS.textTertiary,
         }}
       >
         {dayjs(process.env.BUILD_TIME).utc().format(DEPLOY_DATE_FORMAT)}
@@ -104,12 +101,12 @@ export const Footer = ({
     />
   )
 
-  const COMMIT_INFO = getCommitInfo(isMobile)
+  const COMMIT_INFO = getCommitInfo()
 
   if (isMobile) {
     return (
       <Box marginTop="4px">
-        {showDivider && <Divider sx={{ borderColor: COLORS.white06 }} />}
+        {showDivider && <Divider sx={{ borderColor: TOKENS.borderSubtle }} />}
 
         <Box
           sx={{
@@ -124,12 +121,7 @@ export const Footer = ({
             size="small"
             variant="contained"
             color="secondary"
-            sx={{
-              borderRadius: "8px",
-              color: COLORS.white,
-              bgcolor: COLORS.white03,
-              "&:hover": { color: COLORS.white, bgcolor: COLORS.white03 },
-            }}
+            sx={{ borderRadius: "8px" }}
             onClick={handleOpenCookiesModal}
           >
             Cookies Settings
@@ -165,14 +157,18 @@ export const Footer = ({
           >
             <Typography
               variant="text4"
-              color={COLORS.white06}
+              color={TOKENS.textTertiary}
               sx={{ textDecoration: "underline" }}
             >
               Privacy Policy
             </Typography>
           </Link>
 
-          <Typography variant="text4" textAlign="center" color={COLORS.white06}>
+          <Typography
+            variant="text4"
+            textAlign="center"
+            color={TOKENS.textTertiary}
+          >
             {t("footer.rights")}
           </Typography>
 
@@ -225,7 +221,11 @@ export const Footer = ({
                 marginBottom: "4px",
               }}
             >
-              <Typography variant="text4" sx={{ display: "flex", gap: "2px" }}>
+              <Typography
+                variant="text4"
+                color={TOKENS.textPrimary}
+                sx={{ display: "flex", gap: "2px" }}
+              >
                 {t("footer.agreement")} <Box sx={{ rotate: "270deg" }}>⇤</Box>
               </Typography>
             </Link>
@@ -239,14 +239,16 @@ export const Footer = ({
                 marginBottom: "8px",
               }}
             >
-              <Typography variant="text4">Privacy Policy</Typography>
+              <Typography variant="text4" color={TOKENS.textPrimary}>
+                Privacy Policy
+              </Typography>
             </Link>
           </>
         )}
 
         <Typography
           variant="text4"
-          color={COLORS.santasGrey}
+          color={TOKENS.textTertiary}
           sx={{ marginBottom: COMMIT_INFO ? "2px" : 0 }}
         >
           {t("footer.rights")}

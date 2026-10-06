@@ -95,7 +95,7 @@ export const TelegramBanner = () => {
         aria-hidden="true"
         sx={{
           fontSize: "36px",
-          "& path": { fill: COLORS.white },
+          "& path": { fill: COLORS.staticWhite },
         }}
       >
         <TelegramFlyIcon />
@@ -109,14 +109,18 @@ export const TelegramBanner = () => {
           gap: "4px",
         }}
       >
-        <Typography variant="text2" textAlign="center" color={COLORS.white}>
+        <Typography
+          variant="text2"
+          textAlign="center"
+          color={COLORS.staticWhite}
+        >
           {t("telegramBanner.title")}
         </Typography>
 
         <Typography
           variant="text4"
           textAlign="center"
-          color={COLORS.white}
+          color={COLORS.staticWhite}
           sx={{ opacity: 0.8 }}
         >
           {t("telegramBanner.subtitle")}
@@ -131,15 +135,16 @@ export const TelegramBanner = () => {
         variant="contained"
         size="small"
         sx={{
-          bgcolor: COLORS.white,
-          color: COLORS.bunker,
+          bgcolor: COLORS.staticWhite,
+          color: "#141414",
           fontWeight: 600,
           fontSize: "12px",
           borderRadius: "20px",
           px: "16px",
           py: "6px",
           "&:hover": {
-            bgcolor: COLORS.whiteLilac,
+            bgcolor: "#E6E7EB",
+            color: "#141414",
           },
         }}
       >

@@ -3,7 +3,7 @@ import toast from "react-hot-toast"
 import { useAccount, useWalletClient } from "wagmi"
 
 import { toastSuccess } from "@/components/Toasts"
-import { COLORS } from "@/theme/colors"
+import { TOKENS } from "@/theme/colors"
 
 type NewToken = {
   address: string
@@ -14,8 +14,8 @@ type NewToken = {
 
 const TOAST_STYLE = {
   borderRadius: "24px",
-  background: COLORS.blackRock,
-  color: COLORS.white,
+  background: TOKENS.surfaceInverse,
+  color: TOKENS.textOnInverse,
   fontFamily: "Roboto, sans-serif",
 }
 

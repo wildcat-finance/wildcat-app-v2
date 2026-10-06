@@ -1,7 +1,7 @@
 import { Box, Skeleton, SxProps, Theme, Typography } from "@mui/material"
 
 import { Markdown } from "@/components/Markdown"
-import { COLORS } from "@/theme/colors"
+import { COLORS, TOKENS } from "@/theme/colors"
 
 const AgreementTextFrameSx = {
   width: "100%",
@@ -69,7 +69,7 @@ export const AgreementText = ({
           rowGap: "20px",
           position: "relative",
           zIndex: 0,
-          color: "#383838",
+          color: TOKENS.textPrimary,
           paddingBottom: {
             xs: "96px",
             md: "112px",

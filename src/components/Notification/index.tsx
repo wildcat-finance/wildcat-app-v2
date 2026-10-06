@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next"
 
 import LinkIcon from "@/assets/icons/link_icon.svg"
 import { TNotification } from "@/store/slices/notificationsSlice/interface"
-import { COLORS } from "@/theme/colors"
+import { COLORS, TOKENS } from "@/theme/colors"
 import { formatBlockTimestamp } from "@/utils/formatters"
 
 import {
@@ -39,7 +39,7 @@ export const Notification = ({
               <Box sx={{ marginTop: "-8px !important", marginBottom: "8px" }}>
                 <Typography
                   variant="text4"
-                  color={COLORS.white}
+                  color={COLORS.staticWhite}
                   fontWeight={600}
                   sx={{ marginLeft: "4px" }}
                 >
@@ -77,7 +77,7 @@ export const Notification = ({
           )}
         </Box>
       </Box>
-      <Typography variant="text4" color={COLORS.greySuit}>
+      <Typography variant="text4" color={TOKENS.textTertiary}>
         {formatBlockTimestamp(blockTimestamp)}
       </Typography>
     </Box>

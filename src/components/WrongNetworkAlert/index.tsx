@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next"
 import { useSwitchChain } from "wagmi"
 
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { TOKENS } from "@/theme/colors"
 
 import { AlertContainer, ButtonStyle, PageContainer } from "./style"
 
@@ -26,7 +27,7 @@ export const WrongNetworkAlert = () => {
 
         <Typography
           variant="text3"
-          color="#8A8C9F"
+          color={TOKENS.textSecondary}
           sx={{ marginBottom: "24px" }}
         >
           Switch to {name} to explore the markets.

@@ -5,7 +5,7 @@ import { Box, Button, Typography } from "@mui/material"
 import { NETWORKS } from "@/config/network"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
-import { COLORS } from "@/theme/colors"
+import { COLORS, TOKENS } from "@/theme/colors"
 
 import { SwitchChainAlertProps } from "./interface"
 import {
@@ -38,7 +38,7 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
       <>
         <Typography
           variant="mobH3"
-          color={COLORS.white}
+          color={COLORS.staticWhite}
           textAlign="center"
           marginTop="12px"
         >
@@ -63,7 +63,7 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
             Currently, you can only view general information about the market.
             <br />
             To interact with it, please change the network to{" "}
-            <span style={{ fontWeight: 600, color: COLORS.white }}>
+            <span style={{ fontWeight: 600, color: COLORS.staticWhite }}>
               {desiredChainName}
             </span>
             .
@@ -98,11 +98,11 @@ export const SwitchChainAlert = ({ desiredChainId }: SwitchChainAlertProps) => {
             Wrong Market Network
           </Typography>
 
-          <Typography variant="text3" color="#8A8C9F">
+          <Typography variant="text3" color={TOKENS.textSecondary}>
             Currently, you can only view general information about the market.
             <br />
             To interact with it, please change the network to{" "}
-            <span style={{ fontWeight: 600, color: COLORS.bunker }}>
+            <span style={{ fontWeight: 600, color: TOKENS.textPrimary }}>
               {desiredChainName}
             </span>
             .

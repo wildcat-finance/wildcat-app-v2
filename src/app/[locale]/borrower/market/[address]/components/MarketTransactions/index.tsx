@@ -15,7 +15,7 @@ import {
   setCheckBlock,
   setSidebarHighlightState,
 } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
-import { COLORS } from "@/theme/colors"
+import { COLORS, TOKENS } from "@/theme/colors"
 import { hasManuallyDisabledMarketActions } from "@/utils/constants"
 import { dayjs } from "@/utils/dayjs"
 import {
@@ -147,7 +147,7 @@ export const MarketTransactions = ({
               color: COLORS.ultramarineBlue,
               textDecoration: "none",
               "&:hover": {
-                bgcolor: "rgba(62,104,255,0.06)",
+                bgcolor: TOKENS.brandPrimarySubtle,
                 border: `1px solid ${COLORS.hawkesBlue}`,
               },
             }}

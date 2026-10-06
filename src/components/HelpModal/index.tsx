@@ -61,12 +61,12 @@ export const HelpModal = () => {
         {open ? (
           <SvgIcon
             aria-hidden="true"
-            sx={{ path: { fill: COLORS.white }, fontSize: "20px" }}
+            sx={{ path: { fill: COLORS.staticWhite }, fontSize: "20px" }}
           >
             <Cross />
           </SvgIcon>
         ) : (
-          <Typography variant="text1" color={COLORS.white}>
+          <Typography variant="text1" color={COLORS.staticWhite}>
             ?
           </Typography>
         )}

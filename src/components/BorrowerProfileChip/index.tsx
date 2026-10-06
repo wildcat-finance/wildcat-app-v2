@@ -94,7 +94,7 @@ export const BorrowerProfileChip = ({
           sx={{
             fontSize: sizeStyles.avatar,
             "& circle": { fill: "#4CA6D9", opacity: 1 },
-            "& path": { fill: COLORS.white },
+            "& path": { fill: COLORS.staticWhite },
           }}
         >
           <Avatar />
@@ -117,7 +117,7 @@ export const BorrowerProfileChip = ({
             sx={{
               fontSize: sizeStyles.initialFont,
               lineHeight: sizeStyles.initialLineHeight,
-              color: COLORS.white,
+              color: COLORS.staticWhite,
               textAlign: "center",
             }}
           >

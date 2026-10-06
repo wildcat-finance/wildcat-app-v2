@@ -136,7 +136,7 @@ export const MobileMarketList = ({
               minWidth: "fit-content",
               "&.Mui-disabled": {
                 backgroundColor: COLORS.white03,
-                color: COLORS.white,
+                color: COLORS.staticWhite,
               },
               padding: "6px 14px",
               borderRadius: "8px",
@@ -156,7 +156,7 @@ export const MobileMarketList = ({
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      color: COLORS.white,
+                      color: COLORS.staticWhite,
                       fontSize: "14px",
                     }}
                   >
@@ -182,7 +182,7 @@ export const MobileMarketList = ({
                     },
                   }}
                 >
-                  <Typography variant="text3" color={COLORS.white}>
+                  <Typography variant="text3" color={COLORS.staticWhite}>
                     {item + 1}
                   </Typography>
                 </Button>
@@ -200,7 +200,7 @@ export const MobileMarketList = ({
               minWidth: "fit-content",
               "&.Mui-disabled": {
                 backgroundColor: COLORS.white03,
-                color: COLORS.white,
+                color: COLORS.staticWhite,
               },
               padding: "6px 14px",
               borderRadius: "8px",

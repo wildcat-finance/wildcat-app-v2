@@ -15,7 +15,7 @@ export const PenaltyRepayBtn = {
 export const PenaltyRepayBtnIcon = {
   transform: "rotate(180deg)",
   "& path": {
-    fill: COLORS.white,
+    fill: COLORS.staticWhite,
   },
 }
 

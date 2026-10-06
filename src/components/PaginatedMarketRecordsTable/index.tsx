@@ -19,7 +19,7 @@ import { MobileMarketRecordItem } from "@/components/Mobile/MobileMarketRecordIt
 import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
-import { COLORS } from "@/theme/colors"
+import { COLORS, TOKENS } from "@/theme/colors"
 
 import { useMarketRecords } from "./hooks/useMarketRecords"
 import { MarketRecordsTable } from "./MarketRecordsTable"
@@ -156,11 +156,13 @@ export function PaginatedMarketRecordsTable({
           padding: "6px",
           minWidth: "fit-content",
           color: isIndeterminate ? COLORS.ultramarineBlue : COLORS.bunker,
-          backgroundColor: isIndeterminate ? "#E4EBFEB2" : COLORS.whiteSmoke,
+          backgroundColor: isIndeterminate
+            ? TOKENS.brandPrimarySubtle
+            : COLORS.whiteSmoke,
           "&:hover": {
             color: isIndeterminate ? COLORS.ultramarineBlue : COLORS.bunker,
             backgroundColor: isIndeterminate
-              ? "rgba(228,235,254,0.5)"
+              ? TOKENS.brandPrimarySubtle
               : COLORS.athensGrey,
           },
         }}

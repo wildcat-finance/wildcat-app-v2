@@ -75,7 +75,7 @@ export const MobileSearchButton = ({
                 "& path": {
                   fill: alternateIndication
                     ? COLORS.ultramarineBlue
-                    : "#8A8C9F",
+                    : COLORS.matteSilver,
                 },
               }}
             >
@@ -118,7 +118,7 @@ export const MobileSearchButton = ({
               padding: "4px",
               fontSize: "18px",
               "& path": {
-                fill: "#8A8C9F",
+                fill: COLORS.matteSilver,
               },
             }}
           >
@@ -154,7 +154,7 @@ export const MobileSearchButton = ({
               sx={{
                 fontSize: "12px",
                 "& path": {
-                  fill: "#8A8C9F",
+                  fill: COLORS.matteSilver,
                 },
               }}
             >

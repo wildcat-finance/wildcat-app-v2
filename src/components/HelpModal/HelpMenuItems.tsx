@@ -126,7 +126,7 @@ export function TelegramHelpItem({ isMobile }: { isMobile?: boolean }) {
           aria-hidden="true"
           sx={{
             fontSize: "20px",
-            "& path": { fill: COLORS.white },
+            "& path": { fill: COLORS.staticWhite },
           }}
         >
           <Telegram />
@@ -142,13 +142,13 @@ export function TelegramHelpItem({ isMobile }: { isMobile?: boolean }) {
       >
         <Typography
           variant={isMobile ? "mobText3" : "text3"}
-          color={COLORS.white}
+          color={COLORS.staticWhite}
         >
           {t("helpModal.items.telegram.title")}
         </Typography>
         <Typography
           variant={isMobile ? "mobText3" : "text3"}
-          color={COLORS.white}
+          color={COLORS.staticWhite}
           sx={{ opacity: 0.8 }}
         >
           {t("helpModal.items.telegram.subtitle")}

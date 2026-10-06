@@ -1,6 +1,6 @@
 import { SxProps, Theme } from "@mui/material"
 
-import { COLORS } from "@/theme/colors"
+import { COLORS, TOKENS } from "@/theme/colors"
 
 export const FabButtonSx: SxProps<Theme> = {
   position: "fixed",
@@ -9,12 +9,12 @@ export const FabButtonSx: SxProps<Theme> = {
   width: "44px",
   height: "44px",
   minHeight: "44px",
-  bgcolor: COLORS.blueRibbon,
-  color: COLORS.white,
+  bgcolor: TOKENS.brandPrimary,
+  color: COLORS.staticWhite,
   boxShadow: "0px 4px 16px rgba(73, 113, 255, 0.4)",
   zIndex: 1250,
   "&:hover": {
-    bgcolor: COLORS.ultramarineBlue,
+    bgcolor: TOKENS.brandPrimaryHover,
     boxShadow: "0px 6px 20px rgba(73, 113, 255, 0.5)",
   },
   transition: "background-color 0.2s ease, box-shadow 0.2s ease",
@@ -23,7 +23,7 @@ export const FabButtonSx: SxProps<Theme> = {
 export const OverlaySx = (open: boolean): SxProps<Theme> => ({
   position: "fixed",
   inset: 0,
-  bgcolor: "rgba(20, 20, 20, 0.35)",
+  bgcolor: "rgba(0, 0, 0, 0.4)",
   zIndex: 1248,
   opacity: open ? 1 : 0,
   visibility: open ? "visible" : "hidden",
@@ -35,10 +35,9 @@ export const PopperPaperSx: SxProps<Theme> = {
   minWidth: "0px !important",
   width: "350px",
   borderRadius: "12px",
-  border: `1px solid ${COLORS.whiteLilac}`,
-  boxShadow:
-    "84px 56px 28px 0px rgba(92,92,92,0), 55px 37px 27px 0px rgba(92,92,92,0.01), 3px 3px 9px 0px rgba(92,92,92,0.05)",
-  bgcolor: COLORS.white,
+  border: `1px solid ${TOKENS.borderSubtle}`,
+  boxShadow: TOKENS.shadowPopover,
+  bgcolor: TOKENS.surfaceElevated,
   overflow: "hidden",
   p: "16px",
   display: "flex",
@@ -110,7 +109,7 @@ export const DisabledMenuItemSx: SxProps<Theme> = {
 export const ItemIconWrapperSx: SxProps<Theme> = {
   width: "20px",
   height: "20px",
-  bgcolor: COLORS.blackHaze,
+  bgcolor: TOKENS.surfaceSoft,
   borderRadius: "6px",
 }
 
@@ -124,5 +123,5 @@ export const ItemChevronSx: SxProps<Theme> = {
   transform: "rotate(-180deg)",
   fontSize: "16px",
   margin: "0 0 auto auto",
-  "& path": { fill: COLORS.santasGrey },
+  "& path": { fill: TOKENS.textTertiary },
 }

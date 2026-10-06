@@ -112,7 +112,7 @@ export const MarketAssetsStatusesFilter = ({
         sx={{ width: "100%", marginTop: "12px" }}
         onClick={onApply}
       >
-        <Typography variant="text3" color={COLORS.white}>
+        <Typography variant="text3" color={COLORS.staticWhite}>
           Apply
         </Typography>
       </Button>

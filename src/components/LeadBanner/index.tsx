@@ -39,7 +39,7 @@ export const LeadBanner = ({
 
       padding: compact ? "20px 24px" : "28px 40px 32px 32px",
       borderRadius: "16px",
-      color: "white",
+      color: COLORS.staticWhite,
 
       backgroundImage: `url(${Image.src})`,
       backgroundPosition: "center",
@@ -57,10 +57,10 @@ export const LeadBanner = ({
         gap: "8px",
       }}
     >
-      <Typography variant="title2" color={COLORS.white}>
+      <Typography variant="title2" color={COLORS.staticWhite}>
         {title}
       </Typography>
-      <Typography variant="text2" color={COLORS.white} sx={{ opacity: 0.8 }}>
+      <Typography variant="text2" color={COLORS.staticWhiteAlpha60}>
         {subtitle}
       </Typography>
     </Box>
@@ -78,7 +78,13 @@ export const LeadBanner = ({
         variant="contained"
         color="secondary"
         size="medium"
-        sx={{ width: "fit-content", flexShrink: 0 }}
+        sx={{
+          width: "fit-content",
+          flexShrink: 0,
+          backgroundColor: COLORS.staticWhite,
+          color: "#141414",
+          "&:hover": { backgroundColor: "#E6E7EB", color: "#141414" },
+        }}
       >
         {buttonText}
       </Button>

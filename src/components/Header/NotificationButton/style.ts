@@ -1,17 +1,18 @@
-import { COLORS } from "@/theme/colors"
+import { COLORS, TOKENS } from "@/theme/colors"
 
 export const ButtonStyle = {
   minHeight: "36px",
   minWidth: "36px",
   alignItems: "center",
   columnGap: "8px",
-  color: "#FFFFFF",
-  backgroundColor: "#FFFFFF1A",
-  border: "none",
+  color: COLORS.staticWhite,
+  backgroundColor: TOKENS.heroButtonBg,
+  border: `1px solid ${TOKENS.heroButtonBorder}`,
   "&:hover": {
-    background: "#FFFFFF26",
-    color: COLORS.white,
+    background: TOKENS.heroButtonBgHover,
+    color: COLORS.staticWhite,
     boxShadow: "none",
+    borderColor: TOKENS.heroButtonBorder,
   },
   position: "absolute",
   right: "180px",
@@ -26,5 +27,5 @@ export const DotStyle = {
   width: "6px",
   height: "6px",
   borderRadius: "50%",
-  backgroundColor: "#F1464B",
+  backgroundColor: COLORS.carminePink,
 }
