@@ -21,7 +21,7 @@ export type ChainStats = {
   totalActiveDebtUSD: number
 }
 
-// ─── Ethereum mainnet (hinterlight v2.0.26) ─────────────────────────────────
+// ─── Ethereum mainnet ─────────────────────────────────────────────────────
 
 type EthMarket = {
   id: string
@@ -188,7 +188,7 @@ export async function fetchEthereumMainnetStats(): Promise<ChainStats> {
   }
 }
 
-// ─── Plasma mainnet (goldsky v2.0.22) ───────────────────────────────────────
+// ─── Plasma mainnet ───────────────────────────────────────────────────────
 //
 // Plasma's subgraph exposes `markets` with stock fields, but no `protocolStats`,
 // no `tokenDailyPrices`, and no historical `scaledTotalSupply`/`scaleFactor`
