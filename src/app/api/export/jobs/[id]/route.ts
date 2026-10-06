@@ -11,8 +11,9 @@ export const runtime = "nodejs"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  props: { params: Promise<{ id: string }> },
 ) {
+  const params = await props.params
   const job = await prisma.exportJob.findUnique({
     where: { id: params.id },
     select: {
@@ -55,8 +56,9 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  props: { params: Promise<{ id: string }> },
 ) {
+  const params = await props.params
   const clientId = getExportClientId(request)
   if (!clientId)
     return NextResponse.json(

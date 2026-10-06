@@ -6,7 +6,7 @@ interface UsePollingOptions {
 }
 
 export const usePolling = ({ callback, interval }: UsePollingOptions) => {
-  const savedCallback = useRef<() => void>()
+  const savedCallback = useRef<(() => void) | undefined>(undefined)
 
   useEffect(() => {
     savedCallback.current = callback

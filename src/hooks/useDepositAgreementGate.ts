@@ -16,7 +16,9 @@ export const useDepositAgreementGate = (
   const mlaQuery = useMarketMla(marketAddress, chainId)
   const mla = mlaQuery.data
   const requiresNonMlaAcknowledgement = !!mla && "noMLA" in mla
-  const mlaResponse = mla && !("noMLA" in mla) ? mla : null
+  const mlaResponse = (mla && !("noMLA" in mla) ? mla : null) as Parameters<
+    typeof useGetSignedMla
+  >[0]
   const signedMlaQuery = useGetSignedMla(mlaResponse)
   const acknowledgementQuery = useGetNonMlaAcknowledgement({
     marketAddress,

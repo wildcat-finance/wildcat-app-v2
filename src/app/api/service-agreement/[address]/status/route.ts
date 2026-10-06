@@ -13,8 +13,9 @@ import { ServiceAgreementStatusResponse } from "../../interface"
 /// version. Returns accepted: null (not 404) when the borrower has no acceptance.
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: string } },
+  props: { params: Promise<{ address: string }> },
 ) {
+  const params = await props.params
   const chainId = validateChainIdParam(request)
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })

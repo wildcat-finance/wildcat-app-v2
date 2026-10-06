@@ -20,7 +20,7 @@ import { DeclineMlaRequest } from "./interface"
 /// Route to decline assigning an MLA to a market
 export const POST = async (
   request: NextRequest,
-  params: { params: { market: string } },
+  params: { params: Promise<{ market: string }> },
 ) => {
   let body: DeclineMlaRequest
   try {
@@ -33,7 +33,7 @@ export const POST = async (
     return getZodParseError(error)
   }
   const { chainId } = body
-  const marketAddress = params.params.market.toLowerCase()
+  const marketAddress = (await params.params).market.toLowerCase()
   const provider = getProviderForServer(chainId)
 
   const existingRefusal = await prisma.refusalToAssignMla.findFirst({

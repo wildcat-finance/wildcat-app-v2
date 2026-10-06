@@ -41,7 +41,7 @@ const request = () =>
   new NextRequest("https://app.example/api/export/jobs/job", {
     headers: { "x-export-client": client },
   })
-const params = { params: { id: "job" } }
+const params = { params: Promise.resolve({ id: "job" }) }
 
 describe("export job status and downloads", () => {
   beforeEach(() => {

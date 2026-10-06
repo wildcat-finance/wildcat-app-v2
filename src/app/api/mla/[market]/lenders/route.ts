@@ -10,8 +10,9 @@ import { validateChainIdParam } from "@/lib/validateChainIdParam"
 /// Route to get the lenders who have signed the MLA for a given market.
 export async function GET(
   request: NextRequest,
-  { params }: { params: { market: string } },
+  props: { params: Promise<{ market: string }> },
 ) {
+  const params = await props.params
   const chainId = validateChainIdParam(request)
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })

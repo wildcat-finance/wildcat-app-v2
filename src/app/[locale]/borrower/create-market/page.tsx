@@ -227,7 +227,7 @@ export default function CreateMarketPage() {
   const [tokenAsset, setTokenAsset] = useState<Token | undefined>()
 
   useEffect(() => {
-    setTokenAsset(assetData)
+    setTokenAsset(assetData ?? undefined)
   }, [assetData])
 
   const getPendingMessageForDraft = useCallback(
@@ -946,7 +946,7 @@ export default function CreateMarketPage() {
           <ConfirmationForm
             form={newMarketForm}
             tokenAsset={tokenAsset}
-            borrowerProfile={borrowerProfile}
+            borrowerProfile={borrowerProfile ?? undefined}
             handleDeploy={handleClickDeploy}
             salt={salt}
             timeSigned={timeSigned}

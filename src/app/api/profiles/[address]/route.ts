@@ -31,8 +31,9 @@ const mockProfile: BorrowerProfile = {
 /// GET /api/profiles/[address]?chainId=<chainId>
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: `0x${string}` } },
+  props: { params: Promise<{ address: string }> },
 ) {
+  const params = await props.params
   const chainId = validateChainIdParam(request)
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
@@ -55,8 +56,12 @@ export async function GET(
 // Test function only
 export async function DELETE(
   request: NextRequest,
-  { params: { address } }: { params: { address: string } },
+  props: { params: Promise<{ address: string }> },
 ) {
+  const params = await props.params
+
+  const { address } = params
+
   const chainId = validateChainIdParam(request)
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })

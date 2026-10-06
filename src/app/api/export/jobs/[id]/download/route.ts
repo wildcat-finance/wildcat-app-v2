@@ -11,8 +11,9 @@ export const runtime = "nodejs"
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } },
+  props: { params: Promise<{ id: string }> },
 ) {
+  const params = await props.params
   const job = await prisma.exportJob.findUnique({
     where: { id: params.id },
     select: { status: true, artifactKey: true },

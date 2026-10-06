@@ -12,8 +12,9 @@ import { verifyApiToken } from "../../auth/verify-header"
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { market: string } },
+  props: { params: Promise<{ market: string }> },
 ) {
+  const params = await props.params
   const market = params.market.toLowerCase()
   const chainId = validateChainIdParam(request)
   if (!chainId) {
@@ -33,8 +34,9 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { market: string } },
+  props: { params: Promise<{ market: string }> },
 ) {
+  const params = await props.params
   const chainId = validateChainIdParam(request)
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
@@ -90,8 +92,9 @@ export async function POST(
 /// Unauthenticated.
 export async function HEAD(
   request: NextRequest,
-  { params }: { params: { market: string } },
+  props: { params: Promise<{ market: string }> },
 ) {
+  const params = await props.params
   const market = params.market.toLowerCase()
   const chainId = validateChainIdParam(request)
   if (!chainId) {

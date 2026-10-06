@@ -14,8 +14,9 @@ import { isAdminForChain, verifyApiToken } from "../../auth/verify-header"
 /// Query must be made by authenticated account the request is for or an admin.
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: `0x${string}` } },
+  props: { params: Promise<{ address: string }> },
 ) {
+  const params = await props.params
   const chainId = validateChainIdParam(request)
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
@@ -46,8 +47,9 @@ export async function GET(
 /// Unauthenticated.
 export async function HEAD(
   request: NextRequest,
-  { params }: { params: { address: `0x${string}` } },
+  props: { params: Promise<{ address: string }> },
 ) {
+  const params = await props.params
   const chainId = validateChainIdParam(request)
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })

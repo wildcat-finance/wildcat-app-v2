@@ -1,14 +1,14 @@
 {
   "counts": {
     "bytes_binary": 4097562,
-    "bytes_generated": 9015991,
-    "bytes_lockfile": 2178869,
+    "bytes_generated": 1448928,
+    "bytes_lockfile": 1708487,
     "files_skipped_unreadable": 0,
-    "files_walked": 1145
+    "files_walked": 1129
   },
   "entries": [
     {
-      "bytes": 2178869,
+      "bytes": 1708487,
       "category": "lockfile",
       "evidence": "lockfile name package-lock.json",
       "grade": "hard",
@@ -104,14 +104,6 @@
       "evidence": "file signature gzip",
       "grade": "hard",
       "path": "src/lib/export/__fixtures__/reference-market-c-25632396.json.gz"
-    },
-    {
-      "bytes": 7567063,
-      "category": "generated",
-      "evidence": "directory name storybook-static corroborated by sample: 6 of 8 files minified, binary or generated",
-      "files": 72,
-      "grade": "hard",
-      "path": "storybook-static/"
     }
   ],
   "schema": 2,

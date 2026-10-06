@@ -8,8 +8,9 @@ import { MlaSignatureResponse } from "../../interface"
 /// GET /api/mla/[market]/[lender]?chainId=<chainId>
 export async function GET(
   request: NextRequest,
-  { params }: { params: { market: string; lender: string } },
+  props: { params: Promise<{ market: string; lender: string }> },
 ) {
+  const params = await props.params
   const chainId = validateChainIdParam(request)
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })

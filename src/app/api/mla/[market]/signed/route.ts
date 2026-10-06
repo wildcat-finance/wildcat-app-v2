@@ -8,8 +8,9 @@ import { validateChainIdParam } from "@/lib/validateChainIdParam"
 /// GET /api/mla/[market]/signed?chainId=<chainId>
 export async function GET(
   request: NextRequest,
-  { params }: { params: { market: string } },
+  props: { params: Promise<{ market: string }> },
 ) {
+  const params = await props.params
   const market = params.market.toLowerCase()
   const chainId = validateChainIdParam(request)
   if (!chainId) {

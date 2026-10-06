@@ -19,8 +19,9 @@ const getPartyParam = (
 /// Every status field is scoped to the requested account capacity.
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: `0x${string}` } },
+  props: { params: Promise<{ address: string }> },
 ) {
+  const params = await props.params
   const chainId = validateChainIdParam(request)
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
@@ -60,8 +61,9 @@ export const dynamic = "force-dynamic"
 /// DELETE /api/sla/[address]?chainId=<chainId>
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { address: `0x${string}` } },
+  props: { params: Promise<{ address: string }> },
 ) {
+  const params = await props.params
   if (process.env.NODE_ENV !== "development") {
     return NextResponse.json({ error: "Not allowed" }, { status: 403 })
   }

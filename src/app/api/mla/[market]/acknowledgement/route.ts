@@ -24,8 +24,9 @@ import {
 /// GET /api/mla/[market]/acknowledgement?chainId=<chainId>&lenderAddress=<address>
 export async function GET(
   request: NextRequest,
-  { params }: { params: { market: string } },
+  props: { params: Promise<{ market: string }> },
 ) {
+  const params = await props.params
   const chainId = validateChainIdParam(request)
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
@@ -66,8 +67,9 @@ export async function GET(
 /// POST /api/mla/[market]/acknowledgement
 export async function POST(
   request: NextRequest,
-  { params }: { params: { market: string } },
+  props: { params: Promise<{ market: string }> },
 ) {
+  const params = await props.params
   let body: NonMlaAcknowledgementInput
 
   try {

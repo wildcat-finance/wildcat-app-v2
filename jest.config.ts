@@ -24,10 +24,9 @@ const config: Config = {
     "^@/mocks/(.*)$": "<rootDir>/src/mocks/$1",
     "^@/providers/(.*)$": "<rootDir>/src/providers/$1",
     "^@/store/(.*)$": "<rootDir>/src/store/$1",
-    "^@/stories/(.*)$": "<rootDir>/src/stories/$1",
     "^@/theme/(.*)$": "<rootDir>/src/theme/$1",
     "^@/routes$": "<rootDir>/src/routes",
-    "^@/middleware$": "<rootDir>/src/middleware",
+    "^@/proxy$": "<rootDir>/src/proxy",
   },
   // Add more setup options before each test is run
   // setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],

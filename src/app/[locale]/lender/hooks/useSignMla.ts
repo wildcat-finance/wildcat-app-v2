@@ -16,9 +16,9 @@ export const useGetSignedMla = (
   const { address } = useAccount()
 
   const getSignedMla = async () => {
-    if (!mla) return undefined
+    if (!mla) return null
     const marketAddress = mla.market
-    if (!marketAddress) return undefined
+    if (!marketAddress) return null
     const res = await fetch(
       `/api/mla/${marketAddress.toLowerCase()}/${address?.toLowerCase()}?chainId=${
         mla.chainId

@@ -123,7 +123,7 @@ export const useWithdrawFlow = ({
   const [result, setResult] = useState<WithdrawResult>()
   /** Safe transaction proposed but not yet executed (threshold > 1). */
   const [proposed, setProposed] = useState(false)
-  const directBeforeUnwrap = useRef<BigNumber>()
+  const directBeforeUnwrap = useRef<BigNumber | undefined>(undefined)
 
   const legs: WithdrawLeg[] = useMemo(
     () => (snapshot ? buildLegs(snapshot, isBatched) : []),

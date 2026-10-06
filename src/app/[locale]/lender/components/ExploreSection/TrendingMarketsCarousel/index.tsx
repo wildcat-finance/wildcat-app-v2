@@ -299,7 +299,7 @@ export const TrendingMarketsCarousel = () => {
   const dragScroll = useDragScroll()
   const { measure: measureDragScroll } = dragScroll
   const [activeMobileSlot, setActiveMobileSlot] = useState(0)
-  const mobileScrollFrame = useRef<number>()
+  const mobileScrollFrame = useRef<number | undefined>(undefined)
 
   const handleMobileScroll = useCallback(
     (event: React.UIEvent<HTMLDivElement>) => {

@@ -60,8 +60,9 @@ acceptance-record.json (and the hash embedded in the signed acknowledgement). Re
 /// data - no signing key, no wallet. 404 when the borrower has no acceptance.
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: string } },
+  props: { params: Promise<{ address: string }> },
 ) {
+  const params = await props.params
   const chainId = validateChainIdParam(request)
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })

@@ -228,18 +228,4 @@ const nextConfig = {
   },
 }
 
-const workflowConfig = withWorkflow(nextConfig)
-
-export default async (phase, context) => {
-  const config = await workflowConfig(phase, context)
-  // workflow@4 uses the Next 15+ config names. This app is on Next 14, where
-  // the same external-package setting still lives under `experimental` and
-  // Turbopack does not consume the generated rule.
-  config.experimental = {
-    ...config.experimental,
-    serverComponentsExternalPackages: config.serverExternalPackages,
-  }
-  delete config.serverExternalPackages
-  delete config.turbopack
-  return config
-}
+export default withWorkflow(nextConfig)
