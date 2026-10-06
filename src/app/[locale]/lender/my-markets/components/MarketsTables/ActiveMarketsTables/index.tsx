@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
+import { getBorrowerDisplayName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import {
@@ -26,7 +27,6 @@ import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
-import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import {
@@ -36,11 +36,11 @@ import {
 } from "@/utils/comparators"
 import { pageCalcHeights } from "@/utils/constants"
 import {
+  buildBorrowerProfileHref,
   buildMarketHref,
   formatBps,
   formatSecsToHours,
   formatTokenWithCommas,
-  trimAddress,
 } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -111,12 +111,7 @@ export const ActiveMarketsTables = ({
         chainId,
       } = market
 
-      const borrower = borrowers?.find(
-        (b) => b.address.toLowerCase() === borrowerAddress.toLowerCase(),
-      )
-      const borrowerName = borrower
-        ? borrower.alias || borrower.name
-        : trimAddress(borrowerAddress)
+      const borrowerName = getBorrowerDisplayName(borrowerAddress, borrowers)
 
       return {
         id: address,
@@ -177,7 +172,10 @@ export const ActiveMarketsTables = ({
 
           {params.row.borrowerAddress ? (
             <Link
-              href={`${ROUTES.lender.profile}/${params.row.borrowerAddress}`}
+              href={buildBorrowerProfileHref(
+                params.row.borrowerAddress,
+                params.row.chainId,
+              )}
               prefetch={false}
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
               style={{ display: "flex", textDecoration: "none" }}

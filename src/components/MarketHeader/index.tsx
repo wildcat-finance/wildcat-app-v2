@@ -23,7 +23,7 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { EXPORT_CHAIN_IDS, ExportChainId } from "@/lib/export/types"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-import { trimAddress } from "@/utils/formatters"
+import { buildBorrowerProfileHref, trimAddress } from "@/utils/formatters"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 
 import { MarketHeaderProps } from "./interface"
@@ -179,7 +179,7 @@ export const MarketHeader = ({
             }}
           >
             <Link
-              href={`${ROUTES.lender.profile}/${market.borrower}`}
+              href={buildBorrowerProfileHref(market.borrower, market.chainId)}
               style={{ display: "flex", textDecoration: "none" }}
             >
               <Box

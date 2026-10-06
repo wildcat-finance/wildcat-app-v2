@@ -11,6 +11,7 @@ import EditProfileForm from "./components/EditProfileForm"
 export default function EditProfile() {
   const router = useRouter()
   const { address } = useAccount()
+
   const afterSubmit = () => {
     router.push(ROUTES.borrower.profile)
   }

@@ -30,6 +30,7 @@ import { MarketParameters } from "@/components/MarketParameters"
 import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
+import { METRIC_BASIS } from "@/components/Profile/shared/metricBasis"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketAccount } from "@/hooks/useMarketAccount"
 import { useMarketMla } from "@/hooks/useMarketMla"
@@ -55,13 +56,19 @@ import {
   WrapDebtTokenTab,
 } from "@/store/slices/wrapDebtTokenFlowSlice/wrapDebtTokenFlowSlice"
 import { COLORS } from "@/theme/colors"
+import { formatTokenWithCommas } from "@/utils/formatters"
 
 import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
+import { LenderAnalyticsSummary } from "./components/LenderAnalyticsSummary"
+import { LenderFlowCharts } from "./components/LenderFlowCharts"
 import { MarketActions } from "./components/MarketActions"
 import { MarketSummary } from "./components/MarketSummary"
 import { WrapDebtToken } from "./components/WrapDebtToken"
 import { useBorrowerPenaltyWarning } from "./hooks/useBorrowerPenaltyWarning"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
+import { useLenderMarketAnalytics } from "./hooks/useLenderMarketAnalytics"
+import { useMarketDailyFlows } from "./hooks/useMarketDailyFlows"
+import { useMarketDelinquencyHistory } from "./hooks/useMarketDelinquencyHistory"
 import { LenderStatus } from "./interface"
 import {
   LenderBannerWrapper,
@@ -127,6 +134,87 @@ export default function LenderMarketDetails({
     useMarketAccount(market)
   const { data: withdrawals, isLoadingInitial: isWithdrawalsLoading } =
     useGetLenderWithdrawals(market)
+  const analytics = useLenderMarketAnalytics(market, withdrawals)
+  const {
+    dailyFlows,
+    isLoading: isFlowsLoading,
+    symbol,
+  } = useMarketDailyFlows(market)
+  const {
+    delinquencyHistory,
+    isLoading: isDelinquencyLoading,
+    gracePeriodHours,
+  } = useMarketDelinquencyHistory(market)
+
+  const hasLenderInteracted = !!marketAccount?.hasEverInteracted
+
+  const analyticsSummaryItems = React.useMemo(() => {
+    if (!market || !marketAccount) return []
+    const zero = market.underlyingToken.getAmount(0)
+    const assetSymbol = market.underlyingToken.symbol
+    const totalDeposited = marketAccount.totalDeposited ?? zero
+    const totalInterestEarned = marketAccount.totalInterestEarned ?? zero
+    const totalWithdrawalsExecuted = analytics.totalWithdrawalsExecuted ?? zero
+    return [
+      {
+        label: t("lenderMarketDetails.analytics.lifetimeDeposited"),
+        value: formatTokenWithCommas(totalDeposited),
+        symbol: assetSymbol,
+        tooltip: t("lenderMarketDetails.analytics.lifetimeDepositedTooltip"),
+        description: METRIC_BASIS.liveToken,
+        fullPrecisionValue: totalDeposited.format(
+          totalDeposited.decimals,
+          true,
+        ),
+      },
+      {
+        label: t("lenderMarketDetails.analytics.interestEarned"),
+        value: formatTokenWithCommas(totalInterestEarned),
+        symbol: assetSymbol,
+        tooltip: t("lenderMarketDetails.analytics.interestEarnedTooltip"),
+        description: METRIC_BASIS.liveToken,
+        fullPrecisionValue: totalInterestEarned.format(
+          totalInterestEarned.decimals,
+          true,
+        ),
+      },
+      {
+        label: t("lenderMarketDetails.analytics.totalWithdrawalsExecuted"),
+        value: formatTokenWithCommas(totalWithdrawalsExecuted),
+        symbol: assetSymbol,
+        tooltip: t(
+          "lenderMarketDetails.analytics.totalWithdrawalsExecutedTooltip",
+        ),
+        description: METRIC_BASIS.liveToken,
+        fullPrecisionValue: totalWithdrawalsExecuted.format(
+          totalWithdrawalsExecuted.decimals,
+          true,
+        ),
+      },
+    ]
+  }, [market, marketAccount, analytics.totalWithdrawalsExecuted, t])
+
+  const additionalParameterItems = React.useMemo(() => {
+    if (!market || !marketAccount) return []
+    const interestEarned =
+      marketAccount.totalInterestEarned ?? market.underlyingToken.getAmount(0)
+    return [
+      {
+        title: t("lenderMarketDetails.analytics.interestEarned"),
+        value: formatTokenWithCommas(interestEarned, { withSymbol: true }),
+        tooltipText: t("lenderMarketDetails.analytics.interestEarnedTooltip"),
+      },
+      {
+        title: t("lenderMarketDetails.analytics.totalLenders"),
+        value:
+          analytics.activeLendersCount !== undefined
+            ? analytics.activeLendersCount
+            : "-",
+        tooltipText: t("lenderMarketDetails.analytics.totalLendersTooltip"),
+      },
+    ]
+  }, [market, marketAccount, analytics.activeLendersCount, t])
+
   const { data: marketSummary, isLoading: isLoadingSummary } = useMarketSummary(
     address.toLowerCase(),
     market?.chainId ?? selectedChainId,
@@ -534,6 +622,13 @@ export default function LenderMarketDetails({
             )}
           </Box>
 
+          {hasLenderInteracted && (
+            <LenderAnalyticsSummary
+              items={analyticsSummaryItems}
+              isLoading={analytics.isLoadingActiveLenders}
+            />
+          )}
+
           {hasMarketDescription && (
             <Box id="marketDescription">
               <MarketSummary
@@ -551,6 +646,7 @@ export default function LenderMarketDetails({
               viewerType="lender"
               wrapper={wrapper}
               hasWrapper={hasWrapper}
+              additionalItems={additionalParameterItems}
             />
           </Box>
 
@@ -600,6 +696,17 @@ export default function LenderMarketDetails({
             />
           )}
 
+          <Box sx={{ padding: "0 4px" }}>
+            <LenderFlowCharts
+              market={market}
+              dailyFlows={dailyFlows}
+              isLoading={isFlowsLoading}
+              delinquencyHistory={delinquencyHistory}
+              isDelinquencyLoading={isDelinquencyLoading}
+              gracePeriodHours={gracePeriodHours}
+              symbol={symbol}
+            />
+          </Box>
           {showLenderRequestBanner && (
             <MobileLenderBanner
               title="Lend through Wildcat"
@@ -709,6 +816,25 @@ export default function LenderMarketDetails({
                   />
                 </>
               )}
+              {hasLenderInteracted && (
+                <Box sx={{ marginTop: "32px" }}>
+                  <LenderAnalyticsSummary
+                    items={analyticsSummaryItems}
+                    isLoading={analytics.isLoadingActiveLenders}
+                  />
+                </Box>
+              )}
+              <Box sx={{ marginTop: "32px" }}>
+                <LenderFlowCharts
+                  market={market}
+                  dailyFlows={dailyFlows}
+                  isLoading={isFlowsLoading}
+                  delinquencyHistory={delinquencyHistory}
+                  isDelinquencyLoading={isDelinquencyLoading}
+                  gracePeriodHours={gracePeriodHours}
+                  symbol={symbol}
+                />
+              </Box>
             </Box>
           )}
 
@@ -731,6 +857,7 @@ export default function LenderMarketDetails({
                 viewerType="lender"
                 wrapper={wrapper}
                 hasWrapper={hasWrapper}
+                additionalItems={additionalParameterItems}
               />
             </Box>
           )}

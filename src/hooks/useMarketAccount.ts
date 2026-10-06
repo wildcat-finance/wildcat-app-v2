@@ -1,5 +1,3 @@
-import { useEffect } from "react"
-
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   getLenderAccountForMarket,
@@ -18,6 +16,7 @@ import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { cloneSdkObject } from "@/lib/sdk-object"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type UseMarketAccountProps = {
@@ -76,28 +75,32 @@ export function useMarketAccountQuery({
 
   async function updateMarketAccount() {
     if (!data || !provider || !market) throw Error()
-    if (data.market.version === MarketVersion.V1) {
+    const nextMarket = cloneSdkObject(data.market)
+    const nextAccount = cloneSdkObject(data)
+    nextAccount.market = nextMarket
+
+    if (nextMarket.version === MarketVersion.V1) {
       const lens = getLensContract(market.chainId, provider)
       const update = await lens.getMarketDataWithLenderStatus(
         accountAddress as string,
         marketAddress as string,
       )
-      data.updateWith(update.lenderStatus)
-      data.market.updateWith(update.market)
+      nextAccount.updateWith(update.lenderStatus)
+      nextMarket.updateWith(update.market)
     } else {
       const lens = getLensV2Contract(market.chainId, provider)
       const update = await lens.getMarketDataWithLenderStatus(
         accountAddress as string,
         marketAddress as string,
       )
-      data.updateWith(update.lenderStatus)
-      data.market.updateWith(update.market)
+      nextAccount.updateWith(update.lenderStatus)
+      nextMarket.updateWith(update.market)
     }
 
-    if (market && market.provider !== provider) {
-      market.provider = provider
+    if (nextMarket.provider !== provider) {
+      nextMarket.provider = provider
     }
-    return data
+    return nextAccount
   }
 
   const {
@@ -119,12 +122,6 @@ export function useMarketAccountQuery({
     enabled: !!data,
     refetchOnMount: false,
   })
-
-  useEffect(() => {
-    if (data && provider && data.market.provider !== provider) {
-      data.market.provider = provider
-    }
-  }, [provider, data])
 
   return {
     data: updatedAccount ?? data,

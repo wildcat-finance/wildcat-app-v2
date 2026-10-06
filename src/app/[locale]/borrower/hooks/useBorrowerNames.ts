@@ -13,6 +13,27 @@ export type BorrowerWithName = {
   alias?: string
 }
 
+const getValidBorrowerLabel = (value: string | undefined) => {
+  const trimmed = value?.trim()
+  return trimmed === "" ? undefined : trimmed
+}
+
+export const getBorrowerDisplayName = (
+  address: string,
+  borrowers: BorrowerWithName[] | undefined,
+  preferredLabel: "alias" | "name" = "alias",
+) => {
+  const borrower = borrowers?.find(
+    (b) => b.address.toLowerCase() === address.toLowerCase(),
+  )
+  const alias = getValidBorrowerLabel(borrower?.alias)
+  const name = getValidBorrowerLabel(borrower?.name)
+
+  return preferredLabel === "name"
+    ? name ?? alias ?? trimAddress(address)
+    : alias ?? name ?? trimAddress(address)
+}
+
 export const useBorrowerNames = () => {
   const { chainId } = useSelectedNetwork()
   const isSelectedNetworkRehydrated = useIsSelectedNetworkRehydrated()
@@ -38,11 +59,5 @@ export const useBorrowerNames = () => {
 
 export const useBorrowerNameOrAddress = (address: string): string => {
   const borrowers = useBorrowerNames()
-  if (!borrowers.data) return trimAddress(address)
-
-  const borrower = borrowers.data.find(
-    (b) => b.address.toLowerCase() === address.toLowerCase(),
-  )
-
-  return borrower?.alias ?? borrower?.name ?? trimAddress(address)
+  return getBorrowerDisplayName(address, borrowers.data)
 }

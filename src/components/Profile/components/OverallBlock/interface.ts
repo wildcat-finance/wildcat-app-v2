@@ -1,12 +1,5 @@
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 
-export type OverallBlockProps = Partial<BorrowerProfile> & {
-  marketsAmount?: number
-  externalChainId?: number
-  defaults?: number
-  isPage?: boolean
-}
-
 export type ProfileItem = {
   title: string
   value: string | number | undefined
@@ -14,4 +7,13 @@ export type ProfileItem = {
   link?: string
   copy?: string
   verified?: boolean
+}
+
+export type OverallBlockProps = Partial<BorrowerProfile> & {
+  marketsAmount?: number
+  externalChainId?: number
+  defaults?: number
+  borrowed?: string
+  extraItems?: ProfileItem[]
+  isPage?: boolean
 }

@@ -22,6 +22,7 @@ import { useAccount } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
+import { cloneSdkObject } from "@/lib/sdk-object"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 export type LenderWithdrawalsForMarketResult = {
@@ -31,6 +32,15 @@ export type LenderWithdrawalsForMarketResult = {
   expiredTotalPendingAmount: TokenAmount
   activeTotalPendingAmount: TokenAmount
   totalClaimableAmount: TokenAmount
+}
+
+const cloneWithdrawalStatus = (
+  withdrawal: LenderWithdrawalStatus,
+): LenderWithdrawalStatus => {
+  const nextBatch = cloneSdkObject(withdrawal.batch)
+  const nextWithdrawal = cloneSdkObject(withdrawal)
+  nextWithdrawal.batch = nextBatch
+  return nextWithdrawal
 }
 
 export function useGetLenderWithdrawals(
@@ -157,20 +167,27 @@ export function useGetLenderWithdrawals(
     logger.debug(`Updating withdrawals...`)
     if (!lender || !market || !marketAddress) throw Error()
     const lens = getLensV2Contract(market.chainId, market.provider)
+    const completeWithdrawalUpdates = withdrawals.completeWithdrawals.map(
+      cloneWithdrawalStatus,
+    )
     const incompleteWithdrawals = [
-      ...(withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []),
-      ...(withdrawals.expiredPendingWithdrawals ?? []),
+      ...(withdrawals.activeWithdrawal
+        ? [cloneWithdrawalStatus(withdrawals.activeWithdrawal)]
+        : []),
+      ...(withdrawals.expiredPendingWithdrawals ?? []).map(
+        cloneWithdrawalStatus,
+      ),
     ]
     const withdrawalUpdates =
       await lens.getWithdrawalBatchesDataWithLenderStatus(
         marketAddress,
-        [...withdrawals.completeWithdrawals, ...incompleteWithdrawals].map(
+        [...completeWithdrawalUpdates, ...incompleteWithdrawals].map(
           (w) => w.expiry,
         ),
         lender,
       )
     let i = 0
-    for (const withdrawal of withdrawals.completeWithdrawals) {
+    for (const withdrawal of completeWithdrawalUpdates) {
       const update = withdrawalUpdates[i++]
       withdrawal.batch.applyLensUpdate(update.batch)
       withdrawal.updateWith(update.lenderStatus)
@@ -181,7 +198,7 @@ export function useGetLenderWithdrawals(
       withdrawal.updateWith(update.lenderStatus)
     }
     logger.debug(
-      `Updated ${withdrawals.completeWithdrawals.length} complete withdrawals...`,
+      `Updated ${completeWithdrawalUpdates.length} complete withdrawals...`,
     )
     logger.debug(
       `Updated ${incompleteWithdrawals.length} incomplete withdrawals...`,
@@ -198,10 +215,10 @@ export function useGetLenderWithdrawals(
         .join(", ")}`,
     )
 
-    // Re-categorize after lens update — status may have changed
+    // Re-categorize after lens update; status may have changed.
     const allWithdrawals = [
       ...incompleteWithdrawals,
-      ...(withdrawals.completeWithdrawals ?? []),
+      ...completeWithdrawalUpdates,
     ]
 
     const completeWithdrawals: LenderWithdrawalStatus[] = []
@@ -272,6 +289,7 @@ export function useGetLenderWithdrawals(
     ),
     queryFn: updateWithdrawals,
     placeholderData: keepPreviousData,
+    refetchInterval: POLLING_INTERVAL,
     enabled: !!data,
     // refetchOnMount: false,
   })

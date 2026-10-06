@@ -1,144 +1,131 @@
-import * as React from "react"
-import { useEffect, useState } from "react"
-
-import { Box, Divider } from "@mui/material"
+import { Box } from "@mui/material"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
-import { useGetServiceAgreementStatus } from "@/app/[locale]/borrower/hooks/useGetServiceAgreementStatus"
+import { useBorrowerAggregateStats } from "@/app/[locale]/borrower/profile/hooks/analytics/useBorrowerAggregateStats"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { Footer } from "@/components/Footer"
+import { BorrowerProfileVerificationDisclosure } from "@/components/Profile/components/VerificationDisclosure"
+import { ProfileTabBar } from "@/components/Profile/shared/ProfileTabBar"
+import {
+  BORROWER_PROFILE_TABS,
+  useProfileTab,
+} from "@/components/Profile/shared/profileTabs"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
-import { trimAddress } from "@/utils/formatters"
-import { countMarketsInDefault } from "@/utils/marketStatus"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { isHinterlightSupported } from "@/lib/hinterlight"
+import { pageCalcHeights } from "@/utils/constants"
 
-import { MarketsBlock } from "./components/MarketsBlock"
-import { MobileNamePageBlockWrapper } from "./components/MobileNamePageBlockWrapper"
+import { BorrowerChartsTab } from "./components/BorrowerChartsTab"
+import { LegalInfoTab } from "./components/LegalInfoTab"
+import { OverviewTab } from "./components/OverviewTab"
 import { ProfilePageSkeleton } from "./components/PageSkeleton"
-import { ProfileNamePageBlock } from "./components/ProfileNamePageBlock"
+import { WithdrawalsDelinquencyTab } from "./components/WithdrawalsDelinquencyTab"
 import { ProfilePageProps } from "./interface"
-import { PageContentContainer, MobileContentContainer } from "./style"
-import { OverallBlock } from "../components/OverallBlock"
-import { ToUStatusBlock } from "../components/ToUStatusBlock"
-import { BorrowerProfileVerificationDisclosure } from "../components/VerificationDisclosure"
 
-export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
-  const { data: profileData, isLoading: isProfileLoading } =
-    useGetBorrowerProfile(profileAddress)
+export const ProfilePage = ({
+  type,
+  profileAddress,
+  chainId: profileChainId,
+}: ProfilePageProps) => {
+  const { chainId: selectedChainId } = useSelectedNetwork()
+  const chainId = profileChainId ?? selectedChainId
+  const analyticsAvailable = isHinterlightSupported(chainId)
 
+  const { isLoading: isProfileLoading } = useGetBorrowerProfile(
+    profileAddress,
+    chainId,
+  )
   const { data: borrowerMarkets, isLoading: isMarketsLoading } =
-    useGetBorrowerMarkets(profileAddress)
-
-  // Fired here (not inside ToUStatusBlock) so the request runs in parallel with
-  // the profile/markets fetches instead of starting after the page's load gate.
-  const { data: touStatus, isLoading: isTouStatusLoading } =
-    useGetServiceAgreementStatus(profileAddress)
+    useGetBorrowerMarkets(profileAddress, chainId)
+  const borrowerAnalyticsQuery = useBorrowerAggregateStats(
+    profileAddress,
+    chainId,
+  )
 
   const isMobile = useMobileResolution()
+  const { currentTab } = useProfileTab(BORROWER_PROFILE_TABS, "overview")
 
-  const isExternal = type === "external"
-  const isLoading = isMarketsLoading || isProfileLoading
-  const activeMarkets = borrowerMarkets?.filter((market) => !market.isClosed)
-  const marketsAmount = (activeMarkets ?? []).length
-  const defaults = countMarketsInDefault(borrowerMarkets)
-  const accountName = profileData?.name ?? trimAddress(profileAddress as string)
-
-  // Mobile
-  const [section, setSection] = useState<"markets" | "info">("markets")
-
-  useEffect(() => {
-    if (marketsAmount === 0) {
-      setSection("info")
-    } else {
-      setSection("markets")
-    }
-  }, [marketsAmount])
-
-  if (isLoading)
-    return <ProfilePageSkeleton isExternal={isExternal} isMobile={isMobile} />
-
-  if (isMobile)
+  if (isProfileLoading || isMarketsLoading) {
     return (
-      <Box sx={MobileContentContainer}>
-        <BorrowerProfileVerificationDisclosure showNote={false} />
-
-        <MobileNamePageBlockWrapper
-          section={section}
-          setSection={setSection}
-          marketsAmount={marketsAmount}
-        >
-          <ProfileNamePageBlock
-            {...profileData}
-            name={accountName}
-            marketsAmount={marketsAmount}
-            isExternal={isExternal}
-            isMobile={isMobile}
-          />
-        </MobileNamePageBlockWrapper>
-
-        {section === "markets" && (
-          <MarketsBlock markets={borrowerMarkets} isLoading={isLoading} />
-        )}
-
-        {section === "info" && (
-          <>
-            <OverallBlock
-              {...profileData}
-              marketsAmount={marketsAmount}
-              defaults={defaults}
-            />
-            <BorrowerProfileVerificationDisclosure
-              variant="inline"
-              showModal={false}
-            />
-            <ToUStatusBlock
-              address={profileAddress}
-              status={touStatus}
-              isLoading={isTouStatusLoading}
-            />
-          </>
-        )}
-
-        <Box sx={{ marginTop: "auto" }}>
-          <Footer showFooter={false} showDivider={false} />
-        </Box>
-      </Box>
-    )
-
-  return (
-    <Box sx={PageContentContainer}>
-      <ProfileNamePageBlock
-        {...profileData}
-        name={accountName}
-        marketsAmount={marketsAmount}
-        isExternal={isExternal}
+      <ProfilePageSkeleton
+        isExternal={type === "external"}
         isMobile={isMobile}
       />
+    )
+  }
 
-      <Divider sx={{ marginY: "32px" }} />
-
-      <Box sx={{ position: "relative" }}>
-        <OverallBlock
-          {...profileData}
-          marketsAmount={marketsAmount}
-          defaults={defaults}
-          isPage
-        />
-
-        <BorrowerProfileVerificationDisclosure />
-      </Box>
-
-      <Divider sx={{ marginY: "32px" }} />
-
-      <ToUStatusBlock
-        address={profileAddress}
-        status={touStatus}
-        isLoading={isTouStatusLoading}
-        isPage
-      />
-
-      {marketsAmount !== 0 && (
-        <MarketsBlock markets={activeMarkets} isLoading={isLoading} />
+  return (
+    <Box
+      sx={{
+        width: "100%",
+        height: isMobile ? "auto" : `calc(100vh - ${pageCalcHeights.page})`,
+        overflowY: isMobile ? "visible" : "auto",
+        padding: isMobile ? "0" : "32px 16px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "24px",
+        ...(isMobile && {
+          gap: "2px",
+          padding: "2px",
+        }),
+      }}
+    >
+      <BorrowerProfileVerificationDisclosure showNote={false} />
+      {isMobile && (
+        <ProfileTabBar tabs={BORROWER_PROFILE_TABS} defaultTab="overview" />
       )}
+
+      {currentTab === "overview" && (
+        <OverviewTab
+          profileAddress={profileAddress}
+          chainId={chainId}
+          markets={borrowerMarkets ?? []}
+          analytics={borrowerAnalyticsQuery.data}
+          isAnalyticsLoading={
+            analyticsAvailable && borrowerAnalyticsQuery.isLoading
+          }
+          analyticsAvailable={analyticsAvailable}
+          isMobile={isMobile}
+        />
+      )}
+
+      {currentTab === "delinquency" && (
+        <WithdrawalsDelinquencyTab
+          borrowerAddress={profileAddress}
+          chainId={chainId}
+          analytics={borrowerAnalyticsQuery.data}
+          isAnalyticsLoading={
+            analyticsAvailable && borrowerAnalyticsQuery.isLoading
+          }
+          analyticsAvailable={analyticsAvailable}
+        />
+      )}
+
+      {currentTab === "borrower-charts" && (
+        <BorrowerChartsTab
+          borrowerAddress={profileAddress}
+          chainId={chainId}
+          analytics={borrowerAnalyticsQuery.data}
+          isAnalyticsLoading={
+            analyticsAvailable && borrowerAnalyticsQuery.isLoading
+          }
+          analyticsAvailable={analyticsAvailable}
+        />
+      )}
+
+      {currentTab === "description" && (
+        <LegalInfoTab
+          profileAddress={profileAddress}
+          chainId={chainId}
+          type={type}
+          markets={borrowerMarkets ?? []}
+          isMobile={isMobile}
+        />
+      )}
+
+      <Box sx={{ marginTop: "auto" }}>
+        <Footer showFooter={false} showDivider={false} />
+      </Box>
     </Box>
   )
 }

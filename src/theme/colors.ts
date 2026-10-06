@@ -39,6 +39,7 @@ export const COLORS = {
 
   butteredRum: "#9E7A11",
   galliano: "#D7A820",
+  lemonPie: "#F9CF53",
   oasis: "#FBEDC3",
 
   ultramarineBlue: "#3E68FF",

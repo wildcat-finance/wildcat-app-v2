@@ -1,0 +1,119 @@
+export type LenderProfileAnalytics = {
+  address: string
+  firstDeposit: string
+  timeOnProtocol: string
+  activePositions: number
+  totalPositions: number
+  assetsUsed: string[]
+  totalBalance: number
+  totalDeposited: number
+  totalInterestEarned: number
+  effectiveYield: number
+}
+
+export type LenderPositionRow = {
+  id: string
+  marketId: string
+  marketName: string
+  borrower: string
+  asset: string
+  assetDecimals: number
+  currentBalance: number
+  currentTokenBalance: number
+  totalDeposited: number
+  interestEarned: number
+  // Lifetime interest in native token units (raw decimal string), for CSV export.
+  interestEarnedNative: string
+  apr: number
+  utilization: number
+  status: "Active" | "Delinquent" | "Penalty" | "Closed"
+  // Fixed-term maturity in unix seconds; 0 means an open-term market.
+  termEndTime: number
+  addedDate: string
+}
+
+export type LenderPositionsData = {
+  profile: LenderProfileAnalytics
+  positions: LenderPositionRow[]
+  marketIds: string[]
+  decimalsMap: Record<string, number>
+  priceMap: Record<string, number>
+}
+
+export type LenderActivityRow = {
+  id: string
+  date: string
+  timestamp: number
+  market: string
+  marketId: string
+  type: "Deposit" | "Withdrawal Request" | "Withdrawal Execution"
+  amountUsd: number
+  txHash: string
+}
+
+export type LenderCashFlowPoint = {
+  date: string
+  dateShort: string
+  timestamp: number
+  cumDeposits: number
+  cumWithdrawals: number
+  netFlow: number
+}
+
+export type LenderActivityData = {
+  activity: LenderActivityRow[]
+  cashFlow: LenderCashFlowPoint[]
+}
+
+export type LenderBatchRow = {
+  id: string
+  marketId: string
+  marketName: string
+  requested: number
+  withdrawn: number
+  remaining: number
+  isCompleted: boolean
+  isClosed: boolean
+  isExpired: boolean
+  expiry: string
+  // Batch creation time (unix seconds) and the creation transaction hash.
+  createdAt: number
+  txHash: string
+}
+
+export type LenderCapitalAtRiskPoint = {
+  date: string
+  dateShort: string
+  timestamp: number
+  healthyUsd: number
+  graceUsd: number
+  penaltyUsd: number
+  withdrawalQueueUsd: number
+  cumulativeDelinquencyFeesEarnedUsd: number
+}
+
+export type LenderRiskReturnsPoint = {
+  date: string
+  dateShort: string
+  timestamp: number
+  cumulativeInterestUsd: number
+  depositsUsd: number
+  cumulativeNetDepositsUsd: number
+  otherWithdrawalsUsd: number
+  lenderWithdrawalsUsd: number
+  marketWithdrawalsUsd: number
+  lenderWithdrawalSharePct: number
+}
+
+export type LenderInterestBreakdownEntry = {
+  baseUsd: number
+  penaltyUsd: number
+  totalInterestUsd: number
+  inHandUsd: number
+  inProtocolUsd: number
+}
+
+export type LenderInterestBreakdown = {
+  portfolio: LenderInterestBreakdownEntry
+  byMarket: Record<string, LenderInterestBreakdownEntry>
+}

@@ -2,13 +2,13 @@
   "counts": {
     "bytes_binary": 4097562,
     "bytes_generated": 9015991,
-    "bytes_lockfile": 2178869,
+    "bytes_lockfile": 2191330,
     "files_skipped_unreadable": 0,
-    "files_walked": 1145
+    "files_walked": 1274
   },
   "entries": [
     {
-      "bytes": 2178869,
+      "bytes": 2191330,
       "category": "lockfile",
       "evidence": "lockfile name package-lock.json",
       "grade": "hard",

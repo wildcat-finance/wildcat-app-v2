@@ -110,7 +110,8 @@ describe("useGetMarket", () => {
 
     liveRead.resolve(liveUpdate)
 
-    await waitFor(() => expect(result.current.data).toBe(liveMarket))
+    await waitFor(() => expect(result.current.data).toEqual(liveMarket))
+    expect(result.current.data).not.toBe(liveMarket)
     expect(liveMarket.updateWith).toHaveBeenCalledWith(liveUpdate)
   })
 })

@@ -1,0 +1,123 @@
+"use client"
+
+import * as React from "react"
+
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+
+import { ROUTES } from "@/routes"
+
+export type ProfileTabDef<T extends string> = {
+  value: T
+  label: string
+  description: string
+}
+
+export type LenderProfileTab = "overview" | "capital" | "activity" | "markets"
+// | "lender-charts"
+export type BorrowerProfileTab =
+  | "overview"
+  | "delinquency"
+  | "borrower-charts"
+  | "description"
+
+export const LENDER_PROFILE_TABS: ProfileTabDef<LenderProfileTab>[] = [
+  {
+    value: "overview",
+    label: "Profile Overview",
+    description: "Profile, active positions, and borrower concentration.",
+  },
+  {
+    value: "capital",
+    label: "Capital & Yield",
+    description: "Deposits, withdrawals, cash flow, and batch status.",
+  },
+  {
+    value: "activity",
+    label: "Activity & History",
+    description: "All market history and return attribution.",
+  },
+  {
+    value: "markets",
+    label: "Markets",
+    description: "All market history and return attribution.",
+  },
+  // {
+  //   value: "lender-charts",
+  //   label: "[preview] lender charts",
+  //   description: "Yield, withdrawal pressure, and capital-at-risk history.",
+  // },
+]
+
+export const BORROWER_PROFILE_TABS: ProfileTabDef<BorrowerProfileTab>[] = [
+  {
+    value: "overview",
+    label: "Borrower Overview",
+    description: "Identity, aggregate KPIs, and active markets.",
+  },
+  {
+    value: "delinquency",
+    label: "Delinquency & Reliability",
+    description: "Delinquency track record and withdrawal analytics.",
+  },
+  {
+    value: "borrower-charts",
+    label: "Cost & debt trends",
+    description: "Cost of capital, aggregate debt, and cumulative interest.",
+  },
+  {
+    value: "description",
+    label: "Legal Info",
+    description: "",
+  },
+]
+
+export const useProfileTab = <T extends string>(
+  tabs: ProfileTabDef<T>[],
+  defaultTab: T,
+) => {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
+  const allowed = React.useMemo(
+    () => new Set(tabs.map((tab) => tab.value)),
+    [tabs],
+  )
+
+  const currentTab = React.useMemo<T>(() => {
+    const tab = searchParams.get("tab") as T | null
+    return tab && allowed.has(tab) ? tab : defaultTab
+  }, [searchParams, allowed, defaultTab])
+
+  const setCurrentTab = React.useCallback(
+    (nextTab: T) => {
+      const next = new URLSearchParams(searchParams.toString())
+      next.set("tab", nextTab)
+      router.replace(`${pathname}?${next.toString()}`, { scroll: false })
+    },
+    [router, pathname, searchParams],
+  )
+
+  return { currentTab, setCurrentTab }
+}
+
+export const resolveProfileTabs = (pathname: string) => {
+  if (pathname.includes(ROUTES.lender.profile)) {
+    return {
+      kind: "lender" as const,
+      tabs: LENDER_PROFILE_TABS,
+      defaultTab: "overview" as LenderProfileTab,
+    }
+  }
+  if (
+    pathname.includes(ROUTES.borrower.profile) ||
+    pathname.includes(ROUTES.profile.borrower)
+  ) {
+    return {
+      kind: "borrower" as const,
+      tabs: BORROWER_PROFILE_TABS,
+      defaultTab: "overview" as BorrowerProfileTab,
+    }
+  }
+  return null
+}

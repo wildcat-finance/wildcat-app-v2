@@ -49,6 +49,8 @@ export const OverallBlock = ({
   marketsAmount,
   externalChainId,
   defaults,
+  borrowed,
+  extraItems,
   isPage,
 }: OverallBlockProps) => {
   const { t } = useTranslation()
@@ -108,7 +110,7 @@ export const OverallBlock = ({
     ),
     makeInformationItem(
       t("borrowerProfile.profile.overallInfo.borrowed"),
-      "[Coming Soon]",
+      borrowed ?? "[Coming Soon]",
     ),
     makeInformationItem(
       t("borrowerProfile.profile.overallInfo.defaults.title"),
@@ -122,6 +124,7 @@ export const OverallBlock = ({
         link: url.url,
       }),
     ),
+    ...(extraItems ?? []),
   ]
 
   const existingData = profileInfo.filter(
@@ -160,11 +163,15 @@ export const OverallBlock = ({
 
   return (
     <Box>
-      <Typography variant={isPage ? "title3" : "text2Highlighted"}>
+      <Typography
+        variant={isPage ? "title2" : "text2Highlighted"}
+        display="block"
+        sx={isPage ? { marginBottom: "24px" } : undefined}
+      >
         {t("borrowerProfile.profile.overallInfo.title")}
       </Typography>
 
-      <Box sx={{ ...InfoContainer, marginTop: isPage ? "24px" : "16px" }}>
+      <Box sx={{ ...InfoContainer, marginTop: isPage ? "0" : "16px" }}>
         <Box sx={InfoColumn}>
           {leftColumn.map((item) => (
             <Box key={`left-${item.title}`}>

@@ -23,8 +23,9 @@ export const AprChip = ({
   adsComponent,
 }: AprChipProps) => {
   const isMobile = useMobileResolution()
+  const baseAprString = baseApr.includes("%") ? baseApr : `${baseApr}%`
 
-  if (!isBonus) return `${baseApr}%`
+  if (!isBonus) return baseAprString
 
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: "2px" }}>
@@ -47,7 +48,7 @@ export const AprChip = ({
           }}
         >
           <Typography variant={isMobile ? "text4" : "text3"}>
-            {baseApr}%
+            {baseAprString}
           </Typography>
         </Box>
 

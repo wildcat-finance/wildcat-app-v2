@@ -1,6 +1,6 @@
 {
   "counts": {
-    "bytes_asset": 204371,
+    "bytes_asset": 210488,
     "bytes_binary": 102801,
     "bytes_blob": 186479,
     "bytes_generated": 302032
@@ -301,6 +301,34 @@
       "path": "src/assets/icons/check_icon.svg"
     },
     {
+      "bytes": 506,
+      "category": "asset",
+      "evidence": "svg root element in the first 4096 bytes",
+      "grade": "candidate",
+      "path": "src/assets/icons/chipBlueCheck_icon.svg"
+    },
+    {
+      "bytes": 1573,
+      "category": "asset",
+      "evidence": "svg root element in the first 4096 bytes",
+      "grade": "candidate",
+      "path": "src/assets/icons/chipEmptyGrey_icon.svg"
+    },
+    {
+      "bytes": 600,
+      "category": "asset",
+      "evidence": "svg root element in the first 4096 bytes",
+      "grade": "candidate",
+      "path": "src/assets/icons/chipGreyCross_icon.svg"
+    },
+    {
+      "bytes": 908,
+      "category": "asset",
+      "evidence": "svg root element in the first 4096 bytes",
+      "grade": "candidate",
+      "path": "src/assets/icons/chipYellowAlert_icon.svg"
+    },
+    {
       "bytes": 896,
       "category": "asset",
       "evidence": "svg root element in the first 4096 bytes",
@@ -425,6 +453,13 @@
       "evidence": "svg root element in the first 4096 bytes",
       "grade": "candidate",
       "path": "src/assets/icons/edit_icon.svg"
+    },
+    {
+      "bytes": 205,
+      "category": "asset",
+      "evidence": "svg root element in the first 4096 bytes",
+      "grade": "candidate",
+      "path": "src/assets/icons/expand_icon.svg"
     },
     {
       "bytes": 2853,
@@ -579,6 +614,13 @@
       "evidence": "svg root element in the first 4096 bytes",
       "grade": "candidate",
       "path": "src/assets/icons/oneOfMany_icon.svg"
+    },
+    {
+      "bytes": 2325,
+      "category": "asset",
+      "evidence": "svg root element in the first 4096 bytes",
+      "grade": "candidate",
+      "path": "src/assets/icons/paper_icon.svg"
     },
     {
       "bytes": 1618,

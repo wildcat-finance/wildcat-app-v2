@@ -1,21 +1,10 @@
 import { Market, TokenAmount, minTokenAmount } from "@wildcatfi/wildcat-sdk"
 import { BigNumber } from "ethers"
-import { formatEther } from "ethers/lib/utils"
 
 import { MarketBarChartItem } from "@/components/BarChart/BarItem/interface"
+import { getTokenAmountPercentageWidth } from "@/components/BarChart/tokenAmountPercent"
 
 import { MARKET_BAR_DATA } from "../constants"
-
-const ONE_HUNDRED_E18 = BigNumber.from(10).pow(20)
-const getPercentageTokenAmount = (total: TokenAmount, amount: TokenAmount) =>
-  total.eq(0)
-    ? 0
-    : parseFloat(formatEther(amount.raw.mul(ONE_HUNDRED_E18).div(total.raw)))
-
-const getTokenAmountPercentageWidth = (
-  total: TokenAmount,
-  amount: TokenAmount,
-) => `${getPercentageTokenAmount(total, amount)}`
 
 export const useGenerateDebtsBarData = ({
   market,
