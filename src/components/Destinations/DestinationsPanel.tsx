@@ -39,7 +39,10 @@ const SUBTLE_CHIP_BG: Record<DestinationRowsVariant, string> = {
   section: COLORS.blackHaze,
 }
 
-const PLATFORM_LOGOS: Record<Destination["platform"], typeof MorphoLogo> = {
+export const PLATFORM_LOGOS: Record<
+  Destination["platform"],
+  typeof MorphoLogo
+> = {
   "morpho-blue": MorphoLogo,
 }
 
@@ -58,7 +61,7 @@ const formatCycle = (t: TFunction, seconds: number) => {
   return t("destinations.panel.cycleMinutes", { count: minutes })
 }
 
-const formatLoopMultiple = (lltv: number) => {
+export const formatLoopMultiple = (lltv: number) => {
   const bps = Math.round(lltv * 10_000)
   return bps > 0 && bps < 10_000
     ? (Math.floor(100_000 / (10_000 - bps)) / 10).toFixed(1)

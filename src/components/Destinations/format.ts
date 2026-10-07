@@ -29,6 +29,15 @@ export const formatLiquidity = (
   return amountUsd === null ? tokens : `${tokens} (${usd.format(amountUsd)})`
 }
 
+export const formatLiquidityShort = (
+  amount: number,
+  symbol: string,
+  amountUsd: number | null,
+) =>
+  amountUsd === null
+    ? `${compact.format(amount)} ${symbol}`
+    : usd.format(amountUsd)
+
 export const formatDataAge = (t: TFunction, asOfSec: number) => {
   const minutes = Math.max(0, Math.floor((Date.now() / 1000 - asOfSec) / 60))
   if (minutes < 1) return t("destinations.time.justNow")

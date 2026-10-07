@@ -1,3 +1,5 @@
+import type { ReactNode } from "react"
+
 import {
   DepositStatus,
   MarketAccount,
@@ -47,4 +49,5 @@ export type OtherMarketsTableProps = {
     composableOnly?: boolean
   }
   destinationsByMarket?: Record<string, Destination[]>
+  mobileHeader?: ReactNode
 }

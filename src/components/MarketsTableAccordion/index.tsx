@@ -28,6 +28,8 @@ export const MarketsTableAccordion = ({
   statusFilter,
   nameFilter,
 
+  minContentWidth,
+
   children,
 }: MarketsTableAccordionProps) => {
   const defaultFilters =
@@ -35,9 +37,22 @@ export const MarketsTableAccordion = ({
 
   const { t } = useTranslation()
 
-  return (
-    <Accordion defaultExpanded={isOpen}>
-      <AccordionSummary>
+  const accordion = (
+    <Accordion
+      defaultExpanded={isOpen}
+      sx={
+        minContentWidth
+          ? { minWidth: `${minContentWidth}px !important` }
+          : undefined
+      }
+    >
+      <AccordionSummary
+        sx={
+          minContentWidth
+            ? { position: "sticky", left: 0, width: "100cqw" }
+            : undefined
+        }
+      >
         <Box display="flex" columnGap="4px">
           <Typography variant="text3">{label}</Typography>
           <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
@@ -110,4 +125,8 @@ export const MarketsTableAccordion = ({
       {!isLoading && marketsLength !== 0 && children}
     </Accordion>
   )
+
+  if (!minContentWidth) return accordion
+
+  return <Box sx={{ containerType: "inline-size" }}>{accordion}</Box>
 }

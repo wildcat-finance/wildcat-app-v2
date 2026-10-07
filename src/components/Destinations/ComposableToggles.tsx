@@ -49,6 +49,7 @@ export const ComposableChip = ({
           expanded ? COLORS.hawkesBlue : COLORS.whiteLilac
         }`,
         backgroundColor: expanded ? COLORS.glitter : COLORS.athensGrey,
+        fontFamily: "inherit",
         "&.Mui-focusVisible": {
           outline: `2px solid ${COLORS.ultramarineBlue}`,
           outlineOffset: "-2px",
@@ -58,15 +59,7 @@ export const ComposableChip = ({
         },
       }}
     >
-      <Typography
-        sx={{
-          fontSize: "13px",
-          lineHeight: "20px",
-          fontWeight: 500,
-          color,
-          whiteSpace: "nowrap",
-        }}
-      >
+      <Typography variant="text3" sx={{ color, whiteSpace: "nowrap" }}>
         {t("destinations.chip", { count })}
       </Typography>
       <SvgIcon
@@ -105,7 +98,7 @@ export const ComposableCardFooter = ({
       <Box
         component="span"
         sx={{
-          fontSize: "11px",
+          fontSize: { xs: "10px", md: "11px" },
           lineHeight: "16px",
           fontWeight: 600,
           color,
@@ -120,7 +113,9 @@ export const ComposableCardFooter = ({
           fontSize: "12px",
           transform: expanded ? "rotate(180deg)" : "none",
           transition: "transform 200ms ease",
-          "& path": { fill: color },
+          "& path": {
+            fill: active ? COLORS.ultramarineBlue : COLORS.santasGrey,
+          },
         }}
       >
         <DownArrow />
@@ -133,7 +128,6 @@ export const ComposableCardFooter = ({
       sx={{
         display: "flex",
         justifyContent: "center",
-        padding: "4px 0",
       }}
     >
       {active ? (
@@ -150,9 +144,11 @@ export const ComposableCardFooter = ({
           sx={{
             display: "inline-flex",
             alignItems: "center",
+            justifyContent: "center",
             gap: "3px",
+            width: "100%",
             margin: 0,
-            padding: 0,
+            padding: "10px 0 0",
             border: "none",
             borderRadius: "4px",
             background: "none",
@@ -169,7 +165,12 @@ export const ComposableCardFooter = ({
       ) : (
         <Box
           component="span"
-          sx={{ display: "inline-flex", alignItems: "center", gap: "3px" }}
+          sx={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "3px",
+            padding: "10px 0 0",
+          }}
         >
           {content}
         </Box>

@@ -18,5 +18,7 @@ export type MarketsTableAccordionProps = {
   assetFilter?: SmallFilterSelectItem[]
   nameFilter?: string
 
+  minContentWidth?: number
+
   children: ReactNode
 }

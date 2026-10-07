@@ -558,6 +558,18 @@ export default function LenderMarketDetails({
             )}
           </Box>
 
+          {destinations.length > 0 && (
+            <Box id="destinations">
+              <MarketDestinationsSection
+                chainId={market.chainId}
+                marketAddress={market.address}
+                marketSymbol={market.marketToken.symbol}
+                aprBips={market.annualInterestBips}
+                withdrawalBatchDuration={market.withdrawalBatchDuration}
+              />
+            </Box>
+          )}
+
           {hasMarketDescription && (
             <Box id="marketDescription">
               <MarketSummary
@@ -577,18 +589,6 @@ export default function LenderMarketDetails({
               hasWrapper={hasWrapper}
             />
           </Box>
-
-          {destinations.length > 0 && (
-            <Box id="destinations">
-              <MarketDestinationsSection
-                chainId={market.chainId}
-                marketAddress={market.address}
-                marketSymbol={market.marketToken.symbol}
-                aprBips={market.annualInterestBips}
-                withdrawalBatchDuration={market.withdrawalBatchDuration}
-              />
-            </Box>
-          )}
 
           <Box id="requests">
             <WithdrawalRequests

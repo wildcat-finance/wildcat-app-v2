@@ -1725,6 +1725,7 @@
     "chip_one": "{{count}} destination",
     "chip_other": "{{count}} destinations",
     "cardToggle": "{{count}} composable",
+    "cardToggle_zero": "No composable",
     "composableOnly": "Composable only",
     "noComposableMarkets": "No composable markets match these filters",
     "panel": {
@@ -1766,7 +1767,9 @@
       "type": "Type & Mechanics",
       "lltv": "LLTV",
       "borrowApy": "Borrow APY",
-      "riskFlag": "Risk flag"
+      "riskFlag": "Risk flag",
+      "borrowableNow": "Borrowable now",
+      "mechanicsAndRisks": "Mechanics and Risks"
     },
     "riskFlags": {
       "affiliated": "Affiliated",
@@ -1803,7 +1806,9 @@
       "THIN_LIQUIDITY": "Low liquidity"
     },
     "section": {
-      "title": "Destinations",
+      "title": "Composability",
+      "seeMore": "See More",
+      "seeLess": "See Less",
       "empty": "No third-party platform accepts this market's token right now.",
       "error": "Destinations are unavailable right now. Try again later."
     },

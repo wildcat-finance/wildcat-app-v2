@@ -8,15 +8,25 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
 const CHIP_SIZE_STYLES = {
-  small: {
+  tiny: {
     avatar: "12px",
     gap: "4px",
-    padding: "0 8px 0 2px",
+    padding: "1px 8px 1px 2px",
     radius: "12px",
     initialFont: "6px",
     initialLineHeight: "8px",
-    fontSize: "11px",
-    lineHeight: "16px",
+    fontSize: "10px",
+    lineHeight: "14px",
+  },
+  small: {
+    avatar: "12px",
+    gap: "5px",
+    padding: "2px 7px 2px 5px",
+    radius: "10px",
+    initialFont: "6px",
+    initialLineHeight: "8px",
+    fontSize: "10px",
+    lineHeight: "14px",
   },
   default: {
     avatar: "12px",
@@ -56,7 +66,7 @@ export const BorrowerProfileChip = ({
   href,
 }: {
   borrower: string | undefined
-  size?: "small" | "default" | "medium" | "large"
+  size?: "tiny" | "small" | "default" | "medium" | "large"
   href?: string
 }) => {
   const isMobile = useMobileResolution()
@@ -131,6 +141,7 @@ export const BorrowerProfileChip = ({
         sx={{
           minWidth: 0,
           overflow: "hidden",
+          ...(size === "tiny" && { color: COLORS.blackRock }),
           fontSize: sizeStyles.fontSize,
           lineHeight: sizeStyles.lineHeight,
           textOverflow: "ellipsis",

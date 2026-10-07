@@ -19,6 +19,7 @@ import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import {
   ComposableChipCell,
+  COMPOSABLE_GRID_RESIZE_THROTTLE_MS,
   ComposableExpansionProvider,
   ComposableRowPanel,
 } from "@/components/Destinations"
@@ -31,6 +32,7 @@ import { setScrollTarget } from "@/store/slices/lenderDashboardSlice/lenderDashb
 import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import { pageCalcHeights } from "@/utils/constants"
+import { getGridMinWidth } from "@/utils/dataGrid"
 import {
   buildMarketHref,
   formatSecsToHours,
@@ -44,7 +46,7 @@ import {
   TerminatedMarketsTableModel,
   TerminatedMarketsTableProps,
 } from "./interface"
-import { DataGridSx } from "../style"
+import { DATA_GRID_SIDE_PADDING, DataGridSx } from "../style"
 
 const MarketLinkRow = (props: GridRowProps) => (
   <>
@@ -336,6 +338,8 @@ export const TerminatedMarketsTables = ({
     },
   ]
 
+  const gridMinWidth = getGridMinWidth(columns, 2 * DATA_GRID_SIDE_PADDING)
+
   if (isMobile)
     return (
       <>
@@ -365,6 +369,7 @@ export const TerminatedMarketsTables = ({
       >
         <Box id="prev-active" ref={prevActiveRef}>
           <MarketsTableAccordion
+            minContentWidth={gridMinWidth}
             label={t("dashboard.markets.tables.borrower.closed.prevActive")}
             marketsLength={prevActive.length}
             isLoading={isLoading}
@@ -388,6 +393,7 @@ export const TerminatedMarketsTables = ({
               disableVirtualization
               sx={clickableGridSx}
               rowHeight={66}
+              resizeThrottleMs={COMPOSABLE_GRID_RESIZE_THROTTLE_MS}
               rows={prevActive}
               columns={columns}
               columnHeaderHeight={40}
@@ -398,6 +404,7 @@ export const TerminatedMarketsTables = ({
 
         <Box id="never-active" ref={neverActiveRef}>
           <MarketsTableAccordion
+            minContentWidth={gridMinWidth}
             label={t("dashboard.markets.tables.borrower.closed.neverActive")}
             isLoading={isLoading}
             isOpen
@@ -421,6 +428,7 @@ export const TerminatedMarketsTables = ({
               disableVirtualization
               sx={clickableGridSx}
               rowHeight={66}
+              resizeThrottleMs={COMPOSABLE_GRID_RESIZE_THROTTLE_MS}
               rows={neverActive}
               columns={columns}
               columnHeaderHeight={40}

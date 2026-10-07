@@ -13,7 +13,10 @@ import {
   RecentDepositsData,
   useRecentDeposits,
 } from "@/app/[locale]/lender/hooks/useRecentDeposits"
-import { DestinationsPanel } from "@/components/Destinations"
+import {
+  DestinationsPanel,
+  MobileDestinationsPanel,
+} from "@/components/Destinations"
 import { useDestinations } from "@/hooks/destinations/useDestinations"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
@@ -583,13 +586,19 @@ export const TrendingMarketsCarousel = () => {
     )
   }, [slots.length])
 
+  const lastMobileSlot = useRef(activeMobileSlot)
+  useEffect(() => {
+    if (lastMobileSlot.current === activeMobileSlot) return
+    lastMobileSlot.current = activeMobileSlot
+    setExpandedSlotKey(null)
+  }, [activeMobileSlot])
+
   usePeekOnFirstVisit(
     dragScroll.ref,
     !isMobile && !isLoading && slots.length > 0,
   )
 
-  const showComposableFooter =
-    !isMobile && Object.keys(destinationsByMarket).length > 0
+  const showComposableFooter = Object.keys(destinationsByMarket).length > 0
 
   const expandedSlot =
     showComposableFooter && !isLoading && expandedSlotKey !== null
@@ -729,7 +738,7 @@ export const TrendingMarketsCarousel = () => {
                 (key, index) => (
                   <Skeleton
                     key={key}
-                    height="341px"
+                    height={showComposableFooter ? "385px" : "341px"}
                     sx={{
                       flex: "0 0 70%",
                       minWidth: "222px",
@@ -802,6 +811,31 @@ export const TrendingMarketsCarousel = () => {
             })}
           </Box>
         )}
+
+        <Collapse
+          in={isPanelOpen}
+          timeout={250}
+          onExited={() => setPanelSlotKey(null)}
+          unmountOnExit
+        >
+          <Fade in={isPanelOpen} timeout={250}>
+            <Box sx={{ padding: "4px 8px 0" }}>
+              {panelSlot && panelDestinations.length > 0 && (
+                <MobileDestinationsPanel
+                  id={TRENDING_PANEL_ID}
+                  destinations={panelDestinations}
+                  stale={stale}
+                  marketSymbol={panelSlot.account.market.marketToken.symbol}
+                  aprBips={panelSlot.account.market.annualInterestBips}
+                  withdrawalBatchDuration={
+                    panelSlot.account.market.withdrawalBatchDuration
+                  }
+                  onClose={closeComposablePanel}
+                />
+              )}
+            </Box>
+          </Fade>
+        </Collapse>
       </Box>
     )
 
@@ -835,7 +869,7 @@ export const TrendingMarketsCarousel = () => {
               (key, index) => (
                 <Skeleton
                   key={key}
-                  height={showComposableFooter ? "305px" : "277px"}
+                  height={showComposableFooter ? "323px" : "297px"}
                   sx={{
                     flex: "1 0 222px",
                     minWidth: "222px",

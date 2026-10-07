@@ -6,9 +6,9 @@ import * as React from "react"
 import {
   Box,
   Button,
+  ButtonBase,
   FormControlLabel,
   Skeleton,
-  SvgIcon,
   Typography,
 } from "@mui/material"
 import {
@@ -27,7 +27,6 @@ import { useTranslation } from "react-i18next"
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
-import ArrowRightIcon from "@/assets/icons/arrowRight_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
@@ -39,6 +38,7 @@ import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import {
   ComposableChipCell,
+  COMPOSABLE_GRID_RESIZE_THROTTLE_MS,
   ComposableExpansionProvider,
   ComposableOnlySwitch,
   ComposableRowPanel,
@@ -118,7 +118,6 @@ const MAX_GRID_PAGE_SIZE = 100
 // recomputed on resize. These mirror the DataGrid row/header sizes.
 const GRID_ROW_HEIGHT = 66
 const GRID_HEADER_HEIGHT = 36
-// "Go to All Markets" button + its 14px top margin + page bottom padding
 const GRID_RESERVED_BELOW = 78
 
 const DATA_GRID_MIN_HEIGHT = "102px"
@@ -146,6 +145,9 @@ export const DataGridSx = {
   "& .MuiDataGrid-virtualScrollerRenderZone": {
     position: "static !important" as const,
     transform: "none !important",
+  },
+  "& .MuiDataGrid-scrollbar, & .MuiDataGrid-scrollbarFiller": {
+    display: "none",
   },
   "& .MuiDataGrid-columnHeaders": {
     position: "sticky",
@@ -205,7 +207,6 @@ const ExploreFilterSelectsSx = {
 
 const ActionButtonSx = {
   color: COLORS.blackRock,
-  "& .MuiButton-endIcon": { marginLeft: "4px", marginRight: 0 },
 }
 
 export type LenderOtherMarketsTableModel = {
@@ -231,14 +232,6 @@ export type LenderOtherMarketsTableModel = {
 
 // Native 11×9 box — sizing via fontSize puts the arrow in a square em-box,
 // letterboxing it off the label's optical center
-const ActionArrowIcon = (
-  <SvgIcon
-    component={ArrowRightIcon}
-    inheritViewBox
-    sx={{ width: "11px", height: "9px", "& path": { stroke: "currentColor" } }}
-  />
-)
-
 const MarketClickableRow = (props: GridRowProps) => {
   const router = useRouter()
   const href = buildMarketHref(props.row.id, props.row.chainId)
@@ -322,6 +315,16 @@ export const ExploreMarketsTable = () => {
   ])
 
   const gridWrapRef = useRef<HTMLDivElement>(null)
+  const mobileListRef = useRef<HTMLDivElement>(null)
+  const mobileRevealFrom = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (mobileRevealFrom.current === null) return
+    mobileListRef.current
+      ?.querySelectorAll<HTMLElement>("[data-market-card-link]")
+      [mobileRevealFrom.current]?.focus()
+    mobileRevealFrom.current = null
+  }, [visibleMobileRows])
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: EXPLORE_PAGE_SIZE,
@@ -532,9 +535,6 @@ export const ExploreMarketsTable = () => {
   )
 
   const showComposableToggle = composableCount > 0 || showComposableOnly
-  const composableLabel = `${t(
-    "destinations.composableOnly",
-  )} (${composableCount})`
   const hasAnyDestinations = Object.keys(destinationsByMarket).length > 0
 
   // Stable identity: a fresh columns array makes the DataGrid rebuild column
@@ -831,8 +831,8 @@ export const ExploreMarketsTable = () => {
         sortable: false,
         field: "button",
         headerName: "",
-        flex: 112,
-        minWidth: 112,
+        flex: 97,
+        minWidth: 97,
         headerAlign: "right",
         align: "right",
         renderCell: (params) => {
@@ -848,7 +848,6 @@ export const ExploreMarketsTable = () => {
                   size="small"
                   variant="contained"
                   color="secondary"
-                  endIcon={ActionArrowIcon}
                   sx={ActionButtonSx}
                 >
                   {t("dashboard.markets.tables.other.depositBTN")}
@@ -865,7 +864,6 @@ export const ExploreMarketsTable = () => {
                     size="small"
                     variant="contained"
                     color="secondary"
-                    endIcon={ActionArrowIcon}
                     sx={ActionButtonSx}
                   >
                     {t("dashboard.markets.tables.other.requestBTN")}
@@ -901,36 +899,110 @@ export const ExploreMarketsTable = () => {
           flexDirection: "column",
           gap: "4px",
           paddingBottom: "8px",
-          backgroundColor: "transparent",
         }}
       >
         <Box
+          ref={mobileListRef}
           sx={{
-            backgroundColor: COLORS.white,
-            borderRadius: "0 0 14px 14px",
-            padding: "16px 0 12px",
+            display: "flex",
+            flexDirection: "column",
             // Overlap the carousel card above by 1px: at fractional display
             // scales the flush white-on-white edge otherwise renders as a
             // hairline seam over the dark page background
             marginTop: "-1px",
+            padding: "0 8px 8px",
+            borderRadius: "0 0 14px 14px",
+            backgroundColor: COLORS.white,
           }}
         >
+          <Typography
+            sx={{
+              padding: "32px 8px 8px",
+              color: COLORS.bunker,
+              fontSize: "18px",
+              fontWeight: 500,
+              lineHeight: "24px",
+              letterSpacing: "-0.36px",
+            }}
+          >
+            Top Markets
+          </Typography>
+
           <Box
             sx={{
               display: "flex",
-              justifyContent: "space-between",
               alignItems: "center",
-              padding: "0 16px",
-              marginBottom: "12px",
+              gap: "6px",
+              padding: "4px 0 12px",
+              overflowX: "auto",
+              scrollbarWidth: "none",
+              "&::-webkit-scrollbar": { display: "none" },
             }}
           >
-            <Typography
-              sx={{ fontSize: "20px", fontWeight: 500, lineHeight: "26px" }}
-            >
-              Top Markets
-            </Typography>
+            {isLoading ? (
+              <RepeatingSkeletons
+                itemsLength={4}
+                skeletonSX={{
+                  height: "28px",
+                  width: "90px",
+                  flexShrink: 0,
+                  borderRadius: "20px",
+                }}
+              />
+            ) : (
+              SORT_OPTIONS.map((option) => (
+                <ButtonBase
+                  key={option}
+                  disableRipple
+                  onClick={() => handleSortModeChange(option)}
+                  aria-pressed={sortMode === option}
+                  sx={{
+                    flexShrink: 0,
+                    padding: sortMode === option ? "4px 12px" : "0 2px",
+                    borderRadius: "20px",
+                    backgroundColor:
+                      sortMode === option ? COLORS.athensGrey : "transparent",
+                    color: COLORS.blackRock,
+                    fontFamily: "inherit",
+                    fontSize: "12px",
+                    fontWeight: sortMode === option ? 600 : 500,
+                    lineHeight: "20px",
+                    whiteSpace: "nowrap",
+                    "&.Mui-focusVisible": {
+                      outline: `2px solid ${COLORS.ultramarineBlue}`,
+                      outlineOffset: "1px",
+                    },
+                  }}
+                >
+                  {option}
+                </ButtonBase>
+              ))
+            )}
+          </Box>
 
-            <Box sx={{ display: "flex", gap: "4px" }}>
+          <Box
+            sx={{
+              minHeight: "48px",
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "4px 2px",
+              padding: "7px 0",
+              borderTop: `1px solid ${COLORS.whiteLilac}`,
+              borderBottom: `1px solid ${COLORS.whiteLilac}`,
+            }}
+          >
+            {showComposableToggle ? (
+              <ComposableOnlySwitch
+                checked={showComposableOnly}
+                onChange={setShowComposableOnly}
+              />
+            ) : (
+              <Box />
+            )}
+
+            <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
               <MobileFilterButton
                 assetsOptions={
                   tokens?.map((token) => ({
@@ -950,15 +1022,6 @@ export const ExploreMarketsTable = () => {
                 showOnboardByBorrower={showOnboardByBorrower}
                 setShowSelfOnboard={setShowSelfOnboard}
                 setShowOnboardByBorrower={setShowOnboardByBorrower}
-                composableOnly={
-                  showComposableToggle
-                    ? {
-                        label: composableLabel,
-                        checked: showComposableOnly,
-                        onChange: setShowComposableOnly,
-                      }
-                    : undefined
-                }
               />
 
               <MobileSearchButton
@@ -972,95 +1035,44 @@ export const ExploreMarketsTable = () => {
             </Box>
           </Box>
 
-          <Box
-            sx={{
-              display: "flex",
-              gap: "6px",
-              alignItems: "center",
-              padding: "0 6px",
-            }}
-          >
-            {isLoading ? (
+          {isLoading ? (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+                paddingTop: "8px",
+              }}
+            >
               <RepeatingSkeletons
-                itemsLength={4}
-                skeletonSX={{
-                  height: "24px",
-                  width: "90px",
-                  borderRadius: "20px",
-                }}
+                itemsLength={5}
+                skeletonSX={{ height: "130px", borderRadius: "10px" }}
               />
-            ) : (
-              SORT_OPTIONS.map((option) => (
-                <Box
-                  key={option}
-                  onClick={() => handleSortModeChange(option)}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: sortMode === option ? "2px 10px" : "2px",
-                    borderRadius: "20px",
-                    backgroundColor:
-                      sortMode === option ? COLORS.athensGrey : "transparent",
-                    cursor: "pointer",
-                    flexShrink: 0,
-                  }}
-                >
-                  <Typography
-                    variant="mobText3"
-                    sx={{
-                      color: COLORS.blackRock,
-                      fontWeight: sortMode === option ? 600 : 500,
-                      whiteSpace: "nowrap",
-                      lineHeight: "20px",
-                    }}
-                  >
-                    {option}
-                  </Typography>
-                </Box>
-              ))
-            )}
-          </Box>
-        </Box>
-
-        {isLoading ? (
-          <RepeatingSkeletons
-            itemsLength={5}
-            skeletonSX={{
-              height: "182px",
-              borderRadius: "14px",
-              backgroundColor: COLORS.white06,
-            }}
-          />
-        ) : (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "4px",
-            }}
-          >
-            {rows.map((marketItem) => (
+            </Box>
+          ) : (
+            rows.map((marketItem, index) => (
               <MobileMarketCard
                 key={marketItem.id}
                 marketItem={marketItem}
                 showDestinations
+                divider={index < rows.length - 1}
               />
-            ))}
-            {showComposableOnly && rows.length === 0 && (
-              <Typography
-                variant="mobText3"
-                sx={{
-                  color: COLORS.white,
-                  padding: "16px",
-                  textAlign: "center",
-                }}
-              >
-                {t("destinations.noComposableMarkets")}
-              </Typography>
-            )}
-          </Box>
-        )}
+            ))
+          )}
+
+          {!isLoading && showComposableOnly && rows.length === 0 && (
+            <Typography
+              variant="mobText3"
+              sx={{
+                color: COLORS.santasGrey,
+                padding: "16px",
+                textAlign: "center",
+              }}
+            >
+              {t("destinations.noComposableMarkets")}
+            </Typography>
+          )}
+        </Box>
 
         {!isLoading &&
           totalRows > 0 &&
@@ -1071,9 +1083,10 @@ export const ExploreMarketsTable = () => {
               color="secondary"
               size="large"
               fullWidth
-              onClick={() =>
+              onClick={(event) => {
+                if (event.detail === 0) mobileRevealFrom.current = rows.length
                 setVisibleMobileRows((count) => count + EXPLORE_PAGE_SIZE)
-              }
+              }}
               sx={{
                 alignSelf: "center",
                 bgcolor: COLORS.white03,
@@ -1262,7 +1275,7 @@ export const ExploreMarketsTable = () => {
         </Box>
       </Box>
 
-      <Box ref={gridWrapRef}>
+      <Box ref={gridWrapRef} sx={{ overflowX: "auto", overflowY: "hidden" }}>
         <MarketsTableWrapper
           marketsLength={rows.length}
           rowsLength={gridPaginationModel.pageSize}
@@ -1280,6 +1293,7 @@ export const ExploreMarketsTable = () => {
               disableVirtualization
               sx={DataGridSx}
               rowHeight={GRID_ROW_HEIGHT}
+              resizeThrottleMs={COMPOSABLE_GRID_RESIZE_THROTTLE_MS}
               rows={rows}
               columns={columns}
               columnHeaderHeight={GRID_HEADER_HEIGHT}

@@ -8,8 +8,8 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 import type { Destination } from "@/lib/destinations/types"
 import { COLORS } from "@/theme/colors"
 
-import { DestinationsList } from "./DestinationsList"
 import { DestinationRows, useDestinationsCopy } from "./DestinationsPanel"
+import { MobileDestinationsList } from "./MobileDestinationsList"
 
 type MarketDestinationsSectionProps = {
   chainId: number
@@ -165,26 +165,27 @@ export const MarketDestinationsSection = ({
       sx={{
         display: "flex",
         flexDirection: "column",
-        gap: "12px",
-        padding: "12px 16px 24px",
+        gap: "20px",
+        padding: "24px 16px 16px",
         backgroundColor: COLORS.white,
         borderRadius: "14px",
       }}
     >
       <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-        <Typography variant="mobH3">
+        <Typography
+          variant="mobH3"
+          sx={{ color: COLORS.blackRock, letterSpacing: "-0.36px" }}
+        >
           {t("destinations.section.title")}
         </Typography>
-        <Typography variant="mobText3" color={COLORS.santasGrey}>
-          {t("destinations.panel.subtitle")}
-        </Typography>
+        {destinations.length > 0 && (
+          <Typography variant="mobText3" color={COLORS.blackRock08}>
+            {t("destinations.chip", { count: destinations.length })}
+          </Typography>
+        )}
       </Box>
       {state ?? (
-        <DestinationsList
-          destinations={destinations}
-          stale={stale}
-          columns={2}
-        />
+        <MobileDestinationsList destinations={destinations} stale={stale} />
       )}
     </Box>
   )

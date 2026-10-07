@@ -51,6 +51,10 @@ export const ComposableExpansionProvider = ({
   )
 }
 
+const PANEL_TRANSITION_MS = 250
+
+export const COMPOSABLE_GRID_RESIZE_THROTTLE_MS = PANEL_TRANSITION_MS + 150
+
 const panelId = (rowId: string) => `composable-panel-${rowId.toLowerCase()}`
 
 export const ComposableChipCell = ({
@@ -125,7 +129,9 @@ export const ComposableRowPanel = ({
       ref={ref}
       role="row"
       sx={{
-        width: "var(--DataGrid-rowWidth)",
+        position: "sticky",
+        left: 0,
+        width: "min(var(--DataGrid-rowWidth), var(--DataGrid-width))",
         maxWidth: "100%",
         cursor: "default",
       }}
@@ -133,13 +139,13 @@ export const ComposableRowPanel = ({
       <Collapse
         appear
         in={expanded}
-        timeout={250}
+        timeout={PANEL_TRANSITION_MS}
         onEntered={() =>
           ref.current?.scrollIntoView({ block: "nearest", behavior: "smooth" })
         }
         onExited={() => setMounted(false)}
       >
-        <Fade in={expanded} timeout={250}>
+        <Fade in={expanded} timeout={PANEL_TRANSITION_MS}>
           <Box
             sx={{
               boxSizing: "border-box",
@@ -222,10 +228,10 @@ export const ComposableOnlySwitch = ({
       sx={{
         margin: 0,
         gap: "8px",
-        padding: "2px 12px",
+        padding: { xs: "3px 10px 3px 6px", md: "2px 12px" },
         borderRadius: "20px",
         "& .MuiFormControlLabel-label": {
-          fontSize: "13px",
+          fontSize: { xs: "12px", md: "13px" },
           lineHeight: "20px",
           fontWeight: 500,
           color: COLORS.blackRock,

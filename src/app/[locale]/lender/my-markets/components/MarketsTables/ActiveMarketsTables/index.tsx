@@ -25,6 +25,7 @@ import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import {
   ComposableChipCell,
+  COMPOSABLE_GRID_RESIZE_THROTTLE_MS,
   ComposableExpansionProvider,
   ComposableRowPanel,
 } from "@/components/Destinations"
@@ -40,6 +41,7 @@ import {
   typeComparator,
 } from "@/utils/comparators"
 import { pageCalcHeights } from "@/utils/constants"
+import { getGridMinWidth } from "@/utils/dataGrid"
 import {
   buildMarketHref,
   formatBps,
@@ -51,7 +53,7 @@ import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 import { ActiveMarketsTableModel, ActiveMarketsTableProps } from "./interface"
-import { DataGridSx } from "../style"
+import { DATA_GRID_SIDE_PADDING, DataGridSx } from "../style"
 
 const MarketLinkRow = (props: GridRowProps) => (
   <>
@@ -382,6 +384,8 @@ export const ActiveMarketsTables = ({
       : []),
   ]
 
+  const gridMinWidth = getGridMinWidth(columns, 2 * DATA_GRID_SIDE_PADDING)
+
   if (isMobile)
     return (
       <>
@@ -414,6 +418,7 @@ export const ActiveMarketsTables = ({
       >
         <Box id="deposited" ref={depositedRef}>
           <MarketsTableAccordion
+            minContentWidth={gridMinWidth}
             label={t("dashboard.markets.tables.borrower.active.deposited")}
             marketsLength={depositedMarkets.length}
             isLoading={isLoading}
@@ -437,6 +442,7 @@ export const ActiveMarketsTables = ({
               disableVirtualization
               sx={clickableGridSx}
               rowHeight={66}
+              resizeThrottleMs={COMPOSABLE_GRID_RESIZE_THROTTLE_MS}
               rows={depositedMarkets}
               columns={columns}
               columnHeaderHeight={40}
@@ -447,6 +453,7 @@ export const ActiveMarketsTables = ({
 
         <Box id="non-deposited" ref={nonDepositedRef}>
           <MarketsTableAccordion
+            minContentWidth={gridMinWidth}
             label={t("dashboard.markets.tables.borrower.active.nonDeposited")}
             isLoading={isLoading}
             isOpen
@@ -470,6 +477,7 @@ export const ActiveMarketsTables = ({
               disableVirtualization
               sx={clickableGridSx}
               rowHeight={66}
+              resizeThrottleMs={COMPOSABLE_GRID_RESIZE_THROTTLE_MS}
               rows={nonDepositedMarkets}
               columns={columns}
               columnHeaderHeight={40}

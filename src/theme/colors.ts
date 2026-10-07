@@ -49,6 +49,8 @@ export const COLORS = {
   cornflowerBlue05: "#6688FF80",
   hawkesBlue: "#D2DDFF",
   glitter: "#E4EBFE",
+  glitter07: "#E4EBFEB2",
+  zircon: "#F6F8FF",
   lightGreen: "#E4F5E0",
   caribbeanGreen: "#28CA7C",
 

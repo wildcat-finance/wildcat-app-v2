@@ -24,6 +24,7 @@ import {
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import {
+  COMPOSABLE_GRID_RESIZE_THROTTLE_MS,
   ComposableChipCell,
   ComposableExpansionProvider,
   ComposableRowPanel,
@@ -40,6 +41,7 @@ import {
   tokenAmountComparator,
   typeComparator,
 } from "@/utils/comparators"
+import { getGridMinWidth } from "@/utils/dataGrid"
 import {
   buildMarketHref,
   formatBps,
@@ -57,11 +59,14 @@ import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 import { OtherMarketsTableModel, OtherMarketsTableProps } from "./interface"
-import { DataGridSx } from "../style"
+import { DATA_GRID_SIDE_PADDING, DataGridSx } from "../style"
 
 const NO_DESTINATIONS_BY_MARKET: NonNullable<
   OtherMarketsTableProps["destinationsByMarket"]
 > = {}
+
+const COMPOSABLE_COLUMN_WIDTH = 136
+const ACTION_COLUMN_WIDTH = 89
 
 const MarketLinkRow = (props: GridRowProps) => (
   <>
@@ -99,6 +104,7 @@ export const OtherMarketsTable = ({
   isLoading,
   filters,
   destinationsByMarket = NO_DESTINATIONS_BY_MARKET,
+  mobileHeader,
 }: OtherMarketsTableProps) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
@@ -406,8 +412,7 @@ export const OtherMarketsTable = ({
           {
             field: "destinationsCount",
             headerName: t("destinations.column"),
-            minWidth: 128,
-            flex: 1,
+            width: COMPOSABLE_COLUMN_WIDTH,
             headerAlign: "right",
             align: "right",
             sortable: true,
@@ -426,8 +431,9 @@ export const OtherMarketsTable = ({
       sortable: false,
       field: "button",
       headerName: "",
-      minWidth: 100,
-      flex: 1,
+      ...(showComposableColumn
+        ? { width: ACTION_COLUMN_WIDTH }
+        : { minWidth: 100, flex: 1 }),
       headerAlign: "right",
       align: "right",
       renderCell: (params) => {
@@ -479,6 +485,8 @@ export const OtherMarketsTable = ({
     },
   ]
 
+  const gridMinWidth = getGridMinWidth(columns, 2 * DATA_GRID_SIDE_PADDING)
+
   const [selfOnboardPaginationModel, setSelfOnboardPaginationModel] =
     React.useState({
       pageSize: 50,
@@ -504,20 +512,28 @@ export const OtherMarketsTable = ({
     setTerminatedPaginationModel((prevState) => ({ ...prevState, page: 0 }))
   }, [assetFilter, statusFilter, nameFilter, composableOnly])
 
-  if (isMobile)
+  if (isMobile) {
+    const mobileMarkets = {
+      "self-onboard": selfOnboard,
+      manual,
+      "other-terminated": terminated,
+    }[scrollTargetId ?? ""]
+
+    if (!mobileMarkets) return null
+
     return (
-      <>
-        {scrollTargetId === "self-onboard" && (
-          <MobileMarketList markets={selfOnboard} isLoading={isLoading} />
-        )}
-        {scrollTargetId === "manual" && (
-          <MobileMarketList markets={manual} isLoading={isLoading} />
-        )}
-        {scrollTargetId === "other-terminated" && (
-          <MobileMarketList markets={terminated} isLoading={isLoading} />
-        )}
-      </>
+      <MobileMarketList
+        key={scrollTargetId}
+        markets={mobileMarkets}
+        isLoading={isLoading}
+        header={mobileHeader}
+        showDestinations
+        emptyTitle={
+          composableOnly ? t("destinations.noComposableMarkets") : undefined
+        }
+      />
     )
+  }
 
   return (
     <Box
@@ -536,6 +552,7 @@ export const OtherMarketsTable = ({
       <ComposableExpansionProvider>
         <Box id="self-onboard" ref={selfOnboardRef}>
           <MarketsTableAccordion
+            minContentWidth={gridMinWidth}
             label={t("dashboard.markets.tables.other.selfOnboard")}
             marketsLength={selfOnboard.length}
             isLoading={isLoading}
@@ -552,6 +569,7 @@ export const OtherMarketsTable = ({
               disableVirtualization
               sx={clickableGridSx}
               rowHeight={66}
+              resizeThrottleMs={COMPOSABLE_GRID_RESIZE_THROTTLE_MS}
               rows={selfOnboard}
               columns={columns}
               columnHeaderHeight={40}
@@ -567,6 +585,7 @@ export const OtherMarketsTable = ({
         </Box>
         <Box id="manual" ref={manualRef}>
           <MarketsTableAccordion
+            minContentWidth={gridMinWidth}
             label={t("dashboard.markets.tables.other.manual")}
             isLoading={isLoading}
             isOpen
@@ -583,6 +602,7 @@ export const OtherMarketsTable = ({
               disableVirtualization
               sx={clickableGridSx}
               rowHeight={66}
+              resizeThrottleMs={COMPOSABLE_GRID_RESIZE_THROTTLE_MS}
               rows={manual}
               columns={columns}
               columnHeaderHeight={40}
@@ -599,6 +619,7 @@ export const OtherMarketsTable = ({
 
         <Box id="other-terminated" ref={terminatedRef}>
           <MarketsTableAccordion
+            minContentWidth={gridMinWidth}
             label={t("dashboard.markets.tables.other.terminated")}
             marketsLength={terminated.length}
             isLoading={isLoading}
@@ -615,6 +636,7 @@ export const OtherMarketsTable = ({
               disableVirtualization
               sx={clickableGridSx}
               rowHeight={66}
+              resizeThrottleMs={COMPOSABLE_GRID_RESIZE_THROTTLE_MS}
               rows={terminated}
               columns={columns}
               columnHeaderHeight={40}
