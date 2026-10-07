@@ -1,22 +1,21 @@
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import type { Hex } from "viem"
 
-import { loadBorrowerIdentities, resolveAffiliation } from "./affiliation"
+import { loadBorrowerIdentities } from "./affiliation"
 import { getMorphoMarketParams, getWrappedMarkets } from "./chain"
 import { evaluateMorphoMarket, fetchMorphoMarkets } from "./morpho"
 import {
   CACHE_TTL_MS,
   FAILURE_BACKOFF_MS,
-  MAX_DATA_AGE_SEC,
-  MORPHO_CHAIN_IDS,
+  supportsDestinations,
 } from "../constants"
+import { pruneExpired } from "../freshness"
 import type { Destination, DestinationsResponse } from "../types"
 
 const nowSec = () => Math.floor(Date.now() / 1000)
 
 const emptyResponse = (chainId: number): DestinationsResponse => ({
   chainId,
-  generatedAt: nowSec(),
   stale: false,
   markets: {},
 })
@@ -56,47 +55,16 @@ const buildDestinations = async (
     )
     if (!entry) return
 
-    const candidate = evaluateMorphoMarket({
+    const destination = evaluateMorphoMarket({
       chainId,
       market: morphoMarket,
       wrapper: entry.wrapper,
       asset: entry.asset,
       onchain: onchainParams.get(morphoMarket.marketId.toLowerCase()),
+      borrower: borrowers.get(entry.borrower.toLowerCase()),
       nowSec: now,
     })
-    if (!candidate) return
-
-    const destination: Destination = {
-      id: `morpho-blue:${chainId}:${candidate.marketId.toLowerCase()}`,
-      route: "BORROW_AGAINST",
-      platform: "morpho-blue",
-      platformName: "Morpho",
-      venueId: candidate.marketId,
-      venueName: candidate.venueName,
-      title: candidate.leadVaultName ?? candidate.venueName,
-      token: {
-        address: candidate.collateral.address,
-        symbol: candidate.collateral.symbol,
-        form: "wrapper",
-      },
-      loanAsset: candidate.loanAsset,
-      url: candidate.url,
-      urlHost: new URL(candidate.url).host,
-      curators: candidate.curators,
-      affiliation: resolveAffiliation({
-        borrower: borrowers.get(entry.borrower.toLowerCase()),
-        vaults: candidate.vaults,
-      }),
-      figures: {
-        lltv: candidate.lltv,
-        borrowApy: candidate.borrowApy,
-        borrowApyWindow: "6h",
-        availableLiquidity: candidate.availableLiquidity,
-        availableLiquidityUsd: candidate.availableLiquidityUsd,
-        asOf: candidate.asOf,
-      },
-      notices: candidate.notices,
-    }
+    if (!destination) return
 
     const key = entry.market.toLowerCase()
     markets[key] = [...(markets[key] ?? []), destination]
@@ -105,27 +73,20 @@ const buildDestinations = async (
   Object.values(markets).forEach((destinations) =>
     destinations.sort(
       (a, b) =>
-        (b.figures.availableLiquidityUsd ?? 0) -
-        (a.figures.availableLiquidityUsd ?? 0),
+        b.figures.availableLiquidityUsd - a.figures.availableLiquidityUsd,
     ),
   )
 
-  return { chainId, generatedAt: now, stale: false, markets }
+  return { chainId, stale: false, markets }
 }
 
 const withoutExpired = (
   payload: DestinationsResponse,
-): DestinationsResponse => {
-  const now = nowSec()
-  const markets: Record<string, Destination[]> = {}
-  Object.entries(payload.markets).forEach(([market, destinations]) => {
-    const fresh = destinations.filter(
-      (destination) => now - destination.figures.asOf <= MAX_DATA_AGE_SEC,
-    )
-    if (fresh.length > 0) markets[market] = fresh
-  })
-  return { ...payload, stale: true, markets }
-}
+): DestinationsResponse => ({
+  ...payload,
+  stale: true,
+  markets: pruneExpired(payload.markets, nowSec()),
+})
 
 type CacheEntry = { payload: DestinationsResponse; storedAt: number }
 
@@ -136,9 +97,7 @@ const lastFailure = new Map<number, number>()
 export const getDestinations = async (
   chainId: SupportedChainId,
 ): Promise<DestinationsResponse> => {
-  if (!(MORPHO_CHAIN_IDS as readonly number[]).includes(chainId)) {
-    return emptyResponse(chainId)
-  }
+  if (!supportsDestinations(chainId)) return emptyResponse(chainId)
 
   const cached = cache.get(chainId)
   if (cached && Date.now() - cached.storedAt < CACHE_TTL_MS) {

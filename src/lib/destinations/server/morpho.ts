@@ -3,9 +3,13 @@ import { z } from "zod"
 import { toHuman } from "@/lib/protocol-stats/format"
 import { querySubgraph } from "@/lib/protocol-stats/subgraph"
 
+import {
+  type BorrowerIdentity,
+  type CuratedVault,
+  resolveAffiliation,
+} from "./affiliation"
 import type { MorphoMarketParams } from "./chain"
 import {
-  MAX_DATA_AGE_SEC,
   MIN_AVAILABLE_LIQUIDITY_USD,
   MIN_CURATED_SHARE,
   MIN_CURATED_SUPPLY_USD,
@@ -14,7 +18,8 @@ import {
   THIN_LIQUIDITY_USD,
   UPSTREAM_TIMEOUT_MS,
 } from "../constants"
-import type { DestinationNotice } from "../types"
+import { isFresh } from "../freshness"
+import type { Destination, DestinationNotice } from "../types"
 
 const PAGE_SIZE = 50
 const MAX_PAGES = 10
@@ -25,7 +30,6 @@ query Destinations($collaterals: [String!]!, $chainIds: [Int!]!, $first: Int!, $
     pageInfo { countTotal }
     items {
       marketId
-      listed
       lltv
       collateralAsset { address symbol }
       loanAsset { address symbol decimals price { usd } }
@@ -67,7 +71,6 @@ const curatorSchema = z.object({
 
 const marketSchema = z.object({
   marketId: z.string(),
-  listed: z.boolean(),
   lltv: bigintish,
   collateralAsset: z.object({ address: z.string(), symbol: z.string() }),
   loanAsset: z.object({
@@ -197,30 +200,6 @@ export const fetchMorphoMarkets = async (
   )
 }
 
-export type CuratedVault = {
-  name: string | null
-  share: number
-  curators: string[]
-  addresses: string[]
-}
-
-export type MorphoCandidate = {
-  marketId: string
-  url: string
-  venueName: string
-  collateral: { address: string; symbol: string }
-  loanAsset: { address: string; symbol: string }
-  lltv: number
-  borrowApy: number | null
-  availableLiquidity: number
-  availableLiquidityUsd: number
-  asOf: number
-  notices: DestinationNotice[]
-  curators: string[]
-  vaults: CuratedVault[]
-  leadVaultName: string | null
-}
-
 const slug = (value: string) => value.toLowerCase().replace(/[^a-z0-9-]/g, "")
 
 export const evaluateMorphoMarket = ({
@@ -229,6 +208,7 @@ export const evaluateMorphoMarket = ({
   wrapper,
   asset,
   onchain,
+  borrower,
   nowSec,
 }: {
   chainId: number
@@ -236,22 +216,22 @@ export const evaluateMorphoMarket = ({
   wrapper: string
   asset: string
   onchain: MorphoMarketParams | undefined
+  borrower: BorrowerIdentity | undefined
   nowSec: number
-}): MorphoCandidate | null => {
+}): Destination | null => {
   const { state, loanAsset, collateralAsset } = market
   const chainSlug = MORPHO_APP_CHAIN_SLUG[chainId]
-  if (!chainSlug || !market.listed || !state) return null
+  if (!chainSlug || !state) return null
   if (market.warnings?.some((warning) => warning.level === "RED")) return null
 
   const asOf = Number(toBigInt(state.timestamp) ?? 0)
-  if (nowSec - asOf > MAX_DATA_AGE_SEC) return null
+  if (!isFresh(asOf, nowSec)) return null
 
   const apiLltv = toBigInt(market.lltv)
   if (
     !onchain ||
     apiLltv === null ||
     !sameId(onchain.collateralToken, wrapper) ||
-    !sameId(collateralAsset.address, wrapper) ||
     !sameId(onchain.loanToken, asset) ||
     !sameId(loanAsset.address, asset) ||
     Math.abs(Number(onchain.lltv) - Number(apiLltv)) > 1e3
@@ -344,27 +324,39 @@ export const evaluateMorphoMarket = ({
     notices.push("THIN_LIQUIDITY")
   }
 
+  const marketId = market.marketId.toLowerCase()
+  const url = `https://app.morpho.org/${chainSlug}/variable/${marketId}/${slug(
+    loanAsset.symbol,
+  )}-${slug(collateralAsset.symbol)}`
+  const venueName = `${collateralAsset.symbol} / ${loanAsset.symbol}`
+  const leadVaultName = [...vaults]
+    .sort((a, b) => b.share - a.share)
+    .find((vault) => vault.name)?.name
+
   return {
-    marketId: market.marketId,
-    url: `https://app.morpho.org/${chainSlug}/variable/${market.marketId.toLowerCase()}/${slug(
-      loanAsset.symbol,
-    )}-${slug(collateralAsset.symbol)}`,
-    venueName: `${collateralAsset.symbol} / ${loanAsset.symbol}`,
-    collateral: {
+    id: `morpho-blue:${chainId}:${marketId}`,
+    route: "BORROW_AGAINST",
+    platform: "morpho-blue",
+    platformName: "Morpho",
+    venueName,
+    title: leadVaultName ?? venueName,
+    token: {
       address: collateralAsset.address,
       symbol: collateralAsset.symbol,
+      form: "wrapper",
     },
     loanAsset: { address: loanAsset.address, symbol: loanAsset.symbol },
-    lltv: Number(onchain.lltv) / 1e18,
-    borrowApy: state.avgBorrowApy ?? null,
-    availableLiquidity,
-    availableLiquidityUsd,
-    asOf,
-    notices,
+    url,
+    urlHost: new URL(url).host,
     curators: Array.from(new Set(vaults.flatMap((vault) => vault.curators))),
-    vaults,
-    leadVaultName:
-      [...vaults].sort((a, b) => b.share - a.share).find((vault) => vault.name)
-        ?.name ?? null,
+    affiliation: resolveAffiliation({ borrower, vaults }),
+    figures: {
+      lltv: Number(onchain.lltv) / 1e18,
+      borrowApy: state.avgBorrowApy ?? null,
+      availableLiquidity,
+      availableLiquidityUsd,
+      asOf,
+    },
+    notices,
   }
 }

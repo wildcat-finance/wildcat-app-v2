@@ -3,7 +3,6 @@ import type { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { findBorrowerNames } from "@/lib/db"
 import { trimAddress } from "@/utils/formatters"
 
-import type { CuratedVault } from "./morpho"
 import { MIN_AFFILIATED_SHARE } from "../constants"
 import type { DestinationAffiliation } from "../types"
 
@@ -68,6 +67,13 @@ const significantWords = (value: string) =>
     (word) => word.length >= MIN_WORD_LENGTH && !GENERIC_WORDS.has(word),
   )
 
+export type CuratedVault = {
+  name: string | null
+  share: number
+  curators: string[]
+  addresses: string[]
+}
+
 export type BorrowerIdentity = {
   address: string
   displayName: string | undefined
@@ -105,17 +111,13 @@ export const loadBorrowerIdentities = async (
   return identities
 }
 
-const isBorrowerVault = (borrower: BorrowerIdentity, vault: CuratedVault) => {
-  if (vault.addresses.includes(borrower.address)) return "address"
-  if (borrower.displayName && borrower.nameWords.length > 0) {
-    const named = vault.curators.some((curator) => {
+const isBorrowerVault = (borrower: BorrowerIdentity, vault: CuratedVault) =>
+  vault.addresses.includes(borrower.address) ||
+  (!!borrower.displayName &&
+    vault.curators.some((curator) => {
       const curatorWords = new Set(words(curator))
       return borrower.nameWords.some((word) => curatorWords.has(word))
-    })
-    if (named) return "name"
-  }
-  return null
-}
+    }))
 
 export const resolveAffiliation = ({
   borrower,
@@ -126,19 +128,15 @@ export const resolveAffiliation = ({
 }): DestinationAffiliation => {
   if (!borrower) return { kind: "not_reviewed" }
 
-  let share = 0
-  let basis: "address" | "name" = "name"
-  vaults.forEach((vault) => {
-    const match = isBorrowerVault(borrower, vault)
-    if (!match) return
-    share += vault.share
-    if (match === "address") basis = "address"
-  })
+  const share = vaults.reduce(
+    (sum, vault) =>
+      isBorrowerVault(borrower, vault) ? sum + vault.share : sum,
+    0,
+  )
 
   if (share < MIN_AFFILIATED_SHARE) return { kind: "not_reviewed" }
   return {
     kind: "affiliated",
-    basis,
     entityName: borrower.displayName ?? trimAddress(borrower.address),
   }
 }

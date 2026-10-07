@@ -1719,8 +1719,6 @@
     }
   },
   "destinations": {
-    "badge": "Composable · {{count}}",
-    "badgeLabel": "Show where this market's token can be used",
     "column": "Composable",
     "chip_one": "{{count}} destination",
     "chip_other": "{{count}} destinations",
@@ -1729,10 +1727,7 @@
     "composableOnly": "Composable only",
     "noComposableMarkets": "No composable markets match these filters",
     "panel": {
-      "title": "Use this token elsewhere",
-      "subtitle": "Third-party platforms that accept this market's token. Wildcat doesn't operate them.",
       "stale": "Couldn't refresh. Showing the last data we have.",
-      "footer": "Rates and liquidity come from the platform and are not quoted by Wildcat. Using your position elsewhere adds that platform's risks, including liquidation, on top of this market's credit risk.",
       "whatYouCanDo": "What you can do with",
       "destinationCount_one": "{{word}} destination",
       "destinationCount_other": "{{word}} destinations",
@@ -1781,29 +1776,6 @@
     },
     "route": {
       "BORROW_AGAINST": "Borrow Against"
-    },
-    "card": {
-      "wrapperNote": "Accepts {{symbol}}, the wrapped form of this market's token",
-      "lltv": "Liquidation LTV",
-      "borrowApy": "Borrow APY, 6h avg",
-      "liquidity": "Available to borrow",
-      "curatedBy": "Curated by {{names}}",
-      "asOf": "Data from {{platform}} · {{time}}",
-      "open": "Open on {{platform}}"
-    },
-    "time": {
-      "justNow": "just now",
-      "minutes": "{{count}} min ago",
-      "hours": "{{count}} h ago"
-    },
-    "affiliation": {
-      "affiliated": "Affiliated with {{entity}}",
-      "affiliatedTooltip": "Liquidity here is supplied by a vault linked to this market's borrower.",
-      "notReviewed": "Not reviewed by Wildcat",
-      "notReviewedTooltip": "Wildcat hasn't checked who supplies the liquidity on this platform."
-    },
-    "notices": {
-      "THIN_LIQUIDITY": "Low liquidity"
     },
     "section": {
       "title": "Composability",

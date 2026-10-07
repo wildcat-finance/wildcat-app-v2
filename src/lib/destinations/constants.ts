@@ -1,5 +1,10 @@
 export const MORPHO_CHAIN_IDS = [1] as const
 
+// Chains where at least one destination platform is integrated. Gates both
+// the API and the client query, so extend it when a platform adds a chain.
+export const supportsDestinations = (chainId: number) =>
+  (MORPHO_CHAIN_IDS as readonly number[]).includes(chainId)
+
 export const MORPHO_API_URL = "https://api.morpho.org/graphql"
 
 export const MORPHO_BLUE_ADDRESS: Record<number, `0x${string}`> = {

@@ -3,7 +3,8 @@ import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 
 import { QueryKeys } from "@/config/query-keys"
-import { MAX_DATA_AGE_SEC } from "@/lib/destinations/constants"
+import { supportsDestinations } from "@/lib/destinations/constants"
+import { pruneExpired } from "@/lib/destinations/freshness"
 import type {
   Destination,
   DestinationsResponse,
@@ -27,7 +28,7 @@ export const useDestinations = (
 ): DestinationsState => {
   const query = useQuery({
     queryKey: QueryKeys.Destinations.BY_CHAIN(chainId ?? 0),
-    enabled: !!chainId,
+    enabled: !!chainId && supportsDestinations(chainId),
     staleTime: STALE_TIME_MS,
     refetchInterval: STALE_TIME_MS,
     refetchOnWindowFocus: false,
@@ -42,18 +43,16 @@ export const useDestinations = (
   })
 
   const { data, dataUpdatedAt, errorUpdatedAt } = query
-  const markets = useMemo(() => {
-    if (!data) return NO_MARKETS
-    const nowSec = Math.max(dataUpdatedAt, errorUpdatedAt) / 1000
-    const fresh: Record<string, Destination[]> = {}
-    Object.entries(data.markets).forEach(([market, destinations]) => {
-      const current = destinations.filter(
-        (destination) => nowSec - destination.figures.asOf <= MAX_DATA_AGE_SEC,
-      )
-      if (current.length > 0) fresh[market] = current
-    })
-    return fresh
-  }, [data, dataUpdatedAt, errorUpdatedAt])
+  const markets = useMemo(
+    () =>
+      data
+        ? pruneExpired(
+            data.markets,
+            Math.max(dataUpdatedAt, errorUpdatedAt) / 1000,
+          )
+        : NO_MARKETS,
+    [data, dataUpdatedAt, errorUpdatedAt],
+  )
 
   return {
     data,

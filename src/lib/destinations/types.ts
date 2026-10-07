@@ -5,15 +5,14 @@ export type DestinationPlatform = "morpho-blue"
 export type DestinationNotice = "THIN_LIQUIDITY"
 
 export type DestinationAffiliation =
-  | { kind: "affiliated"; basis: "address" | "name"; entityName: string }
+  | { kind: "affiliated"; entityName: string }
   | { kind: "not_reviewed" }
 
 export type DestinationFigures = {
   lltv: number
   borrowApy: number | null
-  borrowApyWindow: "6h"
   availableLiquidity: number
-  availableLiquidityUsd: number | null
+  availableLiquidityUsd: number
   asOf: number
 }
 
@@ -22,7 +21,6 @@ export type Destination = {
   route: DestinationRoute
   platform: DestinationPlatform
   platformName: string
-  venueId: string
   venueName: string
   title: string
   token: { address: string; symbol: string; form: "wrapper" }
@@ -37,7 +35,6 @@ export type Destination = {
 
 export type DestinationsResponse = {
   chainId: number
-  generatedAt: number
   stale: boolean
   markets: Record<string, Destination[]>
 }

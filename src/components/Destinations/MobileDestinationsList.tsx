@@ -22,7 +22,7 @@ import {
   useDestinationsCopy,
 } from "./DestinationsPanel"
 import { ExternalLinkGate, type ExternalLinkTarget } from "./ExternalLinkGate"
-import { formatFractionPercent, formatLiquidityShort } from "./format"
+import { formatFractionPercent, formatUsdCompact } from "./format"
 
 const NO_ESCAPE = { escapeValue: false }
 
@@ -260,11 +260,7 @@ export const MobileDestinationItem = ({
         />
         <Metric
           label={t("destinations.columns.borrowableNow")}
-          value={formatLiquidityShort(
-            figures.availableLiquidity,
-            destination.loanAsset.symbol,
-            figures.availableLiquidityUsd,
-          )}
+          value={formatUsdCompact(figures.availableLiquidityUsd)}
         />
         <Box
           sx={{
