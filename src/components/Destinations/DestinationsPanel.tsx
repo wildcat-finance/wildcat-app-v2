@@ -21,7 +21,7 @@ import { COLORS } from "@/theme/colors"
 import { formatBps } from "@/utils/formatters"
 
 import { ExternalLinkGate, type ExternalLinkTarget } from "./ExternalLinkGate"
-import { formatFractionPercent, formatFractionPercentTrimmed } from "./format"
+import { formatFractionPercent } from "./format"
 
 const NO_ESCAPE = { escapeValue: false }
 
@@ -309,7 +309,7 @@ const DestinationRow = ({
       {[
         {
           label: t("destinations.columns.lltv"),
-          value: formatFractionPercentTrimmed(figures.lltv),
+          value: formatFractionPercent(figures.lltv),
         },
         {
           label: t("destinations.columns.borrowApy"),

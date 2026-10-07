@@ -5,14 +5,13 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import {
   type Address,
-  createPublicClient,
   type Hex,
-  http,
   isAddressEqual,
   parseAbi,
   zeroAddress,
 } from "viem"
-import { mainnet } from "viem/chains"
+
+import { getPublicClientForServer } from "@/lib/provider"
 
 import { MORPHO_BLUE_ADDRESS, UPSTREAM_TIMEOUT_MS } from "../constants"
 
@@ -33,31 +32,11 @@ const MORPHO_BLUE_ABI = parseAbi([
   "function idToMarketParams(bytes32 id) view returns (address loanToken, address collateralToken, address oracle, address irm, uint256 lltv)",
 ])
 
-const createClient = (rpcUrl: string) =>
-  createPublicClient({
-    chain: mainnet,
-    transport: http(rpcUrl, { timeout: UPSTREAM_TIMEOUT_MS, retryCount: 1 }),
+const getClient = (chainId: SupportedChainId) =>
+  getPublicClientForServer(chainId, {
+    timeout: UPSTREAM_TIMEOUT_MS,
+    retryCount: 1,
   })
-
-type Client = ReturnType<typeof createClient>
-
-const RPC_URL_BY_CHAIN: Record<number, string> = {
-  [SupportedChainId.Mainnet]: "https://eth-mainnet.g.alchemy.com/v2/",
-}
-
-const clients = new Map<number, Client>()
-
-const getClient = (chainId: number): Client => {
-  const cached = clients.get(chainId)
-  if (cached) return cached
-  const baseUrl = RPC_URL_BY_CHAIN[chainId]
-  if (!baseUrl) throw new Error(`No destinations RPC for chain ${chainId}`)
-  const client = createClient(
-    `${baseUrl}${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY ?? ""}`,
-  )
-  clients.set(chainId, client)
-  return client
-}
 
 export type WrappedMarket = {
   market: Address

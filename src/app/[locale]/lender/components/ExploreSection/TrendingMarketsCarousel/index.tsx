@@ -22,7 +22,7 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { toHuman } from "@/lib/protocol-stats/format"
 import { COLORS } from "@/theme/colors"
-import { formatBps, trimAddress } from "@/utils/formatters"
+import { formatBps, formatCompactNumber, trimAddress } from "@/utils/formatters"
 import { compareByCurrentAprBestInMarket } from "@/utils/marketSort"
 import {
   getMarketStatusChip,
@@ -45,14 +45,8 @@ const ZERO = BigInt(0)
 const ACTIVITY_UNAVAILABLE = "Unavailable"
 const ACTIVITY_UNAVAILABLE_VALUE = "—"
 
-const compactFormat = (num: number): string =>
-  new Intl.NumberFormat("en-US", {
-    notation: "compact",
-    maximumFractionDigits: 2,
-  }).format(num)
-
 const formatTokenCompact = (raw: bigint, decimals: number): string =>
-  compactFormat(parseFloat(formatUnits(raw, decimals)))
+  formatCompactNumber(parseFloat(formatUnits(raw, decimals)))
 
 const formatSignedTokenCompact = (raw: bigint, decimals: number): string => {
   if (raw > ZERO) return `+${formatTokenCompact(raw, decimals)}`
@@ -151,7 +145,7 @@ const formatWithdrawalCycle = (seconds: number) => {
 
 const formatGrowthPct = (ratio: number): string => {
   // Beyond +1000% a percentage stops being readable - show a multiplier
-  if (ratio >= 10) return `${compactFormat(Math.round(ratio))}x`
+  if (ratio >= 10) return `${formatCompactNumber(Math.round(ratio))}x`
   const pct = ratio * 100
   return `${pct >= 10 ? Math.round(pct).toString() : pct.toFixed(1)}%`
 }

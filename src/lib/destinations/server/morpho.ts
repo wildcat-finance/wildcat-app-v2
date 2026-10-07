@@ -1,5 +1,8 @@
 import { z } from "zod"
 
+import { toHuman } from "@/lib/protocol-stats/format"
+import { querySubgraph } from "@/lib/protocol-stats/subgraph"
+
 import type { MorphoMarketParams } from "./chain"
 import {
   MAX_DATA_AGE_SEC,
@@ -137,16 +140,11 @@ const marketSchema = z.object({
     .nullish(),
 })
 
-const responseSchema = z.object({
-  data: z
-    .object({
-      markets: z.object({
-        pageInfo: z.object({ countTotal: z.number() }),
-        items: z.array(z.unknown()),
-      }),
-    })
-    .nullish(),
-  errors: z.array(z.object({ message: z.string() })).nullish(),
+const pageSchema = z.object({
+  markets: z.object({
+    pageInfo: z.object({ countTotal: z.number() }),
+    items: z.array(z.unknown()),
+  }),
 })
 
 export type MorphoMarket = z.infer<typeof marketSchema>
@@ -159,8 +157,6 @@ const toBigInt = (value: number | string): bigint | null => {
   }
 }
 
-const toUnits = (raw: bigint, decimals: number) => Number(raw) / 10 ** decimals
-
 const sameId = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
 
 export const fetchMorphoMarkets = async (
@@ -170,35 +166,19 @@ export const fetchMorphoMarkets = async (
   const markets = new Map<string, MorphoMarket>()
 
   for (let page = 0; page < MAX_PAGES; page += 1) {
-    // eslint-disable-next-line no-await-in-loop
-    const response = await fetch(MORPHO_API_URL, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        query: MARKETS_QUERY,
+    const { items, pageInfo } = pageSchema.parse(
+      // eslint-disable-next-line no-await-in-loop
+      await querySubgraph(MORPHO_API_URL, MARKETS_QUERY, {
         variables: {
           collaterals,
           chainIds: [chainId],
           first: PAGE_SIZE,
           skip: page * PAGE_SIZE,
         },
+        signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+        cache: "no-store",
       }),
-      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
-      cache: "no-store",
-    })
-    if (!response.ok) {
-      throw new Error(`Morpho API responded ${response.status}`)
-    }
-
-    // eslint-disable-next-line no-await-in-loop
-    const parsed = responseSchema.parse(await response.json())
-    if (parsed.errors?.length || !parsed.data) {
-      throw new Error(
-        `Morpho API error: ${parsed.errors?.[0]?.message ?? "no data"}`,
-      )
-    }
-
-    const { items, pageInfo } = parsed.data.markets
+    ).markets
     items.forEach((item) => {
       const market = marketSchema.safeParse(item)
       if (market.success)
@@ -348,8 +328,8 @@ export const evaluateMorphoMarket = ({
   const price = loanAsset.price?.usd ?? null
   const supplyUsd =
     state.supplyAssetsUsd ??
-    (price !== null ? toUnits(supplyRaw, loanAsset.decimals) * price : null)
-  const availableLiquidity = toUnits(liquidityRaw, loanAsset.decimals)
+    (price !== null ? toHuman(supplyRaw, loanAsset.decimals) * price : null)
+  const availableLiquidity = toHuman(liquidityRaw, loanAsset.decimals)
   const availableLiquidityUsd =
     state.liquidityAssetsUsd ??
     (price !== null ? availableLiquidity * price : null)

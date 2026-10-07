@@ -200,6 +200,14 @@ export const formatTokenWithCommas = (
   }`
 }
 
+const compactNumberFormat = new Intl.NumberFormat("en-US", {
+  notation: "compact",
+  maximumFractionDigits: 2,
+})
+
+export const formatCompactNumber = (value: number) =>
+  compactNumberFormat.format(value)
+
 export const formatBps = (bps: number, fixed?: number) => {
   const fixedNum = (bps / 100).toFixed(fixed || 2)
 

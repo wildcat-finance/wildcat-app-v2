@@ -22,7 +22,7 @@ import {
   useDestinationsCopy,
 } from "./DestinationsPanel"
 import { ExternalLinkGate, type ExternalLinkTarget } from "./ExternalLinkGate"
-import { formatFractionPercentTrimmed, formatLiquidityShort } from "./format"
+import { formatFractionPercent, formatLiquidityShort } from "./format"
 
 const NO_ESCAPE = { escapeValue: false }
 
@@ -256,7 +256,7 @@ export const MobileDestinationItem = ({
       <Box sx={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
         <Metric
           label={t("destinations.columns.lltv")}
-          value={formatFractionPercentTrimmed(figures.lltv)}
+          value={formatFractionPercent(figures.lltv)}
         />
         <Metric
           label={t("destinations.columns.borrowableNow")}

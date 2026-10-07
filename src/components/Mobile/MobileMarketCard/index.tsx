@@ -19,6 +19,7 @@ import { COLORS } from "@/theme/colors"
 import {
   buildMarketHref,
   formatBps,
+  formatCompactNumber,
   formatSecsToHours,
 } from "@/utils/formatters"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
@@ -41,14 +42,8 @@ export type LenderMobileMarketItem = {
   capacityLeft?: TokenAmount
 }
 
-const compactFormat = (value: number) =>
-  new Intl.NumberFormat("en-US", {
-    notation: "compact",
-    maximumFractionDigits: 2,
-  }).format(value)
-
 const formatCompactToken = (amount: TokenAmount | undefined) =>
-  amount ? compactFormat(parseFloat(amount.format(amount.decimals))) : "0"
+  amount ? formatCompactNumber(parseFloat(amount.format(amount.decimals))) : "0"
 
 const formatFixedTermDate = (millisecondsFromNow: number) =>
   new Intl.DateTimeFormat("en-GB", {

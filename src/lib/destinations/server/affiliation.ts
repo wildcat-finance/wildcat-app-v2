@@ -1,4 +1,7 @@
-import { prisma } from "@/lib/db"
+import type { SupportedChainId } from "@wildcatfi/wildcat-sdk"
+
+import { findBorrowerNames } from "@/lib/db"
+import { trimAddress } from "@/utils/formatters"
 
 import type { CuratedVault } from "./morpho"
 import { MIN_AFFILIATED_SHARE } from "../constants"
@@ -72,7 +75,7 @@ export type BorrowerIdentity = {
 }
 
 export const loadBorrowerIdentities = async (
-  chainId: number,
+  chainId: SupportedChainId,
   addresses: string[],
 ): Promise<Map<string, BorrowerIdentity>> => {
   const lowered = Array.from(new Set(addresses.map((a) => a.toLowerCase())))
@@ -82,12 +85,10 @@ export const loadBorrowerIdentities = async (
   )
   if (lowered.length === 0) return identities
 
-  const rows = await prisma.borrower.findMany({
-    where: { chainId, address: { in: lowered }, registeredOnChain: true },
-    select: { address: true, name: true, alias: true },
-  })
+  const rows = await findBorrowerNames(chainId)
 
   rows.forEach(({ address, name, alias }) => {
+    if (!identities.has(address.toLowerCase())) return
     const nameWords = Array.from(
       new Set([
         ...significantWords(name ?? ""),
@@ -103,9 +104,6 @@ export const loadBorrowerIdentities = async (
 
   return identities
 }
-
-const trimAddress = (address: string) =>
-  `${address.slice(0, 6)}…${address.slice(-4)}`
 
 const isBorrowerVault = (borrower: BorrowerIdentity, vault: CuratedVault) => {
   if (vault.addresses.includes(borrower.address)) return "address"

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { prisma } from "@/lib/db"
+import { findBorrowerNames } from "@/lib/db"
 import { fetchExportMarketCatalog } from "@/lib/export/sources/catalog"
 import { EXPORT_CHAIN_IDS, ExportChainId } from "@/lib/export/types"
 
@@ -34,10 +34,7 @@ export async function GET(request: NextRequest) {
       marketAddressesByBorrower.set(borrower, borrowerMarkets)
     })
     const activeBorrowerAddresses = [...marketAddressesByBorrower.keys()]
-    const borrowerProfiles = await prisma.borrower.findMany({
-      where: { chainId },
-      select: { address: true, alias: true, name: true },
-    })
+    const borrowerProfiles = await findBorrowerNames(chainId)
     const profileByAddress = new Map(
       borrowerProfiles.map((profile) => [
         profile.address.toLowerCase(),

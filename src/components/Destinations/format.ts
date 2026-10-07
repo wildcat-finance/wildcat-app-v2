@@ -1,9 +1,6 @@
 import type { TFunction } from "i18next"
 
-const compact = new Intl.NumberFormat("en-US", {
-  notation: "compact",
-  maximumFractionDigits: 2,
-})
+import { formatBps, formatCompactNumber } from "@/utils/formatters"
 
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -12,20 +9,17 @@ const usd = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 1,
 })
 
-export const formatFractionPercent = (fraction: number | null) => {
-  if (fraction === null || !Number.isFinite(fraction)) return "—"
-  return `${(Math.trunc(fraction * 10_000) / 100).toFixed(2)}%`
-}
-
-export const formatFractionPercentTrimmed = (fraction: number) =>
-  `${Number((Math.trunc(fraction * 10_000) / 100).toFixed(2))}%`
+export const formatFractionPercent = (fraction: number | null) =>
+  fraction === null || !Number.isFinite(fraction)
+    ? "—"
+    : `${formatBps(fraction * 10_000)}%`
 
 export const formatLiquidity = (
   amount: number,
   symbol: string,
   amountUsd: number | null,
 ) => {
-  const tokens = `${compact.format(amount)} ${symbol}`
+  const tokens = `${formatCompactNumber(amount)} ${symbol}`
   return amountUsd === null ? tokens : `${tokens} (${usd.format(amountUsd)})`
 }
 
@@ -35,7 +29,7 @@ export const formatLiquidityShort = (
   amountUsd: number | null,
 ) =>
   amountUsd === null
-    ? `${compact.format(amount)} ${symbol}`
+    ? `${formatCompactNumber(amount)} ${symbol}`
     : usd.format(amountUsd)
 
 export const formatDataAge = (t: TFunction, asOfSec: number) => {
