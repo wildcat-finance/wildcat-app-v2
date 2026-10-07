@@ -67,11 +67,13 @@ const significantWords = (value: string) =>
     (word) => word.length >= MIN_WORD_LENGTH && !GENERIC_WORDS.has(word),
   )
 
-export type CuratedVault = {
-  name: string | null
-  share: number
-  curators: string[]
+/** A party that controls part of a venue: a curator, owner, operator or maker. */
+export type Counterparty = {
+  names: string[]
+  /** Lowercase */
   addresses: string[]
+  /** Share of the venue the party controls, 0..1 */
+  weight: number
 }
 
 export type BorrowerIdentity = {
@@ -111,26 +113,29 @@ export const loadBorrowerIdentities = async (
   return identities
 }
 
-const isBorrowerVault = (borrower: BorrowerIdentity, vault: CuratedVault) =>
-  vault.addresses.includes(borrower.address) ||
+const isBorrowerParty = (
+  borrower: BorrowerIdentity,
+  counterparty: Counterparty,
+) =>
+  counterparty.addresses.includes(borrower.address) ||
   (!!borrower.displayName &&
-    vault.curators.some((curator) => {
-      const curatorWords = new Set(words(curator))
-      return borrower.nameWords.some((word) => curatorWords.has(word))
+    counterparty.names.some((name) => {
+      const nameWords = new Set(words(name))
+      return borrower.nameWords.some((word) => nameWords.has(word))
     }))
 
 export const resolveAffiliation = ({
   borrower,
-  vaults,
+  counterparties,
 }: {
   borrower: BorrowerIdentity | undefined
-  vaults: CuratedVault[]
+  counterparties: Counterparty[]
 }): DestinationAffiliation => {
   if (!borrower) return { kind: "not_reviewed" }
 
-  const share = vaults.reduce(
-    (sum, vault) =>
-      isBorrowerVault(borrower, vault) ? sum + vault.share : sum,
+  const share = counterparties.reduce(
+    (sum, counterparty) =>
+      isBorrowerParty(borrower, counterparty) ? sum + counterparty.weight : sum,
     0,
   )
 

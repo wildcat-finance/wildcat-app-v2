@@ -3,17 +3,10 @@ import {
   hasDeploymentAddress,
   SupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
-import {
-  type Address,
-  type Hex,
-  isAddressEqual,
-  parseAbi,
-  zeroAddress,
-} from "viem"
+import { type Address, isAddressEqual, parseAbi, zeroAddress } from "viem"
 
-import { getPublicClientForServer } from "@/lib/provider"
-
-import { MORPHO_BLUE_ADDRESS, UPSTREAM_TIMEOUT_MS } from "../constants"
+import { getDestinationsClient } from "./rpc"
+import type { DestinationTokenForm } from "../types"
 
 const ARCH_CONTROLLER_ABI = parseAbi([
   "function getRegisteredMarkets() view returns (address[])",
@@ -28,29 +21,28 @@ const MARKET_ABI = parseAbi([
   "function borrower() view returns (address)",
 ])
 
-const MORPHO_BLUE_ABI = parseAbi([
-  "function idToMarketParams(bytes32 id) view returns (address loanToken, address collateralToken, address oracle, address irm, uint256 lltv)",
-])
-
-const getClient = (chainId: SupportedChainId) =>
-  getPublicClientForServer(chainId, {
-    timeout: UPSTREAM_TIMEOUT_MS,
-    retryCount: 1,
-  })
-
-export type WrappedMarket = {
+/** A Wildcat market and the tokens of it that platforms can take. */
+export type WildcatToken = {
   market: Address
-  wrapper: Address
   asset: Address
   borrower: Address
+  wrapper: Address
 }
 
-export const getWrappedMarkets = async (
+export const tokenAddressOf: Record<
+  DestinationTokenForm,
+  (token: WildcatToken) => Address
+> = {
+  wrapper: (token) => token.wrapper,
+}
+
+/** Registered markets that have a Wildcat 4626 wrapper, read on-chain. */
+export const getWildcatTokens = async (
   chainId: SupportedChainId,
-): Promise<WrappedMarket[]> => {
+): Promise<WildcatToken[]> => {
   if (!hasDeploymentAddress(chainId, "Wildcat4626WrapperFactory")) return []
 
-  const client = getClient(chainId)
+  const client = getDestinationsClient(chainId)
   const archController = getDeploymentAddress(
     chainId,
     "WildcatArchController",
@@ -106,36 +98,4 @@ export const getWrappedMarkets = async (
     asset: details[index * 2],
     borrower: details[index * 2 + 1],
   }))
-}
-
-export type MorphoMarketParams = {
-  loanToken: Address
-  collateralToken: Address
-  lltv: bigint
-}
-
-export const getMorphoMarketParams = async (
-  chainId: SupportedChainId,
-  marketIds: Hex[],
-): Promise<Map<string, MorphoMarketParams>> => {
-  const morpho = MORPHO_BLUE_ADDRESS[chainId]
-  const params = new Map<string, MorphoMarketParams>()
-  if (!morpho || marketIds.length === 0) return params
-
-  const results = await getClient(chainId).multicall({
-    allowFailure: false,
-    contracts: marketIds.map((id) => ({
-      address: morpho,
-      abi: MORPHO_BLUE_ABI,
-      functionName: "idToMarketParams" as const,
-      args: [id] as const,
-    })),
-  })
-
-  marketIds.forEach((id, index) => {
-    const [loanToken, collateralToken, , , lltv] = results[index]
-    params.set(id.toLowerCase(), { loanToken, collateralToken, lltv })
-  })
-
-  return params
 }

@@ -2,6 +2,8 @@ export type DestinationRoute = "BORROW_AGAINST"
 
 export type DestinationPlatform = "morpho-blue"
 
+export type DestinationTokenForm = "wrapper"
+
 export type DestinationNotice = "THIN_LIQUIDITY"
 
 export type DestinationAffiliation =
@@ -11,7 +13,6 @@ export type DestinationAffiliation =
 export type DestinationFigures = {
   lltv: number
   borrowApy: number | null
-  availableLiquidity: number
   availableLiquidityUsd: number
   asOf: number
 }
@@ -21,10 +22,9 @@ export type Destination = {
   route: DestinationRoute
   platform: DestinationPlatform
   platformName: string
-  venueName: string
   title: string
-  token: { address: string; symbol: string; form: "wrapper" }
-  loanAsset: { address: string; symbol: string }
+  token: { address: string; symbol: string; form: DestinationTokenForm }
+  loanAsset: { address: string }
   url: string
   urlHost: string
   curators: string[]
@@ -35,6 +35,9 @@ export type Destination = {
 
 export type DestinationsResponse = {
   chainId: number
+  /** Every row is last-known data: the whole refresh failed */
   stale: boolean
+  /** Platforms that failed this refresh; their rows, if any, are last-known data */
+  stalePlatforms: DestinationPlatform[]
   markets: Record<string, Destination[]>
 }

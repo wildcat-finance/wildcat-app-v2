@@ -3,10 +3,11 @@ import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 
 import { QueryKeys } from "@/config/query-keys"
-import { supportsDestinations } from "@/lib/destinations/constants"
-import { pruneExpired } from "@/lib/destinations/freshness"
+import { isStale, pruneExpired } from "@/lib/destinations/freshness"
+import { supportsDestinations } from "@/lib/destinations/platforms"
 import type {
   Destination,
+  DestinationPlatform,
   DestinationsResponse,
 } from "@/lib/destinations/types"
 
@@ -14,11 +15,14 @@ const STALE_TIME_MS = 5 * 60 * 1000
 
 const NO_DESTINATIONS: Destination[] = []
 const NO_MARKETS: Record<string, Destination[]> = {}
+const NO_PLATFORMS: DestinationPlatform[] = []
 
 export type DestinationsState = {
   data: DestinationsResponse | undefined
   markets: Record<string, Destination[]>
-  stale: boolean
+  /** Every row is last-known data; use isStale() for the rows of one market */
+  refreshFailed: boolean
+  stalePlatforms: DestinationPlatform[]
   isLoading: boolean
   isError: boolean
 }
@@ -54,10 +58,14 @@ export const useDestinations = (
     [data, dataUpdatedAt, errorUpdatedAt],
   )
 
+  const refreshFailed = !!data?.stale || query.isRefetchError
+  const stalePlatforms = data?.stalePlatforms ?? NO_PLATFORMS
+
   return {
     data,
     markets,
-    stale: !!data?.stale || query.isRefetchError,
+    refreshFailed,
+    stalePlatforms,
     isLoading: query.isLoading,
     isError: query.isError,
   }
@@ -71,5 +79,5 @@ export const useMarketDestinations = (
   const destinations =
     (marketAddress && state.markets[marketAddress.toLowerCase()]) ||
     NO_DESTINATIONS
-  return { ...state, destinations }
+  return { ...state, destinations, stale: isStale(destinations, state) }
 }

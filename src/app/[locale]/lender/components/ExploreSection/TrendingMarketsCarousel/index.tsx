@@ -20,6 +20,7 @@ import {
 import { useDestinations } from "@/hooks/destinations/useDestinations"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { isStale } from "@/lib/destinations/freshness"
 import { toHuman } from "@/lib/protocol-stats/format"
 import { COLORS } from "@/theme/colors"
 import { formatBps, formatCompactNumber, trimAddress } from "@/utils/formatters"
@@ -360,7 +361,8 @@ export const TrendingMarketsCarousel = () => {
   )
 
   const { chainId } = useSelectedNetwork()
-  const { markets: destinationsByMarket, stale } = useDestinations(chainId)
+  const destinationsState = useDestinations(chainId)
+  const { markets: destinationsByMarket } = destinationsState
   const [expandedSlotKey, setExpandedSlotKey] = useState<string | null>(null)
   const tokenAddresses = useMemo(
     () =>
@@ -818,7 +820,7 @@ export const TrendingMarketsCarousel = () => {
                 <MobileDestinationsPanel
                   id={TRENDING_PANEL_ID}
                   destinations={panelDestinations}
-                  stale={stale}
+                  stale={isStale(panelDestinations, destinationsState)}
                   marketSymbol={panelSlot.account.market.marketToken.symbol}
                   aprBips={panelSlot.account.market.annualInterestBips}
                   withdrawalBatchDuration={
@@ -917,7 +919,7 @@ export const TrendingMarketsCarousel = () => {
               >
                 <DestinationsPanel
                   destinations={panelDestinations}
-                  stale={stale}
+                  stale={isStale(panelDestinations, destinationsState)}
                   marketSymbol={panelSlot.account.market.marketToken.symbol}
                   aprBips={panelSlot.account.market.annualInterestBips}
                   withdrawalBatchDuration={

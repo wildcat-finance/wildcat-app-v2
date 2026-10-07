@@ -5,6 +5,9 @@ import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
+// force-dynamic alone still lets Next cache the viem RPC POSTs indefinitely,
+// which would hide new markets and wrappers until the Data Cache is purged.
+export const fetchCache = "force-no-store"
 
 export async function GET(request: NextRequest) {
   const chainId = validateChainIdParam(request)
@@ -16,9 +19,10 @@ export async function GET(request: NextRequest) {
     const payload = await getDestinations(chainId)
     return NextResponse.json(payload, {
       headers: {
-        "Cache-Control": payload.stale
-          ? "public, s-maxage=60"
-          : "public, s-maxage=300, stale-while-revalidate=60",
+        "Cache-Control":
+          payload.stale || payload.stalePlatforms.length > 0
+            ? "public, s-maxage=60"
+            : "public, s-maxage=300, stale-while-revalidate=60",
       },
     })
   } catch (error) {
