@@ -3,7 +3,7 @@
     "bytes_asset": 204371,
     "bytes_binary": 102801,
     "bytes_blob": 186479,
-    "bytes_generated": 298878
+    "bytes_generated": 302032
   },
   "entries": [
     {
@@ -124,6 +124,20 @@
       "evidence": "sql file under a migrations directory segment",
       "grade": "candidate",
       "path": "prisma/migrations/20260623000000_non_mla_lender_acknowledgement/migration.sql"
+    },
+    {
+      "bytes": 2417,
+      "category": "generated",
+      "evidence": "sql file under a migrations directory segment",
+      "grade": "candidate",
+      "path": "prisma/migrations/20260807030000_export_jobs/migration.sql"
+    },
+    {
+      "bytes": 737,
+      "category": "generated",
+      "evidence": "sql file under a migrations directory segment",
+      "grade": "candidate",
+      "path": "prisma/migrations/20260915010000_export_coordination/migration.sql"
     },
     {
       "bytes": 1375,

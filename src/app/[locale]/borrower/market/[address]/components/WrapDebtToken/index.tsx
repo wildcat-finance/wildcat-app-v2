@@ -5,6 +5,7 @@ import { Box, Typography } from "@mui/material"
 import { Market, TokenWrapper } from "@wildcatfi/wildcat-sdk"
 
 import { NoWrapperState } from "@/components/WrapDebtToken/NoWrapperState"
+import { WrapperLookupError } from "@/components/WrapDebtToken/WrapperLookupError"
 import { WrapperSection } from "@/components/WrapDebtToken/WrapperSection"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { useAppDispatch } from "@/store/hooks"
@@ -16,9 +17,9 @@ export type WrapDebtTokenProps = {
   wrapper: TokenWrapper | undefined
   hasWrapper: boolean
   hasFactory: boolean
-  isWrapperLookupLoading: boolean
   isWrapperLoading: boolean
   isWrapperError: boolean
+  onRetryWrapper: () => void
 }
 
 export const WrapDebtToken = ({
@@ -26,9 +27,9 @@ export const WrapDebtToken = ({
   wrapper,
   hasWrapper,
   hasFactory,
-  isWrapperLookupLoading,
   isWrapperLoading,
   isWrapperError,
+  onRetryWrapper,
 }: WrapDebtTokenProps) => {
   const dispatch = useAppDispatch()
 
@@ -51,11 +52,11 @@ export const WrapDebtToken = ({
         />
       )}
 
-      {hasFactory && !hasWrapper && !isWrapperLookupLoading && (
+      {hasFactory && !hasWrapper && !isWrapperLoading && !isWrapperError && (
         <NoWrapperState canCreateWrapper={false} />
       )}
 
-      {hasFactory && isWrapperLookupLoading && (
+      {hasFactory && isWrapperLoading && !isWrapperError && (
         <Typography variant="text3" color={COLORS.manate}>
           Checking wrapper status...
         </Typography>
@@ -70,10 +71,8 @@ export const WrapDebtToken = ({
         />
       )}
 
-      {hasWrapper && (isWrapperLoading || isWrapperError) && (
-        <Typography variant="text3" color={COLORS.manate}>
-          Loading wrapper details...
-        </Typography>
+      {hasFactory && isWrapperError && (
+        <WrapperLookupError onRetry={onRetryWrapper} />
       )}
     </Box>
   )
