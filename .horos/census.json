@@ -20,8 +20,8 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 1911755,
-      "files": 357,
+      "bytes": 1924668,
+      "files": 360,
       "suffix": ".tsx"
     },
     {
@@ -32,8 +32,8 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 1400784,
-      "files": 604,
+      "bytes": 1400419,
+      "files": 603,
       "suffix": ".ts"
     },
     {
@@ -74,8 +74,8 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 61764,
-      "files": 9,
+      "bytes": 66469,
+      "files": 10,
       "suffix": ".md"
     },
     {
@@ -147,6 +147,6 @@
   ],
   "schema": 1,
   "tool": "horos",
-  "total_bytes": 19601209,
-  "total_files": 1217
+  "total_bytes": 19618462,
+  "total_files": 1220
 }

@@ -13,6 +13,7 @@ import {
 
 import { toastRequest } from "@/components/Toasts"
 import { NoWrapperState } from "@/components/WrapDebtToken/NoWrapperState"
+import { WrapperLookupError } from "@/components/WrapDebtToken/WrapperLookupError"
 import { WrapperSection } from "@/components/WrapDebtToken/WrapperSection"
 import { WrapperSkeleton } from "@/components/WrapDebtToken/WrapperSkeleton"
 import { QueryKeys } from "@/config/query-keys"
@@ -25,9 +26,9 @@ export type WrapDebtTokenProps = {
   wrapper: TokenWrapper | undefined
   hasWrapper: boolean
   hasFactory: boolean
-  isWrapperLookupLoading: boolean
   isWrapperLoading: boolean
   isWrapperError: boolean
+  onRetryWrapper: () => void
   isAuthorizedLender: boolean
   isDifferentChain: boolean
 }
@@ -37,9 +38,9 @@ export const WrapDebtToken = ({
   wrapper,
   hasWrapper,
   hasFactory,
-  isWrapperLookupLoading,
   isWrapperLoading,
   isWrapperError,
+  onRetryWrapper,
   isAuthorizedLender,
   isDifferentChain,
 }: WrapDebtTokenProps) => {
@@ -134,22 +135,27 @@ export const WrapDebtToken = ({
             />
           )}
 
-          {hasFactory && !hasWrapper && !isWrapperLookupLoading && (
-            <NoWrapperState
-              canCreateWrapper={canCreateWrapper}
-              onCreateWrapper={() =>
-                toastRequest(createWrapperMutation.mutateAsync(), {
-                  pending: "Deploying wrapper...",
-                  success: "Wrapper deployed",
-                  error: "Failed to deploy wrapper",
-                })
-              }
-              isCreatingWrapper={createWrapperMutation.isPending}
-              disableCreateWrapper={!canCreateWrapper}
-            />
-          )}
+          {hasFactory &&
+            !hasWrapper &&
+            !isWrapperLoading &&
+            !isWrapperError && (
+              <NoWrapperState
+                canCreateWrapper={canCreateWrapper}
+                onCreateWrapper={() =>
+                  toastRequest(createWrapperMutation.mutateAsync(), {
+                    pending: "Deploying wrapper...",
+                    success: "Wrapper deployed",
+                    error: "Failed to deploy wrapper",
+                  })
+                }
+                isCreatingWrapper={createWrapperMutation.isPending}
+                disableCreateWrapper={!canCreateWrapper}
+              />
+            )}
 
-          {hasFactory && isWrapperLookupLoading && <WrapperSkeleton />}
+          {hasFactory && isWrapperLoading && !isWrapperError && (
+            <WrapperSkeleton />
+          )}
 
           {hasWrapper && wrapper && !isWrapperLoading && !isWrapperError && (
             <WrapperSection
@@ -160,8 +166,8 @@ export const WrapDebtToken = ({
             />
           )}
 
-          {hasWrapper && (isWrapperLoading || isWrapperError) && (
-            <WrapperSkeleton />
+          {hasFactory && isWrapperError && (
+            <WrapperLookupError onRetry={onRetryWrapper} />
           )}
         </>
       )}
