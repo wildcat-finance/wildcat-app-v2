@@ -1,5 +1,7 @@
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 
+import { SubgraphHttpError } from "@/lib/protocol-stats/subgraph"
+
 import { ADAPTERS } from "./adapters"
 import type { AdapterOutput, DestinationAdapter } from "./adapters/types"
 import {
@@ -9,7 +11,11 @@ import {
 } from "./affiliation"
 import { ROUTE_RULES, type RouteRejection } from "./routes"
 import { getWildcatTokens, tokenAddressOf, type WildcatToken } from "./universe"
-import { CACHE_TTL_MS, FAILURE_BACKOFF_MS } from "../constants"
+import {
+  CACHE_TTL_MS,
+  FAILURE_BACKOFF_MS,
+  RATE_LIMIT_COOLDOWN_MS,
+} from "../constants"
 import { isFresh, pruneExpired } from "../freshness"
 import { PLATFORMS, supportsDestinations } from "../platforms"
 import type {
@@ -67,6 +73,13 @@ type AdapterRun = {
 }
 
 const lastGood = new Map<string, AdapterOutput[]>()
+const cooldownUntil = new Map<string, number>()
+
+const retryAfterOf = (error: unknown): number | undefined => {
+  if (!(error instanceof SubgraphHttpError)) return undefined
+  if (error.retryAfterMs !== undefined) return error.retryAfterMs
+  return error.status === 429 ? RATE_LIMIT_COOLDOWN_MS : undefined
+}
 
 const runAdapter = async (
   adapter: DestinationAdapter,
@@ -74,17 +87,32 @@ const runAdapter = async (
   tokens: WildcatToken[],
 ): Promise<AdapterRun> => {
   const key = `${chainId}:${adapter.platform}`
+  const fallback = () => ({
+    adapter,
+    outputs: lastGood.get(key) ?? null,
+    failed: true,
+  })
+  if (Date.now() < (cooldownUntil.get(key) ?? 0)) return fallback()
+
   try {
     const outputs = await adapter.load({ chainId, tokens })
     lastGood.set(key, outputs)
     return { adapter, outputs, failed: false }
   } catch (error) {
+    const retryAfterMs = retryAfterOf(error)
+    if (retryAfterMs !== undefined) {
+      cooldownUntil.set(key, Date.now() + retryAfterMs)
+    }
     // eslint-disable-next-line no-console
     console.error(
-      `[Destinations] ${adapter.platform} refresh failed on chain ${chainId}`,
+      `[Destinations] ${adapter.platform} refresh failed on chain ${chainId}${
+        retryAfterMs !== undefined
+          ? `, pausing for ${Math.ceil(retryAfterMs / 1000)}s`
+          : ""
+      }`,
       error,
     )
-    return { adapter, outputs: lastGood.get(key) ?? null, failed: true }
+    return fallback()
   }
 }
 

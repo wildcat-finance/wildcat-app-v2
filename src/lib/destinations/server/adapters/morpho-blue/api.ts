@@ -6,8 +6,23 @@ import { querySubgraph } from "@/lib/protocol-stats/subgraph"
 import { MORPHO_API_URL } from "./constants"
 import { UPSTREAM_TIMEOUT_MS } from "../../../constants"
 
-const PAGE_SIZE = 50
-const MAX_PAGES = 10
+const PAGE_SIZE = 20
+const MAX_PAGES = 25
+
+const COMPLEXITY_LIMIT = 1_000_000
+const COMPLEXITY_WARN_SHARE = 0.5
+
+const warnOnComplexity = ({ complexity }: Record<string, unknown>) => {
+  if (
+    typeof complexity === "number" &&
+    complexity > COMPLEXITY_LIMIT * COMPLEXITY_WARN_SHARE
+  ) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[Destinations] Morpho API query complexity ${complexity} of ${COMPLEXITY_LIMIT}`,
+    )
+  }
+}
 
 const MARKETS_QUERY = `
 query Destinations($collaterals: [String!]!, $chainIds: [Int!]!, $first: Int!, $skip: Int!) {
@@ -158,6 +173,7 @@ export const fetchMorphoMarkets = async (
         },
         signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
         cache: "no-store",
+        onExtensions: warnOnComplexity,
       }),
     ).markets
     const results = items.map((item) => marketSchema.safeParse(item))

@@ -5,4 +5,5 @@ export const MIN_AFFILIATED_SHARE = 0.5
 
 export const CACHE_TTL_MS = 5 * 60 * 1000
 export const FAILURE_BACKOFF_MS = 60 * 1000
+export const RATE_LIMIT_COOLDOWN_MS = 10 * 60 * 1000
 export const UPSTREAM_TIMEOUT_MS = 10_000
