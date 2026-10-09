@@ -1,3 +1,5 @@
+import type { ReactNode } from "react"
+
 import {
   DepositStatus,
   MarketAccount,
@@ -6,6 +8,7 @@ import {
 
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
+import type { Destination } from "@/lib/destinations/types"
 import {
   MarketOnboardingByAddress,
   MarketOnboardingMode,
@@ -30,6 +33,8 @@ export type OtherMarketsTableModel = {
   depositStatus: DepositStatus
   button?: string
   capacityLeft: TokenAmount
+  destinationsCount: number
+  marketTokenSymbol: string
 }
 
 export type OtherMarketsTableProps = {
@@ -41,5 +46,8 @@ export type OtherMarketsTableProps = {
     nameFilter: string
     assetFilter: SmallFilterSelectItem[]
     statusFilter: MarketStatus[]
+    composableOnly?: boolean
   }
+  destinationsByMarket?: Record<string, Destination[]>
+  mobileHeader?: ReactNode
 }

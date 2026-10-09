@@ -23,6 +23,12 @@ import {
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
+import {
+  ComposableChipCell,
+  COMPOSABLE_GRID_RESIZE_THROTTLE_MS,
+  ComposableExpansionProvider,
+  ComposableRowPanel,
+} from "@/components/Destinations"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -35,6 +41,7 @@ import {
   typeComparator,
 } from "@/utils/comparators"
 import { pageCalcHeights } from "@/utils/constants"
+import { getGridMinWidth } from "@/utils/dataGrid"
 import {
   buildMarketHref,
   formatBps,
@@ -46,16 +53,26 @@ import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 import { ActiveMarketsTableModel, ActiveMarketsTableProps } from "./interface"
-import { DataGridSx } from "../style"
+import { DATA_GRID_SIDE_PADDING, DataGridSx } from "../style"
 
 const MarketLinkRow = (props: GridRowProps) => (
-  <Link
-    href={buildMarketHref(props.row.id, props.row.chainId)}
-    style={{ display: "contents", color: "inherit" }}
-    tabIndex={-1}
-  >
-    <GridRow {...props} />
-  </Link>
+  <>
+    <Link
+      href={buildMarketHref(props.row.id, props.row.chainId)}
+      style={{ display: "contents", color: "inherit" }}
+      tabIndex={-1}
+    >
+      <GridRow {...props} />
+    </Link>
+    <ComposableRowPanel
+      rowId={props.row.id}
+      chainId={props.row.chainId}
+      marketSymbol={props.row.marketTokenSymbol}
+      aprBips={props.row.apr}
+      withdrawalBatchDuration={props.row.withdrawalBatchDuration}
+      dividerBelow
+    />
+  </>
 )
 
 const clickableGridSx = {
@@ -71,6 +88,8 @@ export const ActiveMarketsTables = ({
   marketAccounts,
   borrowers,
   isLoading,
+  destinationsByMarket,
+  composableOnly,
   filters,
 }: ActiveMarketsTableProps) => {
   const isMobile = useMobileResolution()
@@ -104,6 +123,7 @@ export const ActiveMarketsTables = ({
         borrower: borrowerAddress,
         name,
         underlyingToken,
+        marketToken,
         annualInterestBips,
         maxTotalSupply,
         totalSupply,
@@ -134,12 +154,17 @@ export const ActiveMarketsTables = ({
         capacityLeft: maxTotalSupply.sub(totalSupply),
         hasEverInteracted,
         chainId,
+        destinationsCount:
+          destinationsByMarket[address.toLowerCase()]?.length ?? 0,
+        marketTokenSymbol: marketToken.symbol,
       }
     },
   )
 
   const depositedMarkets = rows.filter((market) => market.hasEverInteracted)
   const nonDepositedMarkets = rows.filter((market) => !market.hasEverInteracted)
+
+  const showComposableColumn = Object.keys(destinationsByMarket).length > 0
 
   const columns: TypeSafeColDef<ActiveMarketsTableModel>[] = [
     {
@@ -336,7 +361,30 @@ export const ActiveMarketsTables = ({
         </Box>
       ),
     },
+    ...(showComposableColumn
+      ? [
+          {
+            field: "destinationsCount",
+            headerName: t("destinations.column"),
+            minWidth: 128,
+            flex: 1,
+            headerAlign: "right",
+            align: "right",
+            sortable: true,
+            renderCell: (
+              params: GridRenderCellParams<ActiveMarketsTableModel, number>,
+            ) => (
+              <ComposableChipCell
+                rowId={params.row.id}
+                count={params.row.destinationsCount}
+              />
+            ),
+          } satisfies TypeSafeColDef<ActiveMarketsTableModel>,
+        ]
+      : []),
   ]
+
+  const gridMinWidth = getGridMinWidth(columns, 2 * DATA_GRID_SIDE_PADDING)
 
   if (isMobile)
     return (
@@ -354,72 +402,90 @@ export const ActiveMarketsTables = ({
     )
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        height: `calc(100vh - ${pageCalcHeights.dashboard})`,
-        width: "100%",
-        overflow: "auto",
-        overflowY: "auto",
-        gap: "16px",
-        marginTop: "24px",
-        paddingBottom: "26px",
-      }}
-    >
-      <Box id="deposited" ref={depositedRef}>
-        <MarketsTableAccordion
-          label={t("dashboard.markets.tables.borrower.active.deposited")}
-          marketsLength={depositedMarkets.length}
-          isLoading={isLoading}
-          isOpen
-          noMarketsTitle={t("dashboard.markets.noMarkets.active.title")}
-          noMarketsSubtitle={t(
-            "dashboard.markets.noMarkets.active.lenderSubtitle",
-          )}
-          nameFilter={filters.nameFilter}
-          assetFilter={filters.assetFilter}
-          statusFilter={filters.statusFilter}
-          showNoFilteredMarkets
-        >
-          <DataGrid
-            disableVirtualization
-            sx={clickableGridSx}
-            rowHeight={66}
-            rows={depositedMarkets}
-            columns={columns}
-            columnHeaderHeight={40}
-            slots={{ row: MarketLinkRow }}
-          />
-        </MarketsTableAccordion>
-      </Box>
+    <ComposableExpansionProvider>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          height: `calc(100vh - ${pageCalcHeights.dashboard})`,
+          width: "100%",
+          overflow: "auto",
+          overflowY: "auto",
+          gap: "16px",
+          marginTop: "24px",
+          paddingBottom: "26px",
+        }}
+      >
+        <Box id="deposited" ref={depositedRef}>
+          <MarketsTableAccordion
+            minContentWidth={gridMinWidth}
+            label={t("dashboard.markets.tables.borrower.active.deposited")}
+            marketsLength={depositedMarkets.length}
+            isLoading={isLoading}
+            isOpen
+            noMarketsTitle={
+              composableOnly
+                ? t("destinations.noComposableMarkets")
+                : t("dashboard.markets.noMarkets.active.title")
+            }
+            noMarketsSubtitle={
+              composableOnly
+                ? undefined
+                : t("dashboard.markets.noMarkets.active.lenderSubtitle")
+            }
+            nameFilter={filters.nameFilter}
+            assetFilter={filters.assetFilter}
+            statusFilter={filters.statusFilter}
+            showNoFilteredMarkets
+          >
+            <DataGrid
+              disableVirtualization
+              sx={clickableGridSx}
+              rowHeight={66}
+              resizeThrottleMs={COMPOSABLE_GRID_RESIZE_THROTTLE_MS}
+              rows={depositedMarkets}
+              columns={columns}
+              columnHeaderHeight={40}
+              slots={{ row: MarketLinkRow }}
+            />
+          </MarketsTableAccordion>
+        </Box>
 
-      <Box id="non-deposited" ref={nonDepositedRef}>
-        <MarketsTableAccordion
-          label={t("dashboard.markets.tables.borrower.active.nonDeposited")}
-          isLoading={isLoading}
-          isOpen
-          noMarketsTitle={t("dashboard.markets.noMarkets.active.title")}
-          noMarketsSubtitle={t(
-            "dashboard.markets.noMarkets.active.lenderSubtitle",
-          )}
-          marketsLength={nonDepositedMarkets.length}
-          nameFilter={filters.nameFilter}
-          assetFilter={filters.assetFilter}
-          statusFilter={filters.statusFilter}
-          showNoFilteredMarkets
-        >
-          <DataGrid
-            disableVirtualization
-            sx={clickableGridSx}
-            rowHeight={66}
-            rows={nonDepositedMarkets}
-            columns={columns}
-            columnHeaderHeight={40}
-            slots={{ row: MarketLinkRow }}
-          />
-        </MarketsTableAccordion>
+        <Box id="non-deposited" ref={nonDepositedRef}>
+          <MarketsTableAccordion
+            minContentWidth={gridMinWidth}
+            label={t("dashboard.markets.tables.borrower.active.nonDeposited")}
+            isLoading={isLoading}
+            isOpen
+            noMarketsTitle={
+              composableOnly
+                ? t("destinations.noComposableMarkets")
+                : t("dashboard.markets.noMarkets.active.title")
+            }
+            noMarketsSubtitle={
+              composableOnly
+                ? undefined
+                : t("dashboard.markets.noMarkets.active.lenderSubtitle")
+            }
+            marketsLength={nonDepositedMarkets.length}
+            nameFilter={filters.nameFilter}
+            assetFilter={filters.assetFilter}
+            statusFilter={filters.statusFilter}
+            showNoFilteredMarkets
+          >
+            <DataGrid
+              disableVirtualization
+              sx={clickableGridSx}
+              rowHeight={66}
+              resizeThrottleMs={COMPOSABLE_GRID_RESIZE_THROTTLE_MS}
+              rows={nonDepositedMarkets}
+              columns={columns}
+              columnHeaderHeight={40}
+              slots={{ row: MarketLinkRow }}
+            />
+          </MarketsTableAccordion>
+        </Box>
       </Box>
-    </Box>
+    </ComposableExpansionProvider>
   )
 }
