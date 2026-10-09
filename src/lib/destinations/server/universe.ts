@@ -1,25 +1,41 @@
 import {
+  ApolloClient,
+  from,
+  gql,
+  HttpLink,
+  InMemoryCache,
+} from "@apollo/client"
+import { RetryLink } from "@apollo/client/link/retry"
+import {
+  type GetWrappedMarketsPageOptions,
   getDeploymentAddress,
+  getWrappedMarketsPage,
   hasDeploymentAddress,
+  SubgraphUrls,
   SupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
-import { type Address, isAddressEqual, parseAbi, zeroAddress } from "viem"
+import { type Address, getAddress } from "viem"
 
-import { getDestinationsClient } from "./rpc"
+import { UPSTREAM_TIMEOUT_MS } from "../constants"
 import type { DestinationTokenForm } from "../types"
 
-const ARCH_CONTROLLER_ABI = parseAbi([
-  "function getRegisteredMarkets() view returns (address[])",
-])
+// The SDK's wrapper discovery page has no asset or borrower, so they are read
+// for the same markets at the block that page was indexed at.
+const WRAPPED_MARKET_CONTEXT = gql`
+  query WrappedMarketContext($ids: [ID!]!, $block: Block_height!) {
+    markets(first: 1000, where: { id_in: $ids }, block: $block) {
+      id
+      borrower
+      asset {
+        address
+      }
+    }
+  }
+`
 
-const WRAPPER_FACTORY_ABI = parseAbi([
-  "function wrapperForMarket(address market) view returns (address)",
-])
-
-const MARKET_ABI = parseAbi([
-  "function asset() view returns (address)",
-  "function borrower() view returns (address)",
-])
+type WrappedMarketContext = {
+  markets: { id: string; borrower: string; asset: { address: string } }[]
+}
 
 /** A Wildcat market and the tokens of it that platforms can take. */
 export type WildcatToken = {
@@ -36,66 +52,77 @@ export const tokenAddressOf: Record<
   wrapper: (token) => token.wrapper,
 }
 
-/** Registered markets that have a Wildcat 4626 wrapper, read on-chain. */
+// The inventory is fatal to the whole response, so each request gets one
+// retry and every attempt its own timeout.
+const createSubgraphClient = (chainId: SupportedChainId) =>
+  new ApolloClient({
+    cache: new InMemoryCache(),
+    link: from([
+      new RetryLink({ attempts: { max: 2 } }),
+      new HttpLink({
+        uri: SubgraphUrls[chainId],
+        fetch: (input, init) =>
+          fetch(input, {
+            ...init,
+            signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+          }),
+      }),
+    ]),
+  })
+
+/** Registered markets that have a Wildcat 4626 wrapper, read from the subgraph. */
 export const getWildcatTokens = async (
   chainId: SupportedChainId,
 ): Promise<WildcatToken[]> => {
   if (!hasDeploymentAddress(chainId, "Wildcat4626WrapperFactory")) return []
 
-  const client = getDestinationsClient(chainId)
-  const archController = getDeploymentAddress(
-    chainId,
-    "WildcatArchController",
-  ) as Address
-  const wrapperFactory = getDeploymentAddress(
+  const factory = getDeploymentAddress(
     chainId,
     "Wildcat4626WrapperFactory",
-  ) as Address
+  ).toLowerCase()
+  const client = createSubgraphClient(chainId)
+  const tokens: WildcatToken[] = []
+  let after: GetWrappedMarketsPageOptions["after"]
 
-  const markets = await client.readContract({
-    address: archController,
-    abi: ARCH_CONTROLLER_ABI,
-    functionName: "getRegisteredMarkets",
-  })
-  if (markets.length === 0) return []
+  do {
+    // eslint-disable-next-line no-await-in-loop
+    const page = await getWrappedMarketsPage(client, { after })
+    // Only wrappers deployed by this chain's Wildcat factory count.
+    const wrapped = page.items.filter(
+      ({ tokenWrapper }) =>
+        tokenWrapper.factory.address.toLowerCase() === factory,
+    )
 
-  const wrappers = await client.multicall({
-    allowFailure: false,
-    contracts: markets.map((market) => ({
-      address: wrapperFactory,
-      abi: WRAPPER_FACTORY_ABI,
-      functionName: "wrapperForMarket" as const,
-      args: [market] as const,
-    })),
-  })
+    if (wrapped.length > 0) {
+      // eslint-disable-next-line no-await-in-loop
+      const { data } = await client.query<WrappedMarketContext>({
+        query: WRAPPED_MARKET_CONTEXT,
+        variables: {
+          ids: wrapped.map(({ id }) => id),
+          block: { number: page.indexedAt.blockNumber },
+        },
+        fetchPolicy: "no-cache",
+      })
+      const contextById = new Map(
+        data.markets.map((market) => [market.id.toLowerCase(), market]),
+      )
 
-  const wrapped = markets.flatMap((market, index) =>
-    isAddressEqual(wrappers[index], zeroAddress)
-      ? []
-      : [{ market, wrapper: wrappers[index] }],
-  )
-  if (wrapped.length === 0) return []
+      wrapped.forEach(({ id, tokenWrapper }) => {
+        const context = contextById.get(id.toLowerCase())
+        if (!context) {
+          throw new Error(`Subgraph has no asset or borrower for market ${id}`)
+        }
+        tokens.push({
+          market: getAddress(id),
+          wrapper: getAddress(tokenWrapper.address),
+          asset: getAddress(context.asset.address),
+          borrower: getAddress(context.borrower),
+        })
+      })
+    }
 
-  const details = (await client.multicall({
-    allowFailure: false,
-    contracts: wrapped.flatMap(({ market }) => [
-      {
-        address: market,
-        abi: MARKET_ABI,
-        functionName: "asset" as const,
-      },
-      {
-        address: market,
-        abi: MARKET_ABI,
-        functionName: "borrower" as const,
-      },
-    ]),
-  })) as Address[]
+    after = page.pageInfo.nextCursor
+  } while (after)
 
-  return wrapped.map(({ market, wrapper }, index) => ({
-    market,
-    wrapper,
-    asset: details[index * 2],
-    borrower: details[index * 2 + 1],
-  }))
+  return tokens
 }

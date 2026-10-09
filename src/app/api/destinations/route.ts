@@ -5,8 +5,9 @@ import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
-// force-dynamic alone still lets Next cache the viem RPC POSTs indefinitely,
-// which would hide new markets and wrappers until the Data Cache is purged.
+// force-dynamic alone still lets Next cache POST fetches (subgraph and RPC)
+// indefinitely, which would hide new markets and wrappers until the Data Cache
+// is purged.
 export const fetchCache = "force-no-store"
 
 export async function GET(request: NextRequest) {
