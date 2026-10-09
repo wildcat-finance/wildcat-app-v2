@@ -1,8 +1,10 @@
+import { SubgraphUrls, SupportedChainId } from "@wildcatfi/wildcat-sdk"
+
 export const ETHEREUM_MAINNET_SUBGRAPH_URL =
-  "https://api.goldsky.com/api/public/project_cmheai1ym00jyx7p27qn46qtm/subgraphs/mainnet/v2.0.30/gn"
+  SubgraphUrls[SupportedChainId.Mainnet]
 
 export const PLASMA_MAINNET_SUBGRAPH_URL =
-  "https://api.goldsky.com/api/public/project_cmheai1ym00jyx7p27qn46qtm/subgraphs/plasma-mainnet/v2.0.30/gn"
+  SubgraphUrls[SupportedChainId.PlasmaMainnet]
 
 export async function querySubgraph<T>(
   url: string,

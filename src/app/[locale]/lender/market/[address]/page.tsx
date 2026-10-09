@@ -4,7 +4,6 @@ import * as React from "react"
 import { useEffect, useState } from "react"
 
 import { Box, Divider, Skeleton, Typography, useTheme } from "@mui/material"
-import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
@@ -38,7 +37,6 @@ import { useMarketMla } from "@/hooks/useMarketMla"
 import { useMarketSummary } from "@/hooks/useMarketSummary"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
-import { useTokenWrapper } from "@/hooks/wrapper/useTokenWrapper"
 import { useWrapperForMarket } from "@/hooks/wrapper/useWrapperForMarket"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -152,20 +150,13 @@ export default function LenderMarketDetails({
   )
 
   const {
-    wrapperAddress,
+    wrapper,
     hasWrapper,
     hasFactory,
-    isLoading: isWrapperLookupLoading,
-  } = useWrapperForMarket(market)
-
-  const {
-    data: wrapper,
     isLoading: isWrapperLoading,
     isError: isWrapperError,
-  } = useTokenWrapper(
-    market?.chainId as SupportedChainId | undefined,
-    wrapperAddress,
-  )
+    refetch: refetchWrapper,
+  } = useWrapperForMarket(market)
 
   const {
     isPageLoading: isLoading,
@@ -517,8 +508,8 @@ export default function LenderMarketDetails({
           hasWrapper={hasWrapper}
           hasFactory={hasFactory}
           isWrapperLoading={isWrapperLoading}
-          isWrapperLookupLoading={isWrapperLookupLoading}
           isWrapperError={isWrapperError}
+          onRetryWrapper={refetchWrapper}
           isAuthorizedLender={authorizedInMarket}
           isDifferentChain={isDifferentChain}
         />
@@ -620,8 +611,8 @@ export default function LenderMarketDetails({
               hasWrapper={hasWrapper}
               hasFactory={hasFactory}
               isWrapperLoading={isWrapperLoading}
-              isWrapperLookupLoading={isWrapperLookupLoading}
               isWrapperError={isWrapperError}
+              onRetryWrapper={refetchWrapper}
               isAuthorizedLender={authorizedInMarket}
               isDifferentChain={isDifferentChain}
             />
@@ -814,8 +805,8 @@ export default function LenderMarketDetails({
               hasWrapper={hasWrapper}
               hasFactory={hasFactory}
               isWrapperLoading={isWrapperLoading}
-              isWrapperLookupLoading={isWrapperLookupLoading}
               isWrapperError={isWrapperError}
+              onRetryWrapper={refetchWrapper}
               isAuthorizedLender={authorizedInMarket}
               isDifferentChain={isDifferentChain}
             />
