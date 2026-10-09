@@ -153,7 +153,7 @@ export const evaluateMorphoMarket = ({
       url,
       curators: Array.from(new Set(vaults.flatMap((vault) => vault.curators))),
       figures: {
-        lltv: Number(onchain.lltv) / 1e18,
+        lltv: toHuman(onchain.lltv, 18),
         borrowApy: state.avgBorrowApy ?? null,
         availableLiquidityUsd,
         asOf,

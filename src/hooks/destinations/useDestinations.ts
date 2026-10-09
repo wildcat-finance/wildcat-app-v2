@@ -3,6 +3,8 @@ import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 
 import { QueryKeys } from "@/config/query-keys"
+import { useIsSelectedNetworkRehydrated } from "@/hooks/useSelectedNetwork"
+import { CACHE_TTL_MS } from "@/lib/destinations/constants"
 import { isStale, pruneExpired } from "@/lib/destinations/freshness"
 import { supportsDestinations } from "@/lib/destinations/platforms"
 import type {
@@ -10,8 +12,6 @@ import type {
   DestinationPlatform,
   DestinationsResponse,
 } from "@/lib/destinations/types"
-
-const STALE_TIME_MS = 5 * 60 * 1000
 
 const NO_DESTINATIONS: Destination[] = []
 const NO_MARKETS: Record<string, Destination[]> = {}
@@ -30,11 +30,13 @@ export type DestinationsState = {
 export const useDestinations = (
   chainId: number | undefined,
 ): DestinationsState => {
+  const isSelectedNetworkRehydrated = useIsSelectedNetworkRehydrated()
   const query = useQuery({
     queryKey: QueryKeys.Destinations.BY_CHAIN(chainId ?? 0),
-    enabled: !!chainId && supportsDestinations(chainId),
-    staleTime: STALE_TIME_MS,
-    refetchInterval: STALE_TIME_MS,
+    enabled:
+      isSelectedNetworkRehydrated && !!chainId && supportsDestinations(chainId),
+    staleTime: CACHE_TTL_MS,
+    refetchInterval: CACHE_TTL_MS,
     refetchOnWindowFocus: false,
     retry: 1,
     queryFn: async (): Promise<DestinationsResponse> => {

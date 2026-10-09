@@ -1,3 +1,4 @@
+import type { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { z } from "zod"
 
 import { querySubgraph } from "@/lib/protocol-stats/subgraph"
@@ -138,7 +139,7 @@ export type MorphoMarket = z.infer<typeof marketSchema>
 export type MorphoCurator = z.infer<typeof curatorSchema>
 
 export const fetchMorphoMarkets = async (
-  chainId: number,
+  chainId: SupportedChainId,
   collaterals: string[],
 ): Promise<MorphoMarket[]> => {
   const markets = new Map<string, MorphoMarket>()

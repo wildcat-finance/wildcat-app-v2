@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
+import { CACHE_TTL_MS, FAILURE_BACKOFF_MS } from "@/lib/destinations/constants"
 import { getDestinations } from "@/lib/destinations/server/getDestinations"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
@@ -18,17 +19,18 @@ export async function GET(request: NextRequest) {
 
   try {
     const payload = await getDestinations(chainId)
+    const stale = payload.stale || payload.stalePlatforms.length > 0
+    const maxAgeSec = (stale ? FAILURE_BACKOFF_MS : CACHE_TTL_MS) / 1000
     return NextResponse.json(payload, {
       headers: {
-        "Cache-Control":
-          payload.stale || payload.stalePlatforms.length > 0
-            ? "public, s-maxage=60"
-            : "public, s-maxage=300, stale-while-revalidate=60",
+        "Cache-Control": stale
+          ? `public, s-maxage=${maxAgeSec}`
+          : `public, s-maxage=${maxAgeSec}, stale-while-revalidate=60`,
       },
     })
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.error("Failed to load destinations", error)
+    console.error(`[Destinations] request failed on chain ${chainId}`, error)
     return NextResponse.json(
       { error: "Destinations are unavailable" },
       { status: 502 },
