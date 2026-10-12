@@ -30,7 +30,7 @@ const RevolvingExtraParametersSection = ({
               )}%`
             : "..."
         }
-        tooltipText={t("common.labels.annualPercentageRateChargedUndrawn")}
+        tooltipText={t("common.labels.commitmentAprTooltip")}
       />
       <Divider sx={{ margin: "12px 0 12px" }} />
     </>
@@ -43,11 +43,11 @@ export const revolvingMarketImplementationVariant: MarketImplementationVariant =
     aprCopy: {
       configuredAprLabelKey: "common.fields.utilizationApr",
       configuredAprTooltip:
-        "The annual percentage rate charged on drawn capital in a revolving market. Undrawn deposited capital accrues the separate commitment APR instead.",
+        "The additional annual percentage rate charged on drawn capital in a revolving market. Commitment APR accrues separately on all deposited capital.",
       protocolAprTooltip:
         "An additional APR that accrues to the protocol as a percentage of the market's current blended lender APR: commitment APR plus the utilization-weighted utilization APR.",
       effectiveLenderAprTooltip:
-        "The current APR being paid to lenders across deposited capital: commitment APR on undrawn capital, plus utilization APR on drawn capital, plus penalty APR if applicable.",
+        "The current APR being paid to lenders across deposited capital: commitment APR on all deposited capital, plus utilization APR weighted by the drawn share, plus penalty APR if applicable.",
       getConfiguredAprValueTooltip: (aprDisplay) =>
         aprDisplay.utilizationBips !== undefined
           ? `Current utilization: ${formatBps(

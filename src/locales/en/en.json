@@ -178,11 +178,11 @@
       "financial": {
         "baseAPR": {
           "glossary": "The fixed annual percentage rate (excluding any protocol fees) that borrowers pay for assets within the market.",
-          "glossaryRevolving": "The additional annual percentage rate charged on borrowed capital in a revolving market. Undrawn capacity does not accrue this rate; it accrues the separate commitment fee instead."
+          "glossaryRevolving": "The additional annual percentage rate charged on drawn capital in a revolving market. Commitment APR accrues separately on all deposited capital."
         },
         "commitmentFee": {
           "chip": "%",
-          "glossary": "A recurring fee charged on undrawn borrowing capacity in a revolving market. Lenders continue to earn this fee even when capital has been committed but not yet borrowed.",
+          "glossary": "The annual rate earned on all deposited capital in a revolving market, whether drawn or undrawn. Drawn capital also earns the utilization APR.",
           "label": "Commitment Fee"
         },
         "maxCapacity": {
@@ -714,7 +714,7 @@
       "addMarket": "Add market",
       "addNewLender": "Add a new lender",
       "aggregateKpisUnavailableNetwork": "Aggregate KPIs unavailable on this network",
-      "annualPercentageRateChargedUndrawn": "The annual percentage rate charged on undrawn deposited capital in a revolving market.",
+      "commitmentAprTooltip": "The annual percentage rate earned on all deposited capital in a revolving market, whether drawn or undrawn.",
       "ascending": "Ascending",
       "borrower": "Borrower",
       "borrowerName": "Borrower name",
@@ -1348,6 +1348,14 @@
       "wrongMarketNetwork": "Wrong Market Network"
     },
     "shared": {
+      "aprCurve": {
+        "accessible": "Current lender APR is {{current}}% at {{utilization}}% utilization. At the current rates, lender APR ranges from {{minimum}}% at zero utilization to {{maximum}}% at full utilization.",
+        "atUtilization": "{{utilization}}% of deposits drawn",
+        "penalty": "Includes {{apr}}% penalty APR",
+        "tooltip": "Utilization is the share of deposited capital drawn by the borrower, not the share of market capacity filled by deposits. Lender APR combines commitment APR on all deposits with utilization APR weighted by the drawn share, plus any active penalty APR. The curve uses the current configured rates; it is not a historical chart.",
+        "unavailable": "APR data unavailable",
+        "utilization": "Drawn share of deposits"
+      },
       "withdrawalCycle": {
         "accessible": "{{phase}}. {{remaining}} remaining in this phase. Each cycle has {{open}} open and {{closed}} closed to withdrawals.",
         "closed": "Withdrawals closed",

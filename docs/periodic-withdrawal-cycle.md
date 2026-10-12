@@ -3,8 +3,11 @@
 The lender market page shows a live phase diagram in the reserved right-hand
 column for periodic-term markets. Its centre aligns with the deposit/withdraw
 cards when they are visible, including after notice dismissal or card resizing.
-Other desktop sections centre it within the page. On mobile it sits beneath the
-market header and notices. It omits the reference design's heading and footer.
+For markets that also use revolving credit, the APR curve sits below the phase
+diagram with a thin divider; the transaction page uses a grid to keep both in
+the scrolling layout. Other desktop sections centre the indicator column within
+the page. On mobile it sits beneath the market header and notices. The phase
+diagram omits the reference design's heading and footer.
 
 The right arc represents the open request window; the left arc represents the
 closed interval. Each arc represents one phase, not an equal amount of time.

@@ -34,12 +34,15 @@ import {
   MarketRecordsSkeleton,
 } from "@/components/MarketDetailSkeletons"
 import { MarketHeader } from "@/components/MarketHeader"
+import {
+  hasMarketIndicators,
+  MarketIndicators,
+} from "@/components/MarketIndicators"
 import { MarketParameters } from "@/components/MarketParameters"
 import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { useIdlePrefetchMarketRecords } from "@/components/PaginatedMarketRecordsTable/hooks/usePrefetchMarketRecords"
 import { PendingAprReductionBanner } from "@/components/PendingAprReductionBanner"
-import { PeriodicWithdrawalCycle } from "@/components/PeriodicWithdrawalCycle"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
 import { METRIC_BASIS } from "@/components/Profile/shared/metricBasis"
 import { WrapperSkeleton } from "@/components/WrapDebtToken/WrapperSkeleton"
@@ -788,17 +791,17 @@ export default function LenderMarketDetails({
             sx={{ margin: "8px 0 4px" }}
           />
 
-          {market.periodicHooksConfig && (
+          {hasMarketIndicators(market) && (
             <Box
               sx={{
                 display: "flex",
                 justifyContent: "center",
-                padding: "4px 0",
+                padding: "20px 24px",
                 backgroundColor: COLORS.white,
                 borderRadius: "14px",
               }}
             >
-              <PeriodicWithdrawalCycle market={market} />
+              <MarketIndicators market={market} />
             </Box>
           )}
 
@@ -973,21 +976,20 @@ export default function LenderMarketDetails({
     <Box sx={{ position: "relative", containerType: "inline-size" }}>
       <MarketHeader market={market} marketAccount={marketAccount} />
 
-      {market.periodicHooksConfig && !showDesktopMarketActions && (
+      {hasMarketIndicators(market) && !showDesktopMarketActions && (
         <Box
-          component="aside"
           sx={{
             position: "absolute",
             top: "50%",
             transform: "translateY(-50%)",
             right: 0,
             width: "32.3%",
-            padding: "0 16px",
+            padding: "0 24px",
             display: "flex",
             justifyContent: "center",
           }}
         >
-          <PeriodicWithdrawalCycle market={market} />
+          <MarketIndicators market={market} />
         </Box>
       )}
 

@@ -15,6 +15,7 @@ import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAdd
 import TelegramIcon from "@/assets/icons/telegram_icon.svg"
 import { PeriodicWithdrawalCycle } from "@/components/PeriodicWithdrawalCycle"
 import { PeriodicWithdrawalWindowNotice } from "@/components/PeriodicWithdrawalWindowNotice"
+import { RevolvingAprCurve } from "@/components/RevolvingAprCurve"
 import { toastError } from "@/components/Toasts"
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
@@ -32,6 +33,7 @@ import {
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
+import { isRevolvingAprMarket } from "@/utils/marketApr"
 import { isPeriodicWithdrawalWindowClosed } from "@/utils/periodicWithdrawalWindow"
 
 import { MarketActionsProps } from "./interface"
@@ -83,6 +85,8 @@ export const MarketActions = ({
 }: MarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
+  const isRevolving = isRevolvingAprMarket(market)
+  const showIndicators = Boolean(market.periodicHooksConfig) || isRevolving
   const { isTestnet } = useSelectedNetwork()
   const { address } = useAccount()
   const { publicClient } = useEthersProvider({ chainId: market.chainId })
@@ -271,8 +275,17 @@ export const MarketActions = ({
 
       <Divider sx={{ margin: "32px 0" }} />
 
-      <Box width="100%" display="flex" flexDirection="column">
-        <Box sx={{ position: "relative" }}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: showIndicators
+            ? "minmax(0, 1fr) 32.3cqw"
+            : "minmax(0, 1fr)",
+          width: showIndicators ? "calc(100% + 32.3cqw)" : "100%",
+          alignItems: "center",
+        }}
+      >
+        <Box sx={{ gridColumn: 1, minWidth: 0 }}>
           <Box sx={TransactionsContainer}>
             {accessState === "authorized" && (
               <TransactionBlock
@@ -405,73 +418,111 @@ export const MarketActions = ({
               )}
             </TransactionBlock>
           </Box>
-
-          {market.periodicHooksConfig && (
-            <Box
-              component="aside"
-              sx={{
-                position: "absolute",
-                top: "50%",
-                left: "100%",
-                transform: "translateY(-50%)",
-                width: "32.3cqw",
-                padding: "0 16px",
-                display: "flex",
-                justifyContent: "center",
-              }}
-            >
-              <PeriodicWithdrawalCycle market={market} />
-            </Box>
-          )}
         </Box>
 
-        {periodicWindowClosed && !combinedAvailable.raw.isZero() && (
-          <PeriodicWithdrawalWindowNotice
-            market={market}
-            sx={{ marginTop: "12px" }}
-          />
-        )}
-      </Box>
-
-      <Divider sx={{ margin: "32px 0 40px" }} />
-
-      <Box width="100%" display="flex" flexDirection="column">
-        <Typography variant="title3">{getWithdrawalsStatus()}</Typography>
-        {isClaimableZero && (
-          <Typography variant="text3" color={COLORS.santasGrey} marginTop="8px">
-            {t("marketDetails.lender.withdrawalsAlert.subtitle")}
-          </Typography>
-        )}
-
-        {(!isOngoingWDsZero || !isClaimableZero) && (
+        {showIndicators && (
           <Box
+            component="aside"
             sx={{
-              height: "27.95px",
+              gridColumn: 2,
+              padding: "0 24px",
               display: "flex",
-              gap: "6px",
-              marginTop: "24px",
+              justifyContent: "center",
+              minWidth: 0,
             }}
           >
-            {!isOngoingWDsZero && (
-              <Button
-                variant="contained"
-                color="secondary"
-                size="small"
-                sx={{ width: "fit-content" }}
-                onClick={handleChangeSection}
+            {market.periodicHooksConfig ? (
+              <Box
+                sx={{
+                  width: "100%",
+                  maxWidth: isRevolving ? "280px" : "340px",
+                }}
               >
-                {t("common.buttons.goToWithdrawals")}
-              </Button>
-            )}
-
-            {!isClaimableZero && (
-              <ClaimModal market={market} withdrawals={withdrawals} />
+                <PeriodicWithdrawalCycle market={market} />
+              </Box>
+            ) : (
+              <RevolvingAprCurve market={market} />
             )}
           </Box>
         )}
-      </Box>
 
-      <Divider sx={{ margin: "40px 0 32px" }} />
+        <Box sx={{ gridColumn: 1, alignSelf: "start" }}>
+          {periodicWindowClosed && !combinedAvailable.raw.isZero() && (
+            <PeriodicWithdrawalWindowNotice
+              market={market}
+              sx={{ marginTop: "12px" }}
+            />
+          )}
+          <Divider sx={{ margin: "32px 0 40px" }} />
+
+          <Box width="100%" display="flex" flexDirection="column">
+            <Typography variant="title3">{getWithdrawalsStatus()}</Typography>
+            {isClaimableZero && (
+              <Typography
+                variant="text3"
+                color={COLORS.santasGrey}
+                marginTop="8px"
+              >
+                {t("marketDetails.lender.withdrawalsAlert.subtitle")}
+              </Typography>
+            )}
+
+            {(!isOngoingWDsZero || !isClaimableZero) && (
+              <Box
+                sx={{
+                  height: "27.95px",
+                  display: "flex",
+                  gap: "6px",
+                  marginTop: "24px",
+                }}
+              >
+                {!isOngoingWDsZero && (
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    size="small"
+                    sx={{ width: "fit-content" }}
+                    onClick={handleChangeSection}
+                  >
+                    {t("common.buttons.goToWithdrawals")}
+                  </Button>
+                )}
+
+                {!isClaimableZero && (
+                  <ClaimModal market={market} withdrawals={withdrawals} />
+                )}
+              </Box>
+            )}
+          </Box>
+
+          <Divider sx={{ margin: "40px 0 32px" }} />
+        </Box>
+
+        {market.periodicHooksConfig && isRevolving && (
+          <Box
+            component="aside"
+            sx={{
+              gridColumn: 2,
+              alignSelf: "start",
+              padding: "16px 24px 24px",
+              display: "flex",
+              justifyContent: "center",
+              minWidth: 0,
+            }}
+          >
+            <Box
+              sx={{
+                width: "100%",
+                maxWidth: "320px",
+                borderTop: `1px solid ${COLORS.whiteLilac}`,
+                paddingTop: "20px",
+              }}
+            >
+              <RevolvingAprCurve market={market} />
+            </Box>
+          </Box>
+        )}
+      </Box>
     </>
   )
 }
