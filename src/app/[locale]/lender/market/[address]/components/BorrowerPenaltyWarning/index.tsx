@@ -1,18 +1,21 @@
-import { Box, SvgIcon, Typography } from "@mui/material"
+import { Box, IconButton, SvgIcon, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import Alert from "@/assets/icons/circledAlertRed_icon.svg"
+import Cross from "@/assets/icons/cross_icon.svg"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
 type BorrowerPenaltyWarningProps = {
   variant?: "page" | "modal"
   verificationUnavailable?: boolean
+  onClose?: () => void
 }
 
 export const BorrowerPenaltyWarning = ({
   variant = "page",
   verificationUnavailable = false,
+  onClose,
 }: BorrowerPenaltyWarningProps) => {
   const { t } = useTranslation()
   const isMobile = useMobileResolution()
@@ -34,13 +37,29 @@ export const BorrowerPenaltyWarning = ({
         <Alert />
       </SvgIcon>
 
-      <Typography variant="text3" color={COLORS.dullRed}>
+      <Typography variant="text3" color={COLORS.dullRed} sx={{ flex: 1 }}>
         {t(
           verificationUnavailable
             ? "marketDetails.lender.borrowerPenaltyWarningUnavailable"
             : "marketDetails.lender.borrowerPenaltyWarning",
         )}
       </Typography>
+      {onClose && (
+        <IconButton
+          aria-label={t("marketDetails.shared.banners.dismissNotice")}
+          onClick={onClose}
+          sx={{
+            flexShrink: 0,
+            padding: "2px",
+            marginTop: "-2px",
+            "& path": { fill: COLORS.dullRed },
+          }}
+        >
+          <SvgIcon sx={{ fontSize: "16px" }}>
+            <Cross />
+          </SvgIcon>
+        </IconButton>
+      )}
     </Box>
   )
 

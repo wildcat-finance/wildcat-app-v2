@@ -39,6 +39,7 @@ import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { useIdlePrefetchMarketRecords } from "@/components/PaginatedMarketRecordsTable/hooks/usePrefetchMarketRecords"
 import { PendingAprReductionBanner } from "@/components/PendingAprReductionBanner"
+import { PeriodicWithdrawalCycle } from "@/components/PeriodicWithdrawalCycle"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
 import { METRIC_BASIS } from "@/components/Profile/shared/metricBasis"
 import { WrapperSkeleton } from "@/components/WrapDebtToken/WrapperSkeleton"
@@ -321,7 +322,14 @@ export default function LenderMarketDetails({
     market?.chainId ?? selectedChainId,
   )
   const borrowerPenaltyWarning = useBorrowerPenaltyWarning(market)
-  const showBorrowerPenaltyWarning = borrowerPenaltyWarning.state === "warning"
+  const [dismissedPenaltyWarning, setDismissedPenaltyWarning] =
+    useState<string>()
+  const penaltyWarningKey = `${
+    market?.chainId ?? marketChainId
+  }:${address.toLowerCase()}`
+  const showBorrowerPenaltyWarning =
+    borrowerPenaltyWarning.state === "warning" &&
+    dismissedPenaltyWarning !== penaltyWarningKey
 
   const hasMarketDescription =
     !!marketSummary && marketSummary?.description !== ""
@@ -770,11 +778,29 @@ export default function LenderMarketDetails({
             hasMarketDescription={hasMarketDescription}
           />
 
-          {showBorrowerPenaltyWarning && <BorrowerPenaltyWarning />}
+          {showBorrowerPenaltyWarning && (
+            <BorrowerPenaltyWarning
+              onClose={() => setDismissedPenaltyWarning(penaltyWarningKey)}
+            />
+          )}
           <PendingAprReductionBanner
             market={market}
             sx={{ margin: "8px 0 4px" }}
           />
+
+          {market.periodicHooksConfig && (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                padding: "4px 0",
+                backgroundColor: COLORS.white,
+                borderRadius: "14px",
+              }}
+            >
+              <PeriodicWithdrawalCycle market={market} />
+            </Box>
+          )}
 
           {marketAccount && !isWithdrawalsLoading && (
             <Box id="depositWithdraw">
@@ -935,9 +961,35 @@ export default function LenderMarketDetails({
       </>
     )
 
+  const showDesktopMarketActions =
+    currentSection === LenderMarketSections.TRANSACTIONS &&
+    showLenderTransactions &&
+    isConnected &&
+    !isDifferentChain &&
+    !isDesktopAccountLoading &&
+    !isTransactionsLoading
+
   return (
-    <Box>
+    <Box sx={{ position: "relative", containerType: "inline-size" }}>
       <MarketHeader market={market} marketAccount={marketAccount} />
+
+      {market.periodicHooksConfig && !showDesktopMarketActions && (
+        <Box
+          component="aside"
+          sx={{
+            position: "absolute",
+            top: "50%",
+            transform: "translateY(-50%)",
+            right: 0,
+            width: "32.3%",
+            padding: "0 16px",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <PeriodicWithdrawalCycle market={market} />
+        </Box>
+      )}
 
       {isConnected && isDifferentChain && (
         <SwitchChainAlert desiredChainId={market?.chainId} />
@@ -1003,7 +1055,11 @@ export default function LenderMarketDetails({
           />
         )}
 
-        {showBorrowerPenaltyWarning && <BorrowerPenaltyWarning />}
+        {showBorrowerPenaltyWarning && (
+          <BorrowerPenaltyWarning
+            onClose={() => setDismissedPenaltyWarning(penaltyWarningKey)}
+          />
+        )}
         <PendingAprReductionBanner
           market={market}
           sx={{ margin: "16px 0 24px" }}
@@ -1016,23 +1072,19 @@ export default function LenderMarketDetails({
                 <LenderTransactionsSkeleton />
               ) : (
                 <>
-                  {showLenderTransactions &&
-                    isConnected &&
-                    !isDifferentChain && (
-                      <MarketActions
-                        marketAccount={marketAccount}
-                        withdrawals={withdrawals}
-                        accessState={lenderAccessState}
-                        wrapper={wrapper}
-                        hasWrapper={hasWrapper}
-                        borrowerPenaltyWarningState={
-                          borrowerPenaltyWarning.state
-                        }
-                        refreshBorrowerPenaltyWarning={
-                          borrowerPenaltyWarning.refresh
-                        }
-                      />
-                    )}
+                  {showDesktopMarketActions && (
+                    <MarketActions
+                      marketAccount={marketAccount}
+                      withdrawals={withdrawals}
+                      accessState={lenderAccessState}
+                      wrapper={wrapper}
+                      hasWrapper={hasWrapper}
+                      borrowerPenaltyWarningState={borrowerPenaltyWarning.state}
+                      refreshBorrowerPenaltyWarning={
+                        borrowerPenaltyWarning.refresh
+                      }
+                    />
+                  )}
                   <CapacityBarChart
                     marketAccount={marketAccount}
                     legendType="big"

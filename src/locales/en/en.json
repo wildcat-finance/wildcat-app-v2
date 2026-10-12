@@ -269,18 +269,26 @@
         },
         "newPolicy": "NEW POLICY",
         "periodic": {
+          "durationUnits": "Duration units",
+          "everyPeriod": "Repeats every",
+          "firstOpening": "First opening (UTC)",
           "firstWindowStart": {
             "label": "First Withdrawal Window [UTC]",
-            "placeholder": "e.g. 25/12/2024 14:30 UTC"
+            "placeholder": "Select date and time (UTC)"
           },
           "periodDuration": {
-            "glossary": "How often a withdrawal window recurs — the gap from the start of one window to the start of the next. Must be longer than the withdrawal window.",
-            "placeholder": "Input Period Duration"
+            "glossary": "How often a withdrawal window recurs — the gap from the start of one window to the start of the next. Must be longer than the withdrawal window."
           },
+          "nextWindow": "Next opening",
+          "periodLabel": "Every {{period}}",
+          "previewAccessible": "Withdrawals open at {{start}}, close at {{end}}, and open again at {{next}}. The period is {{period}}.",
+          "previewIncomplete": "Enter a valid first opening, period and withdrawal window to preview the schedule.",
+          "requestsClosed": "Withdrawals closed",
+          "requestsOpen": "Withdrawals open",
+          "requestWindow": "Open for",
           "sectionTitle": "Withdrawal Schedule",
           "withdrawalWindowDuration": {
-            "glossary": "How long each withdrawal window stays open. Lenders can only queue withdrawals while a window is open; it must be shorter than the withdrawal period.",
-            "placeholder": "Input Window Duration"
+            "glossary": "How long each withdrawal window stays open. Lenders can only queue withdrawals while a window is open; it must be shorter than the withdrawal period."
           }
         },
         "policy": {
@@ -775,7 +783,9 @@
       }
     },
     "units": {
+      "days": "Days",
       "hours": "Hours",
+      "minutes": "Minutes",
       "percent": "%"
     },
     "yesNo": {
@@ -1338,6 +1348,18 @@
       "wrongMarketNetwork": "Wrong Market Network"
     },
     "shared": {
+      "withdrawalCycle": {
+        "accessible": "{{phase}}. {{remaining}} remaining in this phase. Each cycle has {{open}} open and {{closed}} closed to withdrawals.",
+        "closed": "Withdrawals closed",
+        "elapsed": "Elapsed",
+        "ended": "Market closed",
+        "ofClosed": "of {{duration}} closed",
+        "ofOpen": "of {{duration}} open",
+        "open": "Withdrawals open",
+        "remaining": "{{remaining}} left",
+        "startsIn": "First window opens in {{remaining}}",
+        "unrestricted": "Withdrawal windows have ended. Withdrawals are always open."
+      },
       "banners": {
         "apr": {
           "baseAprSuffix": "– the core lending rate earned from borrowers.",

@@ -20,13 +20,18 @@ import { lh, pxToRem } from "@/theme/units"
 import { dayjs } from "@/utils/dayjs"
 
 import { MarketPolicyFormProps } from "./interface"
+import { WithdrawalSchedulePreview } from "./WithdrawalSchedulePreview"
 import {
   PERIODIC_DURATION_UNIT_SECONDS,
   PERIODIC_DURATION_UNITS,
 } from "../../../utils/units"
-import { SectionGrid } from "../style"
 
 const DURATION_DECIMAL_SCALE = 2
+const durationUnitLabels = {
+  Days: "common.units.days",
+  Hours: "common.units.hours",
+  Minutes: "common.units.minutes",
+} as const
 
 const durationInputToSeconds = (
   value: number | undefined,
@@ -78,9 +83,14 @@ export const PeriodicTermsSection = ({
   const withdrawalWindowDurationWatch = watch("withdrawalWindowDuration")
   const durationUnit = watch("periodicDurationUnit") ?? "Days"
   const unitSeconds = PERIODIC_DURATION_UNIT_SECONDS[durationUnit]
+  const hasScheduleErrors = Boolean(
+    errors.firstWithdrawalWindowStart ||
+      errors.periodDuration ||
+      errors.withdrawalWindowDuration,
+  )
 
   return (
-    <>
+    <Box sx={{ containerType: "inline-size", containerName: "schedule" }}>
       <Divider sx={{ margin: "28px 0" }} />
 
       <Box
@@ -88,13 +98,16 @@ export const PeriodicTermsSection = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "16px",
         }}
       >
-        <Typography variant="text3">
+        <Typography variant="text1" component="div">
           {t("borrower.createMarket.policy.periodic.sectionTitle")}
         </Typography>
 
         <ToggleButtonGroup
+          aria-label={t("borrower.createMarket.policy.periodic.durationUnits")}
           exclusive
           size="small"
           value={durationUnit}
@@ -110,31 +123,39 @@ export const PeriodicTermsSection = ({
               border: `1px solid ${COLORS.whiteLilac}`,
               color: COLORS.santasGrey,
               "&.Mui-selected": {
-                backgroundColor: COLORS.whiteSmoke,
-                color: COLORS.blackRock,
+                backgroundColor: COLORS.blueRibbon01,
+                color: COLORS.ultramarineBlue,
               },
             },
           }}
         >
           {PERIODIC_DURATION_UNITS.map((unit) => (
             <ToggleButton key={unit} value={unit}>
-              {unit}
+              {t(durationUnitLabels[unit])}
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
       </Box>
       <Box
         sx={{
-          ...SectionGrid,
-          alignItems: "center",
-          gap: "20px",
-          marginTop: "8px",
+          display: "grid",
+          gridTemplateColumns: "1fr",
+          alignItems: "start",
+          gap: "20px 16px",
+          marginTop: "20px",
+          "& > *": { minWidth: 0 },
+          "@container schedule (min-width: 480px)": {
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+            "& > :first-of-type": { gridColumn: "1 / -1" },
+          },
+          "@container schedule (min-width: 720px)": {
+            gridTemplateColumns: "minmax(0, 1.4fr) repeat(2, minmax(0, 1fr))",
+            "& > :first-of-type": { gridColumn: "auto" },
+          },
         }}
       >
         <InputLabel
-          label={t(
-            "borrower.createMarket.policy.periodic.firstWindowStart.label",
-          )}
+          label={t("borrower.createMarket.policy.periodic.firstOpening")}
           tooltipText={t(
             "marketParameters.periodicTerm.firstWindowStartTooltip",
           )}
@@ -144,7 +165,7 @@ export const PeriodicTermsSection = ({
               label={t(
                 "borrower.createMarket.policy.periodic.firstWindowStart.placeholder",
               )}
-              format="DD/MM/YYYY HH:mm"
+              format="DD MMM YYYY, HH:mm"
               value={
                 firstWithdrawalWindowStartWatch
                   ? dayjs.unix(firstWithdrawalWindowStartWatch).utc()
@@ -191,7 +212,7 @@ export const PeriodicTermsSection = ({
                 },
                 textField: {
                   sx: {
-                    minWidth: "342px",
+                    width: "100%",
                     "&.MuiFormControl-root.MuiTextField-root": {
                       border: `1px solid ${COLORS.whiteLilac}`,
                       borderRadius: "12px",
@@ -216,6 +237,11 @@ export const PeriodicTermsSection = ({
                   },
                   helperText: errors.firstWithdrawalWindowStart?.message,
                   error: Boolean(errors.firstWithdrawalWindowStart),
+                  inputProps: {
+                    "aria-label": t(
+                      "borrower.createMarket.policy.periodic.firstOpening",
+                    ),
+                  },
                   FormHelperTextProps: {
                     sx: {
                       color: "wildWatermelon",
@@ -231,22 +257,21 @@ export const PeriodicTermsSection = ({
         </InputLabel>
 
         <InputLabel
-          label={t("common.fields.withdrawalPeriod")}
+          label={t("borrower.createMarket.policy.periodic.everyPeriod")}
           tooltipText={t(
             "borrower.createMarket.policy.periodic.periodDuration.glossary",
           )}
         >
           <NumberTextField
-            label={t(
-              "borrower.createMarket.policy.periodic.periodDuration.placeholder",
-            )}
+            sx={{ width: "100%" }}
+            label={t("borrower.createMarket.policy.periodic.everyPeriod")}
             value={secondsToDurationInput(periodDurationWatch, unitSeconds)}
             error={Boolean(errors.periodDuration)}
             helperText={errors.periodDuration?.message}
             decimalScale={DURATION_DECIMAL_SCALE}
             endAdornment={
               <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-                {durationUnit}
+                {t(durationUnitLabels[durationUnit])}
               </Typography>
             }
             onValueChange={(values) => {
@@ -263,15 +288,14 @@ export const PeriodicTermsSection = ({
         </InputLabel>
 
         <InputLabel
-          label={t("common.fields.withdrawalWindow")}
+          label={t("borrower.createMarket.policy.periodic.requestWindow")}
           tooltipText={t(
             "borrower.createMarket.policy.periodic.withdrawalWindowDuration.glossary",
           )}
         >
           <NumberTextField
-            label={t(
-              "borrower.createMarket.policy.periodic.withdrawalWindowDuration.placeholder",
-            )}
+            sx={{ width: "100%" }}
+            label={t("borrower.createMarket.policy.periodic.requestWindow")}
             value={secondsToDurationInput(
               withdrawalWindowDurationWatch,
               unitSeconds,
@@ -281,7 +305,7 @@ export const PeriodicTermsSection = ({
             decimalScale={DURATION_DECIMAL_SCALE}
             endAdornment={
               <Typography variant="text2" sx={{ color: COLORS.santasGrey }}>
-                {durationUnit}
+                {t(durationUnitLabels[durationUnit])}
               </Typography>
             }
             onValueChange={(values) => {
@@ -297,6 +321,12 @@ export const PeriodicTermsSection = ({
           />
         </InputLabel>
       </Box>
-    </>
+      <WithdrawalSchedulePreview
+        firstWithdrawalWindowStart={firstWithdrawalWindowStartWatch}
+        periodDuration={periodDurationWatch}
+        withdrawalWindowDuration={withdrawalWindowDurationWatch}
+        hasErrors={hasScheduleErrors}
+      />
+    </Box>
   )
 }
