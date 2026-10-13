@@ -1,3 +1,10 @@
 if git diff --cached --name-only -- .npmrc .nvmrc package.json package-lock.json scripts/check-exact-versions.mjs .github/workflows/commitlint.yml | grep -q .; then
   node scripts/check-exact-versions.mjs --staged || exit 1
 fi
+
+# The reading boundary describes the whole tree, so any staged change outside
+# .horos can invalidate it. Regenerating here keeps it current the way
+# package-lock.json is; the horos job is what enforces it.
+if git diff --cached --name-only | grep -qv '^\.horos/'; then
+  sh scripts/refresh-horos-boundary.sh
+fi

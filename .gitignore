@@ -42,3 +42,6 @@ next-env.d.ts
 # Workflow SDK local durable state
 /.workflow-data/
 /.swc
+
+# Cached Horos classifier, fetched per pin by scripts/refresh-horos-boundary.sh
+.horos-classifier/
