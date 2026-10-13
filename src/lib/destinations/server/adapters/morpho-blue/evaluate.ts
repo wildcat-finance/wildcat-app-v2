@@ -1,9 +1,19 @@
+import {
+  type Address,
+  encodeAbiParameters,
+  keccak256,
+  parseAbiParameters,
+} from "viem"
+
 import { toHuman } from "@/lib/protocol-stats/format"
 
 import type { MorphoCurator, MorphoMarket } from "./api"
 import { MIN_CURATED_SHARE, MIN_CURATED_SUPPLY_USD } from "./constants"
-import type { MorphoMarketParams } from "./onchain"
 import type { AdapterOutput } from "../types"
+
+const MARKET_PARAMS = parseAbiParameters(
+  "address loanToken, address collateralToken, address oracle, address irm, uint256 lltv",
+)
 
 type SupplyingVault = {
   name: string | null
@@ -24,14 +34,35 @@ const sameId = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
 
 const slug = (value: string) => value.toLowerCase().replace(/[^a-z0-9-]/g, "")
 
+const lowerAddress = (value: string) => value.toLowerCase() as Address
+
+// A Morpho Blue market id is keccak256(abi.encode(MarketParams)), so a row
+// whose params hash to its id describes exactly the market stored under it.
+const paramsMatchId = (market: MorphoMarket, lltv: bigint) => {
+  const oracle = market.oracle?.address
+  if (!oracle) return false
+  try {
+    const id = keccak256(
+      encodeAbiParameters(MARKET_PARAMS, [
+        lowerAddress(market.loanAsset.address),
+        lowerAddress(market.collateralAsset.address),
+        lowerAddress(oracle),
+        lowerAddress(market.irmAddress),
+        lltv,
+      ]),
+    )
+    return sameId(id, market.marketId)
+  } catch {
+    return false
+  }
+}
+
 export const evaluateMorphoMarket = ({
   appSlug,
   market,
-  onchain,
 }: {
   appSlug: string
   market: MorphoMarket
-  onchain: MorphoMarketParams | undefined
 }): AdapterOutput | null => {
   const { state, loanAsset, collateralAsset } = market
   if (!state) return null
@@ -39,17 +70,8 @@ export const evaluateMorphoMarket = ({
 
   const asOf = Number(toBigInt(state.timestamp) ?? 0)
 
-  // The API row must describe the market Morpho stores under this id.
-  const apiLltv = toBigInt(market.lltv)
-  if (
-    !onchain ||
-    apiLltv === null ||
-    !sameId(onchain.collateralToken, collateralAsset.address) ||
-    !sameId(onchain.loanToken, loanAsset.address) ||
-    Math.abs(Number(onchain.lltv) - Number(apiLltv)) > 1e3
-  ) {
-    return null
-  }
+  const lltv = toBigInt(market.lltv)
+  if (lltv === null || !paramsMatchId(market, lltv)) return null
 
   const supplyRaw = toBigInt(state.supplyAssets) ?? BigInt(0)
   const liquidityRaw = toBigInt(state.liquidityAssets) ?? BigInt(0)
@@ -153,7 +175,7 @@ export const evaluateMorphoMarket = ({
       url,
       curators: Array.from(new Set(vaults.flatMap((vault) => vault.curators))),
       figures: {
-        lltv: toHuman(onchain.lltv, 18),
+        lltv: toHuman(lltv, 18),
         borrowApy: state.avgBorrowApy ?? null,
         availableLiquidityUsd,
         asOf,

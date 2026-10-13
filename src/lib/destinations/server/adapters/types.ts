@@ -32,7 +32,7 @@ export type DestinationAdapter = {
   /** Token forms the platform takes; venues in any other form are dropped */
   accepts: readonly DestinationTokenForm[]
   /**
-   * Discovers, proves on-chain and evaluates venues for the given tokens.
+   * Discovers, verifies and evaluates venues for the given tokens.
    * Throws on upstream failure instead of returning [], so the orchestrator
    * can fall back to the last good result.
    */

@@ -31,6 +31,8 @@ query Destinations($collaterals: [String!]!, $chainIds: [Int!]!, $first: Int!, $
     items {
       marketId
       lltv
+      irmAddress
+      oracle { address }
       collateralAsset { address symbol }
       loanAsset { address symbol decimals price { usd } }
       warnings { type level }
@@ -72,6 +74,8 @@ const curatorSchema = z.object({
 const marketSchema = z.object({
   marketId: z.string(),
   lltv: bigintish,
+  irmAddress: z.string(),
+  oracle: z.object({ address: z.string() }).nullish(),
   collateralAsset: z.object({ address: z.string(), symbol: z.string() }),
   loanAsset: z.object({
     address: z.string(),
