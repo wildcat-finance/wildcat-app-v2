@@ -107,10 +107,14 @@ export const getWildcatTokens = async (
         data.markets.map((market) => [market.id.toLowerCase(), market]),
       )
 
+      // A market the subgraph cannot describe is left out rather than failing
+      // every other market's destinations with it.
+      const undescribed: string[] = []
       wrapped.forEach(({ id, tokenWrapper }) => {
         const context = contextById.get(id.toLowerCase())
         if (!context) {
-          throw new Error(`Subgraph has no asset or borrower for market ${id}`)
+          undescribed.push(id)
+          return
         }
         tokens.push({
           market: getAddress(id),
@@ -119,6 +123,13 @@ export const getWildcatTokens = async (
           borrower: getAddress(context.borrower),
         })
       })
+      if (undescribed.length > 0) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[Destinations] subgraph has no asset or borrower for wrapped markets on chain ${chainId}`,
+          undescribed,
+        )
+      }
     }
 
     after = page.pageInfo.nextCursor
