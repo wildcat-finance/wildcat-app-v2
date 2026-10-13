@@ -69,7 +69,8 @@ type AdapterRun = {
   adapter: DestinationAdapter
   /** null when the adapter failed and has no earlier result to fall back to */
   outputs: AdapterOutput[] | null
-  failed: boolean
+  /** Set when the adapter failed: the earliest time worth trying it again */
+  retryAt: number | null
 }
 
 const lastGood = new Map<string, AdapterOutput[]>()
@@ -87,17 +88,18 @@ const runAdapter = async (
   tokens: WildcatToken[],
 ): Promise<AdapterRun> => {
   const key = `${chainId}:${adapter.platform}`
-  const fallback = () => ({
+  const fallback = (retryInMs: number) => ({
     adapter,
     outputs: lastGood.get(key) ?? null,
-    failed: true,
+    retryAt: Date.now() + Math.max(FAILURE_BACKOFF_MS, retryInMs),
   })
-  if (Date.now() < (cooldownUntil.get(key) ?? 0)) return fallback()
+  const pausedForMs = (cooldownUntil.get(key) ?? 0) - Date.now()
+  if (pausedForMs > 0) return fallback(pausedForMs)
 
   try {
     const outputs = await adapter.load({ chainId, tokens })
     lastGood.set(key, outputs)
-    return { adapter, outputs, failed: false }
+    return { adapter, outputs, retryAt: null }
   } catch (error) {
     const retryAfterMs = retryAfterOf(error)
     if (retryAfterMs !== undefined) {
@@ -112,7 +114,7 @@ const runAdapter = async (
       }`,
       error,
     )
-    return fallback()
+    return fallback(retryAfterMs ?? 0)
   }
 }
 
@@ -167,14 +169,25 @@ const place = ({
   }
 }
 
+/** A response and the time the server will next rebuild it. */
+export type DestinationsResult = {
+  payload: DestinationsResponse
+  refreshAt: number
+}
+
+const emptyResult = (chainId: number): DestinationsResult => ({
+  payload: emptyResponse(chainId),
+  refreshAt: Date.now() + CACHE_TTL_MS,
+})
+
 const buildDestinations = async (
   chainId: SupportedChainId,
-): Promise<DestinationsResponse> => {
+): Promise<DestinationsResult> => {
   const adapters = adaptersFor(chainId)
-  if (adapters.length === 0) return emptyResponse(chainId)
+  if (adapters.length === 0) return emptyResult(chainId)
 
   const tokens = await getWildcatTokens(chainId)
-  if (tokens.length === 0) return emptyResponse(chainId)
+  if (tokens.length === 0) return emptyResult(chainId)
 
   const [runs, borrowers] = await Promise.all([
     Promise.all(
@@ -193,8 +206,8 @@ const buildDestinations = async (
   const markets: Record<string, Destination[]> = {}
   const stalePlatforms: DestinationPlatform[] = []
 
-  runs.forEach(({ adapter, outputs, failed }) => {
-    if (failed) stalePlatforms.push(adapter.platform)
+  runs.forEach(({ adapter, outputs, retryAt }) => {
+    if (retryAt !== null) stalePlatforms.push(adapter.platform)
 
     const unexpected: Partial<Record<DropReason, number>> = {}
     outputs?.forEach((output) => {
@@ -226,7 +239,18 @@ const buildDestinations = async (
     ),
   )
 
-  return { chainId, stale: false, stalePlatforms, markets }
+  // A failed platform is retried at its own time, so one that comes back is
+  // picked up within the failure backoff, and one asking to be left alone for
+  // longer is not hit again until then.
+  const refreshAt = Math.min(
+    Date.now() + CACHE_TTL_MS,
+    ...runs.flatMap(({ retryAt }) => (retryAt === null ? [] : [retryAt])),
+  )
+
+  return {
+    payload: { chainId, stale: false, stalePlatforms, markets },
+    refreshAt,
+  }
 }
 
 const withoutExpired = (
@@ -237,31 +261,25 @@ const withoutExpired = (
   markets: pruneExpired(payload.markets, nowSec()),
 })
 
-type CacheEntry = { payload: DestinationsResponse; storedAt: number }
-
-const cache = new Map<number, CacheEntry>()
-const inFlight = new Map<number, Promise<DestinationsResponse>>()
+const cache = new Map<number, DestinationsResult>()
+const inFlight = new Map<number, Promise<DestinationsResult>>()
 const lastFailure = new Map<number, number>()
-
-// A payload with stale platforms is retried sooner, so a platform that comes
-// back is picked up within the failure backoff rather than the full TTL.
-const ttlOf = ({ stalePlatforms }: DestinationsResponse) =>
-  stalePlatforms.length > 0 ? FAILURE_BACKOFF_MS : CACHE_TTL_MS
 
 export const getDestinations = async (
   chainId: SupportedChainId,
-): Promise<DestinationsResponse> => {
-  if (!supportsDestinations(chainId)) return emptyResponse(chainId)
+): Promise<DestinationsResult> => {
+  if (!supportsDestinations(chainId)) return emptyResult(chainId)
 
   const cached = cache.get(chainId)
-  if (cached && Date.now() - cached.storedAt < ttlOf(cached.payload)) {
-    return cached.payload
-  }
+  if (cached && Date.now() < cached.refreshAt) return cached
 
   const failedAt = lastFailure.get(chainId)
   if (failedAt && Date.now() - failedAt < FAILURE_BACKOFF_MS) {
-    if (cached) return withoutExpired(cached.payload)
-    throw new Error("Destinations refresh failed recently")
+    if (!cached) throw new Error("Destinations refresh failed recently")
+    return {
+      payload: withoutExpired(cached.payload),
+      refreshAt: failedAt + FAILURE_BACKOFF_MS,
+    }
   }
 
   let pending = inFlight.get(chainId)
@@ -271,10 +289,10 @@ export const getDestinations = async (
   }
 
   try {
-    const payload = await pending
-    cache.set(chainId, { payload, storedAt: Date.now() })
+    const result = await pending
+    cache.set(chainId, result)
     lastFailure.delete(chainId)
-    return payload
+    return result
   } catch (error) {
     lastFailure.set(chainId, Date.now())
     if (!cached) throw error
@@ -283,6 +301,9 @@ export const getDestinations = async (
       `[Destinations] refresh failed on chain ${chainId}, serving the last response`,
       error,
     )
-    return withoutExpired(cached.payload)
+    return {
+      payload: withoutExpired(cached.payload),
+      refreshAt: Date.now() + FAILURE_BACKOFF_MS,
+    }
   }
 }
