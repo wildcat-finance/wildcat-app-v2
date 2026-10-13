@@ -61,10 +61,6 @@ import { getMarketTypeChip } from "@/utils/marketType"
 import { OtherMarketsTableModel, OtherMarketsTableProps } from "./interface"
 import { DATA_GRID_SIDE_PADDING, DataGridSx } from "../style"
 
-const NO_DESTINATIONS_BY_MARKET: NonNullable<
-  OtherMarketsTableProps["destinationsByMarket"]
-> = {}
-
 const COMPOSABLE_COLUMN_WIDTH = 136
 const ACTION_COLUMN_WIDTH = 89
 
@@ -79,7 +75,6 @@ const MarketLinkRow = (props: GridRowProps) => (
     </Link>
     <ComposableRowPanel
       rowId={props.row.id}
-      chainId={props.row.chainId}
       marketSymbol={props.row.marketTokenSymbol}
       aprBips={props.row.apr}
       withdrawalBatchDuration={props.row.withdrawalBatchDuration}
@@ -103,9 +98,10 @@ export const OtherMarketsTable = ({
   borrowers,
   isLoading,
   filters,
-  destinationsByMarket = NO_DESTINATIONS_BY_MARKET,
+  destinations,
   mobileHeader,
 }: OtherMarketsTableProps) => {
+  const { markets: destinationsByMarket } = destinations
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const isMobile = useMobileResolution()
@@ -527,7 +523,7 @@ export const OtherMarketsTable = ({
         markets={mobileMarkets}
         isLoading={isLoading}
         header={mobileHeader}
-        showDestinations
+        destinationsByMarket={destinationsByMarket}
         emptyTitle={
           composableOnly ? t("destinations.noComposableMarkets") : undefined
         }
@@ -549,7 +545,7 @@ export const OtherMarketsTable = ({
         paddingBottom: "26px",
       }}
     >
-      <ComposableExpansionProvider>
+      <ComposableExpansionProvider destinations={destinations}>
         <Box id="self-onboard" ref={selfOnboardRef}>
           <MarketsTableAccordion
             minContentWidth={gridMinWidth}

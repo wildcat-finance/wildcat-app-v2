@@ -12,7 +12,6 @@ import Image from "next/image"
 import { useTranslation } from "react-i18next"
 
 import Cross from "@/assets/icons/cross_icon.svg"
-import { useMarketDestinations } from "@/hooks/destinations/useDestinations"
 import type { Destination } from "@/lib/destinations/types"
 import { COLORS } from "@/theme/colors"
 
@@ -649,16 +648,15 @@ export const MobileDestinationsPanel = ({
 }
 
 export const MobileComposableBlock = ({
-  chainId,
+  destinations,
   marketAddress,
   marginTop,
 }: {
-  chainId: number
+  destinations: Destination[]
   marketAddress: string
   marginTop?: string
 }) => {
   const { t } = useTranslation()
-  const { destinations } = useMarketDestinations(chainId, marketAddress)
   const [expanded, setExpanded] = React.useState(false)
   const [target, setTarget] = React.useState<ExternalLinkTarget | null>(null)
   const regionId = `composable-card-${marketAddress.toLowerCase()}`

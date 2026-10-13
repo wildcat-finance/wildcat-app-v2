@@ -67,7 +67,8 @@ export const AllMarketsSection = () => {
   const [composableOnly, setComposableOnly] = useState(false)
   const isComposableOnly = composableOnly
 
-  const { markets: destinationsByMarket } = useDestinations(selectedChainId)
+  const destinations = useDestinations(selectedChainId)
+  const { markets: destinationsByMarket } = destinations
   const composableSet = useMemo(
     () => new Set(Object.keys(destinationsByMarket)),
     [destinationsByMarket],
@@ -401,7 +402,7 @@ export const AllMarketsSection = () => {
           borrowers={borrowers ?? []}
           isLoading={isLoading}
           filters={filters}
-          destinationsByMarket={destinationsByMarket}
+          destinations={destinations}
           mobileHeader={
             <Box
               sx={{

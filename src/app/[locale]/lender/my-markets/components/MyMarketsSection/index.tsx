@@ -58,7 +58,8 @@ export const MyMarketsSection = () => {
   } = useCurrentNetwork()
 
   const [composableOnly, setComposableOnly] = useState(false)
-  const { markets: destinationsByMarket } = useDestinations(selectedChainId)
+  const destinations = useDestinations(selectedChainId)
+  const { markets: destinationsByMarket } = destinations
 
   const {
     marketAccounts,
@@ -472,7 +473,7 @@ export const MyMarketsSection = () => {
             marketAccounts={filteredActiveMarkets}
             borrowers={borrowers ?? []}
             isLoading={isLoading}
-            destinationsByMarket={destinationsByMarket}
+            destinations={destinations}
             composableOnly={composableFilterActive}
             filters={filters}
           />
@@ -483,7 +484,7 @@ export const MyMarketsSection = () => {
             marketAccounts={filteredTerminatedMarkets}
             borrowers={borrowers ?? []}
             isLoading={isLoading}
-            destinationsByMarket={destinationsByMarket}
+            destinations={destinations}
             composableOnly={composableFilterActive}
             filters={filters}
           />

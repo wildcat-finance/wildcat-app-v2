@@ -59,7 +59,6 @@ const MarketLinkRow = (props: GridRowProps) => (
     </Link>
     <ComposableRowPanel
       rowId={props.row.id}
-      chainId={props.row.chainId}
       marketSymbol={props.row.marketTokenSymbol}
       aprBips={props.row.apr}
       withdrawalBatchDuration={props.row.withdrawalBatchDuration}
@@ -81,12 +80,13 @@ export const TerminatedMarketsTables = ({
   marketAccounts,
   borrowers,
   isLoading,
-  destinationsByMarket,
+  destinations,
   composableOnly,
   filters,
 }: TerminatedMarketsTableProps) => {
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
+  const { markets: destinationsByMarket } = destinations
   const dispatch = useAppDispatch()
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
@@ -353,7 +353,7 @@ export const TerminatedMarketsTables = ({
     )
 
   return (
-    <ComposableExpansionProvider>
+    <ComposableExpansionProvider destinations={destinations}>
       <Box
         sx={{
           display: "flex",

@@ -8,7 +8,7 @@ import {
 
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
-import type { Destination } from "@/lib/destinations/types"
+import type { DestinationsState } from "@/hooks/destinations/useDestinations"
 import {
   MarketOnboardingByAddress,
   MarketOnboardingMode,
@@ -48,6 +48,6 @@ export type OtherMarketsTableProps = {
     statusFilter: MarketStatus[]
     composableOnly?: boolean
   }
-  destinationsByMarket?: Record<string, Destination[]>
+  destinations: DestinationsState
   mobileHeader?: ReactNode
 }

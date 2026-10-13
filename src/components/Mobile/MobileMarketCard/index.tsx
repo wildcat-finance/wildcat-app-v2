@@ -14,6 +14,7 @@ import { getAdsTooltipComponent } from "@/components/AdsBanners/adsHelpers"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MobileComposableBlock } from "@/components/Destinations"
 import { NetworkIcon } from "@/components/NetworkIcon"
+import type { Destination } from "@/lib/destinations/types"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import {
@@ -314,13 +315,13 @@ export const MobileMarketCard = ({
   marketItem,
   showBorrower = true,
   baseRoute = ROUTES.lender.market,
-  showDestinations = false,
+  destinations,
   divider = false,
 }: {
   marketItem: LenderMobileMarketItem
   showBorrower?: boolean
   baseRoute?: string
-  showDestinations?: boolean
+  destinations?: Destination[]
   divider?: boolean
 }) => {
   const deposited = marketItem.deposited ?? marketItem.debt
@@ -573,9 +574,9 @@ export const MobileMarketCard = ({
         </Box>
       </Box>
 
-      {showDestinations && (
+      {destinations && destinations.length > 0 && (
         <MobileComposableBlock
-          chainId={marketItem.chainId}
+          destinations={destinations}
           marketAddress={marketItem.id}
           marginTop="8px"
         />

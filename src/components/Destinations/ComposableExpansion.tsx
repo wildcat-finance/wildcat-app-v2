@@ -3,7 +3,9 @@ import * as React from "react"
 import { Box, Collapse, Fade, FormControlLabel, Switch } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
-import { useMarketDestinations } from "@/hooks/destinations/useDestinations"
+import type { DestinationsState } from "@/hooks/destinations/useDestinations"
+import { isStale } from "@/lib/destinations/freshness"
+import type { Destination } from "@/lib/destinations/types"
 import { COLORS } from "@/theme/colors"
 
 import { ComposableChip } from "./ComposableToggles"
@@ -13,6 +15,7 @@ type ComposableExpansionValue = {
   expandedId: string | null
   toggle: (id: string) => void
   close: () => void
+  destinations: DestinationsState | null
 }
 
 const ComposableExpansionContext =
@@ -20,14 +23,21 @@ const ComposableExpansionContext =
     expandedId: null,
     toggle: () => {},
     close: () => {},
+    destinations: null,
   })
+
+const NO_DESTINATIONS: Destination[] = []
 
 export const useComposableExpansion = () =>
   React.useContext(ComposableExpansionContext)
 
+// Rows read their destinations from here rather than each subscribing to the
+// query, so a table of any size holds one subscription.
 export const ComposableExpansionProvider = ({
+  destinations,
   children,
 }: {
+  destinations: DestinationsState
   children: React.ReactNode
 }) => {
   const [expandedId, setExpandedId] = React.useState<string | null>(null)
@@ -40,8 +50,9 @@ export const ComposableExpansionProvider = ({
         setExpandedId((current) => (current === key ? null : key))
       },
       close: () => setExpandedId(null),
+      destinations,
     }),
-    [expandedId],
+    [expandedId, destinations],
   )
 
   return (
@@ -89,23 +100,22 @@ export const ComposableChipCell = ({
 
 export const ComposableRowPanel = ({
   rowId,
-  chainId,
   marketSymbol,
   aprBips,
   withdrawalBatchDuration,
   dividerBelow = false,
 }: {
   rowId: string
-  chainId: number
   marketSymbol: string
   aprBips: number
   withdrawalBatchDuration: number
   dividerBelow?: boolean
 }) => {
   const { t } = useTranslation()
-  const { expandedId, close } = useComposableExpansion()
+  const { expandedId, close, destinations: state } = useComposableExpansion()
   const expanded = expandedId === rowId.toLowerCase()
-  const { destinations, stale } = useMarketDestinations(chainId, rowId)
+  const destinations = state?.markets[rowId.toLowerCase()] ?? NO_DESTINATIONS
+  const stale = !!state && isStale(destinations, state)
   const ref = React.useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = React.useState(expanded)
   if (expanded && !mounted) setMounted(true)

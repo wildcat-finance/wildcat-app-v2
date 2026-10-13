@@ -3,6 +3,7 @@ import React, { ReactNode, useState } from "react"
 import { Box, Button, Skeleton, Typography } from "@mui/material"
 import { usePathname } from "next/navigation"
 
+import type { Destination } from "@/lib/destinations/types"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { getPaginationRange } from "@/utils/pagination"
@@ -23,13 +24,14 @@ export const MobileMarketList = ({
   markets,
   isLoading = false,
   header,
-  showDestinations = false,
+  destinationsByMarket,
   emptyTitle = "No Markets Here",
 }: {
   markets: readonly LenderMobileMarketItem[]
   isLoading?: boolean
   header?: ReactNode
-  showDestinations?: boolean
+  /** Per market, keyed by lowercase address; cards show none when omitted */
+  destinationsByMarket?: Record<string, Destination[]>
   emptyTitle?: string
 }) => {
   const [page, setPage] = useState(0)
@@ -85,7 +87,7 @@ export const MobileMarketList = ({
               marketItem={marketItem}
               showBorrower={showBorrowerInCard}
               baseRoute={baseRoute}
-              showDestinations={showDestinations}
+              destinations={destinationsByMarket?.[marketItem.id.toLowerCase()]}
               divider={index < currentItems.length - 1}
             />
           ))}

@@ -260,7 +260,6 @@ const MarketClickableRow = (props: GridRowProps) => {
       <GridRow {...props} onClick={handleClick} onAuxClick={handleAuxClick} />
       <ComposableRowPanel
         rowId={props.row.id}
-        chainId={props.row.chainId}
         marketSymbol={props.row.marketTokenSymbol}
         aprBips={props.row.apr}
         withdrawalBatchDuration={props.row.withdrawalBatchDuration}
@@ -294,7 +293,8 @@ export const ExploreMarketsTable = () => {
   const [showOnboardByBorrower, setShowOnboardByBorrower] = useState(false)
   const [showComposableOnly, setShowComposableOnly] = useState(false)
 
-  const { markets: destinationsByMarket } = useDestinations(targetChainId)
+  const destinations = useDestinations(targetChainId)
+  const { markets: destinationsByMarket } = destinations
   const composableMarkets = useMemo(
     () => new Set(Object.keys(destinationsByMarket)),
     [destinationsByMarket],
@@ -1054,7 +1054,7 @@ export const ExploreMarketsTable = () => {
               <MobileMarketCard
                 key={marketItem.id}
                 marketItem={marketItem}
-                showDestinations
+                destinations={destinationsByMarket[marketItem.id.toLowerCase()]}
                 divider={index < rows.length - 1}
               />
             ))
@@ -1288,7 +1288,7 @@ export const ExploreMarketsTable = () => {
           noMarketsSubtitle="There are no markets to display at the moment."
           highlightNoMarketsBanner
         >
-          <ComposableExpansionProvider>
+          <ComposableExpansionProvider destinations={destinations}>
             <DataGrid
               disableVirtualization
               sx={DataGridSx}

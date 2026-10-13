@@ -31,10 +31,10 @@ export const useDestinations = (
   chainId: number | undefined,
 ): DestinationsState => {
   const isSelectedNetworkRehydrated = useIsSelectedNetworkRehydrated()
+  const supported = !!chainId && supportsDestinations(chainId)
   const query = useQuery({
     queryKey: QueryKeys.Destinations.BY_CHAIN(chainId ?? 0),
-    enabled:
-      isSelectedNetworkRehydrated && !!chainId && supportsDestinations(chainId),
+    enabled: isSelectedNetworkRehydrated && supported,
     staleTime: CACHE_TTL_MS,
     refetchInterval: CACHE_TTL_MS,
     refetchOnWindowFocus: false,
@@ -48,7 +48,14 @@ export const useDestinations = (
     },
   })
 
-  const { data, dataUpdatedAt, errorUpdatedAt } = query
+  const {
+    data,
+    dataUpdatedAt,
+    errorUpdatedAt,
+    isLoading,
+    isError,
+    isRefetchError,
+  } = query
   const markets = useMemo(
     () =>
       data
@@ -60,17 +67,19 @@ export const useDestinations = (
     [data, dataUpdatedAt, errorUpdatedAt],
   )
 
-  const refreshFailed = !!data?.stale || query.isRefetchError
-  const stalePlatforms = data?.stalePlatforms ?? NO_PLATFORMS
-
-  return {
-    data,
-    markets,
-    refreshFailed,
-    stalePlatforms,
-    isLoading: query.isLoading,
-    isError: query.isError,
-  }
+  // One object per change, so the tables can hand it to every row through
+  // context without re-rendering them on unrelated renders.
+  return useMemo(
+    () => ({
+      data,
+      markets,
+      refreshFailed: !!data?.stale || isRefetchError,
+      stalePlatforms: data?.stalePlatforms ?? NO_PLATFORMS,
+      isLoading,
+      isError,
+    }),
+    [data, markets, isRefetchError, isLoading, isError],
+  )
 }
 
 export const useMarketDestinations = (
