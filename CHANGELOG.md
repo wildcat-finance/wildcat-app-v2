@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.22.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.21.0...v2.22.0) (2026-10-13)
+
+
+### Features
+
+* **changes:** aggregated develop to main ([1b3d51c](https://github.com/wildcat-finance/wildcat-app-v2/commit/1b3d51c2a540714e52ebb3bb517c67a877c230b2))
+* integrate SDK 3.1.18 wrapper discovery ([9caa867](https://github.com/wildcat-finance/wildcat-app-v2/commit/9caa86736107204188df19ca7064c14fa645043e))
+* integrate SDK 3.1.18 wrapper discovery ([c1dff28](https://github.com/wildcat-finance/wildcat-app-v2/commit/c1dff2898949fd6f97ba4064687b6cd5446ffaf1))
+
 ## [2.21.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.20.0...v2.21.0) (2026-09-16)
 
 
