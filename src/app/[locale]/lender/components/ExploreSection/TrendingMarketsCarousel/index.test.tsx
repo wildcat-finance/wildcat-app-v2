@@ -43,6 +43,8 @@ jest.mock("@/hooks/destinations/useDestinations", () => ({
     markets: {},
     refreshFailed: false,
     stalePlatforms: [],
+    isPending: false,
+    showDestinations: false,
   }),
 }))
 jest.mock("./TrendingMarketsCard", () => ({

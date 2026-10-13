@@ -50,7 +50,7 @@ jest.mock("@/components/Destinations", () => ({
   ComposableOnlySwitch: () => null,
 }))
 jest.mock("@/hooks/destinations/useDestinations", () => ({
-  useDestinations: () => ({ markets: {} }),
+  useDestinations: () => ({ markets: {}, showDestinations: false }),
 }))
 jest.mock("@/app/[locale]/lender/all-markets/components/MobileHeader", () => ({
   MobileHeader: () => null,

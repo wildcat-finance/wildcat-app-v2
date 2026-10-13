@@ -164,7 +164,7 @@ export const ActiveMarketsTables = ({
   const depositedMarkets = rows.filter((market) => market.hasEverInteracted)
   const nonDepositedMarkets = rows.filter((market) => !market.hasEverInteracted)
 
-  const showComposableColumn = Object.keys(destinationsByMarket).length > 0
+  const showComposableColumn = destinations.showDestinations
 
   const columns: TypeSafeColDef<ActiveMarketsTableModel>[] = [
     {

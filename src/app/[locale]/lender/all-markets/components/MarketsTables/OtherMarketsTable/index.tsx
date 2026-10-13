@@ -185,7 +185,7 @@ export const OtherMarketsTable = ({
     },
   )
 
-  const showComposableColumn = Object.keys(destinationsByMarket).length > 0
+  const showComposableColumn = destinations.showDestinations
 
   const terminated = rows.filter((market) => {
     const account = marketAccounts.find((a) => a.market.address === market.id)

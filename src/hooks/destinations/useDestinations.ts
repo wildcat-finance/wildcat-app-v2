@@ -23,6 +23,13 @@ export type DestinationsState = {
   /** Every row is last-known data; use isStale() for the rows of one market */
   refreshFailed: boolean
   stalePlatforms: DestinationPlatform[]
+  /** The chain has destinations but they have not loaded yet */
+  isPending: boolean
+  /**
+   * The chain has destinations, or may once they load. Keeps the space for
+   * them from first paint instead of shifting the layout when they arrive.
+   */
+  showDestinations: boolean
   isLoading: boolean
   isError: boolean
 }
@@ -52,6 +59,7 @@ export const useDestinations = (
     data,
     dataUpdatedAt,
     errorUpdatedAt,
+    isPending,
     isLoading,
     isError,
     isRefetchError,
@@ -75,10 +83,13 @@ export const useDestinations = (
       markets,
       refreshFailed: !!data?.stale || isRefetchError,
       stalePlatforms: data?.stalePlatforms ?? NO_PLATFORMS,
+      isPending: supported && isPending,
+      showDestinations:
+        supported && (isPending || Object.keys(markets).length > 0),
       isLoading,
       isError,
     }),
-    [data, markets, isRefetchError, isLoading, isError],
+    [data, markets, isRefetchError, supported, isPending, isLoading, isError],
   )
 }
 

@@ -108,6 +108,8 @@ type TrendingMarketCardProps = {
   composableExpanded?: boolean
   onToggleComposable?: () => void
   showComposableFooter?: boolean
+  /** Destinations are still loading: hold the footer's space, show nothing */
+  composablePending?: boolean
   composableControls?: string
 }
 
@@ -133,6 +135,7 @@ export const TrendingMarketCard = ({
   composableExpanded = false,
   onToggleComposable,
   showComposableFooter = false,
+  composablePending = false,
   composableControls,
 }: TrendingMarketCardProps) => {
   const badge = VARIANT_BADGE[variant]
@@ -358,6 +361,7 @@ export const TrendingMarketCard = ({
         {showComposableFooter && (
           <ComposableCardFooter
             count={composableCount}
+            pending={composablePending}
             expanded={composableExpanded}
             onToggle={() => onToggleComposable?.()}
             controls={composableControls}

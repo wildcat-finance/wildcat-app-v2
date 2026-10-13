@@ -80,17 +80,20 @@ export const ComposableChip = ({
 
 export const ComposableCardFooter = ({
   count,
+  pending = false,
   expanded,
   onToggle,
   controls,
 }: {
   count: number
+  /** Keeps the footer's height without claiming a count before it loads */
+  pending?: boolean
   expanded: boolean
   onToggle: () => void
   controls?: string
 }) => {
   const { t } = useTranslation()
-  const active = count > 0
+  const active = !pending && count > 0
   const color = active ? COLORS.blueRibbon : COLORS.santasGrey
 
   const content = (
@@ -165,11 +168,13 @@ export const ComposableCardFooter = ({
       ) : (
         <Box
           component="span"
+          aria-hidden={pending || undefined}
           sx={{
             display: "inline-flex",
             alignItems: "center",
             gap: "3px",
             padding: "10px 0 0",
+            visibility: pending ? "hidden" : "visible",
           }}
         >
           {content}

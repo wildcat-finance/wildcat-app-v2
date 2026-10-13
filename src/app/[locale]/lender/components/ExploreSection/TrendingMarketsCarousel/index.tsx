@@ -594,7 +594,7 @@ export const TrendingMarketsCarousel = () => {
     !isMobile && !isLoading && slots.length > 0,
   )
 
-  const showComposableFooter = Object.keys(destinationsByMarket).length > 0
+  const showComposableFooter = destinationsState.showDestinations
 
   const expandedSlot =
     showComposableFooter && !isLoading && expandedSlotKey !== null
@@ -683,6 +683,7 @@ export const TrendingMarketsCarousel = () => {
           )
         }
         showComposableFooter={showComposableFooter}
+        composablePending={destinationsState.isPending}
         composableControls={TRENDING_PANEL_ID}
       />
     )

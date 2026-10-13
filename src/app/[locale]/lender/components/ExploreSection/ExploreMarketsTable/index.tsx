@@ -535,7 +535,7 @@ export const ExploreMarketsTable = () => {
   )
 
   const showComposableToggle = composableCount > 0 || showComposableOnly
-  const hasAnyDestinations = Object.keys(destinationsByMarket).length > 0
+  const hasAnyDestinations = destinations.showDestinations
 
   // Stable identity: a fresh columns array makes the DataGrid rebuild column
   // state and re-render every cell on each keystroke/filter/poll render
