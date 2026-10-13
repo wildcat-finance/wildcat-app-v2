@@ -73,6 +73,16 @@ export async function getBorrowerAcceptanceTimes(
   return acceptanceTimes
 }
 
+/// Display names of every borrower profile on the chain. Market tables, the
+/// export and the composability affiliation check all label borrowers from
+/// this one set, so a name shown in one place is the name matched in another.
+export async function findBorrowerNames(chainId: SupportedChainId) {
+  return prisma.borrower.findMany({
+    where: { chainId },
+    select: { address: true, name: true, alias: true },
+  })
+}
+
 export async function findBorrowerWithPendingInvitation(
   address: string,
   chainId: SupportedChainId,

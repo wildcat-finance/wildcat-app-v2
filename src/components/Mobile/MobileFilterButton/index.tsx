@@ -35,6 +35,12 @@ export type MobileFilterButtonProps = {
   setShowSelfOnboard?: React.Dispatch<React.SetStateAction<boolean>>
   showOnboardByBorrower?: boolean
   setShowOnboardByBorrower?: React.Dispatch<React.SetStateAction<boolean>>
+  composableOnly?: {
+    label: string
+    checked: boolean
+    onChange: (checked: boolean) => void
+  }
+  size?: 28 | 32
 }
 
 export const MobileFilterButton = ({
@@ -51,6 +57,8 @@ export const MobileFilterButton = ({
   setShowSelfOnboard,
   showOnboardByBorrower,
   setShowOnboardByBorrower,
+  composableOnly,
+  size = 32,
 }: MobileFilterButtonProps) => {
   const [open, setOpen] = useState<boolean>(false)
 
@@ -164,27 +172,31 @@ export const MobileFilterButton = ({
         <IconButton
           onClick={handleToggleOpen}
           sx={{
-            width: "32px",
-            height: "32px",
+            width: `${size}px`,
+            height: `${size}px`,
             borderRadius: "50%",
-            backgroundColor: isFiltered ? "#E4EBFEB2" : COLORS.blackHaze,
+            backgroundColor: isFiltered ? COLORS.glitter07 : COLORS.whiteSmoke,
             "& path": {
-              stroke: isFiltered ? COLORS.ultramarineBlue : "#8A8C9F",
+              stroke: isFiltered ? COLORS.ultramarineBlue : COLORS.blackRock,
               transition: "stroke 0.2s",
             },
             "&:hover": {
-              backgroundColor: isFiltered ? "#E4EBFEB2" : `${COLORS.hintOfRed}`,
+              backgroundColor: isFiltered
+                ? COLORS.glitter07
+                : COLORS.athensGrey,
             },
           }}
         >
-          <Filter />
+          <SvgIcon sx={{ fontSize: "20px" }}>
+            <Filter />
+          </SvgIcon>
         </IconButton>
         {isFiltered && (
           <Box
             sx={{
               position: "absolute",
               top: "1px",
-              right: "2px",
+              right: size === 28 ? "1px" : "2px",
               width: "6px",
               height: "6px",
               borderRadius: "50%",
@@ -279,6 +291,23 @@ export const MobileFilterButton = ({
                 <ExtendedCheckbox
                   checked={showOnboardByBorrower}
                   onChange={(e) => setShowOnboardByBorrower(e.target.checked)}
+                  sx={{
+                    "& ::before": {
+                      transform: "translate(-3px, -3px) scale(0.75)",
+                    },
+                  }}
+                />
+              }
+            />
+          )}
+
+          {composableOnly && (
+            <FormControlLabel
+              label={composableOnly.label}
+              control={
+                <ExtendedCheckbox
+                  checked={composableOnly.checked}
+                  onChange={(e) => composableOnly.onChange(e.target.checked)}
                   sx={{
                     "& ::before": {
                       transform: "translate(-3px, -3px) scale(0.75)",
