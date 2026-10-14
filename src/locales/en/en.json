@@ -1599,6 +1599,19 @@
         "label": "Master Loan Agreement",
         "explainer": "Explainer",
         "glossary": "A legally binding document that defines the terms, obligations, and penalties for borrowers and lenders in the market."
+      },
+      "signing": {
+        "agreement": {
+          "pending": "Setting MLA...",
+          "success": "MLA signed successfully",
+          "error": "Failed to set MLA"
+        },
+        "refusal": {
+          "pending": "Signing MLA refusal...",
+          "success": "MLA refusal signed successfully",
+          "error": "Failed to sign MLA refusal"
+        },
+        "pendingSafe": "Awaiting Safe confirmations — you may leave this page."
       }
     },
     "financial": {
