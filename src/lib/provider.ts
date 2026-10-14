@@ -3,6 +3,7 @@ import { providers } from "ethers"
 import { createPublicClient, http } from "viem"
 import { mainnet, sepolia } from "viem/chains"
 
+import { inkSepolia } from "./chains/ink-sepolia"
 import { plasmaMainnet } from "./chains/plasma-mainnet"
 import { plasmaTestnet } from "./chains/plasma-testnet"
 
@@ -11,6 +12,7 @@ const VIEM_CHAIN_BY_ID = {
   [SupportedChainId.Mainnet]: mainnet,
   [SupportedChainId.PlasmaTestnet]: plasmaTestnet,
   [SupportedChainId.PlasmaMainnet]: plasmaMainnet,
+  [SupportedChainId.InkSepolia]: inkSepolia,
 }
 
 const RPC_URL_BY_ID = {
@@ -20,6 +22,8 @@ const RPC_URL_BY_ID = {
     "https://eth-mainnet.g.alchemy.com/v2/ALCHEMY_API_KEY",
   [SupportedChainId.PlasmaTestnet]: "https://testnet-rpc.plasma.to",
   [SupportedChainId.PlasmaMainnet]: "https://rpc.plasma.to",
+  [SupportedChainId.InkSepolia]:
+    "https://ink-sepolia.g.alchemy.com/v2/ALCHEMY_API_KEY",
 }
 
 export const getProviderForServer = (chainId: SupportedChainId) => {
@@ -33,7 +37,7 @@ export const getProviderForServer = (chainId: SupportedChainId) => {
     chain,
     transport: http(rpcUrl),
   })
-  const { account, transport } = client
+  const { transport } = client
   const network = {
     chainId: chain.id,
     name: chain.name,
