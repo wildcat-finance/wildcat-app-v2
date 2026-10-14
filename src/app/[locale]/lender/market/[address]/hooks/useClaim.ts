@@ -7,6 +7,7 @@ import { useAccount } from "wagmi"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { invalidateMarketListQueries } from "@/utils/marketListQueries"
 
 export const useClaim = (
   market: Market,
@@ -72,6 +73,7 @@ export const useClaim = (
           market.address,
         ),
       })
+      invalidateMarketListQueries({ client, chainId: market.chainId })
       client.invalidateQueries({
         queryKey: QueryKeys.Lender.GET_WITHDRAWALS.PREFIX(
           market.chainId,

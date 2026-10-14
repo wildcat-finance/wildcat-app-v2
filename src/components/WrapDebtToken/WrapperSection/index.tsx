@@ -49,6 +49,7 @@ import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 import { isUSDTLikeToken } from "@/utils/constants"
 import { formatTokenWithCommas } from "@/utils/formatters"
+import { invalidateMarketListQueries } from "@/utils/marketListQueries"
 
 import { getWrapperTransactionMethod } from "./transaction"
 import { ErrorWrapperAlert } from "../ErrorWrapperAlert"
@@ -686,6 +687,7 @@ export const WrapperSection = ({
             address,
           ),
         })
+        invalidateMarketListQueries({ client, chainId: market.chainId })
       }
       setAmount("")
       setExactAmount(undefined)
