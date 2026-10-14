@@ -408,10 +408,6 @@
       "marketExpiry": "Loan Maturity",
       "marketEarlyClosure": {
         "label": "Fixed Term Closure Permitted",
-        "na": {
-          "text": "N/A",
-          "tooltip": "Market is Open Term, market can be terminated at any time."
-        },
         "no": {
           "text": "No",
           "tooltip": "Market can only be terminated after fixed duration maturity."
@@ -423,10 +419,6 @@
       },
       "marketMaturityReduction": {
         "label": "Fixed Term Maturity Reduction Permitted",
-        "na": {
-          "text": "N/A",
-          "tooltip": "No maturity to reduce in an Open Term setting."
-        },
         "no": {
           "text": "No",
           "tooltip": "Maturity cannot be shortened from current value."
