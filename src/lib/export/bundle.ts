@@ -477,6 +477,9 @@ export async function buildExportBundle(
             excluded_v1_markets: excludedV1,
             reverted_tx_coverage: "direct_only",
             rpc_providers: [...new Set(dataset.manifest.rpcProviders)],
+            ...(dataset.manifest.explorerSource
+              ? { explorer_source: dataset.manifest.explorerSource }
+              : {}),
             excluded_transfers: [...dataset.manifest.excludedTransfers].sort(
               (left, right) =>
                 Number(left.block_number) - Number(right.block_number) ||

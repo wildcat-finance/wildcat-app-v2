@@ -1,22 +1,17 @@
 import { z } from "zod"
 
-import { EXPORT_CHAIN_IDS, ExportChainId } from "./types"
+import { ExportChainId } from "./types"
 
 const rpcConfigSchema = z.record(z.string(), z.array(z.string().url()).min(1))
 
-export function getExportRpcUrls(): Record<ExportChainId, string[]> {
+export function getExportRpcUrls(chainId: ExportChainId): string[] {
   const raw = process.env.EXPORT_RPC_URLS
   if (!raw) throw new Error("EXPORT_RPC_URLS is required")
 
   const parsed = rpcConfigSchema.parse(JSON.parse(raw))
-  return Object.fromEntries(
-    EXPORT_CHAIN_IDS.map((chainId) => {
-      const urls = parsed[String(chainId)]
-      if (!urls)
-        throw new Error(`No export RPC configured for chain ${chainId}`)
-      return [chainId, urls]
-    }),
-  ) as Record<ExportChainId, string[]>
+  const urls = parsed[String(chainId)]
+  if (!urls) throw new Error(`No export RPC configured for chain ${chainId}`)
+  return urls
 }
 
 export function getExportStorageConfig() {

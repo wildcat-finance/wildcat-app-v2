@@ -183,6 +183,28 @@ describe("recorded reference market A", () => {
     })
   })
 
+  it("preserves the Blockscout provenance label in the downloaded manifest", async () => {
+    const inkDataset: MarketDataset = {
+      ...dataset,
+      market: { ...dataset.market, chainId: 763373 },
+      manifest: { ...dataset.manifest, explorerSource: "blockscout" },
+    }
+    const bundle = await buildExportBundle(
+      { ...request, chainId: 763373, statements: [], addresses: [] },
+      [inkDataset],
+      [],
+      "2026-08-01T00:00:00.000Z",
+    )
+    const zip = await JSZip.loadAsync(bundle)
+    const manifest = JSON.parse(
+      await zip.file("data/manifest.json")!.async("string"),
+    )
+    expect(manifest.explorer_source).toBe("blockscout")
+    expect(manifest.markets[0].cross_checks.etherscanLogCount).toBe(
+      dataset.manifest.crossChecks.etherscanLogCount,
+    )
+  })
+
   it("separates posting totals from interval earnings and includes all lender claims", () => {
     const sum = (field: string) =>
       dataset.dailySeries.reduce((total, row) => total + BigInt(row[field]), 0n)

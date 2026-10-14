@@ -90,6 +90,7 @@ jest.mock("../bundle", () => ({
 
 import { exportWorkflow } from "./exportWorkflow"
 import { serializeDataset } from "../serialize/dataset"
+import { BlockscoutRequestError } from "../sources/blockscout"
 import { EXPORT_PIPELINE_VERSION } from "../version"
 
 const partKey = () =>
@@ -136,6 +137,13 @@ describe("market part publication through the export workflow", () => {
     expect(mockObjects.get(partKey())).toEqual(
       serializeDataset(dataset("backup")),
     )
+  })
+
+  it("keeps exhausted Blockscout rate limits retryable", async () => {
+    const error = new BlockscoutRequestError("Blockscout rate limit exceeded")
+    mockBuild.mockRejectedValueOnce(error)
+    await expect(exportWorkflow("job")).rejects.toBe(error)
+    expect(mockRows.has(partKey())).toBe(false)
   })
 
   it("reports preparation rather than a shared wait when it owns the build", async () => {
