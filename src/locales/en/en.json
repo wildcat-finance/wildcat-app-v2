@@ -1215,6 +1215,9 @@
           "title": "Transaction Proposed",
           "subtitle": "Your Safe needs {{count}} signatures before this withdrawal is queued."
         },
+        "failed": {
+          "subtitle": "The withdrawal transaction did not complete. Check your wallet and try again."
+        },
         "splitDirect": "{{amount}} direct",
         "splitWrapped": "≈ {{amount}} wrapped"
       },
