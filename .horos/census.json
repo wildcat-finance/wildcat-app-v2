@@ -20,7 +20,7 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 1924655,
+      "bytes": 1924713,
       "files": 360,
       "suffix": ".tsx"
     },
@@ -32,7 +32,7 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 1400419,
+      "bytes": 1400523,
       "files": 603,
       "suffix": ".ts"
     },
@@ -147,6 +147,6 @@
   ],
   "schema": 1,
   "tool": "horos",
-  "total_bytes": 19619064,
+  "total_bytes": 19619226,
   "total_files": 1220
 }
