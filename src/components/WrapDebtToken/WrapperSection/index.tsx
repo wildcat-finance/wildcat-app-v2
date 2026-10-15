@@ -21,6 +21,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import { BigNumber } from "ethers"
 import { usePathname } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import Check from "@/assets/icons/check_icon.svg"
@@ -108,6 +109,7 @@ export const WrapperSection = ({
   isDifferentChain,
   isAuthorizedLender,
 }: WrapperSectionProps) => {
+  const { t } = useTranslation()
   const isLender = usePathname().includes("lender")
   const theme = useTheme()
   const client = useQueryClient()
@@ -125,7 +127,6 @@ export const WrapperSection = ({
 
   const [showSuccess, setShowSuccess] = React.useState(false)
   const [showError, setShowError] = React.useState(false)
-  const [errorMessage, setErrorMessage] = React.useState<string | undefined>()
   const [txHash, setTxHash] = React.useState<string | undefined>()
   const [isSubmitTransitioning, setIsSubmitTransitioning] =
     React.useState(false)
@@ -421,7 +422,6 @@ export const WrapperSection = ({
     setSuccessSnapshot(null)
     setShowError(false)
     setShowSuccess(false)
-    setErrorMessage(undefined)
   }
 
   const handleUnitChange = (
@@ -435,7 +435,6 @@ export const WrapperSection = ({
     setSuccessSnapshot(null)
     setShowError(false)
     setShowSuccess(false)
-    setErrorMessage(undefined)
   }
 
   const handleClose = () => {
@@ -550,7 +549,6 @@ export const WrapperSection = ({
         finalAsset: outputToken.symbol,
       })
       setShowError(false)
-      setErrorMessage(undefined)
       setTxHash(undefined)
     },
     mutationFn: async () => {
@@ -693,10 +691,9 @@ export const WrapperSection = ({
       setExactAmount(undefined)
       setShowSuccess(true)
     },
-    onError: (error: Error) => {
+    onError: () => {
       setIsSubmitTransitioning(false)
       setSuccessSnapshot(null)
-      setErrorMessage(error.message)
       setShowError(true)
     },
   })
@@ -728,7 +725,6 @@ export const WrapperSection = ({
     setSuccessSnapshot(null)
     setShowError(false)
     setShowSuccess(false)
-    setErrorMessage(undefined)
     dispatch(setIsMobileOpenedState(true))
   }
 
@@ -1028,7 +1024,7 @@ export const WrapperSection = ({
           {showError && (
             <ErrorWrapperAlert
               isWrapping={isWrapTab}
-              message={errorMessage}
+              message={t("lenderMarketDetails.wrapDebtToken.failed.subtitle")}
               txHash={txHash}
             />
           )}

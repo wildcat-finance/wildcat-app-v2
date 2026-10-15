@@ -1097,6 +1097,9 @@
       "whatHappensAfter": {
         "question": "What happens after deployment?",
         "answer": "Once deployed, the wrapper is available to everyone."
+      },
+      "failed": {
+        "subtitle": "The transaction did not complete. Check your wallet and try again."
       }
     },
     "transactions": {
