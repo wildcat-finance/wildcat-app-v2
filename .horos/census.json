@@ -44,8 +44,8 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 302032,
-      "files": 19,
+      "bytes": 303579,
+      "files": 20,
       "suffix": ".sql"
     },
     {
@@ -147,6 +147,6 @@
   ],
   "schema": 1,
   "tool": "horos",
-  "total_bytes": 19617055,
-  "total_files": 1222
+  "total_bytes": 19618602,
+  "total_files": 1223
 }
