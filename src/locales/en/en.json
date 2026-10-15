@@ -171,6 +171,11 @@
       },
       "noMarkets": {
         "wrongNetwork": "No Wildcat Markets On This Network",
+        "explore": {
+          "title": "No Markets Available",
+          "subtitle": "There are no markets to display at the moment."
+        },
+        "filteredEmpty": "No markets match the current filters.",
         "lenderAlert": {
           "title": "No active markets",
           "subtitle": "You don’t have any active markets now. See the Other Markets list to join one.",
@@ -967,7 +972,8 @@
     "add": "Add Lender",
     "undo": "Undo",
     "submit": "Submit",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "resetFilters": "Reset Filters"
   },
   "notifications": {
     "viewOnEtherscan": "View on Explorer",
