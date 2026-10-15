@@ -31,6 +31,12 @@ import {
   setWithdrawalsCount,
 } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
+import {
+  BORROW_REPAY_SECTION,
+  borrowerMarketFallbackSection,
+  showBorrowRepayTab,
+  STATUS_DETAILS_SECTION,
+} from "@/utils/borrowerMarketSections"
 import { pageCalcHeights } from "@/utils/constants"
 
 import { BorrowerMarketSummary } from "./components/BorrowerMarketSummary"
@@ -86,8 +92,21 @@ export default function MarketDetails({
   const holdTheMarket =
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
   const canInteract = holdTheMarket && !isDifferentChain
-
   const { checked } = useScrollHandler()
+  const canBorrowAndRepay =
+    !!market &&
+    showBorrowRepayTab({
+      canInteract,
+      isClosed: market.isClosed,
+    })
+  const fallbackSection = market
+    ? borrowerMarketFallbackSection({
+        canInteract,
+        isClosed: market.isClosed,
+        checked,
+      })
+    : null
+  const currentSection = fallbackSection ?? checked
 
   const [prevURL, setPrevURL] = useState<string | null>(null)
   const { data: marketMla, isLoading: isLoadingMarketMla } = useMarketMla(
@@ -163,11 +182,9 @@ export default function MarketDetails({
 
   const isLoadingMarket = isMarketLoading || apiLoading || isDiscoveringChainId
   useEffect(() => {
-    if (isLoadingMarket || !market || !marketAccount) return
-    if (!canInteract && checked === 1) {
-      dispatch(setCheckBlock(2))
-    }
-  }, [canInteract, checked, dispatch, isLoadingMarket, market, marketAccount])
+    if (isLoadingMarket || fallbackSection === null || !marketAccount) return
+    dispatch(setCheckBlock(fallbackSection))
+  }, [dispatch, fallbackSection, isLoadingMarket, marketAccount])
 
   if (apiError) {
     return (
@@ -213,9 +230,9 @@ export default function MarketDetails({
   if (
     !isLoadingMarketMla &&
     marketMla === null &&
-    checked !== 6 &&
+    currentSection !== 6 &&
     market?.version === MarketVersion.V2 &&
-    canInteract
+    canBorrowAndRepay
   )
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
@@ -267,17 +284,15 @@ export default function MarketDetails({
           {/*    <MarketStatusChart market={market} /> */}
           {/*  </Box> */}
           {/* </Slide> */}
-          {checked === 1 && (
+          {currentSection === BORROW_REPAY_SECTION && canBorrowAndRepay && (
             <Box sx={SlideContentContainer}>
-              {canInteract && (
-                <MarketTransactions
-                  market={market}
-                  marketAccount={marketAccount}
-                  withdrawals={withdrawals}
-                  holdTheMarket={holdTheMarket}
-                />
-              )}
-              {canInteract && <Divider sx={{ margin: "32px 0" }} />}
+              <MarketTransactions
+                market={market}
+                marketAccount={marketAccount}
+                withdrawals={withdrawals}
+                holdTheMarket={holdTheMarket}
+              />
+              <Divider sx={{ margin: "32px 0" }} />
               <MarketStatusChart market={market} />
             </Box>
           )}
@@ -293,7 +308,7 @@ export default function MarketDetails({
           {/*    <MarketParameters market={market} /> */}
           {/*  </Box> */}
           {/* </Slide> */}
-          {checked === 2 && (
+          {currentSection === STATUS_DETAILS_SECTION && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketStatusChart market={market} />
               <Divider sx={{ margin: "32px 0 44px" }} />
@@ -306,7 +321,7 @@ export default function MarketDetails({
             </Box>
           )}
 
-          {checked === 3 && (
+          {currentSection === 3 && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <BorrowerMarketSummary
                 marketAddress={market.address}
@@ -327,7 +342,7 @@ export default function MarketDetails({
           {/*    <MarketWithdrawalRequests marketAccount={marketAccount} /> */}
           {/*  </Box> */}
           {/* </Slide> */}
-          {checked === 4 && (
+          {currentSection === 4 && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketWithdrawalRequests
                 marketAccount={marketAccount}
@@ -346,7 +361,7 @@ export default function MarketDetails({
           {/*    <MarketAuthorisedLenders market={market} /> */}
           {/*  </Box> */}
           {/* </Slide> */}
-          {checked === 5 && (
+          {currentSection === 5 && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketAuthorisedLenders
                 market={market}
@@ -355,17 +370,17 @@ export default function MarketDetails({
             </Box>
           )}
 
-          {checked === 6 && canInteract && (
+          {currentSection === 6 && canInteract && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketMLA marketAccount={marketAccount} />
             </Box>
           )}
-          {checked === 7 && (
+          {currentSection === 7 && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <PaginatedMarketRecordsTable market={market} />
             </Box>
           )}
-          {checked === 8 && (
+          {currentSection === 8 && (
             <Box sx={SlideContentContainer} marginTop="4px">
               <WrapDebtToken
                 market={market}

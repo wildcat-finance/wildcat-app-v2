@@ -28,6 +28,11 @@ import {
   setSidebarHighlightState,
 } from "@/store/slices/highlightSidebarSlice/highlightSidebarSlice"
 import { COLORS } from "@/theme/colors"
+import {
+  BORROW_REPAY_SECTION,
+  showBorrowRepayTab,
+  STATUS_DETAILS_SECTION,
+} from "@/utils/borrowerMarketSections"
 
 export const MarketSidebar = () => {
   const { t } = useTranslation()
@@ -66,6 +71,10 @@ export const MarketSidebar = () => {
   const isDifferentChain = isWrongNetwork || isSelectionMismatch
   // canInteract: borrower owns market AND is on correct chain
   const canInteract = holdTheMarket && !isDifferentChain
+  const canBorrowAndRepay = showBorrowRepayTab({
+    canInteract,
+    isClosed: !!market?.isClosed,
+  })
 
   return (
     <Box sx={ContentContainer}>
@@ -73,7 +82,7 @@ export const MarketSidebar = () => {
         <BackButton title={t("borrowerMarketDetails.sidebar.backToMarkets")} />
 
         <Box display="flex" flexDirection="column" rowGap="4px" width="100%">
-          {canInteract && (
+          {canBorrowAndRepay && (
             <Button
               variant="text"
               size="medium"
@@ -84,7 +93,7 @@ export const MarketSidebar = () => {
                   : "transparent",
               }}
               onClick={() => {
-                dispatch(setCheckBlock(1))
+                dispatch(setCheckBlock(BORROW_REPAY_SECTION))
                 dispatch(
                   setSidebarHighlightState({
                     borrowRepay: true,
@@ -115,7 +124,7 @@ export const MarketSidebar = () => {
                 : "transparent",
             }}
             onClick={() => {
-              dispatch(setCheckBlock(2))
+              dispatch(setCheckBlock(STATUS_DETAILS_SECTION))
               dispatch(
                 setSidebarHighlightState({
                   borrowRepay: false,
