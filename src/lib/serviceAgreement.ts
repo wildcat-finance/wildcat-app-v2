@@ -95,22 +95,6 @@ export async function getCurrentServiceAgreementContent(): Promise<CurrentServic
   return agreement
 }
 
-/// Old-table dual-writes key rows by keccak256 of the signed wrapper, which for
-/// seeded versions is stored as legacyWrapperHash. A version without it cannot
-/// be represented in the old tables - publishing is frozen until the dual-write
-/// is removed (Release 2), so this failing loudly means that freeze was broken.
-export function requireLegacyWrapperHash(
-  agreement: ServiceAgreementMeta,
-): string {
-  if (!agreement.legacyWrapperHash) {
-    throw new Error(
-      `ServiceAgreement ${agreement.id} (${agreement.version}) has no ` +
-        `legacyWrapperHash; old-table dual-write cannot represent it`,
-    )
-  }
-  return agreement.legacyWrapperHash
-}
-
 export type VerifiedServiceAgreementSignature = {
   chainId: number
   address: string
@@ -217,9 +201,7 @@ export type BorrowerAcceptance = ServiceAgreementSignature & {
 
 /// The borrower's most recently accepted version on this chain, with the version
 /// joined in. Ordered by ServiceAgreement.id DESC (newest version), never by
-/// effectiveDate (two 2025-01-17 artifacts exist). Reads the new table only -
-/// the backfill made it complete for borrowers and the dual-write keeps it so.
-/// Accounts with only the ignored 48a56e9e wrapper have no row here, as intended.
+/// effectiveDate (two 2025-01-17 artifacts exist).
 export async function getLatestBorrowerAcceptance(
   chainId: SupportedChainId,
   address: string,
@@ -376,8 +358,6 @@ export type ServiceAgreementGateStatus = {
 
 /// Capacity-scoped re-acceptance state for the network gate. An account that
 /// uses both sides of the app has independent Borrower and Lender records.
-/// Reads the versioned tables, with the corresponding old-table fallback
-/// during the rolling window; the fallback is removed in Release 2.
 export async function getServiceAgreementGateStatus(
   chainId: SupportedChainId,
   address: string,
@@ -385,92 +365,47 @@ export async function getServiceAgreementGateStatus(
 ): Promise<ServiceAgreementGateStatus> {
   const account = address.toLowerCase()
   const current = await getCurrentServiceAgreement()
-  const [acceptances, refusals, versions, legacyAcceptances] =
-    await Promise.all([
-      prisma.serviceAgreementSignature.findMany({
-        where: { chainId, address: account, party },
-        select: { serviceAgreementId: true, timeSigned: true },
-      }),
-      prisma.serviceAgreementRefusal.findMany({
-        where: {
+  const [acceptances, refusal] = await Promise.all([
+    prisma.serviceAgreementSignature.findMany({
+      where: { chainId, address: account, party },
+      select: {
+        serviceAgreementId: true,
+        timeSigned: true,
+        serviceAgreement: {
+          select: {
+            version: true,
+            plaintextSha256: true,
+            effectiveDate: true,
+          },
+        },
+      },
+      orderBy: { serviceAgreementId: "desc" },
+    }),
+    prisma.serviceAgreementRefusal.findUnique({
+      where: {
+        chainId_address_party_serviceAgreementId: {
           chainId,
           address: account,
           party,
           serviceAgreementId: current.id,
         },
-        select: { timeSigned: true },
-      }),
-      prisma.serviceAgreement.findMany({
-        select: {
-          id: true,
-          version: true,
-          plaintextSha256: true,
-          effectiveDate: true,
-          legacyWrapperHash: true,
-        },
-      }),
-      party === "Lender"
-        ? prisma.lenderServiceAgreementSignature.findMany({
-            where: { chainId, signer: account },
-            select: { serviceAgreementHash: true, timeSigned: true },
-          })
-        : prisma.borrowerServiceAgreementSignature.findMany({
-            where: { chainId, address: account },
-            select: { serviceAgreementHash: true, timeSigned: true },
-          }),
-    ])
-  const versionIdByWrapperHash = new Map<string, number>()
-  versions.forEach(({ legacyWrapperHash, id }) => {
-    if (legacyWrapperHash) versionIdByWrapperHash.set(legacyWrapperHash, id)
-  })
-  const acceptedVersionIds = new Set(
-    acceptances.map(({ serviceAgreementId }) => serviceAgreementId),
+      },
+      select: { timeSigned: true },
+    }),
+  ])
+  const hasAnyAcceptance = acceptances.length > 0
+  const currentAcceptance = acceptances.find(
+    ({ serviceAgreementId }) => serviceAgreementId === current.id,
   )
-  legacyAcceptances.forEach((row) => {
-    const mapped = versionIdByWrapperHash.get(row.serviceAgreementHash)
-    if (mapped !== undefined) acceptedVersionIds.add(mapped)
-  })
-  const currentAcceptanceTimes = [
-    ...acceptances
-      .filter(({ serviceAgreementId }) => serviceAgreementId === current.id)
-      .map(({ timeSigned }) => timeSigned),
-    ...legacyAcceptances
-      .filter(
-        ({ serviceAgreementHash }) =>
-          versionIdByWrapperHash.get(serviceAgreementHash) === current.id,
-      )
-      .map(({ timeSigned }) => timeSigned),
-  ]
-  const acceptedCurrentAt =
-    currentAcceptanceTimes.length > 0
-      ? new Date(
-          Math.max(...currentAcceptanceTimes.map((date) => date.getTime())),
-        )
-      : null
-  const declinedCurrentAt =
-    refusals.length > 0
-      ? new Date(
-          Math.max(...refusals.map(({ timeSigned }) => timeSigned.getTime())),
-        )
-      : null
   const state = computeToUAcceptanceState({
-    acceptedCurrentAt,
-    hasAnyAcceptance: acceptedVersionIds.size > 0,
-    declinedCurrentAt,
+    acceptedCurrentAt: currentAcceptance?.timeSigned ?? null,
+    hasAnyAcceptance,
+    declinedCurrentAt: refusal?.timeSigned ?? null,
     reacceptanceDeadline: current.reacceptanceDeadline,
     now: new Date(),
   })
-  // Versions are seeded oldest-to-newest, so the max accepted id is the
-  // newest version this account has signed.
-  const latestAcceptedId = acceptedVersionIds.size
-    ? Math.max(...Array.from(acceptedVersionIds))
-    : null
-  const latestAccepted =
-    latestAcceptedId === null
-      ? undefined
-      : versions.find(({ id }) => id === latestAcceptedId)
   return {
-    hasAnyAcceptance: acceptedVersionIds.size > 0,
+    hasAnyAcceptance,
     state,
     currentVersion: {
       id: current.id,
@@ -479,12 +414,6 @@ export async function getServiceAgreementGateStatus(
       effectiveDate: current.effectiveDate,
       reacceptanceDeadline: current.reacceptanceDeadline,
     },
-    acceptedVersion: latestAccepted
-      ? {
-          version: latestAccepted.version,
-          plaintextSha256: latestAccepted.plaintextSha256,
-          effectiveDate: latestAccepted.effectiveDate,
-        }
-      : null,
+    acceptedVersion: acceptances[0]?.serviceAgreement ?? null,
   }
 }
