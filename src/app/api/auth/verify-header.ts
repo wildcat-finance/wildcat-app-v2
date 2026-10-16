@@ -61,6 +61,7 @@ export const isAdminForChain = async (
 export const createApiToken = async (
   address: string,
   chainId: SupportedChainId,
+  signer: string,
 ) => {
   const { SECRET_KEY } = process.env
   const normalizedAddress = address.toLowerCase()
@@ -72,7 +73,7 @@ export const createApiToken = async (
   })
   const dataStoredInToken: DataStoredInToken = {
     address: normalizedAddress,
-    signer: normalizedAddress,
+    signer: signer.toLowerCase(),
     isAdmin: !!admin,
     chainId,
   }
@@ -84,7 +85,7 @@ export const createApiToken = async (
     token,
     isAdmin: !!admin,
     address: normalizedAddress,
-    signer: normalizedAddress,
+    signer: signer.toLowerCase(),
     chainId,
   }
 }

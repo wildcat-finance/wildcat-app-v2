@@ -1,9 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-import { persistReducer } from "redux-persist"
+import { createMigrate, persistReducer, PersistedState } from "redux-persist"
 import storage from "redux-persist/lib/storage"
 
 export type SafeMessageFlow =
-  | "login"
   | "initial-tou"
   | "tou-accept"
   | "tou-decline"
@@ -117,11 +116,27 @@ export const {
 } = pendingSafeMessagesSlice.actions
 export const pendingSafeMessagesReducer = pendingSafeMessagesSlice.reducer
 
+export const migratePendingSafeMessages = createMigrate({
+  2: (state) => {
+    if (!state) return state
+    const { records } = state as PersistedState & {
+      records: Record<string, { flow: string }>
+    }
+    return {
+      ...state,
+      records: Object.fromEntries(
+        Object.entries(records).filter(([, record]) => record.flow !== "login"),
+      ),
+    }
+  },
+})
+
 export default persistReducer(
   {
     key: "pendingSafeMessages",
     storage,
-    version: 1,
+    version: 2,
+    migrate: migratePendingSafeMessages,
   },
   pendingSafeMessagesReducer,
 )
