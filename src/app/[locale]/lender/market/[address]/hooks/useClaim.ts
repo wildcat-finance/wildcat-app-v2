@@ -3,11 +3,16 @@ import { Dispatch } from "react"
 import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { LenderWithdrawalStatus, Market } from "@wildcatfi/wildcat-sdk"
-import { useAccount } from "wagmi"
+import { useAccount, usePublicClient } from "wagmi"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { invalidateMarketListQueries } from "@/utils/marketListQueries"
+
+import {
+  prepareWithdrawalClaim,
+  preflightWithdrawalClaim,
+} from "./withdrawalClaim"
 
 export const useClaim = (
   market: Market,
@@ -17,6 +22,7 @@ export const useClaim = (
   const client = useQueryClient()
   const { address } = useAccount()
   const { targetChainId } = useCurrentNetwork()
+  const publicClient = usePublicClient({ chainId: market.chainId })
 
   const { connected: safeConnected, sdk } = useSafeAppsSDK()
 
@@ -32,7 +38,17 @@ export const useClaim = (
       const claimableWithdrawals = withdrawals.filter((w) =>
         w.availableWithdrawalAmount.gt(0),
       )
-      if (!market || !claimableWithdrawals.length || !address) throw Error
+      if (!claimableWithdrawals.length || !address || !publicClient) throw Error
+
+      await preflightWithdrawalClaim({
+        publicClient,
+        account: address,
+        transaction: prepareWithdrawalClaim(
+          market.address,
+          claimableWithdrawals,
+        ),
+        expiries: claimableWithdrawals.map(({ expiry }) => expiry),
+      })
 
       const claim = async () => {
         const tx =

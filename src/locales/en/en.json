@@ -1240,6 +1240,9 @@
           "noClaim": "You have nothing to claim right now."
         },
         "subtitle": "No assets available to claim from this market.",
+        "failed": {
+          "subtitle": "The claim transaction did not complete. Check your wallet and try again."
+        },
         "buttons": {
           "claim": "Claim Assets",
           "withdrawals": "Go to Withdrawals"
