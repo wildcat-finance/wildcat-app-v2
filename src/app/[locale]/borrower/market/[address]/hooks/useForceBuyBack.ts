@@ -6,6 +6,7 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { invalidateMarketListQueries } from "@/utils/marketListQueries"
 
 export const useForceBuyBack = (
   marketAccount: MarketAccount,
@@ -72,6 +73,10 @@ export const useForceBuyBack = (
           marketAccount.market.chainId,
           marketAccount.market.address,
         ),
+      })
+      invalidateMarketListQueries({
+        client,
+        chainId: marketAccount.market.chainId,
       })
       client.invalidateQueries({
         queryKey: QueryKeys.Markets.GET_MARKET_LENDERS(

@@ -20,6 +20,7 @@ import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
+import { invalidateMarketListQueries } from "@/utils/marketListQueries"
 
 import { WithdrawRoute } from "./useWithdrawRouting"
 import { resolveWithdrawalQueueRaw } from "./withdrawQueue"
@@ -155,6 +156,7 @@ export const useWithdrawFlow = ({
         accountAddress,
       ),
     })
+    invalidateMarketListQueries({ client, chainId })
     client.invalidateQueries({
       queryKey: QueryKeys.Lender.GET_WITHDRAWALS.PREFIX(
         chainId,

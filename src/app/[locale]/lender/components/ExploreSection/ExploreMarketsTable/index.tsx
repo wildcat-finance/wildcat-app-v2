@@ -44,7 +44,6 @@ import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
 import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
 import { MobileSearchButton } from "@/components/Mobile/MobileSearchButton"
 import { RepeatingSkeletons } from "@/components/RepeatingSkeletons"
-import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { marketStatusesMock } from "@/mocks/mocks"
@@ -241,6 +240,15 @@ export const ExploreMarketsTable = () => {
   const [showSelfOnboard, setShowSelfOnboard] = useState(true)
   const [showOnboardByBorrower, setShowOnboardByBorrower] = useState(false)
 
+  const resetFilters = () => {
+    setSearch("")
+    setAssets([])
+    setStatuses([])
+    setWithdrawalCycles([])
+    setShowSelfOnboard(true)
+    setShowOnboardByBorrower(true)
+  }
+
   const [visibleMobileRows, setVisibleMobileRows] = useState(EXPLORE_PAGE_SIZE)
   useEffect(() => {
     setVisibleMobileRows(EXPLORE_PAGE_SIZE)
@@ -296,35 +304,56 @@ export const ExploreMarketsTable = () => {
     }
   }, [isMobile, isLoading])
 
-  const { data: tokensRaw } = useAllTokensWithMarkets()
   const tokens = useMemo(() => {
+    // The token index also contains wrappers; only market assets belong here.
+    const underlyingTokens = Array.from(
+      new Map(
+        marketAccounts.map(({ market }) => [
+          market.underlyingToken.address.toLowerCase(),
+          market.underlyingToken,
+        ]),
+      ).values(),
+    )
+
     if (isTestnet) {
-      return tokensRaw?.filter(
+      return underlyingTokens.filter(
         (token, index, self) =>
           index === self.findIndex((x) => x.symbol === token.symbol),
       )
     }
-    return tokensRaw
-  }, [tokensRaw, isTestnet])
+    return underlyingTokens
+  }, [marketAccounts, isTestnet])
 
-  const { rows, totalRows } = useMemo<{
+  const { rows, totalRows, isFilteredEmpty } = useMemo<{
     rows: GridRowsProp<LenderOtherMarketsTableModel>
     totalRows: number
+    isFilteredEmpty: boolean
   }>(() => {
     const penaltyBorrowers = getPenaltyBorrowers(
       marketAccounts.map((a) => a.market),
     )
+    // Count markets that could be shown before applying any user filters,
+    // including onboarding. Resetting cannot reveal ineligible markets.
+    const availableMarkets = marketAccounts.filter(({ market }) => {
+      const onboardingMode = getKnownMarketOnboardingMode(
+        market.version,
+        market.address,
+        onboardingByMarket,
+      )
+      return (
+        isExploreVisible(market) &&
+        !penaltyBorrowers.has(market.borrower.toLowerCase()) &&
+        (onboardingMode === MarketOnboardingMode.SelfOnboard ||
+          onboardingMode === MarketOnboardingMode.BorrowerApproval)
+      )
+    })
     const filtered = filterMarketAccounts(
-      marketAccounts,
+      availableMarkets,
       search,
       statuses,
       assets,
       borrowers,
       withdrawalCycles,
-    ).filter(
-      (a) =>
-        isExploreVisible(a.market) &&
-        !penaltyBorrowers.has(a.market.borrower.toLowerCase()),
     )
 
     const onboardFiltered = filtered.filter((account) => {
@@ -377,6 +406,8 @@ export const ExploreMarketsTable = () => {
 
     return {
       totalRows: sorted.length,
+      isFilteredEmpty:
+        availableMarkets.length > 0 && onboardFiltered.length === 0,
       rows: accountsToMap.map((account) => {
         const { market } = account
         const {
@@ -775,12 +806,10 @@ export const ExploreMarketsTable = () => {
 
             <Box sx={{ display: "flex", gap: "4px" }}>
               <MobileFilterButton
-                assetsOptions={
-                  tokens?.map((token) => ({
-                    id: token.address,
-                    name: token.symbol,
-                  })) ?? []
-                }
+                assetsOptions={tokens.map((token) => ({
+                  id: token.address,
+                  name: token.symbol,
+                }))}
                 statusesOptions={statusFilterOptions}
                 withdrawalCycleOptions={withdrawalCycleOptions}
                 marketAssets={assets}
@@ -874,6 +903,33 @@ export const ExploreMarketsTable = () => {
               gap: "4px",
             }}
           >
+            {rows.length === 0 && (
+              <Box
+                sx={{
+                  width: "100%",
+                  padding: "24px 12px",
+                  backgroundColor: COLORS.white,
+                  borderRadius: "14px",
+                  textAlign: "center",
+                }}
+              >
+                <Typography variant="mobText3" color={COLORS.santasGrey}>
+                  {isFilteredEmpty
+                    ? t("dashboard.markets.noMarkets.filteredEmpty")
+                    : t("dashboard.markets.noMarkets.explore.title")}
+                </Typography>
+                {isFilteredEmpty && (
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={resetFilters}
+                    sx={{ marginTop: "8px" }}
+                  >
+                    {t("buttons.resetFilters")}
+                  </Button>
+                )}
+              </Box>
+            )}
             {rows.map((marketItem) => (
               <MobileMarketCard key={marketItem.id} marketItem={marketItem} />
             ))}
@@ -881,7 +937,6 @@ export const ExploreMarketsTable = () => {
         )}
 
         {!isLoading &&
-          totalRows > 0 &&
           (totalRows > visibleMobileRows ? (
             <Button
               type="button"
@@ -1025,12 +1080,10 @@ export const ExploreMarketsTable = () => {
 
           <MarketsFilterSelect
             placeholder={t("dashboard.markets.filters.assets")}
-            options={
-              tokens?.map((token) => ({
-                id: token.address,
-                name: token.symbol,
-              })) ?? []
-            }
+            options={tokens.map((token) => ({
+              id: token.address,
+              name: token.symbol,
+            }))}
             selected={assets}
             setSelected={setAssets}
           />
@@ -1049,8 +1102,10 @@ export const ExploreMarketsTable = () => {
           marketsLength={rows.length}
           rowsLength={paginationModel.pageSize}
           isLoading={isLoading}
-          noMarketsTitle="No Markets Available"
-          noMarketsSubtitle="There are no markets to display at the moment."
+          noMarketsTitle={t("dashboard.markets.noMarkets.explore.title")}
+          noMarketsSubtitle={t("dashboard.markets.noMarkets.explore.subtitle")}
+          isFilteredEmpty={isFilteredEmpty}
+          onResetFilters={resetFilters}
           highlightNoMarketsBanner
         >
           <DataGrid

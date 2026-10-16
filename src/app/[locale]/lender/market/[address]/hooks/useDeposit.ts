@@ -16,6 +16,7 @@ import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { isUSDTLikeToken } from "@/utils/constants"
+import { invalidateMarketListQueries } from "@/utils/marketListQueries"
 
 export type DepositRequest = {
   amount: TokenAmount
@@ -197,6 +198,10 @@ export const useDeposit = (
           marketAccount.market.chainId,
           marketAccount.market.address,
         ),
+      })
+      invalidateMarketListQueries({
+        client,
+        chainId: marketAccount.market.chainId,
       })
     },
     onError(error) {

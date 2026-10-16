@@ -27,9 +27,12 @@ export const MobileMarketHistoryModal = ({
       sx={{
         display: "flex",
         flexDirection: "column",
+        // Grow into the space the actions bar and footer leave over, but stay
+        // content-sized otherwise. `height: 100%` resolved against the page
+        // column, whose height already includes those siblings, so the card
+        // overshot its content by their combined height.
         flex: 1,
         width: "100%",
-        height: "100%",
         backgroundColor: COLORS.white,
         borderRadius: "14px",
         paddingBottom: "12px",
