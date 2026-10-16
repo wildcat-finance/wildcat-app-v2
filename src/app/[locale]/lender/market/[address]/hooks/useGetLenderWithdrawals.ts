@@ -55,6 +55,7 @@ export function useGetLenderWithdrawals(
     >({
       query: GetLenderWithdrawalsForMarketDocument,
       variables: { market: marketAddress, lender },
+      fetchPolicy: "network-only",
     })
     const lenderData = result.data.market?.lenders[0]
     const completeWithdrawals =
@@ -128,6 +129,7 @@ export function useGetLenderWithdrawals(
     refetch: refetchInitial,
     isError: isErrorInitial,
     failureReason: errorInitial,
+    dataUpdatedAt: initialUpdatedAt,
   } = useQuery({
     queryKey: QueryKeys.Lender.GET_WITHDRAWALS.INITIAL(
       targetChainId ?? 0,
@@ -264,14 +266,25 @@ export function useGetLenderWithdrawals(
     isError: isErrorUpdate,
     failureReason: errorUpdate,
   } = useQuery({
+    // Key the lens refresh on each subgraph fetch, not only on the batch
+    // expiries: a new request in an existing batch keeps the expiries but
+    // must replace the snapshot the refresh was built from.
     queryKey: QueryKeys.Lender.GET_WITHDRAWALS.UPDATE(
       targetChainId ?? 0,
       lender,
       marketAddress,
-      updateQueryKeys,
+      [updateQueryKeys, initialUpdatedAt],
     ),
     queryFn: updateWithdrawals,
-    placeholderData: keepPreviousData,
+    // Carry the previous refresh over only while it is recent, and leave
+    // retries to the next poll, so a failing lens call falls back to the
+    // fresh subgraph data instead of an old snapshot.
+    placeholderData: (previous, previousQuery) =>
+      previousQuery &&
+      Date.now() - previousQuery.state.dataUpdatedAt < 2 * POLLING_INTERVAL
+        ? previous
+        : undefined,
+    retry: false,
     enabled: !!data,
     // refetchOnMount: false,
   })
