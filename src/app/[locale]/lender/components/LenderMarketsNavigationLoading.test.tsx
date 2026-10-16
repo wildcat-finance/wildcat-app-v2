@@ -109,6 +109,7 @@ describe("lender market navigation loading", () => {
       onboardingByMarket: {},
       onboardingStatus: "loading",
       borrowers: [],
+      policyMarkets: new Set(),
     })
   })
 
