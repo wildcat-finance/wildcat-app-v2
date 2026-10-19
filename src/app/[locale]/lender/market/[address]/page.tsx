@@ -513,17 +513,15 @@ export default function LenderMarketDetails({
 
           {showBorrowerPenaltyWarning && <BorrowerPenaltyWarning />}
 
-          <Box id="depositWithdraw">
-            {!isBarChartsLoading && marketAccount ? (
+          {!isBarChartsLoading && marketAccount && (
+            <Box id="depositWithdraw">
               <BarCharts
                 marketAccount={marketAccount}
                 withdrawals={withdrawals}
                 isLender={authorizedInMarket}
               />
-            ) : (
-              <AccountSectionSkeleton />
-            )}
-          </Box>
+            </Box>
+          )}
 
           {hasMarketDescription && (
             <Box id="marketDescription">
