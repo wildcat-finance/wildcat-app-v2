@@ -7,8 +7,8 @@ import { QueryKeys } from "@/config/query-keys"
 const fetchBorrowerProfile = async (
   address: `0x${string}` | undefined,
   chainId: number,
-): Promise<BorrowerProfile | undefined> => {
-  if (!address) return undefined
+): Promise<BorrowerProfile | null> => {
+  if (!address) return null
   const normalizedAddress = address.toLowerCase() as `0x${string}`
   const response = await fetch(
     `/api/profiles/${normalizedAddress}?chainId=${chainId}`,
@@ -20,8 +20,9 @@ const fetchBorrowerProfile = async (
     },
   )
 
+  // React Query rejects undefined data, so "no profile" is cached as null.
   if (response.status === 404) {
-    return undefined
+    return null
   }
 
   if (!response.ok) {
@@ -37,12 +38,13 @@ export const useGetBorrowerProfile = (
   chainId: SupportedChainId,
   address: `0x${string}` | undefined,
 ) =>
-  useQuery<BorrowerProfile | undefined>({
+  useQuery<BorrowerProfile | null, Error, BorrowerProfile | undefined>({
     queryKey: QueryKeys.Borrower.GET_PROFILE(
       chainId,
       address?.toLowerCase() as `0x${string}` | undefined,
     ),
     queryFn: () => fetchBorrowerProfile(address, chainId),
+    select: (profile) => profile ?? undefined,
     enabled: !!address,
   })
 

@@ -15,10 +15,11 @@ export const useMarketSummary = (market: string, chainId: number) =>
   useQuery({
     queryKey: ["market-summary", chainId, market.toLowerCase()],
     refetchOnMount: false,
+    // React Query rejects undefined data, and a market without a description
+    // answers 404, so "no summary" is cached as null.
     queryFn: () =>
       fetch(`/api/market-summary/${market}?chainId=${chainId}`)
-        .then((res) =>
-          res.ok ? (res.json() as Promise<MarketSummary>) : undefined,
-        )
-        .catch(() => undefined),
+        .then((res) => (res.ok ? (res.json() as Promise<MarketSummary>) : null))
+        .catch(() => null),
+    select: (summary) => summary ?? undefined,
   })
