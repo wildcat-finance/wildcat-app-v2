@@ -25,6 +25,7 @@ export const COLORS = {
   alabaster05: "#FAFAFA80",
   white: "#FFFFFF",
   white01: "#FFFFFF1A",
+  white02: "#FFFFFF33",
   white03: "#FFFFFF4D",
   white04: "#FFFFFF66",
   white06: "#FFFFFF99",

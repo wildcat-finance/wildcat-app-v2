@@ -78,7 +78,8 @@
   "telegramBanner": {
     "title": "Subscribe to our Telegram\u00a0Bot",
     "subtitle": "Receive notifications for market\u00a0events",
-    "button": "Subscribe"
+    "button": "Subscribe",
+    "compact": "Market’s Updates in Our Bot"
   },
   "admin": {
     "inviteBorrower": {
