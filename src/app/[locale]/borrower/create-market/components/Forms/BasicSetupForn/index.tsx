@@ -93,10 +93,6 @@ export const BasicSetupForm = ({
 
   return (
     <Box sx={FormContainer}>
-      <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("createNewMarket.basic.title")}
-      </Typography>
-
       <Box
         sx={{
           ...SectionGrid,
