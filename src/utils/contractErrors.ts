@@ -6,9 +6,29 @@ import { decodeErrorResult, type Abi, type Hex } from "viem"
  * "Something went wrong".
  */
 const CONTRACT_ERROR_MESSAGES: Record<string, string> = {
+  CallerNotBorrower: "Only the borrower of this policy can change its lenders.",
+  ProviderNotFound:
+    "This wallet is not a role provider on this policy, so it cannot grant or revoke lender credentials.",
+  GrantedCredentialExpired:
+    "The credential timestamp is not accepted by the policy. Try again in a few seconds.",
+  ProviderCanNotReplaceCredential:
+    "This lender already holds a credential from another provider that outlasts the one being granted.",
+  ProviderCanNotRevokeCredential:
+    "This lender's credential was issued by another provider and cannot be revoked here.",
+  NotApprovedLender: "This lender is not approved on the policy.",
+  InvalidArrayLength: "The submitted lender list is malformed.",
   WithdrawalBatchNotExpired:
     "This withdrawal batch is still pending. Wait for the next block and try again.",
   NullWithdrawalAmount: "No assets are currently available to claim.",
+}
+
+/**
+ * The slice of an ethers contract interface needed to decode a revert. Typed
+ * structurally so the util carries no ethers dependency - the SDK's contract
+ * wrappers satisfy it as-is.
+ */
+export type ContractErrorDecoder = {
+  parseError: (data: string) => { name: string }
 }
 
 /**
@@ -56,24 +76,41 @@ const getErrorMessage = (error: unknown): string | undefined => {
   return undefined
 }
 
+/**
+ * Name of the custom error a contract reverted with. Decodes against a viem
+ * ABI or an ethers contract interface, whichever the caller has at hand.
+ */
 export const getContractErrorName = (
   error: unknown,
-  contractAbi?: Abi,
+  decoder?: Abi | ContractErrorDecoder,
 ): string | undefined => {
   const named = (error as { errorName?: string } | null)?.errorName
   if (named) return named
 
   const data = extractRevertData(error)
-  if (data && contractAbi) {
+  if (data && decoder) {
     try {
-      return decodeErrorResult({
-        abi: contractAbi,
-        data: data as Hex,
-      }).errorName
+      return Array.isArray(decoder)
+        ? decodeErrorResult({ abi: decoder, data: data as Hex }).errorName
+        : (decoder as ContractErrorDecoder).parseError(data).name
     } catch {
       return undefined
     }
   }
+  return undefined
+}
+
+/**
+ * Wording for a decoded custom error. Returns undefined when nothing could be
+ * decoded, so callers show their own generic copy - never the provider's raw
+ * message, which is a multi-kilobyte dump that breaks the layout.
+ */
+export const describeContractRevert = (
+  error: unknown,
+  decoder?: Abi | ContractErrorDecoder,
+): string | undefined => {
+  const named = getContractErrorName(error, decoder)
+  if (named) return CONTRACT_ERROR_MESSAGES[named] ?? `Reverted: ${named}`
   return undefined
 }
 
@@ -85,9 +122,7 @@ export const getContractErrorName = (
 export const describeContractError = (
   error: unknown,
   contractAbi?: Abi,
-): string => {
-  const named = getContractErrorName(error, contractAbi)
-  if (named) return CONTRACT_ERROR_MESSAGES[named] ?? `Reverted: ${named}`
-
-  return getErrorMessage(error) ?? "Transaction failed"
-}
+): string =>
+  describeContractRevert(error, contractAbi) ??
+  getErrorMessage(error) ??
+  "Transaction failed"

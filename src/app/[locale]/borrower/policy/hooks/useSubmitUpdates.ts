@@ -13,6 +13,7 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useAppDispatch } from "@/store/hooks"
 import { resetPolicyLendersState } from "@/store/slices/policyLendersSlice/policyLendersSlice"
+import { describeContractRevert } from "@/utils/contractErrors"
 import {
   getBlockedLenders,
   getLenderUpdateSafeBatch,
@@ -47,6 +48,7 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
     isPending: isSubmitting,
     isSuccess,
     isError,
+    error,
   } = useMutation({
     mutationFn: async ({
       addLenders,
@@ -168,8 +170,16 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       })
       dispatch(resetPolicyLendersState())
     },
-    onError: (error) => console.log(error),
+    onError: (mutationError) => console.log(mutationError),
   })
 
-  return { submitUpdates, isSubmitting, isSuccess, isError }
+  return {
+    submitUpdates,
+    isSubmitting,
+    isSuccess,
+    isError,
+    errorMessage: error
+      ? describeContractRevert(error, policy?.contract.interface)
+      : undefined,
+  }
 }
