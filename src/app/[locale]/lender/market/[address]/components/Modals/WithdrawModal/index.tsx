@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import * as React from "react"
 
-import { Box, Button, Dialog, Typography } from "@mui/material"
+import { Box, Button, Dialog } from "@mui/material"
 import {
   HooksKind,
   QueueWithdrawalStatus,
@@ -9,8 +9,6 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
-import { ErrorModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
-import { LoadingModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
 import {
   LegStatus,
   useWithdrawFlow,
@@ -20,12 +18,13 @@ import { useWithdrawRouting } from "@/app/[locale]/lender/market/[address]/hooks
 import { TransactionHeader } from "@/components/Mobile/TransactionHeader"
 import { TxModalFooter } from "@/components/TxModalComponents/TxModalFooter"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { TxStatusPanel, TxStatusSheet } from "@/components/TxStatusPanel"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas } from "@/utils/formatters"
+import { getStepProgress } from "@/utils/stepProgress"
 
-import { WithdrawDone } from "./components/WithdrawDone"
 import { WithdrawForm } from "./components/WithdrawForm"
 import { StepRow, WithdrawSteps } from "./components/WithdrawSteps"
 import { WithdrawModalProps } from "./interface"
@@ -86,12 +85,23 @@ export const WithdrawModal = ({
     if (!flow.snapshot) return "form" as const
     if (flow.proposed) return "proposed" as const
     if (flow.isComplete) return "done" as const
-    if (isSingleLeg)
-      return flow.failed ? ("error" as const) : ("loading" as const)
+    if (flow.failed) return "error" as const
+    if (isSingleLeg) return "loading" as const
     return "steps" as const
   })()
 
   const isOpen = isMobile ? !!isMobileOpen : isDesktopOpen
+
+  const progress = React.useMemo(() => {
+    const legCount = flow.legs.length || previewLegCount || 1
+    const steps = legCount + 2
+    if (view === "form") return getStepProgress(0, steps)
+
+    const step =
+      view === "done" || view === "proposed" ? steps - 1 : flow.currentLeg + 1
+
+    return getStepProgress(step, steps)
+  }, [flow.legs.length, flow.currentLeg, previewLegCount, view])
 
   const handleClose = () => {
     flow.reset()
@@ -262,17 +272,15 @@ export const WithdrawModal = ({
         )} ${symbol}`}
         rows={stepRows}
       />
-      {flow.failed && !!flow.error && (
-        <Typography variant="text3" color={COLORS.dullRed}>
-          {failureSubtitle}
-        </Typography>
-      )}
     </Box>
   )
 
+  const terminalClose = isMobile ? handleClose : undefined
+
   const doneBody = (
-    <WithdrawDone
-      onClose={handleClose}
+    <TxStatusPanel
+      status="success"
+      onClose={terminalClose}
       txHash={flow.result?.txHash}
       title={t(`${T}.success.title`)}
       subtitle={t(`${T}.success.subtitle`, {
@@ -287,8 +295,9 @@ export const WithdrawModal = ({
   )
 
   const proposedBody = (
-    <WithdrawDone
-      onClose={handleClose}
+    <TxStatusPanel
+      status="success"
+      onClose={terminalClose}
       txHash={flow.txHash}
       title={t(`${T}.proposed.title`)}
       subtitle={t(`${T}.proposed.subtitle`, { count: flow.safeThreshold })}
@@ -296,31 +305,37 @@ export const WithdrawModal = ({
   )
 
   const loadingBody = (
-    <LoadingModal txHash={flow.txHash} subtitle={stepRows[0]?.title} />
+    <TxStatusPanel
+      status="loading"
+      txHash={flow.txHash}
+      subtitle={stepRows[0]?.title}
+    />
   )
 
   const errorBody = (
-    <ErrorModal
-      onTryAgain={() => {
+    <TxStatusPanel
+      status="error"
+      onAction={() => {
         flow.signCurrent()
       }}
       onClose={handleClose}
-      txHash={flow.txHash}
+      // A rejected queue signature can leave the successful unwrap's hash here.
+      txHash={isSingleLeg ? flow.txHash : undefined}
       subtitle={failureSubtitle}
     />
   )
 
-  const body = (() => {
-    if (view === "form") return formBody
-    if (view === "steps") return stepsBody
-    if (view === "loading") return loadingBody
-    if (view === "error") return errorBody
-    if (view === "done") return doneBody
+  const renderBody = (v: typeof view) => {
+    if (v === "form") return formBody
+    if (v === "steps") return stepsBody
+    if (v === "loading") return loadingBody
+    if (v === "error") return errorBody
+    if (v === "done") return doneBody
     return proposedBody
-  })()
+  }
 
-  const footer = (() => {
-    if (view === "form") {
+  const renderFooter = (v: typeof view) => {
+    if (v === "form") {
       return (
         <TxModalFooter
           mainBtnText={confirmLabel}
@@ -329,8 +344,8 @@ export const WithdrawModal = ({
         />
       )
     }
-    if (view === "loading" || view === "error") return null
-    if (view === "steps") {
+    if (v === "loading" || v === "error") return null
+    if (v === "steps") {
       return (
         <TxModalFooter
           mainBtnText={signLabel}
@@ -347,51 +362,64 @@ export const WithdrawModal = ({
         mainBtnOnClick={handleClose}
       />
     )
-  })()
+  }
+
+  const isTerminalView =
+    view === "loading" ||
+    view === "error" ||
+    view === "done" ||
+    view === "proposed"
 
   // ---- mobile ----
   if (isMobile && isMobileOpen) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          flex: 1,
-          width: "100%",
-          height: "100%",
-          backgroundColor: COLORS.white,
-          borderRadius: "14px",
-          paddingBottom: "12px",
-        }}
-      >
-        <TransactionHeader
-          label={t(`${T}.modal.title`)}
-          arrowOnClick={
-            // eslint-disable-next-line no-nested-ternary
-            view === "form"
-              ? handleClose
-              : canGoBackToForm
-                ? handleBackToForm
-                : null
-          }
-          crossOnClick={handleClose}
-          progress={view === "form" ? 50 : 100}
-        />
+    // eslint-disable-next-line no-nested-ternary
+    const baseView = !isTerminalView ? view : isSingleLeg ? "form" : "steps"
 
+    return (
+      <>
         <Box
           sx={{
-            padding: "24px 20px 16px",
-            width: "100%",
-            flex: 1,
             display: "flex",
             flexDirection: "column",
+            flex: 1,
+            width: "100%",
+            height: "100%",
+            backgroundColor: COLORS.white,
+            borderRadius: "14px",
+            paddingBottom: "12px",
           }}
         >
-          {body}
+          <TransactionHeader
+            label={t(`${T}.modal.title`)}
+            arrowOnClick={
+              // eslint-disable-next-line no-nested-ternary
+              baseView === "form"
+                ? handleClose
+                : canGoBackToForm
+                  ? handleBackToForm
+                  : null
+            }
+            crossOnClick={handleClose}
+            progress={progress}
+          />
+
+          <Box
+            sx={{
+              padding: "24px 20px 16px",
+              width: "100%",
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {renderBody(baseView)}
+          </Box>
+
+          {renderFooter(baseView)}
         </Box>
 
-        {footer}
-      </Box>
+        <TxStatusSheet open={isTerminalView}>{renderBody(view)}</TxStatusSheet>
+      </>
     )
   }
 
@@ -438,10 +466,10 @@ export const WithdrawModal = ({
             is pinned to the bottom instead of leaving dead space under it */}
         <Box
           width="100%"
-          padding={
-            view === "loading" || view === "error" ? "0 0 16px" : "0 24px 16px"
-          }
-          marginTop="16px"
+          padding={`0 ${isTerminalView ? "0" : "24px"} ${
+            view === "loading" || view === "error" ? "0" : "16px"
+          }`}
+          marginTop={isTerminalView ? 0 : "16px"}
           sx={{
             flex: 1,
             // fixed-height paper: a tall view scrolls instead of spilling out
@@ -451,10 +479,10 @@ export const WithdrawModal = ({
             flexDirection: "column",
           }}
         >
-          {body}
+          {renderBody(view)}
         </Box>
 
-        {footer}
+        {renderFooter(view)}
       </Dialog>
     </>
   )

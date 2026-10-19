@@ -1303,7 +1303,8 @@
     }
   },
   "txModal": {
-    "viewOnEtherscan": "View on Explorer"
+    "viewOnEtherscan": "View on Explorer",
+    "close": "Close"
   },
   "link": {
     "viewOnEtherscan": "View on Explorer"
