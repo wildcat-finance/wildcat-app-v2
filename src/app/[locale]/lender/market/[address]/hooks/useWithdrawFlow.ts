@@ -149,6 +149,9 @@ export const useWithdrawFlow = ({
       queryKey: QueryKeys.Markets.GET_MARKET(chainId, marketAddress),
     })
     client.invalidateQueries({
+      queryKey: QueryKeys.Markets.GET_MARKET_RECORDS(chainId, marketAddress),
+    })
+    client.invalidateQueries({
       queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
         chainId,
         marketAddress,

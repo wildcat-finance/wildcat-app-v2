@@ -59,6 +59,12 @@ export const useAdjustAPR = (
         ),
       })
       client.invalidateQueries({
+        queryKey: QueryKeys.Markets.GET_MARKET_RECORDS(
+          marketAccount.market.chainId,
+          marketAccount.market.address,
+        ),
+      })
+      client.invalidateQueries({
         queryKey: QueryKeys.Markets.GET_MARKET_ACCOUNT.PREFIX(
           marketAccount.market.chainId,
           marketAccount.market.address,
