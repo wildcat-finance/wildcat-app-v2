@@ -47,6 +47,16 @@ const NO_WALLET_RESTRICTED_PATHS = [
   ROUTES.lender.myMarkets,
 ]
 
+// Need a connected wallet, but stay usable while the wallet is on another
+// network: only a missing wallet sends the visitor away. Exact matches, so the
+// public /borrower/profile/[address] profile stays reachable.
+const WALLET_ONLY_PATHS = [
+  ROUTES.borrower.policy,
+  ROUTES.borrower.notifications,
+  ROUTES.borrower.profile,
+  ROUTES.borrower.editProfile,
+]
+
 const isNotPublicPath = (pathname: string) => {
   if (pathname.startsWith(ROUTES.borrower.market)) {
     return true
@@ -157,7 +167,10 @@ export const useNetworkGate = ({
     const lenderMarketPath = isLenderMarketPath(pathname)
     const borrowerMarketPath = pathname.startsWith(ROUTES.borrower.market)
 
-    if (!address && isNotPublicPath(pathname)) {
+    if (
+      !address &&
+      (isNotPublicPath(pathname) || WALLET_ONLY_PATHS.includes(pathname))
+    ) {
       return "/"
     }
 
