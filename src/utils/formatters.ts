@@ -200,6 +200,16 @@ export const formatTokenWithCommas = (
   }`
 }
 
+// Coerce first: inputs bound with react-hook-form's register() hand back
+// strings, and a string's toLocaleString() skips the digit grouping.
+export const formatNumberWithCommas = (
+  value: number | string | undefined,
+  fractionDigits: number = TOKEN_FORMAT_DECIMALS,
+) =>
+  Number(value ?? 0).toLocaleString("en-US", {
+    maximumFractionDigits: fractionDigits,
+  })
+
 export const formatBps = (bps: number, fixed?: number) => {
   const fixedNum = (bps / 100).toFixed(fixed || 2)
 
