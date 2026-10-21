@@ -416,59 +416,6 @@ export const MarketParameters = ({
             value={market.marketToken.symbol}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
-
-          <ParametersItem
-            title="Wrapper"
-            value=""
-            valueComponent={<WrapperChip hasWrapper={hasWrapper} />}
-          />
-          <Divider sx={{ margin: "12px 0 12px" }} />
-
-          {hasWrapper && wrapper && (
-            <>
-              <ParametersItem
-                title="Wrapper Address"
-                value={trimAddress(wrapper.address.toLowerCase())}
-                copy={wrapper.address}
-                link={getAddressUrl(wrapper.address.toLowerCase())}
-              />
-              <Divider sx={{ margin: "12px 0 12px" }} />
-            </>
-          )}
-
-          {hasWrapper && wrapper && (
-            <>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "4px",
-                  width: "100%",
-                }}
-              >
-                <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                  <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-                    Adoption Status
-                  </Typography>
-                  <TooltipButton value={adoptionStatsTooltip} />
-                </Box>
-                <AdoptionStats
-                  marketAmount={marketValue}
-                  marketAsset={wrapper.marketToken.symbol}
-                  sharesAmount={shareValue}
-                  sharesAsset={
-                    viewerType === "borrower"
-                      ? wrapper.marketToken.symbol
-                      : wrapper.shareToken.symbol
-                  }
-                  marketPct={marketPct}
-                  sharesPct={sharesPct}
-                />
-              </Box>
-              <Divider sx={{ margin: "12px 0 12px" }} />
-            </>
-          )}
-
           <ParametersItem
             title={t("borrowerMarketDetails.parameters.maxBorrowingCapacity")}
             value={`${formatTokenWithCommas(market.maxTotalSupply, {
@@ -765,6 +712,90 @@ export const MarketParameters = ({
           </Box>
         )}
       </Box>
+
+      {isMobileOpen && (
+        <>
+          <Divider />
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: isMobile ? "column" : "row",
+              gap: isMobile ? "0px" : "24px",
+              width: "100%",
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                flex: 1,
+              }}
+            >
+              <ParametersItem
+                title="Wrapper"
+                value=""
+                valueComponent={<WrapperChip hasWrapper={hasWrapper} />}
+              />
+              {hasWrapper && wrapper && (
+                <>
+                  <Divider sx={{ margin: "12px 0" }} />
+                  <ParametersItem
+                    title="Wrapper Address"
+                    value={trimAddress(wrapper.address)}
+                    copy={wrapper.address}
+                    link={getAddressUrl(wrapper.address.toLowerCase())}
+                  />
+                </>
+              )}
+            </Box>
+            {hasWrapper && wrapper && (
+              <Box
+                sx={{
+                  flex: 1,
+                  borderLeft: isMobile
+                    ? "none"
+                    : `1px solid ${COLORS.athensGrey}`,
+                  paddingLeft: isMobile ? 0 : "24px",
+                  borderTop: isMobile
+                    ? `1px solid ${COLORS.athensGrey}`
+                    : "none",
+                  marginTop: isMobile ? "12px" : 0,
+                  paddingTop: isMobile ? "12px" : 0,
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    marginBottom: "4px",
+                  }}
+                >
+                  <Typography
+                    variant={isMobile ? "mobText3" : "text3"}
+                    sx={{ color: COLORS.santasGrey }}
+                  >
+                    Adoption Status
+                  </Typography>
+                  <TooltipButton value={adoptionStatsTooltip} />
+                </Box>
+                <AdoptionStats
+                  marketAmount={marketValue}
+                  marketAsset={wrapper.marketToken.symbol}
+                  sharesAmount={shareValue}
+                  sharesAsset={
+                    viewerType === "borrower"
+                      ? wrapper.marketToken.symbol
+                      : wrapper.shareToken.symbol
+                  }
+                  marketPct={marketPct}
+                  sharesPct={sharesPct}
+                />
+              </Box>
+            )}
+          </Box>
+        </>
+      )}
 
       {hooksConfig && isLocalHost && isMobileOpen && (
         <>

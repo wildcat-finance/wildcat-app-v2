@@ -267,8 +267,11 @@ export const buildMarketHref = (
 export const trimAddress = (
   address: string,
   maxLength: number | undefined = 6,
-) =>
-  `${address.slice(0, 6)}...${address.slice(-(maxLength - 2), address.length)}`
+) => {
+  const prefix = address.slice(0, 6).toUpperCase().replace(/^0X/, "0x")
+  const suffix = address.slice(-(maxLength - 2)).toUpperCase()
+  return `${prefix}...${suffix}`
+}
 
 export const formatTokenAmount = (
   amount: bigint,
