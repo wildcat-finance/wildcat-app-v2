@@ -9,16 +9,19 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material"
-import { Market, MarketRecordKind } from "@wildcatfi/wildcat-sdk"
+import { Market, MarketRecordKind, MarketVersion } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
+import { useAccount } from "wagmi"
 
 import { useBorrowerNameOrAddress } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import Filter from "@/assets/icons/filter_icon.svg"
+import { ExportModal } from "@/components/ExportModal"
 import { FilterTextField } from "@/components/FilterTextfield"
 import { MobileMarketRecordItem } from "@/components/Mobile/MobileMarketRecordItem"
 import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { EXPORT_CHAIN_IDS, ExportChainId } from "@/lib/export/types"
 import { COLORS } from "@/theme/colors"
 
 import { useMarketRecords } from "./hooks/useMarketRecords"
@@ -59,8 +62,13 @@ export function PaginatedMarketRecordsTable({
 }) {
   const { t } = useTranslation()
   const isMobile = useMobileResolution()
+  const { address: connectedAddress } = useAccount()
   const { getTxUrl } = useBlockExplorer({ chainId: market.chainId })
   const borrowerName = useBorrowerNameOrAddress(market.borrower)
+  const [isExportOpen, setIsExportOpen] = useState(false)
+  const supportsExport =
+    market.version === MarketVersion.V2 &&
+    EXPORT_CHAIN_IDS.some((chainId) => chainId === market.chainId)
   const [page, setPage] = useState(0)
   const [pageSize, setPageSize] = useState(10)
   const [selectedFilters, setSelectedFilters] = useState<MarketRecordKind[]>(
@@ -196,6 +204,29 @@ export function PaginatedMarketRecordsTable({
     </Box>
   )
 
+  const exportButton = supportsExport && (
+    <Button
+      onClick={() => setIsExportOpen(true)}
+      variant="outlined"
+      color="secondary"
+      size="small"
+      sx={{ minWidth: "fit-content", whiteSpace: "nowrap" }}
+    >
+      Export
+    </Button>
+  )
+
+  const exportModal = supportsExport && (
+    <ExportModal
+      open={isExportOpen}
+      onClose={() => setIsExportOpen(false)}
+      chainId={market.chainId as ExportChainId}
+      marketAddress={market.address}
+      borrowerAddress={market.borrower}
+      defaultAddress={connectedAddress}
+    />
+  )
+
   if (isMobile && setIsOpen) {
     const lendersName: { [key: string]: string } = JSON.parse(
       localStorage.getItem("lenders-name") || "{}",
@@ -285,6 +316,8 @@ export function PaginatedMarketRecordsTable({
               width="100%"
             />
           </Box>
+
+          {exportButton}
         </Box>
 
         <Popover
@@ -378,70 +411,52 @@ export function PaginatedMarketRecordsTable({
           setPageSize={setPageSize}
           rowCount={data?.totalRecords}
         />
+
+        {exportModal}
       </Box>
     )
   }
 
   return (
     <>
-      {filterButton}
-
-      <Popover
-        id={id}
-        open={open}
-        anchorEl={anchorEl}
-        onClose={handleClose}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "left",
-        }}
+      <Box
         sx={{
-          "& .MuiPaper-root": {
-            width: "294px",
-            height: "fit-content",
-            fontFamily: "inherit",
-            padding: "12px",
-            marginTop: "2px",
-          },
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
-        <Box sx={{ padding: "6px 0 6px 10px" }}>
-          <FormControlLabel
-            label="All types"
-            control={
-              <ExtendedCheckbox
-                checked={allSelected}
-                indeterminate={isIndeterminate}
-                onChange={(event) => handleToggleAll(event.target.checked)}
-                sx={{
-                  "& ::before": {
-                    transform: "translate(-3px, -3px) scale(0.75)",
-                  },
-                }}
-              />
-            }
-          />
-        </Box>
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "6px",
-            padding: "0 10px 0 26px",
-          }}
-        >
-          {options.map((o) => (
-            <Box
-              key={o.id}
-              sx={{ padding: "2px 0", display: "flex", align: "center" }}
-            >
+        <Box>
+          {filterButton}
+
+          <Popover
+            id={id}
+            open={open}
+            anchorEl={anchorEl}
+            onClose={handleClose}
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "left",
+            }}
+            sx={{
+              "& .MuiPaper-root": {
+                width: "294px",
+                height: "fit-content",
+                fontFamily: "inherit",
+                padding: "12px",
+                marginTop: "2px",
+              },
+            }}
+          >
+            <Box sx={{ padding: "6px 0 6px 10px" }}>
               <FormControlLabel
-                label={o.label}
+                label="All types"
                 control={
                   <ExtendedCheckbox
-                    value={o.value}
-                    onChange={(event) => handleChange(o, event.target.checked)}
-                    checked={selectedFilters.includes(o.value)}
+                    checked={allSelected}
+                    indeterminate={isIndeterminate}
+                    onChange={(event) => handleToggleAll(event.target.checked)}
                     sx={{
                       "& ::before": {
                         transform: "translate(-3px, -3px) scale(0.75)",
@@ -451,26 +466,63 @@ export function PaginatedMarketRecordsTable({
                 }
               />
             </Box>
-          ))}
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "6px",
+                padding: "0 10px 0 26px",
+              }}
+            >
+              {options.map((o) => (
+                <Box
+                  key={o.id}
+                  sx={{ padding: "2px 0", display: "flex", align: "center" }}
+                >
+                  <FormControlLabel
+                    label={o.label}
+                    control={
+                      <ExtendedCheckbox
+                        value={o.value}
+                        onChange={(event) =>
+                          handleChange(o, event.target.checked)
+                        }
+                        checked={selectedFilters.includes(o.value)}
+                        sx={{
+                          "& ::before": {
+                            transform: "translate(-3px, -3px) scale(0.75)",
+                          },
+                        }}
+                      />
+                    }
+                  />
+                </Box>
+              ))}
+            </Box>
+
+            <Button
+              onClick={handleClear}
+              size="medium"
+              variant="contained"
+              color="secondary"
+              sx={{ width: "100%", marginTop: "12px" }}
+            >
+              Reset
+            </Button>
+          </Popover>
+
+          <FilterTextField
+            value={search}
+            setValue={setSearch}
+            placeholder="Search by ID"
+            width="180px"
+          />
         </Box>
 
-        <Button
-          onClick={handleClear}
-          size="medium"
-          variant="contained"
-          color="secondary"
-          sx={{ width: "100%", marginTop: "12px" }}
-        >
-          Reset
-        </Button>
-      </Popover>
+        {exportButton}
+      </Box>
 
-      <FilterTextField
-        value={search}
-        setValue={setSearch}
-        placeholder="Search by ID"
-        width="180px"
-      />
+      {exportModal}
 
       <MarketRecordsTable
         market={market}
