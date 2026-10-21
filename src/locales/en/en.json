@@ -305,6 +305,7 @@
     },
     "label": {
       "remainingTime": "Remaining Time With Delinquency Fees",
+      "elapsedPenaltyTime": "Time With Delinquency Fees",
       "availableGracePeriod": "Available Grace Period"
     },
     "tooltip": {

@@ -2,7 +2,6 @@ import React, { useEffect, useMemo } from "react"
 
 import { Box, Divider, Typography, useTheme } from "@mui/material"
 import { MarketVersion, HooksKind } from "@wildcatfi/wildcat-sdk"
-import humanizeDuration from "humanize-duration"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useCopyToClipboard } from "react-use"
@@ -12,13 +11,19 @@ import { SeeMoreButton } from "@/components/Mobile/SeeMoreButton"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useLiveNowSeconds } from "@/hooks/useLiveNowSeconds"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useAdoptionData } from "@/hooks/wrapper/useAdoptionData"
 import { formatDate } from "@/lib/mla"
 import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
 import {
+  getLiveGracePeriodState,
+  hasLiveDelinquencyClock,
+} from "@/utils/delinquencyClock"
+import {
   formatBps,
+  formatCompactDuration,
   formatRayAsPercentage,
   formatSecsToHours,
   formatTokenWithCommas,
@@ -153,8 +158,6 @@ export const MarketParameters = ({
   const { getAddressUrl, getTokenUrl } = useBlockExplorer({
     chainId: market.chainId,
   })
-  const { timeDelinquent, delinquencyGracePeriod } = market
-
   const { address } = useEthersProvider({
     chainId: market?.chainId,
   })
@@ -188,18 +191,20 @@ export const MarketParameters = ({
       ? "Your Market (debt) tokens vs the amount of wrapped Market debt (tokens)"
       : "The total amount of Market (debt) tokens vs the total amount of wrapped Market (debt) tokens"
 
+  const nowSec = useLiveNowSeconds(hasLiveDelinquencyClock(market))
+  const liveGracePeriod = getLiveGracePeriodState(market, nowSec)
+
   const [gracePeriodLabel, gracePeriodTimer] =
-    timeDelinquent > delinquencyGracePeriod
+    liveGracePeriod.isIncurringPenalties
       ? [
-          t("borrowerMarketDetails.label.remainingTime"),
-          humanizeDuration((timeDelinquent - delinquencyGracePeriod) * 1000, {
-            round: true,
-            largest: 1,
-          }),
+          market.isDelinquent
+            ? t("borrowerMarketDetails.label.elapsedPenaltyTime")
+            : t("borrowerMarketDetails.label.remainingTime"),
+          formatCompactDuration(liveGracePeriod.timerSeconds),
         ]
       : [
           t("borrowerMarketDetails.label.availableGracePeriod"),
-          formatSecsToHours(delinquencyGracePeriod - timeDelinquent),
+          formatCompactDuration(liveGracePeriod.timerSeconds),
         ]
 
   const gracePeriodTooltip = useMemo(() => {
@@ -210,7 +215,7 @@ export const MarketParameters = ({
         // If the market is not currently delinquent but will be after the next update:
         return t("borrowerMarketDetails.tooltip.willBeDelinquent")
       }
-      if (timeDelinquent > delinquencyGracePeriod) {
+      if (liveGracePeriod.isIncurringPenalties) {
         // If the market is not currently delinquent (on-chain) but is incurring penalties:
         return t("borrowerMarketDetails.tooltip.delinquencyFeesApply")
       }
@@ -222,7 +227,7 @@ export const MarketParameters = ({
     }
     // If the market will continue to be delinquent after the next update:
     return t("borrowerMarketDetails.tooltip.delinquencyContinues")
-  }, [market])
+  }, [liveGracePeriod.isIncurringPenalties, market, t])
 
   const totalInterestAccrued = market
     ? (
@@ -235,7 +240,8 @@ export const MarketParameters = ({
     market.temporaryReserveRatio &&
     market.reserveRatioBips !== market.originalReserveRatioBips
 
-  const nowSec = Date.now() / 1000
+  // One clock drives the grace period and the temporary reserve ratio expiry
+  // so every time-based field crosses its boundary on the same render.
   const tempRatioExpired =
     tempRatiosDiffer && market.temporaryReserveRatioExpiry < nowSec
 
@@ -690,9 +696,9 @@ export const MarketParameters = ({
                 MARKET_PARAMS_DECIMALS.delinquencyFeeBips,
               )}%`}
               tooltipText="An additional interest rate charged if the market remains delinquent—failing to maintain required reserves—after the grace period has elapsed."
-              alarmState={market.isIncurringPenalties}
+              alarmState={liveGracePeriod.isIncurringPenalties}
               valueTooltipText={
-                market.isIncurringPenalties
+                liveGracePeriod.isIncurringPenalties
                   ? `This market is incurring delinquency fees, leading to a total APR of ${formatRayAsPercentage(
                       market.effectiveLenderAPR,
                       MARKET_PARAMS_DECIMALS.annualInterestBips,
@@ -703,7 +709,7 @@ export const MarketParameters = ({
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
               title={t("borrowerMarketDetails.parameters.maximumGracePeriod")}
-              value={`${formatSecsToHours(market.delinquencyGracePeriod)}`}
+              value={formatCompactDuration(market.delinquencyGracePeriod)}
               tooltipText="The duration borrowers have to resolve reserve deficiencies or correct delinquency in the market before penalties take effect."
             />
             <Divider sx={{ margin: "12px 0 12px" }} />
@@ -711,7 +717,7 @@ export const MarketParameters = ({
               title={gracePeriodLabel}
               value={gracePeriodTimer}
               tooltipText="The portion of the grace period left for borrowers to fix non-compliance issues, such as restoring reserves."
-              alarmState={timeDelinquent > delinquencyGracePeriod}
+              alarmState={liveGracePeriod.isIncurringPenalties}
               valueTooltipText={gracePeriodTooltip}
             />
             <Divider sx={{ margin: "12px 0 12px" }} />

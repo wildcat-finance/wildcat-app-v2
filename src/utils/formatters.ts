@@ -8,6 +8,7 @@ import { Dayjs } from "dayjs"
 import duration from "dayjs/plugin/duration"
 import { BigNumber } from "ethers"
 import { formatUnits } from "ethers/lib/utils"
+import humanizeDuration from "humanize-duration"
 
 import { ROUTES } from "@/routes"
 import { dayjs } from "@/utils/dayjs"
@@ -142,6 +143,37 @@ export const formatSecsToHours = (seconds: number, short?: boolean) => {
 
   return timeString.trim()
 }
+
+const compactDurationHumanizer = humanizeDuration.humanizer({
+  language: "compactEn",
+  languages: {
+    compactEn: {
+      y: () => "y",
+      mo: () => "mo",
+      w: () => "w",
+      d: () => "d",
+      h: () => "h",
+      m: () => "m",
+      s: () => "s",
+    },
+  },
+  spacer: "",
+  delimiter: " ",
+})
+
+/**
+ * Compact countdown ("2m 37s", "1h 5m") for width-constrained spots —
+ * parameter rows and table chips — where the verbose humanized form
+ * truncates. Banners and notices keep the verbose form.
+ */
+export const formatCompactDuration = (
+  seconds: number,
+  largest: number = 2,
+): string =>
+  compactDurationHumanizer(Math.max(0, seconds) * 1000, {
+    round: true,
+    largest,
+  })
 
 // <---- MARKET PARAMETERS FORMATTERS ---->
 export const TOKEN_FORMAT_DECIMALS = 5
