@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.22.2](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.22.1...v2.22.2) (2026-10-21)
+
+
+### Bug Fixes
+
+* october-2026-security-releases ([8dfc50c](https://github.com/wildcat-finance/wildcat-app-v2/commit/8dfc50c44831501d0ba414d6e2b955dfd1facea6))
+
 ## [2.22.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.22.0...v2.22.1) (2026-10-14)
 
 
