@@ -1,13 +1,31 @@
 "use client"
 
-import { Box, Button, Typography, useTheme } from "@mui/material"
-import { useRouter } from "next/navigation"
+import { useState } from "react"
+
+import {
+  Box,
+  Button,
+  Menu,
+  MenuItem,
+  Typography,
+  useTheme,
+} from "@mui/material"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Trans } from "react-i18next"
 
 import type { ServiceAgreementPartyInput } from "@/app/api/service-agreement/interface"
-import { ServiceAgreementVersionChip } from "@/components/ServiceAgreementVersionChip"
+import {
+  ServiceAgreementChip,
+  ServiceAgreementVersionChip,
+} from "@/components/ServiceAgreementVersionChip"
 import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
+import {
+  useServiceAgreementVersion,
+  useServiceAgreementVersions,
+} from "@/hooks/useServiceAgreementVersions"
+import { dayjs } from "@/utils/dayjs"
+import { formatServiceAgreementVersionLabel } from "@/utils/serviceAgreementVersions"
 
 import { AgreementText } from "../AgreementText"
 import { ReacceptButton } from "../ReacceptButton"
@@ -20,9 +38,46 @@ export const AgreementPage = ({
 }) => {
   const theme = useTheme()
   const router = useRouter()
-  const { data: currentAgreement, isLoading: isAgreementLoading } =
-    useCurrentServiceAgreement()
-  const { touState } = useNetworkGate({ agreementParty: party })
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const requestedVersion = searchParams.get("version")
+  const currentQuery = useCurrentServiceAgreement()
+  const currentAgreement = currentQuery.data
+  // Treat an explicit selection as historical until the current version is
+  // known. Never fall back to current text or signing while history loads.
+  const isHistorical =
+    requestedVersion !== null && requestedVersion !== currentAgreement?.version
+  const historicalQuery = useServiceAgreementVersion(
+    isHistorical ? requestedVersion : null,
+  )
+  const versionsQuery = useServiceAgreementVersions()
+  const displayedQuery = isHistorical ? historicalQuery : currentQuery
+  const displayedAgreement = displayedQuery.data
+  const displayedVersion = requestedVersion ?? currentAgreement?.version
+  const { touState, touCurrentVersion, touAcceptedVersion } = useNetworkGate({
+    agreementParty: party,
+  })
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
+  const canSign =
+    !isHistorical &&
+    displayedQuery.isSuccess &&
+    !!displayedAgreement &&
+    displayedAgreement.version === touCurrentVersion?.version &&
+    displayedAgreement.plaintextSha256 === touCurrentVersion?.plaintextSha256
+
+  const selectVersion = (version?: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (!version || version === currentAgreement?.version) {
+      params.delete("version")
+    } else {
+      params.set("version", version)
+    }
+    setMenuAnchor(null)
+    // Switching documents replaces this page's selection. Back/Cancel still
+    // returns to the page that opened the terms, rather than every selection.
+    const query = params.toString()
+    router.replace(`${pathname}${query ? `?${query}` : ""}`, { scroll: false })
+  }
 
   // Lenders retain the initial onboarding flow, while borrowers only reach
   // this page to review or re-accept terms for their borrower capacity.
@@ -36,7 +91,14 @@ export const AgreementPage = ({
   const needsLenderSignature = party === "Lender" && touState === "neverSigned"
 
   const handleDownload = () => {
-    window.open(`/api/service-agreement/current/download`, "_blank")
+    if (!displayedAgreement || !displayedQuery.isSuccess) return
+    window.open(
+      `/api/service-agreement/versions/${encodeURIComponent(
+        displayedAgreement.version,
+      )}/download`,
+      "_blank",
+      "noopener,noreferrer",
+    )
   }
 
   return (
@@ -90,13 +152,97 @@ export const AgreementPage = ({
           <Typography variant="title2" fontWeight={600} textAlign="center">
             <Trans i18nKey="agreement.page.title" />
           </Typography>
-          <ServiceAgreementVersionChip version={currentAgreement?.version} />
+          <Button
+            variant="text"
+            aria-label="Choose Terms of Use version"
+            aria-haspopup="menu"
+            aria-expanded={!!menuAnchor}
+            aria-controls={menuAnchor ? "terms-version-menu" : undefined}
+            onClick={(event) => setMenuAnchor(event.currentTarget)}
+            sx={{ minWidth: 0, padding: "4px", height: "auto", gap: "4px" }}
+          >
+            {displayedVersion ? (
+              <ServiceAgreementVersionChip
+                version={displayedVersion}
+                tone={isHistorical ? "stale" : "current"}
+              />
+            ) : (
+              "Versions"
+            )}
+            <span aria-hidden="true">▾</span>
+          </Button>
+          <Menu
+            id="terms-version-menu"
+            anchorEl={menuAnchor}
+            open={!!menuAnchor}
+            onClose={() => setMenuAnchor(null)}
+            MenuListProps={{ "aria-label": "Terms of Use versions" }}
+          >
+            {versionsQuery.isLoading && <MenuItem disabled>Loading…</MenuItem>}
+            {versionsQuery.isError && (
+              <MenuItem onClick={() => versionsQuery.refetch()}>
+                Unable to load versions. Retry
+              </MenuItem>
+            )}
+            {versionsQuery.data?.map((version) => (
+              <MenuItem
+                key={version.version}
+                selected={version.version === displayedVersion}
+                disabled={!version.isAvailable}
+                onClick={() => selectVersion(version.version)}
+                sx={{ gap: "8px", flexWrap: "wrap", whiteSpace: "normal" }}
+              >
+                {formatServiceAgreementVersionLabel(version.version)}
+                <ServiceAgreementChip
+                  label={dayjs(version.effectiveDate)
+                    .utc()
+                    .format("DD MMM YYYY")}
+                />
+                {version.isCurrent && <ServiceAgreementChip label="Current" />}
+                {version.version === touAcceptedVersion?.version &&
+                  version.plaintextSha256 ===
+                    touAcceptedVersion.plaintextSha256 && (
+                    <ServiceAgreementChip label="Accepted" />
+                  )}
+                {!version.isAvailable && <span>Unavailable</span>}
+              </MenuItem>
+            ))}
+          </Menu>
         </Box>
 
-        <AgreementText
-          markdown={currentAgreement?.plaintext}
-          isLoading={isAgreementLoading}
-        />
+        {isHistorical && (
+          <Typography variant="text3" color="text.secondary" sx={{ mb: 2 }}>
+            {displayedQuery.isSuccess && displayedAgreement
+              ? `You’re viewing ${formatServiceAgreementVersionLabel(
+                  displayedAgreement.version,
+                )} (${dayjs(displayedAgreement.effectiveDate)
+                  .utc()
+                  .format("DD MMM YYYY")}). This is not the current version. `
+              : "You’ve selected a previous or unavailable version. "}
+            <Button variant="text" onClick={() => selectVersion()}>
+              View current
+            </Button>
+          </Typography>
+        )}
+
+        {displayedQuery.isError ? (
+          <Box role="alert">
+            <Typography variant="text3">
+              {isHistorical
+                ? "This Terms of Use version is unavailable. Its original text may be missing, or it could not be loaded."
+                : "The current Terms of Use could not be loaded."}
+            </Typography>
+            <Button variant="text" onClick={() => displayedQuery.refetch()}>
+              Retry
+            </Button>
+          </Box>
+        ) : (
+          <AgreementText
+            key={displayedAgreement?.version ?? requestedVersion}
+            markdown={displayedAgreement?.plaintext}
+            isLoading={displayedQuery.isLoading}
+          />
+        )}
 
         <Box
           sx={{
@@ -136,7 +282,7 @@ export const AgreementPage = ({
           },
         }}
       >
-        {isReview && (
+        {(isReview || isHistorical || displayedQuery.isError) && (
           <Button
             variant="contained"
             color="secondary"
@@ -153,14 +299,15 @@ export const AgreementPage = ({
             <Trans i18nKey="agreement.page.cancel" />
           </Button>
         )}
-        {needsReacceptance && <ReacceptButton party={party} />}
-        {needsLenderSignature && <SignButton />}
+        {canSign && needsReacceptance && <ReacceptButton party={party} />}
+        {canSign && needsLenderSignature && <SignButton />}
 
         <Button
           variant="contained"
           color="secondary"
           size="large"
           onClick={handleDownload}
+          disabled={!displayedAgreement || !displayedQuery.isSuccess}
           sx={{
             width: "168.63px",
             height: "44px",
