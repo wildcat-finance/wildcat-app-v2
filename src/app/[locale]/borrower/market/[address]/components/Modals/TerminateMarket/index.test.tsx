@@ -35,12 +35,21 @@ import { theme } from "@/theme/theme"
 const mockBorrower = "0x0000000000000000000000000000000000000011"
 let mockChainId = 1
 let mockAddress = mockBorrower
+// Approvals confirm from receipts read through signer.provider; a mined
+// approval publishes its receipt here.
+const mockReceipts = new Map<string, { status: string }>()
 const mockSigner = {
   _isSigner: true,
   get chainId() {
     return mockChainId
   },
   getAddress: async () => mockAddress,
+  provider: {
+    send: async (method: string, params: unknown[]) =>
+      method === "eth_getTransactionReceipt"
+        ? mockReceipts.get(String(params[0])) ?? null
+        : null,
+  },
 }
 jest.mock("viem", () => ({
   getAddress: (value: string) => value,
@@ -198,11 +207,16 @@ function mount({
     underlyingBalance: token.parseAmount(balance),
     underlyingApproval: token.parseAmount(allowance).raw,
   } as unknown as ConstructorParameters<typeof MarketAccount>[0])
+  mockReceipts.clear()
   approveTx = jest.fn(async (_spender: string, value: BigNumber) => {
     account.underlyingApproval = value
-    return { hash: "0xapprove", wait: async () => ({ status: 1 }) }
+    mockReceipts.set("0xapprove", { status: "0x1" })
+    return { hash: "0xapprove" }
   })
-  Reflect.set(token, "_contract", { approve: approveTx })
+  Reflect.set(token, "_contract", {
+    approve: approveTx,
+    allowance: async () => account.underlyingApproval,
+  })
   client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   })

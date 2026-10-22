@@ -12,15 +12,16 @@ const defaultStyle = {
   fontFamily: "Roboto, sans-serif",
 }
 
-export type ToastRequestConfig = {
+export type ToastRequestConfig<T = unknown> = {
   pending?: string
-  success?: string
+  success?: string | ((value: T) => string)
   error?: string
+  getErrorMessage?: (error: unknown) => string
 }
 
 export const toastRequest = async <T,>(
   promiseFn: Promise<T>,
-  config?: ToastRequestConfig,
+  config?: ToastRequestConfig<T>,
   style: object = {},
 ) => {
   toast.promise(
@@ -28,7 +29,7 @@ export const toastRequest = async <T,>(
     {
       loading: config?.pending || "Request is pending",
       success: config?.success || "Request is successful 🎉",
-      error: config?.error || "Request failed 😢",
+      error: config?.getErrorMessage || config?.error || "Request failed 😢",
     },
     {
       style: {

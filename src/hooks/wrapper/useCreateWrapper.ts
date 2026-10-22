@@ -14,58 +14,10 @@ import {
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { waitForSafeTransactionExecution } from "@/utils/transactions"
 
 const WRAPPER_TRANSFERS_DISABLED_ERROR =
   "A wrapper cannot be deployed when market transfers are disabled"
-
-type SafeTransactionDetails = {
-  txStatus?:
-    | "AWAITING_CONFIRMATIONS"
-    | "AWAITING_EXECUTION"
-    | "CANCELLED"
-    | "FAILED"
-    | "SUCCESS"
-  txHash?: string | null
-}
-
-type SafeSdkLike = {
-  txs: {
-    getBySafeTxHash: (
-      safeTxHash: string,
-    ) => Promise<SafeTransactionDetails | null | undefined>
-  }
-}
-
-// Resolves with the executed tx hash; rejects if the Safe tx is cancelled or
-// fails, so the deploy toast and pending state do not hang forever.
-const waitForSafeTransactionExecution = async (
-  sdk: SafeSdkLike,
-  safeTxHash: string,
-): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const check = async () => {
-      try {
-        const transaction = await sdk.txs.getBySafeTxHash(safeTxHash)
-        if (
-          transaction?.txStatus === "CANCELLED" ||
-          transaction?.txStatus === "FAILED"
-        ) {
-          reject(
-            new Error(`Safe transaction ${transaction.txStatus.toLowerCase()}`),
-          )
-          return
-        }
-        if (transaction?.txHash) {
-          resolve(transaction.txHash)
-          return
-        }
-        setTimeout(check, 1000)
-      } catch (error) {
-        reject(error)
-      }
-    }
-    check()
-  })
 
 type UseCreateWrapperParams = {
   market: Market | undefined

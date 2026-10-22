@@ -31,10 +31,19 @@ import { theme } from "@/theme/theme"
 import { useDeposit } from "../../../hooks/useDeposit"
 
 const mockAddress = "0x0000000000000000000000000000000000000011"
+// Approvals confirm from receipts read through signer.provider; a mined
+// approval publishes its receipt here.
+const mockReceipts = new Map<string, { status: string }>()
 const mockSigner = {
   _isSigner: true,
   chainId: 1,
   getAddress: jest.fn(async () => mockAddress),
+  provider: {
+    send: async (method: string, params: unknown[]) =>
+      method === "eth_getTransactionReceipt"
+        ? mockReceipts.get(String(params[0])) ?? null
+        : null,
+  },
 }
 let mockConnectedAddress = mockAddress
 let mockMobile = false
@@ -172,15 +181,15 @@ function setup({
     false,
     mockSigner as unknown as Signer,
   )
-  approveTx = jest.fn(async (_spender, raw) => ({
-    hash: "0xapprove",
-    wait: async () => {
-      account.underlyingApproval = BigNumber.from(raw)
-      return { status: 1 }
-    },
-  }))
+  mockReceipts.clear()
+  approveTx = jest.fn(async (_spender, raw) => {
+    account.underlyingApproval = BigNumber.from(raw)
+    mockReceipts.set("0xapprove", { status: "0x1" })
+    return { hash: "0xapprove" }
+  })
   Reflect.set(token, "_contract", {
     approve: approveTx,
+    allowance: async () => account.underlyingApproval,
     interface: tokenInterface,
   })
   market = new Market({
@@ -336,24 +345,23 @@ it("freezes the chosen amount while approving and synchronizes after approval", 
   mount({ allowance: "0" })
   max()
   let finish: () => void = () => undefined
-  approveTx.mockImplementationOnce(async () => ({
-    hash: "0xapprove",
-    wait: () =>
-      new Promise((resolve) => {
-        finish = () => {
-          account.underlyingApproval = token.parseAmount("100.123456").raw
-          resolve({ status: 1 })
-        }
-      }),
-  }))
+  approveTx.mockImplementationOnce(async () => {
+    finish = () => {
+      account.underlyingApproval = token.parseAmount("100.123456").raw
+      mockReceipts.set("0xapprove", { status: "0x1" })
+    }
+    return { hash: "0xapprove" }
+  })
   fireEvent.click(screen.getByRole("button", { name: "Approve" }))
   await waitFor(() => expect(approveTx).toHaveBeenCalledTimes(1))
   setMaximum("50.123456")
   expect(input().value).toBe("100.12345")
   expect(screen.getByRole("button", { name: "Max" })).toBeDisabled()
   await act(async () => finish())
-  await drain()
-  expect(input().value).toBe("50.12345")
+  // The approval is picked up on the next receipt/allowance poll.
+  await waitFor(() => expect(input().value).toBe("50.12345"), {
+    timeout: 3000,
+  })
 })
 it("blocks a Max value below the minimum deposit", async () => {
   mount()
