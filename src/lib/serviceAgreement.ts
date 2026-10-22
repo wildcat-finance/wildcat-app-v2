@@ -1,3 +1,5 @@
+import { createHash } from "crypto"
+
 import {
   Prisma,
   ServiceAgreement,
@@ -93,6 +95,44 @@ export async function getCurrentServiceAgreementContent(): Promise<CurrentServic
     )
   }
   return agreement
+}
+
+// Check the original bytes, without trimming or normalizing line endings. The
+// legacy seed has only placeholder text and intentionally fails this check.
+const hasServiceAgreementContent = (agreement: {
+  plaintext: string
+  plaintextSha256: string
+}) =>
+  createHash("sha256").update(agreement.plaintext, "utf8").digest("hex") ===
+  agreement.plaintextSha256
+
+export async function listServiceAgreementVersions() {
+  const agreements = await prisma.serviceAgreement.findMany({
+    orderBy: { id: "desc" },
+    select: {
+      version: true,
+      plaintext: true,
+      plaintextSha256: true,
+      effectiveDate: true,
+      isCurrent: true,
+    },
+  })
+  return agreements.map((agreement) => ({
+    version: agreement.version,
+    plaintextSha256: agreement.plaintextSha256,
+    effectiveDate: agreement.effectiveDate.toISOString(),
+    isCurrent: agreement.isCurrent,
+    isAvailable: hasServiceAgreementContent(agreement),
+  }))
+}
+
+export async function getServiceAgreementContentByVersion(version: string) {
+  const agreement = await prisma.serviceAgreement.findFirst({
+    where: { version },
+    orderBy: { id: "desc" },
+    select: CURRENT_SERVICE_AGREEMENT_SELECT,
+  })
+  return agreement && hasServiceAgreementContent(agreement) ? agreement : null
 }
 
 export type VerifiedServiceAgreementSignature = {
