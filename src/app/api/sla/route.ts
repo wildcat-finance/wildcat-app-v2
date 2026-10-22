@@ -1,11 +1,9 @@
 import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
-import { prisma } from "@/lib/db"
 import {
   getCurrentServiceAgreement,
   isServiceAgreementTimeSignedInBounds,
-  requireLegacyWrapperHash,
   saveServiceAgreementSignature,
   verifyServiceAgreementSignature,
 } from "@/lib/serviceAgreement"
@@ -48,28 +46,6 @@ export async function POST(request: NextRequest) {
   if (!verified) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
-  const serviceAgreementHash = requireLegacyWrapperHash(agreement)
-  await prisma.$transaction(async (transaction) => {
-    // New table first, old table second (compatibility dual-write, removed in
-    // Release 2). Both writes commit or roll back together.
-    await saveServiceAgreementSignature(verified, transaction)
-    await transaction.lenderServiceAgreementSignature.upsert({
-      where: {
-        chainId_signer_serviceAgreementHash: {
-          chainId,
-          signer: address,
-          serviceAgreementHash,
-        },
-      },
-      update: {},
-      create: {
-        chainId,
-        signer: address,
-        signature,
-        timeSigned: new Date(timeSigned),
-        serviceAgreementHash,
-      },
-    })
-  })
+  await saveServiceAgreementSignature(verified)
   return NextResponse.json({ success: true })
 }
