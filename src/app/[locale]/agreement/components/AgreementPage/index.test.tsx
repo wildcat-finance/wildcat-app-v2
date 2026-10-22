@@ -203,19 +203,18 @@ it("hides signing if the gate and displayed current document disagree", () => {
 it("disables unavailable history and replaces the selection without losing other URL parameters", () => {
   mockSearch = "from=status"
   render(<AgreementPage party="Lender" />)
-  fireEvent.click(
-    screen.getByRole("button", { name: "Choose Terms of Use version" }),
-  )
+  fireEvent.click(screen.getByRole("button", { name: "Version history" }))
   expect(
-    screen
-      .getByRole("menuitem", { name: /Legacy/ })
-      .getAttribute("aria-disabled"),
-  ).toBe("true")
-  fireEvent.click(screen.getByRole("menuitem", { name: /Version 2/ }))
+    screen.getByRole("button", { name: /Legacy/ }).hasAttribute("disabled"),
+  ).toBe(true)
+  fireEvent.click(screen.getByRole("button", { name: /Version 2/ }))
   expect(mockReplace).toHaveBeenCalledWith(
     `/lender/agreement?from=status&version=${previous.version}`,
     { scroll: false },
   )
+  expect(
+    screen.queryByRole("region", { name: "Terms of Use versions" }),
+  ).toBeNull()
 })
 
 it("returning to current terms clears only the version selection", () => {

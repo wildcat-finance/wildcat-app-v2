@@ -1,29 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 
-import {
-  Box,
-  Button,
-  Menu,
-  MenuItem,
-  Typography,
-  useTheme,
-} from "@mui/material"
+import { Box, Button, ButtonBase, Typography, useTheme } from "@mui/material"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Trans } from "react-i18next"
 
 import type { ServiceAgreementPartyInput } from "@/app/api/service-agreement/interface"
-import {
-  ServiceAgreementChip,
-  ServiceAgreementVersionChip,
-} from "@/components/ServiceAgreementVersionChip"
 import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import {
   useServiceAgreementVersion,
   useServiceAgreementVersions,
 } from "@/hooks/useServiceAgreementVersions"
+import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
 import { formatServiceAgreementVersionLabel } from "@/utils/serviceAgreementVersions"
 
@@ -57,7 +47,9 @@ export const AgreementPage = ({
   const { touState, touCurrentVersion, touAcceptedVersion } = useNetworkGate({
     agreementParty: party,
   })
-  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const readerRef = useRef<HTMLDivElement>(null)
+  const historyToggleRef = useRef<HTMLButtonElement>(null)
   const canSign =
     !isHistorical &&
     displayedQuery.isSuccess &&
@@ -72,7 +64,9 @@ export const AgreementPage = ({
     } else {
       params.set("version", version)
     }
-    setMenuAnchor(null)
+    if (historyOpen) historyToggleRef.current?.focus()
+    setHistoryOpen(false)
+    if (readerRef.current) readerRef.current.scrollTop = 0
     // Switching documents replaces this page's selection. Back/Cancel still
     // returns to the page that opened the terms, rather than every selection.
     const query = params.toString()
@@ -126,6 +120,7 @@ export const AgreementPage = ({
         sx={{
           maxWidth: "690px",
           width: "100%",
+          minHeight: 0,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -152,97 +147,194 @@ export const AgreementPage = ({
           <Typography variant="title2" fontWeight={600} textAlign="center">
             <Trans i18nKey="agreement.page.title" />
           </Typography>
-          <Button
-            variant="text"
-            aria-label="Choose Terms of Use version"
-            aria-haspopup="menu"
-            aria-expanded={!!menuAnchor}
-            aria-controls={menuAnchor ? "terms-version-menu" : undefined}
-            onClick={(event) => setMenuAnchor(event.currentTarget)}
-            sx={{ minWidth: 0, padding: "4px", height: "auto", gap: "4px" }}
-          >
-            {displayedVersion ? (
-              <ServiceAgreementVersionChip
-                version={displayedVersion}
-                tone={isHistorical ? "stale" : "current"}
-              />
-            ) : (
-              "Versions"
-            )}
-            <span aria-hidden="true">▾</span>
-          </Button>
-          <Menu
-            id="terms-version-menu"
-            anchorEl={menuAnchor}
-            open={!!menuAnchor}
-            onClose={() => setMenuAnchor(null)}
-            MenuListProps={{ "aria-label": "Terms of Use versions" }}
-          >
-            {versionsQuery.isLoading && <MenuItem disabled>Loading…</MenuItem>}
-            {versionsQuery.isError && (
-              <MenuItem onClick={() => versionsQuery.refetch()}>
-                Unable to load versions. Retry
-              </MenuItem>
-            )}
-            {versionsQuery.data?.map((version) => (
-              <MenuItem
-                key={version.version}
-                selected={version.version === displayedVersion}
-                disabled={!version.isAvailable}
-                onClick={() => selectVersion(version.version)}
-                sx={{ gap: "8px", flexWrap: "wrap", whiteSpace: "normal" }}
-              >
-                {formatServiceAgreementVersionLabel(version.version)}
-                <ServiceAgreementChip
-                  label={dayjs(version.effectiveDate)
-                    .utc()
-                    .format("DD MMM YYYY")}
-                />
-                {version.isCurrent && <ServiceAgreementChip label="Current" />}
-                {version.version === touAcceptedVersion?.version &&
-                  version.plaintextSha256 ===
-                    touAcceptedVersion.plaintextSha256 && (
-                    <ServiceAgreementChip label="Accepted" />
-                  )}
-                {!version.isAvailable && <span>Unavailable</span>}
-              </MenuItem>
-            ))}
-          </Menu>
         </Box>
 
-        {isHistorical && (
-          <Typography variant="text3" color="text.secondary" sx={{ mb: 2 }}>
-            {displayedQuery.isSuccess && displayedAgreement
-              ? `You’re viewing ${formatServiceAgreementVersionLabel(
-                  displayedAgreement.version,
-                )} (${dayjs(displayedAgreement.effectiveDate)
-                  .utc()
-                  .format("DD MMM YYYY")}). This is not the current version. `
-              : "You’ve selected a previous or unavailable version. "}
-            <Button variant="text" onClick={() => selectVersion()}>
-              View current
-            </Button>
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: "8px 16px",
+            marginBottom: "20px",
+            flexShrink: 0,
+          }}
+        >
+          <Typography variant="text3" color={COLORS.blackRock07}>
+            {displayedVersion &&
+              formatServiceAgreementVersionLabel(displayedVersion)}
+            {displayedAgreement &&
+              ` · ${dayjs(displayedAgreement.effectiveDate)
+                .utc()
+                .format("DD MMM YYYY")}`}
           </Typography>
-        )}
+          <Button
+            ref={historyToggleRef}
+            variant="text"
+            size="small"
+            aria-expanded={historyOpen}
+            aria-controls="terms-version-history"
+            onClick={() => {
+              setHistoryOpen(!historyOpen)
+              if (readerRef.current) readerRef.current.scrollTop = 0
+            }}
+            sx={{ minWidth: 0, padding: "4px 0", height: "auto", gap: "6px" }}
+          >
+            {historyOpen ? "Hide history" : "Version history"}
+            <span aria-hidden="true">{historyOpen ? "−" : "+"}</span>
+          </Button>
+        </Box>
 
-        {displayedQuery.isError ? (
-          <Box role="alert">
-            <Typography variant="text3">
-              {isHistorical
-                ? "This Terms of Use version is unavailable. Its original text may be missing, or it could not be loaded."
-                : "The current Terms of Use could not be loaded."}
+        <Box
+          ref={readerRef}
+          sx={{
+            width: "100%",
+            minHeight: 0,
+            flex: "1 1 auto",
+            overflowY: "auto",
+            overflowX: "hidden",
+            paddingBottom: { xs: "96px", md: "112px" },
+            scrollbarWidth: "thin",
+            scrollbarColor: `${COLORS.greySuit} transparent`,
+          }}
+        >
+          {historyOpen && (
+            <Box
+              id="terms-version-history"
+              role="region"
+              aria-label="Terms of Use versions"
+              sx={{ borderTop: `1px solid ${COLORS.whiteLilac}`, mb: 3 }}
+            >
+              {versionsQuery.isLoading && (
+                <Typography variant="text3" sx={{ py: 2 }}>
+                  Loading…
+                </Typography>
+              )}
+              {versionsQuery.isError && (
+                <Button variant="text" onClick={() => versionsQuery.refetch()}>
+                  Unable to load versions. Retry
+                </Button>
+              )}
+              {versionsQuery.data?.map((version) => {
+                const isSelected = version.version === displayedVersion
+                const isAccepted =
+                  version.version === touAcceptedVersion?.version &&
+                  version.plaintextSha256 === touAcceptedVersion.plaintextSha256
+                const status = !version.isAvailable
+                  ? "Text unavailable"
+                  : [version.isCurrent && "Current", isAccepted && "Accepted"]
+                      .filter(Boolean)
+                      .join(" · ")
+                return (
+                  <ButtonBase
+                    key={version.version}
+                    aria-current={isSelected ? "page" : undefined}
+                    disabled={!version.isAvailable}
+                    onClick={() => selectVersion(version.version)}
+                    sx={{
+                      width: "100%",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: "16px",
+                      padding: "12px 8px",
+                      textAlign: "left",
+                      borderBottom: `1px solid ${COLORS.whiteLilac}`,
+                      color: isSelected
+                        ? COLORS.ultramarineBlue
+                        : COLORS.blackRock,
+                      "&:hover": { backgroundColor: COLORS.alabaster },
+                      "&.Mui-focusVisible": {
+                        outline: `2px solid ${COLORS.ultramarineBlue}`,
+                        outlineOffset: "-2px",
+                      },
+                      "&.Mui-disabled": { color: COLORS.santasGrey },
+                    }}
+                  >
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography
+                        component="div"
+                        variant="text3"
+                        color="inherit"
+                        fontWeight={isSelected ? 600 : 500}
+                        sx={{ fontSize: "14px", lineHeight: "20px" }}
+                      >
+                        {formatServiceAgreementVersionLabel(version.version)}
+                      </Typography>
+                      {status && (
+                        <Typography
+                          component="div"
+                          variant="text4"
+                          color={COLORS.blackRock07}
+                          sx={{
+                            mt: "2px",
+                            fontSize: "12px",
+                            lineHeight: "18px",
+                          }}
+                        >
+                          {status}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Typography
+                      variant="text4"
+                      color={COLORS.blackRock07}
+                      sx={{
+                        fontSize: "13px",
+                        whiteSpace: "nowrap",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {dayjs(version.effectiveDate).utc().format("DD MMM YYYY")}
+                    </Typography>
+                  </ButtonBase>
+                )
+              })}
+            </Box>
+          )}
+
+          {isHistorical && (
+            <Typography
+              component="div"
+              variant="text3"
+              color="text.secondary"
+              sx={{ mb: 2 }}
+            >
+              {displayedQuery.isSuccess && displayedAgreement
+                ? "This is an earlier version of the terms. "
+                : "You’ve selected a previous or unavailable version. "}
+              <Button variant="text" onClick={() => selectVersion()}>
+                View current
+              </Button>
             </Typography>
-            <Button variant="text" onClick={() => displayedQuery.refetch()}>
-              Retry
-            </Button>
-          </Box>
-        ) : (
-          <AgreementText
-            key={displayedAgreement?.version ?? requestedVersion}
-            markdown={displayedAgreement?.plaintext}
-            isLoading={displayedQuery.isLoading}
-          />
-        )}
+          )}
+
+          {displayedQuery.isError ? (
+            <Box role="alert">
+              <Typography variant="text3">
+                {isHistorical
+                  ? "This Terms of Use version is unavailable. Its original text may be missing, or it could not be loaded."
+                  : "The current Terms of Use could not be loaded."}
+              </Typography>
+              <Button variant="text" onClick={() => displayedQuery.refetch()}>
+                Retry
+              </Button>
+            </Box>
+          ) : (
+            <AgreementText
+              key={displayedAgreement?.version ?? requestedVersion}
+              markdown={displayedAgreement?.plaintext}
+              isLoading={displayedQuery.isLoading}
+              sx={{
+                maxHeight: { xs: "none", md: "none" },
+                overflowX: "visible",
+                overflowY: "visible",
+                paddingBottom: { xs: 0, md: 0 },
+              }}
+            />
+          )}
+        </Box>
 
         <Box
           sx={{
