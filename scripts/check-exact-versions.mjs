@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootDir = path.resolve(__dirname, '..')
 const useStaged = process.argv.includes('--staged')
 
-const EXPECTED_NODE_VERSION = '22.22.1'
+const EXPECTED_NODE_VERSION = '22.23.4'
 const EXPECTED_NODE_ENGINE = `>=${EXPECTED_NODE_VERSION} <23`
 const EXPECTED_NPM_VERSION = '11.12.0'
 const EXPECTED_PACKAGE_MANAGER = `npm@${EXPECTED_NPM_VERSION}`
