@@ -88,6 +88,11 @@ export async function screenWallet(
 ): Promise<SanctionsResult> {
   const address = walletAddressSchema.parse(input)
   const startedAt = Date.now()
+  // TEMPORARY PO demo: applies to production builds, including Vercel.
+  // Revert this test-wallet block before the full rollout.
+  if (address === "0xf01d00e06efe26272caf01c79c71a46a8ff22601") {
+    return result(address, "blocked", startedAt)
+  }
   // The server supplies this fixture only in local development. Never consult
   // private env values in this browser-compatible module.
   if (

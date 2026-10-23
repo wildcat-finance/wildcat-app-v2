@@ -60,6 +60,14 @@ No clearance is persisted to local storage. Requests time out after
 Screening checks source timestamps against the device clock, so an incorrect
 device clock can pause screening.
 
+## Temporary PO demo
+
+`0xF01D00E06Efe26272cAF01C79c71a46A8Ff22601` is temporarily hardcoded as blocked
+in the app for PO acceptance testing. This simulates rejection without querying
+RedStone for this wallet and applies in every build, including Vercel preview
+and production, with no env settings required. Revert the separate temporary
+test-wallet commit after PO testing and before the full deployment.
+
 ## Local manual testing
 
 Set `SANCTIONS_DEV_ADDRESS` to your wallet and `SANCTIONS_DEV_STATUS` to `blocked`,

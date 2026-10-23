@@ -64,6 +64,36 @@ describe("gateway sanctions screening", () => {
       .mockResolvedValue({ ok: true, json: async () => body } as Response)
   }
 
+  it.each(["preview", "production"])(
+    "blocks the temporary PO wallet in Vercel %s builds without a gateway lookup",
+    async (vercelEnv) => {
+      process.env = {
+        ...process.env,
+        NODE_ENV: "production",
+        VERCEL: "1",
+        VERCEL_ENV: vercelEnv,
+      }
+      const address = "0xF01D00E06Efe26272cAF01C79c71a46A8Ff22601"
+      const expected = {
+        address: address.toLowerCase(),
+        status: "blocked",
+        checkedAt: NOW,
+        validUntil: NOW + 60_000,
+      }
+      expect(await screenWallet(address)).toEqual(expected)
+      expect(await screenWallet(address.toLowerCase())).toEqual(expected)
+      expect(fetch).not.toHaveBeenCalled()
+
+      // A different wallet still goes through normal source validation.
+      respond(fixture(null))
+      expect(
+        (await screenWallet("0xf01d00e06efe26272caf01c79c71a46a8ff22600"))
+          .status,
+      ).toBe("clear")
+      expect(fetch).toHaveBeenCalledTimes(1)
+    },
+  )
+
   it.each([true, false, null])(
     "reads current membership %s after validating the feed",
     async (flag) => {
