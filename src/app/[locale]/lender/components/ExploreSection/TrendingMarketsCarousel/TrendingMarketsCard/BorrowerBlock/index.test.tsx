@@ -9,6 +9,7 @@ const routerPushMock = jest.fn()
 
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: routerPushMock }),
+  usePathname: () => "/lender",
 }))
 
 jest.mock("react-i18next", () => ({
@@ -52,7 +53,7 @@ describe("TrendingMarketDetails borrower profile navigation", () => {
     fireEvent.click(screen.getByText("Borrower Inc"))
 
     expect(routerPushMock).toHaveBeenCalledWith(
-      "/profile/borrower/0x2222222222222222222222222222222222222222?chainId=11155111",
+      "/profile/borrower/0x2222222222222222222222222222222222222222?chainId=11155111&from=explore",
     )
   })
 })

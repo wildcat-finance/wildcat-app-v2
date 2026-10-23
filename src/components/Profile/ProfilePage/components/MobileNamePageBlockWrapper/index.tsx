@@ -4,9 +4,8 @@ import { usePathname, useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
-import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-import { isBorrowerContextPath } from "@/utils/profileRoutes"
+import { resolveBorrowerProfileBackLink } from "@/utils/profileRoutes"
 
 import { MobileNamePageBlockWrapperProps } from "./interface"
 import {
@@ -28,10 +27,10 @@ export const MobileNamePageBlockWrapper = ({
 
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const backLink =
-    isBorrowerContextPath(pathname) || searchParams.get("from") === "borrower"
-      ? ROUTES.borrower.root
-      : ROUTES.lender.root
+  const backLink = resolveBorrowerProfileBackLink(
+    pathname,
+    searchParams.get("from"),
+  )
 
   const handleChangeSection = (sectionTab: "markets" | "info") => {
     setSection(sectionTab)

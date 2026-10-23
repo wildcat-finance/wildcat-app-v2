@@ -16,7 +16,7 @@ import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { isSubgraphPricingConfigured } from "@/lib/subgraphCapabilities"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-import { isBorrowerContextPath } from "@/utils/profileRoutes"
+import { resolveBorrowerProfileBackLink } from "@/utils/profileRoutes"
 
 const ProfileTabList = ({
   resolved,
@@ -60,10 +60,10 @@ export const BorrowerSidebar = () => {
   const isLenderProfile = pathname.includes(ROUTES.lender.profile)
   const isEditProfile = pathname.includes(ROUTES.borrower.editProfile)
 
-  const backLink =
-    isBorrowerContextPath(pathname) || searchParams.get("from") === "borrower"
-      ? ROUTES.borrower.root
-      : ROUTES.lender.root
+  const backLink = resolveBorrowerProfileBackLink(
+    pathname,
+    searchParams.get("from"),
+  )
 
   const resolved = resolveProfileTabs(pathname)
   const { chainId } = useSelectedNetwork()

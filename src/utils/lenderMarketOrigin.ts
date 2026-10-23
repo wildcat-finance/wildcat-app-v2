@@ -29,6 +29,12 @@ export const lenderMarketOriginOf = (
     (origin) => ORIGIN_ROUTES[origin] === pathname,
   )
 
+/** The list named by a `from` value, or undefined when it names none. */
+export const parseLenderMarketOrigin = (
+  value: string | null | undefined,
+): LenderMarketOrigin | undefined =>
+  isLenderMarketOrigin(value) ? value : undefined
+
 export const resolveLenderMarketBackLink = (
   origin: string | null | undefined,
 ): string =>

@@ -27,6 +27,7 @@ import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { TablePagination } from "@/components/TablePagination"
 import { TotalDebtHeader } from "@/components/TotalDebtHeader"
+import { useBorrowerProfileHref } from "@/hooks/useBorrowerProfileHref"
 import { useMarketHref } from "@/hooks/useMarketHref"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -37,7 +38,6 @@ import {
   typeComparator,
 } from "@/utils/comparators"
 import {
-  buildBorrowerProfileHref,
   formatBps,
   formatSecsToHours,
   formatTokenWithCommas,
@@ -89,6 +89,7 @@ export const OtherMarketsTable = ({
   isLoading,
   filters,
 }: OtherMarketsTableProps) => {
+  const buildBorrowerProfileHref = useBorrowerProfileHref()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const isMobile = useMobileResolution()

@@ -46,6 +46,7 @@ import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
 import { MobileSearchButton } from "@/components/Mobile/MobileSearchButton"
 import { RepeatingSkeletons } from "@/components/RepeatingSkeletons"
 import { TotalDebtHeader } from "@/components/TotalDebtHeader"
+import { useBorrowerProfileHref } from "@/hooks/useBorrowerProfileHref"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useMarketHref } from "@/hooks/useMarketHref"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -60,7 +61,6 @@ import {
 } from "@/utils/comparators"
 import { filterMarketAccounts } from "@/utils/filters"
 import {
-  buildBorrowerProfileHref,
   formatBps,
   formatSecsToHours,
   formatTokenWithCommas,
@@ -226,6 +226,7 @@ const MarketClickableRow = (props: GridRowProps) => {
 }
 
 export const ExploreMarketsTable = () => {
+  const buildBorrowerProfileHref = useBorrowerProfileHref()
   const buildMarketHref = useMarketHref()
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
@@ -785,7 +786,7 @@ export const ExploreMarketsTable = () => {
         },
       },
     ],
-    [t, buildMarketHref],
+    [t, buildMarketHref, buildBorrowerProfileHref],
   )
 
   if (isMobile)

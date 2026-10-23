@@ -7,8 +7,8 @@ import { useTranslation } from "react-i18next"
 import { MarketStatusAndTermChip } from "@/components/@extended/MarketStatusAndTermChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { NetworkIcon } from "@/components/NetworkIcon"
+import { useBorrowerProfileHref } from "@/hooks/useBorrowerProfileHref"
 import { COLORS } from "@/theme/colors"
-import { buildBorrowerProfileHref } from "@/utils/formatters"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 
 import { SupplyProgressFillStyle, SupplyProgressTrackStyle } from "../style"
@@ -81,6 +81,7 @@ export const TrendingMarketDetails = ({
   // Keeping an explicit block avoids re-indenting this large JSX tree.
   // eslint-disable-next-line arrow-body-style
 }: TrendingMarketDetailsProps) => {
+  const buildBorrowerProfileHref = useBorrowerProfileHref()
   const { t } = useTranslation()
 
   return (

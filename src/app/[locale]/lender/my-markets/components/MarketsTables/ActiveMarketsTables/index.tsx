@@ -26,6 +26,7 @@ import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { TotalDebtHeader } from "@/components/TotalDebtHeader"
+import { useBorrowerProfileHref } from "@/hooks/useBorrowerProfileHref"
 import { useMarketHref } from "@/hooks/useMarketHref"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -37,7 +38,6 @@ import {
 } from "@/utils/comparators"
 import { pageCalcHeights } from "@/utils/constants"
 import {
-  buildBorrowerProfileHref,
   formatBps,
   formatSecsToHours,
   formatTokenWithCommas,
@@ -81,6 +81,7 @@ export const ActiveMarketsTables = ({
   isLoading,
   filters,
 }: ActiveMarketsTableProps) => {
+  const buildBorrowerProfileHref = useBorrowerProfileHref()
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()

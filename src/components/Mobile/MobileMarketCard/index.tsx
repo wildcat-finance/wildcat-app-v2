@@ -17,14 +17,11 @@ import { getAdsTooltipComponent } from "@/components/AdsBanners/adsHelpers"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { NetworkIcon } from "@/components/NetworkIcon"
 import { Trans } from "@/components/Translation"
+import { useBorrowerProfileHref } from "@/hooks/useBorrowerProfileHref"
 import { useMarketHref } from "@/hooks/useMarketHref"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
-import {
-  buildBorrowerProfileHref,
-  formatBps,
-  formatSecsToHours,
-} from "@/utils/formatters"
+import { formatBps, formatSecsToHours } from "@/utils/formatters"
 import { MarketImplementationType } from "@/utils/marketImplementation"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
@@ -341,6 +338,7 @@ export const MobileMarketCard = ({
   baseRoute = ROUTES.lender.market,
   displayName,
 }: MobileMarketCardProps) => {
+  const buildBorrowerProfileHref = useBorrowerProfileHref()
   const { t } = useTranslation()
   const buildMarketHref = useMarketHref()
 

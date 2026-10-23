@@ -78,6 +78,7 @@ import {
   buildBorrowerProfileHref,
   formatTokenWithCommas,
 } from "@/utils/formatters"
+import { parseLenderMarketOrigin } from "@/utils/lenderMarketOrigin"
 
 import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
 import { LenderAnalyticsSummary } from "./components/LenderAnalyticsSummary"
@@ -916,7 +917,11 @@ export default function LenderMarketDetails({
                 "marketDetails.lender.interestedLendingThroughWildcatConnect",
               )}
               buttonText={t("marketDetails.lender.leaveRequest")}
-              href={buildBorrowerProfileHref(market.borrower, market.chainId)}
+              href={buildBorrowerProfileHref(
+                market.borrower,
+                market.chainId,
+                parseLenderMarketOrigin(searchParams.get("from")),
+              )}
             />
           )}
 
@@ -1044,7 +1049,11 @@ export default function LenderMarketDetails({
               buttonText={t("marketDetails.lender.leaveRequest")}
               buttonLink={{
                 isExternal: false,
-                url: buildBorrowerProfileHref(market.borrower, market.chainId),
+                url: buildBorrowerProfileHref(
+                  market.borrower,
+                  market.chainId,
+                  parseLenderMarketOrigin(searchParams.get("from")),
+                ),
               }}
             />
           </Box>

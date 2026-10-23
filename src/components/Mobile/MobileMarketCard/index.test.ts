@@ -110,7 +110,7 @@ describe("MobileMarketCard borrower profile navigation", () => {
     fireEvent.click(screen.getByText("Borrower Inc"))
 
     expect(routerPushMock).toHaveBeenCalledWith(
-      "/profile/borrower/0x2222222222222222222222222222222222222222?chainId=11155111",
+      "/profile/borrower/0x2222222222222222222222222222222222222222?chainId=11155111&from=my-markets",
     )
   })
 

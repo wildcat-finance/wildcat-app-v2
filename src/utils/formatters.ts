@@ -278,10 +278,13 @@ export const buildMarketHref = (
   return search ? `${base}?${search}` : base
 }
 
+/** Where a borrower profile was opened from: the borrower dashboard or a lender list. */
+export type BorrowerProfileOrigin = "borrower" | LenderMarketOrigin
+
 export const buildBorrowerProfileHref = (
   borrowerAddress: string,
   chainId?: number,
-  from?: "borrower",
+  from?: BorrowerProfileOrigin,
 ) => {
   const base = `${ROUTES.profile.borrower}/${borrowerAddress}`
   const query = new URLSearchParams()

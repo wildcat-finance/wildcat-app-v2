@@ -10,7 +10,7 @@ import {
 } from "@mui/material"
 import humanizeDuration from "humanize-duration"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { useGetBorrowerProfile } from "@/app/[locale]/lender/profile/hooks/useGetBorrowerProfile"
@@ -21,6 +21,7 @@ import { MobileMoreButton } from "@/components/Mobile/MobileMoreButton"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { buildBorrowerProfileHref, trimAddress } from "@/utils/formatters"
+import { parseLenderMarketOrigin } from "@/utils/lenderMarketOrigin"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { isBorrowerContextPath } from "@/utils/profileRoutes"
 
@@ -42,6 +43,7 @@ export const MarketHeader = ({
   const theme = useTheme()
   const isMobile = useMobileResolution()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
 
   const [remainingTime, setRemainingTime] = React.useState<string>("")
 
@@ -167,7 +169,9 @@ export const MarketHeader = ({
               href={buildBorrowerProfileHref(
                 market.borrower,
                 market.chainId,
-                isBorrowerContextPath(pathname) ? "borrower" : undefined,
+                isBorrowerContextPath(pathname)
+                  ? "borrower"
+                  : parseLenderMarketOrigin(searchParams.get("from")),
               )}
               style={{ display: "flex", textDecoration: "none" }}
             >

@@ -14,6 +14,7 @@ jest.mock("humanize-duration", () => ({
 }))
 jest.mock("next/navigation", () => ({
   usePathname: () => "/lender/market/0xmarket",
+  useSearchParams: () => new URLSearchParams(),
 }))
 
 jest.mock(
