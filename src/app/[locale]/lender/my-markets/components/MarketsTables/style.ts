@@ -2,12 +2,14 @@ import { COLORS } from "@/theme/colors"
 
 const DATA_GRID_MIN_HEIGHT = "106px"
 
+export const DATA_GRID_SIDE_PADDING = 16
+
 export const DataGridSx = {
   overflow: "visible",
   height: "auto !important",
   minHeight: DATA_GRID_MIN_HEIGHT,
   maxWidth: "calc(100vw - 267px)",
-  padding: "0 16px",
+  padding: `0 ${DATA_GRID_SIDE_PADDING}px`,
   "& .MuiDataGrid-main": {
     overflow: "visible",
     height: "auto !important",

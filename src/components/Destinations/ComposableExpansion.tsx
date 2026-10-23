@@ -1,0 +1,253 @@
+import * as React from "react"
+
+import { Box, Collapse, Fade, FormControlLabel, Switch } from "@mui/material"
+import { useTranslation } from "react-i18next"
+
+import type { DestinationsState } from "@/hooks/destinations/useDestinations"
+import { isStale } from "@/lib/destinations/freshness"
+import type { Destination } from "@/lib/destinations/types"
+import { COLORS } from "@/theme/colors"
+
+import { ComposableChip } from "./ComposableToggles"
+import { DestinationsPanel } from "./DestinationsPanel"
+
+type ComposableExpansionValue = {
+  expandedId: string | null
+  toggle: (id: string) => void
+  close: () => void
+  destinations: DestinationsState | null
+}
+
+const ComposableExpansionContext =
+  React.createContext<ComposableExpansionValue>({
+    expandedId: null,
+    toggle: () => {},
+    close: () => {},
+    destinations: null,
+  })
+
+const NO_DESTINATIONS: Destination[] = []
+
+export const useComposableExpansion = () =>
+  React.useContext(ComposableExpansionContext)
+
+// Rows read their destinations from here rather than each subscribing to the
+// query, so a table of any size holds one subscription.
+export const ComposableExpansionProvider = ({
+  destinations,
+  children,
+}: {
+  destinations: DestinationsState
+  children: React.ReactNode
+}) => {
+  const [expandedId, setExpandedId] = React.useState<string | null>(null)
+
+  const value = React.useMemo<ComposableExpansionValue>(
+    () => ({
+      expandedId,
+      toggle: (id) => {
+        const key = id.toLowerCase()
+        setExpandedId((current) => (current === key ? null : key))
+      },
+      close: () => setExpandedId(null),
+      destinations,
+    }),
+    [expandedId, destinations],
+  )
+
+  return (
+    <ComposableExpansionContext.Provider value={value}>
+      {children}
+    </ComposableExpansionContext.Provider>
+  )
+}
+
+const PANEL_TRANSITION_MS = 250
+
+export const COMPOSABLE_GRID_RESIZE_THROTTLE_MS = PANEL_TRANSITION_MS + 150
+
+const panelId = (rowId: string) => `composable-panel-${rowId.toLowerCase()}`
+
+export const ComposableChipCell = ({
+  rowId,
+  count,
+}: {
+  rowId: string
+  count: number
+}) => {
+  const { expandedId, toggle } = useComposableExpansion()
+  if (!count) return null
+
+  return (
+    <Box
+      sx={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-end",
+      }}
+    >
+      <ComposableChip
+        count={count}
+        expanded={expandedId === rowId.toLowerCase()}
+        onToggle={() => toggle(rowId)}
+        controls={panelId(rowId)}
+      />
+    </Box>
+  )
+}
+
+export const ComposableRowPanel = ({
+  rowId,
+  marketSymbol,
+  aprBips,
+  withdrawalBatchDuration,
+  dividerBelow = false,
+}: {
+  rowId: string
+  marketSymbol: string
+  aprBips: number
+  withdrawalBatchDuration: number
+  dividerBelow?: boolean
+}) => {
+  const { t } = useTranslation()
+  const { expandedId, close, destinations: state } = useComposableExpansion()
+  const expanded = expandedId === rowId.toLowerCase()
+  const destinations = state?.markets[rowId.toLowerCase()] ?? NO_DESTINATIONS
+  const stale = !!state && isStale(destinations, state)
+  const ref = React.useRef<HTMLDivElement>(null)
+  const [mounted, setMounted] = React.useState(expanded)
+  if (expanded && !mounted) setMounted(true)
+
+  React.useEffect(() => {
+    if (expanded && destinations.length === 0) close()
+  }, [expanded, destinations.length, close])
+
+  if (!mounted || destinations.length === 0) return null
+
+  const closeAndRefocus = () => {
+    const trigger = document.querySelector<HTMLElement>(
+      `[aria-controls="${panelId(rowId)}"]`,
+    )
+    close()
+    trigger?.focus()
+  }
+
+  return (
+    <Box
+      ref={ref}
+      role="row"
+      sx={{
+        position: "sticky",
+        left: 0,
+        width: "min(var(--DataGrid-rowWidth), var(--DataGrid-width))",
+        maxWidth: "100%",
+        cursor: "default",
+      }}
+    >
+      <Collapse
+        appear
+        in={expanded}
+        timeout={PANEL_TRANSITION_MS}
+        onEntered={() =>
+          ref.current?.scrollIntoView({ block: "nearest", behavior: "smooth" })
+        }
+        onExited={() => setMounted(false)}
+      >
+        <Fade in={expanded} timeout={PANEL_TRANSITION_MS}>
+          <Box
+            sx={{
+              boxSizing: "border-box",
+              padding: "4px 0 16px",
+              ...(dividerBelow && {
+                borderBottom: `1px solid ${COLORS.athensGrey}`,
+              }),
+            }}
+          >
+            <Box
+              role="gridcell"
+              id={panelId(rowId)}
+              aria-label={`${t(
+                "destinations.panel.whatYouCanDo",
+              )} ${marketSymbol}`}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") closeAndRefocus()
+              }}
+            >
+              <DestinationsPanel
+                destinations={destinations}
+                stale={stale}
+                marketSymbol={marketSymbol}
+                aprBips={aprBips}
+                withdrawalBatchDuration={withdrawalBatchDuration}
+                closeVariant="collapse"
+                onClose={closeAndRefocus}
+              />
+            </Box>
+          </Box>
+        </Fade>
+      </Collapse>
+    </Box>
+  )
+}
+
+export const ComposableOnlySwitch = ({
+  checked,
+  onChange,
+}: {
+  checked: boolean
+  onChange: (checked: boolean) => void
+}) => {
+  const { t } = useTranslation()
+
+  return (
+    <FormControlLabel
+      label={t("destinations.composableOnly")}
+      control={
+        <Switch
+          disableRipple
+          checked={checked}
+          onChange={(event) => onChange(event.target.checked)}
+          sx={{
+            width: 27,
+            height: 15,
+            borderRadius: "7.5px",
+            "&:active .MuiSwitch-thumb": { width: 14 },
+            "& .MuiSwitch-switchBase": {
+              padding: "1.5px",
+              "&.Mui-checked": { transform: "translateX(12px)" },
+            },
+            "& .MuiSwitch-thumb": {
+              width: 12,
+              height: 12,
+              borderRadius: "6px",
+              boxShadow: "none",
+            },
+            "& .MuiSwitch-track": {
+              borderRadius: "7.5px",
+              backgroundColor: COLORS.iron,
+            },
+            "& .MuiSwitch-switchBase.Mui-focusVisible + .MuiSwitch-track": {
+              outline: `2px solid ${COLORS.ultramarineBlue}`,
+              outlineOffset: "1px",
+            },
+          }}
+        />
+      }
+      sx={{
+        margin: 0,
+        gap: "8px",
+        padding: { xs: "3px 10px 3px 6px", md: "2px 12px" },
+        borderRadius: "20px",
+        "& .MuiFormControlLabel-label": {
+          fontSize: { xs: "12px", md: "13px" },
+          lineHeight: "20px",
+          fontWeight: 500,
+          color: COLORS.blackRock,
+          whiteSpace: "nowrap",
+        },
+      }}
+    />
+  )
+}
