@@ -8,6 +8,7 @@ import { WildcatMarketV2__factory } from "@wildcatfi/wildcat-sdk/dist/typechain"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { invalidateMarketListQueries } from "@/utils/marketListQueries"
 
 export const useResetTempReserveRatio = (
   marketAccount: MarketAccount,
@@ -72,6 +73,10 @@ export const useResetTempReserveRatio = (
           marketAccount.market.chainId,
           marketAccount.market.address,
         ),
+      })
+      invalidateMarketListQueries({
+        client,
+        chainId: marketAccount.market.chainId,
       })
     },
     onError(error) {

@@ -24,6 +24,7 @@ import {
   MarketOnboardingByAddress,
 } from "@/utils/marketOnboarding"
 import { isFrontendVisibleMarket } from "@/utils/marketType"
+import { refetchOnMountIfInvalidated } from "@/utils/queryRefetch"
 import { TwoStepQueryHookResult } from "@/utils/types"
 
 import { refreshLenderMarketAccounts } from "./refreshLenderMarketAccounts"
@@ -119,7 +120,7 @@ export function useLendersMarkets(
     staleTime: MARKET_CATALOG_POLLING_INTERVAL,
     enabled:
       isSelectedNetworkRehydrated && !!signerOrProvider && !isWrongNetwork,
-    refetchOnMount: false,
+    refetchOnMount: refetchOnMountIfInvalidated,
   })
 
   const accounts = data ?? []
@@ -174,7 +175,7 @@ export function useLendersMarkets(
       !!data &&
       !!signerOrProvider &&
       !isWrongNetwork,
-    refetchOnMount: false,
+    refetchOnMount: refetchOnMountIfInvalidated,
     refetchInterval: MARKET_LIVE_REFRESH_INTERVAL,
     staleTime: MARKET_LIVE_REFRESH_INTERVAL,
     // Keep the last enriched catalogue visible only while refreshing the same

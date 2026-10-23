@@ -36,6 +36,7 @@ import {
   getCreateMarketSigningDraftScope,
   markCreateMarketDraftDeployed,
 } from "@/store/slices/createMarketSigningDraftsSlice/createMarketSigningDraftsSlice"
+import { invalidateMarketListQueries } from "@/utils/marketListQueries"
 
 import { getCreateMarketFormFingerprint } from "../validation/deployFingerprint"
 
@@ -563,15 +564,7 @@ export const useDeployV2Market = () => {
           variables?.hooksTemplate?.signerAddress,
         ),
       })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_OWN_MARKETS(
-          targetChainId,
-          borrowerAddress,
-        ),
-      })
-      client.invalidateQueries({
-        queryKey: QueryKeys.Borrower.GET_ALL_MARKETS(targetChainId),
-      })
+      invalidateMarketListQueries({ client, chainId: targetChainId })
       client.invalidateQueries({
         queryKey: QueryKeys.Borrower.GET_BASIC_BORROWER_DATA(
           targetChainId,

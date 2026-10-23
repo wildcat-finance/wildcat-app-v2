@@ -321,30 +321,13 @@ export const MarketParameters = ({
   } else {
     transferAccess = "open"
   }
-  let earlyClosure: "yes" | "no" | "na" = "no"
-  if (hooksConfig) {
-    if (hooksConfig.kind !== HooksKind.FixedTerm) {
-      earlyClosure = "na"
-    } else if (hooksConfig.allowClosureBeforeTerm) {
-      earlyClosure = "yes"
-    } else {
-      earlyClosure = "no"
-    }
-  } else {
-    earlyClosure = "no"
-  }
-  let earlyMaturity: "yes" | "no" | "na" = "no"
-  if (hooksConfig) {
-    if (hooksConfig.kind !== HooksKind.FixedTerm) {
-      earlyMaturity = "na"
-    } else if (hooksConfig.allowTermReduction) {
-      earlyMaturity = "yes"
-    } else {
-      earlyMaturity = "no"
-    }
-  } else {
-    earlyMaturity = "no"
-  }
+  const fixedTermHooksConfig =
+    hooksConfig?.kind === HooksKind.FixedTerm ? hooksConfig : undefined
+  const earlyClosure: "yes" | "no" =
+    fixedTermHooksConfig?.allowClosureBeforeTerm ? "yes" : "no"
+  const earlyMaturity: "yes" | "no" = fixedTermHooksConfig?.allowTermReduction
+    ? "yes"
+    : "no"
 
   const adsMarketParameter = getAdsMarketParameterComponent(
     market.chainId,
@@ -401,7 +384,7 @@ export const MarketParameters = ({
           <ParametersItem
             title={t("borrowerMarketDetails.parameters.marketTokenName")}
             value={market.marketToken.name}
-            copy={getTokenUrl(market.marketToken.address)}
+            copy={market.marketToken.address}
             link={getTokenUrl(market.marketToken.address)}
           />
           <Divider sx={{ margin: "12px 0 12px" }} />
@@ -732,30 +715,34 @@ export const MarketParameters = ({
                 `borrowerMarketDetails.parameters.transferAccess.${transferAccess}.tooltip`,
               )}
             />
-            <Divider sx={{ margin: "12px 0 12px" }} />
-            <ParametersItem
-              title={t(
-                "borrowerMarketDetails.parameters.marketEarlyClosure.label",
-              )}
-              value={t(
-                `borrowerMarketDetails.parameters.marketEarlyClosure.${earlyClosure}.text`,
-              )}
-              valueTooltipText={t(
-                `borrowerMarketDetails.parameters.marketEarlyClosure.${earlyClosure}.tooltip`,
-              )}
-            />
-            <Divider sx={{ margin: "12px 0 12px" }} />
-            <ParametersItem
-              title={t(
-                "borrowerMarketDetails.parameters.marketMaturityReduction.label",
-              )}
-              value={t(
-                `borrowerMarketDetails.parameters.marketMaturityReduction.${earlyMaturity}.text`,
-              )}
-              valueTooltipText={t(
-                `borrowerMarketDetails.parameters.marketMaturityReduction.${earlyMaturity}.tooltip`,
-              )}
-            />
+            {fixedTermHooksConfig && (
+              <>
+                <Divider sx={{ margin: "12px 0 12px" }} />
+                <ParametersItem
+                  title={t(
+                    "borrowerMarketDetails.parameters.marketEarlyClosure.label",
+                  )}
+                  value={t(
+                    `borrowerMarketDetails.parameters.marketEarlyClosure.${earlyClosure}.text`,
+                  )}
+                  valueTooltipText={t(
+                    `borrowerMarketDetails.parameters.marketEarlyClosure.${earlyClosure}.tooltip`,
+                  )}
+                />
+                <Divider sx={{ margin: "12px 0 12px" }} />
+                <ParametersItem
+                  title={t(
+                    "borrowerMarketDetails.parameters.marketMaturityReduction.label",
+                  )}
+                  value={t(
+                    `borrowerMarketDetails.parameters.marketMaturityReduction.${earlyMaturity}.text`,
+                  )}
+                  valueTooltipText={t(
+                    `borrowerMarketDetails.parameters.marketMaturityReduction.${earlyMaturity}.tooltip`,
+                  )}
+                />
+              </>
+            )}
           </Box>
         )}
       </Box>

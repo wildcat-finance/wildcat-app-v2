@@ -323,6 +323,7 @@ export const BorrowerActiveMarketsTables = ({
             ? formatTokenWithCommas(params.value, {
                 withSymbol: false,
                 fractionDigits: 2,
+                compact: true,
               })
             : "0"}
         </Link>
@@ -349,6 +350,7 @@ export const BorrowerActiveMarketsTables = ({
             ? formatTokenWithCommas(params.value, {
                 withSymbol: false,
                 fractionDigits: 2,
+                compact: true,
               })
             : "0"}
         </Link>
