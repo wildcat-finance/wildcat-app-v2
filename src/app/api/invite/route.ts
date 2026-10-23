@@ -15,7 +15,6 @@ import { tryResolveRegisteredBy } from "@/lib/registrar"
 import {
   getCurrentServiceAgreement,
   isServiceAgreementTimeSignedInBounds,
-  requireLegacyWrapperHash,
   saveServiceAgreementSignature,
   verifyServiceAgreementSignature,
 } from "@/lib/serviceAgreement"
@@ -167,76 +166,6 @@ export async function POST(request: NextRequest) {
   }
   return NextResponse.json({ success: true })
 }
-
-/* const invitations = await prisma.borrowerInvitation.findMany({
-      where: {
-        chainId: TargetChainId,
-        borrower: {
-          OR: [
-            {
-              entityKind: null,
-            },
-            {
-              jurisdiction: null,
-            },
-            {
-              physicalAddress: null,
-            },
-          ],
-        },
-      },
-      include: {
-        borrower: {
-          select: {
-            registeredOnChain: true,
-            serviceAgreementSignature: true,
-            name: true,
-            entityKind: true,
-            jurisdiction: true,
-            physicalAddress: true,
-          },
-        },
-      },
-    })
-
-    // eslint-disable-next-line no-restricted-syntax
-    for (const invitation of invitations) {
-      const missingFields = []
-      if (!invitation.borrower?.name) missingFields.push("name")
-      if (!invitation.borrower?.entityKind) missingFields.push("entityKind")
-      if (!invitation.borrower?.jurisdiction) missingFields.push("jurisdiction")
-      if (!invitation.borrower?.physicalAddress)
-        missingFields.push("physicalAddress")
-      console.log(
-        `${invitation.address.slice(0, 10)}... | Name: ${
-          invitation.name
-        } | MISSING ${missingFields.join(", ")} | Registered: ${invitation
-          .borrower?.registeredOnChain} | Signed: ${!!invitation.borrower
-          ?.serviceAgreementSignature}`,
-      )
-    }
-    await prisma.$transaction([
-      ...invitations.map(({ address }) =>
-        prisma.borrowerInvitation.delete({
-          where: {
-            chainId_address: {
-              chainId: TargetChainId,
-              address,
-            },
-          },
-        }),
-      ),
-      ...invitations.map(({ address }) =>
-        prisma.borrower.delete({
-          where: {
-            chainId_address: {
-              chainId: TargetChainId,
-              address,
-            },
-          },
-        }),
-      ),
-    ]) */
 
 /// DELETE /api/invite?address=<address>&chainId=<chainId>
 /// Route to delete an invitation for a borrower.
@@ -414,7 +343,6 @@ export async function PUT(request: NextRequest) {
   if (!verified) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
-  const serviceAgreementHash = requireLegacyWrapperHash(agreement)
   // Do not enable this in production: it exposes borrower invitation details
   // and raw signatures in server logs.
   // console.log(`--- accept invite ---`)
@@ -460,26 +388,8 @@ export async function PUT(request: NextRequest) {
         },
       })
     }
-    // New table first, old table second (compatibility dual-write, removed in
-    // Release 2). Both writes commit or roll back together.
+    // Save the profile and its signed acknowledgement atomically.
     await saveServiceAgreementSignature(verified, transaction)
-    await transaction.borrowerServiceAgreementSignature.upsert({
-      where: {
-        chainId_address: {
-          chainId,
-          address,
-        },
-      },
-      update: {},
-      create: {
-        chainId,
-        address,
-        signature,
-        timeSigned: new Date(timeSigned),
-        borrowerName: name,
-        serviceAgreementHash,
-      },
-    })
   })
   return NextResponse.json({ success: true })
 }

@@ -18,6 +18,14 @@ export interface CurrentServiceAgreementResponse
   legacyWrapperHash: string | null
 }
 
+export interface ServiceAgreementVersionSummary {
+  version: string
+  plaintextSha256: string
+  effectiveDate: string
+  isCurrent: boolean
+  isAvailable: boolean
+}
+
 export interface ServiceAgreementAcceptanceInfo {
   version: string
   plaintextSha256: string

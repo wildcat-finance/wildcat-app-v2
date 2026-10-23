@@ -1,10 +1,10 @@
 {
   "name": "wildcat-app-v2",
-  "version": "2.21.0",
+  "version": "2.22.2",
   "private": true,
   "packageManager": "npm@11.12.0",
   "engines": {
-    "node": ">=22.22.1 <23",
+    "node": ">=22.23.4 <23",
     "npm": "11.12.0"
   },
   "scripts": {
@@ -44,7 +44,7 @@
     "@types/humanize-duration": "3.27.4",
     "@types/react-scroll": "1.8.10",
     "@types/redux-mock-store": "1.0.6",
-    "@wildcatfi/wildcat-sdk": "3.1.17",
+    "@wildcatfi/wildcat-sdk": "3.1.19",
     "base64-arraybuffer": "1.0.2",
     "classnames": "2.5.1",
     "dayjs": "1.11.10",

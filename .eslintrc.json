@@ -27,6 +27,7 @@
   ],
   "ignorePatterns": [
     "node_modules/",
+    "src/app/.well-known/workflow/**",
     "scripts/"
   ],
   "parserOptions": {

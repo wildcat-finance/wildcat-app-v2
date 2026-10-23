@@ -21,6 +21,5 @@ export const useCurrentServiceAgreement = () =>
   useQuery<CurrentServiceAgreementResponse>({
     queryKey: QueryKeys.ServiceAgreement.GET_CURRENT(),
     queryFn: fetchCurrentServiceAgreement,
-    refetchOnMount: false,
     staleTime: 60_000,
   })
