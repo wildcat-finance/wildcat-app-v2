@@ -33,20 +33,7 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient()
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
 
-/// Legacy wrapper hashes of the seeded ServiceAgreement versions. Old-table
-/// rows with any other hash are not valid ToU acceptances.
-async function getSeededLegacyWrapperHashes(): Promise<string[]> {
-  const versions = await prisma.serviceAgreement.findMany({
-    where: { NOT: { legacyWrapperHash: null } },
-    select: { legacyWrapperHash: true },
-  })
-  return versions.map(({ legacyWrapperHash }) => legacyWrapperHash as string)
-}
-
-/// Latest borrower-party ToU acceptance time per address. Prefers the new
-/// ServiceAgreementSignature table; falls back to the old borrower table
-/// (mapped hashes only) for rows written by pre-Release-1 app instances during
-/// the rolling window. The fallback is removed in Release 2.
+/// Latest borrower-party ToU acceptance time per address on this chain.
 export async function getBorrowerAcceptanceTimes(
   chainId: SupportedChainId,
   addresses: string[],
@@ -54,22 +41,12 @@ export async function getBorrowerAcceptanceTimes(
   const acceptanceTimes = new Map<string, Date>()
   if (addresses.length === 0) return acceptanceTimes
   const lowered = addresses.map((address) => address.toLowerCase())
-  const newRows = await prisma.serviceAgreementSignature.findMany({
+  const signatures = await prisma.serviceAgreementSignature.findMany({
     where: { chainId, party: "Borrower", address: { in: lowered } },
+    select: { address: true, timeSigned: true },
     orderBy: { timeSigned: "asc" },
   })
-  newRows.forEach((row) => acceptanceTimes.set(row.address, row.timeSigned))
-  const missing = lowered.filter((address) => !acceptanceTimes.has(address))
-  if (missing.length > 0) {
-    const oldRows = await prisma.borrowerServiceAgreementSignature.findMany({
-      where: {
-        chainId,
-        address: { in: missing },
-        serviceAgreementHash: { in: await getSeededLegacyWrapperHashes() },
-      },
-    })
-    oldRows.forEach((row) => acceptanceTimes.set(row.address, row.timeSigned))
-  }
+  signatures.forEach((row) => acceptanceTimes.set(row.address, row.timeSigned))
   return acceptanceTimes
 }
 

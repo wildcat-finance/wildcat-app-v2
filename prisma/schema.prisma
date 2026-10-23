@@ -224,29 +224,6 @@ model MasterLoanAgreement {
   @@id([chainId, market])
 }
 
-model LenderServiceAgreementSignature {
-  chainId              Int
-  signer               String
-  signature            String
-  timeSigned           DateTime
-  serviceAgreementHash String
-
-  @@id([chainId, signer, serviceAgreementHash])
-}
-
-model BorrowerServiceAgreementSignature {
-  chainId              Int
-  address              String
-  signature            String
-  timeSigned           DateTime
-  borrowerName         String
-  serviceAgreementHash String
-
-  borrower Borrower @relation("BorrowerToServiceAgreementSignature", fields: [chainId, address], references: [chainId, address], onDelete: Cascade)
-
-  @@id([chainId, address])
-}
-
 // One immutable ToU version. Global, not chain-scoped.
 model ServiceAgreement {
   id                  Int      @id @default(autoincrement())
@@ -368,10 +345,9 @@ model Borrower {
   // NULL = not yet resolved.
   registeredBy      String?
 
-  invitation                BorrowerInvitation?                @relation("BorrowerToInvitation")
-  serviceAgreementSignature BorrowerServiceAgreementSignature? @relation("BorrowerToServiceAgreementSignature")
-  updates                   BorrowerProfileUpdateRequest[]     @relation("BorrowerToProfileUpdateRequest")
-  mlas                      MasterLoanAgreement[]              @relation("BorrowerToMasterLoanAgreement")
+  invitation BorrowerInvitation?            @relation("BorrowerToInvitation")
+  updates    BorrowerProfileUpdateRequest[] @relation("BorrowerToProfileUpdateRequest")
+  mlas       MasterLoanAgreement[]          @relation("BorrowerToMasterLoanAgreement")
 
   @@unique([chainId, address])
 }
