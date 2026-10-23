@@ -30,7 +30,7 @@ This repo is for the [frontend application](https://app.wildcat.finance/lender).
 
 
 ## Running locally
-> Requires `Node 22.22.1` & `npm 11.12.0`
+> Requires `Node 22.23.4` & `npm 11.12.0`
 
 
 ```bash

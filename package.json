@@ -1,10 +1,10 @@
 {
   "name": "wildcat-app-v2",
-  "version": "2.22.0",
+  "version": "2.22.2",
   "private": true,
   "packageManager": "npm@11.12.0",
   "engines": {
-    "node": ">=22.22.1 <23",
+    "node": ">=22.23.4 <23",
     "npm": "11.12.0"
   },
   "scripts": {

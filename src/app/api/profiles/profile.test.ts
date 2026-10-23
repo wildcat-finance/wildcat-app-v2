@@ -570,7 +570,7 @@ describe("API", () => {
       expect(await response.json()).toEqual({ error: "Invalid signature" })
     })
 
-    test("rolls back a failed compatibility write and allows retry", async () => {
+    test("rolls back the profile and acceptance if saving fails, and allows retry", async () => {
       const timeSigned = Date.now()
       const agreement = await getCurrentServiceAgreement()
       const agreementText = buildServiceAgreementMessage({
@@ -587,15 +587,15 @@ describe("API", () => {
         signature: await wallet.signMessage(agreementText),
       }
 
-      let failCompatibilityWrite = true
+      let failSignatureWrite = true
       prisma.$use((params, next) => {
         if (
-          failCompatibilityWrite &&
-          params.model === "BorrowerServiceAgreementSignature" &&
-          params.action === "upsert"
+          failSignatureWrite &&
+          params.model === "ServiceAgreementSignature" &&
+          params.action === "updateMany"
         ) {
-          failCompatibilityWrite = false
-          throw new Error("forced compatibility write failure")
+          failSignatureWrite = false
+          throw new Error("forced signature write failure")
         }
         return next(params)
       })
@@ -606,7 +606,7 @@ describe("API", () => {
         },
       })
       await expect(putBorrowerInvite(failedRequest)).rejects.toThrow(
-        "forced compatibility write failure",
+        "forced signature write failure",
       )
 
       await expect(
