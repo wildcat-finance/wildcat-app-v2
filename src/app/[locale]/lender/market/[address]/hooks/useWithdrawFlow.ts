@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 import { useCallback, useMemo, useRef, useState } from "react"
 
-import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { BaseTransaction } from "@safe-global/safe-apps-sdk"
 import { useQueryClient } from "@tanstack/react-query"
 import {
@@ -19,6 +18,7 @@ import { useAccount } from "wagmi"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useScreenedSafeAppsSDK as useSafeAppsSDK } from "@/hooks/useScreenedSafeAppsSDK"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 
 import { WithdrawRoute } from "./useWithdrawRouting"

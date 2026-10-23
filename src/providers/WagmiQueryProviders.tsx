@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect } from "react"
+import { createContext, useEffect, useState } from "react"
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { WagmiProvider, useConnect } from "wagmi"
+import { disconnect } from "wagmi/actions"
 
 import { config } from "@/lib/config"
 import { GenericProviderProps } from "@/providers/interface"
@@ -18,23 +19,57 @@ const queryClient = new QueryClient({
 })
 
 const AUTO_CONNECTED_CONNECTOR_IDS = ["safe"]
+export const WalletStartupContext = createContext(false)
+let autoConnectSuppressed = false
+
+export function suppressAutoConnect() {
+  autoConnectSuppressed = true
+}
 
 export function useAutoConnect() {
-  const { connect, connectors } = useConnect()
+  const { connectAsync, connectors } = useConnect()
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    AUTO_CONNECTED_CONNECTOR_IDS.forEach(async (connector) => {
-      const connectorInstance = connectors.find((c) => c.id === connector)
-      const isAuthorized = await connectorInstance?.isAuthorized()
-
-      if (connectorInstance && isAuthorized) {
-        connect({ connector: connectorInstance })
-        connectors
-          .filter((c) => !AUTO_CONNECTED_CONNECTOR_IDS.includes(c.id))
-          .forEach((c) => c.disconnect())
+    let active = true
+    const connectSafe = async () => {
+      try {
+        const connector = connectors.find((candidate) =>
+          AUTO_CONNECTED_CONNECTOR_IDS.includes(candidate.id),
+        )
+        if (
+          !connector ||
+          autoConnectSuppressed ||
+          !(await connector.isAuthorized()) ||
+          !active ||
+          autoConnectSuppressed
+        )
+          return
+        await connectAsync({ connector })
+        if (autoConnectSuppressed) {
+          await disconnect(config, { connector })
+          return
+        }
+        await Promise.all(
+          connectors
+            .filter(
+              (candidate) =>
+                !AUTO_CONNECTED_CONNECTOR_IDS.includes(candidate.id),
+            )
+            .map((candidate) => candidate.disconnect()),
+        )
+      } catch {
+        // A wallet that cannot auto-connect can still be connected manually.
+      } finally {
+        if (active) setReady(true)
       }
-    })
-  }, [connect, connectors])
+    }
+    connectSafe()
+    return () => {
+      active = false
+    }
+  }, [connectAsync, connectors])
+  return ready
 }
 
 export const WagmiQueryProviders = ({

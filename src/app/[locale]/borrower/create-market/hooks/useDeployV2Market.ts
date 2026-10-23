@@ -1,6 +1,5 @@
 import { useState } from "react"
 
-import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   MarketParameters,
@@ -31,6 +30,7 @@ import { toastError, toastRequest, toastSuccess } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { useScreenedSafeAppsSDK as useSafeAppsSDK } from "@/hooks/useScreenedSafeAppsSDK"
 import { useAppDispatch, useAppStore } from "@/store/hooks"
 import {
   getCreateMarketSigningDraftScope,

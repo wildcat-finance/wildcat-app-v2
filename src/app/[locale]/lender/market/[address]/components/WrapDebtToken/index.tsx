@@ -1,7 +1,6 @@
 import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
-import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   Market,
@@ -19,6 +18,7 @@ import { WrapperSkeleton } from "@/components/WrapDebtToken/WrapperSkeleton"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { useScreenedSafeAppsSDK as useSafeAppsSDK } from "@/hooks/useScreenedSafeAppsSDK"
 import { COLORS } from "@/theme/colors"
 
 export type WrapDebtTokenProps = {

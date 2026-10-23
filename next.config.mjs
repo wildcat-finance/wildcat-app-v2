@@ -9,6 +9,7 @@ const vercelEnv = process.env.VERCEL_ENV
 const isProduction = vercelEnv === 'production'
 
 const connectSrc = [
+  'https://graph.wildcat.finance',
   'https://eth-sepolia.g.alchemy.com',
   'https://eth-mainnet.g.alchemy.com',
   'https://testnet-rpc.plasma.to',

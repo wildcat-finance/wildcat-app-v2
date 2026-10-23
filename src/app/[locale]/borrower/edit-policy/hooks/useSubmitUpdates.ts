@@ -1,4 +1,3 @@
-import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { MarketController, PartialTransaction } from "@wildcatfi/wildcat-sdk"
 import {
@@ -12,6 +11,7 @@ import { toastRequest, ToastRequestConfig } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { useScreenedSafeAppsSDK as useSafeAppsSDK } from "@/hooks/useScreenedSafeAppsSDK"
 import { useAppDispatch } from "@/store/hooks"
 import { resetEditPolicyState } from "@/store/slices/editPolicySlice/editPolicySlice"
 import { trimAddress } from "@/utils/formatters"

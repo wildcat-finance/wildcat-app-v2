@@ -8,8 +8,10 @@ export type ProposedSafeMessage =
 export async function proposeSafeMessage(
   sdk: SafeAppsSDK,
   message: string,
+  beforeSign?: () => void,
 ): Promise<ProposedSafeMessage> {
   await sdk.eth.setSafeSettings([{ offChainSigning: true }])
+  beforeSign?.()
   const result = await sdk.txs.signMessage(message)
   if ("messageHash" in result) {
     return { kind: "offchain", messageHash: result.messageHash }

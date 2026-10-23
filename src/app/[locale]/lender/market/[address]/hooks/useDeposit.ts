@@ -1,6 +1,5 @@
 import { Dispatch } from "react"
 
-import { useSafeAppsSDK } from "@safe-global/safe-apps-react-sdk"
 import {
   BaseTransaction,
   Web3TransactionReceiptObject,
@@ -15,6 +14,7 @@ import {
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { useScreenedSafeAppsSDK as useSafeAppsSDK } from "@/hooks/useScreenedSafeAppsSDK"
 import { isUSDTLikeToken } from "@/utils/constants"
 
 export type DepositRequest = {

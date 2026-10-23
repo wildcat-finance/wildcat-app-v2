@@ -27,6 +27,10 @@ import { BigNumber, utils } from "ethers"
 
 import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/Modals/DepositModal"
 import { theme } from "@/theme/theme"
+import {
+  clearSanctionsAccess,
+  setSanctionsAccess,
+} from "@/utils/sanctionsAccess"
 
 import { useDeposit } from "../../../hooks/useDeposit"
 
@@ -163,6 +167,16 @@ function setup({
 } = {}) {
   mockMobile = mobile
   mockSafeConnected = safe
+  setSanctionsAccess(
+    {
+      address: mockAddress,
+      chainId: 1,
+      selectedChainId: 1,
+      status: "clear",
+      validUntil: Date.now() + 60_000,
+    },
+    () => ({ address: mockConnectedAddress, chainId: 1, selectedChainId: 1 }),
+  )
   token = new Token(
     1,
     "0x0000000000000000000000000000000000000022",
@@ -268,6 +282,7 @@ const drain = async () => {
 }
 
 afterEach(() => {
+  clearSanctionsAccess()
   cleanup()
   client?.clear()
   jest.clearAllMocks()

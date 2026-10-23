@@ -19,6 +19,7 @@ import {
   removePendingSafeMessage,
   SafeMessageFlow,
 } from "@/store/slices/pendingSafeMessagesSlice/pendingSafeMessagesSlice"
+import { assertSanctionsAccess } from "@/utils/sanctionsAccess"
 
 export type MessageToSign = {
   flow: SafeMessageFlow
@@ -105,6 +106,7 @@ export const useSafeMessageSigning = () => {
       }
       const signature =
         record.signature ?? (await waitForSafeSignature(store, record.id))
+      assertSanctionsAccess(record.address, record.chainId)
       return {
         signature,
         message: record.message,
@@ -118,6 +120,7 @@ export const useSafeMessageSigning = () => {
 
   const signMessage = useCallback(
     async (input: MessageToSign): Promise<WalletMessageSignature> => {
+      assertSanctionsAccess(input.address, input.chainId)
       if (!signer) throw new Error("No signer")
       if (signer.chainId !== input.chainId) {
         throw new Error("Wallet network does not match signing network")
@@ -149,8 +152,10 @@ export const useSafeMessageSigning = () => {
           input.timeSigned,
           input.context,
         )
+        const signature = await signer.signMessage(message)
+        assertSanctionsAccess(input.address, input.chainId)
         return {
-          signature: await signer.signMessage(message),
+          signature,
           message,
           timeSigned: input.timeSigned,
           context: input.context,
@@ -202,7 +207,9 @@ export const useSafeMessageSigning = () => {
       if (input.isStillRelevant && !input.isStillRelevant()) {
         throw new Error("Signing request was discarded")
       }
-      const proposal = await proposeSafeMessage(sdk, message)
+      const proposal = await proposeSafeMessage(sdk, message, () =>
+        assertSanctionsAccess(input.address, input.chainId),
+      )
       if (input.isStillRelevant && !input.isStillRelevant()) {
         throw new Error("Signing request was discarded")
       }
