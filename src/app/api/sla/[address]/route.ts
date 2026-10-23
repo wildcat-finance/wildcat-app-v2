@@ -70,7 +70,6 @@ export async function DELETE(
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
   }
   const address = params.address.toLowerCase()
-  // Clear both versioned snapshots and the legacy compatibility row.
   await prisma.$transaction([
     prisma.serviceAgreementSignature.deleteMany({
       where: {
@@ -84,12 +83,6 @@ export async function DELETE(
         chainId,
         address,
         party: "Lender",
-      },
-    }),
-    prisma.lenderServiceAgreementSignature.deleteMany({
-      where: {
-        signer: address,
-        chainId,
       },
     }),
   ])

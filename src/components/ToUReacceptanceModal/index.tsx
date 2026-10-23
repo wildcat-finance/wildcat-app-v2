@@ -155,9 +155,12 @@ export const ToUReacceptanceModal = () => {
     }
   }
 
-  const viewFullTerms = () => {
+  const viewFullTerms = (version?: string) => {
     if (forcedOpen) dispatch(setTouModalOpen(false))
-    router.push(getServiceAgreementRouteForParty(touParty))
+    const route = getServiceAgreementRouteForParty(touParty)
+    router.push(
+      version ? `${route}?version=${encodeURIComponent(version)}` : route,
+    )
   }
 
   // Agreement pages are where users review and re-sign - never cover them
@@ -403,8 +406,13 @@ export const ToUReacceptanceModal = () => {
               }}
             >
               {isSignedCurrent && touAcceptedVersion && (
-                <Box
+                <Button
+                  variant="text"
+                  onClick={() => viewFullTerms(touAcceptedVersion.version)}
                   sx={{
+                    padding: 0,
+                    height: "auto",
+                    textAlign: "left",
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
@@ -424,12 +432,17 @@ export const ToUReacceptanceModal = () => {
                     label={formatChipDate(touAcceptedVersion.effectiveDate)}
                     tone="current"
                   />
-                </Box>
+                </Button>
               )}
               {showSignedRow && touAcceptedVersion && (
                 <>
-                  <Box
+                  <Button
+                    variant="text"
+                    onClick={() => viewFullTerms(touAcceptedVersion.version)}
                     sx={{
+                      padding: 0,
+                      height: "auto",
+                      textAlign: "left",
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
@@ -448,13 +461,18 @@ export const ToUReacceptanceModal = () => {
                       label={formatChipDate(touAcceptedVersion.effectiveDate)}
                       tone="stale"
                     />
-                  </Box>
+                  </Button>
                   <Divider sx={{ borderColor: COLORS.whiteLilac }} />
                 </>
               )}
               {showNewRow && (
-                <Box
+                <Button
+                  variant="text"
+                  onClick={() => viewFullTerms(touCurrentVersion.version)}
                   sx={{
+                    padding: 0,
+                    height: "auto",
+                    textAlign: "left",
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
@@ -474,17 +492,16 @@ export const ToUReacceptanceModal = () => {
                     label={formatChipDate(touCurrentVersion.effectiveDate)}
                     tone="current"
                   />
-                </Box>
+                </Button>
               )}
             </Box>
-            <Typography
-              variant="text3"
-              color={COLORS.blueRibbon}
-              onClick={viewFullTerms}
-              sx={{ cursor: "pointer", alignSelf: "center" }}
+            <Button
+              variant="text"
+              onClick={() => viewFullTerms()}
+              sx={{ color: COLORS.blueRibbon, alignSelf: "center" }}
             >
               View full terms
-            </Typography>
+            </Button>
           </>
         )}
 
@@ -529,7 +546,7 @@ export const ToUReacceptanceModal = () => {
           <Button
             variant="contained"
             size="large"
-            onClick={viewFullTerms}
+            onClick={() => viewFullTerms()}
             fullWidth
           >
             Review Terms of Use

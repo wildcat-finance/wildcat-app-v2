@@ -7,8 +7,7 @@ import { useAcceptToU } from "@/hooks/useToUReacceptance"
 
 /// Party-aware re-acceptance CTA for accounts that signed an older ToU version
 /// or declined the current one. Same flow as the re-acceptance modal (borrower
-/// accounts sign with their organization name); the legacy SignButton stays
-/// lender-only for first-time onboarding and its old-table dual-write.
+/// accounts sign with their organization name).
 export const ReacceptButton = ({
   party,
 }: {
@@ -21,7 +20,7 @@ export const ReacceptButton = ({
 
   const handleSign = () => {
     // Return to where the user came from (re-acceptance modal, create-market
-    // blocker), mirroring the legacy SignButton's post-sign navigation.
+    // blocker), mirroring SignButton's post-sign navigation.
     accept.mutate(undefined, { onSuccess: () => router.back() })
   }
 
