@@ -71,7 +71,10 @@ export function useMarketRecords({
       search ?? "",
     ),
     queryFn: getMarketRecordsInternal,
-    refetchOnMount: false,
+    // Refetch when the History tab remounts: market transactions happen while
+    // it is unmounted, and the cached list would otherwise survive until the
+    // next interval tick.
+    refetchOnMount: "always",
     refetchInterval: 2 * 60 * 1000, // 2min
   })
 

@@ -24,12 +24,13 @@ import {
   setCreatingStep,
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import { COLORS } from "@/theme/colors"
-import { formatUtcMaturity } from "@/utils/formatters"
+import { formatNumberWithCommas, formatUtcMaturity } from "@/utils/formatters"
 
 import { ConfirmationFormProps } from "./interface"
 import { AlertContainer, DividerStyle, SubtitleStyle } from "./style"
 import { MarketValidationSchemaType } from "../../../validation/validationSchema"
 import { ConfirmationFormItem } from "../../ConfirmationFormItem"
+import { FooterBar, FooterContainer } from "../../FormFooter/style"
 import { FormContainer, SectionGrid } from "../style"
 
 const PreviewMlaModal = ({
@@ -182,11 +183,7 @@ export const ConfirmationForm = ({
   }
 
   return (
-    <Box sx={{ ...FormContainer, width: "71.5%", paddingBottom: "24px" }}>
-      <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("createNewMarket.confirm.title")}
-      </Typography>
-
+    <Box sx={FormContainer}>
       <Typography variant="text4" sx={SubtitleStyle}>
         {t("createNewMarket.policy.title")}
       </Typography>
@@ -336,42 +333,61 @@ export const ConfirmationForm = ({
       >
         <ConfirmationFormItem
           label={t("createNewMarket.financial.maxCapacity.label")}
-          value={`${getValues("maxTotalSupply")} ${tokenAsset?.symbol}`}
+          value={`${formatNumberWithCommas(
+            getValues("maxTotalSupply"),
+          )} ${tokenAsset?.symbol}`}
         />
 
         <ConfirmationFormItem
           label={t("createNewMarket.financial.baseAPR.label")}
-          value={`${getValues("annualInterestBips")}%`}
+          value={`${formatNumberWithCommas(
+            getValues("annualInterestBips"),
+            2,
+          )}%`}
         />
 
         <ConfirmationFormItem
           label={t("createNewMarket.financial.protocolFee.label")}
           /* dev: hardcoded for now, need to grab protocol fee from template */
-          value={`${(getValues("annualInterestBips") * 5) / 100}%`}
+          value={`${formatNumberWithCommas(
+            (getValues("annualInterestBips") * 5) / 100,
+            4,
+          )}%`}
         />
 
         <ConfirmationFormItem
           label={t("createNewMarket.financial.penaltyAPR.label")}
-          value={`${getValues("delinquencyFeeBips")}%`}
+          value={`${formatNumberWithCommas(
+            getValues("delinquencyFeeBips"),
+            2,
+          )}%`}
         />
 
         <ConfirmationFormItem
           label={t("createNewMarket.financial.ratio.label")}
-          value={`${getValues("reserveRatioBips")}%`}
+          value={`${formatNumberWithCommas(getValues("reserveRatioBips"), 2)}%`}
         />
 
         <ConfirmationFormItem
           label={t("createNewMarket.periods.grace.label")}
-          value={`${getValues("delinquencyGracePeriod")} hours`}
+          value={`${formatNumberWithCommas(
+            getValues("delinquencyGracePeriod"),
+            2,
+          )} hours`}
         />
         <ConfirmationFormItem
           label={t("createNewMarket.periods.wdCycle.label")}
-          value={`${getValues("withdrawalBatchDuration")} hours`}
+          value={`${formatNumberWithCommas(
+            getValues("withdrawalBatchDuration"),
+            2,
+          )} hours`}
         />
 
         <ConfirmationFormItem
           label={t("createNewMarket.financial.minDeposit.label")}
-          value={`${getValues("minimumDeposit") ?? 0} ${tokenAsset?.symbol}`}
+          value={`${formatNumberWithCommas(
+            getValues("minimumDeposit"),
+          )} ${tokenAsset?.symbol}`}
         />
       </Box>
 
@@ -524,72 +540,67 @@ export const ConfirmationForm = ({
         </Box>
       )}
 
-      <Box
-        sx={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "space-between",
-          marginTop: "38px",
-        }}
-      >
-        <Button
-          size="large"
-          variant="text"
-          sx={{ justifyContent: "flex-start", borderRadius: "12px" }}
-          onClick={handleBackClick}
-          disabled={actionsLocked}
-        >
-          <SvgIcon
-            fontSize="medium"
-            sx={{
-              marginRight: "4px",
-              "& path": { fill: `${COLORS.bunker}` },
-            }}
+      <Box sx={FooterContainer}>
+        <Box sx={FooterBar}>
+          <Button
+            size="large"
+            variant="text"
+            sx={{ justifyContent: "flex-start", borderRadius: "12px" }}
+            onClick={handleBackClick}
+            disabled={actionsLocked}
           >
-            <BackArrow />
-          </SvgIcon>
-          {t("createNewMarket.buttons.back")}
-        </Button>
+            <SvgIcon
+              fontSize="medium"
+              sx={{
+                marginRight: "4px",
+                "& path": { fill: `${COLORS.bunker}` },
+              }}
+            >
+              <BackArrow />
+            </SvgIcon>
+            {t("createNewMarket.buttons.back")}
+          </Button>
 
-        <Box sx={{ display: "flex", gap: "4px" }}>
-          {isMLA && (
-            <PreviewMlaModal
-              form={form}
-              mlaTemplateId={mlaTemplateId}
-              timeSigned={timeSigned}
-              borrowerProfile={borrowerData}
-              asset={tokenAsset}
-              salt={salt}
-              onSign={handleSign}
-              isSigning={isSigning}
-              disabled={signed || isSigning || actionsLocked}
-              sx={{ width: "168px", borderRadius: "12px" }}
-              modalButtonVariant="contained"
-              modalButtonSize="large"
-              isClosed={signed || actionsLocked}
-            />
-          )}
-          {!isMLA && (
+          <Box sx={{ display: "flex", gap: "4px" }}>
+            {isMLA && (
+              <PreviewMlaModal
+                form={form}
+                mlaTemplateId={mlaTemplateId}
+                timeSigned={timeSigned}
+                borrowerProfile={borrowerData}
+                asset={tokenAsset}
+                salt={salt}
+                onSign={handleSign}
+                isSigning={isSigning}
+                disabled={signed || isSigning || actionsLocked}
+                sx={{ width: "168px", borderRadius: "12px" }}
+                modalButtonVariant="contained"
+                modalButtonSize="large"
+                isClosed={signed || actionsLocked}
+              />
+            )}
+            {!isMLA && (
+              <Button
+                size="large"
+                variant="contained"
+                sx={{ width: "168px", borderRadius: "12px" }}
+                disabled={signed || isSigning || actionsLocked}
+                onClick={handleSign}
+              >
+                {t("createNewMarket.buttons.signMlaRefusal")}
+              </Button>
+            )}
+
             <Button
               size="large"
               variant="contained"
               sx={{ width: "168px", borderRadius: "12px" }}
-              disabled={signed || isSigning || actionsLocked}
-              onClick={handleSign}
+              disabled={!signed || !isDeployReady || actionsLocked}
+              onClick={handleDeploy}
             >
-              {t("createNewMarket.buttons.signMlaRefusal")}
+              {t("createNewMarket.buttons.deploy")}
             </Button>
-          )}
-
-          <Button
-            size="large"
-            variant="contained"
-            sx={{ width: "168px", borderRadius: "12px" }}
-            disabled={!signed || !isDeployReady || actionsLocked}
-            onClick={handleDeploy}
-          >
-            {t("createNewMarket.buttons.deploy")}
-          </Button>
+          </Box>
         </Box>
       </Box>
     </Box>

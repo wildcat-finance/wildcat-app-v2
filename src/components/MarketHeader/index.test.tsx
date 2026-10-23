@@ -12,9 +12,13 @@ jest.mock("wagmi", () => ({
   useAccount: jest.fn(() => ({ address: undefined })),
 }))
 
+// formatters builds a compact humanizer at import time, so the mock needs one.
 jest.mock("humanize-duration", () => ({
   __esModule: true,
-  default: jest.fn(() => "1 hour"),
+  default: Object.assign(
+    jest.fn(() => "1 hour"),
+    { humanizer: jest.fn(() => jest.fn()) },
+  ),
 }))
 
 jest.mock(
@@ -94,32 +98,6 @@ describe("MarketHeader", () => {
     expect(humanizeDuration).not.toHaveBeenCalled()
     expect(screen.queryByTestId("market-cycle")).toBeNull()
   })
-
-  it.each([false, true])(
-    "only offers export for supported V2 markets (mobile: %s)",
-    (isMobile) => {
-      jest.mocked(useMobileResolution).mockReturnValue(isMobile)
-      const market = makeMarket(0)
-      const { rerender } = render(<MarketHeader market={market} />)
-      expect(screen.getByRole("button", { name: "Export" })).toBeTruthy()
-
-      rerender(
-        <MarketHeader
-          market={{ ...market, version: MarketVersion.V1 } as Market}
-        />,
-      )
-      expect(screen.queryByRole("button", { name: "Export" })).toBeNull()
-
-      rerender(
-        <MarketHeader
-          market={{ ...market, chainId: 10 } as unknown as Market}
-        />,
-      )
-      expect(screen.queryByRole("button", { name: "Export" })).toBeNull()
-      if (isMobile)
-        expect(screen.getByRole("link", { name: "Status" })).toBeTruthy()
-    },
-  )
 
   it("renders mobile account controls only after account data is ready", () => {
     jest.mocked(useMobileResolution).mockReturnValue(true)

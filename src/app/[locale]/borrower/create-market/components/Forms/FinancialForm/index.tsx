@@ -100,10 +100,6 @@ export const FinancialForm = ({ form, tokenAsset }: FinancialFormProps) => {
 
   return (
     <Box sx={FormContainer}>
-      <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("createNewMarket.financial.title")}
-      </Typography>
-
       <Box
         sx={{
           ...SectionGrid,

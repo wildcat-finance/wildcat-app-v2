@@ -160,10 +160,6 @@ export const MarketPolicyForm = ({
 
   return (
     <Box sx={FormContainer}>
-      <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("createNewMarket.policy.title")}
-      </Typography>
-
       <Box
         sx={{
           ...SectionGrid,

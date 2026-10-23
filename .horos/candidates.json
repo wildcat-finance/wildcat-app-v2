@@ -1,6 +1,6 @@
 {
   "counts": {
-    "bytes_asset": 204371,
+    "bytes_asset": 206143,
     "bytes_binary": 102801,
     "bytes_blob": 186479,
     "bytes_generated": 308929
@@ -756,6 +756,13 @@
       "path": "src/assets/icons/telegramFly_icon.svg"
     },
     {
+      "bytes": 640,
+      "category": "asset",
+      "evidence": "svg root element in the first 4096 bytes",
+      "grade": "candidate",
+      "path": "src/assets/icons/telegramSend_icon.svg"
+    },
+    {
       "bytes": 851,
       "category": "asset",
       "evidence": "svg root element in the first 4096 bytes",
@@ -831,6 +838,13 @@
       "evidence": "svg root element in the first 4096 bytes",
       "grade": "candidate",
       "path": "src/assets/icons/withdrawalAndRequests_icon.svg"
+    },
+    {
+      "bytes": 1132,
+      "category": "asset",
+      "evidence": "svg root element in the first 4096 bytes",
+      "grade": "candidate",
+      "path": "src/assets/pictures/telegramPillBanner_bg.svg"
     },
     {
       "bytes": 1334,

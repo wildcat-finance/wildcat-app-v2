@@ -51,6 +51,14 @@ import { lh, pxToRem } from "@/theme/units"
 import { isUSDTLikeToken } from "@/utils/constants"
 import { formatTokenWithCommas } from "@/utils/formatters"
 import { invalidateMarketListQueries } from "@/utils/marketListQueries"
+import {
+  isApprovalAllowanceSufficient,
+  isApprovalAllowanceMismatchError,
+  rejectOnTransactionCancelled,
+  toReceiptRequestProvider,
+  waitForApproval,
+  waitForSafeTransactionExecution,
+} from "@/utils/transactions"
 
 import { getWrapperTransactionMethod } from "./transaction"
 import { ErrorWrapperAlert } from "../ErrorWrapperAlert"
@@ -68,6 +76,8 @@ const TabStyle = {
   width: "50%",
   borderColor: COLORS.athensGrey,
 }
+
+const SAFE_SIGNATURE_NOTICE_MS = 30_000
 
 enum AmountUnit {
   ASSETS = "assets",
@@ -128,6 +138,8 @@ export const WrapperSection = ({
   const [showSuccess, setShowSuccess] = React.useState(false)
   const [showError, setShowError] = React.useState(false)
   const [txHash, setTxHash] = React.useState<string | undefined>()
+  const [awaitingSafeSignatures, setAwaitingSafeSignatures] =
+    React.useState(false)
   const [isSubmitTransitioning, setIsSubmitTransitioning] =
     React.useState(false)
   const [successSnapshot, setSuccessSnapshot] =
@@ -361,6 +373,10 @@ export const WrapperSection = ({
 
   const needsApproval = approvalRequired && !isApproved
 
+  const approvePendingLabel = awaitingSafeSignatures
+    ? "Awaiting Safe signatures"
+    : "Approving"
+
   const isApproveButtonDisabled =
     !approvalRequired ||
     isApproved ||
@@ -447,22 +463,18 @@ export const WrapperSection = ({
 
   const waitForSafeTransaction = async (safeTxHash: string) => {
     if (!sdk) throw new Error("No Safe SDK")
-    const resolvedTxHash = await new Promise<string>((resolve) => {
-      const check = async () => {
-        const transactionBySafeHash = await sdk.txs.getBySafeTxHash(safeTxHash)
-        if (transactionBySafeHash?.txHash) {
-          resolve(transactionBySafeHash.txHash)
-        } else {
-          setTimeout(check, 1000)
-        }
-      }
-      check()
-    })
+    const resolvedTxHash = await waitForSafeTransactionExecution(
+      sdk,
+      safeTxHash,
+    )
     await sdk.eth.getTransactionReceipt([resolvedTxHash])
     return resolvedTxHash
   }
 
   const approveMutation = useMutation({
+    onMutate: () => {
+      setAwaitingSafeSignatures(false)
+    },
     mutationFn: async () => {
       if (!approvalAmount || !address || !signer) {
         throw new Error("Missing approval params")
@@ -504,9 +516,29 @@ export const WrapperSection = ({
           value: "0",
         })
         const { safeTxHash } = await sdk.txs.send({ txs })
-        const hash = await waitForSafeTransaction(safeTxHash)
-        setTxHash(hash)
-        return hash
+        return waitForApproval({
+          provider: toReceiptRequestProvider(signer.provider),
+          hash: safeTxHash,
+          isAllowanceSufficient: async () => {
+            const currentAllowance =
+              await wrapper.marketToken.contract.allowance(
+                address,
+                wrapper.address,
+              )
+            return isApprovalAllowanceSufficient(
+              currentAllowance.toBigInt(),
+              approvalAmount.raw.toBigInt(),
+            )
+          },
+          safeConnected: true,
+          safeSdk: sdk,
+          onTransactionHash: setTxHash,
+          onWaitingForSafeExecution: (elapsedMs) => {
+            if (elapsedMs >= SAFE_SIGNATURE_NOTICE_MS) {
+              setAwaitingSafeSignatures(true)
+            }
+          },
+        })
       }
 
       if (
@@ -518,15 +550,44 @@ export const WrapperSection = ({
           wrapper.address,
           0,
         )
-        await resetTx.wait()
+        await waitForApproval({
+          provider: toReceiptRequestProvider(signer.provider),
+          hash: resetTx.hash,
+          isAllowanceSufficient: async () => {
+            const currentAllowance =
+              await wrapper.marketToken.contract.allowance(
+                address,
+                wrapper.address,
+              )
+            return isApprovalAllowanceSufficient(
+              currentAllowance.toBigInt(),
+              BigInt(0),
+            )
+          },
+          onTransactionHash: setTxHash,
+          cancelled: rejectOnTransactionCancelled(resetTx),
+        })
       }
       const tx = await wrapper.marketToken.contract.approve(
         wrapper.address,
         approvalAmount.raw,
       )
-      setTxHash(tx.hash)
-      await tx.wait()
-      return tx.hash
+      return waitForApproval({
+        provider: toReceiptRequestProvider(signer.provider),
+        hash: tx.hash,
+        isAllowanceSufficient: async () => {
+          const currentAllowance = await wrapper.marketToken.contract.allowance(
+            address,
+            wrapper.address,
+          )
+          return isApprovalAllowanceSufficient(
+            currentAllowance.toBigInt(),
+            approvalAmount.raw.toBigInt(),
+          )
+        },
+        onTransactionHash: setTxHash,
+        cancelled: rejectOnTransactionCancelled(tx),
+      })
     },
     onSuccess: () => {
       client.invalidateQueries({
@@ -969,8 +1030,14 @@ export const WrapperSection = ({
                   onClick={() =>
                     toastRequest(approveMutation.mutateAsync(), {
                       pending: "Approving...",
-                      success: "Approved",
-                      error: "Approval failed",
+                      success: (confirmation) =>
+                        confirmation.confirmedBy === "allowance"
+                          ? "Allowance ready"
+                          : "Approved",
+                      getErrorMessage: (error) =>
+                        isApprovalAllowanceMismatchError(error)
+                          ? "Approved allowance is smaller than requested"
+                          : "Approval failed",
                     })
                   }
                   disabled={isApproveButtonDisabled}
@@ -994,7 +1061,7 @@ export const WrapperSection = ({
 
                   {/* eslint-disable-next-line no-nested-ternary */}
                   {approveMutation.isPending
-                    ? "Approving"
+                    ? approvePendingLabel
                     : isApproved && !isInputZero
                       ? "Approved"
                       : "Approve"}
