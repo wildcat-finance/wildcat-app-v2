@@ -4,6 +4,7 @@ import { unstable_cache } from "next/cache"
 import { NETWORKS, NETWORKS_BY_ID } from "@/config/network"
 
 import { TokenInfo, TokenList } from "./interface"
+import { INK_SEPOLIA_TOKENS } from "./tokens-list/ink-sepolia"
 import { PLASMA_TESTNET_TOKENS } from "./tokens-list/plasma-testnet"
 import { SEPOLIA_TOKENS } from "./tokens-list/sepolia"
 
@@ -33,6 +34,9 @@ const fetchTokensFn = async (chainId: number) => {
   }
   if (chainId === NETWORKS.PlasmaTestnet.chainId) {
     return PLASMA_TESTNET_TOKENS
+  }
+  if (chainId === NETWORKS.InkSepolia.chainId) {
+    return INK_SEPOLIA_TOKENS
   }
 
   if (!process.env.NEXT_PUBLIC_TOKENS_LIST_URL) {

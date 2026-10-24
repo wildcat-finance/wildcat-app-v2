@@ -13,6 +13,7 @@ const connectSrc = [
   'https://eth-mainnet.g.alchemy.com',
   'https://testnet-rpc.plasma.to',
   'https://rpc.plasma.to',
+  'https://ink-sepolia.g.alchemy.com',
   'https://api.goldsky.com',
   'https://relay.walletconnect.com',
   'wss://relay.walletconnect.com',

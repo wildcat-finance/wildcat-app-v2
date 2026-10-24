@@ -1,25 +1,31 @@
-import { AddEthereumChainParameter } from "viem"
+import { Chain } from "viem"
 import { http, createConfig, createStorage, cookieStorage } from "wagmi"
 import { mainnet, sepolia } from "wagmi/chains"
 import { safe, walletConnect } from "wagmi/connectors"
 
+import { TargetChainId } from "@/config/network"
+
+import { inkSepolia } from "./chains/ink-sepolia"
 import { plasmaMainnet } from "./chains/plasma-mainnet"
 import { plasmaTestnet } from "./chains/plasma-testnet"
 
-const DefaultNetwork = process.env.NEXT_PUBLIC_TARGET_NETWORK
+const chains: [Chain, ...Chain[]] = [
+  mainnet,
+  sepolia,
+  plasmaTestnet,
+  plasmaMainnet,
+  inkSepolia,
+]
 
-const chains = [mainnet, sepolia, plasmaTestnet, plasmaMainnet]
-
-// Sort so that default network is first
+// config keys and wallet-facing names differ; select the default by chain ID.
 chains.sort((a, b) => {
-  if (a.name === DefaultNetwork) return -1
-  if (b.name === DefaultNetwork) return 1
+  if (a.id === TargetChainId) return -1
+  if (b.id === TargetChainId) return 1
   return 0
 })
 
 export const config = createConfig({
-  // Explicit to avoid issues with readonly array
-  chains: [chains[0], chains[1], chains[2], chains[3]],
+  chains,
   ssr: true,
   storage: createStorage({
     storage: cookieStorage,
@@ -34,6 +40,7 @@ export const config = createConfig({
     ),
     [plasmaTestnet.id]: http(`https://testnet-rpc.plasma.to`),
     [plasmaMainnet.id]: http(`https://rpc.plasma.to`),
+    [inkSepolia.id]: http(inkSepolia.rpcUrls.default.http[0]),
   },
   connectors: [
     safe({

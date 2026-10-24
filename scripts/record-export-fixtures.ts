@@ -5,7 +5,7 @@ import { loadEnvConfig } from "@next/env"
 
 import { buildMarketDataset } from "../src/lib/export/ledger/buildMarketDataset"
 import { discoverMarketUniverse } from "../src/lib/export/sources/discovery"
-import { etherscanExplorer } from "../src/lib/export/sources/etherscan"
+import { createExportExplorer } from "../src/lib/export/sources/explorer"
 import {
   encodeRecording,
   RecordingRpc,
@@ -33,7 +33,7 @@ async function main() {
   const snapshotBlock = Number(blockArgument)
   const sourceRpc = new ExportRpcClient(chainId)
   const rpc = new RecordingRpc(sourceRpc)
-  const recordedExplorer = recordingExplorer(etherscanExplorer)
+  const recordedExplorer = recordingExplorer(createExportExplorer(chainId))
   const universe = await discoverMarketUniverse(rpc, chainId, snapshotBlock, [
     marketArgument,
   ])
