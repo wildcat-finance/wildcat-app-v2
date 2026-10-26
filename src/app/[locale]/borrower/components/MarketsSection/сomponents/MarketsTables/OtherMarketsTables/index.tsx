@@ -24,6 +24,7 @@ import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { TablePagination } from "@/components/TablePagination"
+import { TotalDebtHeader } from "@/components/TotalDebtHeader"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
@@ -39,6 +40,7 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import { getMarketTotalDebt } from "@/utils/marketDebt"
 import {
   getKnownMarketOnboardingMode,
   MarketOnboardingByAddress,
@@ -138,7 +140,7 @@ export const OtherMarketsTables = ({
         apr: annualInterestBips,
         capacityLeft: maxTotalSupply.sub(totalSupply),
         borrowable: borrowableAssets,
-        debt: totalSupply,
+        debt: getMarketTotalDebt(market),
         withdrawalBatchDuration,
         onboardingMode: getKnownMarketOnboardingMode(
           market.version,
@@ -413,6 +415,9 @@ export const OtherMarketsTables = ({
     {
       field: "debt",
       headerName: t("dashboard.markets.tables.header.debt"),
+      renderHeader: () => (
+        <TotalDebtHeader label={t("dashboard.markets.tables.header.debt")} />
+      ),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
