@@ -26,6 +26,7 @@ import { ConnectWalletDialog } from "@/components/Header/HeaderButton/ConnectWal
 import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
+import { MarketStandaloneActions } from "@/components/MarketStandaloneActions"
 import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
@@ -67,6 +68,7 @@ import {
   SectionContainer,
   SkeletonContainer,
   SkeletonStyle,
+  StandaloneActionsWrapper,
 } from "./style"
 import {
   getEffectiveLenderRole,
@@ -181,6 +183,12 @@ export default function LenderMarketDetails({
     isDifferentChain,
     authorizedInMarket: isAuthorizationPending ? undefined : authorizedInMarket,
   })
+  // The actions row, with its "..." menu, is only for an authorized lender on
+  // the market's chain. Everyone else - no wallet, no access, wrong network -
+  // gets the menu's actions as standalone buttons under the banners and the
+  // network alert (above the borrower penalty warning).
+  const showStandaloneActions =
+    !isAuthorizationPending && !(authorizedInMarket && !isDifferentChain)
   const currentSection = useAppSelector(
     (state) => state.lenderMarketRouting.currentSection,
   )
@@ -664,6 +672,16 @@ export default function LenderMarketDetails({
                 }/${market.borrower.toLowerCase()}`,
               }}
             />
+          </Box>
+        )}
+
+        {showStandaloneActions && (
+          <Box
+            sx={StandaloneActionsWrapper(
+              !isConnected || showLenderRequestBanner,
+            )}
+          >
+            <MarketStandaloneActions market={market} />
           </Box>
         )}
 

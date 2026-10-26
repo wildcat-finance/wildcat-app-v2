@@ -14,6 +14,7 @@ import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hook
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
+import { MarketStandaloneActions } from "@/components/MarketStandaloneActions"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketAccount } from "@/hooks/useMarketAccount"
@@ -226,6 +227,10 @@ export default function MarketDetails({
             buttonText="Go to MLA Settings"
             buttonOnClick={() => dispatch(setCheckBlock(5))}
           />
+          {/* this gate replaces the actions row too, so its actions stand alone */}
+          <Box paddingTop="12px">
+            <MarketStandaloneActions market={market} />
+          </Box>
         </Box>
       </Box>
     )
@@ -249,6 +254,13 @@ export default function MarketDetails({
             })`,
           }}
         >
+          {/* the actions row, with its "..." menu, is only for the market owner on
+              the market's chain; everyone else gets its actions standalone */}
+          {!canInteract && (
+            <Box paddingBottom="12px">
+              <MarketStandaloneActions market={market} />
+            </Box>
+          )}
           {/* <Slide */}
           {/*  direction={direction} */}
           {/*  container={scrollContainer.current} */}

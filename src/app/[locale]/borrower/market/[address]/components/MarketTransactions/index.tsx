@@ -1,13 +1,13 @@
 import * as React from "react"
 
-import { Box, Button, Divider, SvgIcon, Typography } from "@mui/material"
+import { Box, Button, Divider, Typography } from "@mui/material"
 import { HooksKind, MarketVersion } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
 import { MaturityModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MaturityModal"
 import { MinimumDepositModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MinimumDepositModal"
-import TelegramIcon from "@/assets/icons/telegram_icon.svg"
+import { MarketMoreMenu } from "@/components/MarketMoreMenu"
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useAppDispatch } from "@/store/hooks"
@@ -132,39 +132,7 @@ export const MarketTransactions = ({
           {isFixedTerm && isAllowTermReduction && (
             <MaturityModal marketAccount={marketAccount} />
           )}
-          <Button
-            component={Link}
-            variant="outlined"
-            color="secondary"
-            size="small"
-            href={EXTERNAL_LINKS.TELEGRAM_BOT}
-            target="_blank"
-            rel="noopener noreferrer"
-            sx={{
-              padding: "6px 12px 6px 6px !important",
-              gap: "2px",
-              border: `1px solid ${COLORS.hawkesBlue}`,
-              color: COLORS.ultramarineBlue,
-              textDecoration: "none",
-              "&:hover": {
-                bgcolor: "rgba(62,104,255,0.06)",
-                border: `1px solid ${COLORS.hawkesBlue}`,
-              },
-            }}
-          >
-            <SvgIcon
-              aria-hidden="true"
-              sx={{
-                fontSize: "20px",
-                flexShrink: 0,
-                "& path": { fill: COLORS.ultramarineBlue },
-              }}
-            >
-              <TelegramIcon />
-            </SvgIcon>
-
-            {t("helpModal.items.telegram.botButton")}
-          </Button>
+          <MarketMoreMenu market={market} />
         </Box>
       )}
 
