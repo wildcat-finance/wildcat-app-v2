@@ -2,7 +2,7 @@
 
 import { createHash } from "node:crypto"
 
-import { ExportArtifactKind, ExportJobStatus } from "@prisma/client"
+import { ExportArtifactKind, ExportJobStatus, Prisma } from "@prisma/client"
 import { FatalError, sleep } from "workflow"
 
 import { prisma } from "@/lib/db"
@@ -297,12 +297,33 @@ async function updateActiveJob(
   if (updated.count === 0) throw new FatalError(`Export job ${jobId} stopped`)
 }
 
+// Unreachable or saturated databases, pool timeouts and transaction start or
+// conflict failures say nothing about the export itself, so Workflow retries
+// them like provider transport errors instead of failing the whole job.
+const TRANSIENT_DATABASE_ERROR_CODES = new Set([
+  "P1001",
+  "P1002",
+  "P1008",
+  "P1017",
+  "P2024",
+  "P2028",
+  "P2034",
+])
+
+const isTransientDatabaseError = (error: unknown) =>
+  (error instanceof Prisma.PrismaClientKnownRequestError &&
+    TRANSIENT_DATABASE_ERROR_CODES.has(error.code)) ||
+  (error instanceof Prisma.PrismaClientInitializationError &&
+    error.errorCode !== undefined &&
+    TRANSIENT_DATABASE_ERROR_CODES.has(error.errorCode))
+
 const deterministicError = (error: unknown) => {
   if (error instanceof FatalError) return error
   if (error instanceof ProviderThrottleError) return error
+  if (isTransientDatabaseError(error)) return error
   const message = error instanceof Error ? error.message : String(error)
   if (
-    /HTTP \d+|timed? ?out|fetch failed|every configured provider|Failed to (upload|download|inspect)|Etherscan request failed/i.test(
+    /HTTP \d+|timed? ?out|fetch failed|every configured provider|Failed to (upload|download|inspect)|Etherscan request failed|Can't reach database server/i.test(
       message,
     )
   ) {

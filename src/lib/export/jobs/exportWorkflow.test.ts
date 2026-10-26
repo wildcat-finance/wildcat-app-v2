@@ -10,6 +10,7 @@ const mockBuild = jest.fn()
 const mockPut = jest.fn()
 const mockProgress = jest.fn()
 const mockDeleteClaim = jest.fn()
+const mockDeleteArtifact = jest.fn()
 const mockNamespace = "workflow-test"
 const market = {
   chainId: 1,
@@ -49,7 +50,7 @@ jest.mock("@/lib/db", () => ({
             : create,
         )
       },
-      deleteMany: async ({ where }: any) => mockRows.delete(where.key),
+      deleteMany: (...args: unknown[]) => mockDeleteArtifact(...args),
     },
     exportPartBuild: {
       deleteMany: (...args: unknown[]) => mockDeleteClaim(...args),
@@ -88,6 +89,9 @@ jest.mock("../bundle", () => ({
   buildExportBundle: async () => Buffer.from("bundle"),
 }))
 
+import { Prisma } from "@prisma/client"
+import { FatalError } from "workflow"
+
 import { exportWorkflow } from "./exportWorkflow"
 import { serializeDataset } from "../serialize/dataset"
 import { EXPORT_PIPELINE_VERSION } from "../version"
@@ -118,6 +122,9 @@ describe("market part publication through the export workflow", () => {
     mockClaims.mockResolvedValue(true)
     mockSleep.mockResolvedValue(undefined)
     mockProgress.mockResolvedValue({ count: 1 })
+    mockDeleteArtifact.mockImplementation(async ({ where }: any) =>
+      mockRows.delete(where.key),
+    )
     mockBuild.mockResolvedValue(dataset("primary"))
     mockPut.mockImplementation(async (key: string, value: Buffer) => {
       if (mockObjects.has(key)) throw new Error("Already exists")
@@ -136,6 +143,28 @@ describe("market part publication through the export workflow", () => {
     expect(mockObjects.get(partKey())).toEqual(
       serializeDataset(dataset("backup")),
     )
+  })
+
+  it("leaves an unreachable database retryable instead of failing the export", async () => {
+    mockDeleteArtifact.mockRejectedValueOnce(
+      new Prisma.PrismaClientKnownRequestError(
+        "Can't reach database server at `pooler.example:6543`",
+        { code: "P1001", clientVersion: "6.0.1" },
+      ),
+    )
+    const error = await exportWorkflow("first").catch((reason) => reason)
+    expect(error).toBeInstanceOf(Prisma.PrismaClientKnownRequestError)
+    expect(error).not.toBeInstanceOf(FatalError)
+    await expect(exportWorkflow("second")).resolves.toHaveProperty(
+      "artifactKey",
+    )
+  })
+
+  it("keeps a failed ledger identity fatal", async () => {
+    mockBuild.mockRejectedValueOnce(
+      new Error("Asset-flow reconciliation failed for 0x22: 5 base units"),
+    )
+    await expect(exportWorkflow("job")).rejects.toBeInstanceOf(FatalError)
   })
 
   it("reports preparation rather than a shared wait when it owns the build", async () => {
