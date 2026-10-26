@@ -62,7 +62,7 @@ export class RecordingRpc implements ExportRpc {
 
   getLogs(
     filter: {
-      address?: string
+      address?: string | string[]
       fromBlock: number
       toBlock: number
       topics?: (string | string[] | null)[]
@@ -167,7 +167,7 @@ export class ReplayRpc implements ExportRpc {
 
   getLogs(
     filter: {
-      address?: string
+      address?: string | string[]
       fromBlock: number
       toBlock: number
       topics?: (string | string[] | null)[]

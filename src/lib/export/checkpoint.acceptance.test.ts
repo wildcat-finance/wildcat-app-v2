@@ -278,6 +278,10 @@ const checkpointFrom = async (
         ...(marketClosedEvents[0]
           ? { marketClosedBlock: marketClosedEvents[0].blockNumber }
           : {}),
+        holderBalancesMatchSupply:
+          dataset.manifest.crossChecks.holderBalancesMatchSupply,
+        withdrawalBatchesMatchState:
+          dataset.manifest.crossChecks.withdrawalBatchesMatchState,
       },
     },
   }

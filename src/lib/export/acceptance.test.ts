@@ -12,7 +12,9 @@ import { buildExportBundle } from "./bundle"
 import {
   buildMarketDataset,
   buildPositionSummaries,
+  MarketDatasetInputs,
 } from "./ledger/buildMarketDataset"
+import { serializeDataset } from "./serialize/dataset"
 import { discoverMarketUniverse } from "./sources/discovery"
 import { decodeRecording } from "./sources/recording"
 import { fromHex } from "./sources/rpc"
@@ -181,6 +183,82 @@ describe("recorded reference market A", () => {
           position.pendingWithdrawalPrincipalRaw,
       )
     })
+  })
+
+  it("builds byte-identical datasets from pre-collected logs and day-end blocks", async () => {
+    const recording = decodeRecording(await readFile(fixturePath))
+    const universe = await discoverMarketUniverse(recording.rpc, 1, SNAPSHOT, [
+      REFERENCE_MARKET_A,
+    ])
+    const market = universe.markets[0]
+    const snapshot = await recording.rpc.getBlock(SNAPSHOT)
+    const build = (inputs?: MarketDatasetInputs) =>
+      buildMarketDataset(
+        recording.rpc,
+        market,
+        SNAPSHOT,
+        snapshot.hash,
+        fromHex(snapshot.timestamp),
+        [],
+        recording.explorer,
+        undefined,
+        undefined,
+        inputs,
+      )
+    const marketLogs = await recording.rpc.getLogs({
+      address: market.address,
+      fromBlock: market.deploymentBlock,
+      toBlock: SNAPSHOT,
+    })
+    const lookups: number[][] = []
+    const withInputs = await build({
+      // A chain-level scan also returns other markets' logs; they must be ignored.
+      marketLogs: [
+        ...marketLogs,
+        { ...marketLogs[0], address: `0x${"9".repeat(40)}` },
+      ],
+      findBlocksAtOrBefore: async (timestamps, highBlock) => {
+        lookups.push(timestamps)
+        return recording.rpc.findBlocksAtOrBefore(timestamps, highBlock)
+      },
+    })
+    expect(lookups).toHaveLength(1)
+    expect(serializeDataset(withInputs)).toEqual(
+      serializeDataset(await build()),
+    )
+  }, 120_000)
+
+  it("records lender holdings, withdrawal batches and snapshot state that match the chain", () => {
+    expect(dataset.manifest.crossChecks.holderBalancesMatchSupply).toBe(true)
+    expect(dataset.manifest.crossChecks.withdrawalBatchesMatchState).toBe(true)
+    // Positions read scaledBalanceOf() on-chain, independently of the walk.
+    Object.values(dataset.positions).forEach((position) => {
+      expect(dataset.holders[position.address] ?? "0").toBe(
+        String(position.scaledBalanceRaw),
+      )
+    })
+    const expired = dataset.events.filter(
+      (event) => event.name === "WithdrawalBatchExpired",
+    )
+    expect(
+      dataset.withdrawalBatches.filter((batch) => batch.expiredBlock),
+    ).toHaveLength(expired.length)
+    expect(dataset.snapshotState.totalAssetsRaw).toBe(
+      dataset.manifest.reconciliation.actualAssetBalanceRaw,
+    )
+    expect(dataset.snapshotState.scaledTotalSupplyRaw).toBe(
+      dataset.manifest.reconciliation.onchainScaledSupplyRaw,
+    )
+    expect(dataset.snapshotState.delinquencyGracePeriodSeconds).toBe(
+      Number(dataset.dailySeries.at(-1)?.grace_period_seconds),
+    )
+    // Required cash per day end; the final row ends at the snapshot block.
+    expect(Object.keys(dataset.dayEndRequiredLiquidity)).toEqual(
+      dataset.dailySeries.map((row) => row.date_utc),
+    )
+    expect(
+      dataset.dayEndRequiredLiquidity[dataset.dailySeries.at(-1)!.date_utc],
+    ).toBe(dataset.snapshotState.requiredLiquidityRaw)
   })
 
   it("separates posting totals from interval earnings and includes all lender claims", () => {

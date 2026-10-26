@@ -187,6 +187,56 @@ export type DelinquencyEpisode = {
   isOpen: boolean
 }
 
+export type WithdrawalBatchPaymentRecord = {
+  blockNumber: number
+  timestamp: number
+  transactionHash: string
+  scaledAmountBurnedRaw: string
+  normalizedAmountPaidRaw: string
+}
+
+export type WithdrawalBatchRecord = {
+  expiry: number
+  createdBlock?: number
+  createdTimestamp?: number
+  scaledTotalAmountRaw: string
+  expiredBlock?: number
+  expiredTimestamp?: number
+  expiredTransactionHash?: string
+  scaleFactorAtExpiryRay?: string
+  scaledAmountBurnedAtExpiryRaw?: string
+  normalizedAmountPaidAtExpiryRaw?: string
+  laterPayments: WithdrawalBatchPaymentRecord[]
+  scaledAmountBurnedRaw: string
+  normalizedAmountPaidRaw: string
+  closedBlock?: number
+  closedTimestamp?: number
+  status: "pending" | "unpaid" | "closed"
+}
+
+/** Market state at the snapshot block, read through currentState(). */
+export type MarketSnapshotState = {
+  totalAssetsRaw: string
+  requiredLiquidityRaw: string
+  scaledTotalSupplyRaw: string
+  scaledPendingWithdrawalsRaw: string
+  normalizedUnclaimedWithdrawalsRaw: string
+  accruedProtocolFeesRaw: string
+  maxTotalSupplyRaw: string
+  scaleFactorRay: string
+  pendingWithdrawalExpiry: number
+  storedIsDelinquent: boolean
+  timeDelinquentSeconds: number
+  annualInterestBips: number
+  reserveRatioBips: number
+  protocolFeeBips: number
+  lastInterestAccruedTimestamp: number
+  isClosed: boolean
+  delinquencyGracePeriodSeconds: number
+  delinquencyFeeBips: number
+  withdrawalBatchDurationSeconds: number
+}
+
 export type MarketDataset = {
   pipelineVersion: string
   snapshotBlock: number
@@ -198,6 +248,15 @@ export type MarketDataset = {
   interestAccruals: InterestAccrualRow[]
   dailySeries: DailySeriesRow[]
   positions: Record<string, PositionSummary>
+  /** Non-zero scaled market-token balances by lender address at the snapshot. */
+  holders: Record<string, string>
+  withdrawalBatches: WithdrawalBatchRecord[]
+  snapshotState: MarketSnapshotState
+  /**
+   * Required cash (coverageLiquidity) at the end of each daily row, by UTC
+   * date. For analytics; export files do not include it.
+   */
+  dayEndRequiredLiquidity: Record<string, string>
   manifest: {
     reconciliation: {
       expectedAssetBalanceRaw: string
@@ -228,6 +287,10 @@ export type MarketDataset = {
       logSetsEqual: boolean
       marketClosedEventCount: number
       marketClosedBlock?: number
+      /** Sum of holder balances equals on-chain scaled supply minus pending withdrawals. */
+      holderBalancesMatchSupply: boolean
+      /** Outstanding batch amounts equal on-chain scaled pending withdrawals. */
+      withdrawalBatchesMatchState: boolean
     }
   }
 }

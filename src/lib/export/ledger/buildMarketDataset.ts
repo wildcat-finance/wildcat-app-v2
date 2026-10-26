@@ -46,8 +46,10 @@ import {
   JsonRpcTransaction,
   MarketDataset,
   MarketMetadata,
+  MarketSnapshotState,
   PositionSummary,
   TransactionLedgerRow,
+  WithdrawalBatchRecord,
 } from "../types"
 import { EXPORT_PIPELINE_VERSION } from "../version"
 
@@ -784,6 +786,183 @@ const batchPreviewFromDaily = (
     ? JSON.parse(row.pending_batch_preview_json)
     : undefined
 
+const bipMul = (value: bigint, bips: bigint) =>
+  (value * bips + BIPS / 2n) / BIPS
+
+/** coverageLiquidity(): mirrors MarketState.liquidityRequired in v2-protocol. */
+export const requiredLiquidity = (state: {
+  scaledTotalSupply: bigint
+  scaledPendingWithdrawals: bigint
+  reserveRatioBips: bigint
+  scaleFactor: bigint
+  accruedProtocolFees: bigint
+  normalizedUnclaimedWithdrawals: bigint
+}) =>
+  rayMul(
+    bipMul(
+      state.scaledTotalSupply - state.scaledPendingWithdrawals,
+      state.reserveRatioBips,
+    ) + state.scaledPendingWithdrawals,
+    state.scaleFactor,
+  ) +
+  state.accruedProtocolFees +
+  state.normalizedUnclaimedWithdrawals
+
+// Every lender's scaled balance, walked exactly as buildPositionSummaries
+// walks one address: deposits credit the depositor, queued withdrawals leave
+// the lender's balance, and a transfer between two lenders moves
+// rayDiv(value, scaleFactor) scaled units. Mints and queue transfers to the
+// market are covered by their Deposit and WithdrawalQueued events.
+export function buildHolderBalances(
+  market: MarketMetadata,
+  events: DecodedMarketEvent[],
+): Record<string, string> {
+  const balances = new Map<string, bigint>()
+  const add = (address: string, amount: bigint) =>
+    balances.set(address, (balances.get(address) ?? 0n) + amount)
+  const isLender = (address?: string) =>
+    address !== undefined &&
+    address !== zeroAddress &&
+    address !== market.address
+  let scaleFactor = RAY
+  for (const event of events) {
+    if (
+      event.name === "InterestAndFeesAccrued" ||
+      event.name === "StateUpdated"
+    ) {
+      scaleFactor = BigInt(String(event.args.scaleFactor))
+    }
+    if (event.name === "Deposit" && event.participant) {
+      add(event.participant, BigInt(String(event.args.scaledAmount)))
+    }
+    if (
+      event.name === "Transfer" &&
+      event.participant !== event.counterparty &&
+      isLender(event.participant) &&
+      isLender(event.counterparty)
+    ) {
+      const scaled = rayDiv(event.amountRaw ?? 0n, scaleFactor)
+      add(event.participant!, -scaled)
+      add(event.counterparty!, scaled)
+    }
+    if (
+      (event.name === "WithdrawalQueued" || event.name === "ForceBuyBack") &&
+      event.participant
+    ) {
+      add(event.participant, -BigInt(String(event.args.scaledAmount)))
+    }
+  }
+  return Object.fromEntries(
+    [...balances]
+      .filter(([, balance]) => balance !== 0n)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([address, balance]) => [address, String(balance)]),
+  )
+}
+
+// One record per withdrawal batch: what was requested, what the expiry
+// processing paid and burned, payments in later transactions and closure.
+export function buildWithdrawalBatches(
+  events: DecodedMarketEvent[],
+): WithdrawalBatchRecord[] {
+  const batches = new Map<
+    number,
+    {
+      record: WithdrawalBatchRecord
+      scaled: bigint
+      burned: bigint
+      paid: bigint
+    }
+  >()
+  const batchFor = (expiry: number) => {
+    const existing = batches.get(expiry)
+    if (existing) return existing
+    const created = {
+      record: {
+        expiry,
+        scaledTotalAmountRaw: "0",
+        laterPayments: [],
+        scaledAmountBurnedRaw: "0",
+        normalizedAmountPaidRaw: "0",
+        status: "pending" as const,
+      } as WithdrawalBatchRecord,
+      scaled: 0n,
+      burned: 0n,
+      paid: 0n,
+    }
+    batches.set(expiry, created)
+    return created
+  }
+  let scaleFactor = RAY
+  for (const event of events) {
+    if (
+      event.name === "InterestAndFeesAccrued" ||
+      event.name === "StateUpdated"
+    ) {
+      scaleFactor = BigInt(String(event.args.scaleFactor))
+    }
+    if (!event.name.startsWith("Withdrawal")) continue
+    if (event.name === "WithdrawalExecuted") continue
+    const batch = batchFor(Number(event.args.expiry))
+    const { record } = batch
+    if (event.name === "WithdrawalBatchCreated") {
+      record.createdBlock = event.blockNumber
+      record.createdTimestamp = event.timestamp
+    }
+    if (event.name === "WithdrawalQueued") {
+      batch.scaled += BigInt(String(event.args.scaledAmount))
+    }
+    if (event.name === "WithdrawalBatchPayment") {
+      const burned = BigInt(String(event.args.scaledAmountBurned))
+      const paid = BigInt(String(event.args.normalizedAmountPaid))
+      batch.burned += burned
+      batch.paid += paid
+      if (
+        record.expiredTransactionHash &&
+        record.expiredTransactionHash !== event.transactionHash
+      ) {
+        record.laterPayments.push({
+          blockNumber: event.blockNumber,
+          timestamp: event.timestamp,
+          transactionHash: event.transactionHash,
+          scaledAmountBurnedRaw: String(burned),
+          normalizedAmountPaidRaw: String(paid),
+        })
+      }
+    }
+    if (event.name === "WithdrawalBatchExpired") {
+      record.expiredBlock = event.blockNumber
+      record.expiredTimestamp = event.timestamp
+      record.expiredTransactionHash = event.transactionHash
+      record.scaleFactorAtExpiryRay = String(scaleFactor)
+      record.scaledAmountBurnedAtExpiryRaw = String(
+        event.args.scaledAmountBurned,
+      )
+      record.normalizedAmountPaidAtExpiryRaw = String(
+        event.args.normalizedAmountPaid,
+      )
+    }
+    if (event.name === "WithdrawalBatchClosed") {
+      record.closedBlock = event.blockNumber
+      record.closedTimestamp = event.timestamp
+    }
+  }
+  return [...batches.values()]
+    .sort((left, right) => left.record.expiry - right.record.expiry)
+    .map(({ record, scaled, burned, paid }) => ({
+      ...record,
+      scaledTotalAmountRaw: String(scaled),
+      scaledAmountBurnedRaw: String(burned),
+      normalizedAmountPaidRaw: String(paid),
+      status:
+        record.closedBlock !== undefined
+          ? "closed"
+          : record.expiredBlock !== undefined
+            ? "unpaid"
+            : "pending",
+    }))
+}
+
 export const proportionalPrincipalReturned = (
   originalPrincipal: bigint,
   cumulativeExecuted: bigint,
@@ -1008,6 +1187,7 @@ async function buildDailySeries(
   withdrawalCycle: number,
   checkpoint?: MarketDataset,
   onProgress?: (progress: number) => Promise<void>,
+  findBlocksAtOrBefore?: MarketDatasetInputs["findBlocksAtOrBefore"],
 ) {
   const deployment = await rpc.getBlock(market.deploymentBlock)
   const deploymentTimestamp = fromHex(deployment.timestamp)
@@ -1043,7 +1223,9 @@ async function buildDailySeries(
       }
     })
     .filter(({ periodEnd }) => periodEnd >= deploymentTimestamp)
-  const dayEndBlocks = await rpc.findBlocksAtOrBefore(
+  const dayEndBlocks = await (
+    findBlocksAtOrBefore ?? rpc.findBlocksAtOrBefore.bind(rpc)
+  )(
     daySpecs.map(({ periodEnd }) => periodEnd),
     snapshotBlock,
   )
@@ -1109,6 +1291,12 @@ async function buildDailySeries(
     }
   }
   const rows: Record<string, string>[] = []
+  // Kept outside the rows, which become daily_series.csv column for column.
+  const requiredByDay: Record<string, string> = {}
+  preservedRows.forEach((row) => {
+    requiredByDay[row.date_utc] =
+      checkpoint!.dayEndRequiredLiquidity[row.date_utc]
+  })
   for (const [
     index,
     { day, dayStart, targetEnd, periodEnd },
@@ -1116,6 +1304,18 @@ async function buildDailySeries(
     const openingBlock = previousBlock
     const offset = index * 4
     const state = stateReads[offset] as CurrentState
+    requiredByDay[day] = String(
+      requiredLiquidity({
+        scaledTotalSupply: asBigInt(state.scaledTotalSupply),
+        scaledPendingWithdrawals: asBigInt(state.scaledPendingWithdrawals),
+        reserveRatioBips: asBigInt(state.reserveRatioBips),
+        scaleFactor: asBigInt(state.scaleFactor),
+        accruedProtocolFees: asBigInt(state.accruedProtocolFees),
+        normalizedUnclaimedWithdrawals: asBigInt(
+          state.normalizedUnclaimedWithdrawals,
+        ),
+      }),
+    )
     const totalAssetsValue = stateReads[offset + 1]
     const totalDebtsValue = stateReads[offset + 2]
     const totalSupplyValue = stateReads[offset + 3]
@@ -1342,7 +1542,10 @@ async function buildDailySeries(
     previousProtocolFees = protocolFees
     previousBlock = dayEndBlocks[index]
   }
-  return [...preservedRows, ...rows]
+  return {
+    rows: [...preservedRows, ...rows],
+    dayEndRequiredLiquidity: requiredByDay,
+  }
 }
 
 export async function buildPositionSummaries(
@@ -1673,6 +1876,21 @@ export const isCompatibleMarketDatasetCheckpoint = (
       : checkpointValue === marketValue
   })
 
+/**
+ * Inputs a caller has already collected for many markets at once. Supplying
+ * them changes where data comes from, not what the dataset contains: the
+ * result must be byte-identical to a build that fetches them itself.
+ */
+export type MarketDatasetInputs = {
+  /** This market's logs, covering at least the build's history range. */
+  marketLogs?: JsonRpcLog[]
+  /** Last block at or before each timestamp, e.g. a shared day-end table. */
+  findBlocksAtOrBefore?: (
+    timestamps: number[],
+    highBlock: number,
+  ) => Promise<number[]>
+}
+
 export async function buildMarketDataset(
   rpc: ExportRpc,
   market: MarketMetadata,
@@ -1686,6 +1904,7 @@ export async function buildMarketDataset(
     stageProgress?: number,
   ) => Promise<void>,
   checkpoint?: MarketDataset,
+  inputs?: MarketDatasetInputs,
 ): Promise<MarketDataset> {
   const marketExplorer = explorer ?? etherscanExplorer
   const verifySnapshotBlock = async () => {
@@ -1741,15 +1960,30 @@ export async function buildMarketDataset(
   const historyFromBlock = checkpoint
     ? checkpoint.snapshotBlock + 1
     : market.deploymentBlock
+  const suppliedMarketLogs = inputs?.marketLogs
   const [marketLogs, transfers, etherscanLogs] = await Promise.all([
-    rpc.getLogs(
-      {
-        address: market.address,
-        fromBlock: historyFromBlock,
-        toBlock: snapshotBlock,
-      },
-      (completed, total) => reportHistoryProgress(0, completed, total),
-    ),
+    suppliedMarketLogs
+      ? Promise.resolve(
+          suppliedMarketLogs.filter((log) => {
+            const block = fromHex(log.blockNumber)
+            return (
+              log.address.toLowerCase() === market.address.toLowerCase() &&
+              block >= historyFromBlock &&
+              block <= snapshotBlock
+            )
+          }),
+        ).then(async (logs) => {
+          await reportHistoryProgress(0, 1, 1)
+          return logs
+        })
+      : rpc.getLogs(
+          {
+            address: market.address,
+            fromBlock: historyFromBlock,
+            toBlock: snapshotBlock,
+          },
+          (completed, total) => reportHistoryProgress(0, completed, total),
+        ),
     marketExplorer
       .getTransferLogsMentioningAddress(
         market.chainId,
@@ -1974,7 +2208,7 @@ export async function buildMarketDataset(
     },
   )
   const [
-    dailySeries,
+    { rows: dailySeries, dayEndRequiredLiquidity },
     balanceValue,
     snapshotState,
     totalSupplyValue,
@@ -1996,6 +2230,7 @@ export async function buildMarketDataset(
       async (fraction) => {
         await onProgress?.("building_daily_history", fraction)
       },
+      inputs?.findBlocksAtOrBefore,
     ),
     erc20Read<BigNumber>(
       rpc,
@@ -2131,6 +2366,65 @@ export async function buildMarketDataset(
         snapshotState.isClosed,
       )}, events=${marketClosedEvents.length}`,
     )
+  }
+
+  // Lender holdings and withdrawal batches are recomputed from the full event
+  // history on every build. Their checks are recorded, not thrown: they feed
+  // analytics, and an export must not fail on a field it does not render.
+  const scaledPendingWithdrawals = asBigInt(
+    snapshotState.scaledPendingWithdrawals,
+  )
+  const holders = buildHolderBalances(market, events)
+  const holderBalanceTotal = Object.values(holders).reduce(
+    (sum, balance) => sum + BigInt(balance),
+    0n,
+  )
+  const withdrawalBatches = buildWithdrawalBatches(events)
+  const outstandingBatchScaled =
+    withdrawalBatches
+      .filter((batch) => batch.status !== "closed")
+      .reduce(
+        (sum, batch) =>
+          sum +
+          BigInt(batch.scaledTotalAmountRaw) -
+          BigInt(batch.scaledAmountBurnedRaw),
+        0n,
+      ) - previewScaledBurned
+  const marketSnapshot: MarketSnapshotState = {
+    totalAssetsRaw: String(actualBalance),
+    requiredLiquidityRaw: String(
+      requiredLiquidity({
+        scaledTotalSupply: onchainScaledSupply,
+        scaledPendingWithdrawals,
+        reserveRatioBips: asBigInt(snapshotState.reserveRatioBips),
+        scaleFactor: asBigInt(snapshotState.scaleFactor),
+        accruedProtocolFees: asBigInt(snapshotState.accruedProtocolFees),
+        normalizedUnclaimedWithdrawals: asBigInt(
+          snapshotState.normalizedUnclaimedWithdrawals,
+        ),
+      }),
+    ),
+    scaledTotalSupplyRaw: String(onchainScaledSupply),
+    scaledPendingWithdrawalsRaw: String(scaledPendingWithdrawals),
+    normalizedUnclaimedWithdrawalsRaw: String(
+      snapshotState.normalizedUnclaimedWithdrawals,
+    ),
+    accruedProtocolFeesRaw: String(snapshotState.accruedProtocolFees),
+    maxTotalSupplyRaw: String(snapshotState.maxTotalSupply),
+    scaleFactorRay: String(snapshotState.scaleFactor),
+    pendingWithdrawalExpiry: asNumber(snapshotState.pendingWithdrawalExpiry),
+    storedIsDelinquent: snapshotState.isDelinquent,
+    timeDelinquentSeconds: asNumber(snapshotState.timeDelinquent),
+    annualInterestBips: asNumber(snapshotState.annualInterestBips),
+    reserveRatioBips: asNumber(snapshotState.reserveRatioBips),
+    protocolFeeBips: asNumber(snapshotState.protocolFeeBips),
+    lastInterestAccruedTimestamp: asNumber(
+      snapshotState.lastInterestAccruedTimestamp,
+    ),
+    isClosed: snapshotState.isClosed,
+    delinquencyGracePeriodSeconds: gracePeriod,
+    delinquencyFeeBips,
+    withdrawalBatchDurationSeconds: withdrawalCycle,
   }
 
   await onProgress?.("finalizing_market_data")
@@ -2283,6 +2577,10 @@ export async function buildMarketDataset(
     interestAccruals,
     dailySeries,
     positions,
+    holders,
+    withdrawalBatches,
+    snapshotState: marketSnapshot,
+    dayEndRequiredLiquidity,
     manifest: {
       reconciliation: {
         expectedAssetBalanceRaw: String(expectedBalance),
@@ -2328,6 +2626,10 @@ export async function buildMarketDataset(
         ...(marketClosedEvents[0]
           ? { marketClosedBlock: marketClosedEvents[0].blockNumber }
           : {}),
+        holderBalancesMatchSupply:
+          holderBalanceTotal === onchainScaledSupply - scaledPendingWithdrawals,
+        withdrawalBatchesMatchState:
+          outstandingBatchScaled === scaledPendingWithdrawals,
       },
     },
   }

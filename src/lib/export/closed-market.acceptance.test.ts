@@ -41,6 +41,9 @@ describe("recorded reference market C", () => {
       "2026": "9005928044",
     })
     expect(dataset.manifest.crossChecks.marketClosedEventCount).toBe(1)
+    expect(dataset.manifest.crossChecks.holderBalancesMatchSupply).toBe(true)
+    expect(dataset.manifest.crossChecks.withdrawalBatchesMatchState).toBe(true)
+    expect(dataset.snapshotState.isClosed).toBe(true)
     expect(dataset.dailySeries.at(-1)?.market_closed_eod).toBe("true")
     expect(dataset.dailySeries.at(-1)?.base_apr_bips_eod).toBe("0")
     expect(

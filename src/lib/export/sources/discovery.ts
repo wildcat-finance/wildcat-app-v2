@@ -65,12 +65,37 @@ async function readArchControllerMarkets(
   return result
 }
 
+/**
+ * Market metadata in one fixed key order. Datasets embed this object, so a
+ * stored copy (for example from a JSONB column, which reorders keys) must be
+ * passed through here to serialize exactly like a fresh discovery.
+ */
+export const orderedMarketMetadata = (
+  market: MarketMetadata,
+): MarketMetadata => ({
+  chainId: market.chainId,
+  address: market.address,
+  controller: market.controller,
+  removedAtBlock: market.removedAtBlock,
+  version: market.version,
+  borrower: market.borrower,
+  feeRecipient: market.feeRecipient,
+  name: market.name,
+  symbol: market.symbol,
+  assetAddress: market.assetAddress,
+  assetName: market.assetName,
+  assetSymbol: market.assetSymbol,
+  assetDecimals: market.assetDecimals,
+  deploymentBlock: market.deploymentBlock,
+})
+
 async function discoverMetadata(
   rpc: ExportRpc,
   chainId: ExportChainId,
   address: string,
   snapshotBlock: number,
   registryData?: { controller?: string; removedAtBlock?: number },
+  knownDeploymentBlock?: number,
 ): Promise<MarketMetadata> {
   const [version, borrower, feeRecipient, name, symbol, assetAddress] =
     await Promise.all([
@@ -101,9 +126,9 @@ async function discoverMetadata(
         [],
         snapshotBlock,
       ),
-      rpc.findDeploymentBlock(address, snapshotBlock),
+      knownDeploymentBlock ?? rpc.findDeploymentBlock(address, snapshotBlock),
     ])
-  return {
+  return orderedMarketMetadata({
     chainId,
     address,
     controller: registryData?.controller,
@@ -118,7 +143,7 @@ async function discoverMetadata(
     assetSymbol: String(assetSymbol),
     assetDecimals: Number(assetDecimals),
     deploymentBlock,
-  }
+  })
 }
 
 async function loadMarketMetadata(
@@ -128,6 +153,7 @@ async function loadMarketMetadata(
   addresses: string[],
   registryData: Map<string, { controller?: string; removedAtBlock?: number }>,
   marketAddedLayout: MarketUniverse["marketAddedLayout"],
+  deploymentBlocks?: ReadonlyMap<string, number>,
 ): Promise<MarketUniverse> {
   const metadata: MarketMetadata[] = Array(addresses.length)
   let cursor = 0
@@ -145,6 +171,7 @@ async function loadMarketMetadata(
             address,
             snapshotBlock,
             registryData.get(address),
+            deploymentBlocks?.get(address),
           )
         }
       },
@@ -273,11 +300,16 @@ async function validateDeploymentSources(
   }
 }
 
+/**
+ * `deploymentBlocks` lets a caller that already knows a market's deployment
+ * block skip its binary search; every other field is still read at the block.
+ */
 export async function discoverMarketUniverse(
   rpc: ExportRpc,
   chainId: ExportChainId,
   snapshotBlock: number,
   selection: string[],
+  deploymentBlocks?: ReadonlyMap<string, number>,
 ): Promise<MarketUniverse> {
   const deployment = Deployments[chainId]
   const archController = deployment?.WildcatArchController?.toLowerCase()
@@ -295,6 +327,7 @@ export async function discoverMarketUniverse(
       selected,
       new Map(),
       "none",
+      deploymentBlocks,
     )
   }
 
@@ -383,6 +416,7 @@ export async function discoverMarketUniverse(
     selected,
     universe,
     marketAddedLayout,
+    deploymentBlocks,
   )
 }
 

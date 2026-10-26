@@ -33,8 +33,11 @@ npm run dev
 Check that both `DATABASE_URL` and `DIRECT_URL` target the intended development
 database before running the migration. Prisma migrations use `DIRECT_URL`. It adds export subscriptions, shared part-build coordination, and
 the snapshot timestamp; existing jobs and artifacts are retained. Pipeline version
-11 rebuilds old cached market parts for the corrected position accounting and new
-year-end state fields. Bundle format 6 uses standard PDF fonts without external
+13 rebuilds old cached market parts: each dataset now also records every lender's
+scaled balance, one record per withdrawal batch, the market state at the
+snapshot block and the required cash at each day end, for analytics. Exported
+files and statements are unchanged.
+Bundle format 6 uses standard PDF fonts without external
 font assets. PDF text is limited to the standard Western European character set;
 use XLSX or CSV-only export for other scripts or emoji. Existing downloaded files
 are unaffected, and the bundle version prevents reusing the previous PDF format.

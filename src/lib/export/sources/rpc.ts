@@ -23,7 +23,7 @@ export type ExportRpc = {
   }>
   getLogs(
     filter: {
-      address?: string
+      address?: string | string[]
       fromBlock: number
       toBlock: number
       topics?: (string | string[] | null)[]
@@ -434,7 +434,7 @@ export class ExportRpcClient implements ExportRpc {
 
   async getLogs(
     filter: {
-      address?: string
+      address?: string | string[]
       fromBlock: number
       toBlock: number
       topics?: (string | string[] | null)[]
@@ -481,7 +481,7 @@ export class ExportRpcClient implements ExportRpc {
   }
 
   private async getLogsWindow(filter: {
-    address?: string
+    address?: string | string[]
     fromBlock: number
     toBlock: number
     topics?: (string | string[] | null)[]

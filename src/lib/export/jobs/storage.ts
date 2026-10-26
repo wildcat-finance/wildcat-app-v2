@@ -45,6 +45,19 @@ export async function exportObjectExists(key: string) {
   return data.some((item) => item.name === name)
 }
 
+/** Objects directly under `prefix`, with their upload times. */
+export async function listExportObjects(prefix: string) {
+  const { client, bucket } = getStorage()
+  const { data, error } = await client.storage
+    .from(bucket)
+    .list(prefix, { limit: 1000 })
+  if (error)
+    throw new Error(
+      `Failed to list export objects under ${prefix}: ${error.message}`,
+    )
+  return data.map((item) => ({ name: item.name, createdAt: item.created_at }))
+}
+
 export async function createExportDownloadUrl(key: string) {
   const { client, bucket } = getStorage()
   const { data, error } = await client.storage
