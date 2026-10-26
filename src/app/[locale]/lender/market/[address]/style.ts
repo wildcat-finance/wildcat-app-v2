@@ -16,9 +16,18 @@ export const SkeletonStyle = {
 }
 
 export const LenderBannerWrapper: SxProps<Theme> = {
-  padding: "52px 32.3% 0 44px",
+  padding: "4px 32.3% 0 44px",
   flex: "0 0 auto",
 }
+
+// Banners bring no spacing below them, so the actions add 12px of their own
+// when they follow one.
+export const StandaloneActionsWrapper = (
+  afterBanner: boolean,
+): SxProps<Theme> => ({
+  padding: `${afterBanner ? "12px" : 0} 32.3% 12px 44px`,
+  flex: "0 0 auto",
+})
 
 // Scroll the banner and market section together inside the fixed page shell.
 export const MarketContentColumn = (
