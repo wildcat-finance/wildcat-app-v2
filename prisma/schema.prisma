@@ -390,3 +390,119 @@ model MarketDescription {
 
   @@unique([chainId, marketAddress])
 }
+
+/// Glass Door analytics. One row per update run; exactly one row is Current.
+enum GlassDoorPublicationKind {
+  Intraday
+  DayClose
+}
+
+enum GlassDoorPublicationStatus {
+  Staged
+  Current
+  Superseded
+  Failed
+}
+
+enum GlassDoorEntityKind {
+  Market
+  Borrower
+}
+
+enum GlassDoorMarketState {
+  Preparing
+  Ok
+  UnderReview
+}
+
+enum GlassDoorScanFilter {
+  MarketLogs
+  TransfersOut
+  TransfersIn
+}
+
+model GlassDoorPublication {
+  id              String                     @id @default(uuid())
+  kind            GlassDoorPublicationKind
+  status          GlassDoorPublicationStatus @default(Staged)
+  /// UTC day a DayClose publication records
+  day             DateTime?                  @db.Date
+  /// Block number, hash and timestamp per chain that the publication describes
+  cuts            Json
+  registryVersion String
+  checks          Json?
+  error           String?
+  createdAt       DateTime                   @default(now())
+  publishedAt     DateTime?
+  snapshots       GlassDoorMetricSnapshot[]
+
+  @@index([status, createdAt])
+  @@index([kind, day])
+}
+
+/// Immutable metric values for one market or borrower in one publication.
+model GlassDoorMetricSnapshot {
+  id            String               @id @default(uuid())
+  publicationId String
+  publication   GlassDoorPublication @relation(fields: [publicationId], references: [id], onDelete: Cascade)
+  entityKind    GlassDoorEntityKind
+  chainId       Int
+  entityAddress String
+  day           DateTime             @db.Date
+  values        Json
+  flags         Json?
+
+  @@unique([publicationId, entityKind, chainId, entityAddress])
+  @@index([entityKind, chainId, entityAddress, day])
+}
+
+/// Per-market progress, latest checked dataset and end-of-history state.
+model GlassDoorMarketStatus {
+  chainId             Int
+  address             String
+  borrower            String
+  deploymentBlock     BigInt
+  checkedThroughBlock BigInt?
+  lastEventBlock      BigInt?
+  lastRebuiltBlock    BigInt?
+  datasetKey          String?
+  tailState           Json?
+  closureCheck        Json?
+  state               GlassDoorMarketState @default(Preparing)
+  stateReason         String?
+  updatedAt           DateTime             @updatedAt
+
+  @@id([chainId, address])
+  @@index([chainId, borrower])
+}
+
+/// A committed block range of one chain-level log scan, with the logs found.
+model GlassDoorScanRange {
+  id           String              @id @default(uuid())
+  chainId      Int
+  filter       GlassDoorScanFilter
+  fromBlock    BigInt
+  toBlock      BigInt
+  toBlockHash  String
+  /// sha256 of the sorted address set the range was scanned with
+  addressSet   String
+  addresses    String[]
+  logCount     Int
+  /// gzipped JSON array of the raw logs found in the range
+  logs         Bytes
+  createdAt    DateTime            @default(now())
+
+  @@unique([chainId, filter, addressSet, fromBlock])
+  @@index([chainId, filter, toBlock])
+}
+
+/// Last block of each UTC day, looked up once per chain and shared by markets.
+model GlassDoorChainDay {
+  chainId        Int
+  day            DateTime @db.Date
+  lastBlock      BigInt
+  blockHash      String
+  blockTimestamp Int
+
+  @@id([chainId, day])
+}
