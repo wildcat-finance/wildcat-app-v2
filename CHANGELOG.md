@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.22.3](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.22.2...v2.22.3) (2026-10-26)
+
+
+### Bug Fixes
+
+* debt difference ([8ba5649](https://github.com/wildcat-finance/wildcat-app-v2/commit/8ba564912d69211fd45f4b64fb0d5e4624f4590d))
+* **market:** calculate Total Debt one way across the app ([#453](https://github.com/wildcat-finance/wildcat-app-v2/issues/453)) ([c551b58](https://github.com/wildcat-finance/wildcat-app-v2/commit/c551b58085e9d52675d6f47ccace072aa0a062d1))
+
 ## [2.22.2](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.22.1...v2.22.2) (2026-10-21)
 
 
