@@ -1,8 +1,6 @@
 import * as React from "react"
 
-import { Box, Tooltip } from "@mui/material"
-
-import { TooltipButton } from "@/components/TooltipButton"
+import { Box } from "@mui/material"
 
 import {
   GD,
@@ -13,42 +11,28 @@ import {
   VERDICT_STYLE,
 } from "./tokens"
 
-// One card for every index, at three sizes (design language v1, part 2).
-// Reading order never changes: name, value, verdict, sub line, comparison.
-// Large and medium expand into a panel shared by their row; small is an
-// inline chip whose comparison moves into its tooltip.
-
 export type CardSize = "L" | "M" | "S"
 
 export type IndexCardProps = {
   size: CardSize
+  compact?: boolean
   name: string
-  /** A shorter name for the small size ("Exits"). */
   shortName?: string
-  /** Plain-language definition with the protocol term, for the help dot. */
   help?: string
-  /** The formatted figure. Omit it to show `word` instead. */
   value?: string
-  /** A blank as a word ("never late"), set in the value position. */
   word?: string
   verdict?: Verdict
-  /** Right-now cards show a coloured state word instead of a value. */
   state?: { word: string; tone: StateTone }
-  /** The second lens or the denominator. */
+  /** Evidence or a second measurement, rather than explanatory copy. */
   sub?: string
-  /** The comparison with its population. */
+  detail?: { label: string; value: string }
   comparison?: string
-  /** A compact chart for the face (medium only). */
   chart?: React.ReactNode
   open?: boolean
   onToggle?: () => void
+  id?: string
+  controlsId?: string
 }
-
-const CHIP_SIZE = {
-  L: { fontSize: "10px", padding: "2px 8px", borderRadius: "10px" },
-  M: { fontSize: "9.5px", padding: "2px 7px", borderRadius: "10px" },
-  S: { fontSize: "9px", padding: "1px 6px", borderRadius: "8px" },
-} as const
 
 export const VerdictChip = ({
   verdict,
@@ -60,264 +44,335 @@ export const VerdictChip = ({
   <Box
     component="span"
     sx={{
-      ...CHIP_SIZE[size],
       ...VERDICT_STYLE[verdict],
-      fontWeight: 700,
-      letterSpacing: "0.05em",
+      display: "inline-flex",
+      alignItems: "center",
+      padding: size === "S" ? "2px 7px" : "4px 9px",
+      borderRadius: "6px",
+      fontSize: size === "S" ? "10px" : "11px",
+      fontWeight: 600,
       lineHeight: 1.4,
+      letterSpacing: "0.02em",
       whiteSpace: "nowrap",
-      display: "inline-block",
     }}
   >
     {verdict}
   </Box>
 )
 
-const Chevron = ({ open }: { open?: boolean }) => (
+const Chevron = ({ open, compact }: { open?: boolean; compact?: boolean }) => (
   <Box
     component="span"
-    aria-hidden
+    aria-hidden="true"
     sx={{
-      fontSize: "11px",
-      color: GD.muted,
+      display: "inline-flex",
+      flex: "0 0 auto",
+      alignItems: "center",
+      justifyContent: "center",
+      width: compact ? "18px" : "24px",
+      height: compact ? "18px" : "24px",
+      borderRadius: "50%",
+      color: open ? GD.link : GD.text,
+      background: open ? GD.accent : GD.track,
       transform: open ? "rotate(180deg)" : "none",
-      transition: "transform 160ms",
-      lineHeight: 1,
+      transition: "transform 160ms ease",
+      "@media (prefers-reduced-motion: reduce)": { transition: "none" },
     }}
   >
-    ⌄
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+      <path
+        d="m4 6 4 4 4-4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   </Box>
 )
 
-const chrome = (size: CardSize, open?: boolean, interactive?: boolean) => ({
-  background: GD.surface,
-  border: `1px solid ${open ? GD.borderOpen : GD.border}`,
-  borderRadius: size === "S" ? "12px" : "20px",
-  padding: { L: "16px 18px", M: "14px 16px", S: "8px 12px" }[size],
-  transition: GD.transition,
-  textAlign: "left" as const,
-  width: "100%",
-  font: "inherit",
-  color: "inherit",
-  cursor: interactive ? "pointer" : "default",
-  ...(interactive && !open
-    ? { "&:hover": { borderColor: GD.borderHover } }
-    : {}),
-  "&:focus-visible": { outline: `2px solid ${GD.link}`, outlineOffset: "2px" },
-})
-
-const VALUE_SIZE = {
-  L: { figure: "28px", word: "20px" },
-  M: { figure: "20px", word: "14px" },
-} as const
-
-const LargeOrMedium = (props: Omit<IndexCardProps, "shortName">) => {
-  const {
-    size,
-    name,
-    help,
-    value,
-    word,
-    verdict,
-    state,
-    sub,
-    comparison,
-    chart,
-    open,
-    onToggle,
-  } = props
-  const large = size === "L"
-  const valueSize = VALUE_SIZE[large ? "L" : "M"][value ? "figure" : "word"]
-  const valueWeight = value || state ? 700 : 600
-  const subLine = large ? sub : [sub, comparison].filter(Boolean).join(" · ")
-  return (
-    <Box
-      component={onToggle ? "button" : "div"}
-      type={onToggle ? "button" : undefined}
-      aria-expanded={onToggle ? Boolean(open) : undefined}
-      onClick={onToggle}
-      sx={{
-        ...chrome(size, open, Boolean(onToggle)),
-        display: "flex",
-        flexDirection: "column",
-        gap: large ? "6px" : "4px",
-        height: "100%",
-      }}
-    >
-      <Box
-        display="flex"
-        alignItems="center"
-        justifyContent="space-between"
-        gap="6px"
-      >
-        <Box
-          component="span"
-          sx={{ fontSize: "11px", fontWeight: 600, color: GD.text }}
-        >
-          {name}
-        </Box>
-        {large && help ? (
-          <Box component="span" onClick={(event) => event.stopPropagation()}>
-            <TooltipButton value={help} />
-          </Box>
-        ) : null}
-        {!large && onToggle ? <Chevron open={open} /> : null}
-      </Box>
-
-      <Box
-        display="flex"
-        alignItems="baseline"
-        flexWrap="wrap"
-        columnGap="8px"
-        rowGap="2px"
-      >
-        {state ? (
-          <Box
-            component="span"
-            sx={{
-              fontSize: large ? "15px" : "13px",
-              fontWeight: 700,
-              color: STATE_COLOR[state.tone],
-              letterSpacing: "0.02em",
-            }}
-          >
-            {state.word}
-          </Box>
-        ) : (
-          <Box
-            component="span"
-            sx={{
-              fontSize: valueSize,
-              fontWeight: valueWeight,
-              color: GD.ink,
-              lineHeight: 1.15,
-              fontVariantNumeric: "tabular-nums",
-            }}
-          >
-            {value ?? word}
-          </Box>
-        )}
-        {verdict ? <VerdictChip verdict={verdict} size={size} /> : null}
-      </Box>
-
-      {subLine ? (
-        <Box
-          component="span"
-          sx={{ fontSize: "11px", color: GD.text, lineHeight: 1.45 }}
-        >
-          {subLine}
-        </Box>
-      ) : null}
-      {large && comparison ? (
-        <Box
-          component="span"
-          sx={{ fontSize: "11px", color: GD.muted, lineHeight: 1.45 }}
-        >
-          {comparison}
-        </Box>
-      ) : null}
-      {!large && chart ? <Box marginTop="4px">{chart}</Box> : null}
-    </Box>
-  )
-}
-
-type SmallProps = Pick<
+const Small = ({
+  name,
+  shortName,
+  value,
+  word,
+  verdict,
+  state,
+  sub,
+}: Pick<
   IndexCardProps,
-  | "name"
-  | "shortName"
-  | "help"
-  | "value"
-  | "word"
-  | "verdict"
-  | "state"
-  | "sub"
-  | "comparison"
->
-
-const Small = (props: SmallProps) => {
-  const {
-    name,
-    shortName,
-    value,
-    word,
-    verdict,
-    state,
-    sub,
-    comparison,
-    help,
-  } = props
-  const tooltip = [help, comparison].filter(Boolean).join(" · ")
-  const chip = (
+  "name" | "shortName" | "value" | "word" | "verdict" | "state" | "sub"
+>) => (
+  <Box sx={{ minWidth: 0 }}>
     <Box
+      component="span"
       sx={{
-        ...chrome("S"),
-        display: "inline-flex",
-        alignItems: "baseline",
-        gap: "8px",
-        width: "auto",
-        whiteSpace: "nowrap",
+        display: "block",
+        color: GD.muted,
+        fontSize: "12px",
+        marginBottom: "4px",
       }}
     >
-      <Box component="span" sx={{ fontSize: "11px", color: GD.text }}>
-        {shortName ?? name}
-      </Box>
+      {shortName ?? name}
+    </Box>
+    <Box display="flex" alignItems="center" gap="6px" flexWrap="wrap">
       {state ? (
         <Box
           component="span"
-          display="inline-flex"
-          alignItems="center"
-          gap="6px"
+          sx={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            color: STATE_COLOR[state.tone],
+            fontSize: "12px",
+            fontWeight: 600,
+          }}
         >
           <Box
             component="span"
+            aria-hidden="true"
             sx={{
-              width: "8px",
-              height: "8px",
+              width: "6px",
+              height: "6px",
               borderRadius: "50%",
               background: STATE_DOT[state.tone],
-              alignSelf: "center",
             }}
           />
-          <Box
-            component="span"
-            sx={{
-              fontSize: "11px",
-              fontWeight: 700,
-              color: STATE_COLOR[state.tone],
-            }}
-          >
-            {state.word}
-          </Box>
+          {state.word}
         </Box>
       ) : (
         <Box
           component="span"
           sx={{
-            fontSize: value ? "13px" : "11px",
-            fontWeight: value ? 700 : 600,
             color: GD.ink,
+            fontSize: "14px",
+            fontWeight: 600,
             fontVariantNumeric: "tabular-nums",
+            overflowWrap: "anywhere",
           }}
         >
-          {value ?? word}
+          {value ?? word ?? "Unavailable"}
         </Box>
       )}
       {sub ? (
-        <Box component="span" sx={{ fontSize: "11px", color: GD.muted }}>
+        <Box component="span" sx={{ fontSize: "12px", color: GD.muted }}>
           {sub}
         </Box>
       ) : null}
       {verdict ? <VerdictChip verdict={verdict} size="S" /> : null}
     </Box>
+  </Box>
+)
+
+export const IndexCard = (props: IndexCardProps) => {
+  if (props.size === "S") return <Small {...props} />
+
+  const {
+    size,
+    compact,
+    name,
+    value,
+    word,
+    verdict,
+    state,
+    sub,
+    detail,
+    comparison,
+    chart,
+    open,
+    onToggle,
+    id,
+    controlsId,
+    help,
+  } = props
+  const large = size === "L"
+  const standardSize = {
+    figure: large ? "34px" : "28px",
+    word: large ? "22px" : "19px",
+    padding: large ? "22px" : "20px",
+    valueGap: large ? "22px" : "18px",
+  }
+  const figureSize = compact ? "22px" : standardSize.figure
+  const wordSize = compact ? "18px" : standardSize.word
+  const borderColor = compact ? GD.panelBorder : GD.border
+  const valueColor = compact ? GD.accentInk : GD.ink
+  const title = (
+    <>
+      <span>{name}</span>
+      {onToggle ? <Chevron open={open} compact={compact} /> : null}
+    </>
   )
-  return tooltip ? (
-    <Tooltip title={tooltip} placement="top">
-      {chip}
-    </Tooltip>
-  ) : (
-    chip
+
+  return (
+    <Box
+      component="article"
+      sx={{
+        position: "relative",
+        height: "100%",
+        minWidth: 0,
+        boxSizing: "border-box",
+        display: "flex",
+        flexDirection: "column",
+        padding: compact ? "12px" : standardSize.padding,
+        border: `1px solid ${open ? GD.borderOpen : borderColor}`,
+        borderRadius: compact ? "8px" : "16px",
+        background: open ? GD.selected : GD.surface,
+        transition: GD.transition,
+        ...(onToggle
+          ? {
+              "&:hover": {
+                borderColor: compact ? GD.borderOpen : GD.borderHover,
+              },
+              "&:focus-within": { borderColor: GD.link },
+            }
+          : {}),
+      }}
+    >
+      <Box
+        component={compact ? "h3" : "h4"}
+        sx={{
+          margin: 0,
+          color: GD.text,
+          fontSize: compact ? "12px" : "14px",
+          lineHeight: compact ? 1.4 : 1.5,
+          minHeight: compact ? "34px" : undefined,
+          fontWeight: 600,
+        }}
+      >
+        {onToggle ? (
+          <Box
+            component="button"
+            id={id}
+            type="button"
+            aria-expanded={Boolean(open)}
+            aria-controls={controlsId}
+            aria-description={help}
+            onClick={onToggle}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: compact ? "6px" : "12px",
+              width: "100%",
+              padding: 0,
+              background: "none",
+              border: 0,
+              textAlign: "left",
+              font: "inherit",
+              color: "inherit",
+              cursor: "pointer",
+              outline: "none",
+              "&::after": {
+                content: '""',
+                position: "absolute",
+                inset: "-1px",
+                borderRadius: compact ? "8px" : "16px",
+              },
+              "&:focus-visible::after": {
+                outline: `2px solid ${GD.link}`,
+                outlineOffset: "3px",
+              },
+            }}
+          >
+            {title}
+          </Box>
+        ) : (
+          title
+        )}
+      </Box>
+      <Box
+        display="flex"
+        alignItems="center"
+        flexWrap="wrap"
+        gap={compact ? "6px" : "10px"}
+        sx={{
+          marginTop: compact ? "6px" : standardSize.valueGap,
+          marginBottom: "10px",
+        }}
+      >
+        <Box
+          component="span"
+          sx={{
+            color: state ? STATE_COLOR[state.tone] : valueColor,
+            fontSize: state || !value ? wordSize : figureSize,
+            fontWeight: 600,
+            lineHeight: 1.15,
+            letterSpacing: "-0.025em",
+            fontVariantNumeric: "tabular-nums",
+            overflowWrap: "anywhere",
+          }}
+        >
+          {state?.word ?? value ?? word ?? "Unavailable"}
+        </Box>
+        {verdict ? (
+          <VerdictChip verdict={verdict} size={compact ? "S" : size} />
+        ) : null}
+      </Box>
+      {chart ? (
+        // With an evidence line the chart sits on it, so charts align across a row.
+        <Box
+          sx={{
+            marginTop: detail ? "auto" : "18px",
+            paddingTop: detail ? "4px" : 0,
+            marginBottom: detail ? "12px" : 0,
+            pointerEvents: "none",
+          }}
+        >
+          {chart}
+        </Box>
+      ) : null}
+      {detail ? (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            flexWrap: "wrap",
+            gap: "4px 8px",
+            marginTop: chart ? 0 : "auto",
+            paddingTop: "8px",
+            borderTop: `1px solid ${GD.panelBorder}`,
+            fontSize: "12px",
+            lineHeight: 1.4,
+          }}
+        >
+          <Box component="span" sx={{ color: GD.muted }}>
+            {detail.label}
+          </Box>
+          <Box
+            component="span"
+            sx={{
+              color: GD.text,
+              fontVariantNumeric: "tabular-nums",
+              overflowWrap: "anywhere",
+            }}
+          >
+            {detail.value}
+          </Box>
+        </Box>
+      ) : null}
+      {sub ? (
+        <Box
+          component="p"
+          sx={{ margin: 0, fontSize: "13px", lineHeight: 1.5, color: GD.text }}
+        >
+          {sub}
+        </Box>
+      ) : null}
+      {comparison ? (
+        <Box
+          component="p"
+          sx={{
+            margin: "auto 0 0",
+            paddingTop: "18px",
+            fontSize: "12px",
+            lineHeight: 1.5,
+            color: GD.muted,
+          }}
+        >
+          {comparison}
+        </Box>
+      ) : null}
+    </Box>
   )
 }
-
-export const IndexCard = (props: IndexCardProps) =>
-  props.size === "S" ? <Small {...props} /> : <LargeOrMedium {...props} />

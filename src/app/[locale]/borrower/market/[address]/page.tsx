@@ -94,12 +94,15 @@ export default function MarketDetails({
 
   const { checked } = useScrollHandler()
 
-  // The Analytics section appears once this market has a published record.
-  const { data: analytics } = useMarketAnalytics(
+  // Keep preparation and failure states reachable from the analytics section.
+  const { data: analytics, isError: analyticsError } = useMarketAnalytics(
     market?.chainId,
     market?.address,
   )
-  const hasAnalytics = analytics?.status === "ok"
+  const hasAnalytics =
+    analytics?.status === "ok" ||
+    analytics?.status === "preparing" ||
+    analyticsError
   useEffect(() => {
     dispatch(hideAnalyticsSection(!hasAnalytics))
   }, [hasAnalytics, dispatch])

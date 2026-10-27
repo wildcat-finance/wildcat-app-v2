@@ -7,24 +7,30 @@ import { COLORS } from "@/theme/colors"
 export const GD = {
   ink: COLORS.bunker,
   text: COLORS.blackRock,
-  muted: COLORS.manate,
+  muted: "#656779",
   border: COLORS.whiteLilac,
-  borderHover: "#D4D6DD",
-  borderOpen: COLORS.bunker,
+  panelBorder: "#C7CCDE",
+  borderHover: COLORS.hawkesBlue,
+  borderOpen: COLORS.cornflowerBlue,
   surface: COLORS.white,
+  accent: COLORS.glitter,
+  accentInk: "#3154CE",
+  selected: "#F7F9FF",
   track: COLORS.whiteSmoke,
   trackInBox: COLORS.athensGrey,
   ghost: "#D4D6DD",
   /** "This one" within a population. */
-  thisOne: "#4112B5",
+  thisOne: COLORS.blueRibbon,
   link: COLORS.blueRibbon,
   inOrder: "#2E9E5B",
   withinGrace: COLORS.galliano,
   pastAllowance: COLORS.dullRed,
+  /** A missed exit deadline that was funded later. */
+  fundedLate: "#F47C8A",
   stateGood: "#23824B",
   stateWarn: COLORS.butteredRum,
   stateBad: COLORS.dullRed,
-  transition: "border-color 160ms cubic-bezier(0, 0, 0.2, 1)",
+  transition: "border-color 160ms ease, background-color 160ms ease",
 } as const
 
 export type Verdict = "STRONG" | "WATCH" | "PROBLEM" | "LIMITED"
@@ -36,7 +42,7 @@ export const VERDICT_STYLE: Record<
   STRONG: { color: GD.stateGood, background: COLORS.lightGreen },
   WATCH: { color: COLORS.butteredRum, background: COLORS.oasis },
   PROBLEM: { color: COLORS.dullRed, background: COLORS.remy },
-  LIMITED: { color: COLORS.manate, background: COLORS.athensGrey },
+  LIMITED: { color: "#656779", background: COLORS.athensGrey },
 }
 
 export type StateTone = "good" | "warn" | "bad" | "neutral"

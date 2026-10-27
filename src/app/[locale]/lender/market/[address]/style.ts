@@ -38,7 +38,7 @@ export const MarketContentColumn = (
   },
 })
 
-// Analytics rows run five cards across, so the section takes the full width.
+// Analytics uses the available page width; its grids adapt to their container.
 export const AnalyticsContainer = (theme: Theme): SxProps<Theme> => ({
   width: "100%",
   padding: "0 44px 32px 44px",

@@ -1,106 +1,186 @@
 import * as React from "react"
 
-import { Box, Skeleton } from "@mui/material"
+import { Box, Button, Skeleton } from "@mui/material"
+
+import { SnapshotBadge } from "@/components/SnapshotBadge"
 
 import { Publication } from "./api"
-import { block, longDate } from "./format"
 import { GD } from "./tokens"
 
-// Page furniture shared by Market and Borrower Analytics: the one block every
-// figure comes from, publication state labels, notices and skeletons.
-
-const DELAYED_AFTER_MS = 30 * 60 * 1_000
-
-export const SectionTitle = ({ children }: { children: React.ReactNode }) => (
+export const SectionTitle = ({
+  children,
+  compact = false,
+}: {
+  children: React.ReactNode
+  compact?: boolean
+}) => (
   <Box
     component="h3"
-    sx={{ margin: "8px 0 0", fontSize: "13px", fontWeight: 600, color: GD.ink }}
-  >
-    {children}
-  </Box>
-)
-
-const Label = ({ children }: { children: React.ReactNode }) => (
-  <Box
-    component="span"
     sx={{
-      fontSize: "10px",
+      margin: 0,
+      fontSize: compact ? "15px" : "18px",
+      lineHeight: 1.4,
       fontWeight: 600,
-      letterSpacing: "0.05em",
-      textTransform: "uppercase",
-      color: GD.muted,
-      border: `1px solid ${GD.border}`,
-      borderRadius: "10px",
-      padding: "1px 8px",
+      color: GD.ink,
     }}
   >
     {children}
   </Box>
 )
 
-/**
- * "Snapshot block 26,279,403 · 27 October 2026" plus state labels, under the
- * host page's Analytics heading.
- */
-export const SnapshotLine = ({
+export const PublicationBadge = ({
   publication,
   labels = [],
 }: {
   publication: Publication
   labels?: string[]
-}) => {
-  const delayed =
-    publication.publishedAt !== null &&
-    Date.now() - Date.parse(publication.publishedAt) > DELAYED_AFTER_MS
-  return (
-    <Box display="flex" alignItems="center" flexWrap="wrap" gap="8px">
-      <Box component="span" sx={{ fontSize: "12px", color: GD.text }}>
-        {publication.cut
-          ? `Snapshot block ${block(publication.cut.block)} · ${longDate(
-              publication.cut.timestamp,
-            )}`
-          : "Latest snapshot"}
-      </Box>
-      {publication.kind === "DayClose" ? <Label>day close</Label> : null}
-      {delayed ? <Label>delayed</Label> : null}
-      {labels.map((label) => (
-        <Label key={label}>{label}</Label>
-      ))}
-    </Box>
-  )
-}
+}) => (
+  <SnapshotBadge
+    blockNumber={publication.cut?.block ?? null}
+    timestamp={publication.cut?.timestamp ?? null}
+    details={[
+      publication.kind === "DayClose" ? "Day close" : "Intraday snapshot",
+      ...labels,
+    ]}
+  />
+)
 
-export const Notice = ({ children }: { children: React.ReactNode }) => (
+export const AnalyticsFrame = ({
+  title,
+  publication,
+  labels,
+  children,
+}: {
+  title: string
+  publication?: Publication
+  labels?: string[]
+  children: React.ReactNode
+}) => (
   <Box
     sx={{
-      border: `1px solid ${GD.border}`,
-      borderRadius: "12px",
-      padding: "12px 16px",
-      fontSize: "13px",
-      color: GD.text,
-      background: GD.surface,
+      containerType: "inline-size",
+      minWidth: 0,
+      display: "flex",
+      flexDirection: "column",
+      gap: "12px",
     }}
   >
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        flexWrap: "wrap",
+        gap: "8px 20px",
+      }}
+    >
+      <Box
+        component="h2"
+        sx={{
+          margin: 0,
+          fontSize: "17px",
+          lineHeight: 1.4,
+          fontWeight: 600,
+          color: GD.text,
+        }}
+      >
+        {title}
+      </Box>
+      {publication && (
+        <PublicationBadge publication={publication} labels={labels} />
+      )}
+    </Box>
     {children}
   </Box>
 )
 
-export const AnalyticsSkeleton = ({ cards = 5 }: { cards?: number }) => (
-  <Box display="flex" flexDirection="column" gap="12px">
-    <Skeleton height="20px" width="320px" sx={{ bgcolor: GD.trackInBox }} />
+export const Notice = ({
+  children,
+  onRetry,
+  compact = false,
+}: {
+  children: React.ReactNode
+  onRetry?: () => void
+  compact?: boolean
+}) => (
+  <Box
+    role="status"
+    sx={{
+      border: `1px solid ${compact ? GD.panelBorder : GD.border}`,
+      borderRadius: compact ? "8px" : "16px",
+      padding: compact ? "12px" : "24px",
+      fontSize: compact ? "12px" : "14px",
+      lineHeight: 1.6,
+      color: GD.text,
+      background: GD.surface,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      flexWrap: "wrap",
+      gap: "16px",
+    }}
+  >
+    <Box>{children}</Box>
+    {onRetry && (
+      <Button onClick={onRetry} variant="outlined" size="small">
+        Retry
+      </Button>
+    )}
+  </Box>
+)
+
+export const AnalyticsSkeleton = ({
+  cards = 5,
+  compact = false,
+}: {
+  cards?: number
+  compact?: boolean
+}) => (
+  <Box
+    role="status"
+    aria-label="Loading analytics"
+    aria-busy="true"
+    sx={{ containerType: "inline-size" }}
+  >
+    <Skeleton
+      height={20}
+      sx={{
+        width: "min(320px, 100%)",
+        bgcolor: GD.trackInBox,
+        marginBottom: compact ? "10px" : "20px",
+      }}
+    />
     <Box
       sx={{
         display: "grid",
-        gap: "12px",
-        gridTemplateColumns: "repeat(auto-fill, minmax(176px, 1fr))",
+        gap: compact ? "10px" : "16px",
+        gridTemplateColumns: "1fr",
+        [`@container (min-width: ${compact ? 320 : 560}px)`]: {
+          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+        },
+        ...(compact
+          ? {
+              "@container (min-width: 600px)": {
+                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+              },
+            }
+          : {}),
+        [`@container (min-width: ${compact ? 960 : 900}px)`]: {
+          gridTemplateColumns: `repeat(${
+            compact ? Math.min(cards, 6) : 3
+          }, minmax(0, 1fr))`,
+        },
       }}
     >
       {Array.from({ length: cards }, (_, index) => (
         <Skeleton
           key={index}
           variant="rounded"
-          height="132px"
-          sx={{ bgcolor: GD.trackInBox, borderRadius: "20px" }}
+          height={compact ? 120 : 196}
+          sx={{
+            bgcolor: GD.trackInBox,
+            borderRadius: compact ? "8px" : "20px",
+          }}
         />
       ))}
     </Box>

@@ -376,12 +376,15 @@ export default function LenderMarketDetails({
 
   const isMobile = useMobileResolution()
 
-  // The Analytics section appears once this market has a published record.
-  const { data: analytics } = useMarketAnalytics(
+  // Keep preparation and failure states reachable from the analytics section.
+  const { data: analytics, isError: analyticsError } = useMarketAnalytics(
     market?.chainId,
     market?.address,
   )
-  const hasAnalytics = analytics?.status === "ok"
+  const hasAnalytics =
+    analytics?.status === "ok" ||
+    analytics?.status === "preparing" ||
+    analyticsError
   useEffect(() => {
     dispatch(hideAnalyticsSection(!hasAnalytics))
   }, [hasAnalytics, dispatch])
@@ -698,9 +701,6 @@ export default function LenderMarketDetails({
 
           {hasAnalytics && (
             <Box id="analytics" sx={MobileAnalyticsContainer}>
-              <Typography variant="mobH3">
-                {t("lenderMarketDetails.sidebar.analytics")}
-              </Typography>
               <MarketAnalytics
                 chainId={market.chainId}
                 address={market.address}
@@ -869,9 +869,6 @@ export default function LenderMarketDetails({
               flexDirection="column"
               gap="16px"
             >
-              <Typography variant="title3">
-                {t("lenderMarketDetails.sidebar.analytics")}
-              </Typography>
               <MarketAnalytics
                 chainId={market.chainId}
                 address={market.address}

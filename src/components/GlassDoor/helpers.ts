@@ -1,5 +1,6 @@
 import { Comparison, MetricValues } from "./api"
 import { count, isNumber } from "./format"
+import type { RowCard } from "./IndexPanel"
 import { Verdict } from "./tokens"
 
 /** Typed reads of published metric values. */
@@ -25,17 +26,26 @@ export const leadingNumber = (text?: string) => {
 // for the spec's thresholds; until then the only verdict shown is LIMITED, a
 // perfect figure on thin history ("clean so far, barely tested").
 export const GATES = { days: 90, deadlines: 10, incidents: 10 } as const
-export const LIMITED_NOTE = "clean so far, barely tested"
 
 export const limitedVerdict = (
   thinEvidence: boolean,
   perfect: boolean,
 ): Verdict | undefined => (thinEvidence && perfect ? "LIMITED" : undefined)
 
-export const withNote = (text: string | undefined, verdict?: Verdict) =>
-  verdict === "LIMITED"
-    ? [text, LIMITED_NOTE].filter(Boolean).join(" · ")
-    : text
+export const deadlineEvidence = (total?: number, funded?: number) => {
+  if (total === undefined) return undefined
+  if (funded === undefined) return `${count(total)} deadlines`
+  return `${count(funded)} of ${count(total)} deadlines`
+}
+
+/** Several missing inputs may share one unavailable calculation message. */
+export const uniqueFormulas = (cards: RowCard[]): RowCard[] =>
+  cards.map((card) => ({
+    ...card,
+    panel: card.panel
+      ? { ...card.panel, formula: [...new Set(card.panel.formula)] }
+      : undefined,
+  }))
 
 /** "better than 9 of 66 graded markets", or how to earn a rank. */
 export const rankPhrase = (

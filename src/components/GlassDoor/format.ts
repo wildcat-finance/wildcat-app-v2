@@ -4,7 +4,7 @@ import { MetricValue } from "./api"
 
 // Number rules from the design language: scores and percentages to one
 // decimal on cards and two inside formulas, rounded half up; token amounts in
-// whole units with separators; signed trends keep their sign; hours round up
+// up to six decimals with separators; signed trends keep their sign; hours round up
 // (formatHours). Blanks are words, never 0, 100 or a dash.
 
 export const BLANK = {
@@ -13,8 +13,9 @@ export const BLANK = {
   noIncidents: "no incidents yet",
   noneCompleted: "none completed yet",
   noYield: "no yield history yet",
-  splitSoon: "split coming soon",
-  countSoon: "count coming soon",
+  unavailable: "not available",
+  splitSoon: "split not available",
+  countSoon: "count not available",
 } as const
 
 const MINUS = "−"
@@ -42,6 +43,13 @@ export const score = (value: number, decimals = 1) => {
   return signed(rounded, grouped(rounded, decimals))
 }
 
+/** Missing published evidence is never a zero or a perfect score. */
+export const display = (
+  value: number | undefined,
+  format: (number: number) => string = score,
+  empty: string = BLANK.unavailable,
+) => (value === undefined ? empty : format(value))
+
 /** A percentage: one decimal without a trailing ".0" ("83%", "113.7%"). */
 export const percent = (value: number, decimals = 1) => {
   const rounded = roundHalfUp(value, decimals)
@@ -64,8 +72,16 @@ export const trend = (value: number) => {
 /** Exact counts with separators. */
 export const count = (value: number) => grouped(Math.round(value), 0)
 
-/** Token amounts in whole units with separators. */
-export const tokens = (value: number) => signed(value, grouped(value, 0))
+/** Preserve subunit amounts; a positive token balance must never read as zero. */
+export const tokens = (value: number) => {
+  if (value !== 0 && Math.abs(value) < 0.000001) {
+    return value > 0 ? "<0.000001" : ">−0.000001"
+  }
+  return signed(
+    value,
+    Math.abs(value).toLocaleString("en-US", { maximumFractionDigits: 6 }),
+  )
+}
 
 export const hours = (valueInHours: number, decimals = 1) =>
   formatHours(valueInHours * 3_600, decimals)

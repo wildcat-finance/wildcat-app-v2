@@ -1,494 +1,699 @@
-import { BorrowerAnalytics } from "./api"
-import { DirectionLine, LateShareRow, LateShareRows } from "./charts"
+import * as React from "react"
+
+import { BorrowerAnalytics, Comparison } from "./api"
+import {
+  CountedSquares,
+  DirectionLine,
+  LateShareRow,
+  LateShareRows,
+  Rail,
+  rankChart,
+  ShareBar,
+} from "./charts"
 import {
   BLANK,
   count,
   days,
+  display,
   hours,
+  isNumber,
   lifeShare,
   percent,
   score,
   tokens,
-  trend,
 } from "./format"
-import { GATES, limitedVerdict, rankPhrase, reader, withNote } from "./helpers"
+import {
+  deadlineEvidence,
+  GATES,
+  limitedVerdict,
+  rankPhrase,
+  reader,
+  uniqueFormulas,
+} from "./helpers"
 import { RowCard } from "./IndexPanel"
-import { StateTone } from "./tokens"
+import { GD, StateTone } from "./tokens"
 
-// Borrower Analytics cards (cheat sheet v4 §7–8; education package §4). The
-// book is every market one borrower runs; a book figure weights each market
-// by its days on record.
+const join = (...parts: (string | undefined)[]) =>
+  parts.filter(Boolean).join(" · ") || undefined
+const unavailable = "The calculation is not available at this snapshot."
+const bookRail = (
+  name: string,
+  value: number,
+  comparison: Comparison | undefined,
+  ids: string[],
+) => (
+  <Rail
+    value={value}
+    median={comparison?.median}
+    label={`${name} ${percent(value)}${
+      comparison
+        ? `; median ${percent(comparison.median)} across ${count(
+            comparison.population,
+          )} graded borrowers`
+        : ""
+    }`}
+    caption={
+      comparison
+        ? `Median ${percent(comparison.median)} · ${count(
+            comparison.population,
+          )} borrowers`
+        : undefined
+    }
+    ids={ids}
+  />
+)
 
-/** Right now across the book, from each market's state at the block. */
+/** Absence of a flag is not evidence of a healthy market. */
 export function borrowerNow(borrower: BorrowerAnalytics) {
   const open = borrower.markets.filter(
-    (market) => market.values.M77 !== "Closed",
+    (market) => market.state !== "Ok" || market.values.M77 !== "Closed",
   )
-  const late = open.filter(
+  const known = open.filter(
+    (market) =>
+      market.state === "Ok" &&
+      market.values.M77 === "Open" &&
+      [0, 1].includes(Number(market.values.M21)) &&
+      isNumber(market.values.M21) &&
+      [0, 1].includes(Number(market.values.M85)) &&
+      isNumber(market.values.M85),
+  )
+  const late = known.filter(
     (market) => market.values.M21 === 1 || market.values.M85 === 1,
   )
-  const past = open.filter((market) => market.values.M85 === 1)
+  const past = known.filter((market) => market.values.M85 === 1)
+  const unknown = open.length - known.length
+  const incomplete = unknown > 0 || borrower.partial || borrower.state !== "Ok"
   let state: { word: string; tone: StateTone } = {
-    word: "ALL IN ORDER",
+    word: "IN ORDER",
     tone: "good",
   }
-  let sub = `${count(open.length)} open markets, none late`
-  if (open.length === 0) {
-    state = { word: "NO OPEN MARKETS", tone: "neutral" }
-    sub = "every market is closed"
-  } else if (late.length) {
-    state = past.length
-      ? { word: "PAST GRACE", tone: "bad" }
-      : { word: "LATE WITHIN GRACE", tone: "warn" }
-    sub = `${count(late.length)} of ${count(open.length)} markets late`
+  let sub = `${count(known.length)} open markets`
+  if (past.length) state = { word: "PENALTY ACTIVE", tone: "bad" }
+  else if (late.length) state = { word: "WITHIN GRACE", tone: "warn" }
+  else if (incomplete) state = { word: "INCOMPLETE", tone: "neutral" }
+  else if (open.length === 0)
+    state = {
+      word: borrower.markets.length ? "NO OPEN MARKETS" : "NO MARKETS",
+      tone: "neutral",
+    }
+  if (late.length)
+    sub = `${count(late.length)} of ${count(open.length)} markets flagged`
+  if (incomplete)
+    sub = join(
+      sub,
+      unknown ? `${count(unknown)} unavailable` : "Partial coverage",
+    )!
+  return {
+    state,
+    sub,
+    open: open.length,
+    late: late.length,
+    past: past.length,
+    unknown,
+    incomplete,
   }
-  return { state, sub, open: open.length, late: late.length, past: past.length }
 }
 
 export function borrowerCards(borrower: BorrowerAnalytics) {
   const { n, s } = reader(borrower.values)
   const cmp = borrower.comparisons
-  const { protocol } = borrower
-  const marketDays = n("MARKET_DAYS") ?? 0
-  const markets = n("S01") ?? 0
-
-  // 3.1 In order, all markets (with book exits folded in)
-  const book = n("S05")
-  const neverLate = book === 100
-  const kept = n("D21")
-  const deadlines = n("S14") ?? 0
-  const covered = n("S15") ?? 0
-  const split = s("D18")?.split(" / ").map(Number)
-  const bookVerdict = limitedVerdict(marketDays < GATES.days, neverLate)
+  const marketDays = n("MARKET_DAYS")
+  const markets = n("S01")
+  const book = marketDays === 0 ? undefined : n("S05")
+  const kept = marketDays === 0 ? undefined : n("D21")
+  const neverLate =
+    !borrower.partial &&
+    borrower.state === "Ok" &&
+    borrower.markets.length > 0 &&
+    marketDays !== undefined &&
+    marketDays > 0 &&
+    borrower.markets.every(
+      (market) => market.state === "Ok" && market.values.H02 === 0,
+    )
+  const cashSegments =
+    book === undefined
+      ? []
+      : [
+          {
+            value: book,
+            color: GD.link,
+            label: `Cash available ${percent(book)}`,
+          },
+          {
+            value: Math.max(0, 100 - book),
+            color: GD.withinGrace,
+            label: `Cash short ${percent(100 - book)}`,
+          },
+        ]
+  let historyWord: string = BLANK.unavailable
+  if (neverLate) historyWord = BLANK.neverLate
+  else if (markets === 0) historyWord = "no funded history"
   const inOrder: RowCard = {
     key: "3.1",
     card: {
       name: "In order, all markets",
-      help: "Every market's cash-there grade, weighted by its days on record, with contract kept (time past the grace period only) underneath.",
       value: book === undefined || neverLate ? undefined : score(book),
-      word: book === undefined || neverLate ? BLANK.neverLate : undefined,
-      verdict: bookVerdict,
-      sub: withNote(
-        kept === undefined
-          ? `over ${count(marketDays)} market-days`
-          : `contract kept: ${score(kept)}`,
-        bookVerdict,
+      word: historyWord,
+      verdict: limitedVerdict(
+        marketDays !== undefined && marketDays < GATES.days,
+        neverLate,
       ),
-      comparison:
-        cmp.S05 && cmp.D21
-          ? `protocol medians: book ${score(
-              cmp.S05.median,
-            )} · contract kept ${score(cmp.D21.median)}`
+      sub: join(
+        kept === undefined ? undefined : `Contract kept ${score(kept)}`,
+        marketDays === undefined
+          ? undefined
+          : `${count(marketDays)} market-days`,
+      ),
+      comparison: cmp.S05 ? `Median ${score(cmp.S05.median)}` : undefined,
+      chart:
+        book === undefined
+          ? undefined
+          : bookRail("Book cash available", book, cmp.S05, ["S05"]),
+    },
+    panel: {
+      ids: ["S05", "D21", "MARKET_DAYS", "S06", "S07", "S27"],
+      question: "Across the book, was the required cash available?",
+      formula: [
+        book === undefined || marketDays === undefined || marketDays === 0
+          ? unavailable
+          : `Book availability = Σ (market availability × market age) / ${count(
+              marketDays,
+            )} market-days = ${score(book)}.`,
+        kept === undefined
+          ? unavailable
+          : `Contract kept = 100 − weighted share of time under penalty = ${score(
+              kept,
+            )}.`,
+      ],
+      numbers: [
+        ["Funded markets", display(markets, count)],
+        ["Market-days", display(marketDays, count)],
+        ["Lowest availability", display(n("S06"))],
+        ["Highest availability", display(n("S07"))],
+        ["Last 90 days", display(n("S27"))],
+      ],
+      chart:
+        book === undefined ? undefined : (
+          <ShareBar segments={cashSegments} ids={["S05"]} />
+        ),
+      chips: cmp.S05
+        ? [
+            {
+              label: "Median",
+              text: `${score(cmp.S05.median)} across ${count(
+                cmp.S05.population,
+              )} graded borrowers.`,
+            },
+            {
+              label: "All borrowers",
+              text: rankPhrase(cmp.S05, "borrowers"),
+              chart: rankChart(cmp.S05, "borrowers"),
+            },
+          ]
+        : [],
+      meaning:
+        "Each market contributes according to its age. Cash-short time and penalty time are measured separately; the rolling grace tracker may stay above grace after cash is restored.",
+      tells: [
+        {
+          scope: "borrower",
+          text: "Cash availability across the funded markets included in this snapshot.",
+        },
+      ],
+      doesNotTell:
+        "The record of the particular market you would enter. A book average can hide a weak market, and a partial snapshot excludes unavailable markets.",
+    },
+  }
+
+  const deadlines = n("S14")
+  const covered = n("S15")
+  const rate = n("S16")
+  const missed =
+    deadlines !== undefined && covered !== undefined
+      ? deadlines - covered
+      : undefined
+  const split = s("D18")?.match(/^(\d+)\s*\/\s*(\d+)$/)
+  const paidLate = split ? Number(split[1]) : undefined
+  const unpaid = split ? Number(split[2]) : undefined
+  const splitKnown =
+    paidLate !== undefined &&
+    unpaid !== undefined &&
+    paidLate + unpaid === missed
+  const groups =
+    covered === undefined || missed === undefined
+      ? []
+      : [
+          {
+            count: covered,
+            color: GD.link,
+            label: `On time ${count(covered)}`,
+          },
+          ...(splitKnown
+            ? [
+                {
+                  count: paidLate!,
+                  color: GD.fundedLate,
+                  label: `Paid late ${count(paidLate!)}`,
+                },
+                {
+                  count: unpaid!,
+                  color: GD.pastAllowance,
+                  label: `Still unpaid ${count(unpaid!)}`,
+                },
+              ]
+            : [
+                {
+                  count: missed,
+                  color: GD.ghost,
+                  label: `Missed deadline ${count(missed)}`,
+                },
+              ]),
+        ]
+  let exitFormula = unavailable
+  if (deadlines === 0)
+    exitFormula = "No withdrawal batch has reached its deadline."
+  else if (
+    deadlines !== undefined &&
+    covered !== undefined &&
+    rate !== undefined
+  )
+    exitFormula = `On time = ${count(covered)} funded deadlines / ${count(
+      deadlines,
+    )} deadlines × 100 = ${percent(rate)}.`
+  const exits: RowCard = {
+    key: "3.3",
+    card: {
+      name: "Exits paid on time",
+      value:
+        deadlines !== undefined && deadlines > 0 && rate !== undefined
+          ? percent(rate)
+          : undefined,
+      word: deadlines === 0 ? BLANK.noExits : BLANK.unavailable,
+      verdict: limitedVerdict(
+        deadlines !== undefined && deadlines > 0 && deadlines < GATES.deadlines,
+        rate === 100,
+      ),
+      sub: deadlineEvidence(deadlines, covered),
+      comparison: cmp.S16 ? `Median ${percent(cmp.S16.median)}` : undefined,
+      chart:
+        deadlines && rate !== undefined
+          ? bookRail("Exits funded on time", rate, cmp.S16, ["S16"])
           : undefined,
     },
     panel: {
-      ids: [
-        "S05",
-        "D21",
-        "S06",
-        "S07",
-        "S27",
-        "S28",
-        "S14",
-        "S15",
-        "S16",
-        "S17",
-        "D18",
-      ],
-      question: "Across all their markets, was the money there?",
+      ids: ["S14", "S15", "S16", "S17", "D18"],
+      question: "Were withdrawal deadlines met across the book?",
       formula: [
-        `Book in order = Σ (In order × days) / Σ days over ${count(
-          markets,
-        )} markets and ${count(marketDays)} market-days = ${
-          book === undefined ? "–" : score(book, 2)
-        }.`,
-        `Contract kept, all markets = 100 − weighted time past the grace period = ${
-          kept === undefined ? "–" : score(kept, 2)
-        }.`,
-        `Their markets run from ${
-          n("S06") === undefined ? "–" : score(n("S06")!)
-        } to ${n("S07") === undefined ? "–" : score(n("S07")!)}; last 90 days ${
-          n("S27") === undefined ? "under 7 days on record" : score(n("S27")!)
-        }${n("S28") === undefined ? "" : ` (trend ${trend(n("S28")!)})`}.`,
-        deadlines
-          ? `Book exits paid on time = 100 × ${count(covered)} / ${count(
-              deadlines,
-            )} = ${percent(
-              n("S16") ?? 0,
-              2,
-            )}; the weakest market on exits covered ${percent(n("S17") ?? 0)}.`
-          : "No withdrawal cycle has ended in any of their markets yet.",
-        ...(deadlines > covered
+        exitFormula,
+        ...(missed !== undefined && missed > 0
           ? [
-              split && split.length === 2
-                ? `Of the ${count(
-                    deadlines - covered,
-                  )} deadlines not covered on the day, ${count(
-                    split[0],
-                  )} were paid late and ${count(split[1])} are still unpaid.`
-                : `The split of the ${count(
-                    deadlines - covered,
-                  )} deadlines not covered is coming soon.`,
+              splitKnown
+                ? `${count(
+                    paidLate!,
+                  )} missed deadlines were funded later; ${count(
+                    unpaid!,
+                  )} remain unpaid.`
+                : `${count(
+                    missed,
+                  )} deadlines were missed. Their later funding status is not available.`,
             ]
           : []),
       ],
       numbers: [
-        ["Markets", count(markets)],
-        ["Market-days on record", count(marketDays)],
-        ["Weakest market", n("S06") === undefined ? "–" : score(n("S06")!)],
-        ["Strongest market", n("S07") === undefined ? "–" : score(n("S07")!)],
-        ["Payout deadlines", count(deadlines)],
-        ["Covered on the day", count(covered)],
+        ["Payout deadlines", display(deadlines, count)],
+        ["Funded on time", display(covered, count)],
+        [
+          "Lowest market rate",
+          deadlines === 0 ? BLANK.noExits : display(n("S17"), percent),
+        ],
       ],
-      chips: [
-        {
-          label: "median",
-          text: cmp.S05
-            ? `Across ${count(
-                cmp.S05.population,
-              )} graded borrowers the median book is ${score(cmp.S05.median)}.`
-            : "Not enough graded borrowers to compare yet.",
-        },
-        {
-          label: "vs all borrowers",
-          text: rankPhrase(cmp.S05, "borrowers", marketDays),
-        },
-      ],
+      chart:
+        deadlines && groups.length ? (
+          <CountedSquares groups={groups} ids={["S14", "S15", "D18"]} />
+        ) : undefined,
+      chips: cmp.S16
+        ? [
+            {
+              label: "Median",
+              text: `${percent(cmp.S16.median)} across ${count(
+                cmp.S16.population,
+              )} graded borrowers.`,
+            },
+            {
+              label: "All borrowers",
+              text: rankPhrase(cmp.S16, "borrowers"),
+              chart: rankChart(cmp.S16, "borrowers"),
+            },
+          ]
+        : [],
       meaning:
-        book === undefined
-          ? "None of this borrower's markets has taken deposits yet."
-          : `Across ${count(
-              markets,
-            )} markets the borrower held the cash its rules require ${percent(
-              book,
-            )} of the time, weighted by how long each market has run. A book grade blends strong and weak markets; you deposit into one market, so judge that one in the table below.`,
+        "Each withdrawal deadline counts once. This is the ratio of funded deadlines to all deadlines, not an average of the market percentages.",
       tells: [
         {
           scope: "borrower",
-          text: "How consistently this borrower keeps the cash their markets require.",
-        },
-        {
-          scope: "borrower",
-          text: "Whether breaking the rules is rare across their book (contract kept).",
-        },
-        {
-          scope: "both",
-          text: "Whether a weak market is the exception or the pattern, from the range.",
+          text: "How often the included markets funded leavers by their deadlines.",
         },
       ],
       doesNotTell:
-        "Which market you would deposit into: an average can hide the weakest market. Read the per-market table.",
+        "How long a lender waited, or whether missed deadlines are concentrated in one market. Compare the individual markets below.",
     },
   }
 
-  // 3.4 Right now, all markets
   const now = borrowerNow(borrower)
+  const flagged = borrower.markets.filter(
+    (market) =>
+      market.state === "Ok" &&
+      market.values.M77 === "Open" &&
+      (market.values.M21 === 1 || market.values.M85 === 1),
+  )
+  const debtRows: [string, string][] = flagged.map((market) => {
+    const { n: metric, s: text } = reader(market.values)
+    const debt = metric("M07")
+    const asset = text("M02")
+    return [
+      `${market.symbol ?? market.address.slice(0, 10)} total debt`,
+      debt === undefined || !asset
+        ? BLANK.unavailable
+        : `${tokens(debt)} ${asset}`,
+    ]
+  })
+  // One square per open market. In order stays neutral; colour marks the
+  // exceptions, and a market whose state is unavailable is only an outline.
+  const stateGroups = [
+    {
+      count: now.open - now.unknown - now.late,
+      color: GD.ghost,
+      label: "In order",
+    },
+    {
+      count: now.late - now.past,
+      color: GD.withinGrace,
+      label: "Within grace",
+    },
+    { count: now.past, color: GD.pastAllowance, label: "Penalty active" },
+    {
+      count: now.unknown,
+      color: GD.muted,
+      label: "State unavailable",
+      outline: true,
+    },
+  ]
+    .filter((group) => group.count > 0)
+    .map((group) => ({
+      ...group,
+      label: `${group.label} ${count(group.count)}`,
+    }))
   const rightNow: RowCard = {
     key: "3.4",
     card: {
       name: "Right now, all markets",
-      help: "The state of every open market at the snapshot block.",
       state: now.state,
       sub: now.sub,
-      comparison: protocol
-        ? `protocol right now: ${count(protocol.lateNow)} of ${count(
-            protocol.openMarkets,
-          )} markets are late`
-        : undefined,
+      chart: stateGroups.length ? (
+        <CountedSquares
+          legend={false}
+          groups={stateGroups}
+          ids={["M21", "M85"]}
+        />
+      ) : undefined,
     },
     panel: {
-      ids: ["S18", "S35", "S36"],
-      question: "Is anything wrong across their markets at this block?",
+      ids: ["S18", "M21", "M85", "M07"],
+      question: "Which markets need attention at this snapshot?",
       formula: [
-        "Each open market is late when the cash it holds is below what its rules require, read at the snapshot block.",
-        now.late
-          ? `${count(now.late)} of ${count(now.open)} open markets are late${
-              now.past
-                ? `, ${count(now.past)} of them past the grace period`
-                : ", all within the grace period"
-            }.`
-          : "No open market is late.",
+        "Each open market is checked for a cash shortage within grace or an active penalty tracker.",
+        now.incomplete
+          ? "Some market states are unavailable; the known states cannot establish an all-clear result."
+          : `${count(now.late)} of ${count(
+              now.open,
+            )} open markets are flagged, including ${count(
+              now.past,
+            )} with an active penalty tracker.`,
       ],
       numbers: [
         ["Open markets", count(now.open)],
-        ["Late now", count(now.late)],
-        [
-          "Owed by markets late within grace",
-          `${tokens(n("S35") ?? 0)} (face value across assets)`,
-        ],
-        [
-          "Owed by markets past grace",
-          `${tokens(n("S36") ?? 0)} (face value across assets)`,
-        ],
+        ["Known flagged markets", count(now.late)],
+        ["Penalty active", count(now.past)],
+        ...debtRows,
       ],
-      chips: protocol
+      chips: borrower.protocol
         ? [
             {
-              label: "protocol right now",
-              text: `${count(protocol.lateNow)} of ${count(
-                protocol.openMarkets,
-              )} open markets are late at this block.`,
+              label: "All markets",
+              text: `${count(borrower.protocol.lateNow)} of ${count(
+                borrower.protocol.openMarkets,
+              )} open protocol markets have a cash shortage or active penalty tracker.`,
             },
           ]
         : [],
-      meaning: now.late
-        ? "Some of this borrower's markets are short of required cash now; check which in the table."
-        : "Nothing is wrong in any of this borrower's markets at this block.",
+      meaning:
+        "A penalty tracker can remain active after cash is restored. Each market's debt remains in its own asset; these amounts are not summed across assets.",
       tells: [
         {
           scope: "borrower",
-          text: "Whether any of their markets needs attention today.",
+          text: "The current flags and the debt of affected markets.",
         },
       ],
       doesNotTell:
-        "Anything about the past: this card is a photograph, and In order, all markets is the record.",
+        "The historical record, or the size of a current cash shortfall. Total debt is not the amount past due.",
     },
   }
 
-  // 3.6 Completed credit cycle
-  const completed = n("S30") ?? 0
-  const verified = n("S33") ?? 0
-  const closedAssets = new Set(
-    borrower.markets
-      .filter((market) => market.values.M77 === "Closed")
-      .map((market) => market.values.M02),
+  const completed = n("S30")
+  const verified = n("S33")
+  const closedMarkets = borrower.markets.filter(
+    (market) => market.state === "Ok" && market.values.M77 === "Closed",
   )
-  const capital = n("S31") ?? 0
-  const oneAsset =
-    closedAssets.size === 1 ? String([...closedAssets][0]) : undefined
-  // Capital leads the card when one asset makes it a single amount.
-  const cycleValue = oneAsset
-    ? `${tokens(capital)} ${oneAsset}`
-    : `${count(completed)} completed`
+  const closedAssets = new Set(closedMarkets.map((market) => market.values.M02))
+  const singleAsset =
+    closedAssets.size === 1 && typeof [...closedAssets][0] === "string"
+      ? String([...closedAssets][0])
+      : undefined
+  const capital = n("S31")
   const cycle: RowCard = {
     key: "3.6",
     card: {
-      name: "Completed credit cycle",
-      help: "Markets this borrower closed after repaying everything owed: the strongest proof on the protocol, because a closure cannot happen until every lender is repaid.",
-      value: completed ? cycleValue : undefined,
-      word: completed ? undefined : BLANK.noneCompleted,
-      sub: completed
-        ? `${oneAsset ? `${count(completed)} completed · ` : ""}${count(
-            verified,
-          )} of ${count(completed)} verified · ${count(n("S34") ?? 0)} clean`
-        : "everything still running",
-      comparison: protocol
-        ? `protocol: ${count(
-            protocol.completedFacilities,
-          )} completed facilities`
+      name: "Completed facilities",
+      value:
+        completed !== undefined && completed > 0 ? count(completed) : undefined,
+      word: completed === 0 ? BLANK.noneCompleted : BLANK.unavailable,
+      sub:
+        completed !== undefined && completed > 0 && verified !== undefined
+          ? `${count(verified)} of ${count(completed)} verified`
+          : undefined,
+      comparison: borrower.protocol
+        ? `${count(borrower.protocol.completedFacilities)} protocol-wide`
         : undefined,
     },
     panel: {
-      ids: ["S31", "S30", "S32", "S33", "S34"],
-      question: "Has this borrower repaid and closed a market in full?",
-      formula: completed
-        ? [
-            `${count(
-              completed,
-            )} markets were closed after everything owed was repaid.`,
-            `${lifeShare(
-              n("S32") ?? 0,
-            )} of the borrower's market-days come from those markets (S32).`,
-            `${count(verified)} of ${count(
-              completed,
-            )} closures pass the check at their closing block: assets at least equal to debts, and not delinquent.`,
-            `${count(n("S34") ?? 0)} closed with no incident open.`,
-          ]
-        : ["No market of this borrower has been closed yet."],
-      numbers: completed
-        ? [
-            [
-              "Capital through completed markets",
-              oneAsset
-                ? `${tokens(capital)} ${oneAsset}`
-                : `${tokens(capital)} (face value across assets)`,
-            ],
-            ["Completed", count(completed)],
-            ["Verified at closure", count(verified)],
-            ["Clean closures", count(n("S34") ?? 0)],
-          ]
-        : [],
-      chips: protocol
-        ? [
-            {
-              label: "protocol",
-              text: `${count(
-                protocol.completedFacilities,
-              )} facilities have been completed across the protocol.`,
-            },
-          ]
-        : [],
-      meaning: completed
-        ? `This borrower has run ${count(
-            completed,
-          )} markets to the end and repaid every lender.`
-        : "None of this borrower's markets has ended yet; absent evidence is not a mark against them.",
+      ids: ["S30", "S31", "S32", "S33", "S34"],
+      question: "How much lending history reached closure?",
+      formula: [
+        completed === undefined
+          ? unavailable
+          : `${count(completed)} funded markets have closed.`,
+        verified === undefined
+          ? unavailable
+          : `${count(verified)} closures have a stored verification check.`,
+      ],
+      numbers: [
+        ["Completed markets", display(completed, count)],
+        ["Verified closures", display(verified, count)],
+        ["Share of market-days completed", display(n("S32"), percent)],
+        ...(singleAsset &&
+        capital !== undefined &&
+        !borrower.partial &&
+        closedMarkets.length === completed
+          ? [
+              [
+                "Lifetime deposits in closed markets",
+                `${tokens(capital)} ${singleAsset}`,
+              ] as [string, string],
+            ]
+          : []),
+      ],
+      chips: [],
+      meaning:
+        "Completion measures facilities that took deposits and later closed. Verification records a separate chain check; lenders can still have funded balances waiting to be claimed.",
       tells: [
         {
           scope: "borrower",
-          text: "Whether this borrower has already repaid lenders in full at the end of a facility.",
+          text: "How many facilities have completed a full lifecycle.",
         },
       ],
       doesNotTell:
-        "Whether they will repay a market that is running now: completion proves only the markets that ended.",
+        "That every lender has claimed their funds, or that the borrower's remaining markets will follow the same path.",
     },
   }
 
-  // 3.8 Discipline
-  const incidents = n("S12") ?? 0
+  const incidents = n("S12")
+  const noFinished =
+    borrower.markets.length > 0 &&
+    borrower.markets.every(
+      (market) => market.state === "Ok" && market.values.M20 === 0,
+    )
+  let cureEvidence: string | undefined
+  if (noFinished) cureEvidence = "No finished incidents"
+  else if (n("D16") !== undefined)
+    cureEvidence = `Typical cure ${hours(n("D16")!)}`
   const discipline: RowCard = {
     key: "3.8",
     card: {
-      name: "Discipline",
-      help: "Late spells across the book: how many, how quickly they are cured and the longest.",
-      value: incidents ? `${count(incidents)} incidents` : undefined,
-      word: incidents ? undefined : BLANK.noIncidents,
-      sub: incidents
-        ? `typical cure ${hours(n("D16") ?? 0)} · longest ${days(
-            n("D15") ?? 0,
-          )}`
-        : undefined,
+      name: "Incident history",
+      value:
+        incidents !== undefined && incidents > 0 ? count(incidents) : undefined,
+      word: incidents === 0 ? BLANK.noIncidents : BLANK.unavailable,
+      sub: cureEvidence,
       comparison: cmp.S12
-        ? `median ${count(cmp.S12.median)} incidents`
+        ? `Median ${count(cmp.S12.median)} incidents`
         : undefined,
     },
     panel: {
-      ids: ["S12", "D16", "S13", "S01", "D15"],
-      question: "How do late spells across the book usually go?",
+      ids: ["S12", "D16", "D15"],
+      question: "How long do cash shortfalls last?",
       formula: [
-        `${count(incidents)} incidents across ${count(
-          markets,
-        )} markets, including any still open.`,
-        `Typical time to cure a finished incident: ${hours(n("D16") ?? 0, 2)}.`,
-        `Longest incident in any market: ${days(n("D15") ?? 0)}.`,
-        `Incidents past the grace period: ${BLANK.countSoon}.`,
+        incidents === undefined
+          ? unavailable
+          : `${count(
+              incidents,
+            )} cash-shortfall incidents across the book, including incidents still open.`,
       ],
       numbers: [
-        ["Incidents", count(incidents)],
-        ["Typical cure", hours(n("D16") ?? 0)],
-        ["Longest", days(n("D15") ?? 0)],
-        ["Past the grace period", BLANK.countSoon],
+        ["Incidents", display(incidents, count)],
+        [
+          "Mean finished-incident duration",
+          noFinished ? "no finished incidents" : display(n("D16"), hours),
+        ],
+        ["Longest incident", display(n("D15"), days)],
       ],
       chips: cmp.S12
         ? [
             {
-              label: "median",
-              text: `Across ${count(
+              label: "Median",
+              text: `${count(cmp.S12.median)} incidents across ${count(
                 cmp.S12.population,
-              )} graded borrowers the median is ${count(
-                cmp.S12.median,
-              )} incidents.`,
+              )} graded borrowers.`,
             },
           ]
         : [],
-      meaning: incidents
-        ? `When this borrower's markets fall short, the typical incident is cured in ${hours(
-            n("D16") ?? 0,
-          )}.`
-        : "None of this borrower's markets has ever been short of required cash.",
+      meaning:
+        "Mean cure time uses finished incidents. The longest duration also includes any cash shortfall still open at the snapshot.",
       tells: [
         {
           scope: "borrower",
-          text: "How quickly this borrower restores the reserve when it slips.",
-        },
-        {
-          scope: "borrower",
-          text: "Whether the worst incident is far beyond the usual one.",
+          text: "The frequency of shortages and the duration of their recovery.",
         },
       ],
       doesNotTell:
-        "How much cash was short, or how many incidents broke the grace period (the breach count is coming soon).",
+        "The money short in each incident, or how many incidents broke contractual rules. Incident counts and rolling penalty time measure different things.",
     },
   }
 
-  // 3.10 Lender breadth
-  const lenders = n("S37") ?? 0
+  const lenders = n("S37")
   const breadth: RowCard = {
     key: "3.10",
     card: {
-      name: "Lender breadth",
-      help: "Distinct wallets that have ever held a market token of this borrower, by deposit or by transfer.",
-      value: `${count(lenders)} lenders`,
-      sub: "ever, across all markets",
-      comparison: cmp.S37 ? `median ${count(cmp.S37.median)}` : undefined,
+      name: "Lenders over time",
+      value: lenders === undefined ? undefined : count(lenders),
+      word: BLANK.unavailable,
+      comparison: cmp.S37 ? `Median ${count(cmp.S37.median)}` : undefined,
     },
     panel: {
       ids: ["S37"],
-      question: "How many lenders have trusted this borrower?",
+      question: "How many wallets have held the borrower's market tokens?",
       formula: [
-        `${count(
-          lenders,
-        )} distinct wallets have held a market token of this borrower, whether they deposited or received it by transfer.`,
+        lenders === undefined
+          ? unavailable
+          : `${count(
+              lenders,
+            )} distinct historical holders, counting each wallet once across the included markets.`,
       ],
       chips: cmp.S37
         ? [
             {
-              label: "median",
-              text: `Across ${count(
+              label: "Median",
+              text: `${count(cmp.S37.median)} holders across ${count(
                 cmp.S37.population,
-              )} graded borrowers the median is ${count(
-                cmp.S37.median,
-              )} lenders.`,
+              )} graded borrowers.`,
             },
           ]
         : [],
-      meaning: `${count(lenders)} lenders have funded this borrower over time.`,
+      meaning:
+        "Historical holders include depositors and wallets that received tokens by transfer.",
       tells: [
         {
           scope: "borrower",
-          text: "How broad this borrower's lender base has been.",
+          text: "The breadth of token ownership over the recorded history.",
         },
       ],
       doesNotTell:
-        "How much each lender holds, or whether several wallets belong to one lender.",
+        "How many remain, how much they hold, or whether several wallets belong to one lender.",
     },
   }
-
-  return { rowA: [inOrder, rightNow, cycle, discipline, breadth] }
+  return {
+    rowA: uniqueFormulas([
+      inOrder,
+      exits,
+      rightNow,
+      cycle,
+      discipline,
+      breadth,
+    ]),
+  }
 }
 
-/** Trouble over time: late share of each market's own life, and direction. */
-export function troubleOverTime(borrower: BorrowerAnalytics) {
+/** Cash shortage and penalty time overlap; show independent measurements. */
+export function troubleOverTime(borrower: BorrowerAnalytics, compact = false) {
   const rows: LateShareRow[] = borrower.markets
-    .filter(
-      (market) =>
-        typeof market.values.H01 === "number" && Number(market.values.H01) > 0,
-    )
-    .map((market) => {
-      const late =
-        (100 * Number(market.values.H02 ?? 0)) / Number(market.values.H01)
-      const past = Math.min(late, Number(market.values.M26 ?? 0))
-      return {
-        label: market.symbol ?? market.address.slice(0, 10),
-        withinGrace: late - past,
-        pastAllowance: past,
-        valueLabel: `${percent(late)} of life late`,
-        tooltip: `${days(Number(market.values.D17 ?? 0))} late over ${count(
-          Number(market.values.M05 ?? 0),
-        )} days (D17); ${lifeShare(past)} past the grace period`,
-      }
+    .flatMap((market) => {
+      const { n } = reader(market.values)
+      const life = n("H01")
+      const late = n("H02")
+      if (
+        market.state !== "Ok" ||
+        life === undefined ||
+        life <= 0 ||
+        late === undefined
+      )
+        return []
+      const lateShare = (100 * late) / life
+      const penaltyShare = n("M26")
+      return [
+        {
+          label: market.symbol ?? market.address.slice(0, 10),
+          lateShare,
+          penaltyShare,
+          valueLabel: `${percent(lateShare)} cash short`,
+          tooltip: `${days(late / 86_400)} cash short over ${days(
+            life / 86_400,
+          )} recorded${
+            penaltyShare === undefined
+              ? ""
+              : `; penalty active ${lifeShare(penaltyShare)} of recorded time`
+          }`,
+        },
+      ]
     })
-    .sort(
-      (left, right) =>
-        right.withinGrace +
-        right.pastAllowance -
-        (left.withinGrace + left.pastAllowance),
-    )
+    .sort((left, right) => right.lateShare - left.lateShare)
   const { n } = reader(borrower.values)
-  const lifetime = n("S05")
+  const lifetime = (n("MARKET_DAYS") ?? 0) > 0 ? n("S05") : undefined
   const trailing = n("S27")
   return {
     concentration: rows.length ? (
-      <LateShareRows rows={rows} ids={["H02", "H01", "M26", "D17"]} />
+      <LateShareRows
+        rows={rows}
+        ids={["H02", "H01", "M26"]}
+        compact={compact}
+      />
     ) : null,
     direction:
       lifetime !== undefined && trailing !== undefined ? (
         <DirectionLine
           from={lifetime}
           to={trailing}
-          fromLabel={`lifetime ${score(lifetime)}`}
-          toLabel={`last 90 days ${score(trailing)}`}
+          fromLabel={`Lifetime ${percent(lifetime)}`}
+          toLabel={`Last 90 days ${percent(trailing)}`}
           ids={["S05", "S27"]}
+          compact={compact}
         />
       ) : null,
   }

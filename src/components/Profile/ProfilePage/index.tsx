@@ -1,7 +1,7 @@
 import * as React from "react"
 import { useEffect, useState } from "react"
 
-import { Box, Divider, Typography } from "@mui/material"
+import { Box, Divider } from "@mui/material"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetServiceAgreementStatus } from "@/app/[locale]/borrower/hooks/useGetServiceAgreementStatus"
@@ -38,13 +38,17 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
 
   const isMobile = useMobileResolution()
 
-  // Borrower Analytics, on the network the page is showing, once published.
+  // Keep preparation and failure states visible, including their retry action.
   const { chainId } = useCurrentNetwork()
-  const { data: analytics } = useBorrowerAnalytics(chainId, profileAddress)
+  const { data: analytics, isError: analyticsError } = useBorrowerAnalytics(
+    chainId,
+    profileAddress,
+  )
   const analyticsBlock =
-    analytics?.status === "ok" ? (
-      <Box display="flex" flexDirection="column" gap="16px">
-        <Typography variant="title3">Analytics</Typography>
+    analytics?.status === "ok" ||
+    analytics?.status === "preparing" ||
+    analyticsError ? (
+      <Box id="analytics" display="flex" flexDirection="column" gap="16px">
         <BorrowerAnalytics chainId={chainId} address={profileAddress} />
       </Box>
     ) : null
