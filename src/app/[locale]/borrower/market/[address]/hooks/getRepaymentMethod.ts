@@ -1,3 +1,4 @@
+import { BaseTransaction } from "@safe-global/safe-apps-sdk"
 import {
   getLensContract,
   getLensV2Contract,
@@ -5,6 +6,8 @@ import {
   MarketVersion,
   TokenAmount,
 } from "@wildcatfi/wildcat-sdk"
+
+import { simulateSafeRepayment } from "./simulateSafeRepayment"
 
 const arithmeticPanicData = `0x4e487b71${"0".repeat(62)}11`
 
@@ -18,7 +21,7 @@ const isArithmeticPanic = (error: unknown) =>
 export async function getRepaymentMethod(
   market: Market,
   amount: TokenAmount,
-  approvalRequired: boolean,
+  approvals: readonly BaseTransaction[] = [],
 ) {
   const { contract } = market
   const blockTag = await contract.provider.getBlockNumber()
@@ -31,28 +34,48 @@ export async function getRepaymentMethod(
 
   const maxBatches = state.unpaidWithdrawalBatchExpiries.length
 
-  // A Safe may approve and repay in one proposal. A standalone repayment
-  // simulation would fail on its existing allowance, so use the fresh quote;
-  // the Safe validates the complete proposal including its approvals.
-  if (approvalRequired) {
-    const assetsAfterRepayment = state.totalAssets.add(amount.raw)
-    const reservedAssets = state.normalizedUnclaimedWithdrawals.add(
-      state.lastAccruedProtocolFees,
-    )
-    return {
-      processUnpaidWithdrawals:
-        maxBatches > 0 && assetsAfterRepayment.gte(reservedAssets),
-      maxBatches,
+  const safeAddress = approvals.length
+    ? await market.signer.getAddress()
+    : undefined
+
+  // With Safe approvals, simulate the entire candidate batch so that pending
+  // withdrawal settlement and rounding see the incoming repayment as well.
+  const simulate = async (batchCount?: number) => {
+    if (safeAddress) {
+      const data =
+        batchCount === undefined
+          ? contract.interface.encodeFunctionData("repay", [amount.raw])
+          : contract.interface.encodeFunctionData(
+              "repayAndProcessUnpaidWithdrawalBatches",
+              [amount.raw, batchCount],
+            )
+      await simulateSafeRepayment(
+        contract.provider,
+        safeAddress,
+        [
+          ...approvals,
+          {
+            to: market.address,
+            value: "0",
+            data,
+          },
+        ],
+        blockTag,
+      )
+    } else if (batchCount === undefined) {
+      await contract.callStatic.repay(amount.raw, { blockTag })
+    } else {
+      await contract.callStatic.repayAndProcessUnpaidWithdrawalBatches(
+        amount.raw,
+        batchCount,
+        { blockTag },
+      )
     }
   }
 
   if (maxBatches > 0) {
     try {
-      await contract.callStatic.repayAndProcessUnpaidWithdrawalBatches(
-        amount.raw,
-        maxBatches,
-        { blockTag },
-      )
+      await simulate(maxBatches)
       return { processUnpaidWithdrawals: true, maxBatches }
     } catch (error) {
       if (!isArithmeticPanic(error)) throw error
@@ -60,22 +83,18 @@ export async function getRepaymentMethod(
       // Confirm the panic occurs even without walking the queue. A panic
       // inside batch processing must not be mistaken for the legacy subtraction.
       try {
-        await contract.callStatic.repayAndProcessUnpaidWithdrawalBatches(
-          amount.raw,
-          0,
-          { blockTag },
-        )
+        await simulate(0)
       } catch (withoutBatchesError) {
         if (!isArithmeticPanic(withoutBatchesError)) throw withoutBatchesError
 
         // The repayment itself must succeed independently at the same block.
-        await contract.callStatic.repay(amount.raw, { blockTag })
+        await simulate()
         return { processUnpaidWithdrawals: false, maxBatches }
       }
       throw error
     }
   }
 
-  await contract.callStatic.repay(amount.raw, { blockTag })
+  await simulate()
   return { processUnpaidWithdrawals: false, maxBatches }
 }

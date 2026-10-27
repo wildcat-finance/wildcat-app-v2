@@ -68,6 +68,12 @@ const marketInterface = new utils.Interface([
 const tokenInterface = new utils.Interface([
   "function approve(address spender, uint256 amount)",
 ])
+const safeInterface = new utils.Interface([
+  "function simulateAndRevert(address targetContract, bytes calldataPayload)",
+])
+const multicallInterface = new utils.Interface([
+  "function aggregate3(tuple(address target, bool allowFailure, bytes callData)[] calls) payable returns (tuple(bool success, bytes returnData)[] results)",
+])
 
 const arithmeticPanic = () =>
   Object.assign(new Error("arithmetic panic"), {
@@ -106,7 +112,7 @@ function setup({ safe = false, approvalRequired = false } = {}) {
     .mockReturnValue(lens as unknown as ReturnType<typeof getLensV2Contract>)
   const getBlockNumber = jest.fn().mockResolvedValue(blockTag)
   const simulateRepay = jest.fn().mockResolvedValue(undefined)
-  const simulateCombined = jest.fn(async (amount: BigNumber) => {
+  const checkCombined = async (amount: BigNumber) => {
     if (
       freshState.totalAssets
         .add(amount)
@@ -118,6 +124,49 @@ function setup({ safe = false, approvalRequired = false } = {}) {
     ) {
       throw arithmeticPanic()
     }
+  }
+  const simulateCombined = jest.fn(checkCombined)
+  const simulateSafeCombined = jest.fn(checkCombined)
+  const simulateSafeRepay = jest.fn().mockResolvedValue(undefined)
+  const simulateSafe = jest.fn(async ({ data }: { data: string }) => {
+    const { calldataPayload } = safeInterface.decodeFunctionData(
+      "simulateAndRevert",
+      data,
+    )
+    const { calls } = multicallInterface.decodeFunctionData(
+      "aggregate3",
+      calldataPayload,
+    )
+    const results = await Promise.all(
+      calls.map(async (call: { target: string; callData: string }) => {
+        try {
+          if (call.target.toLowerCase() === marketAddress) {
+            const { name, args } = marketInterface.parseTransaction({
+              data: call.callData,
+            })
+            if (name === "repay") {
+              await simulateSafeRepay(args.amount)
+            } else {
+              await simulateSafeCombined(args.amount)
+            }
+          }
+          return { success: true, returnData: "0x" }
+        } catch (error) {
+          return {
+            success: false,
+            returnData: (error as { data: string }).data,
+          }
+        }
+      }),
+    )
+    const resultData = multicallInterface.encodeFunctionResult("aggregate3", [
+      results,
+    ])
+    return utils.hexConcat([
+      utils.hexZeroPad("0x01", 32),
+      utils.hexZeroPad(utils.hexlify(utils.hexDataLength(resultData)), 32),
+      resultData,
+    ])
   })
   const marketAccount = {
     account: borrower,
@@ -149,7 +198,7 @@ function setup({ safe = false, approvalRequired = false } = {}) {
       unpaidWithdrawalBatchExpiries: [] as number[],
       contract: {
         interface: marketInterface,
-        provider: { getBlockNumber },
+        provider: { getBlockNumber, call: simulateSafe },
         repay: contractRepay,
         repayAndProcessUnpaidWithdrawalBatches: processBatches,
         callStatic: {
@@ -223,6 +272,9 @@ function setup({ safe = false, approvalRequired = false } = {}) {
     getBlockNumber,
     simulateRepay,
     simulateCombined,
+    simulateSafe,
+    simulateSafeCombined,
+    simulateSafeRepay,
     result,
     token,
     repay,
@@ -380,6 +432,44 @@ describe("useRepay", () => {
     expect(fixture.populateProcessBatches).not.toHaveBeenCalled()
     expect(fixture.processBatches).not.toHaveBeenCalled()
     expect(fixture.setTxHash).toHaveBeenCalledWith(transactionHash)
+    // All three candidates include the approval, preserve the Safe as caller,
+    // and use the same block as the lens read.
+    expect(fixture.simulateSafe).toHaveBeenCalledTimes(3)
+    const candidates = fixture.simulateSafe.mock.calls.map(([request]) => {
+      expect(request).toMatchObject({ from: borrower, to: borrower })
+      const { targetContract, calldataPayload } =
+        safeInterface.decodeFunctionData("simulateAndRevert", request.data)
+      expect(targetContract.toLowerCase()).toBe(
+        "0xca11bde05977b3631167028862be2a173976ca11",
+      )
+      const { calls } = multicallInterface.decodeFunctionData(
+        "aggregate3",
+        calldataPayload,
+      )
+      expect(calls).toHaveLength(2)
+      expect(calls[0].callData).toBe(
+        tokenInterface.encodeFunctionData("approve", [
+          marketAddress,
+          4_000_000,
+        ]),
+      )
+      expect(calls[1].target.toLowerCase()).toBe(marketAddress)
+      return calls[1].callData
+    })
+    expect(candidates).toEqual([
+      marketInterface.encodeFunctionData(
+        "repayAndProcessUnpaidWithdrawalBatches",
+        [4_000_000, 1],
+      ),
+      marketInterface.encodeFunctionData(
+        "repayAndProcessUnpaidWithdrawalBatches",
+        [4_000_000, 0],
+      ),
+      marketInterface.encodeFunctionData("repay", [4_000_000]),
+    ])
+    fixture.simulateSafe.mock.calls.forEach(([request]) => {
+      expect(fixture.simulateSafe).toHaveBeenCalledWith(request, blockTag)
+    })
   })
 
   it.each([false, true])(
@@ -421,7 +511,7 @@ describe("useRepay", () => {
     },
   )
 
-  it("includes both reserved withdrawals and fees in the Safe routing quote", async () => {
+  it("uses simulated Safe execution instead of cached liquidity", async () => {
     const fixture = setup({ safe: true, approvalRequired: true })
     fixture.freshState.unpaidWithdrawalBatchExpiries = [1]
     fixture.freshState.normalizedUnclaimedWithdrawals =
@@ -440,6 +530,81 @@ describe("useRepay", () => {
     )
   })
 
+  it("falls back when pending-batch rounding invalidates a sufficient Safe quote", async () => {
+    const fixture = setup({ safe: true, approvalRequired: true })
+    fixture.freshState.unpaidWithdrawalBatchExpiries = [1]
+    fixture.freshState.totalAssets = BigNumber.from(0)
+    fixture.freshState.lastAccruedProtocolFees = BigNumber.from(3_999_996)
+    // The payment leaves four units, but expiring-batch settlement reserves
+    // five. Both combined calls panic even though the quote appears sufficient.
+    fixture.simulateSafeCombined.mockRejectedValue(arithmeticPanic())
+
+    await fixture.repay(4_000_000)
+
+    expect(fixture.simulateSafeCombined).toHaveBeenCalledTimes(2)
+    expect(fixture.simulateSafeRepay).toHaveBeenCalledTimes(1)
+    expect(fixture.send).toHaveBeenCalledTimes(1)
+    expect(fixture.send.mock.calls[0][0].txs[1].data).toBe(
+      marketInterface.encodeFunctionData("repay", [4_000_000]),
+    )
+  })
+
+  it("keeps combined Safe repayment when execution succeeds despite an insufficient quote", async () => {
+    const fixture = setup({ safe: true, approvalRequired: true })
+    fixture.freshState.unpaidWithdrawalBatchExpiries = [1]
+    fixture.simulateSafeCombined.mockResolvedValueOnce(undefined)
+
+    await fixture.repay(4_000_000)
+
+    expect(fixture.simulateSafe).toHaveBeenCalledTimes(1)
+    expect(fixture.send.mock.calls[0][0].txs[1].data).toBe(
+      marketInterface.encodeFunctionData(
+        "repayAndProcessUnpaidWithdrawalBatches",
+        [4_000_000, 1],
+      ),
+    )
+  })
+
+  it("rejects a Safe batch-loop panic without attempting ordinary repayment", async () => {
+    const fixture = setup({ safe: true, approvalRequired: true })
+    fixture.freshState.unpaidWithdrawalBatchExpiries = [1]
+    fixture.simulateSafeCombined
+      .mockRejectedValueOnce(arithmeticPanic())
+      .mockResolvedValueOnce(undefined)
+
+    await expect(fixture.repay(4_000_000)).rejects.toMatchObject({
+      data: arithmeticPanic().data,
+    })
+
+    expect(fixture.simulateSafeRepay).not.toHaveBeenCalled()
+    expect(fixture.send).not.toHaveBeenCalled()
+  })
+
+  it("requires the fallback Safe repayment to succeed", async () => {
+    const fixture = setup({ safe: true, approvalRequired: true })
+    fixture.freshState.unpaidWithdrawalBatchExpiries = [1]
+    fixture.simulateSafeRepay.mockRejectedValueOnce({ data: "0xdeadbeef" })
+
+    await expect(fixture.repay(4_000_000)).rejects.toMatchObject({
+      data: "0xdeadbeef",
+    })
+
+    expect(fixture.send).not.toHaveBeenCalled()
+  })
+
+  it("does not fall back or submit when Safe simulation is unavailable", async () => {
+    const fixture = setup({ safe: true, approvalRequired: true })
+    fixture.freshState.unpaidWithdrawalBatchExpiries = [1]
+    fixture.simulateSafe.mockRejectedValueOnce(new Error("RPC unavailable"))
+
+    await expect(fixture.repay(4_000_000)).rejects.toThrow(
+      "Could not simulate Safe approval and repayment",
+    )
+
+    expect(fixture.simulateSafe).toHaveBeenCalledTimes(1)
+    expect(fixture.send).not.toHaveBeenCalled()
+  })
+
   it("keeps a required allowance reset before approval and repayment in the Safe proposal", async () => {
     jest.mocked(isUSDTLikeToken).mockReturnValue(true)
     const fixture = setup({ safe: true, approvalRequired: true })
@@ -455,6 +620,8 @@ describe("useRepay", () => {
       marketInterface.encodeFunctionData("repay", [4_000_000]),
     ])
     expect(fixture.populateProcessBatches).not.toHaveBeenCalled()
+    expect(fixture.simulateSafe).toHaveBeenCalledTimes(1)
+    expect(fixture.simulateSafeRepay).toHaveBeenCalledTimes(1)
   })
 
   it("submits only repayment for an already approved Safe and resolves its execution hash", async () => {

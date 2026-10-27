@@ -100,7 +100,7 @@ export const useRepay = (
           await getRepaymentMethod(
             marketAccount.market,
             amount,
-            gnosisTransactions.length > 0,
+            gnosisTransactions,
           )
         if (gnosisTransactions.length) {
           gnosisTransactions.push(
