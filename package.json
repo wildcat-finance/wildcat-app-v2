@@ -19,6 +19,7 @@
     "check:exact-versions": "node scripts/check-exact-versions.mjs",
     "record:export-fixture": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"CommonJS\",\"moduleResolution\":\"node\"}' ts-node --transpile-only scripts/record-export-fixtures.ts",
     "build:glassdoor-reference": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"CommonJS\",\"moduleResolution\":\"node\"}' ts-node --transpile-only scripts/build-glassdoor-reference.ts",
+    "glassdoor:update": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"CommonJS\",\"moduleResolution\":\"node\"}' ts-node --transpile-only scripts/glassdoor-update.ts",
     "prepare": "husky"
   },
   "dependencies": {

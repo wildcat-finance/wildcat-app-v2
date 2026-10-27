@@ -9,6 +9,14 @@
     {
       "path": "/api/export/reconcile",
       "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/glassdoor/cron/update",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/glassdoor/cron/audit",
+      "schedule": "40 3 * * *"
     }
   ]
 }
