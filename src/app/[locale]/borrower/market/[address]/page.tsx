@@ -12,6 +12,8 @@ import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/comp
 import { WrapDebtToken } from "@/app/[locale]/borrower/market/[address]/components/WrapDebtToken"
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
+import { useMarketAnalytics } from "@/components/GlassDoor/api"
+import { MarketAnalytics } from "@/components/GlassDoor/MarketAnalytics"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
@@ -24,7 +26,10 @@ import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useWrapperForMarket } from "@/hooks/wrapper/useWrapperForMarket"
 import { ROUTES } from "@/routes"
 import { useAppDispatch } from "@/store/hooks"
-import { hideDescriptionSection } from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
+import {
+  hideAnalyticsSection,
+  hideDescriptionSection,
+} from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
 import {
   resetPageState,
   setCheckBlock,
@@ -88,6 +93,16 @@ export default function MarketDetails({
   const canInteract = holdTheMarket && !isDifferentChain
 
   const { checked } = useScrollHandler()
+
+  // The Analytics section appears once this market has a published record.
+  const { data: analytics } = useMarketAnalytics(
+    market?.chainId,
+    market?.address,
+  )
+  const hasAnalytics = analytics?.status === "ok"
+  useEffect(() => {
+    dispatch(hideAnalyticsSection(!hasAnalytics))
+  }, [hasAnalytics, dispatch])
 
   const [prevURL, setPrevURL] = useState<string | null>(null)
   const { data: marketMla, isLoading: isLoadingMarketMla } = useMarketMla(
@@ -243,7 +258,7 @@ export default function MarketDetails({
             width: "100%",
             overflow: "hidden",
             overflowY: "visible",
-            padding: "0 32.3% 24px 44px",
+            padding: checked === 9 ? "0 44px 24px 44px" : "0 32.3% 24px 44px",
             height: `calc(100vh - ${pageCalcHeights.market}${
               isDifferentChain ? " - 130px" : ""
             })`,
@@ -375,6 +390,22 @@ export default function MarketDetails({
                 isWrapperLoading={isWrapperLoading}
                 isWrapperError={isWrapperError}
                 onRetryWrapper={refetchWrapper}
+              />
+            </Box>
+          )}
+          {checked === 9 && (
+            <Box
+              sx={SlideContentContainer}
+              marginTop="12px"
+              display="flex"
+              flexDirection="column"
+              gap="16px"
+            >
+              <Typography variant="title3">Analytics</Typography>
+              <MarketAnalytics
+                chainId={market.chainId}
+                address={market.address}
+                borrowerAddress={market.borrower}
               />
             </Box>
           )}

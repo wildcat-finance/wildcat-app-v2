@@ -10,6 +10,7 @@ import {
 } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
+import AnalyticsIcon from "@/assets/icons/analytics_icon.svg"
 import BorrowAndRepayIcon from "@/assets/icons/borrowAndRepay_icon.svg"
 import LenderBorrowerIcon from "@/assets/icons/lenderBorrower_icon.svg"
 import MarketEventsIcon from "@/assets/icons/marketEvents_icon.svg"
@@ -52,6 +53,10 @@ export const LenderMarketSidebar = () => {
 
   const hideDescriptionSection = useAppSelector(
     (state) => state.hideMarketSections.description,
+  )
+
+  const hideAnalyticsSection = useAppSelector(
+    (state) => state.hideMarketSections.analytics,
   )
 
   return (
@@ -129,6 +134,28 @@ export const LenderMarketSidebar = () => {
               </SvgIcon>
               {t("lenderMarketDetails.sidebar.status")}
             </Button>
+
+            {!hideAnalyticsSection && (
+              <Button
+                variant="text"
+                size="medium"
+                onClick={() =>
+                  handleChangeSection(LenderMarketSections.ANALYTICS)
+                }
+                sx={{
+                  ...MenuItemButton,
+                  backgroundColor:
+                    currentSection === LenderMarketSections.ANALYTICS
+                      ? COLORS.whiteSmoke
+                      : "transparent",
+                }}
+              >
+                <SvgIcon sx={{ marginRight: "10px" }}>
+                  <AnalyticsIcon />
+                </SvgIcon>
+                {t("lenderMarketDetails.sidebar.analytics")}
+              </Button>
+            )}
 
             {!hideDescriptionSection && (
               <Button

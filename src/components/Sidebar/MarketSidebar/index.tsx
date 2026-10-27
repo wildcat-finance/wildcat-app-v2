@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { TerminateMarket } from "@/app/[locale]/borrower/market/[address]/components/Modals/TerminateMarket"
+import AnalyticsIcon from "@/assets/icons/analytics_icon.svg"
 import BorrowAndRepayIcon from "@/assets/icons/borrowAndRepay_icon.svg"
 import CollateralContractIcon from "@/assets/icons/collateralContract_icon.svg"
 import LenderBorrowerIcon from "@/assets/icons/lenderBorrower_icon.svg"
@@ -55,6 +56,12 @@ export const MarketSidebar = () => {
   const hideDescriptionSection = useAppSelector(
     (state) => state.hideMarketSections.description,
   )
+
+  const hideAnalyticsSection = useAppSelector(
+    (state) => state.hideMarketSections.analytics,
+  )
+
+  const checked = useAppSelector((state) => state.highlightSidebar.checked)
 
   const holdTheMarket =
     market?.borrower.toLowerCase() === walletAddress?.toLowerCase()
@@ -318,6 +325,38 @@ export const MarketSidebar = () => {
             </SvgIcon>
             {t("borrowerMarketDetails.sidebar.marketHistory")}
           </Button>
+
+          {!hideAnalyticsSection && (
+            <Button
+              variant="text"
+              size="medium"
+              sx={{
+                ...MenuItemButton,
+                backgroundColor:
+                  checked === 9 ? COLORS.whiteSmoke : "transparent",
+              }}
+              onClick={() => {
+                dispatch(setCheckBlock(9))
+                dispatch(
+                  setSidebarHighlightState({
+                    borrowRepay: false,
+                    statusDetails: false,
+                    marketSummary: false,
+                    withdrawals: false,
+                    lenders: false,
+                    mla: false,
+                    marketHistory: false,
+                    tokenWrapper: false,
+                  }),
+                )
+              }}
+            >
+              <SvgIcon sx={{ marginRight: "10px" }}>
+                <AnalyticsIcon />
+              </SvgIcon>
+              {t("borrowerMarketDetails.sidebar.analytics")}
+            </Button>
+          )}
         </Box>
 
         {holdTheMarket && (

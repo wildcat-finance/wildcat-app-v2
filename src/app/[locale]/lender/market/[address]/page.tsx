@@ -30,6 +30,8 @@ import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
 import { Footer } from "@/components/Footer"
+import { useMarketAnalytics } from "@/components/GlassDoor/api"
+import { MarketAnalytics } from "@/components/GlassDoor/MarketAnalytics"
 import { ConnectWalletDialog } from "@/components/Header/HeaderButton/ConnectWalletDialog"
 import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"
@@ -48,7 +50,10 @@ import { useWrapperBalances } from "@/hooks/wrapper/useWrapperBalances"
 import { useWrapperForMarket } from "@/hooks/wrapper/useWrapperForMarket"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { hideDescriptionSection } from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
+import {
+  hideAnalyticsSection,
+  hideDescriptionSection,
+} from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
 import {
   LenderMarketSections,
   setIsLender,
@@ -71,8 +76,10 @@ import { WrapDebtToken } from "./components/WrapDebtToken"
 import { useBorrowerPenaltyWarning } from "./hooks/useBorrowerPenaltyWarning"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import {
+  AnalyticsContainer,
   LenderBannerWrapper,
   MarketContentColumn,
+  MobileAnalyticsContainer,
   SectionContainer,
   SkeletonContainer,
   SkeletonStyle,
@@ -368,6 +375,16 @@ export default function LenderMarketDetails({
   )
 
   const isMobile = useMobileResolution()
+
+  // The Analytics section appears once this market has a published record.
+  const { data: analytics } = useMarketAnalytics(
+    market?.chainId,
+    market?.address,
+  )
+  const hasAnalytics = analytics?.status === "ok"
+  useEffect(() => {
+    dispatch(hideAnalyticsSection(!hasAnalytics))
+  }, [hasAnalytics, dispatch])
 
   const { data: mla, isLoading: mlaLoading } = useMarketMla(
     market?.address,
@@ -679,6 +696,19 @@ export default function LenderMarketDetails({
             />
           </Box>
 
+          {hasAnalytics && (
+            <Box id="analytics" sx={MobileAnalyticsContainer}>
+              <Typography variant="mobH3">
+                {t("lenderMarketDetails.sidebar.analytics")}
+              </Typography>
+              <MarketAnalytics
+                chainId={market.chainId}
+                address={market.address}
+                borrowerAddress={market.borrower}
+              />
+            </Box>
+          )}
+
           <Box id="requests">
             <WithdrawalRequests
               withdrawals={withdrawals}
@@ -825,7 +855,31 @@ export default function LenderMarketDetails({
           <BorrowerPenaltyWarning />
         )}
 
-        <Box sx={SectionContainer(theme)}>
+        <Box
+          sx={
+            currentSection === LenderMarketSections.ANALYTICS
+              ? AnalyticsContainer(theme)
+              : SectionContainer(theme)
+          }
+        >
+          {currentSection === LenderMarketSections.ANALYTICS && (
+            <Box
+              marginTop="12px"
+              display="flex"
+              flexDirection="column"
+              gap="16px"
+            >
+              <Typography variant="title3">
+                {t("lenderMarketDetails.sidebar.analytics")}
+              </Typography>
+              <MarketAnalytics
+                chainId={market.chainId}
+                address={market.address}
+                borrowerAddress={market.borrower}
+              />
+            </Box>
+          )}
+
           {currentSection === LenderMarketSections.TRANSACTIONS && (
             <Box>
               {isTransactionsLoading ? (

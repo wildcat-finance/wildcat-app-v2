@@ -1,12 +1,15 @@
 import * as React from "react"
 import { useEffect, useState } from "react"
 
-import { Box, Divider } from "@mui/material"
+import { Box, Divider, Typography } from "@mui/material"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetServiceAgreementStatus } from "@/app/[locale]/borrower/hooks/useGetServiceAgreementStatus"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { Footer } from "@/components/Footer"
+import { useBorrowerAnalytics } from "@/components/GlassDoor/api"
+import { BorrowerAnalytics } from "@/components/GlassDoor/BorrowerAnalytics"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { trimAddress } from "@/utils/formatters"
 import { countMarketsInDefault } from "@/utils/marketStatus"
@@ -34,6 +37,17 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
     useGetServiceAgreementStatus(profileAddress)
 
   const isMobile = useMobileResolution()
+
+  // Borrower Analytics, on the network the page is showing, once published.
+  const { chainId } = useCurrentNetwork()
+  const { data: analytics } = useBorrowerAnalytics(chainId, profileAddress)
+  const analyticsBlock =
+    analytics?.status === "ok" ? (
+      <Box display="flex" flexDirection="column" gap="16px">
+        <Typography variant="title3">Analytics</Typography>
+        <BorrowerAnalytics chainId={chainId} address={profileAddress} />
+      </Box>
+    ) : null
 
   const isExternal = type === "external"
   const isLoading = isMarketsLoading || isProfileLoading
@@ -90,6 +104,7 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
               variant="inline"
               showModal={false}
             />
+            {analyticsBlock}
             <ToUStatusBlock
               address={profileAddress}
               status={touStatus}
@@ -128,6 +143,13 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
       </Box>
 
       <Divider sx={{ marginY: "32px" }} />
+
+      {analyticsBlock && (
+        <>
+          {analyticsBlock}
+          <Divider sx={{ marginY: "32px" }} />
+        </>
+      )}
 
       <ToUStatusBlock
         address={profileAddress}

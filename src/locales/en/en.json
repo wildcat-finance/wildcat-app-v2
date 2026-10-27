@@ -334,7 +334,8 @@
       "authorisedLenders": "Lenders",
       "terminateMarket": "Terminate Market",
       "mla": "MLA",
-      "marketHistory": "Market History"
+      "marketHistory": "Market History",
+      "analytics": "Analytics"
     },
     "transactions": {
       "toRepay": {
@@ -1078,7 +1079,8 @@
       "marketHistory": "Market History",
       "borrowerProfile": "About Borrower",
       "description": "Market Description",
-      "wrapDebtToken": "Wrapped Debt Token"
+      "wrapDebtToken": "Wrapped Debt Token",
+      "analytics": "Analytics"
     },
     "buttons": {
       "addToken": "Add Debt Token To Wallet",

@@ -8,6 +8,7 @@ export enum LenderMarketSections {
   MARKET_HISTORY = "marketHistory",
   BORROWER_PROFILE = "borrowerProfile",
   WRAP_DEBT_TOKEN = "wrapDebtToken",
+  ANALYTICS = "analytics",
 }
 
 export type LenderMarketRoutingSliceType = {
