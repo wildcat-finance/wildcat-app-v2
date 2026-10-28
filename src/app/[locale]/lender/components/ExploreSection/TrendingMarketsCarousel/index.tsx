@@ -824,9 +824,6 @@ export const TrendingMarketsCarousel = () => {
                   stale={isStale(panelDestinations, destinationsState)}
                   marketSymbol={panelSlot.account.market.marketToken.symbol}
                   aprBips={panelSlot.account.market.annualInterestBips}
-                  withdrawalBatchDuration={
-                    panelSlot.account.market.withdrawalBatchDuration
-                  }
                   onClose={closeComposablePanel}
                 />
               )}
@@ -923,9 +920,6 @@ export const TrendingMarketsCarousel = () => {
                   stale={isStale(panelDestinations, destinationsState)}
                   marketSymbol={panelSlot.account.market.marketToken.symbol}
                   aprBips={panelSlot.account.market.annualInterestBips}
-                  withdrawalBatchDuration={
-                    panelSlot.account.market.withdrawalBatchDuration
-                  }
                   closeVariant="close"
                   onClose={closeComposablePanel}
                 />

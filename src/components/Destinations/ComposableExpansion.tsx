@@ -102,13 +102,11 @@ export const ComposableRowPanel = ({
   rowId,
   marketSymbol,
   aprBips,
-  withdrawalBatchDuration,
   dividerBelow = false,
 }: {
   rowId: string
   marketSymbol: string
   aprBips: number
-  withdrawalBatchDuration: number
   dividerBelow?: boolean
 }) => {
   const { t } = useTranslation()
@@ -180,7 +178,6 @@ export const ComposableRowPanel = ({
                 stale={stale}
                 marketSymbol={marketSymbol}
                 aprBips={aprBips}
-                withdrawalBatchDuration={withdrawalBatchDuration}
                 closeVariant="collapse"
                 onClose={closeAndRefocus}
               />

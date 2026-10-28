@@ -19,9 +19,10 @@ import {
   formatLoopMultiple,
   PLATFORM_LOGOS,
   useDestinationsCopy,
+  useDestinationsDisclaimer,
 } from "./DestinationsPanel"
 import { ExternalLinkGate, type ExternalLinkTarget } from "./ExternalLinkGate"
-import { formatFractionPercent, formatUsdCompact } from "./format"
+import { aprFromApy, formatFractionPercent, formatUsdCompact } from "./format"
 
 const NO_ESCAPE = { escapeValue: false }
 
@@ -112,6 +113,24 @@ const Metric = ({ label, value }: { label: string; value: string }) => (
     <Typography sx={{ ...BODY_TEXT, whiteSpace: "nowrap" }}>{value}</Typography>
   </Box>
 )
+
+const Disclaimer = ({
+  destinations,
+  padding,
+}: {
+  destinations: Destination[]
+  padding?: string
+}) => {
+  const disclaimer = useDestinationsDisclaimer(destinations)
+
+  return (
+    <Typography
+      sx={{ ...SMALL_TEXT, color: COLORS.blackRock, opacity: 0.7, padding }}
+    >
+      {disclaimer}
+    </Typography>
+  )
+}
 
 export type MobileDestinationItemVariant = "section" | "card" | "panel"
 
@@ -252,10 +271,25 @@ export const MobileDestinationItem = ({
         </Box>
       </Box>
 
-      <Box sx={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "flex-start",
+          gap: "8px 12px",
+        }}
+      >
         <Metric
           label={t("destinations.columns.lltv")}
           value={formatFractionPercent(figures.lltv)}
+        />
+        <Metric
+          label={t("destinations.columns.borrowApy")}
+          value={formatFractionPercent(figures.borrowApy)}
+        />
+        <Metric
+          label={t("destinations.columns.borrowApr")}
+          value={formatFractionPercent(aprFromApy(figures.borrowApy))}
         />
         <Metric
           label={t("destinations.columns.borrowableNow")}
@@ -265,7 +299,7 @@ export const MobileDestinationItem = ({
           sx={{
             display: "flex",
             flexDirection: "column",
-            flex: "1 1 0",
+            flex: "1 1 160px",
             minWidth: 0,
             gap: "2px",
           }}
@@ -499,6 +533,8 @@ export const MobileDestinationsList = ({
         </ButtonBase>
       )}
 
+      <Disclaimer destinations={destinations} />
+
       <ExternalLinkGate target={target} onClose={() => setTarget(null)} />
     </>
   )
@@ -510,7 +546,6 @@ export const MobileDestinationsPanel = ({
   stale,
   marketSymbol,
   aprBips,
-  withdrawalBatchDuration,
   onClose,
 }: {
   id?: string
@@ -518,7 +553,6 @@ export const MobileDestinationsPanel = ({
   stale: boolean
   marketSymbol: string
   aprBips: number
-  withdrawalBatchDuration: number
   onClose: () => void
 }) => {
   const { t } = useTranslation()
@@ -527,7 +561,6 @@ export const MobileDestinationsPanel = ({
     destinations,
     stale,
     aprBips,
-    withdrawalBatchDuration,
   })
 
   return (
@@ -642,6 +675,8 @@ export const MobileDestinationsPanel = ({
         onOpen={({ url, urlHost }) => setTarget({ url, host: urlHost })}
       />
 
+      <Disclaimer destinations={destinations} padding="4px 8px 10px" />
+
       <ExternalLinkGate target={target} onClose={() => setTarget(null)} />
     </Box>
   )
@@ -727,6 +762,7 @@ export const MobileComposableBlock = ({
               onOpen={({ url, urlHost }) => setTarget({ url, host: urlHost })}
             />
           </Box>
+          <Disclaimer destinations={destinations} padding="6px 6px 4px" />
         </Box>
       </Collapse>
 

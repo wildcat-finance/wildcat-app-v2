@@ -168,13 +168,13 @@ export const ComposableCardFooter = ({
       ) : (
         <Box
           component="span"
-          aria-hidden={pending || undefined}
+          aria-hidden
           sx={{
             display: "inline-flex",
             alignItems: "center",
             gap: "3px",
             padding: "10px 0 0",
-            visibility: pending ? "hidden" : "visible",
+            visibility: "hidden",
           }}
         >
           {content}

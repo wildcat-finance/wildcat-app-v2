@@ -68,7 +68,6 @@ const MarketLinkRow = (props: GridRowProps) => (
       rowId={props.row.id}
       marketSymbol={props.row.marketTokenSymbol}
       aprBips={props.row.apr}
-      withdrawalBatchDuration={props.row.withdrawalBatchDuration}
       dividerBelow
     />
   </>

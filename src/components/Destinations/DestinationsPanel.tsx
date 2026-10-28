@@ -13,7 +13,6 @@ import Image from "next/image"
 import { useTranslation } from "react-i18next"
 
 import MorphoLogo from "@/assets/companies-icons/morpho_icon.png"
-import BorrowAgainst from "@/assets/icons/borrowAgainst_icon.svg"
 import ChevronSmallUp from "@/assets/icons/chevronSmallUp_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
 import type { Destination } from "@/lib/destinations/types"
@@ -21,18 +20,23 @@ import { COLORS } from "@/theme/colors"
 import { formatBps } from "@/utils/formatters"
 
 import { ExternalLinkGate, type ExternalLinkTarget } from "./ExternalLinkGate"
-import { formatFractionPercent } from "./format"
+import { aprFromApy, formatFractionPercent, formatUsdCompact } from "./format"
 
 const NO_ESCAPE = { escapeValue: false }
 
 export type DestinationRowsVariant = "panel" | "section"
 
+const SECTION_LABEL_CLASS = "DestinationsSection-label"
+
 const COLUMNS: Record<DestinationRowsVariant, string> = {
   panel:
-    "minmax(0, 256fr) minmax(0, 342fr) minmax(0, 117fr) minmax(0, 117fr) minmax(0, 178fr) 103px",
+    "minmax(0, 256fr) minmax(0, 190fr) minmax(0, 100fr) minmax(0, 100fr) minmax(0, 100fr) minmax(0, 117fr) minmax(0, 178fr) 103px",
   section:
-    "minmax(172px, 175fr) minmax(0, 220fr) minmax(0, 99fr) minmax(0, 99fr) minmax(0, 110fr) 103px",
+    "minmax(110px, 180px) minmax(min-content, 200fr) minmax(min-content, 60fr) minmax(min-content, 75fr) minmax(min-content, 75fr) minmax(min-content, 90fr) minmax(min-content, 105fr) 84px",
 }
+
+const SECTION_NARROW_COLUMNS =
+  "minmax(90px, 180px) minmax(min-content, 200fr) minmax(min-content, 60fr) minmax(min-content, 75fr) minmax(min-content, 75fr) minmax(min-content, 90fr) minmax(min-content, 105fr) 76px"
 
 const SUBTLE_CHIP_BG: Record<DestinationRowsVariant, string> = {
   panel: COLORS.whiteSmoke,
@@ -54,13 +58,6 @@ const numberWord = (t: TFunction, value: number) =>
 const capitalize = (value: string) =>
   value.charAt(0).toUpperCase() + value.slice(1)
 
-const formatCycle = (t: TFunction, seconds: number) => {
-  const hours = Math.floor(seconds / 3600)
-  if (hours > 0) return t("destinations.panel.cycleHours", { count: hours })
-  const minutes = Math.max(1, Math.floor(seconds / 60))
-  return t("destinations.panel.cycleMinutes", { count: minutes })
-}
-
 export const formatLoopMultiple = (lltv: number) => {
   const bps = Math.round(lltv * 10_000)
   return bps > 0 && bps < 10_000
@@ -68,13 +65,21 @@ export const formatLoopMultiple = (lltv: number) => {
     : null
 }
 
-const Label = ({ children }: { children: React.ReactNode }) => (
+const Label = ({
+  children,
+  nowrap = false,
+}: {
+  children: React.ReactNode
+  nowrap?: boolean
+}) => (
   <Typography
+    className={nowrap ? SECTION_LABEL_CLASS : undefined}
     sx={{
       fontSize: "11px",
       lineHeight: "16px",
       fontWeight: 500,
       color: COLORS.manate,
+      ...(nowrap && { whiteSpace: "nowrap" }),
     }}
   >
     {children}
@@ -108,6 +113,20 @@ const SmallText = ({
   >
     {children}
   </Typography>
+)
+
+const RouteChip = ({ children }: { children: React.ReactNode }) => (
+  <Box
+    sx={{
+      display: "inline-flex",
+      alignItems: "center",
+      padding: "0 6px",
+      borderRadius: "12px",
+      backgroundColor: COLORS.pinkLace,
+    }}
+  >
+    <SmallText color={COLORS.mediumRedViolet}>{children}</SmallText>
+  </Box>
 )
 
 const Flag = ({
@@ -163,6 +182,47 @@ const DestinationRow = ({
   const { t } = useTranslation()
   const { figures, affiliation } = destination
   const loopMultiple = formatLoopMultiple(figures.lltv)
+  const isSection = variant === "section"
+  const cellAlign = isSection ? "flex-start" : "center"
+
+  const metricCells = [
+    {
+      label: t("destinations.columns.lltv"),
+      value: formatFractionPercent(figures.lltv),
+    },
+    {
+      label: t("destinations.columns.borrowApy"),
+      value: formatFractionPercent(figures.borrowApy),
+    },
+    {
+      label: t("destinations.columns.borrowApr"),
+      value: formatFractionPercent(aprFromApy(figures.borrowApy)),
+    },
+    {
+      label: t("destinations.columns.borrowableNow"),
+      value: formatUsdCompact(figures.availableLiquidityUsd),
+    },
+  ].map(({ label, value }) => (
+    <Box
+      key={label}
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: cellAlign,
+        gap: "8px",
+        padding: isSection ? "12px 8px 10px 0" : "12px 0 10px",
+      }}
+    >
+      <Label nowrap={isSection}>{label}</Label>
+      <Typography
+        variant="text3"
+        color={COLORS.blackRock}
+        sx={{ whiteSpace: "nowrap" }}
+      >
+        {value}
+      </Typography>
+    </Box>
+  ))
 
   return (
     <Box
@@ -173,6 +233,14 @@ const DestinationRow = ({
           ? {
               minHeight: "86px",
               borderTop: `1px solid ${COLORS.athensGrey}`,
+              "@container (max-width: 639px)": {
+                gridTemplateColumns: SECTION_NARROW_COLUMNS,
+                [`& .${SECTION_LABEL_CLASS}`]: {
+                  whiteSpace: "normal",
+                  minHeight: "32px",
+                },
+                "& > :last-of-type": { paddingLeft: "12px" },
+              },
             }
           : {
               minHeight: "66px",
@@ -231,7 +299,7 @@ const DestinationRow = ({
             <SmallText>{destination.platformName}</SmallText>
           </Box>
           {destination.curators.length > 0 && (
-            <SmallText opacity={0.7}>
+            <SmallText opacity={0.7} wrap>
               {destination.curators.join(", ")}
             </SmallText>
           )}
@@ -242,14 +310,13 @@ const DestinationRow = ({
         sx={{
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center",
+          justifyContent: cellAlign,
           gap: "8px",
-          padding:
-            variant === "section" ? "12px 8px 10px 0" : "12px 20px 10px 0",
-          minWidth: 0,
+          padding: isSection ? "12px 8px 10px 0" : "12px 20px 10px 0",
+          minWidth: isSection ? undefined : 0,
         }}
       >
-        <Label>{t("destinations.columns.type")}</Label>
+        <Label nowrap={isSection}>{t("destinations.columns.type")}</Label>
         <Box
           sx={{
             display: "flex",
@@ -258,31 +325,12 @@ const DestinationRow = ({
             gap: "2px",
           }}
         >
-          <Box
-            sx={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "2px",
-              maxWidth: "100%",
-              padding: "0 6px 0 4px",
-              borderRadius: "12px",
-              backgroundColor: COLORS.pinkLace,
-            }}
-          >
-            <SvgIcon
-              viewBox="0 0 12 12"
-              sx={{ fontSize: "12px", flexShrink: 0 }}
-            >
-              <BorrowAgainst />
-            </SvgIcon>
-            <SmallText color={COLORS.mediumRedViolet} wrap>
-              {t(`destinations.route.${destination.route}`)}
-              {loopMultiple &&
-                ` ・${t("destinations.panel.loopable", {
-                  multiple: loopMultiple,
-                })}`}
-            </SmallText>
-          </Box>
+          <RouteChip>{t(`destinations.route.${destination.route}`)}</RouteChip>
+          {loopMultiple && (
+            <RouteChip>
+              {t("destinations.panel.loopable", { multiple: loopMultiple })}
+            </RouteChip>
+          )}
           <Box
             sx={{
               display: "inline-flex",
@@ -295,7 +343,7 @@ const DestinationRow = ({
             }}
           >
             <SmallText wrap>
-              {variant === "section"
+              {isSection
                 ? t("destinations.panel.tokenRequired", {
                     symbol: destination.token.symbol,
                     interpolation: NO_ESCAPE,
@@ -306,44 +354,19 @@ const DestinationRow = ({
         </Box>
       </Box>
 
-      {[
-        {
-          label: t("destinations.columns.lltv"),
-          value: formatFractionPercent(figures.lltv),
-        },
-        {
-          label: t("destinations.columns.borrowApy"),
-          value: formatFractionPercent(figures.borrowApy),
-        },
-      ].map(({ label, value }) => (
-        <Box
-          key={label}
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            gap: "8px",
-            padding: "12px 0 10px",
-          }}
-        >
-          <Label>{label}</Label>
-          <Typography variant="text3" color={COLORS.blackRock}>
-            {value}
-          </Typography>
-        </Box>
-      ))}
+      {metricCells}
 
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center",
+          justifyContent: cellAlign,
           gap: "8px",
-          padding: "12px 0 10px",
-          minWidth: 0,
+          padding: isSection ? "12px 8px 10px 0" : "12px 0 10px",
+          minWidth: isSection ? undefined : 0,
         }}
       >
-        <Label>{t("destinations.columns.riskFlag")}</Label>
+        <Label nowrap={isSection}>{t("destinations.columns.riskFlag")}</Label>
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: "2px" }}>
           {affiliation.kind === "affiliated" && (
             <Flag
@@ -378,7 +401,7 @@ const DestinationRow = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "flex-end",
-          padding: "12px 0 12px 24px",
+          padding: isSection ? "12px 0 12px 16px" : "12px 0 12px 24px",
         }}
       >
         <Button
@@ -424,7 +447,16 @@ export const DestinationRows = ({
   const [target, setTarget] = React.useState<ExternalLinkTarget | null>(null)
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        ...(variant === "section" && {
+          overflowX: "auto",
+          containerType: "inline-size",
+        }),
+      }}
+    >
       {destinations.map((destination) => (
         <DestinationRow
           key={destination.id}
@@ -438,18 +470,33 @@ export const DestinationRows = ({
   )
 }
 
+export const useDestinationsDisclaimer = (destinations: Destination[]) => {
+  const { t, i18n } = useTranslation()
+  const platforms = Array.from(new Set(destinations.map((d) => d.platformName)))
+  const routes = Array.from(new Set(destinations.map((d) => d.route)))
+
+  return [
+    t("destinations.panel.disclaimer", {
+      platform: new Intl.ListFormat(i18n.language, {
+        type: "conjunction",
+      }).format(platforms),
+      interpolation: NO_ESCAPE,
+    }),
+    ...routes.map((route) => t(`destinations.routeRisk.${route}`)),
+  ].join(" ")
+}
+
 export const useDestinationsCopy = ({
   destinations,
   stale,
   aprBips,
-  withdrawalBatchDuration,
 }: {
   destinations: Destination[]
   stale: boolean
   aprBips: number
-  withdrawalBatchDuration: number
 }) => {
   const { t } = useTranslation()
+  const disclaimer = useDestinationsDisclaimer(destinations)
   const routeCount = new Set(destinations.map((d) => d.route)).size
   const borrowsAgainst = destinations.some((d) => d.route === "BORROW_AGAINST")
 
@@ -472,14 +519,7 @@ export const useDestinationsCopy = ({
     .filter(Boolean)
     .join(" ")
 
-  const footer = [
-    stale && t("destinations.panel.stale"),
-    t("destinations.panel.disclaimer"),
-    borrowsAgainst &&
-      t("destinations.panel.liquidationRisk", {
-        cycle: formatCycle(t, withdrawalBatchDuration),
-      }),
-  ]
+  const footer = [stale && t("destinations.panel.stale"), disclaimer]
     .filter(Boolean)
     .join(" ")
 
@@ -491,7 +531,6 @@ export type DestinationsPanelProps = {
   stale: boolean
   marketSymbol: string
   aprBips: number
-  withdrawalBatchDuration: number
   closeVariant: "collapse" | "close"
   onClose: () => void
 }
@@ -501,7 +540,6 @@ export const DestinationsPanel = ({
   stale,
   marketSymbol,
   aprBips,
-  withdrawalBatchDuration,
   closeVariant,
   onClose,
 }: DestinationsPanelProps) => {
@@ -510,7 +548,6 @@ export const DestinationsPanel = ({
     destinations,
     stale,
     aprBips,
-    withdrawalBatchDuration,
   })
 
   return (

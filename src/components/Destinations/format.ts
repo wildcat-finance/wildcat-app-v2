@@ -12,4 +12,7 @@ export const formatFractionPercent = (fraction: number | null) =>
     ? "—"
     : `${formatBps(fraction * 10_000)}%`
 
+export const aprFromApy = (apy: number | null) =>
+  apy === null || !Number.isFinite(apy) ? null : Math.log1p(apy)
+
 export const formatUsdCompact = (amountUsd: number) => usd.format(amountUsd)

@@ -556,7 +556,6 @@ export default function LenderMarketDetails({
                 marketAddress={market.address}
                 marketSymbol={market.marketToken.symbol}
                 aprBips={market.annualInterestBips}
-                withdrawalBatchDuration={market.withdrawalBatchDuration}
               />
             </Box>
           )}
@@ -795,7 +794,6 @@ export default function LenderMarketDetails({
               marketAddress={market.address}
               marketSymbol={market.marketToken.symbol}
               aprBips={market.annualInterestBips}
-              withdrawalBatchDuration={market.withdrawalBatchDuration}
             />
           )}
           {currentSection === LenderMarketSections.WRAP_DEBT_TOKEN && (

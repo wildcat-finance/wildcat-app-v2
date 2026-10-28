@@ -16,7 +16,6 @@ type MarketDestinationsSectionProps = {
   marketAddress: string
   marketSymbol: string
   aprBips: number
-  withdrawalBatchDuration: number
 }
 
 const DesktopSectionBody = ({
@@ -24,20 +23,17 @@ const DesktopSectionBody = ({
   stale,
   marketSymbol,
   aprBips,
-  withdrawalBatchDuration,
 }: {
   destinations: Destination[]
   stale: boolean
   marketSymbol: string
   aprBips: number
-  withdrawalBatchDuration: number
 }) => {
   const { t } = useTranslation()
   const { summary, footer } = useDestinationsCopy({
     destinations,
     stale,
     aprBips,
-    withdrawalBatchDuration,
   })
 
   return (
@@ -95,7 +91,6 @@ export const MarketDestinationsSection = ({
   marketAddress,
   marketSymbol,
   aprBips,
-  withdrawalBatchDuration,
 }: MarketDestinationsSectionProps) => {
   const { t } = useTranslation()
   const isMobile = useMobileResolution()
@@ -153,7 +148,6 @@ export const MarketDestinationsSection = ({
             stale={stale}
             marketSymbol={marketSymbol}
             aprBips={aprBips}
-            withdrawalBatchDuration={withdrawalBatchDuration}
           />
         )}
       </Box>
