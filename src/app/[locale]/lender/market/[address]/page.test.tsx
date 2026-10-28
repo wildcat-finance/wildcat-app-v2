@@ -589,6 +589,46 @@ describe("lender market authorization loading", () => {
     expect(routing().currentSection).toBe(LenderMarketSections.MARKET_HISTORY)
   })
 
+  describe.each(["switching wallets", "disconnecting"])("%s", (change) => {
+    it.each([
+      [LenderMarketSections.TRANSACTIONS, LenderMarketSections.STATUS],
+      [LenderMarketSections.REQUESTS, LenderMarketSections.STATUS],
+      [LenderMarketSections.WRAP_DEBT_TOKEN, LenderMarketSections.STATUS],
+      [
+        LenderMarketSections.MARKET_HISTORY,
+        LenderMarketSections.MARKET_HISTORY,
+      ],
+    ])("moves the selected %s section to %s", async (section, expected) => {
+      readLive.mockResolvedValueOnce(liveResponse(true))
+      const { store, routing, rerender } = mountPage()
+      await waitFor(() => expect(routing().isLender).toBe(true))
+      act(() => store.dispatch(setSection(section)))
+
+      readLive.mockResolvedValueOnce(liveResponse(false))
+      setWallet(
+        change === "disconnecting"
+          ? undefined
+          : "0x0000000000000000000000000000000000000003",
+      )
+      rerender()
+      await waitFor(() =>
+        expect(
+          screen.getByText(
+            change === "disconnecting"
+              ? "Connect Your Wallet"
+              : "Lend through Wildcat",
+          ),
+        ).toBeTruthy(),
+      )
+      expect(routing()).toMatchObject({
+        isLender: false,
+        currentSection: expected,
+        hasSelectedSection: section === expected,
+      })
+      expect(screen.queryByText("Account actions")).toBeNull()
+    })
+  })
+
   it("shows blocked access separately from an invitation", async () => {
     const response = liveResponse(false)
     response.lenderStatus.isBlockedFromDeposits = true

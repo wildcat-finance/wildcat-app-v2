@@ -35,7 +35,15 @@ const lenderMarketRoutingSlice = createSlice({
       state.hasSelectedSection = true
     },
     setDefaultSection: (state, action: PayloadAction<LenderMarketSections>) => {
-      // Late account reads must not override a section the user selected.
+      const selectedSectionUnavailable =
+        action.payload === LenderMarketSections.STATUS &&
+        [
+          LenderMarketSections.TRANSACTIONS,
+          LenderMarketSections.REQUESTS,
+          LenderMarketSections.WRAP_DEBT_TOKEN,
+        ].includes(state.currentSection)
+      // Preserve the user's choice only while that section remains available.
+      if (selectedSectionUnavailable) state.hasSelectedSection = false
       if (!state.hasSelectedSection) state.currentSection = action.payload
     },
     setIsLoading: (state, action: PayloadAction<boolean>) => {
