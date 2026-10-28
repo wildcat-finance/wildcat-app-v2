@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.22.5](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.22.4...v2.22.5) (2026-10-28)
+
+
+### Bug Fixes
+
+* **app:** flicker, tou cache ([f7a9c85](https://github.com/wildcat-finance/wildcat-app-v2/commit/f7a9c85b37f8c34436f7c901fa3d300fb7324d6f))
+* stale tou cache ([7743694](https://github.com/wildcat-finance/wildcat-app-v2/commit/7743694475537739031b9a2d575b8955445ee67d))
+* unavailable lender tab fallback ([f7b7318](https://github.com/wildcat-finance/wildcat-app-v2/commit/f7b731853f7662e4644cbe0aa9b79c71da83efcf))
+
 ## [2.22.4](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.22.3...v2.22.4) (2026-10-27)
 
 
