@@ -134,4 +134,24 @@ describe("MarketHeader", () => {
 
     expect(screen.getByTestId("mobile-more")).not.toBeNull()
   })
+  it.each([false, true])(
+    "shows indexed identity with a placeholder for live status (mobile: %s)",
+    (isMobile) => {
+      jest.mocked(useMobileResolution).mockReturnValue(isMobile)
+      const market = makeMarket(NOW_SECONDS + 3600)
+      const { rerender } = render(
+        <MarketHeader market={market} isLiveMarketReady={false} />,
+      )
+      expect(screen.getByText("Test Market")).toBeTruthy()
+      if (!isMobile) expect(screen.getByText("USDC")).toBeTruthy()
+      expect(screen.getByLabelText("Loading market status")).toBeTruthy()
+      expect(screen.queryByText("Healthy")).toBeNull()
+      expect(screen.queryByTestId("market-cycle")).toBeNull()
+      expect(humanizeDuration).not.toHaveBeenCalled()
+      rerender(<MarketHeader market={market} isLiveMarketReady />)
+      expect(screen.queryByLabelText("Loading market status")).toBeNull()
+      expect(screen.getByText("Healthy")).toBeTruthy()
+      expect(screen.getByTestId("market-cycle")).toBeTruthy()
+    },
+  )
 })
