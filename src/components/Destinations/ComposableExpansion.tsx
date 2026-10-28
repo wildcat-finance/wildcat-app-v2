@@ -166,9 +166,10 @@ export const ComposableRowPanel = ({
             <Box
               role="gridcell"
               id={panelId(rowId)}
-              aria-label={`${t(
-                "destinations.panel.whatYouCanDo",
-              )} ${marketSymbol}`}
+              aria-label={t("destinations.panel.heading", {
+                token: marketSymbol,
+                interpolation: { escapeValue: false },
+              })}
               onKeyDown={(event) => {
                 if (event.key === "Escape") closeAndRefocus()
               }}

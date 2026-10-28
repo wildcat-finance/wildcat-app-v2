@@ -8,7 +8,6 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material"
-import type { TFunction } from "i18next"
 import Image from "next/image"
 import { useTranslation } from "react-i18next"
 
@@ -30,13 +29,13 @@ const SECTION_LABEL_CLASS = "DestinationsSection-label"
 
 const COLUMNS: Record<DestinationRowsVariant, string> = {
   panel:
-    "minmax(0, 256fr) minmax(0, 190fr) minmax(0, 100fr) minmax(0, 100fr) minmax(0, 100fr) minmax(0, 117fr) minmax(0, 178fr) 103px",
+    "minmax(0, 256fr) minmax(0, 190fr) minmax(0, 100fr) minmax(0, 100fr) minmax(0, 100fr) minmax(0, 117fr) minmax(0, 178fr) max-content",
   section:
-    "minmax(110px, 180px) minmax(min-content, 200fr) minmax(min-content, 60fr) minmax(min-content, 75fr) minmax(min-content, 75fr) minmax(min-content, 90fr) minmax(min-content, 105fr) 84px",
+    "minmax(110px, 180px) minmax(min-content, 200fr) minmax(min-content, 60fr) minmax(min-content, 75fr) minmax(min-content, 75fr) minmax(min-content, 90fr) minmax(min-content, 105fr) max-content",
 }
 
 const SECTION_NARROW_COLUMNS =
-  "minmax(90px, 180px) minmax(min-content, 200fr) minmax(min-content, 60fr) minmax(min-content, 75fr) minmax(min-content, 75fr) minmax(min-content, 90fr) minmax(min-content, 105fr) 76px"
+  "minmax(90px, 180px) minmax(min-content, 200fr) minmax(min-content, 60fr) minmax(min-content, 75fr) minmax(min-content, 75fr) minmax(min-content, 90fr) minmax(min-content, 105fr) max-content"
 
 const SUBTLE_CHIP_BG: Record<DestinationRowsVariant, string> = {
   panel: COLORS.whiteSmoke,
@@ -50,13 +49,32 @@ export const PLATFORM_LOGOS: Record<
   "morpho-blue": MorphoLogo,
 }
 
-const numberWord = (t: TFunction, value: number) =>
-  value >= 1 && value <= 10
-    ? t(`destinations.numberWords.${value}`)
-    : String(value)
+const HEADING_TOKEN_MARK = "\u2063"
 
-const capitalize = (value: string) =>
-  value.charAt(0).toUpperCase() + value.slice(1)
+const formatCurator = (name: string) => {
+  const match = name.match(/^(.+?)\s+by\s+(.+)$/i)
+  return match ? `${match[1]} (${match[2]})` : name
+}
+
+export const formatCurators = (curators: string[]) =>
+  curators.map(formatCurator).join(", ")
+
+export const useDestinationsHeading = (marketSymbol: string) => {
+  const { t } = useTranslation()
+  const [before, after = ""] = t("destinations.panel.heading", {
+    token: HEADING_TOKEN_MARK,
+    interpolation: NO_ESCAPE,
+  }).split(HEADING_TOKEN_MARK)
+
+  return {
+    before: before.trim(),
+    after: after.trim(),
+    label: t("destinations.panel.heading", {
+      token: marketSymbol,
+      interpolation: NO_ESCAPE,
+    }),
+  }
+}
 
 export const formatLoopMultiple = (lltv: number) => {
   const bps = Math.round(lltv * 10_000)
@@ -233,7 +251,7 @@ const DestinationRow = ({
           ? {
               minHeight: "86px",
               borderTop: `1px solid ${COLORS.athensGrey}`,
-              "@container (max-width: 639px)": {
+              "@container (max-width: 679px)": {
                 gridTemplateColumns: SECTION_NARROW_COLUMNS,
                 [`& .${SECTION_LABEL_CLASS}`]: {
                   whiteSpace: "normal",
@@ -300,7 +318,10 @@ const DestinationRow = ({
           </Box>
           {destination.curators.length > 0 && (
             <SmallText opacity={0.7} wrap>
-              {destination.curators.join(", ")}
+              {t("destinations.panel.curatedBy", {
+                curators: formatCurators(destination.curators),
+                interpolation: NO_ESCAPE,
+              })}
             </SmallText>
           )}
         </Box>
@@ -430,7 +451,10 @@ const DestinationRow = ({
                 }
           }
         >
-          {t("destinations.panel.open")}
+          {t("destinations.panel.open", {
+            platform: destination.platformName,
+            interpolation: NO_ESCAPE,
+          })}
         </Button>
       </Box>
     </Box>
@@ -489,29 +513,23 @@ export const useDestinationsDisclaimer = (destinations: Destination[]) => {
 export const useDestinationsCopy = ({
   destinations,
   stale,
+  marketSymbol,
   aprBips,
 }: {
   destinations: Destination[]
   stale: boolean
+  marketSymbol: string
   aprBips: number
 }) => {
   const { t } = useTranslation()
   const disclaimer = useDestinationsDisclaimer(destinations)
-  const routeCount = new Set(destinations.map((d) => d.route)).size
   const borrowsAgainst = destinations.some((d) => d.route === "BORROW_AGAINST")
 
   const summary = [
     t("destinations.panel.summary", {
-      destinations: capitalize(
-        t("destinations.panel.destinationCount", {
-          count: destinations.length,
-          word: numberWord(t, destinations.length),
-        }),
-      ),
-      routes: t("destinations.panel.routeCount", {
-        count: routeCount,
-        word: numberWord(t, routeCount),
-      }),
+      count: destinations.length,
+      token: marketSymbol,
+      interpolation: NO_ESCAPE,
     }),
     borrowsAgainst &&
       t("destinations.panel.carry", { apr: formatBps(aprBips) }),
@@ -544,9 +562,11 @@ export const DestinationsPanel = ({
   onClose,
 }: DestinationsPanelProps) => {
   const { t } = useTranslation()
+  const heading = useDestinationsHeading(marketSymbol)
   const { summary, footer } = useDestinationsCopy({
     destinations,
     stale,
+    marketSymbol,
     aprBips,
   })
 
@@ -588,9 +608,11 @@ export const DestinationsPanel = ({
               flexShrink: 0,
             }}
           >
-            <Typography variant="text3" color={COLORS.blackRock}>
-              {t("destinations.panel.whatYouCanDo")}
-            </Typography>
+            {heading.before && (
+              <Typography variant="text3" color={COLORS.blackRock}>
+                {heading.before}
+              </Typography>
+            )}
             <Box
               sx={{
                 display: "inline-flex",
@@ -612,6 +634,11 @@ export const DestinationsPanel = ({
                 {marketSymbol}
               </Typography>
             </Box>
+            {heading.after && (
+              <Typography variant="text3" color={COLORS.blackRock}>
+                {heading.after}
+              </Typography>
+            )}
           </Box>
           <Typography
             variant="text3"

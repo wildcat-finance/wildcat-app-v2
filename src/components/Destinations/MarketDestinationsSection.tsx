@@ -8,7 +8,11 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 import type { Destination } from "@/lib/destinations/types"
 import { COLORS } from "@/theme/colors"
 
-import { DestinationRows, useDestinationsCopy } from "./DestinationsPanel"
+import {
+  DestinationRows,
+  useDestinationsCopy,
+  useDestinationsHeading,
+} from "./DestinationsPanel"
 import { MobileDestinationsList } from "./MobileDestinationsList"
 
 type MarketDestinationsSectionProps = {
@@ -29,27 +33,27 @@ const DesktopSectionBody = ({
   marketSymbol: string
   aprBips: number
 }) => {
-  const { t } = useTranslation()
+  const heading = useDestinationsHeading(marketSymbol)
   const { summary, footer } = useDestinationsCopy({
     destinations,
     stale,
+    marketSymbol,
     aprBips,
   })
+  const headingTextSx = {
+    fontSize: "20px",
+    lineHeight: "32px",
+    fontWeight: 500,
+    color: COLORS.blackRock,
+  }
 
   return (
     <>
       <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <Typography
-            sx={{
-              fontSize: "20px",
-              lineHeight: "32px",
-              fontWeight: 500,
-              color: COLORS.blackRock,
-            }}
-          >
-            {t("destinations.panel.whatYouCanDo")}
-          </Typography>
+          {heading.before && (
+            <Typography sx={headingTextSx}>{heading.before}</Typography>
+          )}
           <Box
             sx={{
               display: "inline-flex",
@@ -63,6 +67,9 @@ const DesktopSectionBody = ({
               {marketSymbol}
             </Typography>
           </Box>
+          {heading.after && (
+            <Typography sx={headingTextSx}>{heading.after}</Typography>
+          )}
         </Box>
         <Typography
           sx={{

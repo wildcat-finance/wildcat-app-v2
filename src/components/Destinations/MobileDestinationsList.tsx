@@ -16,10 +16,12 @@ import type { Destination } from "@/lib/destinations/types"
 import { COLORS } from "@/theme/colors"
 
 import {
+  formatCurators,
   formatLoopMultiple,
   PLATFORM_LOGOS,
   useDestinationsCopy,
   useDestinationsDisclaimer,
+  useDestinationsHeading,
 } from "./DestinationsPanel"
 import { ExternalLinkGate, type ExternalLinkTarget } from "./ExternalLinkGate"
 import { aprFromApy, formatFractionPercent, formatUsdCompact } from "./format"
@@ -39,6 +41,14 @@ const BODY_TEXT = {
   lineHeight: "20px",
   fontWeight: 500,
   color: COLORS.blackRock,
+}
+
+const PANEL_HEADING_TEXT = {
+  fontSize: "14px",
+  lineHeight: "24px",
+  fontWeight: 500,
+  color: COLORS.blackRock,
+  whiteSpace: "nowrap",
 }
 
 const Chip = ({
@@ -95,6 +105,41 @@ const Chip = ({
     chip
   )
 }
+
+const ChipGroup = ({
+  label,
+  children,
+}: {
+  label: string
+  children: React.ReactNode
+}) => (
+  <Box
+    sx={{
+      display: "flex",
+      flexDirection: "column",
+      flex: "1 1 120px",
+      minWidth: 0,
+      gap: "2px",
+    }}
+  >
+    <Typography
+      sx={{ ...SMALL_TEXT, color: COLORS.manate, whiteSpace: "nowrap" }}
+    >
+      {label}
+    </Typography>
+    <Box
+      sx={{
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "center",
+        gap: "2px",
+        padding: "2px 0",
+      }}
+    >
+      {children}
+    </Box>
+  </Box>
+)
 
 const Metric = ({ label, value }: { label: string; value: string }) => (
   <Box
@@ -156,6 +201,8 @@ export const MobileDestinationItem = ({
   const { figures, affiliation } = destination
   const loopMultiple = formatLoopMultiple(figures.lltv)
   const onTint = variant === "panel"
+  const isAffiliated = affiliation.kind === "affiliated"
+  const hasThinLiquidity = destination.notices.includes("THIN_LIQUIDITY")
 
   const body = (
     <>
@@ -211,7 +258,10 @@ export const MobileDestinationItem = ({
               },
             }}
           >
-            {t("destinations.panel.open")}
+            {t("destinations.panel.open", {
+              platform: destination.platformName,
+              interpolation: NO_ESCAPE,
+            })}
           </ButtonBase>
         </Box>
 
@@ -265,7 +315,10 @@ export const MobileDestinationItem = ({
                 whiteSpace: "nowrap",
               }}
             >
-              {destination.curators.join(", ")}
+              {t("destinations.panel.curatedBy", {
+                curators: formatCurators(destination.curators),
+                interpolation: NO_ESCAPE,
+              })}
             </Typography>
           )}
         </Box>
@@ -295,49 +348,30 @@ export const MobileDestinationItem = ({
           label={t("destinations.columns.borrowableNow")}
           value={formatUsdCompact(figures.availableLiquidityUsd)}
         />
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            flex: "1 1 160px",
-            minWidth: 0,
-            gap: "2px",
-          }}
-        >
-          <Typography
-            sx={{ ...SMALL_TEXT, color: COLORS.manate, whiteSpace: "nowrap" }}
-          >
-            {t("destinations.columns.mechanicsAndRisks")}
-          </Typography>
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              gap: "2px",
-              padding: "2px 0",
-            }}
-          >
+        <ChipGroup label={t("destinations.columns.type")}>
+          <Chip
+            label={t(`destinations.route.${destination.route}`)}
+            background={COLORS.pinkLace}
+            color={COLORS.mediumRedViolet}
+          />
+          {loopMultiple && (
             <Chip
-              label={t(`destinations.route.${destination.route}`)}
+              label={t("destinations.panel.loopable", {
+                multiple: loopMultiple,
+              })}
               background={COLORS.pinkLace}
               color={COLORS.mediumRedViolet}
             />
-            {loopMultiple && (
-              <Chip
-                label={t("destinations.panel.loopable", {
-                  multiple: loopMultiple,
-                })}
-                background={COLORS.pinkLace}
-                color={COLORS.mediumRedViolet}
-              />
-            )}
-            <Chip
-              label={destination.token.symbol}
-              background={onTint ? COLORS.white : COLORS.blackHaze}
-              color={COLORS.blackRock}
-            />
-            {affiliation.kind === "affiliated" && (
+          )}
+          <Chip
+            label={destination.token.symbol}
+            background={onTint ? COLORS.white : COLORS.blackHaze}
+            color={COLORS.blackRock}
+          />
+        </ChipGroup>
+        {(isAffiliated || hasThinLiquidity) && (
+          <ChipGroup label={t("destinations.columns.riskFlag")}>
+            {isAffiliated && (
               <Chip
                 label={t("destinations.riskFlags.affiliated")}
                 background={COLORS.oasis}
@@ -348,7 +382,7 @@ export const MobileDestinationItem = ({
                 })}
               />
             )}
-            {destination.notices.includes("THIN_LIQUIDITY") && (
+            {hasThinLiquidity && (
               <Chip
                 label={t("destinations.riskFlags.thinLiquidity")}
                 background={COLORS.oasis}
@@ -356,8 +390,8 @@ export const MobileDestinationItem = ({
                 tooltip={t("destinations.riskFlags.thinLiquidityTooltip")}
               />
             )}
-          </Box>
-        </Box>
+          </ChipGroup>
+        )}
       </Box>
     </>
   )
@@ -557,9 +591,11 @@ export const MobileDestinationsPanel = ({
 }) => {
   const { t } = useTranslation()
   const [target, setTarget] = React.useState<ExternalLinkTarget | null>(null)
+  const heading = useDestinationsHeading(marketSymbol)
   const { summary } = useDestinationsCopy({
     destinations,
     stale,
+    marketSymbol,
     aprBips,
   })
 
@@ -567,7 +603,7 @@ export const MobileDestinationsPanel = ({
     <Box
       id={id}
       role="region"
-      aria-label={`${t("destinations.panel.whatYouCanDo")} ${marketSymbol}`}
+      aria-label={heading.label}
       onKeyDown={(event) => {
         if (event.key === "Escape") onClose()
       }}
@@ -597,17 +633,9 @@ export const MobileDestinationsPanel = ({
             minWidth: 0,
           }}
         >
-          <Typography
-            sx={{
-              fontSize: "14px",
-              lineHeight: "24px",
-              fontWeight: 500,
-              color: COLORS.blackRock,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {t("destinations.panel.whatYouCanDo")}
-          </Typography>
+          {heading.before && (
+            <Typography sx={PANEL_HEADING_TEXT}>{heading.before}</Typography>
+          )}
           <Box
             component="span"
             sx={{
@@ -632,6 +660,9 @@ export const MobileDestinationsPanel = ({
               {marketSymbol}
             </Typography>
           </Box>
+          {heading.after && (
+            <Typography sx={PANEL_HEADING_TEXT}>{heading.after}</Typography>
+          )}
         </Box>
         <Typography sx={{ ...BODY_TEXT, opacity: 0.8 }}>{summary}</Typography>
         {stale && (

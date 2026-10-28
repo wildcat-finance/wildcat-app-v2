@@ -903,9 +903,10 @@ export const TrendingMarketsCarousel = () => {
               <Box
                 id={TRENDING_PANEL_ID}
                 role="region"
-                aria-label={`${t("destinations.panel.whatYouCanDo")} ${
-                  panelSlot.account.market.marketToken.symbol
-                }`}
+                aria-label={t("destinations.panel.heading", {
+                  token: panelSlot.account.market.marketToken.symbol,
+                  interpolation: { escapeValue: false },
+                })}
                 onKeyDown={(event) => {
                   if (event.key === "Escape") closeComposablePanel()
                 }}
