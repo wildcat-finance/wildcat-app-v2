@@ -31,16 +31,11 @@ const COLUMNS: Record<DestinationRowsVariant, string> = {
   panel:
     "minmax(0, 256fr) minmax(0, 190fr) minmax(0, 100fr) minmax(0, 100fr) minmax(0, 100fr) minmax(0, 117fr) minmax(0, 178fr) max-content",
   section:
-    "minmax(110px, 180px) minmax(min-content, 200fr) minmax(min-content, 60fr) minmax(min-content, 75fr) minmax(min-content, 75fr) minmax(min-content, 90fr) minmax(min-content, 105fr) max-content",
+    "minmax(110px, 180px) minmax(min-content, 200fr) minmax(min-content, 60fr) minmax(min-content, 75fr) minmax(min-content, 75fr) minmax(min-content, 90fr) minmax(min-content, max-content) max-content",
 }
 
 const SECTION_NARROW_COLUMNS =
-  "minmax(90px, 180px) minmax(min-content, 200fr) minmax(min-content, 60fr) minmax(min-content, 75fr) minmax(min-content, 75fr) minmax(min-content, 90fr) minmax(min-content, 105fr) max-content"
-
-const SUBTLE_CHIP_BG: Record<DestinationRowsVariant, string> = {
-  panel: COLORS.whiteSmoke,
-  section: COLORS.blackHaze,
-}
+  "minmax(90px, 180px) minmax(min-content, 200fr) minmax(min-content, 60fr) minmax(min-content, 75fr) minmax(min-content, 75fr) minmax(min-content, 90fr) minmax(min-content, max-content) max-content"
 
 export const PLATFORM_LOGOS: Record<
   Destination["platform"],
@@ -49,7 +44,7 @@ export const PLATFORM_LOGOS: Record<
   "morpho-blue": MorphoLogo,
 }
 
-const HEADING_TOKEN_MARK = "\u2063"
+const TOKEN_MARK = "\u2063"
 
 const formatCurator = (name: string) => {
   const match = name.match(/^(.+?)\s+by\s+(.+)$/i)
@@ -62,9 +57,9 @@ export const formatCurators = (curators: string[]) =>
 export const useDestinationsHeading = (marketSymbol: string) => {
   const { t } = useTranslation()
   const [before, after = ""] = t("destinations.panel.heading", {
-    token: HEADING_TOKEN_MARK,
+    token: TOKEN_MARK,
     interpolation: NO_ESCAPE,
-  }).split(HEADING_TOKEN_MARK)
+  }).split(TOKEN_MARK)
 
   return {
     before: before.trim(),
@@ -76,11 +71,63 @@ export const useDestinationsHeading = (marketSymbol: string) => {
   }
 }
 
-export const formatLoopMultiple = (lltv: number) => {
+const formatLoopMultiple = (lltv: number) => {
   const bps = Math.round(lltv * 10_000)
   return bps > 0 && bps < 10_000
     ? (Math.floor(100_000 / (10_000 - bps)) / 10).toFixed(1)
     : null
+}
+
+type Hint = { label: string; tooltip: string }
+
+export const useDestinationLabels = (destination: Destination) => {
+  const { t } = useTranslation()
+  const { route, token, figures, affiliation, curators, notices } = destination
+  const loopMultiple = formatLoopMultiple(figures.lltv)
+
+  const riskFlags: Hint[] = []
+  if (affiliation.kind === "affiliated") {
+    riskFlags.push({
+      label: t("destinations.riskFlags.affiliated"),
+      tooltip: t("destinations.riskFlags.affiliatedTooltip"),
+    })
+  } else if (curators.length > 0) {
+    riskFlags.push({
+      label: t("destinations.riskFlags.thirdPartyCurator"),
+      tooltip: t("destinations.riskFlags.thirdPartyCuratorTooltip"),
+    })
+  }
+  if (notices.includes("THIN_LIQUIDITY")) {
+    riskFlags.push({
+      label: t("destinations.riskFlags.thinLiquidity"),
+      tooltip: t("destinations.riskFlags.thinLiquidityTooltip"),
+    })
+  }
+
+  return {
+    route: {
+      label: t(`destinations.route.${route}`),
+      tooltip: t(`destinations.routeTooltip.${route}`),
+    },
+    loop: loopMultiple
+      ? {
+          label: t("destinations.panel.loopable", { multiple: loopMultiple }),
+          tooltip: t("destinations.panel.loopableTooltip"),
+        }
+      : null,
+    token: {
+      label: t(`destinations.tokenForm.${token.form}`, {
+        symbol: token.symbol,
+        interpolation: NO_ESCAPE,
+      }),
+      tooltip: t(`destinations.tokenForm.${token.form}Tooltip`),
+      parts: t(`destinations.tokenForm.${token.form}`, {
+        symbol: TOKEN_MARK,
+        interpolation: NO_ESCAPE,
+      }).split(TOKEN_MARK),
+    },
+    riskFlags,
+  }
 }
 
 const Label = ({
@@ -133,30 +180,14 @@ const SmallText = ({
   </Typography>
 )
 
-const RouteChip = ({ children }: { children: React.ReactNode }) => (
-  <Box
-    sx={{
-      display: "inline-flex",
-      alignItems: "center",
-      padding: "0 6px",
-      borderRadius: "12px",
-      backgroundColor: COLORS.pinkLace,
-    }}
-  >
-    <SmallText color={COLORS.mediumRedViolet}>{children}</SmallText>
-  </Box>
-)
-
-const Flag = ({
-  label,
+const HintChip = ({
   tooltip,
-  tone,
-  greyBackground,
+  background,
+  children,
 }: {
-  label: string
   tooltip: string
-  tone: "amber" | "grey"
-  greyBackground: string
+  background: string
+  children: React.ReactNode
 }) => (
   <Tooltip title={tooltip} placement="top" enterTouchDelay={0} describeChild>
     <Box
@@ -169,8 +200,8 @@ const Flag = ({
         minWidth: 0,
         overflow: "hidden",
         padding: "0 6px",
-        borderRadius: tone === "amber" ? "12px" : "20px",
-        backgroundColor: tone === "amber" ? COLORS.oasis : greyBackground,
+        borderRadius: "12px",
+        backgroundColor: background,
         cursor: "help",
         "&:focus-visible": {
           outline: `2px solid ${COLORS.ultramarineBlue}`,
@@ -178,14 +209,25 @@ const Flag = ({
         },
       }}
     >
-      <SmallText
-        color={tone === "amber" ? COLORS.amberText : COLORS.blackRock}
-        ellipsis
-      >
-        {label}
-      </SmallText>
+      {children}
     </Box>
   </Tooltip>
+)
+
+const RouteChip = ({ label, tooltip }: { label: string; tooltip: string }) => (
+  <HintChip tooltip={tooltip} background={COLORS.pinkLace}>
+    <SmallText color={COLORS.mediumRedViolet} ellipsis>
+      {label}
+    </SmallText>
+  </HintChip>
+)
+
+const Flag = ({ label, tooltip }: { label: string; tooltip: string }) => (
+  <HintChip tooltip={tooltip} background={COLORS.oasis}>
+    <SmallText color={COLORS.amberText} wrap>
+      {label}
+    </SmallText>
+  </HintChip>
 )
 
 const DestinationRow = ({
@@ -198,8 +240,8 @@ const DestinationRow = ({
   onOpen: (destination: Destination) => void
 }) => {
   const { t } = useTranslation()
-  const { figures, affiliation } = destination
-  const loopMultiple = formatLoopMultiple(figures.lltv)
+  const { figures } = destination
+  const labels = useDestinationLabels(destination)
   const isSection = variant === "section"
   const cellAlign = isSection ? "flex-start" : "center"
 
@@ -346,32 +388,20 @@ const DestinationRow = ({
             gap: "2px",
           }}
         >
-          <RouteChip>{t(`destinations.route.${destination.route}`)}</RouteChip>
-          {loopMultiple && (
-            <RouteChip>
-              {t("destinations.panel.loopable", { multiple: loopMultiple })}
-            </RouteChip>
-          )}
-          <Box
-            sx={{
-              display: "inline-flex",
-              alignItems: "center",
-              maxWidth: "100%",
-              padding: "0 6px",
-              borderRadius: "20px",
-              backgroundColor:
-                variant === "section" ? COLORS.blackHaze : COLORS.white,
-            }}
+          <RouteChip {...labels.route} />
+          {labels.loop && <RouteChip {...labels.loop} />}
+          <HintChip
+            tooltip={labels.token.tooltip}
+            background={isSection ? COLORS.blackHaze : COLORS.white}
           >
             <SmallText wrap>
-              {isSection
-                ? t("destinations.panel.tokenRequired", {
-                    symbol: destination.token.symbol,
-                    interpolation: NO_ESCAPE,
-                  })
-                : destination.token.symbol}
+              {labels.token.parts[0]}
+              <Box component="span" sx={{ whiteSpace: "nowrap" }}>
+                {destination.token.symbol}
+              </Box>
+              {labels.token.parts[1]}
             </SmallText>
-          </Box>
+          </HintChip>
         </Box>
       </Box>
 
@@ -389,31 +419,11 @@ const DestinationRow = ({
       >
         <Label nowrap={isSection}>{t("destinations.columns.riskFlag")}</Label>
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: "2px" }}>
-          {affiliation.kind === "affiliated" && (
-            <Flag
-              label={t("destinations.riskFlags.affiliated")}
-              tooltip={t("destinations.riskFlags.affiliatedTooltip", {
-                entity: affiliation.entityName,
-                interpolation: NO_ESCAPE,
-              })}
-              tone="amber"
-              greyBackground={SUBTLE_CHIP_BG[variant]}
-            />
+          {labels.riskFlags.length > 0 ? (
+            labels.riskFlags.map((flag) => <Flag key={flag.label} {...flag} />)
+          ) : (
+            <SmallText>—</SmallText>
           )}
-          {destination.notices.includes("THIN_LIQUIDITY") && (
-            <Flag
-              label={t("destinations.riskFlags.thinLiquidity")}
-              tooltip={t("destinations.riskFlags.thinLiquidityTooltip")}
-              tone="amber"
-              greyBackground={SUBTLE_CHIP_BG[variant]}
-            />
-          )}
-          <Flag
-            label={t("destinations.riskFlags.unrated")}
-            tooltip={t("destinations.riskFlags.unratedTooltip")}
-            tone="grey"
-            greyBackground={SUBTLE_CHIP_BG[variant]}
-          />
         </Box>
       </Box>
 

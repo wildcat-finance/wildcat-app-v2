@@ -1731,11 +1731,11 @@
       "summary_other": "{{token}} has {{count}} integrations in DeFi. Third parties run them, not Wildcat.",
       "carry": "This market pays {{apr}}% APR. Compare it with the Borrow APR below.",
       "disclaimer": "Integrations are run by third parties. Rates and liquidity come from {{platform}} and are not quoted or checked by Wildcat.",
-      "loopable": "Loopable {{multiple}}x",
+      "loopable": "Max loop {{multiple}}×",
+      "loopableTooltip": "Maximum leverage if borrowed stablecoins are deposited back into this market, calculated as 1 / (1 − LLTV). Limited by Borrowable now.",
       "open": "Open on {{platform}}",
       "curatedBy": "Curated by {{curators}}",
       "openAria": "Open {{title}} on {{platform}}",
-      "tokenRequired": "{{symbol}} required",
       "collapse": "Hide integrations",
       "close": "Close"
     },
@@ -1748,15 +1748,22 @@
       "borrowableNow": "Borrowable now"
     },
     "riskFlags": {
-      "affiliated": "Affiliated",
-      "affiliatedTooltip": "Most of the liquidity here comes from vaults run by this market's borrower, {{entity}}.",
+      "affiliated": "Run by this borrower",
+      "affiliatedTooltip": "This integration is run or curated by the borrower of this market. Its interests may align with the borrower, not with you.",
+      "thirdPartyCurator": "Third-party curator",
+      "thirdPartyCuratorTooltip": "A third party curates this vault. Wildcat has no relationship with them and does not review how they allocate funds.",
       "thinLiquidity": "Low liquidity",
-      "thinLiquidityTooltip": "Less than $20K is available to borrow right now.",
-      "unrated": "Unrated",
-      "unratedTooltip": "Wildcat hasn't reviewed this platform's risks."
+      "thinLiquidityTooltip": "Less than $20K is available to borrow right now."
     },
     "route": {
-      "BORROW_AGAINST": "Borrow Against"
+      "BORROW_AGAINST": "Borrow against"
+    },
+    "routeTooltip": {
+      "BORROW_AGAINST": "Use your token as collateral. You keep earning the market APR and can borrow stablecoins against it."
+    },
+    "tokenForm": {
+      "wrapper": "Wrap first: {{symbol}}",
+      "wrapperTooltip": "This integration accepts the wrapped version of your market token. You need to wrap it before use."
     },
     "routeRisk": {
       "BORROW_AGAINST": "Your collateral can be liquidated if its value falls below the LLTV."

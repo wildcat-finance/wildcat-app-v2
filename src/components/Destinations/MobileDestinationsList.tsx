@@ -17,8 +17,8 @@ import { COLORS } from "@/theme/colors"
 
 import {
   formatCurators,
-  formatLoopMultiple,
   PLATFORM_LOGOS,
+  useDestinationLabels,
   useDestinationsCopy,
   useDestinationsDisclaimer,
   useDestinationsHeading,
@@ -198,11 +198,9 @@ export const MobileDestinationItem = ({
   openRef?: React.Ref<HTMLButtonElement>
 }) => {
   const { t } = useTranslation()
-  const { figures, affiliation } = destination
-  const loopMultiple = formatLoopMultiple(figures.lltv)
+  const { figures } = destination
+  const labels = useDestinationLabels(destination)
   const onTint = variant === "panel"
-  const isAffiliated = affiliation.kind === "affiliated"
-  const hasThinLiquidity = destination.notices.includes("THIN_LIQUIDITY")
 
   const body = (
     <>
@@ -350,46 +348,34 @@ export const MobileDestinationItem = ({
         />
         <ChipGroup label={t("destinations.columns.type")}>
           <Chip
-            label={t(`destinations.route.${destination.route}`)}
+            {...labels.route}
             background={COLORS.pinkLace}
             color={COLORS.mediumRedViolet}
           />
-          {loopMultiple && (
+          {labels.loop && (
             <Chip
-              label={t("destinations.panel.loopable", {
-                multiple: loopMultiple,
-              })}
+              {...labels.loop}
               background={COLORS.pinkLace}
               color={COLORS.mediumRedViolet}
             />
           )}
           <Chip
-            label={destination.token.symbol}
+            label={labels.token.label}
+            tooltip={labels.token.tooltip}
             background={onTint ? COLORS.white : COLORS.blackHaze}
             color={COLORS.blackRock}
           />
         </ChipGroup>
-        {(isAffiliated || hasThinLiquidity) && (
+        {labels.riskFlags.length > 0 && (
           <ChipGroup label={t("destinations.columns.riskFlag")}>
-            {isAffiliated && (
+            {labels.riskFlags.map((flag) => (
               <Chip
-                label={t("destinations.riskFlags.affiliated")}
+                key={flag.label}
+                {...flag}
                 background={COLORS.oasis}
                 color={COLORS.butteredRum}
-                tooltip={t("destinations.riskFlags.affiliatedTooltip", {
-                  entity: affiliation.entityName,
-                  interpolation: NO_ESCAPE,
-                })}
               />
-            )}
-            {hasThinLiquidity && (
-              <Chip
-                label={t("destinations.riskFlags.thinLiquidity")}
-                background={COLORS.oasis}
-                color={COLORS.butteredRum}
-                tooltip={t("destinations.riskFlags.thinLiquidityTooltip")}
-              />
-            )}
+            ))}
           </ChipGroup>
         )}
       </Box>
