@@ -1,5 +1,7 @@
 import { LenderRole, Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
 
+import type { MarketAccountResolutionStatus } from "@/hooks/useMarketAccount"
+
 import { LenderStatus } from "./interface"
 
 export const getEffectiveLenderRole = (
@@ -28,39 +30,112 @@ export const shouldMarketTriggerBorrowerPenaltyWarning = (market: Market) =>
   market.isIncurringPenalties &&
   getPenaltySecondsPastGrace(market) >= borrowerPenaltyWarningThresholdSeconds
 
-export const shouldShowLenderRequestBanner = ({
+export type LenderSurfaceState =
+  | "connect"
+  | "switch-network"
+  | "authorization-loading"
+  | "authorization-error"
+  | "blocked"
+  | "request-access"
+  | "actions"
+
+export type LenderAccessState =
+  | "resolving"
+  | "error"
+  | "blocked"
+  | "unauthorized"
+  | "authorized"
+
+export const resolveLenderAccessState = ({
+  authoritativeStatus,
+  role,
+}: {
+  authoritativeStatus: MarketAccountResolutionStatus
+  role: LenderStatus | undefined
+}): LenderAccessState => {
+  if (authoritativeStatus === "error") return "error"
+  if (authoritativeStatus !== "resolved") return "resolving"
+  if (role === LenderStatus.Blocked) return "blocked"
+  if (
+    role === LenderStatus.DepositAndWithdraw ||
+    role === LenderStatus.WithdrawOnly
+  ) {
+    return "authorized"
+  }
+  return "unauthorized"
+}
+
+export const getLenderSurfaceState = ({
   isConnected,
   isDifferentChain,
-  authorizedInMarket,
+  accessState,
 }: {
   isConnected: boolean
   isDifferentChain: boolean
-  authorizedInMarket: boolean | undefined
-}) => isConnected && !isDifferentChain && authorizedInMarket === false
+  accessState: LenderAccessState
+}): LenderSurfaceState => {
+  if (!isConnected) return "connect"
+  if (isDifferentChain) return "switch-network"
+  if (accessState === "resolving") return "authorization-loading"
+  if (accessState === "error") return "authorization-error"
+  if (accessState === "blocked") return "blocked"
+  if (accessState === "unauthorized") return "request-access"
+  return "actions"
+}
 
-export const getLenderMarketLoadingState = ({
-  isMarketReady,
-  hasLiveMarket,
-  apiLoading,
-  isDiscoveringChainId,
-  hasMarketAccount,
-  isWithdrawalsLoading,
-  authorizedInMarket,
+export type LenderBannerState =
+  | "none"
+  | "connect"
+  | "authorization-error"
+  | "blocked"
+  | "request-access"
+
+export const getLenderBannerState = ({
+  isWalletHydrated,
+  isConnected,
+  isConnecting,
+  isReconnecting,
   isDifferentChain,
+  accessState,
+  hasLenderTransactions,
+  isWithdrawalActivityLoading,
 }: {
-  isMarketReady: boolean
-  hasLiveMarket: boolean
-  apiLoading: boolean
-  isDiscoveringChainId: boolean
-  hasMarketAccount: boolean
-  isWithdrawalsLoading: boolean
-  authorizedInMarket: boolean
+  isWalletHydrated: boolean
+  isConnected: boolean
+  isConnecting: boolean
+  isReconnecting: boolean
   isDifferentChain: boolean
-}) => ({
-  isPageLoading: !isMarketReady || apiLoading || isDiscoveringChainId,
-  isTransactionsLoading:
-    !hasMarketAccount ||
-    (authorizedInMarket && !isDifferentChain && isWithdrawalsLoading),
-  isBarChartsLoading: !hasMarketAccount || isWithdrawalsLoading,
-  isMarketActionsLoading: !hasLiveMarket,
-})
+  accessState: LenderAccessState
+  hasLenderTransactions: boolean
+  isWithdrawalActivityLoading: boolean
+}): LenderBannerState => {
+  if (!isWalletHydrated || isConnecting || isReconnecting) return "none"
+
+  const surface = getLenderSurfaceState({
+    isConnected,
+    isDifferentChain,
+    accessState,
+  })
+
+  if (surface === "connect") return "connect"
+  if (surface === "authorization-error") return "authorization-error"
+  if (surface === "blocked") return "blocked"
+  if (
+    surface === "request-access" &&
+    !hasLenderTransactions &&
+    !isWithdrawalActivityLoading
+  ) {
+    return "request-access"
+  }
+  return "none"
+}
+
+export const shouldShowLenderTransactions = ({
+  accessState,
+  hasMarketPosition,
+  hasWithdrawalActivity,
+}: {
+  accessState: LenderAccessState
+  hasMarketPosition: boolean
+  hasWithdrawalActivity: boolean
+}) => accessState === "authorized" || hasMarketPosition || hasWithdrawalActivity
