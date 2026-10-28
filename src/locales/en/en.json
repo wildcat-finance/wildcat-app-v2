@@ -1719,17 +1719,16 @@
     }
   },
   "destinations": {
-    "column": "Composable",
-    "chip_one": "{{count}} destination",
-    "chip_other": "{{count}} destinations",
-    "cardToggle": "{{count}} composable",
+    "column": "Composability",
+    "chip_one": "{{count}} integration",
+    "chip_other": "{{count}} integrations",
     "composableOnly": "Composable only",
     "noComposableMarkets": "No composable markets match these filters",
     "panel": {
       "stale": "Couldn't refresh. Showing the last data we have.",
       "whatYouCanDo": "What you can do with",
-      "destinationCount_one": "{{word}} destination",
-      "destinationCount_other": "{{word}} destinations",
+      "destinationCount_one": "{{word}} integration",
+      "destinationCount_other": "{{word}} integrations",
       "routeCount_one": "{{word}} route type",
       "routeCount_other": "{{word}} route types",
       "summary": "{{destinations}} across {{routes}}.",
@@ -1739,7 +1738,7 @@
       "open": "Open",
       "openAria": "Open {{title}} on {{platform}}",
       "tokenRequired": "{{symbol}} required",
-      "collapse": "Hide destinations",
+      "collapse": "Hide integrations",
       "close": "Close"
     },
     "numberWords": {
@@ -1782,7 +1781,7 @@
       "seeMore": "See More",
       "seeLess": "See Less",
       "empty": "No third-party platform accepts this market's token right now.",
-      "error": "Destinations are unavailable right now. Try again later."
+      "error": "Integrations are unavailable right now. Try again later."
     },
     "gate": {
       "title": "You are leaving Wildcat",

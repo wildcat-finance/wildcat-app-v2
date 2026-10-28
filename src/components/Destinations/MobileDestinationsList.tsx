@@ -738,7 +738,7 @@ export const MobileComposableBlock = ({
             whiteSpace: "nowrap",
           }}
         >
-          {t("destinations.cardToggle", { count: destinations.length })}
+          {t("destinations.chip", { count: destinations.length })}
         </Typography>
         <SvgIcon
           viewBox="0 0 12 12"

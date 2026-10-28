@@ -108,7 +108,7 @@ export const ComposableCardFooter = ({
           whiteSpace: "nowrap",
         }}
       >
-        {t("destinations.cardToggle", { count })}
+        {t("destinations.chip", { count })}
       </Box>
       <SvgIcon
         viewBox="0 0 20 20"
