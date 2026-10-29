@@ -13,6 +13,7 @@ import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { isUSDTLikeToken } from "@/utils/constants"
+import { invalidateMarketListQueries } from "@/utils/marketListQueries"
 
 import { getRepaymentMethod } from "./getRepaymentMethod"
 
@@ -153,6 +154,10 @@ export const useRepay = (
           marketAccount.market.chainId,
           marketAccount.market.address,
         ),
+      })
+      invalidateMarketListQueries({
+        client,
+        chainId: marketAccount.market.chainId,
       })
       if (refreshWithdrawalsOnSuccess) {
         client.invalidateQueries({

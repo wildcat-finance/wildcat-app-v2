@@ -354,6 +354,7 @@ export const OtherMarketsTable = ({
             ? formatTokenWithCommas(params.value, {
                 withSymbol: false,
                 fractionDigits: 2,
+                compact: true,
               })
             : "0"}
         </Box>
@@ -376,6 +377,7 @@ export const OtherMarketsTable = ({
             ? formatTokenWithCommas(params.value, {
                 withSymbol: false,
                 fractionDigits: 2,
+                compact: true,
               })
             : "0"}
         </Box>

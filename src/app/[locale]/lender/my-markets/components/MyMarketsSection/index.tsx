@@ -56,8 +56,10 @@ export const MyMarketsSection = () => {
 
   const {
     marketAccounts,
-    isLoadingInitial: isLoading,
+    isLoadingInitial,
     borrowers,
+    policyMarkets,
+    isPolicyMarketsLoading,
   } = useLenderMarketsContext()
 
   const marketSection = useAppSelector(
@@ -155,7 +157,11 @@ export const MyMarketsSection = () => {
     [marketSearch, marketAssets, marketStatuses],
   )
 
-  // Markets the lender has ever interacted with, excluding blacklisted addresses
+  // Markets the lender has ever interacted with, or holds access to through a
+  // policy, excluding blacklisted addresses. A policy grant writes no
+  // LenderAccount row and no role for the market, so hasEverInteracted alone
+  // would drop it, and the Non-Deposited and Never Active sections below would
+  // have nothing to show.
   const myMarketAccounts = useMemo(
     () =>
       marketAccounts
@@ -165,9 +171,17 @@ export const MyMarketsSection = () => {
             account.isAuthorizedOnController ||
             account.role !== LenderRole.Null,
         )
-        .filter((account) => account.hasEverInteracted),
-    [marketAccounts],
+        .filter(
+          (account) =>
+            account.hasEverInteracted ||
+            policyMarkets.has(account.market.address.toLowerCase()),
+        ),
+    [marketAccounts, policyMarkets],
   )
+
+  const isLoading =
+    isLoadingInitial ||
+    (isPolicyMarketsLoading && myMarketAccounts.length === 0)
 
   const filteredMarketAccounts = useMemo(
     () =>

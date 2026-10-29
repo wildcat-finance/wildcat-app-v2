@@ -7,6 +7,7 @@ import { parseUnits } from "ethers/lib/utils"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { invalidateMarketListQueries } from "@/utils/marketListQueries"
 
 export const useSetMaxTotalSupply = (
   marketAccount: MarketAccount,
@@ -72,6 +73,10 @@ export const useSetMaxTotalSupply = (
           marketAccount.market.chainId,
           marketAccount.market.address,
         ),
+      })
+      invalidateMarketListQueries({
+        client,
+        chainId: marketAccount.market.chainId,
       })
     },
     onError(error) {
