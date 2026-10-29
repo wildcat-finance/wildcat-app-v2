@@ -1,11 +1,4 @@
-import { formatBps } from "@/utils/formatters"
-
-const usd = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  notation: "compact",
-  maximumFractionDigits: 1,
-})
+import { formatBps, formatCompactNumber } from "@/utils/formatters"
 
 /** null when the figure is missing, so the caller can label it Unavailable */
 export const formatFractionPercent = (fraction: number | null) =>
@@ -16,7 +9,9 @@ export const formatFractionPercent = (fraction: number | null) =>
 export const aprFromApy = (apy: number | null) =>
   apy === null || !Number.isFinite(apy) ? null : Math.log1p(apy)
 
-export const formatUsdCompact = (amountUsd: number) => usd.format(amountUsd)
+/** null when the figure is missing, so the caller can label it Unavailable */
+export const formatTokenCompact = (amount: number, symbol: string) =>
+  Number.isFinite(amount) ? `${formatCompactNumber(amount)} ${symbol}` : null
 
 export const formatList = (locale: string, items: string[]) =>
   new Intl.ListFormat(locale, { type: "conjunction" }).format(items)

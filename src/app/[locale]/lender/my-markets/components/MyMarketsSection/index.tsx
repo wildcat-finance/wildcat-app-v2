@@ -57,7 +57,6 @@ export const MyMarketsSection = () => {
     isTestnet,
   } = useCurrentNetwork()
 
-  const [composableOnly, setComposableOnly] = useState(false)
   const destinations = useDestinations(selectedChainId)
   const { markets: destinationsByMarket } = destinations
 
@@ -77,7 +76,19 @@ export const MyMarketsSection = () => {
     assets: marketAssets,
     statuses: marketStatuses,
     withdrawalCycles: marketWithdrawalCycles,
+    composableOnly,
   } = marketFilters
+
+  const setComposableOnly = useCallback(
+    (value: boolean) =>
+      dispatch(
+        setMarketFilters({
+          role: "lender",
+          filters: { composableOnly: value },
+        }),
+      ),
+    [dispatch],
+  )
 
   const setMarketSearch: React.Dispatch<React.SetStateAction<string>> =
     useCallback(

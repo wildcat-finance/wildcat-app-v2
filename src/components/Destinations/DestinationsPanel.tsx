@@ -24,7 +24,7 @@ import {
   aprFromApy,
   formatFractionPercent,
   formatList,
-  formatUsdCompact,
+  formatTokenCompact,
 } from "./format"
 
 const NO_ESCAPE = { escapeValue: false }
@@ -32,19 +32,18 @@ const NO_ESCAPE = { escapeValue: false }
 export type DestinationRowsVariant = "panel" | "section"
 
 const SECTION_LABEL_CLASS = "DestinationsSection-label"
-const SECTION_FLAGS_CLASS = "DestinationsSection-flags"
 
 const COLUMNS: Record<DestinationRowsVariant, string> = {
   panel:
-    "minmax(0, 256fr) minmax(0, 190fr) minmax(min-content, 100fr) minmax(min-content, 100fr) minmax(min-content, 117fr) minmax(0, 178fr) max-content",
+    "minmax(0, 256fr) minmax(0, 190fr) minmax(min-content, 100fr) minmax(min-content, 100fr) minmax(min-content, 117fr) max-content",
   section:
-    "minmax(90px, 180px) minmax(min-content, max-content) minmax(min-content, 60fr) minmax(min-content, 75fr) minmax(min-content, 90fr) minmax(min-content, max-content) max-content",
+    "minmax(90px, 240px) minmax(min-content, max-content) minmax(min-content, 60fr) minmax(min-content, 75fr) minmax(min-content, 90fr) max-content",
 }
 
-// Narrow rows leave spare width to the risk flags first: the title shares
-// what is left with the figures, and the chips stay at their narrowest.
+// Narrow rows keep the chips at their narrowest: the title shares what is
+// left with the figures.
 const SECTION_NARROW_COLUMNS =
-  "minmax(90px, 180fr) min-content minmax(min-content, 60fr) minmax(min-content, 75fr) minmax(min-content, 90fr) minmax(min-content, max-content) max-content"
+  "minmax(80px, 180fr) min-content minmax(min-content, 60fr) minmax(min-content, 75fr) minmax(min-content, 90fr) max-content"
 
 export const PLATFORM_LOGOS: Record<
   Destination["platform"],
@@ -87,31 +86,10 @@ const formatLoopMultiple = (lltv: number) => {
     : null
 }
 
-type Hint = { label: string; tooltip: string }
-
 export const useDestinationLabels = (destination: Destination) => {
   const { t } = useTranslation()
-  const { route, token, figures, affiliation, curators, notices } = destination
+  const { route, token, figures } = destination
   const loopMultiple = formatLoopMultiple(figures.lltv)
-
-  const riskFlags: Hint[] = []
-  if (affiliation.kind === "affiliated") {
-    riskFlags.push({
-      label: t("destinations.riskFlags.affiliated"),
-      tooltip: t("destinations.riskFlags.affiliatedTooltip"),
-    })
-  } else if (curators.length > 0) {
-    riskFlags.push({
-      label: t("destinations.riskFlags.thirdPartyCurator"),
-      tooltip: t("destinations.riskFlags.thirdPartyCuratorTooltip"),
-    })
-  }
-  if (notices.includes("THIN_LIQUIDITY")) {
-    riskFlags.push({
-      label: t("destinations.riskFlags.thinLiquidity"),
-      tooltip: t("destinations.riskFlags.thinLiquidityTooltip"),
-    })
-  }
 
   return {
     route: {
@@ -135,7 +113,6 @@ export const useDestinationLabels = (destination: Destination) => {
         interpolation: NO_ESCAPE,
       }).split(TOKEN_MARK),
     },
-    riskFlags,
   }
 }
 
@@ -246,22 +223,6 @@ const RouteChip = ({ label, tooltip }: { label: string; tooltip: string }) => (
   </HintChip>
 )
 
-const Flag = ({
-  label,
-  tooltip,
-  wrap,
-}: {
-  label: string
-  tooltip: string
-  wrap: boolean
-}) => (
-  <HintChip tooltip={tooltip} background={COLORS.oasis}>
-    <SmallText color={COLORS.amberText} wrap={wrap}>
-      {label}
-    </SmallText>
-  </HintChip>
-)
-
 const DestinationRow = ({
   destination,
   variant,
@@ -291,7 +252,10 @@ const DestinationRow = ({
     },
     {
       label: t("destinations.columns.borrowableNow"),
-      value: formatUsdCompact(figures.availableLiquidityUsd),
+      value: formatTokenCompact(
+        figures.availableLiquidity,
+        destination.loanAsset.symbol,
+      ),
     },
   ].map(({ label, value, tooltip }) => (
     <Box
@@ -332,8 +296,7 @@ const DestinationRow = ({
                   whiteSpace: "normal",
                   minHeight: "32px",
                 },
-                [`& .${SECTION_FLAGS_CLASS} span`]: { whiteSpace: "normal" },
-                "& > :last-of-type": { paddingLeft: "12px" },
+                "& > :last-of-type": { paddingLeft: "8px" },
               },
             }
           : {
@@ -436,30 +399,6 @@ const DestinationRow = ({
       </Box>
 
       {metricCells}
-
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "8px",
-          padding: isSection ? "12px 8px 10px 0" : "12px 0 10px",
-          minWidth: isSection ? undefined : 0,
-        }}
-      >
-        <Label nowrap={isSection}>{t("destinations.columns.riskFlag")}</Label>
-        <Box
-          className={isSection ? SECTION_FLAGS_CLASS : undefined}
-          sx={{ display: "flex", flexWrap: "wrap", gap: "2px" }}
-        >
-          {labels.riskFlags.length > 0 ? (
-            labels.riskFlags.map((flag) => (
-              <Flag key={flag.label} {...flag} wrap={!isSection} />
-            ))
-          ) : (
-            <SmallText>—</SmallText>
-          )}
-        </Box>
-      </Box>
 
       <Box
         sx={{

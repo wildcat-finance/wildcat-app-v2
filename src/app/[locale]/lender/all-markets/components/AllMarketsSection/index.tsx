@@ -64,9 +64,6 @@ export const AllMarketsSection = () => {
     borrowers,
   } = useLenderMarketsContext()
 
-  const [composableOnly, setComposableOnly] = useState(false)
-  const isComposableOnly = composableOnly
-
   const destinations = useDestinations(selectedChainId)
   const { markets: destinationsByMarket } = destinations
   const composableSet = useMemo(
@@ -80,7 +77,19 @@ export const AllMarketsSection = () => {
     assets: marketAssets,
     statuses: marketStatuses,
     withdrawalCycles: marketWithdrawalCycles,
+    composableOnly,
   } = marketFilters
+
+  const setComposableOnly = useCallback(
+    (value: boolean) =>
+      dispatch(
+        setMarketFilters({
+          role: "lender",
+          filters: { composableOnly: value },
+        }),
+      ),
+    [dispatch],
+  )
 
   const setMarketSearch: React.Dispatch<React.SetStateAction<string>> =
     useCallback(
@@ -161,9 +170,9 @@ export const AllMarketsSection = () => {
       statusFilter: marketStatuses.map(
         (status) => status.name,
       ) as MarketStatus[],
-      composableOnly: isComposableOnly,
+      composableOnly,
     }),
-    [marketSearch, marketAssets, marketStatuses, isComposableOnly],
+    [marketSearch, marketAssets, marketStatuses, composableOnly],
   )
 
   // Markets the lender has never interacted with, excluding blacklisted addresses
@@ -190,7 +199,7 @@ export const AllMarketsSection = () => {
       composableSet.has(account.market.address.toLowerCase()),
     )
     return {
-      filteredMarketAccounts: isComposableOnly ? composable : filtered,
+      filteredMarketAccounts: composableOnly ? composable : filtered,
       composableCount: composable.length,
     }
   }, [
@@ -201,7 +210,7 @@ export const AllMarketsSection = () => {
     borrowers,
     marketWithdrawalCycles,
     composableSet,
-    isComposableOnly,
+    composableOnly,
   ])
 
   const showComposableSwitch = composableCount > 0 || composableOnly

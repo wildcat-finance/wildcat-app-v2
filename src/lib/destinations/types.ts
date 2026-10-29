@@ -13,6 +13,8 @@ export type DestinationAffiliation =
 export type DestinationFigures = {
   lltv: number
   borrowApy: number | null
+  /** In units of the loan asset */
+  availableLiquidity: number
   availableLiquidityUsd: number
   asOf: number
 }
@@ -24,7 +26,7 @@ export type Destination = {
   platformName: string
   title: string
   token: { address: string; symbol: string; form: DestinationTokenForm }
-  loanAsset: { address: string }
+  loanAsset: { address: string; symbol: string }
   url: string
   urlHost: string
   curators: string[]

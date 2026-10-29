@@ -1751,7 +1751,7 @@
     },
     "riskFlags": {
       "affiliated": "Run by this borrower",
-      "affiliatedTooltip": "This integration is run or curated by the borrower of this market. Its interests may align with the borrower, not with you.",
+      "affiliatedTooltip": "This integration is run or curated by the borrower of this market.",
       "thirdPartyCurator": "Third-party curator",
       "thirdPartyCuratorTooltip": "A third party curates this vault. Wildcat has no relationship with them and does not review how they allocate funds.",
       "thinLiquidity": "Low liquidity",

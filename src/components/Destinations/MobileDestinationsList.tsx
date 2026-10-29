@@ -24,7 +24,7 @@ import {
   useDestinationsHeading,
 } from "./DestinationsPanel"
 import { ExternalLinkGate, type ExternalLinkTarget } from "./ExternalLinkGate"
-import { aprFromApy, formatFractionPercent, formatUsdCompact } from "./format"
+import { aprFromApy, formatFractionPercent, formatTokenCompact } from "./format"
 
 const NO_ESCAPE = { escapeValue: false }
 
@@ -356,7 +356,10 @@ export const MobileDestinationItem = ({
         />
         <Metric
           label={t("destinations.columns.borrowableNow")}
-          value={formatUsdCompact(figures.availableLiquidityUsd)}
+          value={formatTokenCompact(
+            figures.availableLiquidity,
+            destination.loanAsset.symbol,
+          )}
         />
         <ChipGroup label={t("destinations.columns.type")}>
           <Chip
@@ -378,18 +381,6 @@ export const MobileDestinationItem = ({
             color={COLORS.blackRock}
           />
         </ChipGroup>
-        {labels.riskFlags.length > 0 && (
-          <ChipGroup label={t("destinations.columns.riskFlag")}>
-            {labels.riskFlags.map((flag) => (
-              <Chip
-                key={flag.label}
-                {...flag}
-                background={COLORS.oasis}
-                color={COLORS.butteredRum}
-              />
-            ))}
-          </ChipGroup>
-        )}
       </Box>
     </>
   )
