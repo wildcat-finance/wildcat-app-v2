@@ -13,11 +13,10 @@ import { LenderMobileMarketItem, MobileMarketCard } from "../MobileMarketCard"
 const ITEMS_PER_PAGE = 20
 
 const MobileListContainerSx = {
+  height: "100%",
   display: "flex",
   flexDirection: "column",
-  padding: "8px",
-  borderRadius: "14px",
-  backgroundColor: COLORS.white,
+  gap: "4px",
 } as const
 
 export const MobileMarketList = ({
@@ -59,12 +58,25 @@ export const MobileMarketList = ({
   return (
     <Box sx={{ display: "flex", flexDirection: "column", marginTop: "4px" }}>
       <Box sx={MobileListContainerSx}>
-        {header}
+        {header && (
+          <Box
+            sx={{
+              padding: "8px",
+              borderRadius: "14px",
+              backgroundColor: COLORS.white,
+            }}
+          >
+            {header}
+          </Box>
+        )}
 
         {isEmpty && (
           <Box
             sx={{
-              height: "131px",
+              height: "155px",
+              padding: "12px",
+              borderRadius: "14px",
+              backgroundColor: COLORS.white,
               display: "flex",
               flexDirection: "column",
               gap: "4px",
@@ -81,27 +93,26 @@ export const MobileMarketList = ({
         )}
 
         {!isLoading &&
-          currentItems.map((marketItem, index) => (
+          currentItems.map((marketItem) => (
             <MobileMarketCard
               key={marketItem.id}
               marketItem={marketItem}
               showBorrower={showBorrowerInCard}
               baseRoute={baseRoute}
               destinations={destinationsByMarket?.[marketItem.id.toLowerCase()]}
-              divider={index < currentItems.length - 1}
             />
           ))}
 
         {isLoading && (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
             {Array.from({ length: 3 }, (_, i) => `skeleton-${i}`).map((key) => (
               <Skeleton
                 key={key}
                 sx={{
                   width: "100%",
-                  height: "130px",
-                  backgroundColor: COLORS.athensGrey,
-                  borderRadius: "10px",
+                  height: "182px",
+                  backgroundColor: COLORS.white06,
+                  borderRadius: "14px",
                 }}
               />
             ))}
