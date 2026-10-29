@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.23.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.23.0...v2.23.1) (2026-10-29)
+
+
+### Bug Fixes
+
+* restore mobile market card styling ([8fea946](https://github.com/wildcat-finance/wildcat-app-v2/commit/8fea9468d3bc2986f43985102a2b9773151c220f))
+* restore mobile market card styling ([b302f92](https://github.com/wildcat-finance/wildcat-app-v2/commit/b302f9251516110a74b9a8bcd1473a357dade393))
+
 ## [2.23.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.22.5...v2.23.0) (2026-10-29)
 
 
