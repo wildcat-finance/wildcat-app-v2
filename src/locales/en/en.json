@@ -171,6 +171,11 @@
       },
       "noMarkets": {
         "wrongNetwork": "No Wildcat Markets On This Network",
+        "explore": {
+          "title": "No Markets Available",
+          "subtitle": "There are no markets to display at the moment."
+        },
+        "filteredEmpty": "No markets match the current filters.",
         "lenderAlert": {
           "title": "No active markets",
           "subtitle": "You don’t have any active markets now. See the Other Markets list to join one.",
@@ -408,10 +413,6 @@
       "marketExpiry": "Loan Maturity",
       "marketEarlyClosure": {
         "label": "Fixed Term Closure Permitted",
-        "na": {
-          "text": "N/A",
-          "tooltip": "Market is Open Term, market can be terminated at any time."
-        },
         "no": {
           "text": "No",
           "tooltip": "Market can only be terminated after fixed duration maturity."
@@ -423,10 +424,6 @@
       },
       "marketMaturityReduction": {
         "label": "Fixed Term Maturity Reduction Permitted",
-        "na": {
-          "text": "N/A",
-          "tooltip": "No maturity to reduce in an Open Term setting."
-        },
         "no": {
           "text": "No",
           "tooltip": "Maturity cannot be shortened from current value."
@@ -974,7 +971,8 @@
     "add": "Add Lender",
     "undo": "Undo",
     "submit": "Submit",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "resetFilters": "Reset Filters"
   },
   "notifications": {
     "viewOnEtherscan": "View on Explorer",
@@ -1078,7 +1076,8 @@
       "marketHistory": "Market History",
       "borrowerProfile": "About Borrower",
       "description": "Market Description",
-      "wrapDebtToken": "Wrapped Debt Token"
+      "wrapDebtToken": "Wrapped Debt Token",
+      "destinations": "Composability"
     },
     "buttons": {
       "addToken": "Add Debt Token To Wallet",
@@ -1104,6 +1103,9 @@
       "whatHappensAfter": {
         "question": "What happens after deployment?",
         "answer": "Once deployed, the wrapper is available to everyone."
+      },
+      "failed": {
+        "subtitle": "The transaction did not complete. Check your wallet and try again."
       }
     },
     "transactions": {
@@ -1222,6 +1224,9 @@
           "title": "Transaction Proposed",
           "subtitle": "Your Safe needs {{count}} signatures before this withdrawal is queued."
         },
+        "failed": {
+          "subtitle": "The withdrawal transaction did not complete. Check your wallet and try again."
+        },
         "splitDirect": "{{amount}} direct",
         "splitWrapped": "≈ {{amount}} wrapped"
       },
@@ -1235,6 +1240,9 @@
           "noClaim": "You have nothing to claim right now."
         },
         "subtitle": "No assets available to claim from this market.",
+        "failed": {
+          "subtitle": "The claim transaction did not complete. Check your wallet and try again."
+        },
         "buttons": {
           "claim": "Claim Assets",
           "withdrawals": "Go to Withdrawals"
@@ -1295,7 +1303,8 @@
     }
   },
   "txModal": {
-    "viewOnEtherscan": "View on Explorer"
+    "viewOnEtherscan": "View on Explorer",
+    "close": "Close"
   },
   "link": {
     "viewOnEtherscan": "View on Explorer"
@@ -1598,6 +1607,19 @@
         "label": "Master Loan Agreement",
         "explainer": "Explainer",
         "glossary": "A legally binding document that defines the terms, obligations, and penalties for borrowers and lenders in the market."
+      },
+      "signing": {
+        "agreement": {
+          "pending": "Setting MLA...",
+          "success": "MLA signed successfully",
+          "error": "Failed to set MLA"
+        },
+        "refusal": {
+          "pending": "Signing MLA refusal...",
+          "success": "MLA refusal signed successfully",
+          "error": "Failed to sign MLA refusal"
+        },
+        "pendingSafe": "Awaiting Safe confirmations — you may leave this page."
       }
     },
     "financial": {
@@ -1714,6 +1736,75 @@
           "again": "Try Again"
         }
       }
+    }
+  },
+  "destinations": {
+    "column": "Composability",
+    "chip_one": "{{count}} integration",
+    "chip_other": "{{count}} integrations",
+    "composableOnly": "Composable only",
+    "noComposableMarkets": "No composable markets match these filters",
+    "panel": {
+      "stale": "Couldn't refresh. Showing the last data we have.",
+      "heading": "Use {{token}} in DeFi",
+      "summary_one": "{{token}} has 1 integration in DeFi. Third parties run it, not Wildcat.",
+      "summary_other": "{{token}} has {{count}} integrations in DeFi. Third parties run them, not Wildcat.",
+      "carry": "This market pays {{apr}}% APR. Compare it with the Borrow APR below.",
+      "disclaimer": "Integrations are run by third parties. Rates and liquidity come from {{platform}} and are not quoted or checked by Wildcat.",
+      "loopable": "Max loop {{multiple}}×",
+      "loopableTooltip": "Maximum leverage if borrowed stablecoins are deposited back into this market, calculated as 1 / (1 − LLTV). Limited by Borrowable now.",
+      "unavailable": "Unavailable",
+      "open": "Open on {{platform}}",
+      "curatedBy": "Curated by {{curators}}",
+      "openAria": "Open {{title}} on {{platform}}",
+      "collapse": "Hide integrations",
+      "close": "Close"
+    },
+    "columns": {
+      "type": "How it works",
+      "lltv": "LLTV",
+      "borrowApy": "Borrow APY",
+      "borrowApr": "Borrow APR",
+      "borrowAprTooltip": "Borrow APY: {{apy}}. APR is the same rate without compounding, so you can compare it with the market APR.",
+      "riskFlag": "Risks",
+      "borrowableNow": "Borrowable now"
+    },
+    "riskFlags": {
+      "affiliated": "Run by this borrower",
+      "affiliatedTooltip": "This integration is run or curated by the borrower of this market.",
+      "thirdPartyCurator": "Third-party curator",
+      "thirdPartyCuratorTooltip": "A third party curates this vault. Wildcat has no relationship with them and does not review how they allocate funds.",
+      "thinLiquidity": "Low liquidity",
+      "thinLiquidityTooltip": "Less than $20K is available to borrow right now."
+    },
+    "route": {
+      "BORROW_AGAINST": "Borrow against"
+    },
+    "routeTooltip": {
+      "BORROW_AGAINST": "Use your token as collateral. You keep earning the market APR and can borrow stablecoins against it."
+    },
+    "tokenForm": {
+      "wrapper": "Wrap first: {{symbol}}",
+      "wrapperTooltip": "This integration accepts the wrapped version of your market token. You need to wrap it before use."
+    },
+    "routeRisk": {
+      "BORROW_AGAINST": "Your collateral can be liquidated if its value falls below the LLTV."
+    },
+    "section": {
+      "title": "Composability",
+      "seeMore": "See More",
+      "seeLess": "See Less",
+      "empty": "No third-party platform accepts this market's token right now.",
+      "loading": "Loading figures from {{platform}}…",
+      "error": "Couldn't load figures from {{platform}}.",
+      "tryAgain": "Try again"
+    },
+    "gate": {
+      "title": "You are leaving Wildcat for {{platform}}",
+      "body": "{{platform}} is a third-party platform not affiliated with Wildcat. Listing it as an integration does not mean Wildcat reviews or endorses it. Its own terms, risks and smart contracts apply. The figures shown on Wildcat come from {{platform}} and may be out of date. Wildcat cannot recover funds lost there.",
+      "confirm": "I understand and want to continue",
+      "continue": "Continue to {{platform}}",
+      "cancel": "Cancel"
     }
   },
   "utils": {

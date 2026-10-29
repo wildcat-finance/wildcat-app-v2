@@ -183,22 +183,41 @@ export const toTokenAmountProps = (
   valueTooltip: tokenAmount?.format(tokenAmount.decimals, true),
 })
 
+export const COMPACT_TOKEN_THRESHOLD = 1e9
+
 export const formatTokenWithCommas = (
   tokenAmount: TokenAmount,
   params?: {
     withSymbol?: boolean
     fractionDigits?: number
+    compact?: boolean
   },
 ) => {
   const parsedAmount = parseFloat(tokenAmount.format(tokenAmount.decimals))
-  const parsedAmountWithComma = parsedAmount.toLocaleString("en-US", {
-    maximumFractionDigits: params?.fractionDigits || TOKEN_FORMAT_DECIMALS,
-  })
+  const useCompact =
+    params?.compact && Math.abs(parsedAmount) >= COMPACT_TOKEN_THRESHOLD
+  const parsedAmountWithComma = parsedAmount.toLocaleString(
+    "en-US",
+    useCompact
+      ? { notation: "compact", maximumFractionDigits: 2 }
+      : {
+          maximumFractionDigits:
+            params?.fractionDigits || TOKEN_FORMAT_DECIMALS,
+        },
+  )
 
   return `${parsedAmountWithComma}${
     params?.withSymbol ? ` ${tokenAmount.symbol}` : ""
   }`
 }
+
+const compactNumberFormat = new Intl.NumberFormat("en-US", {
+  notation: "compact",
+  maximumFractionDigits: 2,
+})
+
+export const formatCompactNumber = (value: number) =>
+  compactNumberFormat.format(value)
 
 export const formatBps = (bps: number, fixed?: number) => {
   const fixedNum = (bps / 100).toFixed(fixed || 2)

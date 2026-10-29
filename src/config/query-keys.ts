@@ -291,6 +291,8 @@ const LENDER_QUERY_KEYS = {
   // GET_RECENT_DEPOSITS_KEY
   GET_RECENT_DEPOSITS: (chainId: number) =>
     k(["lender", "GET_RECENT_DEPOSITS", chainId]),
+  GET_LENDER_POLICY_HOOKS: (chainId: number, lenderAddress?: string) =>
+    k(["lender", "GET_LENDER_POLICY_HOOKS", chainId, lenderAddress]),
 } as const
 
 const WRAPPER_QUERY_KEYS = {
@@ -423,6 +425,10 @@ const MARKET_QUERY_KEYS = {
     ]),
 } as const
 
+const DESTINATIONS_QUERY_KEYS = {
+  BY_CHAIN: (chainId: number) => k(["destinations", "BY_CHAIN", chainId]),
+} as const
+
 export const QueryKeys = {
   Borrower: BORROWER_QUERY_KEYS,
   Admin: ADMIN_QUERY_KEYS,
@@ -432,4 +438,5 @@ export const QueryKeys = {
   Wrapper: WRAPPER_QUERY_KEYS,
   Markets: MARKET_QUERY_KEYS,
   ServiceAgreement: SERVICE_AGREEMENT_QUERY_KEYS,
+  Destinations: DESTINATIONS_QUERY_KEYS,
 } as const

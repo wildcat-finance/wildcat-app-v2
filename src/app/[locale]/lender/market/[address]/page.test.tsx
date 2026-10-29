@@ -23,6 +23,7 @@ import { Provider } from "react-redux"
 import { useAccount } from "wagmi"
 
 import { QueryKeys } from "@/config/query-keys"
+import { useMarketDestinations } from "@/hooks/destinations/useDestinations"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -45,6 +46,12 @@ jest.mock("@wildcatfi/wildcat-sdk", () => ({
   getLensV2Contract: jest.fn(),
 }))
 jest.mock("@/hooks/useWagmiHydrated", () => ({ useWagmiHydrated: jest.fn() }))
+jest.mock("@/hooks/destinations/useDestinations", () => ({
+  useMarketDestinations: jest.fn(),
+}))
+jest.mock("@/components/Destinations", () => ({
+  MarketDestinationsSection: () => <div>Market integrations</div>,
+}))
 jest.mock("@/hooks/wrapper/useWrapperBalances", () => ({
   useWrapperBalances: jest.fn(),
 }))
@@ -297,6 +304,10 @@ describe("lender market authorization loading", () => {
       targetChainId: 1,
     })
     jest.mocked(useMobileResolution).mockReturnValue(false)
+    jest.mocked(useMarketDestinations).mockReturnValue({
+      destinations: [],
+      isPending: false,
+    } as unknown as ReturnType<typeof useMarketDestinations>)
     setWallet(wallet)
     const token = new Token(1, wallet, "Test USD", "USDC", 6, false, provider)
     setMarket({
@@ -587,6 +598,64 @@ describe("lender market authorization loading", () => {
       expect(screen.getByText("Lend through Wildcat")).toBeTruthy(),
     )
     expect(routing().currentSection).toBe(LenderMarketSections.MARKET_HISTORY)
+  })
+
+  it("keeps the integrations section while destinations are loading", async () => {
+    const destinations = [{}] as ReturnType<
+      typeof useMarketDestinations
+    >["destinations"]
+    jest.mocked(useMarketDestinations).mockReturnValue({
+      destinations,
+      isPending: false,
+    } as ReturnType<typeof useMarketDestinations>)
+    readLive.mockResolvedValueOnce(liveResponse(true))
+    const { store, routing, rerender } = mountPage()
+    await waitFor(() => expect(routing().isLender).toBe(true))
+    act(() => store.dispatch(setSection(LenderMarketSections.DESTINATIONS)))
+
+    jest.mocked(useMarketDestinations).mockReturnValue({
+      destinations: [],
+      isPending: true,
+    } as unknown as ReturnType<typeof useMarketDestinations>)
+    rerender()
+    expect(routing().currentSection).toBe(LenderMarketSections.DESTINATIONS)
+  })
+
+  it("waits for live access before choosing an empty integrations fallback", async () => {
+    const { store, routing, rerender } = mountPage()
+    act(() => store.dispatch(setSection(LenderMarketSections.DESTINATIONS)))
+    rerender()
+    expect(routing().currentSection).toBe(LenderMarketSections.DESTINATIONS)
+
+    await act(async () => live.resolve(liveResponse(true)))
+    await waitFor(() =>
+      expect(routing().currentSection).toBe(LenderMarketSections.TRANSACTIONS),
+    )
+    expect(screen.getByText("Account actions")).toBeTruthy()
+  })
+
+  it("returns a lender with a position to transactions when integrations disappear", async () => {
+    const destinations = [{}] as ReturnType<
+      typeof useMarketDestinations
+    >["destinations"]
+    jest.mocked(useMarketDestinations).mockReturnValue({
+      destinations,
+      isPending: false,
+    } as ReturnType<typeof useMarketDestinations>)
+    const response = liveResponse(false)
+    response.lenderStatus.normalizedBalance = constants.One
+    readLive.mockResolvedValueOnce(response)
+    const { store, routing, rerender } = mountPage()
+    await waitFor(() => expect(routing().isLender).toBe(true))
+    act(() => store.dispatch(setSection(LenderMarketSections.DESTINATIONS)))
+
+    jest.mocked(useMarketDestinations).mockReturnValue({
+      destinations: [],
+      isPending: false,
+    } as unknown as ReturnType<typeof useMarketDestinations>)
+    rerender()
+    expect(routing().currentSection).toBe(LenderMarketSections.TRANSACTIONS)
+    expect(screen.getByText("Account actions")).toBeTruthy()
   })
 
   describe.each(["switching wallets", "disconnecting"])("%s", (change) => {

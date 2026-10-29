@@ -104,21 +104,24 @@ export const MobileSearchButton = ({
         <Box
           onClick={handleToggleOpen}
           sx={{
-            padding: "6px 8px",
+            width: "120px",
+            height: "28px",
+            padding: "3px 5px 3px 7px",
             borderRadius: "20px",
             display: "flex",
             alignItems: "center",
             gap: "2px",
-            border: `1px solid ${COLORS.athensGrey}`,
-            width: "fit-content",
+            border: `1px solid ${COLORS.iron}`,
+            cursor: "pointer",
           }}
         >
           <SvgIcon
             sx={{
-              padding: "4px",
-              fontSize: "18px",
+              flexShrink: 0,
+              padding: "3px",
+              fontSize: "20px",
               "& path": {
-                fill: "#8A8C9F",
+                fill: COLORS.greySuit,
               },
             }}
           >
@@ -129,8 +132,11 @@ export const MobileSearchButton = ({
             variant="mobText3"
             noWrap
             sx={{
-              maxWidth: 62,
+              flex: "1 1 0",
+              minWidth: 0,
               overflow: "hidden",
+              color: COLORS.bunker,
+              lineHeight: "20px",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
             }}
@@ -168,24 +174,15 @@ export const MobileSearchButton = ({
         open={open}
         onClose={handleToggleOpen}
         sx={{
-          height: "calc(100dvh - 64px)",
-          marginTop: "auto",
-          zIndex: 4,
-
+          backdropFilter: "blur(10px)",
           "& .MuiPaper-root.MuiDialog-paper": {
             maxWidth: "100%",
-            maxHeight: "100%",
             height: "100%",
             border: "none",
-            margin: "0 4px 4px",
+            borderRadius: "14px",
+            margin: "auto 4px 4px",
             width: "100%",
             padding: "8px",
-          },
-          "& .MuiBackdrop-root": {
-            marginTop: "auto",
-            height: "100dvh",
-            backgroundColor: "transparent",
-            backdropFilter: "blur(10px)",
           },
         }}
       >
@@ -255,24 +252,15 @@ export const MobileSearchButton = ({
           ))}
         </Box>
 
-        <Box sx={{ display: "flex", gap: "4px", paddingTop: "8px" }}>
-          <Button
-            onClick={handleClickErase}
-            size="medium"
-            variant="outlined"
-            color="secondary"
-            fullWidth
-          >
-            Reset
-          </Button>
-
+        <Box sx={{ paddingTop: "8px" }}>
           <Button
             onClick={handleToggleOpen}
             size="medium"
             variant="contained"
+            color="secondary"
             fullWidth
           >
-            Search
+            Close
           </Button>
         </Box>
       </Dialog>

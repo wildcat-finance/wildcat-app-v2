@@ -2,19 +2,19 @@
 
 import { NextRequest } from "next/server"
 
-import { prisma } from "@/lib/db"
+import { findBorrowerNames } from "@/lib/db"
 import { fetchExportMarketCatalog } from "@/lib/export/sources/catalog"
 
 import { GET } from "./route"
 
 jest.mock("@/lib/db", () => ({
-  prisma: { borrower: { findMany: jest.fn() } },
+  findBorrowerNames: jest.fn(),
 }))
 jest.mock("@/lib/export/sources/catalog", () => ({
   fetchExportMarketCatalog: jest.fn(),
 }))
 
-const findBorrowersMock = jest.mocked(prisma.borrower.findMany)
+const findBorrowersMock = jest.mocked(findBorrowerNames)
 const fetchCatalogMock = jest.mocked(fetchExportMarketCatalog)
 
 describe("export market catalogue route", () => {

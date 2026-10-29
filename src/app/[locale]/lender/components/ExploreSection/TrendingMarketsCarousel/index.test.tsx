@@ -38,6 +38,15 @@ jest.mock("@/utils/marketType", () => ({
 jest.mock("./useTrendingUsdPrices", () => ({
   useTrendingUsdPrices: jest.fn(),
 }))
+jest.mock("@/hooks/destinations/useDestinations", () => ({
+  useDestinations: () => ({
+    markets: {},
+    refreshFailed: false,
+    stalePlatforms: [],
+    isPending: false,
+    showDestinations: false,
+  }),
+}))
 jest.mock("./TrendingMarketsCard", () => ({
   TrendingMarketCard: ({
     variant,
@@ -109,6 +118,8 @@ const makeLenderMarketsContext = (
   isLoadingUpdate: false,
   onboardingByMarket: {},
   onboardingStatus: "ready",
+  policyMarkets: new Set<string>(),
+  isPolicyMarketsLoading: false,
 })
 
 describe("TrendingMarketsCarousel", () => {

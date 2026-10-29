@@ -12,6 +12,7 @@ import type { SubgraphGetMarketQuery } from "@wildcatfi/wildcat-sdk/dist/gql/gra
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { refetchOnMountIfInvalidated } from "@/utils/queryRefetch"
 
 export type UseMarketProps = {
   address: string | undefined
@@ -106,7 +107,7 @@ export function useGetMarket({ address, chainId }: UseMarketProps) {
 
       return market
     },
-    refetchOnMount: false,
+    refetchOnMount: refetchOnMountIfInvalidated,
     refetchOnWindowFocus: false,
   })
 
