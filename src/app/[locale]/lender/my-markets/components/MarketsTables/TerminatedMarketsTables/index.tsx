@@ -25,6 +25,7 @@ import {
 } from "@/components/Destinations"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
+import { TotalDebtHeader } from "@/components/TotalDebtHeader"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -39,6 +40,7 @@ import {
   formatTokenWithCommas,
   trimAddress,
 } from "@/utils/formatters"
+import { getMarketTotalDebt } from "@/utils/marketDebt"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -118,7 +120,6 @@ export const TerminatedMarketsTables = ({
         marketToken,
         annualInterestBips,
         maxTotalSupply,
-        totalSupply,
         withdrawalBatchDuration,
         chainId,
       } = market
@@ -141,7 +142,7 @@ export const TerminatedMarketsTables = ({
         apr: annualInterestBips,
         withdrawalBatchDuration,
         loan: marketBalance,
-        debt: totalSupply,
+        debt: getMarketTotalDebt(market),
         capacity: maxTotalSupply,
         hasEverInteracted: account.hasEverInteracted,
         chainId,
@@ -242,6 +243,9 @@ export const TerminatedMarketsTables = ({
     {
       field: "debt",
       headerName: t("dashboard.markets.tables.header.debt"),
+      renderHeader: () => (
+        <TotalDebtHeader label={t("dashboard.markets.tables.header.debt")} />
+      ),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
