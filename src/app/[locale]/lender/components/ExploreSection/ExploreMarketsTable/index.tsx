@@ -936,6 +936,7 @@ export const ExploreMarketsTable = () => {
   if (isMobile)
     return (
       <Box
+        ref={mobileListRef}
         sx={{
           display: "flex",
           flexDirection: "column",
@@ -944,7 +945,6 @@ export const ExploreMarketsTable = () => {
         }}
       >
         <Box
-          ref={mobileListRef}
           sx={{
             display: "flex",
             flexDirection: "column",
@@ -1074,61 +1074,64 @@ export const ExploreMarketsTable = () => {
               />
             </Box>
           </Box>
+        </Box>
 
-          {isLoading ? (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "8px",
-                paddingTop: "8px",
+        {isLoading ? (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "4px",
+            }}
+          >
+            <RepeatingSkeletons
+              itemsLength={5}
+              skeletonSX={{
+                height: "182px",
+                borderRadius: "14px",
+                backgroundColor: COLORS.white06,
               }}
-            >
-              <RepeatingSkeletons
-                itemsLength={5}
-                skeletonSX={{ height: "130px", borderRadius: "10px" }}
-              />
-            </Box>
-          ) : (
-            rows.map((marketItem, index) => (
+            />
+          </Box>
+        ) : (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            {rows.map((marketItem) => (
               <MobileMarketCard
                 key={marketItem.id}
                 marketItem={marketItem}
                 destinations={destinationsByMarket[marketItem.id.toLowerCase()]}
-                divider={index < rows.length - 1}
               />
-            ))
-          )}
+            ))}
+          </Box>
+        )}
 
-          {!isLoading && rows.length === 0 && (
-            <Box
-              sx={{
-                width: "100%",
-                padding: "24px 12px",
-                backgroundColor: COLORS.white,
-                borderRadius: "14px",
-                textAlign: "center",
-              }}
-            >
-              <Typography variant="mobText3" color={COLORS.santasGrey}>
-                {isFilteredEmpty
-                  ? t("dashboard.markets.noMarkets.filteredEmpty")
-                  : t("dashboard.markets.noMarkets.explore.title")}
-              </Typography>
-              {isFilteredEmpty && (
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={resetFilters}
-                  sx={{ marginTop: "8px" }}
-                >
-                  {t("buttons.resetFilters")}
-                </Button>
-              )}
-            </Box>
-          )}
-        </Box>
-
+        {!isLoading && rows.length === 0 && (
+          <Box
+            sx={{
+              width: "100%",
+              padding: "24px 12px",
+              backgroundColor: COLORS.white,
+              borderRadius: "14px",
+              textAlign: "center",
+            }}
+          >
+            <Typography variant="mobText3" color={COLORS.santasGrey}>
+              {isFilteredEmpty
+                ? t("dashboard.markets.noMarkets.filteredEmpty")
+                : t("dashboard.markets.noMarkets.explore.title")}
+            </Typography>
+            {isFilteredEmpty && (
+              <Button
+                variant="contained"
+                size="small"
+                onClick={resetFilters}
+                sx={{ marginTop: "8px" }}
+              >
+                {t("buttons.resetFilters")}
+              </Button>
+            )}
+          </Box>
+        )}
         {!isLoading &&
           totalRows > 0 &&
           (totalRows > rows.length ? (
