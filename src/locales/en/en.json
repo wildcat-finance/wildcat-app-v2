@@ -1733,6 +1733,7 @@
       "disclaimer": "Integrations are run by third parties. Rates and liquidity come from {{platform}} and are not quoted or checked by Wildcat.",
       "loopable": "Max loop {{multiple}}×",
       "loopableTooltip": "Maximum leverage if borrowed stablecoins are deposited back into this market, calculated as 1 / (1 − LLTV). Limited by Borrowable now.",
+      "unavailable": "Unavailable",
       "open": "Open on {{platform}}",
       "curatedBy": "Curated by {{curators}}",
       "openAria": "Open {{title}} on {{platform}}",
@@ -1773,7 +1774,9 @@
       "seeMore": "See More",
       "seeLess": "See Less",
       "empty": "No third-party platform accepts this market's token right now.",
-      "error": "Integrations are unavailable right now. Try again later."
+      "loading": "Loading figures from {{platform}}…",
+      "error": "Couldn't load figures from {{platform}}.",
+      "tryAgain": "Try again"
     },
     "gate": {
       "title": "You are leaving Wildcat",

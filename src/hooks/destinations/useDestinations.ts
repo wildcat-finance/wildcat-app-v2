@@ -30,8 +30,8 @@ export type DestinationsState = {
    * them from first paint instead of shifting the layout when they arrive.
    */
   showDestinations: boolean
-  isLoading: boolean
   isError: boolean
+  refetch: () => void
 }
 
 export const useDestinations = (
@@ -60,9 +60,9 @@ export const useDestinations = (
     dataUpdatedAt,
     errorUpdatedAt,
     isPending,
-    isLoading,
     isError,
     isRefetchError,
+    refetch,
   } = query
   const markets = useMemo(
     () =>
@@ -86,10 +86,10 @@ export const useDestinations = (
       isPending: supported && isPending,
       showDestinations:
         supported && (isPending || Object.keys(markets).length > 0),
-      isLoading,
       isError,
+      refetch,
     }),
-    [data, markets, isRefetchError, supported, isPending, isLoading, isError],
+    [data, markets, isRefetchError, supported, isPending, isError, refetch],
   )
 }
 

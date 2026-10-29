@@ -1,10 +1,11 @@
 import * as React from "react"
 
-import { Box, Skeleton, Typography } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { useMarketDestinations } from "@/hooks/destinations/useDestinations"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
+import { platformNamesFor } from "@/lib/destinations/platforms"
 import type { Destination } from "@/lib/destinations/types"
 import { COLORS } from "@/theme/colors"
 
@@ -13,6 +14,7 @@ import {
   useDestinationsCopy,
   useDestinationsHeading,
 } from "./DestinationsPanel"
+import { formatList } from "./format"
 import { MobileDestinationsList } from "./MobileDestinationsList"
 
 type MarketDestinationsSectionProps = {
@@ -99,40 +101,54 @@ export const MarketDestinationsSection = ({
   marketSymbol,
   aprBips,
 }: MarketDestinationsSectionProps) => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const isMobile = useMobileResolution()
-  const { destinations, data, stale, isLoading, isError } =
+  const { destinations, data, stale, isPending, isError, refetch } =
     useMarketDestinations(chainId, marketAddress)
+  const platform = formatList(i18n.language, platformNamesFor(chainId))
+
+  const renderMessage = (message: string) => (
+    <Typography
+      variant={isMobile ? "mobText3" : "text3"}
+      color={COLORS.santasGrey}
+    >
+      {message}
+    </Typography>
+  )
 
   const renderState = () => {
-    if (isLoading) {
-      return (
-        <Skeleton
-          height="240px"
-          sx={{ bgcolor: COLORS.athensGrey, borderRadius: "12px" }}
-          variant="rectangular"
-        />
+    if (isPending) {
+      return renderMessage(
+        t("destinations.section.loading", {
+          platform,
+          interpolation: { escapeValue: false },
+        }),
       )
     }
     if (isError && !data) {
       return (
-        <Typography
-          variant={isMobile ? "mobText3" : "text3"}
-          color={COLORS.santasGrey}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "12px",
+          }}
         >
-          {t("destinations.section.error")}
-        </Typography>
+          {renderMessage(
+            t("destinations.section.error", {
+              platform,
+              interpolation: { escapeValue: false },
+            }),
+          )}
+          <Button variant="outlined" size="small" onClick={() => refetch()}>
+            {t("destinations.section.tryAgain")}
+          </Button>
+        </Box>
       )
     }
     if (destinations.length === 0) {
-      return (
-        <Typography
-          variant={isMobile ? "mobText3" : "text3"}
-          color={COLORS.santasGrey}
-        >
-          {t("destinations.section.empty")}
-        </Typography>
-      )
+      return renderMessage(t("destinations.section.empty"))
     }
     return null
   }

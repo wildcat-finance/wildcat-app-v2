@@ -13,3 +13,8 @@ export const PLATFORMS: Record<
 
 export const supportsDestinations = (chainId: number) =>
   Object.values(PLATFORMS).some(({ chainIds }) => chainIds.includes(chainId))
+
+export const platformNamesFor = (chainId: number) =>
+  Object.values(PLATFORMS)
+    .filter(({ chainIds }) => chainIds.includes(chainId))
+    .map(({ name }) => name)

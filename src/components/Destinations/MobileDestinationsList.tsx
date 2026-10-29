@@ -141,23 +141,35 @@ const ChipGroup = ({
   </Box>
 )
 
-const Metric = ({ label, value }: { label: string; value: string }) => (
-  <Box
-    sx={{
-      display: "flex",
-      flexDirection: "column",
-      flexShrink: 0,
-      paddingRight: "8px",
-    }}
-  >
-    <Typography
-      sx={{ ...SMALL_TEXT, color: COLORS.manate, whiteSpace: "nowrap" }}
+const Metric = ({ label, value }: { label: string; value: string | null }) => {
+  const { t } = useTranslation()
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        flexShrink: 0,
+        paddingRight: "8px",
+      }}
     >
-      {label}
-    </Typography>
-    <Typography sx={{ ...BODY_TEXT, whiteSpace: "nowrap" }}>{value}</Typography>
-  </Box>
-)
+      <Typography
+        sx={{ ...SMALL_TEXT, color: COLORS.manate, whiteSpace: "nowrap" }}
+      >
+        {label}
+      </Typography>
+      <Typography
+        sx={{
+          ...BODY_TEXT,
+          ...(value === null && { color: COLORS.santasGrey }),
+          whiteSpace: "nowrap",
+        }}
+      >
+        {value ?? t("destinations.panel.unavailable")}
+      </Typography>
+    </Box>
+  )
+}
 
 const Disclaimer = ({
   destinations,

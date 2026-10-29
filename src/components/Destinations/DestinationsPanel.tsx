@@ -19,7 +19,12 @@ import { COLORS } from "@/theme/colors"
 import { formatBps } from "@/utils/formatters"
 
 import { ExternalLinkGate, type ExternalLinkTarget } from "./ExternalLinkGate"
-import { aprFromApy, formatFractionPercent, formatUsdCompact } from "./format"
+import {
+  aprFromApy,
+  formatFractionPercent,
+  formatList,
+  formatUsdCompact,
+} from "./format"
 
 const NO_ESCAPE = { escapeValue: false }
 
@@ -29,7 +34,7 @@ const SECTION_LABEL_CLASS = "DestinationsSection-label"
 
 const COLUMNS: Record<DestinationRowsVariant, string> = {
   panel:
-    "minmax(0, 256fr) minmax(0, 190fr) minmax(0, 100fr) minmax(0, 100fr) minmax(0, 100fr) minmax(0, 117fr) minmax(0, 178fr) max-content",
+    "minmax(0, 256fr) minmax(0, 190fr) minmax(min-content, 100fr) minmax(min-content, 100fr) minmax(min-content, 100fr) minmax(min-content, 117fr) minmax(0, 178fr) max-content",
   section:
     "minmax(110px, 180px) minmax(min-content, 200fr) minmax(min-content, 60fr) minmax(min-content, 75fr) minmax(min-content, 75fr) minmax(min-content, 90fr) minmax(min-content, max-content) max-content",
 }
@@ -276,10 +281,10 @@ const DestinationRow = ({
       <Label nowrap={isSection}>{label}</Label>
       <Typography
         variant="text3"
-        color={COLORS.blackRock}
+        color={value === null ? COLORS.santasGrey : COLORS.blackRock}
         sx={{ whiteSpace: "nowrap" }}
       >
-        {value}
+        {value ?? t("destinations.panel.unavailable")}
       </Typography>
     </Box>
   ))
@@ -511,9 +516,7 @@ export const useDestinationsDisclaimer = (destinations: Destination[]) => {
 
   return [
     t("destinations.panel.disclaimer", {
-      platform: new Intl.ListFormat(i18n.language, {
-        type: "conjunction",
-      }).format(platforms),
+      platform: formatList(i18n.language, platforms),
       interpolation: NO_ESCAPE,
     }),
     ...routes.map((route) => t(`destinations.routeRisk.${route}`)),
@@ -533,7 +536,10 @@ export const useDestinationsCopy = ({
 }) => {
   const { t } = useTranslation()
   const disclaimer = useDestinationsDisclaimer(destinations)
-  const borrowsAgainst = destinations.some((d) => d.route === "BORROW_AGAINST")
+  const hasComparableApr = destinations.some(
+    (d) =>
+      d.route === "BORROW_AGAINST" && aprFromApy(d.figures.borrowApy) !== null,
+  )
 
   const summary = [
     t("destinations.panel.summary", {
@@ -541,7 +547,7 @@ export const useDestinationsCopy = ({
       token: marketSymbol,
       interpolation: NO_ESCAPE,
     }),
-    borrowsAgainst &&
+    hasComparableApr &&
       t("destinations.panel.carry", { apr: formatBps(aprBips) }),
   ]
     .filter(Boolean)
