@@ -29,6 +29,7 @@ import { NonMlaAcknowledgementModal } from "@/app/[locale]/lender/market/[addres
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
+import { MarketDestinationsSection } from "@/components/Destinations"
 import { Footer } from "@/components/Footer"
 import { ConnectWalletDialog } from "@/components/Header/HeaderButton/ConnectWalletDialog"
 import { LeadBanner } from "@/components/LeadBanner"
@@ -37,6 +38,7 @@ import { MarketParameters } from "@/components/MarketParameters"
 import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
+import { useMarketDestinations } from "@/hooks/destinations/useDestinations"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketAccount } from "@/hooks/useMarketAccount"
 import { useMarketMla } from "@/hooks/useMarketMla"
@@ -55,6 +57,8 @@ import {
   setIsLoading,
   setDefaultSection,
   resetPageState,
+  setSection,
+  setDestinationsCount,
   setWithdrawalsCount,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import {
@@ -352,6 +356,41 @@ export default function LenderMarketDetails({
   useEffect(() => {
     dispatch(setWithdrawalsCount(totalWithdrawalsCount))
   }, [totalWithdrawalsCount])
+
+  const { destinations, isPending: areDestinationsPending } =
+    useMarketDestinations(market?.chainId, market?.address)
+
+  useEffect(() => {
+    dispatch(setDestinationsCount(destinations.length))
+  }, [dispatch, destinations.length])
+
+  useEffect(() => {
+    if (
+      !areDestinationsPending &&
+      !isAuthorizationPending &&
+      !(isConnected && !isDifferentChain && isActivityLoading) &&
+      destinations.length === 0 &&
+      currentSection === LenderMarketSections.DESTINATIONS
+    ) {
+      dispatch(
+        setSection(
+          showLenderTransactions
+            ? LenderMarketSections.TRANSACTIONS
+            : LenderMarketSections.STATUS,
+        ),
+      )
+    }
+  }, [
+    dispatch,
+    destinations.length,
+    areDestinationsPending,
+    currentSection,
+    isAuthorizationPending,
+    isConnected,
+    isDifferentChain,
+    isActivityLoading,
+    showLenderTransactions,
+  ])
 
   useEffect(() => {
     if (currentSection !== LenderMarketSections.WRAP_DEBT_TOKEN) {
@@ -659,6 +698,17 @@ export default function LenderMarketDetails({
             )}
           </Box>
 
+          {destinations.length > 0 && (
+            <Box id="destinations">
+              <MarketDestinationsSection
+                chainId={market.chainId}
+                marketAddress={market.address}
+                marketSymbol={market.marketToken.symbol}
+                aprBips={market.annualInterestBips}
+              />
+            </Box>
+          )}
+
           {hasMarketDescription && (
             <Box id="marketDescription">
               <MarketSummary
@@ -908,6 +958,14 @@ export default function LenderMarketDetails({
             <Box marginTop="12px">
               <PaginatedMarketRecordsTable market={market} />
             </Box>
+          )}
+          {currentSection === LenderMarketSections.DESTINATIONS && (
+            <MarketDestinationsSection
+              chainId={market.chainId}
+              marketAddress={market.address}
+              marketSymbol={market.marketToken.symbol}
+              aprBips={market.annualInterestBips}
+            />
           )}
           {currentSection === LenderMarketSections.WRAP_DEBT_TOKEN && (
             <WrapDebtToken

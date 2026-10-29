@@ -7,6 +7,7 @@ export type MarketFilters = {
   assets: SmallFilterSelectItem[]
   statuses: SmallFilterSelectItem[]
   withdrawalCycles: SmallFilterSelectItem[]
+  composableOnly: boolean
 }
 
 export type MarketFiltersRole = "borrower" | "lender"
@@ -21,6 +22,7 @@ const emptyFilters: MarketFilters = {
   assets: [],
   statuses: [],
   withdrawalCycles: [],
+  composableOnly: false,
 }
 
 const initialState: MarketFiltersState = {

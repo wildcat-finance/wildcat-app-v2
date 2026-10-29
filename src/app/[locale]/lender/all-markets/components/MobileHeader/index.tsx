@@ -63,7 +63,7 @@ const MobileSwitcherButton = ({
   )
 }
 
-export const MobileHeader = ({ children }: { children: ReactNode }) => {
+export const MobileHeader = ({ children }: { children?: ReactNode }) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
