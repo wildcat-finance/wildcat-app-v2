@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next"
 import MorphoLogo from "@/assets/companies-icons/morpho_icon.png"
 import ChevronSmallUp from "@/assets/icons/chevronSmallUp_icon.svg"
 import Cross from "@/assets/icons/cross_icon.svg"
+import { TooltipButton } from "@/components/TooltipButton"
 import type { Destination } from "@/lib/destinations/types"
 import { COLORS } from "@/theme/colors"
 import { formatBps } from "@/utils/formatters"
@@ -31,16 +32,19 @@ const NO_ESCAPE = { escapeValue: false }
 export type DestinationRowsVariant = "panel" | "section"
 
 const SECTION_LABEL_CLASS = "DestinationsSection-label"
+const SECTION_FLAGS_CLASS = "DestinationsSection-flags"
 
 const COLUMNS: Record<DestinationRowsVariant, string> = {
   panel:
-    "minmax(0, 256fr) minmax(0, 190fr) minmax(min-content, 100fr) minmax(min-content, 100fr) minmax(min-content, 100fr) minmax(min-content, 117fr) minmax(0, 178fr) max-content",
+    "minmax(0, 256fr) minmax(0, 190fr) minmax(min-content, 100fr) minmax(min-content, 100fr) minmax(min-content, 117fr) minmax(0, 178fr) max-content",
   section:
-    "minmax(110px, 180px) minmax(min-content, 200fr) minmax(min-content, 60fr) minmax(min-content, 75fr) minmax(min-content, 75fr) minmax(min-content, 90fr) minmax(min-content, max-content) max-content",
+    "minmax(90px, 180px) minmax(min-content, max-content) minmax(min-content, 60fr) minmax(min-content, 75fr) minmax(min-content, 90fr) minmax(min-content, max-content) max-content",
 }
 
+// Narrow rows leave spare width to the risk flags first: the title shares
+// what is left with the figures, and the chips stay at their narrowest.
 const SECTION_NARROW_COLUMNS =
-  "minmax(90px, 180px) minmax(min-content, 200fr) minmax(min-content, 60fr) minmax(min-content, 75fr) minmax(min-content, 75fr) minmax(min-content, 90fr) minmax(min-content, max-content) max-content"
+  "minmax(90px, 180fr) min-content minmax(min-content, 60fr) minmax(min-content, 75fr) minmax(min-content, 90fr) minmax(min-content, max-content) max-content"
 
 export const PLATFORM_LOGOS: Record<
   Destination["platform"],
@@ -138,23 +142,38 @@ export const useDestinationLabels = (destination: Destination) => {
 const Label = ({
   children,
   nowrap = false,
+  tooltip,
 }: {
   children: React.ReactNode
   nowrap?: boolean
-}) => (
-  <Typography
-    className={nowrap ? SECTION_LABEL_CLASS : undefined}
-    sx={{
-      fontSize: "11px",
-      lineHeight: "16px",
-      fontWeight: 500,
-      color: COLORS.manate,
-      ...(nowrap && { whiteSpace: "nowrap" }),
-    }}
-  >
-    {children}
-  </Typography>
-)
+  tooltip?: string | null
+}) => {
+  const text = (
+    <Typography
+      className={nowrap ? SECTION_LABEL_CLASS : undefined}
+      sx={{
+        fontSize: "11px",
+        lineHeight: "16px",
+        fontWeight: 500,
+        color: COLORS.manate,
+        ...(nowrap && { whiteSpace: "nowrap" }),
+      }}
+    >
+      {children}
+    </Typography>
+  )
+
+  if (!tooltip) return text
+
+  return (
+    <Box sx={{ display: "flex", alignItems: "flex-start", gap: "4px" }}>
+      {text}
+      <Box sx={{ display: "flex", alignItems: "center", height: "16px" }}>
+        <TooltipButton value={tooltip} />
+      </Box>
+    </Box>
+  )
+}
 
 const SmallText = ({
   children,
@@ -227,9 +246,17 @@ const RouteChip = ({ label, tooltip }: { label: string; tooltip: string }) => (
   </HintChip>
 )
 
-const Flag = ({ label, tooltip }: { label: string; tooltip: string }) => (
+const Flag = ({
+  label,
+  tooltip,
+  wrap,
+}: {
+  label: string
+  tooltip: string
+  wrap: boolean
+}) => (
   <HintChip tooltip={tooltip} background={COLORS.oasis}>
-    <SmallText color={COLORS.amberText} wrap>
+    <SmallText color={COLORS.amberText} wrap={wrap}>
       {label}
     </SmallText>
   </HintChip>
@@ -248,7 +275,7 @@ const DestinationRow = ({
   const { figures } = destination
   const labels = useDestinationLabels(destination)
   const isSection = variant === "section"
-  const cellAlign = isSection ? "flex-start" : "center"
+  const borrowApy = formatFractionPercent(figures.borrowApy)
 
   const metricCells = [
     {
@@ -256,29 +283,30 @@ const DestinationRow = ({
       value: formatFractionPercent(figures.lltv),
     },
     {
-      label: t("destinations.columns.borrowApy"),
-      value: formatFractionPercent(figures.borrowApy),
-    },
-    {
       label: t("destinations.columns.borrowApr"),
       value: formatFractionPercent(aprFromApy(figures.borrowApy)),
+      tooltip:
+        borrowApy &&
+        t("destinations.columns.borrowAprTooltip", { apy: borrowApy }),
     },
     {
       label: t("destinations.columns.borrowableNow"),
       value: formatUsdCompact(figures.availableLiquidityUsd),
     },
-  ].map(({ label, value }) => (
+  ].map(({ label, value, tooltip }) => (
     <Box
       key={label}
       sx={{
         display: "flex",
         flexDirection: "column",
-        justifyContent: cellAlign,
         gap: "8px",
-        padding: isSection ? "12px 8px 10px 0" : "12px 0 10px",
+        minWidth: isSection ? "44px" : undefined,
+        padding: "12px 8px 10px 0",
       }}
     >
-      <Label nowrap={isSection}>{label}</Label>
+      <Label nowrap={isSection} tooltip={tooltip}>
+        {label}
+      </Label>
       <Typography
         variant="text3"
         color={value === null ? COLORS.santasGrey : COLORS.blackRock}
@@ -304,6 +332,7 @@ const DestinationRow = ({
                   whiteSpace: "normal",
                   minHeight: "32px",
                 },
+                [`& .${SECTION_FLAGS_CLASS} span`]: { whiteSpace: "normal" },
                 "& > :last-of-type": { paddingLeft: "12px" },
               },
             }
@@ -378,7 +407,6 @@ const DestinationRow = ({
         sx={{
           display: "flex",
           flexDirection: "column",
-          justifyContent: cellAlign,
           gap: "8px",
           padding: isSection ? "12px 8px 10px 0" : "12px 20px 10px 0",
           minWidth: isSection ? undefined : 0,
@@ -388,17 +416,14 @@ const DestinationRow = ({
         <Box
           sx={{
             display: "flex",
-            flexWrap: "wrap",
             alignItems: "flex-start",
             gap: "2px",
+            ...(isSection ? { flexDirection: "column" } : { flexWrap: "wrap" }),
           }}
         >
           <RouteChip {...labels.route} />
           {labels.loop && <RouteChip {...labels.loop} />}
-          <HintChip
-            tooltip={labels.token.tooltip}
-            background={isSection ? COLORS.blackHaze : COLORS.white}
-          >
+          <HintChip tooltip={labels.token.tooltip} background="transparent">
             <SmallText wrap>
               {labels.token.parts[0]}
               <Box component="span" sx={{ whiteSpace: "nowrap" }}>
@@ -416,16 +441,20 @@ const DestinationRow = ({
         sx={{
           display: "flex",
           flexDirection: "column",
-          justifyContent: cellAlign,
           gap: "8px",
           padding: isSection ? "12px 8px 10px 0" : "12px 0 10px",
           minWidth: isSection ? undefined : 0,
         }}
       >
         <Label nowrap={isSection}>{t("destinations.columns.riskFlag")}</Label>
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: "2px" }}>
+        <Box
+          className={isSection ? SECTION_FLAGS_CLASS : undefined}
+          sx={{ display: "flex", flexWrap: "wrap", gap: "2px" }}
+        >
           {labels.riskFlags.length > 0 ? (
-            labels.riskFlags.map((flag) => <Flag key={flag.label} {...flag} />)
+            labels.riskFlags.map((flag) => (
+              <Flag key={flag.label} {...flag} wrap={!isSection} />
+            ))
           ) : (
             <SmallText>—</SmallText>
           )}

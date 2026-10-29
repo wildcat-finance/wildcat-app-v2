@@ -1745,6 +1745,7 @@
       "lltv": "LLTV",
       "borrowApy": "Borrow APY",
       "borrowApr": "Borrow APR",
+      "borrowAprTooltip": "Borrow APY: {{apy}}. APR is the same rate without compounding, so you can compare it with the market APR.",
       "riskFlag": "Risks",
       "borrowableNow": "Borrowable now"
     },
