@@ -15,7 +15,7 @@ import ExternalLink from "@/assets/icons/externalLink_icon.svg"
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { COLORS } from "@/theme/colors"
 
-export type ExternalLinkTarget = { url: string; host: string }
+export type ExternalLinkTarget = { url: string; platform: string }
 
 export const ExternalLinkGate = ({
   target,
@@ -31,6 +31,11 @@ export const ExternalLinkGate = ({
     setShownTarget(target)
     setAcknowledged(false)
   }
+  // The dialog keeps its text while it fades out after target is cleared.
+  const copy = {
+    platform: shownTarget?.platform,
+    interpolation: { escapeValue: false },
+  }
 
   const handleContinue = () => {
     if (!target || !acknowledged) return
@@ -42,7 +47,7 @@ export const ExternalLinkGate = ({
     <Dialog
       open={!!target}
       onClose={onClose}
-      PaperProps={{ "aria-label": t("destinations.gate.title") }}
+      PaperProps={{ "aria-label": t("destinations.gate.title", copy) }}
       sx={{
         "& .MuiDialog-paper": {
           position: "relative",
@@ -62,7 +67,7 @@ export const ExternalLinkGate = ({
     >
       <IconButton
         onClick={onClose}
-        aria-label={t("destinations.gate.stay")}
+        aria-label={t("destinations.gate.cancel")}
         sx={{
           position: "absolute",
           top: "28px",
@@ -107,7 +112,7 @@ export const ExternalLinkGate = ({
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           <Typography variant="text1" color={COLORS.bunker}>
-            {t("destinations.gate.title")}
+            {t("destinations.gate.title", copy)}
           </Typography>
           <Typography
             sx={{
@@ -118,7 +123,7 @@ export const ExternalLinkGate = ({
               opacity: 0.7,
             }}
           >
-            {t("destinations.gate.body")}
+            {t("destinations.gate.body", copy)}
           </Typography>
         </Box>
       </Box>
@@ -157,7 +162,7 @@ export const ExternalLinkGate = ({
         fullWidth
         sx={{ height: "44px" }}
       >
-        {t("destinations.gate.continue")}
+        {t("destinations.gate.continue", copy)}
       </Button>
 
       <Button
@@ -171,7 +176,7 @@ export const ExternalLinkGate = ({
           color: COLORS.blackRock,
         }}
       >
-        {t("destinations.gate.stay")}
+        {t("destinations.gate.cancel")}
       </Button>
     </Dialog>
   )

@@ -530,7 +530,9 @@ export const DestinationRows = ({
           key={destination.id}
           destination={destination}
           variant={variant}
-          onOpen={({ url, urlHost }) => setTarget({ url, host: urlHost })}
+          onOpen={({ url, platformName }) =>
+            setTarget({ url, platform: platformName })
+          }
         />
       ))}
       <ExternalLinkGate target={target} onClose={() => setTarget(null)} />

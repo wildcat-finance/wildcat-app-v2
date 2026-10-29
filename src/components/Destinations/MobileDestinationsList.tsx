@@ -470,8 +470,8 @@ export const MobileDestinationsList = ({
   const focusRevealed = React.useRef(false)
   const firstRevealedRef = React.useRef<HTMLButtonElement>(null)
 
-  const openDestination = ({ url, urlHost }: Destination) =>
-    setTarget({ url, host: urlHost })
+  const openDestination = ({ url, platformName }: Destination) =>
+    setTarget({ url, platform: platformName })
 
   const visible = destinations.slice(0, COLLAPSED_COUNT)
   const rest = destinations.slice(COLLAPSED_COUNT)
@@ -701,7 +701,9 @@ export const MobileDestinationsPanel = ({
       <MobileDestinationItems
         destinations={destinations}
         variant="panel"
-        onOpen={({ url, urlHost }) => setTarget({ url, host: urlHost })}
+        onOpen={({ url, platformName }) =>
+          setTarget({ url, platform: platformName })
+        }
       />
 
       <Disclaimer destinations={destinations} padding="4px 8px 10px" />
@@ -788,7 +790,9 @@ export const MobileComposableBlock = ({
             <MobileDestinationItems
               destinations={destinations}
               variant="card"
-              onOpen={({ url, urlHost }) => setTarget({ url, host: urlHost })}
+              onOpen={({ url, platformName }) =>
+                setTarget({ url, platform: platformName })
+              }
             />
           </Box>
           <Disclaimer destinations={destinations} padding="6px 6px 4px" />

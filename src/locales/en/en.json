@@ -1780,11 +1780,11 @@
       "tryAgain": "Try again"
     },
     "gate": {
-      "title": "You are leaving Wildcat",
-      "body": "This link opens a third-party platform not affiliated with Wildcat. Its own terms, risks and smart contracts apply. Wildcat does not verify the figures shown and cannot recover funds lost there.",
-      "confirm": "I understand the risks and want to continue",
-      "continue": "Continue",
-      "stay": "Stay on Wildcat"
+      "title": "You are leaving Wildcat for {{platform}}",
+      "body": "{{platform}} is a third-party platform not affiliated with Wildcat. Listing it as an integration does not mean Wildcat reviews or endorses it. Its own terms, risks and smart contracts apply. The figures shown on Wildcat come from {{platform}} and may be out of date. Wildcat cannot recover funds lost there.",
+      "confirm": "I understand and want to continue",
+      "continue": "Continue to {{platform}}",
+      "cancel": "Cancel"
     }
   },
   "utils": {
