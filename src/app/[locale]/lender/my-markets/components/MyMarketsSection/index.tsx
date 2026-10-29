@@ -56,9 +56,10 @@ export const MyMarketsSection = () => {
 
   const {
     marketAccounts,
-    isLoadingInitial: isLoading,
+    isLoadingInitial,
     borrowers,
     policyMarkets,
+    isPolicyMarketsLoading,
   } = useLenderMarketsContext()
 
   const marketSection = useAppSelector(
@@ -177,6 +178,10 @@ export const MyMarketsSection = () => {
         ),
     [marketAccounts, policyMarkets],
   )
+
+  const isLoading =
+    isLoadingInitial ||
+    (isPolicyMarketsLoading && myMarketAccounts.length === 0)
 
   const filteredMarketAccounts = useMemo(
     () =>

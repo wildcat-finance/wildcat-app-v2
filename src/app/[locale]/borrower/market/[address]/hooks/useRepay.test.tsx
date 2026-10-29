@@ -22,6 +22,11 @@ import { isUSDTLikeToken } from "@/utils/constants"
 
 import { useRepay } from "./useRepay"
 
+jest.mock("viem", () => ({
+  getAddress: (value: string) => value,
+  isAddress: (value: string) => /^0x[a-fA-F0-9]{40}$/.test(value),
+}))
+
 jest.mock("@safe-global/safe-apps-react-sdk", () => ({
   useSafeAppsSDK: jest.fn(),
 }))

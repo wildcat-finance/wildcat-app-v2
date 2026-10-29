@@ -30,7 +30,8 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
   } = useLendersMarkets()
 
   const { data: borrowers } = useBorrowerNames()
-  const { policyMarkets } = useLenderPolicyMarkets(marketAccounts)
+  const { policyMarkets, isPolicyMarketsLoading } =
+    useLenderPolicyMarkets(marketAccounts)
 
   const lenderMarkets = useMemo(
     () =>
@@ -197,6 +198,7 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
       onboardingStatus,
       borrowers,
       policyMarkets,
+      isPolicyMarketsLoading,
     }),
     [
       marketAccounts,
@@ -206,6 +208,7 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
       onboardingStatus,
       borrowers,
       policyMarkets,
+      isPolicyMarketsLoading,
     ],
   )
 
