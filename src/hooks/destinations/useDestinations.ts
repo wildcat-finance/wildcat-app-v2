@@ -44,7 +44,9 @@ export const useDestinations = (
     enabled: isSelectedNetworkRehydrated && supported,
     staleTime: CACHE_TTL_MS,
     refetchInterval: CACHE_TTL_MS,
-    refetchOnWindowFocus: false,
+    // The interval pauses in a hidden tab, so a returning user would see the
+    // old figures for up to another interval.
+    refetchOnWindowFocus: true,
     retry: 1,
     queryFn: async (): Promise<DestinationsResponse> => {
       const response = await fetch(`/api/destinations?chainId=${chainId}`)
