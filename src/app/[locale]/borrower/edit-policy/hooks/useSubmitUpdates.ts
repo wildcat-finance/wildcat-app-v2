@@ -14,6 +14,7 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useAppDispatch } from "@/store/hooks"
 import { resetEditPolicyState } from "@/store/slices/editPolicySlice/editPolicySlice"
+import { describeContractRevert } from "@/utils/contractErrors"
 import { trimAddress } from "@/utils/formatters"
 import {
   getBlockedLenders,
@@ -64,6 +65,8 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
       console.log(
         `useDeployMarket :: isTestnet: ${isTestnet} :: isConnectedToSafe: ${isConnectedToSafe} :: gnosisSafeSDK: ${!!gnosisSafeSDK}`,
       )
+
+      const errorInterface = policy.contract.interface
 
       const txs: Array<PartialTransaction & ToastRequestConfig> = []
       if (addLenders && addLenders.length) {
@@ -178,7 +181,13 @@ export function useSubmitUpdates(policy?: HooksInstance | MarketController) {
                 value: tx.value,
               })
               .then(({ wait }) => wait()),
-            tx,
+            {
+              ...tx,
+              getErrorMessage: (error) => {
+                const reason = describeContractRevert(error, errorInterface)
+                return reason ? `${tx.error}: ${reason}` : tx.error ?? ""
+              },
+            },
           )
         }
       }

@@ -72,9 +72,8 @@ export const LendersTab = ({
     lendersList,
   )
 
-  const { submitUpdates, isSubmitting, isSuccess, isError } = useSubmitUpdates(
-    policy ?? controller,
-  )
+  const { submitUpdates, isSubmitting, isSuccess, isError, errorMessage } =
+    useSubmitUpdates(policy ?? controller)
 
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
 
@@ -235,6 +234,7 @@ export const LendersTab = ({
         isLoading={isSubmitting}
         isSuccess={isSuccess}
         isError={isError}
+        errorMessage={errorMessage}
         handleTryAgain={handleClickSubmit}
       />
     </Box>

@@ -22,6 +22,11 @@ import { isUSDTLikeToken } from "@/utils/constants"
 
 import { useRepay } from "./useRepay"
 
+jest.mock("viem", () => ({
+  getAddress: (value: string) => value,
+  isAddress: (value: string) => /^0x[a-fA-F0-9]{40}$/.test(value),
+}))
+
 jest.mock("@safe-global/safe-apps-react-sdk", () => ({
   useSafeAppsSDK: jest.fn(),
 }))
@@ -38,21 +43,6 @@ jest.mock("@wildcatfi/wildcat-sdk", () => ({
   ...jest.requireActual("@wildcatfi/wildcat-sdk"),
   getLensContract: jest.fn(),
   getLensV2Contract: jest.fn(),
-}))
-jest.mock("@/config/query-keys", () => ({
-  QueryKeys: {
-    Markets: {
-      GET_MARKET: (...args: unknown[]) => ["market", ...args],
-      GET_MARKET_ACCOUNT: {
-        PREFIX: (...args: unknown[]) => ["market-account", ...args],
-      },
-    },
-    Borrower: {
-      GET_WITHDRAWALS: {
-        PREFIX: (...args: unknown[]) => ["withdrawals", ...args],
-      },
-    },
-  },
 }))
 
 const marketAddress = "0x3e285f49c52888d38cc09682e32febfff2dd9996"
@@ -337,6 +327,15 @@ describe("useRepay", () => {
       expect(fixture.setTxHash).toHaveBeenCalledWith(transactionHash)
       expect(fixture.invalidate).toHaveBeenCalledWith({
         queryKey: QueryKeys.Borrower.GET_WITHDRAWALS.PREFIX(1, marketAddress),
+      })
+      expect(fixture.invalidate).toHaveBeenCalledWith({
+        queryKey: QueryKeys.Lender.GET_LENDER_ACCOUNTS.PREFIX(1),
+      })
+      expect(fixture.invalidate).toHaveBeenCalledWith({
+        queryKey: QueryKeys.Borrower.GET_OWN_MARKETS(1),
+      })
+      expect(fixture.invalidate).toHaveBeenCalledWith({
+        queryKey: QueryKeys.Borrower.GET_ALL_MARKETS(1),
       })
     },
   )

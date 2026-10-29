@@ -228,6 +228,7 @@ export const MobileFilterButton = ({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            flexShrink: 0,
             padding: "0 12px",
             marginBottom: "8px",
           }}
@@ -260,11 +261,12 @@ export const MobileFilterButton = ({
 
         <Box
           sx={{
-            margin: "16px 0",
             display: "flex",
             flexDirection: "column",
             gap: "14px",
-            padding: "0px 12px",
+            minHeight: 0,
+            overflowY: "auto",
+            padding: "16px 12px",
           }}
         >
           {setShowSelfOnboard && (
@@ -461,7 +463,7 @@ export const MobileFilterButton = ({
 
         <Divider />
 
-        <Box sx={{ width: "100%", padding: "12px 12px 0" }}>
+        <Box sx={{ width: "100%", flexShrink: 0, padding: "12px 12px 0" }}>
           <Button
             onClick={handleReset}
             size="medium"

@@ -30,6 +30,11 @@ import { theme } from "@/theme/theme"
 
 import { useDeposit } from "../../../hooks/useDeposit"
 
+// jsdom has no ResizeObserver; the modal measures its form height with one.
+globalThis.ResizeObserver ??= function ResizeObserverStub() {
+  return { observe() {}, unobserve() {}, disconnect() {} }
+} as unknown as typeof ResizeObserver
+
 const mockAddress = "0x0000000000000000000000000000000000000011"
 const mockSigner = {
   _isSigner: true,

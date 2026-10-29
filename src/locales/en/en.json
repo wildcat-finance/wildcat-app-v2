@@ -171,6 +171,11 @@
       },
       "noMarkets": {
         "wrongNetwork": "No Wildcat Markets On This Network",
+        "explore": {
+          "title": "No Markets Available",
+          "subtitle": "There are no markets to display at the moment."
+        },
+        "filteredEmpty": "No markets match the current filters.",
         "lenderAlert": {
           "title": "No active markets",
           "subtitle": "You don’t have any active markets now. See the Other Markets list to join one.",
@@ -408,10 +413,6 @@
       "marketExpiry": "Loan Maturity",
       "marketEarlyClosure": {
         "label": "Fixed Term Closure Permitted",
-        "na": {
-          "text": "N/A",
-          "tooltip": "Market is Open Term, market can be terminated at any time."
-        },
         "no": {
           "text": "No",
           "tooltip": "Market can only be terminated after fixed duration maturity."
@@ -423,10 +424,6 @@
       },
       "marketMaturityReduction": {
         "label": "Fixed Term Maturity Reduction Permitted",
-        "na": {
-          "text": "N/A",
-          "tooltip": "No maturity to reduce in an Open Term setting."
-        },
         "no": {
           "text": "No",
           "tooltip": "Maturity cannot be shortened from current value."
@@ -974,7 +971,8 @@
     "add": "Add Lender",
     "undo": "Undo",
     "submit": "Submit",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "resetFilters": "Reset Filters"
   },
   "notifications": {
     "viewOnEtherscan": "View on Explorer",
@@ -1105,6 +1103,9 @@
       "whatHappensAfter": {
         "question": "What happens after deployment?",
         "answer": "Once deployed, the wrapper is available to everyone."
+      },
+      "failed": {
+        "subtitle": "The transaction did not complete. Check your wallet and try again."
       }
     },
     "transactions": {
@@ -1223,6 +1224,9 @@
           "title": "Transaction Proposed",
           "subtitle": "Your Safe needs {{count}} signatures before this withdrawal is queued."
         },
+        "failed": {
+          "subtitle": "The withdrawal transaction did not complete. Check your wallet and try again."
+        },
         "splitDirect": "{{amount}} direct",
         "splitWrapped": "≈ {{amount}} wrapped"
       },
@@ -1236,6 +1240,9 @@
           "noClaim": "You have nothing to claim right now."
         },
         "subtitle": "No assets available to claim from this market.",
+        "failed": {
+          "subtitle": "The claim transaction did not complete. Check your wallet and try again."
+        },
         "buttons": {
           "claim": "Claim Assets",
           "withdrawals": "Go to Withdrawals"
@@ -1296,7 +1303,8 @@
     }
   },
   "txModal": {
-    "viewOnEtherscan": "View on Explorer"
+    "viewOnEtherscan": "View on Explorer",
+    "close": "Close"
   },
   "link": {
     "viewOnEtherscan": "View on Explorer"
@@ -1599,6 +1607,19 @@
         "label": "Master Loan Agreement",
         "explainer": "Explainer",
         "glossary": "A legally binding document that defines the terms, obligations, and penalties for borrowers and lenders in the market."
+      },
+      "signing": {
+        "agreement": {
+          "pending": "Setting MLA...",
+          "success": "MLA signed successfully",
+          "error": "Failed to set MLA"
+        },
+        "refusal": {
+          "pending": "Signing MLA refusal...",
+          "success": "MLA refusal signed successfully",
+          "error": "Failed to sign MLA refusal"
+        },
+        "pendingSafe": "Awaiting Safe confirmations — you may leave this page."
       }
     },
     "financial": {

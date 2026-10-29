@@ -60,8 +60,13 @@ export const MyMarketsSection = () => {
   const destinations = useDestinations(selectedChainId)
   const { markets: destinationsByMarket } = destinations
 
-  const { marketAccounts, isLoadingInitial, borrowers } =
-    useLenderMarketsContext()
+  const {
+    marketAccounts,
+    isLoadingInitial,
+    borrowers,
+    policyMarkets,
+    isPolicyMarketsLoading,
+  } = useLenderMarketsContext()
 
   const marketSection = useAppSelector(
     (state) => state.lenderDashboard.marketSection,
@@ -170,7 +175,11 @@ export const MyMarketsSection = () => {
     [marketSearch, marketAssets, marketStatuses],
   )
 
-  // Markets the lender has ever interacted with, excluding blacklisted addresses
+  // Markets the lender has ever interacted with, or holds access to through a
+  // policy, excluding blacklisted addresses. A policy grant writes no
+  // LenderAccount row and no role for the market, so hasEverInteracted alone
+  // would drop it, and the Non-Deposited and Never Active sections below would
+  // have nothing to show.
   const myMarketAccounts = useMemo(
     () =>
       marketAccounts
@@ -180,8 +189,12 @@ export const MyMarketsSection = () => {
             account.isAuthorizedOnController ||
             account.role !== LenderRole.Null,
         )
-        .filter((account) => account.hasEverInteracted),
-    [marketAccounts],
+        .filter(
+          (account) =>
+            account.hasEverInteracted ||
+            policyMarkets.has(account.market.address.toLowerCase()),
+        ),
+    [marketAccounts, policyMarkets],
   )
 
   const filteredMarketAccounts = useMemo(
@@ -217,7 +230,9 @@ export const MyMarketsSection = () => {
   const composableCount = composableMarketAccounts.length
   const composableFilterActive = composableOnly && !isMobile
   const isLoading =
-    isLoadingInitial || (composableFilterActive && destinations.isPending)
+    isLoadingInitial ||
+    (isPolicyMarketsLoading && myMarketAccounts.length === 0) ||
+    (composableFilterActive && destinations.isPending)
   const showComposableSwitch = composableCount > 0 || composableOnly
 
   const visibleMarketAccounts = composableFilterActive

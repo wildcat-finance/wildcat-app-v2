@@ -122,6 +122,8 @@ describe("lender market navigation loading", () => {
       onboardingByMarket: {},
       onboardingStatus: "loading",
       borrowers: [],
+      policyMarkets: new Set(),
+      isPolicyMarketsLoading: false,
     })
   })
 
@@ -175,5 +177,26 @@ describe("lender market navigation loading", () => {
     expect(screen.getByTestId(tableId).getAttribute("data-loading")).toBe(
       "false",
     )
+  })
+
+  it("waits for policy grants before showing an empty My Markets table", () => {
+    const context = jest
+      .mocked(useLenderMarketsContext)
+      .getMockImplementation()!()
+    jest.mocked(useLenderMarketsContext).mockReturnValue({
+      ...context,
+      isPolicyMarketsLoading: true,
+    })
+    const { rerender } = render(<MyMarketsSection />)
+
+    expect(
+      screen.getByTestId("my-markets-table").getAttribute("data-loading"),
+    ).toBe("true")
+
+    jest.mocked(useLenderMarketsContext).mockReturnValue(context)
+    rerender(<MyMarketsSection />)
+    expect(
+      screen.getByTestId("my-markets-table").getAttribute("data-loading"),
+    ).toBe("false")
   })
 })
