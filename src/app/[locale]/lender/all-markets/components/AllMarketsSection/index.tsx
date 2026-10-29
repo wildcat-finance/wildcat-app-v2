@@ -57,12 +57,8 @@ export const AllMarketsSection = () => {
     isTestnet,
   } = useCurrentNetwork()
 
-  const {
-    marketAccounts,
-    isLoadingInitial: isLoading,
-    onboardingByMarket,
-    borrowers,
-  } = useLenderMarketsContext()
+  const { marketAccounts, isLoadingInitial, onboardingByMarket, borrowers } =
+    useLenderMarketsContext()
 
   const destinations = useDestinations(selectedChainId)
   const { markets: destinationsByMarket } = destinations
@@ -214,6 +210,8 @@ export const AllMarketsSection = () => {
   ])
 
   const showComposableSwitch = composableCount > 0 || composableOnly
+  const isLoading =
+    isLoadingInitial || (composableOnly && destinations.isPending)
 
   const selfOnboardAmount = useMemo(
     () =>

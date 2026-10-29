@@ -5,6 +5,7 @@ import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { AllMarketsSection } from "@/app/[locale]/lender/all-markets/components/AllMarketsSection"
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
 import { MyMarketsSection } from "@/app/[locale]/lender/my-markets/components/MyMarketsSection"
+import { useDestinations } from "@/hooks/destinations/useDestinations"
 import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -50,7 +51,7 @@ jest.mock("@/components/Destinations", () => ({
   ComposableOnlySwitch: () => null,
 }))
 jest.mock("@/hooks/destinations/useDestinations", () => ({
-  useDestinations: () => ({ markets: {}, showDestinations: false }),
+  useDestinations: jest.fn(),
 }))
 jest.mock("@/app/[locale]/lender/all-markets/components/MobileHeader", () => ({
   MobileHeader: () => null,
@@ -84,10 +85,16 @@ const emptyFilters = {
   assets: [],
   statuses: [],
   withdrawalCycles: [],
+  composableOnly: false,
 }
 
 describe("lender market navigation loading", () => {
   beforeEach(() => {
+    jest.mocked(useDestinations).mockReturnValue({
+      markets: {},
+      showDestinations: false,
+      isPending: false,
+    } as ReturnType<typeof useDestinations>)
     jest.mocked(useAppDispatch).mockReturnValue(jest.fn())
     jest.mocked(useAppSelector).mockImplementation((selector) =>
       selector({
@@ -134,5 +141,39 @@ describe("lender market navigation loading", () => {
     expect(
       screen.getByTestId("my-markets-table").getAttribute("data-loading"),
     ).toBe("false")
+  })
+
+  it.each([
+    [AllMarketsSection, "all-markets-table"],
+    [MyMarketsSection, "my-markets-table"],
+  ])("waits for integrations when filtering %p", (Section, tableId) => {
+    jest.mocked(useAppSelector).mockImplementation((selector) =>
+      selector({
+        marketFilters: { lender: { ...emptyFilters, composableOnly: true } },
+        lenderDashboard: {
+          marketSection: LenderMarketDashboardSections.ACTIVE,
+        },
+      } as unknown as Parameters<typeof selector>[0]),
+    )
+    jest.mocked(useDestinations).mockReturnValue({
+      markets: {},
+      showDestinations: true,
+      isPending: true,
+    } as ReturnType<typeof useDestinations>)
+
+    const { rerender } = render(<Section />)
+    expect(screen.getByTestId(tableId).getAttribute("data-loading")).toBe(
+      "true",
+    )
+
+    jest.mocked(useDestinations).mockReturnValue({
+      markets: {},
+      showDestinations: false,
+      isPending: false,
+    } as ReturnType<typeof useDestinations>)
+    rerender(<Section />)
+    expect(screen.getByTestId(tableId).getAttribute("data-loading")).toBe(
+      "false",
+    )
   })
 })

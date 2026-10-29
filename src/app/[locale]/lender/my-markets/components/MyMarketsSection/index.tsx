@@ -60,11 +60,8 @@ export const MyMarketsSection = () => {
   const destinations = useDestinations(selectedChainId)
   const { markets: destinationsByMarket } = destinations
 
-  const {
-    marketAccounts,
-    isLoadingInitial: isLoading,
-    borrowers,
-  } = useLenderMarketsContext()
+  const { marketAccounts, isLoadingInitial, borrowers } =
+    useLenderMarketsContext()
 
   const marketSection = useAppSelector(
     (state) => state.lenderDashboard.marketSection,
@@ -219,6 +216,8 @@ export const MyMarketsSection = () => {
 
   const composableCount = composableMarketAccounts.length
   const composableFilterActive = composableOnly && !isMobile
+  const isLoading =
+    isLoadingInitial || (composableFilterActive && destinations.isPending)
   const showComposableSwitch = composableCount > 0 || composableOnly
 
   const visibleMarketAccounts = composableFilterActive

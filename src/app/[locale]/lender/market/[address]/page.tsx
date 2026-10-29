@@ -57,6 +57,7 @@ import {
   setIsLoading,
   setDefaultSection,
   resetPageState,
+  setSection,
   setDestinationsCount,
   setWithdrawalsCount,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
@@ -356,26 +357,40 @@ export default function LenderMarketDetails({
     dispatch(setWithdrawalsCount(totalWithdrawalsCount))
   }, [totalWithdrawalsCount])
 
-  const { destinations } = useMarketDestinations(
-    market?.chainId,
-    market?.address,
-  )
+  const { destinations, isPending: areDestinationsPending } =
+    useMarketDestinations(market?.chainId, market?.address)
 
   useEffect(() => {
     dispatch(setDestinationsCount(destinations.length))
+  }, [dispatch, destinations.length])
+
+  useEffect(() => {
     if (
+      !areDestinationsPending &&
+      !isAuthorizationPending &&
+      !(isConnected && !isDifferentChain && isActivityLoading) &&
       destinations.length === 0 &&
       currentSection === LenderMarketSections.DESTINATIONS
     ) {
       dispatch(
         setSection(
-          authorizedInMarket
+          showLenderTransactions
             ? LenderMarketSections.TRANSACTIONS
             : LenderMarketSections.STATUS,
         ),
       )
     }
-  }, [destinations.length])
+  }, [
+    dispatch,
+    destinations.length,
+    areDestinationsPending,
+    currentSection,
+    isAuthorizationPending,
+    isConnected,
+    isDifferentChain,
+    isActivityLoading,
+    showLenderTransactions,
+  ])
 
   useEffect(() => {
     if (currentSection !== LenderMarketSections.WRAP_DEBT_TOKEN) {

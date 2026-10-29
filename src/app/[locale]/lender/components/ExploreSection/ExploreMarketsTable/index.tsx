@@ -275,7 +275,6 @@ export const ExploreMarketsTable = () => {
   const { marketAccounts, borrowers, isLoadingInitial, onboardingByMarket } =
     useLenderMarketsContext()
   const { isTestnet, targetChainId } = useCurrentNetwork()
-  const isLoading = isLoadingInitial
 
   const [sortMode, setSortMode] = useState<SortOption>("Most Funded")
   const [sortModel, setSortModel] = useState<GridSortModel>([])
@@ -295,6 +294,8 @@ export const ExploreMarketsTable = () => {
   const [showComposableOnly, setShowComposableOnly] = useState(false)
 
   const destinations = useDestinations(targetChainId)
+  const isLoading =
+    isLoadingInitial || (showComposableOnly && destinations.isPending)
   const { markets: destinationsByMarket } = destinations
   const composableMarkets = useMemo(
     () => new Set(Object.keys(destinationsByMarket)),
