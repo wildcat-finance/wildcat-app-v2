@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.23.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.22.5...v2.23.0) (2026-10-29)
+
+
+### Features
+
+* composable markets ([b7f967f](https://github.com/wildcat-finance/wildcat-app-v2/commit/b7f967f2c680e5fb359596a945eb5e086ff03fdf))
+* **composable:** apply external link warning copy ([a98dc68](https://github.com/wildcat-finance/wildcat-app-v2/commit/a98dc68233a45abc0f7ee48cf3be2e3c179798b9))
+* **composable:** apply loading, error and unavailable copy to integrations ([dcd2702](https://github.com/wildcat-finance/wildcat-app-v2/commit/dcd27023c76a2da32df349f19b630d5590ca9f6c))
+* **composable:** move borrow apy into the apr tooltip and top-align integration rows ([dac4181](https://github.com/wildcat-finance/wildcat-app-v2/commit/dac4181ff96d1ea2e9f4365eb557568fb7865ba3))
+* **composable:** show borrowable in the loan asset, hide risks and keep composable only ([c0ea8b9](https://github.com/wildcat-finance/wildcat-app-v2/commit/c0ea8b9749ea530fcdb267286d668cb005659669))
+
+
+### Bug Fixes
+
+* **composable:** cut integration figures to two decimals like the platform ([7e061fe](https://github.com/wildcat-finance/wildcat-app-v2/commit/7e061fe42ad381b444b2d22d3a1848f8670a297e))
+* port fixes to prod (batch 1 from oct 16) ([5d5161a](https://github.com/wildcat-finance/wildcat-app-v2/commit/5d5161adb5c2812a8076cccf2b13b7b1e549c522))
+* preserve lender access and loading for integrations ([0f1265d](https://github.com/wildcat-finance/wildcat-app-v2/commit/0f1265d3c89509118523d120afc9a87d7b841894))
+* preserve policy market loading after backport ([75c4a80](https://github.com/wildcat-finance/wildcat-app-v2/commit/75c4a80d546dcf98566a5b49b689f95c93318d39))
+
 ## [2.22.5](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.22.4...v2.22.5) (2026-10-28)
 
 
