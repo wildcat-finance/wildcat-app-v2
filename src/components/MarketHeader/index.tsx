@@ -3,6 +3,7 @@ import * as React from "react"
 import {
   Box,
   Button,
+  Skeleton,
   SvgIcon,
   Tooltip,
   Typography,
@@ -38,6 +39,7 @@ export const MarketHeader = ({
   marketAccount,
   mla,
   hasMarketDescription,
+  isLiveMarketReady = true,
 }: MarketHeaderProps) => {
   const theme = useTheme()
   const isMobile = useMobileResolution()
@@ -52,7 +54,7 @@ export const MarketHeader = ({
   React.useEffect(() => {
     const cycleEnd = market.pendingWithdrawalExpiry
 
-    if (!cycleEnd) {
+    if (!isLiveMarketReady || !cycleEnd) {
       setRemainingTime("")
       return undefined
     }
@@ -78,11 +80,31 @@ export const MarketHeader = ({
     const intervalId = setInterval(updateRemainingTime, 1000)
 
     return () => clearInterval(intervalId)
-  }, [market.pendingWithdrawalExpiry])
+  }, [market.pendingWithdrawalExpiry, isLiveMarketReady])
 
-  const marketStatus = getMarketStatusChip(market)
+  const marketStatus = isLiveMarketReady
+    ? getMarketStatusChip(market)
+    : undefined
   const shouldShowCycleChip =
-    Boolean(remainingTime) && marketStatus.status !== MarketStatus.TERMINATED
+    !!marketStatus &&
+    Boolean(remainingTime) &&
+    marketStatus.status !== MarketStatus.TERMINATED
+
+  const statusChips = marketStatus ? (
+    <>
+      <MarketStatusChip status={marketStatus} variant="filled" />
+      {shouldShowCycleChip && (
+        <MarketCycleChip status={marketStatus.status} time={remainingTime} />
+      )}
+    </>
+  ) : (
+    <Skeleton
+      variant="rounded"
+      width={190}
+      height={16}
+      aria-label="Loading market status"
+    />
+  )
 
   const { data: profileData } = useGetBorrowerProfile(
     market.chainId,
@@ -120,15 +142,7 @@ export const MarketHeader = ({
           padding: "12px 16px",
         }}
       >
-        <Box sx={MarketHeaderStatusContainer(theme)}>
-          <MarketStatusChip status={marketStatus} variant="filled" />
-          {shouldShowCycleChip && (
-            <MarketCycleChip
-              status={marketStatus.status}
-              time={remainingTime}
-            />
-          )}
-        </Box>
+        <Box sx={MarketHeaderStatusContainer(theme)}>{statusChips}</Box>
 
         <Box
           sx={{
@@ -346,7 +360,8 @@ export const MarketHeader = ({
             <Typography
               variant="title1"
               sx={{
-                maxWidth: shouldShowCycleChip ? "430px" : "550px",
+                maxWidth:
+                  !isLiveMarketReady || shouldShowCycleChip ? "430px" : "550px",
                 whiteSpace: "nowrap",
                 textOverflow: "ellipsis",
                 overflow: "hidden",
@@ -364,7 +379,8 @@ export const MarketHeader = ({
           <Typography
             variant="title1"
             sx={{
-              maxWidth: shouldShowCycleChip ? "430px" : "550px",
+              maxWidth:
+                !isLiveMarketReady || shouldShowCycleChip ? "430px" : "550px",
               whiteSpace: "nowrap",
               textOverflow: "ellipsis",
               overflow: "hidden",
@@ -378,10 +394,7 @@ export const MarketHeader = ({
         </Box>
       )}
       <Box sx={MarketHeaderStatusContainer(theme)}>
-        <MarketStatusChip status={marketStatus} variant="filled" />
-        {shouldShowCycleChip && (
-          <MarketCycleChip status={marketStatus.status} time={remainingTime} />
-        )}
+        {statusChips}
         {supportsExport && (
           <Button
             variant="outlined"

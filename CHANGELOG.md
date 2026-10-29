@@ -1,5 +1,32 @@
 # Changelog
 
+## [2.22.5](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.22.4...v2.22.5) (2026-10-28)
+
+
+### Bug Fixes
+
+* **app:** flicker, tou cache ([f7a9c85](https://github.com/wildcat-finance/wildcat-app-v2/commit/f7a9c85b37f8c34436f7c901fa3d300fb7324d6f))
+* stale tou cache ([7743694](https://github.com/wildcat-finance/wildcat-app-v2/commit/7743694475537739031b9a2d575b8955445ee67d))
+* unavailable lender tab fallback ([f7b7318](https://github.com/wildcat-finance/wildcat-app-v2/commit/f7b731853f7662e4644cbe0aa9b79c71da83efcf))
+
+## [2.22.4](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.22.3...v2.22.4) (2026-10-27)
+
+
+### Bug Fixes
+
+* avoid legacy repayment underflow with conditional routing ([6319270](https://github.com/wildcat-finance/wildcat-app-v2/commit/6319270db088608b1cf2e331ddad2842f84d3733))
+* avoid legacy repayment underflow with conditional routing ([7ba9be9](https://github.com/wildcat-finance/wildcat-app-v2/commit/7ba9be9a9ac4a4de710dedcdf5109d7538044c8a))
+* repay underflow, remove account tests ([cd18201](https://github.com/wildcat-finance/wildcat-app-v2/commit/cd18201d7357df183fbe6cb23e42fcfb6febbb26))
+* simulate Safe approval and repayment batches before routing ([33e3123](https://github.com/wildcat-finance/wildcat-app-v2/commit/33e31236f6c8a48ce806d88345730fb135d56885))
+
+## [2.22.3](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.22.2...v2.22.3) (2026-10-26)
+
+
+### Bug Fixes
+
+* debt difference ([8ba5649](https://github.com/wildcat-finance/wildcat-app-v2/commit/8ba564912d69211fd45f4b64fb0d5e4624f4590d))
+* **market:** calculate Total Debt one way across the app ([#453](https://github.com/wildcat-finance/wildcat-app-v2/issues/453)) ([c551b58](https://github.com/wildcat-finance/wildcat-app-v2/commit/c551b58085e9d52675d6f47ccace072aa0a062d1))
+
 ## [2.22.2](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.22.1...v2.22.2) (2026-10-21)
 
 
