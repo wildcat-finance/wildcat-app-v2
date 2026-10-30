@@ -104,21 +104,24 @@ export const MobileSearchButton = ({
         <Box
           onClick={handleToggleOpen}
           sx={{
-            padding: "6px 8px",
+            width: "120px",
+            height: "28px",
+            padding: "3px 5px 3px 7px",
             borderRadius: "20px",
             display: "flex",
             alignItems: "center",
             gap: "2px",
-            border: `1px solid ${COLORS.athensGrey}`,
-            width: "fit-content",
+            border: `1px solid ${COLORS.iron}`,
+            cursor: "pointer",
           }}
         >
           <SvgIcon
             sx={{
-              padding: "4px",
-              fontSize: "18px",
+              flexShrink: 0,
+              padding: "3px",
+              fontSize: "20px",
               "& path": {
-                fill: "#8A8C9F",
+                fill: COLORS.greySuit,
               },
             }}
           >
@@ -129,8 +132,11 @@ export const MobileSearchButton = ({
             variant="mobText3"
             noWrap
             sx={{
-              maxWidth: 62,
+              flex: "1 1 0",
+              minWidth: 0,
               overflow: "hidden",
+              color: COLORS.bunker,
+              lineHeight: "20px",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
             }}

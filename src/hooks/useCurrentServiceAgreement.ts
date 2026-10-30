@@ -10,6 +10,7 @@ const fetchCurrentServiceAgreement =
     const response = await fetch("/api/service-agreement/current", {
       method: "GET",
       headers: { "Content-Type": "application/json" },
+      cache: "no-store",
     })
     if (!response.ok) {
       throw new Error("Failed to fetch current Terms of Use")

@@ -2,7 +2,7 @@
 /* eslint-disable no-restricted-syntax */
 import { useMemo } from "react"
 
-import { keepPreviousData, useQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import {
   Market,
   getLensV2Contract,
@@ -136,7 +136,6 @@ export function useGetLenderWithdrawals(
     ),
     queryFn: queryLenderWithdrawals,
     refetchInterval: POLLING_INTERVAL,
-    placeholderData: keepPreviousData,
     enabled: !!lender && !!market && !!targetChainId && !!subgraphClient,
     // refetchOnMount: false,
   })
@@ -271,7 +270,6 @@ export function useGetLenderWithdrawals(
       updateQueryKeys,
     ),
     queryFn: updateWithdrawals,
-    placeholderData: keepPreviousData,
     enabled: !!data,
     // refetchOnMount: false,
   })

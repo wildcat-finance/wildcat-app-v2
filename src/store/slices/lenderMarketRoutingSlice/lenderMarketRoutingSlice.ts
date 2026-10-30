@@ -8,6 +8,7 @@ export enum LenderMarketSections {
   MARKET_HISTORY = "marketHistory",
   BORROWER_PROFILE = "borrowerProfile",
   WRAP_DEBT_TOKEN = "wrapDebtToken",
+  DESTINATIONS = "destinations",
 }
 
 export type LenderMarketRoutingSliceType = {
@@ -16,6 +17,7 @@ export type LenderMarketRoutingSliceType = {
   isLoading: boolean
   isLender: boolean
   withdrawalsCount: number
+  destinationsCount: number
 }
 
 const initialState: LenderMarketRoutingSliceType = {
@@ -24,6 +26,7 @@ const initialState: LenderMarketRoutingSliceType = {
   isLoading: true,
   isLender: false,
   withdrawalsCount: 0,
+  destinationsCount: 0,
 }
 
 const lenderMarketRoutingSlice = createSlice({
@@ -35,7 +38,15 @@ const lenderMarketRoutingSlice = createSlice({
       state.hasSelectedSection = true
     },
     setDefaultSection: (state, action: PayloadAction<LenderMarketSections>) => {
-      // Late account reads must not override a section the user selected.
+      const selectedSectionUnavailable =
+        action.payload === LenderMarketSections.STATUS &&
+        [
+          LenderMarketSections.TRANSACTIONS,
+          LenderMarketSections.REQUESTS,
+          LenderMarketSections.WRAP_DEBT_TOKEN,
+        ].includes(state.currentSection)
+      // Preserve the user's choice only while that section remains available.
+      if (selectedSectionUnavailable) state.hasSelectedSection = false
       if (!state.hasSelectedSection) state.currentSection = action.payload
     },
     setIsLoading: (state, action: PayloadAction<boolean>) => {
@@ -47,6 +58,9 @@ const lenderMarketRoutingSlice = createSlice({
     setWithdrawalsCount: (state, action: PayloadAction<number>) => {
       state.withdrawalsCount = action.payload
     },
+    setDestinationsCount: (state, action: PayloadAction<number>) => {
+      state.destinationsCount = action.payload
+    },
     resetPageState: () => initialState,
   },
 })
@@ -57,6 +71,7 @@ export const {
   setIsLoading,
   setIsLender,
   setWithdrawalsCount,
+  setDestinationsCount,
   resetPageState,
 } = lenderMarketRoutingSlice.actions
 

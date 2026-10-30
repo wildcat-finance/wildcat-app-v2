@@ -1,8 +1,9 @@
-import React, { useState } from "react"
+import React, { ReactNode, useState } from "react"
 
 import { Box, Button, Skeleton, Typography } from "@mui/material"
 import { usePathname } from "next/navigation"
 
+import type { Destination } from "@/lib/destinations/types"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { getPaginationRange } from "@/utils/pagination"
@@ -11,12 +12,26 @@ import { LenderMobileMarketItem, MobileMarketCard } from "../MobileMarketCard"
 
 const ITEMS_PER_PAGE = 20
 
+const MobileListContainerSx = {
+  height: "100%",
+  display: "flex",
+  flexDirection: "column",
+  gap: "4px",
+} as const
+
 export const MobileMarketList = ({
   markets,
   isLoading = false,
+  header,
+  destinationsByMarket,
+  emptyTitle = "No Markets Here",
 }: {
   markets: readonly LenderMobileMarketItem[]
   isLoading?: boolean
+  header?: ReactNode
+  /** Per market, keyed by lowercase address; cards show none when omitted */
+  destinationsByMarket?: Record<string, Destination[]>
+  emptyTitle?: string
 }) => {
   const [page, setPage] = useState(0)
   const pathname = usePathname()
@@ -30,54 +45,53 @@ export const MobileMarketList = ({
     : ROUTES.lender.market
 
   const totalPages = Math.ceil(markets.length / ITEMS_PER_PAGE)
-  const startIndex = page * ITEMS_PER_PAGE
+  const currentPage = Math.min(page, Math.max(0, totalPages - 1))
+  const startIndex = currentPage * ITEMS_PER_PAGE
   const currentItems = markets.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+  const isEmpty = !markets.length && !isLoading
 
-  const handlePrev = () => setPage((prev) => Math.max(prev - 1, 0))
-  const handleNext = () => setPage((prev) => Math.min(prev + 1, totalPages - 1))
+  const handlePrev = () => setPage(Math.max(currentPage - 1, 0))
+  const handleNext = () => setPage(Math.min(currentPage + 1, totalPages - 1))
 
-  const paginationItems = getPaginationRange(page, totalPages)
-
-  if (!markets.length && !isLoading)
-    return (
-      <Box
-        sx={{
-          width: "100%",
-          height: "155px",
-          backgroundColor: COLORS.white,
-          padding: "12px",
-          borderRadius: "14px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "4px",
-          marginTop: "4px",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Typography variant="mobH3">No Markets Here</Typography>
-        <Typography variant="mobText3" color={COLORS.santasGrey}>
-          Change selected filters or check other sections
-        </Typography>
-      </Box>
-    )
+  const paginationItems = getPaginationRange(currentPage, totalPages)
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        marginTop: "4px",
-      }}
-    >
-      <Box
-        sx={{
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          gap: "4px",
-        }}
-      >
+    <Box sx={{ display: "flex", flexDirection: "column", marginTop: "4px" }}>
+      <Box sx={MobileListContainerSx}>
+        {header && (
+          <Box
+            sx={{
+              padding: "8px",
+              borderRadius: "14px",
+              backgroundColor: COLORS.white,
+            }}
+          >
+            {header}
+          </Box>
+        )}
+
+        {isEmpty && (
+          <Box
+            sx={{
+              height: "155px",
+              padding: "12px",
+              borderRadius: "14px",
+              backgroundColor: COLORS.white,
+              display: "flex",
+              flexDirection: "column",
+              gap: "4px",
+              justifyContent: "center",
+              alignItems: "center",
+              textAlign: "center",
+            }}
+          >
+            <Typography variant="mobH3">{emptyTitle}</Typography>
+            <Typography variant="mobText3" color={COLORS.santasGrey}>
+              Change selected filters or check other sections
+            </Typography>
+          </Box>
+        )}
+
         {!isLoading &&
           currentItems.map((marketItem) => (
             <MobileMarketCard
@@ -85,35 +99,24 @@ export const MobileMarketList = ({
               marketItem={marketItem}
               showBorrower={showBorrowerInCard}
               baseRoute={baseRoute}
+              destinations={destinationsByMarket?.[marketItem.id.toLowerCase()]}
             />
           ))}
+
         {isLoading && (
-          <>
-            <Skeleton
-              sx={{
-                width: "100%",
-                height: "182px",
-                backgroundColor: COLORS.white06,
-                borderRadius: "14px",
-              }}
-            />
-            <Skeleton
-              sx={{
-                width: "100%",
-                height: "182px",
-                backgroundColor: COLORS.white06,
-                borderRadius: "14px",
-              }}
-            />
-            <Skeleton
-              sx={{
-                width: "100%",
-                height: "182px",
-                backgroundColor: COLORS.white06,
-                borderRadius: "14px",
-              }}
-            />
-          </>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            {Array.from({ length: 3 }, (_, i) => `skeleton-${i}`).map((key) => (
+              <Skeleton
+                key={key}
+                sx={{
+                  width: "100%",
+                  height: "182px",
+                  backgroundColor: COLORS.white06,
+                  borderRadius: "14px",
+                }}
+              />
+            ))}
+          </Box>
         )}
       </Box>
 
@@ -131,7 +134,7 @@ export const MobileMarketList = ({
             color="secondary"
             size="small"
             onClick={handlePrev}
-            disabled={page === 0}
+            disabled={currentPage === 0}
             sx={{
               minWidth: "fit-content",
               "&.Mui-disabled": {
@@ -146,11 +149,12 @@ export const MobileMarketList = ({
           </Button>
 
           <Box sx={{ display: "flex", gap: "8px" }}>
-            {paginationItems.map((item) => {
+            {paginationItems.map((item, index) => {
               if (item === "...") {
                 return (
                   <Box
-                    key={`ellipsis-${item}`}
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={`ellipsis-${index}`}
                     sx={{
                       width: "24px",
                       display: "flex",
@@ -175,7 +179,7 @@ export const MobileMarketList = ({
                     padding: "2px !important",
                     borderRadius: "8px",
                     backgroundColor:
-                      item === page ? COLORS.white03 : "transparent",
+                      item === currentPage ? COLORS.white03 : "transparent",
 
                     "&:hover": {
                       backgroundColor: COLORS.white03,
@@ -195,7 +199,7 @@ export const MobileMarketList = ({
             color="secondary"
             size="small"
             onClick={handleNext}
-            disabled={page === totalPages - 1}
+            disabled={currentPage === totalPages - 1}
             sx={{
               minWidth: "fit-content",
               "&.Mui-disabled": {
