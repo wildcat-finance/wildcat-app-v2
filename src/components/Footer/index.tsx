@@ -9,7 +9,6 @@ import { useAccount } from "wagmi"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { useAppDispatch } from "@/store/hooks"
-import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
 import { setTouModalOpen } from "@/store/slices/touModalSlice/touModalSlice"
 import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
@@ -80,8 +79,6 @@ export const Footer = ({
   const pathname = usePathname()
   const showFooterOnPage = !isServiceAgreementPath(pathname)
 
-  const handleOpenCookiesModal = () => dispatch(setIsVisible(true))
-
   // "Terms of Use status" opens the ToU status/re-acceptance modal on
   // demand (bypasses the session dismissal). Hidden without a wallet.
   const { address } = useAccount()
@@ -120,21 +117,6 @@ export const Footer = ({
             gap: "8px",
           }}
         >
-          <Button
-            size="small"
-            variant="contained"
-            color="secondary"
-            sx={{
-              borderRadius: "8px",
-              color: COLORS.white,
-              bgcolor: COLORS.white03,
-              "&:hover": { color: COLORS.white, bgcolor: COLORS.white03 },
-            }}
-            onClick={handleOpenCookiesModal}
-          >
-            Cookies Settings
-          </Button>
-
           {/* Agreement pages have the ToU actions themselves and suppress the
               modal - match the desktop footer and hide the button there. */}
           {address && showFooterOnPage && (
@@ -187,19 +169,6 @@ export const Footer = ({
       <Box sx={ContentContainer}>
         {showFooterOnPage && (
           <>
-            <Button
-              size="small"
-              variant="contained"
-              color="secondary"
-              sx={{
-                borderRadius: "8px",
-                marginBottom: "8px",
-              }}
-              onClick={handleOpenCookiesModal}
-            >
-              Cookies Settings
-            </Button>
-
             {address && (
               <Button
                 size="small"
