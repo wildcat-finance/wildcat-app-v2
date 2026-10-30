@@ -57,9 +57,24 @@ export const percent = (value: number, decimals = 1) => {
   return `${signed(rounded, text)}%`
 }
 
+// Contract kept reads 100 only when no penalty time was charged (product#908),
+// so a value just below 100 keeps the decimals that show it.
+const keptDecimals = (value: number) => {
+  let decimals = 1
+  while (value < 100 && decimals < 4 && roundHalfUp(value, decimals) >= 100)
+    decimals += 1
+  return decimals
+}
+export const contractKept = (value: number) => score(value, keptDecimals(value))
+export const contractKeptPercent = (value: number) =>
+  percent(value, keptDecimals(value))
+
 /** A share of life, which prints two decimals ("0.34%"). */
 export const lifeShare = (value: number) =>
   `${grouped(roundHalfUp(value, 2), 2)}%`
+
+/** An APR always keeps two decimals, so a column reads "8.50%" and "50.00%". */
+export const apr = lifeShare
 
 /** A signed trend: "+1.2", "−4.8". */
 export const trend = (value: number) => {
@@ -83,11 +98,42 @@ export const tokens = (value: number) => {
   )
 }
 
+/** Token amounts in whole units with separators; small balances keep four decimals. */
+export const units = (value: number) => {
+  const abs = Math.abs(value)
+  if (abs >= 100) return signed(value, grouped(Math.round(abs), 0))
+  if (abs > 0 && abs < 0.0001) return value > 0 ? "<0.0001" : ">−0.0001"
+  return signed(
+    value,
+    abs.toLocaleString("en-US", { maximumFractionDigits: 4 }),
+  )
+}
+
+/** Short amounts for tables: "75.9M", "45.7K". */
+export const compactUnits = (value: number) => {
+  const abs = Math.abs(value)
+  const short = (scale: number, suffix: string) =>
+    signed(value, `${grouped(roundHalfUp(abs / scale, 1), 1)}${suffix}`)
+  if (abs >= 1e9) return short(1e9, "B")
+  if (abs >= 1e6) return short(1e6, "M")
+  if (abs >= 1e4) return short(1e3, "K")
+  if (abs >= 100) return units(value)
+  if (abs > 0 && abs < 0.01) return value > 0 ? "<0.01" : ">−0.01"
+  return signed(
+    value,
+    abs.toLocaleString("en-US", { maximumFractionDigits: 2 }),
+  )
+}
+
 export const hours = (valueInHours: number, decimals = 1) =>
   formatHours(valueInHours * 3_600, decimals)
 
 /** Days to one decimal: "0.5 d", "91.4 d". */
 export const days = (value: number) => `${grouped(roundHalfUp(value, 1), 1)} d`
+
+/** An age in days as the design prints it: "0.5 d" under a day, else whole days. */
+export const ageDays = (value: number) =>
+  value < 1 ? days(value) : `${grouped(Math.round(value), 0)} d`
 
 export const block = (value: number) => grouped(value, 0)
 
@@ -99,6 +145,10 @@ export const longDate = (timestamp: number) =>
     timeZone: "UTC",
   })
 
+/** A count with its noun: "1 incident", "528 incidents". */
+export const plural = (value: number, noun: string, many = `${noun}s`) =>
+  `${count(value)} ${Math.round(value) === 1 ? noun : many}`
+
 /** A denominator phrase that keeps its count: "of 323 payout deadlines". */
-export const of = (total: number, noun: string, plural = `${noun}s`) =>
-  `of ${count(total)} ${total === 1 ? noun : plural}`
+export const of = (total: number, noun: string, many = `${noun}s`) =>
+  `of ${count(total)} ${total === 1 ? noun : many}`

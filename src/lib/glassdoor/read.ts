@@ -28,6 +28,14 @@ export const PER_MARKET_TABLE = [
   "H01",
   "M20",
   "M24",
+  // Longest episode, all markets (D15) is read against its market's grace.
+  "M23",
+  "M15",
+  // The table's In order verdict uses the market's trend and quiet window.
+  "M68",
+  "M80",
+  // A market with no lender ever (M49 = 0) took no deposits: it is not funded.
+  "M49",
 ]
 
 type Cut = { block: number; hash: string; timestamp: number }

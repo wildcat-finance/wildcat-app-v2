@@ -1,5 +1,6 @@
 import type { SxProps, Theme } from "@mui/material"
 
+import { COLORS } from "@/theme/colors"
 import { pageCalcHeights } from "@/utils/constants"
 
 import { BORROWER_PROFILE_VERIFICATION_GUTTER } from "../components/VerificationDisclosure/style"
@@ -19,3 +20,10 @@ export const PageContentContainer: SxProps<Theme> = (theme) => ({
     paddingRight: "44px",
   },
 })
+
+// On phones the analytics sit on the page gradient, so they get a surface.
+export const MobileAnalyticsContainer: SxProps<Theme> = {
+  backgroundColor: COLORS.white,
+  borderRadius: "14px",
+  padding: "12px 16px",
+}

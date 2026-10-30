@@ -16,6 +16,7 @@ import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
+import { useBorrowerNameOrAddress } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { BarCharts } from "@/app/[locale]/lender/market/[address]/components/BarCharts"
 import { BorrowerPenaltyWarning } from "@/app/[locale]/lender/market/[address]/components/BorrowerPenaltyWarning"
 import { MobileLenderBanner } from "@/app/[locale]/lender/market/[address]/components/mobile/MobileLenderBanner"
@@ -32,6 +33,7 @@ import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/compo
 import { Footer } from "@/components/Footer"
 import { useMarketAnalytics } from "@/components/GlassDoor/api"
 import { MarketAnalytics } from "@/components/GlassDoor/MarketAnalytics"
+import { marketTypeLabels } from "@/components/GlassDoor/typeLabels"
 import { ConnectWalletDialog } from "@/components/Header/HeaderButton/ConnectWalletDialog"
 import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"
@@ -393,6 +395,7 @@ export default function LenderMarketDetails({
     market?.address,
     market?.chainId,
   )
+  const borrowerName = useBorrowerNameOrAddress(market?.borrower ?? "")
 
   const [isMobileDepositOpen, setIsMobileDepositOpen] = React.useState(false)
   const [isMobileAckOpen, setIsMobileAckOpen] = React.useState(false)
@@ -705,6 +708,8 @@ export default function LenderMarketDetails({
                 chainId={market.chainId}
                 address={market.address}
                 borrowerAddress={market.borrower}
+                typeLabels={marketTypeLabels(market, mla)}
+                borrowerName={borrowerName}
               />
             </Box>
           )}
@@ -873,6 +878,8 @@ export default function LenderMarketDetails({
                 chainId={market.chainId}
                 address={market.address}
                 borrowerAddress={market.borrower}
+                typeLabels={marketTypeLabels(market, mla)}
+                borrowerName={borrowerName}
               />
             </Box>
           )}

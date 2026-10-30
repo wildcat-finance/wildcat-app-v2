@@ -7,27 +7,6 @@ import { SnapshotBadge } from "@/components/SnapshotBadge"
 import { Publication } from "./api"
 import { GD } from "./tokens"
 
-export const SectionTitle = ({
-  children,
-  compact = false,
-}: {
-  children: React.ReactNode
-  compact?: boolean
-}) => (
-  <Box
-    component="h3"
-    sx={{
-      margin: 0,
-      fontSize: compact ? "15px" : "18px",
-      lineHeight: 1.4,
-      fontWeight: 600,
-      color: GD.ink,
-    }}
-  >
-    {children}
-  </Box>
-)
-
 export const PublicationBadge = ({
   publication,
   labels = [],

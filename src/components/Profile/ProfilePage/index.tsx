@@ -19,7 +19,11 @@ import { MobileNamePageBlockWrapper } from "./components/MobileNamePageBlockWrap
 import { ProfilePageSkeleton } from "./components/PageSkeleton"
 import { ProfileNamePageBlock } from "./components/ProfileNamePageBlock"
 import { ProfilePageProps } from "./interface"
-import { PageContentContainer, MobileContentContainer } from "./style"
+import {
+  MobileAnalyticsContainer,
+  PageContentContainer,
+  MobileContentContainer,
+} from "./style"
 import { OverallBlock } from "../components/OverallBlock"
 import { ToUStatusBlock } from "../components/ToUStatusBlock"
 import { BorrowerProfileVerificationDisclosure } from "../components/VerificationDisclosure"
@@ -48,7 +52,13 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
     analytics?.status === "ok" ||
     analytics?.status === "preparing" ||
     analyticsError ? (
-      <Box id="analytics" display="flex" flexDirection="column" gap="16px">
+      <Box
+        id="analytics"
+        display="flex"
+        flexDirection="column"
+        gap="16px"
+        sx={isMobile ? MobileAnalyticsContainer : undefined}
+      >
         <BorrowerAnalytics chainId={chainId} address={profileAddress} />
       </Box>
     ) : null

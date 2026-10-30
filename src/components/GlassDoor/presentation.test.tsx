@@ -13,7 +13,7 @@ import {
 
 import { useBorrowerAnalytics, useMarketAnalytics } from "./api"
 import { BorrowerAnalyticsView } from "./BorrowerAnalytics"
-import { LateShareRows } from "./charts"
+import { LateShareBars } from "./charts"
 import {
   MarketAnalytics,
   MarketAnalyticsView,
@@ -115,25 +115,39 @@ test("does not display operator figures from another publication", () => {
   expect(screen.queryByText("92.1")).not.toBeInTheDocument()
 })
 
-test("disclosure, comparisons and Escape preserve accessible focus", () => {
+test("one card opens at a time and Escape returns focus to it", () => {
   const { container } = render(<MarketAnalyticsView market={marketFixture} />)
-  const trigger = screen.getByRole("button", { name: "Cash available" })
-  trigger.focus()
-  fireEvent.click(trigger)
-  expect(trigger).toHaveAttribute("aria-expanded", "true")
-  const panel = screen.getByRole("region", { name: "Cash available" })
-  expect(panel.id).toBe(trigger.getAttribute("aria-controls"))
+  const card = (id: string) =>
+    container.querySelector<HTMLButtonElement>(`[data-card="${id}"]`)!
+  // The market page opens card 2.1 on load.
+  expect(card("2.1")).toHaveAttribute("aria-expanded", "true")
+  expect(screen.getByRole("region", { name: /^In order/ })).toBeInTheDocument()
+  card("2.2").focus()
+  fireEvent.click(card("2.2"))
+  expect(card("2.1")).toHaveAttribute("aria-expanded", "false")
+  expect(card("2.2")).toHaveAttribute("aria-expanded", "true")
+  const panel = screen.getByRole("region", { name: /^Worst incident/ })
+  expect(panel.id).toBe(card("2.2").getAttribute("aria-controls"))
   expect(container.querySelector("button button")).toBeNull()
-  const compare = within(panel).getByRole("button", { name: "All markets" })
+  ;[
+    "How it is calculated",
+    "Comparison",
+    "What it means",
+    "What it tells you",
+    "What it does not tell you",
+  ].forEach((heading) => {
+    expect(within(panel).getByText(heading)).toBeInTheDocument()
+  })
+  const compare = within(panel).getByRole("button", { name: "vs all markets" })
   fireEvent.click(compare)
   expect(compare).toHaveAttribute("aria-pressed", "true")
   compare.focus()
   fireEvent.keyDown(compare, { key: "Escape" })
   expect(
-    screen.queryByRole("region", { name: "Cash available" }),
+    screen.queryByRole("region", { name: /^Worst incident/ }),
   ).not.toBeInTheDocument()
-  expect(trigger).toHaveFocus()
-  expect(trigger).toHaveAttribute("aria-expanded", "false")
+  expect(card("2.2")).toHaveFocus()
+  expect(card("2.2")).toHaveAttribute("aria-expanded", "false")
 })
 
 test("a partial borrower book is not presented as a whole-book comparison", () => {
@@ -143,14 +157,14 @@ test("a partial borrower book is not presented as a whole-book comparison", () =
       borrower={{ ...borrowerFixture, partial: true }}
     />,
   )
-  const comparison = screen.getByRole("region", { name: "Borrower comparison" })
-  expect(comparison).toHaveTextContent(
+  const operator = screen.getByRole("region", { name: "The operator" })
+  expect(operator).toHaveTextContent(
     "Borrower totals exclude markets whose data is unavailable.",
   )
-  expect(within(comparison).queryByText("92.1%")).not.toBeInTheDocument()
+  expect(within(operator).queryByText(/92\.1/)).not.toBeInTheDocument()
 })
 
-test("a book with no elapsed history does not show a perfect record or range", () => {
+test("a book with no elapsed history does not show a perfect record", () => {
   render(
     <MarketAnalyticsView
       market={marketFixture}
@@ -166,11 +180,9 @@ test("a book with no elapsed history does not show a perfect record or range", (
       }}
     />,
   )
-  const comparison = screen.getByRole("region", { name: "Borrower comparison" })
-  expect(within(comparison).queryByText(/100%/)).not.toBeInTheDocument()
-  expect(within(comparison).getAllByText("not available")).toHaveLength(1)
-  expect(within(comparison).getByText("Unavailable")).toBeInTheDocument()
-  expect(within(comparison).getByText("82.6%")).toBeInTheDocument()
+  const operator = screen.getByRole("region", { name: "The operator" })
+  expect(within(operator).getByText(/no recorded history/)).toBeInTheDocument()
+  expect(within(operator).queryByText(/100\.0/)).not.toBeInTheDocument()
 })
 
 test("under-review publications do not display stale supplied metrics", () => {
@@ -199,30 +211,22 @@ test("the market table keeps missing values distinct from zero and healthy", () 
   )
   const table = screen.getByRole("table", { name: "Borrower markets" })
   const row = within(table).getAllByRole("row")[1]
-  expect(within(row).getAllByText("Unavailable")).toHaveLength(5)
-  expect(within(row).queryByText("In order")).not.toBeInTheDocument()
-  expect(within(row).queryByText("No exit history")).not.toBeInTheDocument()
+  expect(within(row).getAllByText("not available")).toHaveLength(5)
+  expect(within(row).queryByText("in order")).not.toBeInTheDocument()
+  expect(within(row).queryByText("no exit history yet")).not.toBeInTheDocument()
 })
 
-test("cash shortage and penalty time remain independent in charts", () => {
+test("late share and past-allowance time stay separate in the 3.12 bars", () => {
   render(
-    <LateShareRows
-      ids={[]}
+    <LateShareBars
       rows={[
-        {
-          label: "Market",
-          lateShare: 2,
-          penaltyShare: 5,
-          valueLabel: "2% of life",
-          tooltip: "Independent clocks",
-        },
+        { label: "Market", withinPct: 2, pastPct: 0.5, lateDays: "1.0 d" },
       ]}
     />,
   )
   expect(screen.getByRole("img")).toHaveAccessibleName(
-    "Cash short 2.00% of life; penalty active 5.00% of life",
+    "Market: 2.5% of its life late, 0.5% past the allowance, 1.0 d late",
   )
-  expect(screen.getByText("Penalty active 5.00%")).toBeInTheDocument()
 })
 
 test("load errors offer a working retry action", () => {

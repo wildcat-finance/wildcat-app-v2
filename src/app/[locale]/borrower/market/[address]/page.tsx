@@ -8,12 +8,14 @@ import { MarketVersion } from "@wildcatfi/wildcat-sdk"
 import { useSearchParams } from "next/navigation"
 import { useAccount } from "wagmi"
 
+import { useBorrowerNameOrAddress } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { MarketStatusChart } from "@/app/[locale]/borrower/market/[address]/components/MarketStatusChart"
 import { WrapDebtToken } from "@/app/[locale]/borrower/market/[address]/components/WrapDebtToken"
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { useMarketAnalytics } from "@/components/GlassDoor/api"
 import { MarketAnalytics } from "@/components/GlassDoor/MarketAnalytics"
+import { marketTypeLabels } from "@/components/GlassDoor/typeLabels"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
@@ -112,6 +114,7 @@ export default function MarketDetails({
     marketAccount?.market.address,
     marketAccount?.market.chainId,
   )
+  const borrowerName = useBorrowerNameOrAddress(market?.borrower ?? "")
 
   const {
     wrapper,
@@ -409,6 +412,8 @@ export default function MarketDetails({
                 chainId={market.chainId}
                 address={market.address}
                 borrowerAddress={market.borrower}
+                typeLabels={marketTypeLabels(market, marketMla)}
+                borrowerName={borrowerName}
               />
             </Box>
           )}

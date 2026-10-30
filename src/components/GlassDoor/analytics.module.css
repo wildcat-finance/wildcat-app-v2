@@ -1,0 +1,1195 @@
+/*
+ * Glass Door analytics, ported from the design handoff (product#908,
+ * analytics-card.css). Values are the handoff's; viewport media queries are
+ * container queries because the analytics sit inside a page column.
+ */
+.root {
+  --fg-1: #141414;
+  --fg-2: #30313e;
+  --fg-3: #8a8c9f;
+  --border: #e6e7eb;
+  --border-subtle: #eff0f4;
+  --border-input: #d4d6dd;
+  --border-active: #141414;
+  --surface: #ffffff;
+  --surface-2: #f9f9fa;
+  --surface-3: #eff0f4;
+  --page: #f4f4f8;
+  --strong-bg: #d6f5d6;
+  --strong-fg: #1d8a1d;
+  --watch-bg: #fbedc3;
+  --watch-fg: #9e7a11;
+  --problem-bg: #f7d7da;
+  --problem-fg: #c24647;
+  --limited-bg: #eff0f4;
+  --limited-fg: #8a8c9f;
+  --amber-line: #d7a820;
+  --red-line: #f1464b;
+  --green-line: #28ca7c;
+  --link: #4971ff;
+  --radius-card: 20px;
+  --radius-box: 12px;
+  --radius-chip: 10px;
+  --mono: ui-monospace, Menlo, Consolas, monospace;
+  container: analytics / inline-size;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--fg-2);
+  line-height: normal;
+}
+
+/* ---------- page header ---------- */
+.header {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.headerRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+}
+.headerTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--fg-1);
+  margin: 0 4px 0 0;
+  line-height: 1.2;
+}
+.headerName {
+  font-size: 12px;
+  color: var(--fg-3);
+}
+/* Header chips as the hi-fi page draws them: outlined, the status and link filled. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg-3);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2px 9px;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.badgeAsset {
+  border-color: var(--border-input);
+  color: var(--fg-2);
+}
+.badgeOpen {
+  border-color: #d2ddff;
+  background: #d2ddff;
+  color: var(--link);
+}
+.badgeLink {
+  border-color: #e4ebfe;
+  background: #e4ebfe;
+  color: var(--link);
+  padding: 2px 10px;
+}
+.badgeLink:hover {
+  border-color: var(--link);
+}
+.badgeLink:focus-visible,
+.boxLink:focus-visible,
+.panelClose:focus-visible,
+.table a:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--link);
+}
+/* Metric id tags, as the hi-fi pages draw them. */
+.id {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #8b7cf6;
+  white-space: nowrap;
+}
+.headerFact {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 11.5px;
+  color: var(--fg-2);
+}
+.headerFact b {
+  color: var(--fg-1);
+  font-weight: 600;
+}
+.divider {
+  width: 1px;
+  height: 14px;
+  background: var(--border);
+}
+
+/* ---------- cards ---------- */
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+@container analytics (min-width: 520px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container analytics (min-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .grid4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 16px 18px;
+  cursor: pointer;
+  font: inherit;
+  color: var(--fg-2);
+  text-align: left;
+  transition: border-color 160ms cubic-bezier(0.2, 0, 0, 1);
+  /* Each card is measured, so a cramped card shrinks its value evenly. */
+  container: card / inline-size;
+}
+.card:hover {
+  border-color: var(--border-input);
+}
+.card:focus-visible {
+  outline: 2px solid transparent;
+  box-shadow: 0 0 0 2px rgba(73, 113, 255, 0.12);
+  border-color: var(--border-active);
+}
+.cardOpen,
+.cardOpen:hover {
+  border-color: var(--border-active);
+}
+/* An open card already has the focus border, so focus adds a ring. */
+.cardOpen:focus-visible {
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px var(--link);
+}
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+.cardName {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg-2);
+}
+.help {
+  font-size: 10px;
+  color: var(--fg-3);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.valueRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--fg-1);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.valueText {
+  font-size: 20px;
+}
+.state {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+}
+.stateGreen {
+  color: var(--strong-fg);
+}
+.stateAmber {
+  color: var(--watch-fg);
+}
+.stateRed {
+  color: var(--problem-fg);
+}
+.stateNeutral {
+  color: var(--fg-3);
+}
+.sub {
+  font-size: 11px;
+  color: var(--fg-2);
+  margin-top: 2px;
+}
+.compare {
+  font-size: 11px;
+  color: var(--fg-3);
+  margin-top: 4px;
+}
+.cardChart {
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.verdict {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border-radius: var(--radius-chip);
+  padding: 2px 8px;
+  white-space: nowrap;
+  flex: none;
+}
+.verdictStrong {
+  background: var(--strong-bg);
+  color: var(--strong-fg);
+}
+.verdictWatch {
+  background: var(--watch-bg);
+  color: var(--watch-fg);
+}
+.verdictProblem {
+  background: var(--problem-bg);
+  color: var(--problem-fg);
+}
+.verdictLimited {
+  background: var(--limited-bg);
+  color: var(--limited-fg);
+}
+
+/* ---------- panel ---------- */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius-card);
+  padding: 22px 24px;
+  margin-top: -6px;
+  color: var(--fg-2);
+  min-width: 0;
+}
+.panelHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.panelTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-1);
+}
+.panelId {
+  color: #bebece;
+  font-weight: 500;
+  font-size: 11px;
+  margin-left: 6px;
+}
+.panelIds {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--fg-3);
+  margin-left: 10px;
+}
+.panelClose {
+  font-size: 11px;
+  color: var(--fg-3);
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  /* A larger tap area without moving the label. */
+  padding: 8px 10px;
+  margin: -8px -10px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.panelClose:hover {
+  color: var(--fg-1);
+}
+/* Stacked (the mobile order): calculation, then meaning, then comparison. */
+.panelGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "calc" "prose" "compare";
+  gap: 16px;
+}
+.panelCalc {
+  grid-area: calc;
+  min-width: 0;
+}
+.panelRight {
+  grid-area: prose;
+  min-width: 0;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 16px;
+}
+.panelCompare {
+  grid-area: compare;
+  min-width: 0;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 16px;
+}
+@container analytics (min-width: 760px) {
+  .panelGrid {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    grid-template-areas: "calc prose" "compare prose";
+    grid-template-rows: auto 1fr;
+    gap: 0 28px;
+  }
+  .panelRight {
+    border-top: 0;
+    padding-top: 0;
+    border-left: 1px solid var(--border-subtle);
+    padding-left: 28px;
+  }
+  .panelCompare {
+    border-top: 0;
+    padding-top: 0;
+  }
+}
+/* A wrapped formula line hangs, so it does not read as a new step. */
+.formulaLine {
+  display: block;
+  padding-left: 2ch;
+  text-indent: -2ch;
+}
+.label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  color: var(--fg-3);
+  margin: 0 0 8px;
+  text-transform: uppercase;
+}
+.formula {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--surface-2);
+  border-radius: var(--radius-box);
+  padding: 14px 16px;
+  color: var(--fg-1);
+  line-height: 1.9;
+  margin: 0 0 6px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.numbers {
+  background: var(--surface-3);
+  border-radius: var(--radius-box);
+  padding: 11px 14px;
+  font-size: 11.5px;
+  color: var(--fg-2);
+  margin: 14px 0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.chips {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.chip {
+  border: 1px solid var(--border-input);
+  border-radius: var(--radius-chip);
+  padding: 5px 13px;
+  color: var(--fg-2);
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.chip:hover {
+  border-color: var(--border-active);
+}
+.chip:focus-visible {
+  outline: 2px solid transparent;
+  box-shadow: 0 0 0 2px rgba(73, 113, 255, 0.12);
+  border-color: var(--border-active);
+}
+/* The selected chip already has a dark border, so focus adds a ring. */
+.chipOn:focus-visible {
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px var(--link);
+}
+.chipOn,
+.chipOn:hover {
+  background: var(--fg-1);
+  color: #fff;
+  border-color: var(--fg-1);
+}
+.chipText {
+  background: var(--surface-2);
+  border-radius: var(--radius-box);
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--fg-1);
+  margin: 0;
+}
+.means {
+  font-size: 12.5px;
+  color: var(--fg-2);
+  line-height: 1.6;
+  margin: 0 0 14px;
+}
+.tells {
+  font-size: 12px;
+  color: var(--fg-2);
+  line-height: 1.6;
+  margin: 0 0 14px;
+}
+.notTells {
+  font-size: 12px;
+  color: var(--fg-3);
+  line-height: 1.6;
+  margin: 0;
+}
+.panelChart {
+  margin: 14px 0;
+  display: grid;
+  gap: 14px;
+}
+/* A stacked panel gives its chart the full width of the boxes above it. */
+@container analytics (max-width: 759px) {
+  .panelChart .ch {
+    max-width: none;
+  }
+}
+/* The shared panel spans the grid, directly under its card's row. */
+.grid > .panel {
+  grid-column: 1 / -1;
+  scroll-margin: 16px 0 160px;
+}
+
+/* ---------- page sections ---------- */
+.banner {
+  background: var(--watch-bg);
+  color: var(--watch-fg);
+  border-radius: var(--radius-box);
+  padding: 10px 16px;
+  font-size: 12.5px;
+  font-weight: 500;
+  margin: 4px 0 -2px;
+}
+.box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 16px 18px;
+  min-width: 0;
+}
+.boxHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-bottom: 10px;
+}
+.boxTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-1);
+}
+.boxLink {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--link);
+  text-decoration: none;
+}
+.boxLink:hover {
+  text-decoration: underline;
+}
+/* Phones: name and chip on one line, the value beneath (the mobile mock). */
+.operatorRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 74px;
+  grid-template-areas: "name chip" "value value";
+  gap: 4px 10px;
+  align-items: center;
+  padding: 9px 0;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 12px;
+  color: var(--fg-2);
+}
+.operatorName {
+  grid-area: name;
+  min-width: 0;
+}
+.operatorValue {
+  grid-area: value;
+  justify-self: start;
+  text-align: left;
+  color: var(--fg-1);
+  font-weight: 700;
+}
+.operatorValue span {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--fg-3);
+}
+.operatorChip {
+  grid-area: chip;
+  display: block;
+}
+.operatorChip > span {
+  display: block;
+  text-align: center;
+  font-size: 9.5px;
+}
+@container analytics (min-width: 640px) {
+  .operatorRow {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) 74px;
+    grid-template-areas: "name value chip";
+  }
+  .operatorValue {
+    justify-self: end;
+    text-align: right;
+  }
+}
+/* Mid widths put the detail under the figure rather than wrap it. */
+@container analytics (min-width: 640px) and (max-width: 899.98px) {
+  .operatorValue span {
+    display: block;
+  }
+}
+.sectionLabel {
+  margin: 8px 0 -4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-3);
+}
+.sectionLabel span {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--fg-3);
+  margin-left: 6px;
+}
+.note {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--fg-3);
+  background: var(--surface-2);
+  border-radius: var(--radius-box);
+  padding: 12px 16px;
+  margin: 0;
+}
+
+/* ---------- per-market table ---------- */
+.tableWrap {
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  color: var(--fg-2);
+  font-variant-numeric: tabular-nums;
+}
+.table th,
+.table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: right;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.table th:first-child,
+.table td:first-child {
+  text-align: left;
+}
+/* Headers as the hi-fi: light and grey, the id inline, labels on one baseline. */
+.table thead th {
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--fg-3);
+  white-space: normal;
+  vertical-align: bottom;
+  border-bottom: 1px solid var(--border);
+}
+.table thead th .id {
+  margin-left: 4px;
+}
+/* Names, grades, exits and state read left to right; amounts stay right. */
+@container analytics (min-width: 641px) {
+  .table th:nth-child(-n + 4),
+  .table td:nth-child(-n + 4) {
+    text-align: left;
+  }
+}
+.table .verdict {
+  font-size: 9.5px;
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+.score {
+  font-weight: 700;
+  color: var(--fg-1);
+}
+.stateWord {
+  font-weight: 600;
+}
+.thin {
+  font-size: 9.5px;
+  color: var(--fg-3);
+  margin-left: 4px;
+}
+.table tbody tr:last-child th,
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.table tbody th {
+  font-weight: 600;
+}
+.table a {
+  color: var(--link);
+  text-decoration: none;
+}
+.table a:hover {
+  text-decoration: underline;
+}
+.cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.muted {
+  color: var(--fg-3);
+}
+.footnote {
+  font-size: 10.5px;
+  color: var(--fg-3);
+  margin: 8px 0 0;
+}
+@container analytics (max-width: 640px) {
+  .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .table,
+  .table tbody,
+  .table tr {
+    display: block;
+  }
+  .table tbody tr {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-box);
+    padding: 8px 12px;
+    margin-bottom: 8px;
+  }
+  .table tbody th,
+  .table tbody td {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4px 0;
+    border: 0;
+    white-space: normal;
+    text-align: right;
+  }
+  /* The visual label is skipped by screen readers, which read the header. */
+  .table tbody td::before {
+    content: attr(data-label);
+    content: attr(data-label) / "";
+    color: var(--fg-3);
+    text-align: left;
+  }
+}
+
+/* ---------- 3.12 header: views toggle on the title row ---------- */
+.views {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.views .chip {
+  font-size: 10.5px;
+  padding: 4px 11px;
+}
+.boxHeadStart {
+  justify-content: flex-start;
+}
+.lede {
+  font-size: 11px;
+  color: var(--fg-3);
+  margin: -4px 0 12px;
+}
+
+/* ---------- charts (analytics-charts.js) ---------- */
+.ch {
+  color: var(--fg-2);
+  font-size: 11px;
+  max-width: 560px;
+  min-width: 0;
+}
+.chWide {
+  max-width: none;
+}
+.chCaption {
+  font-size: 10px;
+  color: var(--fg-3);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+.chSubhead {
+  font-size: 10.5px;
+  color: var(--fg-2);
+  margin-bottom: 3px;
+}
+.chLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 10px;
+  color: var(--fg-3);
+  margin-top: 4px;
+}
+.chLegend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.chSwatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  display: inline-block;
+}
+.chBar {
+  display: flex;
+  height: 22px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface-3);
+}
+.chBarMid {
+  height: 18px;
+  border-radius: 6px;
+}
+.chBarTall {
+  height: 24px;
+}
+.chBarSeg {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  min-width: 0;
+}
+.chTrack {
+  position: relative;
+  height: 14px;
+  background: var(--page);
+  border-radius: 4px;
+  overflow: visible;
+}
+.chTrackTall {
+  height: 18px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.chFill {
+  height: 100%;
+  border-radius: 4px;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.chFillLabelled {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.chGate {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: calc(100% + 6px);
+  background: var(--problem-fg);
+}
+.chGateAmber {
+  background: var(--amber-line);
+}
+.chGateLabel {
+  position: absolute;
+  top: 2px;
+  font-size: 9.5px;
+  color: var(--watch-fg);
+  white-space: nowrap;
+}
+.chClip {
+  position: absolute;
+  right: 6px;
+  top: 0;
+  font-size: 9px;
+  color: #fff;
+  font-weight: 700;
+  line-height: 14px;
+}
+.chRows {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr) 110px;
+  gap: 6px 10px;
+  align-items: center;
+}
+.chRowsWide {
+  grid-template-columns: 90px minmax(0, 1fr);
+}
+/* 3.12 keeps the late days (D17) beside each share. */
+.chRowsLate {
+  grid-template-columns: 90px minmax(0, 1fr) 150px;
+}
+.chRowsLabel {
+  color: var(--fg-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chRowsValue {
+  color: var(--fg-1);
+  text-align: right;
+  white-space: nowrap;
+}
+.chFull {
+  grid-column: 1 / -1;
+}
+.chCols {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+.chColsHist {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 480px;
+  border-bottom: 2px solid var(--problem-fg);
+  margin-top: 16px;
+}
+.chColsCompact {
+  gap: 6px;
+  border-bottom: 0;
+  max-width: none;
+  margin-top: 0;
+}
+.chCol {
+  flex: 1;
+  border-radius: 6px 6px 0 0;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 3px;
+  min-height: 3px;
+  white-space: nowrap;
+}
+.chColHist {
+  position: relative;
+  padding-top: 0;
+}
+.chColN {
+  position: absolute;
+  top: -16px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--fg-2);
+}
+.chAxis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 480px;
+  font-size: 10px;
+  color: var(--fg-3);
+  text-align: center;
+  padding-top: 3px;
+}
+.chAxisCompact {
+  gap: 6px;
+  font-size: 9px;
+  max-width: none;
+}
+.chMarks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.chMark {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  display: inline-block;
+}
+.chMarkDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+}
+.chStates {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+@container analytics (min-width: 520px) {
+  .chStates {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.chState {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+.chStateAmber {
+  border-color: var(--amber-line);
+}
+.chStateRed {
+  border-color: var(--red-line);
+}
+/* All three states keep their colours; the live one is marked, not the others dimmed. */
+.chStateLive {
+  border-width: 2px;
+  padding: 9px 11px;
+}
+.chStateLive .chStateNote {
+  color: var(--fg-1);
+  font-weight: 600;
+}
+.chStateLabel {
+  font-size: 12px;
+  font-weight: 700;
+}
+.chStateGreen .chStateLabel {
+  color: var(--strong-fg);
+}
+.chStateAmber .chStateLabel {
+  color: var(--watch-fg);
+}
+.chStateRed .chStateLabel {
+  color: var(--problem-fg);
+}
+.chStateSub {
+  font-size: 10.5px;
+  margin-top: 2px;
+  color: var(--fg-2);
+}
+.chStateNote {
+  font-size: 10px;
+  color: var(--fg-3);
+  margin-top: 4px;
+}
+.chWeighted {
+  position: relative;
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+  height: 80px;
+  border-bottom: 1px solid var(--border-input);
+}
+.chWeightedBar {
+  border-radius: 4px 4px 0 0;
+  font-size: 9.5px;
+  text-align: center;
+  font-weight: 600;
+  padding-top: 2px;
+  min-width: 0;
+  overflow: hidden;
+}
+.chWeightedLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 2px dashed var(--link);
+}
+.chWeightedLineLabel {
+  position: absolute;
+  right: 0;
+  font-size: 10px;
+  color: var(--link);
+  font-weight: 600;
+}
+.chWeightedAxis {
+  display: flex;
+  gap: 3px;
+  font-size: 9.5px;
+  color: var(--fg-3);
+  margin-top: 3px;
+}
+.chWeightedAxis > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
+}
+.chPair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+@container analytics (min-width: 520px) {
+  .chPair {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.chTbd {
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--fg-3);
+  border: 1px dashed var(--border-input);
+  border-radius: var(--radius-box);
+  padding: 10px 12px;
+}
+
+/* A card row and its shared panel, laid out by the page column. */
+.rowScope {
+  display: contents;
+}
+
+/* A state line in the operator strip keeps its state colour. */
+.operatorValue.stateGreen {
+  color: var(--strong-fg);
+}
+.operatorValue.stateAmber {
+  color: var(--watch-fg);
+}
+.operatorValue.stateRed {
+  color: var(--problem-fg);
+}
+.operatorValue.stateNeutral {
+  color: var(--fg-3);
+}
+
+/* A fill too narrow for its label, or a narrow column, puts the label below. */
+.chFillOut {
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--fg-2);
+}
+.chFillOutNarrow {
+  display: none;
+}
+@container analytics (max-width: 559px) {
+  .chFillText {
+    display: none;
+  }
+  .chFillOutNarrow {
+    display: block;
+  }
+}
+
+/* Windows high contrast keeps the open card and the selected chip visible. */
+@media (forced-colors: active) {
+  .chipOn {
+    forced-color-adjust: none;
+    background: SelectedItem;
+    color: SelectedItemText;
+    border-color: SelectedItem;
+  }
+  .cardOpen {
+    outline: 2px solid CanvasText;
+  }
+}
+
+/* Card overrides: after the base card rules, which they adjust. */
+/* Supporting cards are the design's smaller padding. */
+.grid4 .card {
+  padding: 14px 16px;
+}
+.chevron {
+  display: none;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--fg-3);
+  flex: none;
+}
+@container card (max-width: 185px) {
+  .value {
+    font-size: 24px;
+  }
+}
+@container card (max-width: 150px) {
+  .valueRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+/* Phones, as the mobile mock: tighter cards, a chevron in place of the help dot. */
+@container analytics (max-width: 519px) {
+  .card {
+    padding: 14px 16px;
+    border-radius: 18px;
+  }
+  .value {
+    font-size: 24px;
+  }
+  .card .verdict {
+    font-size: 9.5px;
+  }
+  .help {
+    display: none;
+  }
+  .chevron {
+    display: inline-flex;
+  }
+}

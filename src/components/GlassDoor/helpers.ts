@@ -1,7 +1,6 @@
 import { Comparison, MetricValues } from "./api"
-import { count, isNumber } from "./format"
-import type { RowCard } from "./IndexPanel"
-import { Verdict } from "./tokens"
+import { BLANK, count, hours, isNumber, longDate } from "./format"
+import { GATES } from "./rules"
 
 /** Typed reads of published metric values. */
 export const reader = (values: MetricValues) => ({
@@ -21,49 +20,21 @@ export const leadingNumber = (text?: string) => {
   return match ? Number(match[0]) : undefined
 }
 
-// Evidence gates (education package §1): STRONG needs 90+ days of record,
-// 10+ deadlines (exits) or 10+ incidents (worst case). Graded verdicts wait
-// for the spec's thresholds; until then the only verdict shown is LIMITED, a
-// perfect figure on thin history ("clean so far, barely tested").
-export const GATES = { days: 90, deadlines: 10, incidents: 10 } as const
-
-export const limitedVerdict = (
-  thinEvidence: boolean,
-  perfect: boolean,
-): Verdict | undefined => (thinEvidence && perfect ? "LIMITED" : undefined)
-
-export const deadlineEvidence = (total?: number, funded?: number) => {
-  if (total === undefined) return undefined
-  if (funded === undefined) return `${count(total)} deadlines`
-  return `${count(funded)} of ${count(total)} deadlines`
-}
-
-/** Several missing inputs may share one unavailable calculation message. */
-export const uniqueFormulas = (cards: RowCard[]): RowCard[] =>
-  cards.map((card) => ({
-    ...card,
-    panel: card.panel
-      ? { ...card.panel, formula: [...new Set(card.panel.formula)] }
-      : undefined,
-  }))
-
 /** "better than 9 of 66 graded markets", or how to earn a rank. */
 export const rankPhrase = (
   comparison: Comparison | undefined,
   noun: string,
   recordDays?: number,
 ) => {
-  if (!comparison) return `Not enough graded ${noun} to compare yet.`
+  if (!comparison) return `TBD: not enough graded ${noun} to compare yet`
   if (comparison.betterThan === undefined) {
-    return `Ranked once it has ${GATES.days} days of record${
+    return `ranked once it has ${GATES.gradeDays} days of record${
       recordDays === undefined ? "" : `; it has ${count(recordDays)}`
-    }.`
+    }`
   }
-  return `Better than ${count(comparison.betterThan)} of ${count(
+  return `better than ${count(comparison.betterThan)} of ${count(
     comparison.population,
-  )} graded ${noun}${
-    recordDays === undefined ? "" : `, over ${count(recordDays)} days of record`
-  }.`
+  )} graded ${noun}`
 }
 
 export const ordinal = (value: number) => {
@@ -72,4 +43,54 @@ export const ordinal = (value: number) => {
       ? "th"
       : { 1: "st", 2: "nd", 3: "rd" }[value % 10] ?? "th"
   return `${value}${suffix}`
+}
+
+export const yesNo = (value?: number) => {
+  if (value === 1) return "yes"
+  if (value === 0) return "no"
+  return BLANK.unavailable
+}
+
+/** Lifecycle status (M77): a closed market is shown as finished. */
+export const lifecycle = (status?: string) =>
+  status === "Closed" ? "Finished" : status ?? BLANK.unavailable
+
+/** Cycle status (D06) is published with exact hours; show one decimal. */
+export const cycleStatus = (status?: string) =>
+  status?.replace(/(\d+\.\d+) h/, (_, value: string) => hours(Number(value))) ??
+  BLANK.unavailable
+
+/** An ISO day such as Deployed (UTC) (M03), as a UTC date. */
+export const isoDay = (day?: string) =>
+  day && Number.isFinite(Date.parse(day))
+    ? longDate(Date.parse(day) / 1_000)
+    : BLANK.unavailable
+
+/** Spec lists: "a; b; c." with missing parts left out. */
+export const sentence = (...parts: (string | false | undefined)[]) => {
+  const text = parts.filter(Boolean).join("; ")
+  return text ? `${text}.` : ""
+}
+
+/**
+ * A market that never had a lender (M49 = 0) took no deposits: not funded.
+ * Only a published zero excludes a market; missing values stay unknown.
+ */
+export const isFunded = (values: MetricValues) => {
+  const { n } = reader(values)
+  const ever = n("M49")
+  if (ever !== undefined) return ever > 0
+  return n("H01") !== 0
+}
+
+/**
+ * Episodes still open at the snapshot. Delinquency episodes (M20) is published
+ * as finished episodes, while the spec counts an open one too: a market short
+ * now within grace (M21) has one, and so does lateness on record (M23) with no
+ * finished episode. Past grace alone (M85) can be a residual penalty clock.
+ */
+export const openEpisodes = (values: MetricValues) => {
+  const { n } = reader(values)
+  if (n("M21") === 1) return 1
+  return (n("M20") ?? 0) === 0 && (n("M23") ?? 0) > 0 ? 1 : 0
 }

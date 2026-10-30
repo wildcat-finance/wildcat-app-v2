@@ -23,9 +23,15 @@ export const sameSnapshot = (market: MarketData, borrower: BorrowerAnalytics) =>
 export const MarketAnalyticsView = ({
   market,
   borrower,
+  typeLabels,
+  borrowerName,
+  borrowerLoading,
 }: {
   market: MarketData
   borrower?: BorrowerAnalytics
+  typeLabels?: string[]
+  borrowerName?: string
+  borrowerLoading?: boolean
 }) => {
   const matchingBorrower =
     borrower &&
@@ -39,6 +45,9 @@ export const MarketAnalyticsView = ({
       market={market}
       borrower={matchingBorrower}
       comparisonUnavailable={Boolean(borrower && !matchingBorrower)}
+      typeLabels={typeLabels}
+      borrowerName={borrowerName}
+      borrowerLoading={borrowerLoading}
     />
   )
   if (market.state === "Preparing") {
@@ -63,10 +72,15 @@ export const MarketAnalytics = ({
   chainId,
   address,
   borrowerAddress,
+  typeLabels,
+  borrowerName,
 }: {
   chainId?: number
   address?: string
   borrowerAddress?: string
+  /** Market type labels (G4), from the market's hooks and app data. */
+  typeLabels?: string[]
+  borrowerName?: string
 }) => {
   const market = useMarketAnalytics(chainId, address)
   const borrower = useBorrowerAnalytics(chainId, borrowerAddress)
@@ -104,6 +118,9 @@ export const MarketAnalytics = ({
     <MarketAnalyticsView
       market={market.data.data}
       borrower={borrower.data?.status === "ok" ? borrower.data.data : undefined}
+      typeLabels={typeLabels}
+      borrowerName={borrowerName}
+      borrowerLoading={Boolean(borrowerAddress) && borrower.isLoading}
     />
   )
 }
