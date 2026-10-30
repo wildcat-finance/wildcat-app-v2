@@ -38,6 +38,8 @@ const SwitcherButton = ({
       sx={{
         gap: "6px",
         padding: "6px 16px",
+        lineHeight: "20px",
+        color: COLORS.blackRock,
         fontWeight: marketSection === section ? 600 : 500,
         backgroundColor:
           marketSection === section ? COLORS.whiteSmoke : "transparent",
@@ -68,8 +70,6 @@ export const MarketSectionSwitcher = () => {
     (state) => state.borrowerDashboardAmounts.nonDeposited,
   )
 
-  const activeMarketsAmount = depositedAmount + nonDepositedAmount
-
   const prevActiveAmount = useAppSelector(
     (state) => state.borrowerDashboardAmounts.prevActive,
   )
@@ -78,7 +78,8 @@ export const MarketSectionSwitcher = () => {
     (state) => state.borrowerDashboardAmounts.neverActive,
   )
 
-  const closedMarketsAmount = prevActiveAmount + neverActiveAmount
+  const yourMarketsAmount =
+    depositedAmount + nonDepositedAmount + prevActiveAmount + neverActiveAmount
 
   const selfOnboardAmount = useAppSelector(
     (state) => state.borrowerDashboardAmounts.selfOnboard,
@@ -100,22 +101,16 @@ export const MarketSectionSwitcher = () => {
       sx={{
         width: "fit-content",
         display: "flex",
-        gap: "12px",
-        padding: "0 24px",
+        padding: "0 16px",
       }}
     >
       <SwitcherButton
-        label={t("dashboard.markets.tables.borrower.active.title")}
-        amount={activeMarketsAmount}
-        section={BorrowerMarketDashboardSections.ACTIVE}
+        label={t("dashboard.markets.switcher.yourMarkets")}
+        amount={yourMarketsAmount}
+        section={BorrowerMarketDashboardSections.YOUR}
       />
       <SwitcherButton
-        label={t("dashboard.markets.tables.borrower.closed.title")}
-        amount={closedMarketsAmount}
-        section={BorrowerMarketDashboardSections.TERMINATED}
-      />
-      <SwitcherButton
-        label={t("dashboard.markets.tables.other.title")}
+        label={t("dashboard.markets.switcher.otherMarkets")}
         amount={otherMarketsAmount}
         section={BorrowerMarketDashboardSections.OTHER}
       />

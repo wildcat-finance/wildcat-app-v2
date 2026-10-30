@@ -1,5 +1,4 @@
 import * as React from "react"
-import { useEffect, useRef } from "react"
 
 import { Box, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
@@ -23,8 +22,7 @@ import { AprChip } from "@/components/AprChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { TotalDebtHeader } from "@/components/TotalDebtHeader"
 import { ROUTES } from "@/routes"
-import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
+import { BorrowerMarketDashboardTabs } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
 import {
   statusComparator,
   tokenAmountComparator,
@@ -39,8 +37,6 @@ import {
 import { getMarketTotalDebt } from "@/utils/marketDebt"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
-
-import { MarketsTableModel } from "../../../../MarketsTables/interface"
 
 export type BorrowerActiveMarketsTableModel = {
   id: string
@@ -60,27 +56,13 @@ export const BorrowerActiveMarketsTables = ({
   marketAccounts,
   isLoading,
   filters,
-}: MarketsTablesProps) => {
+  tab,
+}: MarketsTablesProps & {
+  tab:
+    | BorrowerMarketDashboardTabs.DEPOSITED
+    | BorrowerMarketDashboardTabs.NON_DEPOSITED
+}) => {
   const { t } = useTranslation()
-  const dispatch = useAppDispatch()
-
-  const scrollTargetId = useAppSelector(
-    (state) => state.borrowerDashboard.scrollTarget,
-  )
-
-  const depositedRef = useRef<HTMLDivElement>(null)
-  const nonDepositedRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (scrollTargetId === "deposited" && depositedRef.current) {
-      depositedRef.current.scrollIntoView({ behavior: "smooth" })
-      dispatch(setScrollTarget(null))
-    }
-    if (scrollTargetId === "non-deposited" && nonDepositedRef.current) {
-      nonDepositedRef.current.scrollIntoView({ behavior: "smooth" })
-      dispatch(setScrollTarget(null))
-    }
-  }, [scrollTargetId])
 
   const rows: GridRowsProp<BorrowerActiveMarketsTableModel> =
     marketAccounts.map((account) => {
@@ -363,6 +345,9 @@ export const BorrowerActiveMarketsTables = ({
     },
   ]
 
+  const isDeposited = tab === BorrowerMarketDashboardTabs.DEPOSITED
+  const tabMarkets = isDeposited ? depositedMarkets : nonDepositedMarkets
+
   return (
     <Box
       sx={{
@@ -373,61 +358,38 @@ export const BorrowerActiveMarketsTables = ({
         width: "100%",
         overflow: "auto",
         overflowY: "auto",
-        gap: "16px",
-        marginTop: "24px",
+        marginTop: "16px",
         paddingBottom: "26px",
       }}
     >
-      <Box id="deposited" ref={depositedRef}>
-        <MarketsTableAccordion
-          label={t("dashboard.markets.tables.borrower.active.deposited")}
-          marketsLength={depositedMarkets.length}
-          isLoading={isLoading}
-          isOpen
-          noMarketsTitle={t("dashboard.markets.noMarkets.active.title")}
-          noMarketsSubtitle={t(
-            "dashboard.markets.noMarkets.active.borrowerSubtitle",
-          )}
-          nameFilter={filters.nameFilter}
-          assetFilter={filters.assetFilter}
-          statusFilter={filters.statusFilter}
-          showNoFilteredMarkets
-        >
-          <DataGrid
-            disableVirtualization
-            sx={DataGridSx}
-            rows={depositedMarkets}
-            columns={columns}
-            columnHeaderHeight={40}
-          />
-        </MarketsTableAccordion>
-      </Box>
-
-      <Box id="non-deposited" ref={nonDepositedRef}>
-        <MarketsTableAccordion
-          label={t("dashboard.markets.tables.borrower.active.nonDeposited")}
-          isLoading={isLoading}
-          isOpen
-          noMarketsTitle={t("dashboard.markets.noMarkets.active.title")}
-          noMarketsSubtitle={t(
-            "dashboard.markets.noMarkets.active.borrowerSubtitle",
-          )}
-          marketsLength={nonDepositedMarkets.length}
-          nameFilter={filters.nameFilter}
-          assetFilter={filters.assetFilter}
-          statusFilter={filters.statusFilter}
-          showNoFilteredMarkets
-        >
-          <DataGrid
-            disableVirtualization
-            sx={DataGridSx}
-            getRowHeight={() => "auto"}
-            rows={nonDepositedMarkets}
-            columns={columns}
-            columnHeaderHeight={40}
-          />
-        </MarketsTableAccordion>
-      </Box>
+      <MarketsTableAccordion
+        label={
+          isDeposited
+            ? t("dashboard.markets.tables.borrower.active.deposited")
+            : t("dashboard.markets.tables.borrower.active.nonDeposited")
+        }
+        marketsLength={tabMarkets.length}
+        isLoading={isLoading}
+        isOpen
+        hideSummary
+        noMarketsTitle={t("dashboard.markets.noMarkets.active.title")}
+        noMarketsSubtitle={t(
+          "dashboard.markets.noMarkets.active.borrowerSubtitle",
+        )}
+        nameFilter={filters.nameFilter}
+        assetFilter={filters.assetFilter}
+        statusFilter={filters.statusFilter}
+        showNoFilteredMarkets
+      >
+        <DataGrid
+          disableVirtualization
+          sx={DataGridSx}
+          getRowHeight={isDeposited ? undefined : () => "auto"}
+          rows={tabMarkets}
+          columns={columns}
+          columnHeaderHeight={40}
+        />
+      </MarketsTableAccordion>
     </Box>
   )
 }

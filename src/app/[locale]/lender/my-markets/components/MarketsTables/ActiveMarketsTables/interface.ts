@@ -3,6 +3,7 @@ import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
 import { SmallFilterSelectItem } from "@/components/SmallFilterSelect"
 import type { DestinationsState } from "@/hooks/destinations/useDestinations"
+import { LenderMyMarketsTab } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -27,6 +28,7 @@ export type ActiveMarketsTableModel = {
 }
 
 export type ActiveMarketsTableProps = {
+  tab: LenderMyMarketsTab
   marketAccounts: MarketAccount[]
   borrowers: BorrowerWithName[]
   isLoading: boolean
@@ -36,5 +38,6 @@ export type ActiveMarketsTableProps = {
     nameFilter: string
     assetFilter: SmallFilterSelectItem[]
     statusFilter: MarketStatus[]
+    withdrawalCycleFilter?: SmallFilterSelectItem[]
   }
 }

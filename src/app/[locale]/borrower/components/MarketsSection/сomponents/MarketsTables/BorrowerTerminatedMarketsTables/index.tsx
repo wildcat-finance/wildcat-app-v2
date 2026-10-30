@@ -1,9 +1,8 @@
-import { useEffect, useRef } from "react"
 import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
 import { DataGrid, GridRowsProp } from "@mui/x-data-grid"
-import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
+import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -19,12 +18,8 @@ import {
   getAdsTooltipComponent,
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
-import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { TotalDebtHeader } from "@/components/TotalDebtHeader"
 import { ROUTES } from "@/routes"
-import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
-import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import {
   buildMarketHref,
@@ -33,7 +28,7 @@ import {
   formatTokenWithCommas,
 } from "@/utils/formatters"
 import { getMarketTotalDebt } from "@/utils/marketDebt"
-import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
+import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 import { MarketsTableAccordion } from "../../../../../../../../components/MarketsTableAccordion"
@@ -58,25 +53,6 @@ export const BorrowerTerminatedMarketsTables = ({
   filters,
 }: MarketsTablesProps) => {
   const { t } = useTranslation()
-  const dispatch = useAppDispatch()
-
-  const scrollTargetId = useAppSelector(
-    (state) => state.borrowerDashboard.scrollTarget,
-  )
-
-  const prevActiveRef = useRef<HTMLDivElement>(null)
-  const neverActiveRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (scrollTargetId === "prev-active" && prevActiveRef.current) {
-      prevActiveRef.current.scrollIntoView({ behavior: "smooth" })
-      dispatch(setScrollTarget(null))
-    }
-    if (scrollTargetId === "never-active" && neverActiveRef.current) {
-      neverActiveRef.current.scrollIntoView({ behavior: "smooth" })
-      dispatch(setScrollTarget(null))
-    }
-  }, [scrollTargetId])
 
   const rows: GridRowsProp<BorrowerTerminatedMarketsTableModel> =
     marketAccounts.map((account) => {
@@ -113,6 +89,8 @@ export const BorrowerTerminatedMarketsTables = ({
   const prevActive = rows.filter((market) => market.hasEverInteracted)
 
   const neverActive = rows.filter((market) => !market.hasEverInteracted)
+
+  const terminatedMarkets = [...prevActive, ...neverActive]
 
   const columns: TypeSafeColDef<BorrowerTerminatedMarketsTableModel>[] = [
     {
@@ -303,56 +281,31 @@ export const BorrowerTerminatedMarketsTables = ({
         width: "100%",
         overflow: "auto",
         overflowY: "auto",
-        gap: "16px",
-        marginTop: "24px",
+        marginTop: "16px",
         paddingBottom: "26px",
       }}
     >
-      <Box id="prev-active" ref={prevActiveRef}>
-        <MarketsTableAccordion
-          label={t("dashboard.markets.tables.borrower.closed.prevActive")}
-          marketsLength={prevActive.length}
-          isLoading={isLoading}
-          isOpen
-          nameFilter={filters.nameFilter}
-          assetFilter={filters.assetFilter}
-          statusFilter={filters.statusFilter}
-          showNoFilteredMarkets
-          noMarketsTitle={t("dashboard.markets.noMarkets.closed.title")}
-          noMarketsSubtitle={t("dashboard.markets.noMarkets.closed.subtitle")}
-        >
-          <DataGrid
-            disableVirtualization
-            sx={DataGridSx}
-            rows={prevActive}
-            columns={columns}
-            columnHeaderHeight={40}
-          />
-        </MarketsTableAccordion>
-      </Box>
-
-      <Box id="never-active" ref={neverActiveRef}>
-        <MarketsTableAccordion
-          label={t("dashboard.markets.tables.borrower.closed.neverActive")}
-          isLoading={isLoading}
-          isOpen
-          marketsLength={neverActive.length}
-          nameFilter={filters.nameFilter}
-          assetFilter={filters.assetFilter}
-          statusFilter={filters.statusFilter}
-          showNoFilteredMarkets
-          noMarketsTitle={t("dashboard.markets.noMarkets.closed.title")}
-          noMarketsSubtitle={t("dashboard.markets.noMarkets.closed.subtitle")}
-        >
-          <DataGrid
-            disableVirtualization
-            sx={DataGridSx}
-            rows={neverActive}
-            columns={columns}
-            columnHeaderHeight={40}
-          />
-        </MarketsTableAccordion>
-      </Box>
+      <MarketsTableAccordion
+        label={t("dashboard.markets.tables.borrower.closed.terminatedMarkets")}
+        marketsLength={terminatedMarkets.length}
+        isLoading={isLoading}
+        isOpen
+        hideSummary
+        nameFilter={filters.nameFilter}
+        assetFilter={filters.assetFilter}
+        statusFilter={filters.statusFilter}
+        showNoFilteredMarkets
+        noMarketsTitle={t("dashboard.markets.noMarkets.closed.title")}
+        noMarketsSubtitle={t("dashboard.markets.noMarkets.closed.subtitle")}
+      >
+        <DataGrid
+          disableVirtualization
+          sx={DataGridSx}
+          rows={terminatedMarkets}
+          columns={columns}
+          columnHeaderHeight={40}
+        />
+      </MarketsTableAccordion>
     </Box>
   )
 }

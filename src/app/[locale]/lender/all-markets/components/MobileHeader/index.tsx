@@ -1,10 +1,13 @@
-import React, { ReactNode, useEffect } from "react"
+import React, { ReactNode } from "react"
 
-import { Box, Button, Divider, Typography } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setScrollTarget } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
+import {
+  LenderAllMarketsTab,
+  setAllMarketsTab,
+} from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { COLORS } from "@/theme/colors"
 
 const MobileSwitcherButton = ({
@@ -13,18 +16,18 @@ const MobileSwitcherButton = ({
   amount,
 }: {
   label: string
-  target: string
+  target: LenderAllMarketsTab
   amount?: number
 }) => {
   const dispatch = useAppDispatch()
-  const scrollTargetId = useAppSelector(
-    (state) => state.lenderDashboard.scrollTarget,
+  const selectedTab = useAppSelector(
+    (state) => state.lenderDashboard.allMarketsTab,
   )
 
   return (
     <Button
       variant="text"
-      onClick={() => dispatch(setScrollTarget(target))}
+      onClick={() => dispatch(setAllMarketsTab(target))}
       sx={{
         borderRadius: "10px",
         gap: "6px",
@@ -32,17 +35,16 @@ const MobileSwitcherButton = ({
         flexShrink: 0,
         fontSize: "12px",
         lineHeight: "20px",
-        fontWeight: scrollTargetId === target ? 600 : 500,
+        fontWeight: selectedTab === target ? 600 : 500,
         color:
-          scrollTargetId === target ? COLORS.ultramarineBlue : COLORS.blackRock,
-        backgroundColor:
-          scrollTargetId === target ? "#E4EBFE80" : "transparent",
+          selectedTab === target ? COLORS.ultramarineBlue : COLORS.blackRock,
+        backgroundColor: selectedTab === target ? "#E4EBFE80" : "transparent",
         "&:hover": {
           boxShadow: "none",
           backgroundColor:
-            scrollTargetId === target ? "#E4EBFE80" : COLORS.hintOfRed,
+            selectedTab === target ? "#E4EBFE80" : COLORS.hintOfRed,
           color:
-            scrollTargetId === target
+            selectedTab === target
               ? COLORS.ultramarineBlue
               : COLORS.blackRock08,
         },
@@ -52,9 +54,7 @@ const MobileSwitcherButton = ({
       {amount !== undefined && amount !== 0 && (
         <Typography
           variant="mobText3"
-          color={
-            scrollTargetId === target ? COLORS.blueRibbon : COLORS.santasGrey
-          }
+          color={selectedTab === target ? COLORS.blueRibbon : COLORS.santasGrey}
         >
           {amount}
         </Typography>
@@ -65,7 +65,6 @@ const MobileSwitcherButton = ({
 
 export const MobileHeader = ({ children }: { children?: ReactNode }) => {
   const { t } = useTranslation()
-  const dispatch = useAppDispatch()
 
   const selfOnboardAmount = useAppSelector(
     (state) => state.lenderDashboardAmounts.selfOnboard,
@@ -76,13 +75,6 @@ export const MobileHeader = ({ children }: { children?: ReactNode }) => {
   const terminatedOtherAmount = useAppSelector(
     (state) => state.lenderDashboardAmounts.terminatedOther,
   )
-
-  useEffect(() => {
-    dispatch(setScrollTarget("self-onboard"))
-    return () => {
-      dispatch(setScrollTarget(null))
-    }
-  }, [dispatch])
 
   return (
     <Box
@@ -103,7 +95,7 @@ export const MobileHeader = ({ children }: { children?: ReactNode }) => {
         }}
       >
         <Typography variant="mobH2" marginLeft="12px">
-          All Markets
+          {t("dashboard.markets.allMarketsTitle")}
         </Typography>
         {children}
       </Box>
@@ -119,17 +111,17 @@ export const MobileHeader = ({ children }: { children?: ReactNode }) => {
       >
         <MobileSwitcherButton
           label={t("dashboard.markets.tables.other.selfOnboard")}
-          target="self-onboard"
+          target={LenderAllMarketsTab.SELF_ONBOARD}
           amount={selfOnboardAmount}
         />
         <MobileSwitcherButton
           label={t("dashboard.markets.tables.other.manual")}
-          target="manual"
+          target={LenderAllMarketsTab.MANUAL}
           amount={manualAmount}
         />
         <MobileSwitcherButton
           label={t("dashboard.markets.tables.other.terminated")}
-          target="other-terminated"
+          target={LenderAllMarketsTab.TERMINATED}
           amount={terminatedOtherAmount}
         />
       </Box>

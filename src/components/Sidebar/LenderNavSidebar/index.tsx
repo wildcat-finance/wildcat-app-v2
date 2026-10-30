@@ -12,16 +12,14 @@ import MyMarketsIcon from "@/assets/icons/stack_icon.svg"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
-  LenderMarketDashboardSections,
-  setMarketSection,
-  setScrollTarget,
+  LenderAllMarketsTab,
+  LenderMyMarketsTab,
+  setAllMarketsTab,
+  setMyMarketsTab,
 } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { COLORS } from "@/theme/colors"
 
-import {
-  DashboardButton,
-  DashboardSectionAccordion,
-} from "../DashboardSidebarComponents"
+import { DashboardSubItems } from "../DashboardSidebarComponents"
 
 export const LenderNavSidebar = () => {
   const pathname = usePathname()
@@ -30,8 +28,11 @@ export const LenderNavSidebar = () => {
 
   const { isConnected } = useAccount()
 
-  const marketSection = useAppSelector(
-    (state) => state.lenderDashboard.marketSection,
+  const myMarketsTab = useAppSelector(
+    (state) => state.lenderDashboard.myMarketsTab,
+  )
+  const allMarketsTab = useAppSelector(
+    (state) => state.lenderDashboard.allMarketsTab,
   )
 
   const depositedAmount = useAppSelector(
@@ -46,9 +47,6 @@ export const LenderNavSidebar = () => {
   const neverActiveAmount = useAppSelector(
     (state) => state.lenderDashboardAmounts.neverActive,
   )
-  const allMarketsCount = useAppSelector(
-    (state) => state.lenderDashboardAmounts.allMarkets,
-  )
   const selfOnboardAmount = useAppSelector(
     (state) => state.lenderDashboardAmounts.selfOnboard,
   )
@@ -59,9 +57,14 @@ export const LenderNavSidebar = () => {
     (state) => state.lenderDashboardAmounts.terminatedOther,
   )
 
-  const activeMarketsAmount = depositedAmount + nonDepositedAmount
   const closedMarketsAmount = prevActiveAmount + neverActiveAmount
-  const myMarketsCount = activeMarketsAmount + closedMarketsAmount
+  const myMarketsCount =
+    depositedAmount + nonDepositedAmount + closedMarketsAmount
+  const allMarketsCount =
+    selfOnboardAmount + manualAmount + terminatedOtherAmount
+
+  const countsReady = myMarketsCount + allMarketsCount > 0
+  const count = (amount: number) => (countsReady ? amount : undefined)
 
   const isOnExplore = pathname === ROUTES.lender.explore
   const isOnMyMarkets = pathname === ROUTES.lender.myMarkets
@@ -73,7 +76,7 @@ export const LenderNavSidebar = () => {
     display: "flex",
     alignItems: "center",
     backgroundColor: active ? COLORS.whiteSmoke : "transparent",
-    borderRadius: "8px",
+    borderRadius: "10px",
     textDecoration: "none",
     transition: "background-color 0.1s ease-in-out",
     "&:hover": { backgroundColor: COLORS.whiteSmoke },
@@ -84,18 +87,18 @@ export const LenderNavSidebar = () => {
       sx={{
         height: "100%",
         width: "267px",
-        padding: "20px 16px 0px",
+        padding: "24px 16px 0",
         display: "flex",
         flexDirection: "column",
       }}
     >
-      <Box sx={{ width: "100%", marginBottom: "4px" }}>
+      <Box sx={{ width: "100%", marginBottom: "8px" }}>
         <Box
           component={Link}
           href={ROUTES.lender.explore}
           sx={navLinkSx(isOnExplore)}
         >
-          <SvgIcon sx={{ marginRight: "10px" }}>
+          <SvgIcon sx={{ marginRight: "6px" }}>
             <ExploreIcon />
           </SvgIcon>
           <Typography variant="text2">Explore</Typography>
@@ -103,145 +106,95 @@ export const LenderNavSidebar = () => {
       </Box>
 
       {isConnected && (
-        <Box
-          sx={{ width: "100%", marginBottom: isOnMyMarkets ? "16px" : "4px" }}
-        >
+        <Box sx={{ width: "100%", marginBottom: "8px" }}>
           <Box
             component={Link}
             href={ROUTES.lender.myMarkets}
             sx={navLinkSx(isOnMyMarkets)}
           >
-            <SvgIcon sx={{ marginRight: "10px" }}>
+            <SvgIcon sx={{ marginRight: "6px" }}>
               <MyMarketsIcon />
             </SvgIcon>
             <Typography variant="text2" sx={{ marginRight: "6px" }}>
               My Markets
             </Typography>
             <Typography variant="text2" color={COLORS.santasGrey}>
-              {myMarketsCount !== 0 ? activeMarketsAmount : null}
+              {count(myMarketsCount)}
             </Typography>
           </Box>
 
           {isOnMyMarkets && (
-            <Box
-              sx={{
-                width: "100%",
-                paddingLeft: "14px",
-                marginTop: "12px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "14px",
-              }}
-            >
-              <DashboardSectionAccordion
-                label="Active Markets"
-                amount={activeMarketsAmount}
-                open={marketSection === LenderMarketDashboardSections.ACTIVE}
-                onClick={() =>
-                  dispatch(
-                    setMarketSection(LenderMarketDashboardSections.ACTIVE),
-                  )
-                }
-              >
-                <DashboardButton
-                  label={t(
-                    "dashboard.markets.tables.borrower.active.deposited",
-                  )}
-                  amount={depositedAmount}
-                  onClick={() => dispatch(setScrollTarget("deposited"))}
-                />
-                <DashboardButton
-                  label={t(
-                    "dashboard.markets.tables.borrower.active.nonDeposited",
-                  )}
-                  amount={nonDepositedAmount}
-                  onClick={() => dispatch(setScrollTarget("non-deposited"))}
-                />
-              </DashboardSectionAccordion>
-
-              <DashboardSectionAccordion
-                label="Terminated Markets"
-                amount={closedMarketsAmount}
-                open={
-                  marketSection === LenderMarketDashboardSections.TERMINATED
-                }
-                onClick={() =>
-                  dispatch(
-                    setMarketSection(LenderMarketDashboardSections.TERMINATED),
-                  )
-                }
-              >
-                <DashboardButton
-                  label={t(
-                    "dashboard.markets.tables.borrower.closed.prevActive",
-                  )}
-                  amount={prevActiveAmount}
-                  onClick={() => dispatch(setScrollTarget("prev-active"))}
-                />
-                <DashboardButton
-                  label={t(
-                    "dashboard.markets.tables.borrower.closed.neverActive",
-                  )}
-                  amount={neverActiveAmount}
-                  onClick={() => dispatch(setScrollTarget("never-active"))}
-                />
-              </DashboardSectionAccordion>
+            <Box sx={{ marginTop: "8px", paddingLeft: "34px" }}>
+              <DashboardSubItems
+                activeValue={myMarketsTab}
+                onSelect={(tab) => dispatch(setMyMarketsTab(tab))}
+                items={[
+                  {
+                    value: LenderMyMarketsTab.DEPOSITED,
+                    label: t(
+                      "dashboard.markets.tables.borrower.active.deposited",
+                    ),
+                    amount: count(depositedAmount),
+                  },
+                  {
+                    value: LenderMyMarketsTab.NON_DEPOSITED,
+                    label: t(
+                      "dashboard.markets.tables.borrower.active.nonDeposited",
+                    ),
+                    amount: count(nonDepositedAmount),
+                  },
+                  {
+                    value: LenderMyMarketsTab.TERMINATED,
+                    label: t("dashboard.markets.tables.other.terminated"),
+                    amount: count(closedMarketsAmount),
+                  },
+                ]}
+              />
             </Box>
           )}
         </Box>
       )}
 
-      <Box
-        sx={{ width: "100%", marginBottom: isOnAllMarkets ? "16px" : "4px" }}
-      >
+      <Box sx={{ width: "100%", marginBottom: "8px" }}>
         <Box
           component={Link}
           href={ROUTES.lender.allMarkets}
           sx={navLinkSx(isOnAllMarkets)}
         >
-          <SvgIcon sx={{ marginRight: "10px" }}>
+          <SvgIcon sx={{ marginRight: "6px" }}>
             <AllMarketsIcon />
           </SvgIcon>
           <Typography variant="text2" sx={{ marginRight: "6px" }}>
             All Markets
           </Typography>
           <Typography variant="text2" color={COLORS.santasGrey}>
-            {allMarketsCount !== 0 ? allMarketsCount : null}
+            {count(allMarketsCount)}
           </Typography>
         </Box>
 
         {isOnAllMarkets && (
-          <Box
-            sx={{
-              width: "100%",
-              paddingLeft: "14px",
-              marginTop: "12px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "14px",
-            }}
-          >
-            <DashboardSectionAccordion
-              label={t("dashboard.markets.tables.other.title")}
-              amount={allMarketsCount}
-              open
-            >
-              <DashboardButton
-                label={t("dashboard.markets.tables.other.selfOnboard")}
-                amount={selfOnboardAmount}
-                onClick={() => dispatch(setScrollTarget("self-onboard"))}
-              />
-              <DashboardButton
-                label={t("dashboard.markets.tables.other.manual")}
-                amount={manualAmount}
-                onClick={() => dispatch(setScrollTarget("manual"))}
-              />
-              <DashboardButton
-                label={t("dashboard.markets.tables.other.terminated")}
-                amount={terminatedOtherAmount}
-                onClick={() => dispatch(setScrollTarget("other-terminated"))}
-              />
-            </DashboardSectionAccordion>
+          <Box sx={{ marginTop: "8px", paddingLeft: "34px" }}>
+            <DashboardSubItems
+              activeValue={allMarketsTab}
+              onSelect={(tab) => dispatch(setAllMarketsTab(tab))}
+              items={[
+                {
+                  value: LenderAllMarketsTab.SELF_ONBOARD,
+                  label: t("dashboard.markets.tables.other.selfOnboard"),
+                  amount: count(selfOnboardAmount),
+                },
+                {
+                  value: LenderAllMarketsTab.MANUAL,
+                  label: t("dashboard.markets.tables.other.manual"),
+                  amount: count(manualAmount),
+                },
+                {
+                  value: LenderAllMarketsTab.TERMINATED,
+                  label: t("dashboard.markets.tables.other.terminated"),
+                  amount: count(terminatedOtherAmount),
+                },
+              ]}
+            />
           </Box>
         )}
       </Box>

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useEffect, useRef } from "react"
+import { useEffect } from "react"
 
 import { Box, Button, Typography } from "@mui/material"
 import {
@@ -25,14 +25,13 @@ import {
 } from "@/components/Destinations"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
+import { TablePagination } from "@/components/TablePagination"
 import { TotalDebtHeader } from "@/components/TotalDebtHeader"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
-import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setScrollTarget } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
+import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
-import { pageCalcHeights } from "@/utils/constants"
 import { getGridMinWidth } from "@/utils/dataGrid"
 import {
   buildMarketHref,
@@ -88,26 +87,27 @@ export const TerminatedMarketsTables = ({
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const { markets: destinationsByMarket } = destinations
-  const dispatch = useAppDispatch()
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
   )
 
-  const prevActiveRef = useRef<HTMLDivElement>(null)
-  const neverActiveRef = useRef<HTMLDivElement>(null)
+  const [paginationModel, setPaginationModel] = React.useState({
+    pageSize: 50,
+    page: 0,
+  })
+
+  const { assetFilter, statusFilter, nameFilter, withdrawalCycleFilter } =
+    filters
 
   useEffect(() => {
-    if (!isMobile) {
-      if (scrollTargetId === "prev-active" && prevActiveRef.current) {
-        prevActiveRef.current.scrollIntoView({ behavior: "smooth" })
-        dispatch(setScrollTarget(null))
-      }
-      if (scrollTargetId === "never-active" && neverActiveRef.current) {
-        neverActiveRef.current.scrollIntoView({ behavior: "smooth" })
-        dispatch(setScrollTarget(null))
-      }
-    }
-  }, [dispatch, isMobile, scrollTargetId])
+    setPaginationModel((prevState) => ({ ...prevState, page: 0 }))
+  }, [
+    assetFilter,
+    statusFilter,
+    nameFilter,
+    withdrawalCycleFilter,
+    composableOnly,
+  ])
 
   const rows: GridRowsProp<TerminatedMarketsTableModel> = marketAccounts.map(
     (account) => {
@@ -155,6 +155,8 @@ export const TerminatedMarketsTables = ({
 
   const prevActive = rows.filter((market) => market.hasEverInteracted)
   const neverActive = rows.filter((market) => !market.hasEverInteracted)
+
+  const terminatedRows = [...prevActive, ...neverActive]
 
   const showComposableColumn = destinations.showDestinations
 
@@ -363,84 +365,54 @@ export const TerminatedMarketsTables = ({
         sx={{
           display: "flex",
           flexDirection: "column",
-          height: `calc(100vh - ${pageCalcHeights.dashboard})`,
+          height: "calc(100vh - 250px)",
           width: "100%",
           overflow: "auto",
           overflowY: "auto",
-          gap: "16px",
-          marginTop: "24px",
+          marginTop: "16px",
           paddingBottom: "26px",
         }}
       >
-        <Box id="prev-active" ref={prevActiveRef}>
-          <MarketsTableAccordion
-            minContentWidth={gridMinWidth}
-            label={t("dashboard.markets.tables.borrower.closed.prevActive")}
-            marketsLength={prevActive.length}
-            isLoading={isLoading}
-            isOpen
-            nameFilter={filters.nameFilter}
-            assetFilter={filters.assetFilter}
-            statusFilter={filters.statusFilter}
-            showNoFilteredMarkets
-            noMarketsTitle={
-              composableOnly
-                ? t("destinations.noComposableMarkets")
-                : t("dashboard.markets.noMarkets.closed.title")
-            }
-            noMarketsSubtitle={
-              composableOnly
-                ? undefined
-                : t("dashboard.markets.noMarkets.closed.subtitle")
-            }
-          >
-            <DataGrid
-              disableVirtualization
-              sx={clickableGridSx}
-              rowHeight={66}
-              resizeThrottleMs={COMPOSABLE_GRID_RESIZE_THROTTLE_MS}
-              rows={prevActive}
-              columns={columns}
-              columnHeaderHeight={40}
-              slots={{ row: MarketLinkRow }}
-            />
-          </MarketsTableAccordion>
-        </Box>
-
-        <Box id="never-active" ref={neverActiveRef}>
-          <MarketsTableAccordion
-            minContentWidth={gridMinWidth}
-            label={t("dashboard.markets.tables.borrower.closed.neverActive")}
-            isLoading={isLoading}
-            isOpen
-            marketsLength={neverActive.length}
-            nameFilter={filters.nameFilter}
-            assetFilter={filters.assetFilter}
-            statusFilter={filters.statusFilter}
-            showNoFilteredMarkets
-            noMarketsTitle={
-              composableOnly
-                ? t("destinations.noComposableMarkets")
-                : t("dashboard.markets.noMarkets.closed.title")
-            }
-            noMarketsSubtitle={
-              composableOnly
-                ? undefined
-                : t("dashboard.markets.noMarkets.closed.subtitle")
-            }
-          >
-            <DataGrid
-              disableVirtualization
-              sx={clickableGridSx}
-              rowHeight={66}
-              resizeThrottleMs={COMPOSABLE_GRID_RESIZE_THROTTLE_MS}
-              rows={neverActive}
-              columns={columns}
-              columnHeaderHeight={40}
-              slots={{ row: MarketLinkRow }}
-            />
-          </MarketsTableAccordion>
-        </Box>
+        <MarketsTableAccordion
+          hideSummary
+          minContentWidth={gridMinWidth}
+          label={t("dashboard.markets.tables.other.terminated")}
+          marketsLength={terminatedRows.length}
+          isLoading={isLoading}
+          isOpen
+          nameFilter={filters.nameFilter}
+          assetFilter={filters.assetFilter}
+          statusFilter={filters.statusFilter}
+          showNoFilteredMarkets
+          noMarketsTitle={
+            composableOnly
+              ? t("destinations.noComposableMarkets")
+              : t("dashboard.markets.noMarkets.closed.title")
+          }
+          noMarketsSubtitle={
+            composableOnly
+              ? undefined
+              : t("dashboard.markets.noMarkets.closed.subtitle")
+          }
+        >
+          <DataGrid
+            disableVirtualization
+            sx={clickableGridSx}
+            rowHeight={66}
+            resizeThrottleMs={COMPOSABLE_GRID_RESIZE_THROTTLE_MS}
+            rows={terminatedRows}
+            columns={columns}
+            columnHeaderHeight={40}
+            paginationModel={paginationModel}
+            onPaginationModelChange={setPaginationModel}
+            pageSizeOptions={[50]}
+            slots={{
+              row: MarketLinkRow,
+              pagination: TablePagination,
+            }}
+            hideFooter={false}
+          />
+        </MarketsTableAccordion>
       </Box>
     </ComposableExpansionProvider>
   )

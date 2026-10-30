@@ -46,6 +46,7 @@ export type OtherMarketsTableProps = {
     nameFilter: string
     assetFilter: SmallFilterSelectItem[]
     statusFilter: MarketStatus[]
+    withdrawalCycleFilter?: SmallFilterSelectItem[]
     composableOnly?: boolean
   }
   destinations: DestinationsState

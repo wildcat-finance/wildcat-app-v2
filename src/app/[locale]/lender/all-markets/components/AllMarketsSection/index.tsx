@@ -2,8 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 
-import { Box, Divider, Skeleton, Typography } from "@mui/material"
-import Link from "next/link"
+import { Box, Skeleton, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
@@ -12,6 +11,7 @@ import { ComposableOnlySwitch } from "@/components/Destinations"
 import { FilterTextField } from "@/components/FilterTextfield"
 import { MarketsFilterSelect } from "@/components/MarketsFilterSelect"
 import { MarketsFilterSelectItem } from "@/components/MarketsFilterSelect/interface"
+import { MarketsTabs } from "@/components/MarketsTabs"
 import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
 import { MobileSearchButton } from "@/components/Mobile/MobileSearchButton"
 import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
@@ -22,6 +22,10 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { marketStatusesMock } from "@/mocks/mocks"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setLendersSectionAmount } from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
+import {
+  LenderAllMarketsTab,
+  setAllMarketsTab,
+} from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { setMarketFilters } from "@/store/slices/marketFiltersSlice/marketFiltersSlice"
 import { COLORS } from "@/theme/colors"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
@@ -66,6 +70,8 @@ export const AllMarketsSection = () => {
     () => new Set(Object.keys(destinationsByMarket)),
     [destinationsByMarket],
   )
+
+  const allMarketsTab = useAppSelector((s) => s.lenderDashboard.allMarketsTab)
 
   const marketFilters = useAppSelector((s) => s.marketFilters.lender)
   const {
@@ -166,9 +172,16 @@ export const AllMarketsSection = () => {
       statusFilter: marketStatuses.map(
         (status) => status.name,
       ) as MarketStatus[],
+      withdrawalCycleFilter: marketWithdrawalCycles,
       composableOnly,
     }),
-    [marketSearch, marketAssets, marketStatuses, composableOnly],
+    [
+      marketSearch,
+      marketAssets,
+      marketStatuses,
+      marketWithdrawalCycles,
+      composableOnly,
+    ],
   )
 
   // Markets the lender has never interacted with, excluding blacklisted addresses
@@ -298,7 +311,7 @@ export const AllMarketsSection = () => {
       <Skeleton
         sx={{
           width: "100%",
-          height: { xs: "153px", md: "162px" },
+          height: { xs: "153px", md: "152px" },
           borderRadius: "14px",
           backgroundColor: { xs: COLORS.white06, md: "transparent" },
         }}
@@ -308,52 +321,50 @@ export const AllMarketsSection = () => {
   return (
     <Box sx={{ width: "100%", overflow: { xs: "auto", md: "visible" } }}>
       {!isMobile && (
-        <Box sx={{ display: "flex", flexDirection: "column" }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            padding: "20px 16px 0",
+          }}
+        >
+          <Typography variant="title3" color={COLORS.blackRock}>
+            {t("dashboard.markets.allMarketsTitle")}
+          </Typography>
+
+          <Box sx={{ marginTop: "16px" }}>
+            <MarketsTabs
+              value={allMarketsTab}
+              onChange={(tab) => dispatch(setAllMarketsTab(tab))}
+              hideCounts={isLoading}
+              items={[
+                {
+                  value: LenderAllMarketsTab.SELF_ONBOARD,
+                  label: t("dashboard.markets.tables.other.selfOnboard"),
+                  count: isWrongNetwork ? 0 : selfOnboardAmount,
+                },
+                {
+                  value: LenderAllMarketsTab.MANUAL,
+                  label: t("dashboard.markets.tables.other.manual"),
+                  count: isWrongNetwork ? 0 : manualAmount,
+                },
+                {
+                  value: LenderAllMarketsTab.TERMINATED,
+                  label: t("dashboard.markets.tables.other.terminated"),
+                  count: isWrongNetwork ? 0 : terminatedOtherAmount,
+                },
+              ]}
+            />
+          </Box>
+
           <Box
             sx={{
               width: "100%",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              padding: "24px 24px 0",
-            }}
-          >
-            <Typography variant="title2" sx={{ marginBottom: "6px" }}>
-              {t("dashboard.markets.title")}
-            </Typography>
-          </Box>
-
-          <Typography
-            variant="text3"
-            color={COLORS.santasGrey}
-            sx={{ marginBottom: "24px", padding: "0 24px" }}
-          >
-            {t("dashboard.markets.lenderSubtitle")}{" "}
-            <Link
-              href="https://docs.wildcat.finance/using-wildcat/day-to-day-usage/lenders"
-              style={{ color: COLORS.santasGrey }}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {t("dashboard.markets.docsLink")}
-            </Link>
-          </Typography>
-
-          <Divider
-            sx={{
-              marginTop: "6px",
-              borderColor: COLORS.athensGrey,
-              width: "100%",
-            }}
-          />
-
-          <Box
-            sx={{
-              width: "100%",
-              display: "flex",
-              justifyContent: "space-between",
-              padding: "0 24px",
-              marginTop: "16px",
+              gap: "20px",
+              marginTop: "24px",
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -375,7 +386,7 @@ export const AllMarketsSection = () => {
                 setSelected={setMarketStatuses}
               />
               <MarketsFilterSelect
-                placeholder="Withdrawal Cycle"
+                placeholder={t("dashboard.markets.filters.withdrawalCycle")}
                 options={withdrawalCycleOptions}
                 selected={marketWithdrawalCycles}
                 setSelected={setMarketWithdrawalCycles}
@@ -392,7 +403,7 @@ export const AllMarketsSection = () => {
               value={marketSearch}
               setValue={setMarketSearch}
               placeholder={t("dashboard.markets.filters.name")}
-              width="264px"
+              width="312px"
             />
           </Box>
         </Box>

@@ -123,16 +123,19 @@
   "dashboard": {
     "markets": {
       "title": "Markets",
-      "borrowerSubtitle": "All markets you’ve previously created.",
-      "lenderSubtitle": "All markets you have a position in or are potentially eligible for.",
-      "docsLink": "Learn More (Documentation)",
+      "allMarketsTitle": "All Markets",
       "borrowerTitleButton": "+ Create New Market",
       "lenderTitleButton": "+ Observe New Markets",
       "filters": {
         "name": "Search",
         "borrower": "Search",
         "assets": "Asset",
-        "statuses": "Status"
+        "statuses": "Status",
+        "withdrawalCycle": "Withdrawal Cycle"
+      },
+      "switcher": {
+        "yourMarkets": "Your markets",
+        "otherMarkets": "Other markets"
       },
       "tables": {
         "borrower": {
@@ -143,6 +146,7 @@
           },
           "closed": {
             "title": "Your Terminated Markets",
+            "terminatedMarkets": "Terminated Markets",
             "prevActive": "Previously Active",
             "neverActive": "Never Active"
           }

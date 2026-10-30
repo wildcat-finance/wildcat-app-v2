@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useEffect, useRef } from "react"
+import { useEffect } from "react"
 
 import { Box, Typography } from "@mui/material"
 import {
@@ -31,17 +31,17 @@ import {
 } from "@/components/Destinations"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
+import { TablePagination } from "@/components/TablePagination"
 import { TotalDebtHeader } from "@/components/TotalDebtHeader"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
-import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setScrollTarget } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
+import { useAppSelector } from "@/store/hooks"
+import { LenderMyMarketsTab } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import {
   statusComparator,
   tokenAmountComparator,
   typeComparator,
 } from "@/utils/comparators"
-import { pageCalcHeights } from "@/utils/constants"
 import { getGridMinWidth } from "@/utils/dataGrid"
 import {
   buildMarketHref,
@@ -85,6 +85,7 @@ const clickableGridSx = {
 }
 
 export const ActiveMarketsTables = ({
+  tab,
   marketAccounts,
   borrowers,
   isLoading,
@@ -95,26 +96,28 @@ export const ActiveMarketsTables = ({
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const { markets: destinationsByMarket } = destinations
-  const dispatch = useAppDispatch()
   const scrollTargetId = useAppSelector(
     (state) => state.lenderDashboard.scrollTarget,
   )
 
-  const depositedRef = useRef<HTMLDivElement>(null)
-  const nonDepositedRef = useRef<HTMLDivElement>(null)
+  const [paginationModel, setPaginationModel] = React.useState({
+    pageSize: 50,
+    page: 0,
+  })
+
+  const { assetFilter, statusFilter, nameFilter, withdrawalCycleFilter } =
+    filters
 
   useEffect(() => {
-    if (!isMobile) {
-      if (scrollTargetId === "deposited" && depositedRef.current) {
-        depositedRef.current.scrollIntoView({ behavior: "smooth" })
-        dispatch(setScrollTarget(null))
-      }
-      if (scrollTargetId === "non-deposited" && nonDepositedRef.current) {
-        nonDepositedRef.current.scrollIntoView({ behavior: "smooth" })
-        dispatch(setScrollTarget(null))
-      }
-    }
-  }, [dispatch, isMobile, scrollTargetId])
+    setPaginationModel((prevState) => ({ ...prevState, page: 0 }))
+  }, [
+    tab,
+    assetFilter,
+    statusFilter,
+    nameFilter,
+    withdrawalCycleFilter,
+    composableOnly,
+  ])
 
   const rows: GridRowsProp<ActiveMarketsTableModel> = marketAccounts.map(
     (account) => {
@@ -164,6 +167,15 @@ export const ActiveMarketsTables = ({
 
   const depositedMarkets = rows.filter((market) => market.hasEverInteracted)
   const nonDepositedMarkets = rows.filter((market) => !market.hasEverInteracted)
+
+  const tabRows =
+    tab === LenderMyMarketsTab.NON_DEPOSITED
+      ? nonDepositedMarkets
+      : depositedMarkets
+  const tabLabel =
+    tab === LenderMyMarketsTab.NON_DEPOSITED
+      ? t("dashboard.markets.tables.borrower.active.nonDeposited")
+      : t("dashboard.markets.tables.borrower.active.deposited")
 
   const showComposableColumn = destinations.showDestinations
 
@@ -414,84 +426,55 @@ export const ActiveMarketsTables = ({
         sx={{
           display: "flex",
           flexDirection: "column",
-          height: `calc(100vh - ${pageCalcHeights.dashboard})`,
+          // 82px of app chrome plus the 168px page header above the table
+          height: "calc(100vh - 250px)",
           width: "100%",
           overflow: "auto",
           overflowY: "auto",
-          gap: "16px",
-          marginTop: "24px",
+          marginTop: "16px",
           paddingBottom: "26px",
         }}
       >
-        <Box id="deposited" ref={depositedRef}>
-          <MarketsTableAccordion
-            minContentWidth={gridMinWidth}
-            label={t("dashboard.markets.tables.borrower.active.deposited")}
-            marketsLength={depositedMarkets.length}
-            isLoading={isLoading}
-            isOpen
-            noMarketsTitle={
-              composableOnly
-                ? t("destinations.noComposableMarkets")
-                : t("dashboard.markets.noMarkets.active.title")
-            }
-            noMarketsSubtitle={
-              composableOnly
-                ? undefined
-                : t("dashboard.markets.noMarkets.active.lenderSubtitle")
-            }
-            nameFilter={filters.nameFilter}
-            assetFilter={filters.assetFilter}
-            statusFilter={filters.statusFilter}
-            showNoFilteredMarkets
-          >
-            <DataGrid
-              disableVirtualization
-              sx={clickableGridSx}
-              rowHeight={66}
-              resizeThrottleMs={COMPOSABLE_GRID_RESIZE_THROTTLE_MS}
-              rows={depositedMarkets}
-              columns={columns}
-              columnHeaderHeight={40}
-              slots={{ row: MarketLinkRow }}
-            />
-          </MarketsTableAccordion>
-        </Box>
-
-        <Box id="non-deposited" ref={nonDepositedRef}>
-          <MarketsTableAccordion
-            minContentWidth={gridMinWidth}
-            label={t("dashboard.markets.tables.borrower.active.nonDeposited")}
-            isLoading={isLoading}
-            isOpen
-            noMarketsTitle={
-              composableOnly
-                ? t("destinations.noComposableMarkets")
-                : t("dashboard.markets.noMarkets.active.title")
-            }
-            noMarketsSubtitle={
-              composableOnly
-                ? undefined
-                : t("dashboard.markets.noMarkets.active.lenderSubtitle")
-            }
-            marketsLength={nonDepositedMarkets.length}
-            nameFilter={filters.nameFilter}
-            assetFilter={filters.assetFilter}
-            statusFilter={filters.statusFilter}
-            showNoFilteredMarkets
-          >
-            <DataGrid
-              disableVirtualization
-              sx={clickableGridSx}
-              rowHeight={66}
-              resizeThrottleMs={COMPOSABLE_GRID_RESIZE_THROTTLE_MS}
-              rows={nonDepositedMarkets}
-              columns={columns}
-              columnHeaderHeight={40}
-              slots={{ row: MarketLinkRow }}
-            />
-          </MarketsTableAccordion>
-        </Box>
+        <MarketsTableAccordion
+          hideSummary
+          minContentWidth={gridMinWidth}
+          label={tabLabel}
+          marketsLength={tabRows.length}
+          isLoading={isLoading}
+          isOpen
+          noMarketsTitle={
+            composableOnly
+              ? t("destinations.noComposableMarkets")
+              : t("dashboard.markets.noMarkets.active.title")
+          }
+          noMarketsSubtitle={
+            composableOnly
+              ? undefined
+              : t("dashboard.markets.noMarkets.active.lenderSubtitle")
+          }
+          nameFilter={filters.nameFilter}
+          assetFilter={filters.assetFilter}
+          statusFilter={filters.statusFilter}
+          showNoFilteredMarkets
+        >
+          <DataGrid
+            disableVirtualization
+            sx={clickableGridSx}
+            rowHeight={66}
+            resizeThrottleMs={COMPOSABLE_GRID_RESIZE_THROTTLE_MS}
+            rows={tabRows}
+            columns={columns}
+            columnHeaderHeight={40}
+            paginationModel={paginationModel}
+            onPaginationModelChange={setPaginationModel}
+            pageSizeOptions={[50]}
+            slots={{
+              row: MarketLinkRow,
+              pagination: TablePagination,
+            }}
+            hideFooter={false}
+          />
+        </MarketsTableAccordion>
       </Box>
     </ComposableExpansionProvider>
   )
