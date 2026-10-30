@@ -39,7 +39,6 @@ import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
 import { useAppDispatch } from "@/store/hooks"
-import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
 import { setTouModalOpen } from "@/store/slices/touModalSlice/touModalSlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
@@ -83,11 +82,6 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
 
   const handleClickDisconnect = () => {
     disconnect()
-    handleToggleModal()
-  }
-
-  const handleOpenCookiesModal = () => {
-    dispatch(setIsVisible(true))
     handleToggleModal()
   }
 
@@ -480,32 +474,6 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                 </Box>
 
                 {/* Legal links */}
-                <Box
-                  onClick={handleOpenCookiesModal}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "12px 6px",
-                    cursor: "pointer",
-                    borderRadius: "8px",
-                    "&:hover": { backgroundColor: COLORS.whiteSmoke },
-                  }}
-                >
-                  <Typography variant="text3">Cookies Settings</Typography>
-                  <SvgIcon
-                    aria-hidden="true"
-                    sx={{
-                      transform: "rotate(-180deg)",
-                      fontSize: "16px",
-                      "& path": { fill: COLORS.santasGrey },
-                    }}
-                  >
-                    <Arrow />
-                  </SvgIcon>
-                </Box>
-                <Divider sx={{ borderColor: COLORS.whiteLilac }} />
-
                 <Box
                   component={Link}
                   href="https://docs.wildcat.finance/legal/protocol-ui-privacy-policy"

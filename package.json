@@ -27,7 +27,6 @@
     "@emotion/styled": "11.11.0",
     "@ethersproject/providers": "5.7.2",
     "@hookform/resolvers": "3.3.4",
-    "@hotjar/browser": "1.0.9",
     "@mdxeditor/editor": "3.38.0",
     "@mui/material": "5.16.7",
     "@mui/material-nextjs": "5.15.11",

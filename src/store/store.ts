@@ -2,7 +2,6 @@ import { configureStore } from "@reduxjs/toolkit"
 
 import borrowerDashboardAmountsSlice from "@/store/slices/borrowerDashboardAmountsSlice/borrowerDashboardAmountsSlice"
 import borrowerDashboardSlice from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
-import cookieBannerSlice from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
 import createMarketSidebarSlice from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import hideMarketSectionsSlice from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
 import lenderDashboardAmountsSlice from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
@@ -51,7 +50,6 @@ export const makeStore = () => {
       notificationsSidebar: notificationsSidebarSlice,
       borrowerLendersTabSidebar: borrowerLendersTabSidebarSlice,
       lenderMlaSignatures: lenderMlaSignaturesSlice,
-      cookieBanner: cookieBannerSlice,
       selectedNetwork: selectedNetworkSlice,
       marketFilters: marketFiltersSlice,
       touModal: touModalSlice,

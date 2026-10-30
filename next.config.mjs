@@ -21,11 +21,6 @@ const connectSrc = [
   'https://safe-client.safe.global',
   'https://cdn.matomo.cloud',
   'https://wildcatfinance.matomo.cloud',
-  'https://static.hotjar.com',
-  'https://script.hotjar.com',
-  'https://api-eu.hotjar.com',
-  'https://insights.hotjar.com',
-  'wss://*.hotjar.com',
 ].join(' ')
 
 const contentSecurityPolicy = [

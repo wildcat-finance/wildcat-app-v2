@@ -1,6 +1,6 @@
 import "./globals.css"
 
-import { ReactNode, Suspense } from "react"
+import { ReactNode } from "react"
 
 import { Box } from "@mui/material"
 import { dir } from "i18next"
@@ -20,7 +20,6 @@ import {
 import initTranslations from "@/app/i18n"
 import Header from "@/components/Header"
 import { HelpModal } from "@/components/HelpModal"
-import HotjarConsent from "@/components/HotjarConsent"
 import { SafeMessageCoordinator } from "@/components/SafeMessageCoordinator"
 import { Sidebar } from "@/components/Sidebar"
 import StoreProvider from "@/components/StoreProvider"
@@ -88,9 +87,6 @@ export default async function RootLayout({
                           <Box sx={ContentContainer}>
                             <Sidebar />
                             <Box sx={ContentArea}>{children}</Box>
-                            <Suspense>
-                              <HotjarConsent />
-                            </Suspense>
                           </Box>
                         </Box>
                       </Box>
