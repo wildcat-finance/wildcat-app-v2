@@ -223,17 +223,6 @@ export default function LenderMarketDetails({
     wrapper,
     isConnected ? walletAddress : undefined,
   )
-  // Same query as MarketActions, so the deposit/withdraw cards render once
-  // with the wrapped position already in.
-  const { isLoading: isWrapperLimitsLoading } = useWrapperLimits(
-    market?.chainId,
-    wrapper,
-    walletAddress,
-  )
-  const isWrapperPositionLoading =
-    isConnected &&
-    hasFactory &&
-    (isWrapperLoading || (hasWrapper && isWrapperLimitsLoading))
   const hasWithdrawalActivity =
     !!withdrawals.activeWithdrawal ||
     (withdrawals.expiredPendingWithdrawals?.length ?? 0) > 0
@@ -248,6 +237,27 @@ export default function LenderMarketDetails({
       hasMarketPosition,
       hasWithdrawalActivity,
     })
+  // Same query as MarketActions, so the deposit/withdraw cards render once
+  // with the wrapped position already in. Only lenders mount MarketActions.
+  // Hold for the first read only: a failed attempt releases the panel, and the
+  // 10s poll must never put the skeleton back over mounted actions.
+  const {
+    isLoading: isWrapperLimitsLoading,
+    isFetched: isWrapperLimitsFetched,
+    failureCount: wrapperLimitsFailureCount,
+  } = useWrapperLimits(
+    market?.chainId,
+    wrapper,
+    showLenderTransactions ? walletAddress : undefined,
+  )
+  const isWrapperLimitsFirstLoad =
+    isWrapperLimitsLoading &&
+    !isWrapperLimitsFetched &&
+    wrapperLimitsFailureCount === 0
+  const isWrapperPositionLoading =
+    showLenderTransactions &&
+    hasFactory &&
+    (isWrapperLoading || (hasWrapper && isWrapperLimitsFirstLoad))
   const isActivityLoading =
     isWithdrawalsLoading || isWrapperLoading || isWrapperBalanceLoading
   const isActivityError =
