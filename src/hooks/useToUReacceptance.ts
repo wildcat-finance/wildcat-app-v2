@@ -43,6 +43,7 @@ export const useAccountToUParty = (party: ServiceAgreementPartyInput) => {
       if (party === "Lender") return { party }
       const res = await fetch(
         `/api/profiles/${address?.toLowerCase()}?chainId=${chainId}`,
+        { cache: "no-store" },
       )
       if (res.status === 404) throw Error(`Borrower profile not found`)
       if (!res.ok) throw Error(`Failed to load borrower profile`)
@@ -53,6 +54,27 @@ export const useAccountToUParty = (party: ServiceAgreementPartyInput) => {
       return { party, organizationName: profile.name }
     },
   })
+}
+
+const refreshToUSigningContext = async (
+  currentAgreement: ReturnType<typeof useCurrentServiceAgreement>,
+  partyQuery: ReturnType<typeof useAccountToUParty>,
+) => {
+  try {
+    // An open tab can retain the previous version or borrower name. Use the
+    // refetch results directly; this render's cached data may still be old.
+    const [agreement, accountParty] = await Promise.all([
+      currentAgreement.refetch({ throwOnError: true }),
+      partyQuery.refetch({ throwOnError: true }),
+    ])
+    if (!agreement.data || !accountParty.data) {
+      throw Error("Terms of Use signing details could not be loaded")
+    }
+    return { agreement: agreement.data, ...accountParty.data }
+  } catch (error) {
+    toastError("Unable to refresh Terms of Use. Please try again.")
+    throw error
+  }
 }
 
 /// Accept the CURRENT ToU version (re-acceptance path, both parties).
@@ -106,7 +128,8 @@ export const useAcceptToU = (agreementParty: ServiceAgreementPartyInput) => {
       if (!currentAgreement.data) throw Error(`Current Terms of Use not loaded`)
       if (!partyQuery.data) throw Error(`Account role not loaded`)
       if (signer.chainId !== selectedChainId) throw Error(`Wrong network`)
-      const { party, organizationName } = partyQuery.data
+      const { agreement, party, organizationName } =
+        await refreshToUSigningContext(currentAgreement, partyQuery)
       const timeSigned = Date.now()
       const signPromise = safeSigning.signMessage({
         flow: "tou-accept",
@@ -122,7 +145,7 @@ export const useAcceptToU = (agreementParty: ServiceAgreementPartyInput) => {
         canResumePending: (context) => context?.party === party,
         buildMessage: (effectiveTimeSigned) =>
           buildServiceAgreementMessage({
-            acknowledgementText: currentAgreement.data.acknowledgementText,
+            acknowledgementText: agreement.acknowledgementText,
             timeSigned: effectiveTimeSigned,
             chainId: selectedChainId,
             organizationName,
@@ -171,10 +194,10 @@ export const useAcceptToU = (agreementParty: ServiceAgreementPartyInput) => {
   return {
     ...mutation,
     party: partyQuery.data,
+    // A failed refresh must remain retryable; signing always refetches first.
     isReady:
       !!currentAgreement.data &&
       !!partyQuery.data &&
-      !partyQuery.isError &&
       !!signer &&
       signer.chainId === selectedChainId &&
       !!address,
@@ -265,7 +288,8 @@ export const useDeclineToU = (agreementParty: ServiceAgreementPartyInput) => {
       if (!currentAgreement.data) throw Error(`Current Terms of Use not loaded`)
       if (!partyQuery.data) throw Error(`Account role not loaded`)
       if (signer.chainId !== selectedChainId) throw Error(`Wrong network`)
-      const { party, organizationName } = partyQuery.data
+      const { agreement, party, organizationName } =
+        await refreshToUSigningContext(currentAgreement, partyQuery)
       const reasonToSign = normalizeServiceAgreementDeclineReason(reason)
       Object.values(pendingSafeMessages)
         .filter(
@@ -292,8 +316,8 @@ export const useDeclineToU = (agreementParty: ServiceAgreementPartyInput) => {
           String(context?.reason ?? "") === (reasonToSign ?? ""),
         buildMessage: (effectiveTimeSigned, context) =>
           buildServiceAgreementDeclineMessage({
-            version: currentAgreement.data.version,
-            plaintextSha256: currentAgreement.data.plaintextSha256,
+            version: agreement.version,
+            plaintextSha256: agreement.plaintextSha256,
             timeSigned: effectiveTimeSigned,
             chainId: selectedChainId,
             party,
@@ -354,7 +378,6 @@ export const useDeclineToU = (agreementParty: ServiceAgreementPartyInput) => {
     isReady:
       !!currentAgreement.data &&
       !!partyQuery.data &&
-      !partyQuery.isError &&
       !!signer &&
       signer.chainId === selectedChainId &&
       !!address,

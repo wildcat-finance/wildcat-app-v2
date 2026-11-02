@@ -249,6 +249,30 @@ export const RECENT_WITHDRAWAL_REQUESTS = gql`
   }
 `
 
+// Markets a lender can reach because a borrower added them to a policy: the
+// grant writes a lenderHooksAccess on the hooks instance and no per-market
+// LenderAccount row. Paged at the root, since nested collections have their
+// own limits. Answerable on every production subgraph schema.
+export const LENDER_POLICY_HOOKS_ACCESS = gql`
+  query ($first: Int!, $where: LenderHooksAccess_filter!) {
+    lenderHooksAccesses(
+      first: $first
+      orderBy: id
+      orderDirection: asc
+      where: $where
+    ) {
+      id
+      lastProvider {
+        isApproved
+        pullProviderIndex
+      }
+      hooks {
+        id
+      }
+    }
+  }
+`
+
 export const MARKET_TERMINATEDS = gql`
   query ($where: MarketClosed_filter) {
     marketCloseds(where: $where) {

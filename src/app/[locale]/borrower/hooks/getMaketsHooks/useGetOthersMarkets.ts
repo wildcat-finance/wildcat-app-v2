@@ -19,6 +19,7 @@ import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { EXCLUDED_MARKETS_FILTER } from "@/utils/constants"
 import { combineFilters } from "@/utils/filters"
 import { isFrontendVisibleMarket } from "@/utils/marketType"
+import { refetchOnMountIfInvalidated } from "@/utils/queryRefetch"
 
 import { GetMarketsProps } from "./interface"
 
@@ -70,7 +71,7 @@ export function useGetOthersMarketsQuery({
     queryFn: getAllMarkets,
     refetchInterval: POLLING_INTERVAL,
     enabled,
-    refetchOnMount: false,
+    refetchOnMount: refetchOnMountIfInvalidated,
   })
 }
 

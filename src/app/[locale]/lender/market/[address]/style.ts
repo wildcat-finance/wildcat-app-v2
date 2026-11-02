@@ -16,7 +16,7 @@ export const SkeletonStyle = {
 }
 
 export const LenderBannerWrapper: SxProps<Theme> = {
-  padding: "52px 32.3% 0 44px",
+  padding: "4px 32.3% 0 44px",
   flex: "0 0 auto",
 }
 

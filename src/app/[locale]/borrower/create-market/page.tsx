@@ -158,6 +158,7 @@ export default function CreateMarketPage() {
 
   const { deployNewMarket, isDeploying, isSuccess, isError } =
     useDeployV2Market()
+  const canDismissFinalDialog = !isDeploying && !isSuccess
 
   const [finalOpen, setFinalOpen] = useState<boolean>(false)
   const [activeDraftId, setActiveDraftId] = useState<string>()
@@ -1007,14 +1008,8 @@ export default function CreateMarketPage() {
 
         <Dialog
           open={finalOpen}
-          onClose={
-            isDeploying
-              ? undefined
-              : () => {
-                  setFinalOpen(false)
-                  if (isSuccess) handleGoToMarkets()
-                }
-          }
+          onClose={canDismissFinalDialog ? handleClickClose : undefined}
+          disableEscapeKeyDown={!canDismissFinalDialog}
           sx={FinalDialogContainer}
         >
           {isError && !isDeploying && (

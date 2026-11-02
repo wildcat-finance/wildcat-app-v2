@@ -1,10 +1,8 @@
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
 
-import { keepPreviousData, useQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import {
   getLenderAccountForMarket,
-  getLensContract,
-  getLensV2Contract,
   MarketVersion,
   Market,
   MarketAccount,
@@ -13,6 +11,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import { SubgraphGetMarketQueryVariables } from "@wildcatfi/wildcat-sdk/dist/gql/graphql"
 import { constants } from "ethers"
+import { useAccount } from "wagmi"
 
 import { POLLING_INTERVAL } from "@/config/polling"
 import { QueryKeys } from "@/config/query-keys"
@@ -27,13 +26,27 @@ export type UseMarketAccountProps = {
   enabled: boolean
 } & Omit<SubgraphGetMarketQueryVariables, "market">
 
+export type MarketAccountResolutionStatus =
+  | "idle"
+  | "resolving"
+  | "error"
+  | "resolved"
+
+type MarketAccountQueryResult = TwoStepQueryHookResult<
+  MarketAccount | undefined
+> & {
+  /** Last successful live read for this wallet, market and chain. */
+  liveAccount: MarketAccount | undefined
+  authoritativeStatus: MarketAccountResolutionStatus
+}
+
 export function useMarketAccountQuery({
   market,
   account,
   provider,
   enabled,
   ...filters
-}: UseMarketAccountProps): TwoStepQueryHookResult<MarketAccount | undefined> {
+}: UseMarketAccountProps): MarketAccountQueryResult {
   const marketAddress = market?.address.toLowerCase()
   const accountAddress = account?.toLowerCase()
 
@@ -75,29 +88,14 @@ export function useMarketAccountQuery({
   })
 
   async function updateMarketAccount() {
-    if (!data || !provider || !market) throw Error()
-    if (data.market.version === MarketVersion.V1) {
-      const lens = getLensContract(market.chainId, provider)
-      const update = await lens.getMarketDataWithLenderStatus(
-        accountAddress as string,
-        marketAddress as string,
-      )
-      data.updateWith(update.lenderStatus)
-      data.market.updateWith(update.market)
-    } else {
-      const lens = getLensV2Contract(market.chainId, provider)
-      const update = await lens.getMarketDataWithLenderStatus(
-        accountAddress as string,
-        marketAddress as string,
-      )
-      data.updateWith(update.lenderStatus)
-      data.market.updateWith(update.market)
-    }
-
-    if (market && market.provider !== provider) {
-      market.provider = provider
-    }
-    return data
+    if (!provider || !market || !accountAddress || !marketAddress) throw Error()
+    // SDK 3.1 uses separate readers for V1 and V2. Passing the address loads a
+    // fresh market and account together, independently of the indexed account.
+    const readAccount =
+      market.version === MarketVersion.V1
+        ? MarketAccount.getMarketAccount
+        : MarketAccount.getMarketAccountV2
+    return readAccount(market.chainId, provider, accountAddress, marketAddress)
   }
 
   const {
@@ -115,19 +113,42 @@ export function useMarketAccountQuery({
     ),
     queryFn: updateMarketAccount,
     refetchInterval: POLLING_INTERVAL,
-    placeholderData: keepPreviousData,
-    enabled: !!data,
+    enabled: enabled && !!market && !!accountAddress && !!provider,
     refetchOnMount: false,
   })
 
-  useEffect(() => {
-    if (data && provider && data.market.provider !== provider) {
-      data.market.provider = provider
+  const accountWithHistory = useMemo(() => {
+    if (!updatedAccount) return data
+    if (!data) return updatedAccount
+    // Keep indexed history without overwriting live permissions/balances or
+    // mutating either query's cached SDK object.
+    const merged = new MarketAccount({ ...data, ...updatedAccount })
+    merged.depositRecords = data.depositRecords
+    if (merged.lastScaleFactor?.lte(merged.market.scaleFactor)) {
+      merged.processInterestAccrued()
     }
-  }, [provider, data])
+    return merged
+  }, [data, updatedAccount])
+
+  useEffect(() => {
+    ;[data, updatedAccount].forEach((value) => {
+      if (value && provider && value.market.provider !== provider) {
+        value.market.provider = provider
+      }
+    })
+  }, [provider, data, updatedAccount])
+
+  let authoritativeStatus: MarketAccountResolutionStatus = "idle"
+  if (enabled) {
+    if (updatedAccount) authoritativeStatus = "resolved"
+    else if (isErrorUpdate || isPendingUpdate) authoritativeStatus = "error"
+    else authoritativeStatus = "resolving"
+  }
 
   return {
-    data: updatedAccount ?? data,
+    data: accountWithHistory,
+    liveAccount: updatedAccount,
+    authoritativeStatus,
     isLoadingInitial,
     isErrorInitial,
     errorInitial: errorInitial as Error | null,
@@ -141,7 +162,8 @@ export function useMarketAccountQuery({
 }
 
 export const useMarketAccount = (market: Market | undefined) => {
-  const { address, signer, provider, isWrongNetwork } = useEthersProvider({
+  const { address } = useAccount()
+  const { signer, provider, isWrongNetwork } = useEthersProvider({
     chainId: market?.chainId,
   })
   const signerOrProvider = signer ?? provider

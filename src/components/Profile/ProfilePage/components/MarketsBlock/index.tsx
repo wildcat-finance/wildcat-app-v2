@@ -10,11 +10,12 @@ import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { LenderMobileMarketItem } from "@/components/Mobile/MobileMarketCard"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
+import { TotalDebtHeader } from "@/components/TotalDebtHeader"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import {
-  percentComparator,
   statusComparator,
+  tokenAmountComparator,
   typeComparator,
 } from "@/utils/comparators"
 import {
@@ -22,6 +23,7 @@ import {
   formatSecsToHours,
   formatTokenWithCommas,
 } from "@/utils/formatters"
+import { getMarketTotalDebt } from "@/utils/marketDebt"
 import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
@@ -45,7 +47,6 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
         name,
         underlyingToken,
         annualInterestBips,
-        totalDebts,
         maxTotalSupply,
         totalSupply,
         withdrawalBatchDuration,
@@ -62,7 +63,7 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
         term: getMarketTypeChip(market),
-        debt: totalDebts,
+        debt: getMarketTotalDebt(market),
         deposited: totalSupply,
         capacity: maxTotalSupply,
         capacityLeft: maxTotalSupply.sub(totalSupply),
@@ -191,12 +192,12 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     },
     {
       field: "apr",
+      type: "number",
       headerName: t("borrowerProfile.profile.activeMarkets.table.apr"),
       minWidth: 100,
       flex: 1,
       headerAlign: "right",
       align: "right",
-      sortComparator: percentComparator,
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}
@@ -209,10 +210,16 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     {
       field: "debt",
       headerName: t("borrowerProfile.profile.activeMarkets.table.debt"),
+      renderHeader: () => (
+        <TotalDebtHeader
+          label={t("borrowerProfile.profile.activeMarkets.table.debt")}
+        />
+      ),
       flex: 1,
       minWidth: 100,
       headerAlign: "right",
       align: "right",
+      sortComparator: tokenAmountComparator,
       renderCell: (params) => (
         <Link
           href={buildMarketHref(params.row.id, params.row.chainId, marketLink)}

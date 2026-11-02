@@ -427,8 +427,43 @@ export const theme = createTheme({
     MuiTooltip: {
       defaultProps: {
         arrow: true,
+        PopperProps: {
+          popperOptions: {
+            modifiers: [{ name: "arrow", options: { padding: 8 } }],
+          },
+        },
       },
       styleOverrides: {
+        popper: {
+          "& .MuiTooltip-arrow": {
+            color: COLORS.blackRock,
+            "&::before": { transform: "none" },
+          },
+          '&[data-popper-placement*="top"] .MuiTooltip-arrow': {
+            width: "10px",
+            height: "4px",
+            marginBottom: "-4px",
+            "&::before": { clipPath: "polygon(0 0, 100% 0, 50% 100%)" },
+          },
+          '&[data-popper-placement*="bottom"] .MuiTooltip-arrow': {
+            width: "10px",
+            height: "4px",
+            marginTop: "-4px",
+            "&::before": { clipPath: "polygon(50% 0, 100% 100%, 0 100%)" },
+          },
+          '&[data-popper-placement*="right"] .MuiTooltip-arrow': {
+            width: "4px",
+            height: "10px",
+            marginLeft: "-4px",
+            "&::before": { clipPath: "polygon(100% 0, 100% 100%, 0 50%)" },
+          },
+          '&[data-popper-placement*="left"] .MuiTooltip-arrow': {
+            width: "4px",
+            height: "10px",
+            marginRight: "-4px",
+            "&::before": { clipPath: "polygon(0 0, 100% 50%, 0 100%)" },
+          },
+        },
         tooltip: ({ ownerState }) => ({
           ...(ownerState.arrow === true && {
             minWidth: "120px",
@@ -443,10 +478,17 @@ export const theme = createTheme({
             color: COLORS.white,
             backgroundColor: COLORS.blackRock,
 
-            "& .MuiTooltip-arrow": {
-              height: "4px",
-              width: "10px",
-              color: COLORS.blackRock,
+            '.MuiTooltip-popper[data-popper-placement*="top"] &': {
+              marginBottom: "4px",
+            },
+            '.MuiTooltip-popper[data-popper-placement*="bottom"] &': {
+              marginTop: "4px",
+            },
+            '.MuiTooltip-popper[data-popper-placement*="right"] &': {
+              marginLeft: "4px",
+            },
+            '.MuiTooltip-popper[data-popper-placement*="left"] &': {
+              marginRight: "4px",
             },
           }),
           ...(ownerState.arrow === false &&

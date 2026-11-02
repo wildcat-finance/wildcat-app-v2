@@ -50,6 +50,10 @@ export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
     handleToggleModal()
   }
 
+  const failureSubtitle = t(
+    "lenderMarketDetails.transactions.withdrawalsAlert.failed.subtitle",
+  )
+
   const handleTryAgain = () => {
     claim()
     setShowErrorPopup(false)
@@ -101,6 +105,7 @@ export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
               onTryAgain={handleTryAgain}
               onClose={handleToggleModal}
               txHash={txHash}
+              subtitle={failureSubtitle}
             />
           )}
           {showSuccessPopup && (
@@ -118,7 +123,7 @@ export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
           size="small"
           sx={{ width: "fit-content" }}
           onClick={handleClaim}
-          disabled={!signer}
+          disabled={withdrawals.totalClaimableAmount.raw.isZero() || !signer}
         >
           {t("lenderMarketDetails.transactions.withdrawalsAlert.buttons.claim")}
         </Button>
@@ -143,6 +148,7 @@ export const ClaimModal = ({ market, withdrawals }: ClaimModalProps) => {
               onTryAgain={handleTryAgain}
               onClose={handleToggleModal}
               txHash={txHash}
+              subtitle={failureSubtitle}
             />
           )}
           {showSuccessPopup && (

@@ -16,6 +16,7 @@ export type ToastRequestConfig = {
   pending?: string
   success?: string
   error?: string
+  getErrorMessage?: (error: unknown) => string
 }
 
 export const toastRequest = async <T,>(
@@ -28,7 +29,7 @@ export const toastRequest = async <T,>(
     {
       loading: config?.pending || "Request is pending",
       success: config?.success || "Request is successful 🎉",
-      error: config?.error || "Request failed 😢",
+      error: config?.getErrorMessage || config?.error || "Request failed 😢",
     },
     {
       style: {

@@ -6,12 +6,15 @@ import { Box, Skeleton } from "@mui/material"
 
 import { ExploreMarketsTable } from "@/app/[locale]/lender/components/ExploreSection/ExploreMarketsTable"
 import { TrendingMarketsCarousel } from "@/app/[locale]/lender/components/ExploreSection/TrendingMarketsCarousel"
+import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useIsSelectedNetworkRehydrated } from "@/hooks/useSelectedNetwork"
 import { COLORS } from "@/theme/colors"
 
 export const ExploreSection = () => {
   const [mounted, setMounted] = useState(false)
   const isSelectedNetworkRehydrated = useIsSelectedNetworkRehydrated()
+  const { isWrongNetwork } = useCurrentNetwork()
   useEffect(() => setMounted(true), [])
 
   if (!mounted || !isSelectedNetworkRehydrated)
@@ -54,16 +57,20 @@ export const ExploreSection = () => {
         overflow: "auto",
       }}
     >
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: { xs: 0, md: "32px" },
-        }}
-      >
-        <TrendingMarketsCarousel />
-        <ExploreMarketsTable />
-      </Box>
+      {isWrongNetwork && <WrongNetworkAlert />}
+
+      {!isWrongNetwork && (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: { xs: 0, md: "32px" },
+          }}
+        >
+          <TrendingMarketsCarousel />
+          <ExploreMarketsTable />
+        </Box>
+      )}
     </Box>
   )
 }

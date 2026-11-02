@@ -88,7 +88,12 @@ export const MarketSectionSwitcher = () => {
     (state) => state.borrowerDashboardAmounts.manual,
   )
 
-  const otherMarketsAmount = selfOnboardAmount + manualAmount
+  const terminatedOtherAmount = useAppSelector(
+    (state) => state.borrowerDashboardAmounts.terminatedOther,
+  )
+
+  const otherMarketsAmount =
+    selfOnboardAmount + manualAmount + terminatedOtherAmount
 
   return (
     <Box

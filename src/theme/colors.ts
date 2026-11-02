@@ -40,13 +40,20 @@ export const COLORS = {
   butteredRum: "#9E7A11",
   galliano: "#D7A820",
   oasis: "#FBEDC3",
+  amberText: "#7A5C00",
 
   ultramarineBlue: "#3E68FF",
   blueRibbon: "#4971FF",
   blueRibbon01: "#4971FF1A",
   cornflowerBlue: "#6688FF",
+  cornflowerBlue05: "#6688FF80",
   hawkesBlue: "#D2DDFF",
   glitter: "#E4EBFE",
+  glitter07: "#E4EBFEB2",
+  zircon: "#F6F8FF",
   lightGreen: "#E4F5E0",
   caribbeanGreen: "#28CA7C",
+
+  mediumRedViolet: "#A4298C",
+  pinkLace: "#FFDEF8",
 }

@@ -8,12 +8,14 @@ import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
+import { ComposableOnlySwitch } from "@/components/Destinations"
 import { FilterTextField } from "@/components/FilterTextfield"
 import { MarketsFilterSelect } from "@/components/MarketsFilterSelect"
 import { MarketsFilterSelectItem } from "@/components/MarketsFilterSelect/interface"
 import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
 import { MobileSearchButton } from "@/components/Mobile/MobileSearchButton"
 import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
+import { useDestinations } from "@/hooks/destinations/useDestinations"
 import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -51,15 +53,19 @@ export const AllMarketsSection = () => {
   const {
     isWrongNetwork,
     chainId: targetChainId,
+    targetChainId: selectedChainId,
     isTestnet,
   } = useCurrentNetwork()
 
-  const {
-    marketAccounts,
-    isLoadingInitial: isLoading,
-    onboardingByMarket,
-    borrowers,
-  } = useLenderMarketsContext()
+  const { marketAccounts, isLoadingInitial, onboardingByMarket, borrowers } =
+    useLenderMarketsContext()
+
+  const destinations = useDestinations(selectedChainId)
+  const { markets: destinationsByMarket } = destinations
+  const composableSet = useMemo(
+    () => new Set(Object.keys(destinationsByMarket)),
+    [destinationsByMarket],
+  )
 
   const marketFilters = useAppSelector((s) => s.marketFilters.lender)
   const {
@@ -67,7 +73,19 @@ export const AllMarketsSection = () => {
     assets: marketAssets,
     statuses: marketStatuses,
     withdrawalCycles: marketWithdrawalCycles,
+    composableOnly,
   } = marketFilters
+
+  const setComposableOnly = useCallback(
+    (value: boolean) =>
+      dispatch(
+        setMarketFilters({
+          role: "lender",
+          filters: { composableOnly: value },
+        }),
+      ),
+    [dispatch],
+  )
 
   const setMarketSearch: React.Dispatch<React.SetStateAction<string>> =
     useCallback(
@@ -148,8 +166,9 @@ export const AllMarketsSection = () => {
       statusFilter: marketStatuses.map(
         (status) => status.name,
       ) as MarketStatus[],
+      composableOnly,
     }),
-    [marketSearch, marketAssets, marketStatuses],
+    [marketSearch, marketAssets, marketStatuses, composableOnly],
   )
 
   // Markets the lender has never interacted with, excluding blacklisted addresses
@@ -163,25 +182,36 @@ export const AllMarketsSection = () => {
     [marketAccounts],
   )
 
-  const filteredMarketAccounts = useMemo(
-    () =>
-      filterMarketAccounts(
-        otherMarketAccounts,
-        marketSearch,
-        marketStatuses,
-        marketAssets,
-        borrowers ?? [],
-        marketWithdrawalCycles,
-      ),
-    [
+  const { filteredMarketAccounts, composableCount } = useMemo(() => {
+    const filtered = filterMarketAccounts(
       otherMarketAccounts,
       marketSearch,
       marketStatuses,
       marketAssets,
-      borrowers,
+      borrowers ?? [],
       marketWithdrawalCycles,
-    ],
-  )
+    )
+    const composable = filtered.filter((account) =>
+      composableSet.has(account.market.address.toLowerCase()),
+    )
+    return {
+      filteredMarketAccounts: composableOnly ? composable : filtered,
+      composableCount: composable.length,
+    }
+  }, [
+    otherMarketAccounts,
+    marketSearch,
+    marketStatuses,
+    marketAssets,
+    borrowers,
+    marketWithdrawalCycles,
+    composableSet,
+    composableOnly,
+  ])
+
+  const showComposableSwitch = composableCount > 0 || composableOnly
+  const isLoading =
+    isLoadingInitial || (composableOnly && destinations.isPending)
 
   const selfOnboardAmount = useMemo(
     () =>
@@ -326,7 +356,7 @@ export const AllMarketsSection = () => {
               marginTop: "16px",
             }}
           >
-            <Box sx={{ display: "flex", gap: "6px" }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
               <MarketsFilterSelect
                 placeholder={t("dashboard.markets.filters.assets")}
                 options={
@@ -350,6 +380,12 @@ export const AllMarketsSection = () => {
                 selected={marketWithdrawalCycles}
                 setSelected={setMarketWithdrawalCycles}
               />
+              {showComposableSwitch && (
+                <ComposableOnlySwitch
+                  checked={composableOnly}
+                  onChange={setComposableOnly}
+                />
+              )}
             </Box>
 
             <FilterTextField
@@ -362,33 +398,7 @@ export const AllMarketsSection = () => {
         </Box>
       )}
 
-      {isMobile && (
-        <MobileHeader>
-          <Box sx={{ display: "flex", gap: "4px" }}>
-            <MobileFilterButton
-              assetsOptions={
-                tokens?.map((token) => ({
-                  id: token.address,
-                  name: token.symbol,
-                })) ?? []
-              }
-              statusesOptions={marketStatusesMock}
-              withdrawalCycleOptions={withdrawalCycleOptions}
-              marketAssets={marketAssets}
-              marketStatuses={marketStatuses}
-              marketWithdrawalCycles={marketWithdrawalCycles}
-              setMarketAssets={setMarketAssets}
-              setMarketStatuses={setMarketStatuses}
-              setMarketWithdrawalCycles={setMarketWithdrawalCycles}
-            />
-            <MobileSearchButton
-              marketAccounts={filteredMarketAccounts ?? []}
-              marketSearch={marketSearch}
-              setMarketSearch={setMarketSearch}
-            />
-          </Box>
-        </MobileHeader>
-      )}
+      {isMobile && <MobileHeader />}
 
       {isWrongNetwork && <WrongNetworkAlert />}
 
@@ -399,6 +409,53 @@ export const AllMarketsSection = () => {
           borrowers={borrowers ?? []}
           isLoading={isLoading}
           filters={filters}
+          destinations={destinations}
+          mobileHeader={
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "4px 2px",
+                padding: "4px 0 12px",
+                borderBottom: `1px solid ${COLORS.whiteLilac}`,
+              }}
+            >
+              {showComposableSwitch ? (
+                <ComposableOnlySwitch
+                  checked={composableOnly}
+                  onChange={setComposableOnly}
+                />
+              ) : (
+                <Box />
+              )}
+              <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                <MobileFilterButton
+                  size={28}
+                  assetsOptions={
+                    tokens?.map((token) => ({
+                      id: token.address,
+                      name: token.symbol,
+                    })) ?? []
+                  }
+                  statusesOptions={marketStatusesMock}
+                  withdrawalCycleOptions={withdrawalCycleOptions}
+                  marketAssets={marketAssets}
+                  marketStatuses={marketStatuses}
+                  marketWithdrawalCycles={marketWithdrawalCycles}
+                  setMarketAssets={setMarketAssets}
+                  setMarketStatuses={setMarketStatuses}
+                  setMarketWithdrawalCycles={setMarketWithdrawalCycles}
+                />
+                <MobileSearchButton
+                  marketAccounts={filteredMarketAccounts ?? []}
+                  marketSearch={marketSearch}
+                  setMarketSearch={setMarketSearch}
+                />
+              </Box>
+            </Box>
+          }
         />
       )}
     </Box>

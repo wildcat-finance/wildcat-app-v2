@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next"
 import TokenWrapIcon from "@/assets/icons/tokenWrap_icon.svg"
 import UpArrow from "@/assets/icons/upArrow_icon.svg"
 import { MiniLoader } from "@/components/Loader"
+import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
@@ -151,7 +152,7 @@ export const NoWrapperState = ({
 
       {open && (
         <Link
-          href="https://docs.wildcat.finance/"
+          href={EXTERNAL_LINKS.DOCS_WRAPPER}
           target="_blank"
           style={LearnMoreButton(isMobile)}
         >

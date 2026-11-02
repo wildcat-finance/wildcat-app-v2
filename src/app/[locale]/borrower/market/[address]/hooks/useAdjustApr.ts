@@ -6,6 +6,7 @@ import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { invalidateMarketListQueries } from "@/utils/marketListQueries"
 
 export const useAdjustAPR = (
   marketAccount: MarketAccount,
@@ -63,6 +64,10 @@ export const useAdjustAPR = (
           marketAccount.market.chainId,
           marketAccount.market.address,
         ),
+      })
+      invalidateMarketListQueries({
+        client,
+        chainId: marketAccount.market.chainId,
       })
     },
     onError(error) {

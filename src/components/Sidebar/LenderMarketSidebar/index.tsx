@@ -11,6 +11,7 @@ import {
 import { useTranslation } from "react-i18next"
 
 import BorrowAndRepayIcon from "@/assets/icons/borrowAndRepay_icon.svg"
+import ComposabilityIcon from "@/assets/icons/composability_icon.svg"
 import LenderBorrowerIcon from "@/assets/icons/lenderBorrower_icon.svg"
 import MarketEventsIcon from "@/assets/icons/marketEvents_icon.svg"
 import StatusAndDetailsIcon from "@/assets/icons/statusAndDetails_icon.svg"
@@ -44,6 +45,10 @@ export const LenderMarketSidebar = () => {
 
   const withdrawalsCount = useAppSelector(
     (state) => state.lenderMarketRouting.withdrawalsCount,
+  )
+
+  const destinationsCount = useAppSelector(
+    (state) => state.lenderMarketRouting.destinationsCount,
   )
 
   const handleChangeSection = (newSection: LenderMarketSections) => {
@@ -268,6 +273,56 @@ export const LenderMarketSidebar = () => {
                     <TokenWrapIcon />
                   </SvgIcon>
                   {t("lenderMarketDetails.sidebar.wrapDebtToken")}
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      padding: "0px 6px",
+                      borderRadius: "4px",
+                      backgroundColor: COLORS.glitter,
+                      marginLeft: "auto",
+                    }}
+                  >
+                    <Typography variant="text4" color={COLORS.ultramarineBlue}>
+                      New
+                    </Typography>
+                  </Box>
+                </Button>
+              </>
+            )}
+
+            {destinationsCount > 0 && (
+              <>
+                {!isLender && <Divider sx={{ margin: "6px 0px" }} />}
+
+                <Button
+                  variant="text"
+                  size="medium"
+                  onClick={() =>
+                    handleChangeSection(LenderMarketSections.DESTINATIONS)
+                  }
+                  sx={{
+                    ...MenuItemButton,
+                    backgroundColor:
+                      currentSection === LenderMarketSections.DESTINATIONS
+                        ? COLORS.whiteSmoke
+                        : "transparent",
+                    "&:hover .MuiSvgIcon-root": { color: COLORS.hintOfRed },
+                  }}
+                >
+                  <SvgIcon
+                    viewBox="-4 -4 24 24"
+                    sx={{
+                      marginRight: "10px",
+                      color:
+                        currentSection === LenderMarketSections.DESTINATIONS
+                          ? COLORS.whiteSmoke
+                          : COLORS.white,
+                    }}
+                  >
+                    <ComposabilityIcon />
+                  </SvgIcon>
+                  {t("lenderMarketDetails.sidebar.destinations")}
 
                   <Box
                     sx={{

@@ -8,6 +8,7 @@ import { parseUnits } from "ethers/lib/utils"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import { invalidateMarketListQueries } from "@/utils/marketListQueries"
 
 export const useBorrow = (
   marketAccount: MarketAccount,
@@ -79,6 +80,10 @@ export const useBorrow = (
           marketAccount.market.chainId,
           marketAccount.market.address,
         ),
+      })
+      invalidateMarketListQueries({
+        client,
+        chainId: marketAccount.market.chainId,
       })
     },
     onError(error) {

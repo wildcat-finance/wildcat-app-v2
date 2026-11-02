@@ -2,6 +2,7 @@ import { useEffect } from "react"
 
 import { Box, InputAdornment, TextField, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
+import { isAddress } from "viem"
 
 import {
   FormContainer,
@@ -56,12 +57,14 @@ export const BasicSetupForm = ({
   const symbolPrefixWatch = watch("symbolPrefix")
   const assetWatch = watch("asset")
 
+  const isAssetConfirmed = isAddress(assetWatch ?? "", { strict: false })
+
   const isFormValid =
     !!namePrefixWatch &&
     !errors.namePrefix &&
     !!symbolPrefixWatch &&
     !errors.symbolPrefix &&
-    !!assetWatch &&
+    isAssetConfirmed &&
     !errors.asset
 
   const handleTokenSelect = (asset: TokenInfo | null) => {
