@@ -35,7 +35,11 @@ jest.mock("@/hooks/useEthersSigner", () => ({
   useEthersProvider: () => ({ signer: { _isSigner: true } }),
 }))
 jest.mock("@safe-global/safe-apps-react-sdk", () => ({
-  useSafeAppsSDK: () => ({ connected: false }),
+  useSafeAppsSDK: () => ({
+    connected: false,
+    safe: { safeAddress: "", chainId: 1 },
+    sdk: { txs: {} },
+  }),
 }))
 jest.mock("@/store/hooks", () => ({ useAppDispatch: () => jest.fn() }))
 
