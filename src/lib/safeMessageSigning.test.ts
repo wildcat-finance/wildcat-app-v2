@@ -42,4 +42,15 @@ describe("proposeSafeMessage", () => {
       }),
     ).toBe("1:0xabc:onchain:0xtx")
   })
+
+  it("rechecks access after Safe settings resolve, before opening a signing prompt", async () => {
+    const guard = jest.fn(() => {
+      throw new Error("Wallet restricted")
+    })
+    await expect(proposeSafeMessage(sdk, "hello", guard)).rejects.toThrow(
+      "Wallet restricted",
+    )
+    expect(guard).toHaveBeenCalledTimes(1)
+    expect(signMessage).not.toHaveBeenCalled()
+  })
 })

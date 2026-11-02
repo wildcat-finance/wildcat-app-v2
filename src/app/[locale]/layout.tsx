@@ -22,12 +22,14 @@ import Header from "@/components/Header"
 import { HelpModal } from "@/components/HelpModal"
 import HotjarConsent from "@/components/HotjarConsent"
 import { SafeMessageCoordinator } from "@/components/SafeMessageCoordinator"
+import { SanctionsGate } from "@/components/SanctionsGate"
 import { Sidebar } from "@/components/Sidebar"
 import StoreProvider from "@/components/StoreProvider"
 import ThemeRegistry from "@/components/ThemeRegistry/ThemeRegistry"
 import { ToUReacceptanceModal } from "@/components/ToUReacceptanceModal"
 import TranslationsProvider from "@/components/TranslationsProvider"
 import { config } from "@/lib/config"
+import { getSanctionsDevOverride } from "@/lib/sanctionsDev"
 import { RedirectsProvider } from "@/providers/RedirectsProvider"
 import { SafeProvider } from "@/providers/SafeProvider"
 import { SubgraphProvider } from "@/providers/SubgraphProvider"
@@ -69,38 +71,40 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://t.me" crossOrigin="anonymous" />
       </head>
       <body className={inter.className} style={{ height: "100dvh" }}>
-        <Toaster position="bottom-center" />
         <WagmiQueryProviders initialState={initialState}>
           <SafeProvider>
             <StoreProvider>
-              <RedirectsProvider>
-                <SubgraphProvider>
-                  <TranslationsProvider
-                    namespaces={i18nNamespaces}
-                    locale={locale}
-                    resources={resources}
-                  >
-                    <ThemeRegistry>
-                      <Box sx={BackgroundContainer} />
-                      <Box sx={RootScaffold}>
-                        <Header />
-                        <Box sx={PageContainer}>
-                          <Box sx={ContentContainer}>
-                            <Sidebar />
-                            <Box sx={ContentArea}>{children}</Box>
-                            <Suspense>
-                              <HotjarConsent />
-                            </Suspense>
+              <TranslationsProvider
+                namespaces={i18nNamespaces}
+                locale={locale}
+                resources={resources}
+              >
+                <ThemeRegistry>
+                  <Box sx={BackgroundContainer} />
+                  <SanctionsGate devOverride={getSanctionsDevOverride()}>
+                    <RedirectsProvider>
+                      <SubgraphProvider>
+                        <Toaster position="bottom-center" />
+                        <Box sx={RootScaffold}>
+                          <Header />
+                          <Box sx={PageContainer}>
+                            <Box sx={ContentContainer}>
+                              <Sidebar />
+                              <Box sx={ContentArea}>{children}</Box>
+                              <Suspense>
+                                <HotjarConsent />
+                              </Suspense>
+                            </Box>
                           </Box>
                         </Box>
-                      </Box>
-                      <HelpModal />
-                      <SafeMessageCoordinator />
-                      <ToUReacceptanceModal />
-                    </ThemeRegistry>
-                  </TranslationsProvider>
-                </SubgraphProvider>
-              </RedirectsProvider>
+                        <HelpModal />
+                        <SafeMessageCoordinator />
+                        <ToUReacceptanceModal />
+                      </SubgraphProvider>
+                    </RedirectsProvider>
+                  </SanctionsGate>
+                </ThemeRegistry>
+              </TranslationsProvider>
             </StoreProvider>
           </SafeProvider>
         </WagmiQueryProviders>
