@@ -20,24 +20,25 @@ describe("Safe wallet startup", () => {
     safe.isAuthorized.mockResolvedValue(false)
     connectAsync.mockResolvedValue(undefined)
   })
-  it("finishes restoration without connecting outside Safe", async () => {
-    const { result } = renderHook(useAutoConnect)
-    await waitFor(() => expect(result.current).toBe(true))
+  it("does not connect outside Safe", async () => {
+    renderHook(useAutoConnect)
+    await waitFor(() => expect(safe.isAuthorized).toHaveBeenCalled())
+    await act(async () => {})
     expect(connectAsync).not.toHaveBeenCalled()
   })
-  it("connects Safe before allowing page content", async () => {
+  it("connects Safe and disconnects other connectors", async () => {
     safe.isAuthorized.mockResolvedValue(true)
-    const { result } = renderHook(useAutoConnect)
-    expect(result.current).toBe(false)
-    await waitFor(() => expect(result.current).toBe(true))
+    renderHook(useAutoConnect)
+    await waitFor(() => expect(injected.disconnect).toHaveBeenCalled())
     expect(connectAsync).toHaveBeenCalledWith({ connector: safe })
-    expect(injected.disconnect).toHaveBeenCalled()
   })
-  it("finishes restoration when Safe cannot connect", async () => {
+  it("tolerates a Safe that cannot connect", async () => {
     safe.isAuthorized.mockResolvedValue(true)
     connectAsync.mockRejectedValue(new Error("unavailable"))
-    const { result } = renderHook(useAutoConnect)
-    await waitFor(() => expect(result.current).toBe(true))
+    renderHook(useAutoConnect)
+    await waitFor(() => expect(connectAsync).toHaveBeenCalled())
+    await act(async () => {})
+    expect(injected.disconnect).not.toHaveBeenCalled()
   })
   it("does not start a connection after its effect is cleaned up", async () => {
     let authorize!: (value: boolean) => void
@@ -62,16 +63,17 @@ describe("Safe wallet startup", () => {
           connected = resolve
         }),
     )
-    const { result, unmount } = renderHook(useAutoConnect)
+    const { unmount } = renderHook(useAutoConnect)
     await waitFor(() => expect(connectAsync).toHaveBeenCalled())
     suppressAutoConnect()
     await act(async () => connected())
-    await waitFor(() => expect(result.current).toBe(true))
-    expect(disconnect).toHaveBeenCalledWith({}, { connector: safe })
+    await waitFor(() =>
+      expect(disconnect).toHaveBeenCalledWith({}, { connector: safe }),
+    )
     expect(injected.disconnect).not.toHaveBeenCalled()
     unmount()
-    const next = renderHook(useAutoConnect)
-    await waitFor(() => expect(next.result.current).toBe(true))
+    renderHook(useAutoConnect)
+    await act(async () => {})
     expect(connectAsync).toHaveBeenCalledTimes(1)
   })
 })

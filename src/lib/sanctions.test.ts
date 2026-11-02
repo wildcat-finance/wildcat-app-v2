@@ -200,6 +200,31 @@ describe("gateway sanctions screening", () => {
   })
 
   it.each([
+    [
+      "index",
+      (f: ReturnType<typeof fixture>) => {
+        f.data._meta.block.timestamp = seconds - 901
+      },
+    ],
+    [
+      "list",
+      (f: ReturnType<typeof fixture>) => {
+        f.data.sanctionsList.lastUpdateTimestamp = String(
+          seconds - 10 * 86_400 - 1,
+        )
+      },
+    ],
+  ] as const)(
+    "still blocks a listed wallet from a stale %s",
+    async (_, change) => {
+      const body = fixture(true)
+      change(body)
+      respond(body)
+      expect((await screenWallet(ADDRESS)).status).toBe("blocked")
+    },
+  )
+
+  it.each([
     {},
     { data: null },
     { ...fixture(), errors: [{ message: "partial data" }] },
@@ -219,7 +244,7 @@ describe("gateway sanctions screening", () => {
     process.env.NEXT_PUBLIC_SANCTIONS_MAX_LIST_AGE_SECONDS = "60"
     expect((await screenWallet(ADDRESS)).status).toBe("unavailable")
   })
-  it("fails closed on an invalid freshness setting", async () => {
+  it("reports an invalid freshness setting as unavailable", async () => {
     process.env.NEXT_PUBLIC_SANCTIONS_MAX_INDEX_AGE_SECONDS = "NaN"
     expect((await screenWallet(ADDRESS)).status).toBe("unavailable")
     expect(fetch).not.toHaveBeenCalled()

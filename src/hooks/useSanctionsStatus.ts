@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { screenWallet } from "@/lib/sanctions"
 import {
@@ -17,7 +17,6 @@ type Snapshot = {
   key: string
   result?: SanctionsResult
   failed: boolean
-  pending: boolean
 }
 
 export function useSanctionsStatus({
@@ -26,12 +25,15 @@ export function useSanctionsStatus({
   selectedChainId,
   enabled,
   devOverride,
-}: WalletScope & { enabled: boolean; devOverride?: SanctionsDevOverride }) {
+}: WalletScope & {
+  enabled: boolean
+  devOverride?: SanctionsDevOverride
+}): SanctionsState {
   const devAddress = devOverride?.address
   const devStatus = devOverride?.status
   const normalized = address?.toLowerCase()
-  const key =
-    enabled && normalized ? `${normalized}:${chainId}:${selectedChainId}` : ""
+  // Results belong to the address; a chain switch rescreens it in place.
+  const key = enabled && normalized ? normalized : ""
   const [snapshot, setSnapshot] = useState<Snapshot>()
   const refreshRef = useRef<() => void>(() => {})
 
@@ -48,12 +50,11 @@ export function useSanctionsStatus({
     let expiry: ReturnType<typeof setTimeout> | undefined
     let timeout: ReturnType<typeof setTimeout> | undefined
     const publish = () => {
-      if (!stopped) setSnapshot({ key, result: accepted, failed, pending })
+      if (!stopped) setSnapshot({ key, result: accepted, failed })
     }
     const refresh = async () => {
       if (stopped || pending) return
       pending = true
-      publish()
       controller = new AbortController()
       timeout = setTimeout(() => controller?.abort(), SANCTIONS_TIMEOUT_MS)
       const startedAt = Date.now()
@@ -127,20 +128,16 @@ export function useSanctionsStatus({
     }
   }, [key, normalized, devAddress, devStatus])
 
+  // Runs after the screening effect, so a new address is not fetched twice.
+  useEffect(() => refreshRef.current(), [chainId, selectedChainId])
+
   const current = key && snapshot?.key === key ? snapshot : undefined
-  let status: SanctionsState = "checking"
-  if (current?.result?.status === "blocked") status = "blocked"
-  else if (
+  if (current?.result?.status === "blocked") return "blocked"
+  if (
     current?.result?.status === "clear" &&
     current.result.validUntil > Date.now()
   )
-    status = "clear"
-  else if (current?.failed || current?.result) status = "unavailable"
-
-  return {
-    status,
-    validUntil: current?.result?.validUntil ?? 0,
-    isRefreshing: current?.pending ?? false,
-    retry: useCallback(() => refreshRef.current(), []),
-  }
+    return "clear"
+  if (current?.failed || current?.result) return "unavailable"
+  return "checking"
 }

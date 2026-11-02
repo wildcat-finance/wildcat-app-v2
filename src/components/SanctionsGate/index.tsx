@@ -1,12 +1,6 @@
 "use client"
 
-import {
-  ReactNode,
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useState,
-} from "react"
+import { ReactNode, useEffect, useLayoutEffect, useState } from "react"
 
 import toast from "react-hot-toast"
 import { useAccount, useDisconnect } from "wagmi"
@@ -15,10 +9,7 @@ import { getAccount } from "wagmi/actions"
 import { useSanctionsStatus } from "@/hooks/useSanctionsStatus"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { config } from "@/lib/config"
-import {
-  suppressAutoConnect,
-  WalletStartupContext,
-} from "@/providers/WagmiQueryProviders"
+import { suppressAutoConnect } from "@/providers/WagmiQueryProviders"
 import { useAppStore } from "@/store/hooks"
 import { SanctionsDevOverride } from "@/utils/sanctions"
 import {
@@ -31,6 +22,7 @@ import { SanctionsScreen } from "./Screen"
 const useBrowserLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect
 
+/** Screens in the background and replaces the app only for a flagged wallet. */
 export function SanctionsGate({
   children,
   devOverride,
@@ -40,36 +32,21 @@ export function SanctionsGate({
 }) {
   const { address, chainId, status: walletStatus } = useAccount()
   const { chainId: selectedChainId } = useSelectedNetwork()
-  const startupReady = useContext(WalletStartupContext)
   const store = useAppStore()
-  const [mounted, setMounted] = useState(false)
   const [disconnectError, setDisconnectError] = useState(false)
   const { disconnectAsync, isPending: disconnecting } = useDisconnect()
-  const ready =
-    mounted &&
-    startupReady &&
-    walletStatus !== "connecting" &&
-    walletStatus !== "reconnecting"
-  const screening = useSanctionsStatus({
+  const status = useSanctionsStatus({
     address,
     chainId,
     selectedChainId,
-    enabled: ready && walletStatus === "connected",
+    enabled: walletStatus === "connected",
     devOverride,
   })
-  const open =
-    ready && (walletStatus === "disconnected" || screening.status === "clear")
+  const blocked = status === "blocked"
 
-  useEffect(() => setMounted(true), [])
   useBrowserLayoutEffect(() => {
     setSanctionsAccess(
-      {
-        address: address?.toLowerCase(),
-        chainId,
-        selectedChainId,
-        status: ready ? screening.status : "checking",
-        validUntil: screening.validUntil,
-      },
+      { address: address?.toLowerCase(), chainId, selectedChainId, status },
       () => {
         const account = getAccount(config)
         return {
@@ -79,22 +56,12 @@ export function SanctionsGate({
         }
       },
     )
-    if (!open) toast.remove()
-    return clearSanctionsAccess
-  }, [
-    address,
-    chainId,
-    selectedChainId,
-    ready,
-    screening.status,
-    screening.validUntil,
-    open,
-    store,
-  ])
+    if (blocked) toast.remove()
+  }, [address, chainId, selectedChainId, status, blocked, store])
+  useEffect(() => clearSanctionsAccess, [])
 
   const disconnect = async () => {
     suppressAutoConnect()
-    clearSanctionsAccess()
     setDisconnectError(false)
     try {
       await disconnectAsync()
@@ -103,16 +70,11 @@ export function SanctionsGate({
     }
   }
 
-  if (open) return children
-  const displayStatus =
-    !ready || screening.status === "clear" ? "checking" : screening.status
+  if (!blocked) return children
   return (
     <SanctionsScreen
-      status={displayStatus}
       address={address}
       onDisconnect={disconnect}
-      onRetry={screening.retry}
-      retrying={screening.isRefreshing}
       disconnecting={disconnecting}
       disconnectError={disconnectError}
     />

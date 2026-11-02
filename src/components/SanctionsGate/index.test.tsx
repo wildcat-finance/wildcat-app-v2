@@ -33,7 +33,6 @@ jest.mock("@/hooks/useSelectedNetwork", () => ({
 jest.mock("@/store/hooks", () => ({ useAppStore: () => store }))
 jest.mock("@/providers/WagmiQueryProviders", () => ({
   suppressAutoConnect: jest.fn(),
-  WalletStartupContext: jest.requireActual("react").createContext(true),
 }))
 jest.mock(
   "@/assets/icons/logo_black.svg",
@@ -67,12 +66,13 @@ describe("global sanctions gate", () => {
   afterEach(() => {
     clearSanctionsAccess()
   })
-  it("mounts no page while checking and offers only disconnect for a flagged wallet", async () => {
+  it("shows the page while checking, then offers only disconnect for a flagged wallet", async () => {
     render(content)
-    expect(screen.queryByText("Market page")).not.toBeInTheDocument()
+    expect(screen.getByText("Market page")).toBeInTheDocument()
     expect(
       await screen.findByRole("heading", { name: "Wallet access restricted" }),
     ).toBeInTheDocument()
+    expect(screen.queryByText("Market page")).not.toBeInTheDocument()
     expect(screen.getByText(ADDRESS)).toBeInTheDocument()
     expect(
       screen.getByText(/contact@thewildcat.foundation/),
@@ -81,22 +81,22 @@ describe("global sanctions gate", () => {
     expect(
       screen.queryByRole("button", { name: "Deposit" }),
     ).not.toBeInTheDocument()
-    expect(() => assertSanctionsAccess(ADDRESS, 1)).toThrow()
+    await expect(assertSanctionsAccess(ADDRESS, 1)).rejects.toThrow(
+      "sanctions screening",
+    )
   })
-  it("offers Retry for outages and restores the page when the retry clears", async () => {
-    respond("unavailable")
-    render(content)
-    expect(
-      await screen.findByRole("heading", {
-        name: "Wallet screening unavailable",
-      }),
-    ).toBeInTheDocument()
-    expect(screen.getAllByRole("button")).toHaveLength(2)
-    respond("clear")
-    fireEvent.click(screen.getByRole("button", { name: "Retry" }))
-    expect(await screen.findByText("Market page")).toBeInTheDocument()
-    expect(() => assertSanctionsAccess(ADDRESS, 1)).not.toThrow()
-  })
+  it.each(["clear", "unavailable"] as const)(
+    "keeps the page for a %s result",
+    async (status) => {
+      respond(status)
+      render(content)
+      await act(async () => {})
+      expect(screenWallet).toHaveBeenCalled()
+      expect(screen.getByText("Market page")).toBeInTheDocument()
+      expect(screen.queryByRole("heading")).not.toBeInTheDocument()
+      await expect(assertSanctionsAccess(ADDRESS, 1)).resolves.toBeUndefined()
+    },
+  )
   it("disconnects without reloading and suppresses pending Safe auto-connect", async () => {
     const { rerender } = render(content)
     await screen.findByRole("heading", { name: "Wallet access restricted" })
@@ -116,7 +116,6 @@ describe("global sanctions gate", () => {
     )
     expect(screen.getByText("Market page")).toBeInTheDocument()
     expect(suppressAutoConnect).toHaveBeenCalled()
-    expect(() => assertSanctionsAccess(ADDRESS, 1)).toThrow()
   })
   it("keeps the screen in place when wallet disconnection fails", async () => {
     disconnect.mockRejectedValue(new Error("wallet refused"))
@@ -128,13 +127,10 @@ describe("global sanctions gate", () => {
     )
     expect(screen.queryByText("Market page")).not.toBeInTheDocument()
   })
-  it("does not show pages during session restoration", () => {
+  it("shows pages during session restoration without screening", () => {
     wallet.status = "reconnecting"
     render(content)
-    expect(
-      screen.getByRole("heading", { name: "Checking wallet access…" }),
-    ).toBeInTheDocument()
-    expect(screen.queryByText("Market page")).not.toBeInTheDocument()
+    expect(screen.getByText("Market page")).toBeInTheDocument()
     expect(screenWallet).not.toHaveBeenCalled()
   })
 })

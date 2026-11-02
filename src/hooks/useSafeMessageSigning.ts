@@ -106,7 +106,7 @@ export const useSafeMessageSigning = () => {
       }
       const signature =
         record.signature ?? (await waitForSafeSignature(store, record.id))
-      assertSanctionsAccess(record.address, record.chainId)
+      await assertSanctionsAccess(record.address, record.chainId)
       return {
         signature,
         message: record.message,
@@ -120,7 +120,7 @@ export const useSafeMessageSigning = () => {
 
   const signMessage = useCallback(
     async (input: MessageToSign): Promise<WalletMessageSignature> => {
-      assertSanctionsAccess(input.address, input.chainId)
+      await assertSanctionsAccess(input.address, input.chainId)
       if (!signer) throw new Error("No signer")
       if (signer.chainId !== input.chainId) {
         throw new Error("Wallet network does not match signing network")
@@ -153,7 +153,7 @@ export const useSafeMessageSigning = () => {
           input.context,
         )
         const signature = await signer.signMessage(message)
-        assertSanctionsAccess(input.address, input.chainId)
+        await assertSanctionsAccess(input.address, input.chainId)
         return {
           signature,
           message,

@@ -153,17 +153,24 @@ export async function screenWallet(
       list.lastUpdateBlock < START_BLOCK ||
       list.lastUpdateBlock > meta.block.number ||
       list.lastUpdateTimestamp > meta.block.timestamp ||
-      meta.block.timestamp > now + 60 ||
-      now - meta.block.timestamp > maxIndexAge ||
-      now - list.lastUpdateTimestamp > maxListAge
+      meta.block.timestamp > now + 60
     ) {
-      throw new Error("Sanctions source identity or freshness check failed")
+      throw new Error("Sanctions source identity check failed")
     }
     if (
       account &&
       (account.id !== `${LIST}:${address}` || account.address !== address)
     ) {
       throw new Error("Sanctions response belongs to another address")
+    }
+    // A lagging index can miss new listings, so it never clears a wallet, but
+    // a listing it already holds is still a positive hit.
+    if (account?.isSanctioned) return result(address, "blocked", checkedAt)
+    if (
+      now - meta.block.timestamp > maxIndexAge ||
+      now - list.lastUpdateTimestamp > maxListAge
+    ) {
+      throw new Error("Sanctions source freshness check failed")
     }
     // A missing account means absent only after validating the reviewed index.
     // Do not extend clearance past either upstream freshness deadline.
@@ -172,12 +179,7 @@ export async function screenWallet(
       (meta.block.timestamp + maxIndexAge) * 1000,
       (list.lastUpdateTimestamp + maxListAge) * 1000,
     )
-    return result(
-      address,
-      account?.isSanctioned ? "blocked" : "clear",
-      checkedAt,
-      validUntil,
-    )
+    return result(address, "clear", checkedAt, validUntil)
   } catch {
     // Errors (including partial GraphQL data) never imply a clear wallet.
     return result(address, "unavailable", Date.now())

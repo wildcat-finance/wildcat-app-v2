@@ -1,40 +1,23 @@
 "use client"
 
-import { Box, Button, CircularProgress, Typography } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
 
 import Logo from "@/assets/icons/logo_black.svg"
 import { COLORS } from "@/theme/colors"
-import { SanctionsState } from "@/utils/sanctions"
 
 const copy = {
-  checking: {
-    title: "Checking wallet access…",
-    body: "Please wait while we check this wallet.",
-  },
-  blocked: {
-    title: "Wallet access restricted",
-    body: "This address cannot use the Wildcat app because it was flagged by sanctions screening. If you believe this is an error, contact the Wildcat Foundation at contact@thewildcat.foundation.",
-  },
-  unavailable: {
-    title: "Wallet screening unavailable",
-    body: "We couldn’t complete the wallet screening check. Access to the app is temporarily paused. Please try again.",
-  },
+  title: "Wallet access restricted",
+  body: "This address cannot use the Wildcat app because it was flagged by sanctions screening. If you believe this is an error, contact the Wildcat Foundation at contact@thewildcat.foundation.",
 }
 
 export function SanctionsScreen({
-  status,
   address,
   onDisconnect,
-  onRetry,
-  retrying,
   disconnecting,
   disconnectError,
 }: {
-  status: Exclude<SanctionsState, "clear">
   address?: string
   onDisconnect: () => void
-  onRetry: () => void
-  retrying?: boolean
   disconnecting?: boolean
   disconnectError?: boolean
 }) {
@@ -67,13 +50,6 @@ export function SanctionsScreen({
           <Logo />
         </Box>
         <Box aria-live="polite" aria-atomic="true">
-          {status === "checking" && (
-            <CircularProgress
-              size={24}
-              sx={{ mb: 2 }}
-              aria-label="Screening wallet"
-            />
-          )}
           <Typography
             component="h1"
             sx={{
@@ -84,7 +60,7 @@ export function SanctionsScreen({
               mb: 2,
             }}
           >
-            {copy[status].title}
+            {copy.title}
           </Typography>
           {address && (
             <Typography
@@ -115,7 +91,7 @@ export function SanctionsScreen({
               userSelect: "text",
             }}
           >
-            {copy[status].body}
+            {copy.body}
           </Typography>
         </Box>
         {disconnectError && (
@@ -123,33 +99,15 @@ export function SanctionsScreen({
             Couldn’t disconnect the wallet. Please try again.
           </Typography>
         )}
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: { xs: "column", sm: "row" },
-            gap: 1.5,
-            mt: 4,
-          }}
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={onDisconnect}
+          disabled={disconnecting}
+          sx={{ mt: 4 }}
         >
-          {status === "unavailable" && (
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={onRetry}
-              disabled={retrying}
-            >
-              {retrying ? "Retrying…" : "Retry"}
-            </Button>
-          )}
-          <Button
-            variant={status === "unavailable" ? "outlined" : "contained"}
-            fullWidth
-            onClick={onDisconnect}
-            disabled={disconnecting}
-          >
-            {disconnecting ? "Disconnecting…" : "Disconnect wallet"}
-          </Button>
-        </Box>
+          {disconnecting ? "Disconnecting…" : "Disconnect wallet"}
+        </Button>
       </Box>
     </Box>
   )

@@ -44,7 +44,7 @@ describe("useSanctionsStatus", () => {
   it("screens through the gateway checker and cancels on unmount", async () => {
     const { result, unmount } = renderHook(() => useSanctionsStatus(scope))
     await flush()
-    expect(result.current.status).toBe("clear")
+    expect(result.current).toBe("clear")
     expect(screenWallet).toHaveBeenCalledWith(
       A,
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
@@ -53,18 +53,18 @@ describe("useSanctionsStatus", () => {
     unmount()
     expect(signal?.aborted).toBe(true)
   })
-  it("pauses on a gateway error", async () => {
+  it("reports a gateway error as unavailable", async () => {
     jest.mocked(screenWallet).mockResolvedValue(response("unavailable"))
     const { result } = renderHook(() => useSanctionsStatus(scope))
     await flush()
-    expect(result.current.status).toBe("unavailable")
+    expect(result.current).toBe("unavailable")
   })
 
   it("starts checking and then clears the matching wallet", async () => {
     const { result } = renderHook(() => useSanctionsStatus(scope))
-    expect(result.current.status).toBe("checking")
+    expect(result.current).toBe("checking")
     await flush()
-    expect(result.current.status).toBe("clear")
+    expect(result.current).toBe("clear")
     expect(screenWallet).toHaveBeenCalledWith(
       A,
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
@@ -80,7 +80,7 @@ describe("useSanctionsStatus", () => {
     await flush()
     await advance(45_000)
     expect(screenWallet).toHaveBeenCalledTimes(2)
-    expect(result.current.status).toBe("clear")
+    expect(result.current).toBe("clear")
   })
   it("discards clearance on disconnect even when the same wallet reconnects", async () => {
     const { result, rerender } = renderHook(
@@ -88,7 +88,7 @@ describe("useSanctionsStatus", () => {
       { initialProps: scope },
     )
     await flush()
-    expect(result.current.status).toBe("clear")
+    expect(result.current).toBe("clear")
     rerender({ ...scope, enabled: false })
     let resolve!: (value: SanctionsResult) => void
     jest.mocked(screenWallet).mockReturnValue(
@@ -97,21 +97,21 @@ describe("useSanctionsStatus", () => {
       }),
     )
     rerender(scope)
-    expect(result.current.status).toBe("checking")
+    expect(result.current).toBe("checking")
     await act(async () => resolve(response("blocked")))
-    expect(result.current.status).toBe("blocked")
+    expect(result.current).toBe("blocked")
   })
-  it("expires old clearance when refresh fails and recovers on Retry", async () => {
+  it("expires old clearance when refresh fails and recovers on the next refresh", async () => {
     const { result } = renderHook(() => useSanctionsStatus(scope))
     await flush()
     jest.mocked(screenWallet).mockRejectedValue(new Error("offline"))
     await advance(45_000)
-    expect(result.current.status).toBe("clear")
+    expect(result.current).toBe("clear")
     await advance(15_000)
-    expect(result.current.status).toBe("unavailable")
+    expect(result.current).toBe("unavailable")
     jest.mocked(screenWallet).mockImplementation(async () => response())
-    await act(async () => result.current.retry())
-    expect(result.current.status).toBe("clear")
+    await advance(30_000)
+    expect(result.current).toBe("clear")
   })
   it("retains rejection through a failed refresh and only clears on a valid result", async () => {
     jest
@@ -119,17 +119,25 @@ describe("useSanctionsStatus", () => {
       .mockImplementation(async () => response("blocked"))
     const { result } = renderHook(() => useSanctionsStatus(scope))
     await flush()
-    expect(result.current.status).toBe("blocked")
+    expect(result.current).toBe("blocked")
     jest.mocked(screenWallet).mockRejectedValue(new Error("offline"))
     await advance(65_000)
-    expect(result.current.status).toBe("blocked")
+    expect(result.current).toBe("blocked")
     jest.mocked(screenWallet).mockImplementation(async () => response())
-    await act(async () => result.current.retry())
-    expect(result.current.status).toBe("clear")
+    await advance(25_000)
+    expect(result.current).toBe("clear")
   })
-  it.each(["chainId", "selectedChainId"])(
-    "screens again when %s changes",
-    async (field) => {
+  it.each([
+    ["chainId", "clear"],
+    ["selectedChainId", "clear"],
+    ["chainId", "blocked"],
+    ["selectedChainId", "blocked"],
+  ] as const)(
+    "screens again when %s changes, keeping the %s result meanwhile",
+    async (field, initial) => {
+      jest
+        .mocked(screenWallet)
+        .mockImplementation(async () => response(initial))
       const { result, rerender } = renderHook(
         (props) => useSanctionsStatus(props),
         { initialProps: scope },
@@ -142,9 +150,10 @@ describe("useSanctionsStatus", () => {
         }),
       )
       rerender({ ...scope, [field]: 9745 })
-      expect(result.current.status).toBe("checking")
+      expect(screenWallet).toHaveBeenCalledTimes(2)
+      expect(result.current).toBe(initial)
       await act(async () => resolve(response("blocked")))
-      expect(result.current.status).toBe("blocked")
+      expect(result.current).toBe("blocked")
     },
   )
   it("aborts an old account's request and ignores its late response", async () => {
@@ -165,9 +174,9 @@ describe("useSanctionsStatus", () => {
     rerender({ ...scope, address: B })
     await flush()
     expect(signal?.aborted).toBe(true)
-    expect(result.current.status).toBe("blocked")
+    expect(result.current).toBe("blocked")
     await act(async () => resolveA(response()))
-    expect(result.current.status).toBe("blocked")
+    expect(result.current).toBe("blocked")
   })
   it.each(["unavailable", "mismatched", "expired"])(
     "handles %s responses without clearing",
@@ -183,18 +192,18 @@ describe("useSanctionsStatus", () => {
         )
       const { result } = renderHook(() => useSanctionsStatus(scope))
       await flush()
-      expect(result.current.status).toBe("unavailable")
+      expect(result.current).toBe("unavailable")
     },
   )
   it("expires clearance at a shorter source freshness deadline", async () => {
     jest.mocked(screenWallet).mockResolvedValue(response("clear", A, 5000))
     const { result } = renderHook(() => useSanctionsStatus(scope))
     await flush()
-    expect(result.current.status).toBe("clear")
+    expect(result.current).toBe("clear")
     await advance(5000)
-    expect(result.current.status).toBe("unavailable")
+    expect(result.current).toBe("unavailable")
   })
-  it("times out and offers recovery for a hanging request", async () => {
+  it("reports a hanging request as unavailable", async () => {
     jest.mocked(screenWallet).mockImplementation(
       (_input, options) =>
         new Promise((_resolve, reject) => {
@@ -205,7 +214,7 @@ describe("useSanctionsStatus", () => {
     )
     const { result } = renderHook(() => useSanctionsStatus(scope))
     await advance(10_000)
-    expect(result.current.status).toBe("unavailable")
+    expect(result.current).toBe("unavailable")
   })
   it("rechecks when the tab receives focus", async () => {
     renderHook(() => useSanctionsStatus(scope))
