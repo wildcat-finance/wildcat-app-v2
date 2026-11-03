@@ -415,7 +415,7 @@ export const TerminatedMarketsTables = ({
               row: MarketLinkRow,
               pagination: TablePagination,
             }}
-            hideFooter={false}
+            hideFooter={terminatedRows.length <= paginationModel.pageSize}
           />
         </MarketsTableAccordion>
       </Box>

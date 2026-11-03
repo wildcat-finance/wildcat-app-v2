@@ -581,7 +581,7 @@ export const OtherMarketsTable = ({
               row: MarketLinkRow,
               pagination: TablePagination,
             }}
-            hideFooter={false}
+            hideFooter={tabRows.length <= paginationModel.pageSize}
           />
         </MarketsTableAccordion>
       </ComposableExpansionProvider>

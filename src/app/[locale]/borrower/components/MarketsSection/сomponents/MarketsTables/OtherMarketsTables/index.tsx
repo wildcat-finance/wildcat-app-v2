@@ -495,7 +495,7 @@ export const OtherMarketsTables = ({
           slots={{
             pagination: TablePagination,
           }}
-          hideFooter={false}
+          hideFooter={tabRows.length <= paginationModel.pageSize}
         />
       </MarketsTableAccordion>
     </Box>
