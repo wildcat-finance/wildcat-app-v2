@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useCallback, useState } from "react"
 
-import { Box, Button, Divider, Typography } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
-import { MarketSectionSwitcher } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketSectionSwitcher"
 import { BorrowerActiveMarketsTables } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/BorrowerActiveMarketsTables"
 import { BorrowerTerminatedMarketsTables } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/BorrowerTerminatedMarketsTables"
 import { OtherMarketsTables } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/OtherMarketsTables"
@@ -469,18 +468,6 @@ export const MarketsSection = () => {
             </Link>
           )}
         </Box>
-
-        <Box sx={{ marginTop: "16px" }}>
-          <MarketSectionSwitcher />
-        </Box>
-
-        <Divider
-          sx={{
-            marginTop: "12px",
-            borderColor: COLORS.whiteLilac,
-            width: "100%",
-          }}
-        />
 
         {showTabs && (
           <Box sx={{ marginTop: "16px", padding: "0 16px" }}>
