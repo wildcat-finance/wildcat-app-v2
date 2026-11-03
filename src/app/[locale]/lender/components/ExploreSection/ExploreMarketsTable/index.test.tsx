@@ -21,7 +21,10 @@ import { ExploreMarketsTable } from "."
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }))
-jest.mock("next/navigation", () => ({ useRouter: () => ({ push: jest.fn() }) }))
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: jest.fn() }),
+  usePathname: () => "/lender",
+}))
 jest.mock("viem", () => ({
   getAddress: (value: string) => value,
   isAddress: (value: string) => /^0x[a-fA-F0-9]{40}$/.test(value),

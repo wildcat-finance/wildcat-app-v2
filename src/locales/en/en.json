@@ -135,7 +135,13 @@
       },
       "switcher": {
         "yourMarkets": "Your markets",
-        "otherMarkets": "Other markets"
+        "otherMarkets": "Other markets",
+        "yours": "Yours",
+        "others": "Others"
+      },
+      "mobileList": {
+        "seeAllMarkets": "See All Markets",
+        "sections": "Market sections"
       },
       "tables": {
         "borrower": {

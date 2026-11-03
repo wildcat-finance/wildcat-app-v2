@@ -58,11 +58,8 @@ jest.mock("@/components/Destinations", () => ({
 jest.mock("@/hooks/destinations/useDestinations", () => ({
   useDestinations: jest.fn(),
 }))
-jest.mock("@/app/[locale]/lender/all-markets/components/MobileHeader", () => ({
-  MobileHeader: () => null,
-}))
-jest.mock("@/app/[locale]/lender/my-markets/components/MobileHeader", () => ({
-  MobileHeader: () => null,
+jest.mock("@/app/[locale]/lender/components/LenderMarketsMobileHeader", () => ({
+  LenderMarketsMobileHeader: () => null,
 }))
 jest.mock(
   "@/app/[locale]/lender/all-markets/components/MarketsTables/OtherMarketsTable",

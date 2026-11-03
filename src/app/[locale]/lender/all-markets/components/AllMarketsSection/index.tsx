@@ -6,6 +6,7 @@ import { Box, Skeleton, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
+import { LenderMarketsMobileHeader } from "@/app/[locale]/lender/components/LenderMarketsMobileHeader"
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
 import { ComposableOnlySwitch } from "@/components/Destinations"
 import { FilterTextField } from "@/components/FilterTextfield"
@@ -13,6 +14,7 @@ import { MarketsFilterSelect } from "@/components/MarketsFilterSelect"
 import { MarketsFilterSelectItem } from "@/components/MarketsFilterSelect/interface"
 import { MarketsTabs } from "@/components/MarketsTabs"
 import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
+import { MobileMarketsToolbar } from "@/components/Mobile/MobileMarketsToolbar"
 import { MobileSearchButton } from "@/components/Mobile/MobileSearchButton"
 import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
 import { useDestinations } from "@/hooks/destinations/useDestinations"
@@ -37,7 +39,6 @@ import {
 import { MarketStatus } from "@/utils/marketStatus"
 
 import { OtherMarketsTable } from "../MarketsTables/OtherMarketsTable"
-import { MobileHeader } from "../MobileHeader"
 
 const withdrawalCycleOptions = [
   { id: "0-86400", name: "≤ 24h" },
@@ -311,7 +312,7 @@ export const AllMarketsSection = () => {
       <Skeleton
         sx={{
           width: "100%",
-          height: { xs: "153px", md: "152px" },
+          height: { xs: "124px", md: "152px" },
           borderRadius: "14px",
           backgroundColor: { xs: COLORS.white06, md: "transparent" },
         }}
@@ -409,7 +410,7 @@ export const AllMarketsSection = () => {
         </Box>
       )}
 
-      {isMobile && <MobileHeader />}
+      {isMobile && <LenderMarketsMobileHeader page="others" />}
 
       {isWrongNetwork && <WrongNetworkAlert />}
 
@@ -422,50 +423,43 @@ export const AllMarketsSection = () => {
           filters={filters}
           destinations={destinations}
           mobileHeader={
-            <Box
-              sx={{
-                display: "flex",
-                flexWrap: "wrap",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: "4px 2px",
-                padding: "4px 0 12px",
-                borderBottom: `1px solid ${COLORS.whiteLilac}`,
-              }}
-            >
-              {showComposableSwitch ? (
-                <ComposableOnlySwitch
-                  checked={composableOnly}
-                  onChange={setComposableOnly}
-                />
-              ) : (
-                <Box />
-              )}
-              <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                <MobileFilterButton
-                  size={28}
-                  assetsOptions={
-                    tokens?.map((token) => ({
-                      id: token.address,
-                      name: token.symbol,
-                    })) ?? []
-                  }
-                  statusesOptions={marketStatusesMock}
-                  withdrawalCycleOptions={withdrawalCycleOptions}
-                  marketAssets={marketAssets}
-                  marketStatuses={marketStatuses}
-                  marketWithdrawalCycles={marketWithdrawalCycles}
-                  setMarketAssets={setMarketAssets}
-                  setMarketStatuses={setMarketStatuses}
-                  setMarketWithdrawalCycles={setMarketWithdrawalCycles}
-                />
-                <MobileSearchButton
-                  marketAccounts={filteredMarketAccounts ?? []}
-                  marketSearch={marketSearch}
-                  setMarketSearch={setMarketSearch}
-                />
-              </Box>
-            </Box>
+            <MobileMarketsToolbar
+              variant="page"
+              left={
+                showComposableSwitch && (
+                  <ComposableOnlySwitch
+                    checked={composableOnly}
+                    onChange={setComposableOnly}
+                  />
+                )
+              }
+              right={
+                <>
+                  <MobileFilterButton
+                    size={28}
+                    assetsOptions={
+                      tokens?.map((token) => ({
+                        id: token.address,
+                        name: token.symbol,
+                      })) ?? []
+                    }
+                    statusesOptions={marketStatusesMock}
+                    withdrawalCycleOptions={withdrawalCycleOptions}
+                    marketAssets={marketAssets}
+                    marketStatuses={marketStatuses}
+                    marketWithdrawalCycles={marketWithdrawalCycles}
+                    setMarketAssets={setMarketAssets}
+                    setMarketStatuses={setMarketStatuses}
+                    setMarketWithdrawalCycles={setMarketWithdrawalCycles}
+                  />
+                  <MobileSearchButton
+                    marketAccounts={filteredMarketAccounts ?? []}
+                    marketSearch={marketSearch}
+                    setMarketSearch={setMarketSearch}
+                  />
+                </>
+              }
+            />
           }
         />
       )}

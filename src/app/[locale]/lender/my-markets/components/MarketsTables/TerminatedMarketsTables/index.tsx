@@ -29,7 +29,6 @@ import { TablePagination } from "@/components/TablePagination"
 import { TotalDebtHeader } from "@/components/TotalDebtHeader"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
-import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import { getGridMinWidth } from "@/utils/dataGrid"
@@ -83,13 +82,11 @@ export const TerminatedMarketsTables = ({
   destinations,
   composableOnly,
   filters,
+  mobileHeader,
 }: TerminatedMarketsTableProps) => {
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const { markets: destinationsByMarket } = destinations
-  const scrollTargetId = useAppSelector(
-    (state) => state.lenderDashboard.scrollTarget,
-  )
 
   const [paginationModel, setPaginationModel] = React.useState({
     pageSize: 50,
@@ -349,14 +346,22 @@ export const TerminatedMarketsTables = ({
 
   if (isMobile)
     return (
-      <>
-        {scrollTargetId === "prev-active" && (
-          <MobileMarketList markets={prevActive} isLoading={isLoading} />
-        )}
-        {scrollTargetId === "never-active" && (
-          <MobileMarketList markets={neverActive} isLoading={isLoading} />
-        )}
-      </>
+      <MobileMarketList
+        markets={terminatedRows}
+        isLoading={isLoading}
+        header={mobileHeader}
+        destinationsByMarket={destinationsByMarket}
+        resetKey={JSON.stringify([
+          nameFilter,
+          assetFilter.map((asset) => asset.id),
+          statusFilter,
+          withdrawalCycleFilter?.map((cycle) => cycle.id),
+          composableOnly,
+        ])}
+        emptyTitle={
+          composableOnly ? t("destinations.noComposableMarkets") : undefined
+        }
+      />
     )
 
   return (

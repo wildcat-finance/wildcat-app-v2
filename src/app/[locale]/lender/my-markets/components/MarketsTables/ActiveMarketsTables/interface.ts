@@ -1,3 +1,5 @@
+import type { ReactNode } from "react"
+
 import { MarketAccount, TokenAmount } from "@wildcatfi/wildcat-sdk"
 
 import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames"
@@ -40,4 +42,5 @@ export type ActiveMarketsTableProps = {
     statusFilter: MarketStatus[]
     withdrawalCycleFilter?: SmallFilterSelectItem[]
   }
+  mobileHeader?: ReactNode
 }

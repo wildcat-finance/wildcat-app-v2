@@ -6,6 +6,7 @@ import { Box, Skeleton, Typography } from "@mui/material"
 import { LenderRole, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
+import { LenderMarketsMobileHeader } from "@/app/[locale]/lender/components/LenderMarketsMobileHeader"
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
 import { ComposableOnlySwitch } from "@/components/Destinations"
 import { FilterTextField } from "@/components/FilterTextfield"
@@ -13,6 +14,7 @@ import { MarketsFilterSelect } from "@/components/MarketsFilterSelect"
 import { MarketsFilterSelectItem } from "@/components/MarketsFilterSelect/interface"
 import { MarketsTabs } from "@/components/MarketsTabs"
 import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
+import { MobileMarketsToolbar } from "@/components/Mobile/MobileMarketsToolbar"
 import { MobileSearchButton } from "@/components/Mobile/MobileSearchButton"
 import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
 import { useDestinations } from "@/hooks/destinations/useDestinations"
@@ -22,7 +24,6 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { marketStatusesMock } from "@/mocks/mocks"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
-  LenderMarketDashboardSections,
   LenderMyMarketsTab,
   setMyMarketsTab,
 } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
@@ -34,7 +35,6 @@ import { MarketStatus } from "@/utils/marketStatus"
 
 import { ActiveMarketsTables } from "../MarketsTables/ActiveMarketsTables"
 import { TerminatedMarketsTables } from "../MarketsTables/TerminatedMarketsTables"
-import { MobileHeader } from "../MobileHeader"
 
 const withdrawalCycleOptions = [
   { id: "0-86400", name: "≤ 24h" },
@@ -68,9 +68,6 @@ export const MyMarketsSection = () => {
     isPolicyMarketsLoading,
   } = useLenderMarketsContext()
 
-  const marketSection = useAppSelector(
-    (state) => state.lenderDashboard.marketSection,
-  )
   const myMarketsTab = useAppSelector(
     (state) => state.lenderDashboard.myMarketsTab,
   )
@@ -245,14 +242,13 @@ export const MyMarketsSection = () => {
   )
 
   const composableCount = composableMarketAccounts.length
-  const composableFilterActive = composableOnly && !isMobile
   const isLoading =
     isLoadingInitial ||
     (isPolicyMarketsLoading && myMarketAccounts.length === 0) ||
-    (composableFilterActive && destinations.isPending)
+    (composableOnly && destinations.isPending)
   const showComposableSwitch = composableCount > 0 || composableOnly
 
-  const visibleMarketAccounts = composableFilterActive
+  const visibleMarketAccounts = composableOnly
     ? composableMarketAccounts
     : filteredMarketAccounts
 
@@ -289,19 +285,55 @@ export const MyMarketsSection = () => {
     return tokensRaw
   }, [tokensRaw, targetChainId])
 
-  const showActiveTables = isMobile
-    ? marketSection === LenderMarketDashboardSections.ACTIVE
-    : myMarketsTab !== LenderMyMarketsTab.TERMINATED
-  const showTerminatedTables = isMobile
-    ? marketSection === LenderMarketDashboardSections.TERMINATED
-    : myMarketsTab === LenderMyMarketsTab.TERMINATED
+  const showActiveTables = myMarketsTab !== LenderMyMarketsTab.TERMINATED
+  const showTerminatedTables = myMarketsTab === LenderMyMarketsTab.TERMINATED
+
+  const mobileToolbar = (
+    <MobileMarketsToolbar
+      variant="page"
+      left={
+        showComposableSwitch && (
+          <ComposableOnlySwitch
+            checked={composableOnly}
+            onChange={setComposableOnly}
+          />
+        )
+      }
+      right={
+        <>
+          <MobileFilterButton
+            size={28}
+            assetsOptions={
+              tokens?.map((token) => ({
+                id: token.address,
+                name: token.symbol,
+              })) ?? []
+            }
+            statusesOptions={marketStatusesMock}
+            withdrawalCycleOptions={withdrawalCycleOptions}
+            marketAssets={marketAssets}
+            marketStatuses={marketStatuses}
+            marketWithdrawalCycles={marketWithdrawalCycles}
+            setMarketAssets={setMarketAssets}
+            setMarketStatuses={setMarketStatuses}
+            setMarketWithdrawalCycles={setMarketWithdrawalCycles}
+          />
+          <MobileSearchButton
+            marketAccounts={visibleMarketAccounts}
+            marketSearch={marketSearch}
+            setMarketSearch={setMarketSearch}
+          />
+        </>
+      }
+    />
+  )
 
   if (!mounted)
     return (
       <Skeleton
         sx={{
           width: "100%",
-          height: { xs: "153px", md: "152px" },
+          height: { xs: "124px", md: "152px" },
           borderRadius: "14px",
           backgroundColor: { xs: COLORS.white06, md: "transparent" },
         }}
@@ -311,33 +343,7 @@ export const MyMarketsSection = () => {
   return (
     <Box sx={{ overflow: { xs: "auto", md: "visible" } }}>
       {/* Mobile Version */}
-      {isMobile && (
-        <MobileHeader>
-          <Box sx={{ display: "flex", gap: "4px" }}>
-            <MobileFilterButton
-              assetsOptions={
-                tokens?.map((token) => ({
-                  id: token.address,
-                  name: token.symbol,
-                })) ?? []
-              }
-              statusesOptions={marketStatusesMock}
-              withdrawalCycleOptions={withdrawalCycleOptions}
-              marketAssets={marketAssets}
-              marketStatuses={marketStatuses}
-              marketWithdrawalCycles={marketWithdrawalCycles}
-              setMarketAssets={setMarketAssets}
-              setMarketStatuses={setMarketStatuses}
-              setMarketWithdrawalCycles={setMarketWithdrawalCycles}
-            />
-            <MobileSearchButton
-              marketAccounts={filteredMarketAccounts ?? []}
-              marketSearch={marketSearch}
-              setMarketSearch={setMarketSearch}
-            />
-          </Box>
-        </MobileHeader>
-      )}
+      {isMobile && <LenderMarketsMobileHeader page="yours" />}
 
       {/* Desktop Version */}
       {!isMobile && (
@@ -442,8 +448,9 @@ export const MyMarketsSection = () => {
           borrowers={borrowers ?? []}
           isLoading={isLoading}
           destinations={destinations}
-          composableOnly={composableFilterActive}
+          composableOnly={composableOnly}
           filters={filters}
+          mobileHeader={mobileToolbar}
         />
       )}
       {!isWrongNetwork && showTerminatedTables && (
@@ -452,8 +459,9 @@ export const MyMarketsSection = () => {
           borrowers={borrowers ?? []}
           isLoading={isLoading}
           destinations={destinations}
-          composableOnly={composableFilterActive}
+          composableOnly={composableOnly}
           filters={filters}
+          mobileHeader={mobileToolbar}
         />
       )}
     </Box>

@@ -93,7 +93,7 @@ const WithdrawalCycleText = ({ seconds }: { seconds: number }) => {
   return (
     <Typography
       ref={textRef}
-      variant="mobText2"
+      variant="mobText4"
       sx={{
         position: "relative",
         // Claim the row's leftover space so the fit check compares the full
@@ -101,9 +101,7 @@ const WithdrawalCycleText = ({ seconds }: { seconds: number }) => {
         flexGrow: 1,
         minWidth: 0,
         overflow: "hidden",
-        color: COLORS.blackRock,
-        fontSize: "14px",
-        lineHeight: "20px",
+        color: COLORS.blackRock08,
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
       }}
@@ -140,16 +138,17 @@ const MarketAssetChip = ({
       width: "fit-content",
       display: "flex",
       alignItems: "center",
-      gap: "4px",
-      padding: "2px 9px 2px 7px",
-      borderRadius: "12px",
-      backgroundColor: COLORS.whiteSmoke,
+      flexShrink: 0,
+      gap: "2px",
+      padding: "1px 6px 1px 4px",
+      borderRadius: "20px",
+      backgroundColor: COLORS.blackHaze,
     }}
   >
-    <NetworkIcon chainId={chainId as SupportedChainId} width={14} height={14} />
+    <NetworkIcon chainId={chainId as SupportedChainId} width={10} height={10} />
     <Typography
-      variant="mobText3"
-      sx={{ fontSize: "13px", lineHeight: "18px" }}
+      variant="mobText4"
+      sx={{ color: COLORS.blackRock, lineHeight: "14px", whiteSpace: "nowrap" }}
     >
       {asset}
     </Typography>
@@ -168,24 +167,19 @@ const PointsPill = ({
       display: "flex",
       alignItems: "center",
       flexShrink: 0,
-      gap: label ? "6px" : 0,
-      padding: label ? "2px 10px 2px 2px" : "2px",
-      borderRadius: "12px",
-      backgroundColor: COLORS.bunker,
+      gap: label ? "4px" : 0,
+      padding: label ? "0 6px 0 2px" : "1px",
+      borderRadius: "20px",
+      backgroundColor: COLORS.whiteSmoke,
     }}
   >
-    <SvgIcon sx={{ width: "18px", height: "18px" }}>
+    <SvgIcon sx={{ width: "14px", height: "14px" }}>
       <Icon />
     </SvgIcon>
     {label && (
       <Typography
-        variant="mobText3"
-        sx={{
-          color: COLORS.white,
-          fontSize: "13px",
-          lineHeight: "18px",
-          whiteSpace: "nowrap",
-        }}
+        variant="mobText4"
+        sx={{ color: COLORS.blackRock, whiteSpace: "nowrap" }}
       >
         {label}
       </Typography>
@@ -231,8 +225,8 @@ const MarketPointsChip = ({
 
   const multiplierText = multiplier && (
     <Typography
-      variant="mobText3"
-      sx={{ fontSize: "13px", lineHeight: "18px", whiteSpace: "nowrap" }}
+      variant="mobText4"
+      sx={{ color: COLORS.blackRock, whiteSpace: "nowrap" }}
     >
       +{multiplier}
     </Typography>
@@ -271,7 +265,7 @@ const MarketPointsChip = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "flex-end",
-          gap: "5px",
+          gap: "4px",
           cursor: "help",
         }}
       >
@@ -291,7 +285,7 @@ const MarketPointsChip = ({
             pointerEvents: "none",
             display: "flex",
             alignItems: "center",
-            gap: "5px",
+            gap: "4px",
           }}
         >
           {multiplierText}
@@ -335,36 +329,41 @@ export const MobileMarketCard = ({
     : `Fixed Term: ${formatFixedTermDate(marketItem.term.fixedPeriod ?? 0)}`
   const href = buildMarketHref(marketItem.id, marketItem.chainId, baseRoute)
 
+  const isHealthy = marketItem.status.status === MarketStatus.HEALTHY
   return (
     <Box
       sx={{
         width: "100%",
         display: "flex",
         flexDirection: "column",
-        gap: "10px",
-        padding: "16px",
-        border: `1px solid ${COLORS.whiteLilac}`,
-        borderRadius: "14px",
-        backgroundColor: COLORS.white,
+        gap: "4px",
+        padding: "12px 8px",
       }}
     >
       <Box
         component={Link}
         href={href}
-        data-market-card-link
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: "10px",
+          gap: "4px",
           color: "inherit",
           cursor: "pointer",
           textDecoration: "none",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <Box
+          sx={{
+            minHeight: "16px",
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+          }}
+        >
           <MarketStatusAndTermChip
             status={marketItem.status}
             termLabel={termLabel}
+            size="small"
           />
           <WithdrawalCycleText seconds={marketItem.withdrawalBatchDuration} />
         </Box>
@@ -372,152 +371,166 @@ export const MobileMarketCard = ({
         <Box
           sx={{
             display: "flex",
-            alignItems: "baseline",
-            justifyContent: "space-between",
-            gap: "12px",
+            flexDirection: "column",
+            gap: "4px",
+            padding: "2px 0",
           }}
         >
-          <Typography
-            variant="mobText1"
+          <Box
             sx={{
-              minWidth: 0,
-              overflow: "hidden",
-              color: COLORS.blackRock,
-              fontSize: "16px",
-              lineHeight: "22px",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
+              display: "flex",
+              alignItems: "baseline",
+              justifyContent: "space-between",
+              gap: "12px",
             }}
           >
-            {marketItem.name}
-          </Typography>
-          <Box sx={{ display: "flex", alignItems: "baseline", flexShrink: 0 }}>
             <Typography
-              variant="mobH2SemiBold"
-              sx={{ fontSize: "20px", lineHeight: "26px" }}
-            >
-              {formatBps(marketItem.apr)}%
-            </Typography>
-            <Typography
-              variant="mobText3"
+              variant="mobText2"
               sx={{
-                color: COLORS.matteSilver,
-                fontSize: "12px",
-                lineHeight: "16px",
-                marginLeft: "4px",
+                minWidth: 0,
+                overflow: "hidden",
+                color: COLORS.blackRock,
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}
             >
-              APR
+              {marketItem.name}
             </Typography>
+            <Box
+              sx={{ display: "flex", alignItems: "baseline", flexShrink: 0 }}
+            >
+              <Typography
+                variant="mobText2SemiBold"
+                sx={{ color: COLORS.blackRock }}
+              >
+                {formatBps(marketItem.apr)}%
+              </Typography>
+              <Typography
+                variant="mobText4"
+                sx={{ color: COLORS.matteSilver, marginLeft: "4px" }}
+              >
+                APR
+              </Typography>
+            </Box>
           </Box>
-        </Box>
 
-        <Box
-          sx={{
-            minWidth: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "8px",
-          }}
-        >
           <Box
             sx={{
               minWidth: 0,
               display: "flex",
               alignItems: "center",
+              justifyContent: "space-between",
               gap: "4px",
             }}
           >
-            {showBorrower && (
-              <BorrowerProfileChip
-                borrower={marketItem.borrower ?? marketItem.borrowerAddress}
-                size="medium"
-                href={
-                  marketItem.borrowerAddress
-                    ? `${ROUTES.lender.profile}/${marketItem.borrowerAddress}`
-                    : undefined
-                }
+            <Box
+              sx={{
+                minWidth: 0,
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: "2px",
+              }}
+            >
+              {showBorrower && (
+                <BorrowerProfileChip
+                  borrower={marketItem.borrower ?? marketItem.borrowerAddress}
+                  size="tiny"
+                  href={
+                    marketItem.borrowerAddress
+                      ? `${ROUTES.lender.profile}/${marketItem.borrowerAddress}`
+                      : undefined
+                  }
+                />
+              )}
+              <MarketAssetChip
+                asset={marketItem.asset}
+                chainId={marketItem.chainId}
               />
-            )}
-            <MarketAssetChip
-              asset={marketItem.asset}
+            </Box>
+
+            <MarketPointsChip
               chainId={marketItem.chainId}
+              marketAddress={marketItem.id}
+              apr={marketItem.apr}
             />
           </Box>
-
-          <MarketPointsChip
-            chainId={marketItem.chainId}
-            marketAddress={marketItem.id}
-            apr={marketItem.apr}
-          />
-        </Box>
-
-        <Box
-          sx={{
-            width: "100%",
-            height: "6px",
-            overflow: "hidden",
-            marginTop: "14px",
-            borderRadius: "3px",
-            backgroundColor: COLORS.athensGrey,
-          }}
-        >
-          <Box
-            sx={{
-              width: `${depositedPct}%`,
-              height: "100%",
-              borderRadius: "inherit",
-              backgroundColor:
-                marketItem.status.status === MarketStatus.HEALTHY
-                  ? COLORS.blueRibbon
-                  : COLORS.greySuit,
-            }}
-          />
         </Box>
 
         <Box
           sx={{
             display: "flex",
-            alignItems: "baseline",
-            justifyContent: "space-between",
-            gap: "12px",
+            flexDirection: "column",
+            gap: "5px",
+            padding: "10px 2px 0",
           }}
         >
-          <Typography
-            variant="mobText1"
+          <Box
             sx={{
-              color: COLORS.blackRock,
-              fontSize: "16px",
-              lineHeight: "22px",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {formatCompactToken(deposited)} {marketItem.asset}{" "}
-            <Box component="span" sx={{ color: COLORS.matteSilver }}>
-              deposited
-            </Box>
-          </Typography>
-          <Typography
-            variant="mobText1"
-            sx={{
+              width: "100%",
+              height: "3px",
               overflow: "hidden",
-              color: COLORS.matteSilver,
-              fontSize: "16px",
-              lineHeight: "22px",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
+              borderRadius: "1.5px",
+              backgroundColor: COLORS.whiteLilac,
             }}
           >
-            out of {formatCompactToken(capacity)} {marketItem.asset}
-          </Typography>
+            <Box
+              sx={{
+                width: `${depositedPct}%`,
+                height: "100%",
+                borderRadius: "inherit",
+                backgroundColor: isHealthy
+                  ? COLORS.blueRibbon
+                  : COLORS.greySuit,
+                opacity: isHealthy ? 0.8 : 1,
+              }}
+            />
+          </Box>
+
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "baseline",
+              justifyContent: "space-between",
+              gap: "12px",
+            }}
+          >
+            <Typography
+              variant="mobText4"
+              sx={{
+                color: COLORS.blackRock,
+                fontSize: "11px",
+                lineHeight: "16px",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {formatCompactToken(deposited)} {marketItem.asset}{" "}
+              <Box component="span" sx={{ color: COLORS.manate }}>
+                deposited
+              </Box>
+            </Typography>
+            <Typography
+              variant="mobText4"
+              sx={{
+                minWidth: 0,
+                overflow: "hidden",
+                color: COLORS.manate,
+                fontSize: "11px",
+                lineHeight: "16px",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              out of {formatCompactToken(capacity)} {marketItem.asset}
+            </Typography>
+          </Box>
         </Box>
       </Box>
       {destinations && destinations.length > 0 && (
         <MobileComposableBlock
           destinations={destinations}
           marketAddress={marketItem.id}
-          marginTop="0px"
+          marginTop="8px"
         />
       )}
     </Box>

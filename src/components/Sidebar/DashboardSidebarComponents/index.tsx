@@ -81,7 +81,6 @@ export const DashboardSubItems = <T extends string>({
             display: "flex",
             alignItems: "center",
             gap: "6px",
-            // <button> otherwise takes the browser's UI font instead of Inter
             fontFamily: "inherit",
           }}
         >

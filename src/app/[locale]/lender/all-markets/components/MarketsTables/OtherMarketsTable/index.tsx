@@ -515,6 +515,14 @@ export const OtherMarketsTable = ({
         isLoading={isLoading}
         header={mobileHeader}
         destinationsByMarket={destinationsByMarket}
+        resetKey={JSON.stringify([
+          allMarketsTab,
+          nameFilter,
+          assetFilter.map((asset) => asset.id),
+          statusFilter,
+          withdrawalCycleFilter?.map((cycle) => cycle.id),
+          composableOnly,
+        ])}
         emptyTitle={
           composableOnly ? t("destinations.noComposableMarkets") : undefined
         }

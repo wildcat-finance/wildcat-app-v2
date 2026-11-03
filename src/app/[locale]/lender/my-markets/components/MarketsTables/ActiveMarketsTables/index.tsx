@@ -35,7 +35,6 @@ import { TablePagination } from "@/components/TablePagination"
 import { TotalDebtHeader } from "@/components/TotalDebtHeader"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
-import { useAppSelector } from "@/store/hooks"
 import { LenderMyMarketsTab } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import {
   statusComparator,
@@ -92,13 +91,11 @@ export const ActiveMarketsTables = ({
   destinations,
   composableOnly,
   filters,
+  mobileHeader,
 }: ActiveMarketsTableProps) => {
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const { markets: destinationsByMarket } = destinations
-  const scrollTargetId = useAppSelector(
-    (state) => state.lenderDashboard.scrollTarget,
-  )
 
   const [paginationModel, setPaginationModel] = React.useState({
     pageSize: 50,
@@ -407,17 +404,24 @@ export const ActiveMarketsTables = ({
 
   if (isMobile)
     return (
-      <>
-        {scrollTargetId === "deposited" && (
-          <MobileMarketList markets={depositedMarkets} isLoading={isLoading} />
-        )}
-        {scrollTargetId === "non-deposited" && (
-          <MobileMarketList
-            markets={nonDepositedMarkets}
-            isLoading={isLoading}
-          />
-        )}
-      </>
+      <MobileMarketList
+        key={tab}
+        markets={tabRows}
+        isLoading={isLoading}
+        header={mobileHeader}
+        destinationsByMarket={destinationsByMarket}
+        resetKey={JSON.stringify([
+          tab,
+          nameFilter,
+          assetFilter.map((asset) => asset.id),
+          statusFilter,
+          withdrawalCycleFilter?.map((cycle) => cycle.id),
+          composableOnly,
+        ])}
+        emptyTitle={
+          composableOnly ? t("destinations.noComposableMarkets") : undefined
+        }
+      />
     )
 
   return (
@@ -426,7 +430,6 @@ export const ActiveMarketsTables = ({
         sx={{
           display: "flex",
           flexDirection: "column",
-          // 82px of app chrome plus the 168px page header above the table
           height: "calc(100vh - 250px)",
           width: "100%",
           overflow: "auto",
