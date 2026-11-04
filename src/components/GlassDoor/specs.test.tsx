@@ -333,6 +333,15 @@ describe("borrower cards", () => {
     )
   })
 
+  it("leaves the all-clear state without a sub-line, as the handoff does", () => {
+    const data = borrower({ S18: 0, S35: 0, S36: 0 }, [
+      row("usd", { M77: "Open", M21: 0, M85: 0, M07: 100, M02: "USDC" }),
+    ])
+    const spec = bookCard(data, "3.4")
+    expect(spec.value).toBe("ALL MARKETS IN ORDER")
+    expect(spec.sub).toBe("")
+  })
+
   it("does not turn no finished incidents into a zero cure time", () => {
     const none = bookCard(
       borrower({ S12: 1, D16: 0 }, [row("a", { M20: 0 })]),

@@ -139,7 +139,7 @@ export function bookState(borrower: BorrowerAnalytics) {
     state = {
       tone: "green",
       label: "ALL MARKETS IN ORDER",
-      sub: `${plural(now.open, "open market")}`,
+      sub: "",
     }
   if (now.incomplete && now.late)
     state.sub = `${state.sub} · ${count(now.unknown)} unavailable`

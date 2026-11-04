@@ -732,6 +732,50 @@ export const LateShareBars = ({
   )
 }
 
+/**
+ * Card 3.12 view 2: the direction line's axes. The rolling 90-day series is
+ * not computed yet, so the frame stays empty instead of drawing a shape.
+ */
+export const DirectionPending = ({ yMax = 30 }: { yMax?: number }) => (
+  <div className={cx(styles.ch, styles.chLine)}>
+    <div className={styles.chLineY} aria-hidden="true">
+      {[yMax, yMax / 2, 0].map((value) => (
+        <span key={value}>{value ? `${value}%` : "0"}</span>
+      ))}
+    </div>
+    <div className={styles.chLinePlot}>
+      <svg
+        viewBox="0 0 700 120"
+        preserveAspectRatio="none"
+        width="100%"
+        height="120"
+        aria-hidden="true"
+      >
+        {[6, 60, 114].map((y) => (
+          <line
+            key={y}
+            x1={0}
+            y1={y}
+            x2={700}
+            y2={y}
+            stroke={y === 114 ? C.line : "#EFF0F4"}
+          />
+        ))}
+      </svg>
+      <span className={styles.chLineEmpty}>not computed yet</span>
+    </div>
+    <Legend
+      full
+      items={[
+        { color: C.amber, text: "share of book-days late, trailing 90 days" },
+      ]}
+    />
+    <Caption full>
+      TBD: the rolling 90-day series of book-days late is not computed yet
+    </Caption>
+  </div>
+)
+
 /** A comparison chip's rank: one bar per graded member, this one tall. */
 export const RankStrip = ({
   position,

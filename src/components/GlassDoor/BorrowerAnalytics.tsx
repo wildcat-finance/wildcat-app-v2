@@ -1,5 +1,4 @@
 import * as React from "react"
-import { useState } from "react"
 
 import Link from "next/link"
 
@@ -13,7 +12,7 @@ import {
 } from "./api"
 import { borrowerSpecs, lateShareRows, marketLabel } from "./borrowerSpecs"
 import { AnalyticsCardRow, VerdictChip } from "./card"
-import { LateShareBars, Tbd } from "./charts"
+import { DirectionPending, LateShareBars, Tbd } from "./charts"
 import {
   apr,
   BLANK,
@@ -215,11 +214,8 @@ const MarketsTable = ({ borrower }: { borrower: BorrowerData }) => (
   </section>
 )
 
-/** Card 3.12: concentration by market, and the direction of the book. */
+/** Card 3.12: concentration by market beside the direction of the book. */
 const Trouble = ({ borrower }: { borrower: BorrowerData }) => {
-  const [view, setView] = useState<"concentration" | "direction">(
-    "concentration",
-  )
   const rows = lateShareRows(borrower)
   return (
     <section className={styles.box} aria-label="Trouble over time">
@@ -230,35 +226,22 @@ const Trouble = ({ borrower }: { borrower: BorrowerData }) => {
             v1 H02 / H01 split by M26 · v2 rolling 90 d · D17
           </span>
         </h3>
-        <div className={styles.views} role="group" aria-label="Trouble view">
-          {(["concentration", "direction"] as const).map((key) => (
-            <button
-              key={key}
-              type="button"
-              className={cx(styles.chip, view === key && styles.chipOn)}
-              aria-pressed={view === key}
-              onClick={() => setView(key)}
-            >
-              {key === "concentration" ? "Concentration" : "Direction"}
-            </button>
-          ))}
-        </div>
       </div>
       <p className={styles.lede}>
         rates, not lifetime totals, so age does not read as guilt
       </p>
-      {view === "concentration" &&
-        (rows.length ? (
-          <LateShareBars rows={rows} />
-        ) : (
-          <Tbd>No funded market has recorded life yet.</Tbd>
-        ))}
-      {view === "direction" && (
-        <Tbd>
-          Direction (rolling 90-day share of book-days late): TBD. The series is
-          not computed yet.
-        </Tbd>
-      )}
+      <div className={styles.troubleViews}>
+        <div aria-label="Concentration" role="group">
+          {rows.length ? (
+            <LateShareBars rows={rows} />
+          ) : (
+            <Tbd>No funded market has recorded life yet.</Tbd>
+          )}
+        </div>
+        <div aria-label="Direction" role="group">
+          <DirectionPending />
+        </div>
+      </div>
     </section>
   )
 }
@@ -309,6 +292,7 @@ export const BorrowerAnalyticsView = ({
       </header>
       <AnalyticsCardRow
         specs={borrowerSpecs(borrower)}
+        initialOpen="3.1"
         label="Borrower cards"
       />
       {borrower.markets.length ? (

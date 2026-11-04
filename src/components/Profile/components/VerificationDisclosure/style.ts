@@ -19,6 +19,11 @@ const DESKTOP_NOTE_GAP = "36px"
 
 export const BORROWER_PROFILE_VERIFICATION_GUTTER = `calc(${NOTE_LAYOUT.desktop.right} + ${NOTE_LAYOUT.desktop.width} + ${DESKTOP_NOTE_GAP})`
 
+/** The note's column and gap, and how far a section reaches into the gutter. */
+export const BORROWER_PROFILE_NOTE_COLUMN = NOTE_LAYOUT.desktop.width
+export const BORROWER_PROFILE_NOTE_GAP = DESKTOP_NOTE_GAP
+export const BORROWER_PROFILE_NOTE_BLEED = `calc(${NOTE_LAYOUT.desktop.width} + ${DESKTOP_NOTE_GAP})`
+
 const getVerificationNoteWidth = (variant: VerificationDisclosureVariant) => {
   if (variant === "inline") return "100%"
 
@@ -44,13 +49,16 @@ export const VerificationNoteContainer =
     padding: variant === "inline" ? "20px 22px" : "14px 16px",
     ...(variant !== "inline"
       ? {
-          position: variant === "desktop" ? "absolute" : "fixed",
-          top: variant === "desktop" ? "-32px" : "118px",
-          right:
-            variant === "desktop"
-              ? `calc(0px - ${NOTE_LAYOUT.desktop.width} - ${DESKTOP_NOTE_GAP})`
-              : getVerificationNoteRightOffset(variant),
-          zIndex: 1,
+          // On the profile the note is the overview's second column
+          // (ProfilePage OverviewSection); on a market it is fixed beside it.
+          ...(variant === "desktop"
+            ? { marginTop: "-32px" }
+            : {
+                position: "fixed" as const,
+                top: "118px",
+                right: getVerificationNoteRightOffset(variant),
+                zIndex: 1,
+              }),
           maxHeight: "calc(100vh - 142px)",
           overflowY: "auto",
           [theme.breakpoints.down(variant === "market" ? "xl" : "lg")]: {

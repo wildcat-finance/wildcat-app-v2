@@ -20,7 +20,9 @@ import { ProfilePageSkeleton } from "./components/PageSkeleton"
 import { ProfileNamePageBlock } from "./components/ProfileNamePageBlock"
 import { ProfilePageProps } from "./interface"
 import {
+  AnalyticsSection,
   MobileAnalyticsContainer,
+  OverviewSection,
   PageContentContainer,
   MobileContentContainer,
 } from "./style"
@@ -57,7 +59,7 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
         display="flex"
         flexDirection="column"
         gap="16px"
-        sx={isMobile ? MobileAnalyticsContainer : undefined}
+        sx={isMobile ? MobileAnalyticsContainer : AnalyticsSection}
       >
         <BorrowerAnalytics chainId={chainId} address={profileAddress} />
       </Box>
@@ -145,7 +147,7 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
 
       <Divider sx={{ marginY: "32px" }} />
 
-      <Box sx={{ position: "relative" }}>
+      <Box sx={OverviewSection}>
         <OverallBlock
           {...profileData}
           marketsAmount={marketsAmount}
