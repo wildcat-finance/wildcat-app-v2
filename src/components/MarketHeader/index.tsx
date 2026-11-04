@@ -506,7 +506,8 @@ export const MarketHeader = ({
 
       {supportsExport && (
         <Button
-          variant="outlined"
+          variant="contained"
+          color="secondary"
           size="small"
           onClick={() => setIsExportOpen(true)}
         >

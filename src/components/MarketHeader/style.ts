@@ -6,6 +6,7 @@ export const MarketHeaderUpperContainer = {
   display: "flex",
   alignItems: "flex-start",
   justifyContent: "space-between",
+  columnGap: "16px",
   marginBottom: "20px",
   padding: "52px 32.3% 0 44px",
   "@media (max-width: 1000px)": {
