@@ -1861,6 +1861,14 @@
       "title": "The borrower has a defaulted market",
       "description": "At least one market deployed by this borrower has not honoured withdrawal requests at least thirty days past their self-imposed grace period.",
       "viewProfile": "View Profile"
+    },
+    "ownMarketNotice": {
+      "title": "Your market is in default",
+      "description": "You can no longer borrow from this market. Lenders can still withdraw and claim funds as normal. You can repay and terminate the market at any time."
+    },
+    "otherMarketNotice": {
+      "title_one": "You have a defaulted market",
+      "title_other": "You have defaulted markets"
     }
   },
   "marketHeader": {
