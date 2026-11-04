@@ -28,6 +28,7 @@ import {
   deserializeDatasetWithSize,
   serializeDataset,
 } from "../serialize/dataset"
+import { BlockscoutRequestError } from "../sources/blockscout"
 import { discoverMarketUniverse } from "../sources/discovery"
 import { ExportRpcClient } from "../sources/rpc"
 import { CanonicalExportRequest, MarketDataset, MarketMetadata } from "../types"
@@ -300,6 +301,7 @@ async function updateActiveJob(
 const deterministicError = (error: unknown) => {
   if (error instanceof FatalError) return error
   if (error instanceof ProviderThrottleError) return error
+  if (error instanceof BlockscoutRequestError) return error
   const message = error instanceof Error ? error.message : String(error)
   if (
     /HTTP \d+|timed? ?out|fetch failed|every configured provider|Failed to (upload|download|inspect)|Etherscan request failed/i.test(

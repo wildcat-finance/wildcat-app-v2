@@ -40,6 +40,14 @@ export const NETWORKS = {
     isTestnet: false,
     hasV1Deployment: false,
   },
+  InkSepolia: {
+    chainId: 763373,
+    stringID: "ink-sepolia",
+    name: "Ink Sepolia",
+    blockExplorerUrl: "https://explorer-sepolia.inkonchain.com",
+    isTestnet: true,
+    hasV1Deployment: false,
+  },
 }
 export type NetworkInfo = (typeof NETWORKS)[keyof typeof NETWORKS]
 

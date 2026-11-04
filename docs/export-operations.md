@@ -86,6 +86,38 @@ Do not expose RPC, Etherscan, or Supabase service-role credentials to the browse
 
 ## Preview verification
 
+### Ink Sepolia adapter
+
+The adapter uses Blockscout PRO API for Ink transaction lists, event logs,
+and block hashes. Other chains still use Etherscan.
+Public Ink exports remain disabled until a real-market export passes validation.
+
+- Set server-only `BLOCKSCOUT_API_KEY` to a PRO API key from `dev.blockscout.com`.
+  The existing Ink deployment verification key was accepted by this endpoint.
+- Add chain `763373` to `EXPORT_RPC_URLS` for local export checks. Configuration
+  is checked per requested chain; other chains do not need an Ink endpoint.
+- Run the read-only adapter check with
+  `RUN_LIVE_EXPORT_TESTS=1 npm test -- --runInBand src/lib/export/sources/blockscout.live.test.ts`.
+  It compares the deployed token factory and token transfers against archive RPC;
+  it is not a full market export test.
+- This check passed against blocks `63010503`–`63010606`: factory logs and
+  transfers matched archive RPC, using the existing key on the PRO endpoint.
+- Record and replay a real Ink market with `npm run record:export-fixture` before
+  adding `763373` to `EXPORT_CHAIN_IDS` in `src/lib/export/types.ts`.
+
+The native public endpoint permits only ten requests per hour in observed
+responses; it is not used for exports. PRO requests are paced at one per second;
+429 responses honor `Retry-After` and remain retryable.
+
+The adapter does not rely on log pagination parameters. It splits
+block ranges at the 1,000-result cap and fails rather than truncate if one block
+still hits the cap. Trailing null topics are removed, and missing log block hashes
+come from Blockscout's block endpoint, not the RPC being cross-checked.
+Downloaded Ink manifests identify `explorer_source: "blockscout"`; the existing
+`etherscanLogCount` field retains its name for schema compatibility.
+
+### Workflow and storage
+
 1. Apply the Prisma migration to the preview database and configure the variables above.
 2. Generate one current-market export from the UI.
 3. Confirm the Workflow run has one market-part step, one assembly step, and completion.

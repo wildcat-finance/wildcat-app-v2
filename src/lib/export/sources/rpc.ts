@@ -200,7 +200,7 @@ export class ExportRpcClient implements ExportRpc {
 
   constructor(
     readonly chainId: ExportChainId,
-    private readonly urls = getExportRpcUrls()[chainId],
+    private readonly urls = getExportRpcUrls(chainId),
     private readonly leaseSize = 50,
   ) {
     this.providerHosts = urls.map((url) => new URL(url).host)

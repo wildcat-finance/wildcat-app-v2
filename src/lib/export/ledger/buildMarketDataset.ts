@@ -23,11 +23,8 @@ import {
   rayMul,
   SECONDS_PER_YEAR,
 } from "../bigint"
-import {
-  EtherscanLog,
-  etherscanExplorer,
-  ExportExplorer,
-} from "../sources/etherscan"
+import { EtherscanLog, ExportExplorer } from "../sources/etherscan"
+import { createExportExplorer } from "../sources/explorer"
 import {
   ExportRpc,
   fromHex,
@@ -410,7 +407,7 @@ export function compareMarketLogSources(
   explorerLogs: ComparableLog[],
 ) {
   const rpc = canonicalLogMap("RPC", rpcLogs)
-  const explorer = canonicalLogMap("Etherscan", explorerLogs)
+  const explorer = canonicalLogMap("Explorer", explorerLogs)
   const rpcOnly = [...rpc.keys()].filter((identity) => !explorer.has(identity))
   const explorerOnly = [...explorer.keys()].filter(
     (identity) => !rpc.has(identity),
@@ -425,11 +422,11 @@ export function compareMarketLogSources(
     payloadMismatches.length > 0
   ) {
     throw new Error(
-      `Independent log check failed for ${market}: RPC ${rpc.size}, Etherscan ${
+      `Independent log check failed for ${market}: RPC ${rpc.size}, Explorer ${
         explorer.size
       }; RPC-only ${rpcOnly.length}${
         rpcOnly[0] ? ` (first ${rpcOnly[0]})` : ""
-      }; Etherscan-only ${explorerOnly.length}${
+      }; Explorer-only ${explorerOnly.length}${
         explorerOnly[0] ? ` (first ${explorerOnly[0]})` : ""
       }; payload mismatches ${payloadMismatches.length}${
         payloadMismatches[0] ? ` (first ${payloadMismatches[0]})` : ""
@@ -1687,7 +1684,7 @@ export async function buildMarketDataset(
   ) => Promise<void>,
   checkpoint?: MarketDataset,
 ): Promise<MarketDataset> {
-  const marketExplorer = explorer ?? etherscanExplorer
+  const marketExplorer = explorer ?? createExportExplorer(market.chainId)
   const verifySnapshotBlock = async () => {
     const block = await rpc.getBlock(snapshotBlock)
     if (block.hash.toLowerCase() !== snapshotBlockHash.toLowerCase()) {
@@ -1741,7 +1738,7 @@ export async function buildMarketDataset(
   const historyFromBlock = checkpoint
     ? checkpoint.snapshotBlock + 1
     : market.deploymentBlock
-  const [marketLogs, transfers, etherscanLogs] = await Promise.all([
+  const [marketLogs, transfers, explorerLogs] = await Promise.all([
     rpc.getLogs(
       {
         address: market.address,
@@ -1781,7 +1778,7 @@ export async function buildMarketDataset(
   const logComparison = compareMarketLogSources(
     market.address,
     marketLogs,
-    etherscanLogs,
+    explorerLogs,
   )
   await onProgress?.("fetching_transactions")
   const allHashes = [
@@ -2310,6 +2307,9 @@ export async function buildMarketDataset(
         snapshotState.normalizedUnclaimedWithdrawals,
       ),
       revertedTransactionCoverage: "direct_only",
+      ...(market.chainId === 763373
+        ? { explorerSource: "blockscout" as const }
+        : {}),
       rpcProviders: [
         ...new Set([
           ...(checkpoint?.manifest.rpcProviders ?? []),

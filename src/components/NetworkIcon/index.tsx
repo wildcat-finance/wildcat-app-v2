@@ -35,6 +35,16 @@ export const NetworkIcon = ({
           {...props}
         />
       )
+    case SupportedChainId.InkSepolia:
+      return (
+        <Image
+          src="/ink-icon.svg"
+          alt="Ink"
+          width={width}
+          height={height}
+          {...props}
+        />
+      )
     default:
       throw Error(`Network icon not found for chainId: ${chainId}`)
   }
