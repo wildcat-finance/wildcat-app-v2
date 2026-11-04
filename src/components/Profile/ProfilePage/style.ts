@@ -2,7 +2,10 @@ import type { SxProps, Theme } from "@mui/material"
 
 import { pageCalcHeights } from "@/utils/constants"
 
-import { BORROWER_PROFILE_VERIFICATION_GUTTER } from "../components/VerificationDisclosure/style"
+import {
+  BORROWER_PROFILE_VERIFICATION_GUTTER,
+  BORROWER_PROFILE_VERIFICATION_NOTE_SPAN,
+} from "../components/VerificationDisclosure/style"
 
 export const MobileContentContainer = {
   height: "100%",
@@ -19,3 +22,14 @@ export const PageContentContainer: SxProps<Theme> = (theme) => ({
     paddingRight: "44px",
   },
 })
+
+export const DefaultNoticeContainer: SxProps<Theme> = {
+  marginBottom: "28px",
+  marginRight: {
+    lg: `calc(0px - ${BORROWER_PROFILE_VERIFICATION_NOTE_SPAN})`,
+  },
+}
+
+export const MobileDefaultNoticeContainer = {
+  marginBottom: "4px",
+}

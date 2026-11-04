@@ -1363,7 +1363,7 @@
         "entityKind": "Entity Legal Form",
         "defaults": {
           "title": "Defaults",
-          "tooltip": "The number of markets owned by this borrower that have incurred the penalty rate continuously for at least 90 days."
+          "tooltip": "The number of markets owned by this borrower that stayed delinquent without interruption for more than 90 days past their grace period. Defaults remain counted after repayment or closure."
         }
       },
       "verification": {

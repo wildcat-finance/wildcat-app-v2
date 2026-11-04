@@ -6,17 +6,24 @@ import { Box, Divider } from "@mui/material"
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetServiceAgreementStatus } from "@/app/[locale]/borrower/hooks/useGetServiceAgreementStatus"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
+import { BorrowerDefaultNotice } from "@/components/DefaultNotice"
 import { Footer } from "@/components/Footer"
+import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { useDefaultedMarkets } from "@/hooks/useDefaultedMarkets"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { trimAddress } from "@/utils/formatters"
-import { countMarketsInDefault } from "@/utils/marketStatus"
 
 import { MarketsBlock } from "./components/MarketsBlock"
 import { MobileNamePageBlockWrapper } from "./components/MobileNamePageBlockWrapper"
 import { ProfilePageSkeleton } from "./components/PageSkeleton"
 import { ProfileNamePageBlock } from "./components/ProfileNamePageBlock"
 import { ProfilePageProps } from "./interface"
-import { PageContentContainer, MobileContentContainer } from "./style"
+import {
+  DefaultNoticeContainer,
+  MobileContentContainer,
+  MobileDefaultNoticeContainer,
+  PageContentContainer,
+} from "./style"
 import { OverallBlock } from "../components/OverallBlock"
 import { ToUStatusBlock } from "../components/ToUStatusBlock"
 import { BorrowerProfileVerificationDisclosure } from "../components/VerificationDisclosure"
@@ -39,19 +46,31 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
   const isLoading = isMarketsLoading || isProfileLoading
   const activeMarkets = borrowerMarkets?.filter((market) => !market.isClosed)
   const marketsAmount = (activeMarkets ?? []).length
-  const defaults = countMarketsInDefault(borrowerMarkets)
+  const { chainId: currentChainId } = useCurrentNetwork()
+  const {
+    isLoading: isDefaultsLoading,
+    isError: isDefaultsError,
+    isDefaulted,
+    defaultedMarketsOfBorrower,
+  } = useDefaultedMarkets(currentChainId)
+  const defaults =
+    isDefaultsLoading || isDefaultsError
+      ? undefined
+      : defaultedMarketsOfBorrower(profileAddress).length
+  const listedMarkets = borrowerMarkets?.filter(
+    (market) => !market.isClosed || isDefaulted(market.address),
+  )
+  const listedMarketsAmount = (listedMarkets ?? []).length
+  const hasListedMarkets = listedMarketsAmount > 0
+  const showDefaultNotice = isExternal && !!defaults
   const accountName = profileData?.name ?? trimAddress(profileAddress as string)
 
   // Mobile
   const [section, setSection] = useState<"markets" | "info">("markets")
 
   useEffect(() => {
-    if (marketsAmount === 0) {
-      setSection("info")
-    } else {
-      setSection("markets")
-    }
-  }, [marketsAmount])
+    setSection(hasListedMarkets ? "markets" : "info")
+  }, [hasListedMarkets])
 
   if (isLoading)
     return <ProfilePageSkeleton isExternal={isExternal} isMobile={isMobile} />
@@ -59,24 +78,34 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
   if (isMobile)
     return (
       <Box sx={MobileContentContainer}>
+        {showDefaultNotice && (
+          <Box sx={MobileDefaultNoticeContainer}>
+            <BorrowerDefaultNotice />
+          </Box>
+        )}
+
         <BorrowerProfileVerificationDisclosure showNote={false} />
 
         <MobileNamePageBlockWrapper
           section={section}
           setSection={setSection}
-          marketsAmount={marketsAmount}
+          marketsAmount={listedMarketsAmount}
         >
           <ProfileNamePageBlock
             {...profileData}
             name={accountName}
-            marketsAmount={marketsAmount}
+            marketsAmount={listedMarketsAmount}
             isExternal={isExternal}
             isMobile={isMobile}
           />
         </MobileNamePageBlockWrapper>
 
         {section === "markets" && (
-          <MarketsBlock markets={borrowerMarkets} isLoading={isLoading} />
+          <MarketsBlock
+            markets={listedMarkets}
+            isLoading={isLoading}
+            isDefaulted={isDefaulted}
+          />
         )}
 
         {section === "info" && (
@@ -106,10 +135,16 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
 
   return (
     <Box sx={PageContentContainer}>
+      {showDefaultNotice && (
+        <Box sx={DefaultNoticeContainer}>
+          <BorrowerDefaultNotice />
+        </Box>
+      )}
+
       <ProfileNamePageBlock
         {...profileData}
         name={accountName}
-        marketsAmount={marketsAmount}
+        marketsAmount={listedMarketsAmount}
         isExternal={isExternal}
         isMobile={isMobile}
       />
@@ -136,8 +171,12 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
         isPage
       />
 
-      {marketsAmount !== 0 && (
-        <MarketsBlock markets={activeMarkets} isLoading={isLoading} />
+      {listedMarketsAmount !== 0 && (
+        <MarketsBlock
+          markets={listedMarkets}
+          isLoading={isLoading}
+          isDefaulted={isDefaulted}
+        />
       )}
     </Box>
   )

@@ -24,11 +24,15 @@ export const ProfileSection = ({
 
   const activeMarkets = borrowerMarkets?.filter((market) => !market.isClosed)
   const marketsAmount = (activeMarkets ?? []).length
-  const { isLoading: isDefaultsLoading, defaultedMarketsOfBorrower } =
-    useDefaultedMarkets(externalChainId)
-  const defaults = isDefaultsLoading
-    ? undefined
-    : defaultedMarketsOfBorrower(profileAddress).length
+  const {
+    isLoading: isDefaultsLoading,
+    isError: isDefaultsError,
+    defaultedMarketsOfBorrower,
+  } = useDefaultedMarkets(externalChainId)
+  const defaults =
+    isDefaultsLoading || isDefaultsError
+      ? undefined
+      : defaultedMarketsOfBorrower(profileAddress).length
 
   return (
     <>

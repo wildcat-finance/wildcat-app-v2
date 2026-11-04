@@ -19,6 +19,8 @@ const DESKTOP_NOTE_GAP = "36px"
 
 export const BORROWER_PROFILE_VERIFICATION_GUTTER = `calc(${NOTE_LAYOUT.desktop.right} + ${NOTE_LAYOUT.desktop.width} + ${DESKTOP_NOTE_GAP})`
 
+export const BORROWER_PROFILE_VERIFICATION_NOTE_SPAN = `calc(${NOTE_LAYOUT.desktop.width} + ${DESKTOP_NOTE_GAP})`
+
 const getVerificationNoteWidth = (variant: VerificationDisclosureVariant) => {
   if (variant === "inline") return "100%"
 
