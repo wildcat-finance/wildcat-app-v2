@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next"
 
 import DefaultedIcon from "@/assets/icons/defaulted_icon.svg"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
 export const DefaultedGlyph = ({
@@ -36,6 +37,7 @@ export const LenderMarketDefaultNotice = ({
   showUnfulfilledRequest,
 }: LenderMarketDefaultNoticeProps) => {
   const { t } = useTranslation()
+  const isMobile = useMobileResolution()
 
   return (
     <Box
@@ -46,7 +48,7 @@ export const LenderMarketDefaultNotice = ({
         gap: "10px",
         padding: "8px",
         borderRadius: "14px",
-        border: `1px solid ${COLORS.iron}`,
+        border: isMobile ? "none" : `1px solid ${COLORS.iron}`,
         bgcolor: COLORS.bunker,
       }}
     >
@@ -59,7 +61,10 @@ export const LenderMarketDefaultNotice = ({
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          <Typography variant="title3" color={COLORS.white}>
+          <Typography
+            variant={isMobile ? "mobH3" : "title3"}
+            color={COLORS.white}
+          >
             {t("defaultedMarkets.lenderNotice.title")}
           </Typography>
           <DefaultedGlyph
@@ -70,7 +75,7 @@ export const LenderMarketDefaultNotice = ({
         </Box>
 
         <Typography
-          variant="text2"
+          variant={isMobile ? "mobText2" : "text2"}
           color={COLORS.white}
           sx={{ opacity: 0.8, maxWidth: "544px" }}
         >
@@ -91,16 +96,22 @@ export const LenderMarketDefaultNotice = ({
             bgcolor: COLORS.white,
             [theme.breakpoints.down("md")]: {
               flexDirection: "column",
-              alignItems: "flex-start",
-              gap: "8px",
+              alignItems: "stretch",
+              gap: "12px",
             },
           })}
         >
           <Box sx={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-            <Typography variant="text3Highlighted" color={COLORS.blackRock}>
+            <Typography
+              variant={isMobile ? "mobText3SemiBold" : "text3Highlighted"}
+              color={COLORS.blackRock}
+            >
               {t("defaultedMarkets.lenderNotice.unfulfilledRequest.title")}
             </Typography>
-            <Typography variant="text3" color={COLORS.blackRock08}>
+            <Typography
+              variant={isMobile ? "mobText3" : "text3"}
+              color={COLORS.blackRock08}
+            >
               {t("defaultedMarkets.lenderNotice.unfulfilledRequest.subtitle")}
             </Typography>
           </Box>
@@ -111,7 +122,8 @@ export const LenderMarketDefaultNotice = ({
             target="_blank"
             rel="noopener noreferrer"
             variant="contained"
-            size="small"
+            size={isMobile ? "large" : "small"}
+            fullWidth={isMobile}
             sx={{ flexShrink: 0, whiteSpace: "nowrap" }}
           >
             {t("defaultedMarkets.jurisButton")}
@@ -128,6 +140,7 @@ export type BorrowerDefaultNoticeProps = {
 
 export const BorrowerDefaultNotice = ({ href }: BorrowerDefaultNoticeProps) => {
   const { t } = useTranslation()
+  const isMobile = useMobileResolution()
 
   return (
     <Box
@@ -160,11 +173,14 @@ export const BorrowerDefaultNotice = ({ href }: BorrowerDefaultNoticeProps) => {
         <DefaultedGlyph size="20px" color={COLORS.white} />
 
         <Box sx={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-          <Typography variant="text3Highlighted" color={COLORS.white}>
+          <Typography
+            variant={isMobile ? "mobText3SemiBold" : "text3Highlighted"}
+            color={COLORS.white}
+          >
             {t("defaultedMarkets.borrowerNotice.title")}
           </Typography>
           <Typography
-            variant="text3"
+            variant={isMobile ? "mobText3" : "text3"}
             color={COLORS.white}
             sx={{ opacity: 0.8 }}
           >

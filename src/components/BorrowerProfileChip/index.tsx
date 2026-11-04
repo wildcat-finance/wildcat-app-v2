@@ -86,6 +86,7 @@ const CHIP_SIZE_STYLES = {
 
 export const DefaultedBorrowerBadge = ({ count }: { count: number }) => {
   const { t } = useTranslation()
+  const isMobile = useMobileResolution()
 
   return (
     <Tooltip
@@ -94,7 +95,7 @@ export const DefaultedBorrowerBadge = ({ count }: { count: number }) => {
       title={
         <Paper>
           <Typography
-            variant="text4"
+            variant={isMobile ? "mobText4" : "text4"}
             color={COLORS.blackRock}
             sx={{ whiteSpace: "nowrap" }}
           >

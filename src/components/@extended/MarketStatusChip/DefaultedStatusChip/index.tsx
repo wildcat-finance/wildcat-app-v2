@@ -3,6 +3,7 @@ import SvgIcon from "@mui/material/SvgIcon"
 import { useTranslation } from "react-i18next"
 
 import DefaultedIcon from "@/assets/icons/defaulted_icon.svg"
+import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 
@@ -15,6 +16,7 @@ export const DefaultedStatusChip = ({
   periodLayout = "stacked",
 }: DefaultedStatusChipProps) => {
   const { t } = useTranslation()
+  const isMobile = useMobileResolution()
 
   const label = t("defaultedMarkets.chip.label")
   const days = Math.floor(penaltyDays)
@@ -42,6 +44,7 @@ export const DefaultedStatusChip = ({
   if (!withPeriod || days < 1) return chip
 
   const isInline = periodLayout === "inline"
+  const inlineVariant = isMobile ? "mobText4" : "text4"
 
   return (
     <Box
@@ -58,7 +61,7 @@ export const DefaultedStatusChip = ({
     >
       {chip}
       <Typography
-        variant={isInline ? "text4" : undefined}
+        variant={isInline ? inlineVariant : undefined}
         sx={{
           color: COLORS.blackRock08,
           whiteSpace: "nowrap",
