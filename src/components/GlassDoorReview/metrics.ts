@@ -1,0 +1,394 @@
+// Temporary: the metric review page (product#917). Remove with the page.
+//
+// What the review page shows for one metric: its group, its value for the
+// selection (or TBD with the reason), its published comparison and the card
+// copy of the cards it feeds. Copy comes from the catalogue and the live
+// cards, never written here.
+
+import type {
+  BorrowerAnalytics,
+  Comparison,
+  MarketAnalytics,
+  MetricValue,
+  MetricValues,
+} from "@/components/GlassDoor/api"
+import {
+  ageDays,
+  apr,
+  contractKept,
+  count,
+  days,
+  hours,
+  isNumber,
+  lifeShare,
+  percent,
+  score,
+  trend,
+  units,
+} from "@/components/GlassDoor/format"
+import { isoDay, lifecycle, yesNo } from "@/components/GlassDoor/helpers"
+import { GATES } from "@/components/GlassDoor/rules"
+import {
+  BREACH_RECOUNT,
+  CARDS,
+  metric as metricLabel,
+} from "@/components/GlassDoor/wording"
+
+import { SPEC_METRICS, SPEC_SOURCE, SpecMetric } from "./catalogue"
+
+export type Group = "borrower" | "market"
+
+export const GROUPS: { key: Group; title: string }[] = [
+  { key: "borrower", title: "Borrower metrics" },
+  { key: "market", title: "Market metrics" },
+]
+
+// The sheet's prefixes: S is one borrower across all their markets, M one
+// market. Derived ids follow the record that publishes them; D11 is the
+// borrower header's defaults badge.
+const BORROWER_DERIVED = new Set(["D11", "D15", "D16", "D21"])
+
+export const groupOf = (id: string): Group =>
+  id.startsWith("S") || BORROWER_DERIVED.has(id) ? "borrower" : "market"
+
+export const metricsIn = (group: Group) =>
+  SPEC_METRICS.filter((metric) => groupOf(metric.id) === group)
+
+/** One read of the selection, as the page holds it. */
+export type Source<T> =
+  | { status: "none" }
+  | { status: "loading" }
+  | { status: "error" }
+  | { status: "preparing" }
+  | { status: "unavailable" }
+  | { status: "ok"; data: T }
+
+export type ReviewData = {
+  market: Source<MarketAnalytics>
+  borrower: Source<BorrowerAnalytics>
+  /** Market type labels (G4), read from the market's hooks and app data. */
+  typeLabels?: string[]
+  typeLabelsLoading?: boolean
+}
+
+export type Shown =
+  | { kind: "loading" }
+  | { kind: "tbd"; reason: string }
+  | { kind: "value"; text: string; raw?: MetricValue }
+
+const NOUN: Record<Group, string> = { market: "market", borrower: "borrower" }
+
+/** Why a record cannot be read yet, or undefined when it can. */
+export const recordGap = (
+  source: Source<MarketAnalytics | BorrowerAnalytics>,
+  group: Group,
+): Shown | undefined => {
+  const noun = NOUN[group]
+  switch (source.status) {
+    case "none":
+      return { kind: "tbd", reason: `TBD: select a ${noun}` }
+    case "loading":
+      return { kind: "loading" }
+    case "error":
+      return {
+        kind: "tbd",
+        reason: `TBD: the ${noun} analytics could not be loaded`,
+      }
+    case "preparing":
+      return {
+        kind: "tbd",
+        reason: `TBD: this ${noun}'s history is being prepared`,
+      }
+    case "unavailable":
+      return {
+        kind: "tbd",
+        reason: `TBD: Glass Door has no record of this ${noun} on this network`,
+      }
+    default:
+  }
+  const record = source.data
+  if (record.state === "Preparing")
+    return { kind: "tbd", reason: `TBD: this ${noun} is being prepared` }
+  if (record.state === "UnderReview" || !Object.keys(record.values).length)
+    return {
+      kind: "tbd",
+      // The review reason shows once, under the group heading (reviewReason).
+      reason: `TBD: this ${noun} is under review, so its values are withheld`,
+    }
+  return undefined
+}
+
+/** A record's under-review reason, shown once per group. */
+export const reviewReason = (
+  source: Source<MarketAnalytics | BorrowerAnalytics>,
+) =>
+  source.status === "ok" &&
+  source.data.state === "UnderReview" &&
+  source.data.reason
+    ? source.data.reason
+    : undefined
+
+const pointsChange = (value: number) =>
+  `${value < 0 ? "−" : "+"}${lifeShare(Math.abs(value)).replace("%", "")} pp`
+
+const seconds = (value: number) =>
+  `${count(value)} s = ${score(value / 86_400)} days`
+
+const tokenAmount = (value: number, asset?: string) =>
+  `${units(value)}${asset ? ` ${asset}` : ""}`
+
+type Format = (value: number, asset?: string) => string
+
+// Published units, which differ from the sheet's for D15 and H09: D15 is
+// published in days and H09 as a flag (the pipeline's tailPenalised).
+const NUMBER_FORMAT: Record<string, Format> = {
+  M05: ageDays,
+  M06: tokenAmount,
+  M07: tokenAmount,
+  M08: tokenAmount,
+  M11: apr,
+  M12: pointsChange,
+  M13: (v) => percent(v),
+  M14: (v) => percent(v),
+  M15: (v) => hours(v),
+  M16: (v) => hours(v),
+  M18: (v) => score(v),
+  M20: count,
+  M21: (v) => `${yesNo(v)} (${count(v)})`,
+  M22: (v) => hours(v),
+  M23: (v) => hours(v),
+  M24: (v) => percent(v),
+  M25: count,
+  M26: lifeShare,
+  M27: tokenAmount,
+  M30: count,
+  M31: count,
+  M32: (v) => percent(v),
+  M33: (v) => percent(v),
+  M37: count,
+  M38: tokenAmount,
+  M39: apr,
+  M40: apr,
+  M41: tokenAmount,
+  M42: lifeShare,
+  M44: count,
+  M48: count,
+  M49: count,
+  M51: (v) => percent(v),
+  M56: tokenAmount,
+  M57: tokenAmount,
+  M58: tokenAmount,
+  M59: count,
+  M60: count,
+  M67: (v) => score(v),
+  M68: trend,
+  M69: count,
+  M70: count,
+  M71: count,
+  M72: count,
+  M80: (v) => hours(v),
+  M82: (v) => hours(v),
+  M83: (v) => percent(v),
+  M84: days,
+  M85: (v) => `${yesNo(v)} (${count(v)})`,
+  M86: (v) => percent(v),
+  S01: count,
+  S05: (v) => score(v),
+  S06: (v) => score(v),
+  S07: (v) => score(v),
+  S12: count,
+  S13: count,
+  S14: count,
+  S15: count,
+  S16: (v) => percent(v),
+  S17: (v) => percent(v),
+  S18: count,
+  S27: (v) => score(v),
+  S28: trend,
+  S30: count,
+  // Book sums can mix assets, so they carry no symbol.
+  S31: (v) => units(v),
+  S32: (v) => percent(v),
+  S33: count,
+  S34: count,
+  S35: (v) => units(v),
+  S36: (v) => units(v),
+  S37: count,
+  D03: tokenAmount,
+  D10: (v) => percent(v),
+  D15: days,
+  D16: (v) => hours(v),
+  D17: days,
+  D21: contractKept,
+  H01: seconds,
+  H02: seconds,
+  H08: seconds,
+  H09: (v) => `${yesNo(v)} (${count(v)})`,
+}
+
+const TEXT_FORMAT: Record<
+  string,
+  (text: string, values: MetricValues) => string
+> = {
+  M01: (symbol, values) =>
+    typeof values.MARKET_NAME === "string" && values.MARKET_NAME
+      ? `${symbol} (${values.MARKET_NAME})`
+      : symbol,
+  M03: (day) => isoDay(day),
+  M77: (status) => lifecycle(status),
+  S02: (day) => isoDay(day),
+}
+
+/** A published value in the design's number rules; undefined when blank. */
+export const formatValue = (
+  id: string,
+  value: MetricValue | undefined,
+  values: MetricValues = {},
+) => {
+  const asset =
+    typeof values.M02 === "string" && values.M02 ? values.M02 : undefined
+  if (isNumber(value)) return (NUMBER_FORMAT[id] ?? score)(value, asset)
+  if (typeof value === "string" && value !== "")
+    return TEXT_FORMAT[id]?.(value, values) ?? value
+  return undefined
+}
+
+/** Ids the publication does not carry, each with its reason. */
+const NOT_PUBLISHED: Record<string, string> = {
+  M25: BREACH_RECOUNT,
+  M83: BREACH_RECOUNT,
+  S13: BREACH_RECOUNT,
+  D11: "TBD: defaults on record come from off-chain app data (the defaults badge), not from the Glass Door publication",
+}
+
+/** The value for the selection, or TBD with the reason. */
+export const shownValue = (metric: SpecMetric, data: ReviewData): Shown => {
+  const group = groupOf(metric.id)
+  if (metric.id === "G4") {
+    const gap = recordGap(data.market, "market")
+    if (gap && data.market.status !== "ok") return gap
+    if (data.typeLabels?.length)
+      return { kind: "value", text: data.typeLabels.join(" · ") }
+    if (data.typeLabelsLoading) return { kind: "loading" }
+    return {
+      kind: "tbd",
+      reason: "TBD: the market's hooks could not be read from the chain",
+    }
+  }
+  if (NOT_PUBLISHED[metric.id])
+    return { kind: "tbd", reason: NOT_PUBLISHED[metric.id] }
+  const source = group === "market" ? data.market : data.borrower
+  const gap = recordGap(source, group)
+  if (gap || source.status !== "ok")
+    return gap ?? { kind: "tbd", reason: "TBD" }
+  const { values } = source.data
+  if (!(metric.id in values))
+    return { kind: "tbd", reason: "TBD: not in the current publication" }
+  const raw = values[metric.id]
+  const text = formatValue(metric.id, raw, values)
+  if (text === undefined)
+    return {
+      kind: "tbd",
+      reason: `TBD: no value published for this ${NOUN[group]}`,
+    }
+  return { kind: "value", text, raw }
+}
+
+/** The published comparison for this metric, from its own record. */
+export const comparisonOf = (
+  metric: SpecMetric,
+  data: ReviewData,
+): Comparison | undefined => {
+  const source = groupOf(metric.id) === "market" ? data.market : data.borrower
+  return source.status === "ok" ? source.data.comparisons[metric.id] : undefined
+}
+
+const POPULATION: Record<Group, string> = {
+  market: "markets",
+  borrower: "borrowers",
+}
+
+/** The Comparison part: median, population and rank, as published. */
+export const comparisonText = (metric: SpecMetric, data: ReviewData) => {
+  const group = groupOf(metric.id)
+  const source = group === "market" ? data.market : data.borrower
+  const gap = recordGap(source, group)
+  if (gap?.kind === "loading") return "loading…"
+  if (gap?.kind === "tbd") return gap.reason
+  const comparison = comparisonOf(metric, data)
+  if (!comparison) return "TBD: no comparison is published for this metric"
+  const noun = POPULATION[group]
+  const median =
+    formatValue(metric.id, comparison.median) ?? score(comparison.median)
+  const age =
+    group === "market" && source.status === "ok"
+      ? source.data.values.M05
+      : undefined
+  let rank = `no rank is published for this ${NOUN[group]}`
+  if (comparison.betterThan !== undefined)
+    rank = `better than ${count(comparison.betterThan)} of ${count(
+      comparison.population,
+    )} graded ${noun}`
+  else if (isNumber(age) && age < GATES.gradeDays)
+    rank = `ranked once it has ${
+      GATES.gradeDays
+    } days of record; it has ${count(age)}`
+  return `median ${median} across ${count(
+    comparison.population,
+  )} graded ${noun}; ${rank}`
+}
+
+/** Card numbers among Used on cards ("2.1"), without header and table. */
+export const cardNumbers = (metric: SpecMetric) =>
+  metric.cards.filter((card) => /^\d+\.\d+$/.test(card))
+
+/** The tells parts have no per-metric source; CopyLines adds the card copy. */
+export const PART_TBD = `TBD: not in the metric spec (${SPEC_SOURCE.replace(
+  "Wildcat analytics ",
+  "",
+)})`
+
+export type CardCopyLine = { card: string; name?: string; text?: string }
+
+/** The handoff's card copy for each card the metric feeds (cards.json). */
+export const cardCopy = (
+  metric: SpecMetric,
+  part: "tells" | "notTells",
+): CardCopyLine[] =>
+  cardNumbers(metric).map((card) => {
+    const copy = CARDS[card]
+    return copy ? { card, name: copy.name, text: copy[part] } : { card }
+  })
+
+/** Where the metric also shows besides cards. */
+export const PLACES: Record<string, string> = {
+  header: "the page header",
+  table: "the per-market table",
+}
+
+const paddedId = (text: string) => {
+  const match = text.match(/^([a-z])(\d+)$/i)
+  if (!match) return undefined
+  const letter = match[1].toUpperCase()
+  return [`${letter}${match[2]}`, `${letter}${match[2].padStart(2, "0")}`]
+}
+
+/**
+ * The metric a "Go to metric" entry names: its full label, its id ("m18",
+ * "M1" for M01) or the first name containing the text.
+ */
+export const findMetric = (text: string) => {
+  const query = text.trim().replace(/^\((.*)\)$/, "$1")
+  if (!query) return undefined
+  const lower = query.toLowerCase()
+  const byLabel = SPEC_METRICS.find(
+    (metric) => metricLabel(metric.id).toLowerCase() === lower,
+  )
+  if (byLabel) return byLabel.id
+  const ids = paddedId(query)
+  const byId = ids && SPEC_METRICS.find((metric) => ids.includes(metric.id))
+  if (byId) return byId.id
+  return SPEC_METRICS.find((metric) =>
+    metricLabel(metric.id).toLowerCase().includes(lower),
+  )?.id
+}
