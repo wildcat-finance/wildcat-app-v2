@@ -6,6 +6,7 @@ import { Box, Skeleton, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
+import { getAllMarketsAmounts } from "@/app/[locale]/lender/components/LenderDataProvider/allMarketsAmounts"
 import { LenderMarketsMobileHeader } from "@/app/[locale]/lender/components/LenderMarketsMobileHeader"
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
 import { ComposableOnlySwitch } from "@/components/Destinations"
@@ -26,16 +27,14 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setLendersSectionAmount } from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
 import {
   LenderAllMarketsTab,
+  LenderSection,
+  resetOtherSectionTabs,
   setAllMarketsTab,
 } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { setMarketFilters } from "@/store/slices/marketFiltersSlice/marketFiltersSlice"
 import { COLORS } from "@/theme/colors"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
 import { filterMarketAccounts } from "@/utils/filters"
-import {
-  getKnownMarketOnboardingMode,
-  MarketOnboardingMode,
-} from "@/utils/marketOnboarding"
 import { MarketStatus } from "@/utils/marketStatus"
 
 import { OtherMarketsTable } from "../MarketsTables/OtherMarketsTable"
@@ -53,6 +52,9 @@ export const AllMarketsSection = () => {
   useEffect(() => setMounted(true), [])
 
   const dispatch = useAppDispatch()
+  useEffect(() => {
+    dispatch(resetOtherSectionTabs(LenderSection.ALL_MARKETS))
+  }, [dispatch])
   const { t } = useTranslation()
   useAccount()
   const {
@@ -62,8 +64,13 @@ export const AllMarketsSection = () => {
     isTestnet,
   } = useCurrentNetwork()
 
-  const { marketAccounts, isLoadingInitial, onboardingByMarket, borrowers } =
-    useLenderMarketsContext()
+  const {
+    marketAccounts,
+    isLoadingInitial,
+    onboardingByMarket,
+    borrowers,
+    defaults,
+  } = useLenderMarketsContext()
 
   const destinations = useDestinations(selectedChainId)
   const { markets: destinationsByMarket } = destinations
@@ -73,6 +80,7 @@ export const AllMarketsSection = () => {
   )
 
   const allMarketsTab = useAppSelector((s) => s.lenderDashboard.allMarketsTab)
+  const isDefaultedTab = allMarketsTab === LenderAllMarketsTab.DEFAULTED
 
   const marketFilters = useAppSelector((s) => s.marketFilters.lender)
   const {
@@ -82,6 +90,8 @@ export const AllMarketsSection = () => {
     withdrawalCycles: marketWithdrawalCycles,
     composableOnly,
   } = marketFilters
+
+  const composableFilterActive = composableOnly && !isDefaultedTab
 
   const setComposableOnly = useCallback(
     (value: boolean) =>
@@ -174,14 +184,14 @@ export const AllMarketsSection = () => {
         (status) => status.name,
       ) as MarketStatus[],
       withdrawalCycleFilter: marketWithdrawalCycles,
-      composableOnly,
+      composableOnly: composableFilterActive,
     }),
     [
       marketSearch,
       marketAssets,
       marketStatuses,
       marketWithdrawalCycles,
-      composableOnly,
+      composableFilterActive,
     ],
   )
 
@@ -209,7 +219,7 @@ export const AllMarketsSection = () => {
       composableSet.has(account.market.address.toLowerCase()),
     )
     return {
-      filteredMarketAccounts: composableOnly ? composable : filtered,
+      filteredMarketAccounts: composableFilterActive ? composable : filtered,
       composableCount: composable.length,
     }
   }, [
@@ -220,45 +230,29 @@ export const AllMarketsSection = () => {
     borrowers,
     marketWithdrawalCycles,
     composableSet,
-    composableOnly,
+    composableFilterActive,
   ])
 
-  const showComposableSwitch = composableCount > 0 || composableOnly
+  const showComposableSwitch =
+    !isDefaultedTab && (composableCount > 0 || composableOnly)
   const isLoading =
-    isLoadingInitial || (composableOnly && destinations.isPending)
+    isLoadingInitial || (composableFilterActive && destinations.isPending)
 
-  const selfOnboardAmount = useMemo(
-    () =>
-      otherMarketAccounts.filter(
-        (account) =>
-          !account.market.isClosed &&
-          getKnownMarketOnboardingMode(
-            account.market.version,
-            account.market.address,
-            onboardingByMarket,
-          ) === MarketOnboardingMode.SelfOnboard,
-      ).length,
-    [onboardingByMarket, otherMarketAccounts],
-  )
+  const isTableLoading = isLoading || (isDefaultedTab && defaults.isLoading)
 
-  const manualAmount = useMemo(
+  const {
+    selfOnboard: selfOnboardAmount,
+    manual: manualAmount,
+    terminatedOther: terminatedOtherAmount,
+    defaultedOther: defaultedAmount,
+  } = useMemo(
     () =>
-      otherMarketAccounts.filter(
-        (account) =>
-          !account.market.isClosed &&
-          getKnownMarketOnboardingMode(
-            account.market.version,
-            account.market.address,
-            onboardingByMarket,
-          ) === MarketOnboardingMode.BorrowerApproval,
-      ).length,
-    [onboardingByMarket, otherMarketAccounts],
-  )
-
-  const terminatedOtherAmount = useMemo(
-    () =>
-      otherMarketAccounts.filter((account) => account.market.isClosed).length,
-    [otherMarketAccounts],
+      getAllMarketsAmounts(
+        otherMarketAccounts,
+        onboardingByMarket,
+        defaults.isDefaulted,
+      ),
+    [otherMarketAccounts, onboardingByMarket, defaults.isDefaulted],
   )
 
   useEffect(() => {
@@ -282,19 +276,32 @@ export const AllMarketsSection = () => {
     )
     dispatch(
       setLendersSectionAmount({
+        name: "defaultedOther",
+        value: isWrongNetwork ? 0 : defaultedAmount,
+      }),
+    )
+    dispatch(
+      setLendersSectionAmount({
         name: "allMarkets",
         value: isWrongNetwork
           ? 0
-          : selfOnboardAmount + manualAmount + terminatedOtherAmount,
+          : selfOnboardAmount +
+            manualAmount +
+            terminatedOtherAmount +
+            defaultedAmount,
       }),
     )
   }, [
     selfOnboardAmount,
     manualAmount,
     terminatedOtherAmount,
+    defaultedAmount,
     isWrongNetwork,
     dispatch,
   ])
+
+  const defaultedTabCount =
+    defaults.isLoading || defaults.isError ? undefined : defaultedAmount
 
   const { data: tokensRaw } = useAllTokensWithMarkets()
   const tokens = useMemo(() => {
@@ -353,6 +360,11 @@ export const AllMarketsSection = () => {
                   value: LenderAllMarketsTab.TERMINATED,
                   label: t("dashboard.markets.tables.other.terminated"),
                   count: isWrongNetwork ? 0 : terminatedOtherAmount,
+                },
+                {
+                  value: LenderAllMarketsTab.DEFAULTED,
+                  label: t("defaultedMarkets.tab"),
+                  count: isWrongNetwork ? 0 : defaultedTabCount,
                 },
               ]}
             />
@@ -419,7 +431,7 @@ export const AllMarketsSection = () => {
           marketAccounts={filteredMarketAccounts}
           onboardingByMarket={onboardingByMarket}
           borrowers={borrowers ?? []}
-          isLoading={isLoading}
+          isLoading={isTableLoading}
           filters={filters}
           destinations={destinations}
           mobileHeader={

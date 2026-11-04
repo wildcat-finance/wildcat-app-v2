@@ -29,7 +29,7 @@ export const LenderMarketsMobileHeader = ({
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const { isConnected, isReconnecting } = useAccount()
-  const { isLoadingInitial } = useLenderMarketsContext()
+  const { isLoadingInitial, defaults } = useLenderMarketsContext()
 
   const allMarketsTab = useAppSelector(
     (state) => state.lenderDashboard.allMarketsTab,
@@ -45,9 +45,14 @@ export const LenderMarketsMobileHeader = ({
     selfOnboard,
     manual,
     terminatedOther,
+    defaulted,
+    defaultedOther,
   } = useAppSelector((state) => state.lenderDashboardAmounts)
 
   const terminatedMine = prevActive + neverActive
+
+  const defaultedCount = (amount: number) =>
+    defaults.isLoading || defaults.isError ? undefined : amount
 
   const showPageSwitch = isConnected || isReconnecting || page === "yours"
 
@@ -55,13 +60,13 @@ export const LenderMarketsMobileHeader = ({
     {
       value: "yours",
       label: t("dashboard.markets.switcher.yours"),
-      count: deposited + nonDeposited + terminatedMine,
+      count: deposited + nonDeposited + terminatedMine + defaulted,
       href: ROUTES.lender.myMarkets,
     },
     {
       value: "others",
       label: t("dashboard.markets.switcher.others"),
-      count: selfOnboard + manual + terminatedOther,
+      count: selfOnboard + manual + terminatedOther + defaultedOther,
       href: ROUTES.lender.allMarkets,
     },
   ]
@@ -84,6 +89,11 @@ export const LenderMarketsMobileHeader = ({
             label: t("dashboard.markets.tables.other.terminated"),
             count: terminatedMine,
           },
+          {
+            value: LenderMyMarketsTab.DEFAULTED,
+            label: t("defaultedMarkets.tab"),
+            count: defaultedCount(defaulted),
+          },
         ]
       : [
           {
@@ -100,6 +110,11 @@ export const LenderMarketsMobileHeader = ({
             value: LenderAllMarketsTab.TERMINATED,
             label: t("dashboard.markets.tables.other.terminated"),
             count: terminatedOther,
+          },
+          {
+            value: LenderAllMarketsTab.DEFAULTED,
+            label: t("defaultedMarkets.tab"),
+            count: defaultedCount(defaultedOther),
           },
         ]
 

@@ -9,6 +9,7 @@ import { useAccount } from "wagmi"
 import AllMarketsIcon from "@/assets/icons/allMarkets_icon.svg"
 import ExploreIcon from "@/assets/icons/oneOfMany_icon.svg"
 import MyMarketsIcon from "@/assets/icons/stack_icon.svg"
+import { useDefaultedMarkets } from "@/hooks/useDefaultedMarkets"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
@@ -56,15 +57,28 @@ export const LenderNavSidebar = () => {
   const terminatedOtherAmount = useAppSelector(
     (state) => state.lenderDashboardAmounts.terminatedOther,
   )
+  const defaultedAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.defaulted,
+  )
+  const defaultedOtherAmount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.defaultedOther,
+  )
+  const { isLoading: isDefaultsLoading, isError: isDefaultsError } =
+    useDefaultedMarkets()
 
   const closedMarketsAmount = prevActiveAmount + neverActiveAmount
   const myMarketsCount =
-    depositedAmount + nonDepositedAmount + closedMarketsAmount
+    depositedAmount + nonDepositedAmount + closedMarketsAmount + defaultedAmount
   const allMarketsCount =
-    selfOnboardAmount + manualAmount + terminatedOtherAmount
+    selfOnboardAmount +
+    manualAmount +
+    terminatedOtherAmount +
+    defaultedOtherAmount
 
   const countsReady = myMarketsCount + allMarketsCount > 0
   const count = (amount: number) => (countsReady ? amount : undefined)
+  const defaultedCount = (amount: number) =>
+    isDefaultsLoading || isDefaultsError ? undefined : count(amount)
 
   const isOnExplore = pathname === ROUTES.lender.explore
   const isOnMyMarkets = pathname === ROUTES.lender.myMarkets
@@ -148,6 +162,11 @@ export const LenderNavSidebar = () => {
                     label: t("dashboard.markets.tables.other.terminated"),
                     amount: count(closedMarketsAmount),
                   },
+                  {
+                    value: LenderMyMarketsTab.DEFAULTED,
+                    label: t("defaultedMarkets.tab"),
+                    amount: defaultedCount(defaultedAmount),
+                  },
                 ]}
               />
             </Box>
@@ -192,6 +211,11 @@ export const LenderNavSidebar = () => {
                   value: LenderAllMarketsTab.TERMINATED,
                   label: t("dashboard.markets.tables.other.terminated"),
                   amount: count(terminatedOtherAmount),
+                },
+                {
+                  value: LenderAllMarketsTab.DEFAULTED,
+                  label: t("defaultedMarkets.tab"),
+                  amount: defaultedCount(defaultedOtherAmount),
                 },
               ]}
             />

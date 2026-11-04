@@ -10,12 +10,20 @@ export enum LenderAllMarketsTab {
   SELF_ONBOARD = "self-onboard",
   MANUAL = "manual",
   TERMINATED = "other-terminated",
+  DEFAULTED = "other-defaulted",
 }
 
 export enum LenderMyMarketsTab {
   DEPOSITED = "deposited",
   NON_DEPOSITED = "non-deposited",
   TERMINATED = "terminated",
+  DEFAULTED = "defaulted",
+}
+
+export enum LenderSection {
+  EXPLORE = "explore",
+  MY_MARKETS = "my-markets",
+  ALL_MARKETS = "all-markets",
 }
 
 export type LenderDashboardType = {
@@ -73,6 +81,15 @@ const lenderDashboardSlice = createSlice({
       state.marketSection = initialState.marketSection
       state.myMarketsTab = initialState.myMarketsTab
     },
+    resetOtherSectionTabs: (state, action: PayloadAction<LenderSection>) => {
+      if (action.payload !== LenderSection.MY_MARKETS) {
+        state.marketSection = initialState.marketSection
+        state.myMarketsTab = initialState.myMarketsTab
+      }
+      if (action.payload !== LenderSection.ALL_MARKETS) {
+        state.allMarketsTab = initialState.allMarketsTab
+      }
+    },
     resetLenderDashboard: () => initialState,
   },
 })
@@ -84,6 +101,7 @@ export const {
   setScrollTarget,
   setShowFullFunctionality,
   resetMarketSection,
+  resetOtherSectionTabs,
   resetLenderDashboard,
 } = lenderDashboardSlice.actions
 export default lenderDashboardSlice.reducer

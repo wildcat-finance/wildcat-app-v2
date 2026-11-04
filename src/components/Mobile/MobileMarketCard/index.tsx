@@ -34,6 +34,8 @@ export type LenderMobileMarketItem = {
   name: string
   borrower?: string
   borrowerAddress?: string
+  // Chain-wide defaulted markets of the borrower, for the chip's badge
+  borrowerDefaultedCount?: number
   asset: string
   apr: number
   withdrawalBatchDuration: number
@@ -436,6 +438,7 @@ export const MobileMarketCard = ({
                 <BorrowerProfileChip
                   borrower={marketItem.borrower ?? marketItem.borrowerAddress}
                   size="tiny"
+                  defaultedMarketsCount={marketItem.borrowerDefaultedCount}
                   href={
                     marketItem.borrowerAddress
                       ? `${ROUTES.lender.profile}/${marketItem.borrowerAddress}`

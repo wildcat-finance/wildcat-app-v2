@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next"
 
 import { LenderMarketsMobileHeader } from "@/app/[locale]/lender/components/LenderMarketsMobileHeader"
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
+import { DefaultedPositionsHeading } from "@/components/DefaultedPositionsHeading"
 import { ComposableOnlySwitch } from "@/components/Destinations"
 import { FilterTextField } from "@/components/FilterTextfield"
 import { MarketsFilterSelect } from "@/components/MarketsFilterSelect"
@@ -25,6 +26,8 @@ import { marketStatusesMock } from "@/mocks/mocks"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   LenderMyMarketsTab,
+  LenderSection,
+  resetOtherSectionTabs,
   setMyMarketsTab,
 } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { setMarketFilters } from "@/store/slices/marketFiltersSlice/marketFiltersSlice"
@@ -49,6 +52,9 @@ export const MyMarketsSection = () => {
   useEffect(() => setMounted(true), [])
 
   const dispatch = useAppDispatch()
+  useEffect(() => {
+    dispatch(resetOtherSectionTabs(LenderSection.MY_MARKETS))
+  }, [dispatch])
   const { t } = useTranslation()
   const {
     isWrongNetwork,
@@ -66,6 +72,7 @@ export const MyMarketsSection = () => {
     borrowers,
     policyMarkets,
     isPolicyMarketsLoading,
+    defaults,
   } = useLenderMarketsContext()
 
   const myMarketsTab = useAppSelector(
@@ -83,6 +90,9 @@ export const MyMarketsSection = () => {
   )
   const neverActiveCount = useAppSelector(
     (state) => state.lenderDashboardAmounts.neverActive,
+  )
+  const defaultedCount = useAppSelector(
+    (state) => state.lenderDashboardAmounts.defaulted,
   )
 
   const marketFilters = useAppSelector((s) => s.marketFilters.lender)
@@ -241,25 +251,32 @@ export const MyMarketsSection = () => {
     [filteredMarketAccounts, destinationsByMarket],
   )
 
+  const isDefaultedTab = myMarketsTab === LenderMyMarketsTab.DEFAULTED
+
   const composableCount = composableMarketAccounts.length
+  const composableFilterActive = composableOnly && !isDefaultedTab
   const isLoading =
     isLoadingInitial ||
     (isPolicyMarketsLoading && myMarketAccounts.length === 0) ||
-    (composableOnly && destinations.isPending)
-  const showComposableSwitch = composableCount > 0 || composableOnly
+    (composableFilterActive && destinations.isPending)
+  const showComposableSwitch =
+    !isDefaultedTab && (composableCount > 0 || composableOnly)
 
-  const visibleMarketAccounts = composableOnly
+  const visibleMarketAccounts = composableFilterActive
     ? composableMarketAccounts
     : filteredMarketAccounts
 
   const {
     active: filteredActiveMarkets,
     terminated: filteredTerminatedMarkets,
+    defaulted: filteredDefaultedMarkets,
   } = useMemo(
     () =>
       visibleMarketAccounts.reduce(
         (all, account) => {
-          if (!account.market.isClosed) {
+          if (defaults.isDefaulted(account.market.address)) {
+            all.defaulted.push(account)
+          } else if (!account.market.isClosed) {
             all.active.push(account)
           } else {
             all.terminated.push(account)
@@ -269,9 +286,10 @@ export const MyMarketsSection = () => {
         {
           active: [] as MarketAccount[],
           terminated: [] as MarketAccount[],
+          defaulted: [] as MarketAccount[],
         },
       ),
-    [visibleMarketAccounts],
+    [visibleMarketAccounts, defaults],
   )
 
   const { data: tokensRaw } = useAllTokensWithMarkets()
@@ -285,7 +303,8 @@ export const MyMarketsSection = () => {
     return tokensRaw
   }, [tokensRaw, targetChainId])
 
-  const showActiveTables = myMarketsTab !== LenderMyMarketsTab.TERMINATED
+  const showActiveTables =
+    myMarketsTab !== LenderMyMarketsTab.TERMINATED && !isDefaultedTab
   const showTerminatedTables = myMarketsTab === LenderMyMarketsTab.TERMINATED
 
   const mobileToolbar = (
@@ -385,9 +404,19 @@ export const MyMarketsSection = () => {
                     ? 0
                     : prevActiveCount + neverActiveCount,
                 },
+                {
+                  value: LenderMyMarketsTab.DEFAULTED,
+                  label: t("defaultedMarkets.tab"),
+                  count:
+                    isWrongNetwork || defaults.isLoading || defaults.isError
+                      ? undefined
+                      : defaultedCount,
+                },
               ]}
             />
           </Box>
+
+          {isDefaultedTab && <DefaultedPositionsHeading sx={{ mt: "32px" }} />}
 
           <Box
             sx={{
@@ -448,7 +477,7 @@ export const MyMarketsSection = () => {
           borrowers={borrowers ?? []}
           isLoading={isLoading}
           destinations={destinations}
-          composableOnly={composableOnly}
+          composableOnly={composableFilterActive}
           filters={filters}
           mobileHeader={mobileToolbar}
         />
@@ -459,7 +488,19 @@ export const MyMarketsSection = () => {
           borrowers={borrowers ?? []}
           isLoading={isLoading}
           destinations={destinations}
-          composableOnly={composableOnly}
+          composableOnly={composableFilterActive}
+          filters={filters}
+          mobileHeader={mobileToolbar}
+        />
+      )}
+      {!isWrongNetwork && isDefaultedTab && (
+        <ActiveMarketsTables
+          tab={LenderMyMarketsTab.DEFAULTED}
+          marketAccounts={filteredDefaultedMarkets}
+          borrowers={borrowers ?? []}
+          isLoading={isLoading || defaults.isLoading}
+          destinations={destinations}
+          composableOnly={composableFilterActive}
           filters={filters}
           mobileHeader={mobileToolbar}
         />

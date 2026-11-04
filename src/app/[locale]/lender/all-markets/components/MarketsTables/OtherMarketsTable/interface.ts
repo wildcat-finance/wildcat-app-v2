@@ -24,6 +24,7 @@ export type OtherMarketsTableModel = {
   name: string
   borrower: string | undefined
   borrowerAddress: string | undefined
+  borrowerDefaultedCount: number
   asset: string
   debt: TokenAmount | undefined
   capacity: TokenAmount

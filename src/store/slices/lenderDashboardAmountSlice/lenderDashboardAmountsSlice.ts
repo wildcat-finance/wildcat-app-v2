@@ -5,9 +5,11 @@ export type LenderDashboardAmountsType = {
   nonDeposited: number
   prevActive: number
   neverActive: number
+  defaulted: number
   selfOnboard: number
   manual: number
   terminatedOther: number
+  defaultedOther: number
   allMarkets: number
 }
 
@@ -16,9 +18,11 @@ export const initialState: LenderDashboardAmountsType = {
   nonDeposited: 0,
   prevActive: 0,
   neverActive: 0,
+  defaulted: 0,
   selfOnboard: 0,
   manual: 0,
   terminatedOther: 0,
+  defaultedOther: 0,
   allMarkets: 0,
 }
 

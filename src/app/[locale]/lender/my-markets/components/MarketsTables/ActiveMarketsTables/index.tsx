@@ -1,7 +1,7 @@
 import * as React from "react"
 import { useEffect } from "react"
 
-import { Box, Typography } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
 import {
   DataGrid,
   GridRow,
@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
+import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import {
@@ -23,6 +24,7 @@ import {
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
+import { DefaultedPositionsHeading } from "@/components/DefaultedPositionsHeading"
 import {
   ComposableChipCell,
   COMPOSABLE_GRID_RESIZE_THROTTLE_MS,
@@ -33,6 +35,7 @@ import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
 import { TablePagination } from "@/components/TablePagination"
 import { TotalDebtHeader } from "@/components/TotalDebtHeader"
+import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { ROUTES } from "@/routes"
 import { LenderMyMarketsTab } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
@@ -55,6 +58,8 @@ import { getMarketTypeChip } from "@/utils/marketType"
 
 import { ActiveMarketsTableModel, ActiveMarketsTableProps } from "./interface"
 import { DATA_GRID_SIDE_PADDING, DataGridSx } from "../style"
+
+const ACTION_COLUMN_WIDTH = 89
 
 const MarketLinkRow = (props: GridRowProps) => (
   <>
@@ -96,6 +101,14 @@ export const ActiveMarketsTables = ({
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const { markets: destinationsByMarket } = destinations
+  const {
+    defaults: {
+      isDefaulted,
+      defaultedMarketsOfBorrower,
+      isError: isDefaultsError,
+    },
+  } = useLenderMarketsContext()
+  const isDefaultedTab = tab === LenderMyMarketsTab.DEFAULTED
 
   const [paginationModel, setPaginationModel] = React.useState({
     pageSize: 50,
@@ -141,11 +154,13 @@ export const ActiveMarketsTables = ({
 
       return {
         id: address,
-        status: getMarketStatusChip(market),
+        status: getMarketStatusChip(market, isDefaulted(address)),
         term: getMarketTypeChip(market),
         name,
         borrower: borrowerName,
         borrowerAddress,
+        borrowerDefaultedCount:
+          defaultedMarketsOfBorrower(borrowerAddress).length,
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
         withdrawalBatchDuration,
@@ -165,18 +180,21 @@ export const ActiveMarketsTables = ({
   const depositedMarkets = rows.filter((market) => market.hasEverInteracted)
   const nonDepositedMarkets = rows.filter((market) => !market.hasEverInteracted)
 
-  const tabRows =
-    tab === LenderMyMarketsTab.NON_DEPOSITED
-      ? nonDepositedMarkets
-      : depositedMarkets
-  const tabLabel =
-    tab === LenderMyMarketsTab.NON_DEPOSITED
-      ? t("dashboard.markets.tables.borrower.active.nonDeposited")
-      : t("dashboard.markets.tables.borrower.active.deposited")
+  let tabRows = depositedMarkets
+  let tabLabel = t("dashboard.markets.tables.borrower.active.deposited")
+  if (tab === LenderMyMarketsTab.NON_DEPOSITED) {
+    tabRows = nonDepositedMarkets
+    tabLabel = t("dashboard.markets.tables.borrower.active.nonDeposited")
+  } else if (isDefaultedTab) {
+    tabRows = [...rows]
+    tabLabel = t("defaultedMarkets.tab")
+  }
 
-  const showComposableColumn = destinations.showDestinations
+  const showComposableColumn = destinations.showDestinations && !isDefaultedTab
 
-  const columns: TypeSafeColDef<ActiveMarketsTableModel>[] = [
+  const actionColumnWidth = isDefaultedTab ? 135 : ACTION_COLUMN_WIDTH
+
+  const allColumns: TypeSafeColDef<ActiveMarketsTableModel>[] = [
     {
       field: "name",
       headerName: t("dashboard.markets.tables.header.name"),
@@ -217,10 +235,16 @@ export const ActiveMarketsTables = ({
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
               style={{ display: "flex", textDecoration: "none" }}
             >
-              <BorrowerProfileChip borrower={params.row.borrower} />
+              <BorrowerProfileChip
+                borrower={params.row.borrower}
+                defaultedMarketsCount={params.row.borrowerDefaultedCount}
+              />
             </Link>
           ) : (
-            <BorrowerProfileChip borrower={params.row.borrower} />
+            <BorrowerProfileChip
+              borrower={params.row.borrower}
+              defaultedMarketsCount={params.row.borrowerDefaultedCount}
+            />
           )}
         </Box>
       ),
@@ -398,9 +422,85 @@ export const ActiveMarketsTables = ({
           } satisfies TypeSafeColDef<ActiveMarketsTableModel>,
         ]
       : []),
+    {
+      sortable: false,
+      field: "button",
+      headerName: "",
+      ...(isDefaultedTab || showComposableColumn
+        ? { width: actionColumnWidth }
+        : { minWidth: 100, flex: 1 }),
+      headerAlign: "right",
+      align: "right",
+      renderCell: () => (
+        <Box sx={{ ...LinkCell, justifyContent: "flex-end" }}>
+          {isDefaultedTab ? (
+            <Button
+              size="small"
+              variant="contained"
+              color="secondary"
+              onClick={(e: React.MouseEvent) => {
+                e.preventDefault()
+                e.stopPropagation()
+                window.open(
+                  EXTERNAL_LINKS.JURIS,
+                  "_blank",
+                  "noopener,noreferrer",
+                )
+              }}
+            >
+              {t("defaultedMarkets.jurisButton")}
+            </Button>
+          ) : (
+            <Button
+              size="small"
+              variant="contained"
+              color="secondary"
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            >
+              {t("dashboard.markets.tables.other.depositBTN")}
+            </Button>
+          )}
+        </Box>
+      ),
+    },
   ]
+  const columns = isDefaultedTab
+    ? allColumns.filter((column) => column.field !== "loan")
+    : allColumns
 
   const gridMinWidth = getGridMinWidth(columns, 2 * DATA_GRID_SIDE_PADDING)
+
+  let noMarketsTitle = t("dashboard.markets.noMarkets.active.title")
+  let noMarketsSubtitle: string | undefined = t(
+    "dashboard.markets.noMarkets.active.lenderSubtitle",
+  )
+  if (composableOnly) {
+    noMarketsTitle = t("destinations.noComposableMarkets")
+    noMarketsSubtitle = undefined
+  } else if (isDefaultedTab && isDefaultsError) {
+    noMarketsTitle = t("defaultedMarkets.unavailable.title")
+    noMarketsSubtitle = t("defaultedMarkets.unavailable.subtitle")
+  } else if (isDefaultedTab) {
+    noMarketsTitle = t("defaultedMarkets.noMarkets.title")
+    noMarketsSubtitle = t("defaultedMarkets.noMarkets.subtitle")
+  }
+
+  const showDefaultedEmpty =
+    isDefaultedTab &&
+    (isDefaultsError ||
+      (nameFilter === "" &&
+        assetFilter.length === 0 &&
+        statusFilter.length === 0 &&
+        !withdrawalCycleFilter?.length))
+
+  const mobileListHeader = isDefaultedTab ? (
+    <>
+      {mobileHeader}
+      <DefaultedPositionsHeading sx={{ padding: "12px 8px" }} />
+    </>
+  ) : (
+    mobileHeader
+  )
 
   if (isMobile)
     return (
@@ -408,8 +508,9 @@ export const ActiveMarketsTables = ({
         key={tab}
         markets={tabRows}
         isLoading={isLoading}
-        header={mobileHeader}
-        destinationsByMarket={destinationsByMarket}
+        header={mobileListHeader}
+        // The Defaulted tab drops the composable block, as it does the column
+        destinationsByMarket={isDefaultedTab ? undefined : destinationsByMarket}
         resetKey={JSON.stringify([
           tab,
           nameFilter,
@@ -419,8 +520,9 @@ export const ActiveMarketsTables = ({
           composableOnly,
         ])}
         emptyTitle={
-          composableOnly ? t("destinations.noComposableMarkets") : undefined
+          composableOnly || showDefaultedEmpty ? noMarketsTitle : undefined
         }
+        emptySubtitle={showDefaultedEmpty ? noMarketsSubtitle : undefined}
       />
     )
 
@@ -430,7 +532,9 @@ export const ActiveMarketsTables = ({
         sx={{
           display: "flex",
           flexDirection: "column",
-          height: "calc(100vh - 250px)",
+          height: isDefaultedTab
+            ? "calc(100vh - 330px)"
+            : "calc(100vh - 250px)",
           width: "100%",
           overflow: "auto",
           overflowY: "auto",
@@ -445,16 +549,8 @@ export const ActiveMarketsTables = ({
           marketsLength={tabRows.length}
           isLoading={isLoading}
           isOpen
-          noMarketsTitle={
-            composableOnly
-              ? t("destinations.noComposableMarkets")
-              : t("dashboard.markets.noMarkets.active.title")
-          }
-          noMarketsSubtitle={
-            composableOnly
-              ? undefined
-              : t("dashboard.markets.noMarkets.active.lenderSubtitle")
-          }
+          noMarketsTitle={noMarketsTitle}
+          noMarketsSubtitle={noMarketsSubtitle}
           nameFilter={filters.nameFilter}
           assetFilter={filters.assetFilter}
           statusFilter={filters.statusFilter}

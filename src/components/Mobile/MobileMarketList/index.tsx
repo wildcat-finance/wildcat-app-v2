@@ -47,6 +47,7 @@ export type MobileMarketListProps = {
   header?: ReactNode
   destinationsByMarket?: Record<string, Destination[]>
   emptyTitle?: string
+  emptySubtitle?: string
   variant?: "card" | "bare"
   pageSize?: number
   resetKey?: string | number
@@ -62,6 +63,7 @@ export const MobileMarketList = ({
   header,
   destinationsByMarket,
   emptyTitle = "No Markets Here",
+  emptySubtitle = "Change selected filters or check other sections",
   variant = "card",
   pageSize = DEFAULT_PAGE_SIZE,
   resetKey,
@@ -154,7 +156,7 @@ export const MobileMarketList = ({
             >
               <Typography variant="mobH3">{emptyTitle}</Typography>
               <Typography variant="mobText3" color={COLORS.santasGrey}>
-                Change selected filters or check other sections
+                {emptySubtitle}
               </Typography>
             </Box>
           ))}

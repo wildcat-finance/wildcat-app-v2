@@ -120,6 +120,12 @@ const makeLenderMarketsContext = (
   onboardingStatus: "ready",
   policyMarkets: new Set<string>(),
   isPolicyMarketsLoading: false,
+  defaults: {
+    isLoading: false,
+    isError: false,
+    isDefaulted: () => false,
+    defaultedMarketsOfBorrower: () => [],
+  },
 })
 
 describe("TrendingMarketsCarousel", () => {

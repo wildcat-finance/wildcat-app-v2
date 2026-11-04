@@ -143,6 +143,12 @@ describe.each([false, true])(
         onboardingStatus: "ready",
         policyMarkets: new Set(),
         isPolicyMarketsLoading: false,
+        defaults: {
+          isLoading: false,
+          isError: false,
+          isDefaulted: () => false,
+          defaultedMarketsOfBorrower: () => [],
+        },
       })
     })
 

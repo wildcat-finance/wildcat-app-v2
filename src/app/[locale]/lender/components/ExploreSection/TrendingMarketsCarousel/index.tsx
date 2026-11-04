@@ -293,7 +293,7 @@ const TRENDING_PANEL_ID = "trending-composable-panel"
 
 export const TrendingMarketsCarousel = () => {
   const { t } = useTranslation()
-  const { marketAccounts, borrowers, isLoadingInitial } =
+  const { marketAccounts, borrowers, isLoadingInitial, defaults } =
     useLenderMarketsContext()
   const {
     data: recentDeposits,
@@ -388,9 +388,10 @@ export const TrendingMarketsCarousel = () => {
 
     const exploreMarkets = marketAccounts.filter(
       (a) =>
-        isExploreVisible(a.market) &&
+        isExploreVisible(a.market, defaults.isDefaulted(a.market.address)) &&
         a.market.maxTotalSupply.gt(0) &&
-        !penaltyBorrowers.has(a.market.borrower.toLowerCase()),
+        !penaltyBorrowers.has(a.market.borrower.toLowerCase()) &&
+        defaults.defaultedMarketsOfBorrower(a.market.borrower).length === 0,
     )
     if (exploreMarkets.length === 0) return []
 
@@ -566,9 +567,17 @@ export const TrendingMarketsCarousel = () => {
     ]
 
     return built.slice(0, SLOT_COUNT)
-  }, [chainId, marketAccounts, recentDeposits, priceMap, isRecentDepositsError])
+  }, [
+    chainId,
+    marketAccounts,
+    recentDeposits,
+    priceMap,
+    isRecentDepositsError,
+    defaults,
+  ])
 
-  const isLoading = isLoadingInitial || isRecentDepositsLoading
+  const isLoading =
+    isLoadingInitial || isRecentDepositsLoading || defaults.isLoading
 
   const isMobile = useMobileResolution()
 
@@ -668,7 +677,10 @@ export const TrendingMarketsCarousel = () => {
         supplied={formatTokenCompact(suppliedRaw, decimals)}
         capacity={formatTokenCompact(capacityRaw, decimals)}
         suppliedPct={suppliedPct}
-        status={getMarketStatusChip(market)}
+        status={getMarketStatusChip(
+          market,
+          defaults.isDefaulted(market.address),
+        )}
         termLabel={termLabel}
         isMobile={isMobile}
         composableCount={

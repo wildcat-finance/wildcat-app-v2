@@ -16,6 +16,7 @@ export type ActiveMarketsTableModel = {
   name: string
   borrower: string | undefined
   borrowerAddress: string | undefined
+  borrowerDefaultedCount: number
   asset: string
   debt: TokenAmount | undefined
   capacity: TokenAmount
@@ -27,6 +28,7 @@ export type ActiveMarketsTableModel = {
   chainId: number
   destinationsCount: number
   marketTokenSymbol: string
+  button?: string
 }
 
 export type ActiveMarketsTableProps = {

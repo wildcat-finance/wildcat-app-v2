@@ -8,6 +8,13 @@ import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames
 import { LenderMarketsOnboardingStatus } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { MarketOnboardingByAddress } from "@/utils/marketOnboarding"
 
+export type LenderMarketsDefaults = {
+  isLoading: boolean
+  isError: boolean
+  isDefaulted: (marketAddress?: string) => boolean
+  defaultedMarketsOfBorrower: (borrowerAddress?: string) => string[]
+}
+
 export type LenderMarketsContextType = {
   marketAccounts: MarketAccount[]
   isLoadingInitial: boolean
@@ -17,6 +24,7 @@ export type LenderMarketsContextType = {
   borrowers: BorrowerWithName[] | undefined
   policyMarkets: Set<string>
   isPolicyMarketsLoading: boolean
+  defaults: LenderMarketsDefaults
 }
 
 const defaultContext: LenderMarketsContextType = {
@@ -28,6 +36,12 @@ const defaultContext: LenderMarketsContextType = {
   borrowers: undefined,
   policyMarkets: new Set(),
   isPolicyMarketsLoading: false,
+  defaults: {
+    isLoading: false,
+    isError: false,
+    isDefaulted: () => false,
+    defaultedMarketsOfBorrower: () => [],
+  },
 }
 
 export const LenderMarketsContext =

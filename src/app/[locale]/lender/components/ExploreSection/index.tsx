@@ -13,6 +13,11 @@ import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useIsSelectedNetworkRehydrated } from "@/hooks/useSelectedNetwork"
 import { ROUTES } from "@/routes"
+import { useAppDispatch } from "@/store/hooks"
+import {
+  LenderSection,
+  resetOtherSectionTabs,
+} from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { COLORS } from "@/theme/colors"
 
 export const ExploreSection = () => {
@@ -21,7 +26,11 @@ export const ExploreSection = () => {
   const isSelectedNetworkRehydrated = useIsSelectedNetworkRehydrated()
   const { isWrongNetwork } = useCurrentNetwork()
   const isMobile = useMobileResolution()
+  const dispatch = useAppDispatch()
   useEffect(() => setMounted(true), [])
+  useEffect(() => {
+    dispatch(resetOtherSectionTabs(LenderSection.EXPLORE))
+  }, [dispatch])
 
   if (!mounted || !isSelectedNetworkRehydrated)
     return (

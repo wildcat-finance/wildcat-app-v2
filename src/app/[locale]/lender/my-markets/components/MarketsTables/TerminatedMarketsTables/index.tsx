@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
+import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import {
@@ -87,6 +88,9 @@ export const TerminatedMarketsTables = ({
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const { markets: destinationsByMarket } = destinations
+  const {
+    defaults: { isDefaulted, defaultedMarketsOfBorrower },
+  } = useLenderMarketsContext()
 
   const [paginationModel, setPaginationModel] = React.useState({
     pageSize: 50,
@@ -130,11 +134,13 @@ export const TerminatedMarketsTables = ({
 
       return {
         id: address,
-        status: getMarketStatusChip(market),
+        status: getMarketStatusChip(market, isDefaulted(address)),
         term: getMarketTypeChip(market),
         name,
         borrower: borrowerName,
         borrowerAddress,
+        borrowerDefaultedCount:
+          defaultedMarketsOfBorrower(borrowerAddress).length,
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
         withdrawalBatchDuration,
@@ -202,10 +208,16 @@ export const TerminatedMarketsTables = ({
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
               style={{ display: "flex", textDecoration: "none" }}
             >
-              <BorrowerProfileChip borrower={params.row.borrower} />
+              <BorrowerProfileChip
+                borrower={params.row.borrower}
+                defaultedMarketsCount={params.row.borrowerDefaultedCount}
+              />
             </Link>
           ) : (
-            <BorrowerProfileChip borrower={params.row.borrower} />
+            <BorrowerProfileChip
+              borrower={params.row.borrower}
+              defaultedMarketsCount={params.row.borrowerDefaultedCount}
+            />
           )}
         </Box>
       ),

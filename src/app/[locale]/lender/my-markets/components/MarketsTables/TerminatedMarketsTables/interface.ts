@@ -16,6 +16,7 @@ export type TerminatedMarketsTableModel = {
   name: string
   borrower: string | undefined
   borrowerAddress: string | undefined
+  borrowerDefaultedCount: number
   asset: string
   debt: TokenAmount | undefined
   capacity: TokenAmount

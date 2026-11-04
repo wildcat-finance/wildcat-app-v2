@@ -9,13 +9,12 @@ import { LenderMarketsContext } from "@/app/[locale]/lender/context"
 import { useLenderPolicyMarkets } from "@/app/[locale]/lender/hooks/useLenderPolicyMarkets"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { useDefaultedMarkets } from "@/hooks/useDefaultedMarkets"
 import { useAppDispatch } from "@/store/hooks"
 import { setLendersSectionAmount } from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
-import {
-  getKnownMarketOnboardingMode,
-  MarketOnboardingMode,
-} from "@/utils/marketOnboarding"
+
+import { getAllMarketsAmounts } from "./allMarketsAmounts"
 
 export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
   const dispatch = useAppDispatch()
@@ -30,6 +29,12 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
   } = useLendersMarkets()
 
   const { data: borrowers } = useBorrowerNames()
+  const {
+    isLoading: isDefaultsLoading,
+    isError: isDefaultsError,
+    isDefaulted,
+    defaultedMarketsOfBorrower,
+  } = useDefaultedMarkets()
   const { policyMarkets, isPolicyMarketsLoading } =
     useLenderPolicyMarkets(marketAccounts)
 
@@ -59,14 +64,6 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
     [marketAccounts],
   )
 
-  const depositedMarketsAmount = useMemo(
-    () =>
-      lenderMarkets.filter(
-        (market) => !market.market.isClosed && market.hasEverInteracted,
-      ).length,
-    [lenderMarkets],
-  )
-
   const policyOnlyMarkets = useMemo(
     () =>
       othersMarkets.filter((account) =>
@@ -75,55 +72,62 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
     [othersMarkets, policyMarkets],
   )
 
+  const depositedMarketsAmount = useMemo(
+    () =>
+      lenderMarkets.filter(
+        (market) =>
+          !market.market.isClosed &&
+          market.hasEverInteracted &&
+          !isDefaulted(market.market.address),
+      ).length,
+    [lenderMarkets, isDefaulted],
+  )
+
   const nonDepositedMarketsAmount = useMemo(
-    () => policyOnlyMarkets.filter((market) => !market.market.isClosed).length,
-    [policyOnlyMarkets],
+    () =>
+      policyOnlyMarkets.filter(
+        (market) =>
+          !market.market.isClosed && !isDefaulted(market.market.address),
+      ).length,
+    [policyOnlyMarkets, isDefaulted],
   )
 
   const prevActiveAmount = useMemo(
     () =>
       lenderMarkets.filter(
-        (market) => market.market.isClosed && market.hasEverInteracted,
+        (market) =>
+          market.market.isClosed &&
+          market.hasEverInteracted &&
+          !isDefaulted(market.market.address),
       ).length,
-    [lenderMarkets],
+    [lenderMarkets, isDefaulted],
   )
 
   const neverActiveAmount = useMemo(
-    () => policyOnlyMarkets.filter((market) => market.market.isClosed).length,
-    [policyOnlyMarkets],
-  )
-
-  const selfOnboardAmount = useMemo(
     () =>
-      othersMarkets.filter(
-        (account) =>
-          !account.market.isClosed &&
-          getKnownMarketOnboardingMode(
-            account.market.version,
-            account.market.address,
-            onboardingByMarket,
-          ) === MarketOnboardingMode.SelfOnboard,
+      policyOnlyMarkets.filter(
+        (market) =>
+          market.market.isClosed && !isDefaulted(market.market.address),
       ).length,
-    [onboardingByMarket, othersMarkets],
+    [policyOnlyMarkets, isDefaulted],
   )
 
-  const manualAmount = useMemo(
+  const defaultedAmount = useMemo(
     () =>
-      othersMarkets.filter(
-        (account) =>
-          !account.market.isClosed &&
-          getKnownMarketOnboardingMode(
-            account.market.version,
-            account.market.address,
-            onboardingByMarket,
-          ) === MarketOnboardingMode.BorrowerApproval,
+      [...lenderMarkets, ...policyOnlyMarkets].filter((account) =>
+        isDefaulted(account.market.address),
       ).length,
-    [onboardingByMarket, othersMarkets],
+    [lenderMarkets, policyOnlyMarkets, isDefaulted],
   )
 
-  const terminatedOtherAmount = useMemo(
-    () => othersMarkets.filter((account) => account.market.isClosed).length,
-    [othersMarkets],
+  const {
+    selfOnboard: selfOnboardAmount,
+    manual: manualAmount,
+    terminatedOther: terminatedOtherAmount,
+    defaultedOther: defaultedOtherAmount,
+  } = useMemo(
+    () => getAllMarketsAmounts(othersMarkets, onboardingByMarket, isDefaulted),
+    [othersMarkets, onboardingByMarket, isDefaulted],
   )
 
   useEffect(() => {
@@ -153,6 +157,12 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
     )
     dispatch(
       setLendersSectionAmount({
+        name: "defaulted",
+        value: isWrongNetwork ? 0 : defaultedAmount,
+      }),
+    )
+    dispatch(
+      setLendersSectionAmount({
         name: "selfOnboard",
         value: isWrongNetwork ? 0 : selfOnboardAmount,
       }),
@@ -171,10 +181,19 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
     )
     dispatch(
       setLendersSectionAmount({
+        name: "defaultedOther",
+        value: isWrongNetwork ? 0 : defaultedOtherAmount,
+      }),
+    )
+    dispatch(
+      setLendersSectionAmount({
         name: "allMarkets",
         value: isWrongNetwork
           ? 0
-          : selfOnboardAmount + manualAmount + terminatedOtherAmount,
+          : selfOnboardAmount +
+            manualAmount +
+            terminatedOtherAmount +
+            defaultedOtherAmount,
       }),
     )
   }, [
@@ -182,12 +201,29 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
     nonDepositedMarketsAmount,
     prevActiveAmount,
     neverActiveAmount,
+    defaultedAmount,
     selfOnboardAmount,
     manualAmount,
     terminatedOtherAmount,
+    defaultedOtherAmount,
     isWrongNetwork,
     dispatch,
   ])
+
+  const defaults = useMemo(
+    () => ({
+      isLoading: isDefaultsLoading,
+      isError: isDefaultsError,
+      isDefaulted,
+      defaultedMarketsOfBorrower,
+    }),
+    [
+      isDefaultsLoading,
+      isDefaultsError,
+      isDefaulted,
+      defaultedMarketsOfBorrower,
+    ],
+  )
 
   const contextValue = useMemo(
     () => ({
@@ -199,6 +235,7 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
       borrowers,
       policyMarkets,
       isPolicyMarketsLoading,
+      defaults,
     }),
     [
       marketAccounts,
@@ -209,6 +246,7 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
       borrowers,
       policyMarkets,
       isPolicyMarketsLoading,
+      defaults,
     ],
   )
 

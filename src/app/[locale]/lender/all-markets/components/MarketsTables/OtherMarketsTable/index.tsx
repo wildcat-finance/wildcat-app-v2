@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next"
 
 import { TypeSafeColDef } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/interface"
 import { LinkCell } from "@/app/[locale]/borrower/components/MarketsTables/style"
+import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import {
@@ -57,7 +58,7 @@ import {
   LenderMarketAction,
   MarketOnboardingMode,
 } from "@/utils/marketOnboarding"
-import { getMarketStatusChip } from "@/utils/marketStatus"
+import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 import { OtherMarketsTableModel, OtherMarketsTableProps } from "./interface"
@@ -105,10 +106,18 @@ export const OtherMarketsTable = ({
   const { markets: destinationsByMarket } = destinations
   const { t } = useTranslation()
   const isMobile = useMobileResolution()
+  const {
+    defaults: {
+      isDefaulted,
+      defaultedMarketsOfBorrower,
+      isError: isDefaultsError,
+    },
+  } = useLenderMarketsContext()
 
   const allMarketsTab = useAppSelector(
     (state) => state.lenderDashboard.allMarketsTab,
   )
+  const isDefaultedTab = allMarketsTab === LenderAllMarketsTab.DEFAULTED
 
   const rows: GridRowsProp<OtherMarketsTableModel> = marketAccounts.map(
     (account) => {
@@ -133,7 +142,7 @@ export const OtherMarketsTable = ({
         ? borrower.alias || borrower.name
         : trimAddress(borrowerAddress)
 
-      const marketStatus = getMarketStatusChip(market)
+      const marketStatus = getMarketStatusChip(market, isDefaulted(address))
       const marketType = getMarketTypeChip(market)
 
       return {
@@ -143,6 +152,8 @@ export const OtherMarketsTable = ({
         name,
         borrower: borrowerName,
         borrowerAddress,
+        borrowerDefaultedCount:
+          defaultedMarketsOfBorrower(borrowerAddress).length,
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
         withdrawalBatchDuration,
@@ -164,14 +175,21 @@ export const OtherMarketsTable = ({
     },
   )
 
-  const showComposableColumn = destinations.showDestinations
+  const showComposableColumn = destinations.showDestinations && !isDefaultedTab
 
-  const terminated = rows.filter((market) => {
+  const defaulted = rows.filter(
+    (market) => market.status.status === MarketStatus.DEFAULTED,
+  )
+  const liveRows = rows.filter(
+    (market) => market.status.status !== MarketStatus.DEFAULTED,
+  )
+
+  const terminated = liveRows.filter((market) => {
     const account = marketAccounts.find((a) => a.market.address === market.id)
     return account?.market.isClosed
   })
 
-  const activeRows = rows.filter((market) => {
+  const activeRows = liveRows.filter((market) => {
     const account = marketAccounts.find((a) => a.market.address === market.id)
     return !account?.market.isClosed
   })
@@ -196,10 +214,14 @@ export const OtherMarketsTable = ({
       rows: terminated,
       label: t("dashboard.markets.tables.other.terminated"),
     },
+    [LenderAllMarketsTab.DEFAULTED]: {
+      rows: defaulted,
+      label: t("defaultedMarkets.tab"),
+    },
   }
   const { rows: tabRows, label: tabLabel } = tabTables[allMarketsTab]
 
-  const columns: TypeSafeColDef<OtherMarketsTableModel>[] = [
+  const allColumns: TypeSafeColDef<OtherMarketsTableModel>[] = [
     {
       field: "name",
       headerName: t("dashboard.markets.tables.header.name"),
@@ -240,10 +262,16 @@ export const OtherMarketsTable = ({
               onClick={(e: React.MouseEvent) => e.stopPropagation()}
               style={{ display: "flex", textDecoration: "none" }}
             >
-              <BorrowerProfileChip borrower={params.row.borrower} />
+              <BorrowerProfileChip
+                borrower={params.row.borrower}
+                defaultedMarketsCount={params.row.borrowerDefaultedCount}
+              />
             </Link>
           ) : (
-            <BorrowerProfileChip borrower={params.row.borrower} />
+            <BorrowerProfileChip
+              borrower={params.row.borrower}
+              defaultedMarketsCount={params.row.borrowerDefaultedCount}
+            />
           )}
         </Box>
       ),
@@ -480,6 +508,10 @@ export const OtherMarketsTable = ({
       },
     },
   ]
+  const columns =
+    isDefaultedTab || allMarketsTab === LenderAllMarketsTab.TERMINATED
+      ? allColumns.filter((column) => column.field !== "button")
+      : allColumns
 
   const gridMinWidth = getGridMinWidth(columns, 2 * DATA_GRID_SIDE_PADDING)
 
@@ -507,6 +539,29 @@ export const OtherMarketsTable = ({
     composableOnly,
   ])
 
+  let noMarketsTitle = t("dashboard.markets.noMarkets.explore.title")
+  let noMarketsSubtitle: string | undefined = t(
+    "dashboard.markets.noMarkets.explore.subtitle",
+  )
+  if (composableOnly) {
+    noMarketsTitle = t("destinations.noComposableMarkets")
+    noMarketsSubtitle = undefined
+  } else if (isDefaultedTab && isDefaultsError) {
+    noMarketsTitle = t("defaultedMarkets.unavailable.title")
+    noMarketsSubtitle = t("defaultedMarkets.unavailable.subtitle")
+  } else if (isDefaultedTab) {
+    noMarketsTitle = t("defaultedMarkets.noMarkets.title")
+    noMarketsSubtitle = t("defaultedMarkets.noMarkets.subtitle")
+  }
+
+  const showDefaultedEmpty =
+    isDefaultedTab &&
+    (isDefaultsError ||
+      (nameFilter === "" &&
+        assetFilter.length === 0 &&
+        statusFilter.length === 0 &&
+        !withdrawalCycleFilter?.length))
+
   if (isMobile) {
     return (
       <MobileMarketList
@@ -514,7 +569,7 @@ export const OtherMarketsTable = ({
         markets={tabRows}
         isLoading={isLoading}
         header={mobileHeader}
-        destinationsByMarket={destinationsByMarket}
+        destinationsByMarket={isDefaultedTab ? undefined : destinationsByMarket}
         resetKey={JSON.stringify([
           allMarketsTab,
           nameFilter,
@@ -524,8 +579,9 @@ export const OtherMarketsTable = ({
           composableOnly,
         ])}
         emptyTitle={
-          composableOnly ? t("destinations.noComposableMarkets") : undefined
+          composableOnly || showDefaultedEmpty ? noMarketsTitle : undefined
         }
+        emptySubtitle={showDefaultedEmpty ? noMarketsSubtitle : undefined}
       />
     )
   }
@@ -555,16 +611,8 @@ export const OtherMarketsTable = ({
           assetFilter={filters.assetFilter}
           statusFilter={filters.statusFilter}
           showNoFilteredMarkets
-          noMarketsTitle={
-            composableOnly
-              ? t("destinations.noComposableMarkets")
-              : t("dashboard.markets.noMarkets.explore.title")
-          }
-          noMarketsSubtitle={
-            composableOnly
-              ? undefined
-              : t("dashboard.markets.noMarkets.explore.subtitle")
-          }
+          noMarketsTitle={noMarketsTitle}
+          noMarketsSubtitle={noMarketsSubtitle}
         >
           <DataGrid
             disableVirtualization

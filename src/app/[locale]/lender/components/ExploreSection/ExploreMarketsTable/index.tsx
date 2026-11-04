@@ -272,8 +272,13 @@ const MarketClickableRow = (props: GridRowProps) => {
 export const ExploreMarketsTable = () => {
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
-  const { marketAccounts, borrowers, isLoadingInitial, onboardingByMarket } =
-    useLenderMarketsContext()
+  const {
+    marketAccounts,
+    borrowers,
+    isLoadingInitial,
+    onboardingByMarket,
+    defaults,
+  } = useLenderMarketsContext()
   const { isTestnet, targetChainId } = useCurrentNetwork()
 
   const [sortMode, setSortMode] = useState<SortOption>("Most Funded")
@@ -295,7 +300,9 @@ export const ExploreMarketsTable = () => {
 
   const destinations = useDestinations(targetChainId)
   const isLoading =
-    isLoadingInitial || (showComposableOnly && destinations.isPending)
+    isLoadingInitial ||
+    defaults.isLoading ||
+    (showComposableOnly && destinations.isPending)
   const { markets: destinationsByMarket } = destinations
   const composableMarkets = useMemo(
     () => new Set(Object.keys(destinationsByMarket)),
@@ -391,8 +398,9 @@ export const ExploreMarketsTable = () => {
         onboardingByMarket,
       )
       return (
-        isExploreVisible(market) &&
+        isExploreVisible(market, defaults.isDefaulted(market.address)) &&
         !penaltyBorrowers.has(market.borrower.toLowerCase()) &&
+        defaults.defaultedMarketsOfBorrower(market.borrower).length === 0 &&
         (onboardingMode === MarketOnboardingMode.SelfOnboard ||
           onboardingMode === MarketOnboardingMode.BorrowerApproval)
       )
@@ -486,7 +494,7 @@ export const ExploreMarketsTable = () => {
 
         return {
           id: address,
-          status: getMarketStatusChip(market),
+          status: getMarketStatusChip(market, defaults.isDefaulted(address)),
           term: getMarketTypeChip(market),
           name,
           borrower: borrowerName,
@@ -528,6 +536,7 @@ export const ExploreMarketsTable = () => {
     composableMarkets,
     destinationsByMarket,
     showComposableOnly,
+    defaults,
   ])
 
   const gridPaginationModel = useMemo(
