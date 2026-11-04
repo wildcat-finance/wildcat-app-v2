@@ -56,6 +56,8 @@ export const LenderMarketsMobileHeader = ({
 
   const showPageSwitch = isConnected || isReconnecting || page === "yours"
 
+  const hideCounts = isLoadingInitial || defaults.isLoading
+
   const pageItems: MobilePillTabItem[] = [
     {
       value: "yours",
@@ -151,7 +153,7 @@ export const LenderMarketsMobileHeader = ({
               tone="neutral"
               items={pageItems}
               value={page}
-              hideCounts={isLoadingInitial}
+              hideCounts={hideCounts}
               ariaLabel={t("dashboard.markets.title")}
             />
             <Divider sx={{ mx: "4px", borderColor: COLORS.whiteLilac }} />
@@ -163,7 +165,7 @@ export const LenderMarketsMobileHeader = ({
           items={tabItems}
           value={page === "yours" ? myMarketsTab : allMarketsTab}
           onChange={handleTabChange}
-          hideCounts={isLoadingInitial}
+          hideCounts={hideCounts}
           ariaLabel={t("dashboard.markets.mobileList.sections")}
         />
       </Box>

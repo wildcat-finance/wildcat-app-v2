@@ -15,6 +15,7 @@ import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/compone
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
+import { useDefaultedMarkets } from "@/hooks/useDefaultedMarkets"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketAccount } from "@/hooks/useMarketAccount"
 import { useMarketMla } from "@/hooks/useMarketMla"
@@ -77,6 +78,9 @@ export default function MarketDetails({
   })
   const { data: withdrawals } = useGetWithdrawals(market)
   const { data: marketAccount } = useMarketAccount(market)
+  const { isLoading: isDefaultsLoading } = useDefaultedMarkets(
+    market?.chainId ?? marketChainId,
+  )
 
   const { isWrongNetwork, isSelectionMismatch } = useNetworkGate({
     desiredChainId: market?.chainId ?? marketChainId,
@@ -198,7 +202,7 @@ export default function MarketDetails({
     )
   }
 
-  if (isLoadingMarket || !market || !marketAccount)
+  if (isLoadingMarket || !market || !marketAccount || isDefaultsLoading)
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
         <Box sx={{ width: "69%" }}>

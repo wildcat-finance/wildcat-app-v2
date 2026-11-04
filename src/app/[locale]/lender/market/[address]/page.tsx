@@ -250,6 +250,7 @@ export default function LenderMarketDetails({
   // Indexed identity is enough to show the shell. Account and market reads
   // independently control the dynamic sections and transaction readiness.
   const isLoading = !market
+  const isPageLoading = isLoading || isDefaultsLoading
   const isTransactionsLoading =
     isAuthorizationPending ||
     (isConnected && !isDifferentChain && isActivityLoading)
@@ -505,7 +506,7 @@ export default function LenderMarketDetails({
       </Box>
     )
 
-  if (isLoading && isMobile)
+  if (isPageLoading && isMobile)
     return (
       <Box
         sx={{
@@ -536,7 +537,7 @@ export default function LenderMarketDetails({
       </Box>
     )
 
-  if (isLoading && !isMobile)
+  if (isPageLoading && !isMobile)
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
         <Box sx={{ width: "69%" }}>

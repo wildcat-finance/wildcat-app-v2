@@ -109,7 +109,8 @@ export const BorrowerDashboardSidebar = () => {
   const marketsAmount = yourMarketsAmount + otherMarketsAmount
 
   const countsReady = marketsAmount > 0
-  const count = (amount: number) => (countsReady ? amount : undefined)
+  const count = (amount: number) =>
+    countsReady && !isLoadingDefaults ? amount : undefined
   const defaultedCount = (amount: number) =>
     isLoadingDefaults || isDefaultsError ? undefined : count(amount)
   const showDefaultedTab = !isLoadingDefaults && defaultedAmount > 0
@@ -145,7 +146,8 @@ export const BorrowerDashboardSidebar = () => {
             amount={count(yourMarketsAmount)}
             open={
               marketSection === BorrowerMarketDashboardSections.YOUR &&
-              yourMarketsAmount > 0
+              yourMarketsAmount > 0 &&
+              !isLoadingDefaults
             }
             onClick={() =>
               handleChangeMarketSection(BorrowerMarketDashboardSections.YOUR)

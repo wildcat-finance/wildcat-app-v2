@@ -257,6 +257,7 @@ export const MyMarketsSection = () => {
   const composableFilterActive = composableOnly && !isDefaultedTab
   const isLoading =
     isLoadingInitial ||
+    defaults.isLoading ||
     (isPolicyMarketsLoading && myMarketAccounts.length === 0) ||
     (composableFilterActive && destinations.isPending)
   const showComposableSwitch =
@@ -498,7 +499,7 @@ export const MyMarketsSection = () => {
           tab={LenderMyMarketsTab.DEFAULTED}
           marketAccounts={filteredDefaultedMarkets}
           borrowers={borrowers ?? []}
-          isLoading={isLoading || defaults.isLoading}
+          isLoading={isLoading}
           destinations={destinations}
           composableOnly={composableFilterActive}
           filters={filters}

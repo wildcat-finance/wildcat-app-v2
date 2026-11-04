@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useCallback, useState } from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button, Skeleton, Typography } from "@mui/material"
 import { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
@@ -553,12 +553,20 @@ export const MarketsSection = () => {
 
         {showTabs && (
           <Box sx={{ marginTop: "16px", padding: "0 16px" }}>
-            <MarketsTabs
-              value={marketTab}
-              items={tabItems}
-              onChange={handleChangeMarketTab}
-              hideCounts={isLoadingInitial}
-            />
+            {isYourSection && isLoadingDefaults ? (
+              <Skeleton
+                height="28px"
+                width="100%"
+                sx={{ bgcolor: COLORS.athensGrey }}
+              />
+            ) : (
+              <MarketsTabs
+                value={marketTab}
+                items={tabItems}
+                onChange={handleChangeMarketTab}
+                hideCounts={isLoadingInitial || isLoadingDefaults}
+              />
+            )}
           </Box>
         )}
 
@@ -641,7 +649,7 @@ export const MarketsSection = () => {
           <BorrowerActiveMarketsTables
             tab={marketTab}
             marketAccounts={filteredActiveBorrowerMarkets}
-            isLoading={isLoading}
+            isLoading={isLoading || isLoadingDefaults}
             filters={filters}
           />
         )}
@@ -650,7 +658,7 @@ export const MarketsSection = () => {
         marketTab === BorrowerMarketDashboardTabs.TERMINATED && (
           <BorrowerTerminatedMarketsTables
             marketAccounts={filteredTerminatedBorrowerMarkets}
-            isLoading={isLoading}
+            isLoading={isLoading || isLoadingDefaults}
             filters={filters}
           />
         )}
@@ -664,11 +672,7 @@ export const MarketsSection = () => {
             tab={marketTab}
             marketAccounts={filteredOtherMarketAccounts}
             onboardingByMarket={onboardingByMarket}
-            isLoading={
-              isLoading ||
-              (marketTab === BorrowerMarketDashboardTabs.OTHER_DEFAULTED &&
-                isLoadingDefaults)
-            }
+            isLoading={isLoading || isLoadingDefaults}
             filters={filters}
           />
         )}

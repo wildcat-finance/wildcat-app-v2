@@ -72,7 +72,7 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
     setSection(hasListedMarkets ? "markets" : "info")
   }, [hasListedMarkets])
 
-  if (isLoading)
+  if (isLoading || isDefaultsLoading)
     return <ProfilePageSkeleton isExternal={isExternal} isMobile={isMobile} />
 
   if (isMobile)

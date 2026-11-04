@@ -75,7 +75,7 @@ export const LenderNavSidebar = () => {
     terminatedOtherAmount +
     defaultedOtherAmount
 
-  const countsReady = myMarketsCount + allMarketsCount > 0
+  const countsReady = !isDefaultsLoading && myMarketsCount + allMarketsCount > 0
   const count = (amount: number) => (countsReady ? amount : undefined)
   const defaultedCount = (amount: number) =>
     isDefaultsLoading || isDefaultsError ? undefined : count(amount)

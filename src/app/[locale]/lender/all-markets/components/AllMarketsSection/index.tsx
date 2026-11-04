@@ -236,9 +236,9 @@ export const AllMarketsSection = () => {
   const showComposableSwitch =
     !isDefaultedTab && (composableCount > 0 || composableOnly)
   const isLoading =
-    isLoadingInitial || (composableFilterActive && destinations.isPending)
-
-  const isTableLoading = isLoading || (isDefaultedTab && defaults.isLoading)
+    isLoadingInitial ||
+    defaults.isLoading ||
+    (composableFilterActive && destinations.isPending)
 
   const {
     selfOnboard: selfOnboardAmount,
@@ -431,7 +431,7 @@ export const AllMarketsSection = () => {
           marketAccounts={filteredMarketAccounts}
           onboardingByMarket={onboardingByMarket}
           borrowers={borrowers ?? []}
-          isLoading={isTableLoading}
+          isLoading={isLoading}
           filters={filters}
           destinations={destinations}
           mobileHeader={
