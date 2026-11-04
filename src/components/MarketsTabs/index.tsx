@@ -72,7 +72,7 @@ export const MarketsTabs = <T extends string>({
             <Box component="span" data-label={item.label} sx={LabelSx}>
               {item.label}
             </Box>
-            {!hideCounts && !!item.count && (
+            {!hideCounts && item.count !== undefined && (
               <Box
                 component="span"
                 sx={{ fontWeight: 500, color: COLORS.santasGrey }}

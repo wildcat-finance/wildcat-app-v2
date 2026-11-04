@@ -87,7 +87,7 @@ export const MobilePillTabs = ({
     >
       {items.map((item) => {
         const isActive = item.value === value
-        const showCount = !hideCounts && !!item.count
+        const showCount = !hideCounts && item.count !== undefined
 
         const pillSx = {
           flexShrink: 0,
