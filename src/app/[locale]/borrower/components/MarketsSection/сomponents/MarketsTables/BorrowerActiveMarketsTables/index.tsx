@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { Box, Typography } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
 import { DataGrid, GridRenderCellParams, GridRowsProp } from "@mui/x-data-grid"
 import { TokenAmount } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
@@ -21,6 +21,7 @@ import {
 import { AprChip } from "@/components/AprChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { TotalDebtHeader } from "@/components/TotalDebtHeader"
+import { useDefaultedMarkets } from "@/hooks/useDefaultedMarkets"
 import { ROUTES } from "@/routes"
 import { BorrowerMarketDashboardTabs } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
 import {
@@ -50,6 +51,7 @@ export type BorrowerActiveMarketsTableModel = {
   debt: TokenAmount | undefined
   borrowable: TokenAmount
   withdrawalBatchDuration: number
+  repay: boolean
 }
 
 export const BorrowerActiveMarketsTables = ({
@@ -59,10 +61,13 @@ export const BorrowerActiveMarketsTables = ({
   tab,
 }: MarketsTablesProps & {
   tab:
+    | BorrowerMarketDashboardTabs.DEFAULTED
     | BorrowerMarketDashboardTabs.DEPOSITED
     | BorrowerMarketDashboardTabs.NON_DEPOSITED
 }) => {
   const { t } = useTranslation()
+
+  const { isDefaulted } = useDefaultedMarkets()
 
   const rows: GridRowsProp<BorrowerActiveMarketsTableModel> =
     marketAccounts.map((account) => {
@@ -80,7 +85,7 @@ export const BorrowerActiveMarketsTables = ({
         chainId,
       } = market
 
-      const marketStatus = getMarketStatusChip(market)
+      const marketStatus = getMarketStatusChip(market, isDefaulted(address))
       const marketType = getMarketTypeChip(market)
 
       return {
@@ -95,6 +100,7 @@ export const BorrowerActiveMarketsTables = ({
         debt: getMarketTotalDebt(market),
         capacityLeft: maxTotalSupply.sub(totalSupply),
         withdrawalBatchDuration,
+        repay: !market.isClosed && market.outstandingDebt.gt(0),
       }
     })
 
@@ -107,6 +113,8 @@ export const BorrowerActiveMarketsTables = ({
       market.borrowable.raw.isZero() &&
       market.status.status === MarketStatus.HEALTHY,
   )
+
+  const isDefaultedTab = tab === BorrowerMarketDashboardTabs.DEFAULTED
 
   const columns: TypeSafeColDef<BorrowerActiveMarketsTableModel>[] = [
     {
@@ -281,38 +289,71 @@ export const BorrowerActiveMarketsTables = ({
         </Link>
       ),
     },
-    {
-      field: "borrowable",
-      headerName: t("dashboard.markets.tables.header.borrowable"),
-      minWidth: 100,
-      flex: 1,
-      headerAlign: "right",
-      align: "right",
-      sortComparator: tokenAmountComparator,
-      renderCell: (
-        params: GridRenderCellParams<
-          BorrowerActiveMarketsTableModel,
-          TokenAmount
-        >,
-      ) => (
-        <Link
-          href={buildMarketHref(
-            params.row.id,
-            params.row.chainId,
-            ROUTES.borrower.market,
-          )}
-          style={{ ...LinkCell, justifyContent: "flex-end" }}
-        >
-          {params.value
-            ? formatTokenWithCommas(params.value, {
-                withSymbol: false,
-                fractionDigits: 2,
-                compact: true,
-              })
-            : "0"}
-        </Link>
-      ),
-    },
+    isDefaultedTab
+      ? {
+          field: "capacityLeft",
+          headerName: t("dashboard.markets.tables.header.capacity"),
+          minWidth: 100,
+          flex: 1,
+          headerAlign: "right",
+          align: "right",
+          sortComparator: tokenAmountComparator,
+          renderCell: (
+            params: GridRenderCellParams<
+              BorrowerActiveMarketsTableModel,
+              TokenAmount
+            >,
+          ) => (
+            <Link
+              href={buildMarketHref(
+                params.row.id,
+                params.row.chainId,
+                ROUTES.borrower.market,
+              )}
+              style={{ ...LinkCell, justifyContent: "flex-end" }}
+            >
+              {params.value && params.value.gt(0)
+                ? formatTokenWithCommas(params.value, {
+                    withSymbol: false,
+                    fractionDigits: 2,
+                    compact: true,
+                  })
+                : "0"}
+            </Link>
+          ),
+        }
+      : {
+          field: "borrowable",
+          headerName: t("dashboard.markets.tables.header.borrowable"),
+          minWidth: 100,
+          flex: 1,
+          headerAlign: "right",
+          align: "right",
+          sortComparator: tokenAmountComparator,
+          renderCell: (
+            params: GridRenderCellParams<
+              BorrowerActiveMarketsTableModel,
+              TokenAmount
+            >,
+          ) => (
+            <Link
+              href={buildMarketHref(
+                params.row.id,
+                params.row.chainId,
+                ROUTES.borrower.market,
+              )}
+              style={{ ...LinkCell, justifyContent: "flex-end" }}
+            >
+              {params.value
+                ? formatTokenWithCommas(params.value, {
+                    withSymbol: false,
+                    fractionDigits: 2,
+                    compact: true,
+                  })
+                : "0"}
+            </Link>
+          ),
+        },
     {
       field: "debt",
       headerName: t("dashboard.markets.tables.header.debt"),
@@ -343,10 +384,55 @@ export const BorrowerActiveMarketsTables = ({
         </Link>
       ),
     },
+    ...(isDefaultedTab
+      ? [
+          {
+            field: "repay",
+            sortable: false,
+            headerName: "",
+            width: 96,
+            headerAlign: "right",
+            align: "right",
+            renderCell: (params) => (
+              <Link
+                href={buildMarketHref(
+                  params.row.id,
+                  params.row.chainId,
+                  ROUTES.borrower.market,
+                )}
+                style={{ ...LinkCell, justifyContent: "flex-end" }}
+              >
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="secondary"
+                  disabled={!params.row.repay}
+                >
+                  {t("defaultedMarkets.repayButton")}
+                </Button>
+              </Link>
+            ),
+          } satisfies TypeSafeColDef<BorrowerActiveMarketsTableModel>,
+        ]
+      : []),
   ]
 
-  const isDeposited = tab === BorrowerMarketDashboardTabs.DEPOSITED
-  const tabMarkets = isDeposited ? depositedMarkets : nonDepositedMarkets
+  const tabTables = {
+    [BorrowerMarketDashboardTabs.DEFAULTED]: {
+      label: t("defaultedMarkets.tab"),
+      rows,
+    },
+    [BorrowerMarketDashboardTabs.DEPOSITED]: {
+      label: t("dashboard.markets.tables.borrower.active.deposited"),
+      rows: depositedMarkets,
+    },
+    [BorrowerMarketDashboardTabs.NON_DEPOSITED]: {
+      label: t("dashboard.markets.tables.borrower.active.nonDeposited"),
+      rows: nonDepositedMarkets,
+    },
+  }
+
+  const { label: tabLabel, rows: tabMarkets } = tabTables[tab]
 
   return (
     <Box
@@ -363,19 +449,21 @@ export const BorrowerActiveMarketsTables = ({
       }}
     >
       <MarketsTableAccordion
-        label={
-          isDeposited
-            ? t("dashboard.markets.tables.borrower.active.deposited")
-            : t("dashboard.markets.tables.borrower.active.nonDeposited")
-        }
+        label={tabLabel}
         marketsLength={tabMarkets.length}
         isLoading={isLoading}
         isOpen
         hideSummary
-        noMarketsTitle={t("dashboard.markets.noMarkets.active.title")}
-        noMarketsSubtitle={t(
-          "dashboard.markets.noMarkets.active.borrowerSubtitle",
-        )}
+        noMarketsTitle={
+          isDefaultedTab
+            ? t("defaultedMarkets.noMarkets.title")
+            : t("dashboard.markets.noMarkets.active.title")
+        }
+        noMarketsSubtitle={
+          isDefaultedTab
+            ? t("defaultedMarkets.noMarkets.subtitle")
+            : t("dashboard.markets.noMarkets.active.borrowerSubtitle")
+        }
         nameFilter={filters.nameFilter}
         assetFilter={filters.assetFilter}
         statusFilter={filters.statusFilter}
@@ -384,7 +472,11 @@ export const BorrowerActiveMarketsTables = ({
         <DataGrid
           disableVirtualization
           sx={DataGridSx}
-          getRowHeight={isDeposited ? undefined : () => "auto"}
+          getRowHeight={
+            tab === BorrowerMarketDashboardTabs.NON_DEPOSITED
+              ? () => "auto"
+              : undefined
+          }
           rows={tabMarkets}
           columns={columns}
           columnHeaderHeight={40}

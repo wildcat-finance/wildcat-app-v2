@@ -19,6 +19,7 @@ import {
 } from "@/components/AdsBanners/adsHelpers"
 import { AprChip } from "@/components/AprChip"
 import { TotalDebtHeader } from "@/components/TotalDebtHeader"
+import { useDefaultedMarkets } from "@/hooks/useDefaultedMarkets"
 import { ROUTES } from "@/routes"
 import { statusComparator, tokenAmountComparator } from "@/utils/comparators"
 import {
@@ -54,6 +55,8 @@ export const BorrowerTerminatedMarketsTables = ({
 }: MarketsTablesProps) => {
   const { t } = useTranslation()
 
+  const { isDefaulted } = useDefaultedMarkets()
+
   const rows: GridRowsProp<BorrowerTerminatedMarketsTableModel> =
     marketAccounts.map((account) => {
       const { market } = account
@@ -68,7 +71,7 @@ export const BorrowerTerminatedMarketsTables = ({
         chainId,
       } = market
 
-      const marketStatus = getMarketStatusChip(market)
+      const marketStatus = getMarketStatusChip(market, isDefaulted(address))
       const marketType = getMarketTypeChip(market)
 
       return {

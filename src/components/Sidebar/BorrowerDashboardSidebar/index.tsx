@@ -3,12 +3,14 @@ import { useTranslation } from "react-i18next"
 
 import Markets from "@/assets/icons/markets_icon.svg"
 import Policies from "@/assets/icons/policies_icon.svg"
+import { useDefaultedMarkets } from "@/hooks/useDefaultedMarkets"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   BorrowerDashboardSections,
   BorrowerMarketDashboardSections,
   BorrowerMarketDashboardTabs,
   resetMarketSection,
+  resolveMarketTab,
   setMarketSection,
   setMarketTab,
   setSection,
@@ -28,7 +30,9 @@ export const BorrowerDashboardSidebar = () => {
   const marketSection = useAppSelector(
     (state) => state.borrowerDashboard.marketSection,
   )
-  const marketTab = useAppSelector((state) => state.borrowerDashboard.marketTab)
+  const storedMarketTab = useAppSelector(
+    (state) => state.borrowerDashboard.marketTab,
+  )
   const showFullFunctionality = useAppSelector(
     (state) => state.borrowerDashboard.showFullFunctionality,
   )
@@ -52,6 +56,13 @@ export const BorrowerDashboardSidebar = () => {
     (state) => state.borrowerDashboardAmounts.policies,
   )
 
+  const { isLoading: isLoadingDefaults, isError: isDefaultsError } =
+    useDefaultedMarkets()
+
+  const defaultedAmount = useAppSelector(
+    (state) => state.borrowerDashboardAmounts.defaulted,
+  )
+
   const depositedAmount = useAppSelector(
     (state) => state.borrowerDashboardAmounts.deposited,
   )
@@ -71,7 +82,7 @@ export const BorrowerDashboardSidebar = () => {
   const terminatedAmount = prevActiveAmount + neverActiveAmount
 
   const yourMarketsAmount =
-    depositedAmount + nonDepositedAmount + terminatedAmount
+    defaultedAmount + depositedAmount + nonDepositedAmount + terminatedAmount
 
   const selfOnboardAmount = useAppSelector(
     (state) => state.borrowerDashboardAmounts.selfOnboard,
@@ -85,13 +96,24 @@ export const BorrowerDashboardSidebar = () => {
     (state) => state.borrowerDashboardAmounts.terminatedOther,
   )
 
+  const defaultedOtherAmount = useAppSelector(
+    (state) => state.borrowerDashboardAmounts.defaultedOther,
+  )
+
   const otherMarketsAmount =
-    selfOnboardAmount + manualAmount + terminatedOtherAmount
+    selfOnboardAmount +
+    manualAmount +
+    terminatedOtherAmount +
+    defaultedOtherAmount
 
   const marketsAmount = yourMarketsAmount + otherMarketsAmount
 
   const countsReady = marketsAmount > 0
   const count = (amount: number) => (countsReady ? amount : undefined)
+  const defaultedCount = (amount: number) =>
+    isLoadingDefaults || isDefaultsError ? undefined : count(amount)
+  const showDefaultedTab = !isLoadingDefaults && defaultedAmount > 0
+  const marketTab = resolveMarketTab(storedMarketTab, showDefaultedTab)
   const policiesCount =
     countsReady || policiesAmount > 0 ? policiesAmount : undefined
 
@@ -134,6 +156,15 @@ export const BorrowerDashboardSidebar = () => {
             <Box sx={{ paddingLeft: "14px" }}>
               <DashboardSubItems
                 items={[
+                  ...(showDefaultedTab
+                    ? [
+                        {
+                          value: BorrowerMarketDashboardTabs.DEFAULTED,
+                          label: t("defaultedMarkets.tab"),
+                          amount: defaultedAmount,
+                        },
+                      ]
+                    : []),
                   {
                     value: BorrowerMarketDashboardTabs.DEPOSITED,
                     label: t(
@@ -190,6 +221,11 @@ export const BorrowerDashboardSidebar = () => {
                   value: BorrowerMarketDashboardTabs.OTHER_TERMINATED,
                   label: t("dashboard.markets.tables.other.terminated"),
                   amount: count(terminatedOtherAmount),
+                },
+                {
+                  value: BorrowerMarketDashboardTabs.OTHER_DEFAULTED,
+                  label: t("defaultedMarkets.tab"),
+                  amount: defaultedCount(defaultedOtherAmount),
                 },
               ]}
               activeValue={marketTab}

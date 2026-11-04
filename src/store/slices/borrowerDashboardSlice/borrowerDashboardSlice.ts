@@ -12,12 +12,14 @@ export enum BorrowerMarketDashboardSections {
 }
 
 export enum BorrowerMarketDashboardTabs {
+  DEFAULTED = "defaulted",
   DEPOSITED = "deposited",
   NON_DEPOSITED = "non-deposited",
   TERMINATED = "terminated",
   SELF_ONBOARD = "self-onboard",
   MANUAL = "manual",
   OTHER_TERMINATED = "other-terminated",
+  OTHER_DEFAULTED = "other-defaulted",
 }
 
 export const BORROWER_MARKET_SECTION_TABS: Record<
@@ -25,6 +27,7 @@ export const BORROWER_MARKET_SECTION_TABS: Record<
   BorrowerMarketDashboardTabs[]
 > = {
   [BorrowerMarketDashboardSections.YOUR]: [
+    BorrowerMarketDashboardTabs.DEFAULTED,
     BorrowerMarketDashboardTabs.DEPOSITED,
     BorrowerMarketDashboardTabs.NON_DEPOSITED,
     BorrowerMarketDashboardTabs.TERMINATED,
@@ -33,11 +36,20 @@ export const BORROWER_MARKET_SECTION_TABS: Record<
     BorrowerMarketDashboardTabs.SELF_ONBOARD,
     BorrowerMarketDashboardTabs.MANUAL,
     BorrowerMarketDashboardTabs.OTHER_TERMINATED,
+    BorrowerMarketDashboardTabs.OTHER_DEFAULTED,
   ],
 }
 
 const getSectionFirstTab = (section: BorrowerMarketDashboardSections) =>
   BORROWER_MARKET_SECTION_TABS[section][0]
+
+export const resolveMarketTab = (
+  tab: BorrowerMarketDashboardTabs,
+  showDefaultedTab: boolean,
+) =>
+  tab === BorrowerMarketDashboardTabs.DEFAULTED && !showDefaultedTab
+    ? BorrowerMarketDashboardTabs.DEPOSITED
+    : tab
 
 const getTabSection = (tab: BorrowerMarketDashboardTabs) =>
   BORROWER_MARKET_SECTION_TABS[BorrowerMarketDashboardSections.OTHER].includes(
@@ -56,7 +68,7 @@ export type BorrowerDashboardType = {
 const initialState: BorrowerDashboardType = {
   section: BorrowerDashboardSections.MARKETS,
   marketSection: BorrowerMarketDashboardSections.YOUR,
-  marketTab: BorrowerMarketDashboardTabs.DEPOSITED,
+  marketTab: getSectionFirstTab(BorrowerMarketDashboardSections.YOUR),
   showFullFunctionality: false,
 }
 

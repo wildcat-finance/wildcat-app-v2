@@ -25,6 +25,7 @@ import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { TablePagination } from "@/components/TablePagination"
 import { TotalDebtHeader } from "@/components/TotalDebtHeader"
+import { useDefaultedMarkets } from "@/hooks/useDefaultedMarkets"
 import { ROUTES } from "@/routes"
 import { BorrowerMarketDashboardTabs } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
 import {
@@ -55,6 +56,8 @@ export type OtherMarketsTableModel = {
   term: ReturnType<typeof getMarketTypeChip>
   name: string
   borrower: string | undefined
+  borrowerAddress: string
+  borrowerDefaultedCount: number
   asset: string
   apr: number
   debt: TokenAmount | undefined
@@ -76,10 +79,16 @@ export const OtherMarketsTables = ({
     | BorrowerMarketDashboardTabs.SELF_ONBOARD
     | BorrowerMarketDashboardTabs.MANUAL
     | BorrowerMarketDashboardTabs.OTHER_TERMINATED
+    | BorrowerMarketDashboardTabs.OTHER_DEFAULTED
 }) => {
   const { t } = useTranslation()
 
   const { data: borrowers } = useBorrowerNames()
+  const {
+    isDefaulted,
+    defaultedMarketsOfBorrower,
+    isError: isDefaultsError,
+  } = useDefaultedMarkets()
 
   const rows: GridRowsProp<OtherMarketsTableModel> = marketAccounts.map(
     (account) => {
@@ -105,7 +114,7 @@ export const OtherMarketsTables = ({
         ? borrower.alias || borrower.name
         : trimAddress(borrowerAddress)
 
-      const marketStatus = getMarketStatusChip(market)
+      const marketStatus = getMarketStatusChip(market, isDefaulted(address))
       const marketType = getMarketTypeChip(market)
 
       return {
@@ -116,6 +125,8 @@ export const OtherMarketsTables = ({
         name,
         borrowerAddress,
         borrower: borrowerName,
+        borrowerDefaultedCount:
+          defaultedMarketsOfBorrower(borrowerAddress).length,
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
         capacityLeft: maxTotalSupply.sub(totalSupply),
@@ -131,14 +142,16 @@ export const OtherMarketsTables = ({
     },
   )
 
+  const defaulted = rows.filter((market) => isDefaulted(market.id))
+
   const terminated = rows.filter((market) => {
     const account = marketAccounts.find((a) => a.market.address === market.id)
-    return account?.market.isClosed
+    return account?.market.isClosed && !isDefaulted(market.id)
   })
 
   const activeRows = rows.filter((market) => {
     const account = marketAccounts.find((a) => a.market.address === market.id)
-    return !account?.market.isClosed
+    return !account?.market.isClosed && !isDefaulted(market.id)
   })
 
   const selfOnboard = activeRows.filter(
@@ -191,7 +204,10 @@ export const OtherMarketsTables = ({
             href={`${ROUTES.borrower.profile}/${params.row.borrowerAddress}`}
             style={{ display: "flex", textDecoration: "none" }}
           >
-            <BorrowerProfileChip borrower={params.row.borrower} />
+            <BorrowerProfileChip
+              borrower={params.row.borrower}
+              defaultedMarketsCount={params.row.borrowerDefaultedCount}
+            />
           </Link>
         </Link>
       ),
@@ -439,6 +455,22 @@ export const OtherMarketsTables = ({
       label: t("dashboard.markets.tables.other.terminated"),
       rows: terminated,
     },
+    [BorrowerMarketDashboardTabs.OTHER_DEFAULTED]: {
+      label: t("defaultedMarkets.tab"),
+      rows: defaulted,
+    },
+  }
+
+  const isDefaultedTab = tab === BorrowerMarketDashboardTabs.OTHER_DEFAULTED
+
+  let noMarketsTitle = t("dashboard.markets.noMarkets.explore.title")
+  let noMarketsSubtitle = t("dashboard.markets.noMarkets.explore.subtitle")
+  if (isDefaultedTab && isDefaultsError) {
+    noMarketsTitle = t("defaultedMarkets.unavailable.title")
+    noMarketsSubtitle = t("defaultedMarkets.unavailable.subtitle")
+  } else if (isDefaultedTab) {
+    noMarketsTitle = t("defaultedMarkets.noMarkets.title")
+    noMarketsSubtitle = t("defaultedMarkets.noMarkets.subtitle")
   }
 
   const { label: tabLabel, rows: tabRows } = tabTables[tab]
@@ -479,8 +511,8 @@ export const OtherMarketsTables = ({
         assetFilter={filters.assetFilter}
         statusFilter={filters.statusFilter}
         showNoFilteredMarkets
-        noMarketsTitle={t("dashboard.markets.noMarkets.explore.title")}
-        noMarketsSubtitle={t("dashboard.markets.noMarkets.explore.subtitle")}
+        noMarketsTitle={noMarketsTitle}
+        noMarketsSubtitle={noMarketsSubtitle}
       >
         <DataGrid
           disableVirtualization

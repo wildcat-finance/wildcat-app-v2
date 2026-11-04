@@ -11,6 +11,7 @@ import { BorrowerTerminatedMarketsTables } from "@/app/[locale]/borrower/compone
 import { OtherMarketsTables } from "@/app/[locale]/borrower/components/MarketsSection/сomponents/MarketsTables/OtherMarketsTables"
 import { useBorrowerInvitationRedirect } from "@/app/[locale]/borrower/hooks/useBorrowerInvitationRedirect"
 import { useLendersMarkets } from "@/app/[locale]/lender/hooks/useLendersMarkets"
+import { DefaultedPositionsHeading } from "@/components/DefaultedPositionsHeading"
 import { FilterTextField } from "@/components/FilterTextfield"
 import { MarketsFilterSelect } from "@/components/MarketsFilterSelect"
 import { MarketsFilterSelectItem } from "@/components/MarketsFilterSelect/interface"
@@ -19,6 +20,7 @@ import { MarketsTabItem } from "@/components/MarketsTabs/interface"
 import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
 import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
+import { useDefaultedMarkets } from "@/hooks/useDefaultedMarkets"
 import { marketStatusesMock } from "@/mocks/mocks"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -26,6 +28,7 @@ import { setSectionAmount } from "@/store/slices/borrowerDashboardAmountsSlice/b
 import {
   BorrowerMarketDashboardSections,
   BorrowerMarketDashboardTabs,
+  resolveMarketTab,
   setMarketTab,
 } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
 import { setMarketFilters } from "@/store/slices/marketFiltersSlice/marketFiltersSlice"
@@ -49,7 +52,9 @@ export const MarketsSection = () => {
     (state) => state.borrowerDashboard.marketSection,
   )
 
-  const marketTab = useAppSelector((state) => state.borrowerDashboard.marketTab)
+  const storedMarketTab = useAppSelector(
+    (state) => state.borrowerDashboard.marketTab,
+  )
 
   const sectionAmounts = useAppSelector(
     (state) => state.borrowerDashboardAmounts,
@@ -195,6 +200,12 @@ export const MarketsSection = () => {
 
   const isLoading = isLoadingInitial || isLoadingUpdate
 
+  const {
+    isLoading: isLoadingDefaults,
+    isError: isDefaultsError,
+    isDefaulted,
+  } = useDefaultedMarkets()
+
   const borrowerMarketAccounts = marketAccounts.filter(
     (account) =>
       account.market.borrower.toLowerCase() === address?.toLowerCase(),
@@ -222,6 +233,7 @@ export const MarketsSection = () => {
   )
 
   const {
+    defaulted: filteredDefaultedBorrowerMarkets,
     active: filteredActiveBorrowerMarkets,
     terminated: filteredTerminatedBorrowerMarkets,
     other: filteredOtherMarketAccounts,
@@ -232,7 +244,9 @@ export const MarketsSection = () => {
           if (
             account.market.borrower.toLowerCase() === address?.toLowerCase()
           ) {
-            if (!account.market.isClosed) {
+            if (isDefaulted(account.market.address)) {
+              all.defaulted.push(account)
+            } else if (!account.market.isClosed) {
               all.active.push(account)
             } else {
               all.terminated.push(account)
@@ -244,12 +258,13 @@ export const MarketsSection = () => {
           return all
         },
         {
+          defaulted: [] as MarketAccount[],
           active: [] as MarketAccount[],
           terminated: [] as MarketAccount[],
           other: [] as MarketAccount[],
         },
       ),
-    [filteredMarketAccounts, address],
+    [filteredMarketAccounts, address, isDefaulted],
   )
 
   const noMarkets = borrowerMarketAccounts.length === 0
@@ -264,7 +279,19 @@ export const MarketsSection = () => {
       account.market.borrower.toLowerCase() !== address?.toLowerCase(),
   )
 
-  const depositedMarketsAmount = borrowerMarkets.filter((account) => {
+  const defaultedMarketsAmount = borrowerMarkets.filter((account) =>
+    isDefaulted(account.market.address),
+  ).length
+
+  const liveBorrowerMarkets = borrowerMarkets.filter(
+    (account) => !isDefaulted(account.market.address),
+  )
+
+  const liveOthersMarkets = othersMarkets.filter(
+    (account) => !isDefaulted(account.market.address),
+  )
+
+  const depositedMarketsAmount = liveBorrowerMarkets.filter((account) => {
     const { borrowed } = account.market.getTotalDebtBreakdown()
     return (
       !account.market.isClosed &&
@@ -272,7 +299,7 @@ export const MarketsSection = () => {
     )
   }).length
 
-  const nonDepositedMarketsAmount = borrowerMarkets.filter((account) => {
+  const nonDepositedMarketsAmount = liveBorrowerMarkets.filter((account) => {
     const { borrowed } = account.market.getTotalDebtBreakdown()
     return (
       account.market.borrowableAssets.raw.isZero() &&
@@ -283,15 +310,15 @@ export const MarketsSection = () => {
     )
   }).length
 
-  const prevActiveAmount = borrowerMarkets.filter(
+  const prevActiveAmount = liveBorrowerMarkets.filter(
     (account) => account.market.isClosed && account.hasEverInteracted,
   ).length
 
-  const neverActiveAmount = borrowerMarkets.filter(
+  const neverActiveAmount = liveBorrowerMarkets.filter(
     (account) => account.market.isClosed && !account.hasEverInteracted,
   ).length
 
-  const selfOnboardAmount = othersMarkets.filter(
+  const selfOnboardAmount = liveOthersMarkets.filter(
     (account) =>
       !account.market.isClosed &&
       getKnownMarketOnboardingMode(
@@ -301,7 +328,7 @@ export const MarketsSection = () => {
       ) === MarketOnboardingMode.SelfOnboard,
   ).length
 
-  const manualAmount = othersMarkets.filter(
+  const manualAmount = liveOthersMarkets.filter(
     (account) =>
       !account.market.isClosed &&
       getKnownMarketOnboardingMode(
@@ -311,11 +338,21 @@ export const MarketsSection = () => {
       ) === MarketOnboardingMode.BorrowerApproval,
   ).length
 
-  const terminatedOtherAmount = othersMarkets.filter(
+  const terminatedOtherAmount = liveOthersMarkets.filter(
     (account) => account.market.isClosed,
   ).length
 
+  const defaultedOtherAmount = othersMarkets.filter((account) =>
+    isDefaulted(account.market.address),
+  ).length
+
   useEffect(() => {
+    dispatch(
+      setSectionAmount({
+        name: "defaulted",
+        value: isWrongNetwork ? 0 : defaultedMarketsAmount,
+      }),
+    )
     dispatch(
       setSectionAmount({
         name: "deposited",
@@ -358,7 +395,14 @@ export const MarketsSection = () => {
         value: isWrongNetwork ? 0 : terminatedOtherAmount,
       }),
     )
+    dispatch(
+      setSectionAmount({
+        name: "defaultedOther",
+        value: isWrongNetwork ? 0 : defaultedOtherAmount,
+      }),
+    )
   }, [
+    defaultedMarketsAmount,
     depositedMarketsAmount,
     nonDepositedMarketsAmount,
     prevActiveAmount,
@@ -366,7 +410,28 @@ export const MarketsSection = () => {
     selfOnboardAmount,
     manualAmount,
     terminatedOtherAmount,
+    defaultedOtherAmount,
     isWrongNetwork,
+    dispatch,
+  ])
+
+  const showDefaultedTab = !isLoadingDefaults && defaultedMarketsAmount > 0
+  const marketTab = resolveMarketTab(storedMarketTab, showDefaultedTab)
+
+  useEffect(() => {
+    if (
+      storedMarketTab === BorrowerMarketDashboardTabs.DEFAULTED &&
+      !isLoadingDefaults &&
+      !isLoadingInitial &&
+      !showDefaultedTab
+    ) {
+      dispatch(setMarketTab(BorrowerMarketDashboardTabs.DEPOSITED))
+    }
+  }, [
+    storedMarketTab,
+    isLoadingDefaults,
+    isLoadingInitial,
+    showDefaultedTab,
     dispatch,
   ])
 
@@ -378,6 +443,15 @@ export const MarketsSection = () => {
 
   const tabItems: MarketsTabItem<BorrowerMarketDashboardTabs>[] = isYourSection
     ? [
+        ...(showDefaultedTab
+          ? [
+              {
+                value: BorrowerMarketDashboardTabs.DEFAULTED,
+                label: t("defaultedMarkets.tab"),
+                count: defaultedMarketsAmount,
+              },
+            ]
+          : []),
         {
           value: BorrowerMarketDashboardTabs.DEPOSITED,
           label: t("dashboard.markets.tables.borrower.active.deposited"),
@@ -409,6 +483,14 @@ export const MarketsSection = () => {
           value: BorrowerMarketDashboardTabs.OTHER_TERMINATED,
           label: t("dashboard.markets.tables.other.terminated"),
           count: sectionAmounts.terminatedOther,
+        },
+        {
+          value: BorrowerMarketDashboardTabs.OTHER_DEFAULTED,
+          label: t("defaultedMarkets.tab"),
+          count:
+            isLoadingDefaults || isDefaultsError
+              ? undefined
+              : sectionAmounts.defaultedOther,
         },
       ]
 
@@ -480,6 +562,12 @@ export const MarketsSection = () => {
           </Box>
         )}
 
+        {showTabs && marketTab === BorrowerMarketDashboardTabs.DEFAULTED && (
+          <DefaultedPositionsHeading
+            sx={{ marginTop: "32px", padding: "0 16px" }}
+          />
+        )}
+
         <Box
           sx={{
             width: "100%",
@@ -538,6 +626,16 @@ export const MarketsSection = () => {
       )}
 
       {showYourMarkets &&
+        marketTab === BorrowerMarketDashboardTabs.DEFAULTED && (
+          <BorrowerActiveMarketsTables
+            tab={marketTab}
+            marketAccounts={filteredDefaultedBorrowerMarkets}
+            isLoading={isLoading || isLoadingDefaults}
+            filters={filters}
+          />
+        )}
+
+      {showYourMarkets &&
         (marketTab === BorrowerMarketDashboardTabs.DEPOSITED ||
           marketTab === BorrowerMarketDashboardTabs.NON_DEPOSITED) && (
           <BorrowerActiveMarketsTables
@@ -560,12 +658,17 @@ export const MarketsSection = () => {
       {showOtherMarkets &&
         (marketTab === BorrowerMarketDashboardTabs.SELF_ONBOARD ||
           marketTab === BorrowerMarketDashboardTabs.MANUAL ||
-          marketTab === BorrowerMarketDashboardTabs.OTHER_TERMINATED) && (
+          marketTab === BorrowerMarketDashboardTabs.OTHER_TERMINATED ||
+          marketTab === BorrowerMarketDashboardTabs.OTHER_DEFAULTED) && (
           <OtherMarketsTables
             tab={marketTab}
             marketAccounts={filteredOtherMarketAccounts}
             onboardingByMarket={onboardingByMarket}
-            isLoading={isLoading}
+            isLoading={
+              isLoading ||
+              (marketTab === BorrowerMarketDashboardTabs.OTHER_DEFAULTED &&
+                isLoadingDefaults)
+            }
             filters={filters}
           />
         )}

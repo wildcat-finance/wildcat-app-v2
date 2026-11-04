@@ -1847,6 +1847,7 @@
       "title": "Default Status Unavailable",
       "subtitle": "Defaulted markets could not be loaded. Try again later."
     },
-    "jurisButton": "View Juris Docs"
+    "jurisButton": "View Juris Docs",
+    "repayButton": "Repay"
   }
 }
