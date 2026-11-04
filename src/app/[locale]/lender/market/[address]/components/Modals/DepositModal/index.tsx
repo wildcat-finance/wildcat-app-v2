@@ -151,6 +151,7 @@ export const DepositModal = ({
   isMobileOpen,
   setIsMobileOpen,
   showBorrowerPenaltyWarning,
+  isMarketDefaulted,
 }: DepositModalProps) => {
   const isMobile = useMobileResolution()
 
@@ -299,9 +300,8 @@ export const DepositModal = ({
   const depositStep = getDepositStatus().status
 
   const isAllowanceSufficient = marketAccount.isApprovedFor(depositTokenAmount)
-  const marketActionsManuallyDisabled = hasManuallyDisabledMarketActions(
-    market.borrower,
-  )
+  const depositsBlocked =
+    hasManuallyDisabledMarketActions(market.borrower) || !!isMarketDefaulted
 
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target
@@ -318,7 +318,7 @@ export const DepositModal = ({
     if (
       isDepositing ||
       isApproving ||
-      marketActionsManuallyDisabled ||
+      depositsBlocked ||
       touActionBlocked ||
       networkActionBlocked ||
       accountActionBlocked ||
@@ -344,7 +344,7 @@ export const DepositModal = ({
 
   const handleApprove = () => {
     if (
-      marketActionsManuallyDisabled ||
+      depositsBlocked ||
       touActionBlocked ||
       networkActionBlocked ||
       accountActionBlocked ||
@@ -382,6 +382,7 @@ export const DepositModal = ({
       refetchAgreementStatus().catch(() => undefined)
       return
     }
+    if (depositsBlocked) return
     // ToU re-acceptance lockout: deposits are blocked until the current
     // version is accepted (withdrawals stay available).
     if (touActionBlocked || networkActionBlocked || accountActionBlocked) return
@@ -420,7 +421,7 @@ export const DepositModal = ({
     networkActionBlocked ||
     accountActionBlocked ||
     agreementActionBlocked ||
-    marketActionsManuallyDisabled ||
+    depositsBlocked ||
     !borrowerLegalName ||
     market.isClosed ||
     depositTokenAmount.raw.isZero() ||
@@ -434,7 +435,7 @@ export const DepositModal = ({
     networkActionBlocked ||
     accountActionBlocked ||
     agreementActionBlocked ||
-    marketActionsManuallyDisabled ||
+    depositsBlocked ||
     !borrowerLegalName ||
     !!depositError ||
     market.isClosed ||
@@ -1093,7 +1094,7 @@ export const DepositModal = ({
                   (touActionBlocked && !touRetryAvailable) ||
                   networkActionBlocked ||
                   accountActionBlocked ||
-                  marketActionsManuallyDisabled ||
+                  depositsBlocked ||
                   marketAccount.maximumDeposit.raw.isZero() ||
                   underlyingBalanceIsZero
                 }
@@ -1109,7 +1110,7 @@ export const DepositModal = ({
             size="large"
             sx={{ width: "152px" }}
             disabled={
-              marketActionsManuallyDisabled ||
+              depositsBlocked ||
               networkActionBlocked ||
               accountActionBlocked ||
               marketAccount.maximumDeposit.raw.isZero() ||

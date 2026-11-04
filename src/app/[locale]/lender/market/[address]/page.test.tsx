@@ -91,6 +91,16 @@ jest.mock("@/hooks/wrapper/useWrapperForMarket", () => ({
 jest.mock("./hooks/useBorrowerPenaltyWarning", () => ({
   useBorrowerPenaltyWarning: () => ({ shouldWarn: false }),
 }))
+jest.mock("@/hooks/useDefaultedMarkets", () => ({
+  useDefaultedMarkets: () => ({
+    isLoading: false,
+    isError: false,
+    defaultedMarkets: {},
+    isDefaulted: () => false,
+    defaultedAt: () => undefined,
+    defaultedMarketsOfBorrower: () => [],
+  }),
+}))
 jest.mock("./hooks/useGetLenderWithdrawals", () => ({
   useGetLenderWithdrawals: jest.fn(),
 }))

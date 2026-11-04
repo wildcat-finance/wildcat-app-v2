@@ -2,7 +2,7 @@ import * as React from "react"
 
 import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
-import { countMarketsInDefault } from "@/utils/marketStatus"
+import { useDefaultedMarkets } from "@/hooks/useDefaultedMarkets"
 
 import { ProfileSectionNameBlock } from "./components/ProfileSectionNameBlock"
 import { ProfileSectionProps } from "./interface"
@@ -24,7 +24,11 @@ export const ProfileSection = ({
 
   const activeMarkets = borrowerMarkets?.filter((market) => !market.isClosed)
   const marketsAmount = (activeMarkets ?? []).length
-  const defaults = countMarketsInDefault(borrowerMarkets)
+  const { isLoading: isDefaultsLoading, defaultedMarketsOfBorrower } =
+    useDefaultedMarkets(externalChainId)
+  const defaults = isDefaultsLoading
+    ? undefined
+    : defaultedMarketsOfBorrower(profileAddress).length
 
   return (
     <>

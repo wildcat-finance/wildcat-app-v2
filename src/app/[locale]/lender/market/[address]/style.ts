@@ -20,6 +20,11 @@ export const LenderBannerWrapper: SxProps<Theme> = {
   flex: "0 0 auto",
 }
 
+export const DefaultNoticeWrapper: SxProps<Theme> = {
+  padding: { xs: 0, md: "0 32.3% 26px 44px" },
+  flex: "0 0 auto",
+}
+
 // Scroll the banner and market section together inside the fixed page shell.
 export const MarketContentColumn = (
   theme: Theme,

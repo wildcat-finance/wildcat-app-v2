@@ -84,6 +84,8 @@ export const MarketActions = ({
   wrapper,
   hasWrapper,
   isLiveMarketReady,
+  isMarketDefaulted,
+  isDefaultStatusLoading,
 }: MarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
@@ -311,7 +313,11 @@ export const MarketActions = ({
           <TransactionBlock
             title={t("lenderMarketDetails.transactions.deposit.title")}
             tooltip={t("lenderMarketDetails.transactions.deposit.tooltip")}
-            amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
+            amount={
+              isMarketDefaulted
+                ? "0"
+                : formatTokenWithCommas(marketAccount.maximumDeposit)
+            }
             asset={market.underlyingToken.symbol}
             subtitle={
               // the breakdown line drives both cards: when there is no wrapped
@@ -323,7 +329,20 @@ export const MarketActions = ({
             rows={depositRows}
           >
             {(() => {
-              if (!isLiveMarketReady) return <MarketUpdatingStatus />
+              if (!isLiveMarketReady || isDefaultStatusLoading)
+                return <MarketUpdatingStatus />
+
+              if (isMarketDefaulted)
+                return (
+                  <Button
+                    variant="contained"
+                    size="large"
+                    sx={{ width: "152px" }}
+                    disabled
+                  >
+                    {t("lenderMarketDetails.transactions.deposit.button")}
+                  </Button>
+                )
 
               if (mlaLoading || signedMlaLoading) {
                 return (
@@ -379,6 +398,7 @@ export const MarketActions = ({
                     <DepositModal
                       marketAccount={marketAccount}
                       showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
+                      isMarketDefaulted={isMarketDefaulted}
                     />
                   )}
                   {showFaucet && <FaucetButton marketAccount={marketAccount} />}

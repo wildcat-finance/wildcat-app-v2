@@ -7,4 +7,5 @@ export type DepositModalProps = {
   isMobileOpen?: boolean
   setIsMobileOpen?: Dispatch<SetStateAction<boolean>>
   showBorrowerPenaltyWarning?: boolean
+  isMarketDefaulted?: boolean
 }
