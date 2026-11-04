@@ -1824,5 +1824,29 @@
       "totalDebt": "Total Debt",
       "totalDebtTooltip": "What the borrower still owes lenders, including withdrawals from expired cycles that have not been funded yet, but not withdrawals already set aside in the market and waiting to be claimed."
     }
+  },
+  "defaultedMarkets": {
+    "tab": "Defaulted",
+    "chip": {
+      "label": "Default",
+      "penaltyDays": "Penalty: {{days}} d"
+    },
+    "borrowerBadge": {
+      "tooltip_one": "This borrower has {{count}} defaulted market",
+      "tooltip_other": "This borrower has {{count}} defaulted markets"
+    },
+    "positions": {
+      "title": "Defaulted positions",
+      "subtitle": "These markets have defaulted. Review each for details on what to do next."
+    },
+    "noMarkets": {
+      "title": "No Defaulted Markets",
+      "subtitle": "None of the markets in this list have defaulted."
+    },
+    "unavailable": {
+      "title": "Default Status Unavailable",
+      "subtitle": "Defaulted markets could not be loaded. Try again later."
+    },
+    "jurisButton": "View Juris Docs"
   }
 }

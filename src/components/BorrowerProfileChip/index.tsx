@@ -1,9 +1,11 @@
 import * as React from "react"
 
-import { Box, SvgIcon, Typography } from "@mui/material"
+import { Box, Paper, SvgIcon, Tooltip, Typography } from "@mui/material"
 import { useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 import Avatar from "@/assets/icons/avatar_icon.svg"
+import DefaultedIcon from "@/assets/icons/defaulted_icon.svg"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
@@ -60,14 +62,66 @@ const CHIP_SIZE_STYLES = {
   },
 } as const
 
+export const DefaultedBorrowerBadge = ({ count }: { count: number }) => {
+  const { t } = useTranslation()
+
+  return (
+    <Tooltip
+      placement="bottom-start"
+      arrow={false}
+      title={
+        <Paper>
+          <Typography
+            variant="text4"
+            color={COLORS.blackRock}
+            sx={{ whiteSpace: "nowrap" }}
+          >
+            {t("defaultedMarkets.borrowerBadge.tooltip", { count })}
+          </Typography>
+        </Paper>
+      }
+      componentsProps={{
+        tooltip: {
+          sx: {
+            p: 0,
+            bgcolor: "transparent",
+            boxShadow: "none",
+            borderRadius: 0,
+            maxWidth: "none",
+          },
+        },
+      }}
+    >
+      <Box
+        sx={{
+          width: "12px",
+          height: "12px",
+          borderRadius: "8px",
+          bgcolor: COLORS.blackRock,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        <SvgIcon sx={{ fontSize: "12px", "& path": { fill: COLORS.white } }}>
+          <DefaultedIcon />
+        </SvgIcon>
+      </Box>
+    </Tooltip>
+  )
+}
+
 export const BorrowerProfileChip = ({
   borrower,
   size = "default",
   href,
+  defaultedMarketsCount,
 }: {
   borrower: string | undefined
   size?: "tiny" | "small" | "default" | "medium" | "large"
   href?: string
+  defaultedMarketsCount?: number
 }) => {
   const isMobile = useMobileResolution()
   const router = useRouter()
@@ -150,6 +204,22 @@ export const BorrowerProfileChip = ({
       >
         {borrower}
       </Typography>
+
+      {!!defaultedMarketsCount && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+            flexShrink: 0,
+          }}
+        >
+          <Typography variant="caption" color={COLORS.greySuit}>
+            |
+          </Typography>
+          <DefaultedBorrowerBadge count={defaultedMarketsCount} />
+        </Box>
+      )}
     </Box>
   )
 }
