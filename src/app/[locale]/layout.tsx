@@ -18,6 +18,7 @@ import {
   RootScaffold,
 } from "@/app/[locale]/layout-style"
 import initTranslations from "@/app/i18n"
+import { DefaultedMarketsPrefetch } from "@/components/DefaultedMarketsPrefetch"
 import Header from "@/components/Header"
 import { HelpModal } from "@/components/HelpModal"
 import HotjarConsent from "@/components/HotjarConsent"
@@ -73,6 +74,7 @@ export default async function RootLayout({
         <WagmiQueryProviders initialState={initialState}>
           <SafeProvider>
             <StoreProvider>
+              <DefaultedMarketsPrefetch />
               <RedirectsProvider>
                 <SubgraphProvider>
                   <TranslationsProvider

@@ -1,147 +1,127 @@
 import { useMemo } from "react"
 
-import { gql } from "@apollo/client"
-import { useQuery } from "@tanstack/react-query"
-import {
-  DEFAULT_DELINQUENCY_PERIOD,
-  getMarketDefaultStatus,
-  getSubgraphClient,
-  SupportedChainId,
-} from "@wildcatfi/wildcat-sdk"
+import { QueryClient, queryOptions, useQuery } from "@tanstack/react-query"
+import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
-import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import {
+  useIsSelectedNetworkRehydrated,
+  useSelectedNetwork,
+} from "@/hooks/useSelectedNetwork"
+import {
+  DefaultedMarketsData,
+  fetchDefaultedMarkets,
+  isDefaultedMarketsData,
+} from "@/utils/defaultedMarkets"
 
-// A default needs a delinquency that ran past the grace period for 90 more days,
-// so markets never delinquent or younger than that are skipped before the
-// (per-market) history replay
-const DEFAULT_CANDIDATES_QUERY = gql`
-  query getDefaultCandidates($first: Int!, $skip: Int!, $createdBefore: Int!) {
-    markets(
-      first: $first
-      skip: $skip
-      orderBy: createdAt
-      orderDirection: asc
-      where: {
-        delinquencyStatusChangedIndex_gt: 0
-        createdAt_lt: $createdBefore
-      }
-    ) {
-      id
-      borrower
-      lastInterestAccruedTimestamp
-    }
-  }
-`
+export type { DefaultedMarket } from "@/utils/defaultedMarkets"
 
-type DefaultCandidate = {
-  id: string
-  borrower: string
-  lastInterestAccruedTimestamp: number
-}
-
-export type DefaultedMarket = {
-  address: string
-  borrower: string
-  defaultedAt?: number
-}
-
-type DefaultedMarketsData = {
-  // Keyed by lowercased market address
-  markets: Record<string, DefaultedMarket>
-  // Markets whose history could not be established; they keep their live status
-  unknown: string[]
-}
-
-const CANDIDATES_PAGE_SIZE = 1000
-const MAX_CONCURRENT_HISTORY_READS = 6
 const REFRESH_INTERVAL = 5 * 60_000
+const SEED_STORAGE_KEY = "wildcat:defaulted-markets:v1"
+const SEED_MAX_AGE = 24 * 60 * 60_000
 
-const fetchDefaultedMarkets = async (
+type DefaultedMarketsSeeds = Record<
+  string,
+  { savedAt: number; data: DefaultedMarketsData } | undefined
+>
+
+const readSeeds = (): DefaultedMarketsSeeds => {
+  try {
+    const parsed: unknown = JSON.parse(
+      window.localStorage.getItem(SEED_STORAGE_KEY) ?? "{}",
+    )
+    return parsed && typeof parsed === "object"
+      ? (parsed as DefaultedMarketsSeeds)
+      : {}
+  } catch {
+    return {}
+  }
+}
+
+const writeSeed = (chainId: number, data: DefaultedMarketsData) => {
+  try {
+    const seeds = readSeeds()
+    seeds[chainId] = { savedAt: Date.now(), data }
+    window.localStorage.setItem(SEED_STORAGE_KEY, JSON.stringify(seeds))
+    return true
+  } catch {
+    return false
+  }
+}
+
+export const seedDefaultedMarkets = (queryClient: QueryClient) => {
+  const now = Date.now()
+  Object.entries(readSeeds()).forEach(([chainId, seed]) => {
+    const queryKey = QueryKeys.Markets.GET_DEFAULTED_MARKETS(Number(chainId))
+    if (
+      !seed ||
+      typeof seed.savedAt !== "number" ||
+      seed.savedAt > now ||
+      now - seed.savedAt > SEED_MAX_AGE ||
+      !isDefaultedMarketsData(seed.data) ||
+      queryClient.getQueryData(queryKey) !== undefined
+    )
+      return
+    queryClient.setQueryData(queryKey, seed.data, { updatedAt: seed.savedAt })
+  })
+}
+
+const fetchFromApi = async (
   chainId: SupportedChainId,
   signal: AbortSignal,
 ): Promise<DefaultedMarketsData> => {
-  const client = getSubgraphClient(chainId)
-  const createdBefore =
-    Math.floor(Date.now() / 1000) - DEFAULT_DELINQUENCY_PERIOD
-
-  const candidates: DefaultCandidate[] = []
-  for (let skip = 0; ; skip += CANDIDATES_PAGE_SIZE) {
-    // eslint-disable-next-line no-await-in-loop
-    const { data } = await client.query<{ markets: DefaultCandidate[] }>({
-      query: DEFAULT_CANDIDATES_QUERY,
-      variables: { first: CANDIDATES_PAGE_SIZE, skip, createdBefore },
-      fetchPolicy: "network-only",
-      context: { fetchOptions: { signal } },
-    })
-    candidates.push(...data.markets)
-    if (data.markets.length < CANDIDATES_PAGE_SIZE) break
-  }
-
-  const markets: DefaultedMarketsData["markets"] = {}
-  const unknown: string[] = []
-  let nextIndex = 0
-
-  // Bounded so a chain with many candidates cannot flood the subgraph
-  const readNext = async (): Promise<void> => {
-    if (signal.aborted || nextIndex === candidates.length) return
-    const candidate = candidates[nextIndex]
-    nextIndex += 1
-    const address = candidate.id.toLowerCase()
-    try {
-      const status = await getMarketDefaultStatus(client, {
-        market: {
-          address,
-          chainId,
-          lastInterestAccruedTimestamp: candidate.lastInterestAccruedTimestamp,
-        },
-        signal,
-      })
-      if (status.isDefaulted === undefined) unknown.push(address)
-      else if (status.isDefaulted)
-        markets[address] = {
-          address,
-          borrower: candidate.borrower.toLowerCase(),
-          defaultedAt: status.defaultedAt,
-        }
-    } catch {
-      if (!signal.aborted) unknown.push(address)
-    }
-    await readNext()
-  }
-
-  await Promise.all(
-    Array.from(
-      {
-        length: Math.min(MAX_CONCURRENT_HISTORY_READS, candidates.length),
-      },
-      readNext,
-    ),
-  )
-
-  return { markets, unknown }
+  const response = await fetch(`/api/defaulted-markets?chainId=${chainId}`, {
+    signal,
+  })
+  if (!response.ok)
+    throw new Error(`Defaulted markets request failed: ${response.status}`)
+  const data: unknown = await response.json()
+  if (!isDefaultedMarketsData(data))
+    throw new Error("Malformed defaulted markets response")
+  return data
 }
 
+const loadDefaultedMarkets = async (
+  chainId: SupportedChainId,
+  signal: AbortSignal,
+) => {
+  const data = await fetchFromApi(chainId, signal).catch((error) => {
+    if (signal.aborted) throw error
+    return fetchDefaultedMarkets(chainId, signal)
+  })
+  writeSeed(chainId, data)
+  return data
+}
+
+export const defaultedMarketsQueryOptions = (chainId: SupportedChainId) =>
+  queryOptions({
+    queryKey: QueryKeys.Markets.GET_DEFAULTED_MARKETS(chainId),
+    queryFn: ({ signal }) => loadDefaultedMarkets(chainId, signal),
+    staleTime: REFRESH_INTERVAL,
+    retry: 1,
+  })
+
 /**
- * Historical defaults on a chain, from the SDK's history replay. A default stays
- * recorded after cure or closure. Until the first read finishes nothing counts
- * as defaulted, so callers should treat `isLoading` as "status not known yet".
+ * Historical defaults on a chain. A default stays recorded after cure or
+ * closure. `isLoading` means the status is not known yet: callers must not
+ * render a market or borrower as healthy until it clears.
  */
 export const useDefaultedMarkets = (chainId?: number) => {
   const { chainId: selectedChainId } = useSelectedNetwork()
+  const isNetworkRehydrated = useIsSelectedNetworkRehydrated()
   const targetChainId = (chainId ?? selectedChainId) as SupportedChainId
 
   const query = useQuery({
-    queryKey: QueryKeys.Markets.GET_DEFAULTED_MARKETS(targetChainId),
-    queryFn: ({ signal }) => fetchDefaultedMarkets(targetChainId, signal),
-    staleTime: REFRESH_INTERVAL,
+    ...defaultedMarketsQueryOptions(targetChainId),
+    enabled: chainId !== undefined || isNetworkRehydrated,
     refetchInterval: REFRESH_INTERVAL,
     refetchOnWindowFocus: false,
-    retry: 1,
   })
 
   return useMemo(() => {
     const markets = query.data?.markets ?? {}
+    const hasData = query.data !== undefined
+    const hasFailed = query.isError || query.errorUpdateCount > 0
     const byBorrower: Record<string, string[]> = {}
     Object.values(markets).forEach((market) => {
       byBorrower[market.borrower] = [
@@ -151,8 +131,8 @@ export const useDefaultedMarkets = (chainId?: number) => {
     })
 
     return {
-      isLoading: query.isLoading,
-      isError: query.isError,
+      isLoading: !hasData && query.isPending && !hasFailed,
+      isError: !hasData && hasFailed,
       defaultedMarkets: markets,
       isDefaulted: (marketAddress?: string) =>
         !!marketAddress && marketAddress.toLowerCase() in markets,
@@ -163,5 +143,5 @@ export const useDefaultedMarkets = (chainId?: number) => {
       defaultedMarketsOfBorrower: (borrowerAddress?: string) =>
         (borrowerAddress && byBorrower[borrowerAddress.toLowerCase()]) || [],
     }
-  }, [query.data, query.isLoading, query.isError])
+  }, [query.data, query.isPending, query.isError, query.errorUpdateCount])
 }
