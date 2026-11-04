@@ -1859,7 +1859,7 @@
     },
     "borrowerNotice": {
       "title": "The borrower has a defaulted market",
-      "description": "At least one market deployed by this borrower has not honoured withdrawal requests at least thirty days past their self-imposed grace period.",
+      "description": "At least one market deployed by this borrower has not honoured withdrawal requests for more than 90 days past their self-imposed grace period.",
       "viewProfile": "View Profile"
     },
     "ownMarketNotice": {
