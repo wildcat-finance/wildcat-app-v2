@@ -4,7 +4,7 @@ import { pageCalcHeights } from "@/utils/constants"
 
 export const MarketHeaderUpperContainer = {
   display: "flex",
-  alignItems: "center",
+  alignItems: "flex-start",
   justifyContent: "space-between",
   marginBottom: "20px",
   padding: "52px 32.3% 0 44px",
@@ -15,9 +15,23 @@ export const MarketHeaderUpperContainer = {
   },
 }
 
-export const MarketHeaderTitleContainer = {
+export const MarketHeaderInfoContainer = {
   display: "flex",
-  columnGap: "8px",
+  flexDirection: "column",
+  rowGap: "10px",
+  minWidth: 0,
+}
+
+export const MarketHeaderTitleRow = {
+  display: "flex",
+  alignItems: "center",
+  columnGap: "10px",
+}
+
+export const MarketHeaderDetailsRow = {
+  display: "flex",
+  alignItems: "center",
+  columnGap: "4px",
 }
 
 export const MarketHeaderStatusContainer = (theme: Theme): SxProps<Theme> => ({

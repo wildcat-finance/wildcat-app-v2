@@ -1848,6 +1848,24 @@
       "subtitle": "Defaulted markets could not be loaded. Try again later."
     },
     "jurisButton": "View Juris Docs",
-    "repayButton": "Repay"
+    "repayButton": "Repay",
+    "lenderNotice": {
+      "title": "This market is in default",
+      "description": "Deposits are disabled. Withdrawals and claims continue to work as normal. We advise against further engagement with this borrower.",
+      "unfulfilledRequest": {
+        "title": "You have an unfulfilled withdrawal request",
+        "subtitle": "Please see how to document your position"
+      }
+    },
+    "borrowerNotice": {
+      "title": "The borrower has a defaulted market",
+      "description": "At least one market deployed by this borrower has not honoured withdrawal requests at least thirty days past their self-imposed grace period.",
+      "viewProfile": "View Profile"
+    }
+  },
+  "marketHeader": {
+    "openTerm": "Open term",
+    "fixedTerm": "Fixed term",
+    "baseApr": "Base apr"
   }
 }

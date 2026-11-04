@@ -250,7 +250,11 @@ export default function MarketDetails({
   return (
     <Box>
       <Box>
-        <MarketHeader market={market} marketAccount={marketAccount} />
+        <MarketHeader
+          market={market}
+          marketAccount={marketAccount}
+          variant="borrower"
+        />
         {isDifferentChain && (
           <SwitchChainAlert desiredChainId={market?.chainId} />
         )}

@@ -19,6 +19,8 @@ const CHIP_SIZE_STYLES = {
     initialLineHeight: "8px",
     fontSize: "10px",
     lineHeight: "14px",
+    badgeGap: "4px",
+    desktopTextVariant: "text4",
   },
   small: {
     avatar: "12px",
@@ -29,6 +31,8 @@ const CHIP_SIZE_STYLES = {
     initialLineHeight: "8px",
     fontSize: "10px",
     lineHeight: "14px",
+    badgeGap: "4px",
+    desktopTextVariant: "text4",
   },
   default: {
     avatar: "12px",
@@ -39,6 +43,8 @@ const CHIP_SIZE_STYLES = {
     initialLineHeight: "8px",
     fontSize: undefined,
     lineHeight: undefined,
+    badgeGap: "4px",
+    desktopTextVariant: "text4",
   },
   medium: {
     avatar: "14px",
@@ -49,6 +55,8 @@ const CHIP_SIZE_STYLES = {
     initialLineHeight: "9px",
     fontSize: "13px",
     lineHeight: "18px",
+    badgeGap: "4px",
+    desktopTextVariant: "text4",
   },
   large: {
     avatar: "18px",
@@ -59,6 +67,20 @@ const CHIP_SIZE_STYLES = {
     initialLineHeight: "12px",
     fontSize: "16px",
     lineHeight: "22px",
+    badgeGap: "4px",
+    desktopTextVariant: "text4",
+  },
+  header: {
+    avatar: "16px",
+    gap: "6px",
+    padding: "2px 8px 2px 4px",
+    radius: "12px",
+    initialFont: "8px",
+    initialLineHeight: "11px",
+    fontSize: undefined,
+    lineHeight: undefined,
+    badgeGap: "6px",
+    desktopTextVariant: "text2",
   },
 } as const
 
@@ -119,7 +141,7 @@ export const BorrowerProfileChip = ({
   defaultedMarketsCount,
 }: {
   borrower: string | undefined
-  size?: "tiny" | "small" | "default" | "medium" | "large"
+  size?: "tiny" | "small" | "default" | "medium" | "large" | "header"
   href?: string
   defaultedMarketsCount?: number
 }) => {
@@ -191,7 +213,7 @@ export const BorrowerProfileChip = ({
       )}
 
       <Typography
-        variant={isMobile ? "mobText4" : "text4"}
+        variant={isMobile ? "mobText4" : sizeStyles.desktopTextVariant}
         sx={{
           minWidth: 0,
           overflow: "hidden",
@@ -210,7 +232,7 @@ export const BorrowerProfileChip = ({
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: "4px",
+            gap: sizeStyles.badgeGap,
             flexShrink: 0,
           }}
         >

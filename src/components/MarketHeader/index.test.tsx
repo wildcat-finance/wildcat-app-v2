@@ -11,6 +11,9 @@ import { MarketHeader } from "./index"
 jest.mock("wagmi", () => ({
   useAccount: jest.fn(() => ({ address: undefined })),
 }))
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: jest.fn() }),
+}))
 
 jest.mock("humanize-duration", () => ({
   __esModule: true,
@@ -27,6 +30,20 @@ jest.mock("@/app/[locale]/lender/profile/hooks/useGetBorrowerProfile", () => ({
 jest.mock("@/assets/icons/avatar_icon.svg", () => ({
   __esModule: true,
   default: () => null,
+}))
+jest.mock("@/assets/icons/defaulted_icon.svg", () => ({
+  __esModule: true,
+  default: () => null,
+}))
+jest.mock("@/hooks/useDefaultedMarkets", () => ({
+  useDefaultedMarkets: () => ({
+    isLoading: false,
+    isError: false,
+    defaultedMarkets: {},
+    isDefaulted: () => false,
+    defaultedAt: () => undefined,
+    defaultedMarketsOfBorrower: () => [],
+  }),
 }))
 jest.mock("@/components/@extended/MarketStatusChip", () => ({
   MarketStatusChip: () => <span>Healthy</span>,
@@ -46,6 +63,7 @@ jest.mock("@/utils/marketStatus", () => ({
   MarketStatus: {
     HEALTHY: "Healthy",
     TERMINATED: "Terminated",
+    DEFAULTED: "Defaulted",
   },
   getMarketStatusChip: jest.fn(() => ({ status: "Healthy" })),
 }))

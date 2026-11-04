@@ -8,4 +8,5 @@ export type MarketHeaderProps = {
   marketAccount?: MarketAccount
   mla?: MasterLoanAgreementResponse | undefined | null | { noMLA: boolean }
   hasMarketDescription?: boolean
+  variant?: "lender" | "borrower"
 }
