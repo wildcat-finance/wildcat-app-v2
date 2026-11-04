@@ -28,8 +28,9 @@ import {
   designRole,
   HEADLINES,
 } from "./design"
-import { reviewEnabled } from "./gate"
+import { isReviewPath, reviewEnabled } from "./gate"
 import { MetricItem } from "./MetricItem"
+import { MetricNav } from "./MetricNav"
 import {
   cardNumbers,
   comparisonText,
@@ -414,5 +415,53 @@ describe("preview gate", () => {
     expect(reviewEnabled({ VERCEL_ENV: "production" })).toBe(false)
     expect(reviewEnabled({ VERCEL_ENV: "preview" })).toBe(true)
     expect(reviewEnabled({})).toBe(true)
+  })
+
+  it("knows the page's path, with or without a locale", () => {
+    expect(isReviewPath("/glassdoor-review")).toBe(true)
+    expect(isReviewPath("/fr/glassdoor-review/")).toBe(true)
+    expect(isReviewPath("/lender")).toBe(false)
+    expect(isReviewPath("/glassdoor-review/other")).toBe(false)
+  })
+})
+
+describe("sidebar metric list", () => {
+  it("lists every metric id, named for screen readers, and opens it", () => {
+    const onGo = jest.fn()
+    const onGoGroup = jest.fn()
+    render(
+      <MetricNav
+        toggles={{ M18: ["value"] }}
+        active="S05"
+        collapsed={["borrower"]}
+        onGo={onGo}
+        onGoGroup={onGoGroup}
+      />,
+    )
+    const nav = screen.getByRole("navigation", { name: "Metrics" })
+    const links = within(nav)
+      .getAllByRole("link")
+      .filter((link) => link.hasAttribute("data-nav-metric"))
+    expect(links.map((link) => link.textContent)).toEqual(
+      [...metricsIn("borrower"), ...metricsIn("market")].map(
+        (metric) => metric.id,
+      ),
+    )
+    const s05 = within(nav).getByRole("link", {
+      name: `${METRIC_NAMES.S05} (S05)`,
+    })
+    expect(s05).toHaveAttribute("aria-current", "location")
+    // Changed from the design default (M18 is a card headline, chart and
+    // comparison by default).
+    expect(
+      within(nav).getByRole("link", { name: `${METRIC_NAMES.M18} (M18)` })
+        .className,
+    ).toMatch(/navChanged/)
+    expect(s05.className).not.toMatch(/navChanged/)
+    expect(within(nav).getByText("26 · hidden")).toBeInTheDocument()
+    fireEvent.click(s05)
+    expect(onGo).toHaveBeenCalledWith("S05")
+    fireEvent.click(within(nav).getByRole("link", { name: /^Market metrics/ }))
+    expect(onGoGroup).toHaveBeenCalledWith("market")
   })
 })

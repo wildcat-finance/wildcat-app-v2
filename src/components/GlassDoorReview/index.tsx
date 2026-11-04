@@ -10,6 +10,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { createPortal } from "react-dom"
 
 import type {
   ReviewBorrower,
@@ -38,7 +39,9 @@ import { useMarketMla } from "@/hooks/useMarketMla"
 import { ROUTES } from "@/routes"
 
 import { SPEC_METRICS } from "./catalogue"
+import { REVIEW_NAV_ID } from "./gate"
 import { CardSet, MetricItem } from "./MetricItem"
+import { MetricNav, useActiveMetric, useSlot } from "./MetricNav"
 import {
   findMetric,
   GROUPS,
@@ -71,7 +74,27 @@ import s from "./review.module.css"
 const cx = (...names: (string | false | undefined)[]) =>
   names.filter(Boolean).join(" ")
 
-const COLLAPSE_KEY = "glassdoor-review:collapsed:v1"
+// v2 adds the summary, which starts collapsed.
+const COLLAPSE_KEY = "glassdoor-review:collapsed:v2"
+type Section = Group | "summary"
+const SECTIONS: Section[] = [...GROUPS.map((group) => group.key), "summary"]
+const DEFAULT_COLLAPSED: Section[] = ["summary"]
+
+/** Points right when its section is collapsed (see .groupToggle). */
+const Chevron = () => (
+  <span className={s.chevron} aria-hidden="true">
+    <svg viewBox="0 0 16 16" width="16" height="16">
+      <path
+        d="M4 6l4 4 4-4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  </span>
+)
 
 const CHAINS: Record<number, string> = { 1: "Ethereum", 9745: "Plasma" }
 const chainName = (chainId?: number) =>
@@ -251,12 +274,16 @@ type Status = { text: string; toggles: Toggles; undo?: Toggles }
 const Summary = ({
   toggles,
   context,
+  collapsed,
+  onCollapse,
   onChange,
   onGo,
 }: {
   toggles: Toggles
   /** Which selection and publication the review was made against. */
   context: string[]
+  collapsed: boolean
+  onCollapse: () => void
   onChange: (next: Toggles) => void
   /** Opens a metric, expanding its group if it is collapsed. */
   onGo: (id: string) => void
@@ -315,13 +342,22 @@ const Summary = ({
   return (
     <section
       id="summary"
-      className={s.summary}
+      className={cx(s.summary, collapsed && s.summaryCollapsed)}
       aria-labelledby="summary-title"
       tabIndex={-1}
     >
       <div className={s.summaryHead}>
         <h2 id="summary-title" className={s.summaryTitle}>
-          Summary: metrics and display options on
+          <button
+            type="button"
+            className={s.groupToggle}
+            aria-expanded={!collapsed}
+            aria-controls="summary-body"
+            onClick={onCollapse}
+          >
+            <Chevron />
+            <span>Summary: metrics and display options on</span>
+          </button>
         </h2>
         <div className={s.summaryActions}>
           <button type="button" className={s.button} onClick={copy}>
@@ -340,47 +376,49 @@ const Summary = ({
           ) : null}
         </div>
       </div>
-      {context.map((line) => (
-        <p key={line} className={s.summaryNote}>
-          {line}
-        </p>
-      ))}
-      <p className={s.counts}>{countsText(toggles)}</p>
-      <div className={s.summaryGroups}>
-        {groups.map((group) => (
-          <div key={group.key}>
-            <h3 className={s.partTitle}>
-              {group.title} ({group.lines.length} with an option on)
-            </h3>
-            {group.lines.length ? (
-              <ul className={s.summaryList}>
-                {group.lines.map((line) => (
-                  <li
-                    key={line.id}
-                    className={line.changed ? s.lineChanged : s.lineDefault}
-                  >
-                    {link(line.id, line.label)}
-                    <span>
-                      {line.options.join(", ")}
-                      {line.changed ? " (changed)" : ""}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-            <p className={s.offLine}>
-              <b>No display ({group.off.length}):</b>{" "}
-              {group.off.length
-                ? group.off.map((line, index) => (
-                    <React.Fragment key={line.id}>
-                      {index ? "; " : ""}
-                      {link(line.id, line.label)}
-                    </React.Fragment>
-                  ))
-                : "none"}
-            </p>
-          </div>
+      <div id="summary-body" className={s.summaryBody} hidden={collapsed}>
+        {context.map((line) => (
+          <p key={line} className={s.summaryNote}>
+            {line}
+          </p>
         ))}
+        <p className={s.counts}>{countsText(toggles)}</p>
+        <div className={s.summaryGroups}>
+          {groups.map((group) => (
+            <div key={group.key}>
+              <h3 className={s.partTitle}>
+                {group.title} ({group.lines.length} with an option on)
+              </h3>
+              {group.lines.length ? (
+                <ul className={s.summaryList}>
+                  {group.lines.map((line) => (
+                    <li
+                      key={line.id}
+                      className={line.changed ? s.lineChanged : s.lineDefault}
+                    >
+                      {link(line.id, line.label)}
+                      <span>
+                        {line.options.join(", ")}
+                        {line.changed ? " (changed)" : ""}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              <p className={s.offLine}>
+                <b>No display ({group.off.length}):</b>{" "}
+                {group.off.length
+                  ? group.off.map((line, index) => (
+                      <React.Fragment key={line.id}>
+                        {index ? "; " : ""}
+                        {link(line.id, line.label)}
+                      </React.Fragment>
+                    ))
+                  : "none"}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   )
@@ -430,10 +468,10 @@ const GroupSection = ({
             aria-controls={listId}
             onClick={() => onCollapse(group.key)}
           >
-            {`${group.title} `}
-            <span className={s.groupCount}>({metrics.length})</span>
-            <span className={s.chevron} aria-hidden="true">
-              {collapsed ? "\u2304" : "\u2303"}
+            <Chevron />
+            <span>
+              {`${group.title} `}
+              <span className={s.groupCount}>({metrics.length})</span>
             </span>
           </button>
         </h2>
@@ -679,19 +717,16 @@ export const MetricReview = () => {
   )
 
   // Collapsed groups, remembered in this browser only.
-  const [collapsed, setCollapsed] = useState<Group[]>([])
+  const [collapsed, setCollapsed] = useState<Section[]>(DEFAULT_COLLAPSED)
   const [collapseLoaded, setCollapseLoaded] = useState(false)
   useEffect(() => {
     try {
-      const raw: unknown = JSON.parse(
-        window.localStorage.getItem(COLLAPSE_KEY) ?? "[]",
-      )
+      const stored = window.localStorage.getItem(COLLAPSE_KEY)
+      const raw: unknown = stored === null ? null : JSON.parse(stored)
       if (Array.isArray(raw))
-        setCollapsed(
-          GROUPS.map((group) => group.key).filter((key) => raw.includes(key)),
-        )
+        setCollapsed(SECTIONS.filter((key) => raw.includes(key)))
     } catch {
-      // A convenience only; every group starts expanded.
+      // A convenience only: the groups start expanded, the summary collapsed.
     }
     setCollapseLoaded(true)
   }, [])
@@ -704,7 +739,7 @@ export const MetricReview = () => {
     }
   }, [collapsed, collapseLoaded])
   const onCollapse = useCallback(
-    (key: Group) =>
+    (key: Section) =>
       setCollapsed((current) =>
         current.includes(key)
           ? current.filter((entry) => entry !== key)
@@ -712,15 +747,24 @@ export const MetricReview = () => {
       ),
     [],
   )
-  // Going to a metric expands its group first, then scrolls once it renders.
-  const [jump, setJump] = useState<{ id: string }>()
-  const goToMetric = useCallback((id: string) => {
-    const group = groupOf(id)
-    setCollapsed((current) => current.filter((entry) => entry !== group))
-    setJump({ id })
+  // Going to a metric or the summary expands it first, then scrolls once it
+  // renders.
+  const [jump, setJump] = useState<{ target: string }>()
+  const open = useCallback((section: Section, target: string) => {
+    setCollapsed((current) => current.filter((entry) => entry !== section))
+    setJump({ target })
   }, [])
+  const goToMetric = useCallback(
+    (id: string) => open(groupOf(id), `metric-${id}`),
+    [open],
+  )
+  const goToSummary = useCallback(() => open("summary", "summary"), [open])
+  const onCollapseSummary = useCallback(
+    () => onCollapse("summary"),
+    [onCollapse],
+  )
   useEffect(() => {
-    if (jump && jumpTo(`metric-${jump.id}`)) setJump(undefined)
+    if (jump && jumpTo(jump.target)) setJump(undefined)
   }, [jump, collapsed])
 
   const onBulk = useCallback(
@@ -743,6 +787,13 @@ export const MetricReview = () => {
     const observer = new ResizeObserver(measure)
     observer.observe(header)
     return () => observer.disconnect()
+  }, [])
+
+  // The metric list in the app's sidebar, which marks the metric in view.
+  const navSlot = useSlot(REVIEW_NAV_ID)
+  const activeMetric = useActiveMetric(page, toolbar, collapsed)
+  const goToGroup = useCallback((key: Group) => {
+    jumpTo(`group-${key}`)
   }, [])
 
   const publication =
@@ -846,10 +897,6 @@ export const MetricReview = () => {
     <div ref={page} className={s.page}>
       <div className={s.intro}>
         <h1 className={s.title}>Glass Door metric review</h1>
-        <p className={s.note}>
-          Internal, preview deploys only (product#917). Toggles are saved in
-          this browser and never change the live analytics.
-        </p>
       </div>
       <header ref={toolbar} className={s.toolbar}>
         <div className={s.selectors}>
@@ -971,7 +1018,8 @@ export const MetricReview = () => {
           <a
             href="#summary"
             onClick={(event) => {
-              if (jumpTo("summary")) event.preventDefault()
+              event.preventDefault()
+              goToSummary()
             }}
           >
             Summary ({onCount} metrics with an option on)
@@ -983,7 +1031,6 @@ export const MetricReview = () => {
             {saved === false
               ? "Not saved: this browser blocks storage. Copy the summary before leaving."
               : null}
-            {saved ? "Saved in this browser" : null}
           </span>
         </nav>
       </header>
@@ -1005,10 +1052,24 @@ export const MetricReview = () => {
         <Summary
           toggles={toggles}
           context={context}
+          collapsed={collapsed.includes("summary")}
+          onCollapse={onCollapseSummary}
           onChange={setToggles}
           onGo={goToMetric}
         />
       </main>
+      {navSlot
+        ? createPortal(
+            <MetricNav
+              toggles={toggles}
+              active={activeMetric}
+              collapsed={collapsed}
+              onGo={goToMetric}
+              onGoGroup={goToGroup}
+            />,
+            navSlot,
+          )
+        : null}
     </div>
   )
 }

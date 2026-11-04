@@ -4,6 +4,7 @@ import { Box, useTheme } from "@mui/material"
 import { usePathname } from "next/navigation"
 
 import { Footer } from "@/components/Footer"
+import { isReviewPath, REVIEW_NAV_ID } from "@/components/GlassDoorReview/gate"
 import { BorrowerDashboardSidebar } from "@/components/Sidebar/BorrowerDashboardSidebar"
 import { BorrowerSidebar } from "@/components/Sidebar/BorrowerSidebar"
 import { CreateMarketSidebar } from "@/components/Sidebar/CreateMarketSidebar"
@@ -24,6 +25,9 @@ export const Sidebar = () => {
   const pathname = usePathname()
   const theme = useTheme()
   const isAgreementPath = isServiceAgreementPath(pathname)
+  // Temporary (product#917): the metric review page fills this sidebar with
+  // its metric list, without the Telegram banner.
+  const isReview = isReviewPath(pathname)
 
   if (isAgreementPath) return null
 
@@ -58,10 +62,11 @@ export const Sidebar = () => {
         {pathname === ROUTES.borrower.lendersList && <LenderListSidebar />}
         {pathname === ROUTES.borrower.policy && <EditPolicySidebar />}
         {/* {pathname === ROUTES.borrower.notifications && <NotificationsSidebar />} */}
+        {isReview && <Box id={REVIEW_NAV_ID} />}
       </Box>
 
       <Box sx={{ width: "100%", marginTop: "auto" }}>
-        <TelegramBanner />
+        {!isReview && <TelegramBanner />}
 
         <Footer />
       </Box>

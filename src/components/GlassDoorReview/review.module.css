@@ -3,7 +3,9 @@
  * Tokens follow the Glass Door analytics (analytics.module.css); muted text
  * and links are darkened here so they meet 4.5:1 on white.
  */
-.page {
+/* The metric list sits in the app's sidebar, outside the page: same tokens. */
+.page,
+.nav {
   --fg-1: #141414;
   --fg-2: #30313e;
   --muted: #6b6d7f;
@@ -16,6 +18,9 @@
   --problem: #c24647;
   --watch-bg: #fbedc3;
   --mono: ui-monospace, Menlo, Consolas, monospace;
+  --hover: #eceef3;
+}
+.page {
   flex: 1 1 0;
   min-height: 0;
   overflow-y: auto;
@@ -40,11 +45,6 @@
   font-size: 18px;
   font-weight: 600;
   color: var(--fg-1);
-}
-.note {
-  margin: 0;
-  color: var(--muted);
-  font-size: 12px;
 }
 .toolbar {
   position: sticky;
@@ -183,14 +183,26 @@
 .summary:focus {
   outline: none;
 }
+/*
+ * The whole heading row collapses and expands its group: the button's hit
+ * area covers the row, and the group switches (positioned, later in the
+ * markup) sit above it.
+ */
 .groupHead {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px 16px;
-  padding-bottom: 10px;
+  margin: 0 -12px;
+  padding: 8px 12px 10px;
   border-bottom: 2px solid var(--fg-1);
+  border-radius: 10px 10px 0 0;
+  transition: background-color 120ms ease-out;
+}
+.groupHead:has(.groupToggle:hover) {
+  background: var(--hover);
 }
 .groupTitle {
   margin: 0;
@@ -198,11 +210,10 @@
   font-weight: 600;
   color: var(--fg-1);
 }
-/* The heading collapses and expands its group. */
 .groupToggle {
   display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
   padding: 0;
   border: none;
   background: none;
@@ -211,16 +222,48 @@
   text-align: left;
   cursor: pointer;
 }
+.groupToggle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 10px 10px 0 0;
+}
 .groupToggle:focus-visible {
+  outline: none;
+}
+.groupToggle:focus-visible::after {
   outline: 2px solid var(--link);
-  outline-offset: 4px;
-  border-radius: 4px;
+  outline-offset: 2px;
 }
 .chevron {
-  color: var(--fg-2);
-  font-size: 20px;
-  font-weight: 400;
-  line-height: 1;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-input);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg-1);
+  transition: border-color 120ms ease-out;
+}
+.chevron svg {
+  transition: transform 150ms ease-out;
+}
+.groupToggle[aria-expanded="false"] .chevron svg {
+  transform: rotate(-90deg);
+}
+.groupHead:has(.groupToggle:hover) .chevron {
+  border-color: var(--fg-1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .groupHead,
+  .summaryHead,
+  .chevron,
+  .chevron svg {
+    transition: none;
+  }
 }
 .collapsedNote {
   margin: 0;
@@ -576,17 +619,47 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 16px 18px;
+  padding: 0 18px 16px;
   border: 1px solid var(--fg-1);
   border-radius: 14px;
   background: var(--surface);
 }
+.summaryCollapsed {
+  padding-bottom: 0;
+}
+/* Like a group heading, the whole row collapses and expands the summary. */
 .summaryHead {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px 16px;
+  margin: 0 -18px;
+  padding: 12px 18px;
+  border-radius: 13px 13px 0 0;
+  transition: background-color 120ms ease-out;
+}
+.summaryHead .groupToggle::after {
+  border-radius: 13px 13px 0 0;
+}
+.summaryCollapsed .summaryHead,
+.summaryCollapsed .summaryHead .groupToggle::after {
+  border-radius: 13px;
+}
+.summaryHead:has(.groupToggle:hover) {
+  background: var(--hover);
+}
+.summaryHead:has(.groupToggle:hover) .chevron {
+  border-color: var(--fg-1);
+}
+.summaryBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.summaryBody[hidden] {
+  display: none;
 }
 .summaryTitle {
   margin: 0;
@@ -594,7 +667,9 @@
   font-weight: 600;
   color: var(--fg-1);
 }
+/* Above the heading's hit area, so the buttons keep their own clicks. */
 .summaryActions {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -702,4 +777,87 @@
 }
 .groupList[hidden] {
   display: none;
+}
+
+/* ---------- metric list in the app's sidebar ---------- */
+.nav {
+  padding: 20px 16px 8px;
+  color: var(--fg-2);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.navTitle {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.navGroup + .navGroup {
+  margin-top: 16px;
+}
+.navGroupLink {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 -6px 6px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  color: var(--fg-1);
+  font-weight: 600;
+  text-decoration: none;
+}
+.navGroupLink:hover {
+  background: var(--hover);
+}
+.navCount {
+  color: var(--muted);
+  font-weight: 400;
+}
+.navList {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.navId {
+  display: block;
+  padding: 4px 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--fg-2);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  text-decoration: none;
+}
+.navId:hover {
+  border-color: var(--fg-1);
+  color: var(--fg-1);
+}
+/* A metric whose display differs from its design default. */
+.navChanged {
+  border-style: dashed;
+  border-color: var(--fg-1);
+}
+/* The metric at the top of the page. */
+.navId[aria-current] {
+  border-color: var(--fg-1);
+  background: var(--fg-1);
+  color: var(--surface);
+}
+.navGroupLink:focus-visible,
+.navId:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 1px;
+}
+.navNote {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 11px;
 }
