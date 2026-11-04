@@ -1,7 +1,6 @@
 import { Theme, SxProps } from "@mui/material"
 
 import { COLORS } from "@/theme/colors"
-import { pageCalcHeights } from "@/utils/constants"
 
 export const SkeletonContainer = {
   width: "100%",
@@ -23,22 +22,32 @@ export const LenderBannerWrapper: SxProps<Theme> = {
 export const DefaultNoticeWrapper: SxProps<Theme> = {
   padding: { xs: 0, md: "0 32.3% 26px 44px" },
   flex: "0 0 auto",
+  "&:not(:first-child)": {
+    paddingTop: { md: "12px" },
+  },
 }
 
-// Scroll the banner and market section together inside the fixed page shell.
-export const MarketContentColumn = (
-  theme: Theme,
-  isWrongNetwork?: boolean,
-): SxProps<Theme> => ({
+export const MarketPageContainer = (theme: Theme): SxProps<Theme> => ({
   display: "flex",
   flexDirection: "column",
-  height: `calc(100vh - ${pageCalcHeights.market} ${
-    isWrongNetwork ? "- 130px" : ""
-  })`,
+  flex: "1 1 0",
+  minHeight: 0,
+  [theme.breakpoints.down("md")]: {
+    display: "block",
+    flex: "0 0 auto",
+  },
+})
+
+// Scroll the banner and market section together inside the fixed page shell.
+export const MarketContentColumn = (theme: Theme): SxProps<Theme> => ({
+  display: "flex",
+  flexDirection: "column",
+  flex: "1 1 0",
+  minHeight: 0,
   overflowX: "hidden",
   overflowY: "auto",
   [theme.breakpoints.down("md")]: {
-    height: "auto",
+    flex: "0 0 auto",
     overflow: "visible",
   },
 })

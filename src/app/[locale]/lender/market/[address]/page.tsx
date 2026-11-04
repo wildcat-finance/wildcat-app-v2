@@ -83,6 +83,7 @@ import {
   DefaultNoticeWrapper,
   LenderBannerWrapper,
   MarketContentColumn,
+  MarketPageContainer,
   SectionContainer,
   SkeletonContainer,
   SkeletonStyle,
@@ -875,7 +876,7 @@ export default function LenderMarketDetails({
     )
 
   return (
-    <Box>
+    <Box sx={MarketPageContainer(theme)}>
       <MarketHeader
         market={market}
         marketAccount={marketAccount}
@@ -886,10 +887,7 @@ export default function LenderMarketDetails({
         <SwitchChainAlert desiredChainId={market?.chainId} />
       )}
 
-      <Box sx={MarketContentColumn(theme, isDifferentChain)}>
-        {(isMarketDefaulted || borrowerHasOtherDefault) && (
-          <Box sx={DefaultNoticeWrapper}>{renderDefaultNotice()}</Box>
-        )}
+      <Box sx={MarketContentColumn(theme)}>
         {accessNotice}
         {activityNotice}
         {marketNotice}
@@ -926,6 +924,10 @@ export default function LenderMarketDetails({
             open={isConnectDialogOpen}
             handleClose={closeConnectDialog}
           />
+        )}
+
+        {(isMarketDefaulted || borrowerHasOtherDefault) && (
+          <Box sx={DefaultNoticeWrapper}>{renderDefaultNotice()}</Box>
         )}
 
         {showPenaltyOnlyWarning && <BorrowerPenaltyWarning />}
