@@ -533,7 +533,11 @@ export const MarketsSection = () => {
           {!bannerDisplayConfig.hideCreateMarket && (
             <Link
               href={ROUTES.borrower.createMarket}
-              style={{ display: "flex", marginTop: "4px" }}
+              style={{
+                display: "flex",
+                marginTop: "4px",
+                textDecoration: "none",
+              }}
             >
               <Button
                 variant="contained"
