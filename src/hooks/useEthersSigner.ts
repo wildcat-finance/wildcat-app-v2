@@ -15,6 +15,7 @@ import { useWalletClient, usePublicClient } from "wagmi"
 
 import { NetworkInfo, NETWORKS_BY_ID } from "@/config/network"
 import { useAppSelector } from "@/store/hooks"
+import { guardWalletTransport } from "@/utils/sanctionsAccess"
 
 export type JsonRpcSignerWithChainId = JsonRpcSigner & { chainId: number }
 
@@ -27,7 +28,10 @@ export function clientToSigner(
     name: chain.name,
     ensAddress: chain.contracts?.ensRegistry?.address,
   }
-  const provider = new providers.Web3Provider(transport, network)
+  const provider = new providers.Web3Provider(
+    guardWalletTransport(transport, account.address, chain.id),
+    network,
+  )
 
   const signer = provider.getSigner(account.address)
   if (!("chainId" in signer) || signer.chainId !== chain.id) {
@@ -59,7 +63,12 @@ export function clientToWalletInfo(
     ensAddress: chain.contracts?.ensRegistry?.address,
   }
 
-  const provider = new providers.Web3Provider(transport, network)
+  const provider = new providers.Web3Provider(
+    account
+      ? guardWalletTransport(transport, account.address, chain.id)
+      : transport,
+    network,
+  )
   const signer =
     provider instanceof providers.JsonRpcProvider && account
       ? provider.getSigner(account.address)
