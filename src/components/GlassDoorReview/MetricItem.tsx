@@ -1,5 +1,6 @@
 // Temporary: the metric review page (product#917). Remove with the page.
-// One metric: the five parts from the spec and its display options.
+// One metric: its value beside its name, the displays the design can give it,
+// and the spec behind a closed section.
 
 import * as React from "react"
 import { memo, useEffect, useId, useRef, useState } from "react"
@@ -18,32 +19,25 @@ import {
   RankStrip,
   Tbd,
 } from "@/components/GlassDoor/charts"
-import { count } from "@/components/GlassDoor/format"
+import { count, isNumber } from "@/components/GlassDoor/format"
 import { metric as metricLabel } from "@/components/GlassDoor/wording"
 
 import { SpecMetric } from "./catalogue"
-import { DesignRole, designRole } from "./design"
+import { Chevron } from "./Chevron"
+import { cardsOf, DesignRole, designRole, HEADLINES } from "./design"
 import {
   cardCopy,
-  cardNumbers,
   comparisonOf,
   comparisonText,
   groupOf,
-  PART_TBD,
   PLACES,
   recordGap,
   ReviewData,
   shownValue,
 } from "./metrics"
-import { defaultOn, DISPLAY_OPTIONS, OptionKey } from "./options"
+import { availableOn, defaultOn, DISPLAY_OPTIONS, OptionKey } from "./options"
 import s from "./review.module.css"
-import {
-  IndexDatum,
-  TREATMENT_CARDS,
-  TreatmentCode,
-  TreatmentPicks,
-} from "./treatmentData"
-import { TreatmentSection } from "./treatments"
+import { IndexDatum, TreatmentCode, TREATMENTS } from "./treatmentData"
 
 const cx = (...names: (string | false | undefined)[]) =>
   names.filter(Boolean).join(" ")
@@ -59,14 +53,8 @@ export type CardSet = {
   treatments?: Record<string, IndexDatum>
 }
 
-/** The market card this metric heads, when the handoff draws treatments for it. */
-export const treatmentCardOf = (metric: SpecMetric) =>
-  designRole(metric).headline.find((card) => TREATMENT_CARDS.includes(card))
-
 const TROUBLE = "3.12"
 const LOADING = "loading…"
-
-const isTbd = (text: string) => text.startsWith("TBD") || text === LOADING
 
 /** Every display: its label above its box, so box tops line up. */
 const Display = ({
@@ -84,7 +72,8 @@ const Display = ({
   </div>
 )
 
-const TbdDisplay = ({
+/** A display the selection cannot draw, with the reason. */
+const NoteDisplay = ({
   label,
   text,
   className = s.tbdDisplay,
@@ -101,7 +90,7 @@ const TbdDisplay = ({
 )
 
 /** The card's record, or why it cannot be drawn. */
-const cardFor = (
+export const cardFor = (
   card: string,
   data: ReviewData,
   cards: CardSet,
@@ -118,14 +107,15 @@ const cardFor = (
   const spec = specs[card]
   if (spec) return { spec }
   if (card === "2.6" && cards.closed)
-    return { reason: "TBD: card 2.6 is hidden for finished markets" }
-  return { reason: `TBD: card ${card} is not built` }
+    return { reason: "Hidden: card 2.6 is not shown for finished markets" }
+  return { reason: `Not built: card ${card} has no live version yet` }
 }
 
 const placesOf = (metric: SpecMetric) =>
   metric.cards.filter((card) => PLACES[card]).map((card) => PLACES[card])
 
-const ValueDisplay = ({
+/** The value beside the name; the unrounded value shows on hover or focus. */
+const ValueInline = ({
   metric,
   data,
 }: {
@@ -134,41 +124,29 @@ const ValueDisplay = ({
 }) => {
   const tipId = useId()
   const shown = shownValue(metric, data)
-  // The value sits in the metric's header, beside its name.
   if (shown.kind === "loading")
-    return <TbdDisplay label="Value" text={LOADING} className={s.headValue} />
+    return <span className={s.valueNote}>{LOADING}</span>
   if (shown.kind === "tbd")
-    return (
-      <TbdDisplay label="Value" text={shown.reason} className={s.headValue} />
-    )
-  // The unrounded value the read API serves, on hover or keyboard focus.
+    return <span className={s.valueNote}>{shown.reason}</span>
+  // Words read smaller than numbers (names, labels, type labels).
+  const valueClass = cx(s.value, !isNumber(shown.raw) && s.valueText)
   const raw = shown.raw === undefined ? undefined : String(shown.raw)
+  if (raw === undefined) return <span className={valueClass}>{shown.text}</span>
   return (
-    <Display label="Value" className={s.headValue}>
-      <div className={cx(s.box, s.valueBox)}>
-        {raw === undefined ? (
-          <span className={s.value}>{shown.text}</span>
-        ) : (
-          <span className={s.valueTip}>
-            <span
-              className={cx(
-                s.value,
-                typeof shown.raw === "string" && s.valueText,
-              )}
-              // Focusable so keyboard users can reach the tooltip too.
-              // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
-              tabIndex={0}
-              aria-describedby={tipId}
-            >
-              {shown.text}
-            </span>
-            <span id={tipId} role="tooltip" className={s.tip}>
-              raw computed value: {raw}
-            </span>
-          </span>
-        )}
-      </div>
-    </Display>
+    <span className={s.valueTip}>
+      <span
+        className={valueClass}
+        // Focusable so keyboard users can reach the tooltip too.
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+        tabIndex={0}
+        aria-describedby={tipId}
+      >
+        {shown.text}
+      </span>
+      <span id={tipId} role="tooltip" className={s.tip}>
+        raw computed value: {raw}
+      </span>
+    </span>
   )
 }
 
@@ -181,7 +159,7 @@ const ComparisonDisplay = ({
 }) => {
   const comparison = comparisonOf(metric, data)
   const text = comparisonText(metric, data)
-  if (!comparison) return <TbdDisplay label="Comparison" text={text} />
+  if (!comparison) return <NoteDisplay label="Comparison" text={text} />
   const noun = groupOf(metric.id) === "market" ? "markets" : "borrowers"
   return (
     <Display label="Comparison" className={s.compareDisplay}>
@@ -209,89 +187,77 @@ const ChartDisplays = ({
   role: DesignRole
   data: ReviewData
   cards: CardSet
-}) => {
-  const numbers = role.charts
-  if (!numbers.length)
-    return (
-      <TbdDisplay
-        label="Chart"
-        text="TBD: no chart in the design plots this metric"
-      />
-    )
-  return (
-    <>
-      {numbers.map((card) => {
-        const label = `Chart · card ${card}`
-        if (card === TROUBLE) {
-          if (!cards.trouble) {
-            const gap = recordGap(data.borrower, "borrower")
-            return (
-              <TbdDisplay
-                key={card}
-                label={label}
-                text={gap?.kind === "tbd" ? gap.reason : LOADING}
-              />
-            )
-          }
+}) => (
+  <>
+    {role.charts.map((card) => {
+      const label = `Chart · card ${card}`
+      if (card === TROUBLE) {
+        if (!cards.trouble) {
+          const gap = recordGap(data.borrower, "borrower")
           return (
-            <Display
-              key={card}
-              label={`${label} Trouble over time`}
-              className={s.chartDisplay}
-            >
-              <div className={cx(gd.root, s.box)}>
-                <div className={gd.troubleViews}>
-                  <div aria-label="Concentration" role="group">
-                    {cards.trouble.length ? (
-                      <LateShareBars rows={cards.trouble} />
-                    ) : (
-                      <Tbd>No funded market has recorded life yet.</Tbd>
-                    )}
-                  </div>
-                  <div aria-label="Direction" role="group">
-                    <DirectionPending />
-                  </div>
-                </div>
-              </div>
-            </Display>
-          )
-        }
-        const found = cardFor(card, data, cards)
-        if (!("spec" in found))
-          return <TbdDisplay key={card} label={label} text={found.reason} />
-        const chart = found.spec.chart?.expanded ?? found.spec.chart?.collapsed
-        if (!chart)
-          return (
-            <TbdDisplay
+            <NoteDisplay
               key={card}
               label={label}
-              text={`TBD: card ${card} has no chart`}
+              text={gap?.kind === "tbd" ? gap.reason : LOADING}
             />
           )
+        }
         return (
-          <Display key={card} label={label} className={s.chartDisplay}>
-            <div className={cx(gd.root, s.box)}>{chart}</div>
+          <Display
+            key={card}
+            label={`${label} Trouble over time`}
+            className={s.chartDisplay}
+          >
+            <div className={cx(gd.root, s.box)}>
+              <div className={gd.troubleViews}>
+                <div aria-label="Concentration" role="group">
+                  {cards.trouble.length ? (
+                    <LateShareBars rows={cards.trouble} />
+                  ) : (
+                    <Tbd>No funded market has recorded life yet.</Tbd>
+                  )}
+                </div>
+                <div aria-label="Direction" role="group">
+                  <DirectionPending />
+                </div>
+              </div>
+            </div>
           </Display>
         )
-      })}
-    </>
-  )
-}
+      }
+      const found = cardFor(card, data, cards)
+      if (!("spec" in found))
+        return <NoteDisplay key={card} label={label} text={found.reason} />
+      const chart = found.spec.chart?.expanded ?? found.spec.chart?.collapsed
+      if (!chart)
+        return (
+          <NoteDisplay
+            key={card}
+            label={label}
+            text={`No chart: card ${card} draws none at this snapshot`}
+          />
+        )
+      return (
+        <Display key={card} label={label} className={s.chartDisplay}>
+          <div className={cx(gd.root, s.box)}>{chart}</div>
+        </Display>
+      )
+    })}
+  </>
+)
 
+/** The handoff's copy of the cards the metric feeds (cards.json). */
 const CopyLines = ({
   metric,
   part,
 }: {
   metric: SpecMetric
   part: "tells" | "notTells"
-}) => {
-  const lines = cardCopy(metric, part)
-  return (
-    <>
-      <p className={s.tbd}>
-        {`${PART_TBD}${lines.length ? "; the card copy:" : "."}`}
-      </p>
-      {lines.map((line) => (
+}) => (
+  <>
+    {cardCopy(metric, part)
+      .filter((line) => line.card !== TROUBLE)
+      .map((line) => (
         <p key={line.card} className={s.cardLine}>
           {line.text ? (
             <>
@@ -302,14 +268,13 @@ const CopyLines = ({
             </>
           ) : (
             <span className={s.tbd}>
-              Card {line.card}: TBD: no card copy in the design handoff.
+              Card {line.card}: no card copy in the design handoff.
             </span>
           )}
         </p>
       ))}
-    </>
-  )
-}
+  </>
+)
 
 const Part = ({
   title,
@@ -324,6 +289,46 @@ const Part = ({
   </div>
 )
 
+/** A display option: an outline with a check when on. */
+const OptionToggle = ({
+  label,
+  title,
+  checked,
+  onChange,
+}: {
+  label: string
+  title: string
+  checked: boolean
+  onChange: (on: boolean) => void
+}) => (
+  <label className={s.option} title={title}>
+    <input
+      type="checkbox"
+      checked={checked}
+      onChange={(event) => onChange(event.target.checked)}
+    />
+    <span className={s.optionBox} aria-hidden="true">
+      {checked ? (
+        <svg viewBox="0 0 12 12" width="10" height="10">
+          <path
+            d="M2.5 6.2l2.2 2.2 4.8-5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ) : null}
+    </span>
+    <span>{label}</span>
+  </label>
+)
+
+const OPTION_LABEL = new Map(
+  DISPLAY_OPTIONS.map((option) => [option.key, option.label]),
+)
+
 export const MetricItem = memo(
   ({
     metric,
@@ -332,8 +337,10 @@ export const MetricItem = memo(
     cards,
     onToggle,
     onReset,
-    picks,
-    onTreatment,
+    treatmentCard,
+    treatment,
+    treatmentChanged,
+    onOpenTreatments,
   }: {
     metric: SpecMetric
     on: OptionKey[]
@@ -342,29 +349,40 @@ export const MetricItem = memo(
     onToggle: (id: string, key: OptionKey, value: boolean) => void
     /** Back to this metric's design default. */
     onReset: (id: string) => void
-    /** Chosen display treatment per market card. */
-    picks: TreatmentPicks
-    onTreatment: (card: string, code: TreatmentCode) => void
+    /** The market card this metric heads, when it has treatments. */
+    treatmentCard?: string
+    /** The treatment chosen for that card, if any. */
+    treatment?: TreatmentCode
+    treatmentChanged?: boolean
+    onOpenTreatments: (card: string) => void
   }) => {
     const label = metricLabel(metric.id)
     const titleId = `metric-${metric.id}-title`
     const places = placesOf(metric)
-    const numbers = cardNumbers(metric)
     const role = designRole(metric)
+    const metricCards = cardsOf(metric)
+    const available = availableOn(metric.id)
     const design = defaultOn(metric.id)
-    const changed =
-      design.length !== on.length || design.some((key) => !on.includes(key))
-    const also = [
-      ...(role.supporting.length
-        ? [
-            `card${
-              role.supporting.length > 1 ? "s" : ""
-            } ${role.supporting.join(", ")}`,
-          ]
-        : []),
-      ...places,
+    const removed = design.filter((key) => !on.includes(key))
+    const added = on.filter((key) => !design.includes(key))
+    const changes = [
+      ...removed.map((key) => `−${OPTION_LABEL.get(key)}`),
+      ...added.map((key) => `+${OPTION_LABEL.get(key)}`),
     ]
-    const comparison = comparisonText(metric, data)
+    const optionLabel = (key: OptionKey) => {
+      if (key === "card") return `Card ${metricCards.join(" · ")}`
+      if (key === "chart") return `Chart ${role.charts.join(" · ")}`
+      return OPTION_LABEL.get(key) ?? key
+    }
+    const optionNote = (key: OptionKey) => {
+      if (key === "card")
+        return role.headline.length
+          ? ` (its headline: card ${role.headline.join(", ")})`
+          : " (it feeds these cards; none is its headline)"
+      if (key === "value" && places.length)
+        return ` (also shown in ${places.join(" and ")})`
+      return ""
+    }
 
     // One card panel open per metric, in its own row under the cards, so
     // opening it never moves the card or the other displays.
@@ -374,8 +392,10 @@ export const MetricItem = memo(
     const userOpened = useRef(false)
     const [openCard, setOpenCard] = useState<string>()
     const [chip, setChip] = useState<ChipKey>("median")
+    const [specOpen, setSpecOpen] = useState(false)
     const cardId = (card: string) => `${uid}card-${card.replace(".", "-")}`
     const panelId = `${uid}panel`
+    const specId = `${uid}spec`
     const showCards = on.includes("card")
     const found = openCard ? cardFor(openCard, data, cards) : undefined
     const openSpec =
@@ -416,26 +436,20 @@ export const MetricItem = memo(
     }, [openSpec])
 
     const cardTile = (card: string) => {
-      if (card === TROUBLE)
-        return (
-          <TbdDisplay
-            key={card}
-            label={`Card ${card}`}
-            text="TBD: 3.12 Trouble over time is a chart section, not a seven-field card (see Chart)"
-          />
-        )
       const tile = cardFor(card, data, cards)
+      const headline = role.headline.includes(card)
+      const cardLabel = headline
+        ? `Card ${card} · headline`
+        : `Card ${card} · headline ${
+            HEADLINES[card]?.join(", ") ?? "none"
+          }; this metric feeds it`
       if (!("spec" in tile))
-        return (
-          <TbdDisplay key={card} label={`Card ${card}`} text={tile.reason} />
-        )
+        return <NoteDisplay key={card} label={cardLabel} text={tile.reason} />
       return (
         <Display
           key={card}
-          label={`Card ${card}${
-            role.headline.includes(card) ? " · headline" : ""
-          }`}
-          className={s.cardDisplay}
+          label={cardLabel}
+          className={cx(s.cardDisplay, !headline && s.cardFeeds)}
         >
           <div className={cx(gd.root, s.cardSlot)}>
             <AnalyticsCard
@@ -453,27 +467,12 @@ export const MetricItem = memo(
         </Display>
       )
     }
-    let cardTiles: React.ReactNode = null
-    if (showCards)
-      cardTiles = numbers.length ? (
-        numbers.map(cardTile)
-      ) : (
-        <TbdDisplay
-          label="Card"
-          text={`TBD: no card uses this metric; it shows in ${places.join(
-            " and ",
-          )}`}
-        />
-      )
     const tiles = showCards || on.includes("comparison")
     const displays = tiles || on.includes("chart")
-    const treatmentCard = treatmentCardOf(metric)
-    const treatmentRecord = treatmentCard
-      ? cardFor(treatmentCard, data, cards)
-      : undefined
+    const hasCopy = cardCopy(metric, "tells").some(
+      (line) => line.card !== TROUBLE,
+    )
 
-    // The result leads: the value sits in the header beside the name, the
-    // other displays follow it, and the spec's five parts come last.
     return (
       <article
         ref={scope}
@@ -483,62 +482,56 @@ export const MetricItem = memo(
         tabIndex={-1}
       >
         <div className={s.metricHead}>
-          <div className={s.metricTitle}>
+          <div className={s.titleRow}>
             <h3 id={titleId} className={s.metricName}>
               {label}
             </h3>
-            {/* How the design shows it; this sets its default toggles. */}
-            <p className={s.tags}>
-              {role.headline.map((card) => (
-                <span key={card} className={cx(s.tag, s.tagStrong)}>
-                  {`Card ${card} headline`}
-                </span>
-              ))}
-              {role.charts.map((card) => (
-                <span key={card} className={s.tag}>
-                  {`Chart ${card}`}
-                </span>
-              ))}
-              {role.compared ? <span className={s.tag}>Compared</span> : null}
-              {also.length ? (
-                <span className={s.tagText}>{`also on ${also.join(
-                  " · ",
-                )}`}</span>
-              ) : null}
-            </p>
+            {on.includes("value") ? (
+              <ValueInline metric={metric} data={data} />
+            ) : null}
           </div>
-          {on.includes("value") ? (
-            <ValueDisplay metric={metric} data={data} />
-          ) : null}
+          <p className={s.means}>{metric.what}</p>
           <div
-            className={s.toggles}
+            className={s.options}
             role="group"
             aria-label={`Display options for ${label}`}
           >
-            {DISPLAY_OPTIONS.map((option) => {
-              const inDesign = design.includes(option.key)
-              const isOnNow = on.includes(option.key)
-              return (
-                <label
-                  key={option.key}
-                  className={cx(
-                    s.toggle,
-                    inDesign !== isOnNow && s.toggleChanged,
-                  )}
-                  title={`Design default: ${inDesign ? "on" : "off"}`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isOnNow}
-                    onChange={(event) =>
-                      onToggle(metric.id, option.key, event.target.checked)
-                    }
-                  />
-                  <span>{option.label}</span>
-                </label>
-              )
-            })}
-            {changed ? (
+            {available.map((key) => (
+              <OptionToggle
+                key={key}
+                label={optionLabel(key)}
+                title={`Design: ${
+                  design.includes(key) ? "on" : "off"
+                }${optionNote(key)}`}
+                checked={on.includes(key)}
+                onChange={(next) => onToggle(metric.id, key, next)}
+              />
+            ))}
+            {available.length === 1 ? (
+              <span className={s.optionNote}>
+                {`Value only: no card, chart or comparison in the design${
+                  places.length ? `; shown in ${places.join(" and ")}` : ""
+                }`}
+              </span>
+            ) : null}
+            {treatmentCard ? (
+              <button
+                type="button"
+                className={cx(s.treatmentPill, treatmentChanged && s.changed)}
+                onClick={() => onOpenTreatments(treatmentCard)}
+              >
+                {`16 treatments for card ${treatmentCard} · ${
+                  treatment
+                    ? `${treatment} ${TREATMENTS[treatment].label}`
+                    : "none chosen"
+                }${treatmentChanged ? " (changed)" : ""}`}
+                <span aria-hidden="true"> →</span>
+              </button>
+            ) : null}
+          </div>
+          {changes.length ? (
+            <p className={s.changedLine}>
+              {`Changed from design: ${changes.join(", ")} `}
               <button
                 type="button"
                 className={s.resetLink}
@@ -546,14 +539,14 @@ export const MetricItem = memo(
               >
                 Reset to design
               </button>
-            ) : null}
-          </div>
+            </p>
+          ) : null}
         </div>
         {displays ? (
           <div className={s.displays}>
             {tiles ? (
               <div className={s.displayRow}>
-                {cardTiles}
+                {showCards ? metricCards.map(cardTile) : null}
                 {on.includes("comparison") ? (
                   <ComparisonDisplay metric={metric} data={data} />
                 ) : null}
@@ -577,43 +570,51 @@ export const MetricItem = memo(
             ) : null}
           </div>
         ) : null}
-        {treatmentCard ? (
-          <TreatmentSection
-            card={treatmentCard}
-            datum={cards.treatments?.[treatmentCard]}
-            reason={
-              treatmentRecord && "reason" in treatmentRecord
-                ? treatmentRecord.reason
-                : LOADING
-            }
-            picks={picks}
-            onChoose={onTreatment}
-          />
-        ) : null}
-        <dl className={s.parts}>
-          <Part title="How it is calculated">
-            <p>{metric.how}</p>
-            <p className={s.source}>Where to get it: {metric.where}</p>
-            <p className={s.source}>
-              Unit: {metric.unit} · Spec example (13 August 2026):{" "}
-              {metric.example}
-            </p>
-          </Part>
-          <Part title="Comparison">
-            <p className={isTbd(comparison) ? s.tbd : undefined}>
-              {comparison}
-            </p>
-          </Part>
-          <Part title="What it means">
-            <p>{metric.what}</p>
-          </Part>
-          <Part title="What it tells you">
-            <CopyLines metric={metric} part="tells" />
-          </Part>
-          <Part title="What it does not tell you">
-            <CopyLines metric={metric} part="notTells" />
-          </Part>
-        </dl>
+        <div className={s.spec}>
+          <div className={s.subHead}>
+            <h4 className={s.subTitle}>
+              <button
+                type="button"
+                className={s.groupToggle}
+                aria-expanded={specOpen}
+                aria-controls={specId}
+                onClick={() => setSpecOpen(!specOpen)}
+              >
+                <Chevron />
+                <span>Spec</span>
+              </button>
+            </h4>
+            <span className={s.subNote}>
+              {hasCopy
+                ? "how it is calculated · what its cards tell and do not tell"
+                : "how it is calculated"}
+            </span>
+          </div>
+          <div id={specId} className={s.subBody} hidden={!specOpen}>
+            {specOpen ? (
+              <dl className={s.parts}>
+                <Part title="How it is calculated">
+                  <p>{metric.how}</p>
+                  <p className={s.source}>Where to get it: {metric.where}</p>
+                  <p className={s.source}>
+                    Unit: {metric.unit} · Spec example (13 August 2026):{" "}
+                    {metric.example}
+                  </p>
+                </Part>
+                {hasCopy ? (
+                  <>
+                    <Part title="What its cards tell you">
+                      <CopyLines metric={metric} part="tells" />
+                    </Part>
+                    <Part title="What its cards do not tell you">
+                      <CopyLines metric={metric} part="notTells" />
+                    </Part>
+                  </>
+                ) : null}
+              </dl>
+            ) : null}
+          </div>
+        </div>
       </article>
     )
   },

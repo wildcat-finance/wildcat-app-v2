@@ -1,7 +1,7 @@
 // Temporary: the metric review page (product#917). Remove with the page.
 //
 // What the review page shows for one metric: its group, its value for the
-// selection (or TBD with the reason), its published comparison and the card
+// selection (or the reason it has none), its published comparison and the card
 // copy of the cards it feeds. Copy comes from the catalogue and the live
 // cards, never written here.
 
@@ -86,34 +86,37 @@ export const recordGap = (
   const noun = NOUN[group]
   switch (source.status) {
     case "none":
-      return { kind: "tbd", reason: `TBD: select a ${noun}` }
+      return { kind: "tbd", reason: `Select a ${noun} to see its value` }
     case "loading":
       return { kind: "loading" }
     case "error":
       return {
         kind: "tbd",
-        reason: `TBD: the ${noun} analytics could not be loaded`,
+        reason: `Not loaded: the ${noun} analytics request failed`,
       }
     case "preparing":
       return {
         kind: "tbd",
-        reason: `TBD: this ${noun}'s history is being prepared`,
+        reason: `Being prepared: this ${noun}'s history is still being built`,
       }
     case "unavailable":
       return {
         kind: "tbd",
-        reason: `TBD: Glass Door has no record of this ${noun} on this network`,
+        reason: `No record: Glass Door has none for this ${noun} on this network`,
       }
     default:
   }
   const record = source.data
   if (record.state === "Preparing")
-    return { kind: "tbd", reason: `TBD: this ${noun} is being prepared` }
+    return {
+      kind: "tbd",
+      reason: `Being prepared: this ${noun} is not published yet`,
+    }
   if (record.state === "UnderReview" || !Object.keys(record.values).length)
     return {
       kind: "tbd",
       // The review reason shows once, under the group heading (reviewReason).
-      reason: `TBD: this ${noun} is under review, so its values are withheld`,
+      reason: `Withheld: this ${noun} is under review`,
     }
   return undefined
 }
@@ -253,15 +256,17 @@ export const formatValue = (
   return undefined
 }
 
+const RECOUNT = BREACH_RECOUNT.replace(/^TBD: /, "Not published: ")
+
 /** Ids the publication does not carry, each with its reason. */
 const NOT_PUBLISHED: Record<string, string> = {
-  M25: BREACH_RECOUNT,
-  M83: BREACH_RECOUNT,
-  S13: BREACH_RECOUNT,
-  D11: "TBD: defaults on record come from off-chain app data (the defaults badge), not from the Glass Door publication",
+  M25: RECOUNT,
+  M83: RECOUNT,
+  S13: RECOUNT,
+  D11: "Not published: defaults on record come from off-chain app data (the defaults badge), not from the Glass Door publication",
 }
 
-/** The value for the selection, or TBD with the reason. */
+/** The value for the selection, or the reason it has none. */
 export const shownValue = (metric: SpecMetric, data: ReviewData): Shown => {
   const group = groupOf(metric.id)
   if (metric.id === "G4") {
@@ -272,7 +277,7 @@ export const shownValue = (metric: SpecMetric, data: ReviewData): Shown => {
     if (data.typeLabelsLoading) return { kind: "loading" }
     return {
       kind: "tbd",
-      reason: "TBD: the market's hooks could not be read from the chain",
+      reason: "Not read: the market's hooks could not be read from the chain",
     }
   }
   if (NOT_PUBLISHED[metric.id])
@@ -280,16 +285,19 @@ export const shownValue = (metric: SpecMetric, data: ReviewData): Shown => {
   const source = group === "market" ? data.market : data.borrower
   const gap = recordGap(source, group)
   if (gap || source.status !== "ok")
-    return gap ?? { kind: "tbd", reason: "TBD" }
+    return gap ?? { kind: "tbd", reason: "Not loaded" }
   const { values } = source.data
   if (!(metric.id in values))
-    return { kind: "tbd", reason: "TBD: not in the current publication" }
+    return {
+      kind: "tbd",
+      reason: "Not published: not in the current publication",
+    }
   const raw = values[metric.id]
   const text = formatValue(metric.id, raw, values)
   if (text === undefined)
     return {
       kind: "tbd",
-      reason: `TBD: no value published for this ${NOUN[group]}`,
+      reason: `No value: none published for this ${NOUN[group]}`,
     }
   return { kind: "value", text, raw }
 }
@@ -316,7 +324,8 @@ export const comparisonText = (metric: SpecMetric, data: ReviewData) => {
   if (gap?.kind === "loading") return "loading…"
   if (gap?.kind === "tbd") return gap.reason
   const comparison = comparisonOf(metric, data)
-  if (!comparison) return "TBD: no comparison is published for this metric"
+  if (!comparison)
+    return "No comparison published for this metric at this snapshot"
   const noun = POPULATION[group]
   const median =
     formatValue(metric.id, comparison.median) ?? score(comparison.median)
@@ -342,11 +351,11 @@ export const comparisonText = (metric: SpecMetric, data: ReviewData) => {
 export const cardNumbers = (metric: SpecMetric) =>
   metric.cards.filter((card) => /^\d+\.\d+$/.test(card))
 
-/** The tells parts have no per-metric source; CopyLines adds the card copy. */
-export const PART_TBD = `TBD: not in the metric spec (${SPEC_SOURCE.replace(
+/** The spec has no per-metric tells; the page says so once and shows the card copy. */
+export const COPY_NOTE = `What a metric tells and does not tell is not in the metric spec (${SPEC_SOURCE.replace(
   "Wildcat analytics ",
   "",
-)})`
+)}); the spec section shows the copy of the cards it feeds.`
 
 export type CardCopyLine = { card: string; name?: string; text?: string }
 

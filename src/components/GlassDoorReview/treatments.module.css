@@ -3,10 +3,13 @@
  * The sixteen display treatments, ported from the design handoff
  * (analytics-card.css, section "treatments") with its tokens and sizes.
  */
+.view,
 .grid {
   --ac-fg-1: #141414;
   --ac-fg-2: #30313e;
   --ac-fg-3: #8a8c9f;
+  /* Review-page labels: darkened from the handoff's #8a8c9f to meet 4.5:1. */
+  --label: #6b6d7f;
   --ac-border: #e6e7eb;
   --ac-border-subtle: #eff0f4;
   --ac-border-input: #d4d6dd;
@@ -22,10 +25,129 @@
   --ac-limited-bg: #eff0f4;
   --ac-limited-fg: #8a8c9f;
   --ac-mono: ui-monospace, Menlo, Consolas, monospace;
+}
+.grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 10px;
   line-height: 1.4;
+}
+
+/* ---------- one card's treatments ---------- */
+.view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.intro,
+.hint {
+  margin: 0;
+  color: var(--label);
+  font-size: 12px;
+}
+.picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+/* The handoff's card picker: dark when on view. */
+.pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px 5px 11px;
+  border: 1px solid var(--ac-border);
+  border-radius: 12px;
+  background: var(--ac-surface);
+  color: var(--ac-fg-2);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.pick:hover {
+  border-color: var(--ac-fg-1);
+}
+.pick[aria-pressed="true"] {
+  border-color: var(--ac-fg-1);
+  background: var(--ac-fg-1);
+  color: var(--ac-surface);
+}
+/* A card whose treatment differs from the design. */
+.pickChanged {
+  border-style: dashed;
+  border-color: var(--ac-fg-1);
+}
+.pickChanged[aria-pressed="true"] {
+  outline: 1px dashed var(--ac-fg-1);
+  outline-offset: 1px;
+}
+.pickCode {
+  min-width: 18px;
+  padding: 1px 5px;
+  border-radius: 6px;
+  background: #efebff;
+  color: #4112b5;
+  font-family: var(--ac-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+.pick:focus-visible {
+  outline: 2px solid #3558e8;
+  outline-offset: 2px;
+}
+.selected {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 4px;
+}
+.choiceRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ac-fg-1);
+}
+.choice {
+  margin: 0;
+  color: var(--ac-fg-2);
+  font-size: 12px;
+}
+.choice b {
+  color: var(--ac-fg-1);
+}
+.reference {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.referenceLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--label);
+}
+.liveCard {
+  width: min(280px, 100%);
+}
+.livePanel {
+  min-width: 0;
+}
+.groupTitle {
+  margin: 8px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ac-fg-1);
 }
 
 /* ---------- tile chrome ---------- */
@@ -56,6 +178,10 @@
   border-color: var(--ac-border-active);
   box-shadow: 0 0 0 2px rgba(73, 113, 255, 0.12);
 }
+/* Can only say what data is missing. */
+.tileMuted {
+  background: #f9f9fa;
+}
 .choose {
   padding: 0;
   border: none;
@@ -75,31 +201,22 @@
 }
 .tileHead {
   display: flex;
-  align-items: baseline;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 4px 8px;
 }
 .tileLabel {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: var(--ac-fg-3);
+  color: var(--label);
 }
 .tileRight {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-}
-.tileHelp {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 15px;
-  height: 15px;
-  border: 1px solid var(--ac-border);
-  border-radius: 999px;
-  color: var(--ac-fg-3);
-  font-size: 10px;
+  gap: 4px;
 }
 .tileCode {
   padding: 2px 7px;
@@ -111,14 +228,26 @@
   font-weight: 700;
   white-space: nowrap;
 }
-.tileMark {
+.markChosen,
+.markDesign,
+.markNote {
+  padding: 2px 7px;
+  border-radius: 8px;
   font-size: 10px;
   font-weight: 600;
+  white-space: nowrap;
+}
+.markChosen {
+  background: var(--ac-fg-1);
+  color: var(--ac-surface);
+}
+.markDesign {
+  border: 1px solid var(--ac-fg-1);
   color: var(--ac-fg-1);
 }
-.tileMarkMuted {
-  font-size: 10px;
-  color: var(--ac-fg-3);
+.markNote {
+  background: var(--ac-surface-3);
+  color: var(--ac-fg-2);
 }
 .tileBody {
   flex: 1;

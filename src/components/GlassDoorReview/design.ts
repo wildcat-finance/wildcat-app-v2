@@ -11,6 +11,7 @@
 import { SpecMetric } from "./catalogue"
 import { cardNumbers, PLACES } from "./metrics"
 import type { OptionKey } from "./options"
+import { TREATMENT_CARDS } from "./treatmentData"
 
 /** Card headline values in cards.json, by the metric that carries them. */
 export const HEADLINES: Record<string, string[]> = {
@@ -112,4 +113,57 @@ export const designDefault = (metric: SpecMetric): OptionKey[] => {
     ...(role.charts.length ? (["chart"] as const) : []),
     ...(role.compared ? (["comparison"] as const) : []),
   ]
+}
+
+/** 3.12 Trouble over time is a chart section, not a seven-field card. */
+const CHART_SECTIONS = new Set(["3.12"])
+
+/** The seven-field cards the metric appears on, headline first. */
+export const cardsOf = (metric: SpecMetric) => {
+  const role = designRole(metric)
+  return [...role.headline, ...role.supporting].filter(
+    (card) => !CHART_SECTIONS.has(card),
+  )
+}
+
+/**
+ * The options a metric can have at all: a card, chart or comparison only
+ * when the design has one for it. Value is always available.
+ */
+export const optionsFor = (metric: SpecMetric): OptionKey[] => {
+  const role = designRole(metric)
+  return [
+    "value",
+    ...(cardsOf(metric).length ? (["card"] as const) : []),
+    ...(role.charts.length ? (["chart"] as const) : []),
+    ...(role.compared ? (["comparison"] as const) : []),
+  ]
+}
+
+/** The market card this metric heads, when the handoff draws treatments for it. */
+export const treatmentCardOf = (metric: SpecMetric) =>
+  designRole(metric).headline.find((card) => TREATMENT_CARDS.includes(card))
+
+/** No card, chart, comparison or treatments: a value and nothing more. */
+export const isValueOnly = (metric: SpecMetric) =>
+  optionsFor(metric).length === 1 && !treatmentCardOf(metric)
+
+/** What a metric can show, in words, for the sidebar list. */
+export const availabilityText = (metric: SpecMetric) => {
+  const role = designRole(metric)
+  const cards = cardsOf(metric)
+  const treatmentCard = treatmentCardOf(metric)
+  const parts = [
+    cards.length
+      ? `Card ${cards
+          .map((card) =>
+            role.headline.includes(card) ? `${card} headline` : card,
+          )
+          .join(", ")}`
+      : undefined,
+    role.charts.length ? `Chart ${role.charts.join(", ")}` : undefined,
+    role.compared ? "Comparison" : undefined,
+    treatmentCard ? `16 treatments (card ${treatmentCard})` : undefined,
+  ].filter(Boolean)
+  return parts.length ? parts.join(" · ") : "Value only"
 }

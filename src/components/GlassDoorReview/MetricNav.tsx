@@ -1,16 +1,28 @@
 "use client"
 
 // Temporary: the metric review page (product#917). Remove with the page.
-// The metric list in the app's left sidebar: every metric id with its name on
-// hover. Selecting one opens it on the page, expanding its group if needed.
+// The metric list in the app's left sidebar: the nine cards with treatments,
+// then every metric id, marked by what it can show, with its name and options
+// on hover. Selecting an id shows or hides its metric.
 
 import { memo, RefObject, useEffect, useState } from "react"
 
 import { Tooltip } from "@mui/material"
 
+import { availabilityText, isValueOnly, treatmentCardOf } from "./design"
 import { GROUPS, Group, metricsIn } from "./metrics"
-import { isDefault, Toggles } from "./options"
+import { metricChanged, Toggles } from "./options"
 import s from "./review.module.css"
+import {
+  cardName,
+  choiceText,
+  chosenTreatment,
+  TREATMENT_CARDS,
+  TreatmentPicks,
+} from "./treatmentData"
+
+const cx = (...names: (string | false | undefined)[]) =>
+  names.filter(Boolean).join(" ")
 
 /** The element with this id once it is in the document. */
 export const useSlot = (id: string) => {
@@ -79,24 +91,31 @@ export const useActiveMetric = (
 export const MetricNav = memo(
   ({
     toggles,
+    picks,
     shown,
     active,
     collapsed,
+    treatmentCard,
     onToggleShown,
     onShowGroup,
     onGoGroup,
+    onOpenTreatments,
   }: {
     toggles: Toggles
+    picks: TreatmentPicks
     /** The metrics shown on the page. */
     shown: readonly string[]
     /** The metric at the top of the page. */
     active?: string
     /** Collapsed sections of the page. */
     collapsed: readonly string[]
+    /** The card whose treatments are on view. */
+    treatmentCard?: string
     /** Shows a hidden metric (and scrolls to it) or hides a shown one. */
     onToggleShown: (id: string) => void
     onShowGroup: (key: Group, show: boolean) => void
     onGoGroup: (key: Group) => void
+    onOpenTreatments: (card: string) => void
   }) => {
     // Keep the current metric in sight in a long sidebar.
     useEffect(() => {
@@ -107,7 +126,45 @@ export const MetricNav = memo(
     }, [active])
     return (
       <nav className={s.nav} aria-label="Metrics">
-        <h2 className={s.navTitle}>Metrics</h2>
+        <div className={s.navGroup}>
+          <div className={s.navGroupHead}>
+            <span className={s.navGroupName}>Card treatments</span>
+            <span className={s.navCount}>
+              {`${Object.keys(picks).length} changed`}
+            </span>
+          </div>
+          <ul className={s.navList}>
+            {TREATMENT_CARDS.map((card) => {
+              const code = chosenTreatment(picks, card)
+              return (
+                <li key={card}>
+                  <Tooltip
+                    title={`${cardName(card)}: ${choiceText(card, code)}${
+                      picks[card] ? " (changed)" : " (design)"
+                    }`}
+                    placement="right"
+                    enterDelay={150}
+                    disableInteractive
+                  >
+                    <button
+                      type="button"
+                      className={cx(s.navId, picks[card] && s.navChanged)}
+                      aria-label={`Card ${card} ${cardName(
+                        card,
+                      )} treatments: ${choiceText(card, code)}${
+                        picks[card] ? ", changed from the design" : ""
+                      }`}
+                      aria-current={treatmentCard === card ? "true" : undefined}
+                      onClick={() => onOpenTreatments(card)}
+                    >
+                      {card}
+                    </button>
+                  </Tooltip>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
         {GROUPS.map((group) => {
           const metrics = metricsIn(group.key)
           const shownHere = metrics.filter((metric) =>
@@ -153,42 +210,65 @@ export const MetricNav = memo(
                 </span>
               </div>
               <ul className={s.navList}>
-                {metrics.map((metric) => (
-                  <li key={metric.id}>
-                    <Tooltip
-                      title={metric.name}
-                      placement="right"
-                      enterDelay={150}
-                      disableInteractive
-                    >
-                      <button
-                        type="button"
-                        data-nav-metric={metric.id}
-                        className={
-                          isDefault(toggles, metric.id)
-                            ? s.navId
-                            : `${s.navId} ${s.navChanged}`
+                {metrics.map((metric) => {
+                  const what = availabilityText(metric)
+                  return (
+                    <li key={metric.id}>
+                      <Tooltip
+                        title={
+                          <>
+                            <b>{metric.name}</b>
+                            <br />
+                            {what}
+                          </>
                         }
-                        aria-label={`${metric.name} (${metric.id})`}
-                        aria-pressed={shown.includes(metric.id)}
-                        aria-current={
-                          active === metric.id ? "location" : undefined
-                        }
-                        onClick={() => onToggleShown(metric.id)}
+                        placement="right"
+                        enterDelay={150}
+                        disableInteractive
                       >
-                        {metric.id}
-                      </button>
-                    </Tooltip>
-                  </li>
-                ))}
+                        <button
+                          type="button"
+                          data-nav-metric={metric.id}
+                          className={cx(
+                            s.navId,
+                            isValueOnly(metric) && s.navPlain,
+                            treatmentCardOf(metric) && s.navTreatments,
+                            metricChanged(toggles, picks, metric.id) &&
+                              s.navChanged,
+                          )}
+                          aria-label={`${metric.name} (${metric.id}): ${what}`}
+                          aria-pressed={shown.includes(metric.id)}
+                          aria-current={
+                            active === metric.id ? "location" : undefined
+                          }
+                          onClick={() => onToggleShown(metric.id)}
+                        >
+                          {metric.id}
+                        </button>
+                      </Tooltip>
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           )
         })}
-        <p className={s.navNote}>
-          Select an ID to show or hide its metric. Underlined: at the top of the
-          page. Dashed: display changed from the design default.
-        </p>
+        <ul className={s.navKey}>
+          <li>Select an ID to show or hide its metric.</li>
+          <li>
+            <span className={cx(s.keySample, s.keyPlain)}>M01</span> value only:
+            no card, chart or comparison
+          </li>
+          <li>
+            <span className={cx(s.keySample, s.keyTreatments)}>M18</span> heads
+            a card with 16 treatments
+          </li>
+          <li>
+            <span className={cx(s.keySample, s.keyChanged)}>M21</span> changed
+            from the design
+          </li>
+          <li>Underlined: at the top of the page.</li>
+        </ul>
       </nav>
     )
   },

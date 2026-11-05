@@ -274,13 +274,25 @@
   color: var(--muted);
   font-weight: 400;
 }
+/* Above the heading's hit area, so these keep their own clicks. */
 .bulk {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 12px;
   font-size: 12px;
   color: var(--muted);
+}
+.bulkSet {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.groupNote {
+  color: var(--muted);
+  font-size: 12px;
 }
 .banner {
   margin: 0;
@@ -296,22 +308,27 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 0 18px 16px;
+  padding: 0 18px 12px;
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--surface);
 }
+/* Name and value, what it means, then the options it really has. */
 .metricHead {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px 16px;
+  flex-direction: column;
+  gap: 6px;
   margin: 0 -18px;
   padding: 12px 18px;
   border-bottom: 1px solid var(--border-subtle);
   border-radius: 13px 13px 0 0;
   background: var(--surface-2);
+}
+.titleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 16px;
 }
 .metricName {
   margin: 0;
@@ -319,43 +336,95 @@
   font-weight: 600;
   color: var(--fg-1);
 }
-.metricTitle {
-  display: flex;
-  flex: 1 1 280px;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
+.means {
+  margin: 0;
+  max-width: 90ch;
+  color: var(--fg-2);
+  font-size: 12px;
 }
-/* How the design shows the metric: tags, then where else it appears. */
-.tags {
+.options {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 6px;
-  margin: 0;
-  font-size: 11px;
+  gap: 6px;
+  margin-top: 2px;
 }
-.tag {
-  padding: 1px 7px;
+/* A display option: an outline, with a check when on. */
+.option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px 3px 6px;
   border: 1px solid var(--border-input);
-  border-radius: 6px;
-  color: var(--fg-2);
+  border-radius: 8px;
   background: var(--surface);
-  white-space: nowrap;
+  color: var(--fg-2);
+  font-size: 12px;
+  cursor: pointer;
 }
-.tagStrong {
+.option input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.optionBox {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--border-input);
+  border-radius: 4px;
+  color: var(--fg-1);
+}
+.option:hover,
+.option:has(input:checked) {
   border-color: var(--fg-1);
   color: var(--fg-1);
-  font-weight: 600;
 }
-.tagText {
+.option:has(input:checked) .optionBox {
+  border-color: var(--fg-1);
+}
+.option:has(input:focus-visible) {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+.optionNote {
   color: var(--muted);
+  font-size: 12px;
 }
-.toggles {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+/* The way to this metric's card treatments, in the treatments' own colour. */
+.treatmentPill {
+  padding: 3px 10px;
+  border: 1px solid #d9d1fb;
+  border-radius: 8px;
+  background: #f4f1ff;
+  color: #4112b5;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
 }
+.treatmentPill:hover {
+  border-color: #4112b5;
+}
+.treatmentPill:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+.treatmentPill.changed {
+  border-style: dashed;
+  border-color: #4112b5;
+}
+.changedLine {
+  margin: 0;
+  color: var(--fg-1);
+  font-size: 12px;
+}
+/* Group switches: quiet outlines, a check when every shown metric has it. */
 .toggle {
   position: relative;
   cursor: pointer;
@@ -368,28 +437,26 @@
 }
 .toggle span {
   display: inline-block;
-  padding: 4px 10px;
+  padding: 3px 9px;
   border: 1px solid var(--border-input);
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 12px;
   color: var(--fg-2);
   background: var(--surface);
 }
 .toggle input:checked + span {
   border-color: var(--fg-1);
-  background: var(--fg-1);
-  color: var(--surface);
+  color: var(--fg-1);
+  font-weight: 600;
 }
-/* A toggle set differently from the metric's design default. */
-.toggleChanged span,
-.toggleChanged input:checked + span {
+.toggle input:checked + span::before {
+  content: "✓\00a0";
+}
+/* Some of the shown metrics have it. */
+.toggle input:indeterminate + span {
   border-style: dashed;
   border-color: var(--fg-1);
-}
-.toggleChanged input:checked + span {
-  border-color: var(--surface-2);
-  outline: 1px dashed var(--fg-1);
-  outline-offset: 1px;
+  color: var(--fg-1);
 }
 .resetLink {
   padding: 0 4px;
@@ -407,50 +474,32 @@
   outline: 2px solid var(--link);
   outline-offset: 2px;
 }
-/* A group switch with some of its metrics on. */
-.toggle input:indeterminate + span {
-  border-color: var(--fg-1);
-  background: var(--surface-2);
-  color: var(--fg-1);
-}
 @media (forced-colors: active) {
+  .option:has(input:checked),
   .toggle input:checked + span {
-    forced-color-adjust: none;
     border-color: Highlight;
-    background: Highlight;
-    color: HighlightText;
-  }
-  .toggle input:indeterminate + span {
-    border-style: dashed;
   }
 }
-/* The spec's five parts are reference text: smaller, after the result. */
+/* The spec is reference text, closed until asked for. */
+.spec {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.displays + .spec {
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle);
+}
 .parts {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px 18px;
   margin: 0;
   font-size: 12px;
 }
-/* Narrower blocks: the calculation across the top, then two pairs. */
-@container metric (min-width: 520px) and (max-width: 899.98px) {
-  .parts {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .parts > .part:first-child {
-    grid-column: 1 / -1;
-  }
-}
-.displays + .parts {
-  padding-top: 12px;
-  border-top: 1px solid var(--border-subtle);
-}
-/* The five parts side by side once there is room, sized to their text. */
 @container metric (min-width: 900px) {
   .parts {
-    grid-template-columns:
-      minmax(0, 1.4fr) minmax(0, 0.8fr) minmax(0, 0.8fr) minmax(0, 1.2fr)
-      minmax(0, 1.2fr);
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
   }
 }
 .part {
@@ -518,37 +567,31 @@
   text-transform: uppercase;
   color: var(--muted);
 }
+/* A card the metric only feeds: its label says whose headline it is. */
+.cardFeeds .displayLabel {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
 .box {
   padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: 12px;
 }
-/* The value in the metric's header: label beside a compact box. */
-.headValue {
-  flex: 0 1 auto;
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
-  max-width: min(440px, 100%);
-}
-.headValue .box {
-  padding: 4px 12px;
-  background: var(--surface);
-}
-.valueBox {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-/* Words read smaller than numbers, so names and labels fit the header. */
-.value.valueText {
-  font-size: 15px;
-}
+/* The value beside the name; words read smaller than numbers. */
 .value {
   font-size: 20px;
   font-weight: 600;
   color: var(--fg-1);
   overflow-wrap: break-word;
+}
+.value.valueText {
+  font-size: 15px;
+}
+.valueNote {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: italic;
 }
 /* The raw computed value shows on hover or focus of the displayed value. */
 .valueTip {
@@ -569,7 +612,7 @@
 .tip {
   position: absolute;
   top: calc(100% + 8px);
-  right: 0;
+  left: 0;
   z-index: 2;
   width: max-content;
   max-width: 320px;
@@ -600,8 +643,12 @@
 .compareDisplay {
   flex: 0 1 320px;
 }
+/* Charts sit side by side from about 820px; a lone chart stays readable. */
 .chartDisplay {
-  flex: 1 1 520px;
+  flex: 1 1 400px;
+  max-width: 100%;
+}
+.chartDisplay:only-child {
   max-width: 760px;
 }
 .tbdDisplay {
@@ -899,24 +946,63 @@
   outline: 2px solid var(--link);
   outline-offset: 1px;
 }
-.navNote {
-  margin: 12px 0 0;
-  color: var(--muted);
-  font-size: 11px;
+.navGroupName {
+  color: var(--fg-1);
+  font-weight: 600;
 }
-
-/* ---------- display treatments inside a metric ---------- */
-.treatments {
+/* Value only: no card, chart or comparison, so no outline. */
+.navPlain {
+  border-color: transparent;
+  color: var(--muted);
+}
+/* Heads a market card with 16 treatments: a corner mark. */
+.navTreatments::before,
+.keyTreatments::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 5px;
+  height: 5px;
+  border-radius: 1px;
+  background: #4112b5;
+}
+.navTreatments[aria-pressed="true"]::before {
+  background: #c9bffa;
+}
+.navKey {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 5px;
+  margin: 14px 0 0;
+  padding: 0;
+  color: var(--muted);
+  font-size: 11px;
+  list-style: none;
 }
-.treatments + .parts,
-.displays + .treatments {
-  padding-top: 12px;
-  border-top: 1px solid var(--border-subtle);
+.keySample {
+  position: relative;
+  display: inline-block;
+  min-width: 34px;
+  margin-right: 4px;
+  padding: 1px 4px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--fg-2);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
 }
-/* Like a group heading, the whole row opens and closes the treatments. */
+.keyPlain {
+  border-color: transparent;
+  color: var(--muted);
+}
+.keyChanged {
+  border-style: dashed;
+  border-color: var(--fg-1);
+}
+
+/* ---------- collapsible rows inside a metric (the spec) ---------- */
+/* Like a group heading, the whole row opens and closes its section. */
 .subHead {
   position: relative;
   display: flex;
@@ -966,11 +1052,6 @@
 }
 .subBody[hidden] {
   display: none;
-}
-.subHint {
-  margin: 0;
-  color: var(--muted);
-  font-size: 12px;
 }
 @media (prefers-reduced-motion: reduce) {
   .subHead {

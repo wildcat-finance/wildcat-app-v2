@@ -4,6 +4,7 @@ import * as React from "react"
 import "@testing-library/jest-dom"
 import { fireEvent, render, screen, within } from "@testing-library/react"
 
+import { borrowerSpecs } from "@/components/GlassDoor/borrowerSpecs"
 import { hours } from "@/components/GlassDoor/format"
 import { marketSpecs } from "@/components/GlassDoor/marketSpecs"
 import {
@@ -23,11 +24,13 @@ import {
 
 import { SPEC_METRICS } from "./catalogue"
 import {
+  availabilityText,
   CHART_INPUTS,
   COMPARED,
   designDefault,
   designRole,
   HEADLINES,
+  isValueOnly,
 } from "./design"
 import { isReviewPath, reviewEnabled } from "./gate"
 import { MetricItem } from "./MetricItem"
@@ -42,12 +45,17 @@ import {
   shownValue,
 } from "./metrics"
 import {
+  availableOn,
+  changeText,
   countsText,
   DISPLAY_OPTIONS,
   isDefault,
   loadPicks,
   loadShown,
   loadToggles,
+  metricChanged,
+  OptionKey,
+  optionsOn,
   resetOptions,
   savePicks,
   saveShown,
@@ -62,11 +70,13 @@ import {
   choose,
   chosenTreatment,
   cleanPicks,
+  drawable,
+  findTreatmentCard,
   TREATMENT_CARDS,
   treatmentData,
   treatmentLines,
 } from "./treatmentData"
-import { TreatmentSection } from "./treatments"
+import { CardTreatments, TreatmentTile } from "./treatments"
 
 // Temporary: the metric review page (product#917). Remove with the page.
 
@@ -125,7 +135,7 @@ describe("metric catalogue", () => {
   })
 })
 
-describe("values and TBD reasons", () => {
+describe("values and their reasons", () => {
   it("formats a published value by its unit", () => {
     expect(shownValue(spec("M11"), ok)).toMatchObject({
       kind: "value",
@@ -136,12 +146,12 @@ describe("values and TBD reasons", () => {
   it("keeps a metric without data listed with its reason", () => {
     expect(shownValue(spec("M25"), ok)).toEqual({
       kind: "tbd",
-      reason: BREACH_RECOUNT,
+      reason: BREACH_RECOUNT.replace(/^TBD: /, "Not published: "),
     })
     expect(shownValue(spec("D11"), ok)).toMatchObject({ kind: "tbd" })
     expect(
       shownValue(spec("M21"), { ...ok, market: { status: "none" } }),
-    ).toEqual({ kind: "tbd", reason: "TBD: select a market" })
+    ).toEqual({ kind: "tbd", reason: "Select a market to see its value" })
     const review: ReviewData = {
       ...ok,
       market: {
@@ -151,7 +161,7 @@ describe("values and TBD reasons", () => {
     }
     expect(shownValue(spec("M18"), review)).toEqual({
       kind: "tbd",
-      reason: "TBD: this market is under review, so its values are withheld",
+      reason: "Withheld: this market is under review",
     })
     // The reason shows once per group, not in every box.
     expect(reviewReason(review.market)).toBeUndefined()
@@ -170,11 +180,11 @@ describe("values and TBD reasons", () => {
     }
     expect(shownValue(spec("M20"), missing)).toEqual({
       kind: "tbd",
-      reason: "TBD: not in the current publication",
+      reason: "Not published: not in the current publication",
     })
     expect(shownValue(spec("M84"), missing)).toEqual({
       kind: "tbd",
-      reason: "TBD: no value published for this market",
+      reason: "No value: none published for this market",
     })
   })
 
@@ -183,7 +193,7 @@ describe("values and TBD reasons", () => {
       "median 97.5 across 63 graded markets; better than 9 of 63 graded markets",
     )
     expect(comparisonText(spec("M77"), ok)).toBe(
-      "TBD: no comparison is published for this metric",
+      "No comparison published for this metric at this snapshot",
     )
   })
 })
@@ -229,11 +239,9 @@ describe("design defaults", () => {
 describe("toggle states", () => {
   it("survive a reload through storage, under their own key", () => {
     const store = memoryStore()
-    const toggles = setOption({}, ["M21"], "comparison", true)
+    const toggles = setOption({}, ["M05"], "card", true)
     expect(saveToggles(toggles, store)).toBe(true)
-    expect(store.getItem(STORAGE_KEY)).toBe(
-      '{"M21":["value","card","chart","comparison"]}',
-    )
+    expect(store.getItem(STORAGE_KEY)).toBe('{"M05":["value","card","chart"]}')
     expect(loadToggles(store)).toEqual(toggles)
   })
 
@@ -260,7 +268,7 @@ describe("toggle states", () => {
 
   it("list every metric and option on in the summary", () => {
     expect(countsText({})).toBe(
-      "On: Value 91 · Card 18 · Chart 39 · Comparison 20. Changed from the design default: 0.",
+      "On: Value 91 · Card 18 · Chart 39 · Comparison 20. Changed from the design: 0 metrics, 0 card treatments.",
     )
     let toggles = setOption({}, ["M21"], "chart", false)
     const borrowerIds = metricsIn("borrower").map((m) => m.id)
@@ -282,11 +290,13 @@ describe("toggle states", () => {
       false,
     )
     expect(countsText(toggles)).toBe(
-      "On: Value 65 · Card 11 · Chart 30 · Comparison 13. Changed from the design default: 27.",
+      "On: Value 65 · Card 11 · Chart 30 · Comparison 13. Changed from the design: 27 metrics, 0 card treatments.",
     )
-    const text = summaryText(toggles, [
+    const text = summaryText(toggles, {}, [
       "Reviewed against Wintermute · wmtUSDC.",
     ])
+    expect(text).toContain("Changes from the design (27)\n")
+    expect(text).toContain("- Late within grace now (M21): −Chart\n")
     expect(text).toContain(
       "(product#917)\nReviewed against Wintermute · wmtUSDC.\nOn: Value 65",
     )
@@ -317,119 +327,155 @@ describe("toggle states", () => {
 })
 
 describe("one metric", () => {
-  it("shows the five parts in order and its displays as toggled", () => {
-    const onToggle = jest.fn()
-    const view = (on: ("value" | "card" | "chart" | "comparison")[]) => (
-      <MetricItem
-        metric={spec("M18")}
-        on={on}
-        data={ok}
-        cards={{}}
-        onToggle={onToggle}
-        onReset={jest.fn()}
-        picks={{}}
-        onTreatment={jest.fn()}
-      />
+  const view = (
+    id: string,
+    on: OptionKey[],
+    extra: Partial<React.ComponentProps<typeof MetricItem>> = {},
+  ) => (
+    <MetricItem
+      metric={spec(id)}
+      on={on}
+      data={ok}
+      cards={{}}
+      onToggle={jest.fn()}
+      onReset={jest.fn()}
+      onOpenTreatments={jest.fn()}
+      {...extra}
+    />
+  )
+  const article = (id: string) =>
+    screen.getByRole("article", { name: new RegExp(`\\(${id}\\)$`) })
+
+  it("offers only the displays the design has, named by what they draw", () => {
+    const { rerender } = render(
+      view("M18", ["value", "card", "chart", "comparison"]),
     )
-    const { rerender } = render(view(["value"]))
-    const article = screen.getByRole("article", {
-      name: /In order, cash there \(M18\)/,
-    })
+    const m18 = article("M18")
+    const options = within(m18).getByRole("group", { name: /Display options/ })
     expect(
-      within(article)
+      within(options)
+        .getAllByRole("checkbox")
+        .map((box) => box.closest("label")?.textContent),
+    ).toEqual(["Value", "Card 2.1 · 3.1", "Chart 2.1 · 3.1", "Comparison"])
+    // The value sits beside the name, with what the metric means under it.
+    expect(within(m18).getByText("82.6")).toBeInTheDocument()
+    expect(within(m18).getByText(spec("M18").what)).toBeInTheDocument()
+    expect(
+      within(m18).getByRole("img", {
+        name: "Better than 9 of 63 graded markets",
+      }),
+    ).toBeInTheDocument()
+    rerender(view("M01", ["value"]))
+    const m01 = article("M01")
+    expect(within(m01).getAllByRole("checkbox")).toHaveLength(1)
+    expect(
+      within(m01).getByText(
+        /^Value only: no card, chart or comparison in the design/,
+      ),
+    ).toBeInTheDocument()
+  })
+
+  it("says what changed from the design in words and resets it", () => {
+    const onReset = jest.fn()
+    const onToggle = jest.fn()
+    render(view("M18", ["value", "comparison"], { onReset, onToggle }))
+    const m18 = article("M18")
+    expect(
+      within(m18).getByText(/^Changed from design: −Card, −Chart/),
+    ).toBeInTheDocument()
+    fireEvent.click(
+      within(m18).getByRole("button", { name: "Reset to design" }),
+    )
+    expect(onReset).toHaveBeenCalledWith("M18")
+    fireEvent.click(within(m18).getByLabelText("Card 2.1 · 3.1"))
+    expect(onToggle).toHaveBeenCalledWith("M18", "card", true)
+  })
+
+  it("keeps the spec behind a closed section", () => {
+    render(view("M18", ["value"]))
+    const m18 = article("M18")
+    expect(within(m18).queryByRole("term")).toBeNull()
+    fireEvent.click(within(m18).getByRole("button", { name: "Spec" }))
+    expect(
+      within(m18)
         .getAllByRole("term")
         .map((term) => term.textContent),
     ).toEqual([
       "How it is calculated",
-      "Comparison",
-      "What it means",
-      "What it tells you",
-      "What it does not tell you",
+      "What its cards tell you",
+      "What its cards do not tell you",
     ])
-    expect(within(article).getByText("82.6")).toBeInTheDocument()
-    const rank = { name: "Better than 9 of 63 graded markets" }
-    expect(within(article).queryByRole("img", rank)).toBeNull()
-    fireEvent.click(within(article).getByLabelText("Comparison"))
-    expect(onToggle).toHaveBeenCalledWith("M18", "comparison", true)
-    rerender(view(["comparison"]))
-    expect(within(article).queryByText("82.6")).toBeNull()
-    expect(within(article).getByRole("img", rank)).toBeInTheDocument()
+    expect(within(m18).queryByText(/not in the metric spec/)).toBeNull()
   })
 
-  it("tags how the design shows it and resets to that default", () => {
-    const onReset = jest.fn()
-    const { rerender } = render(
-      <MetricItem
-        metric={spec("M18")}
-        on={["value", "card", "chart", "comparison"]}
-        data={ok}
-        cards={{}}
-        onToggle={jest.fn()}
-        onReset={onReset}
-        picks={{}}
-        onTreatment={jest.fn()}
-      />,
+  it("links a card's headline metric to the card's treatments", () => {
+    const onOpenTreatments = jest.fn()
+    render(
+      view("M18", ["value"], {
+        treatmentCard: "2.1",
+        treatment: "C",
+        treatmentChanged: true,
+        onOpenTreatments,
+      }),
     )
-    const article = screen.getByRole("article", {
-      name: "In order, cash there (M18)",
-    })
-    ;["Card 2.1 headline", "Chart 2.1", "Chart 3.1", "Compared"].forEach(
-      (tag) => expect(within(article).getByText(tag)).toBeInTheDocument(),
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /16 treatments for card 2\.1 · C Rail \(changed\)/,
+      }),
     )
-    expect(
-      within(article).getByText("also on card 3.1 · the per-market table"),
-    ).toBeInTheDocument()
-    expect(within(article).queryByText("Reset to design")).toBeNull()
-    rerender(
-      <MetricItem
-        metric={spec("M18")}
-        on={["value"]}
-        data={ok}
-        cards={{}}
-        onToggle={jest.fn()}
-        onReset={onReset}
-        picks={{}}
-        onTreatment={jest.fn()}
-      />,
-    )
-    fireEvent.click(within(article).getByText("Reset to design"))
-    expect(onReset).toHaveBeenCalledWith("M18")
+    expect(onOpenTreatments).toHaveBeenCalledWith("2.1")
   })
 
-  it("opens a card's panel in its own row and closes it on Escape", () => {
+  it("opens a card's panel in its own row and names the cards it feeds", () => {
     const { rowA } = marketSpecs(marketFixture, undefined)
     const cards = {
       market: Object.fromEntries(rowA.map((card) => [card.id, card])),
+      borrower: Object.fromEntries(
+        borrowerSpecs(borrowerFixture).map((card) => [card.id, card]),
+      ),
     }
-    render(
-      <MetricItem
-        metric={spec("M18")}
-        on={["card"]}
-        data={ok}
-        cards={cards}
-        onToggle={jest.fn()}
-        onReset={jest.fn()}
-        picks={{}}
-        onTreatment={jest.fn()}
-      />,
-    )
-    const article = screen.getByRole("article", {
-      name: /In order, cash there \(M18\)/,
-    })
-    const card = article.querySelector<HTMLButtonElement>(
+    render(view("M18", ["card"], { cards }))
+    const m18 = article("M18")
+    expect(within(m18).getByText("Card 2.1 · headline")).toBeInTheDocument()
+    expect(
+      within(m18).getByText("Card 3.1 · headline S05; this metric feeds it"),
+    ).toBeInTheDocument()
+    const card = m18.querySelector<HTMLButtonElement>(
       'button[data-card="2.1"]',
     )!
     expect(card).toHaveAttribute("aria-expanded", "false")
     fireEvent.click(card)
     expect(card).toHaveAttribute("aria-expanded", "true")
-    const panel = within(article).getByRole("region", { name: "In order" })
+    const panel = within(m18).getByRole("region", { name: "In order" })
     // The panel is not inside the row of cards, so the card stays in place.
     expect(panel.parentElement?.contains(card)).toBe(false)
     fireEvent.keyDown(card, { key: "Escape" })
-    expect(
-      within(article).queryByRole("region", { name: "In order" }),
-    ).toBeNull()
+    expect(within(m18).queryByRole("region", { name: "In order" })).toBeNull()
     expect(card).toHaveFocus()
+  })
+})
+
+describe("what each metric can have", () => {
+  it("ignores options a metric cannot have and counts treatment changes", () => {
+    expect(availableOn("M01")).toEqual(["value"])
+    expect(optionsOn({ M01: ["value", "chart"] }, "M01")).toEqual(["value"])
+    expect(setOption({}, ["M01", "M05"], "card", true)).toEqual({
+      M05: ["value", "card", "chart"],
+    })
+    expect(
+      SPEC_METRICS.filter(isValueOnly)
+        .map((metric) => metric.id)
+        .sort(),
+    ).toEqual(["D11", "M01", "M02", "S02"])
+    expect(availabilityText(spec("M01"))).toBe("Value only")
+    expect(availabilityText(spec("M18"))).toBe(
+      "Card 2.1 headline, 3.1 · Chart 2.1, 3.1 · Comparison · 16 treatments (card 2.1)",
+    )
+    expect(metricChanged({}, { "2.1": "C" }, "M18")).toBe(true)
+    expect(metricChanged({}, {}, "M18")).toBe(false)
+    expect(changeText({ M18: ["value", "comparison"] }, "M18")).toBe(
+      "−Card, −Chart",
+    )
   })
 })
 
@@ -449,48 +495,52 @@ describe("preview gate", () => {
 })
 
 describe("sidebar metric list", () => {
-  it("shows or hides a metric from its id, named for screen readers", () => {
+  it("shows or hides a metric from its id and says what it can show", () => {
     const onToggleShown = jest.fn()
     const onShowGroup = jest.fn()
     const onGoGroup = jest.fn()
+    const onOpenTreatments = jest.fn()
     render(
       <MetricNav
         toggles={{ M18: ["value"] }}
+        picks={{ "2.2": "B" }}
         shown={["S05", "M18"]}
         active="S05"
         collapsed={["borrower"]}
+        treatmentCard="2.2"
         onToggleShown={onToggleShown}
         onShowGroup={onShowGroup}
         onGoGroup={onGoGroup}
+        onOpenTreatments={onOpenTreatments}
       />,
     )
     const nav = screen.getByRole("navigation", { name: "Metrics" })
-    const ids = within(nav)
-      .getAllByRole("button")
-      .filter((button) => button.hasAttribute("data-nav-metric"))
-    expect(ids.map((button) => button.textContent)).toEqual(
+    const id = (metricId: string) =>
+      nav.querySelector<HTMLButtonElement>(`[data-nav-metric="${metricId}"]`)!
+    expect(
+      Array.from(nav.querySelectorAll("[data-nav-metric]")).map(
+        (button) => button.textContent,
+      ),
+    ).toEqual(
       [...metricsIn("borrower"), ...metricsIn("market")].map(
         (metric) => metric.id,
       ),
     )
-    const s05 = within(nav).getByRole("button", {
-      name: `${METRIC_NAMES.S05} (S05)`,
-    })
-    expect(s05).toHaveAttribute("aria-pressed", "true")
-    expect(s05).toHaveAttribute("aria-current", "location")
-    const s01 = within(nav).getByRole("button", {
-      name: `${METRIC_NAMES.S01} (S01)`,
-    })
-    expect(s01).toHaveAttribute("aria-pressed", "false")
-    // Changed from the design default (M18 is a card headline, chart and
-    // comparison by default).
-    expect(
-      within(nav).getByRole("button", { name: `${METRIC_NAMES.M18} (M18)` })
-        .className,
-    ).toMatch(/navChanged/)
-    expect(s05.className).not.toMatch(/navChanged/)
+    expect(id("S05")).toHaveAttribute("aria-pressed", "true")
+    expect(id("S05")).toHaveAttribute("aria-current", "location")
+    expect(id("S01")).toHaveAttribute("aria-pressed", "false")
+    expect(id("M01")).toHaveAccessibleName(
+      `${METRIC_NAMES.M01} (M01): Value only`,
+    )
+    expect(id("M01").className).toMatch(/navPlain/)
+    expect(id("M18").className).toMatch(/navTreatments/)
+    // Changed: M18's displays differ from the design; card 2.2's treatment
+    // was changed, which marks its headline metric M24.
+    expect(id("M18").className).toMatch(/navChanged/)
+    expect(id("M24").className).toMatch(/navChanged/)
+    expect(id("S05").className).not.toMatch(/navChanged/)
     expect(within(nav).getByText("1/26 · collapsed")).toBeInTheDocument()
-    fireEvent.click(s01)
+    fireEvent.click(id("S01"))
     expect(onToggleShown).toHaveBeenCalledWith("S01")
     fireEvent.click(
       within(nav).getByRole("button", { name: "Show all market metrics" }),
@@ -502,6 +552,12 @@ describe("sidebar metric list", () => {
     expect(onShowGroup).toHaveBeenCalledWith("borrower", false)
     fireEvent.click(within(nav).getByRole("link", { name: "Market metrics" }))
     expect(onGoGroup).toHaveBeenCalledWith("market")
+    const card = within(nav).getByRole("button", {
+      name: /^Card 2\.2 Worst incident treatments: 2\.2-B Counted, changed/,
+    })
+    expect(card).toHaveAttribute("aria-current", "true")
+    fireEvent.click(card)
+    expect(onOpenTreatments).toHaveBeenCalledWith("2.2")
   })
 
   it("remembers the shown metrics in spec order, starting with none", () => {
@@ -535,6 +591,7 @@ describe("display treatments", () => {
       rail: 82.6,
       railMed: 97.5,
       rank: [9, 63],
+      better: "higher",
       countClaim: "17 days in every 100 the promised cash was short.",
     })
     expect(Math.round(data["2.1"].grace)).toBe(17)
@@ -546,7 +603,12 @@ describe("display treatments", () => {
         "separately, under 1 in 100 days past the allowance (M26)",
       ),
     ).toBe(true)
-    expect(data["2.2"]).toMatchObject({ rail: 113.7, railMed: 89, grace: -1 })
+    expect(data["2.2"]).toMatchObject({
+      rail: 113.7,
+      railMed: 89,
+      grace: -1,
+      better: "lower",
+    })
     expect(data["2.2"].cov?.slice(0, 3)).toEqual([
       54.6,
       48,
@@ -558,41 +620,84 @@ describe("display treatments", () => {
       countClaim: "17 of every 100 payout deadlines were missed on the day.",
     })
     expect(data["2.6"]).toMatchObject({ rail: 58.4, railMed: 8.9, rank: null })
+    expect(data["2.6"].better).toBeUndefined()
     expect(data["2.6"].cov?.[3]).toBe("41.6 points of room left")
     expect(data["2.10"]).toMatchObject({ rail: -1, rank: null, grace: -1 })
   })
 
-  it("draws all sixteen, honest where the record holds nothing", () => {
+  it("show one card at a time, drawable tiles first, and choose one", () => {
     const data = treatmentData(marketFixture, liveSpecs())
+    const onCard = jest.fn()
     const onChoose = jest.fn()
-    render(
-      <TreatmentSection
-        card="2.10"
-        datum={data["2.10"]}
-        picks={{}}
-        onChoose={onChoose}
-      />,
-    )
+    const onReset = jest.fn()
+    const props = {
+      datums: data,
+      specs: liveSpecs(),
+      reason: () => "loading…",
+      onCard,
+      onChoose,
+      onReset,
+    }
+    const { rerender } = render(<CardTreatments {...props} picks={{}} />)
     expect(
-      screen.getByText("none chosen: the card as designed"),
+      screen.getByText(/^A display treatment is one of 16 ways/),
     ).toBeInTheDocument()
     expect(screen.queryByRole("button", { name: /^Choose/ })).toBeNull()
     fireEvent.click(
-      screen.getByRole("button", { name: /Display treatments for card 2.10/ }),
+      screen.getByRole("button", {
+        name: /^Card 2\.10 Terms: no treatment chosen/,
+      }),
     )
+    expect(onCard).toHaveBeenCalledWith("2.10")
+    rerender(<CardTreatments {...props} card="2.10" picks={{ "2.10": "F" }} />)
+    const choices = screen.getAllByRole("button", { name: /^Choose 2\.10-/ })
+    expect(choices).toHaveLength(16)
     expect(
-      screen.getAllByRole("button", { name: /^Choose 2\.10-/ }),
-    ).toHaveLength(16)
+      choices.slice(0, 6).map((button) => button.getAttribute("aria-label")),
+    ).toEqual([
+      "Choose 2.10-A, Grade card",
+      "Choose 2.10-D, Sentence",
+      "Choose 2.10-F, Detail",
+      "Choose 2.10-K, Scorecard row",
+      "Choose 2.10-N, Side by side",
+      "Choose 2.10-P, Exception line",
+    ])
     expect(
-      screen.getAllByText(/Contract facts, not a measured rate/).length,
-    ).toBeGreaterThan(0)
-    fireEvent.click(
+      screen.getByText("Not drawable with this market's data (10)"),
+    ).toBeInTheDocument()
+    expect(
       screen.getByRole("button", { name: "Choose 2.10-F, Detail" }),
+    ).toHaveAttribute("aria-pressed", "true")
+    expect(screen.getByText("Live card (design)")).toBeInTheDocument()
+    expect(screen.getByText("Comparison only")).toBeInTheDocument()
+    fireEvent.click(screen.getByRole("button", { name: "Back to design" }))
+    expect(onReset).toHaveBeenCalledWith("2.10")
+    fireEvent.click(
+      screen.getByRole("button", { name: "Choose 2.10-A, Grade card" }),
     )
-    expect(onChoose).toHaveBeenCalledWith("2.10", "F")
+    expect(onChoose).toHaveBeenCalledWith("2.10", "A")
   })
 
-  it("keep one choice per card, back to the design default on a second click", () => {
+  it("know which tiles can be drawn and colour a difference by direction", () => {
+    const data = treatmentData(marketFixture, liveSpecs())
+    expect(drawable("C", data["2.10"])).toBe(false)
+    expect(drawable("F", data["2.10"])).toBe(true)
+    expect(drawable("M", data["2.2"])).toBe(true)
+    render(
+      <TreatmentTile
+        code="K"
+        datum={data["2.2"]}
+        chosen={false}
+        design={false}
+        canDraw
+        onChoose={jest.fn()}
+      />,
+    )
+    // A worst incident above the median is worse, not better.
+    expect(screen.getByText("+24.7").className).toMatch(/bad/)
+  })
+
+  it("keep one choice per card, back to the design on a second click", () => {
     expect(chosenTreatment({}, "2.1")).toBe("A")
     const picked = choose({}, "2.1", "B")
     expect(picked).toEqual({ "2.1": "B" })
@@ -606,18 +711,24 @@ describe("display treatments", () => {
     expect(savePicks(picked, store)).toBe(true)
     expect(loadPicks(store)).toEqual(picked)
     expect(treatmentLines(picked)[0].text).toBe(
-      "2.1 In order: 2.1-B Counted (changed)",
+      "2.1 In order: 2.1-B Counted (changed; design: 2.1-A Grade card)",
     )
     expect(treatmentLines({})[1].text).toBe(
-      "2.2 Worst incident: 2.2-A Grade card (design default)",
+      "2.2 Worst incident: 2.2-A Grade card (design)",
     )
     expect(treatmentLines({})[4].text).toBe(
-      "2.5 What it pays: the card as designed, no treatment chosen",
+      "2.5 What it pays: the live card (design)",
     )
-    expect(
-      summaryText({}, [], ["x"]).endsWith(
-        "Display treatments (A–P) per market card\n- x",
-      ),
-    ).toBe(true)
+    expect(countsText({}, picked)).toMatch(/0 metrics, 1 card treatment\.$/)
+    const text = summaryText({}, picked)
+    expect(text).toContain(
+      "Changes from the design (1)\n- Card 2.1 In order: 2.1-B Counted (design: 2.1-A Grade card)",
+    )
+    expect(text).toContain(
+      "Display treatments (A–P) per market card\n- 2.1 In order: 2.1-B Counted (changed; design: 2.1-A Grade card)",
+    )
+    expect(findTreatmentCard("card 2.2")).toBe("2.2")
+    expect(findTreatmentCard("2.7")).toBeUndefined()
+    expect(findTreatmentCard("M18")).toBeUndefined()
   })
 })

@@ -6,9 +6,17 @@
 import { metric as metricLabel } from "@/components/GlassDoor/wording"
 
 import { SPEC_METRICS } from "./catalogue"
-import { designDefault } from "./design"
+import { designDefault, optionsFor, treatmentCardOf } from "./design"
 import { GROUPS, groupOf } from "./metrics"
-import { cleanPicks, TREATMENT_KEY, TreatmentPicks } from "./treatmentData"
+import {
+  cardName,
+  choiceText,
+  cleanPicks,
+  designText,
+  TREATMENT_KEY,
+  treatmentLines,
+  TreatmentPicks,
+} from "./treatmentData"
 
 export type OptionKey = "value" | "card" | "chart" | "comparison"
 
@@ -25,6 +33,15 @@ const DEFAULTS = new Map(
 )
 export const defaultOn = (id: string): OptionKey[] =>
   DEFAULTS.get(id) ?? ["value"]
+
+/** The options a metric can have: a card, chart or comparison only when the design has one. */
+const AVAILABLE = new Map(
+  SPEC_METRICS.map((metric) => [metric.id, optionsFor(metric)]),
+)
+export const availableOn = (id: string): OptionKey[] =>
+  AVAILABLE.get(id) ?? ["value"]
+
+const BY_ID = new Map(SPEC_METRICS.map((metric) => [metric.id, metric]))
 
 export const STORAGE_KEY = "glassdoor-review:toggles:v1"
 
@@ -129,12 +146,16 @@ export const savePicks = (
 ) =>
   saveJson(TREATMENT_KEY, Object.keys(picks).length ? picks : undefined, store)
 
-export const optionsOn = (toggles: Toggles, id: string) =>
-  toggles[id] ?? defaultOn(id)
+/** Options on; a saved option the metric cannot have is ignored. */
+export const optionsOn = (toggles: Toggles, id: string) => {
+  const available = availableOn(id)
+  return (toggles[id] ?? defaultOn(id)).filter((key) => available.includes(key))
+}
 
 export const isOn = (toggles: Toggles, id: string, key: OptionKey) =>
   optionsOn(toggles, id).includes(key)
 
+/** Switches an option for the metrics that can have it; others are left alone. */
 export const setOption = (
   toggles: Toggles,
   ids: string[],
@@ -143,6 +164,7 @@ export const setOption = (
 ): Toggles => {
   const next = { ...toggles }
   ids.forEach((id) => {
+    if (!availableOn(id).includes(key)) return
     const current = new Set(optionsOn(toggles, id))
     if (on) current.add(key)
     else current.delete(key)
@@ -174,6 +196,54 @@ export const resetOptions = (toggles: Toggles, ids: string[]): Toggles => {
   ids.forEach((id) => delete next[id])
   return next
 }
+
+const LABEL = new Map(
+  DISPLAY_OPTIONS.map((option) => [option.key, option.label]),
+)
+
+/** What differs from the design, in words: "−Card, +Comparison". */
+export const changeText = (toggles: Toggles, id: string) => {
+  const on = optionsOn(toggles, id)
+  const design = defaultOn(id)
+  return [
+    ...design
+      .filter((key) => !on.includes(key))
+      .map((key) => `−${LABEL.get(key)}`),
+    ...on
+      .filter((key) => !design.includes(key))
+      .map((key) => `+${LABEL.get(key)}`),
+  ].join(", ")
+}
+
+/** A metric differs from the design: its displays, or its card's treatment. */
+export const metricChanged = (
+  toggles: Toggles,
+  picks: TreatmentPicks,
+  id: string,
+) => {
+  if (!isDefault(toggles, id)) return true
+  const metric = BY_ID.get(id)
+  const card = metric ? treatmentCardOf(metric) : undefined
+  return Boolean(card && picks[card])
+}
+
+/** Everything that differs from the design: metrics, then card treatments. */
+export const changesFromDesign = (toggles: Toggles, picks: TreatmentPicks) => ({
+  metrics: SPEC_METRICS.filter((metric) => !isDefault(toggles, metric.id)).map(
+    (metric) => ({
+      id: metric.id,
+      label: metricLabel(metric.id),
+      text: changeText(toggles, metric.id),
+    }),
+  ),
+  treatments: Object.keys(picks).map((card) => ({
+    card,
+    text: `Card ${card} ${cardName(card)}: ${choiceText(
+      card,
+      picks[card],
+    )} (design: ${designText(card)})`,
+  })),
+})
 
 const lineOf = (toggles: Toggles, id: string): SummaryLine => {
   const on = optionsOn(toggles, id)
@@ -214,24 +284,42 @@ export const optionCounts = (toggles: Toggles) => ({
     .length,
 })
 
-export const countsText = (toggles: Toggles) => {
+export const countsText = (toggles: Toggles, picks: TreatmentPicks = {}) => {
   const counts = optionCounts(toggles)
+  const treatments = Object.keys(picks).length
   return `On: ${counts.options
     .map((option) => `${option.label} ${option.count}`)
-    .join(" · ")}. Changed from the design default: ${counts.changed}.`
+    .join(" · ")}. Changed from the design: ${counts.changed} ${
+    counts.changed === 1 ? "metric" : "metrics"
+  }, ${treatments} card ${treatments === 1 ? "treatment" : "treatments"}.`
 }
 
-/** The summary as plain text, to paste into the issue. */
+/**
+ * The summary as plain text, to paste into the issue: the changes from the
+ * design first, then the treatment per card, then every metric.
+ */
 export const summaryText = (
   toggles: Toggles,
+  picks: TreatmentPicks = {},
   context: string[] = [],
-  /** One line per market card: its chosen display treatment. */
-  treatments: string[] = [],
-) =>
-  [
+) => {
+  const changes = changesFromDesign(toggles, picks)
+  const changeCount = changes.metrics.length + changes.treatments.length
+  return [
     "Glass Door metric review: metrics and display options on (product#917)",
     ...context,
-    countsText(toggles),
+    countsText(toggles, picks),
+    "",
+    `Changes from the design (${changeCount})`,
+    ...(changeCount
+      ? [
+          ...changes.metrics.map((line) => `- ${line.label}: ${line.text}`),
+          ...changes.treatments.map((line) => `- ${line.text}`),
+        ]
+      : ["- none"]),
+    "",
+    "Display treatments (A–P) per market card",
+    ...treatmentLines(picks).map((line) => `- ${line.text}`),
     ...summary(toggles).flatMap((group) => [
       "",
       `${group.title} (${group.lines.length} with an option on)`,
@@ -247,11 +335,5 @@ export const summaryText = (
           : "none"
       }`,
     ]),
-    ...(treatments.length
-      ? [
-          "",
-          "Display treatments (A–P) per market card",
-          ...treatments.map((line) => `- ${line}`),
-        ]
-      : []),
   ].join("\n")
+}

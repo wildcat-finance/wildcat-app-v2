@@ -55,6 +55,11 @@ export type IndexDatum = {
   rail: number
   railMed: number
   railMax?: number
+  /**
+   * Which way is better on the rail, for K's difference colour. Unset means
+   * neither (a measure, not a grade), so the difference stays neutral.
+   */
+  better?: "higher" | "lower"
   /** [better than, population] for E and I. */
   rank: [number, number] | null
   parts: [string, string][]
@@ -279,6 +284,7 @@ export function treatmentData(
         penalty > 0 && penalty < 1 ? "under 1" : count(penalty)
       } in 100 days past the allowance (M26)`
       d.rail = one(cash)
+      d.better = "higher"
       d.railMed = cmp.M18 ? one(cmp.M18.median) : -1
       d.sentence = `Over ${count(
         lifeDays,
@@ -317,6 +323,7 @@ export function treatmentData(
     d.rank = rankOf(cmp.M24)
     if (hasRecord && grace && worst !== undefined) {
       d.rail = one(worst)
+      d.better = "lower"
       d.railMed = cmp.M24 ? one(cmp.M24.median) : -1
       d.railMax = Math.max(120, Math.ceil(worst / 10) * 10 + 10)
     }
@@ -343,7 +350,7 @@ export function treatmentData(
     d.parts = [
       ["longest incident", longest === undefined ? NA : hours(longest)],
       ["allowed lateness", grace === undefined ? NA : hours(grace)],
-      ["breaches", "TBD: recount open (B2)"],
+      ["breaches", "not published: recount open (B2)"],
       ["penalty interest paid", amount(n("M27"))],
     ]
     data["2.2"] = d
@@ -374,6 +381,7 @@ export function treatmentData(
         unpaid !== undefined &&
         paidLate + unpaid === missed
       d.rail = one(rate)
+      d.better = "higher"
       d.railMed = cmp.M32 ? one(cmp.M32.median) : -1
       d.grace = split
         ? (100 * paidLate!) / deadlines
@@ -439,6 +447,7 @@ export function treatmentData(
     const { protocol } = market
     if (state !== "neutral" && protocol && protocol.openMarkets > 0) {
       d.rail = state === "green" ? 100 : 0
+      d.better = "higher"
       d.railMed = one(
         (100 * (protocol.openMarkets - protocol.lateNow)) /
           protocol.openMarkets,
@@ -760,14 +769,56 @@ export const choose = (
 }
 
 /** One line per card, for the summary and its copy. */
+export const cardName = (card: string) =>
+  CARDS[card as keyof typeof CARDS]?.name ?? `card ${card}`
+
+/** "2.1-C Rail", or the live card when no treatment is chosen. */
+export const choiceText = (card: string, code?: TreatmentCode) =>
+  code ? `${card}-${code} ${TREATMENTS[code].label}` : "the live card"
+
+/** The design's choice for a card, in words. */
+export const designText = (card: string) =>
+  choiceText(card, DESIGN_TREATMENT[card])
+
 export const treatmentLines = (picks: TreatmentPicks) =>
   TREATMENT_CARDS.map((card) => {
     const code = chosenTreatment(picks, card)
-    const { name } = CARDS[card as keyof typeof CARDS]
-    let choice = "the card as designed, no treatment chosen"
-    if (code)
-      choice = `${card}-${code} ${TREATMENTS[code].label}${
-        picks[card] ? " (changed)" : " (design default)"
-      }`
-    return { card, text: `${card} ${name}: ${choice}`, changed: !!picks[card] }
+    const changed = Boolean(picks[card])
+    const choice = `${choiceText(card, code)}${
+      changed ? ` (changed; design: ${designText(card)})` : " (design)"
+    }`
+    return { card, text: `${card} ${cardName(card)}: ${choice}`, changed }
   })
+
+/**
+ * Whether a treatment can be drawn from this datum; when it cannot, its tile
+ * shows the honesty state instead (the same conditions the tiles use).
+ */
+export const drawable = (code: TreatmentCode, d: IndexDatum) => {
+  switch (code) {
+    case "B":
+    case "G":
+      return d.grace >= 0
+    case "C":
+    case "H":
+    case "J":
+      return d.rail >= 0
+    case "E":
+    case "I":
+      return d.rank !== null
+    case "L":
+      return d.buckets !== null
+    case "M":
+      return d.cov !== null
+    case "O":
+      return d.trend !== null
+    default:
+      return true
+  }
+}
+
+/** A card number typed into Go to metric ("2.2", "card 2.10"). */
+export const findTreatmentCard = (text: string) => {
+  const match = text.trim().match(/^(?:card\s*)?(\d+\.\d+)$/i)
+  return match && TREATMENT_CARDS.includes(match[1]) ? match[1] : undefined
+}

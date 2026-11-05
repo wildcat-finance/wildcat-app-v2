@@ -40,8 +40,9 @@ import { ROUTES } from "@/routes"
 
 import { SPEC_METRICS } from "./catalogue"
 import { Chevron } from "./Chevron"
+import { treatmentCardOf } from "./design"
 import { REVIEW_NAV_ID } from "./gate"
-import { CardSet, MetricItem } from "./MetricItem"
+import { CardSet, cardFor, MetricItem } from "./MetricItem"
 import { MetricNav, useActiveMetric, useSlot } from "./MetricNav"
 import {
   findMetric,
@@ -55,13 +56,15 @@ import {
   Source,
 } from "./metrics"
 import {
+  availableOn,
+  changesFromDesign,
   countsText,
   DISPLAY_OPTIONS,
+  isDefault,
   isOn,
   loadPicks,
   loadShown,
   loadToggles,
-  optionCounts,
   OptionKey,
   optionsOn,
   resetOptions,
@@ -78,20 +81,28 @@ import {
 import s from "./review.module.css"
 import {
   choose,
+  chosenTreatment,
+  findTreatmentCard,
+  TREATMENT_CARDS,
   TREATMENT_KEY,
   TreatmentCode,
   treatmentData,
   treatmentLines,
   TreatmentPicks,
 } from "./treatmentData"
+import { CardTreatments } from "./treatments"
 
 const cx = (...names: (string | false | undefined)[]) =>
   names.filter(Boolean).join(" ")
 
 // v2 adds the summary, which starts collapsed.
 const COLLAPSE_KEY = "glassdoor-review:collapsed:v2"
-type Section = Group | "summary"
-const SECTIONS: Section[] = [...GROUPS.map((group) => group.key), "summary"]
+type Section = Group | "summary" | "treatments"
+const SECTIONS: Section[] = [
+  "treatments",
+  ...GROUPS.map((group) => group.key),
+  "summary",
+]
 const DEFAULT_COLLAPSED: Section[] = ["summary"]
 
 const CHAINS: Record<number, string> = { 1: "Ethereum", 9745: "Plasma" }
@@ -212,12 +223,28 @@ const BulkToggle = ({
   )
 }
 
-/** "Go to metric": pick a "Name (ID)" from the list, or type an id and Enter. */
-const GoToMetric = ({ onGo }: { onGo: (id: string) => void }) => {
+/**
+ * "Go to metric": pick a "Name (ID)" from the list, or type an id and Enter.
+ * A market card number ("2.2") opens that card's treatments.
+ */
+const GoToMetric = ({
+  onGo,
+  onCard,
+}: {
+  onGo: (id: string) => void
+  onCard: (card: string) => void
+}) => {
   const [text, setText] = useState("")
   const [missed, setMissed] = useState(false)
   const listId = useId()
   const go = (value: string) => {
+    const card = findTreatmentCard(value)
+    if (card) {
+      onCard(card)
+      setText("")
+      setMissed(false)
+      return
+    }
     const id = findMetric(value)
     if (id) {
       onGo(id)
@@ -233,7 +260,7 @@ const GoToMetric = ({ onGo }: { onGo: (id: string) => void }) => {
         className={s.gotoInput}
         list={listId}
         value={text}
-        placeholder="Go to metric: name or ID"
+        placeholder="Go to metric or card (2.2)"
         aria-label="Go to metric"
         aria-invalid={missed || undefined}
         onChange={(event) => {
@@ -267,7 +294,8 @@ const GoToMetric = ({ onGo }: { onGo: (id: string) => void }) => {
   )
 }
 
-type Status = { text: string; toggles: Toggles; undo?: Toggles }
+type Review = { toggles: Toggles; picks: TreatmentPicks }
+type Status = { text: string; state: Review; undo?: Review }
 
 const Summary = ({
   toggles,
@@ -277,6 +305,7 @@ const Summary = ({
   onCollapse,
   onChange,
   onGo,
+  onCard,
 }: {
   toggles: Toggles
   /** Chosen display treatment per market card. */
@@ -285,9 +314,11 @@ const Summary = ({
   context: string[]
   collapsed: boolean
   onCollapse: () => void
-  onChange: (next: Toggles) => void
-  /** Opens a metric, expanding its group if it is collapsed. */
+  onChange: (next: Review) => void
+  /** Opens a metric, showing it and expanding its group if needed. */
   onGo: (id: string) => void
+  /** Opens a card's treatments. */
+  onCard: (card: string) => void
 }) => {
   const link = (id: string, label: string) => (
     <a
@@ -300,50 +331,64 @@ const Summary = ({
       {label}
     </a>
   )
+  const cardLink = (card: string, label: string) => (
+    <a
+      href="#treatments"
+      onClick={(event) => {
+        event.preventDefault()
+        onCard(card)
+      }}
+    >
+      {label}
+    </a>
+  )
   const [status, setStatus] = useState<Status>()
   const groups = summary(toggles)
   const treatments = treatmentLines(picks)
-  // A message belongs to the toggles it describes; any later change clears it.
-  const shown = status?.toggles === toggles ? status : undefined
+  const changes = changesFromDesign(toggles, picks)
+  const changeCount = changes.metrics.length + changes.treatments.length
+  // A message belongs to the state it describes; any later change clears it.
+  const shown =
+    status?.state.toggles === toggles && status.state.picks === picks
+      ? status
+      : undefined
   const copy = async () => {
     setStatus(undefined)
     const copied = `Copied ${longDate(Date.now() / 1_000)}.`
     try {
       await navigator.clipboard.writeText(
-        summaryText(
-          toggles,
-          [...context, copied],
-          treatments.map((line) => line.text),
-        ),
+        summaryText(toggles, picks, [...context, copied]),
       )
-      setStatus({ text: "Copied.", toggles })
+      setStatus({ text: "Copied.", state: { toggles, picks } })
     } catch {
       setStatus({
         text: "Copy failed: select the list below instead.",
-        toggles,
+        state: { toggles, picks },
       })
     }
   }
   const reset = () => {
-    const { changed } = optionCounts(toggles)
-    if (!changed) {
-      setStatus({ text: "Already at the design defaults.", toggles })
+    if (!changeCount) {
+      setStatus({
+        text: "Already at the design.",
+        state: { toggles, picks },
+      })
       return
     }
-    const next: Toggles = {}
+    const next: Review = { toggles: {}, picks: {} }
     onChange(next)
     setStatus({
-      text: `Reset ${changed} ${
-        changed === 1 ? "metric" : "metrics"
-      } to their design defaults.`,
-      toggles: next,
-      undo: toggles,
+      text: `Reset ${changeCount} ${
+        changeCount === 1 ? "change" : "changes"
+      } to the design.`,
+      state: next,
+      undo: { toggles, picks },
     })
   }
   const undo = () => {
     if (!shown?.undo) return
     onChange(shown.undo)
-    setStatus({ text: "Restored.", toggles: shown.undo })
+    setStatus({ text: "Restored.", state: shown.undo })
   }
   return (
     <section
@@ -362,7 +407,11 @@ const Summary = ({
             onClick={onCollapse}
           >
             <Chevron />
-            <span>Summary: metrics and display options on</span>
+            <span>
+              {`Summary · ${changeCount} ${
+                changeCount === 1 ? "change" : "changes"
+              } from the design`}
+            </span>
           </button>
         </h2>
         <div className={s.summaryActions}>
@@ -370,7 +419,7 @@ const Summary = ({
             Copy summary
           </button>
           <button type="button" className={s.button} onClick={reset}>
-            Reset to design defaults
+            Reset everything to design
           </button>
           <span className={s.status} role="status">
             {shown?.text}
@@ -388,13 +437,51 @@ const Summary = ({
             {line}
           </p>
         ))}
-        <p className={s.counts}>{countsText(toggles)}</p>
+        <p className={s.counts}>{countsText(toggles, picks)}</p>
+        <div>
+          <h3 className={s.partTitle}>
+            Changes from the design ({changeCount})
+          </h3>
+          {changeCount ? (
+            <ul className={s.summaryList}>
+              {changes.metrics.map((line) => (
+                <li key={line.id} className={s.lineChanged}>
+                  {link(line.id, line.label)}
+                  <span>{line.text}</span>
+                </li>
+              ))}
+              {changes.treatments.map((line) => (
+                <li key={line.card} className={s.lineChanged}>
+                  {cardLink(line.card, line.text)}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={s.offLine}>None: everything is at the design.</p>
+          )}
+        </div>
+        <div>
+          <h3 className={s.partTitle}>
+            Display treatments (A–P) per market card
+          </h3>
+          <ul className={s.summaryList}>
+            {treatments.map((line) => (
+              <li
+                key={line.card}
+                className={line.changed ? s.lineChanged : s.lineDefault}
+              >
+                {cardLink(line.card, line.text)}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <h3 className={s.partTitle}>Every metric and its displays</h3>
         <div className={s.summaryGroups}>
           {groups.map((group) => (
             <div key={group.key}>
-              <h3 className={s.partTitle}>
+              <h4 className={s.partTitle}>
                 {group.title} ({group.lines.length} with an option on)
-              </h3>
+              </h4>
               {group.lines.length ? (
                 <ul className={s.summaryList}>
                   {group.lines.map((line) => (
@@ -425,21 +512,6 @@ const Summary = ({
             </div>
           ))}
         </div>
-        <div>
-          <h3 className={s.partTitle}>
-            Display treatments (A–P) per market card
-          </h3>
-          <ul className={s.summaryList}>
-            {treatments.map((line) => (
-              <li
-                key={line.card}
-                className={line.changed ? s.lineChanged : s.lineDefault}
-              >
-                <span>{line.text}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
       </div>
     </section>
   )
@@ -457,7 +529,8 @@ const GroupSection = ({
   onToggle,
   onBulk,
   onReset,
-  onTreatment,
+  onResetGroup,
+  onOpenTreatments,
 }: {
   group: { key: Group; title: string }
   toggles: Toggles
@@ -471,11 +544,15 @@ const GroupSection = ({
   onToggle: (id: string, key: OptionKey, on: boolean) => void
   onBulk: (ids: string[], key: OptionKey, on: boolean) => void
   onReset: (id: string) => void
-  onTreatment: (card: string, code: TreatmentCode) => void
+  /** Every metric of the group back to its design displays. */
+  onResetGroup: (ids: string[]) => void
+  onOpenTreatments: (card: string) => void
 }) => {
   const metrics = metricsIn(group.key)
   const ids = metrics.map((metric) => metric.id)
   const visible = metrics.filter((metric) => shown.has(metric.id))
+  const visibleIds = visible.map((metric) => metric.id)
+  const changed = ids.filter((id) => !isDefault(toggles, id))
   let note: string | undefined
   if (!visible.length)
     note = `No ${group.key} metrics shown. Select their IDs in the metric list on the left, or use Go to metric above.`
@@ -488,6 +565,11 @@ const GroupSection = ({
   const reason = reviewReason(
     group.key === "market" ? data.market : data.borrower,
   )
+  // Group switches act on the shown metrics that can have the option only.
+  const bulk = DISPLAY_OPTIONS.map((option) => ({
+    ...option,
+    ids: visibleIds.filter((id) => availableOn(id).includes(option.key)),
+  })).filter((option) => option.ids.length)
   return (
     <section
       id={`group-${group.key}`}
@@ -513,18 +595,37 @@ const GroupSection = ({
             </span>
           </button>
         </h2>
-        <div className={s.bulk} role="group" aria-label={`All ${group.title}`}>
-          <span>All in this group:</span>
-          {DISPLAY_OPTIONS.map((option) => (
-            <BulkToggle
-              key={option.key}
-              label={option.label}
-              ids={ids}
-              option={option.key}
-              toggles={toggles}
-              onChange={onBulk}
-            />
-          ))}
+        <div className={s.bulk}>
+          {bulk.length ? (
+            <span
+              className={s.bulkSet}
+              role="group"
+              aria-label={`Switch for the ${
+                visible.length
+              } shown ${group.title.toLowerCase()}`}
+            >
+              <span>{`For the ${visible.length} shown:`}</span>
+              {bulk.map((option) => (
+                <BulkToggle
+                  key={option.key}
+                  label={option.label}
+                  ids={option.ids}
+                  option={option.key}
+                  toggles={toggles}
+                  onChange={onBulk}
+                />
+              ))}
+            </span>
+          ) : null}
+          {changed.length ? (
+            <button
+              type="button"
+              className={s.resetLink}
+              onClick={() => onResetGroup(ids)}
+            >
+              {`Reset ${changed.length} changed to design`}
+            </button>
+          ) : null}
         </div>
       </div>
       {reason ? (
@@ -535,21 +636,103 @@ const GroupSection = ({
       <div id={listId} className={s.groupList} hidden={collapsed}>
         {collapsed
           ? null
-          : visible.map((metric) => (
-              <MetricItem
-                key={metric.id}
-                metric={metric}
-                on={optionsOn(toggles, metric.id)}
-                data={data}
-                cards={cards}
-                onToggle={onToggle}
-                onReset={onReset}
-                picks={picks}
-                onTreatment={onTreatment}
-              />
-            ))}
+          : visible.map((metric) => {
+              const card = treatmentCardOf(metric)
+              return (
+                <MetricItem
+                  key={metric.id}
+                  metric={metric}
+                  on={optionsOn(toggles, metric.id)}
+                  data={data}
+                  cards={cards}
+                  onToggle={onToggle}
+                  onReset={onReset}
+                  treatmentCard={card}
+                  treatment={card ? chosenTreatment(picks, card) : undefined}
+                  treatmentChanged={Boolean(card && picks[card])}
+                  onOpenTreatments={onOpenTreatments}
+                />
+              )
+            })}
       </div>
       {note ? <p className={s.collapsedNote}>{note}</p> : null}
+    </section>
+  )
+}
+
+/** The sixteen treatments per market card, one card at a time. */
+const TreatmentsSection = ({
+  card,
+  onCard,
+  cards,
+  data,
+  picks,
+  collapsed,
+  onCollapse,
+  onChoose,
+  onReset,
+}: {
+  card?: string
+  onCard: (card: string) => void
+  cards: CardSet
+  data: ReviewData
+  picks: TreatmentPicks
+  collapsed: boolean
+  onCollapse: () => void
+  onChoose: (card: string, code: TreatmentCode) => void
+  onReset: (card: string) => void
+}) => {
+  const changed = Object.keys(picks).length
+  return (
+    <section
+      id="treatments"
+      className={s.group}
+      aria-labelledby="treatments-title"
+      tabIndex={-1}
+    >
+      <div className={s.groupHead}>
+        <h2 id="treatments-title" className={s.groupTitle}>
+          <button
+            type="button"
+            className={s.groupToggle}
+            aria-expanded={!collapsed}
+            aria-controls="treatments-body"
+            onClick={onCollapse}
+          >
+            <Chevron />
+            <span>
+              {"Card treatments "}
+              <span className={s.groupCount}>
+                {`(${TREATMENT_CARDS.length} market cards, 16 each)`}
+              </span>
+            </span>
+          </button>
+        </h2>
+        <span className={s.groupNote}>
+          {changed
+            ? `${changed} ${
+                changed === 1 ? "card" : "cards"
+              } changed from the design`
+            : "all at the design"}
+        </span>
+      </div>
+      <div id="treatments-body" hidden={collapsed}>
+        {collapsed ? null : (
+          <CardTreatments
+            card={card}
+            onCard={onCard}
+            datums={cards.treatments}
+            specs={cards.market}
+            reason={(entry) => {
+              const found = cardFor(entry, data, cards)
+              return "reason" in found ? found.reason : "loading…"
+            }}
+            picks={picks}
+            onChoose={onChoose}
+            onReset={onReset}
+          />
+        )}
+      </div>
     </section>
   )
 }
@@ -777,6 +960,26 @@ export const MetricReview = () => {
     (id: string) => setToggles((current) => resetOptions(current, [id])),
     [],
   )
+  const onResetGroup = useCallback(
+    (ids: string[]) => setToggles((current) => resetOptions(current, ids)),
+    [],
+  )
+  const onResetTreatment = useCallback(
+    (card: string) =>
+      setPicks((current) => {
+        const next = { ...current }
+        delete next[card]
+        return next
+      }),
+    [],
+  )
+  const onResetAll = useCallback(
+    (next: { toggles: Toggles; picks: TreatmentPicks }) => {
+      setToggles(next.toggles)
+      setPicks(next.picks)
+    },
+    [],
+  )
 
   // Collapsed groups, remembered in this browser only.
   const [collapsed, setCollapsed] = useState<Section[]>(DEFAULT_COLLAPSED)
@@ -846,6 +1049,19 @@ export const MetricReview = () => {
     [open],
   )
   const goToSummary = useCallback(() => open("summary", "summary"), [open])
+  // The card whose treatments are on view; none until one is picked.
+  const [treatmentCard, setTreatmentCard] = useState<string>()
+  const openTreatments = useCallback(
+    (card: string) => {
+      setTreatmentCard(card)
+      open("treatments", "treatments")
+    },
+    [open],
+  )
+  const onCollapseTreatments = useCallback(
+    () => onCollapse("treatments"),
+    [onCollapse],
+  )
   const onCollapseSummary = useCallback(
     () => onCollapse("summary"),
     [onCollapse],
@@ -1094,7 +1310,16 @@ export const MetricReview = () => {
           </span>
         </div>
         <nav className={s.jump} aria-label="Sections">
-          <GoToMetric onGo={goToMetric} />
+          <GoToMetric onGo={goToMetric} onCard={openTreatments} />
+          <a
+            href="#treatments"
+            onClick={(event) => {
+              event.preventDefault()
+              open("treatments", "treatments")
+            }}
+          >
+            Card treatments
+          </a>
           {GROUPS.map((group) => (
             <a
               key={group.key}
@@ -1129,6 +1354,17 @@ export const MetricReview = () => {
         </nav>
       </header>
       <main className={s.body}>
+        <TreatmentsSection
+          card={treatmentCard}
+          onCard={setTreatmentCard}
+          cards={cards}
+          data={data}
+          picks={picks}
+          collapsed={collapsed.includes("treatments")}
+          onCollapse={onCollapseTreatments}
+          onChoose={onTreatment}
+          onReset={onResetTreatment}
+        />
         {GROUPS.map((group) => (
           <GroupSection
             key={group.key}
@@ -1143,7 +1379,8 @@ export const MetricReview = () => {
             onToggle={onToggle}
             onBulk={onBulk}
             onReset={onReset}
-            onTreatment={onTreatment}
+            onResetGroup={onResetGroup}
+            onOpenTreatments={openTreatments}
           />
         ))}
         <Summary
@@ -1152,20 +1389,26 @@ export const MetricReview = () => {
           context={context}
           collapsed={collapsed.includes("summary")}
           onCollapse={onCollapseSummary}
-          onChange={setToggles}
+          onChange={onResetAll}
           onGo={goToMetric}
+          onCard={openTreatments}
         />
       </main>
       {navSlot
         ? createPortal(
             <MetricNav
               toggles={toggles}
+              picks={picks}
               shown={shown}
               active={activeMetric}
               collapsed={collapsed}
+              treatmentCard={
+                collapsed.includes("treatments") ? undefined : treatmentCard
+              }
               onToggleShown={toggleShown}
               onShowGroup={showGroup}
               onGoGroup={goToGroup}
+              onOpenTreatments={openTreatments}
             />,
             navSlot,
           )

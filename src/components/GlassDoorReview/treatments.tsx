@@ -4,17 +4,30 @@
 // The sixteen display treatments A–P from the design handoff (treatments.js),
 // ported to React: each one a tile over one index datum. Markup, sizes and
 // colours follow the reference; clicking a tile chooses it for its card.
+// The tiles sit in one view per card (CardTreatments), not inside metrics.
 
 import * as React from "react"
 import { useId, useState } from "react"
 
-import { Chevron } from "./Chevron"
+import gd from "@/components/GlassDoor/analytics.module.css"
+import {
+  AnalyticsCard,
+  AnalyticsPanel,
+  CardSpec,
+  ChipKey,
+} from "@/components/GlassDoor/card"
+
 import s from "./review.module.css"
 import {
+  cardName,
+  choiceText,
   chosenTreatment,
+  designText,
   DESIGN_TREATMENT,
+  drawable,
   IndexDatum,
   Tone,
+  TREATMENT_CARDS,
   TREATMENT_CODES,
   TreatmentCode,
   TreatmentPicks,
@@ -78,9 +91,15 @@ const stripColor = (index: number, bad: number, late: number) => {
   return "#28CA7C"
 }
 
-const differenceClass = (difference: number | null) => {
-  if (difference === null) return t.faint
-  return difference < 0 ? t.bad : t.good
+/**
+ * Colour by which way is better: a higher worst incident is worse, and a
+ * measure with no better direction (utilization) stays neutral. The handoff
+ * colours every positive difference green.
+ */
+const differenceClass = (difference: number | null, d: IndexDatum) => {
+  if (difference === null || difference === 0 || !d.better) return t.faint
+  const good = d.better === "higher" ? difference > 0 : difference < 0
+  return good ? t.good : t.bad
 }
 
 const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
@@ -362,7 +381,7 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
     const rows: [string, string, string?][] = [
       ["this one", d.value],
       ["typical", medShort(d)],
-      ["difference", differenceText, differenceClass(difference)],
+      ["difference", differenceText, differenceClass(difference, d)],
       ["evidence", d.evidence || "on-chain record"],
     ]
     return (
@@ -531,18 +550,23 @@ export const TreatmentTile = ({
   datum,
   chosen,
   design,
+  canDraw,
   onChoose,
 }: {
   code: TreatmentCode
   datum: IndexDatum
   chosen: boolean
-  /** The shipped pages use this treatment for the card. */
+  /** The design uses this treatment for the card. */
   design: boolean
+  /** False when the tile can only say what data is missing. */
+  canDraw: boolean
   onChoose: (code: TreatmentCode) => void
 }) => {
   const { label, summary } = TREATMENTS[code]
   return (
-    <div className={cx(t.tile, chosen && t.tileChosen)}>
+    <div
+      className={cx(t.tile, chosen && t.tileChosen, !canDraw && t.tileMuted)}
+    >
       <div className={t.tileHead}>
         <button
           type="button"
@@ -552,16 +576,14 @@ export const TreatmentTile = ({
           title={summary}
           onClick={() => onChoose(code)}
         >
-          {`${code} · ${label.toUpperCase()}`}
+          {label.toUpperCase()}
         </button>
         <span className={t.tileRight}>
-          {chosen ? <span className={t.tileMark}>chosen</span> : null}
-          {design && !chosen ? (
-            <span className={t.tileMarkMuted}>design default</span>
+          {chosen ? <span className={t.markChosen}>Chosen</span> : null}
+          {design ? <span className={t.markDesign}>Design</span> : null}
+          {code === "J" ? (
+            <span className={t.markNote}>Comparison only</span>
           ) : null}
-          <span className={t.tileHelp} title={summary} aria-hidden="true">
-            ?
-          </span>
           <span className={t.tileCode}>{`${datum.id}-${code}`}</span>
         </span>
       </div>
@@ -570,70 +592,169 @@ export const TreatmentTile = ({
   )
 }
 
-/** A card's sixteen treatments, collapsed until asked for. */
-export const TreatmentSection = ({
+/** The live card, as the design draws it, with its panel. */
+const LiveCard = ({ spec }: { spec: CardSpec }) => {
+  const [open, setOpen] = useState(false)
+  const [chip, setChip] = useState<ChipKey>("median")
+  const panelId = useId()
+  return (
+    <>
+      <div className={cx(gd.root, t.liveCard)}>
+        <AnalyticsCard
+          spec={spec}
+          open={open}
+          controls={panelId}
+          onToggle={() => {
+            setOpen(!open)
+            setChip("median")
+          }}
+        />
+      </div>
+      {open ? (
+        <div className={cx(gd.root, t.livePanel)}>
+          <AnalyticsPanel
+            id={panelId}
+            spec={spec}
+            chip={chip}
+            onChip={setChip}
+            onClose={() => setOpen(false)}
+          />
+        </div>
+      ) : null}
+    </>
+  )
+}
+
+/**
+ * The sixteen treatments of one market card at a time: a row of the nine
+ * cards, then the chosen card's live card beside its tiles. Tiles that can
+ * be drawn from this market's data come first.
+ */
+export const CardTreatments = ({
   card,
-  datum,
+  onCard,
+  datums,
+  specs,
   reason,
   picks,
   onChoose,
+  onReset,
 }: {
-  card: string
-  datum?: IndexDatum
-  /** Why there is no datum yet (loading, or no live card). */
-  reason?: string
+  /** The card on view; none until one is selected. */
+  card?: string
+  onCard: (card: string) => void
+  datums?: Record<string, IndexDatum>
+  /** The live market cards, by number. */
+  specs?: Record<string, CardSpec>
+  /** Why a card has no datum yet (loading, under review, hidden). */
+  reason: (card: string) => string
   picks: TreatmentPicks
   onChoose: (card: string, code: TreatmentCode) => void
+  /** Back to the design for one card. */
+  onReset: (card: string) => void
 }) => {
-  const [open, setOpen] = useState(false)
-  const bodyId = useId()
-  const chosen = chosenTreatment(picks, card)
-  let choice = "none chosen: the card as designed"
-  if (chosen)
-    choice = `chosen: ${card}-${chosen} ${TREATMENTS[chosen].label}${
-      picks[card] ? "" : " (design default)"
-    }`
+  const datum = card ? datums?.[card] : undefined
+  const spec = card ? specs?.[card] : undefined
+  const chosen = card ? chosenTreatment(picks, card) : undefined
+  const changed = Boolean(card && picks[card])
+  const codes = datum
+    ? TREATMENT_CODES.filter((code) => drawable(code, datum))
+    : []
+  const missing = datum
+    ? TREATMENT_CODES.filter((code) => !drawable(code, datum))
+    : []
+  const tile = (code: TreatmentCode) =>
+    card && datum ? (
+      <TreatmentTile
+        key={code}
+        code={code}
+        datum={datum}
+        chosen={chosen === code}
+        design={DESIGN_TREATMENT[card] === code}
+        canDraw={drawable(code, datum)}
+        onChoose={(next) => onChoose(card, next)}
+      />
+    ) : null
   return (
-    <div className={s.treatments}>
-      <div className={s.subHead}>
-        <h4 className={s.subTitle}>
-          <button
-            type="button"
-            className={s.groupToggle}
-            aria-expanded={open}
-            aria-controls={bodyId}
-            onClick={() => setOpen(!open)}
-          >
-            <Chevron />
-            <span>{`Display treatments for card ${card} (A–P)`}</span>
-          </button>
-        </h4>
-        <span className={cx(s.subNote, picks[card] && s.subNoteChanged)}>
-          {choice}
-        </span>
+    <div className={t.view}>
+      <p className={t.intro}>
+        A display treatment is one of 16 ways (A–P) to draw a market card&apos;s
+        main figure; the product picks one per card. The tiles use this
+        market&apos;s live values.
+      </p>
+      <div className={t.picker} role="group" aria-label="Market cards">
+        {TREATMENT_CARDS.map((entry) => {
+          const code = chosenTreatment(picks, entry)
+          return (
+            <button
+              key={entry}
+              type="button"
+              className={cx(t.pick, picks[entry] && t.pickChanged)}
+              aria-pressed={entry === card}
+              aria-label={`Card ${entry} ${cardName(entry)}: ${
+                code ? `${entry}-${code} chosen` : "no treatment chosen"
+              }${picks[entry] ? ", changed from the design" : ""}`}
+              onClick={() => onCard(entry)}
+            >
+              <span>{`${entry} ${cardName(entry)}`}</span>
+              <span className={t.pickCode}>{code ?? "–"}</span>
+            </button>
+          )
+        })}
       </div>
-      <div id={bodyId} className={s.subBody} hidden={!open}>
-        {open && datum ? (
-          <>
-            <p className={s.subHint}>
-              {`From this market's live values. Select a tile to choose it for card ${card}; select it again to go back to the design default. A tile that would need data the publication does not hold says so instead of drawing a shape.`}
+      {card ? (
+        <div className={t.selected}>
+          <div className={t.choiceRow}>
+            <h3 className={t.cardTitle}>{`Card ${card} ${cardName(card)}`}</h3>
+            <p className={t.choice}>
+              {chosen ? "Chosen: " : "No treatment chosen: "}
+              <b>{choiceText(card, chosen)}</b>
+              {changed ? ` · design: ${designText(card)} ` : " (design)"}
+              {changed ? (
+                <button
+                  type="button"
+                  className={s.resetLink}
+                  onClick={() => onReset(card)}
+                >
+                  Back to design
+                </button>
+              ) : null}
             </p>
-            <div className={t.grid}>
-              {TREATMENT_CODES.map((code) => (
-                <TreatmentTile
-                  key={code}
-                  code={code}
-                  datum={datum}
-                  chosen={chosen === code}
-                  design={DESIGN_TREATMENT[card] === code}
-                  onChoose={(next) => onChoose(card, next)}
-                />
-              ))}
+          </div>
+          {spec ? (
+            <div className={t.reference}>
+              <span className={t.referenceLabel}>Live card (design)</span>
+              <LiveCard key={card} spec={spec} />
             </div>
-          </>
-        ) : null}
-        {open && !datum ? <p className={s.tbd}>{reason}</p> : null}
-      </div>
+          ) : null}
+          {datum ? (
+            <>
+              <p className={t.hint}>
+                {`Select a tile to choose it for card ${card}; select the chosen tile again to go back to the design.`}
+              </p>
+              <div className={t.grid}>{codes.map(tile)}</div>
+              {missing.length ? (
+                <>
+                  <h4 className={t.groupTitle}>
+                    {`Not drawable with this market's data (${missing.length})`}
+                  </h4>
+                  <p className={t.hint}>
+                    These need data the publication does not hold for this card,
+                    so each says what is missing instead of drawing a shape.
+                  </p>
+                  <div className={t.grid}>{missing.map(tile)}</div>
+                </>
+              ) : null}
+            </>
+          ) : (
+            <p className={s.tbd}>{reason(card)}</p>
+          )}
+        </div>
+      ) : (
+        <p className={t.hint}>
+          Select a card to compare its 16 treatments with the live card.
+        </p>
+      )}
     </div>
   )
 }
