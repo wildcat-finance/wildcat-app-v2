@@ -1,9 +1,9 @@
 {
   "counts": {
-    "bytes_asset": 204371,
+    "bytes_asset": 204834,
     "bytes_binary": 102801,
     "bytes_blob": 186479,
-    "bytes_generated": 308929
+    "bytes_generated": 312845
   },
   "entries": [
     {
@@ -147,6 +147,13 @@
       "path": "prisma/migrations/20261015000000_drop_legacy_service_agreement_signatures/migration.sql"
     },
     {
+      "bytes": 3916,
+      "category": "generated",
+      "evidence": "sql file under a migrations directory segment",
+      "grade": "candidate",
+      "path": "prisma/migrations/20261019120000_glass_door/migration.sql"
+    },
+    {
       "bytes": 5350,
       "category": "generated",
       "evidence": "sql file under a migrations directory segment",
@@ -236,6 +243,13 @@
       "evidence": "svg root element in the first 4096 bytes",
       "grade": "candidate",
       "path": "src/assets/icons/allMarkets_icon.svg"
+    },
+    {
+      "bytes": 463,
+      "category": "asset",
+      "evidence": "svg root element in the first 4096 bytes",
+      "grade": "candidate",
+      "path": "src/assets/icons/analytics_icon.svg"
     },
     {
       "bytes": 253,

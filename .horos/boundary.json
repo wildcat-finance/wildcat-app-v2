@@ -1,10 +1,10 @@
 {
   "counts": {
-    "bytes_binary": 4097562,
+    "bytes_binary": 8025323,
     "bytes_generated": 9015991,
     "bytes_lockfile": 2178869,
     "files_skipped_unreadable": 0,
-    "files_walked": 1169
+    "files_walked": 1260
   },
   "entries": [
     {
@@ -104,6 +104,41 @@
       "evidence": "file signature gzip",
       "grade": "hard",
       "path": "src/lib/export/__fixtures__/reference-market-c-25632396.json.gz"
+    },
+    {
+      "bytes": 51374,
+      "category": "binary",
+      "evidence": "file signature gzip",
+      "grade": "hard",
+      "path": "src/lib/glassdoor/__fixtures__/reference-25749504-0x33ac9b224c8a189d2332aecf021897f1535373ab.json.gz"
+    },
+    {
+      "bytes": 1055769,
+      "category": "binary",
+      "evidence": "file signature gzip",
+      "grade": "hard",
+      "path": "src/lib/glassdoor/__fixtures__/reference-25749504-0x5ab22e9c360807f16dfa34ad5c589055d2871a5b.json.gz"
+    },
+    {
+      "bytes": 228722,
+      "category": "binary",
+      "evidence": "file signature gzip",
+      "grade": "hard",
+      "path": "src/lib/glassdoor/__fixtures__/reference-25749504-0xbad1b632e90ce02af868f07c572adb067eb98353.json.gz"
+    },
+    {
+      "bytes": 2363301,
+      "category": "binary",
+      "evidence": "file signature gzip",
+      "grade": "hard",
+      "path": "src/lib/glassdoor/__fixtures__/reference-25749504-0xc9499006a149c553d18171747ed19aa7c6dd19e2.json.gz"
+    },
+    {
+      "bytes": 228595,
+      "category": "binary",
+      "evidence": "file signature gzip",
+      "grade": "hard",
+      "path": "src/lib/glassdoor/__fixtures__/reference-25749504-0xd18313c334bfbd366bc06991fc1e265bc7f388aa.json.gz"
     },
     {
       "bytes": 7567063,

@@ -7,10 +7,22 @@
       "suffix": ".js"
     },
     {
+      "boundary_bytes": 5529515,
+      "bytes": 5529515,
+      "files": 7,
+      "suffix": ".gz"
+    },
+    {
       "boundary_bytes": 3633780,
-      "bytes": 3910572,
+      "bytes": 3911156,
       "files": 18,
       "suffix": ".json"
+    },
+    {
+      "boundary_bytes": 0,
+      "bytes": 2322604,
+      "files": 392,
+      "suffix": ".tsx"
     },
     {
       "boundary_bytes": 2310374,
@@ -20,20 +32,8 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 2019087,
-      "files": 368,
-      "suffix": ".tsx"
-    },
-    {
-      "boundary_bytes": 1601754,
-      "bytes": 1601754,
-      "files": 2,
-      "suffix": ".gz"
-    },
-    {
-      "boundary_bytes": 0,
-      "bytes": 1393584,
-      "files": 614,
+      "bytes": 1745490,
+      "files": 670,
       "suffix": ".ts"
     },
     {
@@ -44,14 +44,14 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 308929,
-      "files": 21,
+      "bytes": 312845,
+      "files": 22,
       "suffix": ".sql"
     },
     {
       "boundary_bytes": 1292,
-      "bytes": 205663,
-      "files": 98,
+      "bytes": 206126,
+      "files": 99,
       "suffix": ".svg"
     },
     {
@@ -74,9 +74,15 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 69028,
-      "files": 10,
+      "bytes": 70481,
+      "files": 11,
       "suffix": ".md"
+    },
+    {
+      "boundary_bytes": 675,
+      "bytes": 64867,
+      "files": 16,
+      "suffix": ".css"
     },
     {
       "boundary_bytes": 15675,
@@ -86,21 +92,15 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 12958,
-      "files": 2,
-      "suffix": ".mjs"
-    },
-    {
-      "boundary_bytes": 675,
-      "bytes": 12879,
-      "files": 13,
-      "suffix": ".css"
+      "bytes": 15271,
+      "files": 1,
+      "suffix": ".prisma"
     },
     {
       "boundary_bytes": 0,
-      "bytes": 12121,
-      "files": 1,
-      "suffix": ".prisma"
+      "bytes": 12958,
+      "files": 2,
+      "suffix": ".mjs"
     },
     {
       "boundary_bytes": 0,
@@ -147,6 +147,6 @@
   ],
   "schema": 1,
   "tool": "horos",
-  "total_bytes": 19714973,
-  "total_files": 1241
+  "total_bytes": 24359711,
+  "total_files": 1332
 }

@@ -80,7 +80,7 @@ export const TREATMENTS = {
   A: {
     label: "Grade card",
     summary:
-      "value, verdict, median line (the shipped default for 2.1, 2.2, 2.3)",
+      "value, verdict, median line (the shipped default for 2.1, 2.2, 2.3, 3.1)",
   },
   B: {
     label: "Counted",
@@ -122,7 +122,7 @@ export const TREATMENTS = {
   },
   N: {
     label: "Side by side",
-    summary: "this market against the market average",
+    summary: "this value against the population median",
   },
   O: { label: "Trend", summary: "the series, where one exists" },
   P: {
@@ -135,7 +135,7 @@ export type TreatmentCode = keyof typeof TREATMENTS
 export const TREATMENT_CODES = Object.keys(TREATMENTS) as TreatmentCode[]
 
 /** The market cards the handoff draws treatments for. */
-export const TREATMENT_CARDS = [
+export const MARKET_CARDS = [
   "2.1",
   "2.2",
   "2.3",
@@ -147,11 +147,26 @@ export const TREATMENT_CARDS = [
   "2.10",
 ]
 
+export const BORROWER_CARDS = ["3.1", "3.4", "3.6", "3.8", "3.10"]
+export type ReviewScope = "market" | "borrower"
+export const CARD_GROUPS: {
+  key: ReviewScope
+  label: string
+  cards: string[]
+}[] = [
+  { key: "market", label: "Market", cards: MARKET_CARDS },
+  { key: "borrower", label: "Borrower", cards: BORROWER_CARDS },
+]
+export const TREATMENT_CARDS = CARD_GROUPS.flatMap((group) => group.cards)
+export const cardScope = (card: string): ReviewScope =>
+  card.startsWith("3.") ? "borrower" : "market"
+
 /** The shipped pages use A, the grade card, for the graded cards. */
 export const DESIGN_TREATMENT: Record<string, TreatmentCode> = {
   "2.1": "A",
   "2.2": "A",
   "2.3": "A",
+  "3.1": "A",
 }
 
 const NOTES: Record<string, string> = {
@@ -202,7 +217,10 @@ const widths = (values: number[]) => {
   })
 }
 
-const start = (spec: CardSpec, evidence?: string): IndexDatum => ({
+export const datumFromSpec = (
+  spec: CardSpec,
+  evidence?: string,
+): IndexDatum => ({
   id: spec.id,
   name: CARDS[spec.id].name,
   note: NOTES[spec.id] ?? "",
@@ -251,7 +269,7 @@ export function treatmentData(
 
   // ---------- 2.1 In order ----------
   if (specs["2.1"]) {
-    const d = start(specs["2.1"], evidence)
+    const d = datumFromSpec(specs["2.1"], evidence)
     const cash = n("M18")
     const penalty = hasRecord ? n("M26") : undefined
     d.rank = rankOf(cmp.M18)
@@ -315,7 +333,7 @@ export function treatmentData(
 
   // ---------- 2.2 Worst incident ----------
   if (specs["2.2"]) {
-    const d = start(specs["2.2"], evidence)
+    const d = datumFromSpec(specs["2.2"], evidence)
     const longest = n("M23")
     const worst = n("M24")
     d.unavailable =
@@ -358,7 +376,7 @@ export function treatmentData(
 
   // ---------- 2.3 Exits paid on time ----------
   if (specs["2.3"]) {
-    const d = start(specs["2.3"], evidence)
+    const d = datumFromSpec(specs["2.3"], evidence)
     const deadlines = n("M30")
     const covered = n("M31")
     const rate = n("M32")
@@ -438,25 +456,15 @@ export function treatmentData(
   // ---------- 2.4 Right now ----------
   if (specs["2.4"]) {
     const spec = specs["2.4"]
-    const d = start(spec, evidence)
+    const d = datumFromSpec(spec, evidence)
     const state = spec.state ?? "neutral"
     const countdown = n("D05") ?? leadingNumber(s("D05"))
     const waiting = n("M37")
     const cured = n("M84")
     d.verdict = STATE_TONE[state]
-    const { protocol } = market
-    if (state !== "neutral" && protocol && protocol.openMarkets > 0) {
-      d.rail = state === "green" ? 100 : 0
-      d.better = "higher"
-      d.railMed = one(
-        (100 * (protocol.openMarkets - protocol.lateNow)) /
-          protocol.openMarkets,
-      )
-    }
+    // A state is neither a population of 100 nor a score comparable with the
+    // protocol's share of markets. Keep those treatments unavailable.
     if (state === "green") {
-      d.grace = 0
-      d.past = 0
-      d.countClaim = "Nothing late now: all 100 in order."
       d.countNote = `nothing past the allowance · ${plural(
         waiting ?? 0,
         "open exit batch",
@@ -510,7 +518,7 @@ export function treatmentData(
   // ---------- 2.5 What it pays ----------
   if (specs["2.5"]) {
     const spec = specs["2.5"]
-    const d = start(spec, evidence)
+    const d = datumFromSpec(spec, evidence)
     const base = n("M11")
     const average = n("M40")
     const realised = n("M39")
@@ -566,7 +574,7 @@ export function treatmentData(
 
   // ---------- 2.6 How the line is used ----------
   if (specs["2.6"]) {
-    const d = start(specs["2.6"], evidence)
+    const d = datumFromSpec(specs["2.6"], evidence)
     const capacity = n("M06")
     const used = n("M86")
     if (capacity === 0)
@@ -608,7 +616,7 @@ export function treatmentData(
 
   // ---------- 2.8 Incident history ----------
   if (specs["2.8"]) {
-    const d = start(specs["2.8"], evidence)
+    const d = datumFromSpec(specs["2.8"], evidence)
     const buckets = ["M69", "M70", "M71", "M72"].map((id) => n(id))
     const total = buckets.reduce<number>((sum, value) => sum + (value ?? 0), 0)
     if (finished) d.rank = rankOf(cmp.M22)
@@ -651,7 +659,7 @@ export function treatmentData(
 
   // ---------- 2.9 Who funds it ----------
   if (specs["2.9"]) {
-    const d = start(specs["2.9"], evidence)
+    const d = datumFromSpec(specs["2.9"], evidence)
     const active = n("M48")
     const ever = n("M49")
     const largest = n("D10")
@@ -697,7 +705,7 @@ export function treatmentData(
 
   // ---------- 2.10 Terms ----------
   if (specs["2.10"]) {
-    const d = start(specs["2.10"], evidence)
+    const d = datumFromSpec(specs["2.10"], evidence)
     const window = n("M16")
     const reserve = n("M14")
     const penaltyRate = n("M12")
@@ -753,8 +761,7 @@ export const chosenTreatment = (picks: TreatmentPicks, card: string) =>
   picks[card] ?? DESIGN_TREATMENT[card]
 
 /**
- * Choosing the chosen tile again, or the design default, goes back to the
- * design default; any other tile becomes the card's choice.
+ * Choosing is idempotent. Reset is a separate action.
  */
 export const choose = (
   picks: TreatmentPicks,
@@ -762,8 +769,7 @@ export const choose = (
   code: TreatmentCode,
 ): TreatmentPicks => {
   const next = { ...picks }
-  if (code === chosenTreatment(picks, card) || code === DESIGN_TREATMENT[card])
-    delete next[card]
+  if (code === DESIGN_TREATMENT[card]) delete next[card]
   else next[card] = code
   return next
 }
@@ -815,6 +821,30 @@ export const drawable = (code: TreatmentCode, d: IndexDatum) => {
     default:
       return true
   }
+}
+
+/** Rendering a shape is not sufficient evidence that it is a valid choice. */
+export const referenceReason = (card: string, code: TreatmentCode) => {
+  if (code === "J") return "The design excludes gauges from the product."
+  if (
+    ["2.4", "3.4"].includes(card) &&
+    ["B", "C", "G", "H", "K", "N"].includes(code)
+  )
+    return "A current state has no frequency, score or comparable population value."
+  return undefined
+}
+
+export const treatmentIssue = (code: TreatmentCode, d: IndexDatum) => {
+  const reference = referenceReason(d.id, code)
+  if (reference) return reference
+  if (!drawable(code, d))
+    return (
+      d.unavailable ??
+      "This snapshot does not contain the data this treatment needs."
+    )
+  if (["K", "N"].includes(code) && (d.rail < 0 || d.railMed < 0))
+    return "This snapshot has no comparable value and benchmark."
+  return undefined
 }
 
 /** A card number typed into Go to metric ("2.2", "card 2.10"). */

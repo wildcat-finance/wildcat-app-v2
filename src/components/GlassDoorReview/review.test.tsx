@@ -34,7 +34,6 @@ import {
 } from "./design"
 import { isReviewPath, reviewEnabled } from "./gate"
 import { MetricItem } from "./MetricItem"
-import { MetricNav } from "./MetricNav"
 import {
   cardNumbers,
   comparisonText,
@@ -51,17 +50,14 @@ import {
   DISPLAY_OPTIONS,
   isDefault,
   loadPicks,
-  loadShown,
   loadToggles,
   metricChanged,
   OptionKey,
   optionsOn,
   resetOptions,
   savePicks,
-  saveShown,
   saveToggles,
   setOption,
-  SHOWN_KEY,
   STORAGE_KEY,
   summary,
   summaryText,
@@ -72,11 +68,11 @@ import {
   cleanPicks,
   drawable,
   findTreatmentCard,
-  TREATMENT_CARDS,
+  MARKET_CARDS,
   treatmentData,
   treatmentLines,
 } from "./treatmentData"
-import { CardTreatments, TreatmentTile } from "./treatments"
+import { TreatmentTile } from "./treatments"
 
 // Temporary: the metric review page (product#917). Remove with the page.
 
@@ -210,7 +206,7 @@ describe("design defaults", () => {
         ...OPEN_MARKET_COMPARISONS,
         ...BORROWER_COMPARISONS,
       })
-        .filter((id) => id !== "MARKET_DAYS")
+        .filter((id) => ids.has(id))
         .sort(),
     )
   })
@@ -222,9 +218,9 @@ describe("design defaults", () => {
       "chart",
       "comparison",
     ])
-    expect(designDefault(spec("M05"))).toEqual(["value", "chart"])
+    expect(designDefault(spec("M05"))).toEqual(["value", "card", "chart"])
     expect(designDefault(spec("S13"))).toEqual(["value", "card", "chart"])
-    expect(designDefault(spec("M13"))).toEqual(["value"])
+    expect(designDefault(spec("M13"))).toEqual(["value", "card"])
     expect(designDefault(spec("M01"))).toEqual(["value"])
     expect(designRole(spec("M05"))).toEqual({
       headline: [],
@@ -268,7 +264,7 @@ describe("toggle states", () => {
 
   it("list every metric and option on in the summary", () => {
     expect(countsText({})).toBe(
-      "On: Value 91 · Card 18 · Chart 39 · Comparison 20. Changed from the design: 0 metrics, 0 card treatments.",
+      "On: Value 91 · Card 86 · Chart 39 · Comparison 20. Changed from the design: 0 metrics, 0 card treatments.",
     )
     let toggles = setOption({}, ["M21"], "chart", false)
     const borrowerIds = metricsIn("borrower").map((m) => m.id)
@@ -290,7 +286,7 @@ describe("toggle states", () => {
       false,
     )
     expect(countsText(toggles)).toBe(
-      "On: Value 65 · Card 11 · Chart 30 · Comparison 13. Changed from the design: 27 metrics, 0 card treatments.",
+      "On: Value 65 · Card 62 · Chart 30 · Comparison 13. Changed from the design: 27 metrics, 0 card treatments.",
     )
     const text = summaryText(toggles, {}, [
       "Reviewed against Wintermute · wmtUSDC.",
@@ -351,12 +347,12 @@ describe("one metric", () => {
       view("M18", ["value", "card", "chart", "comparison"]),
     )
     const m18 = article("M18")
-    const options = within(m18).getByRole("group", { name: /Display options/ })
+    const options = m18
     expect(
       within(options)
-        .getAllByRole("checkbox")
-        .map((box) => box.closest("label")?.textContent),
-    ).toEqual(["Value", "Card 2.1 · 3.1", "Chart 2.1 · 3.1", "Comparison"])
+        .getAllByRole("switch")
+        .map((control) => control.textContent),
+    ).toEqual(["Value", "Cards", "Comparison", "Charts"])
     // The value sits beside the name, with what the metric means under it.
     expect(within(m18).getByText("82.6")).toBeInTheDocument()
     expect(within(m18).getByText(spec("M18").what)).toBeInTheDocument()
@@ -367,12 +363,7 @@ describe("one metric", () => {
     ).toBeInTheDocument()
     rerender(view("M01", ["value"]))
     const m01 = article("M01")
-    expect(within(m01).getAllByRole("checkbox")).toHaveLength(1)
-    expect(
-      within(m01).getByText(
-        /^Value only: no card, chart or comparison in the design/,
-      ),
-    ).toBeInTheDocument()
+    expect(within(m01).getAllByRole("switch")).toHaveLength(1)
   })
 
   it("says what changed from the design in words and resets it", () => {
@@ -387,25 +378,29 @@ describe("one metric", () => {
       within(m18).getByRole("button", { name: "Reset to design" }),
     )
     expect(onReset).toHaveBeenCalledWith("M18")
-    fireEvent.click(within(m18).getByLabelText("Card 2.1 · 3.1"))
+    fireEvent.click(within(m18).getByRole("switch", { name: "Cards" }))
     expect(onToggle).toHaveBeenCalledWith("M18", "card", true)
   })
 
-  it("keeps the spec behind a closed section", () => {
+  it("opens the spec by default and lets the reviewer collapse it", () => {
     render(view("M18", ["value"]))
     const m18 = article("M18")
-    expect(within(m18).queryByRole("term")).toBeNull()
-    fireEvent.click(within(m18).getByRole("button", { name: "Spec" }))
+    const toggle = within(m18).getByRole("button", { name: "Spec" })
+    expect(toggle).toHaveAttribute("aria-expanded", "true")
     expect(
       within(m18)
         .getAllByRole("term")
         .map((term) => term.textContent),
     ).toEqual([
+      "What it is",
       "How it is calculated",
       "What its cards tell you",
       "What its cards do not tell you",
     ])
     expect(within(m18).queryByText(/not in the metric spec/)).toBeNull()
+    fireEvent.click(toggle)
+    expect(toggle).toHaveAttribute("aria-expanded", "false")
+    expect(within(m18).queryByRole("term")).toBeNull()
   })
 
   it("links a card's headline metric to the card's treatments", () => {
@@ -420,7 +415,7 @@ describe("one metric", () => {
     )
     fireEvent.click(
       screen.getByRole("button", {
-        name: /16 treatments for card 2\.1 · C Rail \(changed\)/,
+        name: /Review card 2\.1 · C Rail/,
       }),
     )
     expect(onOpenTreatments).toHaveBeenCalledWith("2.1")
@@ -494,86 +489,6 @@ describe("preview gate", () => {
   })
 })
 
-describe("sidebar metric list", () => {
-  it("shows or hides a metric from its id and says what it can show", () => {
-    const onToggleShown = jest.fn()
-    const onShowGroup = jest.fn()
-    const onGoGroup = jest.fn()
-    const onOpenTreatments = jest.fn()
-    render(
-      <MetricNav
-        toggles={{ M18: ["value"] }}
-        picks={{ "2.2": "B" }}
-        shown={["S05", "M18"]}
-        active="S05"
-        collapsed={["borrower"]}
-        treatmentCard="2.2"
-        onToggleShown={onToggleShown}
-        onShowGroup={onShowGroup}
-        onGoGroup={onGoGroup}
-        onOpenTreatments={onOpenTreatments}
-      />,
-    )
-    const nav = screen.getByRole("navigation", { name: "Metrics" })
-    const id = (metricId: string) =>
-      nav.querySelector<HTMLButtonElement>(`[data-nav-metric="${metricId}"]`)!
-    expect(
-      Array.from(nav.querySelectorAll("[data-nav-metric]")).map(
-        (button) => button.textContent,
-      ),
-    ).toEqual(
-      [...metricsIn("borrower"), ...metricsIn("market")].map(
-        (metric) => metric.id,
-      ),
-    )
-    expect(id("S05")).toHaveAttribute("aria-pressed", "true")
-    expect(id("S05")).toHaveAttribute("aria-current", "location")
-    expect(id("S01")).toHaveAttribute("aria-pressed", "false")
-    expect(id("M01")).toHaveAccessibleName(
-      `${METRIC_NAMES.M01} (M01): Value only`,
-    )
-    expect(id("M01").className).toMatch(/navPlain/)
-    expect(id("M18").className).toMatch(/navTreatments/)
-    // Changed: M18's displays differ from the design; card 2.2's treatment
-    // was changed, which marks its headline metric M24.
-    expect(id("M18").className).toMatch(/navChanged/)
-    expect(id("M24").className).toMatch(/navChanged/)
-    expect(id("S05").className).not.toMatch(/navChanged/)
-    expect(within(nav).getByText("1/26 · collapsed")).toBeInTheDocument()
-    fireEvent.click(id("S01"))
-    expect(onToggleShown).toHaveBeenCalledWith("S01")
-    fireEvent.click(
-      within(nav).getByRole("button", { name: "Show all market metrics" }),
-    )
-    expect(onShowGroup).toHaveBeenCalledWith("market", true)
-    fireEvent.click(
-      within(nav).getByRole("button", { name: "Hide all borrower metrics" }),
-    )
-    expect(onShowGroup).toHaveBeenCalledWith("borrower", false)
-    fireEvent.click(within(nav).getByRole("link", { name: "Market metrics" }))
-    expect(onGoGroup).toHaveBeenCalledWith("market")
-    const card = within(nav).getByRole("button", {
-      name: /^Card 2\.2 Worst incident treatments: 2\.2-B Counted, changed/,
-    })
-    expect(card).toHaveAttribute("aria-current", "true")
-    fireEvent.click(card)
-    expect(onOpenTreatments).toHaveBeenCalledWith("2.2")
-  })
-
-  it("remembers the shown metrics in spec order, starting with none", () => {
-    const store = memoryStore()
-    expect(loadShown(store)).toEqual([])
-    expect(saveShown(["M18", "S05", "bogus"], store)).toBe(true)
-    expect(loadShown(store)).toEqual(
-      SPEC_METRICS.map((metric) => metric.id).filter((id) =>
-        ["M18", "S05"].includes(id),
-      ),
-    )
-    saveShown([], store)
-    expect(store.getItem(SHOWN_KEY)).toBeNull()
-  })
-})
-
 describe("display treatments", () => {
   const liveSpecs = () => {
     const built = marketSpecs(marketFixture)
@@ -586,7 +501,7 @@ describe("display treatments", () => {
   // datums match treatments-data.json where the publication holds the field.
   it("build each market card's index from the live values", () => {
     const data = treatmentData(marketFixture, liveSpecs())
-    expect(Object.keys(data)).toEqual(TREATMENT_CARDS)
+    expect(Object.keys(data)).toEqual(MARKET_CARDS)
     expect(data["2.1"]).toMatchObject({
       rail: 82.6,
       railMed: 97.5,
@@ -625,59 +540,6 @@ describe("display treatments", () => {
     expect(data["2.10"]).toMatchObject({ rail: -1, rank: null, grace: -1 })
   })
 
-  it("show one card at a time, drawable tiles first, and choose one", () => {
-    const data = treatmentData(marketFixture, liveSpecs())
-    const onCard = jest.fn()
-    const onChoose = jest.fn()
-    const onReset = jest.fn()
-    const props = {
-      datums: data,
-      specs: liveSpecs(),
-      reason: () => "loading…",
-      onCard,
-      onChoose,
-      onReset,
-    }
-    const { rerender } = render(<CardTreatments {...props} picks={{}} />)
-    expect(
-      screen.getByText(/^A display treatment is one of 16 ways/),
-    ).toBeInTheDocument()
-    expect(screen.queryByRole("button", { name: /^Choose/ })).toBeNull()
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: /^Card 2\.10 Terms: no treatment chosen/,
-      }),
-    )
-    expect(onCard).toHaveBeenCalledWith("2.10")
-    rerender(<CardTreatments {...props} card="2.10" picks={{ "2.10": "F" }} />)
-    const choices = screen.getAllByRole("button", { name: /^Choose 2\.10-/ })
-    expect(choices).toHaveLength(16)
-    expect(
-      choices.slice(0, 6).map((button) => button.getAttribute("aria-label")),
-    ).toEqual([
-      "Choose 2.10-A, Grade card",
-      "Choose 2.10-D, Sentence",
-      "Choose 2.10-F, Detail",
-      "Choose 2.10-K, Scorecard row",
-      "Choose 2.10-N, Side by side",
-      "Choose 2.10-P, Exception line",
-    ])
-    expect(
-      screen.getByText("Not drawable with this market's data (10)"),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole("button", { name: "Choose 2.10-F, Detail" }),
-    ).toHaveAttribute("aria-pressed", "true")
-    expect(screen.getByText("Live card (design)")).toBeInTheDocument()
-    expect(screen.getByText("Comparison only")).toBeInTheDocument()
-    fireEvent.click(screen.getByRole("button", { name: "Back to design" }))
-    expect(onReset).toHaveBeenCalledWith("2.10")
-    fireEvent.click(
-      screen.getByRole("button", { name: "Choose 2.10-A, Grade card" }),
-    )
-    expect(onChoose).toHaveBeenCalledWith("2.10", "A")
-  })
-
   it("know which tiles can be drawn and colour a difference by direction", () => {
     const data = treatmentData(marketFixture, liveSpecs())
     expect(drawable("C", data["2.10"])).toBe(false)
@@ -688,8 +550,6 @@ describe("display treatments", () => {
         code="K"
         datum={data["2.2"]}
         chosen={false}
-        design={false}
-        canDraw
         onChoose={jest.fn()}
       />,
     )
@@ -697,11 +557,11 @@ describe("display treatments", () => {
     expect(screen.getByText("+24.7").className).toMatch(/bad/)
   })
 
-  it("keep one choice per card, back to the design on a second click", () => {
+  it("keep one stable choice per card until explicitly reset", () => {
     expect(chosenTreatment({}, "2.1")).toBe("A")
     const picked = choose({}, "2.1", "B")
     expect(picked).toEqual({ "2.1": "B" })
-    expect(choose(picked, "2.1", "B")).toEqual({})
+    expect(choose(picked, "2.1", "B")).toEqual(picked)
     expect(choose(picked, "2.1", "A")).toEqual({})
     expect(choose({}, "2.6", "M")).toEqual({ "2.6": "M" })
     expect(cleanPicks({ "2.1": "Z", "9.9": "A", "2.6": "M" })).toEqual({

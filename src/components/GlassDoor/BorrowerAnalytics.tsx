@@ -11,7 +11,7 @@ import {
   useBorrowerAnalytics,
 } from "./api"
 import { borrowerSpecs, lateShareRows, marketLabel } from "./borrowerSpecs"
-import { AnalyticsCardRow, VerdictChip } from "./card"
+import { AnalyticsCardRow, CardSpec, VerdictChip } from "./card"
 import { DirectionPending, LateShareBars, Tbd } from "./charts"
 import {
   apr,
@@ -248,8 +248,15 @@ const Trouble = ({ borrower }: { borrower: BorrowerData }) => {
 
 export const BorrowerAnalyticsView = ({
   borrower,
+  renderCards,
 }: {
   borrower: BorrowerData
+  /** Review previews can render chosen specimens in the live page layout. */
+  renderCards?: (
+    specs: CardSpec[],
+    label: string,
+    columns: number,
+  ) => React.ReactNode
 }) => {
   const { n, s } = reader(borrower.values)
   const marketDays = n("MARKET_DAYS")
@@ -290,11 +297,15 @@ export const BorrowerAnalyticsView = ({
           </span>
         </div>
       </header>
-      <AnalyticsCardRow
-        specs={borrowerSpecs(borrower)}
-        initialOpen="3.1"
-        label="Borrower cards"
-      />
+      {renderCards ? (
+        renderCards(borrowerSpecs(borrower), "Borrower cards", 5)
+      ) : (
+        <AnalyticsCardRow
+          specs={borrowerSpecs(borrower)}
+          initialOpen="3.1"
+          label="Borrower cards"
+        />
+      )}
       {borrower.markets.length ? (
         <MarketsTable borrower={borrower} />
       ) : (

@@ -2,7 +2,7 @@
 //
 // How the design handoff (product#908) shows each metric, so every metric
 // starts from its design default and says why:
-// - Card: the metric is a card's headline value (cards.json `value`).
+// - Card: the metric appears on a card, including supporting values.
 // - Chart: the metric is an input of that card's chart (README, "Charts").
 // - Comparison: the pipeline publishes a median and rank for it
 //   (src/lib/glassdoor/pipeline/comparisons.ts).
@@ -104,17 +104,6 @@ export const designRole = (metric: SpecMetric): DesignRole => {
   }
 }
 
-/** The options a metric starts with: what the design shows for it. */
-export const designDefault = (metric: SpecMetric): OptionKey[] => {
-  const role = designRole(metric)
-  return [
-    "value",
-    ...(role.headline.length ? (["card"] as const) : []),
-    ...(role.charts.length ? (["chart"] as const) : []),
-    ...(role.compared ? (["comparison"] as const) : []),
-  ]
-}
-
 /** 3.12 Trouble over time is a chart section, not a seven-field card. */
 const CHART_SECTIONS = new Set(["3.12"])
 
@@ -140,7 +129,10 @@ export const optionsFor = (metric: SpecMetric): OptionKey[] => {
   ]
 }
 
-/** The market card this metric heads, when the handoff draws treatments for it. */
+/** Start with every supported display, including cards the metric feeds. */
+export const designDefault = optionsFor
+
+/** The reviewable market or borrower card this metric heads. */
 export const treatmentCardOf = (metric: SpecMetric) =>
   designRole(metric).headline.find((card) => TREATMENT_CARDS.includes(card))
 

@@ -1,11 +1,6 @@
 "use client"
 
-// Temporary: the metric review page (product#917). Remove with the page.
-// Every Glass Door metric for one borrower and one of their markets, with
-// display toggles saved in this browser, so Andreas can choose what ships.
-
-import * as React from "react"
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { useQuery } from "@tanstack/react-query"
 import Link from "next/link"
@@ -33,77 +28,45 @@ import { block, longDate } from "@/components/GlassDoor/format"
 import { sameSnapshot } from "@/components/GlassDoor/MarketAnalytics"
 import { marketSpecs } from "@/components/GlassDoor/marketSpecs"
 import { marketTypeLabels } from "@/components/GlassDoor/typeLabels"
-import { metric as metricLabel } from "@/components/GlassDoor/wording"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { ROUTES } from "@/routes"
 
+import { borrowerTreatmentData } from "./borrowerTreatmentData"
+import { CardWorkspace } from "./CardWorkspace"
 import { SPEC_METRICS } from "./catalogue"
-import { Chevron } from "./Chevron"
+import { Decisions } from "./Decisions"
 import { treatmentCardOf } from "./design"
 import { REVIEW_NAV_ID } from "./gate"
 import { CardSet, cardFor, MetricItem } from "./MetricItem"
-import { MetricNav, useActiveMetric, useSlot } from "./MetricNav"
-import {
-  findMetric,
-  GROUPS,
-  Group,
-  groupOf,
-  metricsIn,
-  recordGap,
-  ReviewData,
-  reviewReason,
-  Source,
-} from "./metrics"
-import {
-  availableOn,
-  changesFromDesign,
-  countsText,
-  DISPLAY_OPTIONS,
-  isDefault,
-  isOn,
-  loadPicks,
-  loadShown,
-  loadToggles,
-  OptionKey,
-  optionsOn,
-  resetOptions,
-  savePicks,
-  saveShown,
-  saveToggles,
-  setOption,
-  SHOWN_KEY,
-  STORAGE_KEY,
-  summary,
-  summaryText,
-  Toggles,
-} from "./options"
+import { MetricNav, ReviewView, useSlot } from "./MetricNav"
+import { groupOf, recordGap, ReviewData, Source } from "./metrics"
+import { optionsOn, resetOptions, setOption } from "./options"
+import { PagePreview } from "./PagePreview"
 import s from "./review.module.css"
 import {
-  choose,
+  changeChoice,
+  contextFor,
+  publicationContext,
+  changeComparison,
+  emptyReview,
+  loadReview,
+  markReviewed,
+  REVIEW_KEY,
+  ReviewConfiguration,
+  ReviewContexts,
+} from "./reviewState"
+import {
   chosenTreatment,
-  findTreatmentCard,
-  TREATMENT_CARDS,
-  TREATMENT_KEY,
-  TreatmentCode,
+  cardScope,
+  ReviewScope,
   treatmentData,
-  treatmentLines,
-  TreatmentPicks,
+  TreatmentCode,
+  treatmentIssue,
 } from "./treatmentData"
-import { CardTreatments } from "./treatments"
 
 const cx = (...names: (string | false | undefined)[]) =>
   names.filter(Boolean).join(" ")
-
-// v2 adds the summary, which starts collapsed.
-const COLLAPSE_KEY = "glassdoor-review:collapsed:v2"
-type Section = Group | "summary" | "treatments"
-const SECTIONS: Section[] = [
-  "treatments",
-  ...GROUPS.map((group) => group.key),
-  "summary",
-]
-const DEFAULT_COLLAPSED: Section[] = ["summary"]
 
 const CHAINS: Record<number, string> = { 1: "Ethereum", 9745: "Plasma" }
 const chainName = (chainId?: number) =>
@@ -178,564 +141,6 @@ const toSource = <T,>(query: Query<T>, selected: boolean): Source<T> => {
 
 const byId = (specs: CardSpec[]) =>
   Object.fromEntries(specs.map((spec) => [spec.id, spec]))
-
-/** Scrolls a section or metric into view below the toolbar and focuses it. */
-const jumpTo = (id: string) => {
-  const target = document.getElementById(id)
-  if (!target) return false
-  target.scrollIntoView({ block: "start" })
-  target.focus({ preventScroll: true })
-  return true
-}
-
-/** A group's bulk switch per option: on when every metric has it on. */
-const BulkToggle = ({
-  label,
-  ids,
-  option,
-  toggles,
-  onChange,
-}: {
-  label: string
-  ids: string[]
-  option: OptionKey
-  toggles: Toggles
-  onChange: (ids: string[], option: OptionKey, on: boolean) => void
-}) => {
-  const ref = useRef<HTMLInputElement>(null)
-  const onCount = ids.filter((id) => isOn(toggles, id, option)).length
-  const all = onCount === ids.length
-  useEffect(() => {
-    if (ref.current) ref.current.indeterminate = onCount > 0 && !all
-  }, [onCount, all])
-  return (
-    <label className={s.toggle}>
-      <input
-        ref={ref}
-        type="checkbox"
-        checked={all}
-        onChange={(event) => onChange(ids, option, event.target.checked)}
-      />
-      <span>
-        {label} {onCount}/{ids.length}
-      </span>
-    </label>
-  )
-}
-
-/**
- * "Go to metric": pick a "Name (ID)" from the list, or type an id and Enter.
- * A market card number ("2.2") opens that card's treatments.
- */
-const GoToMetric = ({
-  onGo,
-  onCard,
-}: {
-  onGo: (id: string) => void
-  onCard: (card: string) => void
-}) => {
-  const [text, setText] = useState("")
-  const [missed, setMissed] = useState(false)
-  const listId = useId()
-  const go = (value: string) => {
-    const card = findTreatmentCard(value)
-    if (card) {
-      onCard(card)
-      setText("")
-      setMissed(false)
-      return
-    }
-    const id = findMetric(value)
-    if (id) {
-      onGo(id)
-      setText("")
-      setMissed(false)
-      return
-    }
-    setMissed(true)
-  }
-  return (
-    <span className={s.goto}>
-      <input
-        className={s.gotoInput}
-        list={listId}
-        value={text}
-        placeholder="Go to metric or card (2.2)"
-        aria-label="Go to metric"
-        aria-invalid={missed || undefined}
-        onChange={(event) => {
-          const { value } = event.target
-          setText(value)
-          setMissed(false)
-          // A pick from the list is a full label: go straight there.
-          if (
-            SPEC_METRICS.some(
-              (metric) => metricLabel(metric.id) === value.trim(),
-            )
-          )
-            go(value)
-        }}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            event.preventDefault()
-            go(text)
-          }
-        }}
-      />
-      <datalist id={listId}>
-        {SPEC_METRICS.map((metric) => (
-          <option key={metric.id} value={metricLabel(metric.id)}>
-            {metricLabel(metric.id)}
-          </option>
-        ))}
-      </datalist>
-      {missed ? <span className={s.warn}>no match</span> : null}
-    </span>
-  )
-}
-
-type Review = { toggles: Toggles; picks: TreatmentPicks }
-type Status = { text: string; state: Review; undo?: Review }
-
-const Summary = ({
-  toggles,
-  picks,
-  context,
-  collapsed,
-  onCollapse,
-  onChange,
-  onGo,
-  onCard,
-}: {
-  toggles: Toggles
-  /** Chosen display treatment per market card. */
-  picks: TreatmentPicks
-  /** Which selection and publication the review was made against. */
-  context: string[]
-  collapsed: boolean
-  onCollapse: () => void
-  onChange: (next: Review) => void
-  /** Opens a metric, showing it and expanding its group if needed. */
-  onGo: (id: string) => void
-  /** Opens a card's treatments. */
-  onCard: (card: string) => void
-}) => {
-  const link = (id: string, label: string) => (
-    <a
-      href={`#metric-${id}`}
-      onClick={(event) => {
-        event.preventDefault()
-        onGo(id)
-      }}
-    >
-      {label}
-    </a>
-  )
-  const cardLink = (card: string, label: string) => (
-    <a
-      href="#treatments"
-      onClick={(event) => {
-        event.preventDefault()
-        onCard(card)
-      }}
-    >
-      {label}
-    </a>
-  )
-  const [status, setStatus] = useState<Status>()
-  const groups = summary(toggles)
-  const treatments = treatmentLines(picks)
-  const changes = changesFromDesign(toggles, picks)
-  const changeCount = changes.metrics.length + changes.treatments.length
-  // A message belongs to the state it describes; any later change clears it.
-  const shown =
-    status?.state.toggles === toggles && status.state.picks === picks
-      ? status
-      : undefined
-  const copy = async () => {
-    setStatus(undefined)
-    const copied = `Copied ${longDate(Date.now() / 1_000)}.`
-    try {
-      await navigator.clipboard.writeText(
-        summaryText(toggles, picks, [...context, copied]),
-      )
-      setStatus({ text: "Copied.", state: { toggles, picks } })
-    } catch {
-      setStatus({
-        text: "Copy failed: select the list below instead.",
-        state: { toggles, picks },
-      })
-    }
-  }
-  const reset = () => {
-    if (!changeCount) {
-      setStatus({
-        text: "Already at the design.",
-        state: { toggles, picks },
-      })
-      return
-    }
-    const next: Review = { toggles: {}, picks: {} }
-    onChange(next)
-    setStatus({
-      text: `Reset ${changeCount} ${
-        changeCount === 1 ? "change" : "changes"
-      } to the design.`,
-      state: next,
-      undo: { toggles, picks },
-    })
-  }
-  const undo = () => {
-    if (!shown?.undo) return
-    onChange(shown.undo)
-    setStatus({ text: "Restored.", state: shown.undo })
-  }
-  return (
-    <section
-      id="summary"
-      className={cx(s.summary, collapsed && s.summaryCollapsed)}
-      aria-labelledby="summary-title"
-      tabIndex={-1}
-    >
-      <div className={s.summaryHead}>
-        <h2 id="summary-title" className={s.summaryTitle}>
-          <button
-            type="button"
-            className={s.groupToggle}
-            aria-expanded={!collapsed}
-            aria-controls="summary-body"
-            onClick={onCollapse}
-          >
-            <Chevron />
-            <span>
-              {`Summary · ${changeCount} ${
-                changeCount === 1 ? "change" : "changes"
-              } from the design`}
-            </span>
-          </button>
-        </h2>
-        <div className={s.summaryActions}>
-          <button type="button" className={s.button} onClick={copy}>
-            Copy summary
-          </button>
-          <button type="button" className={s.button} onClick={reset}>
-            Reset everything to design
-          </button>
-          <span className={s.status} role="status">
-            {shown?.text}
-          </span>
-          {shown?.undo ? (
-            <button type="button" className={s.button} onClick={undo}>
-              Undo
-            </button>
-          ) : null}
-        </div>
-      </div>
-      <div id="summary-body" className={s.summaryBody} hidden={collapsed}>
-        {context.map((line) => (
-          <p key={line} className={s.summaryNote}>
-            {line}
-          </p>
-        ))}
-        <p className={s.counts}>{countsText(toggles, picks)}</p>
-        <div>
-          <h3 className={s.partTitle}>
-            Changes from the design ({changeCount})
-          </h3>
-          {changeCount ? (
-            <ul className={s.summaryList}>
-              {changes.metrics.map((line) => (
-                <li key={line.id} className={s.lineChanged}>
-                  {link(line.id, line.label)}
-                  <span>{line.text}</span>
-                </li>
-              ))}
-              {changes.treatments.map((line) => (
-                <li key={line.card} className={s.lineChanged}>
-                  {cardLink(line.card, line.text)}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className={s.offLine}>None: everything is at the design.</p>
-          )}
-        </div>
-        <div>
-          <h3 className={s.partTitle}>
-            Display treatments (A–P) per market card
-          </h3>
-          <ul className={s.summaryList}>
-            {treatments.map((line) => (
-              <li
-                key={line.card}
-                className={line.changed ? s.lineChanged : s.lineDefault}
-              >
-                {cardLink(line.card, line.text)}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <h3 className={s.partTitle}>Every metric and its displays</h3>
-        <div className={s.summaryGroups}>
-          {groups.map((group) => (
-            <div key={group.key}>
-              <h4 className={s.partTitle}>
-                {group.title} ({group.lines.length} with an option on)
-              </h4>
-              {group.lines.length ? (
-                <ul className={s.summaryList}>
-                  {group.lines.map((line) => (
-                    <li
-                      key={line.id}
-                      className={line.changed ? s.lineChanged : s.lineDefault}
-                    >
-                      {link(line.id, line.label)}
-                      <span>
-                        {line.options.join(", ")}
-                        {line.changed ? " (changed)" : ""}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-              <p className={s.offLine}>
-                <b>No display ({group.off.length}):</b>{" "}
-                {group.off.length
-                  ? group.off.map((line, index) => (
-                      <React.Fragment key={line.id}>
-                        {index ? "; " : ""}
-                        {link(line.id, line.label)}
-                      </React.Fragment>
-                    ))
-                  : "none"}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-const GroupSection = ({
-  group,
-  toggles,
-  shown,
-  picks,
-  data,
-  cards,
-  collapsed,
-  onCollapse,
-  onToggle,
-  onBulk,
-  onReset,
-  onResetGroup,
-  onOpenTreatments,
-}: {
-  group: { key: Group; title: string }
-  toggles: Toggles
-  /** The metrics chosen in the sidebar list; only these render. */
-  shown: ReadonlySet<string>
-  picks: TreatmentPicks
-  data: ReviewData
-  cards: CardSet
-  collapsed: boolean
-  onCollapse: (key: Group) => void
-  onToggle: (id: string, key: OptionKey, on: boolean) => void
-  onBulk: (ids: string[], key: OptionKey, on: boolean) => void
-  onReset: (id: string) => void
-  /** Every metric of the group back to its design displays. */
-  onResetGroup: (ids: string[]) => void
-  onOpenTreatments: (card: string) => void
-}) => {
-  const metrics = metricsIn(group.key)
-  const ids = metrics.map((metric) => metric.id)
-  const visible = metrics.filter((metric) => shown.has(metric.id))
-  const visibleIds = visible.map((metric) => metric.id)
-  const changed = ids.filter((id) => !isDefault(toggles, id))
-  let note: string | undefined
-  if (!visible.length)
-    note = `No ${group.key} metrics shown. Select their IDs in the metric list on the left, or use Go to metric above.`
-  else if (collapsed)
-    note = `${visible.length} shown ${
-      visible.length === 1 ? "metric" : "metrics"
-    } collapsed. Select the heading to expand.`
-  const titleId = `group-${group.key}-title`
-  const listId = `group-${group.key}-list`
-  const reason = reviewReason(
-    group.key === "market" ? data.market : data.borrower,
-  )
-  // Group switches act on the shown metrics that can have the option only.
-  const bulk = DISPLAY_OPTIONS.map((option) => ({
-    ...option,
-    ids: visibleIds.filter((id) => availableOn(id).includes(option.key)),
-  })).filter((option) => option.ids.length)
-  return (
-    <section
-      id={`group-${group.key}`}
-      className={s.group}
-      aria-labelledby={titleId}
-      tabIndex={-1}
-    >
-      <div className={s.groupHead}>
-        <h2 id={titleId} className={s.groupTitle}>
-          <button
-            type="button"
-            className={s.groupToggle}
-            aria-expanded={!collapsed}
-            aria-controls={listId}
-            onClick={() => onCollapse(group.key)}
-          >
-            <Chevron />
-            <span>
-              {`${group.title} `}
-              <span className={s.groupCount}>
-                ({visible.length} of {metrics.length} shown)
-              </span>
-            </span>
-          </button>
-        </h2>
-        <div className={s.bulk}>
-          {bulk.length ? (
-            <span
-              className={s.bulkSet}
-              role="group"
-              aria-label={`Switch for the ${
-                visible.length
-              } shown ${group.title.toLowerCase()}`}
-            >
-              <span>{`For the ${visible.length} shown:`}</span>
-              {bulk.map((option) => (
-                <BulkToggle
-                  key={option.key}
-                  label={option.label}
-                  ids={option.ids}
-                  option={option.key}
-                  toggles={toggles}
-                  onChange={onBulk}
-                />
-              ))}
-            </span>
-          ) : null}
-          {changed.length ? (
-            <button
-              type="button"
-              className={s.resetLink}
-              onClick={() => onResetGroup(ids)}
-            >
-              {`Reset ${changed.length} changed to design`}
-            </button>
-          ) : null}
-        </div>
-      </div>
-      {reason ? (
-        <p className={s.banner} role="note">
-          This {group.key} is under review, so its values are withheld: {reason}
-        </p>
-      ) : null}
-      <div id={listId} className={s.groupList} hidden={collapsed}>
-        {collapsed
-          ? null
-          : visible.map((metric) => {
-              const card = treatmentCardOf(metric)
-              return (
-                <MetricItem
-                  key={metric.id}
-                  metric={metric}
-                  on={optionsOn(toggles, metric.id)}
-                  data={data}
-                  cards={cards}
-                  onToggle={onToggle}
-                  onReset={onReset}
-                  treatmentCard={card}
-                  treatment={card ? chosenTreatment(picks, card) : undefined}
-                  treatmentChanged={Boolean(card && picks[card])}
-                  onOpenTreatments={onOpenTreatments}
-                />
-              )
-            })}
-      </div>
-      {note ? <p className={s.collapsedNote}>{note}</p> : null}
-    </section>
-  )
-}
-
-/** The sixteen treatments per market card, one card at a time. */
-const TreatmentsSection = ({
-  card,
-  onCard,
-  cards,
-  data,
-  picks,
-  collapsed,
-  onCollapse,
-  onChoose,
-  onReset,
-}: {
-  card?: string
-  onCard: (card: string) => void
-  cards: CardSet
-  data: ReviewData
-  picks: TreatmentPicks
-  collapsed: boolean
-  onCollapse: () => void
-  onChoose: (card: string, code: TreatmentCode) => void
-  onReset: (card: string) => void
-}) => {
-  const changed = Object.keys(picks).length
-  return (
-    <section
-      id="treatments"
-      className={s.group}
-      aria-labelledby="treatments-title"
-      tabIndex={-1}
-    >
-      <div className={s.groupHead}>
-        <h2 id="treatments-title" className={s.groupTitle}>
-          <button
-            type="button"
-            className={s.groupToggle}
-            aria-expanded={!collapsed}
-            aria-controls="treatments-body"
-            onClick={onCollapse}
-          >
-            <Chevron />
-            <span>
-              {"Card treatments "}
-              <span className={s.groupCount}>
-                {`(${TREATMENT_CARDS.length} market cards, 16 each)`}
-              </span>
-            </span>
-          </button>
-        </h2>
-        <span className={s.groupNote}>
-          {changed
-            ? `${changed} ${
-                changed === 1 ? "card" : "cards"
-              } changed from the design`
-            : "all at the design"}
-        </span>
-      </div>
-      <div id="treatments-body" hidden={collapsed}>
-        {collapsed ? null : (
-          <CardTreatments
-            card={card}
-            onCard={onCard}
-            datums={cards.treatments}
-            specs={cards.market}
-            reason={(entry) => {
-              const found = cardFor(entry, data, cards)
-              return "reason" in found ? found.reason : "loading…"
-            }}
-            picks={picks}
-            onChoose={onChoose}
-            onReset={onReset}
-          />
-        )}
-      </div>
-    </section>
-  )
-}
 
 export const MetricReview = () => {
   const router = useRouter()
@@ -900,217 +305,95 @@ export const MetricReview = () => {
     const marketById = marketCards
       ? byId([...marketCards.rowA, ...marketCards.supporting])
       : undefined
+    const borrowerById = borrowerReady
+      ? byId(borrowerSpecs(borrowerReady))
+      : undefined
     return {
       market: marketById,
-      borrower: borrowerReady ? byId(borrowerSpecs(borrowerReady)) : undefined,
+      borrower: borrowerById,
       trouble: borrowerReady ? lateShareRows(borrowerReady) : undefined,
       closed: marketReady?.values.M77 === "Closed",
-      treatments:
-        marketReady && marketById
+      treatments: {
+        ...(marketReady && marketById
           ? treatmentData(marketReady, marketById)
-          : undefined,
+          : {}),
+        ...(borrowerReady && borrowerById
+          ? borrowerTreatmentData(borrowerReady, borrowerById)
+          : {}),
+      },
     }
   }, [marketReady, borrowerReady, typeLabels])
 
-  // Toggle states: loaded after mount, saved on change, and kept in step
-  // with other tabs of this page.
-  const [toggles, setToggles] = useState<Toggles>({})
+  const [review, setReview] = useState<ReviewConfiguration>(emptyReview)
   const [loaded, setLoaded] = useState(false)
-  const [saved, setSaved] = useState<boolean>()
-  // The metrics shown, chosen in the sidebar list: none until picked.
-  const [shown, setShown] = useState<string[]>([])
-  // The display treatment chosen per market card.
-  const [picks, setPicks] = useState<TreatmentPicks>({})
+  const [storageError, setStorageError] = useState("")
   useEffect(() => {
-    setToggles(loadToggles())
-    setShown(loadShown())
-    setPicks(loadPicks())
-    setLoaded(true)
-    const onStorage = (event: StorageEvent) => {
-      if (event.key === STORAGE_KEY || event.key === null)
-        setToggles(loadToggles())
-      if (event.key === SHOWN_KEY || event.key === null) setShown(loadShown())
-      if (event.key === TREATMENT_KEY || event.key === null)
-        setPicks(loadPicks())
+    const read = () => {
+      try {
+        setReview(loadReview(window.localStorage))
+        setLoaded(true)
+        setStorageError("")
+      } catch {
+        setStorageError(
+          "Saved configuration could not be read. Import a configuration or export your current choices before leaving.",
+        )
+      }
     }
-    window.addEventListener("storage", onStorage)
-    return () => window.removeEventListener("storage", onStorage)
+    read()
+    const sync = (event: StorageEvent) => {
+      if (event.key === REVIEW_KEY || event.key === null) read()
+    }
+    window.addEventListener("storage", sync)
+    return () => window.removeEventListener("storage", sync)
   }, [])
   useEffect(() => {
-    if (loaded) setSaved(saveToggles(toggles))
-  }, [toggles, loaded])
-  useEffect(() => {
-    if (loaded) saveShown(shown)
-  }, [shown, loaded])
-  useEffect(() => {
-    if (loaded) savePicks(picks)
-  }, [picks, loaded])
-  const shownSet = useMemo(() => new Set(shown), [shown])
-  const onTreatment = useCallback(
-    (card: string, code: TreatmentCode) =>
-      setPicks((current) => choose(current, card, code)),
-    [],
-  )
-  const onToggle = useCallback(
-    (id: string, key: OptionKey, on: boolean) =>
-      setToggles((current) => setOption(current, [id], key, on)),
-    [],
-  )
-  const onReset = useCallback(
-    (id: string) => setToggles((current) => resetOptions(current, [id])),
-    [],
-  )
-  const onResetGroup = useCallback(
-    (ids: string[]) => setToggles((current) => resetOptions(current, ids)),
-    [],
-  )
-  const onResetTreatment = useCallback(
-    (card: string) =>
-      setPicks((current) => {
-        const next = { ...current }
-        delete next[card]
-        return next
-      }),
-    [],
-  )
-  const onResetAll = useCallback(
-    (next: { toggles: Toggles; picks: TreatmentPicks }) => {
-      setToggles(next.toggles)
-      setPicks(next.picks)
-    },
-    [],
-  )
-
-  // Collapsed groups, remembered in this browser only.
-  const [collapsed, setCollapsed] = useState<Section[]>(DEFAULT_COLLAPSED)
-  const [collapseLoaded, setCollapseLoaded] = useState(false)
-  useEffect(() => {
+    if (!loaded) return
     try {
-      const stored = window.localStorage.getItem(COLLAPSE_KEY)
-      const raw: unknown = stored === null ? null : JSON.parse(stored)
-      if (Array.isArray(raw))
-        setCollapsed(SECTIONS.filter((key) => raw.includes(key)))
+      window.localStorage.setItem(REVIEW_KEY, JSON.stringify(review))
+      setStorageError("")
     } catch {
-      // A convenience only: the groups start expanded, the summary collapsed.
+      setStorageError(
+        "This browser cannot save changes. Export your configuration before leaving.",
+      )
     }
-    setCollapseLoaded(true)
-  }, [])
-  useEffect(() => {
-    if (!collapseLoaded) return
-    try {
-      window.localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsed))
-    } catch {
-      // Not remembered; nothing else depends on it.
-    }
-  }, [collapsed, collapseLoaded])
-  const onCollapse = useCallback(
-    (key: Section) =>
-      setCollapsed((current) =>
-        current.includes(key)
-          ? current.filter((entry) => entry !== key)
-          : [...current, key],
-      ),
-    [],
-  )
-  // Going to a metric or the summary expands it first, then scrolls once it
-  // renders.
-  const [jump, setJump] = useState<{ target: string }>()
-  const open = useCallback((section: Section, target: string) => {
-    setCollapsed((current) => current.filter((entry) => entry !== section))
-    setJump({ target })
-  }, [])
-  /** Shows a metric if it is hidden, then scrolls to it. */
-  const goToMetric = useCallback(
-    (id: string) => {
-      setShown((current) => (current.includes(id) ? current : [...current, id]))
-      open(groupOf(id), `metric-${id}`)
-    },
-    [open],
-  )
-  // The sidebar list shows or hides a metric; a newly shown one is scrolled to.
-  const shownRef = useRef(shown)
-  shownRef.current = shown
-  const toggleShown = useCallback(
-    (id: string) => {
-      if (shownRef.current.includes(id))
-        setShown((current) => current.filter((entry) => entry !== id))
-      else goToMetric(id)
-    },
-    [goToMetric],
-  )
-  const showGroup = useCallback(
-    (key: Group, show: boolean) => {
-      setShown((current) => {
-        const rest = current.filter((id) => groupOf(id) !== key)
-        return show ? [...rest, ...metricsIn(key).map((m) => m.id)] : rest
-      })
-      if (show) open(key, `group-${key}`)
-    },
-    [open],
-  )
-  const goToSummary = useCallback(() => open("summary", "summary"), [open])
-  // The card whose treatments are on view; none until one is picked.
-  const [treatmentCard, setTreatmentCard] = useState<string>()
-  const openTreatments = useCallback(
-    (card: string) => {
-      setTreatmentCard(card)
-      open("treatments", "treatments")
-    },
-    [open],
-  )
-  const onCollapseTreatments = useCallback(
-    () => onCollapse("treatments"),
-    [onCollapse],
-  )
-  const onCollapseSummary = useCallback(
-    () => onCollapse("summary"),
-    [onCollapse],
-  )
-  useEffect(() => {
-    if (jump && jumpTo(jump.target)) setJump(undefined)
-  }, [jump, collapsed])
-
-  const onBulk = useCallback(
-    (ids: string[], key: OptionKey, on: boolean) =>
-      setToggles((current) => setOption(current, ids, key, on)),
-    [],
-  )
-
-  // Jump targets land below the sticky toolbar, whatever its height.
+  }, [review, loaded])
+  const [view, setView] = useState<ReviewView>("cards")
+  const [card, setCard] = useState("2.1")
+  const [previewScope, setPreviewScope] = useState<ReviewScope>("market")
+  const [metricId, setMetricId] = useState("M18")
   const page = useRef<HTMLDivElement>(null)
-  const toolbar = useRef<HTMLElement>(null)
-  useEffect(() => {
-    const header = toolbar.current
-    const scroller = page.current
-    if (!header || !scroller || typeof ResizeObserver === "undefined")
-      return undefined
-    const measure = () =>
-      scroller.style.setProperty("--toolbar-h", `${header.offsetHeight}px`)
-    measure()
-    const observer = new ResizeObserver(measure)
-    observer.observe(header)
-    return () => observer.disconnect()
-  }, [])
-
-  // The metric list in the app's sidebar, which marks the metric in view.
+  const content = useRef<HTMLElement>(null)
   const navSlot = useSlot(REVIEW_NAV_ID)
-  const activeMetric = useActiveMetric(
-    page,
-    toolbar,
-    `${collapsed.join()}|${shown.join()}`,
-  )
-  const goToGroup = useCallback((key: Group) => {
-    jumpTo(`group-${key}`)
-  }, [])
-
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const navigate = (next: ReviewView) => {
+    setView(next)
+    setMobileNavOpen(false)
+    if (page.current) page.current.scrollTop = 0
+    requestAnimationFrame(() => content.current?.focus({ preventScroll: true }))
+  }
+  const openCard = (next: string) => {
+    setCard(next)
+    navigate("cards")
+  }
+  const openMetric = (next: string) => {
+    setMetricId(next)
+    navigate("metrics")
+  }
+  const selectTreatment = (id: string, code?: TreatmentCode) => {
+    if (
+      code &&
+      (!cards.treatments?.[id] || treatmentIssue(code, cards.treatments[id]))
+    )
+      return
+    setLoaded(true)
+    setReview((current) => changeChoice(current, id, code))
+  }
+  let activeScope = cardScope(card)
+  if (view === "preview") activeScope = previewScope
+  if (view === "metrics") activeScope = groupOf(metricId)
+  const activeSource = data[activeScope]
   const publication =
-    (marketSource.status === "ok" && marketSource.data.publication) ||
-    (borrowerSource.status === "ok" && borrowerSource.data.publication) ||
-    undefined
-  const onCount = summary(toggles).reduce(
-    (total, group) => total + group.lines.length,
-    0,
-  )
+    activeSource.status === "ok" ? activeSource.data.publication : undefined
   const chains = [...new Set((borrowers ?? []).map((row) => row.chainId))]
   const borrowerLabels = useMemo(
     () => distinct(borrowers ?? [], borrowerLabel),
@@ -1133,8 +416,11 @@ export const MetricReview = () => {
     (row) => row.status === "Closed",
   )
 
-  const borrowerName = borrower?.name ?? short(borrower?.address ?? "")
-  const marketName = market ? market.symbol ?? short(market.address) : ""
+  const borrowerName =
+    borrower?.name ?? short(borrower?.address ?? queryBorrower ?? "")
+  const marketName = market
+    ? market.symbol ?? short(market.address)
+    : marketReady?.market.symbol ?? short(queryMarket ?? "")
   const cut = publication?.cut
   const publicationText = publication
     ? ` · publication ${publication.kind}${
@@ -1191,21 +477,51 @@ export const MetricReview = () => {
       } on ${chainName(chainId)}${publicationText}`,
     }
 
-  const context =
-    borrower && market
-      ? [
-          `Reviewed against ${borrowerName} · ${marketName} (${chainName(
-            borrower.chainId,
-          )})${publicationText.replace(/^ · /, ", ")}.`,
-        ]
-      : []
-
+  const contexts: ReviewContexts = {
+    market: marketReady
+      ? publicationContext(
+          marketReady.market,
+          marketReady.publication,
+          `${borrowerName} · ${marketName} (${chainName(chainId)})`,
+        )
+      : undefined,
+    borrower: borrowerReady
+      ? publicationContext(
+          borrowerReady.borrower,
+          borrowerReady.publication,
+          `${borrowerName} (${chainName(chainId)})${
+            borrowerReady.partial ? " · partial record" : ""
+          }`,
+        )
+      : undefined,
+  }
+  const context = contextFor(card, contexts)
+  const previewReason = (scope: ReviewScope) => {
+    const gap = recordGap(data[scope], scope)
+    return gap?.kind === "tbd" ? gap.reason : `Loading ${scope} analytics…`
+  }
+  const metric = SPEC_METRICS.find((entry) => entry.id === metricId)!
+  const treatmentCard = treatmentCardOf(metric)
+  const found = cardFor(card, data, cards)
+  const nav = (
+    <MetricNav
+      view={view}
+      card={card}
+      metric={metricId}
+      review={review}
+      contexts={contexts}
+      onView={navigate}
+      onCard={openCard}
+      onMetric={openMetric}
+    />
+  )
+  const replaceReview = (next: ReviewConfiguration) => {
+    setLoaded(true)
+    setReview(next)
+  }
   return (
     <div ref={page} className={s.page}>
-      <div className={s.intro}>
-        <h1 className={s.title}>Glass Door metric review</h1>
-      </div>
-      <header ref={toolbar} className={s.toolbar}>
+      <header className={s.toolbar}>
         <div className={s.selectors}>
           <label className={s.field}>
             <span className={s.fieldLabel}>Borrower</span>
@@ -1276,143 +592,159 @@ export const MetricReview = () => {
             </select>
           </label>
         </div>
-        <div className={s.statusRow}>
-          <span
-            className={cx(s.statusText, status.error && s.statusError)}
+
+        <div className={s.contextBar}>
+          <button
+            className={`${s.button} ${s.mobileNavButton}`}
+            aria-expanded={mobileNavOpen}
+            onClick={() => setMobileNavOpen(!mobileNavOpen)}
+          >
+            Browse
+          </button>
+          {cut ? (
+            <details className={s.snapshot}>
+              <summary>
+                {chainName(chainId)} · Block {block(cut.block)}
+              </summary>
+              <div>
+                {publication?.kind} · {longDate(cut.timestamp)}
+              </div>
+            </details>
+          ) : null}
+          {market && chainId ? (
+            <Link
+              href={`${ROUTES.lender.market}/${market.address}?chainId=${chainId}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Live market ↗
+            </Link>
+          ) : null}
+          {borrower && chainId ? (
+            <Link
+              href={`${ROUTES.lender.profile}/${borrower.address}?chainId=${chainId}#analytics`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Live borrower ↗
+            </Link>
+          ) : null}
+        </div>
+        {status.error || !marketReady || !listReady ? (
+          <div
             role="status"
+            className={cx(s.statusText, status.error && s.statusError)}
           >
             {status.text}
-          </span>
-          {status.retry ? (
-            <button type="button" className={s.button} onClick={status.retry}>
-              Retry
-            </button>
-          ) : null}
-          <span className={s.live}>
-            {market && chainId ? (
-              <Link
-                href={`${ROUTES.lender.market}/${market.address}?chainId=${chainId}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Live market analytics →
-              </Link>
+            {status.retry ? (
+              <button className={s.button} onClick={status.retry}>
+                Retry
+              </button>
             ) : null}
-            {borrower && chainId ? (
-              <Link
-                href={`${ROUTES.lender.profile}/${borrower.address}?chainId=${chainId}#analytics`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Live borrower analytics →
-              </Link>
-            ) : null}
-          </span>
-        </div>
-        <nav className={s.jump} aria-label="Sections">
-          <GoToMetric onGo={goToMetric} onCard={openTreatments} />
-          <a
-            href="#treatments"
-            onClick={(event) => {
-              event.preventDefault()
-              open("treatments", "treatments")
-            }}
-          >
-            Card treatments
-          </a>
-          {GROUPS.map((group) => (
-            <a
-              key={group.key}
-              href={`#group-${group.key}`}
-              onClick={(event) => {
-                if (jumpTo(`group-${group.key}`)) event.preventDefault()
-              }}
-            >
-              {`${group.title} (${
-                metricsIn(group.key).filter((metric) => shownSet.has(metric.id))
-                  .length
-              } of ${metricsIn(group.key).length} shown)`}
-            </a>
-          ))}
-          <a
-            href="#summary"
-            onClick={(event) => {
-              event.preventDefault()
-              goToSummary()
-            }}
-          >
-            Summary ({onCount} metrics with an option on)
-          </a>
-          <span
-            className={cx(s.saved, saved === false && s.warn)}
-            role="status"
-          >
-            {saved === false
-              ? "Not saved: this browser blocks storage. Copy the summary before leaving."
-              : null}
-          </span>
-        </nav>
+          </div>
+        ) : null}
+        {storageError ? (
+          <p role="alert" className={s.error}>
+            {storageError}
+          </p>
+        ) : null}
       </header>
-      <main className={s.body}>
-        <TreatmentsSection
-          card={treatmentCard}
-          onCard={setTreatmentCard}
-          cards={cards}
-          data={data}
-          picks={picks}
-          collapsed={collapsed.includes("treatments")}
-          onCollapse={onCollapseTreatments}
-          onChoose={onTreatment}
-          onReset={onResetTreatment}
-        />
-        {GROUPS.map((group) => (
-          <GroupSection
-            key={group.key}
-            group={group}
-            toggles={toggles}
-            shown={shownSet}
-            picks={picks}
-            data={data}
-            cards={cards}
-            collapsed={collapsed.includes(group.key)}
-            onCollapse={onCollapse}
-            onToggle={onToggle}
-            onBulk={onBulk}
-            onReset={onReset}
-            onResetGroup={onResetGroup}
-            onOpenTreatments={openTreatments}
-          />
-        ))}
-        <Summary
-          toggles={toggles}
-          picks={picks}
-          context={context}
-          collapsed={collapsed.includes("summary")}
-          onCollapse={onCollapseSummary}
-          onChange={onResetAll}
-          onGo={goToMetric}
-          onCard={openTreatments}
-        />
-      </main>
-      {navSlot
-        ? createPortal(
-            <MetricNav
-              toggles={toggles}
-              picks={picks}
-              shown={shown}
-              active={activeMetric}
-              collapsed={collapsed}
-              treatmentCard={
-                collapsed.includes("treatments") ? undefined : treatmentCard
+      {mobileNavOpen ? <div className={s.mobileNav}>{nav}</div> : null}
+      <main ref={content} tabIndex={-1} className={s.body}>
+        {view === "cards" ? (
+          <CardWorkspace
+            card={card}
+            datum={cards.treatments?.[card]}
+            spec={"spec" in found ? found.spec : undefined}
+            reason={"reason" in found ? found.reason : "No published data."}
+            review={review}
+            context={context}
+            onCard={openCard}
+            onChoose={selectTreatment}
+            onComparison={(id, on) => {
+              setLoaded(true)
+              setReview((current) => changeComparison(current, id, on))
+            }}
+            onReviewed={(id, on) => {
+              const snapshot = contextFor(id, contexts)
+              if (snapshot) {
+                setLoaded(true)
+                setReview((current) => markReviewed(current, id, snapshot, on))
               }
-              onToggleShown={toggleShown}
-              onShowGroup={showGroup}
-              onGoGroup={goToGroup}
-              onOpenTreatments={openTreatments}
-            />,
-            navSlot,
-          )
-        : null}
+            }}
+            onPreview={() => {
+              setPreviewScope(cardScope(card))
+              navigate("preview")
+            }}
+          />
+        ) : null}
+        {view === "metrics" ? (
+          <MetricItem
+            key={metric.id}
+            metric={metric}
+            on={optionsOn(review.displays, metric.id)}
+            data={data}
+            cards={{
+              ...cards,
+              picks: review.picks,
+              comparisons: review.comparisons,
+            }}
+            onToggle={(id, option, on) => {
+              setLoaded(true)
+              setReview((current) => ({
+                ...current,
+                displays: setOption(current.displays, [id], option, on),
+              }))
+            }}
+            onReset={(id) =>
+              setReview((current) => ({
+                ...current,
+                displays: resetOptions(current.displays, [id]),
+              }))
+            }
+            treatmentCard={treatmentCard}
+            treatment={
+              treatmentCard
+                ? chosenTreatment(review.picks, treatmentCard)
+                : undefined
+            }
+            treatmentChanged={Boolean(
+              treatmentCard && review.picks[treatmentCard],
+            )}
+            onOpenTreatments={openCard}
+          />
+        ) : null}
+        {view === "decisions" ? (
+          <Decisions
+            review={review}
+            contexts={contexts}
+            datums={cards.treatments}
+            onChange={replaceReview}
+            onCard={openCard}
+            onMetric={openMetric}
+          />
+        ) : null}
+        {view === "preview" ? (
+          <PagePreview
+            market={marketReady}
+            borrower={borrowerReady}
+            scope={previewScope}
+            onScope={setPreviewScope}
+            marketReason={previewReason("market")}
+            borrowerReason={previewReason("borrower")}
+            borrowerName={borrowerName}
+            typeLabels={typeLabels}
+            cards={cards}
+            review={review}
+            onBack={() => navigate("cards")}
+          />
+        ) : null}
+      </main>
+      {navSlot ? (
+        createPortal(nav, navSlot)
+      ) : (
+        <div className={s.fallbackNav}>{nav}</div>
+      )}
     </div>
   )
 }

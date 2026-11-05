@@ -133,6 +133,7 @@ export const MarketDashboard = ({
   typeLabels,
   borrowerName,
   borrowerLoading,
+  renderCards,
 }: {
   market: MarketAnalytics
   borrower?: BorrowerAnalytics
@@ -141,6 +142,12 @@ export const MarketDashboard = ({
   /** Market type labels (G4), from the market's hooks and app data. */
   typeLabels?: string[]
   borrowerName?: string
+  /** Optional review specimen renderer; the live page uses AnalyticsCardRow. */
+  renderCards?: (
+    specs: CardSpec[],
+    label: string,
+    columns: number,
+  ) => React.ReactNode
 }) => {
   const { rowA, supporting, banner } = marketSpecs(market, borrower, typeLabels)
   const { s } = reader(market.values)
@@ -202,7 +209,11 @@ export const MarketDashboard = ({
           </span>
         </div>
       </header>
-      <AnalyticsCardRow specs={rowA} initialOpen="2.1" label="Market cards" />
+      {renderCards ? (
+        renderCards(rowA, "Market cards", 5)
+      ) : (
+        <AnalyticsCardRow specs={rowA} initialOpen="2.1" label="Market cards" />
+      )}
       {banner ? (
         <div className={styles.banner} role="note">
           ⚠ {banner} <Id>M18 vs S06/S07</Id>
@@ -218,11 +229,15 @@ export const MarketDashboard = ({
         Supporting detail
         <span>collapsed by default · click any card for its seven fields</span>
       </p>
-      <AnalyticsCardRow
-        specs={supporting}
-        columns={4}
-        label="Supporting cards"
-      />
+      {renderCards ? (
+        renderCards(supporting, "Supporting cards", 4)
+      ) : (
+        <AnalyticsCardRow
+          specs={supporting}
+          columns={4}
+          label="Supporting cards"
+        />
+      )}
     </div>
   )
 }

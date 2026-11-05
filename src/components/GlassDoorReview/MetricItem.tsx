@@ -37,7 +37,14 @@ import {
 } from "./metrics"
 import { availableOn, defaultOn, DISPLAY_OPTIONS, OptionKey } from "./options"
 import s from "./review.module.css"
-import { IndexDatum, TreatmentCode, TREATMENTS } from "./treatmentData"
+import {
+  chosenTreatment,
+  IndexDatum,
+  TreatmentCode,
+  TreatmentPicks,
+  TREATMENTS,
+} from "./treatmentData"
+import { CardPreview } from "./treatments"
 
 const cx = (...names: (string | false | undefined)[]) =>
   names.filter(Boolean).join(" ")
@@ -51,6 +58,8 @@ export type CardSet = {
   closed?: boolean
   /** Index datums for the display treatments, by market card number. */
   treatments?: Record<string, IndexDatum>
+  picks?: TreatmentPicks
+  comparisons?: Record<string, boolean>
 }
 
 const TROUBLE = "3.12"
@@ -289,7 +298,7 @@ const Part = ({
   </div>
 )
 
-/** A display option: an outline with a check when on. */
+/** Independent display switches, grouped above the previews they control. */
 const OptionToggle = ({
   label,
   title,
@@ -301,28 +310,17 @@ const OptionToggle = ({
   checked: boolean
   onChange: (on: boolean) => void
 }) => (
-  <label className={s.option} title={title}>
-    <input
-      type="checkbox"
-      checked={checked}
-      onChange={(event) => onChange(event.target.checked)}
-    />
-    <span className={s.optionBox} aria-hidden="true">
-      {checked ? (
-        <svg viewBox="0 0 12 12" width="10" height="10">
-          <path
-            d="M2.5 6.2l2.2 2.2 4.8-5"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      ) : null}
-    </span>
+  <button
+    type="button"
+    role="switch"
+    className={s.displayToggle}
+    title={title}
+    aria-checked={checked}
+    onClick={() => onChange(!checked)}
+  >
+    <span className={s.switchTrack} aria-hidden="true" />
     <span>{label}</span>
-  </label>
+  </button>
 )
 
 const OPTION_LABEL = new Map(
@@ -369,11 +367,6 @@ export const MetricItem = memo(
       ...removed.map((key) => `−${OPTION_LABEL.get(key)}`),
       ...added.map((key) => `+${OPTION_LABEL.get(key)}`),
     ]
-    const optionLabel = (key: OptionKey) => {
-      if (key === "card") return `Card ${metricCards.join(" · ")}`
-      if (key === "chart") return `Chart ${role.charts.join(" · ")}`
-      return OPTION_LABEL.get(key) ?? key
-    }
     const optionNote = (key: OptionKey) => {
       if (key === "card")
         return role.headline.length
@@ -392,11 +385,11 @@ export const MetricItem = memo(
     const userOpened = useRef(false)
     const [openCard, setOpenCard] = useState<string>()
     const [chip, setChip] = useState<ChipKey>("median")
-    const [specOpen, setSpecOpen] = useState(false)
+    const [specOpen, setSpecOpen] = useState(true)
     const cardId = (card: string) => `${uid}card-${card.replace(".", "-")}`
     const panelId = `${uid}panel`
     const specId = `${uid}spec`
-    const showCards = on.includes("card")
+    const showCards = available.includes("card") && on.includes("card")
     const found = openCard ? cardFor(openCard, data, cards) : undefined
     const openSpec =
       showCards && found && "spec" in found ? found.spec : undefined
@@ -452,23 +445,44 @@ export const MetricItem = memo(
           className={cx(s.cardDisplay, !headline && s.cardFeeds)}
         >
           <div className={cx(gd.root, s.cardSlot)}>
-            <AnalyticsCard
-              id={cardId(card)}
-              controls={panelId}
-              spec={tile.spec}
-              open={openSpec?.id === card}
-              onToggle={() => {
-                userOpened.current = openCard !== card
-                setOpenCard(openCard === card ? undefined : card)
-                setChip("median")
-              }}
-            />
+            {cards.picks?.[card] && cards.treatments?.[card] ? (
+              <CardPreview
+                spec={tile.spec}
+                datum={cards.treatments[card]}
+                code={chosenTreatment(cards.picks, card)}
+                comparison={cards.comparisons?.[card] !== false}
+              />
+            ) : (
+              <AnalyticsCard
+                id={cardId(card)}
+                controls={panelId}
+                spec={
+                  cards.comparisons?.[card] === false
+                    ? { ...tile.spec, compare: "" }
+                    : tile.spec
+                }
+                open={openSpec?.id === card}
+                onToggle={() => {
+                  userOpened.current = openCard !== card
+                  setOpenCard(openCard === card ? undefined : card)
+                  setChip("median")
+                }}
+              />
+            )}
           </div>
         </Display>
       )
     }
-    const tiles = showCards || on.includes("comparison")
-    const displays = tiles || on.includes("chart")
+    const control = (key: OptionKey, text: string) => (
+      <OptionToggle
+        label={text}
+        title={`Design: ${design.includes(key) ? "on" : "off"}${optionNote(
+          key,
+        )}`}
+        checked={on.includes(key)}
+        onChange={(next) => onToggle(metric.id, key, next)}
+      />
+    )
     const hasCopy = cardCopy(metric, "tells").some(
       (line) => line.card !== TROUBLE,
     )
@@ -483,48 +497,37 @@ export const MetricItem = memo(
       >
         <div className={s.metricHead}>
           <div className={s.titleRow}>
-            <h3 id={titleId} className={s.metricName}>
+            <h1 id={titleId} className={s.metricName}>
               {label}
-            </h3>
+            </h1>
             {on.includes("value") ? (
               <ValueInline metric={metric} data={data} />
             ) : null}
           </div>
-          <p className={s.means}>{metric.what}</p>
-          <div
-            className={s.options}
-            role="group"
-            aria-label={`Display options for ${label}`}
-          >
-            {available.map((key) => (
-              <OptionToggle
-                key={key}
-                label={optionLabel(key)}
-                title={`Design: ${
-                  design.includes(key) ? "on" : "off"
-                }${optionNote(key)}`}
-                checked={on.includes(key)}
-                onChange={(next) => onToggle(metric.id, key, next)}
-              />
-            ))}
-            {available.length === 1 ? (
-              <span className={s.optionNote}>
-                {`Value only: no card, chart or comparison in the design${
-                  places.length ? `; shown in ${places.join(" and ")}` : ""
-                }`}
-              </span>
-            ) : null}
+          <div className={s.metricTools}>
+            <div
+              className={s.options}
+              role="group"
+              aria-label={`Display options for ${label}`}
+            >
+              {control("value", "Value")}
+              {available.includes("card") ? control("card", "Cards") : null}
+              {available.includes("comparison")
+                ? control("comparison", "Comparison")
+                : null}
+              {available.includes("chart") ? control("chart", "Charts") : null}
+            </div>
             {treatmentCard ? (
               <button
                 type="button"
                 className={cx(s.treatmentPill, treatmentChanged && s.changed)}
                 onClick={() => onOpenTreatments(treatmentCard)}
               >
-                {`16 treatments for card ${treatmentCard} · ${
+                {`Review card ${treatmentCard} · ${
                   treatment
                     ? `${treatment} ${TREATMENTS[treatment].label}`
-                    : "none chosen"
-                }${treatmentChanged ? " (changed)" : ""}`}
+                    : "Original design"
+                }`}
                 <span aria-hidden="true"> →</span>
               </button>
             ) : null}
@@ -542,34 +545,45 @@ export const MetricItem = memo(
             </p>
           ) : null}
         </div>
-        {displays ? (
-          <div className={s.displays}>
-            {tiles ? (
-              <div className={s.displayRow}>
-                {showCards ? metricCards.map(cardTile) : null}
-                {on.includes("comparison") ? (
-                  <ComparisonDisplay metric={metric} data={data} />
-                ) : null}
-              </div>
-            ) : null}
-            {openSpec ? (
-              <div ref={panelRow} className={cx(gd.root, s.panelRow)}>
-                <AnalyticsPanel
-                  id={panelId}
-                  spec={openSpec}
-                  chip={chip}
-                  onChip={setChip}
-                  onClose={close}
-                />
-              </div>
-            ) : null}
-            {on.includes("chart") ? (
+        <div className={s.inspectionGrid}>
+          {showCards ? (
+            <section
+              className={cx(s.inspectionSection, s.inspectionCards)}
+              aria-label="Card previews"
+            >
+              <div className={s.displayRow}>{metricCards.map(cardTile)}</div>
+              {openSpec ? (
+                <div ref={panelRow} className={cx(gd.root, s.panelRow)}>
+                  <AnalyticsPanel
+                    id={panelId}
+                    spec={openSpec}
+                    chip={chip}
+                    onChip={setChip}
+                    onClose={close}
+                  />
+                </div>
+              ) : null}
+            </section>
+          ) : null}
+          {available.includes("comparison") && on.includes("comparison") ? (
+            <section
+              className={cx(s.inspectionSection, s.inspectionComparison)}
+              aria-label="Metric comparison"
+            >
+              <ComparisonDisplay metric={metric} data={data} />
+            </section>
+          ) : null}
+          {available.includes("chart") && on.includes("chart") ? (
+            <section
+              className={cx(s.inspectionSection, s.inspectionCharts)}
+              aria-label="Chart previews"
+            >
               <div className={s.displayRow}>
                 <ChartDisplays role={role} data={data} cards={cards} />
               </div>
-            ) : null}
-          </div>
-        ) : null}
+            </section>
+          ) : null}
+        </div>
         <div className={s.spec}>
           <div className={s.subHead}>
             <h4 className={s.subTitle}>
@@ -584,15 +598,13 @@ export const MetricItem = memo(
                 <span>Spec</span>
               </button>
             </h4>
-            <span className={s.subNote}>
-              {hasCopy
-                ? "how it is calculated · what its cards tell and do not tell"
-                : "how it is calculated"}
-            </span>
           </div>
           <div id={specId} className={s.subBody} hidden={!specOpen}>
             {specOpen ? (
               <dl className={s.parts}>
+                <Part title="What it is">
+                  <p>{metric.what}</p>
+                </Part>
                 <Part title="How it is calculated">
                   <p>{metric.how}</p>
                   <p className={s.source}>Where to get it: {metric.where}</p>

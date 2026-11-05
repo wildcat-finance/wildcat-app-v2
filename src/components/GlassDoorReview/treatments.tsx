@@ -9,6 +9,8 @@
 import * as React from "react"
 import { useId, useState } from "react"
 
+import { Dialog, DialogContent } from "@mui/material"
+
 import gd from "@/components/GlassDoor/analytics.module.css"
 import {
   AnalyticsCard,
@@ -19,19 +21,13 @@ import {
 
 import s from "./review.module.css"
 import {
-  cardName,
-  choiceText,
-  chosenTreatment,
-  designText,
   DESIGN_TREATMENT,
   drawable,
   IndexDatum,
   Tone,
-  TREATMENT_CARDS,
-  TREATMENT_CODES,
   TreatmentCode,
-  TreatmentPicks,
   TREATMENTS,
+  treatmentIssue,
 } from "./treatmentData"
 import t from "./treatments.module.css"
 
@@ -479,8 +475,10 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
       <>
         <Name d={d} />
         <div className={t.sbsHead}>
-          <span>THIS MARKET</span>
-          <span>MARKET AVERAGE</span>
+          <span>{d.id.startsWith("3.") ? "THIS BORROWER" : "THIS MARKET"}</span>
+          <span>
+            {d.id.startsWith("3.") ? "BORROWER MEDIAN" : "MARKET MEDIAN"}
+          </span>
         </div>
         {rows.map(([key, mine, theirs]) => (
           <div key={key} className={t.sbsRow}>
@@ -545,216 +543,180 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
   ),
 }
 
+/** The actual specimen, shared by comparison, metrics and page preview. */
+
+export const ReferencePreview = ({
+  code,
+  datum,
+}: {
+  code: TreatmentCode
+  datum: IndexDatum
+}) =>
+  code === "J" && drawable(code, datum) ? (
+    <div className={t.visual}>{BODY[code](datum)}</div>
+  ) : null
+
+export const CardPreview = ({
+  spec,
+  datum,
+  code,
+  comparison = true,
+}: {
+  spec?: CardSpec
+
+  datum?: IndexDatum
+
+  code?: TreatmentCode
+
+  comparison?: boolean
+}) => {
+  const [open, setOpen] = useState(false)
+
+  const [chip, setChip] = useState<ChipKey>("median")
+
+  const panelId = useId()
+
+  const issue = code && datum ? treatmentIssue(code, datum) : undefined
+
+  const native = !code || (spec && DESIGN_TREATMENT[spec.id] === code)
+
+  const displayed = spec && !comparison ? { ...spec, compare: "" } : spec
+
+  let preview: React.ReactNode = (
+    <p className={t.unavailable}>No card at this snapshot.</p>
+  )
+  if (issue)
+    preview = (
+      <p className={t.unavailable} role="status">
+        {issue}
+      </p>
+    )
+  else if (native && displayed)
+    preview = (
+      <div className={gd.root}>
+        <AnalyticsCard
+          spec={displayed}
+          open={open}
+          controls={panelId}
+          onToggle={() => setOpen(!open)}
+        />
+      </div>
+    )
+  else if (code && datum)
+    preview = (
+      <div className={t.visual}>
+        {BODY[code](comparison ? datum : { ...datum, median: "" })}
+        {spec ? (
+          <button
+            type="button"
+            className={s.resetLink}
+            aria-expanded={open}
+            aria-controls={panelId}
+            onClick={() => setOpen(!open)}
+          >
+            Details
+          </button>
+        ) : null}
+      </div>
+    )
+  return (
+    <div className={t.specimen} data-treatment={code ?? "design"}>
+      {preview}
+      {displayed ? (
+        <Dialog
+          open={open}
+          onClose={() => setOpen(false)}
+          maxWidth="lg"
+          fullWidth
+          PaperProps={{ "aria-label": `Card ${displayed.id} details` }}
+        >
+          <DialogContent className={gd.root}>
+            <AnalyticsPanel
+              id={panelId}
+              spec={displayed}
+              chip={chip}
+              onChip={setChip}
+              onClose={() => setOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      ) : null}
+    </div>
+  )
+}
+
+/** Gallery inspection never changes the chosen configuration. */
+
 export const TreatmentTile = ({
   code,
   datum,
   chosen,
-  design,
-  canDraw,
+  spec,
+  comparison = true,
+  shortlisted,
+  onShortlist,
   onChoose,
 }: {
   code: TreatmentCode
+
   datum: IndexDatum
+
   chosen: boolean
-  /** The design uses this treatment for the card. */
-  design: boolean
-  /** False when the tile can only say what data is missing. */
-  canDraw: boolean
+
+  spec?: CardSpec
+
+  comparison?: boolean
+
+  shortlisted?: boolean
+
+  onShortlist?: (code: TreatmentCode) => void
+
   onChoose: (code: TreatmentCode) => void
 }) => {
-  const { label, summary } = TREATMENTS[code]
+  const issue = treatmentIssue(code, datum)
+
   return (
-    <div
-      className={cx(t.tile, chosen && t.tileChosen, !canDraw && t.tileMuted)}
+    <article
+      className={cx(t.candidate, chosen && t.candidateChosen)}
+      aria-label={`${datum.id}-${code} ${TREATMENTS[code].label}`}
     >
-      <div className={t.tileHead}>
+      <div className={t.candidateHead}>
+        <b>
+          {code} · {TREATMENTS[code].label}
+        </b>
+        {chosen ? <span>Chosen</span> : null}
+      </div>
+
+      <CardPreview
+        spec={spec}
+        datum={datum}
+        code={code}
+        comparison={comparison}
+      />
+
+      <div className={t.actions}>
+        {onShortlist ? (
+          <button
+            type="button"
+            className={s.button}
+            aria-pressed={Boolean(shortlisted)}
+            disabled={Boolean(issue)}
+            onClick={() => onShortlist(code)}
+          >
+            {shortlisted ? "Remove from comparison" : "Compare"}
+          </button>
+        ) : null}
+
         <button
           type="button"
-          className={cx(t.choose, t.tileLabel)}
-          aria-pressed={chosen}
-          aria-label={`Choose ${datum.id}-${code}, ${label}`}
-          title={summary}
+          className={s.button}
+          aria-label={`Choose ${datum.id}-${code}, ${TREATMENTS[code].label}`}
+          disabled={Boolean(issue) || chosen}
           onClick={() => onChoose(code)}
         >
-          {label.toUpperCase()}
+          {chosen ? "Chosen" : "Choose"}
         </button>
-        <span className={t.tileRight}>
-          {chosen ? <span className={t.markChosen}>Chosen</span> : null}
-          {design ? <span className={t.markDesign}>Design</span> : null}
-          {code === "J" ? (
-            <span className={t.markNote}>Comparison only</span>
-          ) : null}
-          <span className={t.tileCode}>{`${datum.id}-${code}`}</span>
-        </span>
       </div>
-      <div className={t.tileBody}>{BODY[code](datum)}</div>
-    </div>
-  )
-}
-
-/** The live card, as the design draws it, with its panel. */
-const LiveCard = ({ spec }: { spec: CardSpec }) => {
-  const [open, setOpen] = useState(false)
-  const [chip, setChip] = useState<ChipKey>("median")
-  const panelId = useId()
-  return (
-    <>
-      <div className={cx(gd.root, t.liveCard)}>
-        <AnalyticsCard
-          spec={spec}
-          open={open}
-          controls={panelId}
-          onToggle={() => {
-            setOpen(!open)
-            setChip("median")
-          }}
-        />
-      </div>
-      {open ? (
-        <div className={cx(gd.root, t.livePanel)}>
-          <AnalyticsPanel
-            id={panelId}
-            spec={spec}
-            chip={chip}
-            onChip={setChip}
-            onClose={() => setOpen(false)}
-          />
-        </div>
-      ) : null}
-    </>
-  )
-}
-
-/**
- * The sixteen treatments of one market card at a time: a row of the nine
- * cards, then the chosen card's live card beside its tiles. Tiles that can
- * be drawn from this market's data come first.
- */
-export const CardTreatments = ({
-  card,
-  onCard,
-  datums,
-  specs,
-  reason,
-  picks,
-  onChoose,
-  onReset,
-}: {
-  /** The card on view; none until one is selected. */
-  card?: string
-  onCard: (card: string) => void
-  datums?: Record<string, IndexDatum>
-  /** The live market cards, by number. */
-  specs?: Record<string, CardSpec>
-  /** Why a card has no datum yet (loading, under review, hidden). */
-  reason: (card: string) => string
-  picks: TreatmentPicks
-  onChoose: (card: string, code: TreatmentCode) => void
-  /** Back to the design for one card. */
-  onReset: (card: string) => void
-}) => {
-  const datum = card ? datums?.[card] : undefined
-  const spec = card ? specs?.[card] : undefined
-  const chosen = card ? chosenTreatment(picks, card) : undefined
-  const changed = Boolean(card && picks[card])
-  const codes = datum
-    ? TREATMENT_CODES.filter((code) => drawable(code, datum))
-    : []
-  const missing = datum
-    ? TREATMENT_CODES.filter((code) => !drawable(code, datum))
-    : []
-  const tile = (code: TreatmentCode) =>
-    card && datum ? (
-      <TreatmentTile
-        key={code}
-        code={code}
-        datum={datum}
-        chosen={chosen === code}
-        design={DESIGN_TREATMENT[card] === code}
-        canDraw={drawable(code, datum)}
-        onChoose={(next) => onChoose(card, next)}
-      />
-    ) : null
-  return (
-    <div className={t.view}>
-      <p className={t.intro}>
-        A display treatment is one of 16 ways (A–P) to draw a market card&apos;s
-        main figure; the product picks one per card. The tiles use this
-        market&apos;s live values.
-      </p>
-      <div className={t.picker} role="group" aria-label="Market cards">
-        {TREATMENT_CARDS.map((entry) => {
-          const code = chosenTreatment(picks, entry)
-          return (
-            <button
-              key={entry}
-              type="button"
-              className={cx(t.pick, picks[entry] && t.pickChanged)}
-              aria-pressed={entry === card}
-              aria-label={`Card ${entry} ${cardName(entry)}: ${
-                code ? `${entry}-${code} chosen` : "no treatment chosen"
-              }${picks[entry] ? ", changed from the design" : ""}`}
-              onClick={() => onCard(entry)}
-            >
-              <span>{`${entry} ${cardName(entry)}`}</span>
-              <span className={t.pickCode}>{code ?? "–"}</span>
-            </button>
-          )
-        })}
-      </div>
-      {card ? (
-        <div className={t.selected}>
-          <div className={t.choiceRow}>
-            <h3 className={t.cardTitle}>{`Card ${card} ${cardName(card)}`}</h3>
-            <p className={t.choice}>
-              {chosen ? "Chosen: " : "No treatment chosen: "}
-              <b>{choiceText(card, chosen)}</b>
-              {changed ? ` · design: ${designText(card)} ` : " (design)"}
-              {changed ? (
-                <button
-                  type="button"
-                  className={s.resetLink}
-                  onClick={() => onReset(card)}
-                >
-                  Back to design
-                </button>
-              ) : null}
-            </p>
-          </div>
-          {spec ? (
-            <div className={t.reference}>
-              <span className={t.referenceLabel}>Live card (design)</span>
-              <LiveCard key={card} spec={spec} />
-            </div>
-          ) : null}
-          {datum ? (
-            <>
-              <p className={t.hint}>
-                {`Select a tile to choose it for card ${card}; select the chosen tile again to go back to the design.`}
-              </p>
-              <div className={t.grid}>{codes.map(tile)}</div>
-              {missing.length ? (
-                <>
-                  <h4 className={t.groupTitle}>
-                    {`Not drawable with this market's data (${missing.length})`}
-                  </h4>
-                  <p className={t.hint}>
-                    These need data the publication does not hold for this card,
-                    so each says what is missing instead of drawing a shape.
-                  </p>
-                  <div className={t.grid}>{missing.map(tile)}</div>
-                </>
-              ) : null}
-            </>
-          ) : (
-            <p className={s.tbd}>{reason(card)}</p>
-          )}
-        </div>
-      ) : (
-        <p className={t.hint}>
-          Select a card to compare its 16 treatments with the live card.
-        </p>
-      )}
-    </div>
+    </article>
   )
 }
