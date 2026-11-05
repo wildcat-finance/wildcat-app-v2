@@ -8,6 +8,8 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 
 import { MarketHeader } from "./index"
 
+let mockDefaultStatus: boolean | undefined = false
+
 jest.mock("wagmi", () => ({
   useAccount: jest.fn(() => ({ address: undefined })),
 }))
@@ -40,7 +42,7 @@ jest.mock("@/hooks/useDefaultedMarkets", () => ({
     isLoading: false,
     isError: false,
     defaultedMarkets: {},
-    isDefaulted: () => false,
+    isDefaulted: () => mockDefaultStatus,
     defaultedAt: () => undefined,
     defaultedMarketsOfBorrower: () => [],
   }),
@@ -86,6 +88,7 @@ describe("MarketHeader", () => {
     jest.useFakeTimers()
     jest.setSystemTime(new Date(NOW_SECONDS * 1000))
     jest.clearAllMocks()
+    mockDefaultStatus = false
     jest.mocked(useMobileResolution).mockReturnValue(false)
   })
 
@@ -112,6 +115,22 @@ describe("MarketHeader", () => {
     expect(humanizeDuration).not.toHaveBeenCalled()
     expect(screen.queryByTestId("market-cycle")).toBeNull()
   })
+
+  it.each([false, true])(
+    "does not label an unknown default status healthy (mobile: %s)",
+    (isMobile) => {
+      jest.mocked(useMobileResolution).mockReturnValue(isMobile)
+      mockDefaultStatus = undefined
+      const market = makeMarket(0)
+      const { rerender } = render(<MarketHeader market={market} />)
+      expect(screen.getByLabelText("Loading market status")).toBeTruthy()
+      expect(screen.queryByText("Healthy")).toBeNull()
+
+      mockDefaultStatus = false
+      rerender(<MarketHeader market={market} />)
+      expect(screen.getByText("Healthy")).toBeTruthy()
+    },
+  )
 
   it.each([false, true])(
     "only offers export for supported V2 markets (mobile: %s)",

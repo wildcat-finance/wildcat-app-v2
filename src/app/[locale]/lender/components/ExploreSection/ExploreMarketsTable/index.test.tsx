@@ -154,6 +154,44 @@ describe.each([false, true])(
 
     afterEach(() => jest.clearAllMocks())
 
+    it("only excludes the unresolved market and restores it after refresh", () => {
+      const context = jest.mocked(useLenderMarketsContext)()
+      const original = context.marketAccounts[0]
+      const resolved = {
+        ...original,
+        market: {
+          ...original.market,
+          address: "0x0000000000000000000000000000000000000004",
+          name: "Resolved market",
+        },
+      } as MarketAccount
+      const marketAccounts = [original, resolved]
+      const onboardingByMarket = {
+        ...context.onboardingByMarket,
+        [resolved.market.address]: MarketOnboardingMode.SelfOnboard,
+      }
+      jest.mocked(useLenderMarketsContext).mockReturnValue({
+        ...context,
+        marketAccounts,
+        onboardingByMarket,
+        defaults: {
+          ...context.defaults,
+          isError: true,
+          isDefaulted: (address) =>
+            address === marketAddress ? undefined : false,
+        },
+      })
+      const { rerender } = render(<ExploreMarketsTable />)
+      expect(screen.queryByText("Available market")).toBeNull()
+      expect(screen.getByText("Resolved market")).toBeTruthy()
+
+      jest
+        .mocked(useLenderMarketsContext)
+        .mockReturnValue({ ...context, marketAccounts, onboardingByMarket })
+      rerender(<ExploreMarketsTable />)
+      expect(screen.getByText("Available market")).toBeTruthy()
+    })
+
     it("clears the composability filter when resetting an empty result", () => {
       const { rerender } = render(<ExploreMarketsTable />)
       fireEvent.click(screen.getByRole("checkbox", { name: "Composable only" }))

@@ -47,12 +47,11 @@ export const MarketTransactions = ({
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
-  const {
-    isLoading: isDefaultsLoading,
-    isDefaulted,
-    defaultedMarketsOfBorrower,
-  } = useDefaultedMarkets(market.chainId)
-  const isMarketDefaulted = isDefaulted(market.address)
+  const { isDefaulted, defaultedMarketsOfBorrower } = useDefaultedMarkets(
+    market.chainId,
+  )
+  const defaultStatus = isDefaulted(market.address)
+  const isMarketDefaulted = defaultStatus === true
   const otherDefaultedAddresses = defaultedMarketsOfBorrower(
     market.borrower,
   ).filter((address) => address !== market.address.toLowerCase())
@@ -79,8 +78,7 @@ export const MarketTransactions = ({
         (marketAccount && marketAccount.market.borrowableAssets.raw.isZero())))
   const disableBorrow =
     hideBorrow ||
-    isMarketDefaulted ||
-    isDefaultsLoading ||
+    defaultStatus !== false ||
     hasManuallyDisabledMarketActions(market.borrower)
 
   const isFixedTerm =

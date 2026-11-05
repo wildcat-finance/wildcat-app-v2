@@ -152,6 +152,7 @@ export const DepositModal = ({
   setIsMobileOpen,
   showBorrowerPenaltyWarning,
   isMarketDefaulted,
+  isDefaultStatusUnknown,
 }: DepositModalProps) => {
   const isMobile = useMobileResolution()
 
@@ -301,7 +302,9 @@ export const DepositModal = ({
 
   const isAllowanceSufficient = marketAccount.isApprovedFor(depositTokenAmount)
   const depositsBlocked =
-    hasManuallyDisabledMarketActions(market.borrower) || !!isMarketDefaulted
+    hasManuallyDisabledMarketActions(market.borrower) ||
+    !!isMarketDefaulted ||
+    !!isDefaultStatusUnknown
 
   const handleAmountChange = (evt: ChangeEvent<HTMLInputElement>) => {
     const { value } = evt.target

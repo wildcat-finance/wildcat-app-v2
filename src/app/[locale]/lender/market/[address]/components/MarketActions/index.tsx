@@ -85,7 +85,7 @@ export const MarketActions = ({
   hasWrapper,
   isLiveMarketReady,
   isMarketDefaulted,
-  isDefaultStatusLoading,
+  isDefaultStatusUnknown,
 }: MarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
@@ -329,8 +329,7 @@ export const MarketActions = ({
             rows={depositRows}
           >
             {(() => {
-              if (!isLiveMarketReady || isDefaultStatusLoading)
-                return <MarketUpdatingStatus />
+              if (!isLiveMarketReady) return <MarketUpdatingStatus />
 
               if (isMarketDefaulted)
                 return (
@@ -399,6 +398,7 @@ export const MarketActions = ({
                       marketAccount={marketAccount}
                       showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
                       isMarketDefaulted={isMarketDefaulted}
+                      isDefaultStatusUnknown={isDefaultStatusUnknown}
                     />
                   )}
                   {showFaucet && <FaucetButton marketAccount={marketAccount} />}

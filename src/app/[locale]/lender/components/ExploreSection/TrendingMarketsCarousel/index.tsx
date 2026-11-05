@@ -388,7 +388,8 @@ export const TrendingMarketsCarousel = () => {
 
     const exploreMarkets = marketAccounts.filter(
       (a) =>
-        isExploreVisible(a.market, defaults.isDefaulted(a.market.address)) &&
+        defaults.isDefaulted(a.market.address) === false &&
+        isExploreVisible(a.market) &&
         a.market.maxTotalSupply.gt(0) &&
         !penaltyBorrowers.has(a.market.borrower.toLowerCase()) &&
         defaults.defaultedMarketsOfBorrower(a.market.borrower).length === 0,

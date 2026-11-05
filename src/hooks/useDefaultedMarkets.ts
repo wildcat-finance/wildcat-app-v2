@@ -1,6 +1,11 @@
 import { useMemo } from "react"
 
-import { QueryClient, queryOptions, useQuery } from "@tanstack/react-query"
+import {
+  QueryClient,
+  queryOptions,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 
 import { QueryKeys } from "@/config/query-keys"
@@ -62,7 +67,10 @@ export const seedDefaultedMarkets = (queryClient: QueryClient) => {
       queryClient.getQueryData(queryKey) !== undefined
     )
       return
-    queryClient.setQueryData(queryKey, seed.data, { updatedAt: seed.savedAt })
+    queryClient.setQueryData(queryKey, seed.data, {
+      // Incomplete results must retry on reload, even within the cache window.
+      updatedAt: seed.data.unknown.length ? 0 : seed.savedAt,
+    })
   })
 }
 
@@ -84,35 +92,49 @@ const fetchFromApi = async (
 const loadDefaultedMarkets = async (
   chainId: SupportedChainId,
   signal: AbortSignal,
+  queryClient: QueryClient,
 ) => {
   const data = await fetchFromApi(chainId, signal).catch((error) => {
     if (signal.aborted) throw error
     return fetchDefaultedMarkets(chainId, signal)
   })
-  writeSeed(chainId, data)
-  return data
+  const previous = queryClient.getQueryData<DefaultedMarketsData>(
+    QueryKeys.Markets.GET_DEFAULTED_MARKETS(chainId),
+  )
+  // Historical defaults survive cure/closure and incomplete refreshes.
+  const markets = { ...previous?.markets, ...data.markets }
+  const merged = {
+    markets,
+    unknown: data.unknown.filter((address) => !(address in markets)),
+  }
+  writeSeed(chainId, merged)
+  return merged
 }
 
-export const defaultedMarketsQueryOptions = (chainId: SupportedChainId) =>
+export const defaultedMarketsQueryOptions = (
+  chainId: SupportedChainId,
+  queryClient: QueryClient,
+) =>
   queryOptions({
     queryKey: QueryKeys.Markets.GET_DEFAULTED_MARKETS(chainId),
-    queryFn: ({ signal }) => loadDefaultedMarkets(chainId, signal),
+    queryFn: ({ signal }) => loadDefaultedMarkets(chainId, signal, queryClient),
     staleTime: REFRESH_INTERVAL,
     retry: 1,
   })
 
 /**
  * Historical defaults on a chain. A default stays recorded after cure or
- * closure. `isLoading` means the status is not known yet: callers must not
- * render a market or borrower as healthy until it clears.
+ * closure. `isDefaulted` returns undefined when the status is unknown; new
+ * deposits/borrowing require an explicit false, not just a finished request.
  */
 export const useDefaultedMarkets = (chainId?: number) => {
+  const queryClient = useQueryClient()
   const { chainId: selectedChainId } = useSelectedNetwork()
   const isNetworkRehydrated = useIsSelectedNetworkRehydrated()
   const targetChainId = (chainId ?? selectedChainId) as SupportedChainId
 
   const query = useQuery({
-    ...defaultedMarketsQueryOptions(targetChainId),
+    ...defaultedMarketsQueryOptions(targetChainId, queryClient),
     enabled: chainId !== undefined || isNetworkRehydrated,
     refetchInterval: REFRESH_INTERVAL,
     refetchOnWindowFocus: false,
@@ -122,6 +144,7 @@ export const useDefaultedMarkets = (chainId?: number) => {
     const markets = query.data?.markets ?? {}
     const hasData = query.data !== undefined
     const hasFailed = query.isError || query.errorUpdateCount > 0
+    const unknown = new Set(query.data?.unknown ?? [])
     const byBorrower: Record<string, string[]> = {}
     Object.values(markets).forEach((market) => {
       byBorrower[market.borrower] = [
@@ -132,10 +155,15 @@ export const useDefaultedMarkets = (chainId?: number) => {
 
     return {
       isLoading: !hasData && query.isPending && !hasFailed,
-      isError: !hasData && hasFailed,
+      isError: query.isError || (!hasData && hasFailed) || unknown.size > 0,
       defaultedMarkets: markets,
-      isDefaulted: (marketAddress?: string) =>
-        !!marketAddress && marketAddress.toLowerCase() in markets,
+      isDefaulted: (marketAddress?: string): boolean | undefined => {
+        if (!marketAddress) return undefined
+        const address = marketAddress.toLowerCase()
+        if (address in markets) return true
+        if (!hasData || query.isError || unknown.has(address)) return undefined
+        return false
+      },
       defaultedAt: (marketAddress?: string) =>
         marketAddress
           ? markets[marketAddress.toLowerCase()]?.defaultedAt

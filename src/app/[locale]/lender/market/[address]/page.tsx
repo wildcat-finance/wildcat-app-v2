@@ -167,12 +167,12 @@ export default function LenderMarketDetails({
   )
   const { shouldWarn: showBorrowerPenaltyWarning } =
     useBorrowerPenaltyWarning(market)
-  const {
-    isLoading: isDefaultsLoading,
-    isDefaulted,
-    defaultedMarketsOfBorrower,
-  } = useDefaultedMarkets(market?.chainId ?? marketChainId)
-  const isMarketDefaulted = !!market && isDefaulted(market.address)
+  const { isDefaulted, defaultedMarketsOfBorrower } = useDefaultedMarkets(
+    market?.chainId ?? marketChainId,
+  )
+  const defaultStatus = isDefaulted(market?.address)
+  const isMarketDefaulted = defaultStatus === true
+  const isDefaultStatusUnknown = defaultStatus === undefined
   const borrowerHasOtherDefault =
     !!market &&
     !isMarketDefaulted &&
@@ -250,7 +250,6 @@ export default function LenderMarketDetails({
   // Indexed identity is enough to show the shell. Account and market reads
   // independently control the dynamic sections and transaction readiness.
   const isLoading = !market
-  const isPageLoading = isLoading || isDefaultsLoading
   const isTransactionsLoading =
     isAuthorizationPending ||
     (isConnected && !isDifferentChain && isActivityLoading)
@@ -266,7 +265,9 @@ export default function LenderMarketDetails({
     accessState === "resolving" ||
     accessState === "error"
   const showLenderRequestBanner =
-    bannerState === "request-access" && !isDefaultsLoading && !isMarketDefaulted
+    bannerState === "request-access" &&
+    !isDefaultStatusUnknown &&
+    !isMarketDefaulted
   const currentSection = useAppSelector(
     (state) => state.lenderMarketRouting.currentSection,
   )
@@ -398,7 +399,7 @@ export default function LenderMarketDetails({
   const showPenaltyOnlyWarning =
     hasLiveMarket &&
     showBorrowerPenaltyWarning &&
-    !isDefaultsLoading &&
+    !isDefaultStatusUnknown &&
     !isMarketDefaulted &&
     !borrowerHasOtherDefault
 
@@ -506,7 +507,7 @@ export default function LenderMarketDetails({
       </Box>
     )
 
-  if (isPageLoading && isMobile)
+  if (isLoading && isMobile)
     return (
       <Box
         sx={{
@@ -537,7 +538,7 @@ export default function LenderMarketDetails({
       </Box>
     )
 
-  if (isPageLoading && !isMobile)
+  if (isLoading && !isMobile)
     return (
       <Box sx={{ padding: "52px 20px 0 44px" }}>
         <Box sx={{ width: "69%" }}>
@@ -601,6 +602,7 @@ export default function LenderMarketDetails({
         marketAccount={marketAccount}
         showBorrowerPenaltyWarning={requiresBorrowerRiskAcknowledgement}
         isMarketDefaulted={isMarketDefaulted}
+        isDefaultStatusUnknown={isDefaultStatusUnknown}
       />
     )
 
@@ -647,7 +649,7 @@ export default function LenderMarketDetails({
               hasWrapper={hasWrapper}
               isLiveMarketReady={!isMarketActionsLoading}
               isMarketDefaulted={isMarketDefaulted}
-              isDefaultStatusLoading={isDefaultsLoading}
+              isDefaultStatusUnknown={isDefaultStatusUnknown}
               isMobileWithdrawalOpen={isMobileWithdrawalOpen}
               setIsMobileDepositOpen={setIsMobileDepositOpen}
               setIsMobileAckOpen={setIsMobileAckOpen}
@@ -681,7 +683,7 @@ export default function LenderMarketDetails({
               hasWrapper={hasWrapper}
               isLiveMarketReady={!isMarketActionsLoading}
               isMarketDefaulted={isMarketDefaulted}
-              isDefaultStatusLoading={isDefaultsLoading}
+              isDefaultStatusUnknown={isDefaultStatusUnknown}
               isMobileWithdrawalOpen={isMobileWithdrawalOpen}
               setIsMobileDepositOpen={setIsMobileDepositOpen}
               setIsMobileAckOpen={setIsMobileAckOpen}
@@ -861,7 +863,7 @@ export default function LenderMarketDetails({
                 hasWrapper={hasWrapper}
                 isLiveMarketReady={!isMarketActionsLoading}
                 isMarketDefaulted={isMarketDefaulted}
-                isDefaultStatusLoading={isDefaultsLoading}
+                isDefaultStatusUnknown={isDefaultStatusUnknown}
                 isMobileWithdrawalOpen={isMobileWithdrawalOpen}
                 setIsMobileDepositOpen={setIsMobileDepositOpen}
                 setIsMobileAckOpen={setIsMobileAckOpen}
@@ -953,7 +955,7 @@ export default function LenderMarketDetails({
                         hasWrapper={hasWrapper}
                         isLiveMarketReady={!isMarketActionsLoading}
                         isMarketDefaulted={isMarketDefaulted}
-                        isDefaultStatusLoading={isDefaultsLoading}
+                        isDefaultStatusUnknown={isDefaultStatusUnknown}
                       />
                     )}
                     <CapacityBarChart

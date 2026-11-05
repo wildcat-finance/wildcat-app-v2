@@ -16,7 +16,7 @@ export type AllMarketsAmounts = {
 export const getAllMarketsAmounts = (
   accounts: MarketAccount[],
   onboardingByMarket: MarketOnboardingByAddress,
-  isDefaulted: (marketAddress?: string) => boolean,
+  isDefaulted: (marketAddress?: string) => boolean | undefined,
 ): AllMarketsAmounts =>
   accounts.reduce(
     (amounts, { market }) => {

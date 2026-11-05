@@ -11,7 +11,7 @@ import { MarketOnboardingByAddress } from "@/utils/marketOnboarding"
 export type LenderMarketsDefaults = {
   isLoading: boolean
   isError: boolean
-  isDefaulted: (marketAddress?: string) => boolean
+  isDefaulted: (marketAddress?: string) => boolean | undefined
   defaultedMarketsOfBorrower: (borrowerAddress?: string) => string[]
 }
 
@@ -39,7 +39,7 @@ const defaultContext: LenderMarketsContextType = {
   defaults: {
     isLoading: false,
     isError: false,
-    isDefaulted: () => false,
+    isDefaulted: () => undefined,
     defaultedMarketsOfBorrower: () => [],
   },
 }

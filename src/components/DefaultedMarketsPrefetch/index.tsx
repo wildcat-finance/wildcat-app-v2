@@ -29,7 +29,7 @@ export const DefaultedMarketsPrefetch = () => {
   useEffect(() => {
     if (!isNetworkRehydrated) return
     queryClient.prefetchQuery(
-      defaultedMarketsQueryOptions(chainId as SupportedChainId),
+      defaultedMarketsQueryOptions(chainId as SupportedChainId, queryClient),
     )
   }, [queryClient, chainId, isNetworkRehydrated])
 

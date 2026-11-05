@@ -62,7 +62,8 @@ export const ProfilePage = ({ type, profileAddress }: ProfilePageProps) => {
   )
   const listedMarketsAmount = (listedMarkets ?? []).length
   const hasListedMarkets = listedMarketsAmount > 0
-  const showDefaultNotice = isExternal && !!defaults
+  const showDefaultNotice =
+    isExternal && defaultedMarketsOfBorrower(profileAddress).length > 0
   const accountName = profileData?.name ?? trimAddress(profileAddress as string)
 
   // Mobile

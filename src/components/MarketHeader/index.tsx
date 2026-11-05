@@ -101,9 +101,11 @@ export const MarketHeader = ({
     market.borrower,
   ).length
 
-  const marketStatus = isLiveMarketReady
-    ? getMarketStatusChip(market, isDefaulted(market.address))
-    : undefined
+  const defaultStatus = isDefaulted(market.address)
+  const marketStatus =
+    isLiveMarketReady && defaultStatus !== undefined
+      ? getMarketStatusChip(market, defaultStatus)
+      : undefined
   const isStatusDefaulted = marketStatus?.status === MarketStatus.DEFAULTED
   const shouldShowCycleChip =
     !!marketStatus && Boolean(remainingTime) && !market.isClosed

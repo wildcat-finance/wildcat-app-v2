@@ -10,5 +10,5 @@ export type MarketActionsProps = {
   hasWrapper?: boolean
   isLiveMarketReady: boolean
   isMarketDefaulted?: boolean
-  isDefaultStatusLoading?: boolean
+  isDefaultStatusUnknown?: boolean
 }

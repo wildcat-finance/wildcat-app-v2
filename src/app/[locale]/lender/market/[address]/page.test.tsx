@@ -39,6 +39,8 @@ import wrapDebtTokenFlow from "@/store/slices/wrapDebtTokenFlowSlice/wrapDebtTok
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import LenderMarketDetails from "./page"
 
+let mockDefaultStatus: boolean | undefined = false
+
 jest.mock("@wildcatfi/wildcat-sdk", () => ({
   ...jest.requireActual("@wildcatfi/wildcat-sdk"),
   getSubgraphClient: jest.fn(() => ({})),
@@ -93,10 +95,10 @@ jest.mock("./hooks/useBorrowerPenaltyWarning", () => ({
 }))
 jest.mock("@/hooks/useDefaultedMarkets", () => ({
   useDefaultedMarkets: () => ({
-    isLoading: false,
+    isLoading: mockDefaultStatus === undefined,
     isError: false,
     defaultedMarkets: {},
-    isDefaulted: () => false,
+    isDefaulted: () => mockDefaultStatus,
     defaultedAt: () => undefined,
     defaultedMarketsOfBorrower: () => [],
   }),
@@ -132,16 +134,36 @@ jest.mock("@/components/Profile/ProfileSection", () => ({
   ProfileSection: () => null,
 }))
 jest.mock("./components/MarketActions", () => ({
-  MarketActions: ({ isLiveMarketReady }: { isLiveMarketReady: boolean }) => (
-    <div data-live={isLiveMarketReady}>Account actions</div>
+  MarketActions: ({
+    isLiveMarketReady,
+    isDefaultStatusUnknown,
+  }: {
+    isLiveMarketReady: boolean
+    isDefaultStatusUnknown: boolean
+  }) => (
+    <div
+      data-live={isLiveMarketReady}
+      data-default-unknown={isDefaultStatusUnknown}
+    >
+      Account actions
+    </div>
   ),
 }))
 jest.mock("./components/mobile/MobileMarketActions", () => ({
   MobileMarketActions: ({
     isLiveMarketReady,
+    isDefaultStatusUnknown,
   }: {
     isLiveMarketReady: boolean
-  }) => <div data-live={isLiveMarketReady}>Account actions</div>,
+    isDefaultStatusUnknown: boolean
+  }) => (
+    <div
+      data-live={isLiveMarketReady}
+      data-default-unknown={isDefaultStatusUnknown}
+    >
+      Account actions
+    </div>
+  ),
 }))
 jest.mock("./components/BarCharts", () => ({ BarCharts: () => null }))
 jest.mock("./components/BarCharts/CapacityBarChart", () => ({
@@ -265,6 +287,7 @@ describe("lender market authorization loading", () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    mockDefaultStatus = false
     jest.mocked(useWagmiHydrated).mockReturnValue(true)
     jest
       .mocked(useWrapperBalances)
@@ -343,6 +366,24 @@ describe("lender market authorization loading", () => {
     cleanup()
     client.clear()
   })
+
+  it.each([false, true])(
+    "keeps account actions visible while default status resolves (mobile: %s)",
+    async (isMobile) => {
+      jest.mocked(useMobileResolution).mockReturnValue(isMobile)
+      mockDefaultStatus = undefined
+      readLive.mockResolvedValueOnce(liveResponse(true))
+      const { rerender } = mountPage()
+      expect(screen.getByText("Market header")).toBeTruthy()
+      const actions = await screen.findByText("Account actions")
+      expect(actions.getAttribute("data-live")).toBe("true")
+      expect(actions.getAttribute("data-default-unknown")).toBe("true")
+
+      mockDefaultStatus = false
+      rerender()
+      expect(actions.getAttribute("data-default-unknown")).toBe("false")
+    },
+  )
 
   it.each([false, true])(
     "waits for live permissions without flashing the invitation (mobile: %s)",

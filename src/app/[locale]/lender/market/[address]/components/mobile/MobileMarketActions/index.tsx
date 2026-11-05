@@ -39,7 +39,7 @@ export type MobileMarketActionsProps = {
   hasWrapper?: boolean
   isLiveMarketReady: boolean
   isMarketDefaulted?: boolean
-  isDefaultStatusLoading?: boolean
+  isDefaultStatusUnknown?: boolean
 }
 
 export type MobileMarketTransactionItemProps = {
@@ -140,7 +140,7 @@ export const MobileMarketActions = ({
   hasWrapper,
   isLiveMarketReady,
   isMarketDefaulted,
-  isDefaultStatusLoading,
+  isDefaultStatusUnknown,
 }: MobileMarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
@@ -197,7 +197,7 @@ export const MobileMarketActions = ({
 
   const showFaucet =
     !isMarketDefaulted &&
-    !isDefaultStatusLoading &&
+    !isDefaultStatusUnknown &&
     hideDeposit &&
     isTestnet &&
     market.underlyingToken.isMock &&
@@ -209,7 +209,7 @@ export const MobileMarketActions = ({
   const agreementGate = useDepositAgreementGate(market.address, market.chainId)
   const mlaRequiredAndUnsigned =
     !isMarketDefaulted &&
-    !isDefaultStatusLoading &&
+    !isDefaultStatusUnknown &&
     agreementGate.state === "requires-mla-signature"
   const [depositOpenRequested, setDepositOpenRequested] = React.useState(false)
 
@@ -222,7 +222,7 @@ export const MobileMarketActions = ({
     marketAccount.withdrawalAvailability !== QueueWithdrawalStatus.Ready
 
   const handleClickDeposit = () => {
-    if (!isLiveMarketReady || isMarketDefaulted || isDefaultStatusLoading)
+    if (!isLiveMarketReady || isMarketDefaulted || isDefaultStatusUnknown)
       return
 
     if (touRetryAvailable) {
@@ -527,7 +527,7 @@ export const MobileMarketActions = ({
                         disabled={
                           !isLiveMarketReady ||
                           isMarketDefaulted ||
-                          isDefaultStatusLoading ||
+                          isDefaultStatusUnknown ||
                           (touActionBlocked && !touRetryAvailable) ||
                           marketActionsManuallyDisabled ||
                           marketAccount.maximumDeposit.raw.isZero()

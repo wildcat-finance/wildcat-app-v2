@@ -398,7 +398,8 @@ export const ExploreMarketsTable = () => {
         onboardingByMarket,
       )
       return (
-        isExploreVisible(market, defaults.isDefaulted(market.address)) &&
+        defaults.isDefaulted(market.address) === false &&
+        isExploreVisible(market) &&
         !penaltyBorrowers.has(market.borrower.toLowerCase()) &&
         defaults.defaultedMarketsOfBorrower(market.borrower).length === 0 &&
         (onboardingMode === MarketOnboardingMode.SelfOnboard ||
