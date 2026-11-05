@@ -72,6 +72,13 @@ export const COMPARED = new Set([
   "S01",
   "S12",
   "S37",
+  // Terms (2.10), late markets (3.4) and completed facilities (3.6).
+  "M15",
+  "M16",
+  "M12",
+  "M14",
+  "S18",
+  "S30",
 ])
 
 const cardsWhere = (table: Record<string, string[]>, id: string) =>

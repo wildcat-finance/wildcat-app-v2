@@ -5,10 +5,12 @@ import path from "node:path"
 
 import {
   borrowerMetricsFrom,
+  lateShareSeries,
   MarketStateAt,
   MarketSummary,
   marketMetrics,
   marketMetricsAt,
+  quietPenaltySeconds,
   summarizeMarket,
 } from "./datasetMetrics"
 import { buildMarketDataset } from "../export/ledger/buildMarketDataset"
@@ -280,4 +282,169 @@ describe("completed facilities (S30-S34) and uncovered deadlines (D18)", () => {
     )
     expect(borrowerMetricsFrom([{ summary: closed, metrics }]).S30).toBe(1)
   }, 120_000)
+})
+
+describe("penalty seconds in the quiet window (H09, cheat sheet v4.2)", () => {
+  const grace = DAY
+  it("runs the contract's grace clock from its stored state", () => {
+    // Flagged delinquent, clock already past grace: the whole window.
+    expect(
+      quietPenaltySeconds({
+        elapsed: 4 * DAY,
+        grace,
+        storedDelinquent: true,
+        storedClock: 2 * DAY,
+        projectedClock: 6 * DAY,
+      }),
+    ).toBe(4 * DAY)
+    // Flagged delinquent, crosses grace half a day into the window.
+    expect(
+      quietPenaltySeconds({
+        elapsed: 4 * DAY,
+        grace,
+        storedDelinquent: true,
+        storedClock: DAY / 2,
+        projectedClock: 4.5 * DAY,
+      }),
+    ).toBe(3.5 * DAY)
+    // Not flagged: the clock winds down, charging until it drops below grace.
+    expect(
+      quietPenaltySeconds({
+        elapsed: 4 * DAY,
+        grace,
+        storedDelinquent: false,
+        storedClock: 3 * DAY,
+        projectedClock: 0,
+      }),
+    ).toBe(2 * DAY)
+    expect(
+      quietPenaltySeconds({
+        elapsed: 4 * DAY,
+        grace,
+        storedDelinquent: false,
+        storedClock: DAY / 2,
+        projectedClock: 0,
+      }),
+    ).toBe(0)
+  })
+
+  it("recovers the stored clock from the projection when it was not read", () => {
+    expect(
+      quietPenaltySeconds({
+        elapsed: 4 * DAY,
+        grace,
+        storedDelinquent: true,
+        projectedClock: 4.5 * DAY,
+      }),
+    ).toBe(3.5 * DAY)
+    expect(
+      quietPenaltySeconds({
+        elapsed: DAY,
+        grace,
+        storedDelinquent: false,
+        projectedClock: 2 * DAY,
+      }),
+    ).toBe(DAY)
+  })
+
+  it("adds the quiet window's penalty to time under penalty (M26)", () => {
+    const metrics = marketMetricsAt(summary(), {
+      ...state(true),
+      storedIsDelinquent: true,
+      storedTimeDelinquentSeconds: 2 * DAY,
+      timeDelinquentSeconds: 6 * DAY,
+    })
+    expect(metrics.H09).toBe(4 * DAY)
+    expect(metrics.M26).toBeCloseTo((100 * 4 * DAY) / (104 * DAY), 9)
+  })
+})
+
+describe("series", () => {
+  it("draws a market's rolling 90-day share of time late, weekly", () => {
+    // Late for the 9 days before T0, inside the last 90 of its 100 days.
+    const late = summary({
+      episodes: [{ onset: T0 - 9 * DAY, cure: T0, durationSeconds: 9 * DAY }],
+    })
+    const series = lateShareSeries([late], T0)
+    expect(series[series.length - 1]).toEqual([T0, 10])
+    expect(series[0][1]).toBe(0)
+    // One point a week, oldest first.
+    expect(series[1][0] - series[0][0]).toBe(7 * DAY)
+    // The book weighs each market by its live time.
+    const quiet = summary({ address: `0x${"c".repeat(40)}` })
+    const book = lateShareSeries([late, quiet], T0)
+    expect(book[book.length - 1]).toEqual([T0, 5])
+  })
+
+  it("keeps the base rate's steps and today's rate (2.5 trend)", () => {
+    const metrics = marketMetricsAt(
+      summary({
+        rateSteps: [
+          [T0 - 100 * DAY, 1_200],
+          [T0 - 40 * DAY, 850],
+        ],
+      }),
+      state(false),
+    )
+    expect(metrics.RATE_HISTORY).toEqual([
+      [T0 - 100 * DAY, 12],
+      [T0 - 40 * DAY, 8.5],
+      [at, 10],
+    ])
+    // A summary from before the rate history has none, not an invented one.
+    expect(marketMetricsAt(summary(), state(false)).RATE_HISTORY).toBe("")
+  })
+})
+
+describe("grace breaches (M25, M83, S13)", () => {
+  const episodes = [
+    {
+      onset: T0 - 50 * DAY,
+      cure: T0 - 49 * DAY,
+      durationSeconds: DAY / 2,
+      penalised: false,
+    },
+    {
+      onset: T0 - 30 * DAY,
+      cure: T0 - 28 * DAY,
+      durationSeconds: 2 * DAY,
+      penalised: true,
+    },
+    {
+      onset: T0 - 10 * DAY,
+      cure: T0 - 9 * DAY,
+      durationSeconds: DAY / 4,
+      penalised: false,
+    },
+  ]
+  it("counts episodes that ran past grace and the share cured within it", () => {
+    const metrics = marketMetricsAt(summary({ episodes }), state(false))
+    expect(metrics.M25).toBe(1)
+    expect(metrics.M83).toBeCloseTo((100 * 2) / 3, 9)
+  })
+
+  it("leaves both blank for a summary from before breaches were recorded", () => {
+    const old = episodes.map(({ onset, cure, durationSeconds }) => ({
+      onset,
+      cure,
+      durationSeconds,
+    }))
+    const metrics = marketMetricsAt(summary({ episodes: old }), state(false))
+    expect(metrics.M25).toBe("")
+    expect(metrics.M83).toBe("")
+  })
+
+  it("sums the book and divides per 100 episodes", () => {
+    const market = summary({ episodes })
+    const book = borrowerMetricsFrom(
+      [
+        { summary: market, metrics: marketMetricsAt(market, state(false)) },
+        { summary: market, metrics: marketMetricsAt(market, state(false)) },
+      ],
+      at,
+    )
+    expect(book.S13).toBe(2)
+    expect(book.BREACHES_PER_100).toBeCloseTo((100 * 2) / 6, 9)
+    expect(book.D15).toBe(2 * 24)
+  })
 })

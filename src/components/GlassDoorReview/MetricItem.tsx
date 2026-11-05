@@ -13,7 +13,7 @@ import {
   ChipKey,
 } from "@/components/GlassDoor/card"
 import {
-  DirectionPending,
+  Direction,
   LateShareBars,
   LateShareRow,
   RankStrip,
@@ -227,7 +227,13 @@ const ChartDisplays = ({
                   )}
                 </div>
                 <div aria-label="Direction" role="group">
-                  <DirectionPending />
+                  <Direction
+                    series={
+                      data.borrower.status === "ok"
+                        ? data.borrower.data.values.LATE_SHARE_90D
+                        : undefined
+                    }
+                  />
                 </div>
               </div>
             </div>

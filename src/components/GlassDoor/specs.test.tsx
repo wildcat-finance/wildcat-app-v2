@@ -11,7 +11,7 @@ import type {
   MetricValues,
 } from "./api"
 import { bookState, borrowerSpecs, lateShareRows } from "./borrowerSpecs"
-import { WorstIncidentBars } from "./charts"
+import { Direction, WorstIncidentBars } from "./charts"
 import { tokens, units } from "./format"
 import { borrowerPosition, marketSpecs } from "./marketSpecs"
 import { verdictExits, verdictInOrder, verdictWorstIncident } from "./rules"
@@ -359,7 +359,7 @@ describe("borrower cards", () => {
 
   it("reads the longest episode against that market's own allowance", () => {
     const spec = bookCard(
-      borrower({ D15: 54.6 / 24, S12: 3, S13: 1, BREACHES_PER_100: 100 / 3 }, [
+      borrower({ D15: 54.6, S12: 3, S13: 1, BREACHES_PER_100: 100 / 3 }, [
         row("wmtUSDC", { M23: 54.6, M15: 48, M25: 1 }),
         row("wmtWBTC", { M23: 12, M15: 48, M25: 0 }),
       ]),
@@ -515,5 +515,93 @@ describe("states the review found", () => {
     const { container } = render(<div>{line.chart?.expanded}</div>)
     expect(container.querySelector('[class*="chFillLabelled"]')).toBeNull()
     expect(screen.getByText(/^0\.7% of 100/)).toBeTruthy()
+  })
+})
+
+describe("chips read across the book and the protocol", () => {
+  const open = { M77: "Open", M49: 3, M18: 90, H01: 1_000 }
+  const own = {
+    ...open,
+    M06: 100,
+    M86: 40,
+    M15: 48,
+    M16: 24,
+    M12: 5,
+    M14: 10,
+  }
+  const other = { ...open, M86: 80, M15: 72, M16: 24, M12: 5, M14: 0 }
+  const compared = (median: number) => ({ median, population: 60 })
+
+  it("compares capacity and terms across the borrower's open markets", () => {
+    const data: MarketAnalytics = {
+      ...market(own),
+      comparisons: {
+        M15: compared(24),
+        M16: compared(24),
+        M12: compared(5),
+        M14: compared(0),
+      },
+    }
+    const book = borrower({ S01: 2 }, [row("0xabc", own), row("0xdef", other)])
+    const { supporting } = marketSpecs(data, book)
+    const line = supporting.find((spec) => spec.id === "2.6")!
+    expect(line.chips.borrower).toBe("their 2 open markets: 40% to 80% drawn")
+    const terms = supporting.find((spec) => spec.id === "2.10")!
+    expect(terms.chips.median).toBe(
+      "median allowed lateness 24 h · payout window 24 h · penalty +5.00 · reserve 0% · 60 graded markets",
+    )
+    expect(terms.chips.markets).toBe(
+      "this market against the median: allowed lateness 48 h vs 24 h · payout window 24 h vs 24 h · penalty +5.00 vs +5.00 · reserve 10% vs 0%",
+    )
+    expect(terms.chips.borrower).toBe(
+      "their 2 open markets: allowed lateness 48 h to 72 h · payout window 24 h · penalty +5.00 · reserve 0% to 10%",
+    )
+  })
+
+  it("says a finished market's rate and concentration are not compared", () => {
+    const pays = card({ M77: "Closed", M11: 0, M41: 10, M39: 8 }, "2.5")
+    expect(pays.chips.markets).toBe(
+      "not compared: a finished market's posted rate is zeroed at closure",
+    )
+    const funds = card({ M77: "Closed", M48: 0, M49: 4 }, "2.9")
+    expect(funds.chips.median).toBe(
+      "not compared: lender concentration is compared across open markets only",
+    )
+  })
+
+  it("names the borrower medians and lenders per market", () => {
+    const data: BorrowerAnalytics = {
+      ...borrower({ S18: 0, S30: 1, S37: 5 }, [
+        row("wmtUSDC", { M49: 4 }),
+        row("wmtWBTC", { M49: 2 }),
+      ]),
+      comparisons: { S18: compared(0), S30: compared(1) },
+    }
+    expect(bookCard(data, "3.4").chips.median).toBe(
+      "median borrower: 0 markets late now · 60 graded borrowers",
+    )
+    expect(bookCard(data, "3.6").chips.median).toBe(
+      "median borrower: 1 completed facility · 60 graded borrowers",
+    )
+    expect(bookCard(data, "3.10").chips.borrower).toBe(
+      "their markets: 4 on wmtUSDC, 2 on wmtWBTC (a lender in several markets counts in each)",
+    )
+  })
+})
+
+describe("card 3.12 direction line", () => {
+  it("draws the published 90-day series, or an empty frame without one", () => {
+    const day = 86_400
+    const series: [number, number][] = [
+      [1_790_000_000, 12],
+      [1_790_000_000 + 7 * day, 9],
+      [1_790_000_000 + 14 * day, 4.5],
+    ]
+    const { rerender } = render(<Direction series={series} />)
+    expect(
+      screen.getByRole("img", { name: /Share of book-days late.*4\.5% now/ }),
+    ).toBeTruthy()
+    rerender(<Direction series="" />)
+    expect(screen.getByText("not in this publication")).toBeTruthy()
   })
 })

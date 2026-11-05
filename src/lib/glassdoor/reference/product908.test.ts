@@ -33,7 +33,7 @@ const computed: Record<ReferenceScope, Record<string, MetricValue>> = {
 const NUMERIC = /^[+-]?[\d,]+(\.\d+)?%?$/
 
 // Durations in hours display rounded up to one decimal (product#908 ruling).
-const HOURS = new Set(["M15", "M16", "M22", "M23", "M80", "M82", "D16"])
+const HOURS = new Set(["M15", "M16", "M22", "M23", "M80", "M82", "D15", "D16"])
 
 // Round half away from zero to the precision the reference prints.
 const asDisplayed = (id: string, value: MetricValue, reference: string) => {

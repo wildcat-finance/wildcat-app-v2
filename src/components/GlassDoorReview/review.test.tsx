@@ -261,7 +261,7 @@ describe("toggle states", () => {
 
   it("list every metric and option on in the summary", () => {
     expect(countsText({})).toBe(
-      "On: Value 91 · Card 86 · Chart 39 · Comparison 20. Changed from the design: 0 metrics, 0 card treatments.",
+      "On: Value 91 · Card 86 · Chart 39 · Comparison 26. Changed from the design: 0 metrics, 0 card treatments.",
     )
     let toggles = setOption({}, ["M21"], "chart", false)
     const borrowerIds = metricsIn("borrower").map((m) => m.id)
@@ -283,7 +283,7 @@ describe("toggle states", () => {
       false,
     )
     expect(countsText(toggles)).toBe(
-      "On: Value 65 · Card 62 · Chart 30 · Comparison 13. Changed from the design: 27 metrics, 0 card treatments.",
+      "On: Value 65 · Card 62 · Chart 30 · Comparison 17. Changed from the design: 27 metrics, 0 card treatments.",
     )
     const text = summaryText(toggles, {}, [
       "Reviewed against Wintermute · wmtUSDC.",

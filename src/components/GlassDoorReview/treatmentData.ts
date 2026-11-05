@@ -18,7 +18,9 @@ import {
   count,
   days,
   hours,
+  isSeries,
   lifeShare,
+  longDate,
   percent,
   plural,
   score,
@@ -93,7 +95,7 @@ export const TREATMENTS = {
   G: {
     label: "Share bar",
     summary:
-      "status-page segments; unordered, because the chain holds counts not a series",
+      "status-page segments: the record's proportions, not when each part happened",
   },
   H: {
     label: "Bullet",
@@ -243,6 +245,29 @@ export const datumFromSpec = (
   evidence,
 })
 
+const TREND_BARS = 24
+
+/**
+ * Evenly spaced readings of a series for the trend bars: the value at each
+ * step (`stepped`, a rate holds until it changes) or the nearest point.
+ */
+export const sampleSeries = (series: [number, number][], stepped = false) => {
+  const first = series[0][0]
+  const last = series[series.length - 1][0]
+  const bars = Math.min(TREND_BARS, series.length)
+  return Array.from({ length: bars }, (_, index) => {
+    const time =
+      bars === 1 ? last : first + ((last - first) * index) / (bars - 1)
+    if (stepped) {
+      const before = series.filter(([pointTime]) => pointTime <= time)
+      return (before[before.length - 1] ?? series[0])[1]
+    }
+    return series.reduce((nearest, point) =>
+      Math.abs(point[0] - time) < Math.abs(nearest[0] - time) ? point : nearest,
+    )[1]
+  })
+}
+
 /** One datum per market card the selection has, by card number. */
 export function treatmentData(
   market: MarketAnalytics,
@@ -266,6 +291,10 @@ export function treatmentData(
   const open = openEpisodes(market.values)
   const episodes = finished === undefined ? undefined : finished + open
   const data: Record<string, IndexDatum> = {}
+  const seriesOf = (id: string) => {
+    const value = market.values[id]
+    return isSeries(value) && value.length >= 2 ? value : undefined
+  }
 
   // ---------- 2.1 In order ----------
   if (specs["2.1"]) {
@@ -274,6 +303,22 @@ export function treatmentData(
     const penalty = hasRecord ? n("M26") : undefined
     d.rank = rankOf(cmp.M18)
     if (life === 0) d.unavailable = "No recorded history yet."
+    // Cash there over the trailing 90 days, weekly (100 − share of days late).
+    const lateShare = seriesOf("LATE_SHARE_90D")
+    if (lateShare) {
+      const inOrder = lateShare.map(([time, share]): [number, number] => [
+        time,
+        100 - share,
+      ])
+      const first = inOrder[0]
+      const last = inOrder[inOrder.length - 1]
+      d.trend = [
+        sampleSeries(inOrder).map((value) => Math.max(0, value)),
+        `${score(first[1])} on ${longDate(first[0])}`,
+        `now ${score(last[1])}`,
+        "cash there over the trailing 90 days, weekly (100 − share of days late)",
+      ]
+    }
     if (
       hasRecord &&
       late !== undefined &&
@@ -544,13 +589,21 @@ export function treatmentData(
         earned,
       )} earned (M42)`
     }
-    if (!closed && base !== undefined && average !== undefined) {
-      const max = Math.max(base, average)
+    // The base rate over the market's life, stepped at each change.
+    const rates = seriesOf("RATE_HISTORY")
+    if (rates) {
+      const samples = sampleSeries(rates, true)
+      const max = Math.max(...samples)
+      const first = rates[0]
+      const last = rates[rates.length - 1]
       d.trend = [
-        max > 0 ? [(100 * average) / max, (100 * base) / max] : [0, 0],
-        `lifetime average ${apr(average)}`,
-        `now ${apr(base)}`,
-        "two endpoints only: the publication holds the time-weighted average and today's rate, not the path between",
+        samples.map((value) => (max > 0 ? (100 * value) / max : 0)),
+        `${apr(first[1])} from ${longDate(first[0])}`,
+        `${closed ? "last" : "now"} ${apr(last[1])}`,
+        `base APR over the market's life (${plural(
+          rates.length - 1,
+          "rate change",
+        )}; lifetime average ${average === undefined ? NA : apr(average)})`,
       ]
     }
     d.sentence = closed

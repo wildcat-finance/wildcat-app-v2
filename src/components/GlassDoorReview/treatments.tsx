@@ -235,8 +235,8 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
           ))}
         </div>
         <Muted>
-          unordered share of the record: the chain holds counts, not a
-          day-by-day series, so position means nothing here
+          unordered share of the record: the segments show proportions, not when
+          each part happened
         </Muted>
         <div className={t.claim}>{d.countClaim}</div>
       </>
@@ -497,7 +497,7 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
           <Name d={d} />
           <Unavailable
             d={d}
-            fallback="The snapshot holds one figure for this index, not a series, so there is no trend to plot."
+            fallback="This index has no series in this publication, so there is no trend to plot."
           />
         </>
       )

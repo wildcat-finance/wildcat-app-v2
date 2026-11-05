@@ -38,6 +38,13 @@ export const PER_MARKET_TABLE = [
   "M49",
   // Card 3.8 names where the book's grace breaches happened.
   "M25",
+  // Market cards read across the borrower's markets: capacity used (2.6) and
+  // the terms (2.10).
+  "M86",
+  "M06",
+  "M16",
+  "M12",
+  "M14",
 ]
 
 type Cut = { block: number; hash: string; timestamp: number }

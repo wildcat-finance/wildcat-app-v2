@@ -1,6 +1,6 @@
 import { formatHours } from "@/lib/glassdoor/format"
 
-import { MetricValue } from "./api"
+import { MetricValue, Series } from "./api"
 
 // Number rules from the design language: scores and percentages to one
 // decimal on cards and two inside formulas, rounded half up; token amounts in
@@ -22,6 +22,17 @@ const MINUS = "−"
 
 export const isNumber = (value: MetricValue | undefined): value is number =>
   typeof value === "number" && Number.isFinite(value)
+
+/** A published series: [unix seconds, value] points, oldest first. */
+export const isSeries = (value: unknown): value is Series =>
+  Array.isArray(value) &&
+  value.every(
+    (point) =>
+      Array.isArray(point) &&
+      point.length === 2 &&
+      typeof point[0] === "number" &&
+      typeof point[1] === "number",
+  )
 
 const roundHalfUp = (value: number, decimals: number) => {
   const scale = 10 ** decimals

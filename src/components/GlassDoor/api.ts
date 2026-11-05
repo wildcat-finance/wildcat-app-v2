@@ -3,7 +3,9 @@ import { useQuery } from "@tanstack/react-query"
 // Client side of the Glass Door read API (src/lib/glassdoor/read.ts). Every
 // response comes from one publication, so a page's figures share one block.
 
-export type MetricValue = number | string | null
+/** A time series: [unix seconds, value] points, oldest first. */
+export type Series = [number, number][]
+export type MetricValue = number | string | null | Series
 export type MetricValues = Record<string, MetricValue>
 
 export type Comparison = {

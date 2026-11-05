@@ -138,8 +138,8 @@ const tokenAmount = (value: number, asset?: string) =>
 
 type Format = (value: number, asset?: string) => string
 
-// Published units, which differ from the sheet's for D15 and H09: D15 is
-// published in days and H09 as a flag (the pipeline's tailPenalised).
+// Published units follow cheat sheet v4.2: Longest episode, all markets (D15)
+// in hours, Penalty seconds in the quiet window (H09) in seconds.
 const NUMBER_FORMAT: Record<string, Format> = {
   M05: ageDays,
   M06: tokenAmount,
@@ -215,14 +215,14 @@ const NUMBER_FORMAT: Record<string, Format> = {
   S37: count,
   D03: tokenAmount,
   D10: (v) => percent(v),
-  D15: days,
+  D15: (v) => hours(v),
   D16: (v) => hours(v),
   D17: days,
   D21: contractKept,
   H01: seconds,
   H02: seconds,
   H08: seconds,
-  H09: (v) => `${yesNo(v)} (${count(v)})`,
+  H09: seconds,
 }
 
 const TEXT_FORMAT: Record<

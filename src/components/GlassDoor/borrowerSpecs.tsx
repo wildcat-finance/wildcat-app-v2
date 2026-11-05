@@ -380,7 +380,12 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
         ) : undefined,
     },
     chips: {
-      median: "TBD: no borrower median of late markets is computed yet",
+      median: cmp.S18
+        ? `median borrower: ${plural(
+            cmp.S18.median,
+            "market",
+          )} late now · ${count(cmp.S18.population)} graded borrowers`
+        : "TBD: no protocol median yet",
       markets: protocol
         ? `protocol right now: ${count(protocol.lateNow)} of ${plural(
             protocol.openMarkets,
@@ -509,7 +514,13 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
         ) : undefined,
     },
     chips: {
-      median: "TBD: no borrower median of completed facilities is computed yet",
+      median: cmp.S30
+        ? `median borrower: ${plural(
+            cmp.S30.median,
+            "completed facility",
+            "completed facilities",
+          )} · ${count(cmp.S30.population)} graded borrowers`
+        : "TBD: no protocol median yet",
       markets: protocol
         ? `${plural(
             protocol.completedFacilities,
@@ -532,8 +543,9 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
     (total, row) => total + openEpisodes(row.values),
     0,
   )
-  const longestDays = n("D15")
-  const longest = longestDays === undefined ? undefined : longestDays * 24
+  // Longest episode, all markets (D15) is published in hours (v4.2).
+  const longest = n("D15")
+  const longestDays = longest === undefined ? undefined : longest / 24
   const longestRow =
     longest === undefined
       ? undefined
@@ -683,6 +695,11 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
 
   // ---------- 3.10 Lender breadth ----------
   const lenders = n("S37")
+  // Distinct lenders per market (M49), most first.
+  const lenderRows = rows
+    .map((row) => ({ row, lenders: reader(row.values).n("M49") ?? 0 }))
+    .filter((entry) => entry.lenders > 0)
+    .sort((left, right) => right.lenders - left.lenders)
   const breadth: CardSpec = {
     id: "3.10",
     page: "borrower",
@@ -710,8 +727,14 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
           )} · ${count(cmp.S37.population)} graded borrowers`
         : "TBD: no protocol median yet",
       markets: rankPhrase(cmp.S37, "borrowers"),
-      borrower:
-        "TBD: per-market lender counts are not served on the borrower record yet",
+      borrower: lenderRows.length
+        ? `their markets: ${lenderRows
+            .map(
+              ({ row, lenders: marketLenders }) =>
+                `${count(marketLenders)} on ${marketLabel(row)}`,
+            )
+            .join(", ")} (a lender in several markets counts in each)`
+        : "their markets: no lender yet",
     },
     chipCharts: { markets: rank(cmp.S37) },
   }

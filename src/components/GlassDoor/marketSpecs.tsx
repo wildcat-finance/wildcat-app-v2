@@ -183,6 +183,16 @@ export function marketSpecs(
   const finishedFlag = closed
     ? { flag: "FINISHED", flagTone: "neutral" as const }
     : {}
+  const openBookRows = (book?.markets ?? []).filter(
+    (row) =>
+      row.state === "Ok" && row.values.M77 === "Open" && isFunded(row.values),
+  )
+  /** "24 h" when every market agrees, else "24 h to 72 h". */
+  const spread = (values: number[], format: (value: number) => string) => {
+    const low = Math.min(...values)
+    const high = Math.max(...values)
+    return low === high ? format(low) : `${format(low)} to ${format(high)}`
+  }
   const borrowerChip = (text: string | undefined) => {
     if (singleMarket) return SINGLE_MARKET
     return text ?? NO_BOOK
@@ -350,6 +360,7 @@ export function marketSpecs(
       graceHours: value("M15")!,
     })
   })
+  // Longest episode, all markets (D15), in hours.
   const bookLongest = bookValues?.n("D15")
   const worstVerdict =
     closed || grace === 0 ? null : verdictWorstIncident(noIncident ? 0 : worst)
@@ -404,9 +415,8 @@ export function marketSpecs(
       markets: rankPhrase(cmp.M24, "markets"),
       borrower: borrowerChip(
         bookLongest !== undefined
-          ? `their book: longest episode ${hours(bookLongest * 24)}${
-              longest !== undefined &&
-              Math.abs(bookLongest * 24 - longest) < 0.05
+          ? `their book: longest episode ${hours(bookLongest)}${
+              longest !== undefined && Math.abs(bookLongest - longest) < 0.05
                 ? ", this market"
                 : ""
             }`
@@ -803,6 +813,9 @@ export function marketSpecs(
         )} (M42) · amber chip only above 5%`}
       />
     )
+  const postedRateNote = closed
+    ? "not compared: a finished market's posted rate is zeroed at closure"
+    : "TBD: no posted rate to compare yet"
   // A finished market's base rate is zeroed at closure; it shows what it earned.
   let paysValue: string = show(base, apr)
   let paysSub = base === undefined ? "" : "per year, paid to lenders in full"
@@ -869,7 +882,7 @@ export function marketSpecs(
           ? `median posted rate ${apr(cmp.M11.median)} across ${count(
               cmp.M11.population,
             )} graded open markets; this market posts ${apr(base)}`
-          : "TBD: no posted rate to compare",
+          : postedRateNote,
       borrower: borrowerChip(
         bookRates.length > 1
           ? `their ${count(bookRates.length)} open markets post ${apr(
@@ -881,6 +894,9 @@ export function marketSpecs(
   }
 
   // ---------- 2.6 How the line is used ----------
+  const bookCapacity = openBookRows
+    .map((row) => row.values.M86)
+    .filter(isNumber)
   const capacity = n("M06")
   const used = capacity === 0 ? undefined : n("M86")
   const owedShare =
@@ -940,8 +956,14 @@ export function marketSpecs(
         : "TBD: no protocol median yet",
       markets:
         "not ranked: capacity use is measured, not graded as better or worse",
-      borrower:
-        "TBD: per-market capacity is not served on the borrower record yet",
+      borrower: borrowerChip(
+        bookCapacity.length > 1
+          ? `their ${count(bookCapacity.length)} open markets: ${spread(
+              bookCapacity,
+              (value) => percent(value),
+            )} drawn`
+          : undefined,
+      ),
     },
   }
 
@@ -1051,6 +1073,9 @@ export function marketSpecs(
   }
 
   // ---------- 2.9 Who funds it ----------
+  const concentrationNote = closed
+    ? "not compared: lender concentration is compared across open markets only"
+    : "TBD: no protocol median yet"
   const active = n("M48")
   const ever = n("M49")
   const largest = n("D10")
@@ -1148,7 +1173,7 @@ export function marketSpecs(
         ? `median top-lender share ${percent(cmp.D10.median, 0)} · ${count(
             cmp.D10.population,
           )} graded open markets`
-        : "TBD: no protocol median yet",
+        : concentrationNote,
       markets: cmp.M49
         ? `median distinct lenders ${count(cmp.M49.median)} across ${count(
             cmp.M49.population,
@@ -1163,6 +1188,32 @@ export function marketSpecs(
   }
 
   // ---------- 2.10 Terms ----------
+  const TERMS: {
+    id: string
+    label: string
+    format: (value: number) => string
+  }[] = [
+    { id: "M15", label: "allowed lateness", format: (value) => hours(value) },
+    { id: "M16", label: "payout window", format: (value) => hours(value) },
+    { id: "M12", label: "penalty", format: (value) => `+${score(value, 2)}` },
+    { id: "M14", label: "reserve", format: (value) => percent(value) },
+  ]
+  const termMedians = TERMS.filter((term) => cmp[term.id]).map((term) => ({
+    ...term,
+    median: cmp[term.id].median,
+    value: n(term.id),
+  }))
+  const bookTerms =
+    openBookRows.length > 1
+      ? TERMS.map((term) => {
+          const values = openBookRows
+            .map((row) => row.values[term.id])
+            .filter(isNumber)
+          return values.length === openBookRows.length
+            ? `${term.label} ${spread(values, term.format)}`
+            : undefined
+        }).filter((text): text is string => Boolean(text))
+      : []
   const types = typeLabels?.length ? typeLabels.join(", ") : NA
   const terms: CardSpec = {
     id: "2.10",
@@ -1199,11 +1250,29 @@ export function marketSpecs(
       "cycle status is never a standing countdown",
     ),
     chips: {
-      median: "TBD: protocol comparisons of terms are not computed yet (sheet)",
-      markets:
-        "TBD: protocol comparisons of terms are not computed yet (sheet)",
-      borrower:
-        "TBD: comparing terms across their markets is not computed yet (sheet)",
+      median: termMedians.length
+        ? `median ${termMedians
+            .map((term) => `${term.label} ${term.format(term.median)}`)
+            .join(" · ")} · ${count(cmp.M15?.population ?? 0)} graded markets`
+        : "TBD: no protocol median yet",
+      markets: termMedians.length
+        ? `this market against the median: ${termMedians
+            .map((term) =>
+              term.value === undefined
+                ? `${term.label} ${NA}`
+                : `${term.label} ${term.format(term.value)} vs ${term.format(
+                    term.median,
+                  )}`,
+            )
+            .join(" · ")}`
+        : "TBD: no protocol median yet",
+      borrower: borrowerChip(
+        bookTerms.length
+          ? `their ${count(openBookRows.length)} open markets: ${bookTerms.join(
+              " · ",
+            )}`
+          : undefined,
+      ),
     },
   }
 

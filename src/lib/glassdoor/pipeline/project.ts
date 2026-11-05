@@ -37,7 +37,10 @@ const call = (to: string, data: string, block: string) => ({
   params: [{ to, data }, block],
 })
 
-/** currentState(), asset balance, totalDebts() and totalSupply() at the cut. */
+/**
+ * currentState(), asset balance, totalDebts(), totalSupply() and the stored
+ * previousState() at the cut.
+ */
 export async function readStatesAtCut(
   rpc: ExportRpc,
   markets: MarketRef[],
@@ -59,16 +62,25 @@ export async function readStatesAtCut(
       ),
       call(address, metadataInterface.encodeFunctionData("totalDebts"), block),
       call(address, metadataInterface.encodeFunctionData("totalSupply"), block),
+      call(
+        address,
+        metadataInterface.encodeFunctionData("previousState"),
+        block,
+      ),
     ]),
   )
   return markets.map((_, index) => {
-    const [stateRaw, assetsRaw, debtsRaw, supplyRaw] = results.slice(
-      index * 4,
-      index * 4 + 4,
+    const [stateRaw, assetsRaw, debtsRaw, supplyRaw, storedRaw] = results.slice(
+      index * 5,
+      index * 5 + 5,
     )
     const state = metadataInterface.decodeFunctionResult(
       "currentState",
       stateRaw,
+    )[0] as DecodedState
+    const stored = metadataInterface.decodeFunctionResult(
+      "previousState",
+      storedRaw,
     )[0] as DecodedState
     const scaledTotalSupply = big(state.scaledTotalSupply)
     const normalizedUnclaimedWithdrawals = big(
@@ -106,6 +118,8 @@ export async function readStatesAtCut(
       protocolFeeBips: Number(state.protocolFeeBips),
       reserveRatioBips: Number(state.reserveRatioBips),
       isClosed: state.isClosed,
+      storedTimeDelinquentSeconds: Number(stored.timeDelinquent),
+      storedIsDelinquent: stored.isDelinquent,
     }
   })
 }

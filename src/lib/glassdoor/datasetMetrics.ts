@@ -18,7 +18,9 @@ import {
 //                                         block, so time-driven values move
 // marketMetrics(dataset) is the same two stages at the dataset's own block.
 
-export type MetricValue = number | string
+/** A time series: [unix seconds, value] points, oldest first. */
+export type Series = [number, number][]
+export type MetricValue = number | string | Series
 export type MetricResults = Record<string, MetricValue>
 
 const SECONDS_PER_YEAR = 31_536_000n
@@ -26,6 +28,8 @@ const BIPS_TO_RAY = 10n ** 23n
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 const WINDOW_SECONDS = 90 * 86_400
 const MINIMUM_WINDOW_RECORD = 7 * 86_400
+/** One point a week on the 90-day series. */
+const SERIES_STEP = 7 * 86_400
 
 const toBigInt = (value: unknown) => BigInt(String(value ?? 0))
 const tokens = (raw: bigint | string, decimals: number) =>
@@ -55,13 +59,20 @@ export type MarketStateAt = {
   isClosed: boolean
   /** From the market's hooks instance; absent when it could not be read. */
   minimumDepositRaw?: string
+  /**
+   * previousState(): the contract's stored grace clock and delinquency flag
+   * at its last update. The stored clock is absent where only the projection
+   * (currentState) was read.
+   */
+  storedTimeDelinquentSeconds?: number
+  storedIsDelinquent?: boolean
 }
 
 /**
  * Bumped when the summary's fields or their formulas change; older summaries
  * are recomputed from the market's stored dataset.
  */
-export const SUMMARY_VERSION = 3
+export const SUMMARY_VERSION = 4
 
 /** Everything about a market that only changes when it emits events. */
 export type MarketSummary = {
@@ -102,6 +113,11 @@ export type MarketSummary = {
    */
   tailDayEnds?: { timestamp: number; short: boolean }[]
   recordedSeconds: number
+  /**
+   * The base rate over time: [period start, bips] at each change, from the
+   * accruals (2.5 trend). Absent from summaries before version 4.
+   */
+  rateSteps?: [number, number][]
   penaltySeconds: number
   penaltyInterestRaw: string
   lenderInterestRaw: string
@@ -232,6 +248,14 @@ export function summarizeMarket(dataset: MarketDataset): MarketSummary {
       (total, row) => total + (row.periodEnd - row.periodStart),
       0,
     ),
+    rateSteps: [...accruals]
+      .sort((left, right) => left.periodStart - right.periodStart)
+      .reduce<[number, number][]>((steps, row) => {
+        const last = steps[steps.length - 1]
+        if (!last || last[1] !== row.annualInterestBips)
+          steps.push([row.periodStart, row.annualInterestBips])
+        return steps
+      }, []),
     penaltySeconds: accruals.reduce((total, row) => {
       if (row.delinquencyFeeBips === 0) return total
       return (
@@ -345,6 +369,7 @@ export const stateAtDataset = (dataset: MarketDataset): MarketStateAt => ({
   protocolFeeBips: dataset.snapshotState.protocolFeeBips,
   reserveRatioBips: dataset.snapshotState.reserveRatioBips,
   isClosed: dataset.snapshotState.isClosed,
+  storedIsDelinquent: dataset.snapshotState.storedIsDelinquent,
 })
 
 const overlap = ([start, end]: Interval, [from, to]: Interval) =>
@@ -396,6 +421,75 @@ const lateTailIntervals = (
   return intervals
 }
 
+/**
+ * Penalty seconds the contract charges for the quiet window (H09, cheat sheet
+ * v4.2): its grace clock run forward from the stored state under the stored
+ * delinquency flag, as the market's own state update would. A market that went
+ * short silently shows none until its next transaction.
+ */
+export function quietPenaltySeconds({
+  elapsed,
+  grace,
+  storedDelinquent,
+  storedClock,
+  projectedClock,
+}: {
+  elapsed: number
+  grace: number
+  storedDelinquent: boolean
+  /** previousState().timeDelinquent; recovered from the projection if absent. */
+  storedClock?: number
+  /** currentState().timeDelinquent at the cut. */
+  projectedClock: number
+}) {
+  if (elapsed <= 0) return 0
+  let before = storedClock
+  if (before === undefined) {
+    // Exact except for a clock that had already run down to zero.
+    if (storedDelinquent) before = Math.max(0, projectedClock - elapsed)
+    else before = projectedClock > 0 ? projectedClock + elapsed : 0
+  }
+  if (storedDelinquent) {
+    if (before >= grace) return elapsed
+    const after = before + elapsed
+    return after > grace ? after - grace : 0
+  }
+  return Math.min(Math.max(0, before - grace), elapsed)
+}
+
+/**
+ * Rolling 90-day share of time late, one point a week ending at `at`:
+ * 100 × late seconds / live seconds across the given markets in the 90 days
+ * before each point (card 3.12 direction line; one market for its own trend).
+ */
+export function lateShareSeries(markets: MarketSummary[], at: number): Series {
+  const lives = markets.map((summary) => ({
+    life: [
+      summary.deploymentTimestamp,
+      Math.min(summary.closedAt ?? at, at),
+    ] as Interval,
+    late: summary.episodes.map(
+      (episode): Interval => [episode.onset, Math.min(episode.cure ?? at, at)],
+    ),
+  }))
+  if (!lives.length) return []
+  const start = Math.min(...lives.map(({ life }) => life[0]))
+  const points: Series = []
+  for (let point = at; point > start; point -= SERIES_STEP) {
+    const window: Interval = [point - WINDOW_SECONDS, point]
+    const live = lives.reduce(
+      (total, { life }) => total + overlap(life, window),
+      0,
+    )
+    const late = lives.reduce(
+      (total, market) => total + unionLength(market.late, window),
+      0,
+    )
+    if (live > 0) points.push([point, (100 * late) / live])
+  }
+  return points.reverse()
+}
+
 /** Recorded and delinquent seconds inside the 90 days before `at`. */
 const windowSeconds = (
   summary: MarketSummary,
@@ -443,7 +537,16 @@ export function marketMetricsAt(
     summary.lastAccrualEnd !== undefined
       ? at - summary.lastAccrualEnd
       : 0
-  const tailPenalised = state.timeDelinquentSeconds > grace ? 1 : 0
+  const quietPenalty =
+    tail > 0
+      ? quietPenaltySeconds({
+          elapsed: tail,
+          grace,
+          storedDelinquent: state.storedIsDelinquent ?? false,
+          storedClock: state.storedTimeDelinquentSeconds,
+          projectedClock: state.timeDelinquentSeconds,
+        })
+      : 0
   const recordedLife = summary.recordedSeconds + tail
   const lateTail =
     tail > 0 ? lateTailIntervals(summary, at - tail, at, shortOfCash) : []
@@ -535,7 +638,7 @@ export function marketMetricsAt(
     H01: recordedLife,
     H02: delinquentSeconds,
     H08: tail,
-    H09: tailPenalised,
+    H09: quietPenalty,
     M01: summary.symbol,
     /** The full market name, shown with the symbol (M01). */
     MARKET_NAME: summary.market?.name ?? "",
@@ -566,7 +669,7 @@ export function marketMetricsAt(
         ? (100 * curedInGrace) / closed.length
         : "",
     M26: recordedLife
-      ? (100 * (summary.penaltySeconds + tail * tailPenalised)) / recordedLife
+      ? (100 * (summary.penaltySeconds + quietPenalty)) / recordedLife
       : 0,
     M27: tokens(penaltyInterest, decimals),
     M30: batches.expired,
@@ -635,6 +738,21 @@ export function marketMetricsAt(
     D18_NEVER: neverPaid ?? "",
     /** Window days, the S27 weight. */
     WINDOW_DAYS: days(window.recorded),
+    /** Base APR over time, percent (2.5 trend). */
+    RATE_HISTORY:
+      summary.rateSteps === undefined
+        ? ""
+        : [
+            ...summary.rateSteps.map(([time, bips]): [number, number] => [
+              time,
+              bips / 100,
+            ]),
+            ...(summary.closedAt === undefined
+              ? [[at, state.annualInterestBips / 100] as [number, number]]
+              : []),
+          ],
+    /** Rolling 90-day share of time late (2.1 trend). */
+    LATE_SHARE_90D: lateShareSeries([summary], at),
   }
 }
 
@@ -643,6 +761,8 @@ export const marketMetrics = (dataset: MarketDataset): MetricResults =>
 
 export function borrowerMetricsFrom(
   markets: { summary: MarketSummary; metrics: MetricResults }[],
+  /** The publication's time; the newest dataset's when absent. */
+  at = Math.max(0, ...markets.map(({ summary }) => summary.datasetTimestamp)),
 ): MetricResults {
   const funded = markets.filter(({ summary }) => summary.funded)
   const values = (id: string) =>
@@ -756,13 +876,19 @@ export function borrowerMetricsFrom(
     S35: debtWhere("M21"),
     S36: debtWhere("M85"),
     S37: lenders.size,
-    D15: days(Math.max(0, ...values("M23")) * 3_600),
+    // Hours, against that market's grace period (cheat sheet v4.2).
+    D15: Math.max(0, ...values("M23")),
     D16: closedDurations.length
       ? hours(closedDurations.reduce((a, b) => a + b, 0)) /
         closedDurations.length
       : 0,
     D21: contractKept === "" ? "" : 100 - contractKept,
     D18: batchSplitKnown ? `${total("D18_LATE")} / ${total("D18_NEVER")}` : "",
+    /** Rolling 90-day share of book-days late, weekly (3.12 direction). */
+    LATE_SHARE_90D: lateShareSeries(
+      funded.map(({ summary }) => summary),
+      at,
+    ),
   }
 }
 

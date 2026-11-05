@@ -22,6 +22,11 @@ export const MARKET_COMPARISONS: Record<string, Direction> = {
   M39: null,
   M20: null,
   M49: null,
+  // Terms (card 2.10): medians only, since no term is better or worse.
+  M15: null,
+  M16: null,
+  M12: null,
+  M14: null,
 }
 
 /**
@@ -45,6 +50,9 @@ export const BORROWER_COMPARISONS: Record<string, Direction> = {
   S01: null,
   S12: null,
   S37: null,
+  // Markets late now (3.4) and completed facilities (3.6).
+  S18: null,
+  S30: null,
   MARKET_DAYS: null,
 }
 

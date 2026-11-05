@@ -151,7 +151,7 @@ export const borrowerFixture: BorrowerAnalytics = {
     S36: 0,
     S37: 753,
     MARKET_DAYS: 2257,
-    D15: 2.275,
+    D15: 54.6,
     D16: 9,
     D18: "81 / 0",
     D21: 99.9,

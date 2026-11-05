@@ -155,7 +155,8 @@ export const PRODUCT_908_REFERENCE: ReferenceValue[] = [
   borrower("S12", "Episodes, all markets", "450"),
   borrower("D16", "Typical cure time, all markets", "9.6"),
   borrower("S13", "Grace breaches, all markets", "6"),
-  borrower("D15", "Longest episode, all markets", "2.3"),
+  // Hours in cheat sheet v4.2 (v4 printed 2.3 days).
+  borrower("D15", "Longest episode, all markets", "54.6"),
   // 3.10 Lender breadth
   // Token holders, as M49, per Andreas (product#908, 20 Oct 2026); was 753.
   borrower("S37", "Distinct lenders, all markets", "797"),

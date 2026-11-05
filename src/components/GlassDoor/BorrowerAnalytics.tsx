@@ -12,7 +12,7 @@ import {
 } from "./api"
 import { borrowerSpecs, lateShareRows, marketLabel } from "./borrowerSpecs"
 import { AnalyticsCardRow, CardSpec, VerdictChip } from "./card"
-import { DirectionPending, LateShareBars, Tbd } from "./charts"
+import { Direction, LateShareBars, Tbd } from "./charts"
 import {
   apr,
   BLANK,
@@ -239,7 +239,7 @@ const Trouble = ({ borrower }: { borrower: BorrowerData }) => {
           )}
         </div>
         <div aria-label="Direction" role="group">
-          <DirectionPending />
+          <Direction series={borrower.values.LATE_SHARE_90D} />
         </div>
       </div>
     </section>

@@ -29,6 +29,8 @@ export const metadataInterface = new utils.Interface([
   "function delinquencyGracePeriod() view returns (uint32)",
   "function withdrawalBatchDuration() view returns (uint32)",
   "function currentState() view returns (tuple(bool isClosed,uint128 maxTotalSupply,uint128 accruedProtocolFees,uint128 normalizedUnclaimedWithdrawals,uint104 scaledTotalSupply,uint104 scaledPendingWithdrawals,uint32 pendingWithdrawalExpiry,bool isDelinquent,uint32 timeDelinquent,uint16 protocolFeeBips,uint16 annualInterestBips,uint16 reserveRatioBips,uint112 scaleFactor,uint32 lastInterestAccruedTimestamp))",
+  // The stored state at the market's last update (no projection).
+  "function previousState() view returns (tuple(bool isClosed,uint128 maxTotalSupply,uint128 accruedProtocolFees,uint128 normalizedUnclaimedWithdrawals,uint104 scaledTotalSupply,uint104 scaledPendingWithdrawals,uint32 pendingWithdrawalExpiry,bool isDelinquent,uint32 timeDelinquent,uint16 protocolFeeBips,uint16 annualInterestBips,uint16 reserveRatioBips,uint112 scaleFactor,uint32 lastInterestAccruedTimestamp))",
   "function totalAssets() view returns (uint256)",
   "function totalDebts() view returns (uint256)",
   "function totalSupply() view returns (uint256)",

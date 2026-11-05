@@ -22,7 +22,8 @@ export const MARKET_RULES: Record<string, Rule> = {
   H01: COUNT,
   H02: COUNT,
   H08: COUNT,
-  H09: FLAG,
+  // Penalty seconds in the quiet window (cheat sheet v4.2).
+  H09: COUNT,
   M05: AMOUNT,
   M06: AMOUNT,
   M07: AMOUNT,
@@ -148,6 +149,8 @@ const asNumber = (value: unknown) =>
 const MARKET_RELATIONS: [string, (metrics: MetricResults) => boolean][] = [
   ["H02 ≤ H01", (m) => Number(m.H02) <= Number(m.H01)],
   ["H08 ≤ H01", (m) => Number(m.H08) <= Number(m.H01)],
+  // Penalty seconds in the quiet window fit inside it.
+  ["H09 ≤ H08", (m) => m.H09 === undefined || Number(m.H09) <= Number(m.H08)],
   ["M31 ≤ M30", (m) => Number(m.M31) <= Number(m.M30)],
   // Every batch short at expiry was either paid late or is still unpaid.
   [
@@ -206,7 +209,7 @@ function boundProblems(metrics: MetricResults, rules: Record<string, Rule>) {
     if (value === undefined || value === "" || typeof value === "string") {
       return
     }
-    if (!Number.isFinite(value)) {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
       problems.push(`${id} is not a finite number`)
       return
     }

@@ -848,7 +848,7 @@ async function performUpdate(
         gated.has(outcome) ? "UnderReview" : outcome.state,
       )
     const partial = states.some((state) => state !== "Ok")
-    const metrics = borrowerMetricsFrom(group)
+    const metrics = borrowerMetricsFrom(group, cuts.get(chainId)!.timestamp)
     // A partial roll-up can legitimately count less than last time.
     const problems = borrowerGateProblems(
       metrics,

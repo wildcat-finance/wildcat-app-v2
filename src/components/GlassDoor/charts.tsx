@@ -1,7 +1,16 @@
 import * as React from "react"
 
 import styles from "./analytics.module.css"
-import { count, hours, lifeShare, percent, score } from "./format"
+import { Series } from "./api"
+import {
+  count,
+  hours,
+  isSeries,
+  lifeShare,
+  longDate,
+  percent,
+  score,
+} from "./format"
 import { Tone } from "./rules"
 
 // The charts on the two pages, from the design handoff (analytics-charts.js):
@@ -733,8 +742,8 @@ export const LateShareBars = ({
 }
 
 /**
- * Card 3.12 view 2: the direction line's axes. The rolling 90-day series is
- * not computed yet, so the frame stays empty instead of drawing a shape.
+ * Card 3.12 view 2 without a series (a publication from before the series
+ * was published): the axes only, never an invented shape.
  */
 export const DirectionPending = ({ yMax = 30 }: { yMax?: number }) => (
   <div className={cx(styles.ch, styles.chLine)}>
@@ -762,7 +771,7 @@ export const DirectionPending = ({ yMax = 30 }: { yMax?: number }) => (
           />
         ))}
       </svg>
-      <span className={styles.chLineEmpty}>not computed yet</span>
+      <span className={styles.chLineEmpty}>not in this publication</span>
     </div>
     <Legend
       full
@@ -771,10 +780,95 @@ export const DirectionPending = ({ yMax = 30 }: { yMax?: number }) => (
       ]}
     />
     <Caption full>
-      TBD: the rolling 90-day series of book-days late is not computed yet
+      the rolling 90-day series arrives with the next publication
     </Caption>
   </div>
 )
+
+const PLOT_WIDTH = 700
+const PLOT_HEIGHT = 120
+
+/**
+ * Card 3.12 view 2: the rolling 90-day share of book-days late, one point a
+ * week (LATE_SHARE_90D). The axis starts at 30% and extends to fit; the line
+ * falls when behaviour improves.
+ */
+export const DirectionLine = ({ series }: { series: Series }) => {
+  const peak = Math.max(...series.map(([, value]) => value))
+  const yMax = Math.max(30, Math.ceil(peak / 10) * 10)
+  const first = series[0][0]
+  const last = series[series.length - 1][0]
+  const span = Math.max(1, last - first)
+  const toX = (time: number) => ((time - first) / span) * (PLOT_WIDTH - 20) + 10
+  const toY = (value: number) =>
+    PLOT_HEIGHT - 6 - ((PLOT_HEIGHT - 12) * value) / yMax
+  const path = series
+    .map(
+      ([time, value], index) =>
+        `${index ? "L" : "M"}${toX(time).toFixed(1)},${toY(value).toFixed(1)}`,
+    )
+    .join(" ")
+  const latest = series[series.length - 1][1]
+  return (
+    <div className={cx(styles.ch, styles.chLine)}>
+      <div className={styles.chLineY} aria-hidden="true">
+        {[yMax, yMax / 2, 0].map((value) => (
+          <span key={value}>{value ? `${value}%` : "0"}</span>
+        ))}
+      </div>
+      <div className={styles.chLinePlot}>
+        <svg
+          viewBox={`0 0 ${PLOT_WIDTH} ${PLOT_HEIGHT}`}
+          preserveAspectRatio="none"
+          width="100%"
+          height={PLOT_HEIGHT}
+          role="img"
+          aria-label={`Share of book-days late, trailing 90 days: ${percent(
+            latest,
+          )} now, from ${longDate(first)} to ${longDate(last)}`}
+        >
+          {[6, PLOT_HEIGHT / 2, PLOT_HEIGHT - 6].map((y) => (
+            <line
+              key={y}
+              x1={0}
+              y1={y}
+              x2={PLOT_WIDTH}
+              y2={y}
+              stroke={y === PLOT_HEIGHT - 6 ? C.line : "#EFF0F4"}
+            />
+          ))}
+          <path
+            d={path}
+            fill="none"
+            stroke={C.amber}
+            strokeWidth={2}
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
+      </div>
+      <Legend
+        full
+        items={[
+          { color: C.amber, text: "share of book-days late, trailing 90 days" },
+        ]}
+      />
+      <Caption full>
+        {`weekly from ${longDate(first)} to ${longDate(last)} · now ${percent(
+          latest,
+        )}`}
+      </Caption>
+    </div>
+  )
+}
+
+/** The direction line when the publication carries its series. */
+export const Direction = ({ series }: { series: unknown }) =>
+  isSeries(series) && series.length >= 2 ? (
+    <DirectionLine series={series} />
+  ) : (
+    <DirectionPending />
+  )
 
 /** A comparison chip's rank: one bar per graded member, this one tall. */
 export const RankStrip = ({
