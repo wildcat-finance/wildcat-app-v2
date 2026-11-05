@@ -238,6 +238,3 @@ export const CHIPS = {
     range: "their range",
   },
 } as const
-
-/** Grace breaches (M25) wait for the recount (open item B2); M83 and S13 follow. */
-export const BREACH_RECOUNT = "TBD: breach recount open (B2)"

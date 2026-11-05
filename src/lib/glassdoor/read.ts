@@ -36,6 +36,8 @@ export const PER_MARKET_TABLE = [
   "M80",
   // A market with no lender ever (M49 = 0) took no deposits: it is not funded.
   "M49",
+  // Card 3.8 names where the book's grace breaches happened.
+  "M25",
 ]
 
 type Cut = { block: number; hash: string; timestamp: number }

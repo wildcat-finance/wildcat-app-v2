@@ -170,9 +170,6 @@ export const PRODUCT_908_REFERENCE: ReferenceValue[] = [
  * A metric that computes a different value here is reported, not failed.
  */
 export const ACCEPTED_REFERENCE_DIFFERENCES: Record<string, string> = {
-  M25: "Sheet value; recount under the penalty-span definition (open item B2).",
-  M83: "Follows the B2 breach recount.",
-  S13: "Follows the B2 breach recount.",
   D10: "Sheet value from lifetime deposits; v4 recomputes from current balances.",
   D18: "Reference has only the total (55 uncovered); the test checks that the split adds up to it.",
   D03: "Read from the hooks instance at publication time, not from a dataset; no reference value (TBD).",

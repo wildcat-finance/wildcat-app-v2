@@ -61,7 +61,7 @@ export type MarketStateAt = {
  * Bumped when the summary's fields or their formulas change; older summaries
  * are recomputed from the market's stored dataset.
  */
-export const SUMMARY_VERSION = 2
+export const SUMMARY_VERSION = 3
 
 /** Everything about a market that only changes when it emits events. */
 export type MarketSummary = {
@@ -109,8 +109,17 @@ export type MarketSummary = {
   rateBipsSeconds: number
   /** Accrual intervals ending after datasetTimestamp - 90 days. */
   recentAccruals: Interval[]
-  /** All episodes; an open episode's duration is as of datasetTimestamp. */
-  episodes: { onset: number; cure?: number; durationSeconds: number }[]
+  /**
+   * All episodes; an open episode's duration is as of datasetTimestamp.
+   * `penalised`: the grace period ran out during the episode, so the penalty
+   * started (a grace breach, M25). Absent from summaries before version 3.
+   */
+  episodes: {
+    onset: number
+    cure?: number
+    durationSeconds: number
+    penalised?: boolean
+  }[]
   batches: {
     expired: number
     fundedAtExpiry: number
@@ -264,6 +273,7 @@ export function summarizeMarket(dataset: MarketDataset): MarketSummary {
       onset: episode.onsetTimestamp,
       ...(episode.isOpen ? {} : { cure: episode.cureTimestamp }),
       durationSeconds: episode.durationSeconds,
+      penalised: episode.penaltyTriggered,
     })),
     batches: {
       expired: expiredEvents.length,
@@ -467,6 +477,22 @@ export function marketMetricsAt(
   )
   const lastCure = Math.max(0, ...closed.map((episode) => episode.cure ?? 0))
 
+  // Grace breaches (M25): episodes in which the grace period ran out, so the
+  // penalty started; an open one also counts once the grace clock is past
+  // grace at `at`. Cured within grace (M83) is the rest of the finished ones.
+  // This matches every product#908 reference value (5 of 237 for wmtUSDC,
+  // 97.9%, 6 across the book). Counting continuous penalty spans instead, as
+  // the sheet's wording reads, gives 3 for wmtUSDC: a penalty that runs on
+  // into the next episode is one span but two breached episodes.
+  const breachesKnown = episodes.every(
+    (episode) => episode.penalised !== undefined,
+  )
+  const breached = (episode: (typeof episodes)[number]) =>
+    episode.penalised === true ||
+    (episode.cure === undefined && state.timeDelinquentSeconds > grace)
+  const breaches = episodes.filter(breached).length
+  const curedInGrace = closed.filter((episode) => !breached(episode)).length
+
   // Trailing 90 days (M67, M68)
   const window = windowSeconds(summary, at, tail, lateTail)
   const inOrder = recordedLife
@@ -533,6 +559,12 @@ export function marketMetricsAt(
       : 0,
     M23: longestHours,
     M24: grace ? (100 * longestHours) / hours(grace) : 0,
+    M25: breachesKnown ? breaches : "",
+    // Blank with no finished episode: nothing to be cured yet.
+    M83:
+      breachesKnown && closed.length
+        ? (100 * curedInGrace) / closed.length
+        : "",
     M26: recordedLife
       ? (100 * (summary.penaltySeconds + tail * tailPenalised)) / recordedLife
       : 0,
@@ -667,6 +699,14 @@ export function borrowerMetricsFrom(
   )
   const trailingAll = weighted("M67", "WINDOW_DAYS")
   const contractKept = weighted("M26", "M05")
+  const breachesKnown = funded.every(
+    ({ metrics }) => metrics.M25 !== undefined && metrics.M25 !== "",
+  )
+  const breaches = breachesKnown ? total("M25") : ""
+  const episodeCount = funded.reduce(
+    (count, { summary }) => count + summary.episodes.length,
+    0,
+  )
   return {
     S01: funded.length,
     /** Market-days on record across the book: the evidence depth. */
@@ -676,10 +716,12 @@ export function borrowerMetricsFrom(
     S06: funded.length ? Math.min(...values("M18")) : "",
     S07: funded.length ? Math.max(...values("M18")) : "",
     // Finished episodes (M20) plus any still open (product#908 ruling).
-    S12: funded.reduce(
-      (count, { summary }) => count + summary.episodes.length,
-      0,
-    ),
+    S12: episodeCount,
+    // Grace breaches across the book (M25 summed), and per 100 episodes so
+    // books of different sizes compare.
+    S13: breaches,
+    BREACHES_PER_100:
+      breaches === "" || !episodeCount ? "" : (100 * breaches) / episodeCount,
     S14: batchesExpired,
     S15: batchesFunded,
     S16: batchesExpired ? (100 * batchesFunded) / batchesExpired : 0,

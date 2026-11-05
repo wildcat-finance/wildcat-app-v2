@@ -368,7 +368,14 @@ export function treatmentData(
     d.parts = [
       ["longest incident", longest === undefined ? NA : hours(longest)],
       ["allowed lateness", grace === undefined ? NA : hours(grace)],
-      ["breaches", "not published: recount open (B2)"],
+      [
+        "breaches",
+        n("M25") === undefined
+          ? NA
+          : `${count(n("M25")!)} of ${
+              episodes === undefined ? NA : count(episodes)
+            }`,
+      ],
       ["penalty interest paid", amount(n("M27"))],
     ]
     data["2.2"] = d

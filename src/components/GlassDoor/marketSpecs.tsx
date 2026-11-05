@@ -59,7 +59,6 @@ import {
   verdictInOrder,
   verdictWorstIncident,
 } from "./rules"
-import { BREACH_RECOUNT } from "./wording"
 
 const DAY = 86_400
 const NA = BLANK.unavailable
@@ -296,6 +295,14 @@ export function marketSpecs(
 
   // ---------- 2.2 Worst incident ----------
   const longest = n("M23")
+  // Grace breaches: episodes that ran past grace (M25); the rest of the
+  // finished ones were cured within grace (M83).
+  const breaches = n("M25")
+  const curedInTime = n("M83")
+  const curedText = (() => {
+    if (curedInTime !== undefined) return percent(curedInTime)
+    return finished === 0 ? "no finished episode yet" : NA
+  })()
   const worst =
     life !== 0 && grace !== undefined && grace > 0 ? n("M24") : undefined
   // The longest episode and the live state decide this, not the finished count.
@@ -367,16 +374,20 @@ export function marketSpecs(
       : "",
     formula: [
       worstFormula,
-      `breaches = Grace breaches (M25): ${BREACH_RECOUNT}`,
-      `cured in time = Cured within grace (M83): ${BREACH_RECOUNT}`,
+      `breaches = Grace breaches (M25) = ${show(breaches, count)} of ${show(
+        episodes,
+        (v) => plural(v, "episode"),
+      )}`,
+      `cured in time = Cured within grace (M83) = ${curedText}`,
     ].join("\n"),
     numbers: sentence(
       `longest episode ${show(longest, hours)} (M23)`,
       `allowance ${show(grace, hours)} (M15)`,
-      `breaches TBD in ${show(episodes, (v) =>
-        plural(v, "episode"),
-      )} (M25, recount open, B2)`,
-      "cured within grace TBD (M83, follows B2)",
+      `${show(breaches, (v) => plural(v, "breach", "breaches"))} in ${show(
+        episodes,
+        (v) => plural(v, "episode"),
+      )} (M25)`,
+      `cured within grace ${curedText} (M83)`,
     ),
     chart: {
       expanded: incidentRows.length ? (
@@ -1001,7 +1012,7 @@ export function marketSpecs(
       open
         ? `${count(open)} episode still open, not in the histogram`
         : undefined,
-      "cured within grace TBD (M83, breach recount B2)",
+      `cured within grace ${curedText} (M83)`,
     ),
     chart:
       finishedTotal && bucketsKnown

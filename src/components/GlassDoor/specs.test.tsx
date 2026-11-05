@@ -359,14 +359,17 @@ describe("borrower cards", () => {
 
   it("reads the longest episode against that market's own allowance", () => {
     const spec = bookCard(
-      borrower({ D15: 54.6 / 24, S12: 3 }, [
-        row("wmtUSDC", { M23: 54.6, M15: 48 }),
-        row("wmtWBTC", { M23: 12, M15: 48 }),
+      borrower({ D15: 54.6 / 24, S12: 3, S13: 1, BREACHES_PER_100: 100 / 3 }, [
+        row("wmtUSDC", { M23: 54.6, M15: 48, M25: 1 }),
+        row("wmtWBTC", { M23: 12, M15: 48, M25: 0 }),
       ]),
       "3.8",
     )
     expect(spec.compare).toBe("longest incident 54.6 h against 48 h")
-    expect(spec.value).toBe("breaches TBD")
+    // Grace breaches are counted: episodes that ran past their grace period.
+    expect(spec.value).toBe("1 breach")
+    expect(spec.sub).toContain("33.3 per 100")
+    expect(spec.chips.borrower).toBe("their markets: 1 on wmtUSDC")
   })
 
   it("distinguishes no closures from missing metrics", () => {

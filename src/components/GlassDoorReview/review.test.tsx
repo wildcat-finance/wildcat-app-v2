@@ -11,11 +11,7 @@ import {
   borrowerFixture,
   marketFixture,
 } from "@/components/GlassDoor/storyFixtures"
-import {
-  BREACH_RECOUNT,
-  CARDS,
-  METRIC_NAMES,
-} from "@/components/GlassDoor/wording"
+import { CARDS, METRIC_NAMES } from "@/components/GlassDoor/wording"
 import {
   BORROWER_COMPARISONS,
   MARKET_COMPARISONS,
@@ -140,9 +136,10 @@ describe("values and their reasons", () => {
   })
 
   it("keeps a metric without data listed with its reason", () => {
-    expect(shownValue(spec("M25"), ok)).toEqual({
-      kind: "tbd",
-      reason: BREACH_RECOUNT.replace(/^TBD: /, "Not published: "),
+    // Grace breaches are published now: 5 for the reference market.
+    expect(shownValue(spec("M25"), ok)).toMatchObject({
+      kind: "value",
+      text: "5",
     })
     expect(shownValue(spec("D11"), ok)).toMatchObject({ kind: "tbd" })
     expect(

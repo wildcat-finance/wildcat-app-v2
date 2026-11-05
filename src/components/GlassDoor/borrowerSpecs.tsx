@@ -5,8 +5,10 @@ import { CardSpec } from "./card"
 import {
   AgeWeightedBars,
   BucketBar,
+  C,
   CompletedBars,
   LateShareRow,
+  MarkArray,
   RankStrip,
   Tbd,
   WeightedMarket,
@@ -26,7 +28,6 @@ import {
 } from "./format"
 import { isFunded, openEpisodes, rankPhrase, reader, sentence } from "./helpers"
 import { LIMITED_NOTE, Tone, verdictExits, verdictInOrder } from "./rules"
-import { BREACH_RECOUNT } from "./wording"
 
 const NA = BLANK.unavailable
 const SINGLE_MARKET = "single-market borrower — no spread to show"
@@ -567,30 +568,69 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
       : `${plural(incidents, "incident")}${
           stillOpen ? `, ${count(stillOpen)} still open` : ""
         }`
+  // Grace breaches: episodes that ran past their grace period (S13 = M25
+  // summed), per market and per 100 episodes as the design prints them.
+  const breaches = n("S13")
+  const perMarket =
+    breaches !== undefined && markets ? breaches / markets : undefined
+  const per100 = n("BREACHES_PER_100")
+  const medianPer100 = cmp.BREACHES_PER_100?.median
+  const breachRows = rows
+    .map((row) => ({ row, breaches: reader(row.values).n("M25") ?? 0 }))
+    .filter((entry) => entry.breaches > 0)
+    .sort((left, right) => right.breaches - left.breaches)
+  let disciplineValue: string = NA
+  if (incidents === 0) disciplineValue = BLANK.noIncidents
+  else if (breaches !== undefined)
+    disciplineValue = plural(breaches, "breach", "breaches")
+  const per100Marks = (label: string, rate: number) => {
+    const marks = Math.min(100, Math.round(rate))
+    return (
+      <MarkArray
+        key={label}
+        groups={[
+          { count: marks, color: C.red, label: `${label} breaches per 100` },
+          {
+            count: 100 - marks,
+            color: C.greenBg,
+            label: "episodes cured within grace",
+          },
+        ]}
+        caption={`${label}: ${score(rate)} breaches per 100 episodes`}
+      />
+    )
+  }
   const discipline: CardSpec = {
     id: "3.8",
     page: "borrower",
     ids: "S12 · S13 · S01 · D15 · D16",
-    kind: "text",
-    value: incidents === 0 ? BLANK.noIncidents : "breaches TBD",
+    kind: breaches === undefined || incidents === 0 ? "text" : "count",
+    value: disciplineValue,
     verdict: null,
     sub:
       incidents === 0
         ? ""
         : join(
             incidentsText ? `in ${incidentsText}` : undefined,
+            per100 === undefined ? undefined : `${score(per100)} per 100`,
             hasFinished && !noFinished ? `typical cure ${cure}` : undefined,
           ),
     compare: longest === undefined ? "" : `longest incident ${longestText}`,
     formula: [
-      `per market = Grace breaches, all markets (S13) / Markets on Wildcat (S01) ${show(
-        markets,
+      `per market = Grace breaches, all markets (S13) ${show(
+        breaches,
         count,
-      )}: ${BREACH_RECOUNT}`,
-      `per 100 episodes = 100 × S13 / Episodes, all markets (S12) ${show(
-        incidents,
+      )} / Markets on Wildcat (S01) ${show(markets, count)} = ${show(
+        perMarket,
+        score,
+      )}`,
+      `per 100 episodes = 100 × S13 ${show(
+        breaches,
         count,
-      )}: ${BREACH_RECOUNT}`,
+      )} / Episodes, all markets (S12) ${show(incidents, count)} = ${show(
+        per100,
+        score,
+      )}`,
       `Longest episode, all markets (D15) = ${
         longest === undefined
           ? NA
@@ -602,33 +642,43 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
       } · Typical cure time, all markets (D16) = ${cure}`,
     ].join("\n"),
     numbers: sentence(
-      "breach = penalty span, same definition as the market level (C7); recount open under B2",
+      "breach = an episode that ran past its grace period, as the market level (M25)",
       incidentsText ? `the raw ${incidentsText} never headlines` : undefined,
       longestRow
         ? `longest episode on ${marketLabel(longestRow)} (D15)`
         : undefined,
     ),
     chart: {
-      expanded: (
-        <Tbd>
-          Breaches per 100 episodes (S13 / S12): {BREACH_RECOUNT}. The marks are
-          drawn once the recount is published.
-        </Tbd>
-      ),
+      expanded:
+        per100 === undefined ? (
+          <Tbd>No breach count for this book at this snapshot.</Tbd>
+        ) : (
+          <>
+            {per100Marks("This borrower", per100)}
+            {medianPer100 === undefined
+              ? null
+              : per100Marks("Median borrower", medianPer100)}
+          </>
+        ),
     },
     chips: {
-      median: cmp.S12
-        ? `median ${plural(cmp.S12.median, "incident")} · ${count(
-            cmp.S12.population,
-          )} graded borrowers`
-        : "TBD: no protocol median yet",
-      markets: "TBD: breaches across borrowers wait on the recount (B2)",
-      borrower: longestRow
-        ? `their markets: longest episode ${longestText} on ${marketLabel(
-            longestRow,
-          )}`
-        : "TBD: their longest episode is not available",
+      median:
+        medianPer100 === undefined
+          ? "TBD: no protocol median yet"
+          : `median ${score(medianPer100)} breaches per 100 episodes · ${count(
+              cmp.BREACHES_PER_100!.population,
+            )} graded borrowers`,
+      markets: rankPhrase(cmp.BREACHES_PER_100, "borrowers"),
+      borrower: breachRows.length
+        ? `their markets: ${breachRows
+            .map(
+              ({ row, breaches: marketBreaches }) =>
+                `${count(marketBreaches)} on ${marketLabel(row)}`,
+            )
+            .join(", ")}`
+        : "their markets: no breaches",
     },
+    chipCharts: { markets: rank(cmp.BREACHES_PER_100) },
   }
 
   // ---------- 3.10 Lender breadth ----------

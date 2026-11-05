@@ -40,6 +40,8 @@ export const BORROWER_COMPARISONS: Record<string, Direction> = {
   D21: "higher",
   S16: "higher",
   D16: "lower",
+  // Grace breaches per 100 episodes (S13 / S12), card 3.8.
+  BREACHES_PER_100: "lower",
   S01: null,
   S12: null,
   S37: null,

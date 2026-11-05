@@ -73,7 +73,9 @@ describe("borrower treatment evidence", () => {
     expect(treatmentIssue("B", datums["3.1"])).toBeDefined()
     expect(treatmentIssue("C", datums["3.10"])).toBeDefined()
     expect(treatmentIssue("E", datums["3.10"])).toBeUndefined()
-    expect(datums["3.8"].sentence).toMatch(/counts are not published/)
+    expect(datums["3.8"].sentence).toBe(
+      "6 grace breaches in 450 incidents: 1.3 per 100 episodes.",
+    )
   })
   it("never grades a missing history or current-state count as a score", () => {
     const noHistory = build({

@@ -28,11 +28,7 @@ import {
 } from "@/components/GlassDoor/format"
 import { isoDay, lifecycle, yesNo } from "@/components/GlassDoor/helpers"
 import { GATES } from "@/components/GlassDoor/rules"
-import {
-  BREACH_RECOUNT,
-  CARDS,
-  metric as metricLabel,
-} from "@/components/GlassDoor/wording"
+import { CARDS, metric as metricLabel } from "@/components/GlassDoor/wording"
 
 import { SPEC_METRICS, SPEC_SOURCE, SpecMetric } from "./catalogue"
 
@@ -256,13 +252,8 @@ export const formatValue = (
   return undefined
 }
 
-const RECOUNT = BREACH_RECOUNT.replace(/^TBD: /, "Not published: ")
-
 /** Ids the publication does not carry, each with its reason. */
 const NOT_PUBLISHED: Record<string, string> = {
-  M25: RECOUNT,
-  M83: RECOUNT,
-  S13: RECOUNT,
   D11: "Not published: defaults on record come from off-chain app data (the defaults badge), not from the Glass Door publication",
 }
 

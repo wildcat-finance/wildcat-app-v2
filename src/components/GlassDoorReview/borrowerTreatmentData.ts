@@ -103,9 +103,20 @@ export const borrowerTreatmentData = (
       cycle.parts.push(["share of recorded life completed", percent(share)])
   }
 
+  // Grace breaches: episodes that ran past their grace period, per 100.
   const discipline = data["3.8"]
-  if (discipline && specs["3.8"].value === "breaches TBD")
-    discipline.sentence = `Grace-breach counts are not published yet. ${specs["3.8"].sub}.`
+  const breaches = n("S13")
+  const incidents = n("S12")
+  if (discipline && breaches !== undefined && incidents !== undefined) {
+    const per100 = n("BREACHES_PER_100")
+    discipline.sentence = `${plural(
+      breaches,
+      "grace breach",
+      "grace breaches",
+    )} in ${plural(incidents, "incident")}${
+      per100 === undefined ? "" : `: ${score(per100)} per 100 episodes`
+    }.`
+  }
 
   const breadth = data["3.10"]
   const lenders = n("S37")

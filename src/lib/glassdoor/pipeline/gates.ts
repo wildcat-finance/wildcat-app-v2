@@ -40,6 +40,7 @@ export const MARKET_RULES: Record<string, Rule> = {
   M23: AMOUNT,
   // Worst incident against the allowance can exceed 100%.
   M24: AMOUNT,
+  M25: COUNT,
   M26: PERCENT,
   M27: AMOUNT,
   M30: COUNT,
@@ -68,6 +69,7 @@ export const MARKET_RULES: Record<string, Rule> = {
   M72: COUNT,
   M80: AMOUNT,
   M82: AMOUNT,
+  M83: PERCENT,
   M84: AMOUNT,
   M85: FLAG,
   // Capacity used can exceed 100%.
@@ -87,6 +89,8 @@ export const BORROWER_RULES: Record<string, Rule> = {
   S06: PERCENT,
   S07: PERCENT,
   S12: COUNT,
+  S13: COUNT,
+  BREACHES_PER_100: PERCENT,
   S14: COUNT,
   S15: COUNT,
   S16: PERCENT,
@@ -153,6 +157,12 @@ const MARKET_RELATIONS: [string, (metrics: MetricResults) => boolean][] = [
       m.D18_LATE === undefined ||
       Number(m.D18_LATE) + Number(m.D18_NEVER) ===
         Number(m.M30) - Number(m.M31),
+  ],
+  // A breach is a finished or open episode that ran past grace.
+  [
+    "M25 ≤ M20 + open episodes",
+    (m) =>
+      m.M25 === "" || m.M25 === undefined || Number(m.M25) <= Number(m.M20) + 1,
   ],
   [
     "M69 + M70 + M71 + M72 = M20",
