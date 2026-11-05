@@ -37,6 +37,13 @@ import {
 } from "./metrics"
 import { defaultOn, DISPLAY_OPTIONS, OptionKey } from "./options"
 import s from "./review.module.css"
+import {
+  IndexDatum,
+  TREATMENT_CARDS,
+  TreatmentCode,
+  TreatmentPicks,
+} from "./treatmentData"
+import { TreatmentSection } from "./treatments"
 
 const cx = (...names: (string | false | undefined)[]) =>
   names.filter(Boolean).join(" ")
@@ -48,7 +55,13 @@ export type CardSet = {
   trouble?: LateShareRow[]
   /** A finished market drops card 2.6. */
   closed?: boolean
+  /** Index datums for the display treatments, by market card number. */
+  treatments?: Record<string, IndexDatum>
 }
+
+/** The market card this metric heads, when the handoff draws treatments for it. */
+export const treatmentCardOf = (metric: SpecMetric) =>
+  designRole(metric).headline.find((card) => TREATMENT_CARDS.includes(card))
 
 const TROUBLE = "3.12"
 const LOADING = "loading…"
@@ -319,6 +332,8 @@ export const MetricItem = memo(
     cards,
     onToggle,
     onReset,
+    picks,
+    onTreatment,
   }: {
     metric: SpecMetric
     on: OptionKey[]
@@ -327,6 +342,9 @@ export const MetricItem = memo(
     onToggle: (id: string, key: OptionKey, value: boolean) => void
     /** Back to this metric's design default. */
     onReset: (id: string) => void
+    /** Chosen display treatment per market card. */
+    picks: TreatmentPicks
+    onTreatment: (card: string, code: TreatmentCode) => void
   }) => {
     const label = metricLabel(metric.id)
     const titleId = `metric-${metric.id}-title`
@@ -449,6 +467,10 @@ export const MetricItem = memo(
       )
     const tiles = showCards || on.includes("comparison")
     const displays = tiles || on.includes("chart")
+    const treatmentCard = treatmentCardOf(metric)
+    const treatmentRecord = treatmentCard
+      ? cardFor(treatmentCard, data, cards)
+      : undefined
 
     // The result leads: the value sits in the header beside the name, the
     // other displays follow it, and the spec's five parts come last.
@@ -554,6 +576,19 @@ export const MetricItem = memo(
               </div>
             ) : null}
           </div>
+        ) : null}
+        {treatmentCard ? (
+          <TreatmentSection
+            card={treatmentCard}
+            datum={cards.treatments?.[treatmentCard]}
+            reason={
+              treatmentRecord && "reason" in treatmentRecord
+                ? treatmentRecord.reason
+                : LOADING
+            }
+            picks={picks}
+            onChoose={onTreatment}
+          />
         ) : null}
         <dl className={s.parts}>
           <Part title="How it is calculated">

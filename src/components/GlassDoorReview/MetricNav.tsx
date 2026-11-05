@@ -79,17 +79,23 @@ export const useActiveMetric = (
 export const MetricNav = memo(
   ({
     toggles,
+    shown,
     active,
     collapsed,
-    onGo,
+    onToggleShown,
+    onShowGroup,
     onGoGroup,
   }: {
     toggles: Toggles
+    /** The metrics shown on the page. */
+    shown: readonly string[]
     /** The metric at the top of the page. */
     active?: string
     /** Collapsed sections of the page. */
     collapsed: readonly string[]
-    onGo: (id: string) => void
+    /** Shows a hidden metric (and scrolls to it) or hides a shown one. */
+    onToggleShown: (id: string) => void
+    onShowGroup: (key: Group, show: boolean) => void
     onGoGroup: (key: Group) => void
   }) => {
     // Keep the current metric in sight in a long sidebar.
@@ -104,23 +110,48 @@ export const MetricNav = memo(
         <h2 className={s.navTitle}>Metrics</h2>
         {GROUPS.map((group) => {
           const metrics = metricsIn(group.key)
+          const shownHere = metrics.filter((metric) =>
+            shown.includes(metric.id),
+          ).length
           return (
             <div key={group.key} className={s.navGroup}>
-              <a
-                className={s.navGroupLink}
-                href={`#group-${group.key}`}
-                onClick={(event) => {
-                  event.preventDefault()
-                  onGoGroup(group.key)
-                }}
-              >
-                <span>{group.title}</span>
+              <div className={s.navGroupHead}>
+                <a
+                  className={s.navGroupLink}
+                  href={`#group-${group.key}`}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    onGoGroup(group.key)
+                  }}
+                >
+                  {group.title}
+                </a>
                 <span className={s.navCount}>
-                  {collapsed.includes(group.key)
-                    ? `${metrics.length} · hidden`
-                    : metrics.length}
+                  {`${shownHere}/${metrics.length}${
+                    collapsed.includes(group.key) ? " · collapsed" : ""
+                  }`}
                 </span>
-              </a>
+                <span className={s.navActions}>
+                  <button
+                    type="button"
+                    className={s.navAction}
+                    aria-label={`Show all ${group.title.toLowerCase()}`}
+                    disabled={shownHere === metrics.length}
+                    onClick={() => onShowGroup(group.key, true)}
+                  >
+                    All
+                  </button>
+                  <button
+                    type="button"
+                    className={s.navAction}
+                    aria-label={`Hide all ${group.title.toLowerCase()}`}
+                    disabled={shownHere === 0}
+                    onClick={() => onShowGroup(group.key, false)}
+                  >
+                    None
+                  </button>
+                </span>
+              </div>
               <ul className={s.navList}>
                 {metrics.map((metric) => (
                   <li key={metric.id}>
@@ -130,8 +161,8 @@ export const MetricNav = memo(
                       enterDelay={150}
                       disableInteractive
                     >
-                      <a
-                        href={`#metric-${metric.id}`}
+                      <button
+                        type="button"
                         data-nav-metric={metric.id}
                         className={
                           isDefault(toggles, metric.id)
@@ -139,16 +170,14 @@ export const MetricNav = memo(
                             : `${s.navId} ${s.navChanged}`
                         }
                         aria-label={`${metric.name} (${metric.id})`}
+                        aria-pressed={shown.includes(metric.id)}
                         aria-current={
                           active === metric.id ? "location" : undefined
                         }
-                        onClick={(event) => {
-                          event.preventDefault()
-                          onGo(metric.id)
-                        }}
+                        onClick={() => onToggleShown(metric.id)}
                       >
                         {metric.id}
-                      </a>
+                      </button>
                     </Tooltip>
                   </li>
                 ))}
@@ -157,7 +186,8 @@ export const MetricNav = memo(
           )
         })}
         <p className={s.navNote}>
-          Dashed: display changed from the design default.
+          Select an ID to show or hide its metric. Underlined: at the top of the
+          page. Dashed: display changed from the design default.
         </p>
       </nav>
     )

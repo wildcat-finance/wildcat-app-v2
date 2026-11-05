@@ -8,6 +8,7 @@ import { metric as metricLabel } from "@/components/GlassDoor/wording"
 import { SPEC_METRICS } from "./catalogue"
 import { designDefault } from "./design"
 import { GROUPS, groupOf } from "./metrics"
+import { cleanPicks, TREATMENT_KEY, TreatmentPicks } from "./treatmentData"
 
 export type OptionKey = "value" | "card" | "chart" | "comparison"
 
@@ -81,6 +82,52 @@ export const saveToggles = (
     return false
   }
 }
+
+const loadJson = (key: string, store: Store | undefined): unknown => {
+  try {
+    const text = store?.getItem(key)
+    return text ? JSON.parse(text) : undefined
+  } catch {
+    return undefined
+  }
+}
+
+/** Writes a value, or removes the key for none; false when refused. */
+const saveJson = (key: string, value: unknown, store: Store | undefined) => {
+  if (!store) return false
+  try {
+    if (value === undefined) store.removeItem(key)
+    else store.setItem(key, JSON.stringify(value))
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** The metrics shown on the page, chosen in the sidebar list. */
+export const SHOWN_KEY = "glassdoor-review:shown:v1"
+
+/** Shown metric ids in spec order; none until the reviewer picks some. */
+export const loadShown = (store: Store | undefined = browserStore()) => {
+  const raw = loadJson(SHOWN_KEY, store)
+  return Array.isArray(raw)
+    ? SPEC_METRICS.map((metric) => metric.id).filter((id) => raw.includes(id))
+    : []
+}
+
+export const saveShown = (
+  ids: string[],
+  store: Store | undefined = browserStore(),
+) => saveJson(SHOWN_KEY, ids.length ? ids : undefined, store)
+
+export const loadPicks = (store: Store | undefined = browserStore()) =>
+  cleanPicks(loadJson(TREATMENT_KEY, store))
+
+export const savePicks = (
+  picks: TreatmentPicks,
+  store: Store | undefined = browserStore(),
+) =>
+  saveJson(TREATMENT_KEY, Object.keys(picks).length ? picks : undefined, store)
 
 export const optionsOn = (toggles: Toggles, id: string) =>
   toggles[id] ?? defaultOn(id)
@@ -175,7 +222,12 @@ export const countsText = (toggles: Toggles) => {
 }
 
 /** The summary as plain text, to paste into the issue. */
-export const summaryText = (toggles: Toggles, context: string[] = []) =>
+export const summaryText = (
+  toggles: Toggles,
+  context: string[] = [],
+  /** One line per market card: its chosen display treatment. */
+  treatments: string[] = [],
+) =>
   [
     "Glass Door metric review: metrics and display options on (product#917)",
     ...context,
@@ -195,4 +247,11 @@ export const summaryText = (toggles: Toggles, context: string[] = []) =>
           : "none"
       }`,
     ]),
+    ...(treatments.length
+      ? [
+          "",
+          "Display treatments (A–P) per market card",
+          ...treatments.map((line) => `- ${line}`),
+        ]
+      : []),
   ].join("\n")

@@ -1,0 +1,594 @@
+/*
+ * Temporary: the metric review page (product#917). Remove with the page.
+ * The sixteen display treatments, ported from the design handoff
+ * (analytics-card.css, section "treatments") with its tokens and sizes.
+ */
+.grid {
+  --ac-fg-1: #141414;
+  --ac-fg-2: #30313e;
+  --ac-fg-3: #8a8c9f;
+  --ac-border: #e6e7eb;
+  --ac-border-subtle: #eff0f4;
+  --ac-border-input: #d4d6dd;
+  --ac-border-active: #141414;
+  --ac-surface: #ffffff;
+  --ac-surface-3: #eff0f4;
+  --ac-page: #f4f4f8;
+  --ac-strong-fg: #1d8a1d;
+  --ac-watch-bg: #fbedc3;
+  --ac-watch-fg: #9e7a11;
+  --ac-problem-bg: #f7d7da;
+  --ac-problem-fg: #c24647;
+  --ac-limited-bg: #eff0f4;
+  --ac-limited-fg: #8a8c9f;
+  --ac-mono: ui-monospace, Menlo, Consolas, monospace;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 10px;
+  line-height: 1.4;
+}
+
+/* ---------- tile chrome ---------- */
+/* The tile's choose button covers the tile, so a click anywhere chooses it. */
+.tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 16px 18px;
+  border: 1px solid var(--ac-border);
+  border-radius: 20px;
+  background: var(--ac-surface);
+  color: var(--ac-fg-2);
+  text-align: left;
+  transition: border-color 160ms cubic-bezier(0.2, 0, 0, 1);
+}
+.tile:has(.choose:hover) {
+  border-color: var(--ac-border-input);
+}
+.tileChosen,
+.tileChosen:has(.choose:hover) {
+  border-color: var(--ac-border-active);
+  box-shadow: 0 0 0 1px var(--ac-border-active);
+}
+.tile:has(.choose:focus-visible) {
+  border-color: var(--ac-border-active);
+  box-shadow: 0 0 0 2px rgba(73, 113, 255, 0.12);
+}
+.choose {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.choose::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+}
+.choose:focus-visible {
+  outline: none;
+}
+.tileHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.tileLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ac-fg-3);
+}
+.tileRight {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.tileHelp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border: 1px solid var(--ac-border);
+  border-radius: 999px;
+  color: var(--ac-fg-3);
+  font-size: 10px;
+}
+.tileCode {
+  padding: 2px 7px;
+  border-radius: 8px;
+  background: #efebff;
+  color: #4112b5;
+  font-family: var(--ac-mono);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.tileMark {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ac-fg-1);
+}
+.tileMarkMuted {
+  font-size: 10px;
+  color: var(--ac-fg-3);
+}
+.tileBody {
+  flex: 1;
+  padding-top: 12px;
+  border-top: 1px solid var(--ac-border-subtle);
+}
+
+/* ---------- shared parts ---------- */
+.name {
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ac-fg-2);
+}
+.nameInline {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--ac-fg-1);
+}
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.head .name {
+  margin: 0;
+}
+.headLeft {
+  justify-content: flex-start;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 10px;
+}
+.valueRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+.value {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--ac-fg-1);
+}
+.valueSm {
+  font-size: 14px;
+}
+.valueMd {
+  font-size: 22px;
+}
+.unit {
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--ac-fg-2);
+}
+.muted {
+  margin-top: 7px;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--ac-fg-3);
+}
+.claim {
+  margin-top: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--ac-fg-1);
+}
+.sentence {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ac-fg-1);
+  text-wrap: pretty;
+}
+.sentenceSm {
+  margin-bottom: 9px;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+.unavailable {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ac-fg-3);
+}
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.strong {
+  background: #dff3e6;
+  color: var(--ac-strong-fg);
+}
+.watch {
+  background: var(--ac-watch-bg);
+  color: var(--ac-watch-fg);
+}
+.problem {
+  background: var(--ac-problem-bg);
+  color: var(--ac-problem-fg);
+}
+.limited {
+  background: var(--ac-limited-bg);
+  color: var(--ac-limited-fg);
+}
+.context {
+  background: #e4ebfe;
+  color: #2b4bd6;
+}
+
+/* ---------- B counted, G share bar ---------- */
+.cells {
+  display: grid;
+  grid-template-columns: repeat(10, 8px);
+  gap: 2px;
+}
+.cell {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+.strip {
+  display: flex;
+  align-items: stretch;
+  gap: 1px;
+  height: 26px;
+}
+.strip > span {
+  display: block;
+  flex: 1;
+  border-radius: 2px;
+}
+
+/* ---------- C rail ---------- */
+.rail {
+  position: relative;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--ac-border);
+}
+.railFill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 8px;
+  border-radius: 4px;
+}
+.railTick {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 16px;
+  background: var(--ac-fg-1);
+}
+
+/* ---------- E rank ---------- */
+.rank {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 26px;
+}
+.rankBar {
+  display: block;
+  flex: 1;
+  height: 12px;
+  border-radius: 2px;
+  background: #d4d6dd;
+}
+.rankMe {
+  height: 26px;
+  background: #4112b5;
+}
+
+/* ---------- F detail ---------- */
+.split {
+  display: flex;
+  height: 22px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.split > span {
+  display: block;
+}
+.part {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--ac-page);
+  font-size: 11.5px;
+}
+.part span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.part b {
+  color: var(--ac-fg-1);
+}
+
+/* ---------- H bullet ---------- */
+.bullet {
+  position: relative;
+  height: 22px;
+  margin-top: 2px;
+}
+.bulletBands {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.bulletBands > span {
+  display: block;
+}
+.bulletBar {
+  position: absolute;
+  top: 7px;
+  left: 0;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--ac-fg-1);
+}
+.bulletTick {
+  position: absolute;
+  top: 2px;
+  width: 3px;
+  height: 18px;
+}
+
+/* ---------- I distribution ---------- */
+.dist {
+  position: relative;
+  height: 26px;
+  margin-top: 6px;
+}
+.distLine {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--ac-border);
+}
+.distBox {
+  position: absolute;
+  top: 4px;
+  left: 25%;
+  width: 50%;
+  height: 18px;
+  border: 1px solid var(--ac-border-input);
+  border-radius: 4px;
+  background: var(--ac-surface-3);
+}
+.distMedian {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  width: 2px;
+  height: 18px;
+  background: var(--ac-fg-3);
+}
+.distMe {
+  position: absolute;
+  top: 0;
+  width: 3px;
+  height: 26px;
+  border-radius: 2px;
+  background: #4112b5;
+}
+.distAxis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 10.5px;
+  color: var(--ac-fg-3);
+}
+
+/* ---------- J dial, K scorecard ---------- */
+.dial {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.dot {
+  display: block;
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+}
+.score {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+  font-size: 11.5px;
+}
+.scoreKey {
+  color: var(--ac-fg-3);
+}
+.scoreValue {
+  color: var(--ac-fg-1);
+  text-align: right;
+}
+.good {
+  color: var(--ac-strong-fg);
+}
+.bad {
+  color: var(--ac-problem-fg);
+}
+.faint {
+  color: var(--ac-fg-3);
+}
+
+/* ---------- L aging buckets ---------- */
+.bucket {
+  display: grid;
+  grid-template-columns: 78px 1fr 44px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.bucketLabel {
+  font-size: 10.5px;
+  color: var(--ac-fg-3);
+}
+.bucketBar {
+  display: block;
+  height: 11px;
+  border-radius: 3px;
+}
+.bucketValue {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ac-fg-1);
+  text-align: right;
+}
+
+/* ---------- M covenant headroom ---------- */
+.cov {
+  position: relative;
+  height: 30px;
+  margin-bottom: 10px;
+}
+.covTrack {
+  position: absolute;
+  inset: 11px 0 auto 0;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--ac-surface-3);
+}
+.covBar {
+  position: absolute;
+  top: 11px;
+  left: 0;
+  height: 8px;
+  border-radius: 4px;
+}
+.covLimit {
+  position: absolute;
+  top: 5px;
+  width: 3px;
+  height: 20px;
+  background: var(--ac-fg-1);
+}
+.covFoot {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+}
+.covFoot span {
+  color: var(--ac-fg-3);
+}
+
+/* ---------- N side by side ---------- */
+.sbsHead {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--ac-border);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--ac-fg-3);
+}
+.sbsHead span:last-child {
+  text-align: right;
+}
+.sbsRow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--ac-page);
+}
+.sbsRow b {
+  font-size: 12.5px;
+  color: var(--ac-fg-1);
+}
+.sbsKey {
+  font-size: 10px;
+  color: #8a8c9f;
+}
+.sbsTheirs {
+  font-size: 12.5px;
+  color: var(--ac-fg-3);
+  text-align: right;
+}
+
+/* ---------- O trend ---------- */
+.trend {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 56px;
+  border-bottom: 1px solid var(--ac-border);
+}
+.trend > span {
+  display: block;
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  background: #4112b5;
+}
+.trendAxis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 7px;
+  font-size: 10.5px;
+  color: var(--ac-fg-3);
+}
+
+/* ---------- P exception line ---------- */
+.flag {
+  padding: 3px 7px;
+  border-radius: 9px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.flagWatch {
+  background: var(--ac-watch-bg);
+  color: var(--ac-watch-fg);
+}
+.next {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 9px;
+  border-top: 1px solid var(--ac-border-subtle);
+  font-size: 11px;
+}
+.next span {
+  color: var(--ac-fg-3);
+}
+.next b {
+  color: #4971ff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile {
+    transition: none;
+  }
+}

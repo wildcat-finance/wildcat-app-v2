@@ -39,6 +39,7 @@ import { useMarketMla } from "@/hooks/useMarketMla"
 import { ROUTES } from "@/routes"
 
 import { SPEC_METRICS } from "./catalogue"
+import { Chevron } from "./Chevron"
 import { REVIEW_NAV_ID } from "./gate"
 import { CardSet, MetricItem } from "./MetricItem"
 import { MetricNav, useActiveMetric, useSlot } from "./MetricNav"
@@ -57,19 +58,32 @@ import {
   countsText,
   DISPLAY_OPTIONS,
   isOn,
+  loadPicks,
+  loadShown,
   loadToggles,
   optionCounts,
   OptionKey,
   optionsOn,
   resetOptions,
+  savePicks,
+  saveShown,
   saveToggles,
   setOption,
+  SHOWN_KEY,
   STORAGE_KEY,
   summary,
   summaryText,
   Toggles,
 } from "./options"
 import s from "./review.module.css"
+import {
+  choose,
+  TREATMENT_KEY,
+  TreatmentCode,
+  treatmentData,
+  treatmentLines,
+  TreatmentPicks,
+} from "./treatmentData"
 
 const cx = (...names: (string | false | undefined)[]) =>
   names.filter(Boolean).join(" ")
@@ -79,22 +93,6 @@ const COLLAPSE_KEY = "glassdoor-review:collapsed:v2"
 type Section = Group | "summary"
 const SECTIONS: Section[] = [...GROUPS.map((group) => group.key), "summary"]
 const DEFAULT_COLLAPSED: Section[] = ["summary"]
-
-/** Points right when its section is collapsed (see .groupToggle). */
-const Chevron = () => (
-  <span className={s.chevron} aria-hidden="true">
-    <svg viewBox="0 0 16 16" width="16" height="16">
-      <path
-        d="M4 6l4 4 4-4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  </span>
-)
 
 const CHAINS: Record<number, string> = { 1: "Ethereum", 9745: "Plasma" }
 const chainName = (chainId?: number) =>
@@ -273,6 +271,7 @@ type Status = { text: string; toggles: Toggles; undo?: Toggles }
 
 const Summary = ({
   toggles,
+  picks,
   context,
   collapsed,
   onCollapse,
@@ -280,6 +279,8 @@ const Summary = ({
   onGo,
 }: {
   toggles: Toggles
+  /** Chosen display treatment per market card. */
+  picks: TreatmentPicks
   /** Which selection and publication the review was made against. */
   context: string[]
   collapsed: boolean
@@ -301,6 +302,7 @@ const Summary = ({
   )
   const [status, setStatus] = useState<Status>()
   const groups = summary(toggles)
+  const treatments = treatmentLines(picks)
   // A message belongs to the toggles it describes; any later change clears it.
   const shown = status?.toggles === toggles ? status : undefined
   const copy = async () => {
@@ -308,7 +310,11 @@ const Summary = ({
     const copied = `Copied ${longDate(Date.now() / 1_000)}.`
     try {
       await navigator.clipboard.writeText(
-        summaryText(toggles, [...context, copied]),
+        summaryText(
+          toggles,
+          [...context, copied],
+          treatments.map((line) => line.text),
+        ),
       )
       setStatus({ text: "Copied.", toggles })
     } catch {
@@ -419,6 +425,21 @@ const Summary = ({
             </div>
           ))}
         </div>
+        <div>
+          <h3 className={s.partTitle}>
+            Display treatments (A–P) per market card
+          </h3>
+          <ul className={s.summaryList}>
+            {treatments.map((line) => (
+              <li
+                key={line.card}
+                className={line.changed ? s.lineChanged : s.lineDefault}
+              >
+                <span>{line.text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </section>
   )
@@ -427,6 +448,8 @@ const Summary = ({
 const GroupSection = ({
   group,
   toggles,
+  shown,
+  picks,
   data,
   cards,
   collapsed,
@@ -434,9 +457,13 @@ const GroupSection = ({
   onToggle,
   onBulk,
   onReset,
+  onTreatment,
 }: {
   group: { key: Group; title: string }
   toggles: Toggles
+  /** The metrics chosen in the sidebar list; only these render. */
+  shown: ReadonlySet<string>
+  picks: TreatmentPicks
   data: ReviewData
   cards: CardSet
   collapsed: boolean
@@ -444,9 +471,18 @@ const GroupSection = ({
   onToggle: (id: string, key: OptionKey, on: boolean) => void
   onBulk: (ids: string[], key: OptionKey, on: boolean) => void
   onReset: (id: string) => void
+  onTreatment: (card: string, code: TreatmentCode) => void
 }) => {
   const metrics = metricsIn(group.key)
   const ids = metrics.map((metric) => metric.id)
+  const visible = metrics.filter((metric) => shown.has(metric.id))
+  let note: string | undefined
+  if (!visible.length)
+    note = `No ${group.key} metrics shown. Select their IDs in the metric list on the left, or use Go to metric above.`
+  else if (collapsed)
+    note = `${visible.length} shown ${
+      visible.length === 1 ? "metric" : "metrics"
+    } collapsed. Select the heading to expand.`
   const titleId = `group-${group.key}-title`
   const listId = `group-${group.key}-list`
   const reason = reviewReason(
@@ -471,7 +507,9 @@ const GroupSection = ({
             <Chevron />
             <span>
               {`${group.title} `}
-              <span className={s.groupCount}>({metrics.length})</span>
+              <span className={s.groupCount}>
+                ({visible.length} of {metrics.length} shown)
+              </span>
             </span>
           </button>
         </h2>
@@ -497,7 +535,7 @@ const GroupSection = ({
       <div id={listId} className={s.groupList} hidden={collapsed}>
         {collapsed
           ? null
-          : metrics.map((metric) => (
+          : visible.map((metric) => (
               <MetricItem
                 key={metric.id}
                 metric={metric}
@@ -506,14 +544,12 @@ const GroupSection = ({
                 cards={cards}
                 onToggle={onToggle}
                 onReset={onReset}
+                picks={picks}
+                onTreatment={onTreatment}
               />
             ))}
       </div>
-      {collapsed ? (
-        <p className={s.collapsedNote}>
-          {`${metrics.length} metrics hidden. Select the heading to show them.`}
-        </p>
-      ) : null}
+      {note ? <p className={s.collapsedNote}>{note}</p> : null}
     </section>
   )
 }
@@ -678,13 +714,18 @@ export const MetricReview = () => {
     const marketCards = marketReady
       ? marketSpecs(marketReady, matching, typeLabels)
       : undefined
+    const marketById = marketCards
+      ? byId([...marketCards.rowA, ...marketCards.supporting])
+      : undefined
     return {
-      market: marketCards
-        ? byId([...marketCards.rowA, ...marketCards.supporting])
-        : undefined,
+      market: marketById,
       borrower: borrowerReady ? byId(borrowerSpecs(borrowerReady)) : undefined,
       trouble: borrowerReady ? lateShareRows(borrowerReady) : undefined,
       closed: marketReady?.values.M77 === "Closed",
+      treatments:
+        marketReady && marketById
+          ? treatmentData(marketReady, marketById)
+          : undefined,
     }
   }, [marketReady, borrowerReady, typeLabels])
 
@@ -693,12 +734,21 @@ export const MetricReview = () => {
   const [toggles, setToggles] = useState<Toggles>({})
   const [loaded, setLoaded] = useState(false)
   const [saved, setSaved] = useState<boolean>()
+  // The metrics shown, chosen in the sidebar list: none until picked.
+  const [shown, setShown] = useState<string[]>([])
+  // The display treatment chosen per market card.
+  const [picks, setPicks] = useState<TreatmentPicks>({})
   useEffect(() => {
     setToggles(loadToggles())
+    setShown(loadShown())
+    setPicks(loadPicks())
     setLoaded(true)
     const onStorage = (event: StorageEvent) => {
       if (event.key === STORAGE_KEY || event.key === null)
         setToggles(loadToggles())
+      if (event.key === SHOWN_KEY || event.key === null) setShown(loadShown())
+      if (event.key === TREATMENT_KEY || event.key === null)
+        setPicks(loadPicks())
     }
     window.addEventListener("storage", onStorage)
     return () => window.removeEventListener("storage", onStorage)
@@ -706,6 +756,18 @@ export const MetricReview = () => {
   useEffect(() => {
     if (loaded) setSaved(saveToggles(toggles))
   }, [toggles, loaded])
+  useEffect(() => {
+    if (loaded) saveShown(shown)
+  }, [shown, loaded])
+  useEffect(() => {
+    if (loaded) savePicks(picks)
+  }, [picks, loaded])
+  const shownSet = useMemo(() => new Set(shown), [shown])
+  const onTreatment = useCallback(
+    (card: string, code: TreatmentCode) =>
+      setPicks((current) => choose(current, card, code)),
+    [],
+  )
   const onToggle = useCallback(
     (id: string, key: OptionKey, on: boolean) =>
       setToggles((current) => setOption(current, [id], key, on)),
@@ -754,8 +816,33 @@ export const MetricReview = () => {
     setCollapsed((current) => current.filter((entry) => entry !== section))
     setJump({ target })
   }, [])
+  /** Shows a metric if it is hidden, then scrolls to it. */
   const goToMetric = useCallback(
-    (id: string) => open(groupOf(id), `metric-${id}`),
+    (id: string) => {
+      setShown((current) => (current.includes(id) ? current : [...current, id]))
+      open(groupOf(id), `metric-${id}`)
+    },
+    [open],
+  )
+  // The sidebar list shows or hides a metric; a newly shown one is scrolled to.
+  const shownRef = useRef(shown)
+  shownRef.current = shown
+  const toggleShown = useCallback(
+    (id: string) => {
+      if (shownRef.current.includes(id))
+        setShown((current) => current.filter((entry) => entry !== id))
+      else goToMetric(id)
+    },
+    [goToMetric],
+  )
+  const showGroup = useCallback(
+    (key: Group, show: boolean) => {
+      setShown((current) => {
+        const rest = current.filter((id) => groupOf(id) !== key)
+        return show ? [...rest, ...metricsIn(key).map((m) => m.id)] : rest
+      })
+      if (show) open(key, `group-${key}`)
+    },
     [open],
   )
   const goToSummary = useCallback(() => open("summary", "summary"), [open])
@@ -791,7 +878,11 @@ export const MetricReview = () => {
 
   // The metric list in the app's sidebar, which marks the metric in view.
   const navSlot = useSlot(REVIEW_NAV_ID)
-  const activeMetric = useActiveMetric(page, toolbar, collapsed)
+  const activeMetric = useActiveMetric(
+    page,
+    toolbar,
+    `${collapsed.join()}|${shown.join()}`,
+  )
   const goToGroup = useCallback((key: Group) => {
     jumpTo(`group-${key}`)
   }, [])
@@ -1012,7 +1103,10 @@ export const MetricReview = () => {
                 if (jumpTo(`group-${group.key}`)) event.preventDefault()
               }}
             >
-              {group.title} ({metricsIn(group.key).length})
+              {`${group.title} (${
+                metricsIn(group.key).filter((metric) => shownSet.has(metric.id))
+                  .length
+              } of ${metricsIn(group.key).length} shown)`}
             </a>
           ))}
           <a
@@ -1040,6 +1134,8 @@ export const MetricReview = () => {
             key={group.key}
             group={group}
             toggles={toggles}
+            shown={shownSet}
+            picks={picks}
             data={data}
             cards={cards}
             collapsed={collapsed.includes(group.key)}
@@ -1047,10 +1143,12 @@ export const MetricReview = () => {
             onToggle={onToggle}
             onBulk={onBulk}
             onReset={onReset}
+            onTreatment={onTreatment}
           />
         ))}
         <Summary
           toggles={toggles}
+          picks={picks}
           context={context}
           collapsed={collapsed.includes("summary")}
           onCollapse={onCollapseSummary}
@@ -1062,9 +1160,11 @@ export const MetricReview = () => {
         ? createPortal(
             <MetricNav
               toggles={toggles}
+              shown={shown}
               active={activeMetric}
               collapsed={collapsed}
-              onGo={goToMetric}
+              onToggleShown={toggleShown}
+              onShowGroup={showGroup}
               onGoGroup={goToGroup}
             />,
             navSlot,

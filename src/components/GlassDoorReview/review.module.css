@@ -797,13 +797,15 @@
 .navGroup + .navGroup {
   margin-top: 16px;
 }
-.navGroupLink {
+.navGroupHead {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  margin: 0 -6px 6px;
-  padding: 4px 6px;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.navGroupLink {
+  margin-left: -4px;
+  padding: 2px 4px;
   border-radius: 6px;
   color: var(--fg-1);
   font-weight: 600;
@@ -814,7 +816,29 @@
 }
 .navCount {
   color: var(--muted);
-  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.navActions {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: auto;
+}
+.navAction {
+  padding: 1px 5px;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  color: var(--link);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.navAction:hover:not(:disabled) {
+  background: var(--hover);
+}
+.navAction:disabled {
+  color: var(--muted);
+  cursor: default;
 }
 .navList {
   display: grid;
@@ -824,34 +848,53 @@
   padding: 0;
   list-style: none;
 }
+/* An id is a switch: filled when its metric is shown on the page. */
 .navId {
+  position: relative;
   display: block;
+  width: 100%;
   padding: 4px 0;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--surface);
   color: var(--fg-2);
+  font: inherit;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
   text-align: center;
-  text-decoration: none;
+  cursor: pointer;
 }
 .navId:hover {
   border-color: var(--fg-1);
   color: var(--fg-1);
+}
+.navId[aria-pressed="true"] {
+  border-color: var(--fg-1);
+  background: var(--fg-1);
+  color: var(--surface);
 }
 /* A metric whose display differs from its design default. */
 .navChanged {
   border-style: dashed;
   border-color: var(--fg-1);
 }
-/* The metric at the top of the page. */
-.navId[aria-current] {
-  border-color: var(--fg-1);
-  background: var(--fg-1);
-  color: var(--surface);
+.navChanged[aria-pressed="true"] {
+  outline: 1px dashed var(--fg-1);
+  outline-offset: 1px;
+}
+/* The shown metric at the top of the page: a bar under its id. */
+.navId[aria-current]::after {
+  content: "";
+  position: absolute;
+  right: 30%;
+  bottom: 2px;
+  left: 30%;
+  height: 2px;
+  border-radius: 1px;
+  background: currentColor;
 }
 .navGroupLink:focus-visible,
+.navAction:focus-visible,
 .navId:focus-visible {
   outline: 2px solid var(--link);
   outline-offset: 1px;
@@ -860,4 +903,77 @@
   margin: 12px 0 0;
   color: var(--muted);
   font-size: 11px;
+}
+
+/* ---------- display treatments inside a metric ---------- */
+.treatments {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.treatments + .parts,
+.displays + .treatments {
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+/* Like a group heading, the whole row opens and closes the treatments. */
+.subHead {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 16px;
+  margin: 0 -10px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  transition: background-color 120ms ease-out;
+}
+.subHead .groupToggle {
+  gap: 10px;
+}
+.subHead .groupToggle::after {
+  border-radius: 10px;
+}
+.subHead .chevron {
+  width: 24px;
+  height: 24px;
+}
+.subHead:has(.groupToggle:hover) {
+  background: var(--hover);
+}
+.subHead:has(.groupToggle:hover) .chevron {
+  border-color: var(--fg-1);
+}
+.subTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-1);
+}
+.subNote {
+  color: var(--muted);
+  font-size: 12px;
+}
+.subNoteChanged {
+  color: var(--fg-1);
+  font-weight: 600;
+}
+.subBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.subBody[hidden] {
+  display: none;
+}
+.subHint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .subHead {
+    transition: none;
+  }
 }
