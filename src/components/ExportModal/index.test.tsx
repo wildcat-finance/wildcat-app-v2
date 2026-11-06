@@ -379,14 +379,14 @@ describe("ExportModal", () => {
       />,
     )
 
-    expect(screen.queryByRole("button", { name: "All V2" })).toBeNull()
+    expect(screen.queryByRole("tab", { name: "All V2" })).toBeNull()
     expect(
       screen
-        .getByRole("button", { name: "This market" })
-        .getAttribute("aria-pressed"),
+        .getByRole("tab", { name: "This market" })
+        .getAttribute("aria-selected"),
     ).toBe("true")
 
-    fireEvent.click(screen.getByRole("button", { name: "Selected" }))
+    fireEvent.click(screen.getByRole("tab", { name: "Selected" }))
 
     fireEvent.mouseDown(
       await screen.findByRole("combobox", { name: "Selected markets" }),
@@ -473,7 +473,7 @@ describe("ExportModal", () => {
         />,
       )
 
-      fireEvent.click(screen.getByRole("button", { name: "Borrower" }))
+      fireEvent.click(screen.getByRole("tab", { name: "Borrower" }))
       const borrowerInput = await screen.findByDisplayValue(
         `Current Borrower (${networkName} - 2 markets)`,
       )

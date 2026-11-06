@@ -1,13 +1,13 @@
 import { Dispatch, SetStateAction } from "react"
 
-import { Dayjs } from "dayjs"
+export type DateRangeDates = {
+  starting: string | null
+  ending: string | null
+}
 
 export type DateRangeProps = {
-  dates: { starting: Dayjs | null; ending: Dayjs | null }
-  setDates: Dispatch<
-    SetStateAction<{
-      starting: Dayjs | null
-      ending: Dayjs | null
-    }>
-  >
+  dates: DateRangeDates
+  setDates: Dispatch<SetStateAction<DateRangeDates>>
+  disabled?: boolean
+  calendar?: "inline" | "popover"
 }
