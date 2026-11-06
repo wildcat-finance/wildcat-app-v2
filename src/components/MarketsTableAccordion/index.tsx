@@ -30,6 +30,8 @@ export const MarketsTableAccordion = ({
 
   minContentWidth,
 
+  hideSummary,
+
   children,
 }: MarketsTableAccordionProps) => {
   const defaultFilters =
@@ -37,30 +39,8 @@ export const MarketsTableAccordion = ({
 
   const { t } = useTranslation()
 
-  const accordion = (
-    <Accordion
-      defaultExpanded={isOpen}
-      sx={
-        minContentWidth
-          ? { minWidth: `${minContentWidth}px !important` }
-          : undefined
-      }
-    >
-      <AccordionSummary
-        sx={
-          minContentWidth
-            ? { position: "sticky", left: 0, width: "100cqw" }
-            : undefined
-        }
-      >
-        <Box display="flex" columnGap="4px">
-          <Typography variant="text3">{label}</Typography>
-          <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
-            {isLoading ? "Are Loading..." : marketsLength}
-          </Typography>
-        </Box>
-      </AccordionSummary>
-
+  const content = (
+    <>
       {isLoading && (
         <Box
           display="flex"
@@ -123,6 +103,39 @@ export const MarketsTableAccordion = ({
         )}
 
       {!isLoading && marketsLength !== 0 && children}
+    </>
+  )
+
+  const accordion = hideSummary ? (
+    <Box
+      sx={minContentWidth ? { minWidth: `${minContentWidth}px` } : undefined}
+    >
+      {content}
+    </Box>
+  ) : (
+    <Accordion
+      defaultExpanded={isOpen}
+      sx={
+        minContentWidth
+          ? { minWidth: `${minContentWidth}px !important` }
+          : undefined
+      }
+    >
+      <AccordionSummary
+        sx={
+          minContentWidth
+            ? { position: "sticky", left: 0, width: "100cqw" }
+            : undefined
+        }
+      >
+        <Box display="flex" columnGap="4px">
+          <Typography variant="text3">{label}</Typography>
+          <Typography variant="text3" sx={{ color: COLORS.santasGrey }}>
+            {isLoading ? "Are Loading..." : marketsLength}
+          </Typography>
+        </Box>
+      </AccordionSummary>
+      {content}
     </Accordion>
   )
 

@@ -151,7 +151,7 @@ export const ComposableCardFooter = ({
             gap: "3px",
             width: "100%",
             margin: 0,
-            padding: "10px 0 0",
+            padding: { xs: "8px 0", md: "10px 0 0" },
             border: "none",
             borderRadius: "4px",
             background: "none",
@@ -159,7 +159,7 @@ export const ComposableCardFooter = ({
             cursor: "pointer",
             "&:focus-visible": {
               outline: `2px solid ${COLORS.ultramarineBlue}`,
-              outlineOffset: "2px",
+              outlineOffset: { xs: "-2px", md: "2px" },
             },
           }}
         >
@@ -173,7 +173,7 @@ export const ComposableCardFooter = ({
             display: "inline-flex",
             alignItems: "center",
             gap: "3px",
-            padding: "10px 0 0",
+            padding: { xs: "8px 0", md: "10px 0 0" },
             visibility: "hidden",
           }}
         >

@@ -65,6 +65,15 @@ export const TYPOGRAPHY = {
     },
   },
 
+  text3Highlighted: {
+    fontSize: pxToRem(12),
+    lineHeight: lh(20, 12),
+    fontWeight: 600,
+    "@media (min-width:1000px)": {
+      fontSize: pxToRem(13),
+      lineHeight: lh(20, 13),
+    },
+  },
   text3: {
     fontSize: pxToRem(12),
     lineHeight: lh(20, 12),

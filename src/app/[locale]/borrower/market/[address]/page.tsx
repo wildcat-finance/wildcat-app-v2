@@ -37,7 +37,6 @@ import {
   showBorrowRepayTab,
   STATUS_DETAILS_SECTION,
 } from "@/utils/borrowerMarketSections"
-import { pageCalcHeights } from "@/utils/constants"
 
 import { BorrowerMarketSummary } from "./components/BorrowerMarketSummary"
 import { MarketAuthorisedLenders } from "./components/MarketAuthorisedLenders"
@@ -46,6 +45,7 @@ import { MarketTransactions } from "./components/MarketTransactions"
 import { MarketWithdrawalRequests } from "./components/MarketWithdrawalRequests"
 import useScrollHandler from "./hooks/useScrollHandler"
 import {
+  MarketPageContainer,
   SlideContentContainer,
   SkeletonContainer,
   SkeletonStyle,
@@ -248,9 +248,13 @@ export default function MarketDetails({
     )
 
   return (
-    <Box>
-      <Box>
-        <MarketHeader market={market} marketAccount={marketAccount} />
+    <Box sx={MarketPageContainer}>
+      <Box sx={MarketPageContainer}>
+        <MarketHeader
+          market={market}
+          marketAccount={marketAccount}
+          variant="borrower"
+        />
         {isDifferentChain && (
           <SwitchChainAlert desiredChainId={market?.chainId} />
         )}
@@ -261,9 +265,8 @@ export default function MarketDetails({
             overflow: "hidden",
             overflowY: "visible",
             padding: "0 32.3% 24px 44px",
-            height: `calc(100vh - ${pageCalcHeights.market}${
-              isDifferentChain ? " - 130px" : ""
-            })`,
+            flex: "1 1 0",
+            minHeight: 0,
           }}
         >
           {/* <Slide */}

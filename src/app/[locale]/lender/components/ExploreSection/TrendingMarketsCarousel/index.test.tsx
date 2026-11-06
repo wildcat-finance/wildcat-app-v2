@@ -52,15 +52,18 @@ jest.mock("./TrendingMarketsCard", () => ({
     variant,
     value,
     context,
+    marketName,
   }: {
     variant: string
     value: string
     context?: string
+    marketName: string
   }) => (
     <div
       data-testid={`trending-${variant}`}
       data-value={value}
       data-context={context}
+      data-market={marketName}
     />
   ),
 }))
@@ -120,6 +123,14 @@ const makeLenderMarketsContext = (
   onboardingStatus: "ready",
   policyMarkets: new Set<string>(),
   isPolicyMarketsLoading: false,
+  defaults: {
+    isLoading: false,
+    isError: false,
+    hasStatus: true,
+    isDefaulted: () => false,
+    isDefaultedForDisplay: () => false,
+    defaultedMarketsOfBorrower: () => [],
+  },
 })
 
 describe("TrendingMarketsCarousel", () => {
@@ -142,6 +153,49 @@ describe("TrendingMarketsCarousel", () => {
   })
 
   afterEach(() => jest.clearAllMocks())
+
+  it("excludes an unresolved market while keeping resolved suggestions", () => {
+    const unresolved = makeMarketAccount()
+    const resolved = makeMarketAccount()
+    resolved.market.address = "0x0000000000000000000000000000000000000004"
+    resolved.market.name = "Resolved market"
+    const context = makeLenderMarketsContext([unresolved, resolved])
+    context.defaults = {
+      ...context.defaults,
+      isError: true,
+      isDefaulted: (address) =>
+        address === unresolved.market.address ? undefined : false,
+      isDefaultedForDisplay: (address) =>
+        address === unresolved.market.address ? undefined : false,
+    }
+    jest.mocked(useLenderMarketsContext).mockReturnValue(context)
+    jest.mocked(useRecentDeposits).mockReturnValue({
+      data: emptyActivity,
+      isLoading: false,
+      isError: false,
+    })
+    render(<TrendingMarketsCarousel />)
+    screen.getAllByTestId(/^trending-/).forEach((card) => {
+      expect(card.getAttribute("data-market")).toBe("Resolved market")
+    })
+  })
+
+  it("keeps suggestions while an expired status refreshes", () => {
+    const context = makeLenderMarketsContext([makeMarketAccount()])
+    context.defaults = {
+      ...context.defaults,
+      isDefaulted: () => undefined,
+      isDefaultedForDisplay: () => false,
+    }
+    jest.mocked(useLenderMarketsContext).mockReturnValue(context)
+    jest.mocked(useRecentDeposits).mockReturnValue({
+      data: emptyActivity,
+      isLoading: false,
+      isError: false,
+    })
+    render(<TrendingMarketsCarousel />)
+    expect(screen.getAllByTestId(/^trending-/)).toHaveLength(5)
+  })
 
   it("keeps all five slots when activity data is unavailable", () => {
     jest

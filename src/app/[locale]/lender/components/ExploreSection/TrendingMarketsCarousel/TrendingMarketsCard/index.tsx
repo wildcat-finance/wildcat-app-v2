@@ -38,8 +38,10 @@ const VARIANT_BADGE: Record<
     label: string
     context: string
     accent: string
+    mobileAccent: string
     iconColor: string
     labelColor: string
+    mobileLabelColor?: string
     Icon: typeof TrendingIcon
   }
 > = {
@@ -47,6 +49,7 @@ const VARIANT_BADGE: Record<
     label: "Fastest Growing",
     context: "Last 7 days",
     accent: "#CBD7FF",
+    mobileAccent: COLORS.cornflowerBlue,
     iconColor: "#B6C8FF",
     labelColor: "#4971FF",
     Icon: TrendingIcon,
@@ -55,14 +58,17 @@ const VARIANT_BADGE: Record<
     label: "Popular",
     context: "Last 7 days",
     accent: "#BEEFD7",
+    mobileAccent: COLORS.caribbeanGreen,
     iconColor: "#2ACA7C",
     labelColor: "#2ACA7C",
+    mobileLabelColor: "#1A955A",
     Icon: PopularIcon,
   },
   newest: {
     label: "Newest Market",
     context: "",
     accent: "#D7C9FD",
+    mobileAccent: "#7547F5",
     iconColor: "#7547F5",
     labelColor: "#7547F5",
     Icon: ProvenIcon,
@@ -71,6 +77,7 @@ const VARIANT_BADGE: Record<
     label: "Peak APR",
     context: "",
     accent: "#FDCEB6",
+    mobileAccent: "#F5651D",
     iconColor: "#F5651D",
     labelColor: "#F5651D",
     Icon: HotRateIcon,
@@ -79,6 +86,7 @@ const VARIANT_BADGE: Record<
     label: "Top Funded",
     context: "",
     accent: "#BFE7FD",
+    mobileAccent: "#48B5F4",
     iconColor: "#48B5F4",
     labelColor: "#48B5F4",
     Icon: TopFundedIcon,
@@ -161,7 +169,7 @@ export const TrendingMarketCard = ({
           borderColor: { xs: COLORS.cornflowerBlue, md: COLORS.blueRibbon },
         }),
         borderTop: {
-          xs: `3px solid ${badge.accent}`,
+          xs: `1px solid ${badge.mobileAccent}`,
           md: `2px solid ${badge.accent}`,
         },
       }}
@@ -171,7 +179,7 @@ export const TrendingMarketCard = ({
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: { xs: "10px", md: "7px" },
+            gap: { xs: "4px", md: "7px" },
           }}
         >
           <SvgIcon
@@ -186,9 +194,12 @@ export const TrendingMarketCard = ({
           <Typography
             variant="text4Highlighted"
             sx={{
-              color: { xs: COLORS.black, md: badge.labelColor },
-              fontSize: { xs: "14px", md: pxToRem(11) },
-              lineHeight: { xs: "20px", md: lh(14, 11) },
+              color: {
+                xs: badge.mobileLabelColor ?? badge.labelColor,
+                md: badge.labelColor,
+              },
+              fontSize: { xs: "11px", md: pxToRem(11) },
+              lineHeight: { xs: "16px", md: lh(14, 11) },
               whiteSpace: "nowrap",
             }}
           >
@@ -200,9 +211,9 @@ export const TrendingMarketCard = ({
           <Typography
             variant="text4"
             sx={{
-              color: COLORS.matteSilver,
-              fontSize: { xs: "14px", md: pxToRem(10) },
-              lineHeight: { xs: "20px", md: lh(14, 10) },
+              color: { xs: COLORS.manate, md: COLORS.matteSilver },
+              fontSize: { xs: "11px", md: pxToRem(10) },
+              lineHeight: { xs: "16px", md: lh(14, 10) },
               whiteSpace: "nowrap",
             }}
           >
@@ -216,16 +227,19 @@ export const TrendingMarketCard = ({
           sx={{
             display: "flex",
             flexDirection: "column",
-            gap: { xs: "5px", md: "3px" },
-            paddingBottom: { xs: "12px", md: "11px" },
-            borderBottom: `1px solid ${COLORS.whiteLilac}`,
+            gap: { xs: 0, md: "3px" },
+            padding: { xs: "8px 6px 0", md: "0 0 11px" },
+            borderBottom: {
+              xs: "none",
+              md: `1px solid ${COLORS.whiteLilac}`,
+            },
           }}
         >
           <Typography
             variant="text4"
             sx={{
               color: COLORS.blackRock,
-              fontSize: { xs: "14px", md: "11px" },
+              fontSize: { xs: "13px", md: "11px" },
               lineHeight: { xs: "20px", md: "14px" },
             }}
           >
@@ -242,16 +256,17 @@ export const TrendingMarketCard = ({
                 width: "fit-content",
                 display: "flex",
                 alignItems: "center",
-                gap: { xs: "6px", md: "5px" },
+                gap: { xs: "4px", md: "5px" },
                 ...(variant === "fastestGrowing" && { cursor: "help" }),
               }}
             >
               <Typography
                 variant="mobH2"
                 sx={{
-                  color: COLORS.black,
-                  fontSize: { xs: "24px", md: "20px" },
-                  lineHeight: 1,
+                  color: { xs: COLORS.blackRock, md: COLORS.black },
+                  fontSize: "20px",
+                  fontWeight: { xs: 600, md: 500 },
+                  lineHeight: { xs: "32px", md: 1 },
                   whiteSpace: "nowrap",
                 }}
               >
@@ -264,18 +279,21 @@ export const TrendingMarketCard = ({
                     alignItems: "center",
                     gap: "4px",
                     padding: {
-                      xs: "2px 8px 2px 6px",
+                      xs: "0 6px 0 4px",
                       md: "2px 7px 2px 5px",
                     },
-                    borderRadius: { xs: "12px", md: "10px" },
-                    backgroundColor: COLORS.whiteSmoke,
+                    borderRadius: { xs: "20px", md: "10px" },
+                    backgroundColor: {
+                      xs: COLORS.blackHaze,
+                      md: COLORS.whiteSmoke,
+                    },
                   }}
                 >
                   {chainId && (
                     <NetworkIcon
                       chainId={chainId as SupportedChainId}
-                      width={isMobile ? 12 : 11}
-                      height={isMobile ? 12 : 11}
+                      width={isMobile ? 10 : 11}
+                      height={isMobile ? 10 : 11}
                     />
                   )}
                   <Typography
@@ -283,7 +301,7 @@ export const TrendingMarketCard = ({
                     sx={{
                       color: COLORS.blackRock,
                       fontSize: { xs: "13px", md: "10px" },
-                      lineHeight: { xs: "18px", md: "14px" },
+                      lineHeight: { xs: "20px", md: "14px" },
                     }}
                   >
                     {asset}
@@ -294,7 +312,7 @@ export const TrendingMarketCard = ({
                 <Typography
                   variant="mobText3SemiBold"
                   sx={{
-                    padding: { xs: "2px 8px", md: "2px 6px" },
+                    padding: { xs: "1px 6px", md: "2px 6px" },
                     borderRadius: "20px",
                     backgroundColor: COLORS.lightGreen,
                     color: "#2ACA7C",
@@ -337,8 +355,8 @@ export const TrendingMarketCard = ({
               variant="text4"
               sx={{
                 color: COLORS.white,
-                fontSize: { xs: "15px", md: "11px" },
-                lineHeight: { xs: "20px", md: "16px" },
+                fontSize: "11px",
+                lineHeight: "16px",
                 whiteSpace: "nowrap",
               }}
             >
@@ -348,7 +366,7 @@ export const TrendingMarketCard = ({
               variant="text4Highlighted"
               sx={{
                 color: COLORS.white,
-                fontSize: { xs: "15px", md: "11px" },
+                fontSize: { xs: "13px", md: "11px" },
                 lineHeight: { xs: "20px", md: "16px" },
                 whiteSpace: "nowrap",
               }}

@@ -123,16 +123,23 @@
   "dashboard": {
     "markets": {
       "title": "Markets",
-      "borrowerSubtitle": "All markets you’ve previously created.",
-      "lenderSubtitle": "All markets you have a position in or are potentially eligible for.",
-      "docsLink": "Learn More (Documentation)",
+      "allMarketsTitle": "All Markets",
       "borrowerTitleButton": "+ Create New Market",
       "lenderTitleButton": "+ Observe New Markets",
       "filters": {
         "name": "Search",
         "borrower": "Search",
         "assets": "Asset",
-        "statuses": "Status"
+        "statuses": "Status",
+        "withdrawalCycle": "Withdrawal Cycle"
+      },
+      "switcher": {
+        "yours": "Yours",
+        "others": "Others"
+      },
+      "mobileList": {
+        "seeAllMarkets": "See All Markets",
+        "sections": "Market sections"
       },
       "tables": {
         "borrower": {
@@ -143,6 +150,7 @@
           },
           "closed": {
             "title": "Your Terminated Markets",
+            "terminatedMarkets": "Terminated Markets",
             "prevActive": "Previously Active",
             "neverActive": "Never Active"
           }
@@ -1355,7 +1363,7 @@
         "entityKind": "Entity Legal Form",
         "defaults": {
           "title": "Defaults",
-          "tooltip": "The number of markets owned by this borrower that have incurred the penalty rate continuously for at least 90 days."
+          "tooltip": "The number of markets owned by this borrower that stayed delinquent without interruption for more than 90 days past their grace period. Defaults remain counted after repayment or closure."
         }
       },
       "verification": {
@@ -1816,5 +1824,56 @@
       "totalDebt": "Total Debt",
       "totalDebtTooltip": "What the borrower still owes lenders, including withdrawals from expired cycles that have not been funded yet, but not withdrawals already set aside in the market and waiting to be claimed."
     }
+  },
+  "defaultedMarkets": {
+    "tab": "Defaulted",
+    "chip": {
+      "label": "Default",
+      "penaltyDays": "Penalty: {{days}} d"
+    },
+    "borrowerBadge": {
+      "tooltip_one": "This borrower has {{count}} defaulted market",
+      "tooltip_other": "This borrower has {{count}} defaulted markets"
+    },
+    "positions": {
+      "title": "Defaulted positions",
+      "subtitle": "These markets have defaulted. Review each for details on what to do next."
+    },
+    "noMarkets": {
+      "title": "No Defaulted Markets",
+      "subtitle": "None of the markets in this list have defaulted."
+    },
+    "unavailable": {
+      "title": "Default Status Unavailable",
+      "subtitle": "Defaulted markets could not be loaded. Try again later."
+    },
+    "jurisButton": "View Juris Docs",
+    "repayButton": "Repay",
+    "lenderNotice": {
+      "title": "This market is in default",
+      "description": "Deposits are disabled. Withdrawals and claims continue to work as normal. We advise against further engagement with this borrower.",
+      "unfulfilledRequest": {
+        "title": "You have an unfulfilled withdrawal request",
+        "subtitle": "Please see how to document your position"
+      }
+    },
+    "borrowerNotice": {
+      "title": "The borrower has a defaulted market",
+      "description": "At least one market deployed by this borrower has not honoured withdrawal requests for more than 90 days past their self-imposed grace period.",
+      "viewProfile": "View Profile"
+    },
+    "ownMarketNotice": {
+      "title": "Your market is in default",
+      "description": "You can no longer borrow from this market. Lenders can still withdraw and claim funds as normal. You can repay and terminate the market at any time."
+    },
+    "otherMarketNotice": {
+      "title_one": "You have a defaulted market",
+      "title_other": "You have defaulted markets"
+    }
+  },
+  "marketHeader": {
+    "openTerm": "Open term",
+    "fixedTerm": "Fixed term",
+    "baseApr": "Base apr"
   }
 }

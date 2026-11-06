@@ -52,7 +52,8 @@ export const LenderMobileFooterMenu = () => {
         borderRadius: "14px",
         padding: "12px",
         gap: "4px",
-        marginTop: "8px",
+        marginTop: "4px",
+        boxShadow: `-4px -2px 32px 0px ${COLORS.black01}`,
       }}
     >
       {TABS.filter(({ label }) => label !== "My Markets" || isConnected).map(
@@ -69,7 +70,9 @@ export const LenderMobileFooterMenu = () => {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: "4px",
+                gap: 0,
+                padding: "0 8px",
+                borderRadius: "10px",
                 textDecoration: "none",
               }}
             >
@@ -87,8 +90,6 @@ export const LenderMobileFooterMenu = () => {
                 variant="mobText4"
                 sx={{
                   color: isActive ? COLORS.ultramarineBlue : COLORS.blackRock,
-                  lineHeight: "16px",
-                  fontWeight: 500,
                 }}
               >
                 {label}

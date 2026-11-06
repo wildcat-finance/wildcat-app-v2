@@ -20,5 +20,7 @@ export type MarketsTableAccordionProps = {
 
   minContentWidth?: number
 
+  hideSummary?: boolean
+
   children: ReactNode
 }

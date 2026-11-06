@@ -17,3 +17,10 @@ export const SlideContentContainer = {
   overflow: "hidden",
   overflowY: "visible",
 }
+
+export const MarketPageContainer = {
+  display: "flex",
+  flexDirection: "column",
+  flex: "1 1 0",
+  minHeight: 0,
+}

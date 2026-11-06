@@ -3,20 +3,23 @@ import { useTranslation } from "react-i18next"
 
 import Markets from "@/assets/icons/markets_icon.svg"
 import Policies from "@/assets/icons/policies_icon.svg"
+import { useDefaultedMarkets } from "@/hooks/useDefaultedMarkets"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   BorrowerDashboardSections,
   BorrowerMarketDashboardSections,
+  BorrowerMarketDashboardTabs,
   resetMarketSection,
+  resolveMarketTab,
   setMarketSection,
-  setScrollTarget,
+  setMarketTab,
   setSection,
 } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
 
 import {
-  DashboardButton,
   DashboardPageAccordion,
   DashboardSectionAccordion,
+  DashboardSubItems,
 } from "../DashboardSidebarComponents"
 
 export const BorrowerDashboardSidebar = () => {
@@ -26,6 +29,9 @@ export const BorrowerDashboardSidebar = () => {
   const section = useAppSelector((state) => state.borrowerDashboard.section)
   const marketSection = useAppSelector(
     (state) => state.borrowerDashboard.marketSection,
+  )
+  const storedMarketTab = useAppSelector(
+    (state) => state.borrowerDashboard.marketTab,
   )
   const showFullFunctionality = useAppSelector(
     (state) => state.borrowerDashboard.showFullFunctionality,
@@ -42,12 +48,19 @@ export const BorrowerDashboardSidebar = () => {
     dispatch(setMarketSection(selectedMarketSection))
   }
 
-  const handleScrollToTable = (target: string) => {
-    dispatch(setScrollTarget(target))
+  const handleChangeMarketTab = (selectedTab: BorrowerMarketDashboardTabs) => {
+    dispatch(setMarketTab(selectedTab))
   }
 
   const policiesAmount = useAppSelector(
     (state) => state.borrowerDashboardAmounts.policies,
+  )
+
+  const { isLoading: isLoadingDefaults, isError: isDefaultsError } =
+    useDefaultedMarkets()
+
+  const defaultedAmount = useAppSelector(
+    (state) => state.borrowerDashboardAmounts.defaulted,
   )
 
   const depositedAmount = useAppSelector(
@@ -58,8 +71,6 @@ export const BorrowerDashboardSidebar = () => {
     (state) => state.borrowerDashboardAmounts.nonDeposited,
   )
 
-  const activeMarketsAmount = depositedAmount + nonDepositedAmount
-
   const prevActiveAmount = useAppSelector(
     (state) => state.borrowerDashboardAmounts.prevActive,
   )
@@ -68,7 +79,10 @@ export const BorrowerDashboardSidebar = () => {
     (state) => state.borrowerDashboardAmounts.neverActive,
   )
 
-  const closedMarketsAmount = prevActiveAmount + neverActiveAmount
+  const terminatedAmount = prevActiveAmount + neverActiveAmount
+
+  const yourMarketsAmount =
+    defaultedAmount + depositedAmount + nonDepositedAmount + terminatedAmount
 
   const selfOnboardAmount = useAppSelector(
     (state) => state.borrowerDashboardAmounts.selfOnboard,
@@ -82,122 +96,159 @@ export const BorrowerDashboardSidebar = () => {
     (state) => state.borrowerDashboardAmounts.terminatedOther,
   )
 
-  const otherMarketsAmount =
-    selfOnboardAmount + manualAmount + terminatedOtherAmount
+  const defaultedOtherAmount = useAppSelector(
+    (state) => state.borrowerDashboardAmounts.defaultedOther,
+  )
 
-  const marketsAmount =
-    activeMarketsAmount + closedMarketsAmount + otherMarketsAmount
+  const otherMarketsAmount =
+    selfOnboardAmount +
+    manualAmount +
+    terminatedOtherAmount +
+    defaultedOtherAmount
+
+  const marketsAmount = yourMarketsAmount + otherMarketsAmount
+
+  const countsReady = marketsAmount > 0
+  const count = (amount: number) =>
+    countsReady && !isLoadingDefaults ? amount : undefined
+  const defaultedCount = (amount: number) =>
+    isLoadingDefaults || isDefaultsError ? undefined : count(amount)
+  const showDefaultedTab = !isLoadingDefaults && defaultedAmount > 0
+  const marketTab = resolveMarketTab(storedMarketTab, showDefaultedTab)
+  const policiesCount =
+    countsReady || policiesAmount > 0 ? policiesAmount : undefined
 
   return (
     <Box
       sx={{
         height: "100%",
         width: "267px",
-        padding: "42px 16px 0px",
+        padding: "32px 16px 0px",
         display: "flex",
         flexDirection: "column",
       }}
     >
       <DashboardPageAccordion
         label={t("dashboard.markets.title")}
-        amount={marketsAmount}
+        amount={count(marketsAmount)}
         open={section === BorrowerDashboardSections.MARKETS}
         onClick={() => handleChangeSection(BorrowerDashboardSections.MARKETS)}
         icon={
-          <SvgIcon sx={{ marginRight: "10px" }}>
+          <SvgIcon sx={{ fontSize: "16px", marginRight: "10px" }}>
             <Markets />
           </SvgIcon>
         }
+        compact
       >
         {showFullFunctionality && (
           <DashboardSectionAccordion
             label={t("dashboard.markets.tables.borrower.active.title")}
-            amount={activeMarketsAmount}
+            amount={count(yourMarketsAmount)}
             open={
-              marketSection === BorrowerMarketDashboardSections.ACTIVE &&
-              activeMarketsAmount > 0
+              marketSection === BorrowerMarketDashboardSections.YOUR &&
+              yourMarketsAmount > 0 &&
+              !isLoadingDefaults
             }
             onClick={() =>
-              handleChangeMarketSection(BorrowerMarketDashboardSections.ACTIVE)
+              handleChangeMarketSection(BorrowerMarketDashboardSections.YOUR)
             }
+            hideIndicator
+            compact
           >
-            <DashboardButton
-              label={t("dashboard.markets.tables.borrower.active.deposited")}
-              amount={depositedAmount}
-              onClick={() => handleScrollToTable("deposited")}
-            />
-            <DashboardButton
-              label={t("dashboard.markets.tables.borrower.active.nonDeposited")}
-              amount={nonDepositedAmount}
-              onClick={() => handleScrollToTable("non-deposited")}
-            />
-          </DashboardSectionAccordion>
-        )}
-
-        {showFullFunctionality && (
-          <DashboardSectionAccordion
-            label={t("dashboard.markets.tables.borrower.closed.title")}
-            amount={closedMarketsAmount}
-            open={
-              marketSection === BorrowerMarketDashboardSections.TERMINATED &&
-              closedMarketsAmount > 0
-            }
-            onClick={() =>
-              handleChangeMarketSection(
-                BorrowerMarketDashboardSections.TERMINATED,
-              )
-            }
-          >
-            <DashboardButton
-              label={t("dashboard.markets.tables.borrower.closed.prevActive")}
-              amount={prevActiveAmount}
-              onClick={() => handleScrollToTable("prev-active")}
-            />
-            <DashboardButton
-              label={t("dashboard.markets.tables.borrower.closed.neverActive")}
-              amount={neverActiveAmount}
-              onClick={() => handleScrollToTable("never-active")}
-            />
+            <Box sx={{ paddingLeft: "14px" }}>
+              <DashboardSubItems
+                items={[
+                  ...(showDefaultedTab
+                    ? [
+                        {
+                          value: BorrowerMarketDashboardTabs.DEFAULTED,
+                          label: t("defaultedMarkets.tab"),
+                          amount: defaultedAmount,
+                        },
+                      ]
+                    : []),
+                  {
+                    value: BorrowerMarketDashboardTabs.DEPOSITED,
+                    label: t(
+                      "dashboard.markets.tables.borrower.active.deposited",
+                    ),
+                    amount: count(depositedAmount),
+                  },
+                  {
+                    value: BorrowerMarketDashboardTabs.NON_DEPOSITED,
+                    label: t(
+                      "dashboard.markets.tables.borrower.active.nonDeposited",
+                    ),
+                    amount: count(nonDepositedAmount),
+                  },
+                  {
+                    value: BorrowerMarketDashboardTabs.TERMINATED,
+                    label: t(
+                      "dashboard.markets.tables.borrower.closed.terminatedMarkets",
+                    ),
+                    amount: count(terminatedAmount),
+                  },
+                ]}
+                activeValue={marketTab}
+                onSelect={handleChangeMarketTab}
+              />
+            </Box>
           </DashboardSectionAccordion>
         )}
 
         <DashboardSectionAccordion
           label={t("dashboard.markets.tables.other.title")}
-          amount={otherMarketsAmount}
+          amount={count(otherMarketsAmount)}
           open={marketSection === BorrowerMarketDashboardSections.OTHER}
           onClick={() =>
             handleChangeMarketSection(BorrowerMarketDashboardSections.OTHER)
           }
+          hideIndicator
+          compact
         >
-          <DashboardButton
-            label={t("dashboard.markets.tables.other.selfOnboard")}
-            amount={selfOnboardAmount}
-            onClick={() => handleScrollToTable("self-onboard")}
-          />
-          <DashboardButton
-            label={t("dashboard.markets.tables.other.manual")}
-            amount={manualAmount}
-            onClick={() => handleScrollToTable("manual")}
-          />
-          <DashboardButton
-            label={t("dashboard.markets.tables.other.terminated")}
-            amount={terminatedOtherAmount}
-            onClick={() => handleScrollToTable("other-terminated")}
-          />
+          <Box sx={{ paddingLeft: "14px" }}>
+            <DashboardSubItems
+              items={[
+                {
+                  value: BorrowerMarketDashboardTabs.SELF_ONBOARD,
+                  label: t("dashboard.markets.tables.other.selfOnboard"),
+                  amount: count(selfOnboardAmount),
+                },
+                {
+                  value: BorrowerMarketDashboardTabs.MANUAL,
+                  label: t("dashboard.markets.tables.other.manual"),
+                  amount: count(manualAmount),
+                },
+                {
+                  value: BorrowerMarketDashboardTabs.OTHER_TERMINATED,
+                  label: t("dashboard.markets.tables.other.terminated"),
+                  amount: count(terminatedOtherAmount),
+                },
+                {
+                  value: BorrowerMarketDashboardTabs.OTHER_DEFAULTED,
+                  label: t("defaultedMarkets.tab"),
+                  amount: defaultedCount(defaultedOtherAmount),
+                },
+              ]}
+              activeValue={marketTab}
+              onSelect={handleChangeMarketTab}
+            />
+          </Box>
         </DashboardSectionAccordion>
       </DashboardPageAccordion>
 
       {showFullFunctionality && (
         <DashboardPageAccordion
-          label="Policies"
-          amount={policiesAmount}
+          label={t("borrowerMarketList.title.policies")}
+          amount={policiesCount}
           open={section === BorrowerDashboardSections.POLICIES}
           onClick={() =>
             handleChangeSection(BorrowerDashboardSections.POLICIES)
           }
           hideAccordionButton
+          compact
           icon={
-            <SvgIcon sx={{ marginRight: "10px" }}>
+            <SvgIcon sx={{ fontSize: "16px", marginRight: "10px" }}>
               <Policies />
             </SvgIcon>
           }

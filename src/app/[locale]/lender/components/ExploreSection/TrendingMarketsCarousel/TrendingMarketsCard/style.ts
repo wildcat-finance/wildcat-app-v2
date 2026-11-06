@@ -7,26 +7,34 @@ export const CardContainerStyle = {
   height: "100%",
   display: "flex",
   flexDirection: "column",
+  gap: { xs: "4px", md: 0 },
   overflow: "hidden",
-  border: `1px solid ${COLORS.whiteLilac}`,
-  borderRadius: { xs: "24px", md: "12px" },
+  padding: { xs: "3px", md: 0 },
+  border: {
+    xs: `1px solid ${COLORS.iron}`,
+    md: `1px solid ${COLORS.whiteLilac}`,
+  },
+  borderRadius: "12px",
   backgroundColor: COLORS.white,
 }
 
 export const CardHeaderStyle = {
   width: "100%",
-  minHeight: { xs: "38px", md: "32px" },
+  minHeight: { xs: "30px", md: "32px" },
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  padding: { xs: "9px 20px", md: "7px 14px" },
-  borderBottom: `1px solid ${COLORS.whiteLilac}`,
-  backgroundColor: COLORS.hintOfRed,
+  padding: { xs: "6px 8px 7px", md: "7px 14px" },
+  borderBottom: {
+    xs: `1px solid ${COLORS.iron}`,
+    md: `1px solid ${COLORS.whiteLilac}`,
+  },
+  backgroundColor: { xs: "transparent", md: COLORS.hintOfRed },
 }
 
 export const CardIconStyle = {
-  width: { xs: "18px", md: "16px" },
-  height: { xs: "18px", md: "16px" },
+  width: "16px",
+  height: "16px",
   flexShrink: 0,
 }
 
@@ -35,7 +43,8 @@ export const CardContentStyle = {
   flexGrow: 1,
   display: "flex",
   flexDirection: "column",
-  padding: { xs: "12px 20px", md: "12px 14px" },
+  gap: { xs: "4px", md: 0 },
+  padding: { xs: 0, md: "12px 14px" },
 }
 
 export const MarketContainerStyle = {
@@ -43,13 +52,13 @@ export const MarketContainerStyle = {
   alignItems: "center",
   justifyContent: "center",
   width: "auto",
-  minHeight: { xs: "48px", md: "36px" },
+  minHeight: "36px",
   marginTop: "auto",
-  marginLeft: { xs: "-12px", md: 0 },
-  marginRight: { xs: "-12px", md: 0 },
+  marginLeft: 0,
+  marginRight: 0,
   gap: "6px",
-  padding: { xs: "12px", md: "7px 12px" },
-  borderRadius: { xs: "16px", md: "8px" },
+  padding: { xs: "8px 12px", md: "7px 12px" },
+  borderRadius: { xs: "10px", md: "8px" },
   backgroundColor: COLORS.bunker,
   color: COLORS.white,
   textDecoration: "none",
@@ -58,8 +67,8 @@ export const MarketContainerStyle = {
 
 export const SupplyProgressTrackStyle = {
   width: "100%",
-  height: { xs: "7px", md: "4px" },
-  borderRadius: { xs: "4px", md: "2px" },
+  height: { xs: "3px", md: "4px" },
+  borderRadius: { xs: "1.5px", md: "2px" },
   backgroundColor: COLORS.athensGrey,
   overflow: "hidden",
 }

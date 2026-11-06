@@ -105,8 +105,8 @@ export const MobileSearchButton = ({
           onClick={handleToggleOpen}
           sx={{
             width: "120px",
-            height: "28px",
-            padding: "3px 5px 3px 7px",
+            height: "32px",
+            padding: "5px 5px 5px 7px",
             borderRadius: "20px",
             display: "flex",
             alignItems: "center",

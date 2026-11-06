@@ -1,19 +1,19 @@
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { providers } from "ethers"
-import { createPublicClient, http } from "viem"
+import { Chain, createPublicClient, http } from "viem"
 import { mainnet, sepolia } from "viem/chains"
 
 import { plasmaMainnet } from "./chains/plasma-mainnet"
 import { plasmaTestnet } from "./chains/plasma-testnet"
 
-const VIEM_CHAIN_BY_ID = {
+const VIEM_CHAIN_BY_ID: Partial<Record<SupportedChainId, Chain>> = {
   [SupportedChainId.Sepolia]: sepolia,
   [SupportedChainId.Mainnet]: mainnet,
   [SupportedChainId.PlasmaTestnet]: plasmaTestnet,
   [SupportedChainId.PlasmaMainnet]: plasmaMainnet,
 }
 
-const RPC_URL_BY_ID = {
+const RPC_URL_BY_ID: Partial<Record<SupportedChainId, string>> = {
   [SupportedChainId.Sepolia]:
     "https://eth-sepolia.g.alchemy.com/v2/ALCHEMY_API_KEY",
   [SupportedChainId.Mainnet]:
@@ -24,7 +24,11 @@ const RPC_URL_BY_ID = {
 
 export const getProviderForServer = (chainId: SupportedChainId) => {
   const chain = VIEM_CHAIN_BY_ID[chainId]
-  const rpcUrl = RPC_URL_BY_ID[chainId].replace(
+  const rpcUrlTemplate = RPC_URL_BY_ID[chainId]
+  if (!chain || !rpcUrlTemplate) {
+    throw new Error(`Chain ${chainId} is not configured`)
+  }
+  const rpcUrl = rpcUrlTemplate.replace(
     "ALCHEMY_API_KEY",
     process.env.NEXT_PUBLIC_ALCHEMY_API_KEY || "",
   )
