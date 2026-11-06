@@ -83,6 +83,24 @@ export const seedDefaultedMarkets = (queryClient: QueryClient) => {
   })
 }
 
+const MAX_FUTURE_SKEW = 30_000
+
+let clockOffset = 0
+
+const learnClockOffset = (response: Response) => {
+  const date = Date.parse(response.headers?.get("date") ?? "")
+  if (!Number.isFinite(date)) return
+  const age = Number(response.headers.get("age") ?? 0)
+  clockOffset = date + (Number.isFinite(age) ? age : 0) * 1000 - Date.now()
+}
+
+const freshUntil = (data: DefaultedMarketsData | undefined) => {
+  if (data?.asOfTimestamp == null) return 0
+  const source = data.asOfTimestamp * 1000 - clockOffset
+  if (source > Date.now() + MAX_FUTURE_SKEW) return 0
+  return source + REFRESH_INTERVAL
+}
+
 const fetchFromApi = async (
   chainId: SupportedChainId,
   signal: AbortSignal,
@@ -90,13 +108,13 @@ const fetchFromApi = async (
   const response = await fetch(`/api/defaulted-markets?chainId=${chainId}`, {
     signal,
   })
+  learnClockOffset(response)
   if (!response.ok)
     throw new Error(`Defaulted markets request failed: ${response.status}`)
   const data: unknown = await response.json()
   if (!isDefaultedMarketsData(data))
     throw new Error("Malformed defaulted markets response")
-  const sourceTime = (data.asOfTimestamp ?? 0) * 1000
-  if (sourceTime > Date.now() || Date.now() - sourceTime >= REFRESH_INTERVAL)
+  if (freshUntil(data) <= Date.now())
     throw new Error("Defaulted markets response is stale")
   return data
 }
@@ -108,7 +126,7 @@ const loadDefaultedMarkets = async (
 ) => {
   const data = await fetchFromApi(chainId, signal).catch((error) => {
     if (signal.aborted) throw error
-    return fetchDefaultedMarkets(chainId, signal)
+    return fetchDefaultedMarkets(chainId, signal, clockOffset)
   })
   const previous = queryClient.getQueryData<DefaultedMarketsData>(
     QueryKeys.Markets.GET_DEFAULTED_MARKETS(chainId),
@@ -136,17 +154,13 @@ export const defaultedMarketsQueryOptions = (
 ) => {
   const queryKey = QueryKeys.Markets.GET_DEFAULTED_MARKETS(chainId)
   const cached = queryClient.getQueryState<DefaultedMarketsData>(queryKey)
-  const sourceTime = cached?.data?.asOfTimestamp
-  const staleTime =
-    sourceTime != null && sourceTime * 1000 <= Date.now()
-      ? Math.max(
-          0,
-          Math.min(
-            REFRESH_INTERVAL,
-            sourceTime * 1000 + REFRESH_INTERVAL - (cached?.dataUpdatedAt ?? 0),
-          ),
-        )
-      : 0
+  const staleTime = Math.max(
+    0,
+    Math.min(
+      REFRESH_INTERVAL,
+      freshUntil(cached?.data) - (cached?.dataUpdatedAt ?? 0),
+    ),
+  )
 
   return queryOptions({
     queryKey,
@@ -156,8 +170,7 @@ export const defaultedMarketsQueryOptions = (
     // Recompute staleTime on receipt even when the response is identical.
     structuralSharing: false,
     refetchInterval: (query) => {
-      const timestamp = query.state.data?.asOfTimestamp
-      const remaining = (timestamp ?? 0) * 1000 + REFRESH_INTERVAL - Date.now()
+      const remaining = freshUntil(query.state.data) - Date.now()
       return remaining > 0
         ? Math.min(remaining + 1, REFRESH_INTERVAL)
         : REFRESH_INTERVAL

@@ -26,6 +26,7 @@ export type DefaultedMarketsData = {
 }
 
 const MARKETS_PAGE_SIZE = 200
+const MAX_FUTURE_SKEW = 30_000
 const HISTORY_PAGE_SIZE = 1000
 
 const DEFAULT_HISTORIES_QUERY = gql`
@@ -96,7 +97,10 @@ type DefaultHistoriesResult = {
   } | null
 }
 
-const getIndexedBlock = (meta: DefaultHistoriesResult["_meta"]) => {
+const getIndexedBlock = (
+  meta: DefaultHistoriesResult["_meta"],
+  now: number,
+) => {
   const number = meta?.block.number
   const timestamp = meta?.block.timestamp
   if (
@@ -104,7 +108,7 @@ const getIndexedBlock = (meta: DefaultHistoriesResult["_meta"]) => {
     meta.hasIndexingErrors !== false ||
     !isUnsignedInteger(number) ||
     !isUnsignedInteger(timestamp) ||
-    timestamp * 1000 > Date.now()
+    timestamp * 1000 > now + MAX_FUTURE_SKEW
   )
     return undefined
   return { number, timestamp }
@@ -133,8 +137,10 @@ export const isDefaultedMarketsData = (
 export const fetchDefaultedMarkets = async (
   chainId: SupportedChainId,
   signal?: AbortSignal,
+  clockOffset = 0,
 ): Promise<DefaultedMarketsData> => {
   const client = getSubgraphClient(chainId)
+  const now = () => Date.now() + clockOffset
   const createdBefore =
     Math.floor(Date.now() / 1000) - DEFAULT_DELINQUENCY_PERIOD
 
@@ -160,7 +166,7 @@ export const fetchDefaultedMarkets = async (
       context: { fetchOptions: { signal } },
     })
 
-    const block = getIndexedBlock(meta)
+    const block = getIndexedBlock(meta, now())
     if (block) {
       asOfTimestamp = Math.min(
         asOfTimestamp ?? block.timestamp,
@@ -219,7 +225,7 @@ export const fetchDefaultedMarkets = async (
       else if (
         status.isDefaulted === false &&
         isUnsignedInteger(status.asOfTimestamp) &&
-        status.asOfTimestamp * 1000 <= Date.now()
+        status.asOfTimestamp * 1000 <= now() + MAX_FUTURE_SKEW
       ) {
         asOfTimestamp = Math.min(
           asOfTimestamp ?? status.asOfTimestamp,
