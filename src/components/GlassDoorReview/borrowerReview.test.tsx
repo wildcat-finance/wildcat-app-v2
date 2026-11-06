@@ -28,7 +28,12 @@ import {
   parseReview,
   publicationContext,
 } from "./reviewState"
-import { BORROWER_CARDS, treatmentIssue } from "./treatmentData"
+import {
+  BORROWER_CARDS,
+  TILE_FALLBACK,
+  TREATMENT_CODES,
+  treatmentIssue,
+} from "./treatmentData"
 
 // Next/Jest stubs SVGs as image objects; the app renders SVGR components.
 jest.mock(
@@ -70,11 +75,33 @@ describe("borrower treatment evidence", () => {
       borrowerFixture.comparisons.S05.population,
     ])
     expect(treatmentIssue("C", datums["3.1"])).toBeUndefined()
-    expect(treatmentIssue("B", datums["3.1"])).toBeDefined()
-    expect(treatmentIssue("C", datums["3.10"])).toBeDefined()
-    expect(treatmentIssue("E", datums["3.10"])).toBeUndefined()
+    // Short market-days out of every 100 (100 − S05).
+    expect(treatmentIssue("B", datums["3.1"])).toBeUndefined()
+    expect(datums["3.1"].grace).toBeCloseTo(
+      100 - Number(borrowerFixture.values.S05),
+    )
+    // A lender count sits on a rail against the median; it has no share of 100.
+    expect(treatmentIssue("C", datums["3.10"])).toBeUndefined()
+    expect(treatmentIssue("B", datums["3.10"])).toMatch(/count of lenders/)
+    // Breaches per 100 incidents against the median borrower, lower better.
+    expect(datums["3.8"]).toMatchObject({ grace: 0, better: "lower" })
+    expect(treatmentIssue("C", datums["3.8"])).toBeUndefined()
+    expect(treatmentIssue("L", datums["3.8"])).toBeUndefined()
     expect(datums["3.8"].sentence).toBe(
       "6 grace breaches in 450 incidents: 1.3 per 100 episodes.",
+    )
+  })
+  it("draws every tile or gives that tile's own reason, never a generic blank", () => {
+    const generic = new Set(Object.values(TILE_FALLBACK))
+    Object.values(datums).forEach((datum) =>
+      TREATMENT_CODES.forEach((code) => {
+        const issue = treatmentIssue(code, datum)
+        expect([datum.id, code, Boolean(issue && generic.has(issue))]).toEqual([
+          datum.id,
+          code,
+          false,
+        ])
+      }),
     )
   })
   it("never grades a missing history or current-state count as a score", () => {
@@ -124,7 +151,8 @@ describe("borrower treatment evidence", () => {
     })
     expect(mixed.datums["3.6"].value).toBe(mixed.specs["3.6"].value)
     expect(JSON.stringify(mixed.datums["3.6"])).not.toContain("123,456")
-    expect(treatmentIssue("C", mixed.datums["3.6"])).toBeDefined()
+    // The rail is the completed share of the record, never summed capital.
+    expect(mixed.datums["3.6"].railValue ?? "").not.toContain("123,456")
   })
 })
 
@@ -316,6 +344,7 @@ describe("borrower review integration", () => {
       )
     }
     render(<Workspace />)
+    fireEvent.click(screen.getByRole("button", { name: "D · Sentence" }))
     fireEvent.click(
       screen.getByRole("button", { name: "Choose 3.1-D, Sentence" }),
     )

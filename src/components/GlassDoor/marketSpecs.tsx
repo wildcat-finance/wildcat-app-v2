@@ -1,7 +1,7 @@
 import * as React from "react"
 
 import { BorrowerAnalytics, Comparison, MarketAnalytics } from "./api"
-import { borrowerNow } from "./borrowerSpecs"
+import { borrowerNow, marketLabel } from "./borrowerSpecs"
 import { CardSpec } from "./card"
 import {
   C,
@@ -62,7 +62,9 @@ import {
 
 const DAY = 86_400
 const NA = BLANK.unavailable
-const NO_BOOK = "TBD: no complete borrower record from the same snapshot"
+const NO_BOOK = "no complete borrower record in this publication"
+const NO_RECORD = "no recorded history yet"
+const NO_MEDIAN = "no graded market to take a median from yet"
 const SINGLE_MARKET = "single-market borrower — no spread to show"
 const join = (...parts: (string | false | undefined)[]) =>
   parts.filter(Boolean).join(" · ")
@@ -197,6 +199,29 @@ export function marketSpecs(
     if (singleMarket) return SINGLE_MARKET
     return text ?? NO_BOOK
   }
+  /** The open-market chip when the borrower has fewer than two open markets. */
+  const fewOpen = (
+    describe: (row: (typeof openBookRows)[number]) => string,
+  ) => {
+    if (!book) return NO_BOOK
+    const own = market.market.address.toLowerCase()
+    if (openBookRows.length === 0) return "they have no open market now"
+    const [only] = openBookRows
+    return only.address.toLowerCase() === own
+      ? "this is their only open market, so there is no spread to show"
+      : `their one open market, ${marketLabel(only)}: ${describe(only)}`
+  }
+
+  // The book's graded markets when this one has no grade of its own yet.
+  const bookGrades = book ? fundedGrades(book) : []
+  const gradedRange =
+    bookGrades.length > 1
+      ? `their ${count(bookGrades.length)} graded markets: ${score(
+          Math.min(...bookGrades.map((row) => row.grade)),
+        )} to ${score(
+          Math.max(...bookGrades.map((row) => row.grade)),
+        )}; this market has no grade yet`
+      : undefined
 
   // ---------- 2.1 In order ----------
   const graded = hasRecord && !neverLate && cash !== undefined
@@ -208,7 +233,12 @@ export function marketSpecs(
     hasRecord && cash !== undefined && !closed
       ? verdictInOrder({ score: cash, trend: change, days: age, stale })
       : null
-  let cashLine = `cash there (M18): ${NA}`
+  // Why the trailing window (M67, M68) has no reading.
+  let trendBlank = "under 7 days recorded in the last 90 days"
+  if (life === 0) trendBlank = NO_RECORD
+  else if (closed)
+    trendBlank = "none after closure: the last 90 days hold no recorded time"
+  let cashLine = `cash there (M18): ${life === 0 ? NO_RECORD : NA}`
   if (neverLate)
     cashLine = "cash there (M18): never late, Delinquent seconds (H02) = 0"
   else if (hasRecord && late !== undefined && cash !== undefined)
@@ -241,7 +271,7 @@ export function marketSpecs(
     formula: [
       cashLine,
       penalty === undefined
-        ? `contract kept: ${NA}`
+        ? `contract kept: ${life === 0 ? NO_RECORD : NA}`
         : `contract kept = 100 − Time under penalty (M26) ${score(
             penalty,
             2,
@@ -250,14 +280,16 @@ export function marketSpecs(
         ? `trend (M68) = In order, trailing 90 days (M67) ${score(
             trailing,
           )} − ${score(cash)} = ${trend(change)}`
-        : `trend (M68): ${NA}`,
+        : `trend (M68): ${trendBlank}`,
     ].join("\n"),
     numbers: sentence(
       `recorded life ${show(life, (v) => days(v / DAY))} (H01)`,
       `delinquent ${show(late, (v) =>
         days(v / DAY),
       )} (H02, quiet window included)`,
-      `past allowance ${show(penalty, lifeShare)} (M26)`,
+      `past allowance ${
+        life === 0 ? NO_RECORD : show(penalty, lifeShare)
+      } (M26)`,
       `${show(episodes, (v) => plural(v, "episode"))}${
         open ? `, ${count(open)} still open` : ""
       } (M20)`,
@@ -290,14 +322,14 @@ export function marketSpecs(
         ? `median ${score(cmp.M18.median)} · ${count(
             cmp.M18.population,
           )} graded markets`
-        : "TBD: no protocol median yet",
+        : NO_MEDIAN,
       markets: rankPhrase(cmp.M18, "markets", age),
       borrower: borrowerChip(
         position
           ? `their ${count(position.count)} markets: ${score(
               position.min,
             )} to ${score(position.max)}; this market is the ${position.word}`
-          : undefined,
+          : gradedRange,
       ),
     },
     chipCharts: { markets: rank(cmp.M18, "markets") },
@@ -322,11 +354,11 @@ export function marketSpecs(
     lateNow !== 1 &&
     pastNow !== 1 &&
     (longest === 0 || (longest === undefined && neverLate))
-  let worstValue: string = NA
+  let worstValue: string = life === 0 ? NO_RECORD : NA
   if (noIncident) worstValue = BLANK.neverLate
   else if (grace === 0 && longest !== undefined) worstValue = hours(longest)
   else if (worst !== undefined) worstValue = percent(worst)
-  let worstFormula = `worst incident (M24): ${NA}`
+  let worstFormula = `worst incident (M24): ${life === 0 ? NO_RECORD : NA}`
   if (noIncident)
     worstFormula =
       "No delinquency episode has been recorded: Longest episode (M23) = 0 h."
@@ -411,7 +443,7 @@ export function marketSpecs(
             cmp.M24.median,
             0,
           )} of allowance · ${count(cmp.M24.population)} graded markets`
-        : "TBD: no protocol median yet",
+        : NO_MEDIAN,
       markets: rankPhrase(cmp.M24, "markets"),
       borrower: borrowerChip(
         bookLongest !== undefined
@@ -601,7 +633,7 @@ export function marketSpecs(
           )} of deadlines funded on the day · ${count(
             cmp.M32.population,
           )} graded markets`
-        : "TBD: no protocol median yet",
+        : NO_MEDIAN,
       markets: rankPhrase(cmp.M32, "markets"),
       borrower: borrowerChip(
         bookValues &&
@@ -760,13 +792,13 @@ export function marketSpecs(
         ? `median market: ${
             protocol.lateNow * 2 < protocol.openMarkets ? "in order" : "late"
           }`
-        : "TBD: no protocol counts at this snapshot",
+        : "no protocol counts in this publication",
       markets: protocol
         ? `${count(protocol.openMarkets - protocol.lateNow)} of ${plural(
             protocol.openMarkets,
             "market",
           )} in order right now`
-        : "TBD: no protocol counts at this snapshot",
+        : "no protocol counts in this publication",
       borrower: bookNowText ?? NO_BOOK,
     },
   }
@@ -815,7 +847,7 @@ export function marketSpecs(
     )
   const postedRateNote = closed
     ? "not compared: a finished market's posted rate is zeroed at closure"
-    : "TBD: no posted rate to compare yet"
+    : "no graded open market posts a rate to compare yet"
   // A finished market's base rate is zeroed at closure; it shows what it earned.
   let paysValue: string = show(base, apr)
   let paysSub = base === undefined ? "" : "per year, paid to lenders in full"
@@ -876,7 +908,7 @@ export function marketSpecs(
         ? `median realised yield ${percent(cmp.M39.median)} · ${count(
             cmp.M39.population,
           )} graded markets`
-        : "TBD: no protocol median yet",
+        : NO_MEDIAN,
       markets:
         cmp.M11 && base !== undefined && !closed
           ? `median posted rate ${apr(cmp.M11.median)} across ${count(
@@ -888,7 +920,9 @@ export function marketSpecs(
           ? `their ${count(bookRates.length)} open markets post ${apr(
               Math.min(...bookRates),
             )} to ${apr(Math.max(...bookRates))}`
-          : undefined,
+          : fewOpen((row) =>
+              isNumber(row.values.M11) ? `posts ${apr(row.values.M11)}` : NA,
+            ),
       ),
     },
   }
@@ -914,7 +948,7 @@ export function marketSpecs(
       : "",
     formula: [
       used === undefined || capacity === undefined
-        ? `capacity used (M86): ${NA}`
+        ? `capacity used (M86): ${capacity === 0 ? "no deposit capacity" : NA}`
         : `capacity used (M86) = 100 × totalSupply() ${units(
             (used * capacity) / 100,
           )} / Capacity now (M06) ${units(capacity)} = ${percent(used)}`,
@@ -953,16 +987,26 @@ export function marketSpecs(
         ? `median among open markets: ${percent(
             cmp.M86.median,
           )} drawn · ${count(cmp.M86.population)} graded open markets`
-        : "TBD: no protocol median yet",
+        : NO_MEDIAN,
       markets:
-        "not ranked: capacity use is measured, not graded as better or worse",
+        cmp.M86?.below === undefined
+          ? `placed once it has 90 days of record${
+              age === undefined ? "" : `; it has ${count(age)}`
+            } (capacity use is a measure, not a grade)`
+          : `more of its line drawn than ${count(cmp.M86.below)} of ${count(
+              cmp.M86.population,
+            )} graded open markets (a measure, not a grade)`,
       borrower: borrowerChip(
         bookCapacity.length > 1
           ? `their ${count(bookCapacity.length)} open markets: ${spread(
               bookCapacity,
               (value) => percent(value),
             )} drawn`
-          : undefined,
+          : fewOpen((row) =>
+              isNumber(row.values.M86)
+                ? `${percent(row.values.M86)} drawn`
+                : NA,
+            ),
       ),
     },
   }
@@ -1056,7 +1100,7 @@ export function marketSpecs(
         ? `median market: mean episode ${hours(cmp.M22.median)} · ${count(
             cmp.M22.population,
           )} graded markets`
-        : "TBD: no protocol median yet",
+        : NO_MEDIAN,
       markets: finished
         ? rankPhrase(cmp.M22, "markets")
         : "not ranked: no finished episode yet",
@@ -1075,7 +1119,7 @@ export function marketSpecs(
   // ---------- 2.9 Who funds it ----------
   const concentrationNote = closed
     ? "not compared: lender concentration is compared across open markets only"
-    : "TBD: no protocol median yet"
+    : NO_MEDIAN
   const active = n("M48")
   const ever = n("M49")
   const largest = n("D10")
@@ -1178,7 +1222,7 @@ export function marketSpecs(
         ? `median distinct lenders ${count(cmp.M49.median)} across ${count(
             cmp.M49.population,
           )} graded markets`
-        : "TBD: no protocol median yet",
+        : NO_MEDIAN,
       borrower: borrowerChip(
         bookValues?.n("S37") !== undefined
           ? `their book: ${plural(bookValues.n("S37")!, "distinct lender")}`
@@ -1254,7 +1298,7 @@ export function marketSpecs(
         ? `median ${termMedians
             .map((term) => `${term.label} ${term.format(term.median)}`)
             .join(" · ")} · ${count(cmp.M15?.population ?? 0)} graded markets`
-        : "TBD: no protocol median yet",
+        : NO_MEDIAN,
       markets: termMedians.length
         ? `this market against the median: ${termMedians
             .map((term) =>
@@ -1265,13 +1309,20 @@ export function marketSpecs(
                   )}`,
             )
             .join(" · ")}`
-        : "TBD: no protocol median yet",
+        : NO_MEDIAN,
       borrower: borrowerChip(
         bookTerms.length
           ? `their ${count(openBookRows.length)} open markets: ${bookTerms.join(
               " · ",
             )}`
-          : undefined,
+          : fewOpen((row) =>
+              TERMS.map((term) => {
+                const value = row.values[term.id]
+                return `${term.label} ${
+                  isNumber(value) ? term.format(value) : NA
+                }`
+              }).join(" · "),
+            ),
       ),
     },
   }

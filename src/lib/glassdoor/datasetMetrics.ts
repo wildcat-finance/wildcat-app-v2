@@ -72,7 +72,7 @@ export type MarketStateAt = {
  * Bumped when the summary's fields or their formulas change; older summaries
  * are recomputed from the market's stored dataset.
  */
-export const SUMMARY_VERSION = 4
+export const SUMMARY_VERSION = 5
 
 /** Everything about a market that only changes when it emits events. */
 export type MarketSummary = {
@@ -160,6 +160,21 @@ export type MarketSummary = {
   lenders: string[]
   /** Current scaled balances of lenders, largest first. */
   lenderBalancesRaw: string[]
+  /**
+   * Each payout deadline: [expiry time, 1 if fully funded at expiry, else 0]
+   * (2.3 trend). Absent from summaries before version 5.
+   */
+  deadlines?: [number, number][]
+  /**
+   * When each lender was first credited with market tokens (2.9 and 3.10
+   * trends). Absent from summaries before version 5.
+   */
+  lenderSince?: Record<string, number>
+  /**
+   * Share of the credit line drawn, weekly from the daily rows: [day end,
+   * 100 × totalSupply / maxTotalSupply] (2.6 trend). Absent before version 5.
+   */
+  utilization?: [number, number][]
 }
 
 const eventsNamed = (dataset: MarketDataset, name: string) =>
@@ -213,6 +228,14 @@ export function summarizeMarket(dataset: MarketDataset): MarketSummary {
       toBigInt(batch.scaledAmountBurnedAtExpiryRaw) <
       toBigInt(batch.scaledTotalAmountRaw),
   )
+  const lenderSince = new Map<string, number>()
+  eventsNamed(dataset, "Transfer").forEach((event) => {
+    const to = String(event.args.to).toLowerCase()
+    const before = lenderSince.get(to)
+    if (isLender(to) && (before === undefined || event.timestamp < before))
+      lenderSince.set(to, event.timestamp)
+  })
+  const dailyRows = dataset.dailySeries
   return {
     version: SUMMARY_VERSION,
     market,
@@ -349,6 +372,25 @@ export function summarizeMarket(dataset: MarketDataset): MarketSummary {
       .map(([, balance]) => BigInt(balance))
       .sort((left, right) => Number(right - left > 0n) - Number(right < left))
       .map(String),
+    deadlines: expiredEvents
+      .map((event): [number, number] => [
+        event.timestamp,
+        toBigInt(event.args.scaledAmountBurned) ===
+        toBigInt(event.args.scaledTotalAmount)
+          ? 1
+          : 0,
+      ])
+      .sort((left, right) => left[0] - right[0]),
+    lenderSince: Object.fromEntries(lenderSince),
+    // Every seventh day end, counted back from the last so it is included.
+    utilization: dailyRows
+      .filter((_, index) => (dailyRows.length - 1 - index) % 7 === 0)
+      .filter((row) => BigInt(row.capacity_raw ?? "0") > 0n)
+      .map((row): [number, number] => [
+        Date.parse(row.snapshot_timestamp_utc) / 1_000,
+        (100 * Number(BigInt(row.market_token_value_raw ?? "0"))) /
+          Number(BigInt(row.capacity_raw)),
+      ]),
   }
 }
 
@@ -488,6 +530,38 @@ export function lateShareSeries(markets: MarketSummary[], at: number): Series {
     if (live > 0) points.push([point, (100 * late) / live])
   }
   return points.reverse()
+}
+
+/**
+ * A value that changes in steps, read once a week ending at `at` and going
+ * back to its first step, as lateShareSeries does.
+ */
+export function weeklyReadings(steps: Series, at: number): Series {
+  if (!steps.length) return []
+  const sorted = [...steps].sort((left, right) => left[0] - right[0])
+  const points: Series = []
+  for (let point = at; point >= sorted[0][0]; point -= SERIES_STEP) {
+    const reading = sorted.filter(([time]) => time <= point).pop()
+    if (reading) points.push([point, reading[1]])
+  }
+  return points.reverse()
+}
+
+/** [time, running count] at each of the given times. */
+const runningCount = (times: number[]): Series =>
+  [...times]
+    .sort((left, right) => left - right)
+    .map((time, index): [number, number] => [time, index + 1])
+
+/** [time, 100 × hits so far / events so far] at each event. */
+const runningShare = (events: [number, boolean][]): Series => {
+  let hits = 0
+  return [...events]
+    .sort((left, right) => left[0] - right[0])
+    .map(([time, hit], index): [number, number] => {
+      if (hit) hits += 1
+      return [time, (100 * hits) / (index + 1)]
+    })
 }
 
 /** Recorded and delinquent seconds inside the 90 days before `at`. */
@@ -753,6 +827,50 @@ export function marketMetricsAt(
           ],
     /** Rolling 90-day share of time late (2.1 trend). */
     LATE_SHARE_90D: lateShareSeries([summary], at),
+    /**
+     * Required liquidity at the cut (reserve plus queued payouts), the
+     * contract's line for delinquency against cash held (M08).
+     */
+    REQUIRED_CASH: tokens(state.requiredLiquidityRaw, decimals),
+    /** Every episode as [onset, hours]; an open one as of `at` (2.2, 2.4, 2.8). */
+    INCIDENT_HISTORY: episodes.map((episode): [number, number] => [
+      episode.onset,
+      hours(episode.durationSeconds),
+    ]),
+    /** Share of payout deadlines covered on the day, to date, weekly (2.3). */
+    COVERED_TO_DATE:
+      summary.deadlines === undefined
+        ? ""
+        : weeklyReadings(
+            runningShare(
+              summary.deadlines.map(([time, funded]): [number, boolean] => [
+                time,
+                funded === 1,
+              ]),
+            ),
+            at,
+          ),
+    /** Share of the credit line drawn, weekly, ending at `at` (2.6). */
+    UTILIZATION_HISTORY:
+      summary.utilization === undefined
+        ? ""
+        : [
+            ...summary.utilization.filter(([time]) => time < at),
+            ...(summary.closedAt === undefined && maxTotalSupply
+              ? [
+                  [
+                    at,
+                    (100 * Number(toBigInt(state.totalSupplyRaw))) /
+                      Number(maxTotalSupply),
+                  ] as [number, number],
+                ]
+              : []),
+          ],
+    /** Lenders ever credited, to date, weekly (2.9). */
+    LENDERS_TO_DATE:
+      summary.lenderSince === undefined
+        ? ""
+        : weeklyReadings(runningCount(Object.values(summary.lenderSince)), at),
   }
 }
 
@@ -827,6 +945,37 @@ export function borrowerMetricsFrom(
     (count, { summary }) => count + summary.episodes.length,
     0,
   )
+  const breachesPer100 =
+    breaches === "" || !episodeCount ? "" : (100 * breaches) / episodeCount
+  // Breaches per 100 episodes to date, by onset; the last reading is the
+  // published rate, which also counts an open episode past grace at `at`.
+  const breachSteps = runningShare(
+    funded.flatMap(({ summary }) =>
+      summary.episodes.map((episode): [number, boolean] => [
+        episode.onset,
+        episode.penalised === true,
+      ]),
+    ),
+  )
+  const breachesToDate =
+    breachesPer100 === ""
+      ? ""
+      : weeklyReadings(breachSteps, at).map(
+          ([time, value]): [number, number] => [
+            time,
+            time === at ? breachesPer100 : value,
+          ],
+        )
+  const firstStart = Math.min(
+    ...funded.map(({ summary }) => summary.deploymentTimestamp),
+  )
+  const lenderSince = new Map<string, number>()
+  funded.forEach(({ summary }) =>
+    Object.entries(summary.lenderSince ?? {}).forEach(([address, time]) => {
+      const before = lenderSince.get(address)
+      if (before === undefined || time < before) lenderSince.set(address, time)
+    }),
+  )
   return {
     S01: funded.length,
     /** Market-days on record across the book: the evidence depth. */
@@ -840,8 +989,7 @@ export function borrowerMetricsFrom(
     // Grace breaches across the book (M25 summed), and per 100 episodes so
     // books of different sizes compare.
     S13: breaches,
-    BREACHES_PER_100:
-      breaches === "" || !episodeCount ? "" : (100 * breaches) / episodeCount,
+    BREACHES_PER_100: breachesPer100,
     S14: batchesExpired,
     S15: batchesFunded,
     S16: batchesExpired ? (100 * batchesFunded) / batchesExpired : 0,
@@ -889,6 +1037,24 @@ export function borrowerMetricsFrom(
       funded.map(({ summary }) => summary),
       at,
     ),
+    /** Breaches per 100 episodes to date, weekly (3.8 trend). */
+    BREACHES_TO_DATE: breachesToDate,
+    /** Completed facilities to date, weekly from the first market (3.6). */
+    COMPLETED_TO_DATE: funded.length
+      ? weeklyReadings(
+          [
+            [firstStart, 0],
+            ...runningCount(completed.map(({ summary }) => summary.closedAt!)),
+          ],
+          at,
+        )
+      : "",
+    /** Distinct lenders across the book to date, weekly (3.10 trend). */
+    LENDERS_TO_DATE:
+      funded.length &&
+      funded.every(({ summary }) => summary.lenderSince !== undefined)
+        ? weeklyReadings(runningCount([...lenderSince.values()]), at)
+        : "",
   }
 }
 

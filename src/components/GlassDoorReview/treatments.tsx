@@ -18,6 +18,7 @@ import {
   CardSpec,
   ChipKey,
 } from "@/components/GlassDoor/card"
+import { ordinal } from "@/components/GlassDoor/helpers"
 
 import s from "./review.module.css"
 import {
@@ -59,7 +60,15 @@ const FLAG: Record<Tone, string> = {
 
 const pct = (value: number) => `${value}%`
 const medShort = (d: IndexDatum) =>
-  d.rail >= 0 && d.railMed >= 0 ? String(d.railMed) : "—"
+  d.rail >= 0 && d.railMed >= 0 ? d.medText ?? String(d.railMed) : "—"
+/** The value beside a rail: the rail's own reading when it is not the headline. */
+const railValue = (d: IndexDatum) => d.railValue ?? d.value
+/** H's bands, named by which way is better; a measure is only above or below. */
+const bandWords = (d: IndexDatum) => {
+  if (d.better === "higher") return "weak · fair · strong"
+  if (d.better === "lower") return "strong · fair · weak"
+  return "below · near · above the median"
+}
 
 const Badge = ({ tone }: { tone: Tone }) => (
   <span className={cx(t.badge, TONE_CLASS[tone])}>{tone}</span>
@@ -138,7 +147,7 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
       <>
         <div className={t.head}>
           <Name d={d} />
-          <span className={cx(t.value, t.valueSm)}>{d.value}</span>
+          <span className={cx(t.value, t.valueSm)}>{railValue(d)}</span>
         </div>
         <div className={t.rail}>
           <div
@@ -186,7 +195,7 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
           ))}
         </div>
         <div className={t.claim}>
-          {`better than ${position} of ${population}`}
+          {`${d.rankHigher ?? "better than"} ${position} of ${population}`}
         </div>
         <Muted>{d.median}</Muted>
       </>
@@ -256,7 +265,7 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
       <>
         <div className={t.head}>
           <Name d={d} />
-          <span className={cx(t.value, t.valueSm)}>{d.value}</span>
+          <span className={cx(t.value, t.valueSm)}>{railValue(d)}</span>
         </div>
         <div className={t.bullet}>
           <div className={t.bulletBands}>
@@ -281,7 +290,7 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
             />
           ) : null}
         </div>
-        <Muted>{`bands: weak · fair · strong · tick = ${medShort(d)}`}</Muted>
+        <Muted>{`bands: ${bandWords(d)} · tick = ${medShort(d)}`}</Muted>
       </>
     )
   },
@@ -305,14 +314,16 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
           <div className={t.distMe} style={{ left: pct(share) }} />
         </div>
         <div className={t.distAxis}>
-          <span>weakest</span>
+          <span>{d.rankHigher ? "lowest" : "weakest"}</span>
           <span>middle half</span>
-          <span>strongest</span>
+          <span>{d.rankHigher ? "highest" : "strongest"}</span>
         </div>
         <div className={t.claim}>
-          {`sits in the ${Math.round(
-            share,
-          )}th percentile: ${position} of ${population} are weaker`}
+          {`sits in the ${ordinal(
+            Math.round(share),
+          )} percentile: ${position} of ${population} ${
+            d.rankHigher ? "sit lower" : "are weaker"
+          }`}
         </div>
       </>
     )
@@ -375,7 +386,7 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
     if (difference !== null)
       differenceText = `${difference > 0 ? "+" : ""}${difference.toFixed(1)}`
     const rows: [string, string, string?][] = [
-      ["this one", d.value],
+      ["this one", railValue(d)],
       ["typical", medShort(d)],
       ["difference", differenceText, differenceClass(difference, d)],
       ["evidence", d.evidence || "on-chain record"],
@@ -461,16 +472,10 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
     )
   },
   N: (d) => {
-    const typical = medShort(d) === "—" ? d.median || "—" : medShort(d)
-    const rows: [string, string, string][] = [
-      ["value", d.value, typical],
-      ...d.parts
-        .slice(0, 2)
-        .map(
-          ([key, value]) =>
-            [key, value, "not disclosed"] as [string, string, string],
-        ),
-    ]
+    // Only compared values: a part with no protocol median is left out.
+    const rows: [string, string, string][] = d.sideBySide?.length
+      ? d.sideBySide
+      : [["value", railValue(d), medShort(d)]]
     return (
       <>
         <Name d={d} />

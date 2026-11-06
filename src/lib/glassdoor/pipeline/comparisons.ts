@@ -5,7 +5,7 @@ import { MetricResults } from "../datasetMetrics"
 // request. A median is taken over graded members only: V2 markets (or
 // borrowers' books) with at least 90 days of record. A rank says how many of
 // that population this one is better than, and only where better has a
-// direction.
+// direction; a position says how many sit below it, for any compared value.
 
 export const GRADED_DAYS = 90
 
@@ -19,6 +19,8 @@ export const MARKET_COMPARISONS: Record<string, Direction> = {
   M32: "higher",
   M33: "higher",
   M22: "lower",
+  // Finished episodes cured within grace (2.8 rail).
+  M83: "higher",
   M39: null,
   M20: null,
   M49: null,
@@ -53,6 +55,8 @@ export const BORROWER_COMPARISONS: Record<string, Direction> = {
   // Markets late now (3.4) and completed facilities (3.6).
   S18: null,
   S30: null,
+  // Share of the record from completed facilities (3.6 rail).
+  S32: null,
   MARKET_DAYS: null,
 }
 
@@ -62,6 +66,8 @@ export type Comparison = {
   population: number
   /** How many of them this one is better than, when it is graded itself. */
   betterThan?: number
+  /** How many of them sit below this one, when it is graded itself. */
+  below?: number
 }
 
 export type ProtocolCounts = {
@@ -111,10 +117,12 @@ function compare(
       population: values.length,
     }
     const value = subject[id]
-    if (direction && subjectGraded && numeric(value)) {
-      comparison.betterThan = values.filter((other) =>
-        direction === "higher" ? other < value : other > value,
-      ).length
+    if (subjectGraded && numeric(value)) {
+      comparison.below = values.filter((other) => other < value).length
+      if (direction)
+        comparison.betterThan = values.filter((other) =>
+          direction === "higher" ? other < value : other > value,
+        ).length
     }
     comparisons[id] = comparison
   })

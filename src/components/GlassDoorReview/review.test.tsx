@@ -66,6 +66,9 @@ import {
   findTreatmentCard,
   MARKET_CARDS,
   treatmentData,
+  TILE_FALLBACK,
+  TREATMENT_CODES,
+  treatmentIssue,
   treatmentLines,
 } from "./treatmentData"
 import { TreatmentTile } from "./treatments"
@@ -261,7 +264,7 @@ describe("toggle states", () => {
 
   it("list every metric and option on in the summary", () => {
     expect(countsText({})).toBe(
-      "On: Value 91 · Card 86 · Chart 39 · Comparison 26. Changed from the design: 0 metrics, 0 card treatments.",
+      "On: Value 91 · Card 86 · Chart 39 · Comparison 28. Changed from the design: 0 metrics, 0 card treatments.",
     )
     let toggles = setOption({}, ["M21"], "chart", false)
     const borrowerIds = metricsIn("borrower").map((m) => m.id)
@@ -283,7 +286,7 @@ describe("toggle states", () => {
       false,
     )
     expect(countsText(toggles)).toBe(
-      "On: Value 65 · Card 62 · Chart 30 · Comparison 17. Changed from the design: 27 metrics, 0 card treatments.",
+      "On: Value 65 · Card 62 · Chart 30 · Comparison 18. Changed from the design: 27 metrics, 0 card treatments.",
     )
     const text = summaryText(toggles, {}, [
       "Reviewed against Wintermute · wmtUSDC.",
@@ -518,9 +521,12 @@ describe("display treatments", () => {
     expect(data["2.2"]).toMatchObject({
       rail: 113.7,
       railMed: 89,
-      grace: -1,
       better: "lower",
     })
+    // Breaches out of every 100 incidents (M25), drawn as red cells.
+    expect(data["2.2"].grace).toBe(0)
+    expect(data["2.2"].past).toBeGreaterThan(0)
+    expect(data["2.2"].countNote).toMatch(/^5 of [\d,]+ incidents breached/)
     expect(data["2.2"].cov?.slice(0, 3)).toEqual([
       54.6,
       48,
@@ -534,12 +540,30 @@ describe("display treatments", () => {
     expect(data["2.6"]).toMatchObject({ rail: 58.4, railMed: 8.9, rank: null })
     expect(data["2.6"].better).toBeUndefined()
     expect(data["2.6"].cov?.[3]).toBe("41.6 points of room left")
-    expect(data["2.10"]).toMatchObject({ rail: -1, rank: null, grace: -1 })
+    // Terms have no count out of 100, but the grace period sits on a rail.
+    expect(data["2.10"]).toMatchObject({ rail: 48, grace: -1 })
+  })
+
+  it("draw every tile or give that tile's own reason, never a generic blank", () => {
+    const data = treatmentData(marketFixture, liveSpecs())
+    const generic = new Set(Object.values(TILE_FALLBACK))
+    Object.values(data).forEach((datum) =>
+      TREATMENT_CODES.forEach((code) => {
+        const issue = treatmentIssue(code, datum)
+        expect([datum.id, code, Boolean(issue && generic.has(issue))]).toEqual([
+          datum.id,
+          code,
+          false,
+        ])
+      }),
+    )
   })
 
   it("know which tiles can be drawn and colour a difference by direction", () => {
     const data = treatmentData(marketFixture, liveSpecs())
-    expect(drawable("C", data["2.10"])).toBe(false)
+    expect(drawable("B", data["2.10"])).toBe(false)
+    expect(treatmentIssue("B", data["2.10"])).toMatch(/^Contract facts/)
+    expect(drawable("C", data["2.10"])).toBe(true)
     expect(drawable("F", data["2.10"])).toBe(true)
     expect(drawable("M", data["2.2"])).toBe(true)
     render(

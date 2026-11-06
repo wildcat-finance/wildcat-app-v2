@@ -167,6 +167,14 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
   const rows = borrower.markets.filter(
     (row) => row.state === "Ok" && isFunded(row.values),
   )
+  // Why a book value is blank: no funded market, or none with recorded life.
+  const bookBlank = rows.length
+    ? "no recorded history yet across the funded markets"
+    : "no funded market yet"
+  // The trailing window (S27, S28) needs 7 recorded days in the last 90.
+  const trendBlank = rows.length
+    ? "under 7 days recorded across the book in the last 90 days"
+    : "no funded market yet"
   const neverLate =
     !borrower.partial &&
     borrower.state === "Ok" &&
@@ -258,9 +266,9 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
         ? `= (${terms.join(" + ")}${
             weighted.length > terms.length ? " + …" : ""
           }) / ${count(marketDays)} = ${score(book)}`
-        : `S05: ${NA}`,
+        : `S05: ${bookBlank}`,
       kept === undefined
-        ? `D21: ${NA}`
+        ? `D21: ${bookBlank}`
         : `D21 = 100 − Σ(Time under penalty (M26) × M05) / Σ M05 = ${contractKept(
             kept,
           )}`,
@@ -269,7 +277,7 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
           ? `S28 = S27 ${score(trailing)} − S05 ${score(book)} = ${trend(
               change,
             )}`
-          : `S28: ${NA}`,
+          : `S28: ${trendBlank}`,
         floor === undefined ? undefined : `S06 = min M18 = ${score(floor)}`,
         top === undefined ? undefined : `S07 = max M18 = ${score(top)}`,
       ),
@@ -308,7 +316,7 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
         ? `median ${score(cmp.S05.median)} · ${count(
             cmp.S05.population,
           )} borrowers`
-        : "TBD: no protocol median yet",
+        : "no graded borrower to take a median from yet",
       markets: rankPhrase(cmp.S05, "borrowers"),
       borrower:
         singleMarket || floor === undefined || top === undefined
@@ -385,15 +393,15 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
             cmp.S18.median,
             "market",
           )} late now · ${count(cmp.S18.population)} graded borrowers`
-        : "TBD: no protocol median yet",
+        : "no graded borrower to take a median from yet",
       markets: protocol
         ? `protocol right now: ${count(protocol.lateNow)} of ${plural(
             protocol.openMarkets,
             "open market",
           )} late`
-        : "TBD: no protocol counts at this snapshot",
+        : "no protocol counts in this publication",
       borrower: now.incomplete
-        ? "TBD: some of their market states are unavailable"
+        ? "some of their market states are not in this publication"
         : `their markets: ${
             now.lateRows.length
               ? now.lateRows
@@ -485,7 +493,7 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
         (mixedCapital ? "not summed (different assets)" : show(capital, units))
       } · Share of record from completed facilities (S32) = ${
         marketDays === undefined || settled === undefined
-          ? NA
+          ? bookBlank
           : `${count(closedDays)} / ${count(marketDays)} = ${percent(settled)}`
       }`,
     ].join("\n"),
@@ -520,16 +528,16 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
             "completed facility",
             "completed facilities",
           )} · ${count(cmp.S30.population)} graded borrowers`
-        : "TBD: no protocol median yet",
+        : "no graded borrower to take a median from yet",
       markets: protocol
         ? `${plural(
             protocol.completedFacilities,
             "completed facility",
             "completed facilities",
           )} across the protocol`
-        : "TBD: no protocol counts at this snapshot",
+        : "no protocol counts in this publication",
       borrower: borrower.partial
-        ? "TBD: some of their markets are unavailable"
+        ? "some of their markets are not in this publication"
         : `their book: ${count(closedRows.length)} of ${plural(
             rows.length,
             "market",
@@ -632,17 +640,19 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
       `per market = Grace breaches, all markets (S13) ${show(
         breaches,
         count,
-      )} / Markets on Wildcat (S01) ${show(markets, count)} = ${show(
-        perMarket,
-        score,
-      )}`,
+      )} / Markets on Wildcat (S01) ${show(markets, count)} = ${
+        perMarket === undefined && !markets
+          ? "no funded market yet"
+          : show(perMarket, score)
+      }`,
       `per 100 episodes = 100 × S13 ${show(
         breaches,
         count,
-      )} / Episodes, all markets (S12) ${show(incidents, count)} = ${show(
-        per100,
-        score,
-      )}`,
+      )} / Episodes, all markets (S12) ${show(incidents, count)} = ${
+        per100 === undefined && incidents === 0
+          ? "no episode yet"
+          : show(per100, score)
+      }`,
       `Longest episode, all markets (D15) = ${
         longest === undefined
           ? NA
@@ -676,7 +686,7 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
     chips: {
       median:
         medianPer100 === undefined
-          ? "TBD: no protocol median yet"
+          ? "no graded borrower to take a median from yet"
           : `median ${score(medianPer100)} breaches per 100 episodes · ${count(
               cmp.BREACHES_PER_100!.population,
             )} graded borrowers`,
@@ -725,7 +735,7 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
             cmp.S37.median,
             "distinct lender",
           )} · ${count(cmp.S37.population)} graded borrowers`
-        : "TBD: no protocol median yet",
+        : "no graded borrower to take a median from yet",
       markets: rankPhrase(cmp.S37, "borrowers"),
       borrower: lenderRows.length
         ? `their markets: ${lenderRows

@@ -27,7 +27,25 @@ describe("comparisons", () => {
       market(10, 30),
     ]
     const result = marketComparisons(markets[1], markets)
-    expect(result.M18).toEqual({ median: 92.5, population: 4, betterThan: 1 })
+    expect(result.M18).toEqual({
+      median: 92.5,
+      population: 4,
+      betterThan: 1,
+      below: 1,
+    })
+  })
+
+  it("places a measure with no better direction by how many sit below it", () => {
+    const markets = [
+      market(80, 400, { M49: 5 }),
+      market(90, 400, { M49: 50 }),
+      market(95, 400, { M49: 500 }),
+    ]
+    expect(marketComparisons(markets[1], markets).M49).toEqual({
+      median: 50,
+      population: 3,
+      below: 1,
+    })
   })
 
   it("ranks lower-is-better metrics the other way and skips ungraded subjects", () => {
@@ -53,6 +71,7 @@ describe("comparisons", () => {
     expect(marketComparisons(markets[0], markets).M86).toEqual({
       median: 70,
       population: 2,
+      below: 0,
     })
     expect(marketComparisons(markets[0], markets).M18.population).toBe(4)
     expect(marketComparisons(markets[2], markets).M86).toBeUndefined()
@@ -82,6 +101,7 @@ describe("comparisons", () => {
       median: 90,
       population: 1,
       betterThan: 0,
+      below: 0,
     })
   })
 

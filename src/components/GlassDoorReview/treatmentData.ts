@@ -38,46 +38,6 @@ import { CARDS } from "@/components/GlassDoor/wording"
 
 export type Tone = Verdict | "CONTEXT"
 
-/** treatments.js IndexDatum. */
-export type IndexDatum = {
-  id: string
-  name: string
-  note: string
-  verdict: Tone
-  value: string
-  unit: string
-  median: string
-  sentence: string
-  /** Out of 100: amber and red cells for B and G; -1 = not countable. */
-  grace: number
-  past: number
-  countClaim: string
-  countNote: string
-  /** 0–100 position and the median tick for C, H, J and K; -1 = no rail. */
-  rail: number
-  railMed: number
-  railMax?: number
-  /**
-   * Which way is better on the rail, for K's difference colour. Unset means
-   * neither (a measure, not a grade), so the difference stays neutral.
-   */
-  better?: "higher" | "lower"
-  /** [better than, population] for E and I. */
-  rank: [number, number] | null
-  parts: [string, string][]
-  split?: [number, string][]
-  buckets: [string, string, number, string][] | null
-  /** Replaces L's aging-convention key when the bars are not aging slices. */
-  bucketNote?: string
-  /** [value, limit, limit label, headroom label, note] for M. */
-  cov: [number, number, string, string, string] | null
-  /** [bar heights 0–100, from label, to label, note] for O. */
-  trend: [number[], string, string, string] | null
-  evidence?: string
-  /** Replaces every honesty state of this index, as in the handoff. */
-  unavailable?: string
-}
-
 export const TREATMENTS = {
   A: {
     label: "Grade card",
@@ -135,6 +95,56 @@ export const TREATMENTS = {
 
 export type TreatmentCode = keyof typeof TREATMENTS
 export const TREATMENT_CODES = Object.keys(TREATMENTS) as TreatmentCode[]
+
+/** treatments.js IndexDatum. */
+export type IndexDatum = {
+  id: string
+  name: string
+  note: string
+  verdict: Tone
+  value: string
+  unit: string
+  median: string
+  sentence: string
+  /** Out of 100: amber and red cells for B and G; -1 = not countable. */
+  grace: number
+  past: number
+  countClaim: string
+  countNote: string
+  /** 0–100 position and the median tick for C, H, J and K; -1 = no rail. */
+  rail: number
+  railMed: number
+  railMax?: number
+  /** Shown with the rail in C, H and K when the rail is not the headline. */
+  railValue?: string
+  /** The median in its unit, for K and N; the bare number otherwise. */
+  medText?: string
+  /**
+   * Which way is better on the rail, for K's difference colour. Unset means
+   * neither (a measure, not a grade), so the difference stays neutral.
+   */
+  better?: "higher" | "lower"
+  /** [better than, population] for E and I; [sits above, population] when neutral. */
+  rank: [number, number] | null
+  /** E and I wording for a measure with no better direction: "more lenders than". */
+  rankHigher?: string
+  parts: [string, string][]
+  split?: [number, string][]
+  /** N's rows: [label, this one, the median]. */
+  sideBySide?: [string, string, string][]
+  buckets: [string, string, number, string][] | null
+  /** Replaces L's aging-convention key when the bars are not aging slices. */
+  bucketNote?: string
+  /** [value, limit, limit label, headroom label, note] for M. */
+  cov: [number, number, string, string, string] | null
+  /** [bar heights 0–100, from label, to label, note] for O. */
+  trend: [number[], string, string, string] | null
+  evidence?: string
+  /** Replaces every honesty state of this index, as in the handoff. */
+  unavailable?: string
+  /** Why a treatment cannot be drawn for this index, per treatment. */
+  reasons?: Partial<Record<TreatmentCode, string>>
+}
 
 /** The market cards the handoff draws treatments for. */
 export const MARKET_CARDS = [
@@ -268,6 +278,88 @@ export const sampleSeries = (series: [number, number][], stepped = false) => {
   })
 }
 
+const GRADED_DAYS = 90
+const WEEK = 7 * DAY
+
+export type Reasons = Partial<Record<TreatmentCode, string>>
+
+/** The same reason for several treatments. */
+export const reasonFor = (codes: TreatmentCode[], reason: string): Reasons =>
+  Object.fromEntries(codes.map((code) => [code, reason]))
+
+/** A rail's end, with room above the larger of the value and its median. */
+export const railEnd = (...values: number[]) => {
+  const top = Math.max(0, ...values) * 1.25
+  let step = 1
+  if (top > 200) step = 50
+  else if (top > 50) step = 10
+  else if (top > 10) step = 5
+  return Math.max(step, Math.ceil(top / step) * step)
+}
+
+/** How many of the population this one sits above (a measure, not a grade). */
+export const positionOf = (comparison?: Comparison): [number, number] | null =>
+  comparison?.below === undefined
+    ? null
+    : [comparison.below, comparison.population]
+
+/** Why E and I have no place to draw. */
+export const rankReason = (
+  comparison: Comparison | undefined,
+  recordDays: number | undefined,
+  noun: "markets" | "borrowers",
+) => {
+  if (!comparison)
+    return `No graded ${noun} have this value yet, so there is nothing to rank against.`
+  if (recordDays !== undefined && recordDays < GRADED_DAYS)
+    return `Under 90 days of record (${count(
+      recordDays,
+    )} so far): ${noun} are ranked from 90 days.`
+  return "This publication has no place for it yet; the next update adds one."
+}
+
+/** N's row for one compared value: [label, this one, the median]. */
+export const versus = (
+  label: string,
+  value: number | undefined,
+  comparison: Comparison | undefined,
+  format: (value: number) => string,
+): [string, string, string][] =>
+  value === undefined || !comparison
+    ? []
+    : [[label, format(value), format(comparison.median)]]
+
+/** O's reason when a published series is missing or too short. */
+export const seriesReason = (value: unknown) =>
+  isSeries(value)
+    ? "Under two weeks of record: the weekly series has one reading so far."
+    : "This publication has no series for it yet; the next update adds it."
+
+/** Points grouped into equal spans of [from, to], oldest first. */
+const spansOf = (points: [number, number][], from: number, to: number) => {
+  const width = Math.max(1, (to - from) / TREND_BARS)
+  return Array.from({ length: TREND_BARS }, (_, index) =>
+    points
+      .filter(([time]) => {
+        const slot = Math.min(
+          TREND_BARS - 1,
+          Math.max(0, Math.floor((time - from) / width)),
+        )
+        return slot === index
+      })
+      .map(([, value]) => value),
+  )
+}
+
+/** Trend bars scaled to their peak (or a floor), with the peak itself. */
+const scaled = (values: number[], floor = 0) => {
+  const peak = Math.max(floor, ...values)
+  return {
+    peak,
+    heights: values.map((value) => (peak > 0 ? (100 * value) / peak : 0)),
+  }
+}
+
 /** One datum per market card the selection has, by card number. */
 export function treatmentData(
   market: MarketAnalytics,
@@ -286,6 +378,7 @@ export function treatmentData(
   const life = n("H01")
   const late = n("H02")
   const grace = n("M15")
+  const age = n("M05")
   const hasRecord = life !== undefined && life > 0
   const finished = n("M20")
   const open = openEpisodes(market.values)
@@ -295,14 +388,31 @@ export function treatmentData(
     const value = market.values[id]
     return isSeries(value) && value.length >= 2 ? value : undefined
   }
+  const notRanked = (comparison?: Comparison) =>
+    rankReason(comparison, age, "markets")
+  const allowance =
+    grace === undefined
+      ? "the allowed lateness"
+      : `the ${hours(grace)} allowance`
+  // The market's life: deployment to closure, or to the cut.
+  const deployed = s("M03") ? Date.parse(s("M03")!) / 1_000 : undefined
+  const lifeEnd =
+    deployed !== undefined && age !== undefined
+      ? deployed + age * DAY
+      : undefined
+  const incidents = isSeries(market.values.INCIDENT_HISTORY)
+    ? market.values.INCIDENT_HISTORY
+    : undefined
+  const noIncidents = "No incident recorded yet: nothing has been late."
 
   // ---------- 2.1 In order ----------
   if (specs["2.1"]) {
     const d = datumFromSpec(specs["2.1"], evidence)
     const cash = n("M18")
     const penalty = hasRecord ? n("M26") : undefined
+    const kept = penalty === undefined ? undefined : 100 - penalty
     d.rank = rankOf(cmp.M18)
-    if (life === 0) d.unavailable = "No recorded history yet."
+    if (!hasRecord) d.unavailable = "No recorded history yet."
     // Cash there over the trailing 90 days, weekly (100 − share of days late).
     const lateShare = seriesOf("LATE_SHARE_90D")
     if (lateShare) {
@@ -315,7 +425,7 @@ export function treatmentData(
       d.trend = [
         sampleSeries(inOrder).map((value) => Math.max(0, value)),
         `${score(first[1])} on ${longDate(first[0])}`,
-        `now ${score(last[1])}`,
+        `${closed ? "last" : "now"} ${score(last[1])}`,
         "cash there over the trailing 90 days, weekly (100 − share of days late)",
       ]
     }
@@ -349,6 +459,7 @@ export function treatmentData(
       d.rail = one(cash)
       d.better = "higher"
       d.railMed = cmp.M18 ? one(cmp.M18.median) : -1
+      d.medText = cmp.M18 ? score(cmp.M18.median) : undefined
       d.sentence = `Over ${count(
         lifeDays,
       )} days the promised cash was there ${score(
@@ -372,6 +483,21 @@ export function treatmentData(
       ]
       d.bucketNote =
         "green cash there · amber short of cash · red past the allowance, measured on its own: it can overlap or follow the short days, so the bars are not slices of one total"
+      d.sideBySide = [
+        ...versus("cash there", cash, cmp.M18, score),
+        ...versus(
+          "contract kept",
+          kept,
+          cmp.M26 && { ...cmp.M26, median: 100 - cmp.M26.median },
+          contractKept,
+        ),
+        ...versus("incidents", episodes, cmp.M20, count),
+      ]
+    }
+    d.reasons = {
+      ...(d.rank ? {} : reasonFor(["E", "I"], notRanked(cmp.M18))),
+      M: "Cash availability is a share of the record, with no contractual limit of its own. The live headroom, cash held against what the contract requires, is 2.4 (M).",
+      ...(d.trend ? {} : { O: seriesReason(market.values.LATE_SHARE_90D) }),
     }
     data["2.1"] = d
   }
@@ -381,14 +507,15 @@ export function treatmentData(
     const d = datumFromSpec(specs["2.2"], evidence)
     const longest = n("M23")
     const worst = n("M24")
-    d.unavailable =
-      "A single event, not a rate: nothing to count out of 100. Nearest honest form: the worst incident against the allowance (treatment M)."
+    const breaches = n("M25")
     d.rank = rankOf(cmp.M24)
+    if (!hasRecord) d.unavailable = "No recorded history yet."
     if (hasRecord && grace && worst !== undefined) {
       d.rail = one(worst)
       d.better = "lower"
       d.railMed = cmp.M24 ? one(cmp.M24.median) : -1
-      d.railMax = Math.max(120, Math.ceil(worst / 10) * 10 + 10)
+      d.railMax = railEnd(120, worst + 10)
+      d.medText = cmp.M24 ? percent(cmp.M24.median) : undefined
     }
     if (longest !== undefined && grace) {
       const over = longest > grace
@@ -410,19 +537,67 @@ export function treatmentData(
               over ? "crossed into penalty" : "stayed inside the allowance"
             }.`
     }
+    // Breaches out of every 100 incidents (M25 of the episodes).
+    if (episodes && breaches !== undefined) {
+      const share = (100 * breaches) / episodes
+      d.grace = 0
+      d.past = share
+      d.countClaim =
+        breaches === 0
+          ? `No incident ran past ${allowance}.`
+          : `${per100(share)} of every 100 incidents ran past ${allowance}.`
+      d.countNote = `${count(breaches)} of ${plural(
+        episodes,
+        "incident",
+      )} breached ${allowance} (M25)`
+      const w = widths([episodes - breaches, breaches])
+      d.buckets = [
+        ["stayed within", count(episodes - breaches), w[0], GREEN],
+        ["ran past (breaches)", count(breaches), w[1], RED],
+      ]
+      d.bucketNote = `incidents by whether they ran past ${allowance} (M25)`
+    }
+    // The longest incident in each span of the market's life.
+    if (incidents?.length && deployed !== undefined && lifeEnd !== undefined) {
+      const longestPer = spansOf(incidents, deployed, lifeEnd).map((values) =>
+        values.length ? Math.max(...values) : 0,
+      )
+      const { peak, heights } = scaled(longestPer, grace ?? 0)
+      d.trend = [
+        heights,
+        longDate(deployed),
+        closed ? `closed ${longDate(lifeEnd)}` : "now",
+        `longest incident in each of ${TREND_BARS} spans of the market's life; full height ${hours(
+          peak,
+        )}, the allowance ${grace === undefined ? NA : hours(grace)}`,
+      ]
+    }
     d.parts = [
       ["longest incident", longest === undefined ? NA : hours(longest)],
       ["allowed lateness", grace === undefined ? NA : hours(grace)],
       [
         "breaches",
-        n("M25") === undefined
+        breaches === undefined
           ? NA
-          : `${count(n("M25")!)} of ${
+          : `${count(breaches)} of ${
               episodes === undefined ? NA : count(episodes)
             }`,
       ],
       ["penalty interest paid", amount(n("M27"))],
     ]
+    d.sideBySide = [
+      ...versus("worst vs allowance", worst, cmp.M24, percent),
+      ...versus("allowed lateness", grace, cmp.M15, hours),
+    ]
+    const counted =
+      episodes === 0
+        ? noIncidents
+        : "Breaches are not counted in this publication yet."
+    d.reasons = {
+      ...(d.grace < 0 ? reasonFor(["B", "G", "L"], counted) : {}),
+      ...(d.rank ? {} : reasonFor(["E", "I"], notRanked(cmp.M24))),
+      ...(d.trend ? {} : { O: incidents ? noIncidents : seriesReason(null) }),
+    }
     data["2.2"] = d
   }
 
@@ -436,6 +611,12 @@ export function treatmentData(
     const unpaid = n("D18_NEVER")
     const queued = n("M37")
     const unclaimed = n("M38")
+    const window = n("M16")
+    // "current cycle ends in 12.5 h" (D06).
+    const cycleLeft = (() => {
+      const match = s("D06")?.match(/ends in (-?[\d.]+) h/)
+      return match ? Number(match[1]) : undefined
+    })()
     d.rank = rankOf(cmp.M32)
     if (deadlines === 0)
       d.unavailable =
@@ -453,6 +634,7 @@ export function treatmentData(
       d.rail = one(rate)
       d.better = "higher"
       d.railMed = cmp.M32 ? one(cmp.M32.median) : -1
+      d.medText = cmp.M32 ? percent(cmp.M32.median) : undefined
       d.grace = split
         ? (100 * paidLate!) / deadlines
         : (100 * missed) / deadlines
@@ -463,7 +645,7 @@ export function treatmentData(
       d.countNote = `${count(missed)} of ${count(deadlines)} not covered · ${
         split
           ? `${count(paidLate!)} paid late, ${count(unpaid!)} never paid`
-          : "split of late vs never coming soon"
+          : "split of late vs never not available"
       }`
       d.sentence = `${count(covered)} of ${plural(
         deadlines,
@@ -501,6 +683,40 @@ export function treatmentData(
           ["still owed", BLANK.splitSoon, 4, GHOST],
         ]
       }
+      const coveredToDate = seriesOf("COVERED_TO_DATE")
+      if (coveredToDate) {
+        const first = coveredToDate[0]
+        const last = coveredToDate[coveredToDate.length - 1]
+        d.trend = [
+          sampleSeries(coveredToDate),
+          `${percent(first[1])} by ${longDate(first[0])}`,
+          `${closed ? "last" : "now"} ${percent(last[1])}`,
+          "share of payout deadlines covered on the day, to date, weekly",
+        ]
+      }
+      d.sideBySide = [
+        ...versus("covered on the day", rate, cmp.M32, percent),
+        ...versus("amount paid at expiry", n("M33"), cmp.M33, percent),
+      ]
+    }
+    // The running payout cycle against its window.
+    if (!closed && cycleLeft !== undefined && window) {
+      const left = Math.min(window, Math.max(0, cycleLeft))
+      d.cov = [
+        window - left,
+        window,
+        `${hours(window)} payout window`,
+        `${hours(left)} until this cycle's deadline`,
+        "the running payout cycle; whether the cash covers it is known at the deadline",
+      ]
+    }
+    let noCycle =
+      "No payout cycle is running: the next starts with the next withdrawal request."
+    if (closed) noCycle = "Closed: no payout cycle runs after closure."
+    d.reasons = {
+      ...(d.rank ? {} : reasonFor(["E", "I"], notRanked(cmp.M32))),
+      ...(d.cov ? {} : { M: noCycle }),
+      ...(d.trend ? {} : { O: seriesReason(market.values.COVERED_TO_DATE) }),
     }
     data["2.3"] = d
   }
@@ -513,6 +729,8 @@ export function treatmentData(
     const countdown = n("D05") ?? leadingNumber(s("D05"))
     const waiting = n("M37")
     const cured = n("M84")
+    const held = n("M08")
+    const required = n("REQUIRED_CASH")
     d.verdict = STATE_TONE[state]
     // A state is neither a population of 100 nor a score comparable with the
     // protocol's share of markets. Keep those treatments unavailable.
@@ -529,6 +747,19 @@ export function treatmentData(
           ? ""
           : ` The last incident was cured ${ageDays(cured)} ago.`
       }`
+      // In order: what the contract requires as a share of the cash held.
+      if (held !== undefined && required !== undefined && held > 0) {
+        const share = (100 * required) / held
+        d.cov = [
+          share,
+          100,
+          "all the cash held",
+          `${amount(
+            Math.max(0, held - required),
+          )} above what the contract requires`,
+          "required liquidity (reserve plus queued payouts) as a share of the cash held; past 100% the market is late",
+        ]
+      }
     } else if (state === "amber" && grace && countdown !== undefined) {
       const left = Math.max(0, countdown)
       d.cov = [
@@ -558,12 +789,70 @@ export function treatmentData(
       }.`
     } else if (closed)
       d.sentence = "The market is finished: the record ends at closure."
+    // Hours late in each of the last weeks, up to 24.
+    if (!closed && incidents && cut && age !== undefined) {
+      const weeks = Math.max(
+        1,
+        Math.min(TREND_BARS, Math.ceil((age * DAY) / WEEK)),
+      )
+      const lateHours = Array.from({ length: weeks }, (_, index) => {
+        const to = cut.timestamp - (weeks - 1 - index) * WEEK
+        const from = to - WEEK
+        return (
+          incidents.reduce(
+            (total, [onset, length]) =>
+              total +
+              Math.max(
+                0,
+                Math.min(to, onset + length * 3_600) - Math.max(from, onset),
+              ),
+            0,
+          ) / 3_600
+        )
+      })
+      d.trend = [
+        lateHours.map((value) => (100 * value) / 168),
+        `${plural(weeks, "week")} ago`,
+        "this week",
+        lateHours.some((value) => value > 0)
+          ? `hours late in each of the last ${plural(
+              weeks,
+              "week",
+            )}, against a full week of 168 h`
+          : `no hour late in the last ${plural(weeks, "week")}`,
+      ]
+    }
+    let noLimit =
+      "The state at this block is unknown, so there is no limit to measure against."
+    if (closed)
+      noLimit = "Closed: the grace clock and the reserve no longer apply."
+    else if (state === "green" && held === 0)
+      noLimit =
+        "No cash is held and nothing is owed, so the contract requires none."
+    else if (state === "green")
+      noLimit =
+        "This publication has no cash requirement for the market yet; the next update adds it."
     d.parts = [
       ["late within grace now", yesNo(n("M21"))],
       ["past grace now", yesNo(n("M85"))],
       ["open batches", waiting === undefined ? NA : count(waiting)],
       ["last cure", cured === undefined ? NA : `${ageDays(cured)} ago`],
     ]
+    d.reasons = {
+      ...reasonFor(
+        ["E", "I"],
+        "A live state is not ranked: the protocol ranks records, not the state at one block.",
+      ),
+      L: "One market is in one state at a time, so there is nothing to bucket; 3.4 buckets the borrower's markets by state.",
+      ...(d.cov ? {} : { M: noLimit }),
+      ...(d.trend
+        ? {}
+        : {
+            O: closed
+              ? "Closed: the record ends at closure; its last weeks are on 2.1 (O)."
+              : seriesReason(market.values.INCIDENT_HISTORY),
+          }),
+    }
     data["2.4"] = d
   }
 
@@ -576,8 +865,15 @@ export function treatmentData(
     const realised = n("M39")
     const earned = n("M41")
     const penaltyShare = n("M42")
+    const penaltyInterest = n("M27")
+    // The card's headline: the posted rate while open, realised once closed.
+    const railComparison = closed ? cmp.M39 : cmp.M11
+    const railNumber = closed ? realised : base
     d.verdict = spec.flag && spec.flagTone === "watch" ? "WATCH" : "CONTEXT"
-    d.rank = rankOf(cmp.M39)
+    d.rank = positionOf(railComparison)
+    d.rankHigher = closed
+      ? "a higher realised rate than"
+      : "a higher posted rate than"
     if (earned === 0) d.unavailable = "No lender interest has accrued yet."
     else if (penaltyShare !== undefined) {
       d.grace = penaltyShare
@@ -585,9 +881,33 @@ export function treatmentData(
       d.countClaim = `${per100(
         penaltyShare,
       )} of every 100 dollars lenders earned came from penalty interest.`
-      d.countNote = `penalty interest ${amount(n("M27"))} of ${amount(
+      d.countNote = `penalty interest ${amount(penaltyInterest)} of ${amount(
         earned,
       )} earned (M42)`
+      // The card's amber line: penalty interest above 5% of what lenders earned.
+      d.cov = [
+        penaltyShare,
+        5,
+        "5% of interest from penalties",
+        penaltyShare > 5
+          ? `${score(penaltyShare - 5, 2)} points over`
+          : `${score(5 - penaltyShare, 2)} points below`,
+        "the card's amber line for penalty interest (M42 above 5%), not a contract limit",
+      ]
+    }
+    if (earned && penaltyInterest !== undefined) {
+      const w = widths([earned - penaltyInterest, penaltyInterest])
+      d.buckets = [
+        ["base interest", amount(earned - penaltyInterest), w[0], GREEN],
+        ["penalty interest", amount(penaltyInterest), w[1], AMBER],
+      ]
+      d.bucketNote = "what lenders earned, by kind (M41 split by M27)"
+    }
+    if (railNumber !== undefined && !(closed && earned === 0)) {
+      d.rail = one(railNumber)
+      d.railMed = railComparison ? one(railComparison.median) : -1
+      d.railMax = railEnd(railNumber, railComparison?.median ?? 0)
+      d.medText = railComparison ? apr(railComparison.median) : undefined
     }
     // The base rate over the market's life, stepped at each change.
     const rates = seriesOf("RATE_HISTORY")
@@ -629,6 +949,26 @@ export function treatmentData(
       ["penalty share", penaltyShare === undefined ? NA : apr(penaltyShare)],
       ["penalty APR", n("M12") === undefined ? NA : `+${score(n("M12")!, 2)}`],
     ]
+    d.sideBySide = [
+      ...(closed ? [] : versus("base APR now", base, cmp.M11, apr)),
+      ...versus("realised APR", realised, cmp.M39, apr),
+      ...versus(
+        "penalty APR",
+        n("M12"),
+        cmp.M12,
+        (value) => `+${score(value, 2)}`,
+      ),
+    ]
+    d.reasons = {
+      ...(d.rank ? {} : reasonFor(["E", "I"], notRanked(railComparison))),
+      ...(d.rail >= 0 && d.railMed < 0
+        ? reasonFor(
+            ["K", "N"],
+            "No graded market posts a rate to compare with yet.",
+          )
+        : {}),
+      ...(d.trend ? {} : { O: seriesReason(market.values.RATE_HISTORY) }),
+    }
     data["2.5"] = d
   }
 
@@ -637,12 +977,16 @@ export function treatmentData(
     const d = datumFromSpec(specs["2.6"], evidence)
     const capacity = n("M06")
     const used = n("M86")
+    d.rank = positionOf(cmp.M86)
+    d.rankHigher = "more of its line drawn than"
     if (capacity === 0)
       d.unavailable = "No deposit capacity: the market has no line to draw on."
     else if (capacity !== undefined && used !== undefined) {
       const drawn = (used * capacity) / 100
       d.rail = one(used)
       d.railMed = cmp.M86 ? one(cmp.M86.median) : -1
+      d.railMax = used > 100 ? railEnd(used) : undefined
+      d.medText = cmp.M86 ? percent(cmp.M86.median) : undefined
       d.grace = Math.min(100, used)
       d.past = 0
       d.countClaim = `${per100(used)} of every 100 committed dollars are drawn.`
@@ -656,6 +1000,14 @@ export function treatmentData(
           : `${score(100 - used)} points of room left`,
         "use of the committed line (totalSupply basis)",
       ]
+      const w = widths([drawn, Math.abs(capacity - drawn)])
+      d.buckets = [
+        ["drawn", amount(drawn), w[0], PURPLE],
+        used > 100
+          ? ["over the line", amount(drawn - capacity), w[1], RED]
+          : ["room left", amount(capacity - drawn), w[1], GHOST],
+      ]
+      d.bucketNote = "the committed line, drawn and undrawn (totalSupply basis)"
       d.sentence = `${percent(
         used,
       )} of the committed credit line is drawn: ${amount(
@@ -670,6 +1022,29 @@ export function treatmentData(
         ["line", amount(capacity)],
         ["room left", amount(Math.max(0, capacity - drawn))],
       ]
+      d.sideBySide = versus("drawn", used, cmp.M86, percent)
+    }
+    const utilization = seriesOf("UTILIZATION_HISTORY")
+    if (utilization) {
+      const first = utilization[0]
+      const last = utilization[utilization.length - 1]
+      const samples = sampleSeries(utilization)
+      const { peak, heights } = scaled(samples, 100)
+      d.trend = [
+        heights,
+        `${percent(first[1])} on ${longDate(first[0])}`,
+        `now ${percent(last[1])}`,
+        `share of the credit line drawn, weekly; full height ${percent(peak)}`,
+      ]
+    }
+    d.reasons = {
+      ...(d.rank ? {} : reasonFor(["E", "I"], notRanked(cmp.M86))),
+      ...(d.rail >= 0 && d.railMed < 0
+        ? reasonFor(["K", "N"], "No graded open market to compare with yet.")
+        : {}),
+      ...(d.trend
+        ? {}
+        : { O: seriesReason(market.values.UTILIZATION_HISTORY) }),
     }
     data["2.6"] = d
   }
@@ -679,6 +1054,8 @@ export function treatmentData(
     const d = datumFromSpec(specs["2.8"], evidence)
     const buckets = ["M69", "M70", "M71", "M72"].map((id) => n(id))
     const total = buckets.reduce<number>((sum, value) => sum + (value ?? 0), 0)
+    const cured = n("M83")
+    const average = n("M22")
     if (finished) d.rank = rankOf(cmp.M22)
     if (episodes === 0) d.unavailable = "No incidents recorded yet."
     else if (buckets.every((value) => value !== undefined) && total > 0) {
@@ -714,6 +1091,65 @@ export function treatmentData(
         ["over 2 d", count(longer), w[3], DEEP_RED],
       ]
     }
+    // Share of finished incidents cured within grace (M83).
+    if (cured !== undefined) {
+      d.rail = one(cured)
+      d.better = "higher"
+      d.railMed = cmp.M83 ? one(cmp.M83.median) : -1
+      d.railValue = `${percent(cured)} cured in time`
+      d.medText = cmp.M83 ? percent(cmp.M83.median) : undefined
+    }
+    // The average finished incident against the allowance.
+    if (finished && average !== undefined && grace) {
+      const over = average > grace
+      d.cov = [
+        average,
+        grace,
+        `${hours(grace)} allowance`,
+        over
+          ? `${hours(average - grace)} past the limit`
+          : `${hours(grace - average)} of room on the average incident`,
+        "the average finished incident against the allowance (M22 against M15)",
+      ]
+    }
+    // Incidents started in each span of the market's life.
+    if (incidents?.length && deployed !== undefined && lifeEnd !== undefined) {
+      const perSpan = spansOf(incidents, deployed, lifeEnd).map(
+        (values) => values.length,
+      )
+      const { peak, heights } = scaled(perSpan)
+      d.trend = [
+        heights,
+        longDate(deployed),
+        closed ? `closed ${longDate(lifeEnd)}` : "now",
+        `incidents started in each of ${TREND_BARS} spans of the market's life; full height ${plural(
+          peak,
+          "incident",
+        )}`,
+      ]
+    }
+    d.sideBySide = [
+      ...versus("cured within grace", cured, cmp.M83, percent),
+      ...versus("average incident", average, cmp.M22, hours),
+      ...versus("finished incidents", finished, cmp.M20, count),
+    ]
+    const onlyOpen =
+      "Only an open incident so far: the shape counts finished incidents."
+    d.reasons = {
+      ...(d.grace < 0 ? reasonFor(["B", "G", "L"], onlyOpen) : {}),
+      ...(d.rail < 0 ? reasonFor(["C", "H", "K", "N"], onlyOpen) : {}),
+      ...(d.rail >= 0 && d.railMed < 0
+        ? reasonFor(
+            ["K", "N"],
+            "No graded market has a finished incident to compare with yet.",
+          )
+        : {}),
+      ...(d.rank
+        ? {}
+        : reasonFor(["E", "I"], finished ? notRanked(cmp.M22) : onlyOpen)),
+      ...(d.cov ? {} : { M: onlyOpen }),
+      ...(d.trend ? {} : { O: seriesReason(market.values.INCIDENT_HISTORY) }),
+    }
     data["2.8"] = d
   }
 
@@ -724,7 +1160,8 @@ export function treatmentData(
     const ever = n("M49")
     const largest = n("D10")
     const retention = n("M51")
-    d.rank = rankOf(cmp.M49)
+    d.rank = positionOf(cmp.M49)
+    d.rankHigher = "more lenders than"
     if (ever === 0) d.unavailable = "No lender yet."
     else {
       if (largest !== undefined) {
@@ -746,19 +1183,54 @@ export function treatmentData(
       if (retention !== undefined) {
         d.rail = one(retention)
         d.railMed = cmp.M51 ? one(cmp.M51.median) : -1
+        d.railValue = `${percent(retention)} still in`
+        d.medText = cmp.M51 ? percent(cmp.M51.median) : undefined
       }
-      if (active !== undefined && ever !== undefined)
+      if (active !== undefined && ever !== undefined) {
         d.sentence = `${count(active)} lenders are active of ${count(
           ever,
         )} who ever deposited${
           largest === undefined ? "" : `; the biggest holds ${percent(largest)}`
         }.`
+        const w = widths([active, ever - active])
+        d.buckets = [
+          ["still holding", count(active), w[0], GREEN],
+          ["left", count(ever - active), w[1], GHOST],
+        ]
+        d.bucketNote =
+          "lenders who ever deposited, by whether they still hold a balance"
+      }
       d.parts = [
         ["active now", active === undefined ? NA : count(active)],
         ["ever", ever === undefined ? NA : count(ever)],
         ["biggest holder", largest === undefined ? NA : percent(largest)],
         ["retention", retention === undefined ? NA : percent(retention)],
       ]
+    }
+    const lenders = seriesOf("LENDERS_TO_DATE")
+    if (lenders && ever) {
+      const samples = sampleSeries(lenders, true)
+      const { heights } = scaled(samples)
+      d.trend = [
+        heights,
+        `${plural(lenders[0][1], "lender")} by ${longDate(lenders[0][0])}`,
+        `now ${count(lenders[lenders.length - 1][1])}`,
+        "lenders who ever deposited, to date, weekly",
+      ]
+    }
+    d.sideBySide = [
+      ...versus("lenders ever", ever, cmp.M49, count),
+      ...versus("still holding", retention, cmp.M51, percent),
+      ...versus("largest holder", largest, cmp.D10, percent),
+    ]
+    const openOnly = closed
+      ? "Closed: retention is compared across open markets only."
+      : "No graded open market to compare with yet."
+    d.reasons = {
+      ...(d.rank ? {} : reasonFor(["E", "I"], notRanked(cmp.M49))),
+      ...(d.rail >= 0 && d.railMed < 0 ? reasonFor(["K", "N"], openOnly) : {}),
+      M: "No contract limit governs how much one lender holds or how many lenders there are.",
+      ...(d.trend ? {} : { O: seriesReason(market.values.LENDERS_TO_DATE) }),
     }
     data["2.9"] = d
   }
@@ -769,25 +1241,48 @@ export function treatmentData(
     const window = n("M16")
     const reserve = n("M14")
     const penaltyRate = n("M12")
-    d.unavailable =
-      "Contract facts, not a measured rate. Nearest honest form: the parts list in treatment F."
+    const penaltyText = (value: number) => `+${score(value, 2)} APR`
+    if (grace !== undefined) {
+      d.rail = one(grace)
+      d.railMed = cmp.M15 ? one(cmp.M15.median) : -1
+      d.railMax = railEnd(grace, cmp.M15?.median ?? 0)
+      d.medText = cmp.M15 ? hours(cmp.M15.median) : undefined
+    }
+    d.rank = positionOf(cmp.M15)
+    d.rankHigher = "a longer grace period than"
     d.parts = [
       ["lifecycle", lifecycle(s("M77"))],
       ["allowed lateness", grace === undefined ? NA : hours(grace)],
       ["payout window", window === undefined ? NA : hours(window)],
       ["reserve ratio", reserve === undefined ? NA : percent(reserve)],
-      [
-        "penalty",
-        penaltyRate === undefined ? NA : `+${score(penaltyRate, 2)} APR`,
-      ],
+      ["penalty", penaltyRate === undefined ? NA : penaltyText(penaltyRate)],
+    ]
+    d.sideBySide = [
+      ...versus("allowed lateness", grace, cmp.M15, hours),
+      ...versus("payout window", window, cmp.M16, hours),
+      ...versus("reserve ratio", reserve, cmp.M14, percent),
+      ...versus("penalty", penaltyRate, cmp.M12, penaltyText),
     ]
     d.sentence = `${lifecycle(s("M77"))}: lateness tolerated for ${
       grace === undefined ? NA : hours(grace)
     }, payouts due within ${window === undefined ? NA : hours(window)}, a ${
       reserve === undefined ? NA : percent(reserve)
     } reserve ratio, and a penalty of ${
-      penaltyRate === undefined ? NA : `+${score(penaltyRate, 2)} APR`
+      penaltyRate === undefined ? NA : penaltyText(penaltyRate)
     } once past the allowance.`
+    d.reasons = {
+      ...reasonFor(
+        ["B", "G"],
+        "Contract facts, not a measured rate: nothing to count out of 100. Nearest honest form: the parts list in treatment F.",
+      ),
+      ...(d.rank ? {} : reasonFor(["E", "I"], notRanked(cmp.M15))),
+      ...(d.rail >= 0 && d.railMed < 0
+        ? reasonFor(["K", "N"], "No graded market to compare terms with yet.")
+        : {}),
+      L: "Contract terms have no age or status to bucket.",
+      M: "These terms are the limits themselves; the headroom against them is on 2.2 (the allowance), 2.4 (the reserve) and 2.6 (the credit line).",
+      O: "The grace period, payout window and penalty are fixed when the market is deployed, so they have no history; the base rate's is on 2.5 (O).",
+    }
     data["2.10"] = d
   }
 
@@ -872,15 +1367,35 @@ export const drawable = (code: TreatmentCode, d: IndexDatum) => {
     case "E":
     case "I":
       return d.rank !== null
+    case "K":
+      return d.rail >= 0 && d.railMed >= 0
     case "L":
       return d.buckets !== null
     case "M":
       return d.cov !== null
+    case "N":
+      return Boolean(d.sideBySide?.length) || (d.rail >= 0 && d.railMed >= 0)
     case "O":
       return d.trend !== null
     default:
       return true
   }
+}
+
+/** Each tile's own honesty state, when its index gives no reason. */
+export const TILE_FALLBACK: Partial<Record<TreatmentCode, string>> = {
+  B: "Not countable out of 100.",
+  G: "Not a share of the record.",
+  C: "No 0–100 rail for this index.",
+  H: "No 0–100 rail for this index.",
+  J: "No 0–100 rail for this index.",
+  E: "This index has no protocol-wide ranking in the snapshot.",
+  I: "No population ranking for this index in the snapshot.",
+  K: "This snapshot has no comparable value and benchmark.",
+  N: "This snapshot has no comparable value and benchmark.",
+  L: "This index has no aging dimension: nothing here is measured by how long it has been outstanding.",
+  M: "No contractual threshold governs this index, so there is no headroom to draw.",
+  O: "This index has no series in this publication, so there is no trend to plot.",
 }
 
 /** Rendering a shape is not sufficient evidence that it is a valid choice. */
@@ -897,14 +1412,9 @@ export const referenceReason = (card: string, code: TreatmentCode) => {
 export const treatmentIssue = (code: TreatmentCode, d: IndexDatum) => {
   const reference = referenceReason(d.id, code)
   if (reference) return reference
-  if (!drawable(code, d))
-    return (
-      d.unavailable ??
-      "This snapshot does not contain the data this treatment needs."
-    )
-  if (["K", "N"].includes(code) && (d.rail < 0 || d.railMed < 0))
-    return "This snapshot has no comparable value and benchmark."
-  return undefined
+  if (drawable(code, d)) return undefined
+  // The whole index's state first (no record yet), then this tile's reason.
+  return d.unavailable ?? d.reasons?.[code] ?? TILE_FALLBACK[code]
 }
 
 /** A card number typed into Go to metric ("2.2", "card 2.10"). */

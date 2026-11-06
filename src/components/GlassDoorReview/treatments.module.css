@@ -578,6 +578,8 @@
 .trend > span {
   display: block;
   flex: 1;
+  /* A zero still shows as a baseline mark, so an empty span reads as none. */
+  min-height: 2px;
   border-radius: 2px 2px 0 0;
   background: #4112b5;
 }

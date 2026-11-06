@@ -51,6 +51,7 @@ export const marketState = (
       tone: "neutral",
     }
   if (row.values.M77 === "Closed") return { word: "finished", tone: "neutral" }
+  if (!isFunded(row.values)) return { word: "not funded yet", tone: "neutral" }
   if (row.values.M85 === 1) return { word: "past allowance", tone: "red" }
   if (row.values.M21 === 1)
     return { word: "late, within allowance", tone: "amber" }
@@ -264,7 +265,8 @@ export const BorrowerAnalyticsView = ({
   const floor = marketDays ? n("S06") : undefined
   const top = marketDays ? n("S07") : undefined
   let spread: string = NA
-  if (markets === 1) spread = "single market"
+  if (markets === 0) spread = "no funded market yet"
+  else if (markets === 1) spread = "single market"
   else if (floor !== undefined && top !== undefined)
     spread = `${score(floor)} to ${score(top)}`
   let content = (

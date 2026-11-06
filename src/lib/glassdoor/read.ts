@@ -45,6 +45,11 @@ export const PER_MARKET_TABLE = [
   "M16",
   "M12",
   "M14",
+  // Card 3.4's headroom: the late market's grace clock, or the tightest
+  // market's cash against what its contract requires.
+  "D05",
+  "M08",
+  "REQUIRED_CASH",
 ]
 
 type Cut = { block: number; hash: string; timestamp: number }

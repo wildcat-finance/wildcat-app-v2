@@ -214,6 +214,8 @@ const NUMBER_FORMAT: Record<string, Format> = {
   S36: (v) => units(v),
   S37: count,
   D03: tokenAmount,
+  // Grace countdown: hours left while late within grace (else a phrase).
+  D05: (v) => `${hours(v)} left`,
   D10: (v) => percent(v),
   D15: (v) => hours(v),
   D16: (v) => hours(v),
@@ -246,7 +248,11 @@ export const formatValue = (
 ) => {
   const asset =
     typeof values.M02 === "string" && values.M02 ? values.M02 : undefined
-  if (isNumber(value)) return (NUMBER_FORMAT[id] ?? score)(value, asset)
+  if (isNumber(value))
+    return (NUMBER_FORMAT[id] ?? ((number: number) => score(number)))(
+      value,
+      asset,
+    )
   if (typeof value === "string" && value !== "")
     return TEXT_FORMAT[id]?.(value, values) ?? value
   return undefined
@@ -256,6 +262,35 @@ export const formatValue = (
 const NOT_PUBLISHED: Record<string, string> = {
   D11: "Not published: defaults on record come from off-chain app data (the defaults badge), not from the Glass Door publication",
 }
+
+const noFundedMarket = (values: MetricValues) =>
+  Number(values.S01 ?? 0) === 0
+    ? "None yet: no funded market"
+    : "None yet: no recorded history across the funded markets"
+
+/** Why the metrics that can be blank are blank, by their own rules. */
+const BLANK_REASON: Record<string, (values: MetricValues) => string> = {
+  M67: (values) => {
+    if (Number(values.H01 ?? 0) === 0) return "None yet: no recorded history"
+    if (values.M77 === "Closed")
+      return "None after closure: the last 90 days hold no recorded time"
+    return "None: under 7 days recorded in the last 90 days"
+  },
+  M83: () => "None yet: no finished episode to have been cured",
+  S02: noFundedMarket,
+  S05: noFundedMarket,
+  S06: noFundedMarket,
+  S07: noFundedMarket,
+  D21: noFundedMarket,
+  S32: noFundedMarket,
+  S17: () => "None yet: no market has reached a payout deadline",
+  S27: (values) =>
+    Number(values.S01 ?? 0) === 0
+      ? "None yet: no funded market"
+      : "None: under 7 days recorded across the book in the last 90 days",
+}
+BLANK_REASON.M68 = BLANK_REASON.M67
+BLANK_REASON.S28 = BLANK_REASON.S27
 
 /** The value for the selection, or the reason it has none. */
 export const shownValue = (metric: SpecMetric, data: ReviewData): Shown => {
@@ -288,7 +323,9 @@ export const shownValue = (metric: SpecMetric, data: ReviewData): Shown => {
   if (text === undefined)
     return {
       kind: "tbd",
-      reason: `No value: none published for this ${NOUN[group]}`,
+      reason:
+        BLANK_REASON[metric.id]?.(values) ??
+        `No value: none published for this ${NOUN[group]}`,
     }
   return { kind: "value", text, raw }
 }

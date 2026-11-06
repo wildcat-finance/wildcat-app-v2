@@ -79,6 +79,9 @@ export const COMPARED = new Set([
   "M14",
   "S18",
   "S30",
+  // Cured within grace (2.8) and the completed share of the record (3.6).
+  "M83",
+  "S32",
 ])
 
 const cardsWhere = (table: Record<string, string[]>, id: string) =>

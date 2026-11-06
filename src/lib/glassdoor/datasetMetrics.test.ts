@@ -12,6 +12,7 @@ import {
   marketMetricsAt,
   quietPenaltySeconds,
   summarizeMarket,
+  weeklyReadings,
 } from "./datasetMetrics"
 import { buildMarketDataset } from "../export/ledger/buildMarketDataset"
 import { discoverMarketUniverse } from "../export/sources/discovery"
@@ -281,6 +282,16 @@ describe("completed facilities (S30-S34) and uncovered deadlines (D18)", () => {
       Number(metrics.M30) - Number(metrics.M31),
     )
     expect(borrowerMetricsFrom([{ summary: closed, metrics }]).S30).toBe(1)
+    // The trend series end on the published values they draw.
+    expect(closed.deadlines).toHaveLength(Number(metrics.M30))
+    expect(Object.keys(closed.lenderSince!).sort()).toEqual(closed.lenders)
+    const last = (id: string) => {
+      const series = metrics[id] as [number, number][]
+      return series[series.length - 1][1]
+    }
+    expect(last("COVERED_TO_DATE")).toBeCloseTo(Number(metrics.M32), 9)
+    expect(last("LENDERS_TO_DATE")).toBe(Number(metrics.M49))
+    expect(closed.utilization!.length).toBeGreaterThan(0)
   }, 120_000)
 })
 
@@ -393,6 +404,105 @@ describe("series", () => {
     ])
     // A summary from before the rate history has none, not an invented one.
     expect(marketMetricsAt(summary(), state(false)).RATE_HISTORY).toBe("")
+  })
+
+  it("reads a stepped value once a week, from its first step", () => {
+    const readings = weeklyReadings(
+      [
+        [T0 - 20 * DAY, 1],
+        [T0 - 3 * DAY, 2],
+      ],
+      T0,
+    )
+    expect(readings).toEqual([
+      [T0 - 14 * DAY, 1],
+      [T0 - 7 * DAY, 1],
+      [T0, 2],
+    ])
+    expect(weeklyReadings([], T0)).toEqual([])
+  })
+
+  it("draws deadlines, lenders, use of the line and incidents (2.2–2.9 trends)", () => {
+    const metrics = marketMetricsAt(
+      summary({
+        deadlines: [
+          [T0 - 20 * DAY, 1],
+          [T0 - 10 * DAY, 0],
+        ],
+        lenderSince: {
+          [`0x${"1".repeat(40)}`]: T0 - 30 * DAY,
+          [`0x${"2".repeat(40)}`]: T0 - 2 * DAY,
+        },
+        utilization: [[T0 - 7 * DAY, 5]],
+        episodes: [{ onset: T0 - 9 * DAY, cure: T0, durationSeconds: 9 * DAY }],
+      }),
+      state(false),
+    )
+    const covered = metrics.COVERED_TO_DATE as [number, number][]
+    expect(covered[covered.length - 1]).toEqual([at, 50])
+    expect(covered[0][1]).toBe(100)
+    const lenders = metrics.LENDERS_TO_DATE as [number, number][]
+    expect(lenders[0][1]).toBe(1)
+    expect(lenders[lenders.length - 1]).toEqual([at, 2])
+    // The weekly use of the line, then the cut's own reading (M86).
+    expect(metrics.UTILIZATION_HISTORY).toEqual([
+      [T0 - 7 * DAY, 5],
+      [at, 10],
+    ])
+    expect(metrics.INCIDENT_HISTORY).toEqual([[T0 - 9 * DAY, 9 * 24]])
+    expect(metrics.REQUIRED_CASH).toBe(0.0001)
+    // Summaries from before these series have none.
+    const old = marketMetricsAt(summary(), state(false))
+    expect([
+      old.COVERED_TO_DATE,
+      old.LENDERS_TO_DATE,
+      old.UTILIZATION_HISTORY,
+    ]).toEqual(["", "", ""])
+  })
+
+  it("draws the book's breaches, completions and lenders to date (3.6–3.10)", () => {
+    const one = summary({
+      episodes: [
+        {
+          onset: T0 - 30 * DAY,
+          cure: T0 - 29 * DAY,
+          durationSeconds: DAY,
+          penalised: true,
+        },
+        {
+          onset: T0 - 10 * DAY,
+          cure: T0 - 9 * DAY,
+          durationSeconds: DAY / 2,
+          penalised: false,
+        },
+      ],
+      lenderSince: { [`0x${"1".repeat(40)}`]: T0 - 50 * DAY },
+    })
+    const two = summary({
+      address: `0x${"c".repeat(40)}`,
+      closedAt: T0 - 5 * DAY,
+      lenderSince: {
+        [`0x${"1".repeat(40)}`]: T0 - 80 * DAY,
+        [`0x${"2".repeat(40)}`]: T0 - 20 * DAY,
+      },
+    })
+    const book = borrowerMetricsFrom(
+      [one, two].map((market) => ({
+        summary: market,
+        metrics: marketMetricsAt(market, state(false)),
+      })),
+      at,
+    )
+    const last = (id: string) => {
+      const series = book[id] as [number, number][]
+      return series[series.length - 1]
+    }
+    expect(last("BREACHES_TO_DATE")).toEqual([at, book.BREACHES_PER_100])
+    expect((book.BREACHES_TO_DATE as [number, number][])[0][1]).toBe(100)
+    expect(last("COMPLETED_TO_DATE")).toEqual([at, 1])
+    // One lender in both markets counts once, from its first deposit.
+    expect(last("LENDERS_TO_DATE")).toEqual([at, 2])
+    expect((book.LENDERS_TO_DATE as [number, number][])[0][1]).toBe(1)
   })
 })
 

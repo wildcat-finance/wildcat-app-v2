@@ -825,7 +825,7 @@ export const SPEC_METRICS: SpecMetric[] = [
       "Hooks instance configuration (minimumDeposit on the hooks template).",
     how: "Read directly; / 10^decimals.",
     unit: "tokens",
-    example: "TBD: read per market",
+    example: "read per market from its hooks instance",
     cards: ["2.10"],
   },
   {

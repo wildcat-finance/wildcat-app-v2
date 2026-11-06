@@ -26,7 +26,7 @@ export const rankPhrase = (
   noun: string,
   recordDays?: number,
 ) => {
-  if (!comparison) return `TBD: not enough graded ${noun} to compare yet`
+  if (!comparison) return `not enough graded ${noun} to compare yet`
   if (comparison.betterThan === undefined) {
     return `ranked once it has ${GATES.gradeDays} days of record${
       recordDays === undefined ? "" : `; it has ${count(recordDays)}`

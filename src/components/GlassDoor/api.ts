@@ -14,6 +14,8 @@ export type Comparison = {
   population: number
   /** How many of them this one is better than, when it is graded itself. */
   betterThan?: number
+  /** How many of them sit below this one, when it is graded itself. */
+  below?: number
 }
 
 export type ProtocolCounts = {
