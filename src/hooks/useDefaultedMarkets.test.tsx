@@ -32,18 +32,36 @@ const address = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 const otherAddress = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 const borrower = "0xcccccccccccccccccccccccccccccccccccccccc"
 const knownDefault = { address, borrower, defaultedAt: 123 }
-const clear: DefaultedMarketsData = { markets: {}, unknown: [] }
+const now = Date.parse("2026-11-06T00:00:00Z")
+const clear: DefaultedMarketsData = {
+  markets: {},
+  unknown: [],
+  asOfTimestamp: now / 1000,
+}
 const confirmed: DefaultedMarketsData = {
   markets: { [address]: knownDefault },
   unknown: [],
+  asOfTimestamp: now / 1000,
 }
 const key = QueryKeys.Markets.GET_DEFAULTED_MARKETS(1)
 const originalFetch = global.fetch
 let client: QueryClient
 const fetchMock = jest.fn()
 
-const respond = (data: DefaultedMarketsData) => {
-  fetchMock.mockResolvedValue({ ok: true, json: async () => data })
+const respond = (
+  data: Omit<DefaultedMarketsData, "asOfTimestamp">,
+  asOfTimestamp?: number | null,
+) => {
+  fetchMock.mockImplementation(async () => ({
+    ok: true,
+    json: async () => ({
+      ...data,
+      asOfTimestamp:
+        asOfTimestamp === undefined
+          ? Math.floor(Date.now() / 1000)
+          : asOfTimestamp,
+    }),
+  }))
 }
 const advance = async (ms = 1) => {
   await act(async () => {
@@ -67,7 +85,7 @@ const refresh = async () => {
 }
 
 beforeEach(() => {
-  jest.useFakeTimers()
+  jest.useFakeTimers({ now })
   window.localStorage.clear()
   client = new QueryClient({
     defaultOptions: { queries: { gcTime: Infinity } },
@@ -173,4 +191,136 @@ it("does not carry defaults to another chain", async () => {
   await advance()
   expect(result.current.isDefaulted(address)).toBe(false)
   expect(result.current.defaultedMarketsOfBorrower(borrower)).toEqual([])
+})
+
+it("does not clear a market from a six-hour-old browser seed while revalidating", async () => {
+  const oldTimestamp = now / 1000 - 6 * 60 * 60
+  window.localStorage.setItem(
+    "wildcat:defaulted-markets:v1",
+    JSON.stringify({
+      1: {
+        savedAt: oldTimestamp * 1000,
+        data: { ...confirmed, asOfTimestamp: oldTimestamp },
+      },
+    }),
+  )
+  let complete!: () => void
+  fetchMock.mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        complete = () => resolve({ ok: true, json: async () => clear })
+      }),
+  )
+  seedDefaultedMarkets(client)
+  const { result } = mount()
+  expect(result.current.isDefaulted(otherAddress)).toBeUndefined()
+  expect(result.current.isDefaulted(address)).toBe(true)
+  expect(result.current.isLoading).toBe(false)
+  await advance()
+  act(() => complete())
+  await advance()
+  expect(result.current.isDefaulted(otherAddress)).toBe(false)
+  expect(result.current.isDefaulted(address)).toBe(true)
+})
+
+it("expires a partly aged seed at the source deadline even when its refresh hangs", async () => {
+  fetchMock.mockReturnValue(new Promise(() => {}))
+  const { result } = mount({ ...confirmed, asOfTimestamp: now / 1000 - 240 })
+  expect(result.current.isDefaulted(otherAddress)).toBe(false)
+  await advance(59_000)
+  expect(fetchMock).not.toHaveBeenCalled()
+  expect(result.current.isDefaulted(otherAddress)).toBe(false)
+  await advance(1002)
+  await advance()
+  expect(result.current.isDefaulted(otherAddress)).toBeUndefined()
+  expect(result.current.isDefaulted(address)).toBe(true)
+  expect(result.current.isLoading).toBe(false)
+  expect(fetchMock).toHaveBeenCalledTimes(1)
+})
+
+it("expires a live result while an automatic refresh is pending", async () => {
+  const { result } = mount()
+  await advance()
+  expect(result.current.isDefaulted(address)).toBe(false)
+  fetchMock.mockReturnValue(new Promise(() => {}))
+  await advance(5 * 60_000)
+  await advance()
+  expect(result.current.isDefaulted(address)).toBeUndefined()
+  expect(result.current.isLoading).toBe(false)
+})
+
+it("does not renew clearance or repeatedly refetch an old HTTP 200 snapshot", async () => {
+  const timestamp = now / 1000 - 6 * 60 * 60
+  respond(confirmed, timestamp)
+  jest
+    .mocked(fetchDefaultedMarkets)
+    .mockResolvedValue({ ...confirmed, asOfTimestamp: timestamp })
+  const { result } = mount()
+  await advance(1000)
+  expect(result.current.isDefaulted(address)).toBe(true)
+  expect(result.current.isDefaulted(otherAddress)).toBeUndefined()
+  expect(fetchMock).toHaveBeenCalledTimes(1)
+  await advance(5 * 60_000)
+  expect(result.current.isDefaulted(otherAddress)).toBeUndefined()
+  expect(fetchMock).toHaveBeenCalledTimes(2)
+})
+
+it("uses the existing direct fallback when the API serves an expired snapshot", async () => {
+  respond(clear, now / 1000 - 6 * 60 * 60)
+  jest.mocked(fetchDefaultedMarkets).mockResolvedValue(clear)
+  const { result } = mount()
+  await advance()
+  expect(fetchDefaultedMarkets).toHaveBeenCalledTimes(1)
+  expect(result.current.isDefaulted(address)).toBe(false)
+})
+
+it("does not extend the source deadline when an identical snapshot is received again", async () => {
+  respond(clear, now / 1000)
+  const { result } = mount()
+  await advance()
+  await advance(2 * 60_000)
+  await refresh()
+  expect(result.current.isDefaulted(address)).toBe(false)
+  await advance(3 * 60_000 + 2)
+  await advance()
+  expect(result.current.isDefaulted(address)).toBeUndefined()
+  expect(fetchMock).toHaveBeenCalledTimes(3)
+})
+
+it.each([null, now / 1000 + 60])(
+  "does not clear a market with an invalid source time (%s)",
+  async (timestamp) => {
+    respond(confirmed, timestamp)
+    jest
+      .mocked(fetchDefaultedMarkets)
+      .mockResolvedValue({ ...confirmed, asOfTimestamp: timestamp })
+    const { result } = mount()
+    await advance()
+    expect(result.current.isDefaulted(address)).toBe(true)
+    expect(result.current.isDefaulted(otherAddress)).toBeUndefined()
+  },
+)
+
+it("rejects old browser payloads that have no source timestamp", () => {
+  window.localStorage.setItem(
+    "wildcat:defaulted-markets:v1",
+    JSON.stringify({
+      1: { savedAt: now, data: { markets: {}, unknown: [] } },
+    }),
+  )
+  seedDefaultedMarkets(client)
+  expect(client.getQueryData(key)).toBeUndefined()
+})
+
+it("deduplicates an expiry refresh across observers", async () => {
+  const first = mount()
+  const second = mount()
+  await advance()
+  expect(fetchMock).toHaveBeenCalledTimes(1)
+  fetchMock.mockReturnValue(new Promise(() => {}))
+  await advance(5 * 60_000)
+  await advance()
+  expect(first.result.current.isDefaulted(address)).toBeUndefined()
+  expect(second.result.current.isDefaulted(address)).toBeUndefined()
+  expect(fetchMock).toHaveBeenCalledTimes(2)
 })

@@ -86,6 +86,9 @@ const fetchFromApi = async (
   const data: unknown = await response.json()
   if (!isDefaultedMarketsData(data))
     throw new Error("Malformed defaulted markets response")
+  const sourceTime = (data.asOfTimestamp ?? 0) * 1000
+  if (sourceTime > Date.now() || Date.now() - sourceTime >= REFRESH_INTERVAL)
+    throw new Error("Defaulted markets response is stale")
   return data
 }
 
@@ -106,6 +109,7 @@ const loadDefaultedMarkets = async (
   const merged = {
     markets,
     unknown: data.unknown.filter((address) => !(address in markets)),
+    asOfTimestamp: data.asOfTimestamp,
   }
   writeSeed(chainId, merged)
   return merged
@@ -114,29 +118,56 @@ const loadDefaultedMarkets = async (
 export const defaultedMarketsQueryOptions = (
   chainId: SupportedChainId,
   queryClient: QueryClient,
-) =>
-  queryOptions({
-    queryKey: QueryKeys.Markets.GET_DEFAULTED_MARKETS(chainId),
+) => {
+  const queryKey = QueryKeys.Markets.GET_DEFAULTED_MARKETS(chainId)
+  const cached = queryClient.getQueryState<DefaultedMarketsData>(queryKey)
+  const sourceTime = cached?.data?.asOfTimestamp
+  const staleTime =
+    sourceTime != null && sourceTime * 1000 <= Date.now()
+      ? Math.max(
+          0,
+          Math.min(
+            REFRESH_INTERVAL,
+            sourceTime * 1000 + REFRESH_INTERVAL - (cached?.dataUpdatedAt ?? 0),
+          ),
+        )
+      : 0
+
+  return queryOptions({
+    queryKey,
     queryFn: ({ signal }) => loadDefaultedMarkets(chainId, signal, queryClient),
-    staleTime: REFRESH_INTERVAL,
+    // A new HTTP receipt must not renew the age of the indexed evidence.
+    staleTime,
+    // Recompute staleTime on receipt even when the response is identical.
+    structuralSharing: false,
+    refetchInterval: (query) => {
+      const timestamp = query.state.data?.asOfTimestamp
+      const remaining = (timestamp ?? 0) * 1000 + REFRESH_INTERVAL - Date.now()
+      return remaining > 0
+        ? Math.min(remaining + 1, REFRESH_INTERVAL)
+        : REFRESH_INTERVAL
+    },
     retry: 1,
   })
+}
 
 /**
  * Historical defaults on a chain. A default stays recorded after cure or
  * closure. `isDefaulted` returns undefined when the status is unknown; new
  * deposits/borrowing require an explicit false, not just a finished request.
+ * Non-default status expires five minutes after the indexed source block;
+ * receiving the same snapshot again does not extend that deadline.
  */
 export const useDefaultedMarkets = (chainId?: number) => {
   const queryClient = useQueryClient()
   const { chainId: selectedChainId } = useSelectedNetwork()
   const isNetworkRehydrated = useIsSelectedNetworkRehydrated()
   const targetChainId = (chainId ?? selectedChainId) as SupportedChainId
+  const enabled = chainId !== undefined || isNetworkRehydrated
 
   const query = useQuery({
     ...defaultedMarketsQueryOptions(targetChainId, queryClient),
-    enabled: chainId !== undefined || isNetworkRehydrated,
-    refetchInterval: REFRESH_INTERVAL,
+    enabled,
     refetchOnWindowFocus: false,
   })
 
@@ -161,7 +192,14 @@ export const useDefaultedMarkets = (chainId?: number) => {
         if (!marketAddress) return undefined
         const address = marketAddress.toLowerCase()
         if (address in markets) return true
-        if (!hasData || query.isError || unknown.has(address)) return undefined
+        if (
+          !enabled ||
+          !hasData ||
+          query.isError ||
+          query.isStale ||
+          unknown.has(address)
+        )
+          return undefined
         return false
       },
       defaultedAt: (marketAddress?: string) =>
@@ -171,5 +209,12 @@ export const useDefaultedMarkets = (chainId?: number) => {
       defaultedMarketsOfBorrower: (borrowerAddress?: string) =>
         (borrowerAddress && byBorrower[borrowerAddress.toLowerCase()]) || [],
     }
-  }, [query.data, query.isPending, query.isError, query.errorUpdateCount])
+  }, [
+    enabled,
+    query.data,
+    query.isStale,
+    query.isPending,
+    query.isError,
+    query.errorUpdateCount,
+  ])
 }

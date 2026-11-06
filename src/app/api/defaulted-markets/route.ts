@@ -7,7 +7,7 @@ import { fetchDefaultedMarkets } from "@/utils/defaultedMarkets"
 
 export const runtime = "nodejs"
 
-const CACHE_VERSION = "v1"
+const CACHE_VERSION = "v2"
 const REVALIDATE_SECONDS = 120
 
 const isSupportedChainId = (chainId: number): chainId is SupportedChainId =>

@@ -21,6 +21,8 @@ export type DefaultedMarket = {
 export type DefaultedMarketsData = {
   markets: Record<string, DefaultedMarket>
   unknown: string[]
+  // Oldest indexed block used to establish non-default status, in seconds.
+  asOfTimestamp: number | null
 }
 
 const MARKETS_PAGE_SIZE = 200
@@ -101,7 +103,8 @@ const getIndexedBlock = (meta: DefaultHistoriesResult["_meta"]) => {
     !meta?.deployment ||
     meta.hasIndexingErrors !== false ||
     !isUnsignedInteger(number) ||
-    !isUnsignedInteger(timestamp)
+    !isUnsignedInteger(timestamp) ||
+    timestamp * 1000 > Date.now()
   )
     return undefined
   return { number, timestamp }
@@ -111,10 +114,12 @@ export const isDefaultedMarketsData = (
   value: unknown,
 ): value is DefaultedMarketsData => {
   if (!value || typeof value !== "object") return false
-  const { markets, unknown } = value as Partial<DefaultedMarketsData>
+  const { markets, unknown, asOfTimestamp } =
+    value as Partial<DefaultedMarketsData>
   return (
     !!markets &&
     typeof markets === "object" &&
+    (asOfTimestamp === null || isUnsignedInteger(asOfTimestamp)) &&
     Array.isArray(unknown) &&
     unknown.every((address) => typeof address === "string") &&
     Object.values(markets).every(
@@ -136,6 +141,8 @@ export const fetchDefaultedMarkets = async (
   const markets: DefaultedMarketsData["markets"] = {}
   const unknown: string[] = []
   const longHistories: DefaultHistory[] = []
+  let asOfTimestamp: number | null = null
+  let hasMissingMetadata = false
 
   for (let skip = 0; ; skip += MARKETS_PAGE_SIZE) {
     const {
@@ -154,6 +161,14 @@ export const fetchDefaultedMarkets = async (
     })
 
     const block = getIndexedBlock(meta)
+    if (block) {
+      asOfTimestamp = Math.min(
+        asOfTimestamp ?? block.timestamp,
+        block.timestamp,
+      )
+    } else {
+      hasMissingMetadata = true
+    }
 
     page.forEach((history) => {
       const { delinquencyRecords, borrower, ...snapshot } = history
@@ -195,13 +210,22 @@ export const fetchDefaultedMarkets = async (
         market: { address, chainId, lastInterestAccruedTimestamp },
         signal,
       })
-      if (status.isDefaulted === undefined) unknown.push(address)
-      else if (status.isDefaulted)
+      if (status.isDefaulted)
         markets[address] = {
           address,
           borrower: borrower.toLowerCase(),
           defaultedAt: status.defaultedAt,
         }
+      else if (
+        status.isDefaulted === false &&
+        isUnsignedInteger(status.asOfTimestamp) &&
+        status.asOfTimestamp * 1000 <= Date.now()
+      ) {
+        asOfTimestamp = Math.min(
+          asOfTimestamp ?? status.asOfTimestamp,
+          status.asOfTimestamp,
+        )
+      } else unknown.push(address)
     } catch {
       if (!signal?.aborted) unknown.push(address)
     }
@@ -210,5 +234,9 @@ export const fetchDefaultedMarkets = async (
   await Promise.all(longHistories.map(readLongHistory))
   signal?.throwIfAborted()
 
-  return { markets, unknown }
+  return {
+    markets,
+    unknown,
+    asOfTimestamp: hasMissingMetadata ? null : asOfTimestamp,
+  }
 }
