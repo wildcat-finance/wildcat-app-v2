@@ -1,32 +1,39 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 
 import {
-  Alert,
   Autocomplete,
   Box,
   Button,
-  Chip,
   CircularProgress,
   createFilterOptions,
   Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   FormControlLabel,
-  FormLabel,
+  FormGroup,
   IconButton,
+  MenuItem,
+  Popper,
+  PopperProps,
   Stack,
-  Switch,
   SvgIcon,
+  Switch,
+  Tab,
+  Tabs,
   TextField,
-  ToggleButton,
-  ToggleButtonGroup,
   Typography,
 } from "@mui/material"
 
 import Cross from "@/assets/icons/cross_icon.svg"
+import { DateRange } from "@/components/DateRange"
+import { DateRangeDates } from "@/components/DateRange/interface"
 import { NETWORKS_BY_ID } from "@/config/network"
 import {
   CanonicalExportRequest,
@@ -40,7 +47,24 @@ import { trimAddress } from "@/utils/formatters"
 
 import { exportClientHeaders } from "./client"
 import { ExportModalProps } from "./interface"
+import { MarketChips } from "./MarketChips"
 import { ExportProgressTracker } from "./ProgressTracker"
+import {
+  ActionButtonSx,
+  AutocompleteFieldSx,
+  AutocompletePopperSx,
+  MultiAutocompleteFieldSx,
+  BodySx,
+  DialogSx,
+  FieldLabelSx,
+  FooterSx,
+  FormatPeriodRowSx,
+  HeaderSx,
+  MultilineFieldSx,
+  NoticeSx,
+  StatementRowSx,
+  TabSx,
+} from "./style"
 
 type MarketSelection = "current" | "borrower" | "custom"
 type DateSelection = "full" | "year" | "custom"
@@ -57,7 +81,9 @@ type BorrowerOption = {
   marketAddresses: string[]
 }
 type SegmentedOption<T extends string> = { label: string; value: T }
+type NoticeTone = "error" | "info" | "success"
 const MARKET_OPTIONS_TIMEOUT_MS = 15_000
+const EMPTY_DATES: DateRangeDates = { starting: null, ending: null }
 const borrowerFilter = createFilterOptions<BorrowerOption>({
   stringify: (option) => `${option.name} ${option.address}`,
 })
@@ -65,22 +91,61 @@ const borrowerFilter = createFilterOptions<BorrowerOption>({
 const borrowerOptionLabel = (option: BorrowerOption) =>
   option.name === option.address ? trimAddress(option.address, 6) : option.name
 
-const sectionLabelSx = {
-  color: COLORS.santasGrey,
-  display: "block",
-  fontSize: "12px",
-  fontWeight: 600,
-  lineHeight: "18px",
-  marginBottom: "6px",
+const ExportAutocompletePopper = (props: PopperProps) => (
+  <Popper
+    {...props}
+    placement="bottom-start"
+    modifiers={[
+      {
+        name: "preventOverflow",
+        options: { boundary: "viewport", padding: 12 },
+      },
+      { name: "flip", options: { padding: 12 } },
+    ]}
+    sx={AutocompletePopperSx}
+  />
+)
+
+export const isoToDisplayDate = (value?: string) => {
+  const match = value?.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  return match ? `${match[3]}/${match[2]}/${match[1]}` : null
 }
 
-const actionButtonSx = { borderRadius: "10px", minHeight: "44px" }
-const statusAlertSx = {
-  borderRadius: "10px",
-  padding: "4px 12px",
-  "& .MuiAlert-icon": { padding: "6px 0" },
-  "& .MuiAlert-message": { padding: "6px 0" },
+export const displayToIsoDate = (value?: string | null) => {
+  const match = value?.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  if (!match) return undefined
+  const [, day, month, year] = match
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)))
+  if (
+    date.getUTCFullYear() !== Number(year) ||
+    date.getUTCMonth() !== Number(month) - 1 ||
+    date.getUTCDate() !== Number(day)
+  ) {
+    return undefined
+  }
+  return `${year}-${month}-${day}`
 }
+
+const FieldLabel = ({ children }: { children: string }) => (
+  <Typography variant="text3" component="p" sx={FieldLabelSx}>
+    {children}
+  </Typography>
+)
+
+const Notice = ({
+  tone,
+  children,
+}: {
+  tone: NoticeTone
+  children: ReactNode
+}) => (
+  <Box role={tone === "error" ? "alert" : "status"} sx={NoticeSx(tone)}>
+    <Box className="notice-dot" />
+    <Typography variant="text3" component="div">
+      {children}
+    </Typography>
+  </Box>
+)
 
 const SegmentedControl = <T extends string>({
   label,
@@ -95,61 +160,25 @@ const SegmentedControl = <T extends string>({
   disabled: boolean
   onChange: (value: T) => void
 }) => (
-  <ToggleButtonGroup
-    exclusive
+  <Tabs
     aria-label={label}
+    className="contained"
+    variant="fullWidth"
     value={value}
-    onChange={(_event, next: T | null) => {
-      if (next) onChange(next)
-    }}
-    sx={{
-      backgroundColor: COLORS.athensGrey,
-      borderRadius: "10px",
-      display: "grid",
-      gap: "3px",
-      gridTemplateColumns: {
-        xs: `repeat(${
-          options.length > 3 ? 2 : options.length
-        }, minmax(0, 1fr))`,
-        sm: `repeat(${options.length}, minmax(0, 1fr))`,
-      },
-      padding: "3px",
-      width: "100%",
-      "& .MuiToggleButtonGroup-grouped": {
-        border: "0 !important",
-        borderRadius: "7px !important",
-        color: COLORS.blackRock07,
-        fontSize: "13px",
-        fontWeight: 600,
-        lineHeight: "18px",
-        minHeight: "38px",
-        minWidth: 0,
-        padding: { xs: "8px 5px", sm: "7px 10px" },
-        textTransform: "none",
-        whiteSpace: "nowrap",
-        "&.Mui-selected": {
-          backgroundColor: COLORS.white,
-          boxShadow: "0 2px 6px rgba(20, 20, 20, 0.08)",
-          color: COLORS.bunker,
-          "&:hover": { backgroundColor: COLORS.white },
-        },
-        "&.Mui-disabled": {
-          border: "0 !important",
-        },
-        "&.Mui-disabled.Mui-selected": {
-          backgroundColor: COLORS.white,
-          color: COLORS.blackRock07,
-        },
-        "&:hover": { backgroundColor: COLORS.blackRock006 },
-      },
-    }}
+    onChange={(_event, next: T) => onChange(next)}
+    sx={{ width: "100%" }}
   >
     {options.map((option) => (
-      <ToggleButton key={option.value} disabled={disabled} value={option.value}>
-        {option.label}
-      </ToggleButton>
+      <Tab
+        key={option.value}
+        className="contained"
+        disabled={disabled}
+        label={option.label}
+        value={option.value}
+        sx={TabSx}
+      />
     ))}
-  </ToggleButtonGroup>
+  </Tabs>
 )
 
 export const exportErrorMessage = (message: string) => {
@@ -211,8 +240,7 @@ export const ExportModal = ({
     "market_condition",
   ])
   const [addresses, setAddresses] = useState(defaultAddress ?? "")
-  const [dateFrom, setDateFrom] = useState("")
-  const [dateTo, setDateTo] = useState("")
+  const [customDates, setCustomDates] = useState<DateRangeDates>(EMPTY_DATES)
   const [dateSelection, setDateSelection] = useState<DateSelection>("full")
   const [calendarYear, setCalendarYear] = useState(
     String(new Date().getUTCFullYear()),
@@ -257,8 +285,7 @@ export const ExportModal = ({
       const year = request.dateFrom?.slice(0, 4)
       if (!request.dateFrom && !request.dateTo) {
         setDateSelection("full")
-        setDateFrom("")
-        setDateTo("")
+        setCustomDates(EMPTY_DATES)
       } else if (
         year &&
         request.dateFrom === `${year}-01-01` &&
@@ -266,12 +293,13 @@ export const ExportModal = ({
       ) {
         setDateSelection("year")
         setCalendarYear(year)
-        setDateFrom("")
-        setDateTo("")
+        setCustomDates(EMPTY_DATES)
       } else {
         setDateSelection("custom")
-        setDateFrom(request.dateFrom ?? "")
-        setDateTo(request.dateTo ?? "")
+        setCustomDates({
+          starting: isoToDisplayDate(request.dateFrom),
+          ending: isoToDisplayDate(request.dateTo),
+        })
       }
     },
     [marketAddress],
@@ -335,9 +363,13 @@ export const ExportModal = ({
 
   const formRequest = useMemo<ExportRequest>(() => {
     const selectedDateFrom =
-      dateSelection === "year" ? `${calendarYear}-01-01` : dateFrom
+      dateSelection === "year"
+        ? `${calendarYear}-01-01`
+        : displayToIsoDate(customDates.starting)
     const selectedDateTo =
-      dateSelection === "year" ? `${calendarYear}-12-31` : dateTo
+      dateSelection === "year"
+        ? `${calendarYear}-12-31`
+        : displayToIsoDate(customDates.ending)
     return {
       chainId,
       markets: selectedMarkets,
@@ -357,9 +389,8 @@ export const ExportModal = ({
     addresses,
     calendarYear,
     chainId,
-    dateFrom,
+    customDates,
     dateSelection,
-    dateTo,
     format,
     selectedMarkets,
     statements,
@@ -550,6 +581,15 @@ export const ExportModal = ({
       return
     }
     if (
+      dateSelection === "custom" &&
+      [customDates.starting, customDates.ending].some(
+        (value) => value && !displayToIsoDate(value),
+      )
+    ) {
+      setError("Enter statement dates as DD/MM/YYYY")
+      return
+    }
+    if (
       formRequest.statements.includes("position") &&
       formRequest.addresses.length === 0
     ) {
@@ -626,77 +666,114 @@ export const ExportModal = ({
   const isWorking = isSubmitting || jobIsWorking
   const formDisabled = isWorking || isRestoringJob
 
-  let dialogAction = (
+  const exportedAt = progress?.snapshotTimestampUtc
+    ? new Date(progress.snapshotTimestampUtc).toLocaleString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        timeZone: "UTC",
+      })
+    : undefined
+
+  let dialogActions = (
     <Button
       onClick={() => submit()}
       disabled={isWorking || isRestoringJob}
       variant="contained"
+      size="large"
       fullWidth
-      sx={actionButtonSx}
+      sx={ActionButtonSx}
     >
       Generate export
     </Button>
   )
   if (isSubmitting || isRestoringJob) {
-    dialogAction = (
-      <Button disabled variant="contained" fullWidth sx={actionButtonSx}>
+    dialogActions = (
+      <Button
+        disabled
+        variant="contained"
+        size="large"
+        fullWidth
+        sx={ActionButtonSx}
+      >
         {isRestoringJob ? "Loading previous export…" : "Starting export…"}
       </Button>
     )
   } else if (jobIsWorking) {
-    dialogAction = (
+    dialogActions = (
       <Button
         onClick={cancel}
-        color="error"
-        variant="outlined"
+        color="secondary"
+        variant="contained"
+        size="large"
         fullWidth
-        sx={actionButtonSx}
+        sx={ActionButtonSx}
       >
         Cancel export
       </Button>
     )
   } else if (progress?.status === "completed" && progress.downloadUrl) {
-    dialogAction = hasRequestChanges ? (
-      <Stack width="100%" gap="8px">
+    dialogActions = hasRequestChanges ? (
+      <>
         <Button
           onClick={() => submit()}
           variant="contained"
+          size="large"
           fullWidth
-          sx={actionButtonSx}
+          sx={ActionButtonSx}
         >
           Generate updated ZIP
         </Button>
         <Button
           component="a"
           href={progress.downloadUrl}
-          variant="outlined"
+          color="secondary"
+          variant="contained"
+          size="large"
           fullWidth
-          sx={actionButtonSx}
+          sx={ActionButtonSx}
         >
           Download existing ZIP
         </Button>
-      </Stack>
+      </>
     ) : (
-      <Stack width="100%" gap="8px">
+      <>
         <Button
           component="a"
           href={progress.downloadUrl}
           variant="contained"
+          size="large"
           fullWidth
-          sx={actionButtonSx}
+          sx={ActionButtonSx}
         >
           Download ZIP
         </Button>
         <Button
           onClick={() => submit()}
-          variant="outlined"
+          color="secondary"
+          variant="contained"
+          size="large"
           fullWidth
-          sx={actionButtonSx}
+          sx={ActionButtonSx}
         >
           Generate fresh ZIP
         </Button>
-      </Stack>
+      </>
     )
+  }
+
+  const marketCountLabel = (count: number) =>
+    `${count} active market${count === 1 ? "" : "s"}`
+
+  let borrowerHelperText = borrowerSelectionIssue
+  if (!borrowerHelperText && selectedBorrower) {
+    const count = selectedBorrower.marketAddresses.length
+    borrowerHelperText = `Includes ${count} active V2 market${
+      count === 1 ? "" : "s"
+    } on this chain.`
   }
 
   return (
@@ -705,68 +782,48 @@ export const ExportModal = ({
       onClose={onClose}
       aria-describedby="export-dialog-description"
       aria-labelledby="export-dialog-title"
-      fullWidth
-      maxWidth="md"
-      PaperProps={{
-        sx: {
-          borderRadius: { xs: "16px", sm: "24px" },
-          maxHeight: "calc(100dvh - 24px)",
-          maxWidth: "760px",
-        },
-      }}
+      maxWidth={false}
+      sx={DialogSx}
     >
-      <DialogTitle
-        component="div"
-        id="export-dialog-heading-container"
-        sx={{ padding: { xs: "20px 24px 0", sm: "24px 32px 0" } }}
-      >
+      <Box sx={HeaderSx}>
         <Box
-          sx={{
-            alignItems: "flex-start",
-            display: "flex",
-            justifyContent: "space-between",
-          }}
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          gap="10px"
         >
-          <Box paddingRight="16px">
-            <Typography
-              component="h2"
-              id="export-dialog-title"
-              color={COLORS.bunker}
-              fontSize={{ xs: "26px", sm: "28px" }}
-              fontWeight={600}
-              lineHeight="34px"
-            >
-              Export market data
-            </Typography>
-            <Typography
-              id="export-dialog-description"
-              color={COLORS.santasGrey}
-              display="block"
-              fontSize="14px"
-              lineHeight="20px"
-              marginTop="2px"
-            >
-              CSV data pack and manifest are always included. Statements are
-              optional extras.
-            </Typography>
-          </Box>
+          <Typography
+            component="h2"
+            id="export-dialog-title"
+            variant="title3"
+            color={COLORS.bunker}
+          >
+            Export market data
+          </Typography>
           <IconButton
+            disableRipple
             onClick={onClose}
             aria-label="Close export dialog"
-            sx={{ color: COLORS.santasGrey, margin: "-5px -8px 0 0" }}
           >
             <SvgIcon fontSize="big">
               <Cross />
             </SvgIcon>
           </IconButton>
         </Box>
-      </DialogTitle>
-      <DialogContent
-        sx={{ padding: { xs: "18px 24px", sm: "18px 32px 20px" } }}
-      >
-        <Stack gap={{ xs: "18px", sm: "20px" }}>
+        <Typography
+          id="export-dialog-description"
+          variant="text2"
+          color={COLORS.manate}
+        >
+          CSV data pack and manifest are always included. Statements are
+          optional extras.
+        </Typography>
+      </Box>
+
+      <Box sx={BodySx}>
+        <Stack gap="20px">
           <Box>
-            <FormLabel sx={sectionLabelSx}>Markets</FormLabel>
+            <FieldLabel>Markets</FieldLabel>
             <SegmentedControl
               label="Markets"
               value={marketSelection}
@@ -785,45 +842,20 @@ export const ExportModal = ({
                   options={borrowerOptions}
                   value={selectedBorrower}
                   loading={marketsLoading}
-                  size="small"
                   filterOptions={borrowerFilter}
                   isOptionEqualToValue={(option, value) =>
                     option.address === value.address
                   }
                   getOptionLabel={borrowerLabel}
                   onChange={(_event, value) => setSelectedBorrower(value)}
-                  ListboxProps={{
-                    sx: {
-                      maxHeight: "min(240px, calc(100dvh - 160px))",
-                      overflowY: "auto",
-                      padding: "4px",
-                    },
-                  }}
-                  componentsProps={{
-                    paper: {
-                      sx: {
-                        minWidth: "0 !important",
-                        overflow: "hidden",
-                      },
-                    },
-                    popper: {
-                      modifiers: [
-                        {
-                          name: "preventOverflow",
-                          options: { boundary: "viewport", padding: 12 },
-                        },
-                        { name: "flip", options: { padding: 12 } },
-                      ],
-                      sx: { maxWidth: "calc(100vw - 24px)" },
-                    },
-                  }}
+                  PopperComponent={ExportAutocompletePopper}
+                  popupIcon={null}
                   renderOption={(props, option) => (
-                    <li {...props}>
-                      <Box minWidth={0} padding="2px 0">
+                    <MenuItem {...props} key={option.address}>
+                      <Box minWidth={0}>
                         <Typography
-                          fontSize="13px"
-                          fontWeight={600}
-                          lineHeight="18px"
+                          variant="text3"
+                          component="p"
                           overflow="hidden"
                           textOverflow="ellipsis"
                           whiteSpace="nowrap"
@@ -831,25 +863,29 @@ export const ExportModal = ({
                           {borrowerLabel(option)}
                         </Typography>
                         <Typography
+                          variant="text4"
+                          component="p"
                           color={COLORS.santasGrey}
-                          fontSize="11px"
-                          lineHeight="16px"
                         >
                           {trimAddress(option.address, 6)} ·{" "}
-                          {option.marketAddresses.length} active market
-                          {option.marketAddresses.length === 1 ? "" : "s"}
+                          {marketCountLabel(option.marketAddresses.length)}
                         </Typography>
                       </Box>
-                    </li>
+                    </MenuItem>
                   )}
                   renderInput={({ InputProps, inputProps, ...params }) => (
                     <TextField
                       {...params}
-                      label="Borrower"
+                      size="medium"
+                      placeholder="Choose a borrower"
+                      error={Boolean(borrowerSelectionIssue)}
+                      helperText={borrowerHelperText}
+                      sx={AutocompleteFieldSx}
                       InputProps={{
                         ...InputProps,
                         inputProps: {
                           ...inputProps,
+                          "aria-label": "Borrower",
                           "aria-busy": marketsLoading,
                         },
                         endAdornment: (
@@ -867,33 +903,6 @@ export const ExportModal = ({
                     />
                   )}
                 />
-                {selectedBorrower && !borrowerSelectionIssue && (
-                  <Typography
-                    color={COLORS.santasGrey}
-                    display="block"
-                    fontSize="11px"
-                    lineHeight="16px"
-                    sx={{ marginTop: "10px" }}
-                  >
-                    Includes {selectedBorrower.marketAddresses.length} active V2
-                    market
-                    {selectedBorrower.marketAddresses.length === 1
-                      ? ""
-                      : "s"}{" "}
-                    on this chain.
-                  </Typography>
-                )}
-                {borrowerSelectionIssue && (
-                  <Typography
-                    color="error"
-                    display="block"
-                    fontSize="11px"
-                    lineHeight="16px"
-                    sx={{ marginTop: "10px" }}
-                  >
-                    {borrowerSelectionIssue}
-                  </Typography>
-                )}
               </Box>
             )}
             {marketSelection === "custom" && (
@@ -903,8 +912,6 @@ export const ExportModal = ({
                 options={marketOptions}
                 value={selectedMarketOptions}
                 loading={marketsLoading}
-                limitTags={2}
-                size="small"
                 sx={{ marginTop: "12px" }}
                 isOptionEqualToValue={(option, value) =>
                   option.address === value.address
@@ -919,38 +926,14 @@ export const ExportModal = ({
                   )
                 }
                 onChange={(_event, value) => setSelectedMarketOptions(value)}
-                ListboxProps={{
-                  sx: {
-                    maxHeight: "min(240px, calc(100dvh - 160px))",
-                    overflowY: "auto",
-                    padding: "4px",
-                  },
-                }}
-                componentsProps={{
-                  paper: {
-                    sx: {
-                      minWidth: "0 !important",
-                      overflow: "hidden",
-                    },
-                  },
-                  popper: {
-                    modifiers: [
-                      {
-                        name: "preventOverflow",
-                        options: { boundary: "viewport", padding: 12 },
-                      },
-                      { name: "flip", options: { padding: 12 } },
-                    ],
-                    sx: { maxWidth: "calc(100vw - 24px)" },
-                  },
-                }}
+                PopperComponent={ExportAutocompletePopper}
+                popupIcon={null}
                 renderOption={(props, option) => (
-                  <li {...props}>
-                    <Box minWidth={0} padding="2px 0" width="100%">
+                  <MenuItem {...props} key={option.address}>
+                    <Box minWidth={0} width="100%">
                       <Typography
-                        fontSize="13px"
-                        fontWeight={600}
-                        lineHeight="18px"
+                        variant="text3"
+                        component="p"
                         overflow="hidden"
                         textOverflow="ellipsis"
                         whiteSpace="nowrap"
@@ -958,45 +941,44 @@ export const ExportModal = ({
                         {option.symbol} - {option.name}
                       </Typography>
                       <Typography
+                        variant="text4"
+                        component="p"
                         color={COLORS.santasGrey}
-                        fontSize="11px"
-                        lineHeight="16px"
                       >
                         {option.address}
                       </Typography>
                     </Box>
-                  </li>
+                  </MenuItem>
                 )}
-                renderTags={(value, getTagProps) => [
-                  ...value
-                    .slice(0, 2)
-                    .map((option, index) => (
-                      <Chip
-                        {...getTagProps({ index })}
-                        key={option.address}
-                        label={option.symbol || option.name}
-                        size="small"
-                        sx={{ maxWidth: "120px" }}
-                      />
-                    )),
-                  ...(value.length > 2
-                    ? [
-                        <Chip
-                          key="additional-markets"
-                          label={`+${value.length - 2}`}
-                          size="small"
-                        />,
-                      ]
-                    : []),
-                ]}
+                renderTags={(value) => (
+                  <MarketChips
+                    items={value.map((option) => ({
+                      id: option.address,
+                      label: option.symbol || option.name,
+                    }))}
+                    disabled={formDisabled}
+                    onDelete={(address) =>
+                      setSelectedMarketOptions((current) =>
+                        current.filter((option) => option.address !== address),
+                      )
+                    }
+                  />
+                )}
                 renderInput={({ InputProps, inputProps, ...params }) => (
                   <TextField
                     {...params}
-                    label="Selected markets"
+                    size="medium"
+                    placeholder={
+                      selectedMarketOptions.length === 0
+                        ? "Search markets"
+                        : undefined
+                    }
+                    sx={MultiAutocompleteFieldSx}
                     InputProps={{
                       ...InputProps,
                       inputProps: {
                         ...inputProps,
+                        "aria-label": "Selected markets",
                         "aria-busy": marketsLoading,
                       },
                       endAdornment: (
@@ -1018,15 +1000,15 @@ export const ExportModal = ({
           </Box>
 
           <Box>
-            <FormLabel sx={sectionLabelSx}>Statements</FormLabel>
-            <Stack>
+            <FieldLabel>Statements</FieldLabel>
+            <FormGroup sx={{ rowGap: "14px", paddingTop: "6px" }}>
               {(
                 [
                   ["market_condition", "Market condition statement"],
                   ["borrower", "Borrower statement"],
                   ["position", "Position statement (entered addresses)"],
                 ] as const
-              ).map(([statement, label], index) => (
+              ).map(([statement, label]) => (
                 <FormControlLabel
                   key={statement}
                   disabled={formDisabled}
@@ -1035,37 +1017,23 @@ export const ExportModal = ({
                   control={
                     <Switch
                       checked={statements.includes(statement)}
-                      size="small"
                       onChange={() => toggleStatement(statement)}
                     />
                   }
-                  sx={{
-                    borderBottom:
-                      index < 2 ? `1px solid ${COLORS.whiteLilac}` : 0,
-                    justifyContent: "space-between",
-                    margin: 0,
-                    padding: "7px 0",
-                    width: "100%",
-                    "& .MuiFormControlLabel-label": {
-                      color: COLORS.bunker,
-                      fontSize: "14px",
-                      fontWeight: 500,
-                      lineHeight: "20px",
-                    },
-                  }}
+                  sx={StatementRowSx}
                 />
               ))}
-            </Stack>
+            </FormGroup>
             {statements.includes("position") && (
-              <Box marginTop="10px">
-                <FormLabel sx={sectionLabelSx}>Position addresses</FormLabel>
+              <Box marginTop="16px">
+                <FieldLabel>Position addresses</FieldLabel>
                 <TextField
                   disabled={formDisabled}
                   fullWidth
                   multiline
                   minRows={1}
                   maxRows={3}
-                  size="small"
+                  size="medium"
                   value={addresses}
                   onChange={(event) => {
                     hasEditedAddresses.current = true
@@ -1073,24 +1041,13 @@ export const ExportModal = ({
                   }}
                   placeholder="0x… - separate multiple addresses with commas or spaces"
                   inputProps={{ "aria-label": "Position addresses" }}
-                  sx={{
-                    height: "auto",
-                    "& .MuiInputBase-root": {
-                      alignItems: "flex-start",
-                      height: "auto",
-                      minHeight: "40px",
-                    },
-                    "& textarea": {
-                      lineHeight: "20px",
-                    },
-                  }}
+                  sx={MultilineFieldSx}
                 />
                 <Typography
+                  variant="text4"
+                  component="p"
                   color={COLORS.santasGrey}
-                  display="block"
-                  fontSize="11px"
-                  lineHeight="16px"
-                  marginTop="5px"
+                  sx={{ marginTop: "6px", paddingX: "4px" }}
                 >
                   No wallet connection or signature is required; positions are
                   public on chain.
@@ -1099,83 +1056,64 @@ export const ExportModal = ({
             )}
           </Box>
 
-          <Box
-            sx={{
-              alignItems: "start",
-              display: "grid",
-              gap: { xs: "18px", sm: "20px" },
-              gridTemplateColumns: { xs: "1fr", sm: "minmax(0, 1fr) 240px" },
-            }}
-          >
-            <Box>
-              <FormLabel sx={sectionLabelSx}>Statement period</FormLabel>
-              <SegmentedControl
-                label="Statement period"
-                value={dateSelection}
-                disabled={formDisabled}
-                onChange={setDateSelection}
-                options={[
-                  { value: "full", label: "Full history" },
-                  { value: "year", label: "Calendar year" },
-                  { value: "custom", label: "Custom" },
-                ]}
-              />
-              {dateSelection === "year" && (
+          <Box>
+            <Box sx={FormatPeriodRowSx}>
+              <Box>
+                <FieldLabel>Statement format</FieldLabel>
+                <SegmentedControl
+                  label="Statement format"
+                  value={format}
+                  disabled={formDisabled}
+                  onChange={setFormat}
+                  options={[
+                    { value: "pdf", label: "PDF" },
+                    { value: "xlsx", label: "XLSX" },
+                  ]}
+                />
+              </Box>
+              <Box>
+                <FieldLabel>Statement period</FieldLabel>
+                <SegmentedControl
+                  label="Statement period"
+                  value={dateSelection}
+                  disabled={formDisabled}
+                  onChange={setDateSelection}
+                  options={[
+                    { value: "full", label: "Full history" },
+                    { value: "year", label: "Calendar year" },
+                    { value: "custom", label: "Custom" },
+                  ]}
+                />
+              </Box>
+            </Box>
+            {dateSelection === "year" && (
+              <Box marginTop="16px">
+                <FieldLabel>Calendar year</FieldLabel>
                 <TextField
                   disabled={formDisabled}
                   fullWidth
                   type="number"
-                  label="Calendar year"
-                  size="small"
+                  size="medium"
                   value={calendarYear}
                   onChange={(event) => setCalendarYear(event.target.value)}
-                  inputProps={{ min: 2020, max: 9999 }}
-                  sx={{ marginTop: "10px" }}
+                  inputProps={{
+                    "aria-label": "Calendar year",
+                    min: 2020,
+                    max: 9999,
+                  }}
                 />
-              )}
-              {dateSelection === "custom" && (
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  gap="10px"
-                  marginTop="10px"
-                >
-                  <TextField
-                    disabled={formDisabled}
-                    fullWidth
-                    type="date"
-                    label="From"
-                    size="small"
-                    InputLabelProps={{ shrink: true }}
-                    value={dateFrom}
-                    onChange={(event) => setDateFrom(event.target.value)}
-                  />
-                  <TextField
-                    disabled={formDisabled}
-                    fullWidth
-                    type="date"
-                    label="To"
-                    size="small"
-                    InputLabelProps={{ shrink: true }}
-                    value={dateTo}
-                    onChange={(event) => setDateTo(event.target.value)}
-                  />
-                </Stack>
-              )}
-            </Box>
-
-            <Box>
-              <FormLabel sx={sectionLabelSx}>Format</FormLabel>
-              <SegmentedControl
-                label="Statement format"
-                value={format}
-                disabled={formDisabled}
-                onChange={setFormat}
-                options={[
-                  { value: "pdf", label: "PDF" },
-                  { value: "xlsx", label: "XLSX" },
-                ]}
-              />
-            </Box>
+              </Box>
+            )}
+            {dateSelection === "custom" && (
+              <Box marginTop="16px">
+                <DateRange
+                  dates={customDates}
+                  setDates={setCustomDates}
+                  disabled={formDisabled}
+                  calendar="popover"
+                />
+              </Box>
+            )}
           </Box>
 
           {jobIsWorking && progress && (
@@ -1184,77 +1122,48 @@ export const ExportModal = ({
               networkName={networkName}
             />
           )}
-          {catalogError && (
-            <Alert severity="error" sx={statusAlertSx}>
-              {catalogError}
-            </Alert>
-          )}
-          {error && (
-            <Alert severity="error" sx={statusAlertSx}>
-              {error}
-            </Alert>
-          )}
+          {catalogError && <Notice tone="error">{catalogError}</Notice>}
+          {error && <Notice tone="error">{error}</Notice>}
           {progress?.status === "failed" && (
-            <Alert severity="error" sx={statusAlertSx}>
+            <Notice tone="error">
               {progress.error
                 ? exportErrorMessage(progress.error)
                 : "Export failed"}
-            </Alert>
+            </Notice>
           )}
           {progress?.status === "cancelled" && (
-            <Alert severity="info" sx={statusAlertSx}>
-              Export cancelled.
-            </Alert>
+            <Notice tone="info">Export cancelled.</Notice>
           )}
           {progress?.status === "completed" &&
             progress.downloadUrl &&
             (hasRequestChanges ? (
-              <Alert severity="info" sx={statusAlertSx}>
+              <Notice tone="info">
                 Your selections have changed. Generate an updated ZIP with the
                 latest confirmed data, or download the existing ZIP unchanged.
-              </Alert>
+              </Notice>
             ) : (
-              <Alert
-                severity="success"
-                sx={{
-                  ...statusAlertSx,
-                  backgroundColor: COLORS.lightGreen,
-                  color: "#168A4A",
-                }}
-              >
+              <Notice tone="success">
                 Your export is ready. Download it, or generate a fresh ZIP from
                 the latest confirmed block.
-              </Alert>
+              </Notice>
             ))}
-          {jobRequest && progress?.status === "completed" && (
-            <Typography variant="text4" color="text.secondary">
-              Existing export: block {jobRequest.snapshotBlock}
-              {progress.snapshotTimestampUtc && (
-                <>
-                  {" "}
-                  · Data as of{" "}
-                  {new Date(progress.snapshotTimestampUtc).toLocaleString(
-                    "en-GB",
-                    {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      second: "2-digit",
-                      timeZone: "UTC",
-                    },
-                  )}{" "}
-                  UTC
-                </>
-              )}
-            </Typography>
-          )}
         </Stack>
-      </DialogContent>
-      <DialogActions sx={{ padding: { xs: "0 24px 20px", sm: "0 32px 24px" } }}>
-        {dialogAction}
-      </DialogActions>
+      </Box>
+
+      <Box sx={FooterSx}>
+        {dialogActions}
+        {jobRequest && progress?.status === "completed" && (
+          <Typography
+            variant="text4"
+            component="p"
+            color={COLORS.santasGrey}
+            textAlign="center"
+          >
+            Existing export: block {jobRequest.snapshotBlock}
+            {exportedAt && ` · Data as of ${exportedAt} UTC`}
+          </Typography>
+        )}
+      </Box>
     </Dialog>
   )
 }
