@@ -77,7 +77,7 @@ export const LenderMarketDefaultNotice = ({
         <Typography
           variant={isMobile ? "mobText2" : "text2"}
           color={COLORS.white}
-          sx={{ opacity: 0.8, maxWidth: "544px" }}
+          sx={{ opacity: 0.8 }}
         >
           {t("defaultedMarkets.lenderNotice.description")}
         </Typography>
