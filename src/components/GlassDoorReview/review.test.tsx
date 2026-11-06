@@ -421,7 +421,7 @@ describe("one metric", () => {
     expect(onOpenTreatments).toHaveBeenCalledWith("2.1")
   })
 
-  it("opens a card's panel in its own row and names the cards it feeds", () => {
+  it("opens every card's panel in its own row and names the cards it feeds", () => {
     const { rowA } = marketSpecs(marketFixture, undefined)
     const cards = {
       market: Object.fromEntries(rowA.map((card) => [card.id, card])),
@@ -438,12 +438,23 @@ describe("one metric", () => {
     const card = m18.querySelector<HTMLButtonElement>(
       'button[data-card="2.1"]',
     )!
-    expect(card).toHaveAttribute("aria-expanded", "false")
-    fireEvent.click(card)
+    // Open by default, both the headline card's panel and the fed card's.
     expect(card).toHaveAttribute("aria-expanded", "true")
     const panel = within(m18).getByRole("region", { name: "In order" })
+    expect(
+      within(m18).getByRole("region", { name: "In order, all markets" }),
+    ).toBeInTheDocument()
     // The panel is not inside the row of cards, so the card stays in place.
     expect(panel.parentElement?.contains(card)).toBe(false)
+    fireEvent.click(card)
+    expect(card).toHaveAttribute("aria-expanded", "false")
+    expect(within(m18).queryByRole("region", { name: "In order" })).toBeNull()
+    // Closing one leaves the other open.
+    expect(
+      within(m18).getByRole("region", { name: "In order, all markets" }),
+    ).toBeInTheDocument()
+    fireEvent.click(card)
+    expect(card).toHaveAttribute("aria-expanded", "true")
     fireEvent.keyDown(card, { key: "Escape" })
     expect(within(m18).queryByRole("region", { name: "In order" })).toBeNull()
     expect(card).toHaveFocus()

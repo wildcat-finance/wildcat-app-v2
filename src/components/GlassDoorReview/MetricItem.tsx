@@ -1,6 +1,6 @@
 // Temporary: the metric review page (product#917). Remove with the page.
 // One metric: its value beside its name, the displays the design can give it,
-// and the spec behind a closed section.
+// with each card's panel and the spec open until the reviewer closes them.
 
 import * as React from "react"
 import { memo, useEffect, useId, useRef, useState } from "react"
@@ -383,56 +383,79 @@ export const MetricItem = memo(
       return ""
     }
 
-    // One card panel open per metric, in its own row under the cards, so
-    // opening it never moves the card or the other displays.
+    // Every card's panel starts open, each in its own row under the cards, so
+    // closing or reopening one never moves the card or the other displays.
     const uid = useId()
     const scope = useRef<HTMLElement>(null)
-    const panelRow = useRef<HTMLDivElement>(null)
-    const userOpened = useRef(false)
-    const [openCard, setOpenCard] = useState<string>()
-    const [chip, setChip] = useState<ChipKey>("median")
+    const panelRows = useRef<Record<string, HTMLDivElement | null>>({})
+    const userOpened = useRef<string>()
+    const [closedCards, setClosedCards] = useState<string[]>([])
+    const [chips, setChips] = useState<Record<string, ChipKey>>({})
     const [specOpen, setSpecOpen] = useState(true)
     const cardId = (card: string) => `${uid}card-${card.replace(".", "-")}`
-    const panelId = `${uid}panel`
+    const panelId = (card: string) => `${uid}panel-${card.replace(".", "-")}`
     const specId = `${uid}spec`
     const showCards = available.includes("card") && on.includes("card")
-    const found = openCard ? cardFor(openCard, data, cards) : undefined
-    const openSpec =
-      showCards && found && "spec" in found ? found.spec : undefined
-    const close = () => {
-      const card = openCard
-      setOpenCard(undefined)
-      if (card) document.getElementById(cardId(card))?.focus()
+    const openSpecs = showCards
+      ? metricCards
+          .filter((card) => !closedCards.includes(card))
+          .map((card) => cardFor(card, data, cards))
+          .filter((found): found is { spec: CardSpec } => "spec" in found)
+          .map((found) => found.spec)
+      : []
+    const openIds = openSpecs.map((spec) => spec.id).join(" ")
+    const isOpen = (card: string) => openSpecs.some((spec) => spec.id === card)
+    const close = (card: string) => {
+      setClosedCards((current) => [...current, card])
+      document.getElementById(cardId(card))?.focus()
+    }
+    const toggle = (card: string) => {
+      if (isOpen(card)) {
+        setClosedCards((current) => [...current, card])
+        return
+      }
+      userOpened.current = card
+      setClosedCards((current) => current.filter((entry) => entry !== card))
+      setChips((current) => ({ ...current, [card]: "median" }))
     }
     const closeRef = useRef(close)
     closeRef.current = close
     useEffect(() => {
-      if (!openSpec) return undefined
+      if (!openIds) return undefined
+      // Escape closes the panel of the card (or panel) that has focus.
       const onKey = (event: KeyboardEvent) => {
+        const { target } = event
         if (
-          event.key === "Escape" &&
-          scope.current?.contains(event.target as Node)
-        ) {
-          event.preventDefault()
-          closeRef.current()
-        }
+          event.key !== "Escape" ||
+          !(target instanceof Element) ||
+          !scope.current?.contains(target)
+        )
+          return
+        const owner = target.closest<HTMLElement>(
+          "[data-card], [data-panel-card]",
+        )
+        const card = owner?.dataset.card ?? owner?.dataset.panelCard
+        if (!card || !openIds.split(" ").includes(card)) return
+        event.preventDefault()
+        closeRef.current(card)
       }
       document.addEventListener("keydown", onKey)
       return () => document.removeEventListener("keydown", onKey)
-    }, [openSpec])
+    }, [openIds])
     useEffect(() => {
-      if (!openSpec || !userOpened.current) return
-      userOpened.current = false
+      const card = userOpened.current
+      if (!card || !openIds.split(" ").includes(card)) return
+      userOpened.current = undefined
       const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)")
         ?.matches
       requestAnimationFrame(
         () =>
-          panelRow.current?.scrollIntoView?.({
+          panelRows.current[card]?.scrollIntoView?.({
             block: "nearest",
             behavior: reduce ? "auto" : "smooth",
           }),
       )
-    }, [openSpec])
+    }, [openIds])
 
     const cardTile = (card: string) => {
       const tile = cardFor(card, data, cards)
@@ -461,18 +484,14 @@ export const MetricItem = memo(
             ) : (
               <AnalyticsCard
                 id={cardId(card)}
-                controls={panelId}
+                controls={panelId(card)}
                 spec={
                   cards.comparisons?.[card] === false
                     ? { ...tile.spec, compare: "" }
                     : tile.spec
                 }
-                open={openSpec?.id === card}
-                onToggle={() => {
-                  userOpened.current = openCard !== card
-                  setOpenCard(openCard === card ? undefined : card)
-                  setChip("median")
-                }}
+                open={isOpen(card)}
+                onToggle={() => toggle(card)}
               />
             )}
           </div>
@@ -558,17 +577,26 @@ export const MetricItem = memo(
               aria-label="Card previews"
             >
               <div className={s.displayRow}>{metricCards.map(cardTile)}</div>
-              {openSpec ? (
-                <div ref={panelRow} className={cx(gd.root, s.panelRow)}>
+              {openSpecs.map((spec) => (
+                <div
+                  key={spec.id}
+                  ref={(node) => {
+                    panelRows.current[spec.id] = node
+                  }}
+                  data-panel-card={spec.id}
+                  className={cx(gd.root, s.panelRow)}
+                >
                   <AnalyticsPanel
-                    id={panelId}
-                    spec={openSpec}
-                    chip={chip}
-                    onChip={setChip}
-                    onClose={close}
+                    id={panelId(spec.id)}
+                    spec={spec}
+                    chip={chips[spec.id] ?? "median"}
+                    onChip={(next) =>
+                      setChips((current) => ({ ...current, [spec.id]: next }))
+                    }
+                    onClose={() => close(spec.id)}
                   />
                 </div>
-              ) : null}
+              ))}
             </section>
           ) : null}
           {available.includes("comparison") && on.includes("comparison") ? (
