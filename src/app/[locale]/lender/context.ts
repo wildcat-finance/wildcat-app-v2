@@ -11,7 +11,11 @@ import { MarketOnboardingByAddress } from "@/utils/marketOnboarding"
 export type LenderMarketsDefaults = {
   isLoading: boolean
   isError: boolean
+  // A snapshot exists for the selected chain, possibly past its expiry.
+  hasStatus: boolean
   isDefaulted: (marketAddress?: string) => boolean | undefined
+  // Last-known status for listings; never use it to gate an action.
+  isDefaultedForDisplay: (marketAddress?: string) => boolean | undefined
   defaultedMarketsOfBorrower: (borrowerAddress?: string) => string[]
 }
 
@@ -39,7 +43,9 @@ const defaultContext: LenderMarketsContextType = {
   defaults: {
     isLoading: false,
     isError: false,
+    hasStatus: false,
     isDefaulted: () => undefined,
+    isDefaultedForDisplay: () => undefined,
     defaultedMarketsOfBorrower: () => [],
   },
 }

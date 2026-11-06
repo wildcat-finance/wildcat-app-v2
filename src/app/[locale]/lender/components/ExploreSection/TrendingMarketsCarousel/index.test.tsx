@@ -126,7 +126,9 @@ const makeLenderMarketsContext = (
   defaults: {
     isLoading: false,
     isError: false,
+    hasStatus: true,
     isDefaulted: () => false,
+    isDefaultedForDisplay: () => false,
     defaultedMarketsOfBorrower: () => [],
   },
 })
@@ -163,6 +165,8 @@ describe("TrendingMarketsCarousel", () => {
       isError: true,
       isDefaulted: (address) =>
         address === unresolved.market.address ? undefined : false,
+      isDefaultedForDisplay: (address) =>
+        address === unresolved.market.address ? undefined : false,
     }
     jest.mocked(useLenderMarketsContext).mockReturnValue(context)
     jest.mocked(useRecentDeposits).mockReturnValue({
@@ -174,6 +178,23 @@ describe("TrendingMarketsCarousel", () => {
     screen.getAllByTestId(/^trending-/).forEach((card) => {
       expect(card.getAttribute("data-market")).toBe("Resolved market")
     })
+  })
+
+  it("keeps suggestions while an expired status refreshes", () => {
+    const context = makeLenderMarketsContext([makeMarketAccount()])
+    context.defaults = {
+      ...context.defaults,
+      isDefaulted: () => undefined,
+      isDefaultedForDisplay: () => false,
+    }
+    jest.mocked(useLenderMarketsContext).mockReturnValue(context)
+    jest.mocked(useRecentDeposits).mockReturnValue({
+      data: emptyActivity,
+      isLoading: false,
+      isError: false,
+    })
+    render(<TrendingMarketsCarousel />)
+    expect(screen.getAllByTestId(/^trending-/)).toHaveLength(5)
   })
 
   it("keeps all five slots when activity data is unavailable", () => {

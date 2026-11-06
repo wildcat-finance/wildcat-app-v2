@@ -134,7 +134,9 @@ describe("lender market navigation loading", () => {
       defaults: {
         isLoading: false,
         isError: false,
+        hasStatus: true,
         isDefaulted: () => false,
+        isDefaultedForDisplay: () => false,
         defaultedMarketsOfBorrower: () => [],
       },
     })

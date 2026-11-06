@@ -167,12 +167,15 @@ export default function LenderMarketDetails({
   )
   const { shouldWarn: showBorrowerPenaltyWarning } =
     useBorrowerPenaltyWarning(market)
-  const { isDefaulted, defaultedMarketsOfBorrower } = useDefaultedMarkets(
-    market?.chainId ?? marketChainId,
-  )
+  const { isDefaulted, isDefaultedForDisplay, defaultedMarketsOfBorrower } =
+    useDefaultedMarkets(market?.chainId ?? marketChainId)
   const defaultStatus = isDefaulted(market?.address)
   const isMarketDefaulted = defaultStatus === true
   const isDefaultStatusUnknown = defaultStatus === undefined
+  // Notices use the last snapshot so they do not disappear while the status
+  // refreshes; actions keep the strict status above.
+  const isKnownNotDefaultedForDisplay =
+    isDefaultedForDisplay(market?.address) === false
   const borrowerHasOtherDefault =
     !!market &&
     !isMarketDefaulted &&
@@ -265,9 +268,7 @@ export default function LenderMarketDetails({
     accessState === "resolving" ||
     accessState === "error"
   const showLenderRequestBanner =
-    bannerState === "request-access" &&
-    !isDefaultStatusUnknown &&
-    !isMarketDefaulted
+    bannerState === "request-access" && isKnownNotDefaultedForDisplay
   const currentSection = useAppSelector(
     (state) => state.lenderMarketRouting.currentSection,
   )
@@ -399,8 +400,7 @@ export default function LenderMarketDetails({
   const showPenaltyOnlyWarning =
     hasLiveMarket &&
     showBorrowerPenaltyWarning &&
-    !isDefaultStatusUnknown &&
-    !isMarketDefaulted &&
+    isKnownNotDefaultedForDisplay &&
     !borrowerHasOtherDefault
 
   useEffect(() => {

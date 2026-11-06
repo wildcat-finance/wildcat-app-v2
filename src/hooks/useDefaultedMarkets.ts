@@ -22,7 +22,9 @@ import {
 export type { DefaultedMarket } from "@/utils/defaultedMarkets"
 
 const REFRESH_INTERVAL = 5 * 60_000
-const SEED_STORAGE_KEY = "wildcat:defaulted-markets:v1"
+// v1 seeds could carry defaults that a complete refresh had already dropped.
+const SEED_STORAGE_KEY = "wildcat:defaulted-markets:v2"
+const LEGACY_SEED_STORAGE_KEYS = ["wildcat:defaulted-markets:v1"]
 const SEED_MAX_AGE = 24 * 60 * 60_000
 
 type DefaultedMarketsSeeds = Record<
@@ -55,6 +57,13 @@ const writeSeed = (chainId: number, data: DefaultedMarketsData) => {
 }
 
 export const seedDefaultedMarkets = (queryClient: QueryClient) => {
+  try {
+    LEGACY_SEED_STORAGE_KEYS.forEach((legacyKey) =>
+      window.localStorage.removeItem(legacyKey),
+    )
+  } catch {
+    // Storage can be unavailable (private mode, blocked site data).
+  }
   const now = Date.now()
   Object.entries(readSeeds()).forEach(([chainId, seed]) => {
     const queryKey = QueryKeys.Markets.GET_DEFAULTED_MARKETS(Number(chainId))
@@ -104,8 +113,14 @@ const loadDefaultedMarkets = async (
   const previous = queryClient.getQueryData<DefaultedMarketsData>(
     QueryKeys.Markets.GET_DEFAULTED_MARKETS(chainId),
   )
-  // Historical defaults survive cure/closure and incomplete refreshes.
-  const markets = { ...previous?.markets, ...data.markets }
+  // The source replays full history, so cured or closed defaults are still
+  // reported. A refresh is authoritative for every market it resolved; earlier
+  // defaults are carried over only for markets it could not resolve.
+  const markets = { ...data.markets }
+  data.unknown.forEach((address) => {
+    const known = previous?.markets[address]
+    if (known && !(address in markets)) markets[address] = known
+  })
   const merged = {
     markets,
     unknown: data.unknown.filter((address) => !(address in markets)),
@@ -157,6 +172,10 @@ export const defaultedMarketsQueryOptions = (
  * deposits/borrowing require an explicit false, not just a finished request.
  * Non-default status expires five minutes after the indexed source block;
  * receiving the same snapshot again does not extend that deadline.
+ *
+ * `isDefaultedForDisplay` reads the last snapshot without that expiry, so
+ * listings and status chips do not blank out while a refresh is in flight.
+ * It must never gate an action; use `isDefaulted` for that.
  */
 export const useDefaultedMarkets = (chainId?: number) => {
   const queryClient = useQueryClient()
@@ -168,12 +187,15 @@ export const useDefaultedMarkets = (chainId?: number) => {
   const query = useQuery({
     ...defaultedMarketsQueryOptions(targetChainId, queryClient),
     enabled,
-    refetchOnWindowFocus: false,
+    // Interval refetches are skipped while the tab is hidden; refetch on return
+    // (only fires when stale) so actions do not stay locked after a tab switch.
+    refetchOnWindowFocus: true,
   })
 
   return useMemo(() => {
     const markets = query.data?.markets ?? {}
     const hasData = query.data !== undefined
+    const hasStatus = enabled && hasData
     const hasFailed = query.isError || query.errorUpdateCount > 0
     const unknown = new Set(query.data?.unknown ?? [])
     const byBorrower: Record<string, string[]> = {}
@@ -187,6 +209,7 @@ export const useDefaultedMarkets = (chainId?: number) => {
     return {
       isLoading: !hasData && query.isPending && !hasFailed,
       isError: query.isError || (!hasData && hasFailed) || unknown.size > 0,
+      hasStatus,
       defaultedMarkets: markets,
       isDefaulted: (marketAddress?: string): boolean | undefined => {
         if (!marketAddress) return undefined
@@ -200,6 +223,13 @@ export const useDefaultedMarkets = (chainId?: number) => {
           unknown.has(address)
         )
           return undefined
+        return false
+      },
+      isDefaultedForDisplay: (marketAddress?: string): boolean | undefined => {
+        if (!marketAddress) return undefined
+        const address = marketAddress.toLowerCase()
+        if (address in markets) return true
+        if (!hasStatus || unknown.has(address)) return undefined
         return false
       },
       defaultedAt: (marketAddress?: string) =>

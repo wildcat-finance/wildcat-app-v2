@@ -8,7 +8,10 @@ import { fetchDefaultedMarkets } from "@/utils/defaultedMarkets"
 export const runtime = "nodejs"
 
 const CACHE_VERSION = "v2"
-const REVALIDATE_SECONDS = 120
+// Clients reject snapshots whose source block is 5+ minutes old and fall back
+// to scanning the subgraph themselves. Keep server cache + CDN freshness +
+// stale-while-revalidate (60 + 30 + 60s) well inside that budget.
+const REVALIDATE_SECONDS = 60
 
 const isSupportedChainId = (chainId: number): chainId is SupportedChainId =>
   Object.prototype.hasOwnProperty.call(SubgraphUrls, chainId)
@@ -33,7 +36,7 @@ export async function GET(req: NextRequest) {
     const res = NextResponse.json(data, { status: 200 })
     res.headers.set(
       "Cache-Control",
-      "public, s-maxage=60, stale-while-revalidate=240",
+      "public, s-maxage=30, stale-while-revalidate=60",
     )
     return res
   } catch {

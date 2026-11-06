@@ -301,7 +301,9 @@ export const ExploreMarketsTable = () => {
   const destinations = useDestinations(targetChainId)
   const isLoading =
     isLoadingInitial ||
-    defaults.isLoading ||
+    // Without any snapshot every market is excluded below; show the skeleton
+    // rather than an empty Explore while the status loads or retries.
+    !defaults.hasStatus ||
     (showComposableOnly && destinations.isPending)
   const { markets: destinationsByMarket } = destinations
   const composableMarkets = useMemo(
@@ -398,7 +400,7 @@ export const ExploreMarketsTable = () => {
         onboardingByMarket,
       )
       return (
-        defaults.isDefaulted(market.address) === false &&
+        defaults.isDefaultedForDisplay(market.address) === false &&
         isExploreVisible(market) &&
         !penaltyBorrowers.has(market.borrower.toLowerCase()) &&
         defaults.defaultedMarketsOfBorrower(market.borrower).length === 0 &&
@@ -495,7 +497,10 @@ export const ExploreMarketsTable = () => {
 
         return {
           id: address,
-          status: getMarketStatusChip(market, defaults.isDefaulted(address)),
+          status: getMarketStatusChip(
+            market,
+            defaults.isDefaultedForDisplay(address),
+          ),
           term: getMarketTypeChip(market),
           name,
           borrower: borrowerName,

@@ -388,7 +388,7 @@ export const TrendingMarketsCarousel = () => {
 
     const exploreMarkets = marketAccounts.filter(
       (a) =>
-        defaults.isDefaulted(a.market.address) === false &&
+        defaults.isDefaultedForDisplay(a.market.address) === false &&
         isExploreVisible(a.market) &&
         a.market.maxTotalSupply.gt(0) &&
         !penaltyBorrowers.has(a.market.borrower.toLowerCase()) &&
@@ -578,7 +578,7 @@ export const TrendingMarketsCarousel = () => {
   ])
 
   const isLoading =
-    isLoadingInitial || isRecentDepositsLoading || defaults.isLoading
+    isLoadingInitial || isRecentDepositsLoading || !defaults.hasStatus
 
   const isMobile = useMobileResolution()
 
@@ -680,7 +680,7 @@ export const TrendingMarketsCarousel = () => {
         suppliedPct={suppliedPct}
         status={getMarketStatusChip(
           market,
-          defaults.isDefaulted(market.address),
+          defaults.isDefaultedForDisplay(market.address),
         )}
         termLabel={termLabel}
         isMobile={isMobile}

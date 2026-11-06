@@ -1,7 +1,11 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import { ReactNode } from "react"
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import {
+  focusManager,
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query"
 import { act, cleanup, renderHook } from "@testing-library/react"
 
 import { QueryKeys } from "@/config/query-keys"
@@ -136,7 +140,7 @@ it("preserves a historical default and borrower warning through a partial refres
   unmount()
   client.clear()
   seedDefaultedMarkets(client)
-  respond(clear)
+  respond(confirmed)
   const reloaded = mount()
   expect(reloaded.result.current.isDefaulted(address)).toBe(true)
   expect(reloaded.result.current.isDefaulted(otherAddress)).toBeUndefined()
@@ -145,11 +149,16 @@ it("preserves a historical default and borrower warning through a partial refres
   expect(reloaded.result.current.isDefaulted(otherAddress)).toBe(false)
 })
 
-it("does not erase an observed historical default when a refresh omits it", async () => {
+it("drops a cached default that a complete refresh no longer reports", async () => {
   const { result } = mount(confirmed)
   await refresh()
-  expect(result.current.isDefaulted(address)).toBe(true)
-  expect(result.current.defaultedMarketsOfBorrower(borrower)).toEqual([address])
+  expect(result.current.isDefaulted(address)).toBe(false)
+  expect(result.current.defaultedMarketsOfBorrower(borrower)).toEqual([])
+  expect(
+    JSON.parse(
+      window.localStorage.getItem("wildcat:defaulted-markets:v2") ?? "{}",
+    )[1].data.markets,
+  ).toEqual({})
 })
 
 it("recovers automatically after the API and fallback are unavailable", async () => {
@@ -178,7 +187,7 @@ it("retains positive defaults but suspends a cached clear status after a failed 
   expect(result.current.isDefaulted(address)).toBe(true)
   expect(result.current.isDefaulted(otherAddress)).toBeUndefined()
 
-  respond(clear)
+  respond(confirmed)
   await refresh()
   expect(result.current.isDefaulted(address)).toBe(true)
   expect(result.current.isDefaulted(otherAddress)).toBe(false)
@@ -196,7 +205,7 @@ it("does not carry defaults to another chain", async () => {
 it("does not clear a market from a six-hour-old browser seed while revalidating", async () => {
   const oldTimestamp = now / 1000 - 6 * 60 * 60
   window.localStorage.setItem(
-    "wildcat:defaulted-markets:v1",
+    "wildcat:defaulted-markets:v2",
     JSON.stringify({
       1: {
         savedAt: oldTimestamp * 1000,
@@ -208,7 +217,7 @@ it("does not clear a market from a six-hour-old browser seed while revalidating"
   fetchMock.mockImplementation(
     () =>
       new Promise((resolve) => {
-        complete = () => resolve({ ok: true, json: async () => clear })
+        complete = () => resolve({ ok: true, json: async () => confirmed })
       }),
   )
   seedDefaultedMarkets(client)
@@ -303,7 +312,7 @@ it.each([null, now / 1000 + 60])(
 
 it("rejects old browser payloads that have no source timestamp", () => {
   window.localStorage.setItem(
-    "wildcat:defaulted-markets:v1",
+    "wildcat:defaulted-markets:v2",
     JSON.stringify({
       1: { savedAt: now, data: { markets: {}, unknown: [] } },
     }),
@@ -323,4 +332,56 @@ it("deduplicates an expiry refresh across observers", async () => {
   expect(first.result.current.isDefaulted(address)).toBeUndefined()
   expect(second.result.current.isDefaulted(address)).toBeUndefined()
   expect(fetchMock).toHaveBeenCalledTimes(2)
+})
+
+it("discards legacy v1 browser seeds", () => {
+  window.localStorage.setItem(
+    "wildcat:defaulted-markets:v1",
+    JSON.stringify({ 1: { savedAt: now, data: confirmed } }),
+  )
+  seedDefaultedMarkets(client)
+  expect(client.getQueryData(key)).toBeUndefined()
+  expect(window.localStorage.getItem("wildcat:defaulted-markets:v1")).toBeNull()
+})
+
+it("refetches an expired status when a hidden tab becomes visible again", async () => {
+  const { result } = mount()
+  await advance()
+  expect(result.current.isDefaulted(address)).toBe(false)
+
+  act(() => focusManager.setFocused(false))
+  await advance(6 * 60_000)
+  expect(result.current.isDefaulted(address)).toBeUndefined()
+  expect(fetchMock).toHaveBeenCalledTimes(1)
+
+  act(() => focusManager.setFocused(true))
+  await advance()
+  expect(fetchMock).toHaveBeenCalledTimes(2)
+  expect(result.current.isDefaulted(address)).toBe(false)
+  act(() => focusManager.setFocused(undefined))
+})
+
+it("keeps the last snapshot for display while an expired status refreshes", async () => {
+  const { result } = mount(confirmed)
+  fetchMock.mockReturnValue(new Promise(() => {}))
+  await advance(5 * 60_000)
+  await advance()
+  expect(result.current.isDefaulted(otherAddress)).toBeUndefined()
+  expect(result.current.isDefaultedForDisplay(otherAddress)).toBe(false)
+  expect(result.current.isDefaultedForDisplay(address)).toBe(true)
+  expect(result.current.hasStatus).toBe(true)
+})
+
+it("has no display status for unresolved markets or before any snapshot", async () => {
+  fetchMock.mockRejectedValue(new Error("API unavailable"))
+  const { result } = mount()
+  await advance(1100)
+  expect(result.current.hasStatus).toBe(false)
+  expect(result.current.isDefaultedForDisplay(address)).toBeUndefined()
+
+  respond({ markets: {}, unknown: [address] })
+  await refresh()
+  expect(result.current.hasStatus).toBe(true)
+  expect(result.current.isDefaultedForDisplay(address)).toBeUndefined()
+  expect(result.current.isDefaultedForDisplay(otherAddress)).toBe(false)
 })

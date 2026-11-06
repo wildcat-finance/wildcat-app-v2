@@ -32,7 +32,9 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
   const {
     isLoading: isDefaultsLoading,
     isError: isDefaultsError,
+    hasStatus: hasDefaultsStatus,
     isDefaulted,
+    isDefaultedForDisplay,
     defaultedMarketsOfBorrower,
   } = useDefaultedMarkets()
   const { policyMarkets, isPolicyMarketsLoading } =
@@ -214,13 +216,17 @@ export const LenderDataProvider = ({ children }: { children: ReactNode }) => {
     () => ({
       isLoading: isDefaultsLoading,
       isError: isDefaultsError,
+      hasStatus: hasDefaultsStatus,
       isDefaulted,
+      isDefaultedForDisplay,
       defaultedMarketsOfBorrower,
     }),
     [
       isDefaultsLoading,
       isDefaultsError,
+      hasDefaultsStatus,
       isDefaulted,
+      isDefaultedForDisplay,
       defaultedMarketsOfBorrower,
     ],
   )

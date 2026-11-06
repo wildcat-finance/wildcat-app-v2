@@ -146,7 +146,9 @@ describe.each([false, true])(
         defaults: {
           isLoading: false,
           isError: false,
+          hasStatus: true,
           isDefaulted: () => false,
+          isDefaultedForDisplay: () => false,
           defaultedMarketsOfBorrower: () => [],
         },
       })
@@ -179,6 +181,8 @@ describe.each([false, true])(
           isError: true,
           isDefaulted: (address) =>
             address === marketAddress ? undefined : false,
+          isDefaultedForDisplay: (address) =>
+            address === marketAddress ? undefined : false,
         },
       })
       const { rerender } = render(<ExploreMarketsTable />)
@@ -188,6 +192,47 @@ describe.each([false, true])(
       jest
         .mocked(useLenderMarketsContext)
         .mockReturnValue({ ...context, marketAccounts, onboardingByMarket })
+      rerender(<ExploreMarketsTable />)
+      expect(screen.getByText("Available market")).toBeTruthy()
+    })
+
+    it("keeps listing markets while an expired status refreshes", () => {
+      const context = jest.mocked(useLenderMarketsContext)()
+      jest.mocked(useLenderMarketsContext).mockReturnValue({
+        ...context,
+        defaults: {
+          ...context.defaults,
+          isDefaulted: () => undefined,
+          isDefaultedForDisplay: () => false,
+        },
+      })
+      render(<ExploreMarketsTable />)
+      expect(screen.getByText("Available market")).toBeTruthy()
+      expect(
+        screen.queryByText("dashboard.markets.noMarkets.explore.title"),
+      ).toBeNull()
+    })
+
+    it("shows loading, not an empty Explore, until a status snapshot exists", () => {
+      const context = jest.mocked(useLenderMarketsContext)()
+      jest.mocked(useLenderMarketsContext).mockReturnValue({
+        ...context,
+        defaults: {
+          ...context.defaults,
+          isLoading: false,
+          isError: true,
+          hasStatus: false,
+          isDefaulted: () => undefined,
+          isDefaultedForDisplay: () => undefined,
+        },
+      })
+      const { rerender } = render(<ExploreMarketsTable />)
+      expect(screen.queryByText("Available market")).toBeNull()
+      expect(
+        screen.queryByText("dashboard.markets.noMarkets.explore.title"),
+      ).toBeNull()
+
+      jest.mocked(useLenderMarketsContext).mockReturnValue(context)
       rerender(<ExploreMarketsTable />)
       expect(screen.getByText("Available market")).toBeTruthy()
     })

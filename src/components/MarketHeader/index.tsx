@@ -94,14 +94,15 @@ export const MarketHeader = ({
     return () => clearInterval(intervalId)
   }, [market.pendingWithdrawalExpiry, isLiveMarketReady])
 
-  const { isDefaulted, defaultedMarketsOfBorrower } = useDefaultedMarkets(
-    market.chainId,
-  )
+  // The header only displays status, so it reads the last snapshot rather
+  // than dropping to a skeleton each time the status refreshes.
+  const { isDefaultedForDisplay, defaultedMarketsOfBorrower } =
+    useDefaultedMarkets(market.chainId)
   const borrowerDefaultsCount = defaultedMarketsOfBorrower(
     market.borrower,
   ).length
 
-  const defaultStatus = isDefaulted(market.address)
+  const defaultStatus = isDefaultedForDisplay(market.address)
   const marketStatus =
     isLiveMarketReady && defaultStatus !== undefined
       ? getMarketStatusChip(market, defaultStatus)
