@@ -1,6 +1,6 @@
 {
   "name": "wildcat-app-v2",
-  "version": "2.23.1",
+  "version": "2.24.0",
   "private": true,
   "packageManager": "npm@11.12.0",
   "engines": {
