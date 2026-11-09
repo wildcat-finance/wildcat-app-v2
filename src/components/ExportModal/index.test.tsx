@@ -1,11 +1,12 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 
-import { CanonicalExportRequest } from "@/lib/export/types"
+import { CanonicalExportRequest, ExportRequest } from "@/lib/export/types"
 
 import { ExportModal, exportErrorMessage } from "./index"
 
 jest.mock("@/assets/icons/cross_icon.svg", () => () => <svg />)
+jest.mock("@/assets/icons/calendar_icon.svg", () => () => <svg />)
 
 const MARKET = "0x1111111111111111111111111111111111111111"
 const BORROWER = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -379,14 +380,14 @@ describe("ExportModal", () => {
       />,
     )
 
-    expect(screen.queryByRole("button", { name: "All V2" })).toBeNull()
+    expect(screen.queryByRole("radio", { name: "All V2" })).toBeNull()
     expect(
       screen
-        .getByRole("button", { name: "This market" })
-        .getAttribute("aria-pressed"),
+        .getByRole("radio", { name: "This market" })
+        .getAttribute("aria-checked"),
     ).toBe("true")
 
-    fireEvent.click(screen.getByRole("button", { name: "Selected" }))
+    fireEvent.click(screen.getByRole("radio", { name: "Selected" }))
 
     fireEvent.mouseDown(
       await screen.findByRole("combobox", { name: "Selected markets" }),
@@ -473,7 +474,7 @@ describe("ExportModal", () => {
         />,
       )
 
-      fireEvent.click(screen.getByRole("button", { name: "Borrower" }))
+      fireEvent.click(screen.getByRole("radio", { name: "Borrower" }))
       const borrowerInput = await screen.findByDisplayValue(
         `Current Borrower (${networkName} - 2 markets)`,
       )
@@ -511,6 +512,267 @@ describe("ExportModal", () => {
       ])
     },
   )
+
+  describe("form controls", () => {
+    // Translations are not loaded under test, so labels are their keys.
+    const START = "dateRange.startDate"
+    const END = "dateRange.dueDate"
+    const dateField = (name: string) =>
+      screen.getByRole("textbox", { name }) as HTMLInputElement
+    const generate = () =>
+      fireEvent.click(screen.getByRole("button", { name: "Generate export" }))
+
+    const mountModal = () =>
+      render(
+        <ExportModal
+          open
+          onClose={jest.fn()}
+          chainId={1}
+          marketAddress={MARKET}
+          borrowerAddress={BORROWER}
+        />,
+      )
+
+    // Serves a two-market catalogue, accepts every export, and records what
+    // each export asked for.
+    const serveExports = () => {
+      const submitted: ExportRequest[] = []
+      global.fetch = jest.fn(
+        async (input: RequestInfo | URL, init?: RequestInit) => {
+          const url = String(input)
+          if (url === "/api/export/markets?chainId=1") {
+            return response({
+              markets: [
+                [MARKET, "ALPHA", "Alpha Market"],
+                [OTHER_MARKET, "BETA", "Beta Market"],
+              ].map(([address, symbol, name]) => ({
+                address,
+                symbol,
+                name,
+                borrower: BORROWER,
+                isActive: true,
+              })),
+            })
+          }
+          if (url === "/api/export/jobs" && init?.method === "POST") {
+            submitted.push(JSON.parse(String(init.body)))
+            return response(
+              { jobId: "new-job", status: "queued", request: originalRequest },
+              202,
+            )
+          }
+          if (url === "/api/export/jobs/new-job") {
+            return response({
+              status: "queued",
+              progress: 0,
+              phase: "queued",
+              request: originalRequest,
+            })
+          }
+          throw new Error(`Unexpected fetch: ${url}`)
+        },
+      )
+      return submitted
+    }
+
+    // Types the way a browser does: the date field keeps one section selected
+    // and each keystroke replaces the selection.
+    const typeDigits = (input: HTMLInputElement, digits: string) =>
+      digits.split("").forEach((digit) => {
+        const { value, selectionStart, selectionEnd } = input
+        fireEvent.change(input, {
+          target: {
+            value:
+              value.slice(0, selectionStart ?? 0) +
+              digit +
+              value.slice(selectionEnd ?? value.length),
+          },
+        })
+      })
+
+    // Focuses a date field, which starts at the day, and types into it.
+    const typeDate = (name: string, digits: string) => {
+      const input = dateField(name)
+      act(() => input.focus())
+      fireEvent.click(input)
+      typeDigits(input, digits)
+      return input
+    }
+
+    const chooseCustomPeriod = () =>
+      fireEvent.click(screen.getByRole("radio", { name: "Custom" }))
+
+    it("sends a typed custom period as day-first calendar dates", async () => {
+      const submitted = serveExports()
+      mountModal()
+      chooseCustomPeriod()
+      typeDate(START, "12032026")
+      typeDate(END, "10112026")
+
+      generate()
+      await waitFor(() => expect(submitted).toHaveLength(1))
+      expect(submitted[0]).toMatchObject({
+        dateFrom: "2026-03-12",
+        dateTo: "2026-11-10",
+      })
+    })
+
+    it("changes one part of a typed date without shifting the rest", async () => {
+      const submitted = serveExports()
+      mountModal()
+      chooseCustomPeriod()
+      const start = typeDate(START, "12032026")
+
+      // The year is active after typing; step back to the month and retype it.
+      fireEvent.keyDown(start, { key: "ArrowLeft" })
+      typeDigits(start, "10")
+      expect(start.value).toBe("12/10/2026")
+
+      generate()
+      await waitFor(() => expect(submitted).toHaveLength(1))
+      expect(submitted[0].dateFrom).toBe("2026-10-12")
+    })
+
+    it("does not export while a date is unfinished", async () => {
+      const submitted = serveExports()
+      mountModal()
+      chooseCustomPeriod()
+      // Day and month only: sending this would silently drop the start date.
+      expect(typeDate(START, "1203").value).toBe("12/03/YYYY")
+
+      generate()
+      expect((await screen.findByRole("alert")).textContent).toBe(
+        "Enter statement dates as DD/MM/YYYY",
+      )
+      expect(submitted).toHaveLength(0)
+    })
+
+    it("keeps a start date typed after the end date and refuses to export it", async () => {
+      const submitted = serveExports()
+      mountModal()
+      chooseCustomPeriod()
+      typeDate(END, "10112026")
+      typeDate(START, "12122026")
+
+      expect(dateField(START).value).toBe("12/12/2026")
+      expect(dateField(END).value).toBe("10/11/2026")
+      generate()
+      expect((await screen.findByRole("alert")).textContent).toBe(
+        "The start date must be on or before the end date",
+      )
+      expect(submitted).toHaveLength(0)
+    })
+
+    it("restores the custom period of a previous export", async () => {
+      window.sessionStorage.setItem("wildcat-export-job:1", ORIGINAL_JOB)
+      global.fetch = jest.fn(async () =>
+        response({
+          status: "completed",
+          progress: 100,
+          phase: "completed",
+          downloadUrl: DOWNLOAD_URL,
+          request: {
+            ...originalRequest,
+            dateFrom: "2026-03-12",
+            dateTo: "2026-11-10",
+          },
+        }),
+      )
+      mountModal()
+
+      expect(
+        (
+          (await screen.findByRole("textbox", {
+            name: START,
+          })) as HTMLInputElement
+        ).value,
+      ).toBe("12/03/2026")
+      expect(dateField(END).value).toBe("10/11/2026")
+      expect(
+        screen
+          .getByRole("radio", { name: "Custom" })
+          .getAttribute("aria-checked"),
+      ).toBe("true")
+    })
+
+    it("moves a segmented choice with the arrow keys", async () => {
+      const submitted = serveExports()
+      mountModal()
+      const pdf = screen.getByRole("radio", { name: "PDF" })
+      const xlsx = screen.getByRole("radio", { name: "XLSX" })
+      // Only the chosen option is a tab stop.
+      expect([pdf.tabIndex, xlsx.tabIndex]).toEqual([0, -1])
+
+      act(() => pdf.focus())
+      fireEvent.keyDown(pdf, { key: "ArrowRight" })
+      expect(xlsx.getAttribute("aria-checked")).toBe("true")
+      expect(document.activeElement).toBe(xlsx)
+
+      generate()
+      await waitFor(() => expect(submitted).toHaveLength(1))
+      expect(submitted[0].format).toBe("xlsx")
+    })
+
+    describe("selected markets", () => {
+      const selectBothMarkets = async () => {
+        // jsdom lays nothing out; give the chip row room to show every chip.
+        jest.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(600)
+        jest
+          .spyOn(HTMLElement.prototype, "offsetWidth", "get")
+          .mockReturnValue(80)
+        const submitted = serveExports()
+        mountModal()
+        fireEvent.click(screen.getByRole("radio", { name: "Selected" }))
+        // The current market, ALPHA, is preselected; add the other one.
+        const input = await screen.findByRole("combobox", {
+          name: "Selected markets",
+        })
+        expect(
+          await screen.findByRole("button", { name: "Remove ALPHA" }),
+        ).toBeTruthy()
+        fireEvent.mouseDown(input)
+        fireEvent.click(await screen.findByText("BETA - Beta Market"))
+        expect(screen.getByRole("button", { name: "Remove BETA" })).toBeTruthy()
+        return { input, submitted }
+      }
+
+      it("removes one with Enter on its remove button", async () => {
+        const { submitted } = await selectBothMarkets()
+
+        fireEvent.keyDown(
+          screen.getByRole("button", { name: "Remove ALPHA" }),
+          { key: "Enter" },
+        )
+        expect(
+          screen.queryByRole("button", { name: "Remove ALPHA" }),
+        ).toBeNull()
+
+        generate()
+        await waitFor(() => expect(submitted).toHaveLength(1))
+        expect(submitted[0].markets).toEqual([OTHER_MARKET])
+      })
+
+      it("removes the one the arrow keys reached, not the last one", async () => {
+        const { input, submitted } = await selectBothMarkets()
+        const pressOnFocused = (key: string) =>
+          fireEvent.keyDown(document.activeElement as Element, { key })
+
+        act(() => input.focus())
+        // From the input the arrow reaches BETA, then ALPHA.
+        pressOnFocused("ArrowLeft")
+        pressOnFocused("ArrowLeft")
+        pressOnFocused("Backspace")
+        expect(
+          screen.queryByRole("button", { name: "Remove ALPHA" }),
+        ).toBeNull()
+        expect(screen.getByRole("button", { name: "Remove BETA" })).toBeTruthy()
+
+        generate()
+        await waitFor(() => expect(submitted).toHaveLength(1))
+        expect(submitted[0].markets).toEqual([OTHER_MARKET])
+      })
+    })
+  })
 
   it("does not expose workflow internals for provider rate limits", () => {
     expect(

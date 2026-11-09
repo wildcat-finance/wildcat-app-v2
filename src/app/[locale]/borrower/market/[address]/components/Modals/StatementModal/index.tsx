@@ -10,11 +10,11 @@ import {
   Tabs,
   Typography,
 } from "@mui/material"
-import { Dayjs } from "dayjs"
 import { useTranslation } from "react-i18next"
 
 import Cross from "@/assets/icons/cross_icon.svg"
 import { DateRange } from "@/components/DateRange"
+import { DateRangeDates } from "@/components/DateRange/interface"
 import { COLORS } from "@/theme/colors"
 
 import { StatementModalProps } from "./interface"
@@ -23,10 +23,10 @@ import { DialogContainer, HeaderTextContainer } from "./style"
 export const StatementModal = ({ isOpen, setIsOpen }: StatementModalProps) => {
   const { t } = useTranslation()
   const [value, setValue] = useState<"csv" | "pdf">("csv")
-  const [dates, setDates] = useState<{
-    starting: Dayjs | null
-    ending: Dayjs | null
-  }>({ starting: null, ending: null })
+  const [dates, setDates] = useState<DateRangeDates>({
+    starting: null,
+    ending: null,
+  })
 
   const handleClose = () => {
     setIsOpen(!isOpen)

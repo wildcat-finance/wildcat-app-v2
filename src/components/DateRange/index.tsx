@@ -1,45 +1,43 @@
-import { ChangeEvent } from "react"
+import { useEffect, useState } from "react"
 
-import { Box, SvgIcon, TextField, Typography } from "@mui/material"
+import {
+  Box,
+  IconButton,
+  InputAdornment,
+  Popover,
+  SvgIcon,
+  Typography,
+} from "@mui/material"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar"
+import { DateField } from "@mui/x-date-pickers/DateField"
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
+import { Dayjs } from "dayjs"
 import { useTranslation } from "react-i18next"
 
+import CalendarIcon from "@/assets/icons/calendar_icon.svg"
 import ArrowLeftIcon from "@/assets/icons/sharpArrow_icon.svg"
 import { COLORS } from "@/theme/colors"
-import { dayjs } from "@/utils/dayjs"
 
 import { DateRangeProps } from "./interface"
 import {
+  DateCalendarButton,
   DateCalendarContainer,
   DateCalendarHeaderContainer,
+  CALENDAR_POPOVER_GAP,
+  CALENDAR_POPOVER_MAX_HEIGHT,
+  DateCalendarPopoverPaper,
   DateCalendarTextField,
   DateRangeContainer,
+  DatePopoverCalendar,
+  DatePopoverRangeContainer,
+  DatePopoverTextField,
 } from "./style"
 
-// Utility function to format date string to 'DD/MM/YYYY'
-const formatDateForDateRange = (input: string | undefined) => {
-  // delete all except digits
-  if (input) {
-    const digits = input.replace(/\D/g, "")
+type DateRangeField = "starting" | "ending"
 
-    // format to DD/MM/YYYY
-    let formattedValue = ""
-    if (digits.length > 0) {
-      formattedValue += digits.substring(0, 2) // day
-      if (digits.length >= 2) {
-        formattedValue += `/${digits.substring(2, 4)}` // month
-      }
-      if (digits.length >= 4) {
-        formattedValue += `/${digits.substring(4, 8)}` // year
-      }
-    }
-
-    return formattedValue
-  }
-  return undefined
-}
+// Only a finished date can bound the other field or be shown on a calendar.
+const complete = (date: Dayjs | null) => (date?.isValid() ? date : undefined)
 
 const DateCalendarArrowLeft = () => (
   <SvgIcon
@@ -64,155 +62,191 @@ const DateCalendarArrowRight = () => (
   </SvgIcon>
 )
 
-export const DateRange = ({ dates, setDates }: DateRangeProps) => {
+export const DateRange = ({
+  dates,
+  setDates,
+  disabled = false,
+  calendar = "inline",
+}: DateRangeProps) => {
   const { t } = useTranslation()
-  const { starting, ending } = dates
+  const starting = complete(dates.starting)
+  const ending = complete(dates.ending)
+  // Shown on both fields and never corrected for the user: what was typed stays.
+  const isOutOfOrder = Boolean(
+    starting && ending && starting.isAfter(ending, "day"),
+  )
+  const [calendarTarget, setCalendarTarget] = useState<{
+    field: DateRangeField
+    anchor: HTMLElement
+    placement: "above" | "below"
+    bottom: number
+  } | null>(null)
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  const closeCalendar = () => setIsCalendarOpen(false)
 
-  const shouldDisableStartDate = (date: dayjs.Dayjs): boolean =>
-    ending ? date.isAfter(dayjs(ending, "DD/MM/YYYY"), "day") : false
-
-  const shouldDisableEndDate = (date: dayjs.Dayjs): boolean =>
-    starting ? date.isBefore(dayjs(starting, "DD/MM/YYYY"), "day") : false
-
-  const onInputChange = (
-    evt: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    field: "starting" | "ending",
-  ) => {
-    const input = evt.target
-    const cursorPosition = input.selectionStart
-    const originalLength = input.value.length
-
-    const formattedDate = formatDateForDateRange(input.value)
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    setDates((prev) => {
-      if (field === "starting") {
-        if (
-          prev.ending &&
-          dayjs(formattedDate, "DD/MM/YYYY").isAfter(
-            dayjs(prev.ending, "DD/MM/YYYY"),
-          )
-        ) {
-          return { ...prev, starting: prev.ending }
-        }
-        return { ...prev, starting: formattedDate }
-      }
-      if (field === "ending") {
-        if (
-          prev.starting &&
-          dayjs(formattedDate, "DD/MM/YYYY").isBefore(
-            dayjs(prev.starting, "DD/MM/YYYY"),
-          )
-        ) {
-          return { ...prev, ending: prev.starting }
-        }
-        return { ...prev, ending: formattedDate }
-      }
-      return prev
-    })
-
-    setTimeout(() => {
-      if (formattedDate) {
-        const newLength = formattedDate.length
-
-        if (cursorPosition !== null) {
-          const newCursorPosition =
-            cursorPosition + (newLength - originalLength)
-          input.setSelectionRange(newCursorPosition, newCursorPosition)
-        }
-      }
-    }, 0)
+  const measureAnchor = (anchor: HTMLElement) => {
+    const rect = anchor.getBoundingClientRect()
+    return {
+      placement:
+        rect.top >= CALENDAR_POPOVER_MAX_HEIGHT
+          ? ("above" as const)
+          : ("below" as const),
+      bottom:
+        document.documentElement.clientHeight - rect.top + CALENDAR_POPOVER_GAP,
+    }
   }
 
-  const onCalendarChange = (
-    newDate: dayjs.Dayjs | null,
-    field: "starting" | "ending",
-  ) => {
-    if (newDate) {
-      const formattedDate = newDate.format("DD/MM/YYYY")
-      setDates((prev) => ({ ...prev, [field]: formattedDate }))
-    }
+  useEffect(() => {
+    if (!isCalendarOpen) return undefined
+    const onResize = () =>
+      setCalendarTarget((current) =>
+        current ? { ...current, ...measureAnchor(current.anchor) } : current,
+      )
+    window.addEventListener("resize", onResize)
+    return () => window.removeEventListener("resize", onResize)
+  }, [isCalendarOpen])
+
+  const setDate = (field: DateRangeField, date: Dayjs | null) =>
+    setDates((prev) => ({ ...prev, [field]: date }))
+
+  const renderCalendar = (field: DateRangeField) => (
+    <DateCalendar
+      slots={{
+        leftArrowIcon: DateCalendarArrowLeft,
+        rightArrowIcon: DateCalendarArrowRight,
+      }}
+      value={complete(dates[field]) ?? null}
+      onChange={(newDate, selectionState) => {
+        if (newDate) setDate(field, newDate)
+        if (calendar === "popover" && selectionState === "finish") {
+          closeCalendar()
+        }
+      }}
+      disabled={disabled}
+      sx={calendar === "popover" ? DatePopoverCalendar : undefined}
+      minDate={field === "ending" ? starting : undefined}
+      maxDate={field === "starting" ? ending : undefined}
+    />
+  )
+
+  const renderField = (field: DateRangeField) => {
+    const label =
+      field === "starting" ? t("dateRange.startDate") : t("dateRange.dueDate")
+
+    return (
+      <Box sx={DateCalendarContainer}>
+        <Box sx={DateCalendarHeaderContainer}>
+          <Typography
+            sx={{ padding: "0px 4px" }}
+            variant="text3"
+            color={COLORS.santasGrey}
+          >
+            {label}
+          </Typography>
+          {/* Day, month and year are edited as separate sections, so changing
+              one never shifts digits into another. */}
+          <DateField
+            sx={
+              calendar === "popover"
+                ? DatePopoverTextField
+                : DateCalendarTextField
+            }
+            // Stated rather than left to the theme defaults: the theme styles
+            // text fields by variant and size, and the date field only passes
+            // on the ones it is given.
+            variant="filled"
+            size={calendar === "popover" ? "medium" : "regular"}
+            format="DD/MM/YYYY"
+            value={dates[field]}
+            onChange={(date) => setDate(field, date)}
+            slotProps={{
+              textField: {
+                // Set explicitly: by default the field turns red on the first
+                // keystroke, because an unfinished date is an invalid one.
+                error: isOutOfOrder,
+                inputProps: { "aria-label": label },
+              },
+            }}
+            InputProps={{
+              endAdornment:
+                calendar === "popover" ? (
+                  <InputAdornment position="end">
+                    <IconButton
+                      disableRipple
+                      disabled={disabled}
+                      aria-label={label}
+                      aria-haspopup="dialog"
+                      aria-expanded={
+                        isCalendarOpen && calendarTarget?.field === field
+                      }
+                      onClick={(event) => {
+                        const anchor =
+                          event.currentTarget.closest<HTMLElement>(
+                            ".MuiInputBase-root",
+                          ) ?? event.currentTarget
+                        setCalendarTarget({
+                          field,
+                          anchor,
+                          ...measureAnchor(anchor),
+                        })
+                        setIsCalendarOpen(true)
+                      }}
+                      sx={DateCalendarButton}
+                    >
+                      <SvgIcon fontSize="medium">
+                        <CalendarIcon />
+                      </SvgIcon>
+                    </IconButton>
+                  </InputAdornment>
+                ) : undefined,
+            }}
+            disabled={disabled}
+            fullWidth
+          />
+        </Box>
+
+        {calendar === "inline" && renderCalendar(field)}
+      </Box>
+    )
   }
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Box sx={DateRangeContainer}>
-        <Box sx={DateCalendarContainer}>
-          <Box sx={DateCalendarHeaderContainer}>
-            <Typography
-              sx={{ padding: "0px 4px" }}
-              variant="text3"
-              color={COLORS.santasGrey}
-            >
-              {t("dateRange.startDate")}
-            </Typography>
-            <TextField
-              sx={DateCalendarTextField}
-              placeholder="01/02/1980"
-              value={starting}
-              onChange={(evt) => {
-                onInputChange(evt, "starting")
-              }}
-              fullWidth
-            />
-          </Box>
-
-          <DateCalendar
-            slots={{
-              leftArrowIcon: DateCalendarArrowLeft,
-              rightArrowIcon: DateCalendarArrowRight,
-            }}
-            value={
-              dayjs(starting, "DD/MM/YYYY").isValid()
-                ? dayjs(starting, "DD/MM/YYYY")
-                : null
-            }
-            onChange={(newDate) => {
-              onCalendarChange(newDate, "starting")
-            }}
-            defaultValue={dates.starting}
-            shouldDisableDate={shouldDisableStartDate}
-          />
-        </Box>
-        <Box sx={DateCalendarContainer}>
-          <Box sx={DateCalendarHeaderContainer}>
-            <Typography
-              sx={{ padding: "0px 4px" }}
-              variant="text3"
-              color={COLORS.santasGrey}
-            >
-              {t("dateRange.dueDate")}
-            </Typography>
-            <TextField
-              sx={DateCalendarTextField}
-              placeholder="01/02/1980"
-              value={ending}
-              onChange={(evt) => {
-                onInputChange(evt, "ending")
-              }}
-              fullWidth
-            />
-          </Box>
-
-          <DateCalendar
-            slots={{
-              leftArrowIcon: DateCalendarArrowLeft,
-              rightArrowIcon: DateCalendarArrowRight,
-            }}
-            value={
-              dayjs(ending, "DD/MM/YYYY").isValid()
-                ? dayjs(ending, "DD/MM/YYYY")
-                : null
-            }
-            onChange={(newDate) => {
-              onCalendarChange(newDate, "ending")
-            }}
-            defaultValue={dates.ending}
-            shouldDisableDate={shouldDisableEndDate}
-          />
-        </Box>
+      <Box
+        sx={
+          calendar === "popover"
+            ? DatePopoverRangeContainer
+            : DateRangeContainer
+        }
+      >
+        {renderField("starting")}
+        {renderField("ending")}
       </Box>
+      {calendar === "popover" && (
+        <Popover
+          open={isCalendarOpen && Boolean(calendarTarget)}
+          anchorEl={calendarTarget?.anchor}
+          onClose={closeCalendar}
+          anchorOrigin={{
+            vertical: calendarTarget?.placement === "below" ? "bottom" : "top",
+            horizontal: "left",
+          }}
+          transformOrigin={{
+            vertical: calendarTarget?.placement === "below" ? "top" : "bottom",
+            horizontal: "left",
+          }}
+          slotProps={{
+            paper: {
+              sx: DateCalendarPopoverPaper(
+                calendarTarget?.placement ?? "above",
+                calendarTarget?.bottom ?? 0,
+              ),
+            },
+          }}
+        >
+          {calendarTarget && renderCalendar(calendarTarget.field)}
+        </Popover>
+      )}
     </LocalizationProvider>
   )
 }
