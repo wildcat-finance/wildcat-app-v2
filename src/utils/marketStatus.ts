@@ -7,13 +7,16 @@ export enum MarketStatus {
   DELINQUENT = "Pending",
   PENALTY = "Penalty",
   TERMINATED = "Terminated",
+  DEFAULTED = "Defaulted",
 }
 
 export const getMarketStatus = (
   isClosed: boolean,
   isDelinquent: boolean,
   isIncurringPenalties: boolean,
+  isDefaulted = false,
 ): MarketStatus => {
+  if (isDefaulted) return MarketStatus.DEFAULTED
   if (isClosed) return MarketStatus.TERMINATED
   if (isIncurringPenalties) return MarketStatus.PENALTY
   if (isDelinquent) return MarketStatus.DELINQUENT
@@ -25,12 +28,16 @@ export const EXPLORE_ALLOWED_STATUSES = [
   MarketStatus.DELINQUENT,
 ]
 
-export const isExploreVisible = (market: Market): boolean =>
+export const isExploreVisible = (
+  market: Market,
+  isDefaulted = false,
+): boolean =>
   EXPLORE_ALLOWED_STATUSES.includes(
     getMarketStatus(
       market.isClosed,
       market.isDelinquent || market.willBeDelinquent,
       market.isIncurringPenalties,
+      isDefaulted,
     ),
   ) && market.maxTotalSupply.gt(market.totalSupply)
 
@@ -48,25 +55,6 @@ export const isMarketInPenalty = (market: Market): boolean =>
     market.isIncurringPenalties,
   ) === MarketStatus.PENALTY
 
-// `timeDelinquent` counts up while the market is delinquent and back down while
-// it's healthy, so anything over the grace period is continuous penalty time.
-// `closeMarket()` resets it to zero, so closed markets don't count here.
-export const PENALTY_DEFAULT_THRESHOLD_SECONDS = 90 * 24 * 60 * 60
-
-type MarketDefaultState = Pick<
-  Market,
-  "isClosed" | "timeDelinquent" | "delinquencyGracePeriod"
->
-
-export const isMarketInDefault = (market: MarketDefaultState): boolean =>
-  !market.isClosed &&
-  market.timeDelinquent - market.delinquencyGracePeriod >=
-    PENALTY_DEFAULT_THRESHOLD_SECONDS
-
-export const countMarketsInDefault = (
-  markets: MarketDefaultState[] | undefined,
-): number | undefined => markets?.filter(isMarketInDefault).length
-
 export const getPenaltyBorrowers = (markets: Market[]): Set<string> =>
   new Set(
     markets
@@ -74,7 +62,7 @@ export const getPenaltyBorrowers = (markets: Market[]): Set<string> =>
       .map((market) => market.borrower.toLowerCase()),
   )
 
-export const getMarketStatusChip = (market: Market) => {
+export const getMarketStatusChip = (market: Market, isDefaulted = false) => {
   const delinquencyPeriod =
     market.timeDelinquent > market.delinquencyGracePeriod
       ? 0
@@ -86,6 +74,7 @@ export const getMarketStatusChip = (market: Market) => {
       market.isClosed,
       market.isDelinquent || market.willBeDelinquent,
       market.isIncurringPenalties,
+      isDefaulted,
     ),
     healthyPeriod:
       market.totalDebts.gt(0) &&

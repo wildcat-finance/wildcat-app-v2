@@ -29,6 +29,10 @@ import { NonMlaAcknowledgementModal } from "@/app/[locale]/lender/market/[addres
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { SwitchChainAlert } from "@/app/[locale]/lender/market/[address]/components/SwitchChainAlert"
 import { WithdrawalRequests } from "@/app/[locale]/lender/market/[address]/components/WithdrawalRequests"
+import {
+  BorrowerDefaultNotice,
+  LenderMarketDefaultNotice,
+} from "@/components/DefaultNotice"
 import { MarketDestinationsSection } from "@/components/Destinations"
 import { Footer } from "@/components/Footer"
 import { ConnectWalletDialog } from "@/components/Header/HeaderButton/ConnectWalletDialog"
@@ -39,6 +43,7 @@ import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
 import { useMarketDestinations } from "@/hooks/destinations/useDestinations"
+import { useDefaultedMarkets } from "@/hooks/useDefaultedMarkets"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useMarketAccount } from "@/hooks/useMarketAccount"
 import { useMarketMla } from "@/hooks/useMarketMla"
@@ -75,8 +80,10 @@ import { WrapDebtToken } from "./components/WrapDebtToken"
 import { useBorrowerPenaltyWarning } from "./hooks/useBorrowerPenaltyWarning"
 import { useGetLenderWithdrawals } from "./hooks/useGetLenderWithdrawals"
 import {
+  DefaultNoticeWrapper,
   LenderBannerWrapper,
   MarketContentColumn,
+  MarketPageContainer,
   SectionContainer,
   SkeletonContainer,
   SkeletonStyle,
@@ -160,6 +167,23 @@ export default function LenderMarketDetails({
   )
   const { shouldWarn: showBorrowerPenaltyWarning } =
     useBorrowerPenaltyWarning(market)
+  const { isDefaulted, isDefaultedForDisplay, defaultedMarketsOfBorrower } =
+    useDefaultedMarkets(market?.chainId ?? marketChainId)
+  const defaultStatus = isDefaulted(market?.address)
+  const isMarketDefaulted = defaultStatus === true
+  const isDefaultStatusUnknown = defaultStatus === undefined
+  // Notices use the last snapshot so they do not disappear while the status
+  // refreshes; actions keep the strict status above.
+  const isKnownNotDefaultedForDisplay =
+    isDefaultedForDisplay(market?.address) === false
+  const borrowerHasOtherDefault =
+    !!market &&
+    !isMarketDefaulted &&
+    defaultedMarketsOfBorrower(market.borrower).some(
+      (defaultedAddress) => defaultedAddress !== market.address.toLowerCase(),
+    )
+  const requiresBorrowerRiskAcknowledgement =
+    showBorrowerPenaltyWarning || borrowerHasOtherDefault
 
   const hasMarketDescription =
     !!marketSummary && marketSummary?.description !== ""
@@ -243,7 +267,8 @@ export default function LenderMarketDetails({
     !liveAccount ||
     accessState === "resolving" ||
     accessState === "error"
-  const showLenderRequestBanner = bannerState === "request-access"
+  const showLenderRequestBanner =
+    bannerState === "request-access" && isKnownNotDefaultedForDisplay
   const currentSection = useAppSelector(
     (state) => state.lenderMarketRouting.currentSection,
   )
@@ -352,6 +377,31 @@ export default function LenderMarketDetails({
   ).length
 
   const totalWithdrawalsCount = ongoingCount + claimableCount + outstandingCount
+
+  const hasUnfulfilledWithdrawal =
+    isWalletReady && isConnected && outstandingCount > 0
+
+  const renderDefaultNotice = () => {
+    if (!market) return null
+    if (isMarketDefaulted)
+      return (
+        <LenderMarketDefaultNotice
+          showUnfulfilledRequest={hasUnfulfilledWithdrawal}
+        />
+      )
+    if (borrowerHasOtherDefault)
+      return (
+        <BorrowerDefaultNotice
+          href={`${ROUTES.lender.profile}/${market.borrower.toLowerCase()}`}
+        />
+      )
+    return null
+  }
+  const showPenaltyOnlyWarning =
+    hasLiveMarket &&
+    showBorrowerPenaltyWarning &&
+    isKnownNotDefaultedForDisplay &&
+    !borrowerHasOtherDefault
 
   useEffect(() => {
     dispatch(setWithdrawalsCount(totalWithdrawalsCount))
@@ -550,7 +600,9 @@ export default function LenderMarketDetails({
         isMobileOpen={isMobileDepositOpen}
         setIsMobileOpen={setIsMobileDepositOpen}
         marketAccount={marketAccount}
-        showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
+        showBorrowerPenaltyWarning={requiresBorrowerRiskAcknowledgement}
+        isMarketDefaulted={isMarketDefaulted}
+        isDefaultStatusUnknown={isDefaultStatusUnknown}
       />
     )
 
@@ -596,6 +648,8 @@ export default function LenderMarketDetails({
               wrapper={wrapper}
               hasWrapper={hasWrapper}
               isLiveMarketReady={!isMarketActionsLoading}
+              isMarketDefaulted={isMarketDefaulted}
+              isDefaultStatusUnknown={isDefaultStatusUnknown}
               isMobileWithdrawalOpen={isMobileWithdrawalOpen}
               setIsMobileDepositOpen={setIsMobileDepositOpen}
               setIsMobileAckOpen={setIsMobileAckOpen}
@@ -628,6 +682,8 @@ export default function LenderMarketDetails({
               wrapper={wrapper}
               hasWrapper={hasWrapper}
               isLiveMarketReady={!isMarketActionsLoading}
+              isMarketDefaulted={isMarketDefaulted}
+              isDefaultStatusUnknown={isDefaultStatusUnknown}
               isMobileWithdrawalOpen={isMobileWithdrawalOpen}
               setIsMobileDepositOpen={setIsMobileDepositOpen}
               setIsMobileAckOpen={setIsMobileAckOpen}
@@ -678,9 +734,9 @@ export default function LenderMarketDetails({
             hasMarketDescription={hasMarketDescription}
           />
 
-          {hasLiveMarket && showBorrowerPenaltyWarning && (
-            <BorrowerPenaltyWarning />
-          )}
+          {renderDefaultNotice()}
+
+          {showPenaltyOnlyWarning && <BorrowerPenaltyWarning />}
 
           <Box id="depositWithdraw">
             {!isBarChartsLoading && marketAccount ? (
@@ -806,6 +862,8 @@ export default function LenderMarketDetails({
                 wrapper={wrapper}
                 hasWrapper={hasWrapper}
                 isLiveMarketReady={!isMarketActionsLoading}
+                isMarketDefaulted={isMarketDefaulted}
+                isDefaultStatusUnknown={isDefaultStatusUnknown}
                 isMobileWithdrawalOpen={isMobileWithdrawalOpen}
                 setIsMobileDepositOpen={setIsMobileDepositOpen}
                 setIsMobileAckOpen={setIsMobileAckOpen}
@@ -821,7 +879,7 @@ export default function LenderMarketDetails({
     )
 
   return (
-    <Box>
+    <Box sx={MarketPageContainer(theme)}>
       <MarketHeader
         market={market}
         marketAccount={marketAccount}
@@ -832,7 +890,7 @@ export default function LenderMarketDetails({
         <SwitchChainAlert desiredChainId={market?.chainId} />
       )}
 
-      <Box sx={MarketContentColumn(theme, isDifferentChain)}>
+      <Box sx={MarketContentColumn(theme)}>
         {accessNotice}
         {activityNotice}
         {marketNotice}
@@ -871,9 +929,11 @@ export default function LenderMarketDetails({
           />
         )}
 
-        {hasLiveMarket && showBorrowerPenaltyWarning && (
-          <BorrowerPenaltyWarning />
+        {(isMarketDefaulted || borrowerHasOtherDefault) && (
+          <Box sx={DefaultNoticeWrapper}>{renderDefaultNotice()}</Box>
         )}
+
+        {showPenaltyOnlyWarning && <BorrowerPenaltyWarning />}
 
         <Box sx={SectionContainer(theme)}>
           {currentSection === LenderMarketSections.TRANSACTIONS && (
@@ -888,10 +948,14 @@ export default function LenderMarketDetails({
                       <MarketActions
                         marketAccount={marketAccount}
                         withdrawals={withdrawals}
-                        showBorrowerPenaltyWarning={showBorrowerPenaltyWarning}
+                        showBorrowerPenaltyWarning={
+                          requiresBorrowerRiskAcknowledgement
+                        }
                         wrapper={wrapper}
                         hasWrapper={hasWrapper}
                         isLiveMarketReady={!isMarketActionsLoading}
+                        isMarketDefaulted={isMarketDefaulted}
+                        isDefaultStatusUnknown={isDefaultStatusUnknown}
                       />
                     )}
                     <CapacityBarChart
@@ -942,7 +1006,7 @@ export default function LenderMarketDetails({
           {currentSection === LenderMarketSections.BORROWER_PROFILE && (
             <ProfileSection
               profileAddress={market.borrower as `0x${string}`}
-              externalChainId={marketChainId}
+              externalChainId={market.chainId}
             />
           )}
 

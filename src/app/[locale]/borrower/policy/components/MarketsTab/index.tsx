@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next"
 import { MarketStatusChip } from "@/components/@extended/MarketStatusChip"
 import { MarketTypeChip } from "@/components/@extended/MarketTypeChip"
 import { TotalDebtHeader } from "@/components/TotalDebtHeader"
+import { useDefaultedMarkets } from "@/hooks/useDefaultedMarkets"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { capacityComparator, statusComparator } from "@/utils/comparators"
@@ -39,8 +40,15 @@ export type MarketsTableModel = {
   debt?: TokenAmount
 }
 
-export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
+export const MarketsTab = ({
+  markets,
+  isLoading: isMarketsLoading,
+}: MarketsTabProps) => {
   const { t } = useTranslation()
+  const { isLoading: isDefaultsLoading, isDefaulted } = useDefaultedMarkets(
+    markets[0]?.chainId,
+  )
+  const isLoading = isMarketsLoading || isDefaultsLoading
 
   const columns: GridColDef[] = [
     {
@@ -189,7 +197,7 @@ export const MarketsTab = ({ markets, isLoading }: MarketsTabProps) => {
   const rows: GridRowsProp<MarketsTableModel> = markets.map((market) => {
     const { address, name, underlyingToken, annualInterestBips } = market
 
-    const marketStatus = getMarketStatusChip(market)
+    const marketStatus = getMarketStatusChip(market, isDefaulted(address))
     const marketType = getMarketTypeChip(market)
 
     return {

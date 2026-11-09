@@ -47,7 +47,8 @@ import { MarketsFilterSelect } from "@/components/MarketsFilterSelect"
 import { MarketsFilterSelectItem } from "@/components/MarketsFilterSelect/interface"
 import { MarketsTableWrapper } from "@/components/MarketsTableWrapper"
 import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
-import { MobileMarketCard } from "@/components/Mobile/MobileMarketCard"
+import { MobileMarketList } from "@/components/Mobile/MobileMarketList"
+import { MobileMarketsToolbar } from "@/components/Mobile/MobileMarketsToolbar"
 import { MobileSearchButton } from "@/components/Mobile/MobileSearchButton"
 import { RepeatingSkeletons } from "@/components/RepeatingSkeletons"
 import { TotalDebtHeader } from "@/components/TotalDebtHeader"
@@ -271,8 +272,13 @@ const MarketClickableRow = (props: GridRowProps) => {
 export const ExploreMarketsTable = () => {
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
-  const { marketAccounts, borrowers, isLoadingInitial, onboardingByMarket } =
-    useLenderMarketsContext()
+  const {
+    marketAccounts,
+    borrowers,
+    isLoadingInitial,
+    onboardingByMarket,
+    defaults,
+  } = useLenderMarketsContext()
   const { isTestnet, targetChainId } = useCurrentNetwork()
 
   const [sortMode, setSortMode] = useState<SortOption>("Most Funded")
@@ -294,7 +300,11 @@ export const ExploreMarketsTable = () => {
 
   const destinations = useDestinations(targetChainId)
   const isLoading =
-    isLoadingInitial || (showComposableOnly && destinations.isPending)
+    isLoadingInitial ||
+    // Without any snapshot every market is excluded below; show the skeleton
+    // rather than an empty Explore while the status loads or retries.
+    !defaults.hasStatus ||
+    (showComposableOnly && destinations.isPending)
   const { markets: destinationsByMarket } = destinations
   const composableMarkets = useMemo(
     () => new Set(Object.keys(destinationsByMarket)),
@@ -311,31 +321,7 @@ export const ExploreMarketsTable = () => {
     setShowComposableOnly(false)
   }
 
-  const [visibleMobileRows, setVisibleMobileRows] = useState(EXPLORE_PAGE_SIZE)
-  useEffect(() => {
-    setVisibleMobileRows(EXPLORE_PAGE_SIZE)
-  }, [
-    sortMode,
-    search,
-    assets,
-    statuses,
-    withdrawalCycles,
-    showSelfOnboard,
-    showOnboardByBorrower,
-    showComposableOnly,
-  ])
-
   const gridWrapRef = useRef<HTMLDivElement>(null)
-  const mobileListRef = useRef<HTMLDivElement>(null)
-  const mobileRevealFrom = useRef<number | null>(null)
-
-  useEffect(() => {
-    if (mobileRevealFrom.current === null) return
-    mobileListRef.current
-      ?.querySelectorAll<HTMLElement>("[data-market-card-link]")
-      [mobileRevealFrom.current]?.focus()
-    mobileRevealFrom.current = null
-  }, [visibleMobileRows])
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: EXPLORE_PAGE_SIZE,
@@ -397,9 +383,8 @@ export const ExploreMarketsTable = () => {
     return underlyingTokens
   }, [marketAccounts, isTestnet])
 
-  const { rows, totalRows, composableCount, isFilteredEmpty } = useMemo<{
+  const { rows, composableCount, isFilteredEmpty } = useMemo<{
     rows: GridRowsProp<LenderOtherMarketsTableModel>
-    totalRows: number
     composableCount: number
     isFilteredEmpty: boolean
   }>(() => {
@@ -415,8 +400,10 @@ export const ExploreMarketsTable = () => {
         onboardingByMarket,
       )
       return (
+        defaults.isDefaultedForDisplay(market.address) === false &&
         isExploreVisible(market) &&
         !penaltyBorrowers.has(market.borrower.toLowerCase()) &&
+        defaults.defaultedMarketsOfBorrower(market.borrower).length === 0 &&
         (onboardingMode === MarketOnboardingMode.SelfOnboard ||
           onboardingMode === MarketOnboardingMode.BorrowerApproval)
       )
@@ -480,12 +467,11 @@ export const ExploreMarketsTable = () => {
       compareMarkets,
     )
 
-    let visibleRows = isMobile ? visibleMobileRows : paginationModel.pageSize
+    let visibleRows = isMobile ? EXPLORE_PAGE_SIZE : paginationModel.pageSize
     if (showComposableOnly) visibleRows = MAX_GRID_PAGE_SIZE
     const accountsToMap = sorted.slice(0, visibleRows)
 
     return {
-      totalRows: sorted.length,
       composableCount: composableFiltered.length,
       isFilteredEmpty: availableMarkets.length > 0 && candidates.length === 0,
       rows: accountsToMap.map((account) => {
@@ -511,7 +497,10 @@ export const ExploreMarketsTable = () => {
 
         return {
           id: address,
-          status: getMarketStatusChip(market),
+          status: getMarketStatusChip(
+            market,
+            defaults.isDefaultedForDisplay(address),
+          ),
           term: getMarketTypeChip(market),
           name,
           borrower: borrowerName,
@@ -549,11 +538,11 @@ export const ExploreMarketsTable = () => {
     onboardingByMarket,
     isTestnet,
     isMobile,
-    visibleMobileRows,
     paginationModel.pageSize,
     composableMarkets,
     destinationsByMarket,
     showComposableOnly,
+    defaults,
   ])
 
   const gridPaginationModel = useMemo(
@@ -935,243 +924,147 @@ export const ExploreMarketsTable = () => {
 
   if (isMobile)
     return (
-      <Box
-        ref={mobileListRef}
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "4px",
-          paddingBottom: "8px",
-        }}
-      >
+      <Box sx={{ display: "flex", flexDirection: "column", padding: "0 8px" }}>
+        <Typography
+          variant="mobH3"
+          sx={{
+            padding: "8px",
+            color: COLORS.bunker,
+            letterSpacing: "-0.36px",
+          }}
+        >
+          Top Markets
+        </Typography>
+
         <Box
           sx={{
             display: "flex",
-            flexDirection: "column",
-            // Overlap the carousel card above by 1px: at fractional display
-            // scales the flush white-on-white edge otherwise renders as a
-            // hairline seam over the dark page background
-            marginTop: "-1px",
-            padding: "0 8px 8px",
-            borderRadius: "0 0 14px 14px",
-            backgroundColor: COLORS.white,
+            alignItems: "center",
+            gap: "6px",
+            padding: "4px 0 12px",
+            overflowX: "auto",
+            scrollbarWidth: "none",
+            "&::-webkit-scrollbar": { display: "none" },
           }}
         >
-          <Typography
-            sx={{
-              padding: "32px 8px 8px",
-              color: COLORS.bunker,
-              fontSize: "18px",
-              fontWeight: 500,
-              lineHeight: "24px",
-              letterSpacing: "-0.36px",
-            }}
-          >
-            Top Markets
-          </Typography>
-
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "4px 0 12px",
-              overflowX: "auto",
-              scrollbarWidth: "none",
-              "&::-webkit-scrollbar": { display: "none" },
-            }}
-          >
-            {isLoading ? (
-              <RepeatingSkeletons
-                itemsLength={4}
-                skeletonSX={{
-                  height: "28px",
-                  width: "90px",
-                  flexShrink: 0,
-                  borderRadius: "20px",
-                }}
-              />
-            ) : (
-              SORT_OPTIONS.map((option) => (
-                <ButtonBase
-                  key={option}
-                  disableRipple
-                  onClick={() => handleSortModeChange(option)}
-                  aria-pressed={sortMode === option}
-                  sx={{
-                    flexShrink: 0,
-                    padding: sortMode === option ? "4px 12px" : "0 2px",
-                    borderRadius: "20px",
-                    backgroundColor:
-                      sortMode === option ? COLORS.athensGrey : "transparent",
-                    color: COLORS.blackRock,
-                    fontFamily: "inherit",
-                    fontSize: "12px",
-                    fontWeight: sortMode === option ? 600 : 500,
-                    lineHeight: "20px",
-                    whiteSpace: "nowrap",
-                    "&.Mui-focusVisible": {
-                      outline: `2px solid ${COLORS.ultramarineBlue}`,
-                      outlineOffset: "1px",
-                    },
-                  }}
-                >
-                  {option}
-                </ButtonBase>
-              ))
-            )}
-          </Box>
-
-          <Box
-            sx={{
-              minHeight: "48px",
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "4px 2px",
-              padding: "7px 0",
-              borderTop: `1px solid ${COLORS.whiteLilac}`,
-              borderBottom: `1px solid ${COLORS.whiteLilac}`,
-            }}
-          >
-            {showComposableToggle ? (
-              <ComposableOnlySwitch
-                checked={showComposableOnly}
-                onChange={setShowComposableOnly}
-              />
-            ) : (
-              <Box />
-            )}
-
-            <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
-              <MobileFilterButton
-                assetsOptions={tokens.map((token) => ({
-                  id: token.address,
-                  name: token.symbol,
-                }))}
-                statusesOptions={statusFilterOptions}
-                withdrawalCycleOptions={withdrawalCycleOptions}
-                marketAssets={assets}
-                marketStatuses={statuses}
-                marketWithdrawalCycles={withdrawalCycles}
-                setMarketAssets={setAssets}
-                setMarketStatuses={setStatuses}
-                setMarketWithdrawalCycles={setWithdrawalCycles}
-                showSelfOnboard={showSelfOnboard}
-                showOnboardByBorrower={showOnboardByBorrower}
-                setShowSelfOnboard={setShowSelfOnboard}
-                setShowOnboardByBorrower={setShowOnboardByBorrower}
-              />
-
-              <MobileSearchButton
-                marketAccounts={marketAccounts.filter(
-                  (a) => !a.market.isClosed,
-                )}
-                marketSearch={search}
-                setMarketSearch={setSearch}
-                isExplorePage
-              />
-            </Box>
-          </Box>
-        </Box>
-
-        {isLoading ? (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "4px",
-            }}
-          >
+          {isLoading ? (
             <RepeatingSkeletons
-              itemsLength={5}
+              itemsLength={4}
               skeletonSX={{
-                height: "182px",
-                borderRadius: "14px",
-                backgroundColor: COLORS.white06,
+                height: "28px",
+                width: "90px",
+                flexShrink: 0,
+                borderRadius: "20px",
               }}
             />
-          </Box>
-        ) : (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-            {rows.map((marketItem) => (
-              <MobileMarketCard
-                key={marketItem.id}
-                marketItem={marketItem}
-                destinations={destinationsByMarket[marketItem.id.toLowerCase()]}
-              />
-            ))}
-          </Box>
-        )}
-
-        {!isLoading && rows.length === 0 && (
-          <Box
-            sx={{
-              width: "100%",
-              padding: "24px 12px",
-              backgroundColor: COLORS.white,
-              borderRadius: "14px",
-              textAlign: "center",
-            }}
-          >
-            <Typography variant="mobText3" color={COLORS.santasGrey}>
-              {isFilteredEmpty
-                ? t("dashboard.markets.noMarkets.filteredEmpty")
-                : t("dashboard.markets.noMarkets.explore.title")}
-            </Typography>
-            {isFilteredEmpty && (
-              <Button
-                variant="contained"
-                size="small"
-                onClick={resetFilters}
-                sx={{ marginTop: "8px" }}
-              >
-                {t("buttons.resetFilters")}
-              </Button>
-            )}
-          </Box>
-        )}
-        {!isLoading &&
-          totalRows > 0 &&
-          (totalRows > rows.length ? (
-            <Button
-              type="button"
-              variant="contained"
-              color="secondary"
-              size="large"
-              fullWidth
-              onClick={(event) => {
-                if (event.detail === 0) mobileRevealFrom.current = rows.length
-                setVisibleMobileRows((count) => count + EXPLORE_PAGE_SIZE)
-              }}
-              sx={{
-                alignSelf: "center",
-                bgcolor: COLORS.white03,
-                color: COLORS.white,
-                "&:hover": { bgcolor: COLORS.white06 },
-              }}
-            >
-              Show more markets
-            </Button>
           ) : (
-            <Button
-              component={Link}
-              href={ROUTES.lender.allMarkets}
-              variant="contained"
-              color="secondary"
-              size="large"
-              fullWidth
+            SORT_OPTIONS.map((option) => (
+              <ButtonBase
+                key={option}
+                disableRipple
+                onClick={() => handleSortModeChange(option)}
+                aria-pressed={sortMode === option}
+                sx={{
+                  flexShrink: 0,
+                  padding: sortMode === option ? "4px 12px" : "0 2px",
+                  borderRadius: "20px",
+                  backgroundColor:
+                    sortMode === option ? COLORS.athensGrey : "transparent",
+                  color: COLORS.blackRock,
+                  fontFamily: "inherit",
+                  fontSize: "12px",
+                  fontWeight: sortMode === option ? 600 : 500,
+                  lineHeight: "20px",
+                  whiteSpace: "nowrap",
+                  "&.Mui-focusVisible": {
+                    outline: `2px solid ${COLORS.ultramarineBlue}`,
+                    outlineOffset: "1px",
+                  },
+                }}
+              >
+                {option}
+              </ButtonBase>
+            ))
+          )}
+        </Box>
+
+        <MobileMarketList
+          variant="bare"
+          markets={rows}
+          isLoading={isLoading}
+          destinationsByMarket={destinationsByMarket}
+          pagination={false}
+          skeletonCount={EXPLORE_PAGE_SIZE}
+          header={
+            <MobileMarketsToolbar
+              variant="embedded"
+              left={
+                showComposableToggle && (
+                  <ComposableOnlySwitch
+                    checked={showComposableOnly}
+                    onChange={setShowComposableOnly}
+                  />
+                )
+              }
+              right={
+                <>
+                  <MobileFilterButton
+                    assetsOptions={tokens.map((token) => ({
+                      id: token.address,
+                      name: token.symbol,
+                    }))}
+                    statusesOptions={statusFilterOptions}
+                    withdrawalCycleOptions={withdrawalCycleOptions}
+                    marketAssets={assets}
+                    marketStatuses={statuses}
+                    marketWithdrawalCycles={withdrawalCycles}
+                    setMarketAssets={setAssets}
+                    setMarketStatuses={setStatuses}
+                    setMarketWithdrawalCycles={setWithdrawalCycles}
+                    showSelfOnboard={showSelfOnboard}
+                    showOnboardByBorrower={showOnboardByBorrower}
+                    setShowSelfOnboard={setShowSelfOnboard}
+                    setShowOnboardByBorrower={setShowOnboardByBorrower}
+                  />
+
+                  <MobileSearchButton
+                    marketAccounts={marketAccounts.filter(
+                      (a) => !a.market.isClosed,
+                    )}
+                    marketSearch={search}
+                    setMarketSearch={setSearch}
+                    isExplorePage
+                  />
+                </>
+              }
+            />
+          }
+          emptyState={
+            <Box
               sx={{
-                alignSelf: "center",
-                bgcolor: COLORS.white03,
-                color: COLORS.white,
-                "&:hover": { bgcolor: COLORS.white06 },
+                width: "100%",
+                padding: "24px 12px",
+                textAlign: "center",
               }}
             >
-              Go to All Markets
-            </Button>
-          ))}
+              <Typography variant="mobText3" color={COLORS.santasGrey}>
+                {isFilteredEmpty
+                  ? t("dashboard.markets.noMarkets.filteredEmpty")
+                  : t("dashboard.markets.noMarkets.explore.title")}
+              </Typography>
+              {isFilteredEmpty && (
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={resetFilters}
+                  sx={{ marginTop: "8px" }}
+                >
+                  {t("buttons.resetFilters")}
+                </Button>
+              )}
+            </Box>
+          }
+        />
       </Box>
     )
 

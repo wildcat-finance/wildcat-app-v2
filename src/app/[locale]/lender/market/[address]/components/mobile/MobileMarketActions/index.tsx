@@ -38,6 +38,8 @@ export type MobileMarketActionsProps = {
   wrapper?: TokenWrapper
   hasWrapper?: boolean
   isLiveMarketReady: boolean
+  isMarketDefaulted?: boolean
+  isDefaultStatusUnknown?: boolean
 }
 
 export type MobileMarketTransactionItemProps = {
@@ -137,6 +139,8 @@ export const MobileMarketActions = ({
   wrapper,
   hasWrapper,
   isLiveMarketReady,
+  isMarketDefaulted,
+  isDefaultStatusUnknown,
 }: MobileMarketActionsProps) => {
   const { t } = useTranslation()
   const { market } = marketAccount
@@ -192,6 +196,8 @@ export const MobileMarketActions = ({
     marketAccount.depositAvailability !== DepositStatus.Ready
 
   const showFaucet =
+    !isMarketDefaulted &&
+    !isDefaultStatusUnknown &&
     hideDeposit &&
     isTestnet &&
     market.underlyingToken.isMock &&
@@ -202,6 +208,8 @@ export const MobileMarketActions = ({
 
   const agreementGate = useDepositAgreementGate(market.address, market.chainId)
   const mlaRequiredAndUnsigned =
+    !isMarketDefaulted &&
+    !isDefaultStatusUnknown &&
     agreementGate.state === "requires-mla-signature"
   const [depositOpenRequested, setDepositOpenRequested] = React.useState(false)
 
@@ -214,7 +222,8 @@ export const MobileMarketActions = ({
     marketAccount.withdrawalAvailability !== QueueWithdrawalStatus.Ready
 
   const handleClickDeposit = () => {
-    if (!isLiveMarketReady) return
+    if (!isLiveMarketReady || isMarketDefaulted || isDefaultStatusUnknown)
+      return
 
     if (touRetryAvailable) {
       toastError("Couldn't verify Terms of Use status — retrying")
@@ -484,7 +493,11 @@ export const MobileMarketActions = ({
                   <MobileMarketTransactionItem
                     title={t("lenderMarketDetails.transactions.deposit.title")}
                     tooltip={depositTooltip}
-                    amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
+                    amount={
+                      isMarketDefaulted
+                        ? "0"
+                        : formatTokenWithCommas(marketAccount.maximumDeposit)
+                    }
                     asset={market.underlyingToken.symbol}
                   />
 
@@ -513,6 +526,8 @@ export const MobileMarketActions = ({
                         fullWidth
                         disabled={
                           !isLiveMarketReady ||
+                          isMarketDefaulted ||
+                          isDefaultStatusUnknown ||
                           (touActionBlocked && !touRetryAvailable) ||
                           marketActionsManuallyDisabled ||
                           marketAccount.maximumDeposit.raw.isZero()
