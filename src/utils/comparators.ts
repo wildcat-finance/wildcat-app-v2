@@ -58,8 +58,10 @@ export const statusComparator = (
         return 3
       case MarketStatus.TERMINATED:
         return 4
-      default:
+      case MarketStatus.DEFAULTED:
         return 5
+      default:
+        return 6
     }
   }
 
@@ -83,8 +85,10 @@ export const statusComparator = (
   }
 
   if (
-    v1.status === MarketStatus.PENALTY &&
-    v2.status === MarketStatus.PENALTY
+    (v1.status === MarketStatus.PENALTY &&
+      v2.status === MarketStatus.PENALTY) ||
+    (v1.status === MarketStatus.DEFAULTED &&
+      v2.status === MarketStatus.DEFAULTED)
   ) {
     return v1.penaltyPeriod - v2.penaltyPeriod
   }

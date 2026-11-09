@@ -1,9 +1,11 @@
 import * as React from "react"
 
-import { Box, SvgIcon, Typography } from "@mui/material"
+import { Box, Paper, SvgIcon, Tooltip, Typography } from "@mui/material"
 import { useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
 
 import Avatar from "@/assets/icons/avatar_icon.svg"
+import DefaultedIcon from "@/assets/icons/defaulted_icon.svg"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { COLORS } from "@/theme/colors"
 
@@ -17,6 +19,8 @@ const CHIP_SIZE_STYLES = {
     initialLineHeight: "8px",
     fontSize: "10px",
     lineHeight: "14px",
+    badgeGap: "4px",
+    desktopTextVariant: "text4",
   },
   small: {
     avatar: "12px",
@@ -27,6 +31,8 @@ const CHIP_SIZE_STYLES = {
     initialLineHeight: "8px",
     fontSize: "10px",
     lineHeight: "14px",
+    badgeGap: "4px",
+    desktopTextVariant: "text4",
   },
   default: {
     avatar: "12px",
@@ -37,6 +43,8 @@ const CHIP_SIZE_STYLES = {
     initialLineHeight: "8px",
     fontSize: undefined,
     lineHeight: undefined,
+    badgeGap: "4px",
+    desktopTextVariant: "text4",
   },
   medium: {
     avatar: "14px",
@@ -47,6 +55,8 @@ const CHIP_SIZE_STYLES = {
     initialLineHeight: "9px",
     fontSize: "13px",
     lineHeight: "18px",
+    badgeGap: "4px",
+    desktopTextVariant: "text4",
   },
   large: {
     avatar: "18px",
@@ -57,17 +67,84 @@ const CHIP_SIZE_STYLES = {
     initialLineHeight: "12px",
     fontSize: "16px",
     lineHeight: "22px",
+    badgeGap: "4px",
+    desktopTextVariant: "text4",
+  },
+  header: {
+    avatar: "16px",
+    gap: "6px",
+    padding: "2px 8px 2px 4px",
+    radius: "12px",
+    initialFont: "8px",
+    initialLineHeight: "11px",
+    fontSize: undefined,
+    lineHeight: undefined,
+    badgeGap: "6px",
+    desktopTextVariant: "text2",
   },
 } as const
+
+export const DefaultedBorrowerBadge = ({ count }: { count: number }) => {
+  const { t } = useTranslation()
+  const isMobile = useMobileResolution()
+
+  return (
+    <Tooltip
+      placement="bottom-start"
+      arrow={false}
+      title={
+        <Paper>
+          <Typography
+            variant={isMobile ? "mobText4" : "text4"}
+            color={COLORS.blackRock}
+            sx={{ whiteSpace: "nowrap" }}
+          >
+            {t("defaultedMarkets.borrowerBadge.tooltip", { count })}
+          </Typography>
+        </Paper>
+      }
+      componentsProps={{
+        tooltip: {
+          sx: {
+            p: 0,
+            bgcolor: "transparent",
+            boxShadow: "none",
+            borderRadius: 0,
+            maxWidth: "none",
+          },
+        },
+      }}
+    >
+      <Box
+        sx={{
+          width: "12px",
+          height: "12px",
+          borderRadius: "8px",
+          bgcolor: COLORS.blackRock,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        <SvgIcon sx={{ fontSize: "12px", "& path": { fill: COLORS.white } }}>
+          <DefaultedIcon />
+        </SvgIcon>
+      </Box>
+    </Tooltip>
+  )
+}
 
 export const BorrowerProfileChip = ({
   borrower,
   size = "default",
   href,
+  defaultedMarketsCount,
 }: {
   borrower: string | undefined
-  size?: "tiny" | "small" | "default" | "medium" | "large"
+  size?: "tiny" | "small" | "default" | "medium" | "large" | "header"
   href?: string
+  defaultedMarketsCount?: number
 }) => {
   const isMobile = useMobileResolution()
   const router = useRouter()
@@ -137,7 +214,7 @@ export const BorrowerProfileChip = ({
       )}
 
       <Typography
-        variant={isMobile ? "mobText4" : "text4"}
+        variant={isMobile ? "mobText4" : sizeStyles.desktopTextVariant}
         sx={{
           minWidth: 0,
           overflow: "hidden",
@@ -150,6 +227,22 @@ export const BorrowerProfileChip = ({
       >
         {borrower}
       </Typography>
+
+      {!!defaultedMarketsCount && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: sizeStyles.badgeGap,
+            flexShrink: 0,
+          }}
+        >
+          <Typography variant="caption" color={COLORS.greySuit}>
+            |
+          </Typography>
+          <DefaultedBorrowerBadge count={defaultedMarketsCount} />
+        </Box>
+      )}
     </Box>
   )
 }

@@ -104,6 +104,7 @@ declare module "@mui/material/styles" {
     text1: React.CSSProperties
     text2Highlighted: React.CSSProperties
     text2: React.CSSProperties
+    text3Highlighted: React.CSSProperties
     text3: React.CSSProperties
     text4Highlighted: React.CSSProperties
     text4: React.CSSProperties
@@ -138,6 +139,7 @@ declare module "@mui/material/styles" {
     text1?: React.CSSProperties
     text2Highlighted?: React.CSSProperties
     text2?: React.CSSProperties
+    text3Highlighted?: React.CSSProperties
     text3?: React.CSSProperties
     text4Highlighted?: React.CSSProperties
     text4?: React.CSSProperties
@@ -174,6 +176,7 @@ declare module "@mui/material/Typography" {
     text1: true
     text2Highlighted: true
     text2: true
+    text3Highlighted: true
     text3: true
     text4Highlighted: true
     text4: true

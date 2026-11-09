@@ -157,6 +157,7 @@ const marketInterface = new utils.Interface([
   "function depositUpTo(uint256 amount)",
 ])
 let rerender: () => void
+let defaultStatusUnknown = false
 
 function setup({
   decimals = 6,
@@ -243,6 +244,7 @@ function mount(options: Parameters<typeof setup>[0] = {}) {
       marketAccount={account}
       isMobileOpen={mockMobile}
       setIsMobileOpen={() => undefined}
+      isDefaultStatusUnknown={defaultStatusUnknown}
     />
   )
   const rendered = render(tree(), { wrapper })
@@ -279,8 +281,38 @@ afterEach(() => {
   mockMobile = false
   mockSafeConnected = false
   mockConnectedAddress = mockAddress
+  defaultStatusUnknown = false
   mockSigner.getAddress.mockReset().mockResolvedValue(mockAddress)
 })
+
+it.each([false, true])(
+  "blocks an open deposit until default status recovers (mobile=%s)",
+  async (mobile) => {
+    mount({ mobile })
+    max()
+    const amountInput = input()
+    defaultStatusUnknown = true
+    rerender()
+    expect(input()).toBe(amountInput)
+    expect(input().value).toBe("100.12345")
+    const depositButton = mockMobile
+      ? screen.getByRole("button", { name: "Deposit" })
+      : within(screen.getByRole("dialog")).getByRole("button", {
+          name: "Deposit",
+        })
+    expect(depositButton).toBeDisabled()
+    submit()
+    expect(depositTx).not.toHaveBeenCalled()
+
+    defaultStatusUnknown = false
+    rerender()
+    expect(input()).toBe(amountInput)
+    expect(input().value).toBe("100.12345")
+    expect(depositButton).toBeEnabled()
+    submit()
+    await waitFor(() => expect(depositTx).toHaveBeenCalledTimes(1))
+  },
+)
 
 it.each([false, true])(
   "submits the precise Max through depositUpTo (mobile=%s)",

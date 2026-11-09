@@ -6,6 +6,7 @@ import {
 } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
 
 export type BorrowerDashboardAmountsType = {
+  defaulted: number
   deposited: number
   nonDeposited: number
   prevActive: number
@@ -13,10 +14,12 @@ export type BorrowerDashboardAmountsType = {
   selfOnboard: number
   manual: number
   terminatedOther: number
+  defaultedOther: number
   policies: number
 }
 
 export const initialState: BorrowerDashboardAmountsType = {
+  defaulted: 0,
   deposited: 0,
   nonDeposited: 0,
   prevActive: 0,
@@ -24,6 +27,7 @@ export const initialState: BorrowerDashboardAmountsType = {
   selfOnboard: 0,
   manual: 0,
   terminatedOther: 0,
+  defaultedOther: 0,
   policies: 0,
 }
 

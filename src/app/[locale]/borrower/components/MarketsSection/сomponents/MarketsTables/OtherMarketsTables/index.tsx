@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect } from "react"
 import * as React from "react"
 
 import { Box, Typography } from "@mui/material"
@@ -25,9 +25,9 @@ import { BorrowerProfileChip } from "@/components/BorrowerProfileChip"
 import { MarketsTableAccordion } from "@/components/MarketsTableAccordion"
 import { TablePagination } from "@/components/TablePagination"
 import { TotalDebtHeader } from "@/components/TotalDebtHeader"
+import { useDefaultedMarkets } from "@/hooks/useDefaultedMarkets"
 import { ROUTES } from "@/routes"
-import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setScrollTarget } from "@/store/slices/marketsOverviewSidebarSlice/marketsOverviewSidebarSlice"
+import { BorrowerMarketDashboardTabs } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
 import {
   statusComparator,
   tokenAmountComparator,
@@ -56,6 +56,8 @@ export type OtherMarketsTableModel = {
   term: ReturnType<typeof getMarketTypeChip>
   name: string
   borrower: string | undefined
+  borrowerAddress: string
+  borrowerDefaultedCount: number
   asset: string
   apr: number
   debt: TokenAmount | undefined
@@ -70,36 +72,23 @@ export const OtherMarketsTables = ({
   onboardingByMarket,
   isLoading,
   filters,
+  tab,
 }: MarketsTablesProps & {
   onboardingByMarket: MarketOnboardingByAddress
+  tab:
+    | BorrowerMarketDashboardTabs.SELF_ONBOARD
+    | BorrowerMarketDashboardTabs.MANUAL
+    | BorrowerMarketDashboardTabs.OTHER_TERMINATED
+    | BorrowerMarketDashboardTabs.OTHER_DEFAULTED
 }) => {
   const { t } = useTranslation()
-  const dispatch = useAppDispatch()
-
-  const scrollTargetId = useAppSelector(
-    (state) => state.borrowerDashboard.scrollTarget,
-  )
-
-  const selfOnboardRef = useRef<HTMLDivElement>(null)
-  const manualRef = useRef<HTMLDivElement>(null)
-  const terminatedRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (scrollTargetId === "self-onboard" && selfOnboardRef.current) {
-      selfOnboardRef.current.scrollIntoView({ behavior: "smooth" })
-      dispatch(setScrollTarget(null))
-    }
-    if (scrollTargetId === "manual" && manualRef.current) {
-      manualRef.current.scrollIntoView({ behavior: "smooth" })
-      dispatch(setScrollTarget(null))
-    }
-    if (scrollTargetId === "other-terminated" && terminatedRef.current) {
-      terminatedRef.current.scrollIntoView({ behavior: "smooth" })
-      dispatch(setScrollTarget(null))
-    }
-  }, [scrollTargetId])
 
   const { data: borrowers } = useBorrowerNames()
+  const {
+    isDefaulted,
+    defaultedMarketsOfBorrower,
+    isError: isDefaultsError,
+  } = useDefaultedMarkets()
 
   const rows: GridRowsProp<OtherMarketsTableModel> = marketAccounts.map(
     (account) => {
@@ -125,7 +114,7 @@ export const OtherMarketsTables = ({
         ? borrower.alias || borrower.name
         : trimAddress(borrowerAddress)
 
-      const marketStatus = getMarketStatusChip(market)
+      const marketStatus = getMarketStatusChip(market, isDefaulted(address))
       const marketType = getMarketTypeChip(market)
 
       return {
@@ -136,6 +125,8 @@ export const OtherMarketsTables = ({
         name,
         borrowerAddress,
         borrower: borrowerName,
+        borrowerDefaultedCount:
+          defaultedMarketsOfBorrower(borrowerAddress).length,
         asset: underlyingToken.symbol,
         apr: annualInterestBips,
         capacityLeft: maxTotalSupply.sub(totalSupply),
@@ -151,14 +142,16 @@ export const OtherMarketsTables = ({
     },
   )
 
+  const defaulted = rows.filter((market) => isDefaulted(market.id))
+
   const terminated = rows.filter((market) => {
     const account = marketAccounts.find((a) => a.market.address === market.id)
-    return account?.market.isClosed
+    return account?.market.isClosed && !isDefaulted(market.id)
   })
 
   const activeRows = rows.filter((market) => {
     const account = marketAccounts.find((a) => a.market.address === market.id)
-    return !account?.market.isClosed
+    return !account?.market.isClosed && !isDefaulted(market.id)
   })
 
   const selfOnboard = activeRows.filter(
@@ -211,7 +204,10 @@ export const OtherMarketsTables = ({
             href={`${ROUTES.borrower.profile}/${params.row.borrowerAddress}`}
             style={{ display: "flex", textDecoration: "none" }}
           >
-            <BorrowerProfileChip borrower={params.row.borrower} />
+            <BorrowerProfileChip
+              borrower={params.row.borrower}
+              defaultedMarketsCount={params.row.borrowerDefaultedCount}
+            />
           </Link>
         </Link>
       ),
@@ -446,30 +442,50 @@ export const OtherMarketsTables = ({
     },
   ]
 
-  const [selfOnboardPaginationModel, setSelfOnboardPaginationModel] =
-    React.useState({
-      pageSize: 50,
-      page: 0,
-    })
+  const tabTables = {
+    [BorrowerMarketDashboardTabs.SELF_ONBOARD]: {
+      label: t("dashboard.markets.tables.other.selfOnboard"),
+      rows: selfOnboard,
+    },
+    [BorrowerMarketDashboardTabs.MANUAL]: {
+      label: t("dashboard.markets.tables.other.manual"),
+      rows: manual,
+    },
+    [BorrowerMarketDashboardTabs.OTHER_TERMINATED]: {
+      label: t("dashboard.markets.tables.other.terminated"),
+      rows: terminated,
+    },
+    [BorrowerMarketDashboardTabs.OTHER_DEFAULTED]: {
+      label: t("defaultedMarkets.tab"),
+      rows: defaulted,
+    },
+  }
 
-  const [manualPaginationModel, setManualPaginationModel] = React.useState({
+  const isDefaultedTab = tab === BorrowerMarketDashboardTabs.OTHER_DEFAULTED
+
+  let noMarketsTitle = t("dashboard.markets.noMarkets.explore.title")
+  let noMarketsSubtitle = t("dashboard.markets.noMarkets.explore.subtitle")
+  if (isDefaultedTab && isDefaultsError) {
+    noMarketsTitle = t("defaultedMarkets.unavailable.title")
+    noMarketsSubtitle = t("defaultedMarkets.unavailable.subtitle")
+  } else if (isDefaultedTab) {
+    noMarketsTitle = t("defaultedMarkets.noMarkets.title")
+    noMarketsSubtitle = t("defaultedMarkets.noMarkets.subtitle")
+  }
+
+  const { label: tabLabel, rows: tabRows } = tabTables[tab]
+
+  const [paginationModel, setPaginationModel] = React.useState({
     pageSize: 50,
     page: 0,
   })
 
-  const [terminatedPaginationModel, setTerminatedPaginationModel] =
-    React.useState({
-      pageSize: 50,
-      page: 0,
-    })
-
-  const { assetFilter, statusFilter, nameFilter } = filters
+  const { assetFilter, statusFilter, nameFilter, withdrawalCycleFilter } =
+    filters
 
   useEffect(() => {
-    setSelfOnboardPaginationModel((prevState) => ({ ...prevState, page: 0 }))
-    setManualPaginationModel((prevState) => ({ ...prevState, page: 0 }))
-    setTerminatedPaginationModel((prevState) => ({ ...prevState, page: 0 }))
-  }, [assetFilter, statusFilter, nameFilter])
+    setPaginationModel((prevState) => ({ ...prevState, page: 0 }))
+  }, [tab, assetFilter, statusFilter, nameFilter, withdrawalCycleFilter])
 
   return (
     <Box
@@ -481,94 +497,39 @@ export const OtherMarketsTables = ({
         width: "100%",
         overflow: "auto",
         overflowY: "auto",
-        gap: "16px",
-        marginTop: "24px",
+        marginTop: "16px",
         paddingBottom: "26px",
       }}
     >
-      <Box id="self-onboard" ref={selfOnboardRef}>
-        <MarketsTableAccordion
-          label={t("dashboard.markets.tables.other.selfOnboard")}
-          marketsLength={selfOnboard.length}
-          isLoading={isLoading}
-          isOpen
-          nameFilter={filters.nameFilter}
-          assetFilter={filters.assetFilter}
-          statusFilter={filters.statusFilter}
-          showNoFilteredMarkets
-        >
-          <DataGrid
-            disableVirtualization
-            sx={DataGridSx}
-            getRowHeight={() => "auto"}
-            rows={selfOnboard}
-            columns={columns}
-            columnHeaderHeight={40}
-            paginationModel={selfOnboardPaginationModel}
-            onPaginationModelChange={setSelfOnboardPaginationModel}
-            slots={{
-              pagination: TablePagination,
-            }}
-            hideFooter={false}
-          />
-        </MarketsTableAccordion>
-      </Box>
-
-      <Box id="manual" ref={manualRef}>
-        <MarketsTableAccordion
-          label={t("dashboard.markets.tables.other.manual")}
-          isLoading={isLoading}
-          isOpen
-          marketsLength={manual.length}
-          nameFilter={filters.nameFilter}
-          assetFilter={filters.assetFilter}
-          statusFilter={filters.statusFilter}
-          showNoFilteredMarkets
-        >
-          <DataGrid
-            disableVirtualization
-            sx={DataGridSx}
-            getRowHeight={() => "auto"}
-            rows={manual}
-            columns={columns}
-            columnHeaderHeight={40}
-            paginationModel={manualPaginationModel}
-            onPaginationModelChange={setManualPaginationModel}
-            slots={{
-              pagination: TablePagination,
-            }}
-            hideFooter={false}
-          />
-        </MarketsTableAccordion>
-      </Box>
-
-      <Box id="other-terminated" ref={terminatedRef}>
-        <MarketsTableAccordion
-          label={t("dashboard.markets.tables.other.terminated")}
-          marketsLength={terminated.length}
-          isLoading={isLoading}
-          isOpen
-          nameFilter={filters.nameFilter}
-          assetFilter={filters.assetFilter}
-          statusFilter={filters.statusFilter}
-          showNoFilteredMarkets
-        >
-          <DataGrid
-            disableVirtualization
-            sx={DataGridSx}
-            getRowHeight={() => "auto"}
-            rows={terminated}
-            columns={columns}
-            columnHeaderHeight={40}
-            paginationModel={terminatedPaginationModel}
-            onPaginationModelChange={setTerminatedPaginationModel}
-            slots={{
-              pagination: TablePagination,
-            }}
-            hideFooter={false}
-          />
-        </MarketsTableAccordion>
-      </Box>
+      <MarketsTableAccordion
+        label={tabLabel}
+        marketsLength={tabRows.length}
+        isLoading={isLoading}
+        isOpen
+        hideSummary
+        nameFilter={filters.nameFilter}
+        assetFilter={filters.assetFilter}
+        statusFilter={filters.statusFilter}
+        showNoFilteredMarkets
+        noMarketsTitle={noMarketsTitle}
+        noMarketsSubtitle={noMarketsSubtitle}
+      >
+        <DataGrid
+          disableVirtualization
+          sx={DataGridSx}
+          getRowHeight={() => "auto"}
+          rows={tabRows}
+          columns={columns}
+          columnHeaderHeight={40}
+          paginationModel={paginationModel}
+          onPaginationModelChange={setPaginationModel}
+          pageSizeOptions={[50]}
+          slots={{
+            pagination: TablePagination,
+          }}
+          hideFooter={tabRows.length <= paginationModel.pageSize}
+        />
+      </MarketsTableAccordion>
     </Box>
   )
 }

@@ -293,7 +293,7 @@ const TRENDING_PANEL_ID = "trending-composable-panel"
 
 export const TrendingMarketsCarousel = () => {
   const { t } = useTranslation()
-  const { marketAccounts, borrowers, isLoadingInitial } =
+  const { marketAccounts, borrowers, isLoadingInitial, defaults } =
     useLenderMarketsContext()
   const {
     data: recentDeposits,
@@ -388,9 +388,11 @@ export const TrendingMarketsCarousel = () => {
 
     const exploreMarkets = marketAccounts.filter(
       (a) =>
+        defaults.isDefaultedForDisplay(a.market.address) === false &&
         isExploreVisible(a.market) &&
         a.market.maxTotalSupply.gt(0) &&
-        !penaltyBorrowers.has(a.market.borrower.toLowerCase()),
+        !penaltyBorrowers.has(a.market.borrower.toLowerCase()) &&
+        defaults.defaultedMarketsOfBorrower(a.market.borrower).length === 0,
     )
     if (exploreMarkets.length === 0) return []
 
@@ -566,9 +568,17 @@ export const TrendingMarketsCarousel = () => {
     ]
 
     return built.slice(0, SLOT_COUNT)
-  }, [chainId, marketAccounts, recentDeposits, priceMap, isRecentDepositsError])
+  }, [
+    chainId,
+    marketAccounts,
+    recentDeposits,
+    priceMap,
+    isRecentDepositsError,
+    defaults,
+  ])
 
-  const isLoading = isLoadingInitial || isRecentDepositsLoading
+  const isLoading =
+    isLoadingInitial || isRecentDepositsLoading || !defaults.hasStatus
 
   const isMobile = useMobileResolution()
 
@@ -668,7 +678,10 @@ export const TrendingMarketsCarousel = () => {
         supplied={formatTokenCompact(suppliedRaw, decimals)}
         capacity={formatTokenCompact(capacityRaw, decimals)}
         suppliedPct={suppliedPct}
-        status={getMarketStatusChip(market)}
+        status={getMarketStatusChip(
+          market,
+          defaults.isDefaultedForDisplay(market.address),
+        )}
         termLabel={termLabel}
         isMobile={isMobile}
         composableCount={
@@ -691,22 +704,13 @@ export const TrendingMarketsCarousel = () => {
 
   if (isMobile)
     return (
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "4px",
-          backgroundColor: COLORS.white,
-          borderRadius: "14px 14px 0 0",
-          overflow: "hidden",
-        }}
-      >
+      <Box sx={{ display: "flex", flexDirection: "column" }}>
         <Typography
+          variant="mobH3"
           sx={{
-            padding: "20px 16px 12px",
-            fontSize: "20px",
-            fontWeight: 500,
-            lineHeight: "26px",
+            padding: "8px 16px 16px",
+            color: COLORS.bunker,
+            letterSpacing: "-0.36px",
           }}
         >
           Trending Markets
@@ -720,8 +724,9 @@ export const TrendingMarketsCarousel = () => {
           onMouseLeave={dragScroll.onMouseLeave}
           onScroll={handleMobileScroll}
           sx={{
+            position: "relative",
             display: "flex",
-            gap: "8px",
+            gap: "4px",
             overflowX: "auto",
             "&::-webkit-scrollbar": { display: "none" },
             scrollbarWidth: "none",
@@ -735,16 +740,15 @@ export const TrendingMarketsCarousel = () => {
                 (key, index) => (
                   <Skeleton
                     key={key}
-                    height={showComposableFooter ? "385px" : "341px"}
+                    height={showComposableFooter ? "313px" : "277px"}
                     sx={{
-                      flex: "0 0 70%",
-                      minWidth: "222px",
-                      borderRadius: "24px",
+                      flex: "0 0 222px",
+                      borderRadius: "12px",
                       bgcolor: COLORS.athensGrey,
                       scrollSnapAlign: "center",
                       scrollSnapStop: "always",
                       ...(index === 0 && { marginLeft: "8px" }),
-                      ...(index === 4 && { marginRight: "16px" }),
+                      ...(index === 4 && { marginRight: "8px" }),
                     }}
                   />
                 ),
@@ -754,14 +758,13 @@ export const TrendingMarketsCarousel = () => {
                   key={slot.key}
                   data-carousel-index={index}
                   sx={{
-                    flex: "0 0 70%",
-                    minWidth: "222px",
+                    flex: "0 0 222px",
                     display: "flex",
                     scrollSnapAlign: "center",
                     scrollSnapStop: "always",
                     ...(index === 0 && { marginLeft: "8px" }),
                     ...(index === slots.length - 1 && {
-                      marginRight: "16px",
+                      marginRight: "8px",
                     }),
                   }}
                 >
@@ -770,7 +773,7 @@ export const TrendingMarketsCarousel = () => {
               ))}
         </Box>
 
-        {!isLoading && slots.length > 1 && (
+        {!isLoading && slots.length > 1 ? (
           <Box
             role="group"
             aria-label="Trending market position"
@@ -779,7 +782,7 @@ export const TrendingMarketsCarousel = () => {
               alignItems: "center",
               justifyContent: "center",
               gap: "4px",
-              padding: "10px 0 4px",
+              padding: "10px 0",
             }}
           >
             {slots.map((slot, index) => {
@@ -807,6 +810,8 @@ export const TrendingMarketsCarousel = () => {
               )
             })}
           </Box>
+        ) : (
+          <Box sx={{ height: "24px", flexShrink: 0 }} />
         )}
 
         <Collapse
@@ -816,7 +821,7 @@ export const TrendingMarketsCarousel = () => {
           unmountOnExit
         >
           <Fade in={isPanelOpen} timeout={250}>
-            <Box sx={{ padding: "4px 8px 0" }}>
+            <Box sx={{ padding: "0 8px 24px" }}>
               {panelSlot && panelDestinations.length > 0 && (
                 <MobileDestinationsPanel
                   id={TRENDING_PANEL_ID}

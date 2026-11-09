@@ -30,7 +30,11 @@ import { getMarketTypeChip } from "@/utils/marketType"
 import { MarketsBlockProps } from "./interface"
 import { LinkCell } from "./style"
 
-export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
+export const MarketsBlock = ({
+  markets,
+  isLoading,
+  isDefaulted,
+}: MarketsBlockProps) => {
   const { t } = useTranslation()
   const isMobile = useMobileResolution()
 
@@ -39,9 +43,8 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
     ? ROUTES.borrower.market
     : ROUTES.lender.market
 
-  const rows: GridRowsProp<LenderMobileMarketItem> = (markets ?? [])
-    .filter((market) => !market.isClosed)
-    .map((market) => {
+  const rows: GridRowsProp<LenderMobileMarketItem> = (markets ?? []).map(
+    (market) => {
       const {
         address,
         name,
@@ -53,7 +56,10 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
         chainId,
       } = market
 
-      const marketStatus = getMarketStatusChip(market)
+      const marketStatus = getMarketStatusChip(
+        market,
+        isDefaulted(market.address),
+      )
 
       return {
         id: address,
@@ -69,7 +75,8 @@ export const MarketsBlock = ({ markets, isLoading }: MarketsBlockProps) => {
         capacityLeft: maxTotalSupply.sub(totalSupply),
         withdrawalBatchDuration,
       }
-    })
+    },
+  )
 
   const columns: GridColDef[] = [
     {

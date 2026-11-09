@@ -8,6 +8,17 @@ import { BorrowerWithName } from "@/app/[locale]/borrower/hooks/useBorrowerNames
 import { LenderMarketsOnboardingStatus } from "@/app/[locale]/lender/hooks/useLendersMarkets"
 import { MarketOnboardingByAddress } from "@/utils/marketOnboarding"
 
+export type LenderMarketsDefaults = {
+  isLoading: boolean
+  isError: boolean
+  // A snapshot exists for the selected chain, possibly past its expiry.
+  hasStatus: boolean
+  isDefaulted: (marketAddress?: string) => boolean | undefined
+  // Last-known status for listings; never use it to gate an action.
+  isDefaultedForDisplay: (marketAddress?: string) => boolean | undefined
+  defaultedMarketsOfBorrower: (borrowerAddress?: string) => string[]
+}
+
 export type LenderMarketsContextType = {
   marketAccounts: MarketAccount[]
   isLoadingInitial: boolean
@@ -17,6 +28,7 @@ export type LenderMarketsContextType = {
   borrowers: BorrowerWithName[] | undefined
   policyMarkets: Set<string>
   isPolicyMarketsLoading: boolean
+  defaults: LenderMarketsDefaults
 }
 
 const defaultContext: LenderMarketsContextType = {
@@ -28,6 +40,14 @@ const defaultContext: LenderMarketsContextType = {
   borrowers: undefined,
   policyMarkets: new Set(),
   isPolicyMarketsLoading: false,
+  defaults: {
+    isLoading: false,
+    isError: false,
+    hasStatus: false,
+    isDefaulted: () => undefined,
+    isDefaultedForDisplay: () => undefined,
+    defaultedMarketsOfBorrower: () => [],
+  },
 }
 
 export const LenderMarketsContext =
