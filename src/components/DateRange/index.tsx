@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 
 import {
   Box,
@@ -6,19 +6,18 @@ import {
   InputAdornment,
   Popover,
   SvgIcon,
-  TextField,
   Typography,
 } from "@mui/material"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar"
+import { DateField } from "@mui/x-date-pickers/DateField"
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
-import customParseFormat from "dayjs/plugin/customParseFormat"
+import { Dayjs } from "dayjs"
 import { useTranslation } from "react-i18next"
 
 import CalendarIcon from "@/assets/icons/calendar_icon.svg"
 import ArrowLeftIcon from "@/assets/icons/sharpArrow_icon.svg"
 import { COLORS } from "@/theme/colors"
-import { dayjs } from "@/utils/dayjs"
 
 import { DateRangeProps } from "./interface"
 import {
@@ -35,30 +34,10 @@ import {
   DatePopoverTextField,
 } from "./style"
 
-dayjs.extend(customParseFormat)
+type DateRangeField = "starting" | "ending"
 
-// Utility function to format date string to 'DD/MM/YYYY'
-const formatDateForDateRange = (input: string | undefined) => {
-  // delete all except digits
-  if (input) {
-    const digits = input.replace(/\D/g, "")
-
-    // format to DD/MM/YYYY
-    let formattedValue = ""
-    if (digits.length > 0) {
-      formattedValue += digits.substring(0, 2) // day
-      if (digits.length >= 2) {
-        formattedValue += `/${digits.substring(2, 4)}` // month
-      }
-      if (digits.length >= 4) {
-        formattedValue += `/${digits.substring(4, 8)}` // year
-      }
-    }
-
-    return formattedValue
-  }
-  return undefined
-}
+// Only a finished date can bound the other field or be shown on a calendar.
+const complete = (date: Dayjs | null) => (date?.isValid() ? date : undefined)
 
 const DateCalendarArrowLeft = () => (
   <SvgIcon
@@ -90,9 +69,14 @@ export const DateRange = ({
   calendar = "inline",
 }: DateRangeProps) => {
   const { t } = useTranslation()
-  const { starting, ending } = dates
+  const starting = complete(dates.starting)
+  const ending = complete(dates.ending)
+  // Shown on both fields and never corrected for the user: what was typed stays.
+  const isOutOfOrder = Boolean(
+    starting && ending && starting.isAfter(ending, "day"),
+  )
   const [calendarTarget, setCalendarTarget] = useState<{
-    field: "starting" | "ending"
+    field: DateRangeField
     anchor: HTMLElement
     placement: "above" | "below"
     bottom: number
@@ -122,96 +106,30 @@ export const DateRange = ({
     return () => window.removeEventListener("resize", onResize)
   }, [isCalendarOpen])
 
-  const shouldDisableStartDate = (date: dayjs.Dayjs): boolean =>
-    ending ? date.isAfter(dayjs(ending, "DD/MM/YYYY"), "day") : false
+  const setDate = (field: DateRangeField, date: Dayjs | null) =>
+    setDates((prev) => ({ ...prev, [field]: date }))
 
-  const shouldDisableEndDate = (date: dayjs.Dayjs): boolean =>
-    starting ? date.isBefore(dayjs(starting, "DD/MM/YYYY"), "day") : false
-
-  const onInputChange = (
-    evt: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    field: "starting" | "ending",
-  ) => {
-    const input = evt.target
-    const cursorPosition = input.selectionStart
-    const originalLength = input.value.length
-
-    const formattedDate = formatDateForDateRange(input.value) ?? null
-
-    setDates((prev) => {
-      if (field === "starting") {
-        if (
-          prev.ending &&
-          dayjs(formattedDate, "DD/MM/YYYY").isAfter(
-            dayjs(prev.ending, "DD/MM/YYYY"),
-          )
-        ) {
-          return { ...prev, starting: prev.ending }
-        }
-        return { ...prev, starting: formattedDate }
-      }
-      if (field === "ending") {
-        if (
-          prev.starting &&
-          dayjs(formattedDate, "DD/MM/YYYY").isBefore(
-            dayjs(prev.starting, "DD/MM/YYYY"),
-          )
-        ) {
-          return { ...prev, ending: prev.starting }
-        }
-        return { ...prev, ending: formattedDate }
-      }
-      return prev
-    })
-
-    setTimeout(() => {
-      if (formattedDate) {
-        const newLength = formattedDate.length
-
-        if (cursorPosition !== null) {
-          const newCursorPosition =
-            cursorPosition + (newLength - originalLength)
-          input.setSelectionRange(newCursorPosition, newCursorPosition)
-        }
-      }
-    }, 0)
-  }
-
-  const onCalendarChange = (
-    newDate: dayjs.Dayjs | null,
-    field: "starting" | "ending",
-  ) => {
-    if (newDate) {
-      const formattedDate = newDate.format("DD/MM/YYYY")
-      setDates((prev) => ({ ...prev, [field]: formattedDate }))
-    }
-  }
-
-  const parseValue = (value: string | null) =>
-    dayjs(value, "DD/MM/YYYY").isValid() ? dayjs(value, "DD/MM/YYYY") : null
-
-  const renderCalendar = (field: "starting" | "ending") => (
+  const renderCalendar = (field: DateRangeField) => (
     <DateCalendar
       slots={{
         leftArrowIcon: DateCalendarArrowLeft,
         rightArrowIcon: DateCalendarArrowRight,
       }}
-      value={parseValue(dates[field])}
+      value={complete(dates[field]) ?? null}
       onChange={(newDate, selectionState) => {
-        onCalendarChange(newDate, field)
+        if (newDate) setDate(field, newDate)
         if (calendar === "popover" && selectionState === "finish") {
           closeCalendar()
         }
       }}
       disabled={disabled}
       sx={calendar === "popover" ? DatePopoverCalendar : undefined}
-      shouldDisableDate={
-        field === "starting" ? shouldDisableStartDate : shouldDisableEndDate
-      }
+      minDate={field === "ending" ? starting : undefined}
+      maxDate={field === "starting" ? ending : undefined}
     />
   )
 
-  const renderField = (field: "starting" | "ending") => {
+  const renderField = (field: DateRangeField) => {
     const label =
       field === "starting" ? t("dateRange.startDate") : t("dateRange.dueDate")
 
@@ -225,17 +143,31 @@ export const DateRange = ({
           >
             {label}
           </Typography>
-          <TextField
+          {/* Day, month and year are edited as separate sections, so changing
+              one never shifts digits into another. */}
+          <DateField
             sx={
               calendar === "popover"
                 ? DatePopoverTextField
                 : DateCalendarTextField
             }
-            size={calendar === "popover" ? "medium" : undefined}
-            placeholder="01/02/1980"
-            value={dates[field] ?? ""}
+            // Stated rather than left to the theme defaults: the theme styles
+            // text fields by variant and size, and the date field only passes
+            // on the ones it is given.
+            variant="filled"
+            size={calendar === "popover" ? "medium" : "regular"}
+            format="DD/MM/YYYY"
+            value={dates[field]}
+            onChange={(date) => setDate(field, date)}
+            slotProps={{
+              textField: {
+                // Set explicitly: by default the field turns red on the first
+                // keystroke, because an unfinished date is an invalid one.
+                error: isOutOfOrder,
+                inputProps: { "aria-label": label },
+              },
+            }}
             InputProps={{
-              inputProps: { "aria-label": label },
               endAdornment:
                 calendar === "popover" ? (
                   <InputAdornment position="end">
@@ -269,9 +201,6 @@ export const DateRange = ({
                 ) : undefined,
             }}
             disabled={disabled}
-            onChange={(evt) => {
-              onInputChange(evt, field)
-            }}
             fullWidth
           />
         </Box>

@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  KeyboardEvent,
   ReactNode,
   useCallback,
   useEffect,
@@ -13,6 +14,7 @@ import {
   Autocomplete,
   Box,
   Button,
+  ButtonBase,
   CircularProgress,
   createFilterOptions,
   Dialog,
@@ -25,11 +27,10 @@ import {
   Stack,
   SvgIcon,
   Switch,
-  Tab,
-  Tabs,
   TextField,
   Typography,
 } from "@mui/material"
+import { Dayjs } from "dayjs"
 
 import Cross from "@/assets/icons/cross_icon.svg"
 import { DateRange } from "@/components/DateRange"
@@ -43,6 +44,7 @@ import {
   MAX_EXPORT_MARKETS,
 } from "@/lib/export/types"
 import { COLORS } from "@/theme/colors"
+import { dayjs } from "@/utils/dayjs"
 import { trimAddress } from "@/utils/formatters"
 
 import { exportClientHeaders } from "./client"
@@ -62,8 +64,9 @@ import {
   HeaderSx,
   MultilineFieldSx,
   NoticeSx,
+  SegmentedControlSx,
+  SegmentSx,
   StatementRowSx,
-  TabSx,
 } from "./style"
 
 type MarketSelection = "current" | "borrower" | "custom"
@@ -106,25 +109,22 @@ const ExportAutocompletePopper = (props: PopperProps) => (
   />
 )
 
-export const isoToDisplayDate = (value?: string) => {
+const ISO_DATE = "YYYY-MM-DD"
+
+// Statement dates are calendar days with no time zone. They stay local-time
+// Dayjs values in the form and cross the API as YYYY-MM-DD.
+export const isoToDate = (value?: string): Dayjs | null => {
   const match = value?.match(/^(\d{4})-(\d{2})-(\d{2})$/)
-  return match ? `${match[3]}/${match[2]}/${match[1]}` : null
+  if (!match) return null
+  const [, year, month, day] = match
+  const date = dayjs(new Date(Number(year), Number(month) - 1, Number(day)))
+  // Rejects days that roll over, such as 31 February.
+  return date.format(ISO_DATE) === value ? date : null
 }
 
-export const displayToIsoDate = (value?: string | null) => {
-  const match = value?.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
-  if (!match) return undefined
-  const [, day, month, year] = match
-  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)))
-  if (
-    date.getUTCFullYear() !== Number(year) ||
-    date.getUTCMonth() !== Number(month) - 1 ||
-    date.getUTCDate() !== Number(day)
-  ) {
-    return undefined
-  }
-  return `${year}-${month}-${day}`
-}
+// Undefined for no date and for a date the user has not finished typing.
+export const dateToIso = (value: Dayjs | null) =>
+  value?.isValid() ? value.format(ISO_DATE) : undefined
 
 const FieldLabel = ({ children }: { children: string }) => (
   <Typography variant="text3" component="p" sx={FieldLabelSx}>
@@ -147,6 +147,16 @@ const Notice = ({
   </Box>
 )
 
+const SEGMENT_STEPS: Record<string, number> = {
+  ArrowRight: 1,
+  ArrowDown: 1,
+  ArrowLeft: -1,
+  ArrowUp: -1,
+}
+
+// One choice among a few options is a radio group, not a set of tabs: nothing
+// here is a tab panel. The arrow keys move the choice and only the chosen
+// option is a tab stop.
 const SegmentedControl = <T extends string>({
   label,
   value,
@@ -159,27 +169,49 @@ const SegmentedControl = <T extends string>({
   options: readonly SegmentedOption<T>[]
   disabled: boolean
   onChange: (value: T) => void
-}) => (
-  <Tabs
-    aria-label={label}
-    className="contained"
-    variant="fullWidth"
-    value={value}
-    onChange={(_event, next: T) => onChange(next)}
-    sx={{ width: "100%" }}
-  >
-    {options.map((option) => (
-      <Tab
-        key={option.value}
-        className="contained"
-        disabled={disabled}
-        label={option.label}
-        value={option.value}
-        sx={TabSx}
-      />
-    ))}
-  </Tabs>
-)
+}) => {
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const step = SEGMENT_STEPS[event.key]
+    if (!step || disabled) return
+    event.preventDefault()
+    const current = options.findIndex((option) => option.value === value)
+    const next = options[(current + step + options.length) % options.length]
+    onChange(next.value)
+    event.currentTarget
+      .querySelector<HTMLElement>(`[data-value="${next.value}"]`)
+      ?.focus()
+  }
+
+  return (
+    <Box
+      role="radiogroup"
+      aria-label={label}
+      onKeyDown={onKeyDown}
+      sx={SegmentedControlSx}
+    >
+      {options.map((option) => {
+        const checked = option.value === value
+        return (
+          <ButtonBase
+            key={option.value}
+            role="radio"
+            aria-checked={checked}
+            data-value={option.value}
+            disabled={disabled}
+            disableRipple
+            tabIndex={checked ? 0 : -1}
+            onClick={() => {
+              if (!checked) onChange(option.value)
+            }}
+            sx={SegmentSx}
+          >
+            {option.label}
+          </ButtonBase>
+        )
+      })}
+    </Box>
+  )
+}
 
 export const exportErrorMessage = (message: string) => {
   if (/RPC HTTP 429|rate limit/i.test(message)) {
@@ -297,8 +329,8 @@ export const ExportModal = ({
       } else {
         setDateSelection("custom")
         setCustomDates({
-          starting: isoToDisplayDate(request.dateFrom),
-          ending: isoToDisplayDate(request.dateTo),
+          starting: isoToDate(request.dateFrom),
+          ending: isoToDate(request.dateTo),
         })
       }
     },
@@ -365,11 +397,11 @@ export const ExportModal = ({
     const selectedDateFrom =
       dateSelection === "year"
         ? `${calendarYear}-01-01`
-        : displayToIsoDate(customDates.starting)
+        : dateToIso(customDates.starting)
     const selectedDateTo =
       dateSelection === "year"
         ? `${calendarYear}-12-31`
-        : displayToIsoDate(customDates.ending)
+        : dateToIso(customDates.ending)
     return {
       chainId,
       markets: selectedMarkets,
@@ -580,14 +612,18 @@ export const ExportModal = ({
       setError("Enter at least one market address")
       return
     }
-    if (
-      dateSelection === "custom" &&
-      [customDates.starting, customDates.ending].some(
-        (value) => value && !displayToIsoDate(value),
-      )
-    ) {
-      setError("Enter statement dates as DD/MM/YYYY")
-      return
+    if (dateSelection === "custom") {
+      const { starting, ending } = customDates
+      // An unfinished date must stop the export. Dropping it would silently
+      // widen the period the user asked for.
+      if ([starting, ending].some((date) => date && !date.isValid())) {
+        setError("Enter statement dates as DD/MM/YYYY")
+        return
+      }
+      if (starting && ending && starting.isAfter(ending, "day")) {
+        setError("The start date must be on or before the end date")
+        return
+      }
     }
     if (
       formRequest.statements.includes("position") &&
@@ -950,12 +986,13 @@ export const ExportModal = ({
                     </Box>
                   </MenuItem>
                 )}
-                renderTags={(value) => (
+                renderTags={(value, getTagProps) => (
                   <MarketChips
                     items={value.map((option) => ({
                       id: option.address,
                       label: option.symbol || option.name,
                     }))}
+                    getTagProps={getTagProps}
                     disabled={formDisabled}
                     onDelete={(address) =>
                       setSelectedMarketOptions((current) =>

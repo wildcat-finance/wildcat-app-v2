@@ -1,6 +1,6 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react"
 
-import { Box, Typography } from "@mui/material"
+import { AutocompleteRenderGetTagProps, Box, Typography } from "@mui/material"
 
 import { LendersMarketChip } from "@/components/LendersMarketChip"
 import { COLORS } from "@/theme/colors"
@@ -9,6 +9,17 @@ export type MarketChipItem = { id: string; label: string }
 
 const CHIP_GAP = 4
 const INPUT_MIN_WIDTH = 32
+
+// The Autocomplete moves focus onto a chip with the arrow keys and removes the
+// focused chip on Backspace or Delete; it finds chips by `data-tag-index`.
+const ChipFocusSx = {
+  flexShrink: 0,
+  borderRadius: "20px",
+  "&:focus-visible": {
+    outline: `2px solid ${COLORS.cornflowerBlue}`,
+    outlineOffset: "-2px",
+  },
+}
 
 const MoreChip = ({ count, title }: { count: number; title?: string }) => (
   <Box
@@ -34,10 +45,12 @@ export const MarketChips = ({
   items,
   disabled,
   onDelete,
+  getTagProps,
 }: {
   items: MarketChipItem[]
   disabled?: boolean
   onDelete: (id: string) => void
+  getTagProps: AutocompleteRenderGetTagProps
 }) => {
   const rowRef = useRef<HTMLDivElement | null>(null)
   const measureRef = useRef<HTMLDivElement | null>(null)
@@ -110,18 +123,27 @@ export const MarketChips = ({
           marginRight: `${CHIP_GAP}px`,
         }}
       >
-        {visible.map((item) => (
-          <Box key={item.id} flexShrink={0}>
-            <LendersMarketChip
-              type="old"
-              marketName={item.label}
-              width="fit-content"
-              withButton
-              disabled={disabled}
-              onClick={() => onDelete(item.id)}
-            />
-          </Box>
-        ))}
+        {visible.map((item, index) => {
+          const tagProps = getTagProps({ index })
+          return (
+            <Box
+              key={item.id}
+              data-tag-index={tagProps["data-tag-index"]}
+              tabIndex={tagProps.tabIndex}
+              sx={ChipFocusSx}
+            >
+              <LendersMarketChip
+                type="old"
+                marketName={item.label}
+                width="fit-content"
+                withButton
+                disabled={disabled}
+                buttonLabel={`Remove ${item.label}`}
+                onClick={() => onDelete(item.id)}
+              />
+            </Box>
+          )
+        })}
         {hidden.length > 0 && (
           <MoreChip
             count={hidden.length}

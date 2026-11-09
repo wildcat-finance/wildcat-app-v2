@@ -45,15 +45,40 @@ export const FieldLabelSx = {
   marginBottom: "4px",
 }
 
-export const TabSx = {
+// These two mirror the theme's "contained" Tabs and Tab, so the control looks
+// like the app's other segmented tabs while exposing radio semantics.
+export const SegmentedControlSx = {
+  boxSizing: "border-box",
+  display: "flex",
+  width: "100%",
+  height: "40px",
+  padding: "4px",
+  borderRadius: "12px",
+  backgroundColor: COLORS.whiteSmoke,
+}
+
+export const SegmentSx = {
+  flex: "1 1 0",
   minWidth: 0,
+  height: "32px",
   padding: { xs: "6px 4px", sm: "6px 8px" },
-  fontSize: { xs: "12px", sm: "13px" },
+  borderRadius: "8px",
+  overflow: "hidden",
   whiteSpace: "nowrap",
+  fontFamily: "inherit",
+  fontSize: { xs: "12px", sm: "13px" },
+  fontWeight: 600,
+  lineHeight: "20px",
+  letterSpacing: 0,
+  color: COLORS.santasGrey,
+  '&[aria-checked="true"]': {
+    color: COLORS.blackRock,
+    backgroundColor: COLORS.white,
+  },
+  "&.Mui-disabled": { opacity: 0.38 },
   "&.Mui-focusVisible": {
     outline: `2px solid ${COLORS.cornflowerBlue}`,
     outlineOffset: "-2px",
-    borderRadius: "8px",
   },
 }
 
