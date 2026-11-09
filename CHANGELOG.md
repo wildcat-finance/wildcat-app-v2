@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.24.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.23.1...v2.24.0) (2026-11-02)
+
+
+### Features
+
+* **sanctions:** redstone frontend screening ([aa8f8c9](https://github.com/wildcat-finance/wildcat-app-v2/commit/aa8f8c9360098ebf176f798a58b4c12f43255140))
+
 ## [2.23.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.23.0...v2.23.1) (2026-10-29)
 
 
