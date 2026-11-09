@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 
 import {
-  defaultedMarketsQueryOptions,
+  prefetchDefaultedMarkets,
   seedDefaultedMarkets,
 } from "@/hooks/useDefaultedMarkets"
 import {
@@ -28,9 +28,7 @@ export const DefaultedMarketsPrefetch = () => {
 
   useEffect(() => {
     if (!isNetworkRehydrated) return
-    queryClient.prefetchQuery(
-      defaultedMarketsQueryOptions(chainId as SupportedChainId, queryClient),
-    )
+    prefetchDefaultedMarkets(queryClient, chainId as SupportedChainId)
   }, [queryClient, chainId, isNetworkRehydrated])
 
   return null

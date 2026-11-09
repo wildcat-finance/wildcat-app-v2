@@ -35,10 +35,12 @@ const DEFAULT_HISTORIES_QUERY = gql`
     $skip: Int!
     $createdBefore: Int!
     $historyFirst: Int!
+    $block: Block_height
   ) {
     markets(
       first: $first
       skip: $skip
+      block: $block
       orderBy: createdAt
       orderDirection: asc
       where: {
@@ -72,7 +74,7 @@ const DEFAULT_HISTORIES_QUERY = gql`
         blockLogIndex
       }
     }
-    _meta {
+    _meta(block: $block) {
       deployment
       hasIndexingErrors
       block {
@@ -97,21 +99,35 @@ type DefaultHistoriesResult = {
   } | null
 }
 
+type IndexedBlock = { deployment: string; number: number; timestamp: number }
+
+// `pinned` is the block the first page was read at. Later pages are read at
+// that same block, so one refresh never mixes two states of the index.
 const getIndexedBlock = (
   meta: DefaultHistoriesResult["_meta"],
   now: number,
-) => {
+  pinned?: IndexedBlock,
+): IndexedBlock | undefined => {
   const number = meta?.block.number
   const timestamp = meta?.block.timestamp
   if (
     !meta?.deployment ||
     meta.hasIndexingErrors !== false ||
-    !isUnsignedInteger(number) ||
-    !isUnsignedInteger(timestamp) ||
-    timestamp * 1000 > now + MAX_FUTURE_SKEW
+    !isUnsignedInteger(number)
   )
     return undefined
-  return { number, timestamp }
+  if (pinned) {
+    // A pinned read can omit the block time. A different deployment, height or
+    // time means the page did not come from the pinned block.
+    return meta.deployment === pinned.deployment &&
+      number === pinned.number &&
+      (timestamp == null || timestamp === pinned.timestamp)
+      ? pinned
+      : undefined
+  }
+  if (!isUnsignedInteger(timestamp) || timestamp * 1000 > now + MAX_FUTURE_SKEW)
+    return undefined
+  return { deployment: meta.deployment, number, timestamp }
 }
 
 export const isDefaultedMarketsData = (
@@ -149,6 +165,7 @@ export const fetchDefaultedMarkets = async (
   const longHistories: DefaultHistory[] = []
   let asOfTimestamp: number | null = null
   let hasMissingMetadata = false
+  let pinned: IndexedBlock | undefined
 
   for (let skip = 0; ; skip += MARKETS_PAGE_SIZE) {
     const {
@@ -161,13 +178,15 @@ export const fetchDefaultedMarkets = async (
         skip,
         createdBefore,
         historyFirst: HISTORY_PAGE_SIZE,
+        ...(pinned ? { block: { number: pinned.number } } : {}),
       },
       fetchPolicy: "no-cache",
       context: { fetchOptions: { signal } },
     })
 
-    const block = getIndexedBlock(meta, now())
+    const block = getIndexedBlock(meta, now(), pinned)
     if (block) {
+      pinned = pinned ?? block
       asOfTimestamp = Math.min(
         asOfTimestamp ?? block.timestamp,
         block.timestamp,

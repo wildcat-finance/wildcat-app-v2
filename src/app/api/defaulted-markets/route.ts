@@ -13,9 +13,12 @@ export const runtime = "nodejs"
 const CACHE_VERSION = "v2"
 const REVALIDATE_SECONDS = 60
 const FRESH_WINDOW = 5 * 60_000
-const SERVER_MAX_AGE = 200_000
+// Clients renew a snapshot once it has under two minutes left of FRESH_WINDOW
+// and treat it as expired at zero. Serving nothing older than about 105s
+// (SERVER_MAX_AGE plus MAX_CDN_SECONDS) leaves each client minutes of margin.
+const SERVER_MAX_AGE = 90_000
 const CLIENT_MARGIN_SECONDS = 60
-const MAX_CDN_SECONDS = 30
+const MAX_CDN_SECONDS = 15
 const UNHEALTHY_CDN_SECONDS = 10
 
 const isSupportedChainId = (chainId: number): chainId is SupportedChainId =>

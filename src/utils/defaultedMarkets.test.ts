@@ -25,39 +25,57 @@ const history = {
   delinquencyRecords: [],
   lastInterestAccruedTimestamp: 100,
 }
-const page = (markets: (typeof history)[], timestamp = 1000) => ({
+const page = (
+  markets: (typeof history)[],
+  timestamp: number | null = 1000,
+  meta: { deployment?: string; number?: number } = {},
+) => ({
   data: {
     markets,
     _meta: {
-      deployment: "deployment",
+      deployment: meta.deployment ?? "deployment",
       hasIndexingErrors: false,
-      block: { number: 100, timestamp },
+      block: { number: meta.number ?? 100, timestamp },
     },
   },
 })
+const fullPage = () =>
+  page(Array(200).fill({ ...history, delinquencyStatusChangedIndex: 0 }))
 
 beforeEach(() => {
   mockQuery.mockReset()
   jest.mocked(getMarketDefaultStatus).mockReset()
 })
 
-it("uses the oldest bulk-page timestamp, including an empty final page", async () => {
-  const shortHistory = { ...history, delinquencyStatusChangedIndex: 0 }
+it("reads later pages at the first page's block", async () => {
   mockQuery
-    .mockResolvedValueOnce(page(Array(200).fill(shortHistory)))
-    .mockResolvedValueOnce(page([], 900))
+    .mockResolvedValueOnce(fullPage())
+    // A pinned read can omit the block time.
+    .mockResolvedValueOnce(page([], null))
   expect(await fetchDefaultedMarkets(1)).toEqual({
     markets: {},
     unknown: [],
-    asOfTimestamp: 900,
+    asOfTimestamp: 1000,
   })
+  expect(mockQuery.mock.calls[0][0].variables.block).toBeUndefined()
+  expect(mockQuery.mock.calls[1][0].variables.block).toEqual({ number: 100 })
 })
+
+it.each([
+  ["block time", page([], 900)],
+  ["height", page([], 1000, { number: 101 })],
+  ["deployment", page([], 1000, { deployment: "redeployed" })],
+])(
+  "cannot establish freshness when a later page reports another %s",
+  async (_label, laterPage) => {
+    mockQuery.mockResolvedValueOnce(fullPage()).mockResolvedValueOnce(laterPage)
+    expect((await fetchDefaultedMarkets(1)).asOfTimestamp).toBeNull()
+  },
+)
 
 it("cannot establish freshness when the final empty page lacks valid metadata", async () => {
   mockQuery
-    .mockResolvedValueOnce(
-      page(Array(200).fill({ ...history, delinquencyStatusChangedIndex: 0 })),
-    )
+    .mockResolvedValueOnce(fullPage())
     .mockResolvedValueOnce({ data: { markets: [], _meta: null } })
   expect(await fetchDefaultedMarkets(1)).toEqual({
     markets: {},

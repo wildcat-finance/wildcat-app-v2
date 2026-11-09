@@ -3,6 +3,7 @@ import { useMemo } from "react"
 import {
   QueryClient,
   queryOptions,
+  replaceEqualDeep,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query"
@@ -21,7 +22,18 @@ import {
 
 export type { DefaultedMarket } from "@/utils/defaultedMarkets"
 
-const REFRESH_INTERVAL = 5 * 60_000
+// A not-defaulted result permits actions for this long after the indexed block
+// it was read at. Past that, the index is too far behind to act on.
+const FRESH_WINDOW = 5 * 60_000
+// Refresh cadence while the status is healthy. Renewing well inside
+// FRESH_WINDOW keeps a clear status from lapsing between refreshes, so an
+// action is never locked while refreshes succeed.
+const REFRESH_INTERVAL = 60_000
+// A snapshot with less than this left is renewed at the faster cadence.
+const REFRESH_LEAD = 2 * 60_000
+// Cadence while the status is expired or the last refresh failed.
+const RETRY_INTERVAL = 15_000
+const REQUEST_TIMEOUT = 15_000
 // v1 seeds could carry defaults that a complete refresh had already dropped.
 const SEED_STORAGE_KEY = "wildcat:defaulted-markets:v2"
 const LEGACY_SEED_STORAGE_KEYS = ["wildcat:defaulted-markets:v1"]
@@ -76,10 +88,9 @@ export const seedDefaultedMarkets = (queryClient: QueryClient) => {
       queryClient.getQueryData(queryKey) !== undefined
     )
       return
-    queryClient.setQueryData(queryKey, seed.data, {
-      // Incomplete results must retry on reload, even within the cache window.
-      updatedAt: seed.data.unknown.length ? 0 : seed.savedAt,
-    })
+    // An incomplete seed is retried on reload by prefetchDefaultedMarkets. It
+    // is not aged here: that would lock every market the seed still clears.
+    queryClient.setQueryData(queryKey, seed.data, { updatedAt: seed.savedAt })
   })
 }
 
@@ -98,7 +109,33 @@ const freshUntil = (data: DefaultedMarketsData | undefined) => {
   if (data?.asOfTimestamp == null) return 0
   const source = data.asOfTimestamp * 1000 - clockOffset
   if (source > Date.now() + MAX_FUTURE_SKEW) return 0
-  return source + REFRESH_INTERVAL
+  return source + FRESH_WINDOW
+}
+
+// A stalled request must not hold back the next refresh attempt.
+const withTimeout = async <T>(
+  signal: AbortSignal,
+  run: (timed: AbortSignal) => Promise<T>,
+): Promise<T> => {
+  const controller = new AbortController()
+  const cancel = () => controller.abort(signal.reason)
+  const timer = setTimeout(
+    () => controller.abort(new Error("Default status request timed out")),
+    REQUEST_TIMEOUT,
+  )
+  const aborted = new Promise<never>((_, reject) => {
+    controller.signal.addEventListener("abort", () =>
+      reject(controller.signal.reason),
+    )
+  })
+  if (signal.aborted) cancel()
+  else signal.addEventListener("abort", cancel)
+  try {
+    return await Promise.race([run(controller.signal), aborted])
+  } finally {
+    clearTimeout(timer)
+    signal.removeEventListener("abort", cancel)
+  }
 }
 
 const fetchFromApi = async (
@@ -124,13 +161,26 @@ const loadDefaultedMarkets = async (
   signal: AbortSignal,
   queryClient: QueryClient,
 ) => {
-  const data = await fetchFromApi(chainId, signal).catch((error) => {
+  const data = await withTimeout(signal, (timed) =>
+    fetchFromApi(chainId, timed),
+  ).catch((error) => {
     if (signal.aborted) throw error
-    return fetchDefaultedMarkets(chainId, signal, clockOffset)
+    return withTimeout(signal, (timed) =>
+      fetchDefaultedMarkets(chainId, timed, clockOffset),
+    )
   })
   const previous = queryClient.getQueryData<DefaultedMarketsData>(
     QueryKeys.Markets.GET_DEFAULTED_MARKETS(chainId),
   )
+  // A refresh must never leave actions worse off than no refresh. While the
+  // held snapshot still clears actions, only newer evidence replaces it; an
+  // older or undated result would lock markets the held one proves clear.
+  if (
+    previous &&
+    freshUntil(previous) > Date.now() &&
+    (data.asOfTimestamp ?? -1) < (previous.asOfTimestamp ?? -1)
+  )
+    return previous
   // The source replays full history, so cured or closed defaults are still
   // reported. A refresh is authoritative for every market it resolved; earlier
   // defaults are carried over only for markets it could not resolve.
@@ -157,7 +207,7 @@ export const defaultedMarketsQueryOptions = (
   const staleTime = Math.max(
     0,
     Math.min(
-      REFRESH_INTERVAL,
+      FRESH_WINDOW,
       freshUntil(cached?.data) - (cached?.dataUpdatedAt ?? 0),
     ),
   )
@@ -167,28 +217,67 @@ export const defaultedMarketsQueryOptions = (
     queryFn: ({ signal }) => loadDefaultedMarkets(chainId, signal, queryClient),
     // A new HTTP receipt must not renew the age of the indexed evidence.
     staleTime,
-    // Recompute staleTime on receipt even when the response is identical.
-    structuralSharing: false,
-    refetchInterval: (query) => {
-      const remaining = freshUntil(query.state.data) - Date.now()
-      return remaining > 0
-        ? Math.min(remaining + 1, REFRESH_INTERVAL)
-        : REFRESH_INTERVAL
+    // Every receipt yields a new snapshot object, so staleTime is recomputed
+    // even for an identical response. Unchanged `markets` and `unknown` keep
+    // their identity, so consumers only see a change when one happened.
+    structuralSharing: (previous, next) => {
+      const shared = replaceEqualDeep(previous, next)
+      return shared === previous && isDefaultedMarketsData(shared)
+        ? { ...shared }
+        : shared
     },
-    retry: 1,
+    // Renew ahead of expiry so a clear status does not lapse while a refresh is
+    // in flight, and recover quickly once it has lapsed or a refresh failed.
+    refetchInterval: ({ state }) => {
+      const remaining = freshUntil(state.data) - Date.now()
+      if (state.status === "error" || remaining <= 0) return RETRY_INTERVAL
+      return Math.min(
+        REFRESH_INTERVAL,
+        Math.max(RETRY_INTERVAL, remaining - REFRESH_LEAD),
+      )
+    },
+    // A hidden tab keeps its status current, so returning to it does not lock
+    // actions while a refresh catches up.
+    refetchIntervalInBackground: true,
+    // Each attempt already tries the API and then the subgraph. The library's
+    // own retry pauses while the tab is hidden, which would stall the cadence
+    // above after one failure, so failures wait for RETRY_INTERVAL instead.
+    retry: false,
+  })
+}
+
+export const prefetchDefaultedMarkets = (
+  queryClient: QueryClient,
+  chainId: SupportedChainId,
+) => {
+  const options = defaultedMarketsQueryOptions(chainId, queryClient)
+  const held = queryClient.getQueryData<DefaultedMarketsData>(options.queryKey)
+  return queryClient.prefetchQuery({
+    ...options,
+    // Markets a seed left unresolved are retried at once. The rest of the seed
+    // stays in force meanwhile.
+    staleTime: held?.unknown.length ? 0 : options.staleTime,
   })
 }
 
 /**
  * Historical defaults on a chain. A default stays recorded after cure or
- * closure. `isDefaulted` returns undefined when the status is unknown; new
- * deposits/borrowing require an explicit false, not just a finished request.
- * Non-default status expires five minutes after the indexed source block;
- * receiving the same snapshot again does not extend that deadline.
+ * closure.
+ *
+ * Actions and display read the same snapshot differently:
+ *
+ * `isDefaulted` gates actions and fails closed. It returns true for a
+ * confirmed default, false only while the market is proven not defaulted, and
+ * undefined otherwise; new deposits/borrowing require an explicit false. The
+ * proof lasts five minutes past the indexed source block and depends on that
+ * age alone: a failed refresh neither ends it early nor extends it, and
+ * receiving the same snapshot again does not extend it. The snapshot is
+ * renewed well before then, so the result changes only on a real transition.
  *
  * `isDefaultedForDisplay` reads the last snapshot without that expiry, so
- * listings and status chips do not blank out while a refresh is in flight.
- * It must never gate an action; use `isDefaulted` for that.
+ * listings and status chips do not blank out when the proof lapses. Nothing
+ * is shown as defaulted unless a snapshot confirmed it. It must never gate an
+ * action; use `isDefaulted` for that.
  */
 export const useDefaultedMarkets = (chainId?: number) => {
   const queryClient = useQueryClient()
@@ -200,17 +289,32 @@ export const useDefaultedMarkets = (chainId?: number) => {
   const query = useQuery({
     ...defaultedMarketsQueryOptions(targetChainId, queryClient),
     enabled,
-    // Interval refetches are skipped while the tab is hidden; refetch on return
-    // (only fires when stale) so actions do not stay locked after a tab switch.
+    // Timers stall while a device sleeps or a browser suspends the tab. Refetch
+    // on return (only fires when stale) rather than wait for the next interval.
     refetchOnWindowFocus: true,
   })
 
+  const snapshotMarkets = query.data?.markets
+  const snapshotUnknown = query.data?.unknown
+  const hasData = query.data !== undefined
+  const hasStatus = enabled && hasData
+  // The proof follows the age of the indexed evidence alone. A failed refresh
+  // leaves an unexpired snapshot in force and cannot revive an expired one.
+  const isProofCurrent = hasStatus && !query.isStale
+  const hasFailed = query.isError || query.errorUpdateCount > 0
+  const isLoading = !hasData && query.isPending && !hasFailed
+  // Display only. A failed refresh shows once the snapshot it failed to renew
+  // has also expired, not on every blip.
+  const isError =
+    (!hasData && hasFailed) ||
+    (query.isError && query.isStale) ||
+    !!snapshotUnknown?.length
+
+  // These inputs change only on a real transition, so the functions below keep
+  // their identity across refreshes that found nothing new.
   return useMemo(() => {
-    const markets = query.data?.markets ?? {}
-    const hasData = query.data !== undefined
-    const hasStatus = enabled && hasData
-    const hasFailed = query.isError || query.errorUpdateCount > 0
-    const unknown = new Set(query.data?.unknown ?? [])
+    const markets = snapshotMarkets ?? {}
+    const unknown = new Set(snapshotUnknown ?? [])
     const byBorrower: Record<string, string[]> = {}
     Object.values(markets).forEach((market) => {
       byBorrower[market.borrower] = [
@@ -220,22 +324,15 @@ export const useDefaultedMarkets = (chainId?: number) => {
     })
 
     return {
-      isLoading: !hasData && query.isPending && !hasFailed,
-      isError: query.isError || (!hasData && hasFailed) || unknown.size > 0,
+      isLoading,
+      isError,
       hasStatus,
       defaultedMarkets: markets,
       isDefaulted: (marketAddress?: string): boolean | undefined => {
         if (!marketAddress) return undefined
         const address = marketAddress.toLowerCase()
         if (address in markets) return true
-        if (
-          !enabled ||
-          !hasData ||
-          query.isError ||
-          query.isStale ||
-          unknown.has(address)
-        )
-          return undefined
+        if (!isProofCurrent || unknown.has(address)) return undefined
         return false
       },
       isDefaultedForDisplay: (marketAddress?: string): boolean | undefined => {
@@ -253,11 +350,11 @@ export const useDefaultedMarkets = (chainId?: number) => {
         (borrowerAddress && byBorrower[borrowerAddress.toLowerCase()]) || [],
     }
   }, [
-    enabled,
-    query.data,
-    query.isStale,
-    query.isPending,
-    query.isError,
-    query.errorUpdateCount,
+    snapshotMarkets,
+    snapshotUnknown,
+    hasStatus,
+    isProofCurrent,
+    isLoading,
+    isError,
   ])
 }
