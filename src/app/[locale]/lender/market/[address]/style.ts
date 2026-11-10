@@ -19,6 +19,18 @@ export const LenderBannerWrapper: SxProps<Theme> = {
   flex: "0 0 auto",
 }
 
+// Banners bring no spacing below them, so the actions add 12px of their own
+// when they follow one.
+export const StandaloneActionsWrapper = (
+  beforeDefaultNotice: boolean,
+): SxProps<Theme> => ({
+  padding: `0 32.3% ${beforeDefaultNotice ? 0 : "12px"} 44px`,
+  flex: "0 0 auto",
+  "&:not(:first-child)": {
+    paddingTop: "12px",
+  },
+})
+
 export const DefaultNoticeWrapper: SxProps<Theme> = {
   padding: { xs: 0, md: "0 32.3% 26px 44px" },
   flex: "0 0 auto",

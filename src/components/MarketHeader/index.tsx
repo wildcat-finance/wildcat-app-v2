@@ -9,11 +9,10 @@ import {
   Typography,
   useTheme,
 } from "@mui/material"
-import { HooksKind, MarketVersion } from "@wildcatfi/wildcat-sdk"
+import { HooksKind } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
-import { useAccount } from "wagmi"
 
 import { useGetBorrowerProfile } from "@/app/[locale]/lender/profile/hooks/useGetBorrowerProfile"
 import Avatar from "@/assets/icons/avatar_icon.svg"
@@ -22,12 +21,10 @@ import {
   BorrowerProfileChip,
   DefaultedBorrowerBadge,
 } from "@/components/BorrowerProfileChip"
-import { ExportModal } from "@/components/ExportModal"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
 import { MobileMoreButton } from "@/components/Mobile/MobileMoreButton"
 import { useDefaultedMarkets } from "@/hooks/useDefaultedMarkets"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
-import { EXPORT_CHAIN_IDS, ExportChainId } from "@/lib/export/types"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
@@ -55,11 +52,6 @@ export const MarketHeader = ({
   const { t } = useTranslation()
   const theme = useTheme()
   const isMobile = useMobileResolution()
-  const { address: connectedAddress } = useAccount()
-  const [isExportOpen, setIsExportOpen] = React.useState(false)
-  const supportsExport =
-    market.version === MarketVersion.V2 &&
-    EXPORT_CHAIN_IDS.some((chainId) => chainId === market.chainId)
 
   const [remainingTime, setRemainingTime] = React.useState<string>("")
 
@@ -152,17 +144,6 @@ export const MarketHeader = ({
 
     return trimAddress(market.borrower)
   }
-
-  const exportModal = supportsExport && (
-    <ExportModal
-      open={isExportOpen}
-      onClose={() => setIsExportOpen(false)}
-      chainId={market.chainId as ExportChainId}
-      marketAddress={market.address}
-      borrowerAddress={market.borrower}
-      defaultAddress={connectedAddress}
-    />
-  )
 
   if (isMobile)
     return (
@@ -353,24 +334,6 @@ export const MarketHeader = ({
           >
             Withdrawal Requests
           </Button>
-          {supportsExport && (
-            <Button
-              variant="text"
-              size="small"
-              sx={{
-                minWidth: "fit-content",
-                padding: "6px 8px",
-                flexShrink: 0,
-                fontSize: 10,
-                fontWeight: 600,
-                lineHeight: "16px",
-                backgroundColor: COLORS.hintOfRed,
-              }}
-              onClick={() => setIsExportOpen(true)}
-            >
-              Export
-            </Button>
-          )}
           {mla && !("noMLA" in mla) && (
             <Button
               variant="text"
@@ -391,7 +354,6 @@ export const MarketHeader = ({
             </Button>
           )}
         </Box>
-        {exportModal}
       </Box>
     )
 
@@ -506,18 +468,6 @@ export const MarketHeader = ({
           </Box>
         </Box>
       </Box>
-
-      {supportsExport && (
-        <Button
-          variant="contained"
-          color="secondary"
-          size="small"
-          onClick={() => setIsExportOpen(true)}
-        >
-          Export
-        </Button>
-      )}
-      {exportModal}
     </Box>
   )
 }
