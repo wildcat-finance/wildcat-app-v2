@@ -1,5 +1,44 @@
 # Changelog
 
+## [2.25.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.24.0...v2.25.0) (2026-11-10)
+
+
+### Features
+
+* defaulted markets ([da24ad9](https://github.com/wildcat-finance/wildcat-app-v2/commit/da24ad9c5ce83168bd056cfe426dae7baaab93b1))
+* **markets:** add default status data layer and shared visuals ([193d0ae](https://github.com/wildcat-finance/wildcat-app-v2/commit/193d0aed7e1b47b78a51cec5e4ff1ef14a0a49fb))
+* **markets:** apply mobile layout to lender market lists and explore ([4a84548](https://github.com/wildcat-finance/wildcat-app-v2/commit/4a845487e8c945c1cdf166a9ba7c1ec053c62ff9))
+* **markets:** load default status from a cached endpoint ([d8f1ffa](https://github.com/wildcat-finance/wildcat-app-v2/commit/d8f1ffa9cd46cf91fe671888e111c0a99882324a))
+* **markets:** redesign the market header and show default status ([f569761](https://github.com/wildcat-finance/wildcat-app-v2/commit/f569761685216bb48b5e65a900e52075159db430))
+* **markets:** remove additional borrower tabs ([051a322](https://github.com/wildcat-finance/wildcat-app-v2/commit/051a32213ac9cf6229c5eb4d96e828e63f7e1a3e))
+* **markets:** restyle the market header Export button ([f49fb69](https://github.com/wildcat-finance/wildcat-app-v2/commit/f49fb6913508f4d5a094ee706f0db7a592e31750))
+* **markets:** show defaulted markets on lender market pages ([26c92e6](https://github.com/wildcat-finance/wildcat-app-v2/commit/26c92e60ba9b8b178fc8f80aadf306dc4729b24b))
+* **markets:** show defaulted markets on the borrower dashboard ([b4c75e2](https://github.com/wildcat-finance/wildcat-app-v2/commit/b4c75e2108f5d749734385caa0b6614d57cd9b6a))
+* **markets:** show defaulted markets on the borrower market page ([d1f6950](https://github.com/wildcat-finance/wildcat-app-v2/commit/d1f6950345cb319ddee1bec38bdf4af1928cc69d))
+* **markets:** show defaulted markets on the borrower profile ([7067fe1](https://github.com/wildcat-finance/wildcat-app-v2/commit/7067fe17bc880a942df4057f2b9d24aef2f9f8d5))
+* **markets:** show defaulted markets on the lender market page ([c44c7cb](https://github.com/wildcat-finance/wildcat-app-v2/commit/c44c7cb10a85e75c6ae0b9298ab83dabd944d3fb))
+* **markets:** show zero counts on empty market tabs ([5cd75a8](https://github.com/wildcat-finance/wildcat-app-v2/commit/5cd75a8a980455ecc7367e57755c4dfece906aa4))
+* **markets:** ui fixes ([31e9d11](https://github.com/wildcat-finance/wildcat-app-v2/commit/31e9d11a417a9ac821579468940b2a02a5c6a9b4))
+
+
+### Bug Fixes
+
+* **export:** change market export modal design using app's system ([10aca18](https://github.com/wildcat-finance/wildcat-app-v2/commit/10aca180868bda77962423c0d8e12ea7a77e6d5c))
+* **export:** change market export modal design using app's system ([d1ebaaa](https://github.com/wildcat-finance/wildcat-app-v2/commit/d1ebaaa7a6d39ba0d52d3b8dc8e124914b72108e))
+* **export:** keyboard access and stable date entry in export modal ([82ec44f](https://github.com/wildcat-finance/wildcat-app-v2/commit/82ec44f8d2faa40b12c436897a06d72fb72a1ecd))
+* **markets:** age default status by server time and refresh idle caches ([9c119f3](https://github.com/wildcat-finance/wildcat-app-v2/commit/9c119f3ff6de3df6479260b9cd5113f561c5066f))
+* **markets:** align default notices with their content columns ([47abebf](https://github.com/wildcat-finance/wildcat-app-v2/commit/47abebf42dc966fe6ff6099675a79748729f302b))
+* **markets:** align the borrower default notice with the 90-day rule ([92aa597](https://github.com/wildcat-finance/wildcat-app-v2/commit/92aa5975d217068a06ad77dcc4370b05567ac281))
+* **markets:** handle unknown default status safely ([d003081](https://github.com/wildcat-finance/wildcat-app-v2/commit/d003081e99283c86fe64e971fc7d13c98d360a22))
+* **markets:** hold default-dependent UI until status is known ([6c133ff](https://github.com/wildcat-finance/wildcat-app-v2/commit/6c133fff835c4f501ab7051a3986408eced24b2d))
+* **markets:** keep default status proven across refreshes and outages ([48c121d](https://github.com/wildcat-finance/wildcat-app-v2/commit/48c121de686d3f86ab5fe1635c7dae6f535b1859))
+* **markets:** keep default status stable across refreshes ([fc48d1b](https://github.com/wildcat-finance/wildcat-app-v2/commit/fc48d1be528554637e19e1ec837ddc4976446b38))
+* **markets:** prevent stale default status from enabling actions ([f84f063](https://github.com/wildcat-finance/wildcat-app-v2/commit/f84f063dc115242b87b439902b3760263f6f0dfd))
+* **markets:** show the Default chip in the policy Markets tab ([997fa14](https://github.com/wildcat-finance/wildcat-app-v2/commit/997fa1495169c4f0746e3644ed847625b7dbc8bc))
+* **markets:** stop the double scroll on market pages ([78ee7cc](https://github.com/wildcat-finance/wildcat-app-v2/commit/78ee7cc5e0c90a379d6272f3a84fe7974bea16d4))
+* **markets:** use mobile typography in default notices ([82b26d6](https://github.com/wildcat-finance/wildcat-app-v2/commit/82b26d68546ba11abf696dd651e076b9ba9fd703))
+* update horos boundary for CI ([5f67690](https://github.com/wildcat-finance/wildcat-app-v2/commit/5f67690716a04ab689478028ba7065d1a5d1adae))
+
 ## [2.24.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.23.1...v2.24.0) (2026-11-02)
 
 
