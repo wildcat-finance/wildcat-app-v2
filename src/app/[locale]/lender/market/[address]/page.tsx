@@ -88,6 +88,7 @@ import {
   SectionContainer,
   SkeletonContainer,
   SkeletonStyle,
+  StandaloneActionsDivider,
   StandaloneActionsWrapper,
 } from "./style"
 import {
@@ -950,6 +951,7 @@ export default function LenderMarketDetails({
             )}
           >
             <MarketStandaloneActions market={market} />
+            <Divider sx={StandaloneActionsDivider} />
           </Box>
         )}
 

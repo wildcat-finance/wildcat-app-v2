@@ -24,7 +24,7 @@ export const LenderBannerWrapper: SxProps<Theme> = {
 export const StandaloneActionsWrapper = (
   afterNotice: boolean,
 ): SxProps<Theme> => ({
-  padding: "0 32.3% 12px 44px",
+  padding: "0 32.3% 0 44px",
   flex: "0 0 auto",
   ...(!afterNotice && {
     "&:not(:first-child)": {
@@ -32,6 +32,10 @@ export const StandaloneActionsWrapper = (
     },
   }),
 })
+
+export const StandaloneActionsDivider: SxProps<Theme> = {
+  margin: "32px 0 8px",
+}
 
 export const DefaultNoticeWrapper = (
   beforeActions: boolean,
