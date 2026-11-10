@@ -21,7 +21,10 @@ import { ExploreMarketsTable } from "."
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }))
-jest.mock("next/navigation", () => ({ useRouter: () => ({ push: jest.fn() }) }))
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: jest.fn() }),
+  usePathname: () => "/lender",
+}))
 jest.mock("viem", () => ({
   getAddress: (value: string) => value,
   isAddress: (value: string) => /^0x[a-fA-F0-9]{40}$/.test(value),
@@ -140,10 +143,99 @@ describe.each([false, true])(
         onboardingStatus: "ready",
         policyMarkets: new Set(),
         isPolicyMarketsLoading: false,
+        defaults: {
+          isLoading: false,
+          isError: false,
+          hasStatus: true,
+          isDefaulted: () => false,
+          isDefaultedForDisplay: () => false,
+          defaultedMarketsOfBorrower: () => [],
+        },
       })
     })
 
     afterEach(() => jest.clearAllMocks())
+
+    it("only excludes the unresolved market and restores it after refresh", () => {
+      const context = jest.mocked(useLenderMarketsContext)()
+      const original = context.marketAccounts[0]
+      const resolved = {
+        ...original,
+        market: {
+          ...original.market,
+          address: "0x0000000000000000000000000000000000000004",
+          name: "Resolved market",
+        },
+      } as MarketAccount
+      const marketAccounts = [original, resolved]
+      const onboardingByMarket = {
+        ...context.onboardingByMarket,
+        [resolved.market.address]: MarketOnboardingMode.SelfOnboard,
+      }
+      jest.mocked(useLenderMarketsContext).mockReturnValue({
+        ...context,
+        marketAccounts,
+        onboardingByMarket,
+        defaults: {
+          ...context.defaults,
+          isError: true,
+          isDefaulted: (address) =>
+            address === marketAddress ? undefined : false,
+          isDefaultedForDisplay: (address) =>
+            address === marketAddress ? undefined : false,
+        },
+      })
+      const { rerender } = render(<ExploreMarketsTable />)
+      expect(screen.queryByText("Available market")).toBeNull()
+      expect(screen.getByText("Resolved market")).toBeTruthy()
+
+      jest
+        .mocked(useLenderMarketsContext)
+        .mockReturnValue({ ...context, marketAccounts, onboardingByMarket })
+      rerender(<ExploreMarketsTable />)
+      expect(screen.getByText("Available market")).toBeTruthy()
+    })
+
+    it("keeps listing markets while an expired status refreshes", () => {
+      const context = jest.mocked(useLenderMarketsContext)()
+      jest.mocked(useLenderMarketsContext).mockReturnValue({
+        ...context,
+        defaults: {
+          ...context.defaults,
+          isDefaulted: () => undefined,
+          isDefaultedForDisplay: () => false,
+        },
+      })
+      render(<ExploreMarketsTable />)
+      expect(screen.getByText("Available market")).toBeTruthy()
+      expect(
+        screen.queryByText("dashboard.markets.noMarkets.explore.title"),
+      ).toBeNull()
+    })
+
+    it("shows loading, not an empty Explore, until a status snapshot exists", () => {
+      const context = jest.mocked(useLenderMarketsContext)()
+      jest.mocked(useLenderMarketsContext).mockReturnValue({
+        ...context,
+        defaults: {
+          ...context.defaults,
+          isLoading: false,
+          isError: true,
+          hasStatus: false,
+          isDefaulted: () => undefined,
+          isDefaultedForDisplay: () => undefined,
+        },
+      })
+      const { rerender } = render(<ExploreMarketsTable />)
+      expect(screen.queryByText("Available market")).toBeNull()
+      expect(
+        screen.queryByText("dashboard.markets.noMarkets.explore.title"),
+      ).toBeNull()
+
+      jest.mocked(useLenderMarketsContext).mockReturnValue(context)
+      rerender(<ExploreMarketsTable />)
+      expect(screen.getByText("Available market")).toBeTruthy()
+    })
 
     it("clears the composability filter when resetting an empty result", () => {
       const { rerender } = render(<ExploreMarketsTable />)

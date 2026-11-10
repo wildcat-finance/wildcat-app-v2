@@ -24,6 +24,7 @@ export type OtherMarketsTableModel = {
   name: string
   borrower: string | undefined
   borrowerAddress: string | undefined
+  borrowerDefaultedCount: number
   asset: string
   debt: TokenAmount | undefined
   capacity: TokenAmount
@@ -46,6 +47,7 @@ export type OtherMarketsTableProps = {
     nameFilter: string
     assetFilter: SmallFilterSelectItem[]
     statusFilter: MarketStatus[]
+    withdrawalCycleFilter?: SmallFilterSelectItem[]
     composableOnly?: boolean
   }
   destinations: DestinationsState

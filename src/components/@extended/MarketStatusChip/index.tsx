@@ -5,6 +5,7 @@ import Image from "next/image"
 import Clock from "@/assets/icons/clock_icon.svg"
 import Fire from "@/assets/icons/fire_icon.png"
 import Arrow from "@/assets/icons/textChipArrow_icon.svg"
+import { DefaultedStatusChip } from "@/components/@extended/MarketStatusChip/DefaultedStatusChip"
 import { HealthyStatusChip } from "@/components/@extended/MarketStatusChip/HealthyStatusChip"
 import { COLORS } from "@/theme/colors"
 import { MarketStatus } from "@/utils/marketStatus"
@@ -14,8 +15,19 @@ import { MarketStatusChipProps } from "./type"
 export const MarketStatusChip = ({
   variant = "filled",
   withPeriod = true,
+  periodLayout,
   status,
 }: MarketStatusChipProps) => {
+  if (status.status === MarketStatus.DEFAULTED)
+    return (
+      <DefaultedStatusChip
+        penaltyDays={status.penaltyPeriod}
+        variant={variant}
+        withPeriod={withPeriod}
+        periodLayout={periodLayout}
+      />
+    )
+
   let chipConfig
 
   switch (status.status) {

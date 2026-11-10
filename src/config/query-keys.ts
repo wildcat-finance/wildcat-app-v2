@@ -339,6 +339,9 @@ const MARKET_QUERY_KEYS = {
   // GET_ALL_TOKENS_WITH_MARKETS_KEY
   GET_ALL_TOKENS_WITH_MARKETS: (chainId: number) =>
     k(["markets", "GET_ALL_TOKENS_WITH_MARKETS", chainId]),
+  // GET_DEFAULTED_MARKETS — every market on the chain whose history shows a default
+  GET_DEFAULTED_MARKETS: (chainId: number) =>
+    k(["markets", "GET_DEFAULTED_MARKETS", chainId]),
   // GET_MARKET_ACCOUNT_KEY — canonical market-account family shared by the
   // borrower and lender views (src/hooks/useMarketAccount.ts). Identity is
   // chainId + marketAddress + accountAddress + phase; mutations invalidate a

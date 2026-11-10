@@ -10,7 +10,12 @@ import { useAllTokensWithMarkets } from "@/hooks/useAllTokensWithMarkets"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { LenderMarketDashboardSections } from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
+import { initialState as lenderDashboardAmounts } from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
+import {
+  LenderAllMarketsTab,
+  LenderMarketDashboardSections,
+  LenderMyMarketsTab,
+} from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -53,11 +58,8 @@ jest.mock("@/components/Destinations", () => ({
 jest.mock("@/hooks/destinations/useDestinations", () => ({
   useDestinations: jest.fn(),
 }))
-jest.mock("@/app/[locale]/lender/all-markets/components/MobileHeader", () => ({
-  MobileHeader: () => null,
-}))
-jest.mock("@/app/[locale]/lender/my-markets/components/MobileHeader", () => ({
-  MobileHeader: () => null,
+jest.mock("@/app/[locale]/lender/components/LenderMarketsMobileHeader", () => ({
+  LenderMarketsMobileHeader: () => null,
 }))
 jest.mock(
   "@/app/[locale]/lender/all-markets/components/MarketsTables/OtherMarketsTable",
@@ -88,6 +90,12 @@ const emptyFilters = {
   composableOnly: false,
 }
 
+const lenderDashboard = {
+  marketSection: LenderMarketDashboardSections.ACTIVE,
+  allMarketsTab: LenderAllMarketsTab.SELF_ONBOARD,
+  myMarketsTab: LenderMyMarketsTab.DEPOSITED,
+}
+
 describe("lender market navigation loading", () => {
   beforeEach(() => {
     jest.mocked(useDestinations).mockReturnValue({
@@ -99,9 +107,8 @@ describe("lender market navigation loading", () => {
     jest.mocked(useAppSelector).mockImplementation((selector) =>
       selector({
         marketFilters: { lender: emptyFilters },
-        lenderDashboard: {
-          marketSection: LenderMarketDashboardSections.ACTIVE,
-        },
+        lenderDashboard,
+        lenderDashboardAmounts,
       } as unknown as Parameters<typeof selector>[0]),
     )
     jest.mocked(useMobileResolution).mockReturnValue(false)
@@ -124,6 +131,14 @@ describe("lender market navigation loading", () => {
       borrowers: [],
       policyMarkets: new Set(),
       isPolicyMarketsLoading: false,
+      defaults: {
+        isLoading: false,
+        isError: false,
+        hasStatus: true,
+        isDefaulted: () => false,
+        isDefaultedForDisplay: () => false,
+        defaultedMarketsOfBorrower: () => [],
+      },
     })
   })
 
@@ -152,9 +167,8 @@ describe("lender market navigation loading", () => {
     jest.mocked(useAppSelector).mockImplementation((selector) =>
       selector({
         marketFilters: { lender: { ...emptyFilters, composableOnly: true } },
-        lenderDashboard: {
-          marketSection: LenderMarketDashboardSections.ACTIVE,
-        },
+        lenderDashboard,
+        lenderDashboardAmounts,
       } as unknown as Parameters<typeof selector>[0]),
     )
     jest.mocked(useDestinations).mockReturnValue({

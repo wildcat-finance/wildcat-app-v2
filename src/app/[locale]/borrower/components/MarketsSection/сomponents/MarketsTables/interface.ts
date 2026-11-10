@@ -11,6 +11,7 @@ export type MarketsTablesProps = {
     nameFilter: string
     assetFilter: SmallFilterSelectItem[]
     statusFilter: MarketStatus[]
+    withdrawalCycleFilter?: SmallFilterSelectItem[]
   }
 }
 

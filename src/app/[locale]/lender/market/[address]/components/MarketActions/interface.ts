@@ -9,4 +9,6 @@ export type MarketActionsProps = {
   wrapper?: TokenWrapper
   hasWrapper?: boolean
   isLiveMarketReady: boolean
+  isMarketDefaulted?: boolean
+  isDefaultStatusUnknown?: boolean
 }

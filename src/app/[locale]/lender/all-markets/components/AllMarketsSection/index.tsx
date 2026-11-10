@@ -2,17 +2,20 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 
-import { Box, Divider, Skeleton, Typography } from "@mui/material"
-import Link from "next/link"
+import { Box, Skeleton, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
+import { getAllMarketsAmounts } from "@/app/[locale]/lender/components/LenderDataProvider/allMarketsAmounts"
+import { LenderMarketsMobileHeader } from "@/app/[locale]/lender/components/LenderMarketsMobileHeader"
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
 import { ComposableOnlySwitch } from "@/components/Destinations"
 import { FilterTextField } from "@/components/FilterTextfield"
 import { MarketsFilterSelect } from "@/components/MarketsFilterSelect"
 import { MarketsFilterSelectItem } from "@/components/MarketsFilterSelect/interface"
+import { MarketsTabs } from "@/components/MarketsTabs"
 import { MobileFilterButton } from "@/components/Mobile/MobileFilterButton"
+import { MobileMarketsToolbar } from "@/components/Mobile/MobileMarketsToolbar"
 import { MobileSearchButton } from "@/components/Mobile/MobileSearchButton"
 import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
 import { useDestinations } from "@/hooks/destinations/useDestinations"
@@ -22,18 +25,19 @@ import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { marketStatusesMock } from "@/mocks/mocks"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setLendersSectionAmount } from "@/store/slices/lenderDashboardAmountSlice/lenderDashboardAmountsSlice"
+import {
+  LenderAllMarketsTab,
+  LenderSection,
+  resetOtherSectionTabs,
+  setAllMarketsTab,
+} from "@/store/slices/lenderDashboardSlice/lenderDashboardSlice"
 import { setMarketFilters } from "@/store/slices/marketFiltersSlice/marketFiltersSlice"
 import { COLORS } from "@/theme/colors"
 import { EXCLUDED_MARKETS } from "@/utils/constants"
 import { filterMarketAccounts } from "@/utils/filters"
-import {
-  getKnownMarketOnboardingMode,
-  MarketOnboardingMode,
-} from "@/utils/marketOnboarding"
 import { MarketStatus } from "@/utils/marketStatus"
 
 import { OtherMarketsTable } from "../MarketsTables/OtherMarketsTable"
-import { MobileHeader } from "../MobileHeader"
 
 const withdrawalCycleOptions = [
   { id: "0-86400", name: "≤ 24h" },
@@ -48,6 +52,9 @@ export const AllMarketsSection = () => {
   useEffect(() => setMounted(true), [])
 
   const dispatch = useAppDispatch()
+  useEffect(() => {
+    dispatch(resetOtherSectionTabs(LenderSection.ALL_MARKETS))
+  }, [dispatch])
   const { t } = useTranslation()
   useAccount()
   const {
@@ -57,8 +64,13 @@ export const AllMarketsSection = () => {
     isTestnet,
   } = useCurrentNetwork()
 
-  const { marketAccounts, isLoadingInitial, onboardingByMarket, borrowers } =
-    useLenderMarketsContext()
+  const {
+    marketAccounts,
+    isLoadingInitial,
+    onboardingByMarket,
+    borrowers,
+    defaults,
+  } = useLenderMarketsContext()
 
   const destinations = useDestinations(selectedChainId)
   const { markets: destinationsByMarket } = destinations
@@ -66,6 +78,9 @@ export const AllMarketsSection = () => {
     () => new Set(Object.keys(destinationsByMarket)),
     [destinationsByMarket],
   )
+
+  const allMarketsTab = useAppSelector((s) => s.lenderDashboard.allMarketsTab)
+  const isDefaultedTab = allMarketsTab === LenderAllMarketsTab.DEFAULTED
 
   const marketFilters = useAppSelector((s) => s.marketFilters.lender)
   const {
@@ -75,6 +90,8 @@ export const AllMarketsSection = () => {
     withdrawalCycles: marketWithdrawalCycles,
     composableOnly,
   } = marketFilters
+
+  const composableFilterActive = composableOnly && !isDefaultedTab
 
   const setComposableOnly = useCallback(
     (value: boolean) =>
@@ -166,9 +183,16 @@ export const AllMarketsSection = () => {
       statusFilter: marketStatuses.map(
         (status) => status.name,
       ) as MarketStatus[],
-      composableOnly,
+      withdrawalCycleFilter: marketWithdrawalCycles,
+      composableOnly: composableFilterActive,
     }),
-    [marketSearch, marketAssets, marketStatuses, composableOnly],
+    [
+      marketSearch,
+      marketAssets,
+      marketStatuses,
+      marketWithdrawalCycles,
+      composableFilterActive,
+    ],
   )
 
   // Markets the lender has never interacted with, excluding blacklisted addresses
@@ -195,7 +219,7 @@ export const AllMarketsSection = () => {
       composableSet.has(account.market.address.toLowerCase()),
     )
     return {
-      filteredMarketAccounts: composableOnly ? composable : filtered,
+      filteredMarketAccounts: composableFilterActive ? composable : filtered,
       composableCount: composable.length,
     }
   }, [
@@ -206,45 +230,29 @@ export const AllMarketsSection = () => {
     borrowers,
     marketWithdrawalCycles,
     composableSet,
-    composableOnly,
+    composableFilterActive,
   ])
 
-  const showComposableSwitch = composableCount > 0 || composableOnly
+  const showComposableSwitch =
+    !isDefaultedTab && (composableCount > 0 || composableOnly)
   const isLoading =
-    isLoadingInitial || (composableOnly && destinations.isPending)
+    isLoadingInitial ||
+    defaults.isLoading ||
+    (composableFilterActive && destinations.isPending)
 
-  const selfOnboardAmount = useMemo(
+  const {
+    selfOnboard: selfOnboardAmount,
+    manual: manualAmount,
+    terminatedOther: terminatedOtherAmount,
+    defaultedOther: defaultedAmount,
+  } = useMemo(
     () =>
-      otherMarketAccounts.filter(
-        (account) =>
-          !account.market.isClosed &&
-          getKnownMarketOnboardingMode(
-            account.market.version,
-            account.market.address,
-            onboardingByMarket,
-          ) === MarketOnboardingMode.SelfOnboard,
-      ).length,
-    [onboardingByMarket, otherMarketAccounts],
-  )
-
-  const manualAmount = useMemo(
-    () =>
-      otherMarketAccounts.filter(
-        (account) =>
-          !account.market.isClosed &&
-          getKnownMarketOnboardingMode(
-            account.market.version,
-            account.market.address,
-            onboardingByMarket,
-          ) === MarketOnboardingMode.BorrowerApproval,
-      ).length,
-    [onboardingByMarket, otherMarketAccounts],
-  )
-
-  const terminatedOtherAmount = useMemo(
-    () =>
-      otherMarketAccounts.filter((account) => account.market.isClosed).length,
-    [otherMarketAccounts],
+      getAllMarketsAmounts(
+        otherMarketAccounts,
+        onboardingByMarket,
+        defaults.isDefaulted,
+      ),
+    [otherMarketAccounts, onboardingByMarket, defaults.isDefaulted],
   )
 
   useEffect(() => {
@@ -268,19 +276,32 @@ export const AllMarketsSection = () => {
     )
     dispatch(
       setLendersSectionAmount({
+        name: "defaultedOther",
+        value: isWrongNetwork ? 0 : defaultedAmount,
+      }),
+    )
+    dispatch(
+      setLendersSectionAmount({
         name: "allMarkets",
         value: isWrongNetwork
           ? 0
-          : selfOnboardAmount + manualAmount + terminatedOtherAmount,
+          : selfOnboardAmount +
+            manualAmount +
+            terminatedOtherAmount +
+            defaultedAmount,
       }),
     )
   }, [
     selfOnboardAmount,
     manualAmount,
     terminatedOtherAmount,
+    defaultedAmount,
     isWrongNetwork,
     dispatch,
   ])
+
+  const defaultedTabCount =
+    defaults.isLoading || defaults.isError ? undefined : defaultedAmount
 
   const { data: tokensRaw } = useAllTokensWithMarkets()
   const tokens = useMemo(() => {
@@ -298,7 +319,7 @@ export const AllMarketsSection = () => {
       <Skeleton
         sx={{
           width: "100%",
-          height: { xs: "153px", md: "162px" },
+          height: { xs: "124px", md: "152px" },
           borderRadius: "14px",
           backgroundColor: { xs: COLORS.white06, md: "transparent" },
         }}
@@ -308,52 +329,55 @@ export const AllMarketsSection = () => {
   return (
     <Box sx={{ width: "100%", overflow: { xs: "auto", md: "visible" } }}>
       {!isMobile && (
-        <Box sx={{ display: "flex", flexDirection: "column" }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            padding: "20px 16px 0",
+          }}
+        >
+          <Typography variant="title3" color={COLORS.blackRock}>
+            {t("dashboard.markets.allMarketsTitle")}
+          </Typography>
+
+          <Box sx={{ marginTop: "16px" }}>
+            <MarketsTabs
+              value={allMarketsTab}
+              onChange={(tab) => dispatch(setAllMarketsTab(tab))}
+              hideCounts={isLoading}
+              items={[
+                {
+                  value: LenderAllMarketsTab.SELF_ONBOARD,
+                  label: t("dashboard.markets.tables.other.selfOnboard"),
+                  count: isWrongNetwork ? 0 : selfOnboardAmount,
+                },
+                {
+                  value: LenderAllMarketsTab.MANUAL,
+                  label: t("dashboard.markets.tables.other.manual"),
+                  count: isWrongNetwork ? 0 : manualAmount,
+                },
+                {
+                  value: LenderAllMarketsTab.TERMINATED,
+                  label: t("dashboard.markets.tables.other.terminated"),
+                  count: isWrongNetwork ? 0 : terminatedOtherAmount,
+                },
+                {
+                  value: LenderAllMarketsTab.DEFAULTED,
+                  label: t("defaultedMarkets.tab"),
+                  count: isWrongNetwork ? 0 : defaultedTabCount,
+                },
+              ]}
+            />
+          </Box>
+
           <Box
             sx={{
               width: "100%",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              padding: "24px 24px 0",
-            }}
-          >
-            <Typography variant="title2" sx={{ marginBottom: "6px" }}>
-              {t("dashboard.markets.title")}
-            </Typography>
-          </Box>
-
-          <Typography
-            variant="text3"
-            color={COLORS.santasGrey}
-            sx={{ marginBottom: "24px", padding: "0 24px" }}
-          >
-            {t("dashboard.markets.lenderSubtitle")}{" "}
-            <Link
-              href="https://docs.wildcat.finance/using-wildcat/day-to-day-usage/lenders"
-              style={{ color: COLORS.santasGrey }}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {t("dashboard.markets.docsLink")}
-            </Link>
-          </Typography>
-
-          <Divider
-            sx={{
-              marginTop: "6px",
-              borderColor: COLORS.athensGrey,
-              width: "100%",
-            }}
-          />
-
-          <Box
-            sx={{
-              width: "100%",
-              display: "flex",
-              justifyContent: "space-between",
-              padding: "0 24px",
-              marginTop: "16px",
+              gap: "20px",
+              marginTop: "24px",
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -375,7 +399,7 @@ export const AllMarketsSection = () => {
                 setSelected={setMarketStatuses}
               />
               <MarketsFilterSelect
-                placeholder="Withdrawal Cycle"
+                placeholder={t("dashboard.markets.filters.withdrawalCycle")}
                 options={withdrawalCycleOptions}
                 selected={marketWithdrawalCycles}
                 setSelected={setMarketWithdrawalCycles}
@@ -392,13 +416,13 @@ export const AllMarketsSection = () => {
               value={marketSearch}
               setValue={setMarketSearch}
               placeholder={t("dashboard.markets.filters.name")}
-              width="264px"
+              width="312px"
             />
           </Box>
         </Box>
       )}
 
-      {isMobile && <MobileHeader />}
+      {isMobile && <LenderMarketsMobileHeader page="others" />}
 
       {isWrongNetwork && <WrongNetworkAlert />}
 
@@ -411,50 +435,43 @@ export const AllMarketsSection = () => {
           filters={filters}
           destinations={destinations}
           mobileHeader={
-            <Box
-              sx={{
-                display: "flex",
-                flexWrap: "wrap",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: "4px 2px",
-                padding: "4px 0 12px",
-                borderBottom: `1px solid ${COLORS.whiteLilac}`,
-              }}
-            >
-              {showComposableSwitch ? (
-                <ComposableOnlySwitch
-                  checked={composableOnly}
-                  onChange={setComposableOnly}
-                />
-              ) : (
-                <Box />
-              )}
-              <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                <MobileFilterButton
-                  size={28}
-                  assetsOptions={
-                    tokens?.map((token) => ({
-                      id: token.address,
-                      name: token.symbol,
-                    })) ?? []
-                  }
-                  statusesOptions={marketStatusesMock}
-                  withdrawalCycleOptions={withdrawalCycleOptions}
-                  marketAssets={marketAssets}
-                  marketStatuses={marketStatuses}
-                  marketWithdrawalCycles={marketWithdrawalCycles}
-                  setMarketAssets={setMarketAssets}
-                  setMarketStatuses={setMarketStatuses}
-                  setMarketWithdrawalCycles={setMarketWithdrawalCycles}
-                />
-                <MobileSearchButton
-                  marketAccounts={filteredMarketAccounts ?? []}
-                  marketSearch={marketSearch}
-                  setMarketSearch={setMarketSearch}
-                />
-              </Box>
-            </Box>
+            <MobileMarketsToolbar
+              variant="page"
+              left={
+                showComposableSwitch && (
+                  <ComposableOnlySwitch
+                    checked={composableOnly}
+                    onChange={setComposableOnly}
+                  />
+                )
+              }
+              right={
+                <>
+                  <MobileFilterButton
+                    size={28}
+                    assetsOptions={
+                      tokens?.map((token) => ({
+                        id: token.address,
+                        name: token.symbol,
+                      })) ?? []
+                    }
+                    statusesOptions={marketStatusesMock}
+                    withdrawalCycleOptions={withdrawalCycleOptions}
+                    marketAssets={marketAssets}
+                    marketStatuses={marketStatuses}
+                    marketWithdrawalCycles={marketWithdrawalCycles}
+                    setMarketAssets={setMarketAssets}
+                    setMarketStatuses={setMarketStatuses}
+                    setMarketWithdrawalCycles={setMarketWithdrawalCycles}
+                  />
+                  <MobileSearchButton
+                    marketAccounts={filteredMarketAccounts ?? []}
+                    marketSearch={marketSearch}
+                    setMarketSearch={setMarketSearch}
+                  />
+                </>
+              }
+            />
           }
         />
       )}

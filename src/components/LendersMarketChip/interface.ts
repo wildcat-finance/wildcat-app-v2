@@ -5,4 +5,6 @@ export type LendersMarketChipProps = {
   onClick?: () => void
   width?: string
   disabled?: boolean
+  // Accessible name for the icon-only button, e.g. "Remove USDC Market".
+  buttonLabel?: string
 }

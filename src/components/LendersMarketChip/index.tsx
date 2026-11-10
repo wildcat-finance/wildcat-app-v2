@@ -13,6 +13,7 @@ export const LendersMarketChip = ({
   onClick,
   width = "100%",
   disabled,
+  buttonLabel,
 }: LendersMarketChipProps) => {
   let chipConfig
 
@@ -62,6 +63,16 @@ export const LendersMarketChip = ({
     }
   }
 
+  // The pointer path acts on mousedown, which a keyboard never sends.
+  const onKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key !== "Enter" && e.key !== " ") return
+    e.preventDefault()
+    e.stopPropagation()
+    if (onClick) {
+      onClick()
+    }
+  }
+
   return (
     <Box
       sx={{
@@ -96,6 +107,8 @@ export const LendersMarketChip = ({
         <IconButton
           sx={{ marginLeft: "2px" }}
           onMouseDown={onMouseDown}
+          onKeyDown={onKeyDown}
+          aria-label={buttonLabel}
           disabled={disabled}
         >
           <SvgIcon

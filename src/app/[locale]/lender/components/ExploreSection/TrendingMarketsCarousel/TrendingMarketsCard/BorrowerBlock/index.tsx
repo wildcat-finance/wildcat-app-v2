@@ -40,23 +40,23 @@ const AssetChip = ({
       width: "fit-content",
       display: "flex",
       alignItems: "center",
-      gap: "4px",
-      padding: { xs: "2px 7px", md: "2px 7px 2px 5px" },
-      borderRadius: { xs: "12px", md: "10px" },
-      backgroundColor: COLORS.whiteSmoke,
+      gap: { xs: "2px", md: "4px" },
+      padding: { xs: "0 6px 0 4px", md: "2px 7px 2px 5px" },
+      borderRadius: { xs: "20px", md: "10px" },
+      backgroundColor: { xs: COLORS.blackHaze, md: COLORS.whiteSmoke },
     }}
   >
     {chainId && (
       <NetworkIcon
         chainId={chainId as SupportedChainId}
-        width={isMobile ? 12 : 11}
-        height={isMobile ? 12 : 11}
+        width={isMobile ? 10 : 11}
+        height={isMobile ? 10 : 11}
       />
     )}
     <Typography
       variant="mobText3"
       sx={{
-        fontSize: { xs: "12px", md: "10px" },
+        fontSize: { xs: "11px", md: "10px" },
         lineHeight: { xs: "16px", md: "14px" },
       }}
     >
@@ -85,44 +85,63 @@ export const TrendingMarketDetails = ({
       sx={{
         display: "flex",
         flexDirection: "column",
-        gap: { xs: "12px", md: "8px" },
-        padding: { xs: "14px 0 16px", md: "16px 0 18px" },
+        gap: { xs: "5px", md: "8px" },
+        margin: { xs: "0 3px", md: 0 },
+        padding: { xs: "14px 3px 8px", md: "16px 0 18px" },
+        borderTop: { xs: `1px solid ${COLORS.iron}`, md: "none" },
       }}
     >
-      <MarketStatusAndTermChip status={status} termLabel={termLabel} />
+      <MarketStatusAndTermChip
+        status={status}
+        termLabel={termLabel}
+        size={isMobile ? "small" : "default"}
+      />
 
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: { xs: "5px", md: "8px" },
-          marginTop: { md: "3px" },
+          gap: { xs: "6px", md: "8px" },
+          marginTop: { xs: "5px", md: "3px" },
         }}
       >
         <Typography
           variant="mobText1"
           sx={{
             overflow: "hidden",
-            fontSize: { xs: "16px", md: "13px" },
+            fontSize: { xs: "14px", md: "13px" },
             fontWeight: 600,
-            lineHeight: { xs: "22px", md: "18px" },
+            lineHeight: { xs: "20px", md: "18px" },
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
           }}
         >
           {marketName}
         </Typography>
-        <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: { xs: "wrap", md: "nowrap" },
+            alignItems: "center",
+            gap: { xs: "2px", md: "4px" },
+          }}
+        >
           <BorrowerProfileChip
             borrower={borrower}
-            size={isMobile ? "medium" : "small"}
+            size={isMobile ? "tiny" : "small"}
             href={`${ROUTES.lender.profile}/${borrowerAddress}`}
           />
           <AssetChip asset={asset} chainId={chainId} isMobile={isMobile} />
         </Box>
       </Box>
 
-      <Box sx={{ ...SupplyProgressTrackStyle, marginTop: { md: "8px" } }}>
+      <Box
+        sx={{
+          ...SupplyProgressTrackStyle,
+          width: { xs: "auto", md: "100%" },
+          margin: { xs: "11px 2px 0", md: "8px 0 0" },
+        }}
+      >
         <Box
           sx={{
             ...SupplyProgressFillStyle,
@@ -134,9 +153,9 @@ export const TrendingMarketDetails = ({
       <Typography
         variant="mobText3"
         sx={{
-          color: COLORS.matteSilver,
-          fontSize: { xs: "13px", md: "10px" },
-          lineHeight: { xs: "18px", md: "14px" },
+          color: { xs: COLORS.manate, md: COLORS.matteSilver },
+          fontSize: { xs: "11px", md: "10px" },
+          lineHeight: { xs: "16px", md: "14px" },
         }}
       >
         {supplied} {asset} / {capacity} {asset} supplied

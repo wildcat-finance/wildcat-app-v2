@@ -19,3 +19,11 @@ export const PageContentContainer: SxProps<Theme> = (theme) => ({
     paddingRight: "44px",
   },
 })
+
+export const DefaultNoticeContainer: SxProps<Theme> = {
+  marginBottom: "28px",
+}
+
+export const MobileDefaultNoticeContainer = {
+  marginBottom: "4px",
+}

@@ -5,11 +5,17 @@ import { HooksKind, MarketVersion } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
+import { useGetBorrowerMarkets } from "@/app/[locale]/borrower/hooks/getMaketsHooks/useGetBorrowerMarkets"
+import {
+  DefaultedMarketLink,
+  MarketDefaultNotice,
+} from "@/app/[locale]/borrower/market/[address]/components/MarketDefaultNotice"
 import { MaturityModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MaturityModal"
 import { MinimumDepositModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MinimumDepositModal"
 import TelegramIcon from "@/assets/icons/telegram_icon.svg"
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
+import { useDefaultedMarkets } from "@/hooks/useDefaultedMarkets"
 import { useAppDispatch } from "@/store/hooks"
 import {
   setCheckBlock,
@@ -22,6 +28,7 @@ import {
   formatBps,
   formatTokenWithCommas,
   MARKET_PARAMS_DECIMALS,
+  trimAddress,
 } from "@/utils/formatters"
 
 import { MarketTransactionsProps } from "./interface"
@@ -40,13 +47,39 @@ export const MarketTransactions = ({
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
+  const { isDefaulted, defaultedMarketsOfBorrower } = useDefaultedMarkets(
+    market.chainId,
+  )
+  const defaultStatus = isDefaulted(market.address)
+  const isMarketDefaulted = defaultStatus === true
+  const otherDefaultedAddresses = defaultedMarketsOfBorrower(
+    market.borrower,
+  ).filter((address) => address !== market.address.toLowerCase())
+
+  const { data: borrowerMarkets } = useGetBorrowerMarkets(
+    market.borrower as `0x${string}`,
+    market.chainId,
+  )
+  const otherDefaultedMarkets: DefaultedMarketLink[] =
+    otherDefaultedAddresses.map((address) => ({
+      address,
+      name:
+        borrowerMarkets?.find(
+          (borrowerMarket) => borrowerMarket.address.toLowerCase() === address,
+        )?.name ?? trimAddress(address),
+      chainId: market.chainId,
+    }))
+
   const disableRepay = market.isClosed
   const hideBorrow =
     market.isClosed ||
-    market?.isDelinquent ||
-    (marketAccount && marketAccount.market.borrowableAssets.raw.isZero())
+    (!isMarketDefaulted &&
+      (market?.isDelinquent ||
+        (marketAccount && marketAccount.market.borrowableAssets.raw.isZero())))
   const disableBorrow =
-    hideBorrow || hasManuallyDisabledMarketActions(market.borrower)
+    hideBorrow ||
+    defaultStatus !== false ||
+    hasManuallyDisabledMarketActions(market.borrower)
 
   const isFixedTerm =
     (market.version === MarketVersion.V1
@@ -170,6 +203,16 @@ export const MarketTransactions = ({
 
       {holdTheMarket && <Divider sx={{ margin: "32px 0" }} />}
 
+      {isMarketDefaulted && <MarketDefaultNotice variant="ownMarket" />}
+
+      {!isMarketDefaulted && otherDefaultedAddresses.length > 0 && (
+        <MarketDefaultNotice
+          variant="otherMarket"
+          count={otherDefaultedAddresses.length}
+          markets={otherDefaultedMarkets}
+        />
+      )}
+
       {tempRatioExpired && (
         <Box
           sx={{
@@ -256,7 +299,11 @@ export const MarketTransactions = ({
         <TransactionBlock
           title={t("borrowerMarketDetails.transactions.toBorrow.title")}
           tooltip={t("borrowerMarketDetails.transactions.toBorrow.tooltip")}
-          amount={formatTokenWithCommas(marketAccount.market.borrowableAssets)}
+          amount={
+            isMarketDefaulted
+              ? "0"
+              : formatTokenWithCommas(marketAccount.market.borrowableAssets)
+          }
           asset={market.underlyingToken.symbol}
         >
           {!hideBorrow && (
