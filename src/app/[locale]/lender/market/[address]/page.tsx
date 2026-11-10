@@ -736,7 +736,6 @@ export default function LenderMarketDetails({
           <MarketHeader
             market={market}
             isLiveMarketReady={hasLiveMarket}
-            marketAccount={marketAccount}
             mla={mla}
             hasMarketDescription={hasMarketDescription}
           />
@@ -887,11 +886,7 @@ export default function LenderMarketDetails({
 
   return (
     <Box sx={MarketPageContainer(theme)}>
-      <MarketHeader
-        market={market}
-        marketAccount={marketAccount}
-        isLiveMarketReady={hasLiveMarket}
-      />
+      <MarketHeader market={market} isLiveMarketReady={hasLiveMarket} />
 
       {isDifferentChain && (
         <SwitchChainAlert desiredChainId={market?.chainId} />

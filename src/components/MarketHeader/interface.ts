@@ -1,11 +1,10 @@
-import { Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { Market } from "@wildcatfi/wildcat-sdk"
 
 import { MasterLoanAgreementResponse } from "@/app/api/mla/interface"
 
 export type MarketHeaderProps = {
   market: Market
   isLiveMarketReady?: boolean
-  marketAccount?: MarketAccount
   mla?: MasterLoanAgreementResponse | undefined | null | { noMLA: boolean }
   hasMarketDescription?: boolean
   variant?: "lender" | "borrower"
