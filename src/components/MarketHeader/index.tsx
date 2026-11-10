@@ -37,6 +37,7 @@ import {
   MarketHeaderDetailsRow,
   MarketHeaderInfoContainer,
   MarketHeaderStatusContainer,
+  MarketHeaderStatusRow,
   MarketHeaderTitleRow,
   MarketHeaderUpperContainer,
 } from "./style"
@@ -102,10 +103,6 @@ export const MarketHeader = ({
   const isStatusDefaulted = marketStatus?.status === MarketStatus.DEFAULTED
   const shouldShowCycleChip =
     !!marketStatus && Boolean(remainingTime) && !market.isClosed
-  const titleMaxWidth =
-    !isLiveMarketReady || shouldShowCycleChip || isStatusDefaulted
-      ? "430px"
-      : "550px"
 
   const isBorrowerView = variant === "borrower"
   const penaltyDays = Math.floor(marketStatus?.penaltyPeriod ?? 0)
@@ -361,7 +358,6 @@ export const MarketHeader = ({
     <Typography
       variant="title2"
       sx={{
-        maxWidth: titleMaxWidth,
         whiteSpace: "nowrap",
         textOverflow: "ellipsis",
         overflow: "hidden",
@@ -383,46 +379,48 @@ export const MarketHeader = ({
             titleText
           )}
 
-          {marketStatus ? (
-            <>
-              <MarketStatusChip
-                status={marketStatus}
-                variant="filled"
-                withPeriod={!isStatusDefaulted}
-              />
-              {isStatusDefaulted && penaltyDays >= 1 && (
-                <Typography
-                  variant={isBorrowerView ? "text4" : undefined}
-                  sx={{
-                    color: COLORS.blackRock08,
-                    whiteSpace: "nowrap",
-                    ...(!isBorrowerView && {
-                      fontSize: pxToRem(9),
-                      lineHeight: lh(12, 9),
-                      fontWeight: 500,
-                    }),
-                  }}
-                >
-                  {t("defaultedMarkets.chip.penaltyDays", {
-                    days: penaltyDays,
-                  })}
-                </Typography>
-              )}
-              {shouldShowCycleChip && (
-                <MarketCycleChip
-                  status={marketStatus.status}
-                  time={remainingTime}
+          <Box sx={MarketHeaderStatusRow}>
+            {marketStatus ? (
+              <>
+                <MarketStatusChip
+                  status={marketStatus}
+                  variant="filled"
+                  withPeriod={!isStatusDefaulted}
                 />
-              )}
-            </>
-          ) : (
-            <Skeleton
-              variant="rounded"
-              width={190}
-              height={16}
-              aria-label="Loading market status"
-            />
-          )}
+                {isStatusDefaulted && penaltyDays >= 1 && (
+                  <Typography
+                    variant={isBorrowerView ? "text4" : undefined}
+                    sx={{
+                      color: COLORS.blackRock08,
+                      whiteSpace: "nowrap",
+                      ...(!isBorrowerView && {
+                        fontSize: pxToRem(9),
+                        lineHeight: lh(12, 9),
+                        fontWeight: 500,
+                      }),
+                    }}
+                  >
+                    {t("defaultedMarkets.chip.penaltyDays", {
+                      days: penaltyDays,
+                    })}
+                  </Typography>
+                )}
+                {shouldShowCycleChip && (
+                  <MarketCycleChip
+                    status={marketStatus.status}
+                    time={remainingTime}
+                  />
+                )}
+              </>
+            ) : (
+              <Skeleton
+                variant="rounded"
+                width={190}
+                height={16}
+                aria-label="Loading market status"
+              />
+            )}
+          </Box>
         </Box>
 
         <Box sx={MarketHeaderDetailsRow}>
