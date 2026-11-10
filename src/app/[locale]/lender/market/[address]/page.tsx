@@ -928,12 +928,6 @@ export default function LenderMarketDetails({
           </Box>
         )}
 
-        {showStandaloneActions && (
-          <Box sx={StandaloneActionsWrapper(showDefaultNotice)}>
-            <MarketStandaloneActions market={market} />
-          </Box>
-        )}
-
         {!isConnected && (
           <ConnectWalletDialog
             open={isConnectDialogOpen}
@@ -942,10 +936,22 @@ export default function LenderMarketDetails({
         )}
 
         {showDefaultNotice && (
-          <Box sx={DefaultNoticeWrapper}>{renderDefaultNotice()}</Box>
+          <Box sx={DefaultNoticeWrapper(showStandaloneActions)}>
+            {renderDefaultNotice()}
+          </Box>
         )}
 
         {showPenaltyOnlyWarning && <BorrowerPenaltyWarning />}
+
+        {showStandaloneActions && (
+          <Box
+            sx={StandaloneActionsWrapper(
+              showDefaultNotice || showPenaltyOnlyWarning,
+            )}
+          >
+            <MarketStandaloneActions market={market} />
+          </Box>
+        )}
 
         <Box sx={SectionContainer(theme)}>
           {currentSection === LenderMarketSections.TRANSACTIONS && (
