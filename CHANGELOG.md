@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.25.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.25.0...v2.25.1) (2026-11-10)
+
+
+### Bug Fixes
+
+* market status position ([#507](https://github.com/wildcat-finance/wildcat-app-v2/issues/507)) ([49e4b70](https://github.com/wildcat-finance/wildcat-app-v2/commit/49e4b7046019253db26d9364a24af0806784378a))
+* show the mobile button before account data loads ([0fe37a3](https://github.com/wildcat-finance/wildcat-app-v2/commit/0fe37a30872ef9036dbae6c7f5484ae36ce5fba9))
+
 ## [2.25.0](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.24.0...v2.25.0) (2026-11-10)
 
 
