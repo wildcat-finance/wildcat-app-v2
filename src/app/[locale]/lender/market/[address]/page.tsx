@@ -39,6 +39,7 @@ import { ConnectWalletDialog } from "@/components/Header/HeaderButton/ConnectWal
 import { LeadBanner } from "@/components/LeadBanner"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
+import { MarketStandaloneActions } from "@/components/MarketStandaloneActions"
 import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
@@ -87,6 +88,8 @@ import {
   SectionContainer,
   SkeletonContainer,
   SkeletonStyle,
+  StandaloneActionsDivider,
+  StandaloneActionsWrapper,
 } from "./style"
 import {
   getEffectiveLenderRole,
@@ -269,6 +272,9 @@ export default function LenderMarketDetails({
     accessState === "error"
   const showLenderRequestBanner =
     bannerState === "request-access" && isKnownNotDefaultedForDisplay
+  const showLenderActionsRow =
+    showLenderTransactions && !!liveAccount && !!marketAccount
+  const showStandaloneActions = !isTransactionsLoading && !showLenderActionsRow
   const currentSection = useAppSelector(
     (state) => state.lenderMarketRouting.currentSection,
   )
@@ -397,6 +403,7 @@ export default function LenderMarketDetails({
       )
     return null
   }
+  const showDefaultNotice = isMarketDefaulted || borrowerHasOtherDefault
   const showPenaltyOnlyWarning =
     hasLiveMarket &&
     showBorrowerPenaltyWarning &&
@@ -729,7 +736,6 @@ export default function LenderMarketDetails({
           <MarketHeader
             market={market}
             isLiveMarketReady={hasLiveMarket}
-            marketAccount={marketAccount}
             mla={mla}
             hasMarketDescription={hasMarketDescription}
           />
@@ -880,11 +886,7 @@ export default function LenderMarketDetails({
 
   return (
     <Box sx={MarketPageContainer(theme)}>
-      <MarketHeader
-        market={market}
-        marketAccount={marketAccount}
-        isLiveMarketReady={hasLiveMarket}
-      />
+      <MarketHeader market={market} isLiveMarketReady={hasLiveMarket} />
 
       {isDifferentChain && (
         <SwitchChainAlert desiredChainId={market?.chainId} />
@@ -929,11 +931,24 @@ export default function LenderMarketDetails({
           />
         )}
 
-        {(isMarketDefaulted || borrowerHasOtherDefault) && (
-          <Box sx={DefaultNoticeWrapper}>{renderDefaultNotice()}</Box>
+        {showDefaultNotice && (
+          <Box sx={DefaultNoticeWrapper(showStandaloneActions)}>
+            {renderDefaultNotice()}
+          </Box>
         )}
 
         {showPenaltyOnlyWarning && <BorrowerPenaltyWarning />}
+
+        {showStandaloneActions && (
+          <Box
+            sx={StandaloneActionsWrapper(
+              showDefaultNotice || showPenaltyOnlyWarning,
+            )}
+          >
+            <MarketStandaloneActions market={market} />
+            <Divider sx={StandaloneActionsDivider} />
+          </Box>
+        )}
 
         <Box sx={SectionContainer(theme)}>
           {currentSection === LenderMarketSections.TRANSACTIONS && (

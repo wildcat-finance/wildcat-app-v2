@@ -9,11 +9,10 @@ import {
   Typography,
   useTheme,
 } from "@mui/material"
-import { HooksKind, MarketVersion } from "@wildcatfi/wildcat-sdk"
+import { HooksKind } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
-import { useAccount } from "wagmi"
 
 import { useGetBorrowerProfile } from "@/app/[locale]/lender/profile/hooks/useGetBorrowerProfile"
 import Avatar from "@/assets/icons/avatar_icon.svg"
@@ -22,12 +21,10 @@ import {
   BorrowerProfileChip,
   DefaultedBorrowerBadge,
 } from "@/components/BorrowerProfileChip"
-import { ExportModal } from "@/components/ExportModal"
 import { MarketCycleChip } from "@/components/MarketCycleChip"
 import { MobileMoreButton } from "@/components/Mobile/MobileMoreButton"
 import { useDefaultedMarkets } from "@/hooks/useDefaultedMarkets"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
-import { EXPORT_CHAIN_IDS, ExportChainId } from "@/lib/export/types"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
@@ -40,13 +37,13 @@ import {
   MarketHeaderDetailsRow,
   MarketHeaderInfoContainer,
   MarketHeaderStatusContainer,
+  MarketHeaderStatusRow,
   MarketHeaderTitleRow,
   MarketHeaderUpperContainer,
 } from "./style"
 
 export const MarketHeader = ({
   market,
-  marketAccount,
   mla,
   hasMarketDescription,
   isLiveMarketReady = true,
@@ -55,11 +52,6 @@ export const MarketHeader = ({
   const { t } = useTranslation()
   const theme = useTheme()
   const isMobile = useMobileResolution()
-  const { address: connectedAddress } = useAccount()
-  const [isExportOpen, setIsExportOpen] = React.useState(false)
-  const supportsExport =
-    market.version === MarketVersion.V2 &&
-    EXPORT_CHAIN_IDS.some((chainId) => chainId === market.chainId)
 
   const [remainingTime, setRemainingTime] = React.useState<string>("")
 
@@ -110,10 +102,6 @@ export const MarketHeader = ({
   const isStatusDefaulted = marketStatus?.status === MarketStatus.DEFAULTED
   const shouldShowCycleChip =
     !!marketStatus && Boolean(remainingTime) && !market.isClosed
-  const titleMaxWidth =
-    !isLiveMarketReady || shouldShowCycleChip || isStatusDefaulted
-      ? "430px"
-      : "550px"
 
   const isBorrowerView = variant === "borrower"
   const penaltyDays = Math.floor(marketStatus?.penaltyPeriod ?? 0)
@@ -152,17 +140,6 @@ export const MarketHeader = ({
 
     return trimAddress(market.borrower)
   }
-
-  const exportModal = supportsExport && (
-    <ExportModal
-      open={isExportOpen}
-      onClose={() => setIsExportOpen(false)}
-      chainId={market.chainId as ExportChainId}
-      marketAddress={market.address}
-      borrowerAddress={market.borrower}
-      defaultAddress={connectedAddress}
-    />
-  )
 
   if (isMobile)
     return (
@@ -213,9 +190,7 @@ export const MarketHeader = ({
               {market.name}
             </Typography>
 
-            {marketAccount && (
-              <MobileMoreButton marketAccount={marketAccount} />
-            )}
+            <MobileMoreButton market={market} />
           </Box>
 
           <Box
@@ -353,24 +328,6 @@ export const MarketHeader = ({
           >
             Withdrawal Requests
           </Button>
-          {supportsExport && (
-            <Button
-              variant="text"
-              size="small"
-              sx={{
-                minWidth: "fit-content",
-                padding: "6px 8px",
-                flexShrink: 0,
-                fontSize: 10,
-                fontWeight: 600,
-                lineHeight: "16px",
-                backgroundColor: COLORS.hintOfRed,
-              }}
-              onClick={() => setIsExportOpen(true)}
-            >
-              Export
-            </Button>
-          )}
           {mla && !("noMLA" in mla) && (
             <Button
               variant="text"
@@ -391,7 +348,6 @@ export const MarketHeader = ({
             </Button>
           )}
         </Box>
-        {exportModal}
       </Box>
     )
 
@@ -399,7 +355,6 @@ export const MarketHeader = ({
     <Typography
       variant="title2"
       sx={{
-        maxWidth: titleMaxWidth,
         whiteSpace: "nowrap",
         textOverflow: "ellipsis",
         overflow: "hidden",
@@ -421,46 +376,48 @@ export const MarketHeader = ({
             titleText
           )}
 
-          {marketStatus ? (
-            <>
-              <MarketStatusChip
-                status={marketStatus}
-                variant="filled"
-                withPeriod={!isStatusDefaulted}
-              />
-              {isStatusDefaulted && penaltyDays >= 1 && (
-                <Typography
-                  variant={isBorrowerView ? "text4" : undefined}
-                  sx={{
-                    color: COLORS.blackRock08,
-                    whiteSpace: "nowrap",
-                    ...(!isBorrowerView && {
-                      fontSize: pxToRem(9),
-                      lineHeight: lh(12, 9),
-                      fontWeight: 500,
-                    }),
-                  }}
-                >
-                  {t("defaultedMarkets.chip.penaltyDays", {
-                    days: penaltyDays,
-                  })}
-                </Typography>
-              )}
-              {shouldShowCycleChip && (
-                <MarketCycleChip
-                  status={marketStatus.status}
-                  time={remainingTime}
+          <Box sx={MarketHeaderStatusRow}>
+            {marketStatus ? (
+              <>
+                <MarketStatusChip
+                  status={marketStatus}
+                  variant="filled"
+                  withPeriod={!isStatusDefaulted}
                 />
-              )}
-            </>
-          ) : (
-            <Skeleton
-              variant="rounded"
-              width={190}
-              height={16}
-              aria-label="Loading market status"
-            />
-          )}
+                {isStatusDefaulted && penaltyDays >= 1 && (
+                  <Typography
+                    variant={isBorrowerView ? "text4" : undefined}
+                    sx={{
+                      color: COLORS.blackRock08,
+                      whiteSpace: "nowrap",
+                      ...(!isBorrowerView && {
+                        fontSize: pxToRem(9),
+                        lineHeight: lh(12, 9),
+                        fontWeight: 500,
+                      }),
+                    }}
+                  >
+                    {t("defaultedMarkets.chip.penaltyDays", {
+                      days: penaltyDays,
+                    })}
+                  </Typography>
+                )}
+                {shouldShowCycleChip && (
+                  <MarketCycleChip
+                    status={marketStatus.status}
+                    time={remainingTime}
+                  />
+                )}
+              </>
+            ) : (
+              <Skeleton
+                variant="rounded"
+                width={190}
+                height={16}
+                aria-label="Loading market status"
+              />
+            )}
+          </Box>
         </Box>
 
         <Box sx={MarketHeaderDetailsRow}>
@@ -506,18 +463,6 @@ export const MarketHeader = ({
           </Box>
         </Box>
       </Box>
-
-      {supportsExport && (
-        <Button
-          variant="contained"
-          color="secondary"
-          size="small"
-          onClick={() => setIsExportOpen(true)}
-        >
-          Export
-        </Button>
-      )}
-      {exportModal}
     </Box>
   )
 }

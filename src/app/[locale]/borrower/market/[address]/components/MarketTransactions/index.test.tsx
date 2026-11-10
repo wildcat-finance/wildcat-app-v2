@@ -32,7 +32,9 @@ jest.mock(
     useGetBorrowerMarkets: () => ({}),
   }),
 )
-jest.mock("@/assets/icons/telegram_icon.svg", () => () => null)
+jest.mock("@/components/MarketMoreMenu", () => ({
+  MarketMoreMenu: () => null,
+}))
 jest.mock("@/components/TransactionBlock", () => ({
   TransactionBlock: ({ children }: PropsWithChildren) => children,
 }))

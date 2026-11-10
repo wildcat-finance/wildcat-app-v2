@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { cleanup, render, screen } from "@testing-library/react"
-import { Market, MarketAccount, MarketVersion } from "@wildcatfi/wildcat-sdk"
+import { Market } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 
 import { useGetWithdrawals } from "@/app/[locale]/borrower/market/[address]/hooks/useGetWithdrawals"
@@ -11,9 +11,6 @@ import { MarketHeader } from "./index"
 let mockDefaultStatus: boolean | undefined = false
 let mockDisplayStatus: boolean | undefined = false
 
-jest.mock("wagmi", () => ({
-  useAccount: jest.fn(() => ({ address: undefined })),
-}))
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: jest.fn() }),
 }))
@@ -78,8 +75,6 @@ const makeMarket = (pendingWithdrawalExpiry: number) =>
   ({
     name: "Test Market",
     chainId: 1,
-    version: MarketVersion.V2,
-    address: "0x0000000000000000000000000000000000000002",
     borrower: "0x0000000000000000000000000000000000000001",
     pendingWithdrawalExpiry,
     underlyingToken: { symbol: "USDC" },
@@ -149,42 +144,9 @@ describe("MarketHeader", () => {
     },
   )
 
-  it.each([false, true])(
-    "only offers export for supported V2 markets (mobile: %s)",
-    (isMobile) => {
-      jest.mocked(useMobileResolution).mockReturnValue(isMobile)
-      const market = makeMarket(0)
-      const { rerender } = render(<MarketHeader market={market} />)
-      expect(screen.getByRole("button", { name: "Export" })).toBeTruthy()
-
-      rerender(
-        <MarketHeader
-          market={{ ...market, version: MarketVersion.V1 } as Market}
-        />,
-      )
-      expect(screen.queryByRole("button", { name: "Export" })).toBeNull()
-
-      rerender(
-        <MarketHeader
-          market={{ ...market, chainId: 10 } as unknown as Market}
-        />,
-      )
-      expect(screen.queryByRole("button", { name: "Export" })).toBeNull()
-      if (isMobile)
-        expect(screen.getByRole("link", { name: "Status" })).toBeTruthy()
-    },
-  )
-
-  it("renders mobile account controls only after account data is ready", () => {
+  it("renders mobile market actions before account data is ready", () => {
     jest.mocked(useMobileResolution).mockReturnValue(true)
-    const market = makeMarket(0)
-    const { rerender } = render(<MarketHeader market={market} />)
-
-    expect(screen.queryByTestId("mobile-more")).toBeNull()
-
-    rerender(
-      <MarketHeader market={market} marketAccount={{} as MarketAccount} />,
-    )
+    render(<MarketHeader market={makeMarket(0)} />)
 
     expect(screen.getByTestId("mobile-more")).not.toBeNull()
   })
