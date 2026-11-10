@@ -16,9 +16,11 @@ import { useTranslation } from "react-i18next"
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import Cross from "@/assets/icons/cross_icon.svg"
 import TelegramIcon from "@/assets/icons/telegram_icon.svg"
+import { MarketExportModal } from "@/components/ExportModal/MarketExportModal"
 import { LinkGroup } from "@/components/LinkComponent"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { COLORS } from "@/theme/colors"
+import { isMarketExportSupported } from "@/utils/marketExport"
 
 export const MobileMoreButton = ({
   marketAccount,
@@ -30,6 +32,14 @@ export const MobileMoreButton = ({
 
   const [open, setOpen] = useState(false)
   const toggleOpen = () => setOpen((prev) => !prev)
+
+  const [isExportOpen, setIsExportOpen] = useState(false)
+  const supportsExport = isMarketExportSupported(market)
+
+  const handleOpenExport = () => {
+    setOpen(false)
+    setIsExportOpen(true)
+  }
 
   const { handleAddToken, isAddingToken, canAddToken } = useAddToken(
     market?.marketToken,
@@ -129,6 +139,19 @@ export const MobileMoreButton = ({
           </Box>
         )}
 
+        {supportsExport && (
+          <Button
+            variant="contained"
+            color="secondary"
+            size="medium"
+            onClick={handleOpenExport}
+          >
+            <Typography variant="mobText3SemiBold">
+              Export Market Info
+            </Typography>
+          </Button>
+        )}
+
         <Button
           component={Link}
           href={EXTERNAL_LINKS.TELEGRAM_BOT}
@@ -160,6 +183,14 @@ export const MobileMoreButton = ({
           {t("helpModal.items.telegram.botButton")}
         </Button>
       </Dialog>
+
+      {supportsExport && (
+        <MarketExportModal
+          market={market}
+          open={isExportOpen}
+          onClose={() => setIsExportOpen(false)}
+        />
+      )}
     </>
   )
 }

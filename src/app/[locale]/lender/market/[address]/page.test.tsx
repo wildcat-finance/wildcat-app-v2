@@ -127,6 +127,9 @@ jest.mock("@/components/MarketHeader", () => ({
 jest.mock("@/components/MarketParameters", () => ({
   MarketParameters: () => null,
 }))
+jest.mock("@/components/MarketStandaloneActions", () => ({
+  MarketStandaloneActions: () => null,
+}))
 jest.mock("@/components/MobileConnectWallet", () => ({
   MobileConnectWallet: () => null,
 }))

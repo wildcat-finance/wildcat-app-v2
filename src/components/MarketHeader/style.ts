@@ -20,6 +20,8 @@ export const MarketHeaderInfoContainer = {
   display: "flex",
   flexDirection: "column",
   rowGap: "10px",
+  flex: "1 1 auto",
+  alignSelf: "stretch",
   minWidth: 0,
 }
 
@@ -27,6 +29,14 @@ export const MarketHeaderTitleRow = {
   display: "flex",
   alignItems: "center",
   columnGap: "10px",
+}
+
+export const MarketHeaderStatusRow = {
+  display: "flex",
+  alignItems: "center",
+  columnGap: "10px",
+  flexShrink: 0,
+  marginLeft: "auto",
 }
 
 export const MarketHeaderDetailsRow = {
