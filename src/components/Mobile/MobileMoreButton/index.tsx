@@ -9,7 +9,7 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material"
-import { MarketAccount } from "@wildcatfi/wildcat-sdk"
+import { Market } from "@wildcatfi/wildcat-sdk"
 import Link from "next/link"
 import { useTranslation } from "react-i18next"
 
@@ -22,13 +22,8 @@ import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { COLORS } from "@/theme/colors"
 import { isMarketExportSupported } from "@/utils/marketExport"
 
-export const MobileMoreButton = ({
-  marketAccount,
-}: {
-  marketAccount: MarketAccount
-}) => {
+export const MobileMoreButton = ({ market }: { market: Market }) => {
   const { t } = useTranslation()
-  const { market } = marketAccount
 
   const [open, setOpen] = useState(false)
   const toggleOpen = () => setOpen((prev) => !prev)
@@ -42,7 +37,7 @@ export const MobileMoreButton = ({
   }
 
   const { handleAddToken, isAddingToken, canAddToken } = useAddToken(
-    market?.marketToken,
+    market.marketToken,
   )
 
   return (
@@ -127,9 +122,9 @@ export const MobileMoreButton = ({
           >
             <Box sx={{ display: "flex", gap: "6px" }}>
               <Typography variant="mobText2">
-                {marketAccount.market.marketToken.address}
+                {market.marketToken.address}
               </Typography>
-              <LinkGroup copyValue={marketAccount.market.marketToken.address} />
+              <LinkGroup copyValue={market.marketToken.address} />
             </Box>
 
             <Typography variant="mobText4" color={COLORS.santasGrey}>

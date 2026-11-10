@@ -44,7 +44,6 @@ import {
 
 export const MarketHeader = ({
   market,
-  marketAccount,
   mla,
   hasMarketDescription,
   isLiveMarketReady = true,
@@ -191,9 +190,7 @@ export const MarketHeader = ({
               {market.name}
             </Typography>
 
-            {marketAccount && (
-              <MobileMoreButton marketAccount={marketAccount} />
-            )}
+            <MobileMoreButton market={market} />
           </Box>
 
           <Box
