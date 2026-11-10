@@ -1,33 +1,22 @@
 import * as React from "react"
 
-import { Button, Menu, MenuItem, SvgIcon, Typography } from "@mui/material"
-import Link from "next/link"
-import { useTranslation } from "react-i18next"
+import { Button, Menu, MenuItem, Typography } from "@mui/material"
 
-import TelegramIcon from "@/assets/icons/telegram_icon.svg"
 import { MarketExportModal } from "@/components/ExportModal/MarketExportModal"
-import { EXTERNAL_LINKS } from "@/constants/external-links"
-import { COLORS } from "@/theme/colors"
 import { isMarketExportSupported } from "@/utils/marketExport"
 
 import { MarketMoreMenuProps } from "./interface"
-import {
-  MenuPaperSx,
-  MoreButtonSx,
-  MoreButtonTextSx,
-  TelegramIconSx,
-  TelegramMenuItemSx,
-} from "./style"
+import { MenuPaperSx, MoreButtonSx, MoreButtonTextSx } from "./style"
 
 export const MarketMoreMenu = ({ market }: MarketMoreMenuProps) => {
-  const { t } = useTranslation()
   const buttonId = React.useId()
   const menuId = React.useId()
 
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null)
   const [isExportOpen, setIsExportOpen] = React.useState(false)
   const isMenuOpen = Boolean(anchorEl)
-  const supportsExport = isMarketExportSupported(market)
+
+  if (!isMarketExportSupported(market)) return null
 
   const handleCloseMenu = () => setAnchorEl(null)
 
@@ -66,36 +55,16 @@ export const MarketMoreMenu = ({ market }: MarketMoreMenuProps) => {
         MenuListProps={{ "aria-labelledby": buttonId }}
         slotProps={{ paper: { sx: MenuPaperSx } }}
       >
-        {supportsExport && (
-          <MenuItem onClick={handleOpenExport}>
-            <Typography variant="text3">Export Market Info</Typography>
-          </MenuItem>
-        )}
-
-        <MenuItem
-          component={Link}
-          href={EXTERNAL_LINKS.TELEGRAM_BOT}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={handleCloseMenu}
-          sx={TelegramMenuItemSx}
-        >
-          <SvgIcon aria-hidden="true" sx={TelegramIconSx}>
-            <TelegramIcon />
-          </SvgIcon>
-          <Typography variant="text3" color={COLORS.ultramarineBlue}>
-            {t("helpModal.items.telegram.botButton")}
-          </Typography>
+        <MenuItem onClick={handleOpenExport}>
+          <Typography variant="text3">Export Market Info</Typography>
         </MenuItem>
       </Menu>
 
-      {supportsExport && (
-        <MarketExportModal
-          market={market}
-          open={isExportOpen}
-          onClose={() => setIsExportOpen(false)}
-        />
-      )}
+      <MarketExportModal
+        market={market}
+        open={isExportOpen}
+        onClose={() => setIsExportOpen(false)}
+      />
     </>
   )
 }

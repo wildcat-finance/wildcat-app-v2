@@ -21,16 +21,3 @@ export const MoreButtonTextSx: SxProps<Theme> = {
 export const MenuPaperSx: SxProps<Theme> = {
   marginTop: "4px",
 }
-
-// Pull the leading icon in so its glyph lines up with the text of the items
-// above.
-export const TelegramMenuItemSx: SxProps<Theme> = {
-  gap: "2px",
-  paddingLeft: "8px",
-}
-
-export const TelegramIconSx: SxProps<Theme> = {
-  fontSize: "20px",
-  flexShrink: 0,
-  "& path": { fill: COLORS.ultramarineBlue },
-}

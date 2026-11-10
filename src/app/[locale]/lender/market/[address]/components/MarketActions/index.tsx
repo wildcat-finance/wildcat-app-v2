@@ -18,6 +18,7 @@ import { DepositModal } from "@/app/[locale]/lender/market/[address]/components/
 import { WithdrawModal } from "@/app/[locale]/lender/market/[address]/components/Modals/WithdrawModal"
 import { useAddToken } from "@/app/[locale]/lender/market/[address]/hooks/useAddToken"
 import { MarketMoreMenu } from "@/components/MarketMoreMenu"
+import { MarketTelegramButton } from "@/components/MarketTelegramButton"
 import { toastError } from "@/components/Toasts"
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { useMarketMla } from "@/hooks/useMarketMla"
@@ -267,6 +268,8 @@ export const MarketActions = ({
         </Button>
 
         <LenderMlaModal mla={mla} isLoading={mlaLoading} />
+
+        <MarketTelegramButton />
 
         <MarketMoreMenu market={market} />
       </Box>

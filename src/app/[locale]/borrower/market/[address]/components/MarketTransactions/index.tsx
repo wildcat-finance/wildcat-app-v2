@@ -13,6 +13,7 @@ import {
 import { MaturityModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MaturityModal"
 import { MinimumDepositModal } from "@/app/[locale]/borrower/market/[address]/components/Modals/MinimumDepositModal"
 import { MarketMoreMenu } from "@/components/MarketMoreMenu"
+import { MarketTelegramButton } from "@/components/MarketTelegramButton"
 import { TransactionBlock } from "@/components/TransactionBlock"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useDefaultedMarkets } from "@/hooks/useDefaultedMarkets"
@@ -165,6 +166,7 @@ export const MarketTransactions = ({
           {isFixedTerm && isAllowTermReduction && (
             <MaturityModal marketAccount={marketAccount} />
           )}
+          <MarketTelegramButton />
           <MarketMoreMenu market={market} />
         </Box>
       )}
