@@ -5,6 +5,7 @@ import { Box, Button, Skeleton } from "@mui/material"
 import { SnapshotBadge } from "@/components/SnapshotBadge"
 
 import { Publication } from "./api"
+import { text } from "./text"
 import { GD } from "./tokens"
 
 export const PublicationBadge = ({
@@ -18,7 +19,9 @@ export const PublicationBadge = ({
     blockNumber={publication.cut?.block ?? null}
     timestamp={publication.cut?.timestamp ?? null}
     details={[
-      publication.kind === "DayClose" ? "Day close" : "Intraday snapshot",
+      publication.kind === "DayClose"
+        ? text("pages.frame.dayClose")
+        : text("pages.frame.intraday"),
       ...labels,
     ]}
   />
@@ -102,7 +105,7 @@ export const Notice = ({
     <Box>{children}</Box>
     {onRetry && (
       <Button onClick={onRetry} variant="outlined" size="small">
-        Retry
+        {text("pages.frame.retry")}
       </Button>
     )}
   </Box>
@@ -117,7 +120,7 @@ export const AnalyticsSkeleton = ({
 }) => (
   <Box
     role="status"
-    aria-label="Loading analytics"
+    aria-label={text("pages.frame.loading")}
     aria-busy="true"
     sx={{ containerType: "inline-size" }}
   >

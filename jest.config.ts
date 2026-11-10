@@ -11,6 +11,12 @@ const config: Config = {
   coverageProvider: "v8",
   testEnvironment: "jsdom",
   moduleNameMapper: {
+    // Glass Door tests read a frozen copy of the wording, so an edit to the
+    // live file never breaks them; copy.test.ts checks the live file itself.
+    // The pattern matches the path's tail because the "@/" alias is already
+    // rewritten to a relative path when jest resolves it.
+    "(^|/)locales/en/glassDoor\\.json$":
+      "<rootDir>/src/components/GlassDoor/__fixtures__/glassDoor.frozen.json",
     "^@/(.*)$": "<rootDir>/src/$1",
     // ...
     "^@/app/(.*)$": "<rootDir>/src/app/$1",

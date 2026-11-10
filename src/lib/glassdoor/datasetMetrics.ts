@@ -683,15 +683,16 @@ export function marketMetricsAt(
   const timeDelinquent = state.timeDelinquentSeconds
   const lateWithinGrace = shortOfCash && timeDelinquent <= grace ? 1 : 0
   const pastGrace = timeDelinquent > grace ? 1 : 0
-  const graceCountdown = (() => {
-    if (pastGrace) return `${hours(timeDelinquent - grace)} h past grace`
-    if (lateWithinGrace) return hours(grace - timeDelinquent)
-    return "no countdown (not late)"
-  })()
+  // Grace countdown (D05): hours left in the allowance, negative once past
+  // it and blank when the market is not late. Cycle status (D06): hours until
+  // the running payout cycle ends, blank when none runs. Both are data; the
+  // pages write the sentence from their copy file.
+  const graceCountdown =
+    pastGrace || lateWithinGrace ? hours(grace - timeDelinquent) : ""
   const cycleStatus =
     state.pendingWithdrawalExpiry > at
-      ? `current cycle ends in ${hours(state.pendingWithdrawalExpiry - at)} h`
-      : "next cycle starts with the next withdrawal request"
+      ? hours(state.pendingWithdrawalExpiry - at)
+      : ""
 
   const { batches, flows } = summary
   const borrowed = toBigInt(flows.borrowedRaw)

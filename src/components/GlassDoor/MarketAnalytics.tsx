@@ -8,6 +8,9 @@ import {
 } from "./api"
 import { AnalyticsSkeleton, Notice } from "./Frame"
 import { MarketAnalyticsFrame, MarketDashboard } from "./MarketDashboard"
+import { scoped } from "./text"
+
+const notice = scoped("pages.market.notice")
 
 /** Independent API requests can straddle a publication switch. */
 export const sameSnapshot = (market: MarketData, borrower: BorrowerAnalytics) =>
@@ -51,12 +54,12 @@ export const MarketAnalyticsView = ({
     />
   )
   if (market.state === "Preparing") {
-    content = <Notice>Market analytics are being prepared.</Notice>
+    content = <Notice>{notice("preparing")}</Notice>
   } else if (
     market.state === "UnderReview" ||
     Object.keys(market.values).length === 0
   ) {
-    content = <Notice>Market analytics are under review.</Notice>
+    content = <Notice>{notice("underReview")}</Notice>
   }
   return (
     <MarketAnalyticsFrame
@@ -98,20 +101,20 @@ export const MarketAnalytics = ({
             market.refetch()
           }}
         >
-          Analytics could not be loaded.
+          {notice("failed")}
         </Notice>
       </MarketAnalyticsFrame>
     )
   if (market.data.status === "preparing")
     return (
       <MarketAnalyticsFrame>
-        <Notice>Market analytics are being prepared.</Notice>
+        <Notice>{notice("preparing")}</Notice>
       </MarketAnalyticsFrame>
     )
   if (market.data.status === "unavailable")
     return (
       <MarketAnalyticsFrame>
-        <Notice>Analytics are unavailable for this market.</Notice>
+        <Notice>{notice("unavailable")}</Notice>
       </MarketAnalyticsFrame>
     )
   return (

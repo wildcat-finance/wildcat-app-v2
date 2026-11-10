@@ -2,8 +2,8 @@ import * as React from "react"
 import { useEffect, useId, useRef, useState } from "react"
 
 import styles from "./analytics.module.css"
-import { Tone, Verdict } from "./rules"
-import { CARDS, CHIPS } from "./wording"
+import { Tone, Verdict, verdictWord } from "./rules"
+import { cardCopy, text } from "./text"
 
 // The seven-field analytics card, its expanded panel and the row that shares
 // one panel (product#908 handoff, AnalyticsCard.tsx), wired to app data.
@@ -11,8 +11,8 @@ import { CARDS, CHIPS } from "./wording"
 export type ChipKey = "median" | "markets" | "borrower"
 
 export type CardSpec = {
-  /** Card number from the spec, such as "2.1"; it selects the card's copy. */
-  id: keyof typeof CARDS
+  /** Card number, such as "2.1"; it selects the card's copy in glassDoor.json. */
+  id: string
   page: "market" | "borrower"
   /** Metric ids behind the card, as the spec lists them. */
   ids: string
@@ -50,7 +50,9 @@ const cx = (...names: (string | false | undefined)[]) =>
   names.filter(Boolean).join(" ")
 
 export const VerdictChip = ({ verdict }: { verdict: Verdict }) => (
-  <span className={cx(styles.verdict, VERDICT_CLASS[verdict])}>{verdict}</span>
+  <span className={cx(styles.verdict, VERDICT_CLASS[verdict])}>
+    {verdictWord(verdict)}
+  </span>
 )
 
 export const AnalyticsCard = ({
@@ -66,7 +68,7 @@ export const AnalyticsCard = ({
   id?: string
   controls?: string
 }) => {
-  const copy = CARDS[spec.id]
+  const copy = cardCopy(spec.id)
   return (
     <button
       type="button"
@@ -143,20 +145,20 @@ export const AnalyticsPanel = ({
   onClose: () => void
   id?: string
 }) => {
-  const copy = CARDS[spec.id]
+  const copy = cardCopy(spec.id)
   const nameId = useId()
   const chipTextId = useId()
   const chips: [ChipKey, string][] =
     spec.page === "market"
       ? [
-          ["median", CHIPS.market.median],
-          ["markets", CHIPS.market.markets],
-          ["borrower", CHIPS.market.borrower],
+          ["median", text("shared.chips.market.median")],
+          ["markets", text("shared.chips.market.markets")],
+          ["borrower", text("shared.chips.market.borrower")],
         ]
       : [
-          ["median", CHIPS.borrower.median],
-          ["markets", CHIPS.borrower.borrowers],
-          ["borrower", CHIPS.borrower.range],
+          ["median", text("shared.chips.borrower.median")],
+          ["markets", text("shared.chips.borrower.borrowers")],
+          ["borrower", text("shared.chips.borrower.range")],
         ]
   return (
     <section id={id} className={styles.panel} aria-labelledby={nameId}>
@@ -169,15 +171,15 @@ export const AnalyticsPanel = ({
         <button
           type="button"
           className={styles.panelClose}
-          aria-label={`Close ${copy.name}`}
+          aria-label={text("pages.panel.closeLabel", { name: copy.name })}
           onClick={onClose}
         >
-          Close
+          {text("pages.panel.close")}
         </button>
       </div>
       <div className={styles.panelGrid}>
         <div className={styles.panelCalc}>
-          <h5 className={styles.label}>How it is calculated</h5>
+          <h5 className={styles.label}>{text("pages.panel.calculated")}</h5>
           <pre className={styles.formula}>
             {spec.formula.split("\n").map((line) => (
               <span key={line} className={styles.formulaLine}>
@@ -191,19 +193,19 @@ export const AnalyticsPanel = ({
           ) : null}
         </div>
         <div className={styles.panelRight}>
-          <h5 className={styles.label}>What it means</h5>
+          <h5 className={styles.label}>{text("pages.panel.means")}</h5>
           <p className={styles.means}>{copy.means}</p>
-          <h5 className={styles.label}>What it tells you</h5>
+          <h5 className={styles.label}>{text("pages.panel.tells")}</h5>
           <p className={styles.tells}>{copy.tells}</p>
-          <h5 className={styles.label}>What it does not tell you</h5>
+          <h5 className={styles.label}>{text("pages.panel.notTells")}</h5>
           <p className={styles.notTells}>{copy.notTells}</p>
         </div>
         <div className={styles.panelCompare}>
-          <h5 className={styles.label}>Comparison</h5>
+          <h5 className={styles.label}>{text("pages.panel.comparison")}</h5>
           <div
             className={styles.chips}
             role="group"
-            aria-label={`Compare ${copy.name}`}
+            aria-label={text("pages.panel.compareLabel", { name: copy.name })}
           >
             {chips.map(([key, label]) => (
               <button

@@ -20,7 +20,7 @@ import {
   Tbd,
 } from "@/components/GlassDoor/charts"
 import { count, isNumber } from "@/components/GlassDoor/format"
-import { metric as metricLabel } from "@/components/GlassDoor/wording"
+import { metricLabel } from "@/components/GlassDoor/text"
 
 import { SpecMetric } from "./catalogue"
 import { Chevron } from "./Chevron"

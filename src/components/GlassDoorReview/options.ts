@@ -3,7 +3,7 @@
 // Display options per metric and their toggle states. States live in this
 // browser only, under their own key, so the live analytics never read them.
 
-import { metric as metricLabel } from "@/components/GlassDoor/wording"
+import { metricLabel } from "@/components/GlassDoor/text"
 
 import { SPEC_METRICS } from "./catalogue"
 import { designDefault, optionsFor, treatmentCardOf } from "./design"

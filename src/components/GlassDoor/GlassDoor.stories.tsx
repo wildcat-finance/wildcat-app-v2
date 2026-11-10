@@ -221,7 +221,7 @@ export const ResidualPenalty = () => (
           ...marketFixture.values,
           M21: 0,
           M85: 1,
-          D05: "6.6 h past grace",
+          D05: -6.6,
           M84: 0.05,
         },
       },

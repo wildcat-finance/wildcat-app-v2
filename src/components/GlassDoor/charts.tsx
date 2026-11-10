@@ -4,14 +4,20 @@ import styles from "./analytics.module.css"
 import { Series } from "./api"
 import {
   count,
+  daysOf,
   hours,
+  hoursNumber,
   isSeries,
   lifeShare,
   longDate,
   percent,
+  percentOf,
   score,
 } from "./format"
 import { Tone } from "./rules"
+import { scoped } from "./text"
+
+const c = scoped("charts")
 
 // The charts on the two pages, from the design handoff (analytics-charts.js):
 // flat shapes, neutrals plus the three status colours, labels in a legend
@@ -99,16 +105,20 @@ export const TwoLensesBar = ({
   const short = Math.max(0, 100 - inOrder)
   const red = Math.min(pastAllowance, short)
   const items = [
-    { pct: inOrder, color: C.green, text: `in order ${percent(inOrder)}` },
+    {
+      pct: inOrder,
+      color: C.green,
+      text: c("twoLenses.inOrder", { share: percent(inOrder) }),
+    },
     {
       pct: short - red,
       color: C.amberBg,
-      text: `short, within grace ${lifeShare(short - red)}`,
+      text: c("twoLenses.withinGrace", { share: lifeShare(short - red) }),
     },
     {
       pct: red,
       color: C.red,
-      text: `past allowance ${lifeShare(pastAllowance)}`,
+      text: c("twoLenses.pastAllowance", { share: lifeShare(pastAllowance) }),
     },
   ]
   return (
@@ -133,8 +143,7 @@ export const TwoLensesBar = ({
       {caption ? <Caption>{caption}</Caption> : null}
       {pastAllowance > short ? (
         <Caption>
-          penalty time ({lifeShare(pastAllowance)}) outlasted the shortfall: the
-          penalty clock winds down after a cure instead of resetting
+          {c("twoLenses.outlasted", { share: lifeShare(pastAllowance) })}
         </Caption>
       ) : null}
     </div>
@@ -156,13 +165,14 @@ export const TrendPair = ({
       className={styles.chCols}
       style={{ maxWidth: 320, height: 54 }}
       role="img"
-      aria-label={`${score(lifetime)} lifetime; ${score(
-        trailing,
-      )} last 90 days`}
+      aria-label={c("trendPair.label", {
+        lifetime: score(lifetime),
+        trailing: score(trailing),
+      })}
     >
       {[
-        { value: lifetime, color: C.fg2, label: "lifetime" },
-        { value: trailing, color: C.fg3, label: "last 90 d" },
+        { value: lifetime, color: C.fg2, label: c("trendPair.lifetime") },
+        { value: trailing, color: C.fg3, label: c("trendPair.trailing") },
       ].map((column) => (
         <div
           key={column.label}
@@ -172,7 +182,10 @@ export const TrendPair = ({
             background: column.color,
           }}
         >
-          {score(column.value)} {column.label}
+          {c("trendPair.column", {
+            value: score(column.value),
+            label: column.label,
+          })}
         </div>
       ))}
     </div>
@@ -187,7 +200,7 @@ export const WorstIncidentBars = ({ rows }: { rows: IncidentRow[] }) => (
   <div className={cx(styles.ch, styles.chRows)}>
     {rows.map((row) => {
       const pct = (100 * row.hours) / row.graceHours
-      const shown = pct >= 1000 ? `${count(pct)}%` : `${score(pct)}%`
+      const shown = percentOf(pct >= 1000 ? count(pct) : score(pct))
       return (
         <React.Fragment key={row.label}>
           <span className={styles.chRowsLabel} title={row.label}>
@@ -196,7 +209,10 @@ export const WorstIncidentBars = ({ rows }: { rows: IncidentRow[] }) => (
           <div
             className={styles.chTrack}
             role="img"
-            aria-label={`${row.label}: ${shown} of its allowance`}
+            aria-label={c("worstIncident.label", {
+              market: row.label,
+              share: shown,
+            })}
           >
             <div
               className={styles.chFill}
@@ -206,19 +222,23 @@ export const WorstIncidentBars = ({ rows }: { rows: IncidentRow[] }) => (
               }}
             />
             <div className={styles.chGate} style={{ left: "50%" }} />
-            {pct > 200 ? <span className={styles.chClip}>clipped</span> : null}
+            {pct > 200 ? (
+              <span className={styles.chClip}>
+                {c("worstIncident.clipped")}
+              </span>
+            ) : null}
           </div>
           <span className={styles.chRowsValue}>
-            {`${shown} (${hours(row.hours).replace(/ h$/, "")} of ${hours(
-              row.graceHours,
-            )})`}
+            {c("worstIncident.value", {
+              share: shown,
+              hours: hoursNumber(row.hours),
+              allowance: hours(row.graceHours),
+            })}
           </span>
         </React.Fragment>
       )
     })}
-    <Caption full>
-      red line = 100% of the market&apos;s own allowance (M15)
-    </Caption>
+    <Caption full>{c("worstIncident.caption")}</Caption>
   </div>
 )
 
@@ -239,7 +259,9 @@ export const MarkArray = ({
       className={styles.chMarks}
       role="img"
       aria-label={groups
-        .map((group) => `${group.label} ${count(group.count)}`)
+        .map((group) =>
+          c("markArray.group", { label: group.label, n: count(group.count) }),
+        )
         .join("; ")}
     >
       {groups.flatMap((group) =>
@@ -275,7 +297,12 @@ export const StackedBar = ({
         className={styles.chBar}
         role="img"
         aria-label={segments
-          .map((segment) => `${segment.label} ${format(segment.value)}`)
+          .map((segment) =>
+            c("stackedBar.segment", {
+              label: segment.label,
+              value: format(segment.value),
+            }),
+          )
           .join("; ")}
       >
         {segments.map((segment) => (
@@ -295,7 +322,10 @@ export const StackedBar = ({
       <Legend
         items={segments.map((segment) => ({
           color: segment.color,
-          text: `${segment.label} ${format(segment.value)}`,
+          text: c("stackedBar.segment", {
+            label: segment.label,
+            value: format(segment.value),
+          }),
         }))}
       />
       {caption ? <Caption>{caption}</Caption> : null}
@@ -317,10 +347,10 @@ export const ThresholdSliver = ({
     <div
       className={cx(styles.chTrack, styles.chTrackTall)}
       role="img"
-      aria-label={`${percent(
-        sharePct,
-        2,
-      )} against the ${thresholdPct}% threshold`}
+      aria-label={c("threshold.label", {
+        share: percent(sharePct, 2),
+        threshold: percentOf(String(thresholdPct)),
+      })}
     >
       <div
         className={styles.chFill}
@@ -338,7 +368,7 @@ export const ThresholdSliver = ({
         className={styles.chGateLabel}
         style={{ left: `${thresholdPct + 1}%` }}
       >
-        {thresholdPct}% amber threshold
+        {c("threshold.gate", { threshold: percentOf(String(thresholdPct)) })}
       </span>
     </div>
     {caption ? <Caption>{caption}</Caption> : null}
@@ -399,7 +429,12 @@ export const FillBar = ({
   )
 }
 
-const BUCKET_LABELS = ["under 6 h", "6 to 24 h", "24 to 48 h", "over 48 h"]
+const BUCKET_LABELS = [
+  c("histogram.under6"),
+  c("histogram.to24"),
+  c("histogram.to48"),
+  c("histogram.over48"),
+]
 
 /** Card 2.8: finished episodes by length; the red baseline is the grace period. */
 export const Histogram = ({
@@ -424,7 +459,12 @@ export const Histogram = ({
         style={{ height: compact ? 36 : 90 }}
         role="img"
         aria-label={buckets
-          .map((value, index) => `${BUCKET_LABELS[index]}: ${count(value)}`)
+          .map((value, index) =>
+            c("histogram.bucket", {
+              label: BUCKET_LABELS[index],
+              n: count(value),
+            }),
+          )
           .join("; ")}
       >
         {buckets.map((value, index) => (
@@ -500,21 +540,25 @@ export const AgeWeightedBars = ({
     <div
       className={styles.chWeighted}
       role="img"
-      aria-label={`${markets
-        .map(
-          (market) =>
-            `${market.label} ${score(market.grade)} over ${count(
-              market.days,
-            )} days`,
-        )
-        .join("; ")}; book ${score(book)}`}
+      aria-label={c("ageWeighted.label", {
+        markets: markets
+          .map((market) =>
+            c("ageWeighted.market", {
+              market: market.label,
+              grade: score(market.grade),
+              days: count(market.days),
+            }),
+          )
+          .join("; "),
+        book: score(book),
+      })}
     >
       <div className={styles.chWeightedLine} style={{ bottom: `${book}%` }} />
       <span
         className={styles.chWeightedLineLabel}
         style={{ bottom: `${book + 1}%` }}
       >
-        {score(book)} book
+        {c("ageWeighted.book", { book: score(book) })}
       </span>
       {markets.map((market) => {
         const weak = market.grade < 85
@@ -539,18 +583,18 @@ export const AgeWeightedBars = ({
         <span
           key={market.label}
           style={{ flex: market.days }}
-          title={`${market.label}, ${count(market.days)} days`}
+          title={c("ageWeighted.title", {
+            market: market.label,
+            days: count(market.days),
+          })}
         >
           {market.label}
           <br />
-          {count(market.days)} d
+          {daysOf(count(market.days))}
         </span>
       ))}
     </div>
-    <Caption>
-      width = Market age (M05) · height = In order, cash there (M18) · line = In
-      order, all markets (S05)
-    </Caption>
+    <Caption>{c("ageWeighted.caption")}</Caption>
   </div>
 )
 
@@ -574,15 +618,20 @@ export const BucketBar = ({
       n: inOrder,
       bg: C.greenBg,
       fg: C.greenFg,
-      text: `in order: ${count(inOrder)} market${inOrder === 1 ? "" : "s"}`,
+      text: c("bucketBar.inOrder", { count: inOrder, n: count(inOrder) }),
     },
     {
       n: within,
       bg: C.amberBg,
       fg: C.amberFg,
-      text: `within allowance: ${withinDebt}`,
+      text: c("bucketBar.within", { debt: withinDebt }),
     },
-    { n: past, bg: C.red, fg: "#fff", text: `past allowance: ${pastDebt}` },
+    {
+      n: past,
+      bg: C.red,
+      fg: "#fff",
+      text: c("bucketBar.past", { debt: pastDebt }),
+    },
   ]
   return (
     <div className={styles.ch}>
@@ -610,10 +659,7 @@ export const BucketBar = ({
           </div>
         ))}
       </div>
-      <Caption>
-        segment widths are market counts ({count(total)}); amounts are
-        whole-market debt, not the shortfall
-      </Caption>
+      <Caption>{c("bucketBar.caption", { total: count(total) })}</Caption>
     </div>
   )
 }
@@ -656,10 +702,7 @@ export const CompletedBars = ({
         </div>
       </React.Fragment>
     ))}
-    <Caption full>
-      dark = record from closed, fully repaid markets (S31, S32) · grey = live
-      positions
-    </Caption>
+    <Caption full>{c("completed.caption")}</Caption>
   </div>
 )
 
@@ -695,13 +738,14 @@ export const LateShareBars = ({
           <div
             className={styles.chTrack}
             style={{ display: "flex", overflow: "hidden" }}
-            title={`Late time per market (D17): ${row.lateDays}`}
+            title={c("lateShare.title", { days: row.lateDays })}
             role="img"
-            aria-label={`${row.label}: ${score(
-              row.withinPct + row.pastPct,
-            )}% of its life late, ${score(row.pastPct)}% past the allowance, ${
-              row.lateDays
-            } late`}
+            aria-label={c("lateShare.label", {
+              market: row.label,
+              late: percentOf(score(row.withinPct + row.pastPct)),
+              past: percentOf(score(row.pastPct)),
+              days: row.lateDays,
+            })}
           >
             <div
               style={{
@@ -718,7 +762,7 @@ export const LateShareBars = ({
             />
           </div>
           <span className={styles.chRowsValue}>
-            <b>{score(row.withinPct + row.pastPct)}%</b>{" "}
+            <b>{percentOf(score(row.withinPct + row.pastPct))}</b>{" "}
             <span style={{ color: C.fg3 }}>
               ({score(row.pastPct)}) · {row.lateDays}
             </span>
@@ -728,14 +772,12 @@ export const LateShareBars = ({
       <Legend
         full
         items={[
-          { color: C.amberBg, text: "within allowance" },
-          { color: C.redFg, text: "past allowance" },
+          { color: C.amberBg, text: c("lateShare.within") },
+          { color: C.redFg, text: c("lateShare.past") },
         ]}
       />
       <Caption full>
-        axis 0 to {plain(max)}% · % of each market&apos;s own life late = H02 /
-        H01 (quiet window included), split by M26 · days = Late time per market
-        (D17)
+        {c("lateShare.caption", { max: percentOf(plain(max)) })}
       </Caption>
     </div>
   )
@@ -749,7 +791,7 @@ export const DirectionPending = ({ yMax = 30 }: { yMax?: number }) => (
   <div className={cx(styles.ch, styles.chLine)}>
     <div className={styles.chLineY} aria-hidden="true">
       {[yMax, yMax / 2, 0].map((value) => (
-        <span key={value}>{value ? `${value}%` : "0"}</span>
+        <span key={value}>{value ? percentOf(String(value)) : "0"}</span>
       ))}
     </div>
     <div className={styles.chLinePlot}>
@@ -771,17 +813,10 @@ export const DirectionPending = ({ yMax = 30 }: { yMax?: number }) => (
           />
         ))}
       </svg>
-      <span className={styles.chLineEmpty}>not in this publication</span>
+      <span className={styles.chLineEmpty}>{c("direction.empty")}</span>
     </div>
-    <Legend
-      full
-      items={[
-        { color: C.amber, text: "share of book-days late, trailing 90 days" },
-      ]}
-    />
-    <Caption full>
-      the rolling 90-day series arrives with the next publication
-    </Caption>
+    <Legend full items={[{ color: C.amber, text: c("direction.legend") }]} />
+    <Caption full>{c("direction.pending")}</Caption>
   </div>
 )
 
@@ -813,7 +848,7 @@ export const DirectionLine = ({ series }: { series: Series }) => {
     <div className={cx(styles.ch, styles.chLine)}>
       <div className={styles.chLineY} aria-hidden="true">
         {[yMax, yMax / 2, 0].map((value) => (
-          <span key={value}>{value ? `${value}%` : "0"}</span>
+          <span key={value}>{value ? percentOf(String(value)) : "0"}</span>
         ))}
       </div>
       <div className={styles.chLinePlot}>
@@ -823,9 +858,11 @@ export const DirectionLine = ({ series }: { series: Series }) => {
           width="100%"
           height={PLOT_HEIGHT}
           role="img"
-          aria-label={`Share of book-days late, trailing 90 days: ${percent(
-            latest,
-          )} now, from ${longDate(first)} to ${longDate(last)}`}
+          aria-label={c("direction.label", {
+            now: percent(latest),
+            from: longDate(first),
+            to: longDate(last),
+          })}
         >
           {[6, PLOT_HEIGHT / 2, PLOT_HEIGHT - 6].map((y) => (
             <line
@@ -847,16 +884,13 @@ export const DirectionLine = ({ series }: { series: Series }) => {
           />
         </svg>
       </div>
-      <Legend
-        full
-        items={[
-          { color: C.amber, text: "share of book-days late, trailing 90 days" },
-        ]}
-      />
+      <Legend full items={[{ color: C.amber, text: c("direction.legend") }]} />
       <Caption full>
-        {`weekly from ${longDate(first)} to ${longDate(last)} · now ${percent(
-          latest,
-        )}`}
+        {c("direction.caption", {
+          from: longDate(first),
+          to: longDate(last),
+          now: percent(latest),
+        })}
       </Caption>
     </div>
   )
@@ -907,7 +941,7 @@ export const RankStrip = ({
           />
         ))}
       </div>
-      <Caption>weakest to strongest</Caption>
+      <Caption>{c("rankStrip.caption")}</Caption>
     </div>
   )
 }

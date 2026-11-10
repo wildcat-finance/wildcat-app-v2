@@ -13,156 +13,142 @@ export type ReferenceScope = "market" | "borrower"
 
 export type ReferenceValue = {
   id: string
-  name: string
   scope: ReferenceScope
   /** The value exactly as product#908 (or cheat sheet v4 for helpers) prints it. */
   reference: string
 }
 
-const market = (
-  id: string,
-  name: string,
-  reference: string,
-): ReferenceValue => ({
+// Each metric's name is in src/locales/en/glassDoor.json (metrics.<id>.name).
+const market = (id: string, reference: string): ReferenceValue => ({
   id,
-  name,
   scope: "market",
   reference,
 })
-const borrower = (
-  id: string,
-  name: string,
-  reference: string,
-): ReferenceValue => ({ id, name, scope: "borrower", reference })
+const borrower = (id: string, reference: string): ReferenceValue => ({
+  id,
+  scope: "borrower",
+  reference,
+})
 
 export const PRODUCT_908_REFERENCE: ReferenceValue[] = [
   // Shared helpers (product#908 gives formulas; values from cheat sheet v4)
-  market("H01", "Recorded life (seconds)", "45,380,616"),
-  market("H02", "Delinquent seconds", "7,896,216"),
-  market("H08", "Silent tail (seconds)", "1,152"),
-  market("H09", "Tail penalised flag", "0"),
+  market("H01", "45,380,616"),
+  market("H02", "7,896,216"),
+  market("H08", "1,152"),
+  market("H09", "0"),
   // Market header
-  market("M01", "Market name", "wmtUSDC"),
-  market("M02", "Underlying asset", "USDC"),
-  market("M77", "Lifecycle status", "Open"),
-  market("M03", "Deployed (UTC)", "2025-03-06"),
-  market(
-    "G4",
-    "Market type labels",
-    "Open term, allowlist, transfers restricted, MLA signed",
-  ),
-  market("M86", "Capacity used", "57.2%"),
-  market("M59", "Borrow transactions", "223"),
-  market("M60", "Repay transactions", "206"),
+  market("M01", "wmtUSDC"),
+  market("M02", "USDC"),
+  market("M77", "Open"),
+  market("M03", "2025-03-06"),
+  market("G4", "Open term, allowlist, transfers restricted, MLA signed"),
+  market("M86", "57.2%"),
+  market("M59", "223"),
+  market("M60", "206"),
   // 2.1 In order
-  market("M18", "In order, cash there", "82.6"),
+  market("M18", "82.6"),
   // Exact seconds, per Andreas (product#908, 20 Oct 2026); the sheet had 0.34%.
-  market("M26", "Time under penalty", "0.20%"),
-  market("M05", "Market age", "525"),
-  market("M67", "In order, trailing 90 days", "77.8"),
-  market("M68", "Trend", "-4.8"),
-  market("M20", "Delinquency episodes", "237"),
+  market("M26", "0.20%"),
+  market("M05", "525"),
+  market("M67", "77.8"),
+  market("M68", "-4.8"),
+  market("M20", "237"),
   // Hours display rounded up to one decimal (product#908, 20 Oct 2026).
-  market("M80", "Unrecorded tail (hours)", "0.4"),
+  market("M80", "0.4"),
   // 2.2 Worst incident
-  market("M24", "Worst incident, share of allowance", "113.7%"),
-  market("M23", "Longest episode", "54.6"),
-  market("M15", "Grace period (allowed lateness)", "48"),
-  market("M25", "Grace breaches", "5"),
-  market("M83", "Cured within grace", "97.9%"),
+  market("M24", "113.7%"),
+  market("M23", "54.6"),
+  market("M15", "48"),
+  market("M25", "5"),
+  market("M83", "97.9%"),
   // 2.3 Exits paid on time
-  market("M32", "Exits paid on time", "83.0"),
-  market("M31", "Batches fully funded at expiry", "268"),
-  market("M30", "Batches expired", "323"),
-  market("M33", "Exits paid on time, by money", "83.0"),
-  market(
-    "D18",
-    "Uncovered deadlines: paid late / never paid",
-    "55 uncovered: [late] / [never], to be computed",
-  ),
-  market("M37", "Open unpaid batches now", "0"),
-  market("M38", "Unclaimed withdrawals", "1,519,472"),
-  market("M58", "Out with the borrower", "65,423,188"),
-  market("M56", "Lifetime borrowed", "299,275,673"),
-  market("M57", "Lifetime repaid", "233,852,485"),
-  market("M08", "Assets held by the market", "1,565,141"),
+  market("M32", "83.0"),
+  market("M31", "268"),
+  market("M30", "323"),
+  market("M33", "83.0"),
+  market("D18", "55 uncovered: [late] / [never], to be computed"),
+  market("M37", "0"),
+  market("M38", "1,519,472"),
+  market("M58", "65,423,188"),
+  market("M56", "299,275,673"),
+  market("M57", "233,852,485"),
+  market("M08", "1,565,141"),
   // 2.4 Right now
-  market("M21", "Late within grace now", "0"),
-  market("M85", "Past grace now", "0"),
-  market("D05", "Grace countdown", "no countdown (not late)"),
-  market("M84", "Days since last episode cured", "0.5"),
-  market("M82", "Hours since last activity", "0.4"),
+  market("M21", "0"),
+  market("M85", "0"),
+  // Blank: not late. The sheet prints "no countdown (not late)", which is the
+  // page's sentence now, not the publication's.
+  market("D05", ""),
+  market("M84", "0.5"),
+  market("M82", "0.4"),
   // 2.5 What it pays
-  market("M11", "Base APR now", "8.50%"),
-  market("M13", "Protocol fee share", "5.0%"),
-  market("M39", "Realised lender APR", "10.04%"),
-  market("M42", "Penalty share of lender interest", "0.14%"),
-  market("M27", "Penalty interest paid", "11,703"),
-  market("M41", "Lifetime lender interest", "8,500,026"),
-  market("M40", "Time-weighted base APR", "10.33%"),
-  market("M44", "APR changes", "8"),
+  market("M11", "8.50%"),
+  market("M13", "5.0%"),
+  market("M39", "10.04%"),
+  market("M42", "0.14%"),
+  market("M27", "11,703"),
+  market("M41", "8,500,026"),
+  market("M40", "10.33%"),
+  market("M44", "8"),
   // 2.6 How the line is used
-  market("M06", "Capacity now", "130,000,000"),
-  market("M07", "Total owed to lenders now", "75,913,003"),
+  market("M06", "130,000,000"),
+  market("M07", "75,913,003"),
   // 2.8 Incident history
-  market("M69", "Episodes under 6 hours", "119"),
-  market("M70", "Episodes 6 to 24 hours", "103"),
-  market("M71", "Episodes 24 to 48 hours", "13"),
-  market("M72", "Episodes over 48 hours", "2"),
-  market("M22", "Mean episode duration", "9.3"),
+  market("M69", "119"),
+  market("M70", "103"),
+  market("M71", "13"),
+  market("M72", "2"),
+  market("M22", "9.3"),
   // 2.9 Who funds it
-  market("M48", "Active lenders now", "251"),
-  market("M49", "Distinct lenders, lifetime", "591"),
-  market("M51", "Lender retention", "42.5%"),
-  market("D10", "Current lender concentration", "9.9%"),
+  market("M48", "251"),
+  market("M49", "591"),
+  market("M51", "42.5%"),
+  market("D10", "9.9%"),
   // 2.10 Terms
-  market("M16", "Withdrawal cycle (payout window)", "24"),
-  market(
-    "D06",
-    "Cycle status",
-    "next cycle starts with the next withdrawal request",
-  ),
-  market("M12", "Penalty APR", "+5.00"),
-  market("M14", "Reserve ratio", "0%"),
-  market("D03", "Minimum deposit", "TBD: read per market"),
+  market("M16", "24"),
+  // Blank: no payout cycle is running (the page writes the sentence).
+  market("D06", ""),
+  market("M12", "+5.00"),
+  market("M14", "0%"),
+  market("D03", "TBD: read per market"),
   // Borrower header
-  borrower("D11", "Defaults on record", "No defaults on record"),
-  borrower("S01", "Markets on Wildcat", "5"),
-  borrower("S02", "First market deployed", "2025-03-06"),
-  borrower("S06", "Worst market", "82.6"),
-  borrower("S07", "Best market", "98.8"),
+  borrower("D11", "No defaults on record"),
+  borrower("S01", "5"),
+  borrower("S02", "2025-03-06"),
+  borrower("S06", "82.6"),
+  borrower("S07", "98.8"),
   // 3.1 In order, all markets
-  borrower("S05", "In order, all markets", "92.1"),
-  borrower("D21", "Contract kept, all markets", "99.9"),
-  borrower("S27", "In order, all markets, trailing 90 days", "89.8"),
-  borrower("S28", "Trend, all markets", "-2.3"),
-  borrower("S14", "Batches expired, all markets", "628"),
-  borrower("S15", "Batches funded at expiry, all markets", "547"),
-  borrower("S16", "Exits paid on time, all markets", "87.1"),
-  borrower("S17", "Weakest market on exits", "83.0"),
+  borrower("S05", "92.1"),
+  borrower("D21", "99.9"),
+  borrower("S27", "89.8"),
+  borrower("S28", "-2.3"),
+  borrower("S14", "628"),
+  borrower("S15", "547"),
+  borrower("S16", "87.1"),
+  borrower("S17", "83.0"),
   // 3.4 Right now, all markets
-  borrower("S18", "Markets late now", "1"),
-  borrower("S35", "Debt late within grace now", "45,827,898"),
-  borrower("S36", "Debt past grace now", "0"),
+  borrower("S18", "1"),
+  borrower("S35", "45,827,898"),
+  borrower("S36", "0"),
   // 3.6 Completed credit cycle
-  borrower("S31", "Capital through completed facilities", "0"),
-  borrower("S30", "Completed facilities", "0"),
-  borrower("S32", "Share of record from completed facilities", "0%"),
+  borrower("S31", "0"),
+  borrower("S30", "0"),
+  borrower("S32", "0%"),
   // The card shows "S33 of S30"; the sheet's "0 of 0".
-  borrower("S33", "Completions verified", "0"),
-  borrower("S34", "Clean closures", "0"),
+  borrower("S33", "0"),
+  borrower("S34", "0"),
   // 3.8 Discipline
-  borrower("S12", "Episodes, all markets", "450"),
-  borrower("D16", "Typical cure time, all markets", "9.6"),
-  borrower("S13", "Grace breaches, all markets", "6"),
+  borrower("S12", "450"),
+  borrower("D16", "9.6"),
+  borrower("S13", "6"),
   // Hours in cheat sheet v4.2 (v4 printed 2.3 days).
-  borrower("D15", "Longest episode, all markets", "54.6"),
+  borrower("D15", "54.6"),
   // 3.10 Lender breadth
   // Token holders, as M49, per Andreas (product#908, 20 Oct 2026); was 753.
-  borrower("S37", "Distinct lenders, all markets", "797"),
+  borrower("S37", "797"),
   // 3.12 Trouble over time
   // Per market (H02 / 86,400), shown per market on borrower card 3.12.
-  market("D17", "Late time per market", "91.4"),
+  market("D17", "91.4"),
 ]
 
 /**

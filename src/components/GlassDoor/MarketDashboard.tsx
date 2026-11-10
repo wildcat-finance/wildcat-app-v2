@@ -12,7 +12,9 @@ import { AnalyticsFrame } from "./Frame"
 import { isoDay, lifecycle, reader } from "./helpers"
 import { marketSpecs } from "./marketSpecs"
 import { Tone } from "./rules"
-import { CARDS } from "./wording"
+import { cardCopy, cardKey, scoped, text, textAt } from "./text"
+
+const p = scoped("pages.market")
 
 export const MarketAnalyticsFrame = ({
   publication,
@@ -24,9 +26,9 @@ export const MarketAnalyticsFrame = ({
   children: React.ReactNode
 }) => (
   <AnalyticsFrame
-    title="Market analytics"
+    title={p("title")}
     publication={publication}
-    labels={closed ? ["Finished · history frozen"] : []}
+    labels={closed ? [p("finishedLabel")] : []}
   >
     {children}
   </AnalyticsFrame>
@@ -37,13 +39,9 @@ const Id = ({ children }: { children: string }) => (
 )
 
 // The operator strip names each line by its headline ids, as the design does.
-const OPERATOR_IDS: Record<string, string> = {
-  "3.1": "S05 · D21 · S28",
-  "3.4": "S36/S18 (S35)",
-  "3.6": "S30/S31/S32",
-  "3.8": "S12 · S13 · D15",
-  "3.10": "S37",
-}
+/** A card's id legend on the operator strip, from the copy file. */
+const operatorIds = (card: string) =>
+  textAt(`cards.${cardKey(card)}.operatorIds`)
 const TONE_CHIP: Record<Tone, string> = {
   green: styles.verdictStrong,
   amber: styles.verdictWatch,
@@ -63,9 +61,7 @@ const OperatorChip = ({ spec }: { spec: CardSpec }) => {
   const tone = spec.kind === "state" ? spec.state ?? "neutral" : "neutral"
   return (
     <span className={`${styles.verdict} ${TONE_CHIP[tone]}`}>
-      {spec.kind === "state" && tone !== "neutral"
-        ? tone.toUpperCase()
-        : "NEUTRAL"}
+      {text(`shared.tone.${tone}`)}
     </span>
   )
 }
@@ -86,23 +82,23 @@ const Operator = ({
   if (!address) return null
   const lines = borrower && !borrower.partial ? borrowerSpecs(borrower) : []
   return (
-    <section className={styles.box} aria-label="The operator">
+    <section className={styles.box} aria-label={p("operator.label")}>
       <div className={styles.boxHead}>
         <h3 className={styles.boxTitle}>
-          The operator: {borrowerName ?? address}
+          {p("operator.title", { name: borrowerName ?? address })}
         </h3>
         <Link
           className={styles.boxLink}
           href={`${ROUTES.lender.profile}/${address}?chainId=${market.market.chainId}#analytics`}
         >
-          Full borrower analytics →
+          {p("operator.link")}
         </Link>
       </div>
       {lines.length ? (
         lines.map((spec) => (
           <div key={spec.id} className={styles.operatorRow}>
             <span className={styles.operatorName}>
-              {CARDS[spec.id].name} <Id>{OPERATOR_IDS[spec.id] ?? spec.ids}</Id>
+              {cardCopy(spec.id).name} <Id>{operatorIds(spec.id)}</Id>
             </span>
             <span
               className={`${styles.operatorValue} ${
@@ -153,18 +149,16 @@ export const MarketDashboard = ({
   const { s } = reader(market.values)
   const status = lifecycle(s("M77"))
   const address = market.flags.borrower
-  let message = "Borrower comparison unavailable."
-  if (borrowerLoading) message = "Loading the borrower record…"
-  else if (borrower?.partial)
-    message = "Borrower totals exclude markets whose data is unavailable."
-  else if (comparisonUnavailable)
-    message = "Borrower comparisons are unavailable for this snapshot."
+  let message = p("operator.unavailable")
+  if (borrowerLoading) message = p("operator.loading")
+  else if (borrower?.partial) message = p("operator.partial")
+  else if (comparisonUnavailable) message = p("operator.snapshot")
   return (
     <div className={styles.root}>
       <header className={styles.header}>
         <div className={styles.headerRow}>
           <h3 className={styles.headerTitle}>
-            {market.market.symbol ?? s("M01") ?? "Market"}
+            {market.market.symbol ?? s("M01") ?? p("fallbackName")}
           </h3>
           <Id>M01</Id>
           {market.market.name ? (
@@ -180,7 +174,7 @@ export const MarketDashboard = ({
           ) : null}
           <span
             className={`${styles.badge} ${
-              status === "Open" ? styles.badgeOpen : ""
+              s("M77") === "Open" ? styles.badgeOpen : ""
             }`}
           >
             {status}
@@ -205,18 +199,22 @@ export const MarketDashboard = ({
           {typeLabels?.length ? <Id>G4</Id> : null}
           <span className={styles.divider} aria-hidden="true" />
           <span className={styles.headerFact}>
-            deployed <b>{isoDay(s("M03"))}</b> <Id>M03</Id>
+            {p("deployed")} <b>{isoDay(s("M03"))}</b> <Id>M03</Id>
           </span>
         </div>
       </header>
       {renderCards ? (
-        renderCards(rowA, "Market cards", 5)
+        renderCards(rowA, p("cardsLabel"), 5)
       ) : (
-        <AnalyticsCardRow specs={rowA} initialOpen="2.1" label="Market cards" />
+        <AnalyticsCardRow
+          specs={rowA}
+          initialOpen="2.1"
+          label={p("cardsLabel")}
+        />
       )}
       {banner ? (
         <div className={styles.banner} role="note">
-          ⚠ {banner} <Id>M18 vs S06/S07</Id>
+          ⚠ {banner} <Id>{p("bannerIds")}</Id>
         </div>
       ) : null}
       <Operator
@@ -226,16 +224,16 @@ export const MarketDashboard = ({
         message={message}
       />
       <p className={styles.sectionLabel}>
-        Supporting detail
-        <span>collapsed by default · click any card for its seven fields</span>
+        {p("supporting")}
+        <span>{p("supportingHint")}</span>
       </p>
       {renderCards ? (
-        renderCards(supporting, "Supporting cards", 4)
+        renderCards(supporting, p("supportingLabel"), 4)
       ) : (
         <AnalyticsCardRow
           specs={supporting}
           columns={4}
-          label="Supporting cards"
+          label={p("supportingLabel")}
         />
       )}
     </div>

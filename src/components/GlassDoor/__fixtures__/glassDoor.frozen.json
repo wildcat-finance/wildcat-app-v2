@@ -1,0 +1,2151 @@
+{
+  "_about": "Frozen copy of src/locales/en/glassDoor.json, for tests only. Tests read this file instead of the live one (jest.config.ts), so editing wording in the live file never breaks a test; copy.test.ts checks the live file against it. Refresh it with `npm run freeze:glassdoor-copy` after adding, renaming or removing a text.",
+  "metrics": {
+    "M01": {
+      "name": "Market name and symbol",
+      "what": "Two fields: the symbol is the page title, the full name sits directly under it.",
+      "how": "Read directly.",
+      "where": "MarketDeployed.symbol and MarketDeployed.name (HooksFactory); also symbol() and name() on the market.",
+      "unit": "text"
+    },
+    "M02": {
+      "name": "Underlying asset",
+      "what": "The token the market lends.",
+      "how": "Read directly; symbol via the token.",
+      "where": "MarketDeployed.asset; asset() on the market.",
+      "unit": "text"
+    },
+    "M03": {
+      "name": "Deployed (UTC)",
+      "what": "When the market was created.",
+      "how": "Read directly.",
+      "where": "Block timestamp of the MarketDeployed log for this market.",
+      "unit": "timestamp"
+    },
+    "M05": {
+      "name": "Market age",
+      "what": "How long the market has existed.",
+      "how": "(end timestamp - Deployed (UTC) (M03)) / 86,400.",
+      "where": "Deployed (UTC) (M03) and the snapshot block timestamp; for closed markets, MarketClosed.timestamp instead of the snapshot.",
+      "unit": "days"
+    },
+    "M06": {
+      "name": "Capacity now",
+      "what": "The most the market may issue to lenders (deposit cap). Not a borrowing limit.",
+      "how": "Read directly; / 10^decimals.",
+      "where": "maxTotalSupply() at block N. History: MarketDeployed.maxTotalSupply, then MaxTotalSupplyUpdated.",
+      "unit": "tokens"
+    },
+    "M07": {
+      "name": "Total owed to lenders now",
+      "what": "Everything the market owes: lender balances including accrued interest, plus paid-but-unclaimed withdrawals and protocol fees.",
+      "how": "Read directly; / 10^decimals.",
+      "where": "totalDebts() at block N.",
+      "unit": "tokens"
+    },
+    "M08": {
+      "name": "Assets held by the market",
+      "what": "Tokens physically sitting in the market contract.",
+      "how": "Read directly; / 10^decimals.",
+      "where": "totalAssets() at block N.",
+      "unit": "tokens"
+    },
+    "M11": {
+      "name": "Base APR now",
+      "what": "The interest rate lenders earn right now; lenders receive it in full.",
+      "how": "bips / 100.",
+      "where": "annualInterestBips() at block N.",
+      "unit": "% p.a., two decimals"
+    },
+    "M12": {
+      "name": "Penalty APR",
+      "what": "Extra rate added to the base APR while the market is Penaltied.",
+      "how": "bips / 100.",
+      "where": "delinquencyFeeBips() (fixed at deploy; also in MarketDeployed).",
+      "unit": "percentage points"
+    },
+    "M13": {
+      "name": "Protocol fee share",
+      "what": "Share of base interest charged to the borrower on top and paid to the protocol. Never deducted from lenders, never charged on the penalty.",
+      "how": "bips / 100 = % of base interest. Borrower all-in = Base APR now (M11) x (1 + M13 / 100), plus Penalty APR (M12) while Penaltied.",
+      "where": "currentState().protocolFeeBips; changes via ProtocolFeeBipsUpdated; lifetime amounts = sum of InterestAndFeesAccrued.protocolFees.",
+      "unit": "% of base interest"
+    },
+    "M14": {
+      "name": "Reserve ratio",
+      "what": "Share of outstanding supply the borrower must keep in the market as cash. Applies to supply not queued for exit; temporarily raised after large APR cuts.",
+      "how": "bips / 100.",
+      "where": "reserveRatioBips() at block N; history via ReserveRatioBipsUpdated.",
+      "unit": "%"
+    },
+    "M15": {
+      "name": "Grace period (allowed lateness)",
+      "what": "How long the market may be delinquent before the penalty APR starts.",
+      "how": "seconds / 3,600.",
+      "where": "delinquencyGracePeriod() (fixed at deploy; also in MarketDeployed).",
+      "unit": "hours"
+    },
+    "M16": {
+      "name": "Withdrawal cycle (payout window)",
+      "what": "How long a withdrawal batch stays open before it expires. Cycles do not restart on their own.",
+      "how": "seconds / 3,600.",
+      "where": "withdrawalBatchDuration() (fixed at deploy; also in MarketDeployed).",
+      "unit": "hours"
+    },
+    "M18": {
+      "name": "In order, cash there",
+      "what": "Share of recorded life when the market held the cash it was required to hold.",
+      "how": "100 x (1 - Delinquent seconds (H02) / Recorded life (seconds) (H01)). \"never late\" when Delinquent seconds (H02) = 0.",
+      "where": "Recorded life (seconds) (H01), Delinquent seconds (H02).",
+      "unit": "score 0-100, one decimal"
+    },
+    "M20": {
+      "name": "Delinquency episodes",
+      "what": "How many separate times the market was short of cash, including an episode still open at block N.",
+      "how": "Count of finished episodes + open episode (0 or 1). Display \"N (1 still open)\" when one is open. Averages, buckets and cure rates use finished episodes only.",
+      "where": "Episodes from Delinquent seconds (H02).",
+      "unit": "integer"
+    },
+    "M21": {
+      "name": "Late within grace now",
+      "what": "The market is delinquent right now but still inside its grace period.",
+      "how": "1 if coverageLiquidity() > totalAssets() and timeDelinquent <= delinquencyGracePeriod, else 0. Do not use currentState().isDelinquent: it is the stored flag and is not recomputed by the view.",
+      "where": "coverageLiquidity() and totalAssets() at block N; currentState().timeDelinquent; Grace period (allowed lateness) (M15).",
+      "unit": "flag 0/1"
+    },
+    "M22": {
+      "name": "Mean episode duration",
+      "what": "Average length of a finished episode.",
+      "how": "Sum of closed durations / number of closed episodes.",
+      "where": "Closed episodes from Delinquent seconds (H02).",
+      "unit": "hours, one decimal"
+    },
+    "M23": {
+      "name": "Longest episode",
+      "what": "Length of the single longest episode; an open episode counts at its running length.",
+      "how": "Max duration.",
+      "where": "Episodes from Delinquent seconds (H02).",
+      "unit": "hours, one decimal"
+    },
+    "M24": {
+      "name": "Worst incident, share of allowance",
+      "what": "How much of the grace period the worst episode used; over 100 = the allowance was exceeded.",
+      "how": "100 x Longest episode (M23) / Grace period (allowed lateness) (M15).",
+      "where": "Longest episode (M23), Grace period (allowed lateness) (M15).",
+      "unit": "%, one decimal"
+    },
+    "M25": {
+      "name": "Grace breaches",
+      "what": "How many times the penalty actually started.",
+      "how": "Count penalty spans. The clock does not reset between episodes and the penalty continues after cash is restored until timeDelinquent drops below grace, so spans and episodes do not line up one to one.",
+      "where": "InterestAndFeesAccrued logs: a breach is a continuous run of logs with delinquencyFeeRay > 0 (a penalty span).",
+      "unit": "integer"
+    },
+    "M26": {
+      "name": "Time under penalty",
+      "what": "Share of life when the penalty APR was charging.",
+      "how": "Penalty seconds per log = delinquencyFeeRay x 31,536,000 / (delinquencyFeeBips x 10^23). M26 = 100 x (sum of penalty seconds from the logs + Penalty seconds in the quiet window (H09)) / Recorded life (seconds) (H01). Do not count whole intervals: a log can be partly penalised.",
+      "where": "InterestAndFeesAccrued logs: delinquencyFeeRay > 0 means the penalty was charging over part of the interval; plus the projected penalty seconds of the quiet window (Penalty seconds in the quiet window (H09)).",
+      "unit": "%, two decimals"
+    },
+    "M27": {
+      "name": "Penalty interest paid",
+      "what": "Total extra interest lenders earned from the penalty.",
+      "how": "Per log: scaledTotalSupply x prevScaleFactor x delinquencyFeeRay / 10^54. Sum / 10^decimals.",
+      "where": "InterestAndFeesAccrued.delinquencyFeeRay per log, applied to the supply at that time.",
+      "unit": "tokens"
+    },
+    "M30": {
+      "name": "Batches expired",
+      "what": "How many exit batches reached their deadline.",
+      "how": "Count. \"no exit history yet\" when 0.",
+      "where": "Count of WithdrawalBatchExpired logs up to block N.",
+      "unit": "integer"
+    },
+    "M31": {
+      "name": "Batches fully funded at expiry",
+      "what": "Batches that had all their money ready on the deadline.",
+      "how": "Count logs where scaledAmountBurned = scaledTotalAmount (scaled with scaled). The contract processes the batch at the next transaction after expiry with the cash held then, so a repayment after the deadline but before the next touch still counts as on time.",
+      "where": "WithdrawalBatchExpired(expiry, scaledTotalAmount, scaledAmountBurned, normalizedAmountPaid).",
+      "unit": "integer"
+    },
+    "M32": {
+      "name": "Exits paid on time",
+      "what": "Share of exit deadlines met in full on the day.",
+      "how": "100 x Batches fully funded at expiry (M31) / Batches expired (M30). Blank when Batches expired (M30) = 0. STRONG only with Batches expired (M30) >= 10, else LIMITED.",
+      "where": "Batches fully funded at expiry (M31), Batches expired (M30).",
+      "unit": "%, one decimal"
+    },
+    "M33": {
+      "name": "Exits paid on time, by money",
+      "what": "Share of requested exit value that was available on the day.",
+      "how": "100 x sum(paid at expiry) / sum(requested, normalized at expiry).",
+      "where": "WithdrawalBatchExpired: normalizedAmountPaid and scaledTotalAmount x scaleFactor at expiry.",
+      "unit": "%, one decimal"
+    },
+    "M37": {
+      "name": "Open unpaid batches now",
+      "what": "Exit batches that expired and are still not fully paid.",
+      "how": "Array length.",
+      "where": "getUnpaidBatchExpiries() at block N.",
+      "unit": "integer"
+    },
+    "M38": {
+      "name": "Unclaimed withdrawals",
+      "what": "Money already paid into expired batches, waiting for lenders to claim; reserved, cannot be borrowed.",
+      "how": "Read directly; / 10^decimals.",
+      "where": "currentState().normalizedUnclaimedWithdrawals at block N.",
+      "unit": "tokens"
+    },
+    "M39": {
+      "name": "Realised lender APR",
+      "what": "The rate lenders actually earned over the market's life, weighted by money and time; includes penalty interest.",
+      "how": "Interest per log = scaledTotalSupply x prevScaleFactor x (baseInterestRay + delinquencyFeeRay) / 10^54, where prevScaleFactor = scaleFactor / (1 + (baseInterestRay + delinquencyFeeRay) / 10^27). Realised APR = sum(interest) / sum(normalized supply x seconds) x 31,536,000.",
+      "where": "InterestAndFeesAccrued logs and the scaled supply before each log (previousState() or rebuilt from events).",
+      "unit": "% p.a., two decimals"
+    },
+    "M40": {
+      "name": "Time-weighted base APR",
+      "what": "Average posted rate over the market's life.",
+      "how": "Sum(rate x seconds in force) / Recorded life (seconds) (H01).",
+      "where": "MarketDeployed.annualInterestBips, then every AnnualInterestBipsUpdated with its timestamp.",
+      "unit": "% p.a., two decimals"
+    },
+    "M41": {
+      "name": "Lifetime lender interest",
+      "what": "All interest lenders earned, base plus penalty.",
+      "how": "Sum / 10^decimals.",
+      "where": "InterestAndFeesAccrued logs, per-log interest as in Realised lender APR (M39).",
+      "unit": "tokens"
+    },
+    "M42": {
+      "name": "Penalty share of lender interest",
+      "what": "How much of all interest came from the penalty.",
+      "how": "100 x Penalty interest paid (M27) / Lifetime lender interest (M41). This is the locked definition (closes v3 open item C5).",
+      "where": "Penalty interest paid (M27), Lifetime lender interest (M41).",
+      "unit": "%, two decimals"
+    },
+    "M44": {
+      "name": "APR changes",
+      "what": "How many times the rate was changed.",
+      "how": "Count.",
+      "where": "AnnualInterestBipsUpdated logs.",
+      "unit": "integer"
+    },
+    "M48": {
+      "name": "Active lenders now",
+      "what": "Wallets holding market tokens right now.",
+      "how": "Count addresses with scaledBalanceOf > 0. Exclude the market contract itself (it holds tokens queued for withdrawal), 0x0 and escrow addresses.",
+      "where": "Addresses from Transfer logs; scaledBalanceOf(address) at block N.",
+      "unit": "integer"
+    },
+    "M49": {
+      "name": "Distinct lenders, lifetime",
+      "what": "Every wallet that ever held this market's token.",
+      "how": "Count unique addresses. Transfer values are normalized: never sum them for balances.",
+      "where": "Transfer logs: every to-address other than 0x0, the market and escrows.",
+      "unit": "integer"
+    },
+    "M51": {
+      "name": "Lender retention",
+      "what": "Share of all past lenders who still hold tokens.",
+      "how": "100 x Active lenders now (M48) / Distinct lenders, lifetime (M49).",
+      "where": "Active lenders now (M48), Distinct lenders, lifetime (M49).",
+      "unit": "%, one decimal"
+    },
+    "M56": {
+      "name": "Lifetime borrowed",
+      "what": "Everything the borrower ever drew.",
+      "how": "Sum / 10^decimals.",
+      "where": "Borrow(assetAmount) logs.",
+      "unit": "tokens"
+    },
+    "M57": {
+      "name": "Lifetime repaid",
+      "what": "Everything the borrower repaid through the repay functions.",
+      "how": "Sum / 10^decimals. Undercounts plain ERC-20 transfer repayments: reconcile with totalAssets() jumps.",
+      "where": "DebtRepaid(from, assetAmount) logs.",
+      "unit": "tokens"
+    },
+    "M58": {
+      "name": "Out with the borrower",
+      "what": "Money currently drawn.",
+      "how": "Card shows event basis: Lifetime borrowed (M56) - Lifetime repaid (M57) (principal only). State basis = Total owed to lenders now (M07) - Assets held by the market (M08) includes accrued interest and is a different number; label whichever is shown.",
+      "where": "Lifetime borrowed (M56), Lifetime repaid (M57) (event basis); totalDebts() - totalAssets() (state basis).",
+      "unit": "tokens"
+    },
+    "M59": {
+      "name": "Borrow transactions",
+      "what": "How many times the borrower drew money.",
+      "how": "Count.",
+      "where": "Borrow logs.",
+      "unit": "integer"
+    },
+    "M60": {
+      "name": "Repay transactions",
+      "what": "How many times the borrower repaid.",
+      "how": "Count.",
+      "where": "DebtRepaid logs.",
+      "unit": "integer"
+    },
+    "M67": {
+      "name": "In order, trailing 90 days",
+      "what": "The cash-there grade restricted to the last 90 days.",
+      "how": "100 x (1 - delinquent seconds in window / recorded seconds in window). Blank when the window holds fewer than 7 days of records.",
+      "where": "Recorded life (seconds) (H01) and Delinquent seconds (H02) restricted to accrual intervals and episode time inside (block N timestamp - 90 days, block N], tail included.",
+      "unit": "score, one decimal"
+    },
+    "M68": {
+      "name": "Trend",
+      "what": "Whether the last 90 days are better or worse than the whole life.",
+      "how": "In order, trailing 90 days (M67) - In order, cash there (M18). Blank when In order, trailing 90 days (M67) is blank.",
+      "where": "In order, trailing 90 days (M67), In order, cash there (M18).",
+      "unit": "points, one decimal"
+    },
+    "M69": {
+      "name": "Episodes under 6 hours",
+      "what": "Short episodes, usually same-day top-ups.",
+      "how": "Count with duration < 6 h.",
+      "where": "Closed episodes from Delinquent seconds (H02).",
+      "unit": "integer"
+    },
+    "M70": {
+      "name": "Episodes 6 to 24 hours",
+      "what": "Mid-length episodes.",
+      "how": "Count with 6 h <= duration <= 24 h.",
+      "where": "Closed episodes from Delinquent seconds (H02).",
+      "unit": "integer"
+    },
+    "M71": {
+      "name": "Episodes 24 to 48 hours",
+      "what": "Long episodes still inside a 48 h grace.",
+      "how": "Count with 24 h < duration <= 48 h.",
+      "where": "Closed episodes from Delinquent seconds (H02).",
+      "unit": "integer"
+    },
+    "M72": {
+      "name": "Episodes over 48 hours",
+      "what": "Longest episodes.",
+      "how": "Count with duration > 48 h.",
+      "where": "Closed episodes from Delinquent seconds (H02).",
+      "unit": "integer"
+    },
+    "M77": {
+      "name": "Lifecycle status",
+      "what": "Open or closed.",
+      "how": "Open if false, Closed (shown as \"Finished\") if true.",
+      "where": "isClosed() at block N; closure time from MarketClosed(timestamp).",
+      "unit": "label"
+    },
+    "M80": {
+      "name": "Quiet window (hours)",
+      "what": "How long the market has had no recorded activity, for the stale-record warning on the grade card. The same quantity as Hours since last activity (M82); kept as its own id because it drives the warning line on the grade card.",
+      "how": "(block N timestamp - lastInterestAccruedTimestamp) / 3,600, identical to Hours since last activity (M82). Show the warning line (\"record silent N h\") when above 24 h while the market owes money.",
+      "where": "currentState().lastInterestAccruedTimestamp and block N.",
+      "unit": "hours"
+    },
+    "M82": {
+      "name": "Hours since last activity",
+      "what": "How stale the chain record is at block N.",
+      "how": "(block N timestamp - lastInterestAccruedTimestamp) / 3,600.",
+      "where": "currentState().lastInterestAccruedTimestamp.",
+      "unit": "hours"
+    },
+    "M83": {
+      "name": "Cured within grace",
+      "what": "Share of finished episodes that ended before the penalty started.",
+      "how": "100 x closed episodes containing no penalty span / closed episodes.",
+      "where": "Closed episodes from Delinquent seconds (H02) and the penalty spans (Grace breaches (M25)).",
+      "unit": "%, one decimal"
+    },
+    "M84": {
+      "name": "Days since last episode cured",
+      "what": "How long the market has been in order since the last episode ended.",
+      "how": "(block N timestamp - last episode end) / 86,400. \"never late\" if no episode ever; hidden while an episode is open.",
+      "where": "End time of the latest closed episode in Delinquent seconds (H02).",
+      "unit": "days, one decimal"
+    },
+    "M85": {
+      "name": "Past grace now",
+      "what": "The market is past its grace period right now.",
+      "how": "1 if timeDelinquent > delinquencyGracePeriod, else 0. Can be 1 while the market already holds enough cash (the penalty outlasts the shortfall).",
+      "where": "currentState().timeDelinquent at block N; Grace period (allowed lateness) (M15).",
+      "unit": "flag 0/1"
+    },
+    "M86": {
+      "name": "Capacity used",
+      "what": "How full the deposit cap is.",
+      "how": "100 x totalSupply() / maxTotalSupply(). The cap limits totalSupply (lender balances), not totalDebts. Can exceed 100 through interest. Blank when closed.",
+      "where": "totalSupply() and maxTotalSupply() at block N.",
+      "unit": "%, one decimal"
+    },
+    "S01": {
+      "name": "Markets on Wildcat",
+      "what": "How many markets this borrower runs or ran.",
+      "how": "Count markets that ever took deposits; never-funded markets are counted separately, not graded.",
+      "where": "MarketAdded logs on the ArchController for the list; borrower() on each market to group.",
+      "unit": "integer"
+    },
+    "S02": {
+      "name": "First market deployed",
+      "what": "When the borrower started on Wildcat.",
+      "how": "Earliest timestamp.",
+      "where": "MarketDeployed timestamps of the borrower's markets.",
+      "unit": "date"
+    },
+    "S05": {
+      "name": "In order, all markets",
+      "what": "The cash-there grade across all the borrower's markets, weighted by age.",
+      "how": "Sum(In order, cash there (M18) x Market age (M05)) / sum(Market age (M05)).",
+      "where": "In order, cash there (M18) and Market age (M05) of each funded market.",
+      "unit": "score 0-100, one decimal"
+    },
+    "S06": {
+      "name": "Worst market",
+      "what": "The weakest market in the book.",
+      "how": "Min In order, cash there (M18).",
+      "where": "In order, cash there (M18) of each market.",
+      "unit": "score, one decimal"
+    },
+    "S07": {
+      "name": "Best market",
+      "what": "The strongest market in the book.",
+      "how": "Max In order, cash there (M18); header shows spread = S07 - Worst market (S06) for multi-market borrowers.",
+      "where": "In order, cash there (M18) of each market.",
+      "unit": "score, one decimal"
+    },
+    "S12": {
+      "name": "Episodes, all markets",
+      "what": "All episodes across the borrower's markets, including any still open.",
+      "how": "Sum Delinquency episodes (M20). Display \"N (K still open)\" when any are open.",
+      "where": "Delinquency episodes (M20) of each market.",
+      "unit": "integer"
+    },
+    "S13": {
+      "name": "Grace breaches, all markets",
+      "what": "All penalty spans across the book.",
+      "how": "Sum Grace breaches (M25); per market = S13 / Markets on Wildcat (S01); per 100 episodes = 100 x S13 / Episodes, all markets (S12).",
+      "where": "Grace breaches (M25) of each market.",
+      "unit": "integer"
+    },
+    "S14": {
+      "name": "Batches expired, all markets",
+      "what": "Exit deadlines faced across the book.",
+      "how": "Sum Batches expired (M30).",
+      "where": "Batches expired (M30) of each market.",
+      "unit": "integer"
+    },
+    "S15": {
+      "name": "Batches funded at expiry, all markets",
+      "what": "Deadlines met in full across the book.",
+      "how": "Sum Batches fully funded at expiry (M31).",
+      "where": "Batches fully funded at expiry (M31) of each market.",
+      "unit": "integer"
+    },
+    "S16": {
+      "name": "Exits paid on time, all markets",
+      "what": "Share of all exit deadlines met in full, whole book.",
+      "how": "100 x Batches funded at expiry, all markets (S15) / Batches expired, all markets (S14). Blank when Batches expired, all markets (S14) = 0; STRONG only with Batches expired, all markets (S14) >= 10.",
+      "where": "Batches funded at expiry, all markets (S15), Batches expired, all markets (S14).",
+      "unit": "%, one decimal"
+    },
+    "S17": {
+      "name": "Weakest market on exits",
+      "what": "Lowest M32 in the book, shown with that market's own M30.",
+      "how": "Min Exits paid on time (M32).",
+      "where": "Exits paid on time (M32) and Batches expired (M30) of each market.",
+      "unit": "%, one decimal"
+    },
+    "S18": {
+      "name": "Markets late now",
+      "what": "How many of the borrower's markets are delinquent right now.",
+      "how": "Count markets with Late within grace now (M21) = 1 or Past grace now (M85) = 1.",
+      "where": "Late within grace now (M21) and Past grace now (M85) of each market.",
+      "unit": "integer"
+    },
+    "S27": {
+      "name": "In order, all markets, trailing 90 days",
+      "what": "The book grade restricted to the last 90 days.",
+      "how": "Sum(In order, trailing 90 days (M67) x window days) / sum(window days).",
+      "where": "In order, trailing 90 days (M67) and the window-days of each market.",
+      "unit": "score, one decimal"
+    },
+    "S28": {
+      "name": "Trend, all markets",
+      "what": "Whether the book is getting better or worse.",
+      "how": "In order, all markets, trailing 90 days (S27) - In order, all markets (S05).",
+      "where": "In order, all markets, trailing 90 days (S27), In order, all markets (S05).",
+      "unit": "points, one decimal"
+    },
+    "S30": {
+      "name": "Completed facilities",
+      "what": "Markets this borrower closed after repaying everything.",
+      "how": "Count closed markets that ever took deposits. \"none completed yet\" when 0.",
+      "where": "MarketClosed logs on the borrower's markets.",
+      "unit": "integer"
+    },
+    "S31": {
+      "name": "Capital through completed facilities",
+      "what": "Deposits that went through the markets the borrower closed.",
+      "how": "Sum of assetAmount over completed markets / 10^decimals. Leads the card; the count is fine print.",
+      "where": "Deposit logs of the completed markets.",
+      "unit": "tokens"
+    },
+    "S32": {
+      "name": "Share of record from completed facilities",
+      "what": "How much of the borrower's history comes from finished loans.",
+      "how": "100 x sum Market age (M05) (completed) / sum Market age (M05) (all).",
+      "where": "Market age (M05) of completed markets and of all markets.",
+      "unit": "%, one decimal"
+    },
+    "S33": {
+      "name": "Completions verified",
+      "what": "Whether each closure covered everything owed exactly; stored once, never recomputed in the UI. (New definition: v3 used S33 for the protocol-wide count, which is an anchor, not a metric.)",
+      "how": "Count completed markets passing the check; card renders \"verified\" only from the stored result.",
+      "where": "State at the MarketClosed block: totalAssets() >= totalDebts() and the market not delinquent.",
+      "unit": "integer"
+    },
+    "S34": {
+      "name": "Clean closures",
+      "what": "Completions with no delinquency episode open at the moment of closing.",
+      "how": "Count completed markets with no open episode at close.",
+      "where": "Delinquent seconds (H02) episodes of the completed markets and MarketClosed.timestamp.",
+      "unit": "integer"
+    },
+    "S35": {
+      "name": "Debt late within grace now",
+      "what": "Owed amount in the borrower's markets that are late but still inside grace.",
+      "how": "Sum Total owed to lenders now (M07). Whole-market debt, labelled as such.",
+      "where": "Total owed to lenders now (M07) of each market with Late within grace now (M21) = 1.",
+      "unit": "tokens"
+    },
+    "S36": {
+      "name": "Debt past grace now",
+      "what": "Owed amount in the borrower's markets that are past grace.",
+      "how": "Sum Total owed to lenders now (M07). Whole-market debt, not the shortfall; label it.",
+      "where": "Total owed to lenders now (M07) of each market with Past grace now (M85) = 1.",
+      "unit": "tokens"
+    },
+    "S37": {
+      "name": "Distinct lenders, all markets",
+      "what": "Different wallets that ever lent to this borrower.",
+      "how": "Count unique addresses that ever held a market token of the borrower, with the same exclusions as Distinct lenders, lifetime (M49). Includes former lenders and positions received by transfer; depositors only would be a different, smaller number.",
+      "where": "Transfer logs (to not 0x0, the market or an escrow) across the borrower's markets.",
+      "unit": "integer"
+    },
+    "D03": {
+      "name": "Minimum deposit",
+      "what": "Smallest deposit the market accepts; borrower can change it after launch.",
+      "how": "Read directly; / 10^decimals.",
+      "where": "Hooks instance configuration (minimumDeposit on the hooks template).",
+      "unit": "tokens"
+    },
+    "D05": {
+      "name": "Grace countdown",
+      "what": "Time left before the penalty starts, shown while the market is late.",
+      "how": "Grace period (allowed lateness) (M15) - timeDelinquent, floored at 0; past 0 show time past grace. The clock winds down after a cure, so the countdown may start above zero.",
+      "where": "Grace period (allowed lateness) (M15) and currentState().timeDelinquent at block N.",
+      "unit": "hours"
+    },
+    "D06": {
+      "name": "Cycle status",
+      "what": "Whether a payout cycle is running and when it ends.",
+      "how": "If pendingWithdrawalExpiry > block N timestamp: \"current cycle ends in (expiry - now)\". Else: \"next cycle starts with the next withdrawal request\". Never a standing countdown.",
+      "where": "currentState().pendingWithdrawalExpiry at block N.",
+      "unit": "text or hours"
+    },
+    "D10": {
+      "name": "Current lender concentration",
+      "what": "Share held by the biggest single lender and the top three, from current balances.",
+      "how": "100 x max scaledBalanceOf / scaledTotalSupply; top three summed. Current balances, not lifetime deposits (closes v3 item C6). Label \"by design\" on allowlisted markets.",
+      "where": "scaledBalanceOf(address) at block N for every holder; scaledTotalSupply from currentState().",
+      "unit": "%, one decimal"
+    },
+    "D11": {
+      "name": "Defaults on record",
+      "what": "Declared defaults, from app KYB data.",
+      "how": "Display only; never enters a grade.",
+      "where": "Wildcat app data, not on-chain.",
+      "unit": "label"
+    },
+    "D15": {
+      "name": "Longest episode, all markets",
+      "what": "Worst single episode across the borrower's markets.",
+      "how": "Max Longest episode (M23), shown in hours against that market's Grace period (allowed lateness) (M15). A longest episode, not a rate (closes the v3 D15 question).",
+      "where": "Longest episode (M23) of each market.",
+      "unit": "hours, one decimal"
+    },
+    "D16": {
+      "name": "Typical cure time, all markets",
+      "what": "Typical length of a finished episode across the book.",
+      "how": "Sum of finished durations / number of finished episodes.",
+      "where": "Finished episodes (Delinquent seconds (H02)) of every market; the open episode is excluded because it has no final length.",
+      "unit": "hours, one decimal"
+    },
+    "D17": {
+      "name": "Late time per market",
+      "what": "Cumulative delinquent days per market, tooltip of the trouble chart.",
+      "how": "Delinquent seconds (H02) / 86,400.",
+      "where": "Delinquent seconds (H02) per market.",
+      "unit": "days, one decimal"
+    },
+    "D18": {
+      "name": "Uncovered deadlines: paid late / never paid",
+      "what": "Splits the batches that missed their deadline.",
+      "how": "Short at expiry, then: Closed in a later transaction = paid late; expiry still in getUnpaidBatchExpiries() at N = never paid at snapshot. A batch fully paid at expiry emits Expired and Closed in the same transaction: not late. Computable from logs (v3 finding): \"split coming soon\" only until this is built.",
+      "where": "WithdrawalBatchExpired (short at expiry: scaledAmountBurned < scaledTotalAmount), WithdrawalBatchClosed(expiry) in a later transaction, getUnpaidBatchExpiries() at N.",
+      "unit": "two integers"
+    },
+    "D21": {
+      "name": "Contract kept, all markets",
+      "what": "The contract-kept grade across the book, same weighting. (New id: cheat sheet v3 used S28 for this, which collides with S28 trend.)",
+      "how": "100 - sum(Time under penalty (M26) x Market age (M05)) / sum(Market age (M05)).",
+      "where": "Time under penalty (M26) and Market age (M05) of each funded market.",
+      "unit": "score, one decimal"
+    },
+    "H01": {
+      "name": "Recorded life (seconds)",
+      "what": "The whole life of the market up to block N, quiet window included.",
+      "how": "End timestamp - deploy timestamp. The quiet window is always part of recorded life, whether or not the market was short during it.",
+      "where": "MarketDeployed block timestamp (Deployed (UTC) (M03)) and the timestamp of block N; for closed markets, MarketClosed.timestamp instead of block N.",
+      "unit": "seconds"
+    },
+    "H02": {
+      "name": "Delinquent seconds",
+      "what": "Total time the market was short of required cash, plus the silent tail.",
+      "how": "Sum of episode durations from the logs + Silent tail: short time inside the quiet window (seconds) (H08) (the short part of the quiet window). The flag is rewritten only when a transaction touches the market, so an onset caused by a batch expiring is recorded at the next touch.",
+      "where": "StateUpdated logs walked in order: false to true opens an episode at that block's timestamp, true to false closes it; open at N ends at N. Plus Silent tail: short time inside the quiet window (seconds) (H08).",
+      "unit": "seconds"
+    },
+    "H08": {
+      "name": "Silent tail: short time inside the quiet window (seconds)",
+      "what": "The part of the quiet window (last accrual to block N) during which the market was actually short of cash. Counts as delinquent time.",
+      "how": "Quiet window = lastInterestAccruedTimestamp to block N timestamp. The market is short when coverageLiquidity() > totalAssets(). Inside the window the required cash only rises (interest and fees accrue) and the held cash only rises through direct transfers in, so split the window at each direct transfer; in each piece, if the market is not short at its end it was not short anywhere in it, otherwise find the moment it became short. H08 = total short seconds. 0 for closed markets.",
+      "where": "currentState().lastInterestAccruedTimestamp; coverageLiquidity() and totalAssets() evaluated inside the quiet window; Transfer logs of the asset token into the market address (direct transfers).",
+      "unit": "seconds"
+    },
+    "H09": {
+      "name": "Penalty seconds in the quiet window",
+      "what": "Penalty time inside the quiet window, as the contract itself accounts for it.",
+      "how": "Apply the Time under penalty (M26) per-log formula to the projected interval: delinquencyFeeRay of the projection x 31,536,000 / (delinquencyFeeBips x 10^23). Follows the contract's own record (the stored delinquency flag), so a market that went short silently shows no penalty here until the next transaction updates its state.",
+      "where": "currentState() at block N, which projects interest and the grace clock from the last accrual to block N.",
+      "unit": "seconds"
+    },
+    "G4": {
+      "name": "Market type labels",
+      "what": "Fixed or open term (and maturity), deposit access model (self-onboarding or borrower allowlist), token transferability (open, restricted, disabled), MLA signed.",
+      "how": "Lookup, no arithmetic. Show deposit access and token transfers as two separate badges.",
+      "where": "MarketDeployed.hooks and the hooks instance or template; MLA from app data.",
+      "unit": "labels"
+    }
+  },
+  "cards": {
+    "card_2_1": {
+      "name": "In order",
+      "means": "Of all the time this market existed, the share when the required cash was there. Second line: the share it never went past the allowed lateness.",
+      "tells": "[lender] How reliably the exit cash was in place. [borrower] Whether the operating style is just-in-time funding (gap between the two lines) or rule-breaking (low second line).",
+      "notTells": "Whether anyone lost money, or whether exits were paid (card 2.3). Nothing about the present (card 2.4).",
+      "sub": {
+        "contractKept": "contract kept: {{kept}}",
+        "silent": "record silent {{quiet}}"
+      },
+      "compare": {
+        "cash": "protocol medians: cash there {{cash}}",
+        "cashAndKept": "protocol medians: cash there {{cash}} · contract kept {{kept}}"
+      },
+      "formula": {
+        "cashBlank": "cash there (M18): {{reason}}",
+        "cashNeverLate": "cash there (M18): never late, $t(metrics.H02.name) (H02) = 0",
+        "cash": "cash there (M18) = 100 × (1 − {{late}} / {{life}}) = {{cash}}",
+        "keptBlank": "contract kept: {{reason}}",
+        "kept": "contract kept = 100 − $t(metrics.M26.name) (M26) {{penalty}} = {{kept}}",
+        "trend": "trend (M68) = $t(metrics.M67.name) (M67) {{trailing}} − {{cash}} = {{change}}",
+        "trendBlank": "trend (M68): {{reason}}",
+        "trendShortWindow": "under 7 days recorded in the last 90 days",
+        "trendClosed": "none after closure: the last 90 days hold no recorded time"
+      },
+      "numbers": {
+        "life": "recorded life {{life}} (H01)",
+        "late": "delinquent {{late}} (H02, quiet window included)",
+        "past": "past allowance {{past}} (M26)",
+        "episodes": "{{episodes}} (M20)",
+        "age": "age {{age}} (M05)",
+        "quiet": "quiet window {{quiet}} (M80)"
+      },
+      "chart": {
+        "lenses": "{{days}} recorded days · line 1 = green segment (M18) · line 2 = everything but red = 100 − M26",
+        "trend": "difference {{change}} = $t(metrics.M68.name) (M68)"
+      },
+      "chips": {
+        "median": "median {{median}} · {{population}} graded markets",
+        "position": "their {{n}} markets: {{low}} to {{high}}; this market is the {{place}}",
+        "gradedRange": "their {{n}} graded markets: {{low}} to {{high}}; this market has no grade yet"
+      },
+      "place": {
+        "strongest": "strongest",
+        "weakest": "weakest",
+        "nth": "{{rank}} strongest",
+        "joint": "joint {{place}}"
+      },
+      "ids": "M18 · 100−M26 · M05 · M67 · M68 · M80 · M20 · H01 H02 H08 H09"
+    },
+    "card_2_2": {
+      "name": "Worst incident",
+      "means": "How close to the edge it ever got, measured against this market’s own allowed lateness. Over 100 means a deadline broke at least once.",
+      "tells": "[lender] Whether the rule was ever broken and how often. [borrower] The single worst day on record.",
+      "notTells": "Whether it happened once or often (card 2.8). Nothing about exits (card 2.3) or the present (card 2.4).",
+      "sub": {
+        "noIncident": "no delinquency episode recorded",
+        "noGrace": "no grace period to measure against",
+        "ofAllowance": "of the allowed lateness",
+        "noPenalty": "of the allowed lateness · counted on the record; no penalty charged on chain"
+      },
+      "compare": "median worst incident: {{median}} of allowance",
+      "formula": {
+        "blank": "worst incident (M24): {{reason}}",
+        "noIncident": "No delinquency episode has been recorded: $t(metrics.M23.name) (M23) = 0 h.",
+        "noGrace": "Grace period (M15) is 0 h, so a share of the allowance is undefined.",
+        "worst": "worst incident (M24) = 100 × $t(metrics.M23.name) (M23) {{longest}} / Grace period (M15) {{grace}} = {{worst}}",
+        "breaches": "breaches = $t(metrics.M25.name) (M25) = {{breaches}} of {{episodes}}",
+        "cured": "cured in time = $t(metrics.M83.name) (M83) = {{cured}}"
+      },
+      "numbers": {
+        "longest": "longest episode {{longest}} (M23)",
+        "allowance": "allowance {{grace}} (M15)",
+        "breaches": "{{breaches}} in {{episodes}} (M25)",
+        "cured": "cured within grace {{cured}} (M83)"
+      },
+      "chart": {
+        "thisMarket": "this market"
+      },
+      "chips": {
+        "median": "median worst incident {{median}} of allowance · {{population}} graded markets",
+        "book": "their book: longest episode {{longest}}",
+        "bookThis": "their book: longest episode {{longest}}, this market"
+      },
+      "ids": "M24 = 100 × M23 / M15 · M25 · M83"
+    },
+    "card_2_3": {
+      "name": "Exits paid on time",
+      "means": "When lenders asked for money back, was the full amount there on the deadline, by count and by money, and where does the owed money sit.",
+      "tells": "[lender] The exit record and whether the queue is clear today. [borrower] How often repayment flow arrived in time.",
+      "notTells": "The wait within the day, and never the future. Not covered on the day is not never paid; the split is coming (D18).",
+      "sub": {
+        "ofDeadlines": "of {{deadlines}}"
+      },
+      "compare": "protocol median: {{median}}",
+      "formula": {
+        "blank": "exits paid on time (M32): {{reason}}",
+        "none": "$t(metrics.M30.name) (M30) = 0: no withdrawal batch has reached its deadline.",
+        "rate": "exits paid on time (M32) = 100 × $t(metrics.M31.name) (M31) {{covered}} / $t(metrics.M30.name) (M30) {{deadlines}} = {{rate}}",
+        "byMoney": "by money (M33) = {{share}}",
+        "notCoveredSplit": "not covered = {{missed}} → paid late {{late}} / never paid {{never}} (D18)",
+        "notCovered": "not covered = {{missed}} → paid late / never paid: {{blank}} (D18)",
+        "out": "out with the borrower (M58) = $t(metrics.M56.name) (M56) {{borrowed}} − $t(metrics.M57.name) (M57) {{repaid}} = {{out}}",
+        "outBlank": "out with the borrower (M58): {{reason}}"
+      },
+      "numbers": {
+        "open": "open unpaid batches now {{n}} (M37)",
+        "unclaimed": "unclaimed withdrawals reserved {{amount}} (M38)",
+        "held": "assets held {{amount}} (M08)",
+        "onHand": "on hand unreserved {{amount}} (M08 − M38)",
+        "byMoney": "by money {{share}} (M33)"
+      },
+      "chart": {
+        "funded": "fully funded on the deadline (M31)",
+        "paidLate": "paid late (D18)",
+        "neverPaid": "never paid (D18)",
+        "notCovered": "not covered on the day",
+        "marksSplit": "{{covered}} dark = fully funded on the deadline (M31) · {{late}} hatched = paid late, {{never}} red = never paid (D18)",
+        "marks": "{{covered}} dark = fully funded on the deadline (M31) · {{missed}} hatched = not covered on the day",
+        "byOutcome": "payout deadlines (M30) by outcome",
+        "out": "out with the borrower (M58)",
+        "onHand": "on hand unreserved (M08 − M38)",
+        "reserved": "reserved for exits (M38)",
+        "money": "where the money sits"
+      },
+      "chips": {
+        "median": "median market: {{median}} of deadlines funded on the day · {{population}} graded markets",
+        "book": "their book: {{covered}} of {{deadlines}}, {{share}}"
+      },
+      "ids": "M32 = 100 × M31 / M30 · M33 · D18 · M37 M38 · M58 = M56 − M57 · M08"
+    },
+    "card_2_4": {
+      "name": "Right now",
+      "means": "Is the required cash there this second, and if not, how much of the allowed lateness remains.",
+      "tells": "[lender] Whether to act today. [borrower] The live countdown.",
+      "notTells": "Anything about track record (cards 2.1 to 2.3). Green on a market with a bad history is a quiet day.",
+      "state": {
+        "unavailable": "NOT AVAILABLE",
+        "finished": "FINISHED",
+        "past": "PAST ALLOWED LATENESS",
+        "late": "LATE, WITHIN ALLOWANCE",
+        "inOrder": "ALL IN ORDER"
+      },
+      "sub": {
+        "finished": "record ends at closure",
+        "past": "by {{hours}}",
+        "exitsWaiting_one": "{{n}} exit waiting",
+        "exitsWaiting_other": "{{n}} exits waiting",
+        "cured": "last incident cured {{days}} ago",
+        "clockIdle": "grace clock starts at the next on-chain update (record silent {{quiet}})",
+        "left": "{{left}} of {{grace}} left"
+      },
+      "countdown": {
+        "finished": "none, finished",
+        "left": "{{hours}} left",
+        "past": "{{hours}} past grace",
+        "notLate": "none, not late"
+      },
+      "graceFallback": "the grace period",
+      "boxes": {
+        "green": "{{sub}} (M84)",
+        "greenExample": "last incident cured N d ago (M84)",
+        "amber": "{{sub}} (D05, ticking)",
+        "amberExample": "N h of {{grace}} left (D05, ticking)",
+        "red": "{{sub}} (M37)",
+        "redFallback": "past grace",
+        "redExample": "by N h · exits waiting (M37)",
+        "live": "this market now"
+      },
+      "compare": "protocol right now: {{late}} of {{markets}} late",
+      "formula": {
+        "closed": "$t(metrics.M77.name) (M77) = Closed, shown as Finished: the record ends at closure.",
+        "rule": "delinquent now = coverageLiquidity() > totalAssets() at block N (never the stored flag)",
+        "green": "green: $t(metrics.M21.name) (M21) = 0 and $t(metrics.M85.name) (M85) = 0 → show $t(metrics.M84.name) (M84)",
+        "amber": "amber: M21 = 1 → show $t(metrics.D05.name) (D05) = {{grace}} − timeDelinquent",
+        "red": "red: M85 = 1 → show time past grace and $t(metrics.M37.name) (M37)",
+        "now": "at this block: M21 = {{late}}, M85 = {{past}} → {{state}}",
+        "nowBlank": "at this block: {{reason}}"
+      },
+      "numbers": {
+        "late": "late within grace now {{value}} (M21)",
+        "past": "past grace now {{value}} (M85)",
+        "countdown": "grace countdown: {{value}} (D05)",
+        "activity": "last activity {{value}} (M82)",
+        "activityAgo": "{{hours}} ago",
+        "batches": "open unpaid batches {{n}} (M37)"
+      },
+      "chips": {
+        "medianInOrder": "median market: in order",
+        "medianLate": "median market: late",
+        "markets": "{{inOrder}} of {{markets}} in order right now",
+        "book": "their book: {{late}} of {{markets}} late",
+        "bookPast": "their book: {{late}} of {{markets}} late, {{past}} past allowance",
+        "bookWithin": "their book: {{late}} of {{markets}} late, within allowance",
+        "bookNone": "their book: no open markets"
+      },
+      "ids": "M21 / M85 · D05 · M84 · M37 · M82"
+    },
+    "card_2_5": {
+      "name": "What it pays",
+      "means": "What lenders receive, what they actually earned over the market’s life, what the borrower pays, and how much of the yield came from trouble.",
+      "tells": "[lender] The price. [borrower] The all-in cost.",
+      "notTells": "Whether the price compensates for the risk; that judgment is yours after the other cards. The fee is never deducted from lenders.",
+      "sub": {
+        "paid": "per year, paid to lenders in full",
+        "closedNoYield": "the market closed before lenders earned interest",
+        "closedRealised": "realised over its life; the rate is zeroed at closure"
+      },
+      "compare": "protocol median actually earned: {{median}}",
+      "formula": {
+        "lendersBlank": "to lenders: {{reason}}",
+        "lenders": "to lenders = $t(metrics.M11.name) (M11) = {{base}}, in full",
+        "lendersClosed": "to lenders = $t(metrics.M11.name) (M11) = {{base}}, in full (zeroed at closure)",
+        "costBlank": "borrower all-in: {{reason}}",
+        "cost": "borrower all-in = {{base}} × (1 + $t(metrics.M13.name) (M13) {{fee}}) = {{cost}}",
+        "costPenalty": "borrower all-in = {{base}} × (1 + $t(metrics.M13.name) (M13) {{fee}}) = {{cost}} (+ $t(metrics.M12.name) (M12) {{penalty}} while Penaltied)",
+        "realisedBlank": "realised = $t(metrics.M39.name) (M39): {{reason}}",
+        "realised": "realised = $t(metrics.M39.name) (M39) = {{realised}}",
+        "penaltyBlank": "penalty share (M42): {{reason}}",
+        "penalty": "penalty share (M42) = 100 × $t(metrics.M27.name) (M27) {{penalty}} / $t(metrics.M41.name) (M41) {{earned}} = {{share}}"
+      },
+      "numbers": {
+        "average": "time-weighted base APR {{rate}} (M40)",
+        "changes": "{{changes}} (M44)",
+        "earned": "lifetime lender interest {{amount}} (M41)",
+        "penalty": "penalty interest paid {{amount}} (M27)",
+        "amber": "amber chip only when M42 > {{threshold}}"
+      },
+      "chart": {
+        "noYield": "{{blank}}: no lender interest has accrued.",
+        "sliver": "$t(metrics.M27.name) (M27) {{penalty}} of $t(metrics.M41.name) (M41) {{earned}} = {{share}} (M42) · amber chip only above {{threshold}}"
+      },
+      "chips": {
+        "median": "median realised yield {{median}} · {{population}} graded markets",
+        "posted": "median posted rate {{median}} across {{population}} graded open markets; this market posts {{base}}",
+        "postedClosed": "not compared: a finished market's posted rate is zeroed at closure",
+        "postedNone": "no graded open market posts a rate to compare yet",
+        "book": "their {{n}} open markets post {{range}}",
+        "posts": "posts {{rate}}"
+      },
+      "ids": "M11 · M13 · M39 · M42 = 100 × M27 / M41 · M40 · M44"
+    },
+    "card_2_6": {
+      "name": "How the line is used",
+      "means": "How full the deposit cap is, how much is owed, and whether the facility is worked like a revolver or a term loan.",
+      "tells": "[lender] Demand on the line. [borrower] Headroom.",
+      "notTells": "Anything about repayment behaviour (cards 2.1 to 2.3). Hidden for closed markets.",
+      "value": {
+        "noCapacity": "no deposit capacity"
+      },
+      "sub": "of the {{capacity}} line drawn",
+      "compare": "median among open markets: {{median}} drawn",
+      "formula": {
+        "blank": "capacity used (M86): {{reason}}",
+        "used": "capacity used (M86) = 100 × totalSupply() {{drawn}} / $t(metrics.M06.name) (M06) {{capacity}} = {{used}}",
+        "owed": "owed = $t(metrics.M07.name) (M07) = {{owed}}"
+      },
+      "numbers": {
+        "flows": "{{draws}} (M59) / {{repays}} (M60)",
+        "basis": "basis: totalSupply (locked, cheat sheet §9)",
+        "basisDebts": "basis: totalSupply (locked, cheat sheet §9); the totalDebts basis gives {{share}}"
+      },
+      "chart": {
+        "label": "{{used}} of {{capacity}} (totalSupply basis)",
+        "ghost": "grey ghost = {{share}} on the totalDebts (M07) basis; the locked basis is totalSupply (cheat sheet §9)"
+      },
+      "chips": {
+        "median": "median among open markets: {{median}} drawn · {{population}} graded open markets",
+        "pending": "placed once it has {{days}} days of record (capacity use is a measure, not a grade)",
+        "pendingHas": "placed once it has {{days}} days of record; it has {{has}} (capacity use is a measure, not a grade)",
+        "place": "more of its line drawn than {{below}} of {{population}} graded open markets (a measure, not a grade)",
+        "book": "their {{n}} open markets: {{range}} drawn",
+        "drawn": "{{share}} drawn"
+      },
+      "ids": "M86 = 100 × totalSupply / M06 · M07 · M59 · M60"
+    },
+    "card_2_8": {
+      "name": "Incident history",
+      "means": "What shape the lateness took: many short blips or a few long ones.",
+      "tells": "[lender] Cure style: same-day fixer or multi-day drifter. [borrower] Whether slippage gets attended to quickly.",
+      "notTells": "The money involved in each incident. The count never headlines; the shape and the cure rate do.",
+      "sub": {
+        "incidents_one": "incident",
+        "incidents_other": "incidents",
+        "incidentsOpen_one": "incident, {{open}} still open",
+        "incidentsOpen_other": "incidents, {{open}} still open",
+        "typical": "typical {{mean}}",
+        "withinDay": "{{share}} of finished cured within a day"
+      },
+      "compare": "median market: mean episode {{median}}",
+      "formula": {
+        "buckets": "Episodes under 6 h (M69) {{under6}} + 6 to 24 h (M70) {{to24}} + 24 to 48 h (M71) {{to48}} + over 48 h (M72) {{over48}} = {{finished}} finished = $t(metrics.M20.name) (M20) {{episodes}}",
+        "bucketsOpen": "Episodes under 6 h (M69) {{under6}} + 6 to 24 h (M70) {{to24}} + 24 to 48 h (M71) {{to48}} + over 48 h (M72) {{over48}} = {{finished}} finished + {{open}} open = $t(metrics.M20.name) (M20) {{episodes}}",
+        "blank": "episodes by length: {{reason}}",
+        "withinDay": "cured within a day = 100 × ({{under6}} + {{to24}}) / {{finished}} finished = {{share}}",
+        "typical": "typical = $t(metrics.M22.name) (M22) = {{mean}}",
+        "typicalBlank": "typical = $t(metrics.M22.name) (M22): {{reason}}"
+      },
+      "numbers": {
+        "histogram": "histogram {{buckets}} with the {{grace}} allowance drawn as the baseline",
+        "open": "{{open}} episode still open, not in the histogram",
+        "cured": "cured within grace {{cured}} (M83)"
+      },
+      "chart": {
+        "baseline": "red baseline = the {{grace}} allowance (M15)"
+      },
+      "chips": {
+        "median": "median market: mean episode {{median}} · {{population}} graded markets",
+        "notRanked": "not ranked: no finished episode yet",
+        "book": "their book: {{incidents}} across {{markets}}"
+      },
+      "ids": "M69 M70 M71 M72 · M20 · M22"
+    },
+    "card_2_9": {
+      "name": "Who funds it",
+      "means": "How many independent parties fund this market, and how concentrated the money is.",
+      "tells": "[lender] Who is ahead of you in an exit queue if a large holder leaves. [borrower] Breadth of trust.",
+      "notTells": "Who the lenders are, or why the others left. Exits in a working market are normal.",
+      "value": {
+        "noLenders": "no lenders yet",
+        "activeOfEver": "{{active}} of {{ever}}"
+      },
+      "sub": "lenders still in · {{retention}} retention",
+      "compare": "median top-lender share across markets: {{median}}",
+      "formula": {
+        "blank": "retention (M51): {{reason}}",
+        "noLenders": "$t(metrics.M49.name) (M49) = 0: no lender yet.",
+        "retention": "retention (M51) = 100 × $t(metrics.M48.name) (M48) {{active}} / $t(metrics.M49.name) (M49) {{ever}} = {{retention}}",
+        "concentrationNone": "concentration (D10): no lender yet",
+        "concentration": "concentration (D10) = 100 × largest scaledBalanceOf / scaledTotalSupply = {{largest}} (current balances; escrows and the market contract excluded)"
+      },
+      "numbers": {
+        "noLenders": "no lender has held this market's token (M49 = 0).",
+        "largest": "largest current holder {{largest}} (D10)",
+        "active": "{{active}} active (M48) of {{ever}} ever (M49)"
+      },
+      "chart": {
+        "stillIn": "still in (M48)",
+        "left": "left (M49 − M48)",
+        "marks": "{{ever}} marks = $t(metrics.M49.name) (M49) · {{active}} filled = $t(metrics.M48.name) (M48)",
+        "marksRetention": "{{ever}} marks = $t(metrics.M49.name) (M49) · {{active}} filled = $t(metrics.M48.name) (M48) · {{retention}} retention (M51)"
+      },
+      "chips": {
+        "median": "median top-lender share {{median}} · {{population}} graded open markets",
+        "closed": "not compared: lender concentration is compared across open markets only",
+        "lenders": "median distinct lenders {{median}} across {{population}} graded markets",
+        "book": "their book: {{lenders}}"
+      },
+      "ids": "M48 · M49 · M51 = 100 × M48 / M49 · D10"
+    },
+    "card_2_10": {
+      "name": "Terms",
+      "means": "What this market promised, in numbers. Terms set the scale for every other card.",
+      "tells": "[lender] The tolerance the borrower was given. [borrower] The rulebook.",
+      "notTells": "Whether the terms were honoured: that is every other card.",
+      "terms": {
+        "M15": "allowed lateness",
+        "M16": "payout window",
+        "M12": "penalty",
+        "M14": "reserve"
+      },
+      "term": "{{label}} {{value}}",
+      "termVersus": "{{label}} {{value}} vs {{median}}",
+      "penaltyRate": "+{{rate}}",
+      "sub": {
+        "lateness": "allowed lateness",
+        "window": "payout window {{window}}",
+        "penalty": "penalty {{penalty}}",
+        "buffer": "buffer {{reserve}}"
+      },
+      "formula": {
+        "lookups": "lookups only, no arithmetic:",
+        "terms": "Grace period (M15) {{grace}} · Withdrawal cycle (M16) {{window}} · $t(metrics.M12.name) (M12) {{penalty}} · $t(metrics.M14.name) (M14) {{reserve}}",
+        "facts": "$t(metrics.D03.name) (D03) {{minimum}} · $t(metrics.D06.name) (D06) · $t(metrics.G4.name) (G4) · $t(metrics.M77.name) (M77)"
+      },
+      "numbers": {
+        "cycle": "cycle status: {{status}} (D06)",
+        "types": "market type labels: {{types}} (G4)",
+        "lifecycle": "lifecycle {{status}} (M77)",
+        "deployed": "deployed {{date}} (M03)",
+        "note": "cycle status is never a standing countdown"
+      },
+      "chips": {
+        "median": "median {{terms}} · {{population}} graded markets",
+        "markets": "this market against the median: {{terms}}",
+        "book": "their {{n}} open markets: {{terms}}"
+      },
+      "ids": "M15 · M16 · D06 · M12 · M14 · D03 · G4 · M77"
+    },
+    "card_3_1": {
+      "name": "In order, all markets",
+      "means": "Across everything this borrower runs, weighted by how long each market has existed: was the cash there, was the contract kept, where is the floor, which way is it going, were exits paid.",
+      "tells": "[lender] The floor is the market you could be in. [borrower] The book as lenders see it.",
+      "notTells": "Which market is late today (3.4). Whether principal ever came all the way back (3.6).",
+      "sub": {
+        "contractKept": "contract kept: {{kept}}",
+        "floor": "floor {{floor}}",
+        "trend": "trend {{change}}"
+      },
+      "compare": {
+        "median": "median borrower {{median}}",
+        "exits": "exits {{share}} of {{deadlines}}"
+      },
+      "formula": {
+        "definition": "S05 = Σ($t(metrics.M18.name) (M18) × $t(metrics.M05.name) (M05)) / Σ M05",
+        "term": "{{grade}}×{{days}}",
+        "sum": "= ({{terms}}) / {{days}} = {{book}}",
+        "sumMore": "= ({{terms}} + …) / {{days}} = {{book}}",
+        "bookBlank": "S05: {{reason}}",
+        "keptBlank": "D21: {{reason}}",
+        "kept": "D21 = 100 − Σ($t(metrics.M26.name) (M26) × M05) / Σ M05 = {{kept}}",
+        "trend": "S28 = S27 {{trailing}} − S05 {{book}} = {{change}}",
+        "trendBlank": "S28: {{reason}}",
+        "floor": "S06 = min M18 = {{floor}}",
+        "top": "S07 = max M18 = {{top}}",
+        "exitsBlank": "S16: {{reason}}",
+        "exitsNone": "S14 = 0: no withdrawal batch has reached its deadline",
+        "exits": "S16 = 100 × S15 {{covered}} / S14 {{deadlines}} = {{rate}}",
+        "exitsWeakest": "S16 = 100 × S15 {{covered}} / S14 {{deadlines}} = {{rate}} · S17 = weakest market on exits = {{weakest}} of {{of}}",
+        "noHistory": "no recorded history yet across the funded markets",
+        "shortWindow": "under 7 days recorded across the book in the last 90 days"
+      },
+      "numbers": {
+        "evidence": "{{days}} of evidence (gate {{gate}} market-days)",
+        "markets": "{{markets}} (S01)",
+        "strong": "$t(shared.verdict.STRONG) requires S05 ≥ 85 and ≥ {{gate}} market-days",
+        "weakest": "weakest market on exits {{market}} {{share}} (S17), verdict {{verdict}}",
+        "noVerdict": "none",
+        "split": "uncovered deadlines: {{late}} paid late / {{never}} never paid (D18)",
+        "splitBlank": "uncovered deadlines: {{blank}} (D18)"
+      },
+      "chips": {
+        "median": "median {{median}} · {{population}} borrowers",
+        "range": "their range: {{low}} to {{high}}"
+      },
+      "ids": "S05 · D21 · S06 S07 · S27 S28 · S14 S15 S16 S17 · D18",
+      "operatorIds": "S05 · D21 · S28"
+    },
+    "card_3_4": {
+      "name": "Right now, all markets",
+      "means": "How many of their markets are short this second, and how much debt sits within and past the allowance.",
+      "tells": "[lender] Trouble next door. [borrower] What needs funding now.",
+      "notTells": "History (3.1, 3.8). Amber on the book does not mean amber on your market: check 2.4 there.",
+      "state": {
+        "past_one": "{{n}} MARKET PAST ALLOWANCE",
+        "past_other": "{{n}} MARKETS PAST ALLOWANCE",
+        "late_one": "{{n}} MARKET LATE, WITHIN ALLOWANCE",
+        "late_other": "{{n}} MARKETS LATE, WITHIN ALLOWANCE",
+        "incomplete": "INCOMPLETE",
+        "noOpen": "NO OPEN MARKETS",
+        "noMarkets": "NO MARKETS",
+        "inOrder": "ALL MARKETS IN ORDER"
+      },
+      "sub": {
+        "debt": "{{sum}} whole-market debt {{where}}",
+        "debtMixed": "debt of {{markets}} {{where}}, not summed (different assets)",
+        "pastAllowance": "past allowance",
+        "withinAllowance": "within allowance",
+        "nonePast": "{{debt}} · 0 past allowance",
+        "unavailable": "{{states}} unavailable",
+        "andUnavailable": "{{sub}} · {{n}} unavailable"
+      },
+      "compare": "protocol right now: {{late}} of {{markets}} late",
+      "formula": {
+        "count": "S18 = count of markets with M21 = 1 or M85 = 1 = {{late}}",
+        "within": "S35 = Σ $t(metrics.M07.name) (M07) where M21 = 1 = {{sum}} (whole-market debt, not the shortfall)",
+        "past": "S36 = Σ M07 where M85 = 1 = {{sum}} → {{state}}",
+        "incomplete": "Some market states are unavailable; the known states cannot establish an all-clear result."
+      },
+      "numbers": {
+        "rule": "green if S18 = 0; amber if S35 > 0 and S36 = 0; red if S36 > 0",
+        "debt": "amounts are whole-market debt",
+        "row": "{{market}} {{state}}, owes {{amount}} (M07)",
+        "pastGrace": "past grace",
+        "withinGrace": "late, within grace"
+      },
+      "chips": {
+        "median": "median borrower: {{markets}} late now · {{population}} graded borrowers",
+        "protocol": "protocol right now: {{late}} of {{markets}} late",
+        "incomplete": "some of their market states are not in this publication",
+        "markets": "their markets: {{list}}",
+        "marketState": "{{market}} {{state}}",
+        "allInOrder": "their markets: all in order"
+      },
+      "ids": "S18 · S35 · S36 (from M21, M85, M07)",
+      "operatorIds": "S36/S18 (S35)"
+    },
+    "card_3_6": {
+      "name": "Completed credit cycle",
+      "means": "Has money come all the way back, and how much of the record is proven rather than live.",
+      "tells": "[lender] The only proof on the page that principal returned. [borrower] Settled history.",
+      "notTells": "How the live markets behave (3.1, 3.8). A running book reading \"none completed yet\" is neutral, never a red flag.",
+      "sub": {
+        "running": "everything still running",
+        "through": "through {{facilities}}",
+        "mixed": "capital not summed (mixed assets)",
+        "verified": "{{n}} verified",
+        "clean": "{{n}} clean"
+      },
+      "compare": "protocol: {{facilities}}",
+      "formula": {
+        "none": "$t(metrics.S30.name) (S30) = 0 → blank word \"{{blank}}\"",
+        "completed": "$t(metrics.S30.name) (S30) = {{completed}}",
+        "capital": "$t(metrics.S31.name) (S31) = {{capital}} · $t(metrics.S32.name) (S32) = {{share}}",
+        "share": "{{closed}} / {{days}} = {{share}}"
+      },
+      "numbers": {
+        "money": "money leads, count is fine print",
+        "stored": "$t(metrics.S33.name) (S33) {{verified}} and $t(metrics.S34.name) (S34) {{clean}} are stored at the MarketClosed block, never recomputed"
+      },
+      "chart": {
+        "thisBorrower": "this borrower",
+        "none": "none completed yet: all {{days}} still running",
+        "settled": "settled {{share}} · {{capital}}"
+      },
+      "chips": {
+        "median": "median borrower: {{facilities}} · {{population}} graded borrowers",
+        "protocol": "{{facilities}} across the protocol",
+        "partial": "some of their markets are not in this publication",
+        "book": "their book: {{closed}} of {{markets}} closed"
+      },
+      "ids": "S31 · S30 · S32 · S33 · S34",
+      "operatorIds": "S30/S31/S32"
+    },
+    "card_3_8": {
+      "name": "Discipline",
+      "means": "When they are short, is it just-in-time funding or distress.",
+      "tells": "[lender] Cure style across the book. [borrower] Operating discipline.",
+      "notTells": "The money involved, or which market (the per-market table).",
+      "sub": {
+        "incidents": "in {{incidents}}",
+        "per100": "{{rate}} per 100",
+        "cure": "typical cure {{cure}}"
+      },
+      "compare": "longest incident {{longest}}",
+      "against": "{{longest}} against {{grace}}",
+      "formula": {
+        "perMarket": "per market = $t(metrics.S13.name) (S13) {{breaches}} / $t(metrics.S01.name) (S01) {{markets}} = {{rate}}",
+        "per100": "per 100 episodes = 100 × S13 {{breaches}} / $t(metrics.S12.name) (S12) {{incidents}} = {{rate}}",
+        "noEpisode": "no episode yet",
+        "longest": "$t(metrics.D15.name) (D15) = {{longest}} · $t(metrics.D16.name) (D16) = {{cure}}",
+        "longestDays": "{{hours}} = {{days}}"
+      },
+      "numbers": {
+        "definition": "breach = an episode that ran past its grace period, as the market level (M25)",
+        "raw": "the raw {{incidents}} never headlines",
+        "longest": "longest episode on {{market}} (D15)"
+      },
+      "chart": {
+        "none": "No breach count for this book at this snapshot.",
+        "thisBorrower": "This borrower",
+        "medianBorrower": "Median borrower",
+        "breaches": "{{who}} breaches per 100",
+        "cured": "episodes cured within grace",
+        "caption": "{{who}}: {{rate}} breaches per 100 episodes"
+      },
+      "chips": {
+        "median": "median {{median}} breaches per 100 episodes · {{population}} graded borrowers",
+        "markets": "their markets: {{list}}",
+        "marketBreaches": "{{n}} on {{market}}",
+        "none": "their markets: no breaches"
+      },
+      "ids": "S12 · S13 · S01 · D15 · D16",
+      "operatorIds": "S12 · S13 · D15"
+    },
+    "card_3_10": {
+      "name": "Lender breadth",
+      "means": "How widely they are trusted.",
+      "tells": "[lender] Breadth of the base behind the book. [borrower] Reach.",
+      "notTells": "Who, and how much each holds (2.9 per market).",
+      "sub_one": "different lender has ever funded them",
+      "sub_other": "different lenders have ever funded them",
+      "compare": "across {{markets}}",
+      "formula": "$t(metrics.S37.name) (S37) = unique funding addresses across every market, excluding 0x0, the market contracts and escrows (C6) = {{lenders}}",
+      "numbers": "count, no arithmetic.",
+      "chips": {
+        "median": "median borrower: {{lenders}} · {{population}} graded borrowers",
+        "markets": "their markets: {{list}} (a lender in several markets counts in each)",
+        "marketLenders": "{{n}} on {{market}}",
+        "none": "their markets: no lender yet"
+      },
+      "ids": "S37",
+      "operatorIds": "S37"
+    },
+    "shared": {
+      "singleMarket": "single-market borrower — no spread to show",
+      "frozen": "frozen at closure",
+      "frozenRecorded": "frozen at closure · {{days}} recorded",
+      "noOpenMarket": "they have no open market now",
+      "onlyOpenMarket": "this is their only open market, so there is no spread to show",
+      "oneOpenMarket": "their one open market, {{market}}: {{detail}}",
+      "stillOpen": "{{episodes}}, {{open}} still open",
+      "mixedAssets": "mixed assets",
+      "notSummed": "not summed (different assets)"
+    }
+  },
+  "charts": {
+    "twoLenses": {
+      "inOrder": "in order {{share}}",
+      "withinGrace": "short, within grace {{share}}",
+      "pastAllowance": "past allowance {{share}}",
+      "outlasted": "penalty time ({{share}}) outlasted the shortfall: the penalty clock winds down after a cure instead of resetting"
+    },
+    "trendPair": {
+      "lifetime": "lifetime",
+      "trailing": "last 90 d",
+      "column": "{{value}} {{label}}",
+      "label": "{{lifetime}} lifetime; {{trailing}} last 90 days"
+    },
+    "worstIncident": {
+      "label": "{{market}}: {{share}} of its allowance",
+      "clipped": "clipped",
+      "value": "{{share}} ({{hours}} of {{allowance}})",
+      "caption": "red line = 100% of the market's own allowance (M15)"
+    },
+    "markArray": {
+      "group": "{{label}} {{n}}"
+    },
+    "stackedBar": {
+      "segment": "{{label}} {{value}}"
+    },
+    "threshold": {
+      "label": "{{share}} against the {{threshold}} threshold",
+      "gate": "{{threshold}} amber threshold"
+    },
+    "histogram": {
+      "under6": "under 6 h",
+      "to24": "6 to 24 h",
+      "to48": "24 to 48 h",
+      "over48": "over 48 h",
+      "bucket": "{{label}}: {{n}}"
+    },
+    "ageWeighted": {
+      "market": "{{market}} {{grade}} over {{days}} days",
+      "label": "{{markets}}; book {{book}}",
+      "book": "{{book}} book",
+      "title": "{{market}}, {{days}} days",
+      "caption": "width = $t(metrics.M05.name) (M05) · height = $t(metrics.M18.name) (M18) · line = $t(metrics.S05.name) (S05)"
+    },
+    "bucketBar": {
+      "inOrder_one": "in order: {{n}} market",
+      "inOrder_other": "in order: {{n}} markets",
+      "within": "within allowance: {{debt}}",
+      "past": "past allowance: {{debt}}",
+      "caption": "segment widths are market counts ({{total}}); amounts are whole-market debt, not the shortfall"
+    },
+    "completed": {
+      "caption": "dark = record from closed, fully repaid markets (S31, S32) · grey = live positions"
+    },
+    "lateShare": {
+      "title": "$t(metrics.D17.name) (D17): {{days}}",
+      "label": "{{market}}: {{late}} of its life late, {{past}} past the allowance, {{days}} late",
+      "within": "within allowance",
+      "past": "past allowance",
+      "caption": "axis 0 to {{max}} · % of each market's own life late = H02 / H01 (quiet window included), split by M26 · days = $t(metrics.D17.name) (D17)"
+    },
+    "direction": {
+      "empty": "not in this publication",
+      "legend": "share of book-days late, trailing 90 days",
+      "pending": "the rolling 90-day series arrives with the next publication",
+      "label": "Share of book-days late, trailing 90 days: {{now}} now, from {{from}} to {{to}}",
+      "caption": "weekly from {{from}} to {{to}} · now {{now}}"
+    },
+    "rankStrip": {
+      "caption": "weakest to strongest"
+    }
+  },
+  "pages": {
+    "frame": {
+      "dayClose": "Day close",
+      "intraday": "Intraday snapshot",
+      "retry": "Retry",
+      "loading": "Loading analytics"
+    },
+    "panel": {
+      "calculated": "How it is calculated",
+      "means": "What it means",
+      "tells": "What it tells you",
+      "notTells": "What it does not tell you",
+      "comparison": "Comparison",
+      "close": "Close",
+      "closeLabel": "Close {{name}}",
+      "compareLabel": "Compare {{name}}"
+    },
+    "market": {
+      "title": "Market analytics",
+      "finishedLabel": "Finished · history frozen",
+      "fallbackName": "Market",
+      "deployed": "deployed",
+      "cardsLabel": "Market cards",
+      "supportingLabel": "Supporting cards",
+      "supporting": "Supporting detail",
+      "supportingHint": "collapsed by default · click any card for its seven fields",
+      "banner": "This is this borrower's weakest market — their {{n}} markets: {{low}} to {{high}}.",
+      "operator": {
+        "label": "The operator",
+        "title": "The operator: {{name}}",
+        "link": "Full borrower analytics →",
+        "unavailable": "Borrower comparison unavailable.",
+        "loading": "Loading the borrower record…",
+        "partial": "Borrower totals exclude markets whose data is unavailable.",
+        "snapshot": "Borrower comparisons are unavailable for this snapshot."
+      },
+      "notice": {
+        "preparing": "Market analytics are being prepared.",
+        "underReview": "Market analytics are under review.",
+        "failed": "Analytics could not be loaded.",
+        "unavailable": "Analytics are unavailable for this market."
+      },
+      "bannerIds": "M18 vs S06/S07"
+    },
+    "borrower": {
+      "title": "Borrower analytics",
+      "partialLabel": "Partial record",
+      "cardsLabel": "Borrower cards",
+      "header": {
+        "markets_one": "market",
+        "markets_other": "markets",
+        "since": "on Wildcat since",
+        "evidence": "of evidence",
+        "spread": "spread",
+        "singleMarket": "single market"
+      },
+      "notice": {
+        "partial": "Totals exclude markets whose data is unavailable.",
+        "noMarkets": "No market records available.",
+        "preparing": "Borrower analytics are being prepared.",
+        "underReview": "Borrower analytics are under review.",
+        "failed": "Analytics could not be loaded.",
+        "unavailable": "Borrower analytics are unavailable on this network."
+      },
+      "table": {
+        "label": "Per-market table",
+        "tableLabel": "Borrower markets",
+        "hint": "find the weak link the averages hide; each row links to its market",
+        "footnote": "Weakest market first. Blanks are words, never 0 or 100. Verdicts follow the rules of cards 2.1 and 2.3.",
+        "market": "Market",
+        "exits": "{{share}} of {{deadlines}}",
+        "thin": "thin history",
+        "finished": "finished",
+        "exitsIds": "M32 of M30"
+      },
+      "state": {
+        "preparing": "preparing",
+        "underReview": "under review",
+        "finished": "finished",
+        "past": "past allowance",
+        "within": "late, within allowance",
+        "inOrder": "in order"
+      },
+      "trouble": {
+        "title": "Trouble over time",
+        "ids": "v1 H02 / H01 split by M26 · v2 rolling 90 d · D17",
+        "lede": "rates, not lifetime totals, so age does not read as guilt",
+        "concentration": "Concentration",
+        "direction": "Direction",
+        "noLife": "No funded market has recorded life yet."
+      }
+    }
+  },
+  "shared": {
+    "chips": {
+      "market": {
+        "median": "median",
+        "markets": "vs all markets",
+        "borrower": "vs this borrower"
+      },
+      "borrower": {
+        "median": "median",
+        "borrowers": "vs all borrowers",
+        "range": "their range"
+      }
+    },
+    "metricLabel": "{{name}} ({{id}})",
+    "range": "{{low}} to {{high}}",
+    "ordinal_ordinal_one": "{{count}}st",
+    "ordinal_ordinal_two": "{{count}}nd",
+    "ordinal_ordinal_few": "{{count}}rd",
+    "ordinal_ordinal_other": "{{count}}th",
+    "blank": {
+      "neverLate": "never late",
+      "noExits": "no exit history yet",
+      "noIncidents": "no incidents yet",
+      "noneCompleted": "none completed yet",
+      "noYield": "no yield history yet",
+      "unavailable": "not available",
+      "splitSoon": "split not available",
+      "countSoon": "count not available",
+      "noRecord": "no recorded history yet",
+      "noHistory": "no recorded history",
+      "noBook": "no complete borrower record in this publication",
+      "noMedianMarket": "no graded market to take a median from yet",
+      "noMedianBorrower": "no graded borrower to take a median from yet",
+      "noProtocolCounts": "no protocol counts in this publication",
+      "noFinishedEpisode": "no finished episode yet",
+      "notFunded": "not funded yet",
+      "noFundedMarket": "no funded market yet"
+    },
+    "verdict": {
+      "STRONG": "STRONG",
+      "WATCH": "WATCH",
+      "PROBLEM": "PROBLEM",
+      "LIMITED": "LIMITED",
+      "limitedNote": "clean so far, barely tested"
+    },
+    "tone": {
+      "green": "GREEN",
+      "amber": "AMBER",
+      "red": "RED",
+      "neutral": "NEUTRAL"
+    },
+    "flag": {
+      "finished": "FINISHED",
+      "penalties": "yield partly from penalties"
+    },
+    "lifecycle": {
+      "open": "Open",
+      "finished": "Finished"
+    },
+    "yesNo": {
+      "yes": "yes",
+      "no": "no"
+    },
+    "units": {
+      "hours": "{{value}} h",
+      "days": "{{value}} d",
+      "percent": "{{value}}%",
+      "billions": "{{value}}B",
+      "millions": "{{value}}M",
+      "thousands": "{{value}}K",
+      "amount": "{{value}} {{asset}}"
+    },
+    "nouns": {
+      "market_one": "{{n}} market",
+      "market_other": "{{n}} markets",
+      "openMarket_one": "{{n}} open market",
+      "openMarket_other": "{{n}} open markets",
+      "fundedMarket_one": "{{n}} funded market",
+      "fundedMarket_other": "{{n}} funded markets",
+      "marketState_one": "{{n}} market state",
+      "marketState_other": "{{n}} market states",
+      "marketDay_one": "{{n}} market-day",
+      "marketDay_other": "{{n}} market-days",
+      "day_one": "{{n}} day",
+      "day_other": "{{n}} days",
+      "week_one": "{{n}} week",
+      "week_other": "{{n}} weeks",
+      "episode_one": "{{n}} episode",
+      "episode_other": "{{n}} episodes",
+      "incident_one": "{{n}} incident",
+      "incident_other": "{{n}} incidents",
+      "finishedIncident_one": "{{n}} finished incident",
+      "finishedIncident_other": "{{n}} finished incidents",
+      "breach_one": "{{n}} breach",
+      "breach_other": "{{n}} breaches",
+      "graceBreach_one": "{{n}} grace breach",
+      "graceBreach_other": "{{n}} grace breaches",
+      "lender_one": "{{n}} lender",
+      "lender_other": "{{n}} lenders",
+      "distinctLender_one": "{{n}} distinct lender",
+      "distinctLender_other": "{{n}} distinct lenders",
+      "deadline_one": "{{n}} deadline",
+      "deadline_other": "{{n}} deadlines",
+      "payoutDeadline_one": "{{n}} payout deadline",
+      "payoutDeadline_other": "{{n}} payout deadlines",
+      "payoutBatch_one": "{{n}} payout batch",
+      "payoutBatch_other": "{{n}} payout batches",
+      "exitBatch_one": "{{n}} exit batch",
+      "exitBatch_other": "{{n}} exit batches",
+      "openExitBatch_one": "{{n}} open exit batch",
+      "openExitBatch_other": "{{n}} open exit batches",
+      "rateChange_one": "{{n}} rate change",
+      "rateChange_other": "{{n}} rate changes",
+      "draw_one": "{{n}} draw",
+      "draw_other": "{{n}} draws",
+      "repay_one": "{{n}} repay",
+      "repay_other": "{{n}} repays",
+      "completedFacility_one": "{{n}} completed facility",
+      "completedFacility_other": "{{n}} completed facilities"
+    },
+    "rank": {
+      "markets": "markets",
+      "borrowers": "borrowers",
+      "notEnough": "not enough graded {{noun}} to compare yet",
+      "pending": "ranked once it has {{days}} days of record",
+      "pendingHas": "ranked once it has {{days}} days of record; it has {{has}}",
+      "betterThan": "better than {{position}} of {{population}} graded {{noun}}",
+      "stripLabel": "Better than {{position}} of {{population}} graded {{noun}}"
+    },
+    "cycle": {
+      "running": "current cycle ends in {{hours}}",
+      "idle": "next cycle starts with the next withdrawal request",
+      "finished": "finished: no further cycles"
+    },
+    "typeLabels": {
+      "fixedTerm": "Fixed term, matures {{date}}",
+      "openTerm": "Open term",
+      "depositsOpen": "Deposits open",
+      "depositsRestricted": "Deposits restricted",
+      "selfOnboarding": "Self-onboarding",
+      "allowlist": "Allowlist",
+      "transfersDisabled": "Transfers disabled",
+      "transfersRestricted": "Transfers restricted",
+      "transfersOpen": "Transfers open",
+      "mlaSigned": "MLA signed"
+    },
+    "toneWord": {
+      "green": "green",
+      "amber": "amber",
+      "red": "red",
+      "neutral": "neutral"
+    }
+  },
+  "treatments": {
+    "names": {
+      "A": {
+        "label": "Grade card",
+        "summary": "value, verdict, median line (the shipped default for 2.1, 2.2, 2.3, 3.1)"
+      },
+      "B": {
+        "label": "Counted",
+        "summary": "events out of 100, drawn as cells (natural frequency)"
+      },
+      "C": {
+        "label": "Rail",
+        "summary": "0–100 bar with a median tick"
+      },
+      "D": {
+        "label": "Sentence",
+        "summary": "one plain claim, no chrome"
+      },
+      "E": {
+        "label": "Rank",
+        "summary": "position in the population as a bar strip"
+      },
+      "F": {
+        "label": "Detail",
+        "summary": "composition bar and the raw parts"
+      },
+      "G": {
+        "label": "Share bar",
+        "summary": "status-page segments: the record's proportions, not when each part happened"
+      },
+      "H": {
+        "label": "Bullet",
+        "summary": "value bar over weak / fair / strong bands with the median tick"
+      },
+      "I": {
+        "label": "Distribution",
+        "summary": "percentile marker with the middle half boxed"
+      },
+      "J": {
+        "label": "Dial",
+        "summary": "credit-score arc with bands (kept for comparison; the shipped pages avoid gauges)"
+      },
+      "K": {
+        "label": "Scorecard row",
+        "summary": "this one vs typical, difference, evidence"
+      },
+      "L": {
+        "label": "Aging buckets",
+        "summary": "receivables-aging convention: current / within allowance / past"
+      },
+      "M": {
+        "label": "Covenant headroom",
+        "summary": "distance to the contractual limit"
+      },
+      "N": {
+        "label": "Side by side",
+        "summary": "this value against the population median"
+      },
+      "O": {
+        "label": "Trend",
+        "summary": "the series, where one exists"
+      },
+      "P": {
+        "label": "Exception line",
+        "summary": "credit-queue item with a flag and a next step"
+      }
+    },
+    "tiles": {
+      "context": "CONTEXT",
+      "flag": {
+        "STRONG": "CLEARED",
+        "WATCH": "REVIEW",
+        "PROBLEM": "EXCEPTION",
+        "LIMITED": "NO DATA",
+        "CONTEXT": "REVIEW"
+      },
+      "betterThan": "better than {{position}} of {{population}}",
+      "placed": "{{higher}} {{position}} of {{population}}",
+      "shareBar": "unordered share of the record: the segments show proportions, not when each part happened",
+      "bands": "bands: {{words}} · tick = {{median}}",
+      "bandsHigher": "weak · fair · strong",
+      "bandsLower": "strong · fair · weak",
+      "bandsNeutral": "below · near · above the median",
+      "weakest": "weakest",
+      "strongest": "strongest",
+      "lowest": "lowest",
+      "highest": "highest",
+      "middleHalf": "middle half",
+      "percentile": "sits in the {{percentile}} percentile: {{position}} of {{population}} are weaker",
+      "percentileNeutral": "sits in the {{percentile}} percentile: {{position}} of {{population}} sit lower",
+      "thisOne": "this one",
+      "typical": "typical",
+      "difference": "difference",
+      "evidence": "evidence",
+      "onChain": "on-chain record",
+      "agingKey": "green current · amber within allowance · red past allowance, the receivables-aging convention",
+      "limit": "limit {{limit}}",
+      "thisMarket": "THIS MARKET",
+      "thisBorrower": "THIS BORROWER",
+      "marketMedian": "MARKET MEDIAN",
+      "borrowerMedian": "BORROWER MEDIAN",
+      "value": "value",
+      "nextStep": "next step",
+      "ledger": "Open the raw ledger rows →",
+      "noValue": "—",
+      "fallback": {
+        "B": "Not countable out of 100.",
+        "G": "Not a share of the record.",
+        "C": "No 0–100 rail for this index.",
+        "H": "No 0–100 rail for this index.",
+        "J": "No 0–100 rail for this index.",
+        "E": "This index has no protocol-wide ranking in the snapshot.",
+        "I": "No population ranking for this index in the snapshot.",
+        "K": "This snapshot has no comparable value and benchmark.",
+        "N": "This snapshot has no comparable value and benchmark.",
+        "L": "This index has no aging dimension: nothing here is measured by how long it has been outstanding.",
+        "M": "No contractual threshold governs this index, so there is no headroom to draw.",
+        "O": "This index has no series in this publication, so there is no trend to plot."
+      },
+      "reference": {
+        "gauge": "The design excludes gauges from the product.",
+        "state": "A current state has no frequency, score or comparable population value."
+      }
+    },
+    "shared": {
+      "evidenceMarket": "on-chain record at block {{block}}",
+      "evidenceBorrower": "borrower record at block {{block}}",
+      "evidenceBorrowerPartial": "borrower record at block {{block}} · partial record",
+      "noMedian": "no protocol median yet",
+      "sentence": "{{name}}: {{value}}.",
+      "sentenceUnit": "{{name}}: {{value}}, {{unit}}.",
+      "under1": "Under 1",
+      "under1Lower": "under 1",
+      "noRecord": "No recorded history yet.",
+      "noIncidents": "No incident recorded yet: nothing has been late.",
+      "allowance": "the {{grace}} allowance",
+      "allowanceUnknown": "the allowed lateness",
+      "limitAllowance": "{{grace}} allowance",
+      "pastLimit": "{{hours}} past the limit",
+      "room": "{{hours}} of room",
+      "rankNone": "No graded {{noun}} have this value yet, so there is nothing to rank against.",
+      "rankYoung": "Under {{gate}} days of record ({{has}} so far): {{noun}} are ranked from {{gate}} days.",
+      "rankPending": "This publication has no place for it yet; the next update adds one.",
+      "seriesShort": "Under two weeks of record: the weekly series has one reading so far.",
+      "seriesPending": "This publication has no series for it yet; the next update adds it.",
+      "liveNotRanked": "A live state is not ranked: the protocol ranks records, not the state at one block.",
+      "trendNow": "now {{value}}",
+      "trendLast": "last {{value}}",
+      "trendOn": "{{value}} on {{date}}",
+      "trendBy": "{{value}} by {{date}}",
+      "trendFrom": "{{value}} from {{date}}",
+      "closedOn": "closed {{date}}",
+      "now": "now",
+      "weeksAgo": "{{weeks}} ago",
+      "thisWeek": "this week",
+      "ago": "{{days}} ago",
+      "noFundedMarket": "No funded market yet, so there is no record to show.",
+      "valueSub": "{{value}}. {{sub}}",
+      "allowanceIn": "{{grace}} allowance in {{market}}",
+      "parts": {
+        "headline": "headline",
+        "record": "record",
+        "comparison": "comparison",
+        "coverage": "coverage",
+        "partial": "partial record"
+      }
+    },
+    "card_2_1": {
+      "note": "the cash-availability grade",
+      "trend": "cash there over the trailing 90 days, weekly (100 − share of days late)",
+      "claimNever": "The promised cash was there every day: never late.",
+      "claim_one": "{{n}} day in every 100 the promised cash was short.",
+      "claim_other": "{{n}} days in every 100 the promised cash was short.",
+      "countNote": "{{short}} short days of {{life}} recorded · separately, {{past}} in 100 days past the allowance (M26)",
+      "sentence": "Over {{days}} days the promised cash was there {{cash}}% of the time; counting only time past {{allowance}}, the contract was kept {{kept}}%.",
+      "parts": {
+        "daysRecorded": "days recorded",
+        "daysShort": "days short",
+        "pastAllowance": "past allowance",
+        "ofLife": "{{share}} of life",
+        "incidents": "incidents"
+      },
+      "buckets": {
+        "cashThere": "cash there",
+        "short": "short of cash",
+        "past": "past allowance (M26)",
+        "note": "green cash there · amber short of cash · red past the allowance, measured on its own: it can overlap or follow the short days, so the bars are not slices of one total"
+      },
+      "sideBySide": {
+        "cash": "cash there",
+        "kept": "contract kept",
+        "incidents": "incidents"
+      },
+      "reasons": {
+        "M": "Cash availability is a share of the record, with no contractual limit of its own. The live headroom, cash held against what the contract requires, is 2.4 (M)."
+      }
+    },
+    "card_2_2": {
+      "note": "the single worst moment",
+      "covNote": "the allowed lateness is this market's hard threshold",
+      "sentenceNone": "No delinquency episode has been recorded.",
+      "sentenceOver": "The longest incident ran {{longest}} against the {{grace}} this market allows, so it crossed into penalty.",
+      "sentenceWithin": "The longest incident ran {{longest}} against the {{grace}} this market allows, so it stayed inside the allowance.",
+      "claimNone": "No incident ran past {{allowance}}.",
+      "claim": "{{n}} of every 100 incidents ran past {{allowance}}.",
+      "countNote": "{{breaches}} of {{incidents}} breached {{allowance}} (M25)",
+      "buckets": {
+        "within": "stayed within",
+        "past": "ran past (breaches)",
+        "note": "incidents by whether they ran past {{allowance}} (M25)"
+      },
+      "trend": "longest incident in each of {{spans}} spans of the market's life; full height {{peak}}, the allowance {{grace}}",
+      "parts": {
+        "longest": "longest incident",
+        "allowed": "allowed lateness",
+        "breaches": "breaches",
+        "breachesOf": "{{breaches}} of {{episodes}}",
+        "penalty": "penalty interest paid"
+      },
+      "sideBySide": {
+        "worst": "worst vs allowance",
+        "allowed": "allowed lateness"
+      },
+      "reasons": {
+        "notCounted": "Breaches are not counted in this publication yet."
+      }
+    },
+    "card_2_3": {
+      "note": "payout deadlines covered",
+      "unavailable": "No payout deadline has come due yet, so there is nothing to count or rank.",
+      "claim": "{{n}} of every 100 payout deadlines were missed on the day.",
+      "countNote": "{{missed}} of {{deadlines}} not covered · split of late vs never not available",
+      "countNoteSplit": "{{missed}} of {{deadlines}} not covered · {{late}} paid late, {{never}} never paid",
+      "sentence": "{{covered}} of {{batches}} were fully funded on the day they came due; {{missed}}. {{queue}}.",
+      "missed_one": "{{n}} was not",
+      "missed_other": "{{n}} were not",
+      "queued_one": "{{n}} batch is queued now",
+      "queued_other": "{{n}} batches are queued now",
+      "queuedNone": "No batches are queued now",
+      "queueUnclaimed": "{{queue}} and {{amount}} sits unclaimed",
+      "parts": {
+        "deadlines": "deadlines",
+        "covered": "covered on the day",
+        "open": "open batches now",
+        "unclaimed": "unclaimed"
+      },
+      "buckets": {
+        "covered": "covered on the day",
+        "paidLate": "paid late",
+        "neverPaid": "never paid",
+        "notCovered": "not covered",
+        "stillOwed": "still owed"
+      },
+      "trend": "share of payout deadlines covered on the day, to date, weekly",
+      "sideBySide": {
+        "covered": "covered on the day",
+        "paid": "amount paid at expiry"
+      },
+      "cov": {
+        "limit": "{{window}} payout window",
+        "left": "{{hours}} until this cycle's deadline",
+        "note": "the running payout cycle; whether the cash covers it is known at the deadline"
+      },
+      "reasons": {
+        "noCycle": "No payout cycle is running: the next starts with the next withdrawal request.",
+        "closed": "Closed: no payout cycle runs after closure."
+      }
+    },
+    "card_2_4": {
+      "note": "live state at this block",
+      "greenNote": "nothing past the allowance · {{batches}}",
+      "greenSentence": "The market is meeting its obligations at this block, with nothing past the allowance.",
+      "greenSentenceNoQueue": "The market is meeting its obligations at this block, with nothing past the allowance and no exit queue.",
+      "cured": "{{sentence}} The last incident was cured {{days}} ago.",
+      "cash": {
+        "limit": "all the cash held",
+        "spare": "{{amount}} above what the contract requires",
+        "note": "required liquidity (reserve plus queued payouts) as a share of the cash held; past 100% the market is late"
+      },
+      "clock": {
+        "left": "{{hours}} left",
+        "note": "the grace clock at this block"
+      },
+      "amberSentence": "The market is late at this block but within its allowance, with {{left}} of {{grace}} left.",
+      "redSentence": "The market is past its allowed lateness at this block, by {{hours}}.",
+      "redSentenceWaiting": "The market is past its allowed lateness at this block, by {{hours}}, with {{batches}} waiting.",
+      "closedSentence": "The market is finished: the record ends at closure.",
+      "trend": "hours late in each of the last {{weeks}}, against a full week of 168 h",
+      "trendNone": "no hour late in the last {{weeks}}",
+      "parts": {
+        "late": "late within grace now",
+        "past": "past grace now",
+        "batches": "open batches",
+        "cure": "last cure"
+      },
+      "reasons": {
+        "L": "One market is in one state at a time, so there is nothing to bucket; 3.4 buckets the borrower's markets by state.",
+        "unknown": "The state at this block is unknown, so there is no limit to measure against.",
+        "closed": "Closed: the grace clock and the reserve no longer apply.",
+        "noCash": "No cash is held and the contract requires none at this block.",
+        "pending": "This publication has no cash requirement for the market yet; the next update adds it.",
+        "trendClosed": "Closed: the record ends at closure; its last weeks are on 2.1 (O)."
+      }
+    },
+    "card_2_5": {
+      "note": "rate and whether it was paid",
+      "rankRealised": "a higher realised rate than",
+      "rankPosted": "a higher posted rate than",
+      "unavailable": "No lender interest has accrued yet.",
+      "claim": "{{n}} of every 100 dollars lenders earned came from penalty interest.",
+      "countNote": "penalty interest {{penalty}} of {{earned}} earned (M42)",
+      "cov": {
+        "limit": "{{threshold}} of interest from penalties",
+        "over": "{{points}} points over",
+        "below": "{{points}} points below",
+        "note": "the card's amber line for penalty interest (M42 above {{threshold}}), not a contract limit"
+      },
+      "buckets": {
+        "base": "base interest",
+        "penalty": "penalty interest",
+        "note": "what lenders earned, by kind (M41 split by M27)"
+      },
+      "trend": "base APR over the market's life ({{changes}}; lifetime average {{average}})",
+      "closedSentence": "The market is finished; lenders realised {{realised}} over its life.",
+      "sentence": "The market pays {{base}} a year to lenders in full.",
+      "sentenceRealised": "The market pays {{base}} a year to lenders in full; over its life lenders realised {{realised}}.",
+      "sentenceMedian": "The market pays {{base}} a year to lenders in full, against a protocol median of {{median}} actually earned.",
+      "sentenceRealisedMedian": "The market pays {{base}} a year to lenders in full; over its life lenders realised {{realised}}, against a protocol median of {{median}} actually earned.",
+      "parts": {
+        "base": "base APR now",
+        "realised": "realised APR",
+        "penaltyShare": "penalty share",
+        "penaltyApr": "penalty APR"
+      },
+      "sideBySide": {
+        "base": "base APR now",
+        "realised": "realised APR",
+        "penalty": "penalty APR"
+      },
+      "reasons": {
+        "noMedian": "No graded market posts a rate to compare with yet."
+      }
+    },
+    "card_2_6": {
+      "note": "utilization",
+      "rankHigher": "more of its line drawn than",
+      "unavailable": "No deposit capacity: the market has no line to draw on.",
+      "claim": "{{n}} of every 100 committed dollars are drawn.",
+      "countNote": "{{drawn}} drawn of a {{capacity}} line",
+      "cov": {
+        "limit": "100% of the credit line",
+        "over": "{{points}} points over",
+        "room": "{{points}} points of room left",
+        "note": "use of the committed line (totalSupply basis)"
+      },
+      "buckets": {
+        "drawn": "drawn",
+        "over": "over the line",
+        "room": "room left",
+        "note": "the committed line, drawn and undrawn (totalSupply basis)"
+      },
+      "sentence": "{{used}} of the committed credit line is drawn: {{drawn}} against a {{capacity}} line.",
+      "sentenceMedian": "{{used}} of the committed credit line is drawn: {{drawn}} against a {{capacity}} line, where the median open market sits at {{median}}.",
+      "parts": {
+        "drawn": "drawn",
+        "line": "line",
+        "room": "room left"
+      },
+      "sideBySide": {
+        "drawn": "drawn"
+      },
+      "trend": "share of the credit line drawn, weekly; full height {{peak}}",
+      "reasons": {
+        "noMedian": "No graded open market to compare with yet."
+      }
+    },
+    "card_2_8": {
+      "note": "shape of the lateness",
+      "unavailable": "No incidents recorded yet.",
+      "claim": "{{n}} of every 100 finished incidents ran longer than a day.",
+      "countNote": "{{overDay}} of {{total}} over 24 h · {{longer}} over two days",
+      "sentence": "Of {{incidents}}, {{short}} lasted under six hours, {{day}} between six and 24, {{twoDays}} ran one to two days and {{longer}} ran longer.",
+      "stillOpen_one": "{{sentence}} {{n}} incident is still open.",
+      "stillOpen_other": "{{sentence}} {{n}} incidents are still open.",
+      "lengths": {
+        "under6": "under 6 h",
+        "to24": "6–24 h",
+        "to48": "1–2 d",
+        "over48": "over 2 d"
+      },
+      "railValue": "{{cured}} cured in time",
+      "cov": {
+        "room": "{{hours}} of room on the average incident",
+        "note": "the average finished incident against the allowance (M22 against M15)"
+      },
+      "trend": "incidents started in each of {{spans}} spans of the market's life; full height {{peak}}",
+      "sideBySide": {
+        "cured": "cured within grace",
+        "average": "average incident",
+        "finished": "finished incidents"
+      },
+      "reasons": {
+        "onlyOpen": "Only an open incident so far: the shape counts finished incidents.",
+        "noMedian": "No graded market has a finished incident to compare with yet."
+      }
+    },
+    "card_2_9": {
+      "note": "lender breadth and concentration",
+      "rankHigher": "more lenders than",
+      "unavailable": "No lender yet.",
+      "claim": "{{n}} of every 100 dollars come from the largest lender.",
+      "countNote": "biggest single lender {{largest}}",
+      "countNoteActive": "biggest single lender {{largest}} · {{active}} active of {{ever}} ever",
+      "railValue": "{{retention}} still in",
+      "sentence": "{{active}} lenders are active of {{ever}} who ever deposited.",
+      "sentenceLargest": "{{active}} lenders are active of {{ever}} who ever deposited; the biggest holds {{largest}}.",
+      "buckets": {
+        "holding": "still holding",
+        "left": "left",
+        "note": "lenders who ever deposited, by whether they still hold a balance"
+      },
+      "parts": {
+        "active": "active now",
+        "ever": "ever",
+        "biggest": "biggest holder",
+        "retention": "retention"
+      },
+      "trend": "lenders who ever deposited, to date, weekly",
+      "sideBySide": {
+        "ever": "lenders ever",
+        "holding": "still holding",
+        "largest": "largest holder"
+      },
+      "reasons": {
+        "closed": "Closed: retention is compared across open markets only.",
+        "noMedian": "No graded open market to compare with yet.",
+        "M": "No contract limit governs how much one lender holds or how many lenders there are."
+      }
+    },
+    "card_2_10": {
+      "note": "the contract facts",
+      "rankHigher": "a longer grace period than",
+      "penaltyApr": "{{rate}} APR",
+      "parts": {
+        "lifecycle": "lifecycle",
+        "allowed": "allowed lateness",
+        "window": "payout window",
+        "reserve": "reserve ratio",
+        "penalty": "penalty"
+      },
+      "sentence": "{{lifecycle}}: lateness tolerated for {{grace}}, payouts due within {{window}}, a {{reserve}} reserve ratio, and a penalty of {{penalty}} once past the allowance.",
+      "reasons": {
+        "count": "Contract facts, not a measured rate: nothing to count out of 100. Nearest honest form: the parts list in treatment F.",
+        "noMedian": "No graded market to compare terms with yet.",
+        "L": "Contract terms have no age or status to bucket.",
+        "M": "These terms are the limits themselves; the headroom against them is on 2.2 (the allowance), 2.4 (the reserve) and 2.6 (the credit line).",
+        "O": "The grace period, payout window and penalty are fixed when the market is deployed, so they have no history; the base rate's is on 2.5 (O)."
+      }
+    },
+    "card_3_1": {
+      "sentence": "Across {{days}} of recorded history, the required cash was there {{cash}} of the time, weighted by market age.",
+      "sentencePartial": "Across the available markets' {{days}} of recorded history, the required cash was there {{cash}} of the time, weighted by market age.",
+      "parts": {
+        "cash": "cash there",
+        "days": "recorded market-days",
+        "kept": "contract kept",
+        "range": "market range"
+      },
+      "claimNever": "The promised cash was there on every market-day: never late.",
+      "claim": "{{n}} in every 100 market-days the promised cash was short.",
+      "countNote": "{{short}} of {{days}}, weighted by market age",
+      "countNoteKept": "{{short}} of {{days}}, weighted by market age · separately, contract kept {{kept}} (D21)",
+      "buckets": {
+        "cashThere": "cash there",
+        "short": "short of cash",
+        "past": "past allowance (D21)",
+        "note": "market-days across the book, weighted by market age · red past the allowance, measured on its own: it can overlap or follow the short days"
+      },
+      "sideBySide": {
+        "cash": "cash there",
+        "kept": "contract kept"
+      },
+      "trend": "cash there across the book over the trailing 90 days, weekly (100 − share of book-days late)",
+      "noHistory": "No recorded history yet across the funded markets.",
+      "reasons": {
+        "M": "Cash availability is a share of the record, with no contractual limit of its own. The live headroom across the markets is 3.4 (M)."
+      }
+    },
+    "card_3_4": {
+      "parts": {
+        "open": "open markets",
+        "within": "late, within allowance",
+        "past": "past allowance",
+        "unavailable": "unavailable states"
+      },
+      "buckets": {
+        "onTime": "on time",
+        "within": "late, within allowance",
+        "past": "past allowance",
+        "unavailable": "state unavailable",
+        "note": "open markets by state at this block"
+      },
+      "cov": {
+        "left": "{{hours}} left",
+        "clockNote": "the late market nearest its limit: its grace clock at this block",
+        "cashLimit": "all the cash held in {{market}}",
+        "spare": "{{share}} of its cash is spare",
+        "cashNote": "the tightest open market: required liquidity as a share of its cash held; past 100% it is late"
+      },
+      "trend": "share of book time late over the trailing 90 days, the last {{weeks}}; full height {{peak}}",
+      "trendNone": "no book time late in the last {{weeks}}",
+      "reasons": {
+        "pending": "This publication has no per-market cash requirement yet; the next update adds it.",
+        "noCash": "No open market holds cash and none is late, so no limit is close.",
+        "noOpen": "No open market, so no limit applies at this block.",
+        "L": "No open market, so there is nothing to bucket.",
+        "trendNoOpen": "No open market: the book's last weeks are on 3.1 (O)."
+      }
+    },
+    "card_3_6": {
+      "parts": {
+        "completed": "completed facilities",
+        "verified": "verified completions",
+        "clean": "clean closures",
+        "share": "share of recorded life completed"
+      },
+      "claim": "{{n}} of every 100 market-days on record belong to facilities that ran to completion.",
+      "countNote": "{{facilities}} of {{markets}} (S32)",
+      "railValue": "{{share}} completed",
+      "rankHigher": "a larger completed share than",
+      "buckets": {
+        "clean": "completed cleanly",
+        "incident": "completed, incident open",
+        "running": "still running",
+        "note": "funded markets by how they ended: closed with nothing late · closed while an incident was open · still running"
+      },
+      "trend": "completed facilities to date, weekly",
+      "sideBySide": {
+        "share": "completed share",
+        "facilities": "completed facilities"
+      },
+      "reasons": {
+        "noMedian": "No graded borrower has a completed share to compare with yet.",
+        "M": "No contract sets how many facilities must complete, so there is no headroom to draw.",
+        "none": "No facility has completed yet, so there is nothing to plot."
+      }
+    },
+    "card_3_8": {
+      "sentence": "{{breaches}} in {{incidents}}.",
+      "sentenceRate": "{{breaches}} in {{incidents}}: {{rate}} per 100 episodes.",
+      "claimNone": "No incident ran past its allowance.",
+      "claim": "{{n}} of every 100 incidents ran past the allowance.",
+      "countNote": "{{breaches}} of {{incidents}} across {{markets}} (S13 of S12)",
+      "railValue": "{{rate}} per 100",
+      "buckets": {
+        "marketBreaches": "{{breaches}} of {{incidents}}",
+        "note": "grace breaches of each market's incidents (M25), bars sized by incidents",
+        "noteMore": "grace breaches of each market's incidents (M25), bars sized by incidents; the {{shown}} markets with the most of {{total}}"
+      },
+      "cov": {
+        "note": "the book's longest incident (D15) against its own market's allowance"
+      },
+      "trend": "grace breaches per 100 incidents, to date, weekly; full height {{peak}}",
+      "trendNone": "grace breaches per 100 incidents, to date, weekly: none so far",
+      "sideBySide": {
+        "rate": "per 100 incidents",
+        "incidents": "incidents",
+        "average": "average incident"
+      },
+      "reasons": {
+        "noMedian": "No graded borrower has a breach rate to compare with yet."
+      }
+    },
+    "card_3_10": {
+      "sentence_one": "{{lenders}} has funded this borrower across its markets.",
+      "sentence_other": "{{lenders}} have funded this borrower across its markets.",
+      "sentencePartial_one": "{{lenders}} has funded this borrower across its available markets.",
+      "sentencePartial_other": "{{lenders}} have funded this borrower across its available markets.",
+      "rankHigher": "more distinct lenders than",
+      "buckets": {
+        "note": "lenders who ever deposited, per market; one lender in several markets counts in each",
+        "noteMore": "lenders who ever deposited, per market; one lender in several markets counts in each · the {{shown}} largest of {{total}} markets"
+      },
+      "trend": "distinct lenders across the book, to date, weekly",
+      "sideBySide": {
+        "lenders": "distinct lenders",
+        "markets": "funded markets"
+      },
+      "reasons": {
+        "count": "A count of lenders, not a share: nothing to count out of 100.",
+        "noMedian": "No graded borrower to compare with yet.",
+        "none": "No lender has deposited yet.",
+        "M": "No contract limits how many lenders fund a borrower, so there is no headroom to draw."
+      }
+    }
+  }
+}

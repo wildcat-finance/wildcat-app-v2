@@ -8,26 +8,23 @@ import {
   block,
   contractKept,
   count,
+  counted,
   days,
   hours,
   isNumber,
   isSeries,
   longDate,
   percent,
-  plural,
   score,
 } from "@/components/GlassDoor/format"
-import {
-  isFunded,
-  leadingNumber,
-  openEpisodes,
-  reader,
-} from "@/components/GlassDoor/helpers"
+import { isFunded, openEpisodes, reader } from "@/components/GlassDoor/helpers"
+import { scoped, text } from "@/components/GlassDoor/text"
 
 import {
   BORROWER_CARDS,
   datumFromSpec,
   IndexDatum,
+  per100,
   positionOf,
   railEnd,
   rankReason,
@@ -35,7 +32,10 @@ import {
   sampleSeries,
   seriesReason,
   versus,
+  widths,
 } from "./treatmentData"
+
+// Every word a borrower tile shows is in glassDoor.json under treatments.
 
 const GREEN = "#28CA7C"
 const AMBER = "#D7A820"
@@ -44,26 +44,22 @@ const GHOST = "#D4D6DD"
 const PURPLE = "#4112B5"
 const ROWS = 5
 
+const shared = scoped("treatments.shared")
+const t31 = scoped("treatments.card_3_1")
+const t34 = scoped("treatments.card_3_4")
+const t36 = scoped("treatments.card_3_6")
+const t38 = scoped("treatments.card_3_8")
+const t310 = scoped("treatments.card_3_10")
+
 const one = (value: number) => Math.round(value * 10) / 10
-
-/** "17", or "Under 1" for a share that rounds to nothing but is not zero. */
-const per100 = (value: number) =>
-  value > 0 && Math.round(value) < 1 ? "Under 1" : count(value)
-
-/** Bar widths against the largest, as the handoff sizes its buckets. */
-const widths = (values: number[]) => {
-  const max = Math.max(...values, 0)
-  return values.map((value) => {
-    if (max <= 0 || value <= 0) return 0
-    return Math.max(1, Math.round((100 * value) / max))
-  })
-}
 
 /** Trend bars scaled to their peak. */
 const scaled = (values: number[]) => {
   const peak = Math.max(0, ...values)
   return values.map((value) => (peak > 0 ? (100 * value) / peak : 0))
 }
+
+type Bucket = [string, string, number, string]
 
 /** Borrower treatments use published book values, never a synthetic market. */
 export const borrowerTreatmentData = (
@@ -73,11 +69,13 @@ export const borrowerTreatmentData = (
   if (borrower.state !== "Ok" || !Object.keys(borrower.values).length) return {}
   const { n } = reader(borrower.values)
   const cmp = borrower.comparisons
-  const evidence = borrower.publication.cut
-    ? `borrower record at block ${block(borrower.publication.cut.block)}${
-        borrower.partial ? " · partial record" : ""
-      }`
-    : undefined
+  let evidence: string | undefined
+  if (borrower.publication.cut) {
+    const at = { block: block(borrower.publication.cut.block) }
+    evidence = borrower.partial
+      ? shared("evidenceBorrowerPartial", at)
+      : shared("evidenceBorrower", at)
+  }
   const marketDays = n("MARKET_DAYS")
   const notRanked = (comparison?: (typeof cmp)[string]) =>
     rankReason(comparison, marketDays, "borrowers")
@@ -88,19 +86,25 @@ export const borrowerTreatmentData = (
   const funded = borrower.markets.filter(
     (row) => row.state === "Ok" && isFunded(row.values),
   )
-  const noMarket = "No funded market yet, so there is no record to show."
+  const coverage: [string, string] = [
+    shared("parts.coverage"),
+    shared("parts.partial"),
+  ]
   const data: Record<string, IndexDatum> = {}
   BORROWER_CARDS.forEach((card) => {
     const spec = specs[card]
     if (!spec) return
     const datum = datumFromSpec(spec, evidence)
     datum.median = spec.compare
-    datum.sentence = [spec.value, spec.sub].filter(Boolean).join(". ")
-    datum.parts = [["headline", spec.value]]
-    if (spec.sub) datum.parts.push(["record", spec.sub])
-    if (spec.compare) datum.parts.push(["comparison", spec.compare])
-    if (borrower.partial) datum.parts.push(["coverage", "partial record"])
-    if (!funded.length) datum.unavailable = noMarket
+    datum.sentence = spec.sub
+      ? shared("valueSub", { value: spec.value, sub: spec.sub })
+      : spec.value
+    datum.parts = [[shared("parts.headline"), spec.value]]
+    if (spec.sub) datum.parts.push([shared("parts.record"), spec.sub])
+    if (spec.compare)
+      datum.parts.push([shared("parts.comparison"), spec.compare])
+    if (borrower.partial) datum.parts.push(coverage)
+    if (!funded.length) datum.unavailable = shared("noFundedMarket")
     data[card] = datum
   })
 
@@ -116,70 +120,62 @@ export const borrowerTreatmentData = (
   ) {
     const comparison = cmp.S05
     const short = 100 - cash
+    const history = {
+      days: counted("marketDay", marketDays),
+      cash: percent(cash),
+    }
     inOrder.rail = cash
     inOrder.railMed = comparison?.median ?? -1
     inOrder.medText = comparison ? score(comparison.median) : undefined
     inOrder.better = "higher"
-    inOrder.sentence = `Across ${
-      borrower.partial ? "the available markets' " : ""
-    }${plural(
-      marketDays,
-      "market-day",
-    )} of recorded history, the required cash was there ${percent(
-      cash,
-    )} of the time, weighted by market age.`
+    inOrder.sentence = borrower.partial
+      ? t31("sentencePartial", history)
+      : t31("sentence", history)
     if (comparison?.betterThan !== undefined)
       inOrder.rank = [comparison.betterThan, comparison.population]
     inOrder.parts = [
-      ["cash there", score(cash)],
-      ["recorded market-days", count(marketDays)],
+      [t31("parts.cash"), score(cash)],
+      [t31("parts.days"), count(marketDays)],
     ]
-    if (kept !== undefined) inOrder.parts.push(["contract kept", score(kept)])
+    if (kept !== undefined) inOrder.parts.push([t31("parts.kept"), score(kept)])
     const floor = n("S06")
     const top = n("S07")
     if (floor !== undefined && top !== undefined)
-      inOrder.parts.push(["market range", `${score(floor)} to ${score(top)}`])
-    if (borrower.partial) inOrder.parts.push(["coverage", "partial record"])
+      inOrder.parts.push([
+        t31("parts.range"),
+        text("shared.range", { low: score(floor), high: score(top) }),
+      ])
+    if (borrower.partial) inOrder.parts.push(coverage)
     // Short market-days out of every 100, weighted by market age (S05).
     inOrder.grace = short
     inOrder.past = 0
     inOrder.countClaim =
-      short <= 0
-        ? "The promised cash was there on every market-day: never late."
-        : `${per100(
-            short,
-          )} in every 100 market-days the promised cash was short.`
-    inOrder.countNote = `${percent(short)} of ${plural(
-      marketDays,
-      "market-day",
-    )}, weighted by market age${
+      short <= 0 ? t31("claimNever") : t31("claim", { n: per100(short) })
+    const shortOf = {
+      short: percent(short),
+      days: counted("marketDay", marketDays),
+    }
+    inOrder.countNote =
       kept === undefined
-        ? ""
-        : ` · separately, contract kept ${contractKept(kept)} (D21)`
-    }`
+        ? t31("countNote", shortOf)
+        : t31("countNoteKept", { ...shortOf, kept: contractKept(kept) })
     const shortDays = (short / 100) * marketDays
     const pastDays =
       kept === undefined ? undefined : ((100 - kept) / 100) * marketDays
     const w = widths([marketDays - shortDays, shortDays, pastDays ?? 0])
-    inOrder.buckets = [
-      ["cash there", days(marketDays - shortDays), w[0], GREEN],
-      ["short of cash", days(shortDays), w[1], AMBER],
-      ...(pastDays === undefined
+    const pastBucket: Bucket[] =
+      pastDays === undefined
         ? []
-        : [
-            ["past allowance (D21)", days(pastDays), w[2], RED] as [
-              string,
-              string,
-              number,
-              string,
-            ],
-          ]),
+        : [[t31("buckets.past"), days(pastDays), w[2], RED]]
+    inOrder.buckets = [
+      [t31("buckets.cashThere"), days(marketDays - shortDays), w[0], GREEN],
+      [t31("buckets.short"), days(shortDays), w[1], AMBER],
+      ...pastBucket,
     ]
-    inOrder.bucketNote =
-      "market-days across the book, weighted by market age · red past the allowance, measured on its own: it can overlap or follow the short days"
+    inOrder.bucketNote = t31("buckets.note")
     inOrder.sideBySide = [
-      ...versus("cash there", cash, comparison, score),
-      ...versus("contract kept", kept, cmp.D21, contractKept),
+      ...versus(t31("sideBySide.cash"), cash, comparison, score),
+      ...versus(t31("sideBySide.kept"), kept, cmp.D21, contractKept),
     ]
     const lateShare = seriesOf("LATE_SHARE_90D")
     if (lateShare) {
@@ -191,18 +187,21 @@ export const borrowerTreatmentData = (
       const last = inOrderSeries[inOrderSeries.length - 1]
       inOrder.trend = [
         sampleSeries(inOrderSeries).map((value) => Math.max(0, value)),
-        `${score(first[1])} on ${longDate(first[0])}`,
-        `now ${score(last[1])}`,
-        "cash there across the book over the trailing 90 days, weekly (100 − share of book-days late)",
+        shared("trendOn", {
+          value: score(first[1]),
+          date: longDate(first[0]),
+        }),
+        shared("trendNow", { value: score(last[1]) }),
+        t31("trend"),
       ]
     }
   }
   if (inOrder && funded.length && cash === undefined)
-    inOrder.unavailable = "No recorded history yet across the funded markets."
+    inOrder.unavailable = t31("noHistory")
   if (inOrder)
     inOrder.reasons = {
       ...(inOrder.rank ? {} : reasonFor(["E", "I"], notRanked(cmp.S05))),
-      M: "Cash availability is a share of the record, with no contractual limit of its own. The live headroom across the markets is 3.4 (M).",
+      M: t31("reasons.M"),
       ...(inOrder.trend
         ? {}
         : { O: seriesReason(borrower.values.LATE_SHARE_90D) }),
@@ -220,12 +219,12 @@ export const borrowerTreatmentData = (
       neutral: "CONTEXT" as const,
     }[state.tone]
     now.parts = [
-      ["open markets", count(state.now.open)],
-      ["late, within allowance", count(state.now.late - state.now.past)],
-      ["past allowance", count(state.now.past)],
-      ["unavailable states", count(state.now.unknown)],
+      [t34("parts.open"), count(state.now.open)],
+      [t34("parts.within"), count(state.now.late - state.now.past)],
+      [t34("parts.past"), count(state.now.past)],
+      [t34("parts.unavailable"), count(state.now.unknown)],
     ]
-    if (state.now.incomplete) now.parts.push(["coverage", "partial record"])
+    if (state.now.incomplete) now.parts.push(coverage)
     // The receivables-aging convention across the open markets.
     if (state.now.open > 0) {
       const counts = [
@@ -235,31 +234,34 @@ export const borrowerTreatmentData = (
         state.now.unknown,
       ]
       const w = widths(counts)
+      const unknownBucket: Bucket[] = counts[3]
+        ? [
+            [
+              t34("buckets.unavailable"),
+              counted("market", counts[3]),
+              w[3],
+              GHOST,
+            ],
+          ]
+        : []
       now.buckets = [
-        ["on time", plural(counts[0], "market"), w[0], GREEN],
-        ["late, within allowance", plural(counts[1], "market"), w[1], AMBER],
-        ["past allowance", plural(counts[2], "market"), w[2], RED],
-        ...(counts[3]
-          ? [
-              [
-                "state unavailable",
-                plural(counts[3], "market"),
-                w[3],
-                GHOST,
-              ] as [string, string, number, string],
-            ]
-          : []),
+        [t34("buckets.onTime"), counted("market", counts[0]), w[0], GREEN],
+        [t34("buckets.within"), counted("market", counts[1]), w[1], AMBER],
+        [t34("buckets.past"), counted("market", counts[2]), w[2], RED],
+        ...unknownBucket,
       ]
-      now.bucketNote = "open markets by state at this block"
+      now.bucketNote = t34("buckets.note")
     }
     // The tightest open market: the late one nearest (or furthest past) its
-    // limit, or else the one whose contract asks most of its cash.
+    // limit, or else the one whose contract asks most of its cash. Grace
+    // countdown (D05) is the hours left in the allowance, negative once past.
     const clock = (row: BorrowerMarketRow) => {
-      const { n: value, s } = reader(row.values)
+      const { n: value } = reader(row.values)
       const grace = value("M15")
-      const reading = value("D05") ?? leadingNumber(s("D05"))
-      if (grace === undefined || reading === undefined) return undefined
-      return row.values.M85 === 1 ? grace + reading : grace - reading
+      const left = value("D05")
+      return grace === undefined || left === undefined
+        ? undefined
+        : grace - left
     }
     const late = state.now.lateRows
       .map((row) => ({ row, used: clock(row) }))
@@ -268,10 +270,10 @@ export const borrowerTreatmentData = (
           entry.used !== undefined,
       )
       .sort((left, right) => right.used - left.used)[0]
-    const tightest = funded
+    const openRows = funded.filter((row) => row.values.M77 === "Open")
+    const tightest = openRows
       .filter(
         (row) =>
-          row.values.M77 === "Open" &&
           isNumber(row.values.M08) &&
           row.values.M08 > 0 &&
           isNumber(row.values.REQUIRED_CASH),
@@ -288,55 +290,53 @@ export const borrowerTreatmentData = (
       now.cov = [
         late.used,
         grace,
-        `${hours(grace)} allowance in ${marketLabel(late.row)}`,
+        shared("allowanceIn", {
+          grace: hours(grace),
+          market: marketLabel(late.row),
+        }),
         over
-          ? `${hours(late.used - grace)} past the limit`
-          : `${hours(grace - late.used)} left`,
-        "the late market nearest its limit: its grace clock at this block",
+          ? shared("pastLimit", { hours: hours(late.used - grace) })
+          : t34("cov.left", { hours: hours(grace - late.used) }),
+        t34("cov.clockNote"),
       ]
     } else if (tightest && !state.now.late)
       now.cov = [
         tightest.share,
         100,
-        `all the cash held in ${marketLabel(tightest.row)}`,
-        `${percent(Math.max(0, 100 - tightest.share))} of its cash is spare`,
-        "the tightest open market: required liquidity as a share of its cash held; past 100% it is late",
+        t34("cov.cashLimit", { market: marketLabel(tightest.row) }),
+        t34("cov.spare", {
+          share: percent(Math.max(0, 100 - tightest.share)),
+        }),
+        t34("cov.cashNote"),
       ]
-    let noLimit =
-      "This publication has no per-market cash requirement yet; the next update adds it."
-    if (state.now.open === 0)
-      noLimit = "No open market, so no limit applies at this block."
+    let noLimit = t34("reasons.pending")
+    if (state.now.open === 0) noLimit = t34("reasons.noOpen")
+    else if (openRows.some((row) => isNumber(row.values.REQUIRED_CASH)))
+      noLimit = t34("reasons.noCash")
     const lateShare = seriesOf("LATE_SHARE_90D")
     if (lateShare && state.now.open > 0) {
       const recent = lateShare.slice(-24)
       const peak = Math.max(0, ...recent.map(([, value]) => value))
+      const weeks = counted("week", recent.length)
       now.trend = [
         scaled(recent.map(([, value]) => value)),
-        `${plural(recent.length, "week")} ago`,
-        "this week",
+        shared("weeksAgo", { weeks }),
+        shared("thisWeek"),
         peak > 0
-          ? `share of book time late over the trailing 90 days, the last ${plural(
-              recent.length,
-              "week",
-            )}; full height ${percent(peak)}`
-          : `no book time late in the last ${plural(recent.length, "week")}`,
+          ? t34("trend", { weeks, peak: percent(peak) })
+          : t34("trendNone", { weeks }),
       ]
     }
     now.reasons = {
-      ...reasonFor(
-        ["E", "I"],
-        "A live state is not ranked: the protocol ranks records, not the state at one block.",
-      ),
-      ...(now.buckets
-        ? {}
-        : { L: "No open market, so there is nothing to bucket." }),
+      ...reasonFor(["E", "I"], shared("liveNotRanked")),
+      ...(now.buckets ? {} : { L: t34("reasons.L") }),
       ...(now.cov ? {} : { M: noLimit }),
       ...(now.trend
         ? {}
         : {
             O:
               state.now.open === 0
-                ? "No open market: the book's last weeks are on 3.1 (O)."
+                ? t34("reasons.trendNoOpen")
                 : seriesReason(borrower.values.LATE_SHARE_90D),
           }),
     }
@@ -352,30 +352,27 @@ export const borrowerTreatmentData = (
     const clean = n("S34")
     const share = n("S32")
     if (completed !== undefined)
-      cycle.parts.push(["completed facilities", count(completed)])
+      cycle.parts.push([t36("parts.completed"), count(completed)])
     if (verified !== undefined)
-      cycle.parts.push(["verified completions", count(verified)])
-    if (clean !== undefined) cycle.parts.push(["clean closures", count(clean)])
-    if (share !== undefined)
-      cycle.parts.push(["share of recorded life completed", percent(share)])
+      cycle.parts.push([t36("parts.verified"), count(verified)])
+    if (clean !== undefined)
+      cycle.parts.push([t36("parts.clean"), count(clean)])
     if (share !== undefined) {
+      cycle.parts.push([t36("parts.share"), percent(share)])
       cycle.grace = share
       cycle.past = 0
-      cycle.countClaim = `${per100(
-        share,
-      )} of every 100 market-days on record belong to facilities that ran to completion.`
-      cycle.countNote = `${plural(
-        completed ?? 0,
-        "completed facility",
-        "completed facilities",
-      )} of ${plural(markets ?? 0, "funded market")} (S32)`
+      cycle.countClaim = t36("claim", { n: per100(share) })
+      cycle.countNote = t36("countNote", {
+        facilities: counted("completedFacility", completed ?? 0),
+        markets: counted("fundedMarket", markets ?? 0),
+      })
       cycle.rail = one(share)
       cycle.railMed = cmp.S32 ? one(cmp.S32.median) : -1
-      cycle.railValue = `${percent(share)} completed`
+      cycle.railValue = t36("railValue", { share: percent(share) })
       cycle.medText = cmp.S32 ? percent(cmp.S32.median) : undefined
     }
     cycle.rank = positionOf(cmp.S32)
-    cycle.rankHigher = "a larger completed share than"
+    cycle.rankHigher = t36("rankHigher")
     if (
       markets !== undefined &&
       completed !== undefined &&
@@ -384,42 +381,43 @@ export const borrowerTreatmentData = (
       const counts = [clean, completed - clean, markets - completed]
       const w = widths(counts)
       cycle.buckets = [
-        ["completed cleanly", plural(counts[0], "market"), w[0], GREEN],
-        ["completed, incident open", plural(counts[1], "market"), w[1], AMBER],
-        ["still running", plural(counts[2], "market"), w[2], GHOST],
+        [t36("buckets.clean"), counted("market", counts[0]), w[0], GREEN],
+        [t36("buckets.incident"), counted("market", counts[1]), w[1], AMBER],
+        [t36("buckets.running"), counted("market", counts[2]), w[2], GHOST],
       ]
-      cycle.bucketNote =
-        "funded markets by how they ended: closed with nothing late · closed while an incident was open · still running"
+      cycle.bucketNote = t36("buckets.note")
     }
     const completions = seriesOf("COMPLETED_TO_DATE")
     if (completions && completed) {
       const samples = sampleSeries(completions, true)
       cycle.trend = [
         scaled(samples),
-        `${count(completions[0][1])} by ${longDate(completions[0][0])}`,
-        `now ${count(completions[completions.length - 1][1])}`,
-        "completed facilities to date, weekly",
+        shared("trendBy", {
+          value: count(completions[0][1]),
+          date: longDate(completions[0][0]),
+        }),
+        shared("trendNow", {
+          value: count(completions[completions.length - 1][1]),
+        }),
+        t36("trend"),
       ]
     }
     cycle.sideBySide = [
-      ...versus("completed share", share, cmp.S32, percent),
-      ...versus("completed facilities", completed, cmp.S30, count),
+      ...versus(t36("sideBySide.share"), share, cmp.S32, percent),
+      ...versus(t36("sideBySide.facilities"), completed, cmp.S30, count),
     ]
     cycle.reasons = {
       ...(cycle.rank ? {} : reasonFor(["E", "I"], notRanked(cmp.S32))),
       ...(cycle.rail >= 0 && cycle.railMed < 0
-        ? reasonFor(
-            ["K", "N"],
-            "No graded borrower has a completed share to compare with yet.",
-          )
+        ? reasonFor(["K", "N"], t36("reasons.noMedian"))
         : {}),
-      M: "No contract sets how many facilities must complete, so there is no headroom to draw.",
+      M: t36("reasons.M"),
       ...(cycle.trend
         ? {}
         : {
             O: completed
               ? seriesReason(borrower.values.COMPLETED_TO_DATE)
-              : "No facility has completed yet, so there is nothing to plot.",
+              : t36("reasons.none"),
           }),
     }
   }
@@ -432,32 +430,31 @@ export const borrowerTreatmentData = (
   if (discipline) {
     const rate = n("BREACHES_PER_100")
     const comparison = cmp.BREACHES_PER_100
-    if (incidents === 0)
-      discipline.unavailable =
-        "No incident recorded yet: nothing has been late."
-    if (breaches !== undefined && incidents !== undefined)
-      discipline.sentence = `${plural(
-        breaches,
-        "grace breach",
-        "grace breaches",
-      )} in ${plural(incidents, "incident")}${
-        rate === undefined ? "" : `: ${score(rate)} per 100 episodes`
-      }.`
+    if (incidents === 0) discipline.unavailable = shared("noIncidents")
+    if (breaches !== undefined && incidents !== undefined) {
+      const record = {
+        breaches: counted("graceBreach", breaches),
+        incidents: counted("incident", incidents),
+      }
+      discipline.sentence =
+        rate === undefined
+          ? t38("sentence", record)
+          : t38("sentenceRate", { ...record, rate: score(rate) })
+    }
     if (rate !== undefined && breaches !== undefined && incidents) {
       discipline.grace = 0
       discipline.past = rate
       discipline.countClaim =
-        breaches === 0
-          ? "No incident ran past its allowance."
-          : `${per100(rate)} of every 100 incidents ran past the allowance.`
-      discipline.countNote = `${count(breaches)} of ${plural(
-        incidents,
-        "incident",
-      )} across ${plural(funded.length, "market")} (S13 of S12)`
+        breaches === 0 ? t38("claimNone") : t38("claim", { n: per100(rate) })
+      discipline.countNote = t38("countNote", {
+        breaches: count(breaches),
+        incidents: counted("incident", incidents),
+        markets: counted("market", funded.length),
+      })
       discipline.rail = one(rate)
       discipline.railMed = comparison ? one(comparison.median) : -1
       discipline.railMax = railEnd(rate, comparison?.median ?? 0, 4)
-      discipline.railValue = `${score(rate)} per 100`
+      discipline.railValue = t38("railValue", { rate: score(rate) })
       discipline.medText = comparison ? score(comparison.median) : undefined
       discipline.better = "lower"
     }
@@ -491,17 +488,20 @@ export const borrowerTreatmentData = (
       const w = widths(shown.map((entry) => entry.incidents))
       discipline.buckets = shown.map((entry, index) => [
         marketLabel(entry.row),
-        `${count(entry.breaches)} of ${count(entry.incidents)}`,
+        t38("buckets.marketBreaches", {
+          breaches: count(entry.breaches),
+          incidents: count(entry.incidents),
+        }),
         w[index],
         entry.breaches ? RED : GREEN,
       ])
-      discipline.bucketNote = `grace breaches of each market's incidents (M25), bars sized by incidents${
+      discipline.bucketNote =
         perMarket.length > ROWS
-          ? `; the ${count(ROWS)} markets with the most of ${count(
-              perMarket.length,
-            )}`
-          : ""
-      }`
+          ? t38("buckets.noteMore", {
+              shown: count(ROWS),
+              total: count(perMarket.length),
+            })
+          : t38("buckets.note")
     }
     // The book's longest incident against its own market's allowance.
     const longestRow = funded
@@ -520,11 +520,14 @@ export const borrowerTreatmentData = (
       discipline.cov = [
         longest,
         grace,
-        `${hours(grace)} allowance in ${marketLabel(longestRow)}`,
+        shared("allowanceIn", {
+          grace: hours(grace),
+          market: marketLabel(longestRow),
+        }),
         over
-          ? `${hours(longest - grace)} past the limit`
-          : `${hours(grace - longest)} of room`,
-        "the book's longest incident (D15) against its own market's allowance",
+          ? shared("pastLimit", { hours: hours(longest - grace) })
+          : shared("room", { hours: hours(grace - longest) }),
+        t38("cov.note"),
       ]
     }
     const toDate = seriesOf("BREACHES_TO_DATE")
@@ -535,27 +538,23 @@ export const borrowerTreatmentData = (
       const peak = Math.max(0, ...samples)
       discipline.trend = [
         scaled(samples),
-        `${score(first[1])} by ${longDate(first[0])}`,
-        `now ${score(last[1])}`,
-        peak > 0
-          ? `grace breaches per 100 incidents, to date, weekly; full height ${score(
-              peak,
-            )}`
-          : "grace breaches per 100 incidents, to date, weekly: none so far",
+        shared("trendBy", {
+          value: score(first[1]),
+          date: longDate(first[0]),
+        }),
+        shared("trendNow", { value: score(last[1]) }),
+        peak > 0 ? t38("trend", { peak: score(peak) }) : t38("trendNone"),
       ]
     }
     discipline.sideBySide = [
-      ...versus("per 100 incidents", rate, comparison, score),
-      ...versus("incidents", incidents, cmp.S12, count),
-      ...versus("average incident", n("D16"), cmp.D16, hours),
+      ...versus(t38("sideBySide.rate"), rate, comparison, score),
+      ...versus(t38("sideBySide.incidents"), incidents, cmp.S12, count),
+      ...versus(t38("sideBySide.average"), n("D16"), cmp.D16, hours),
     ]
     discipline.reasons = {
       ...(discipline.rank ? {} : reasonFor(["E", "I"], notRanked(comparison))),
       ...(discipline.rail >= 0 && discipline.railMed < 0
-        ? reasonFor(
-            ["K", "N"],
-            "No graded borrower has a breach rate to compare with yet.",
-          )
+        ? reasonFor(["K", "N"], t38("reasons.noMedian"))
         : {}),
       ...(discipline.trend
         ? {}
@@ -569,11 +568,13 @@ export const borrowerTreatmentData = (
   if (breadth) {
     const comparison = cmp.S37
     if (lenders !== undefined) {
-      breadth.sentence = `${plural(lenders, "distinct lender")} ${
-        lenders === 1 ? "has" : "have"
-      } funded this borrower across its ${
-        borrower.partial ? "available " : ""
-      }markets.`
+      const funders = {
+        count: lenders,
+        lenders: counted("distinctLender", lenders),
+      }
+      breadth.sentence = borrower.partial
+        ? t310("sentencePartial", funders)
+        : t310("sentence", funders)
       breadth.rail = lenders
       breadth.railMed = comparison?.median ?? -1
       breadth.railMax = railEnd(lenders, comparison?.median ?? 0)
@@ -581,7 +582,7 @@ export const borrowerTreatmentData = (
     }
     // A lender count is a measure, not a grade: its place, not "better than".
     breadth.rank = positionOf(comparison)
-    breadth.rankHigher = "more distinct lenders than"
+    breadth.rankHigher = t310("rankHigher")
     const perMarket = funded
       .map((row) => ({ row, lenders: reader(row.values).n("M49") ?? 0 }))
       .filter((entry) => entry.lenders > 0)
@@ -595,44 +596,44 @@ export const borrowerTreatmentData = (
         w[index],
         PURPLE,
       ])
-      breadth.bucketNote = `lenders who ever deposited, per market; one lender in several markets counts in each${
+      breadth.bucketNote =
         perMarket.length > ROWS
-          ? ` · the ${count(ROWS)} largest of ${count(
-              perMarket.length,
-            )} markets`
-          : ""
-      }`
+          ? t310("buckets.noteMore", {
+              shown: count(ROWS),
+              total: count(perMarket.length),
+            })
+          : t310("buckets.note")
     }
     const toDate = seriesOf("LENDERS_TO_DATE")
     if (toDate && lenders) {
       breadth.trend = [
         scaled(sampleSeries(toDate, true)),
-        `${plural(toDate[0][1], "lender")} by ${longDate(toDate[0][0])}`,
-        `now ${count(toDate[toDate.length - 1][1])}`,
-        "distinct lenders across the book, to date, weekly",
+        shared("trendBy", {
+          value: counted("lender", toDate[0][1]),
+          date: longDate(toDate[0][0]),
+        }),
+        shared("trendNow", { value: count(toDate[toDate.length - 1][1]) }),
+        t310("trend"),
       ]
     }
     breadth.sideBySide = [
-      ...versus("distinct lenders", lenders, comparison, count),
-      ...versus("funded markets", n("S01"), cmp.S01, count),
+      ...versus(t310("sideBySide.lenders"), lenders, comparison, count),
+      ...versus(t310("sideBySide.markets"), n("S01"), cmp.S01, count),
     ]
     breadth.reasons = {
-      ...reasonFor(
-        ["B", "G"],
-        "A count of lenders, not a share: nothing to count out of 100.",
-      ),
+      ...reasonFor(["B", "G"], t310("reasons.count")),
       ...(breadth.rank ? {} : reasonFor(["E", "I"], notRanked(comparison))),
       ...(breadth.rail >= 0 && breadth.railMed < 0
-        ? reasonFor(["K", "N"], "No graded borrower to compare with yet.")
+        ? reasonFor(["K", "N"], t310("reasons.noMedian"))
         : {}),
-      ...(breadth.buckets ? {} : { L: "No lender has deposited yet." }),
-      M: "No contract limits how many lenders fund a borrower, so there is no headroom to draw.",
+      ...(breadth.buckets ? {} : { L: t310("reasons.none") }),
+      M: t310("reasons.M"),
       ...(breadth.trend
         ? {}
         : {
             O: lenders
               ? seriesReason(borrower.values.LENDERS_TO_DATE)
-              : "No lender has deposited yet.",
+              : t310("reasons.none"),
           }),
     }
   }

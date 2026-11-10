@@ -2,10 +2,16 @@
 // analytics-card.js part 1), ported as written. Inputs are published metric
 // values; a missing input gives no verdict, never a guessed one.
 
+import { text } from "./text"
+
 export type Verdict = "STRONG" | "WATCH" | "PROBLEM" | "LIMITED"
 export type Tone = "green" | "amber" | "red" | "neutral"
 
-export const LIMITED_NOTE = "clean so far, barely tested"
+/** A verdict as the pages print it. */
+export const verdictWord = (verdict: Verdict) =>
+  text(`shared.verdict.${verdict}`)
+
+export const LIMITED_NOTE = text("shared.verdict.limitedNote")
 export const GATES = { gradeDays: 90, exitDeadlines: 10, penaltyShareAmber: 5 }
 
 /** Card 2.1 (market) and 3.1 (borrower). days = Market age (M05), or Σ M05 for a book. */
@@ -52,5 +58,5 @@ export function verdictExits({
 /** Card 2.5: neutral, with an amber chip only when penalty share (M42) exceeds 5%. */
 export const penaltyChip = (penaltySharePct?: number) =>
   penaltySharePct !== undefined && penaltySharePct > GATES.penaltyShareAmber
-    ? "yield partly from penalties"
+    ? text("shared.flag.penalties")
     : null

@@ -11,7 +11,7 @@ import {
   borrowerFixture,
   marketFixture,
 } from "@/components/GlassDoor/storyFixtures"
-import { CARDS, METRIC_NAMES } from "@/components/GlassDoor/wording"
+import { CARD_IDS, METRIC_IDS, metricName } from "@/components/GlassDoor/text"
 import {
   BORROWER_COMPARISONS,
   MARKET_COMPARISONS,
@@ -100,9 +100,9 @@ describe("metric catalogue", () => {
     const ids = SPEC_METRICS.map((metric) => metric.id)
     expect(ids).toHaveLength(91)
     expect(new Set(ids).size).toBe(91)
-    expect([...ids].sort()).toEqual(Object.keys(METRIC_NAMES).sort())
+    expect([...ids].sort()).toEqual([...METRIC_IDS].sort())
     SPEC_METRICS.forEach((metric) => {
-      expect(metric.name).toBe(METRIC_NAMES[metric.id])
+      expect(metric.name).toBe(metricName(metric.id))
       ;["what", "where", "how", "unit", "example"].forEach((field) =>
         expect(metric[field as keyof typeof metric]).not.toBe(""),
       )
@@ -125,7 +125,7 @@ describe("metric catalogue", () => {
   it("only names cards that exist, besides 3.12", () => {
     const cards = new Set(SPEC_METRICS.flatMap(cardNumbers))
     cards.forEach((card) => {
-      if (card !== "3.12") expect(CARDS[card]).toBeDefined()
+      if (card !== "3.12") expect(CARD_IDS).toContain(card)
     })
   })
 })

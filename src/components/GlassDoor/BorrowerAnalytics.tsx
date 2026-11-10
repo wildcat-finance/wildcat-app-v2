@@ -18,14 +18,19 @@ import {
   BLANK,
   compactUnits,
   count,
+  counted,
   percent,
-  plural,
+  range,
   score,
   units,
+  withAsset,
 } from "./format"
 import { AnalyticsSkeleton, AnalyticsFrame, Notice } from "./Frame"
 import { isFunded, isoDay, reader } from "./helpers"
 import { Tone, verdictExits, verdictInOrder } from "./rules"
+import { cardCopy, metricName, scoped } from "./text"
+
+const p = scoped("pages.borrower")
 
 const NA = BLANK.unavailable
 const cx = (...names: (string | false | undefined)[]) =>
@@ -47,26 +52,31 @@ export const marketState = (
 ): { word: string; tone: Tone } => {
   if (row.state !== "Ok")
     return {
-      word: row.state === "Preparing" ? "preparing" : "under review",
+      word:
+        row.state === "Preparing"
+          ? p("state.preparing")
+          : p("state.underReview"),
       tone: "neutral",
     }
-  if (row.values.M77 === "Closed") return { word: "finished", tone: "neutral" }
-  if (!isFunded(row.values)) return { word: "not funded yet", tone: "neutral" }
-  if (row.values.M85 === 1) return { word: "past allowance", tone: "red" }
-  if (row.values.M21 === 1)
-    return { word: "late, within allowance", tone: "amber" }
+  if (row.values.M77 === "Closed")
+    return { word: p("state.finished"), tone: "neutral" }
+  if (!isFunded(row.values)) return { word: BLANK.notFunded, tone: "neutral" }
+  if (row.values.M85 === 1) return { word: p("state.past"), tone: "red" }
+  if (row.values.M21 === 1) return { word: p("state.within"), tone: "amber" }
   if (row.values.M21 === 0 && row.values.M85 === 0)
-    return { word: "in order", tone: "green" }
+    return { word: p("state.inOrder"), tone: "green" }
   return { word: NA, tone: "neutral" }
 }
 
+// Each column is named by its metric (or card 2.4), so a rename in the file
+// reaches the table too.
 const COLUMNS: [string, string][] = [
-  ["Market", ""],
-  ["In order, cash there", "M18"],
-  ["Exits paid on time", "M32 of M30"],
-  ["Right now", "M21 / M85"],
-  ["Total owed to lenders now", "M07"],
-  ["Base APR now", "M11"],
+  [p("table.market"), ""],
+  [metricName("M18"), "M18"],
+  [metricName("M32"), p("table.exitsIds")],
+  [cardCopy("2.4").name, "M21 / M85"],
+  [metricName("M07"), "M07"],
+  [metricName("M11"), "M11"],
 ]
 
 /** Weakest funded open market first; finished, unfunded and unknown rows last. */
@@ -107,8 +117,8 @@ const MarketRow = ({
       ? verdictInOrder({ score: grade, trend: n("M68"), days: n("M05"), stale })
       : null
   let inOrder: React.ReactNode = NA
-  if (ok && n("M49") === 0) inOrder = "not funded yet"
-  else if (ok && life === 0) inOrder = "no recorded history"
+  if (ok && n("M49") === 0) inOrder = BLANK.notFunded
+  else if (ok && life === 0) inOrder = BLANK.noHistory
   else if (ok && life && n("H02") === 0) inOrder = BLANK.neverLate
   else if (ok && grade !== undefined)
     inOrder = (
@@ -122,9 +132,12 @@ const MarketRow = ({
   else if (ok && deadlines !== undefined && exits !== undefined)
     exitText = (
       <>
-        {percent(exits)} of {count(deadlines)}
+        {p("table.exits", {
+          share: percent(exits),
+          deadlines: count(deadlines),
+        })}
         {verdictExits({ pct: exits, deadlines }) === "LIMITED" ? (
-          <span className={styles.thin}>thin history</span>
+          <span className={styles.thin}>{p("table.thin")}</span>
         ) : null}
       </>
     )
@@ -133,15 +146,16 @@ const MarketRow = ({
     owedText = (
       <span
         className={styles.muted}
-        title={owed === undefined ? undefined : `${units(owed)} ${asset ?? ""}`}
+        title={owed === undefined ? undefined : withAsset(units(owed), asset)}
       >
-        finished
+        {p("table.finished")}
       </span>
     )
   else if (ok && owed !== undefined)
-    owedText = `${compactUnits(owed)}${asset ? ` ${asset}` : ""}`
+    owedText = withAsset(compactUnits(owed), asset)
   let rateText: React.ReactNode = NA
-  if (ok && closed) rateText = <span className={styles.muted}>finished</span>
+  if (ok && closed)
+    rateText = <span className={styles.muted}>{p("table.finished")}</span>
   else if (ok && n("M11") !== undefined) rateText = apr(n("M11")!)
   const cells: [string, React.ReactNode][] = [
     [COLUMNS[1][0], inOrder],
@@ -178,15 +192,15 @@ const MarketRow = ({
 }
 
 const MarketsTable = ({ borrower }: { borrower: BorrowerData }) => (
-  <section className={styles.box} aria-label="Per-market table">
+  <section className={styles.box} aria-label={p("table.label")}>
     <div className={cx(styles.boxHead, styles.boxHeadStart)}>
-      <h3 className={styles.boxTitle}>Per-market table</h3>
+      <h3 className={styles.boxTitle}>{p("table.label")}</h3>
       <span className={styles.footnote} style={{ margin: 0 }}>
-        find the weak link the averages hide; each row links to its market
+        {p("table.hint")}
       </span>
     </div>
     <div className={styles.tableWrap}>
-      <table className={styles.table} aria-label="Borrower markets">
+      <table className={styles.table} aria-label={p("table.tableLabel")}>
         <thead>
           <tr>
             {COLUMNS.map(([label, id]) => (
@@ -208,10 +222,7 @@ const MarketsTable = ({ borrower }: { borrower: BorrowerData }) => (
         </tbody>
       </table>
     </div>
-    <p className={styles.footnote}>
-      Weakest market first. Blanks are words, never 0 or 100. Verdicts follow
-      the rules of cards 2.1 and 2.3.
-    </p>
+    <p className={styles.footnote}>{p("table.footnote")}</p>
   </section>
 )
 
@@ -219,27 +230,23 @@ const MarketsTable = ({ borrower }: { borrower: BorrowerData }) => (
 const Trouble = ({ borrower }: { borrower: BorrowerData }) => {
   const rows = lateShareRows(borrower)
   return (
-    <section className={styles.box} aria-label="Trouble over time">
+    <section className={styles.box} aria-label={p("trouble.title")}>
       <div className={styles.boxHead}>
         <h3 className={styles.boxTitle}>
-          Trouble over time <span className={styles.panelId}>3.12</span>{" "}
-          <span className={styles.panelIds}>
-            v1 H02 / H01 split by M26 · v2 rolling 90 d · D17
-          </span>
+          {p("trouble.title")} <span className={styles.panelId}>3.12</span>{" "}
+          <span className={styles.panelIds}>{p("trouble.ids")}</span>
         </h3>
       </div>
-      <p className={styles.lede}>
-        rates, not lifetime totals, so age does not read as guilt
-      </p>
+      <p className={styles.lede}>{p("trouble.lede")}</p>
       <div className={styles.troubleViews}>
-        <div aria-label="Concentration" role="group">
+        <div aria-label={p("trouble.concentration")} role="group">
           {rows.length ? (
             <LateShareBars rows={rows} />
           ) : (
-            <Tbd>No funded market has recorded life yet.</Tbd>
+            <Tbd>{p("trouble.noLife")}</Tbd>
           )}
         </div>
-        <div aria-label="Direction" role="group">
+        <div aria-label={p("trouble.direction")} role="group">
           <Direction series={borrower.values.LATE_SHARE_90D} />
         </div>
       </div>
@@ -265,70 +272,66 @@ export const BorrowerAnalyticsView = ({
   const floor = marketDays ? n("S06") : undefined
   const top = marketDays ? n("S07") : undefined
   let spread: string = NA
-  if (markets === 0) spread = "no funded market yet"
-  else if (markets === 1) spread = "single market"
+  if (markets === 0) spread = BLANK.noFundedMarket
+  else if (markets === 1) spread = p("header.singleMarket")
   else if (floor !== undefined && top !== undefined)
-    spread = `${score(floor)} to ${score(top)}`
+    spread = range(score(floor), score(top))
   let content = (
     <div className={styles.root}>
-      {borrower.partial ? (
-        <Notice compact>
-          Totals exclude markets whose data is unavailable.
-        </Notice>
-      ) : null}
+      {borrower.partial ? <Notice compact>{p("notice.partial")}</Notice> : null}
       <header className={styles.header}>
         <div className={styles.headerRow}>
           <span className={styles.headerFact}>
             <b>{markets === undefined ? NA : count(markets)}</b>{" "}
-            {markets === 1 ? "market" : "markets"} <Id>S01</Id>
+            {p("header.markets", { count: markets ?? 0 })} <Id>S01</Id>
           </span>
           <span className={styles.divider} aria-hidden="true" />
           <span className={styles.headerFact}>
-            on Wildcat since <b>{isoDay(s("S02"))}</b> <Id>S02</Id>
+            {p("header.since")} <b>{isoDay(s("S02"))}</b> <Id>S02</Id>
           </span>
           <span className={styles.divider} aria-hidden="true" />
           <span className={styles.headerFact}>
             <b>
-              {marketDays === undefined ? NA : plural(marketDays, "market-day")}
+              {marketDays === undefined ? NA : counted("marketDay", marketDays)}
             </b>{" "}
-            of evidence <Id>Σ M05</Id>
+            {p("header.evidence")} <Id>Σ M05</Id>
           </span>
           <span className={styles.divider} aria-hidden="true" />
           <span className={styles.headerFact}>
-            spread <b>{spread}</b> <Id>S06 – S07</Id>
+            {p("header.spread")} <b>{spread}</b> <Id>S06 – S07</Id>
           </span>
         </div>
       </header>
       {renderCards ? (
-        renderCards(borrowerSpecs(borrower), "Borrower cards", 5)
+        renderCards(borrowerSpecs(borrower), p("cardsLabel"), 5)
       ) : (
         <AnalyticsCardRow
           specs={borrowerSpecs(borrower)}
           initialOpen="3.1"
-          label="Borrower cards"
+          label={p("cardsLabel")}
         />
       )}
       {borrower.markets.length ? (
         <MarketsTable borrower={borrower} />
       ) : (
-        <Notice compact>No market records available.</Notice>
+        <Notice compact>{p("notice.noMarkets")}</Notice>
       )}
       <Trouble borrower={borrower} />
     </div>
   )
   if (borrower.state === "Preparing") {
-    content = <Notice compact>Borrower analytics are being prepared.</Notice>
+    content = <Notice compact>{p("notice.preparing")}</Notice>
   } else if (
     borrower.state === "UnderReview" ||
     Object.keys(borrower.values).length === 0
   ) {
-    content = <Notice compact>Borrower analytics are under review.</Notice>
+    content = <Notice compact>{p("notice.underReview")}</Notice>
   }
   return (
     <AnalyticsFrame
-      title="Borrower analytics"
+      title={p("title")}
       publication={borrower.publication}
-      labels={borrower.partial ? ["Partial record"] : []}
+      labels={borrower.partial ? [p("partialLabel")] : []}
     >
       {content}
     </AnalyticsFrame>
@@ -354,19 +357,15 @@ export const BorrowerAnalytics = ({
           borrower.refetch()
         }}
       >
-        Analytics could not be loaded.
+        {p("notice.failed")}
       </Notice>
     )
   } else if (borrower.data.status === "preparing") {
-    content = <Notice compact>Borrower analytics are being prepared.</Notice>
+    content = <Notice compact>{p("notice.preparing")}</Notice>
   } else if (borrower.data.status === "unavailable") {
-    content = (
-      <Notice compact>
-        Borrower analytics are unavailable on this network.
-      </Notice>
-    )
+    content = <Notice compact>{p("notice.unavailable")}</Notice>
   } else {
     return <BorrowerAnalyticsView borrower={borrower.data.data} />
   }
-  return <AnalyticsFrame title="Borrower analytics">{content}</AnalyticsFrame>
+  return <AnalyticsFrame title={p("title")}>{content}</AnalyticsFrame>
 }

@@ -6,6 +6,7 @@
 // treatments-data.json is the worked example (wmtUSDC at block 25,749,504);
 // each field follows it. A field the publication does not hold stays missing
 // (-1 or null), so its treatments show the honesty state, never a shape.
+// Every word a tile shows is in glassDoor.json under treatments.
 
 import { Comparison, MarketAnalytics } from "@/components/GlassDoor/api"
 import { CardSpec } from "@/components/GlassDoor/card"
@@ -16,85 +17,70 @@ import {
   block,
   contractKept,
   count,
+  counted,
   days,
   hours,
   isSeries,
   lifeShare,
   longDate,
   percent,
-  plural,
+  percentOf,
   score,
   units,
+  withAsset,
 } from "@/components/GlassDoor/format"
 import {
-  leadingNumber,
   lifecycle,
   openEpisodes,
+  RankNoun,
   reader,
   yesNo,
 } from "@/components/GlassDoor/helpers"
-import { Tone as StateTone, Verdict } from "@/components/GlassDoor/rules"
-import { CARDS } from "@/components/GlassDoor/wording"
+import { GATES, Tone as StateTone, Verdict } from "@/components/GlassDoor/rules"
+import {
+  cardCopy,
+  cardKey,
+  CARD_IDS,
+  hasText,
+  scoped,
+  text,
+  textAt,
+} from "@/components/GlassDoor/text"
 
 export type Tone = Verdict | "CONTEXT"
 
-export const TREATMENTS = {
-  A: {
-    label: "Grade card",
-    summary:
-      "value, verdict, median line (the shipped default for 2.1, 2.2, 2.3, 3.1)",
-  },
-  B: {
-    label: "Counted",
-    summary: "events out of 100, drawn as cells (natural frequency)",
-  },
-  C: { label: "Rail", summary: "0–100 bar with a median tick" },
-  D: { label: "Sentence", summary: "one plain claim, no chrome" },
-  E: { label: "Rank", summary: "position in the population as a bar strip" },
-  F: { label: "Detail", summary: "composition bar and the raw parts" },
-  G: {
-    label: "Share bar",
-    summary:
-      "status-page segments: the record's proportions, not when each part happened",
-  },
-  H: {
-    label: "Bullet",
-    summary: "value bar over weak / fair / strong bands with the median tick",
-  },
-  I: {
-    label: "Distribution",
-    summary: "percentile marker with the middle half boxed",
-  },
-  J: {
-    label: "Dial",
-    summary:
-      "credit-score arc with bands (kept for comparison; the shipped pages avoid gauges)",
-  },
-  K: {
-    label: "Scorecard row",
-    summary: "this one vs typical, difference, evidence",
-  },
-  L: {
-    label: "Aging buckets",
-    summary: "receivables-aging convention: current / within allowance / past",
-  },
-  M: {
-    label: "Covenant headroom",
-    summary: "distance to the contractual limit",
-  },
-  N: {
-    label: "Side by side",
-    summary: "this value against the population median",
-  },
-  O: { label: "Trend", summary: "the series, where one exists" },
-  P: {
-    label: "Exception line",
-    summary: "credit-queue item with a flag and a next step",
-  },
-} as const
+const CODES = [
+  "A",
+  "B",
+  "C",
+  "D",
+  "E",
+  "F",
+  "G",
+  "H",
+  "I",
+  "J",
+  "K",
+  "L",
+  "M",
+  "N",
+  "O",
+  "P",
+] as const
 
-export type TreatmentCode = keyof typeof TREATMENTS
-export const TREATMENT_CODES = Object.keys(TREATMENTS) as TreatmentCode[]
+export type TreatmentCode = (typeof CODES)[number]
+export const TREATMENT_CODES: TreatmentCode[] = [...CODES]
+
+/** Each treatment's label and one-line summary. */
+export const TREATMENTS = Object.fromEntries(
+  CODES.map((code) => [
+    code,
+    {
+      label: text(`treatments.names.${code}.label`),
+      summary: text(`treatments.names.${code}.summary`),
+    },
+  ]),
+) as Record<TreatmentCode, { label: string; summary: string }>
 
 /** treatments.js IndexDatum. */
 export type IndexDatum = {
@@ -181,18 +167,6 @@ export const DESIGN_TREATMENT: Record<string, TreatmentCode> = {
   "3.1": "A",
 }
 
-const NOTES: Record<string, string> = {
-  "2.1": "the cash-availability grade",
-  "2.2": "the single worst moment",
-  "2.3": "payout deadlines covered",
-  "2.4": "live state at this block",
-  "2.5": "rate and whether it was paid",
-  "2.6": "utilization",
-  "2.8": "shape of the lateness",
-  "2.9": "lender breadth and concentration",
-  "2.10": "the contract facts",
-}
-
 const STATE_TONE: Record<StateTone, Tone> = {
   green: "STRONG",
   amber: "WATCH",
@@ -207,7 +181,19 @@ const DEEP_RED = "#C24647"
 const GHOST = "#D4D6DD"
 const PURPLE = "#4112B5"
 const DAY = 86_400
+const WEEK = 7 * DAY
 const NA = BLANK.unavailable
+
+const shared = scoped("treatments.shared")
+const t21 = scoped("treatments.card_2_1")
+const t22 = scoped("treatments.card_2_2")
+const t23 = scoped("treatments.card_2_3")
+const t24 = scoped("treatments.card_2_4")
+const t25 = scoped("treatments.card_2_5")
+const t26 = scoped("treatments.card_2_6")
+const t28 = scoped("treatments.card_2_8")
+const t29 = scoped("treatments.card_2_9")
+const t210 = scoped("treatments.card_2_10")
 
 const one = (value: number) => Math.round(value * 10) / 10
 
@@ -217,11 +203,11 @@ const rankOf = (comparison?: Comparison): [number, number] | null =>
     : [comparison.betterThan, comparison.population]
 
 /** "17", or "Under 1" for a share that rounds to nothing but is not zero. */
-const per100 = (value: number) =>
-  value > 0 && Math.round(value) < 1 ? "Under 1" : count(value)
+export const per100 = (value: number) =>
+  value > 0 && Math.round(value) < 1 ? shared("under1") : count(value)
 
 /** Bar widths against the largest, as the handoff sizes its buckets. */
-const widths = (values: number[]) => {
+export const widths = (values: number[]) => {
   const max = Math.max(...values, 0)
   return values.map((value) => {
     if (max <= 0 || value <= 0) return 0
@@ -232,30 +218,33 @@ const widths = (values: number[]) => {
 export const datumFromSpec = (
   spec: CardSpec,
   evidence?: string,
-): IndexDatum => ({
-  id: spec.id,
-  name: CARDS[spec.id].name,
-  note: NOTES[spec.id] ?? "",
-  verdict: spec.verdict ?? "CONTEXT",
-  value: spec.value,
-  unit: spec.sub,
-  median: spec.compare || "no protocol median yet",
-  sentence: "",
-  grace: -1,
-  past: -1,
-  countClaim: "",
-  countNote: "",
-  rail: -1,
-  railMed: -1,
-  rank: null,
-  parts: [],
-  buckets: null,
-  cov: null,
-  trend: null,
-  evidence,
-})
+): IndexDatum => {
+  const note = `treatments.${cardKey(spec.id)}.note`
+  return {
+    id: spec.id,
+    name: cardCopy(spec.id).name,
+    note: hasText(note) ? textAt(note) : "",
+    verdict: spec.verdict ?? "CONTEXT",
+    value: spec.value,
+    unit: spec.sub,
+    median: spec.compare || shared("noMedian"),
+    sentence: "",
+    grace: -1,
+    past: -1,
+    countClaim: "",
+    countNote: "",
+    rail: -1,
+    railMed: -1,
+    rank: null,
+    parts: [],
+    buckets: null,
+    cov: null,
+    trend: null,
+    evidence,
+  }
+}
 
-const TREND_BARS = 24
+export const TREND_BARS = 24
 
 /**
  * Evenly spaced readings of a series for the trend bars: the value at each
@@ -277,9 +266,6 @@ export const sampleSeries = (series: [number, number][], stepped = false) => {
     )[1]
   })
 }
-
-const GRADED_DAYS = 90
-const WEEK = 7 * DAY
 
 export type Reasons = Partial<Record<TreatmentCode, string>>
 
@@ -307,15 +293,17 @@ export const positionOf = (comparison?: Comparison): [number, number] | null =>
 export const rankReason = (
   comparison: Comparison | undefined,
   recordDays: number | undefined,
-  noun: "markets" | "borrowers",
+  noun: RankNoun,
 ) => {
-  if (!comparison)
-    return `No graded ${noun} have this value yet, so there is nothing to rank against.`
-  if (recordDays !== undefined && recordDays < GRADED_DAYS)
-    return `Under 90 days of record (${count(
-      recordDays,
-    )} so far): ${noun} are ranked from 90 days.`
-  return "This publication has no place for it yet; the next update adds one."
+  const among = text(`shared.rank.${noun}`)
+  if (!comparison) return shared("rankNone", { noun: among })
+  if (recordDays !== undefined && recordDays < GATES.gradeDays)
+    return shared("rankYoung", {
+      gate: GATES.gradeDays,
+      has: count(recordDays),
+      noun: among,
+    })
+  return shared("rankPending")
 }
 
 /** N's row for one compared value: [label, this one, the median]. */
@@ -331,9 +319,7 @@ export const versus = (
 
 /** O's reason when a published series is missing or too short. */
 export const seriesReason = (value: unknown) =>
-  isSeries(value)
-    ? "Under two weeks of record: the weekly series has one reading so far."
-    : "This publication has no series for it yet; the next update adds it."
+  isSeries(value) ? shared("seriesShort") : shared("seriesPending")
 
 /** Points grouped into equal spans of [from, to], oldest first. */
 const spansOf = (points: [number, number][], from: number, to: number) => {
@@ -369,10 +355,10 @@ export function treatmentData(
   const cmp = market.comparisons
   const asset = s("M02")
   const amount = (value?: number) =>
-    value === undefined ? NA : `${units(value)}${asset ? ` ${asset}` : ""}`
+    value === undefined ? NA : withAsset(units(value), asset)
   const { cut } = market.publication
   const evidence = cut
-    ? `on-chain record at block ${block(cut.block)}`
+    ? shared("evidenceMarket", { block: block(cut.block) })
     : undefined
   const closed = s("M77") === "Closed"
   const life = n("H01")
@@ -392,18 +378,28 @@ export function treatmentData(
     rankReason(comparison, age, "markets")
   const allowance =
     grace === undefined
-      ? "the allowed lateness"
-      : `the ${hours(grace)} allowance`
+      ? shared("allowanceUnknown")
+      : shared("allowance", { grace: hours(grace) })
+  /** A limit drawn at the grace period: "48 h allowance". */
+  const graceLimit = (value: number) =>
+    shared("limitAllowance", { grace: hours(value) })
+  /** A series' latest reading: "now 96.7", or "last 96.7" once closed. */
+  const latest = (value: string) =>
+    closed ? shared("trendLast", { value }) : shared("trendNow", { value })
   // The market's life: deployment to closure, or to the cut.
   const deployed = s("M03") ? Date.parse(s("M03")!) / 1_000 : undefined
   const lifeEnd =
     deployed !== undefined && age !== undefined
       ? deployed + age * DAY
       : undefined
+  const lifeEndLabel = (end: number) =>
+    closed ? shared("closedOn", { date: longDate(end) }) : shared("now")
   const incidents = isSeries(market.values.INCIDENT_HISTORY)
     ? market.values.INCIDENT_HISTORY
     : undefined
-  const noIncidents = "No incident recorded yet: nothing has been late."
+  const noIncidents = shared("noIncidents")
+  const penaltyRate = (value: number) =>
+    text("cards.card_2_10.penaltyRate", { rate: score(value, 2) })
 
   // ---------- 2.1 In order ----------
   if (specs["2.1"]) {
@@ -412,7 +408,7 @@ export function treatmentData(
     const penalty = hasRecord ? n("M26") : undefined
     const kept = penalty === undefined ? undefined : 100 - penalty
     d.rank = rankOf(cmp.M18)
-    if (!hasRecord) d.unavailable = "No recorded history yet."
+    if (!hasRecord) d.unavailable = shared("noRecord")
     // Cash there over the trailing 90 days, weekly (100 − share of days late).
     const lateShare = seriesOf("LATE_SHARE_90D")
     if (lateShare) {
@@ -424,9 +420,12 @@ export function treatmentData(
       const last = inOrder[inOrder.length - 1]
       d.trend = [
         sampleSeries(inOrder).map((value) => Math.max(0, value)),
-        `${score(first[1])} on ${longDate(first[0])}`,
-        `${closed ? "last" : "now"} ${score(last[1])}`,
-        "cash there over the trailing 90 days, weekly (100 − share of days late)",
+        shared("trendOn", {
+          value: score(first[1]),
+          date: longDate(first[0]),
+        }),
+        latest(score(last[1])),
+        t21("trend"),
       ]
     }
     if (
@@ -447,56 +446,56 @@ export function treatmentData(
       d.past = 0
       d.countClaim =
         late === 0
-          ? "The promised cash was there every day: never late."
-          : `${per100(short)} ${
-              Math.round(short) === 1 ? "day" : "days"
-            } in every 100 the promised cash was short.`
-      d.countNote = `${score(shortDays)} short days of ${score(
-        lifeDays,
-      )} recorded · separately, ${
-        penalty > 0 && penalty < 1 ? "under 1" : count(penalty)
-      } in 100 days past the allowance (M26)`
+          ? t21("claimNever")
+          : t21("claim", { count: Math.round(short), n: per100(short) })
+      d.countNote = t21("countNote", {
+        short: score(shortDays),
+        life: score(lifeDays),
+        past:
+          penalty > 0 && penalty < 1 ? shared("under1Lower") : count(penalty),
+      })
       d.rail = one(cash)
       d.better = "higher"
       d.railMed = cmp.M18 ? one(cmp.M18.median) : -1
       d.medText = cmp.M18 ? score(cmp.M18.median) : undefined
-      d.sentence = `Over ${count(
-        lifeDays,
-      )} days the promised cash was there ${score(
-        cash,
-      )}% of the time; counting only time past the ${
-        grace === undefined ? "allowed lateness" : `${hours(grace)} allowance`
-      }, the contract was kept ${contractKept(100 - penalty)}%.`
+      d.sentence = t21("sentence", {
+        days: count(lifeDays),
+        cash: score(cash),
+        allowance,
+        kept: contractKept(100 - penalty),
+      })
       d.parts = [
-        ["days recorded", score(lifeDays)],
-        ["days short", score(shortDays)],
-        ["past allowance", `${lifeShare(penalty)} of life`],
-        ["incidents", episodes === undefined ? NA : count(episodes)],
+        [t21("parts.daysRecorded"), score(lifeDays)],
+        [t21("parts.daysShort"), score(shortDays)],
+        [
+          t21("parts.pastAllowance"),
+          t21("parts.ofLife", { share: lifeShare(penalty) }),
+        ],
+        [t21("parts.incidents"), episodes === undefined ? NA : count(episodes)],
       ]
       // Two separate measures, not disjoint slices: past the allowance can
       // overlap the short days and can fall after them.
       const w = widths([lifeDays - shortDays, shortDays, pastDays])
       d.buckets = [
-        ["cash there", days(lifeDays - shortDays), w[0], GREEN],
-        ["short of cash", days(shortDays), w[1], AMBER],
-        ["past allowance (M26)", days(pastDays), w[2], RED],
+        [t21("buckets.cashThere"), days(lifeDays - shortDays), w[0], GREEN],
+        [t21("buckets.short"), days(shortDays), w[1], AMBER],
+        [t21("buckets.past"), days(pastDays), w[2], RED],
       ]
-      d.bucketNote =
-        "green cash there · amber short of cash · red past the allowance, measured on its own: it can overlap or follow the short days, so the bars are not slices of one total"
+      d.bucketNote = t21("buckets.note")
       d.sideBySide = [
-        ...versus("cash there", cash, cmp.M18, score),
+        ...versus(t21("sideBySide.cash"), cash, cmp.M18, score),
         ...versus(
-          "contract kept",
+          t21("sideBySide.kept"),
           kept,
           cmp.M26 && { ...cmp.M26, median: 100 - cmp.M26.median },
           contractKept,
         ),
-        ...versus("incidents", episodes, cmp.M20, count),
+        ...versus(t21("sideBySide.incidents"), episodes, cmp.M20, count),
       ]
     }
     d.reasons = {
       ...(d.rank ? {} : reasonFor(["E", "I"], notRanked(cmp.M18))),
-      M: "Cash availability is a share of the record, with no contractual limit of its own. The live headroom, cash held against what the contract requires, is 2.4 (M).",
+      M: t21("reasons.M"),
       ...(d.trend ? {} : { O: seriesReason(market.values.LATE_SHARE_90D) }),
     }
     data["2.1"] = d
@@ -509,7 +508,7 @@ export function treatmentData(
     const worst = n("M24")
     const breaches = n("M25")
     d.rank = rankOf(cmp.M24)
-    if (!hasRecord) d.unavailable = "No recorded history yet."
+    if (!hasRecord) d.unavailable = shared("noRecord")
     if (hasRecord && grace && worst !== undefined) {
       d.rail = one(worst)
       d.better = "lower"
@@ -522,20 +521,18 @@ export function treatmentData(
       d.cov = [
         longest,
         grace,
-        `${hours(grace)} allowance`,
+        graceLimit(grace),
         over
-          ? `${hours(longest - grace)} past the limit`
-          : `${hours(grace - longest)} of room`,
-        "the allowed lateness is this market's hard threshold",
+          ? shared("pastLimit", { hours: hours(longest - grace) })
+          : shared("room", { hours: hours(grace - longest) }),
+        t22("covNote"),
       ]
-      d.sentence =
-        longest === 0
-          ? "No delinquency episode has been recorded."
-          : `The longest incident ran ${hours(longest)} against the ${hours(
-              grace,
-            )} this market allows, so it ${
-              over ? "crossed into penalty" : "stayed inside the allowance"
-            }.`
+      const ran = { longest: hours(longest), grace: hours(grace) }
+      if (longest === 0) d.sentence = t22("sentenceNone")
+      else
+        d.sentence = over
+          ? t22("sentenceOver", ran)
+          : t22("sentenceWithin", ran)
     }
     // Breaches out of every 100 incidents (M25 of the episodes).
     if (episodes && breaches !== undefined) {
@@ -544,18 +541,19 @@ export function treatmentData(
       d.past = share
       d.countClaim =
         breaches === 0
-          ? `No incident ran past ${allowance}.`
-          : `${per100(share)} of every 100 incidents ran past ${allowance}.`
-      d.countNote = `${count(breaches)} of ${plural(
-        episodes,
-        "incident",
-      )} breached ${allowance} (M25)`
+          ? t22("claimNone", { allowance })
+          : t22("claim", { n: per100(share), allowance })
+      d.countNote = t22("countNote", {
+        breaches: count(breaches),
+        incidents: counted("incident", episodes),
+        allowance,
+      })
       const w = widths([episodes - breaches, breaches])
       d.buckets = [
-        ["stayed within", count(episodes - breaches), w[0], GREEN],
-        ["ran past (breaches)", count(breaches), w[1], RED],
+        [t22("buckets.within"), count(episodes - breaches), w[0], GREEN],
+        [t22("buckets.past"), count(breaches), w[1], RED],
       ]
-      d.bucketNote = `incidents by whether they ran past ${allowance} (M25)`
+      d.bucketNote = t22("buckets.note", { allowance })
     }
     // The longest incident in each span of the market's life.
     if (incidents?.length && deployed !== undefined && lifeEnd !== undefined) {
@@ -566,35 +564,35 @@ export function treatmentData(
       d.trend = [
         heights,
         longDate(deployed),
-        closed ? `closed ${longDate(lifeEnd)}` : "now",
-        `longest incident in each of ${TREND_BARS} spans of the market's life; full height ${hours(
-          peak,
-        )}, the allowance ${grace === undefined ? NA : hours(grace)}`,
+        lifeEndLabel(lifeEnd),
+        t22("trend", {
+          spans: TREND_BARS,
+          peak: hours(peak),
+          grace: grace === undefined ? NA : hours(grace),
+        }),
       ]
     }
     d.parts = [
-      ["longest incident", longest === undefined ? NA : hours(longest)],
-      ["allowed lateness", grace === undefined ? NA : hours(grace)],
+      [t22("parts.longest"), longest === undefined ? NA : hours(longest)],
+      [t22("parts.allowed"), grace === undefined ? NA : hours(grace)],
       [
-        "breaches",
+        t22("parts.breaches"),
         breaches === undefined
           ? NA
-          : `${count(breaches)} of ${
-              episodes === undefined ? NA : count(episodes)
-            }`,
+          : t22("parts.breachesOf", {
+              breaches: count(breaches),
+              episodes: episodes === undefined ? NA : count(episodes),
+            }),
       ],
-      ["penalty interest paid", amount(n("M27"))],
+      [t22("parts.penalty"), amount(n("M27"))],
     ]
     d.sideBySide = [
-      ...versus("worst vs allowance", worst, cmp.M24, percent),
-      ...versus("allowed lateness", grace, cmp.M15, hours),
+      ...versus(t22("sideBySide.worst"), worst, cmp.M24, percent),
+      ...versus(t22("sideBySide.allowed"), grace, cmp.M15, hours),
     ]
-    const counted =
-      episodes === 0
-        ? noIncidents
-        : "Breaches are not counted in this publication yet."
+    const counted100 = episodes === 0 ? noIncidents : t22("reasons.notCounted")
     d.reasons = {
-      ...(d.grace < 0 ? reasonFor(["B", "G", "L"], counted) : {}),
+      ...(d.grace < 0 ? reasonFor(["B", "G", "L"], counted100) : {}),
       ...(d.rank ? {} : reasonFor(["E", "I"], notRanked(cmp.M24))),
       ...(d.trend ? {} : { O: incidents ? noIncidents : seriesReason(null) }),
     }
@@ -612,15 +610,10 @@ export function treatmentData(
     const queued = n("M37")
     const unclaimed = n("M38")
     const window = n("M16")
-    // "current cycle ends in 12.5 h" (D06).
-    const cycleLeft = (() => {
-      const match = s("D06")?.match(/ends in (-?[\d.]+) h/)
-      return match ? Number(match[1]) : undefined
-    })()
+    // Cycle status (D06): hours until the running payout cycle ends.
+    const cycleLeft = n("D06")
     d.rank = rankOf(cmp.M32)
-    if (deadlines === 0)
-      d.unavailable =
-        "No payout deadline has come due yet, so there is nothing to count or rank."
+    if (deadlines === 0) d.unavailable = t23("unavailable")
     else if (
       deadlines !== undefined &&
       covered !== undefined &&
@@ -639,48 +632,49 @@ export function treatmentData(
         ? (100 * paidLate!) / deadlines
         : (100 * missed) / deadlines
       d.past = split ? (100 * unpaid!) / deadlines : 0
-      d.countClaim = `${per100(
-        (100 * missed) / deadlines,
-      )} of every 100 payout deadlines were missed on the day.`
-      d.countNote = `${count(missed)} of ${count(deadlines)} not covered · ${
-        split
-          ? `${count(paidLate!)} paid late, ${count(unpaid!)} never paid`
-          : "split of late vs never not available"
-      }`
-      d.sentence = `${count(covered)} of ${plural(
-        deadlines,
-        "payout batch",
-        "payout batches",
-      )} were fully funded on the day they came due; ${count(missed)} ${
-        missed === 1 ? "was" : "were"
-      } not. ${
-        queued
-          ? `${plural(queued, "batch is", "batches are")} queued now`
-          : "No batches are queued now"
-      }${
-        unclaimed === undefined
-          ? ""
-          : ` and ${amount(unclaimed)} sits unclaimed`
-      }.`
+      d.countClaim = t23("claim", { n: per100((100 * missed) / deadlines) })
+      const notCovered = {
+        missed: count(missed),
+        deadlines: count(deadlines),
+      }
+      d.countNote = split
+        ? t23("countNoteSplit", {
+            ...notCovered,
+            late: count(paidLate!),
+            never: count(unpaid!),
+          })
+        : t23("countNote", notCovered)
+      const queue = queued
+        ? t23("queued", { count: queued, n: count(queued) })
+        : t23("queuedNone")
+      d.sentence = t23("sentence", {
+        covered: count(covered),
+        batches: counted("payoutBatch", deadlines),
+        missed: t23("missed", { count: missed, n: count(missed) }),
+        queue:
+          unclaimed === undefined
+            ? queue
+            : t23("queueUnclaimed", { queue, amount: amount(unclaimed) }),
+      })
       d.parts = [
-        ["deadlines", count(deadlines)],
-        ["covered on the day", count(covered)],
-        ["open batches now", queued === undefined ? NA : count(queued)],
-        ["unclaimed", amount(unclaimed)],
+        [t23("parts.deadlines"), count(deadlines)],
+        [t23("parts.covered"), count(covered)],
+        [t23("parts.open"), queued === undefined ? NA : count(queued)],
+        [t23("parts.unclaimed"), amount(unclaimed)],
       ]
       if (split) {
         const w = widths([covered, paidLate!, unpaid!])
         d.buckets = [
-          ["covered on the day", count(covered), w[0], GREEN],
-          ["paid late", count(paidLate!), w[1], AMBER],
-          ["never paid", count(unpaid!), w[2], RED],
+          [t23("buckets.covered"), count(covered), w[0], GREEN],
+          [t23("buckets.paidLate"), count(paidLate!), w[1], AMBER],
+          [t23("buckets.neverPaid"), count(unpaid!), w[2], RED],
         ]
       } else {
         const w = widths([covered, missed])
         d.buckets = [
-          ["covered on the day", count(covered), w[0], GREEN],
-          ["not covered", count(missed), w[1], AMBER],
-          ["still owed", BLANK.splitSoon, 4, GHOST],
+          [t23("buckets.covered"), count(covered), w[0], GREEN],
+          [t23("buckets.notCovered"), count(missed), w[1], AMBER],
+          [t23("buckets.stillOwed"), BLANK.splitSoon, 4, GHOST],
         ]
       }
       const coveredToDate = seriesOf("COVERED_TO_DATE")
@@ -689,14 +683,17 @@ export function treatmentData(
         const last = coveredToDate[coveredToDate.length - 1]
         d.trend = [
           sampleSeries(coveredToDate),
-          `${percent(first[1])} by ${longDate(first[0])}`,
-          `${closed ? "last" : "now"} ${percent(last[1])}`,
-          "share of payout deadlines covered on the day, to date, weekly",
+          shared("trendBy", {
+            value: percent(first[1]),
+            date: longDate(first[0]),
+          }),
+          latest(percent(last[1])),
+          t23("trend"),
         ]
       }
       d.sideBySide = [
-        ...versus("covered on the day", rate, cmp.M32, percent),
-        ...versus("amount paid at expiry", n("M33"), cmp.M33, percent),
+        ...versus(t23("sideBySide.covered"), rate, cmp.M32, percent),
+        ...versus(t23("sideBySide.paid"), n("M33"), cmp.M33, percent),
       ]
     }
     // The running payout cycle against its window.
@@ -705,17 +702,16 @@ export function treatmentData(
       d.cov = [
         window - left,
         window,
-        `${hours(window)} payout window`,
-        `${hours(left)} until this cycle's deadline`,
-        "the running payout cycle; whether the cash covers it is known at the deadline",
+        t23("cov.limit", { window: hours(window) }),
+        t23("cov.left", { hours: hours(left) }),
+        t23("cov.note"),
       ]
     }
-    let noCycle =
-      "No payout cycle is running: the next starts with the next withdrawal request."
-    if (closed) noCycle = "Closed: no payout cycle runs after closure."
     d.reasons = {
       ...(d.rank ? {} : reasonFor(["E", "I"], notRanked(cmp.M32))),
-      ...(d.cov ? {} : { M: noCycle }),
+      ...(d.cov
+        ? {}
+        : { M: closed ? t23("reasons.closed") : t23("reasons.noCycle") }),
       ...(d.trend ? {} : { O: seriesReason(market.values.COVERED_TO_DATE) }),
     }
     data["2.3"] = d
@@ -726,7 +722,8 @@ export function treatmentData(
     const spec = specs["2.4"]
     const d = datumFromSpec(spec, evidence)
     const state = spec.state ?? "neutral"
-    const countdown = n("D05") ?? leadingNumber(s("D05"))
+    // Grace countdown (D05): hours left in the allowance, negative once past.
+    const clock = n("D05")
     const waiting = n("M37")
     const cured = n("M84")
     const held = n("M08")
@@ -735,60 +732,56 @@ export function treatmentData(
     // A state is neither a population of 100 nor a score comparable with the
     // protocol's share of markets. Keep those treatments unavailable.
     if (state === "green") {
-      d.countNote = `nothing past the allowance · ${plural(
-        waiting ?? 0,
-        "open exit batch",
-        "open exit batches",
-      )}`
-      d.sentence = `The market is meeting its obligations at this block, with nothing past the allowance${
-        waiting ? "" : " and no exit queue"
-      }.${
+      d.countNote = t24("greenNote", {
+        batches: counted("openExitBatch", waiting ?? 0),
+      })
+      const meeting = waiting
+        ? t24("greenSentence")
+        : t24("greenSentenceNoQueue")
+      d.sentence =
         cured === undefined
-          ? ""
-          : ` The last incident was cured ${ageDays(cured)} ago.`
-      }`
+          ? meeting
+          : t24("cured", { sentence: meeting, days: ageDays(cured) })
       // In order: what the contract requires as a share of the cash held.
       if (held !== undefined && required !== undefined && held > 0) {
         const share = (100 * required) / held
         d.cov = [
           share,
           100,
-          "all the cash held",
-          `${amount(
-            Math.max(0, held - required),
-          )} above what the contract requires`,
-          "required liquidity (reserve plus queued payouts) as a share of the cash held; past 100% the market is late",
+          t24("cash.limit"),
+          t24("cash.spare", { amount: amount(Math.max(0, held - required)) }),
+          t24("cash.note"),
         ]
       }
-    } else if (state === "amber" && grace && countdown !== undefined) {
-      const left = Math.max(0, countdown)
+    } else if (state === "amber" && grace && clock !== undefined) {
+      const left = Math.max(0, clock)
       d.cov = [
         grace - left,
         grace,
-        `${hours(grace)} allowance`,
-        `${hours(left)} left`,
-        "the grace clock at this block",
+        graceLimit(grace),
+        t24("clock.left", { hours: hours(left) }),
+        t24("clock.note"),
       ]
-      d.sentence = `The market is late at this block but within its allowance, with ${hours(
-        left,
-      )} of ${hours(grace)} left.`
-    } else if (state === "red" && grace && countdown !== undefined) {
+      d.sentence = t24("amberSentence", {
+        left: hours(left),
+        grace: hours(grace),
+      })
+    } else if (state === "red" && grace && clock !== undefined) {
+      const past = Math.abs(clock)
       d.cov = [
-        grace + countdown,
+        grace + past,
         grace,
-        `${hours(grace)} allowance`,
-        `${hours(countdown)} past the limit`,
-        "the grace clock at this block",
+        graceLimit(grace),
+        shared("pastLimit", { hours: hours(past) }),
+        t24("clock.note"),
       ]
-      d.sentence = `The market is past its allowed lateness at this block, by ${hours(
-        countdown,
-      )}${
-        waiting
-          ? `, with ${plural(waiting, "exit batch", "exit batches")} waiting`
-          : ""
-      }.`
-    } else if (closed)
-      d.sentence = "The market is finished: the record ends at closure."
+      d.sentence = waiting
+        ? t24("redSentenceWaiting", {
+            hours: hours(past),
+            batches: counted("exitBatch", waiting),
+          })
+        : t24("redSentence", { hours: hours(past) })
+    } else if (closed) d.sentence = t24("closedSentence")
     // Hours late in each of the last weeks, up to 24.
     if (!closed && incidents && cut && age !== undefined) {
       const weeks = Math.max(
@@ -810,46 +803,38 @@ export function treatmentData(
           ) / 3_600
         )
       })
+      const span = counted("week", weeks)
       d.trend = [
         lateHours.map((value) => (100 * value) / 168),
-        `${plural(weeks, "week")} ago`,
-        "this week",
+        shared("weeksAgo", { weeks: span }),
+        shared("thisWeek"),
         lateHours.some((value) => value > 0)
-          ? `hours late in each of the last ${plural(
-              weeks,
-              "week",
-            )}, against a full week of 168 h`
-          : `no hour late in the last ${plural(weeks, "week")}`,
+          ? t24("trend", { weeks: span })
+          : t24("trendNone", { weeks: span }),
       ]
     }
-    let noLimit =
-      "The state at this block is unknown, so there is no limit to measure against."
-    if (closed)
-      noLimit = "Closed: the grace clock and the reserve no longer apply."
-    else if (state === "green" && held === 0)
-      noLimit =
-        "No cash is held and nothing is owed, so the contract requires none."
-    else if (state === "green")
-      noLimit =
-        "This publication has no cash requirement for the market yet; the next update adds it."
+    let noLimit = t24("reasons.unknown")
+    if (closed) noLimit = t24("reasons.closed")
+    else if (state === "green" && held === 0) noLimit = t24("reasons.noCash")
+    else if (state === "green") noLimit = t24("reasons.pending")
     d.parts = [
-      ["late within grace now", yesNo(n("M21"))],
-      ["past grace now", yesNo(n("M85"))],
-      ["open batches", waiting === undefined ? NA : count(waiting)],
-      ["last cure", cured === undefined ? NA : `${ageDays(cured)} ago`],
+      [t24("parts.late"), yesNo(n("M21"))],
+      [t24("parts.past"), yesNo(n("M85"))],
+      [t24("parts.batches"), waiting === undefined ? NA : count(waiting)],
+      [
+        t24("parts.cure"),
+        cured === undefined ? NA : shared("ago", { days: ageDays(cured) }),
+      ],
     ]
     d.reasons = {
-      ...reasonFor(
-        ["E", "I"],
-        "A live state is not ranked: the protocol ranks records, not the state at one block.",
-      ),
-      L: "One market is in one state at a time, so there is nothing to bucket; 3.4 buckets the borrower's markets by state.",
+      ...reasonFor(["E", "I"], shared("liveNotRanked")),
+      L: t24("reasons.L"),
       ...(d.cov ? {} : { M: noLimit }),
       ...(d.trend
         ? {}
         : {
             O: closed
-              ? "Closed: the record ends at closure; its last weeks are on 2.1 (O)."
+              ? t24("reasons.trendClosed")
               : seriesReason(market.values.INCIDENT_HISTORY),
           }),
     }
@@ -866,42 +851,41 @@ export function treatmentData(
     const earned = n("M41")
     const penaltyShare = n("M42")
     const penaltyInterest = n("M27")
+    const amberLine = GATES.penaltyShareAmber
     // The card's headline: the posted rate while open, realised once closed.
     const railComparison = closed ? cmp.M39 : cmp.M11
     const railNumber = closed ? realised : base
     d.verdict = spec.flag && spec.flagTone === "watch" ? "WATCH" : "CONTEXT"
     d.rank = positionOf(railComparison)
-    d.rankHigher = closed
-      ? "a higher realised rate than"
-      : "a higher posted rate than"
-    if (earned === 0) d.unavailable = "No lender interest has accrued yet."
+    d.rankHigher = closed ? t25("rankRealised") : t25("rankPosted")
+    if (earned === 0) d.unavailable = t25("unavailable")
     else if (penaltyShare !== undefined) {
       d.grace = penaltyShare
       d.past = 0
-      d.countClaim = `${per100(
-        penaltyShare,
-      )} of every 100 dollars lenders earned came from penalty interest.`
-      d.countNote = `penalty interest ${amount(penaltyInterest)} of ${amount(
-        earned,
-      )} earned (M42)`
+      d.countClaim = t25("claim", { n: per100(penaltyShare) })
+      d.countNote = t25("countNote", {
+        penalty: amount(penaltyInterest),
+        earned: amount(earned),
+      })
       // The card's amber line: penalty interest above 5% of what lenders earned.
+      const threshold = percentOf(String(amberLine))
       d.cov = [
         penaltyShare,
-        5,
-        "5% of interest from penalties",
-        penaltyShare > 5
-          ? `${score(penaltyShare - 5, 2)} points over`
-          : `${score(5 - penaltyShare, 2)} points below`,
-        "the card's amber line for penalty interest (M42 above 5%), not a contract limit",
+        amberLine,
+        t25("cov.limit", { threshold }),
+        penaltyShare > amberLine
+          ? t25("cov.over", { points: score(penaltyShare - amberLine, 2) })
+          : t25("cov.below", { points: score(amberLine - penaltyShare, 2) }),
+        t25("cov.note", { threshold }),
       ]
     }
     if (earned && penaltyInterest !== undefined) {
       const w = widths([earned - penaltyInterest, penaltyInterest])
       d.buckets = [
-        ["base interest", amount(earned - penaltyInterest), w[0], GREEN],
-        ["penalty interest", amount(penaltyInterest), w[1], AMBER],
+        [t25("buckets.base"), amount(earned - penaltyInterest), w[0], GREEN],
+        [t25("buckets.penalty"), amount(penaltyInterest), w[1], AMBER],
       ]
-      d.bucketNote = "what lenders earned, by kind (M41 split by M27)"
+      d.bucketNote = t25("buckets.note")
     }
     if (railNumber !== undefined && !(closed && earned === 0)) {
       d.rail = one(railNumber)
@@ -918,54 +902,55 @@ export function treatmentData(
       const last = rates[rates.length - 1]
       d.trend = [
         samples.map((value) => (max > 0 ? (100 * value) / max : 0)),
-        `${apr(first[1])} from ${longDate(first[0])}`,
-        `${closed ? "last" : "now"} ${apr(last[1])}`,
-        `base APR over the market's life (${plural(
-          rates.length - 1,
-          "rate change",
-        )}; lifetime average ${average === undefined ? NA : apr(average)})`,
+        shared("trendFrom", {
+          value: apr(first[1]),
+          date: longDate(first[0]),
+        }),
+        latest(apr(last[1])),
+        t25("trend", {
+          changes: counted("rateChange", rates.length - 1),
+          average: average === undefined ? NA : apr(average),
+        }),
       ]
     }
-    d.sentence = closed
-      ? `The market is finished; lenders realised ${
-          realised === undefined ? NA : apr(realised)
-        } over its life.`
-      : `The market pays ${
-          base === undefined ? NA : apr(base)
-        } a year to lenders in full${
-          realised === undefined
-            ? ""
-            : `; over its life lenders realised ${apr(realised)}`
-        }${
-          cmp.M39
-            ? `, against a protocol median of ${percent(
-                cmp.M39.median,
-              )} actually earned`
-            : ""
-        }.`
+    if (closed)
+      d.sentence = t25("closedSentence", {
+        realised: realised === undefined ? NA : apr(realised),
+      })
+    else {
+      const pays = {
+        base: base === undefined ? NA : apr(base),
+        realised: realised === undefined ? "" : apr(realised),
+        median: cmp.M39 ? percent(cmp.M39.median) : "",
+      }
+      if (realised !== undefined && cmp.M39)
+        d.sentence = t25("sentenceRealisedMedian", pays)
+      else if (realised !== undefined)
+        d.sentence = t25("sentenceRealised", pays)
+      else if (cmp.M39) d.sentence = t25("sentenceMedian", pays)
+      else d.sentence = t25("sentence", pays)
+    }
     d.parts = [
-      ["base APR now", base === undefined ? NA : apr(base)],
-      ["realised APR", realised === undefined ? NA : apr(realised)],
-      ["penalty share", penaltyShare === undefined ? NA : apr(penaltyShare)],
-      ["penalty APR", n("M12") === undefined ? NA : `+${score(n("M12")!, 2)}`],
+      [t25("parts.base"), base === undefined ? NA : apr(base)],
+      [t25("parts.realised"), realised === undefined ? NA : apr(realised)],
+      [
+        t25("parts.penaltyShare"),
+        penaltyShare === undefined ? NA : apr(penaltyShare),
+      ],
+      [
+        t25("parts.penaltyApr"),
+        n("M12") === undefined ? NA : penaltyRate(n("M12")!),
+      ],
     ]
     d.sideBySide = [
-      ...(closed ? [] : versus("base APR now", base, cmp.M11, apr)),
-      ...versus("realised APR", realised, cmp.M39, apr),
-      ...versus(
-        "penalty APR",
-        n("M12"),
-        cmp.M12,
-        (value) => `+${score(value, 2)}`,
-      ),
+      ...(closed ? [] : versus(t25("sideBySide.base"), base, cmp.M11, apr)),
+      ...versus(t25("sideBySide.realised"), realised, cmp.M39, apr),
+      ...versus(t25("sideBySide.penalty"), n("M12"), cmp.M12, penaltyRate),
     ]
     d.reasons = {
       ...(d.rank ? {} : reasonFor(["E", "I"], notRanked(railComparison))),
       ...(d.rail >= 0 && d.railMed < 0
-        ? reasonFor(
-            ["K", "N"],
-            "No graded market posts a rate to compare with yet.",
-          )
+        ? reasonFor(["K", "N"], t25("reasons.noMedian"))
         : {}),
       ...(d.trend ? {} : { O: seriesReason(market.values.RATE_HISTORY) }),
     }
@@ -978,9 +963,8 @@ export function treatmentData(
     const capacity = n("M06")
     const used = n("M86")
     d.rank = positionOf(cmp.M86)
-    d.rankHigher = "more of its line drawn than"
-    if (capacity === 0)
-      d.unavailable = "No deposit capacity: the market has no line to draw on."
+    d.rankHigher = t26("rankHigher")
+    if (capacity === 0) d.unavailable = t26("unavailable")
     else if (capacity !== undefined && used !== undefined) {
       const drawn = (used * capacity) / 100
       d.rail = one(used)
@@ -989,40 +973,45 @@ export function treatmentData(
       d.medText = cmp.M86 ? percent(cmp.M86.median) : undefined
       d.grace = Math.min(100, used)
       d.past = 0
-      d.countClaim = `${per100(used)} of every 100 committed dollars are drawn.`
-      d.countNote = `${amount(drawn)} drawn of a ${amount(capacity)} line`
+      d.countClaim = t26("claim", { n: per100(used) })
+      d.countNote = t26("countNote", {
+        drawn: amount(drawn),
+        capacity: amount(capacity),
+      })
       d.cov = [
         used,
         100,
-        "100% of the credit line",
+        t26("cov.limit"),
         used > 100
-          ? `${score(used - 100)} points over`
-          : `${score(100 - used)} points of room left`,
-        "use of the committed line (totalSupply basis)",
+          ? t26("cov.over", { points: score(used - 100) })
+          : t26("cov.room", { points: score(100 - used) }),
+        t26("cov.note"),
       ]
       const w = widths([drawn, Math.abs(capacity - drawn)])
       d.buckets = [
-        ["drawn", amount(drawn), w[0], PURPLE],
+        [t26("buckets.drawn"), amount(drawn), w[0], PURPLE],
         used > 100
-          ? ["over the line", amount(drawn - capacity), w[1], RED]
-          : ["room left", amount(capacity - drawn), w[1], GHOST],
+          ? [t26("buckets.over"), amount(drawn - capacity), w[1], RED]
+          : [t26("buckets.room"), amount(capacity - drawn), w[1], GHOST],
       ]
-      d.bucketNote = "the committed line, drawn and undrawn (totalSupply basis)"
-      d.sentence = `${percent(
-        used,
-      )} of the committed credit line is drawn: ${amount(
-        drawn,
-      )} against a ${amount(capacity)} line${
-        cmp.M86
-          ? `, where the median open market sits at ${percent(cmp.M86.median)}`
-          : ""
-      }.`
+      d.bucketNote = t26("buckets.note")
+      const line = {
+        used: percent(used),
+        drawn: amount(drawn),
+        capacity: amount(capacity),
+      }
+      d.sentence = cmp.M86
+        ? t26("sentenceMedian", {
+            ...line,
+            median: percent(cmp.M86.median),
+          })
+        : t26("sentence", line)
       d.parts = [
-        ["drawn", amount(drawn)],
-        ["line", amount(capacity)],
-        ["room left", amount(Math.max(0, capacity - drawn))],
+        [t26("parts.drawn"), amount(drawn)],
+        [t26("parts.line"), amount(capacity)],
+        [t26("parts.room"), amount(Math.max(0, capacity - drawn))],
       ]
-      d.sideBySide = versus("drawn", used, cmp.M86, percent)
+      d.sideBySide = versus(t26("sideBySide.drawn"), used, cmp.M86, percent)
     }
     const utilization = seriesOf("UTILIZATION_HISTORY")
     if (utilization) {
@@ -1032,15 +1021,18 @@ export function treatmentData(
       const { peak, heights } = scaled(samples, 100)
       d.trend = [
         heights,
-        `${percent(first[1])} on ${longDate(first[0])}`,
-        `now ${percent(last[1])}`,
-        `share of the credit line drawn, weekly; full height ${percent(peak)}`,
+        shared("trendOn", {
+          value: percent(first[1]),
+          date: longDate(first[0]),
+        }),
+        shared("trendNow", { value: percent(last[1]) }),
+        t26("trend", { peak: percent(peak) }),
       ]
     }
     d.reasons = {
       ...(d.rank ? {} : reasonFor(["E", "I"], notRanked(cmp.M86))),
       ...(d.rail >= 0 && d.railMed < 0
-        ? reasonFor(["K", "N"], "No graded open market to compare with yet.")
+        ? reasonFor(["K", "N"], t26("reasons.noMedian"))
         : {}),
       ...(d.trend
         ? {}
@@ -1057,38 +1049,47 @@ export function treatmentData(
     const cured = n("M83")
     const average = n("M22")
     if (finished) d.rank = rankOf(cmp.M22)
-    if (episodes === 0) d.unavailable = "No incidents recorded yet."
+    if (episodes === 0) d.unavailable = t28("unavailable")
     else if (buckets.every((value) => value !== undefined) && total > 0) {
       const [short, day, twoDays, longer] = buckets as number[]
       d.grace = (100 * twoDays) / total
       d.past = (100 * longer) / total
-      d.countClaim = `${per100(
-        (100 * (twoDays + longer)) / total,
-      )} of every 100 finished incidents ran longer than a day.`
-      d.countNote = `${count(twoDays + longer)} of ${count(
-        total,
-      )} over 24 h · ${count(longer)} over two days`
-      d.sentence = `Of ${plural(total, "finished incident")}, ${count(
-        short,
-      )} lasted under six hours, ${count(day)} between six and 24, ${count(
-        twoDays,
-      )} ran one to two days and ${count(longer)} ran longer.${
-        open
-          ? ` ${plural(open, "incident is", "incidents are")} still open.`
-          : ""
-      }`
+      d.countClaim = t28("claim", {
+        n: per100((100 * (twoDays + longer)) / total),
+      })
+      d.countNote = t28("countNote", {
+        overDay: count(twoDays + longer),
+        total: count(total),
+        longer: count(longer),
+      })
+      const shape = t28("sentence", {
+        incidents: counted("finishedIncident", total),
+        short: count(short),
+        day: count(day),
+        twoDays: count(twoDays),
+        longer: count(longer),
+      })
+      d.sentence = open
+        ? t28("stillOpen", { sentence: shape, count: open, n: count(open) })
+        : shape
+      const labels = [
+        t28("lengths.under6"),
+        t28("lengths.to24"),
+        t28("lengths.to48"),
+        t28("lengths.over48"),
+      ]
       d.parts = [
-        ["under 6 h", count(short)],
-        ["6–24 h", count(day)],
-        ["1–2 d", count(twoDays)],
-        ["over 2 d", count(longer)],
+        [labels[0], count(short)],
+        [labels[1], count(day)],
+        [labels[2], count(twoDays)],
+        [labels[3], count(longer)],
       ]
       const w = widths([short, day, twoDays, longer])
       d.buckets = [
-        ["under 6 h", count(short), w[0], GREEN],
-        ["6–24 h", count(day), w[1], AMBER],
-        ["1–2 d", count(twoDays), w[2], RED],
-        ["over 2 d", count(longer), w[3], DEEP_RED],
+        [labels[0], count(short), w[0], GREEN],
+        [labels[1], count(day), w[1], AMBER],
+        [labels[2], count(twoDays), w[2], RED],
+        [labels[3], count(longer), w[3], DEEP_RED],
       ]
     }
     // Share of finished incidents cured within grace (M83).
@@ -1096,7 +1097,7 @@ export function treatmentData(
       d.rail = one(cured)
       d.better = "higher"
       d.railMed = cmp.M83 ? one(cmp.M83.median) : -1
-      d.railValue = `${percent(cured)} cured in time`
+      d.railValue = t28("railValue", { cured: percent(cured) })
       d.medText = cmp.M83 ? percent(cmp.M83.median) : undefined
     }
     // The average finished incident against the allowance.
@@ -1105,11 +1106,11 @@ export function treatmentData(
       d.cov = [
         average,
         grace,
-        `${hours(grace)} allowance`,
+        graceLimit(grace),
         over
-          ? `${hours(average - grace)} past the limit`
-          : `${hours(grace - average)} of room on the average incident`,
-        "the average finished incident against the allowance (M22 against M15)",
+          ? shared("pastLimit", { hours: hours(average - grace) })
+          : t28("cov.room", { hours: hours(grace - average) }),
+        t28("cov.note"),
       ]
     }
     // Incidents started in each span of the market's life.
@@ -1121,28 +1122,21 @@ export function treatmentData(
       d.trend = [
         heights,
         longDate(deployed),
-        closed ? `closed ${longDate(lifeEnd)}` : "now",
-        `incidents started in each of ${TREND_BARS} spans of the market's life; full height ${plural(
-          peak,
-          "incident",
-        )}`,
+        lifeEndLabel(lifeEnd),
+        t28("trend", { spans: TREND_BARS, peak: counted("incident", peak) }),
       ]
     }
     d.sideBySide = [
-      ...versus("cured within grace", cured, cmp.M83, percent),
-      ...versus("average incident", average, cmp.M22, hours),
-      ...versus("finished incidents", finished, cmp.M20, count),
+      ...versus(t28("sideBySide.cured"), cured, cmp.M83, percent),
+      ...versus(t28("sideBySide.average"), average, cmp.M22, hours),
+      ...versus(t28("sideBySide.finished"), finished, cmp.M20, count),
     ]
-    const onlyOpen =
-      "Only an open incident so far: the shape counts finished incidents."
+    const onlyOpen = t28("reasons.onlyOpen")
     d.reasons = {
       ...(d.grace < 0 ? reasonFor(["B", "G", "L"], onlyOpen) : {}),
       ...(d.rail < 0 ? reasonFor(["C", "H", "K", "N"], onlyOpen) : {}),
       ...(d.rail >= 0 && d.railMed < 0
-        ? reasonFor(
-            ["K", "N"],
-            "No graded market has a finished incident to compare with yet.",
-          )
+        ? reasonFor(["K", "N"], t28("reasons.noMedian"))
         : {}),
       ...(d.rank
         ? {}
@@ -1161,20 +1155,21 @@ export function treatmentData(
     const largest = n("D10")
     const retention = n("M51")
     d.rank = positionOf(cmp.M49)
-    d.rankHigher = "more lenders than"
-    if (ever === 0) d.unavailable = "No lender yet."
+    d.rankHigher = t29("rankHigher")
+    if (ever === 0) d.unavailable = t29("unavailable")
     else {
       if (largest !== undefined) {
         d.grace = largest
         d.past = 0
-        d.countClaim = `${per100(
-          largest,
-        )} of every 100 dollars come from the largest lender.`
-        d.countNote = `biggest single lender ${percent(largest)}${
+        d.countClaim = t29("claim", { n: per100(largest) })
+        d.countNote =
           active !== undefined && ever !== undefined
-            ? ` · ${count(active)} active of ${count(ever)} ever`
-            : ""
-        }`
+            ? t29("countNoteActive", {
+                largest: percent(largest),
+                active: count(active),
+                ever: count(ever),
+              })
+            : t29("countNote", { largest: percent(largest) })
         d.split = [
           [largest, PURPLE],
           [Math.max(0, 100 - largest), GHOST],
@@ -1183,28 +1178,33 @@ export function treatmentData(
       if (retention !== undefined) {
         d.rail = one(retention)
         d.railMed = cmp.M51 ? one(cmp.M51.median) : -1
-        d.railValue = `${percent(retention)} still in`
+        d.railValue = t29("railValue", { retention: percent(retention) })
         d.medText = cmp.M51 ? percent(cmp.M51.median) : undefined
       }
       if (active !== undefined && ever !== undefined) {
-        d.sentence = `${count(active)} lenders are active of ${count(
-          ever,
-        )} who ever deposited${
-          largest === undefined ? "" : `; the biggest holds ${percent(largest)}`
-        }.`
+        const lenders = { active: count(active), ever: count(ever) }
+        d.sentence =
+          largest === undefined
+            ? t29("sentence", lenders)
+            : t29("sentenceLargest", {
+                ...lenders,
+                largest: percent(largest),
+              })
         const w = widths([active, ever - active])
         d.buckets = [
-          ["still holding", count(active), w[0], GREEN],
-          ["left", count(ever - active), w[1], GHOST],
+          [t29("buckets.holding"), count(active), w[0], GREEN],
+          [t29("buckets.left"), count(ever - active), w[1], GHOST],
         ]
-        d.bucketNote =
-          "lenders who ever deposited, by whether they still hold a balance"
+        d.bucketNote = t29("buckets.note")
       }
       d.parts = [
-        ["active now", active === undefined ? NA : count(active)],
-        ["ever", ever === undefined ? NA : count(ever)],
-        ["biggest holder", largest === undefined ? NA : percent(largest)],
-        ["retention", retention === undefined ? NA : percent(retention)],
+        [t29("parts.active"), active === undefined ? NA : count(active)],
+        [t29("parts.ever"), ever === undefined ? NA : count(ever)],
+        [t29("parts.biggest"), largest === undefined ? NA : percent(largest)],
+        [
+          t29("parts.retention"),
+          retention === undefined ? NA : percent(retention),
+        ],
       ]
     }
     const lenders = seriesOf("LENDERS_TO_DATE")
@@ -1213,23 +1213,28 @@ export function treatmentData(
       const { heights } = scaled(samples)
       d.trend = [
         heights,
-        `${plural(lenders[0][1], "lender")} by ${longDate(lenders[0][0])}`,
-        `now ${count(lenders[lenders.length - 1][1])}`,
-        "lenders who ever deposited, to date, weekly",
+        shared("trendBy", {
+          value: counted("lender", lenders[0][1]),
+          date: longDate(lenders[0][0]),
+        }),
+        shared("trendNow", { value: count(lenders[lenders.length - 1][1]) }),
+        t29("trend"),
       ]
     }
     d.sideBySide = [
-      ...versus("lenders ever", ever, cmp.M49, count),
-      ...versus("still holding", retention, cmp.M51, percent),
-      ...versus("largest holder", largest, cmp.D10, percent),
+      ...versus(t29("sideBySide.ever"), ever, cmp.M49, count),
+      ...versus(t29("sideBySide.holding"), retention, cmp.M51, percent),
+      ...versus(t29("sideBySide.largest"), largest, cmp.D10, percent),
     ]
-    const openOnly = closed
-      ? "Closed: retention is compared across open markets only."
-      : "No graded open market to compare with yet."
     d.reasons = {
       ...(d.rank ? {} : reasonFor(["E", "I"], notRanked(cmp.M49))),
-      ...(d.rail >= 0 && d.railMed < 0 ? reasonFor(["K", "N"], openOnly) : {}),
-      M: "No contract limit governs how much one lender holds or how many lenders there are.",
+      ...(d.rail >= 0 && d.railMed < 0
+        ? reasonFor(
+            ["K", "N"],
+            closed ? t29("reasons.closed") : t29("reasons.noMedian"),
+          )
+        : {}),
+      M: t29("reasons.M"),
       ...(d.trend ? {} : { O: seriesReason(market.values.LENDERS_TO_DATE) }),
     }
     data["2.9"] = d
@@ -1240,8 +1245,9 @@ export function treatmentData(
     const d = datumFromSpec(specs["2.10"], evidence)
     const window = n("M16")
     const reserve = n("M14")
-    const penaltyRate = n("M12")
-    const penaltyText = (value: number) => `+${score(value, 2)} APR`
+    const penalty = n("M12")
+    const penaltyText = (value: number) =>
+      t210("penaltyApr", { rate: penaltyRate(value) })
     if (grace !== undefined) {
       d.rail = one(grace)
       d.railMed = cmp.M15 ? one(cmp.M15.median) : -1
@@ -1249,39 +1255,37 @@ export function treatmentData(
       d.medText = cmp.M15 ? hours(cmp.M15.median) : undefined
     }
     d.rank = positionOf(cmp.M15)
-    d.rankHigher = "a longer grace period than"
+    d.rankHigher = t210("rankHigher")
+    const shown = {
+      lifecycle: lifecycle(s("M77")),
+      grace: grace === undefined ? NA : hours(grace),
+      window: window === undefined ? NA : hours(window),
+      reserve: reserve === undefined ? NA : percent(reserve),
+      penalty: penalty === undefined ? NA : penaltyText(penalty),
+    }
     d.parts = [
-      ["lifecycle", lifecycle(s("M77"))],
-      ["allowed lateness", grace === undefined ? NA : hours(grace)],
-      ["payout window", window === undefined ? NA : hours(window)],
-      ["reserve ratio", reserve === undefined ? NA : percent(reserve)],
-      ["penalty", penaltyRate === undefined ? NA : penaltyText(penaltyRate)],
+      [t210("parts.lifecycle"), shown.lifecycle],
+      [t210("parts.allowed"), shown.grace],
+      [t210("parts.window"), shown.window],
+      [t210("parts.reserve"), shown.reserve],
+      [t210("parts.penalty"), shown.penalty],
     ]
     d.sideBySide = [
-      ...versus("allowed lateness", grace, cmp.M15, hours),
-      ...versus("payout window", window, cmp.M16, hours),
-      ...versus("reserve ratio", reserve, cmp.M14, percent),
-      ...versus("penalty", penaltyRate, cmp.M12, penaltyText),
+      ...versus(t210("parts.allowed"), grace, cmp.M15, hours),
+      ...versus(t210("parts.window"), window, cmp.M16, hours),
+      ...versus(t210("parts.reserve"), reserve, cmp.M14, percent),
+      ...versus(t210("parts.penalty"), penalty, cmp.M12, penaltyText),
     ]
-    d.sentence = `${lifecycle(s("M77"))}: lateness tolerated for ${
-      grace === undefined ? NA : hours(grace)
-    }, payouts due within ${window === undefined ? NA : hours(window)}, a ${
-      reserve === undefined ? NA : percent(reserve)
-    } reserve ratio, and a penalty of ${
-      penaltyRate === undefined ? NA : penaltyText(penaltyRate)
-    } once past the allowance.`
+    d.sentence = t210("sentence", shown)
     d.reasons = {
-      ...reasonFor(
-        ["B", "G"],
-        "Contract facts, not a measured rate: nothing to count out of 100. Nearest honest form: the parts list in treatment F.",
-      ),
+      ...reasonFor(["B", "G"], t210("reasons.count")),
       ...(d.rank ? {} : reasonFor(["E", "I"], notRanked(cmp.M15))),
       ...(d.rail >= 0 && d.railMed < 0
-        ? reasonFor(["K", "N"], "No graded market to compare terms with yet.")
+        ? reasonFor(["K", "N"], t210("reasons.noMedian"))
         : {}),
-      L: "Contract terms have no age or status to bucket.",
-      M: "These terms are the limits themselves; the headroom against them is on 2.2 (the allowance), 2.4 (the reserve) and 2.6 (the credit line).",
-      O: "The grace period, payout window and penalty are fixed when the market is deployed, so they have no history; the base rate's is on 2.5 (O).",
+      L: t210("reasons.L"),
+      M: t210("reasons.M"),
+      O: t210("reasons.O"),
     }
     data["2.10"] = d
   }
@@ -1289,7 +1293,9 @@ export function treatmentData(
   Object.values(data).forEach((d) => {
     if (!d.sentence)
       // eslint-disable-next-line no-param-reassign
-      d.sentence = `${d.name}: ${d.value}${d.unit ? `, ${d.unit}` : ""}.`
+      d.sentence = d.unit
+        ? shared("sentenceUnit", { name: d.name, value: d.value, unit: d.unit })
+        : shared("sentence", { name: d.name, value: d.value })
   })
   return data
 }
@@ -1331,7 +1337,7 @@ export const choose = (
 
 /** One line per card, for the summary and its copy. */
 export const cardName = (card: string) =>
-  CARDS[card as keyof typeof CARDS]?.name ?? `card ${card}`
+  CARD_IDS.includes(card) ? cardCopy(card).name : `card ${card}`
 
 /** "2.1-C Rail", or the live card when no treatment is chosen. */
 export const choiceText = (card: string, code?: TreatmentCode) =>
@@ -1384,28 +1390,28 @@ export const drawable = (code: TreatmentCode, d: IndexDatum) => {
 
 /** Each tile's own honesty state, when its index gives no reason. */
 export const TILE_FALLBACK: Partial<Record<TreatmentCode, string>> = {
-  B: "Not countable out of 100.",
-  G: "Not a share of the record.",
-  C: "No 0–100 rail for this index.",
-  H: "No 0–100 rail for this index.",
-  J: "No 0–100 rail for this index.",
-  E: "This index has no protocol-wide ranking in the snapshot.",
-  I: "No population ranking for this index in the snapshot.",
-  K: "This snapshot has no comparable value and benchmark.",
-  N: "This snapshot has no comparable value and benchmark.",
-  L: "This index has no aging dimension: nothing here is measured by how long it has been outstanding.",
-  M: "No contractual threshold governs this index, so there is no headroom to draw.",
-  O: "This index has no series in this publication, so there is no trend to plot.",
+  B: text("treatments.tiles.fallback.B"),
+  G: text("treatments.tiles.fallback.G"),
+  C: text("treatments.tiles.fallback.C"),
+  H: text("treatments.tiles.fallback.H"),
+  J: text("treatments.tiles.fallback.J"),
+  E: text("treatments.tiles.fallback.E"),
+  I: text("treatments.tiles.fallback.I"),
+  K: text("treatments.tiles.fallback.K"),
+  N: text("treatments.tiles.fallback.N"),
+  L: text("treatments.tiles.fallback.L"),
+  M: text("treatments.tiles.fallback.M"),
+  O: text("treatments.tiles.fallback.O"),
 }
 
 /** Rendering a shape is not sufficient evidence that it is a valid choice. */
 export const referenceReason = (card: string, code: TreatmentCode) => {
-  if (code === "J") return "The design excludes gauges from the product."
+  if (code === "J") return text("treatments.tiles.reference.gauge")
   if (
     ["2.4", "3.4"].includes(card) &&
     ["B", "C", "G", "H", "K", "N"].includes(code)
   )
-    return "A current state has no frequency, score or comparable population value."
+    return text("treatments.tiles.reference.state")
   return undefined
 }
 
@@ -1418,7 +1424,7 @@ export const treatmentIssue = (code: TreatmentCode, d: IndexDatum) => {
 }
 
 /** A card number typed into Go to metric ("2.2", "card 2.10"). */
-export const findTreatmentCard = (text: string) => {
-  const match = text.trim().match(/^(?:card\s*)?(\d+\.\d+)$/i)
+export const findTreatmentCard = (query: string) => {
+  const match = query.trim().match(/^(?:card\s*)?(\d+\.\d+)$/i)
   return match && TREATMENT_CARDS.includes(match[1]) ? match[1] : undefined
 }

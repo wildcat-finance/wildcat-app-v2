@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 
-import { METRIC_NAMES } from "@/components/GlassDoor/wording"
+import { metricName } from "@/components/GlassDoor/text"
 
 import { GROUPS, metricsIn } from "./metrics"
 import s from "./review.module.css"
@@ -16,7 +16,7 @@ import { CARD_GROUPS, cardName, TREATMENT_CARDS } from "./treatmentData"
 
 export type ReviewView = "cards" | "metrics" | "decisions" | "preview"
 
-const metricLabel = (id: string) => `(${id}) ${METRIC_NAMES[id] ?? id}`
+const metricLabel = (id: string) => `(${id}) ${metricName(id)}`
 
 /** The element with this id once it is in the document. */
 export const useSlot = (id: string) => {

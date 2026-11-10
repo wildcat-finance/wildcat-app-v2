@@ -195,10 +195,7 @@ describe("market cards", () => {
   })
 
   it("calls a residual penalty past the allowance without a cash shortfall", () => {
-    const spec = card(
-      { M77: "Open", M21: 0, M85: 1, D05: "6.5 h past grace", M37: 1 },
-      "2.4",
-    )
+    const spec = card({ M77: "Open", M21: 0, M85: 1, D05: -6.5, M37: 1 }, "2.4")
     expect(spec.value).toBe("PAST ALLOWED LATENESS")
     expect(spec.state).toBe("red")
     expect(spec.sub).toBe("by 6.5 h · 1 exit waiting")
@@ -214,7 +211,7 @@ describe("market cards", () => {
         M77: "Open",
         M21: 0,
         M85: 0,
-        D05: "no countdown (not late)",
+        D05: "",
         M20: 1,
         M84: 0.5,
       },

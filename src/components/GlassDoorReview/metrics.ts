@@ -25,12 +25,26 @@ import {
   score,
   trend,
   units,
+  withAsset,
 } from "@/components/GlassDoor/format"
-import { isoDay, lifecycle, yesNo } from "@/components/GlassDoor/helpers"
+import {
+  cycleStatus,
+  isoDay,
+  lifecycle,
+  yesNo,
+} from "@/components/GlassDoor/helpers"
 import { GATES } from "@/components/GlassDoor/rules"
-import { CARDS, metric as metricLabel } from "@/components/GlassDoor/wording"
+import {
+  CARD_IDS,
+  cardCopy as copyOf,
+  metricLabel,
+  scoped,
+} from "@/components/GlassDoor/text"
 
 import { SPEC_METRICS, SPEC_SOURCE, SpecMetric } from "./catalogue"
+
+// Card 2.4's own words for the grace countdown.
+const rightNow = scoped("cards.card_2_4")
 
 export type Group = "borrower" | "market"
 
@@ -128,13 +142,13 @@ export const reviewReason = (
     : undefined
 
 const pointsChange = (value: number) =>
-  `${value < 0 ? "−" : "+"}${lifeShare(Math.abs(value)).replace("%", "")} pp`
+  `${value < 0 ? "−" : "+"}${score(Math.abs(value), 2)} pp`
 
 const seconds = (value: number) =>
   `${count(value)} s = ${score(value / 86_400)} days`
 
 const tokenAmount = (value: number, asset?: string) =>
-  `${units(value)}${asset ? ` ${asset}` : ""}`
+  withAsset(units(value), asset)
 
 type Format = (value: number, asset?: string) => string
 
@@ -214,8 +228,13 @@ const NUMBER_FORMAT: Record<string, Format> = {
   S36: (v) => units(v),
   S37: count,
   D03: tokenAmount,
-  // Grace countdown: hours left while late within grace (else a phrase).
-  D05: (v) => `${hours(v)} left`,
+  // Grace countdown: hours left in the allowance, negative once past it.
+  D05: (v) =>
+    v < 0
+      ? rightNow("countdown.past", { hours: hours(-v) })
+      : rightNow("countdown.left", { hours: hours(v) }),
+  // Cycle status: hours until the running payout cycle ends.
+  D06: (v) => cycleStatus(v),
   D10: (v) => percent(v),
   D15: (v) => hours(v),
   D16: (v) => hours(v),
@@ -284,6 +303,8 @@ const BLANK_REASON: Record<string, (values: MetricValues) => string> = {
   D21: noFundedMarket,
   S32: noFundedMarket,
   S17: () => "None yet: no market has reached a payout deadline",
+  D05: () => "None: the market is not late, so no countdown runs",
+  D06: () => "None: no payout cycle is running",
   S27: (values) =>
     Number(values.S01 ?? 0) === 0
       ? "None yet: no funded market"
@@ -393,8 +414,9 @@ export const cardCopy = (
   part: "tells" | "notTells",
 ): CardCopyLine[] =>
   cardNumbers(metric).map((card) => {
-    const copy = CARDS[card]
-    return copy ? { card, name: copy.name, text: copy[part] } : { card }
+    if (!CARD_IDS.includes(card)) return { card }
+    const copy = copyOf(card)
+    return { card, name: copy.name, text: copy[part] }
   })
 
 /** Where the metric also shows besides cards. */

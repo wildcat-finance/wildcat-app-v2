@@ -76,6 +76,8 @@ export const MARKET_RULES: Record<string, Rule> = {
   // Capacity used can exceed 100%.
   M86: AMOUNT,
   D03: AMOUNT,
+  // Hours until the running payout cycle ends; blank when none runs.
+  D06: AMOUNT,
   D10: PERCENT,
   D17: AMOUNT,
   D18_LATE: COUNT,

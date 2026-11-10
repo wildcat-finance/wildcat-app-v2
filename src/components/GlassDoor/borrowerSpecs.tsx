@@ -17,22 +17,45 @@ import {
   BLANK,
   contractKept,
   count,
+  counted,
   days,
   hours,
   isNumber,
   percent,
-  plural,
   score,
   trend,
   units,
+  withAsset,
 } from "./format"
-import { isFunded, openEpisodes, rankPhrase, reader, sentence } from "./helpers"
-import { LIMITED_NOTE, Tone, verdictExits, verdictInOrder } from "./rules"
+import {
+  isFunded,
+  join,
+  openEpisodes,
+  rankPhrase,
+  reader,
+  sentence,
+} from "./helpers"
+import {
+  GATES,
+  LIMITED_NOTE,
+  Tone,
+  verdictExits,
+  verdictInOrder,
+  verdictWord,
+} from "./rules"
+import { scoped, text } from "./text"
+
+// Every sentence on the borrower cards. The words are in glassDoor.json under
+// cards.card_3_x; this file decides which sentence applies and fills in the
+// formatted numbers.
 
 const NA = BLANK.unavailable
-const SINGLE_MARKET = "single-market borrower — no spread to show"
-const join = (...parts: (string | false | undefined)[]) =>
-  parts.filter(Boolean).join(" · ")
+const shared = scoped("cards.shared")
+const c31 = scoped("cards.card_3_1")
+const c34 = scoped("cards.card_3_4")
+const c36 = scoped("cards.card_3_6")
+const c38 = scoped("cards.card_3_8")
+const c310 = scoped("cards.card_3_10")
 
 export const marketLabel = (row: BorrowerMarketRow) =>
   row.symbol ?? `${row.address.slice(0, 6)}…${row.address.slice(-4)}`
@@ -46,7 +69,7 @@ const sameAssetSum = (rows: BorrowerMarketRow[], total: number | undefined) => {
   const assets = new Set(rows.map((row) => row.values.M02))
   if (assets.size > 1) return undefined
   const [asset] = [...assets]
-  return typeof asset === "string" ? `${units(total)} ${asset}` : units(total)
+  return withAsset(units(total), typeof asset === "string" ? asset : undefined)
 }
 /** The whole-market debt of late markets, phrased for mixed assets. */
 const debt = (
@@ -56,11 +79,8 @@ const debt = (
 ) => {
   const sum = sameAssetSum(rows, total)
   return sum === undefined
-    ? `debt of ${plural(
-        rows.length,
-        "market",
-      )} ${where}, not summed (different assets)`
-    : `${sum} whole-market debt ${where}`
+    ? c34("sub.debtMixed", { markets: counted("market", rows.length), where })
+    : c34("sub.debt", { sum, where })
 }
 
 const rank = (comparison: Comparison | undefined) =>
@@ -68,9 +88,11 @@ const rank = (comparison: Comparison | undefined) =>
     <RankStrip
       position={comparison.betterThan}
       population={comparison.population}
-      label={`Better than ${count(comparison.betterThan)} of ${count(
-        comparison.population,
-      )} graded borrowers`}
+      label={text("shared.rank.stripLabel", {
+        position: count(comparison.betterThan),
+        population: count(comparison.population),
+        noun: text("shared.rank.borrowers"),
+      })}
     />
   )
 
@@ -108,42 +130,49 @@ export function borrowerNow(borrower: BorrowerAnalytics) {
 export function bookState(borrower: BorrowerAnalytics) {
   const now = borrowerNow(borrower)
   const { n } = reader(borrower.values)
-  const markets = (value: number) =>
-    `${count(value)} MARKET${value === 1 ? "" : "S"}`
   const within = now.lateRows.filter((row) => row.values.M85 !== 1)
   let state: { tone: Tone; label: string; sub: string }
   if (now.past)
     state = {
       tone: "red",
-      label: `${markets(now.past)} PAST ALLOWANCE`,
-      sub: debt(now.pastRows, n("S36"), "past allowance"),
+      label: c34("state.past", { count: now.past, n: count(now.past) }),
+      sub: debt(now.pastRows, n("S36"), c34("sub.pastAllowance")),
     }
   else if (now.late)
     state = {
       tone: "amber",
-      label: `${markets(now.late)} LATE, WITHIN ALLOWANCE`,
-      sub: `${debt(within, n("S35"), "within allowance")} · 0 past allowance`,
+      label: c34("state.late", { count: now.late, n: count(now.late) }),
+      sub: c34("sub.nonePast", {
+        debt: debt(within, n("S35"), c34("sub.withinAllowance")),
+      }),
     }
   else if (now.incomplete)
     state = {
       tone: "neutral",
-      label: "INCOMPLETE",
-      sub: `${plural(now.unknown, "market state")} unavailable`,
+      label: c34("state.incomplete"),
+      sub: c34("sub.unavailable", {
+        states: counted("marketState", now.unknown),
+      }),
     }
   else if (now.open === 0)
     state = {
       tone: "neutral",
-      label: borrower.markets.length ? "NO OPEN MARKETS" : "NO MARKETS",
+      label: borrower.markets.length
+        ? c34("state.noOpen")
+        : c34("state.noMarkets"),
       sub: "",
     }
   else
     state = {
       tone: "green",
-      label: "ALL MARKETS IN ORDER",
+      label: c34("state.inOrder"),
       sub: "",
     }
   if (now.incomplete && now.late)
-    state.sub = `${state.sub} · ${count(now.unknown)} unavailable`
+    state.sub = c34("sub.andUnavailable", {
+      sub: state.sub,
+      n: count(now.unknown),
+    })
   return { ...state, now, within }
 }
 
@@ -162,6 +191,7 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
   const top = hasHistory ? n("S07") : undefined
   const show = <T,>(value: T | undefined, format: (value: T) => string) =>
     value === undefined ? NA : format(value)
+  const facilities = (value: number) => counted("completedFacility", value)
   // The book counts funded markets only; a market that never took deposits
   // has no record to grade.
   const rows = borrower.markets.filter(
@@ -169,12 +199,12 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
   )
   // Why a book value is blank: no funded market, or none with recorded life.
   const bookBlank = rows.length
-    ? "no recorded history yet across the funded markets"
-    : "no funded market yet"
+    ? c31("formula.noHistory")
+    : BLANK.noFundedMarket
   // The trailing window (S27, S28) needs 7 recorded days in the last 90.
   const trendBlank = rows.length
-    ? "under 7 days recorded across the book in the last 90 days"
-    : "no funded market yet"
+    ? c31("formula.shortWindow")
+    : BLANK.noFundedMarket
   const neverLate =
     !borrower.partial &&
     borrower.state === "Ok" &&
@@ -212,98 +242,133 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
     }))
   const terms = weighted
     .slice(0, 8)
-    .map((row) => `${score(row.grade)}×${count(row.days)}`)
+    .map((row) =>
+      c31("formula.term", { grade: score(row.grade), days: count(row.days) }),
+    )
   let value: string = NA
-  if (marketDays === 0 || markets === 0) value = "no recorded history"
+  if (marketDays === 0 || markets === 0) value = BLANK.noHistory
   else if (neverLate) value = BLANK.neverLate
   else if (book !== undefined) value = score(book)
-  let exitLine = `S16: ${NA}`
-  if (deadlines === 0)
-    exitLine = "S14 = 0: no withdrawal batch has reached its deadline"
+  let exitLine = c31("formula.exitsBlank", { reason: NA })
+  if (deadlines === 0) exitLine = c31("formula.exitsNone")
   else if (
     deadlines !== undefined &&
     covered !== undefined &&
     exitRate !== undefined
-  )
-    exitLine = `S16 = 100 × S15 ${count(covered)} / S14 ${count(
-      deadlines,
-    )} = ${score(exitRate)}${
+  ) {
+    const exitValues = {
+      covered: count(covered),
+      deadlines: count(deadlines),
+      rate: score(exitRate),
+    }
+    exitLine =
       weakest !== undefined && weakestRow
-        ? ` · S17 = weakest market on exits = ${score(weakest)} of ${count(
-            Number(weakestRow.values.M30),
-          )}`
-        : ""
-    }`
+        ? c31("formula.exitsWeakest", {
+            ...exitValues,
+            weakest: score(weakest),
+            of: count(Number(weakestRow.values.M30)),
+          })
+        : c31("formula.exits", exitValues)
+  }
   const inOrderVerdict =
     book === undefined
       ? null
       : verdictInOrder({ score: book, trend: change, days: marketDays })
   let floorText: string | undefined
-  if (floor !== undefined)
-    floorText = singleMarket ? undefined : `floor ${score(floor)}`
+  if (floor !== undefined && !singleMarket)
+    floorText = c31("sub.floor", { floor: score(floor) })
+  let bookLine = c31("formula.bookBlank", { reason: bookBlank })
+  if (book !== undefined && marketDays !== undefined && terms.length) {
+    const sumValues = {
+      terms: terms.join(" + "),
+      days: count(marketDays),
+      book: score(book),
+    }
+    bookLine =
+      weighted.length > terms.length
+        ? c31("formula.sumMore", sumValues)
+        : c31("formula.sum", sumValues)
+  }
+  const weakestVerdict =
+    weakestRow && weakest !== undefined
+      ? verdictExits({
+          pct: weakest,
+          deadlines: Number(weakestRow.values.M30),
+        })
+      : null
   const inOrder: CardSpec = {
     id: "3.1",
     page: "borrower",
-    ids: "S05 · D21 · S06 S07 · S27 S28 · S14 S15 S16 S17 · D18",
+    ids: c31("ids"),
     kind: book !== undefined && !neverLate ? "score" : "text",
     value,
     verdict: inOrderVerdict,
     sub: join(
-      kept === undefined ? undefined : `contract kept: ${contractKept(kept)}`,
+      kept === undefined
+        ? undefined
+        : c31("sub.contractKept", { kept: contractKept(kept) }),
       floorText,
-      change === undefined ? undefined : `trend ${trend(change)}`,
+      change === undefined
+        ? undefined
+        : c31("sub.trend", { change: trend(change) }),
       inOrderVerdict === "LIMITED" ? LIMITED_NOTE : undefined,
     ),
     compare: join(
-      cmp.S05 ? `median borrower ${score(cmp.S05.median)}` : undefined,
+      cmp.S05
+        ? c31("compare.median", { median: score(cmp.S05.median) })
+        : undefined,
       deadlines && exitRate !== undefined
-        ? `exits ${percent(exitRate)} of ${count(deadlines)}`
+        ? c31("compare.exits", {
+            share: percent(exitRate),
+            deadlines: count(deadlines),
+          })
         : undefined,
     ),
     formula: [
-      "S05 = Σ(In order, cash there (M18) × Market age (M05)) / Σ M05",
-      book !== undefined && marketDays !== undefined && terms.length
-        ? `= (${terms.join(" + ")}${
-            weighted.length > terms.length ? " + …" : ""
-          }) / ${count(marketDays)} = ${score(book)}`
-        : `S05: ${bookBlank}`,
+      c31("formula.definition"),
+      bookLine,
       kept === undefined
-        ? `D21: ${bookBlank}`
-        : `D21 = 100 − Σ(Time under penalty (M26) × M05) / Σ M05 = ${contractKept(
-            kept,
-          )}`,
+        ? c31("formula.keptBlank", { reason: bookBlank })
+        : c31("formula.kept", { kept: contractKept(kept) }),
       join(
         trailing !== undefined && book !== undefined && change !== undefined
-          ? `S28 = S27 ${score(trailing)} − S05 ${score(book)} = ${trend(
-              change,
-            )}`
-          : `S28: ${trendBlank}`,
-        floor === undefined ? undefined : `S06 = min M18 = ${score(floor)}`,
-        top === undefined ? undefined : `S07 = max M18 = ${score(top)}`,
+          ? c31("formula.trend", {
+              trailing: score(trailing),
+              book: score(book),
+              change: trend(change),
+            })
+          : c31("formula.trendBlank", { reason: trendBlank }),
+        floor === undefined
+          ? undefined
+          : c31("formula.floor", { floor: score(floor) }),
+        top === undefined ? undefined : c31("formula.top", { top: score(top) }),
       ),
       exitLine,
     ].join("\n"),
     numbers: sentence(
-      `${show(marketDays, (v) =>
-        plural(v, "market-day"),
-      )} of evidence (gate 90 market-days)`,
-      `${show(markets, (v) => plural(v, "market"))} (S01)`,
-      "STRONG requires S05 ≥ 85 and ≥ 90 market-days",
+      c31("numbers.evidence", {
+        days: show(marketDays, (v) => counted("marketDay", v)),
+        gate: GATES.gradeDays,
+      }),
+      c31("numbers.markets", {
+        markets: show(markets, (v) => counted("market", v)),
+      }),
+      c31("numbers.strong", { gate: GATES.gradeDays }),
       weakestRow && weakest !== undefined
-        ? `weakest market on exits ${marketLabel(weakestRow)} ${percent(
-            weakest,
-          )} (S17), verdict ${
-            verdictExits({
-              pct: weakest,
-              deadlines: Number(weakestRow.values.M30),
-            }) ?? "none"
-          }`
+        ? c31("numbers.weakest", {
+            market: marketLabel(weakestRow),
+            share: percent(weakest),
+            verdict: weakestVerdict
+              ? verdictWord(weakestVerdict)
+              : c31("numbers.noVerdict"),
+          })
         : undefined,
       split
-        ? `uncovered deadlines: ${count(Number(split[1]))} paid late / ${count(
-            Number(split[2]),
-          )} never paid (D18)`
-        : `uncovered deadlines: ${BLANK.splitSoon} (D18)`,
+        ? c31("numbers.split", {
+            late: count(Number(split[1])),
+            never: count(Number(split[2])),
+          })
+        : c31("numbers.splitBlank", { blank: BLANK.splitSoon }),
     ),
     chart: {
       expanded:
@@ -313,15 +378,16 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
     },
     chips: {
       median: cmp.S05
-        ? `median ${score(cmp.S05.median)} · ${count(
-            cmp.S05.population,
-          )} borrowers`
-        : "no graded borrower to take a median from yet",
+        ? c31("chips.median", {
+            median: score(cmp.S05.median),
+            population: count(cmp.S05.population),
+          })
+        : BLANK.noMedianBorrower,
       markets: rankPhrase(cmp.S05, "borrowers"),
       borrower:
         singleMarket || floor === undefined || top === undefined
-          ? SINGLE_MARKET
-          : `their range: ${score(floor)} to ${score(top)}`,
+          ? shared("singleMarket")
+          : c31("chips.range", { low: score(floor), high: score(top) }),
     },
     chipCharts: { markets: rank(cmp.S05) },
   }
@@ -331,48 +397,42 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
   const { protocol } = borrower
   const withinSum = sameAssetSum(within, n("S35"))
   const pastSum = sameAssetSum(now.pastRows, n("S36"))
+  const lateWord = (row: BorrowerMarketRow) =>
+    row.values.M85 === 1 ? c34("numbers.pastGrace") : c34("numbers.withinGrace")
   const rightNow: CardSpec = {
     id: "3.4",
     page: "borrower",
-    ids: "S18 · S35 · S36 (from M21, M85, M07)",
+    ids: c34("ids"),
     kind: "state",
     value: state.label,
     state: state.tone,
     verdict: null,
     sub: state.sub,
     compare: protocol
-      ? `protocol right now: ${count(protocol.lateNow)} of ${plural(
-          protocol.openMarkets,
-          "market",
-        )} late`
+      ? c34("compare", {
+          late: count(protocol.lateNow),
+          markets: counted("market", protocol.openMarkets),
+        })
       : "",
     formula: [
-      `S18 = count of markets with M21 = 1 or M85 = 1 = ${show(
-        n("S18"),
-        count,
-      )}`,
-      `S35 = Σ Total owed to lenders now (M07) where M21 = 1 = ${
-        withinSum ?? "not summed (different assets)"
-      } (whole-market debt, not the shortfall)`,
-      `S36 = Σ M07 where M85 = 1 = ${
-        pastSum ?? "not summed (different assets)"
-      } → ${state.tone}`,
-      ...(now.incomplete
-        ? [
-            "Some market states are unavailable; the known states cannot establish an all-clear result.",
-          ]
-        : []),
+      c34("formula.count", { late: show(n("S18"), count) }),
+      c34("formula.within", { sum: withinSum ?? shared("notSummed") }),
+      c34("formula.past", {
+        sum: pastSum ?? shared("notSummed"),
+        state: text(`shared.toneWord.${state.tone}`),
+      }),
+      ...(now.incomplete ? [c34("formula.incomplete")] : []),
     ].join("\n"),
     numbers: sentence(
-      "green if S18 = 0; amber if S35 > 0 and S36 = 0; red if S36 > 0",
-      "amounts are whole-market debt",
+      c34("numbers.rule"),
+      c34("numbers.debt"),
       ...now.lateRows.map((row) => {
-        const { n: metric, s: text } = reader(row.values)
-        return `${marketLabel(row)} ${
-          row.values.M85 === 1 ? "past grace" : "late, within grace"
-        }, owes ${show(metric("M07"), units)}${
-          text("M02") ? ` ${text("M02")}` : ""
-        } (M07)`
+        const { n: metric, s: word } = reader(row.values)
+        return c34("numbers.row", {
+          market: marketLabel(row),
+          state: lateWord(row),
+          amount: withAsset(show(metric("M07"), units), word("M02")),
+        })
       }),
     ),
     chart: {
@@ -381,41 +441,39 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
           <BucketBar
             inOrder={now.open - now.unknown - now.late}
             within={now.late - now.past}
-            withinDebt={withinSum ?? "mixed assets"}
+            withinDebt={withinSum ?? shared("mixedAssets")}
             past={now.past}
-            pastDebt={pastSum ?? "mixed assets"}
+            pastDebt={pastSum ?? shared("mixedAssets")}
           />
         ) : undefined,
     },
     chips: {
       median: cmp.S18
-        ? `median borrower: ${plural(
-            cmp.S18.median,
-            "market",
-          )} late now · ${count(cmp.S18.population)} graded borrowers`
-        : "no graded borrower to take a median from yet",
+        ? c34("chips.median", {
+            markets: counted("market", cmp.S18.median),
+            population: count(cmp.S18.population),
+          })
+        : BLANK.noMedianBorrower,
       markets: protocol
-        ? `protocol right now: ${count(protocol.lateNow)} of ${plural(
-            protocol.openMarkets,
-            "open market",
-          )} late`
-        : "no protocol counts in this publication",
-      borrower: now.incomplete
-        ? "some of their market states are not in this publication"
-        : `their markets: ${
-            now.lateRows.length
-              ? now.lateRows
-                  .map(
-                    (row) =>
-                      `${marketLabel(row)} ${
-                        row.values.M85 === 1
-                          ? "past grace"
-                          : "late, within grace"
-                      }`,
-                  )
-                  .join("; ")
-              : "all in order"
-          }`,
+        ? c34("chips.protocol", {
+            late: count(protocol.lateNow),
+            markets: counted("openMarket", protocol.openMarkets),
+          })
+        : BLANK.noProtocolCounts,
+      borrower: (() => {
+        if (now.incomplete) return c34("chips.incomplete")
+        if (!now.lateRows.length) return c34("chips.allInOrder")
+        return c34("chips.markets", {
+          list: now.lateRows
+            .map((row) =>
+              c34("chips.marketState", {
+                market: marketLabel(row),
+                state: lateWord(row),
+              }),
+            )
+            .join("; "),
+        })
+      })(),
     },
   }
 
@@ -433,7 +491,7 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
     closedAssets.size === 1 &&
     !borrower.partial &&
     closedRows.length === completed
-      ? `${units(capital)} ${[...closedAssets][0]}`
+      ? withAsset(units(capital), String([...closedAssets][0]))
       : undefined
   const mixedCapital = Boolean(completed) && closedAssets.size > 1
   const closedDays = closedRows.reduce(
@@ -444,68 +502,67 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
   let cycleValue: string = show(completed, count)
   if (completed === 0) cycleValue = BLANK.noneCompleted
   else if (capitalText) cycleValue = capitalText
-  let settledText = `none completed yet: all ${show(marketDays, (v) =>
-    plural(v, "market-day"),
-  )} still running`
+  let settledText = c36("chart.none", {
+    days: show(marketDays, (v) => counted("marketDay", v)),
+  })
   if (completed && settled !== undefined)
-    settledText = `settled ${percent(settled)} · ${
-      capitalText ?? (mixedCapital ? "mixed assets" : show(capital, units))
-    }`
+    settledText = c36("chart.settled", {
+      share: percent(settled),
+      capital:
+        capitalText ??
+        (mixedCapital ? shared("mixedAssets") : show(capital, units)),
+    })
   const cycle: CardSpec = {
     id: "3.6",
     page: "borrower",
-    ids: "S31 · S30 · S32 · S33 · S34",
+    ids: c36("ids"),
     kind: completed && !capitalText ? "count" : "text",
     value: cycleValue,
     verdict: null,
     sub:
       completed === 0
-        ? "everything still running"
+        ? c36("sub.running")
         : join(
             capitalText
-              ? `through ${plural(
-                  completed ?? 0,
-                  "completed facility",
-                  "completed facilities",
-                )}`
-              : `${plural(
-                  completed ?? 0,
-                  "completed facility",
-                  "completed facilities",
-                )}`,
-            mixedCapital ? "capital not summed (mixed assets)" : undefined,
-            verified === undefined ? undefined : `${count(verified)} verified`,
-            clean === undefined ? undefined : `${count(clean)} clean`,
+              ? c36("sub.through", { facilities: facilities(completed ?? 0) })
+              : facilities(completed ?? 0),
+            mixedCapital ? c36("sub.mixed") : undefined,
+            verified === undefined
+              ? undefined
+              : c36("sub.verified", { n: count(verified) }),
+            clean === undefined
+              ? undefined
+              : c36("sub.clean", { n: count(clean) }),
           ),
     compare: protocol
-      ? `protocol: ${plural(
-          protocol.completedFacilities,
-          "completed facility",
-          "completed facilities",
-        )}`
+      ? c36("compare", {
+          facilities: facilities(protocol.completedFacilities),
+        })
       : "",
     formula: [
       completed === 0
-        ? `Completed facilities (S30) = 0 → blank word "${BLANK.noneCompleted}"`
-        : `Completed facilities (S30) = ${show(completed, count)}`,
-      `Capital through completed facilities (S31) = ${
-        capitalText ??
-        (mixedCapital ? "not summed (different assets)" : show(capital, units))
-      } · Share of record from completed facilities (S32) = ${
-        marketDays === undefined || settled === undefined
-          ? bookBlank
-          : `${count(closedDays)} / ${count(marketDays)} = ${percent(settled)}`
-      }`,
+        ? c36("formula.none", { blank: BLANK.noneCompleted })
+        : c36("formula.completed", { completed: show(completed, count) }),
+      c36("formula.capital", {
+        capital:
+          capitalText ??
+          (mixedCapital ? shared("notSummed") : show(capital, units)),
+        share:
+          marketDays === undefined || settled === undefined
+            ? bookBlank
+            : c36("formula.share", {
+                closed: count(closedDays),
+                days: count(marketDays),
+                share: percent(settled),
+              }),
+      }),
     ].join("\n"),
     numbers: sentence(
-      "money leads, count is fine print",
-      `Completions verified (S33) ${show(
-        verified,
-        count,
-      )} and Clean closures (S34) ${show(
-        clean,
-        count,
-      )} are stored at the MarketClosed block, never recomputed`,
+      c36("numbers.money"),
+      c36("numbers.stored", {
+        verified: show(verified, count),
+        clean: show(clean, count),
+      }),
     ),
     chart: {
       expanded:
@@ -513,7 +570,7 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
           <CompletedBars
             rows={[
               {
-                label: "this borrower",
+                label: c36("chart.thisBorrower"),
                 settledPct: settled,
                 text: settledText,
               },
@@ -523,25 +580,22 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
     },
     chips: {
       median: cmp.S30
-        ? `median borrower: ${plural(
-            cmp.S30.median,
-            "completed facility",
-            "completed facilities",
-          )} · ${count(cmp.S30.population)} graded borrowers`
-        : "no graded borrower to take a median from yet",
+        ? c36("chips.median", {
+            facilities: facilities(cmp.S30.median),
+            population: count(cmp.S30.population),
+          })
+        : BLANK.noMedianBorrower,
       markets: protocol
-        ? `${plural(
-            protocol.completedFacilities,
-            "completed facility",
-            "completed facilities",
-          )} across the protocol`
-        : "no protocol counts in this publication",
+        ? c36("chips.protocol", {
+            facilities: facilities(protocol.completedFacilities),
+          })
+        : BLANK.noProtocolCounts,
       borrower: borrower.partial
-        ? "some of their markets are not in this publication"
-        : `their book: ${count(closedRows.length)} of ${plural(
-            rows.length,
-            "market",
-          )} closed`,
+        ? c36("chips.partial")
+        : c36("chips.book", {
+            closed: count(closedRows.length),
+            markets: counted("market", rows.length),
+          }),
     },
   }
 
@@ -573,21 +627,22 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
     rows.every((market) => market.values.M20 === 0)
   const hasFinished = rows.some((row) => (reader(row.values).n("M20") ?? 0) > 0)
   let cure: string = NA
-  if (noFinished)
-    cure = stillOpen ? "no finished episode yet" : BLANK.noIncidents
+  if (noFinished) cure = stillOpen ? BLANK.noFinishedEpisode : BLANK.noIncidents
   else if (hasFinished) cure = show(n("D16"), hours)
-  const longestText =
-    longest === undefined
-      ? NA
-      : `${hours(longest)}${
-          longestGrace === undefined ? "" : ` against ${hours(longestGrace)}`
-        }`
-  const incidentsText =
-    incidents === undefined
-      ? undefined
-      : `${plural(incidents, "incident")}${
-          stillOpen ? `, ${count(stillOpen)} still open` : ""
-        }`
+  /** The longest incident, against its own market's allowance when known. */
+  const against = (shown: string) =>
+    longestGrace === undefined
+      ? shown
+      : c38("against", { longest: shown, grace: hours(longestGrace) })
+  const longestText = longest === undefined ? NA : against(hours(longest))
+  let incidentsText: string | undefined
+  if (incidents !== undefined)
+    incidentsText = stillOpen
+      ? shared("stillOpen", {
+          episodes: counted("incident", incidents),
+          open: count(stillOpen),
+        })
+      : counted("incident", incidents)
   // Grace breaches: episodes that ran past their grace period (S13 = M25
   // summed), per market and per 100 episodes as the design prints them.
   const breaches = n("S13")
@@ -601,29 +656,32 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
     .sort((left, right) => right.breaches - left.breaches)
   let disciplineValue: string = NA
   if (incidents === 0) disciplineValue = BLANK.noIncidents
-  else if (breaches !== undefined)
-    disciplineValue = plural(breaches, "breach", "breaches")
-  const per100Marks = (label: string, rate: number) => {
+  else if (breaches !== undefined) disciplineValue = counted("breach", breaches)
+  const per100Marks = (who: string, rate: number) => {
     const marks = Math.min(100, Math.round(rate))
     return (
       <MarkArray
-        key={label}
+        key={who}
         groups={[
-          { count: marks, color: C.red, label: `${label} breaches per 100` },
+          {
+            count: marks,
+            color: C.red,
+            label: c38("chart.breaches", { who }),
+          },
           {
             count: 100 - marks,
             color: C.greenBg,
-            label: "episodes cured within grace",
+            label: c38("chart.cured"),
           },
         ]}
-        caption={`${label}: ${score(rate)} breaches per 100 episodes`}
+        caption={c38("chart.caption", { who, rate: score(rate) })}
       />
     )
   }
   const discipline: CardSpec = {
     id: "3.8",
     page: "borrower",
-    ids: "S12 · S13 · S01 · D15 · D16",
+    ids: c38("ids"),
     kind: breaches === undefined || incidents === 0 ? "text" : "count",
     value: disciplineValue,
     verdict: null,
@@ -631,74 +689,89 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
       incidents === 0
         ? ""
         : join(
-            incidentsText ? `in ${incidentsText}` : undefined,
-            per100 === undefined ? undefined : `${score(per100)} per 100`,
-            hasFinished && !noFinished ? `typical cure ${cure}` : undefined,
+            incidentsText
+              ? c38("sub.incidents", { incidents: incidentsText })
+              : undefined,
+            per100 === undefined
+              ? undefined
+              : c38("sub.per100", { rate: score(per100) }),
+            hasFinished && !noFinished ? c38("sub.cure", { cure }) : undefined,
           ),
-    compare: longest === undefined ? "" : `longest incident ${longestText}`,
+    compare:
+      longest === undefined ? "" : c38("compare", { longest: longestText }),
     formula: [
-      `per market = Grace breaches, all markets (S13) ${show(
-        breaches,
-        count,
-      )} / Markets on Wildcat (S01) ${show(markets, count)} = ${
-        perMarket === undefined && !markets
-          ? "no funded market yet"
-          : show(perMarket, score)
-      }`,
-      `per 100 episodes = 100 × S13 ${show(
-        breaches,
-        count,
-      )} / Episodes, all markets (S12) ${show(incidents, count)} = ${
-        per100 === undefined && incidents === 0
-          ? "no episode yet"
-          : show(per100, score)
-      }`,
-      `Longest episode, all markets (D15) = ${
-        longest === undefined
-          ? NA
-          : `${hours(longest)} = ${days(longestDays!)}${
-              longestGrace === undefined
-                ? ""
-                : ` against ${hours(longestGrace)}`
-            }`
-      } · Typical cure time, all markets (D16) = ${cure}`,
+      c38("formula.perMarket", {
+        breaches: show(breaches, count),
+        markets: show(markets, count),
+        rate:
+          perMarket === undefined && !markets
+            ? BLANK.noFundedMarket
+            : show(perMarket, score),
+      }),
+      c38("formula.per100", {
+        breaches: show(breaches, count),
+        incidents: show(incidents, count),
+        rate:
+          per100 === undefined && incidents === 0
+            ? c38("formula.noEpisode")
+            : show(per100, score),
+      }),
+      c38("formula.longest", {
+        longest:
+          longest === undefined
+            ? NA
+            : against(
+                c38("formula.longestDays", {
+                  hours: hours(longest),
+                  days: days(longestDays!),
+                }),
+              ),
+        cure,
+      }),
     ].join("\n"),
     numbers: sentence(
-      "breach = an episode that ran past its grace period, as the market level (M25)",
-      incidentsText ? `the raw ${incidentsText} never headlines` : undefined,
+      c38("numbers.definition"),
+      incidentsText
+        ? c38("numbers.raw", { incidents: incidentsText })
+        : undefined,
       longestRow
-        ? `longest episode on ${marketLabel(longestRow)} (D15)`
+        ? c38("numbers.longest", { market: marketLabel(longestRow) })
         : undefined,
     ),
     chart: {
       expanded:
         per100 === undefined ? (
-          <Tbd>No breach count for this book at this snapshot.</Tbd>
+          <Tbd>{c38("chart.none")}</Tbd>
         ) : (
           <>
-            {per100Marks("This borrower", per100)}
+            {per100Marks(c38("chart.thisBorrower"), per100)}
             {medianPer100 === undefined
               ? null
-              : per100Marks("Median borrower", medianPer100)}
+              : per100Marks(c38("chart.medianBorrower"), medianPer100)}
           </>
         ),
     },
     chips: {
       median:
         medianPer100 === undefined
-          ? "no graded borrower to take a median from yet"
-          : `median ${score(medianPer100)} breaches per 100 episodes · ${count(
-              cmp.BREACHES_PER_100!.population,
-            )} graded borrowers`,
+          ? BLANK.noMedianBorrower
+          : c38("chips.median", {
+              median: score(medianPer100),
+              population: count(cmp.BREACHES_PER_100!.population),
+            }),
       markets: rankPhrase(cmp.BREACHES_PER_100, "borrowers"),
       borrower: breachRows.length
-        ? `their markets: ${breachRows
-            .map(
-              ({ row, breaches: marketBreaches }) =>
-                `${count(marketBreaches)} on ${marketLabel(row)}`,
-            )
-            .join(", ")}`
-        : "their markets: no breaches",
+        ? c38("chips.markets", {
+            list: breachRows
+              .map(({ row, breaches: marketBreaches }) =>
+                c38("chips.marketBreaches", {
+                  n: count(marketBreaches),
+                  market: marketLabel(row),
+                }),
+              )
+              .join(", "),
+          })
+        : c38("chips.none"),
     },
     chipCharts: { markets: rank(cmp.BREACHES_PER_100) },
   }
@@ -713,38 +786,37 @@ export function borrowerSpecs(borrower: BorrowerAnalytics) {
   const breadth: CardSpec = {
     id: "3.10",
     page: "borrower",
-    ids: "S37",
+    ids: c310("ids"),
     kind: "count",
     value: show(lenders, count),
     verdict: null,
-    sub:
-      lenders === undefined
+    sub: lenders === undefined ? "" : c310("sub", { count: lenders }),
+    compare:
+      markets === undefined
         ? ""
-        : `different ${
-            lenders === 1 ? "lender has" : "lenders have"
-          } ever funded them`,
-    compare: markets === undefined ? "" : `across ${plural(markets, "market")}`,
-    formula: `Distinct lenders, all markets (S37) = unique funding addresses across every market, excluding 0x0, the market contracts and escrows (C6) = ${show(
-      lenders,
-      count,
-    )}`,
-    numbers: "count, no arithmetic.",
+        : c310("compare", { markets: counted("market", markets) }),
+    formula: c310("formula", { lenders: show(lenders, count) }),
+    numbers: c310("numbers"),
     chips: {
       median: cmp.S37
-        ? `median borrower: ${plural(
-            cmp.S37.median,
-            "distinct lender",
-          )} · ${count(cmp.S37.population)} graded borrowers`
-        : "no graded borrower to take a median from yet",
+        ? c310("chips.median", {
+            lenders: counted("distinctLender", cmp.S37.median),
+            population: count(cmp.S37.population),
+          })
+        : BLANK.noMedianBorrower,
       markets: rankPhrase(cmp.S37, "borrowers"),
       borrower: lenderRows.length
-        ? `their markets: ${lenderRows
-            .map(
-              ({ row, lenders: marketLenders }) =>
-                `${count(marketLenders)} on ${marketLabel(row)}`,
-            )
-            .join(", ")} (a lender in several markets counts in each)`
-        : "their markets: no lender yet",
+        ? c310("chips.markets", {
+            list: lenderRows
+              .map(({ row, lenders: marketLenders }) =>
+                c310("chips.marketLenders", {
+                  n: count(marketLenders),
+                  market: marketLabel(row),
+                }),
+              )
+              .join(", "),
+          })
+        : c310("chips.none"),
     },
     chipCharts: { markets: rank(cmp.S37) },
   }

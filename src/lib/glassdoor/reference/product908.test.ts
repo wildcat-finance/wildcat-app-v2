@@ -10,9 +10,14 @@ import {
   PRODUCT_908_REFERENCE,
   ReferenceScope,
 } from "./product908"
+import copy from "../../../locales/en/glassDoor.json"
 import { deserializeDataset } from "../../export/serialize/dataset"
 import { borrowerMetrics, marketMetrics, MetricValue } from "../datasetMetrics"
-import { formatHours } from "../format"
+import { roundedHours } from "../format"
+
+// Names come from the copy file, the one place they are written.
+const names: Record<string, { name: string }> = copy.metrics
+const nameOf = (id: string) => names[id]?.name ?? id
 
 const fixtures = path.join(__dirname, "..", "__fixtures__")
 const datasets = readdirSync(fixtures)
@@ -38,7 +43,7 @@ const HOURS = new Set(["M15", "M16", "M22", "M23", "M80", "M82", "D15", "D16"])
 // Round half away from zero to the precision the reference prints.
 const asDisplayed = (id: string, value: MetricValue, reference: string) => {
   if (HOURS.has(id)) {
-    return Number(formatHours(Number(value) * 3_600).replace(/[ h,]/g, ""))
+    return Number(roundedHours(Number(value) * 3_600).replace(/,/g, ""))
   }
   if (!NUMERIC.test(reference)) return String(value)
   const decimals = reference.replace("%", "").split(".")[1]?.length ?? 0
@@ -63,7 +68,8 @@ describe(`product#908 reference values at block ${GLASS_DOOR_REFERENCE_BLOCK}`, 
     expect(computed.market.D18).toBe(`${late} / ${never}`)
   })
 
-  PRODUCT_908_REFERENCE.forEach(({ id, name, scope, reference }) => {
+  PRODUCT_908_REFERENCE.forEach(({ id, scope, reference }) => {
+    const name = nameOf(id)
     const value = computed[scope][id]
     const accepted = ACCEPTED_REFERENCE_DIFFERENCES[id]
     if (value === undefined) {

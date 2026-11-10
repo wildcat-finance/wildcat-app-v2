@@ -19,12 +19,15 @@ import {
   ChipKey,
 } from "@/components/GlassDoor/card"
 import { ordinal } from "@/components/GlassDoor/helpers"
+import { verdictWord } from "@/components/GlassDoor/rules"
+import { scoped, text } from "@/components/GlassDoor/text"
 
 import s from "./review.module.css"
 import {
   DESIGN_TREATMENT,
   drawable,
   IndexDatum,
+  TILE_FALLBACK,
   Tone,
   TreatmentCode,
   TREATMENTS,
@@ -50,28 +53,27 @@ const TONE_CLASS: Record<Tone, string> = {
   LIMITED: t.limited,
   CONTEXT: t.context,
 }
-const FLAG: Record<Tone, string> = {
-  STRONG: "CLEARED",
-  WATCH: "REVIEW",
-  PROBLEM: "EXCEPTION",
-  LIMITED: "NO DATA",
-  CONTEXT: "REVIEW",
-}
+// The words on a tile come from glassDoor.json (treatments.tiles).
+const tile = scoped("treatments.tiles")
 
 const pct = (value: number) => `${value}%`
 const medShort = (d: IndexDatum) =>
-  d.rail >= 0 && d.railMed >= 0 ? d.medText ?? String(d.railMed) : "—"
+  d.rail >= 0 && d.railMed >= 0
+    ? d.medText ?? String(d.railMed)
+    : tile("noValue")
 /** The value beside a rail: the rail's own reading when it is not the headline. */
 const railValue = (d: IndexDatum) => d.railValue ?? d.value
 /** H's bands, named by which way is better; a measure is only above or below. */
 const bandWords = (d: IndexDatum) => {
-  if (d.better === "higher") return "weak · fair · strong"
-  if (d.better === "lower") return "strong · fair · weak"
-  return "below · near · above the median"
+  if (d.better === "higher") return tile("bandsHigher")
+  if (d.better === "lower") return tile("bandsLower")
+  return tile("bandsNeutral")
 }
 
 const Badge = ({ tone }: { tone: Tone }) => (
-  <span className={cx(t.badge, TONE_CLASS[tone])}>{tone}</span>
+  <span className={cx(t.badge, TONE_CLASS[tone])}>
+    {tone === "CONTEXT" ? tile("context") : verdictWord(tone)}
+  </span>
 )
 const Name = ({ d }: { d: IndexDatum }) => (
   <div className={t.name}>{d.name}</div>
@@ -79,10 +81,12 @@ const Name = ({ d }: { d: IndexDatum }) => (
 const Muted = ({ children }: { children: React.ReactNode }) => (
   <div className={t.muted}>{children}</div>
 )
-const Unavailable = ({ d, fallback }: { d: IndexDatum; fallback: string }) => (
-  <div className={t.unavailable}>{d.unavailable || fallback}</div>
+/** A tile that cannot be drawn says why: the index's reason, or its own. */
+const Unavailable = ({ d, code }: { d: IndexDatum; code: TreatmentCode }) => (
+  <div className={t.unavailable}>
+    {d.unavailable || d.reasons?.[code] || TILE_FALLBACK[code]}
+  </div>
 )
-const NO_RAIL = "No 0–100 rail for this index."
 
 const cellColor = (index: number, past: number, grace: number) => {
   if (index < past) return CELL.past
@@ -120,8 +124,7 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
     </>
   ),
   B: (d) => {
-    if (d.grace < 0)
-      return <Unavailable d={d} fallback="Not countable out of 100." />
+    if (d.grace < 0) return <Unavailable d={d} code="B" />
     const grace = Math.round(d.grace)
     const past = Math.round(d.past)
     return (
@@ -141,7 +144,7 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
     )
   },
   C: (d) => {
-    if (d.rail < 0) return <Unavailable d={d} fallback={NO_RAIL} />
+    if (d.rail < 0) return <Unavailable d={d} code="C" />
     const max = d.railMax || 100
     return (
       <>
@@ -175,13 +178,7 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
     </>
   ),
   E: (d) => {
-    if (!d.rank)
-      return (
-        <Unavailable
-          d={d}
-          fallback="This index has no protocol-wide ranking in the snapshot."
-        />
-      )
+    if (!d.rank) return <Unavailable d={d} code="E" />
     const [position, population] = d.rank
     return (
       <>
@@ -195,7 +192,9 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
           ))}
         </div>
         <div className={t.claim}>
-          {`${d.rankHigher ?? "better than"} ${position} of ${population}`}
+          {d.rankHigher
+            ? tile("placed", { higher: d.rankHigher, position, population })
+            : tile("betterThan", { position, population })}
         </div>
         <Muted>{d.median}</Muted>
       </>
@@ -227,7 +226,7 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
       return (
         <>
           <Name d={d} />
-          <Unavailable d={d} fallback="Not a share of the record." />
+          <Unavailable d={d} code="G" />
         </>
       )
     const late = Math.round(d.grace * 0.6)
@@ -243,16 +242,13 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
             />
           ))}
         </div>
-        <Muted>
-          unordered share of the record: the segments show proportions, not when
-          each part happened
-        </Muted>
+        <Muted>{tile("shareBar")}</Muted>
         <div className={t.claim}>{d.countClaim}</div>
       </>
     )
   },
   H: (d) => {
-    if (d.rail < 0) return <Unavailable d={d} fallback={NO_RAIL} />
+    if (d.rail < 0) return <Unavailable d={d} code="H" />
     const max = d.railMax || 100
     const median = Math.max(0, d.railMed)
     const weak = median * 0.9
@@ -290,18 +286,14 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
             />
           ) : null}
         </div>
-        <Muted>{`bands: ${bandWords(d)} · tick = ${medShort(d)}`}</Muted>
+        <Muted>
+          {tile("bands", { words: bandWords(d), median: medShort(d) })}
+        </Muted>
       </>
     )
   },
   I: (d) => {
-    if (!d.rank)
-      return (
-        <Unavailable
-          d={d}
-          fallback="No population ranking for this index in the snapshot."
-        />
-      )
+    if (!d.rank) return <Unavailable d={d} code="I" />
     const [position, population] = d.rank
     const share = population ? (100 * position) / population : 0
     return (
@@ -314,22 +306,22 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
           <div className={t.distMe} style={{ left: pct(share) }} />
         </div>
         <div className={t.distAxis}>
-          <span>{d.rankHigher ? "lowest" : "weakest"}</span>
-          <span>middle half</span>
-          <span>{d.rankHigher ? "highest" : "strongest"}</span>
+          <span>{d.rankHigher ? tile("lowest") : tile("weakest")}</span>
+          <span>{tile("middleHalf")}</span>
+          <span>{d.rankHigher ? tile("highest") : tile("strongest")}</span>
         </div>
         <div className={t.claim}>
-          {`sits in the ${ordinal(
-            Math.round(share),
-          )} percentile: ${position} of ${population} ${
-            d.rankHigher ? "sit lower" : "are weaker"
-          }`}
+          {tile(d.rankHigher ? "percentileNeutral" : "percentile", {
+            percentile: ordinal(Math.round(share)),
+            position,
+            population,
+          })}
         </div>
       </>
     )
   },
   J: (d) => {
-    if (d.rail < 0) return <Unavailable d={d} fallback={NO_RAIL} />
+    if (d.rail < 0) return <Unavailable d={d} code="J" />
     const max = d.railMax || 100
     const turn = Math.min(d.rail / max, 1)
     const arc = "M 12 62 A 47 47 0 0 1 106 62"
@@ -382,14 +374,14 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
   },
   K: (d) => {
     const difference = d.rail >= 0 && d.railMed >= 0 ? d.rail - d.railMed : null
-    let differenceText = "—"
+    let differenceText = tile("noValue")
     if (difference !== null)
       differenceText = `${difference > 0 ? "+" : ""}${difference.toFixed(1)}`
     const rows: [string, string, string?][] = [
-      ["this one", railValue(d)],
-      ["typical", medShort(d)],
-      ["difference", differenceText, differenceClass(difference, d)],
-      ["evidence", d.evidence || "on-chain record"],
+      [tile("thisOne"), railValue(d)],
+      [tile("typical"), medShort(d)],
+      [tile("difference"), differenceText, differenceClass(difference, d)],
+      [tile("evidence"), d.evidence || tile("onChain")],
     ]
     return (
       <>
@@ -423,16 +415,10 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
               <span className={t.bucketValue}>{value}</span>
             </div>
           ))}
-          <Muted>
-            {d.bucketNote ??
-              "green current · amber within allowance · red past allowance, the receivables-aging convention"}
-          </Muted>
+          <Muted>{d.bucketNote ?? tile("agingKey")}</Muted>
         </>
       ) : (
-        <Unavailable
-          d={d}
-          fallback="This index has no aging dimension: nothing here is measured by how long it has been outstanding."
-        />
+        <Unavailable d={d} code="L" />
       )}
     </>
   ),
@@ -441,10 +427,7 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
       return (
         <>
           <Name d={d} />
-          <Unavailable
-            d={d}
-            fallback="No contractual threshold governs this index, so there is no headroom to draw. The market’s hard limits are the grace period, the payout window and the credit line."
-          />
+          <Unavailable d={d} code="M" />
         </>
       )
     const [value, limit, limitLabel, headroom, note] = d.cov
@@ -464,7 +447,7 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
           <div className={t.covLimit} style={{ left: pct(100 / 1.3) }} />
         </div>
         <div className={t.covFoot}>
-          <span>{`limit ${limitLabel}`}</span>
+          <span>{tile("limit", { limit: limitLabel })}</span>
           <b className={over ? t.bad : t.good}>{headroom}</b>
         </div>
         <Muted>{note}</Muted>
@@ -475,14 +458,18 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
     // Only compared values: a part with no protocol median is left out.
     const rows: [string, string, string][] = d.sideBySide?.length
       ? d.sideBySide
-      : [["value", railValue(d), medShort(d)]]
+      : [[tile("value"), railValue(d), medShort(d)]]
     return (
       <>
         <Name d={d} />
         <div className={t.sbsHead}>
-          <span>{d.id.startsWith("3.") ? "THIS BORROWER" : "THIS MARKET"}</span>
           <span>
-            {d.id.startsWith("3.") ? "BORROWER MEDIAN" : "MARKET MEDIAN"}
+            {d.id.startsWith("3.") ? tile("thisBorrower") : tile("thisMarket")}
+          </span>
+          <span>
+            {d.id.startsWith("3.")
+              ? tile("borrowerMedian")
+              : tile("marketMedian")}
           </span>
         </div>
         {rows.map(([key, mine, theirs]) => (
@@ -500,10 +487,7 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
       return (
         <>
           <Name d={d} />
-          <Unavailable
-            d={d}
-            fallback="This index has no series in this publication, so there is no trend to plot."
-          />
+          <Unavailable d={d} code="O" />
         </>
       )
     const [heights, from, to, note] = d.trend
@@ -535,14 +519,14 @@ const BODY: Record<TreatmentCode, (d: IndexDatum) => React.ReactNode> = {
               : TONE_CLASS[d.verdict],
           )}
         >
-          {FLAG[d.verdict]}
+          {text(`treatments.tiles.flag.${d.verdict}`)}
         </span>
         <span className={cx(t.name, t.nameInline)}>{d.name}</span>
       </div>
       <div className={cx(t.sentence, t.sentenceSm)}>{d.sentence}</div>
       <div className={t.next}>
-        <span>next step</span>
-        <b>Open the raw ledger rows →</b>
+        <span>{tile("nextStep")}</span>
+        <b>{tile("ledger")}</b>
       </div>
     </>
   ),
