@@ -21,10 +21,12 @@ import { COLORS } from "@/theme/colors"
 
 export type LenderMarketsMobileHeaderProps = {
   page: "yours" | "others"
+  embedded?: boolean
 }
 
 export const LenderMarketsMobileHeader = ({
   page,
+  embedded = false,
 }: LenderMarketsMobileHeaderProps) => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
@@ -132,9 +134,11 @@ export const LenderMarketsMobileHeader = ({
     <Box
       sx={{
         width: "100%",
-        padding: "8px",
-        borderRadius: "14px",
-        backgroundColor: COLORS.white,
+        ...(!embedded && {
+          padding: "8px",
+          borderRadius: "14px",
+          backgroundColor: COLORS.white,
+        }),
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
@@ -168,6 +172,10 @@ export const LenderMarketsMobileHeader = ({
           hideCounts={hideCounts}
           ariaLabel={t("dashboard.markets.mobileList.sections")}
         />
+
+        {embedded && (
+          <Divider sx={{ mx: "4px", borderColor: COLORS.whiteLilac }} />
+        )}
       </Box>
     </Box>
   )

@@ -309,43 +309,46 @@ export const MyMarketsSection = () => {
   const showTerminatedTables = myMarketsTab === LenderMyMarketsTab.TERMINATED
 
   const mobileToolbar = (
-    <MobileMarketsToolbar
-      variant="page"
-      left={
-        showComposableSwitch && (
-          <ComposableOnlySwitch
-            checked={composableOnly}
-            onChange={setComposableOnly}
-          />
-        )
-      }
-      right={
-        <>
-          <MobileFilterButton
-            size={28}
-            assetsOptions={
-              tokens?.map((token) => ({
-                id: token.address,
-                name: token.symbol,
-              })) ?? []
-            }
-            statusesOptions={marketStatusesMock}
-            withdrawalCycleOptions={withdrawalCycleOptions}
-            marketAssets={marketAssets}
-            marketStatuses={marketStatuses}
-            marketWithdrawalCycles={marketWithdrawalCycles}
-            setMarketAssets={setMarketAssets}
-            setMarketStatuses={setMarketStatuses}
-            setMarketWithdrawalCycles={setMarketWithdrawalCycles}
-          />
-          <MobileSearchButton
-            marketAccounts={visibleMarketAccounts}
-            marketSearch={marketSearch}
-            setMarketSearch={setMarketSearch}
-          />
-        </>
-      }
-    />
+    <>
+      <LenderMarketsMobileHeader page="yours" embedded />
+      <MobileMarketsToolbar
+        variant="page"
+        left={
+          showComposableSwitch && (
+            <ComposableOnlySwitch
+              checked={composableOnly}
+              onChange={setComposableOnly}
+            />
+          )
+        }
+        right={
+          <>
+            <MobileFilterButton
+              size={28}
+              assetsOptions={
+                tokens?.map((token) => ({
+                  id: token.address,
+                  name: token.symbol,
+                })) ?? []
+              }
+              statusesOptions={marketStatusesMock}
+              withdrawalCycleOptions={withdrawalCycleOptions}
+              marketAssets={marketAssets}
+              marketStatuses={marketStatuses}
+              marketWithdrawalCycles={marketWithdrawalCycles}
+              setMarketAssets={setMarketAssets}
+              setMarketStatuses={setMarketStatuses}
+              setMarketWithdrawalCycles={setMarketWithdrawalCycles}
+            />
+            <MobileSearchButton
+              marketAccounts={visibleMarketAccounts}
+              marketSearch={marketSearch}
+              setMarketSearch={setMarketSearch}
+            />
+          </>
+        }
+      />
+    </>
   )
 
   if (!mounted)
@@ -363,7 +366,7 @@ export const MyMarketsSection = () => {
   return (
     <Box sx={{ overflow: { xs: "auto", md: "visible" } }}>
       {/* Mobile Version */}
-      {isMobile && <LenderMarketsMobileHeader page="yours" />}
+      {isMobile && isWrongNetwork && <LenderMarketsMobileHeader page="yours" />}
 
       {/* Desktop Version */}
       {!isMobile && (
