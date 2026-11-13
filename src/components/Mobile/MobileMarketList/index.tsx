@@ -1,6 +1,13 @@
 import React, { ReactNode, useState } from "react"
 
-import { Box, Button, Skeleton, Typography } from "@mui/material"
+import {
+  Box,
+  Button,
+  Skeleton,
+  SxProps,
+  Theme,
+  Typography,
+} from "@mui/material"
 import { usePathname } from "next/navigation"
 
 import type { Destination } from "@/lib/destinations/types"
@@ -13,21 +20,31 @@ import { LenderMobileMarketItem, MobileMarketCard } from "../MobileMarketCard"
 const DEFAULT_PAGE_SIZE = 20
 const DEFAULT_SKELETON_COUNT = 3
 
-const VARIANT_SX = {
-  card: {
-    marginTop: "4px",
-    padding: "8px",
-    borderRadius: "14px",
-    backgroundColor: COLORS.white,
-  },
-  bare: {},
+const CardSx = {
+  borderRadius: "14px",
+  backgroundColor: COLORS.white,
 } as const
 
-const RowsSx = {
-  display: "flex",
-  flexDirection: "column",
-  "& > *:not(:last-child)": {
-    borderBottom: `1px solid ${COLORS.whiteLilac}`,
+const VARIANT_SX = {
+  card: {
+    root: { gap: "4px" },
+    header: { ...CardSx, padding: "8px" },
+    rows: { display: "flex", flexDirection: "column", gap: "4px" },
+    row: { ...CardSx, padding: "0 4px" },
+    empty: CardSx,
+  },
+  bare: {
+    root: {},
+    header: {},
+    rows: {
+      display: "flex",
+      flexDirection: "column",
+      "& > *:not(:last-child)": {
+        borderBottom: `1px solid ${COLORS.whiteLilac}`,
+      },
+    },
+    row: {},
+    empty: {},
   },
 } as const
 
@@ -45,6 +62,8 @@ export type MobileMarketListProps = {
   markets: readonly LenderMobileMarketItem[]
   isLoading?: boolean
   header?: ReactNode
+  headerSx?: SxProps<Theme>
+  sx?: SxProps<Theme>
   destinationsByMarket?: Record<string, Destination[]>
   emptyTitle?: string
   emptySubtitle?: string
@@ -61,6 +80,8 @@ export const MobileMarketList = ({
   markets,
   isLoading = false,
   header,
+  headerSx,
+  sx,
   destinationsByMarket,
   emptyTitle = "No Markets Here",
   emptySubtitle = "Change selected filters or check other sections",
@@ -108,24 +129,44 @@ export const MobileMarketList = ({
 
   const paginationItems = getPaginationRange(currentPage, totalPages)
 
+  const variantSx = VARIANT_SX[variant]
+
   return (
-    <Box sx={{ display: "flex", flexDirection: "column" }}>
+    <Box
+      sx={[
+        {
+          display: "flex",
+          flexDirection: "column",
+          marginTop: variant === "card" ? "4px" : 0,
+        },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}
+    >
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
-          ...VARIANT_SX[variant],
+          ...variantSx.root,
         }}
       >
-        {header}
+        {header && (
+          <Box
+            sx={[
+              variantSx.header,
+              ...(Array.isArray(headerSx) ? headerSx : [headerSx]),
+            ]}
+          >
+            {header}
+          </Box>
+        )}
 
         {isLoading && (
-          <Box sx={RowsSx} aria-busy>
+          <Box sx={variantSx.rows} aria-busy>
             {Array.from(
               { length: skeletonCount },
               (_, i) => `skeleton-${i}`,
             ).map((key) => (
-              <Box key={key} sx={{ padding: "12px 8px" }}>
+              <Box key={key} sx={{ ...variantSx.row, padding: "12px 8px" }}>
                 <Skeleton
                   variant="rounded"
                   sx={{
@@ -140,39 +181,43 @@ export const MobileMarketList = ({
           </Box>
         )}
 
-        {isEmpty &&
-          (emptyState ?? (
-            <Box
-              sx={{
-                height: "155px",
-                padding: "12px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "4px",
-                justifyContent: "center",
-                alignItems: "center",
-                textAlign: "center",
-              }}
-            >
-              <Typography variant="mobH3">{emptyTitle}</Typography>
-              <Typography variant="mobText3" color={COLORS.santasGrey}>
-                {emptySubtitle}
-              </Typography>
-            </Box>
-          ))}
+        {isEmpty && (
+          <Box sx={variantSx.empty}>
+            {emptyState ?? (
+              <Box
+                sx={{
+                  height: "155px",
+                  padding: "12px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "4px",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  textAlign: "center",
+                }}
+              >
+                <Typography variant="mobH3">{emptyTitle}</Typography>
+                <Typography variant="mobText3" color={COLORS.santasGrey}>
+                  {emptySubtitle}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        )}
 
         {!isLoading && !isEmpty && (
-          <Box sx={RowsSx}>
+          <Box sx={variantSx.rows}>
             {currentItems.map((marketItem) => (
-              <MobileMarketCard
-                key={marketItem.id}
-                marketItem={marketItem}
-                showBorrower={showBorrowerInCard}
-                baseRoute={baseRoute}
-                destinations={
-                  destinationsByMarket?.[marketItem.id.toLowerCase()]
-                }
-              />
+              <Box key={marketItem.id} sx={variantSx.row}>
+                <MobileMarketCard
+                  marketItem={marketItem}
+                  showBorrower={showBorrowerInCard}
+                  baseRoute={baseRoute}
+                  destinations={
+                    destinationsByMarket?.[marketItem.id.toLowerCase()]
+                  }
+                />
+              </Box>
             ))}
           </Box>
         )}

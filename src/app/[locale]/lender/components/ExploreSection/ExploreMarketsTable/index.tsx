@@ -269,7 +269,11 @@ const MarketClickableRow = (props: GridRowProps) => {
   )
 }
 
-export const ExploreMarketsTable = () => {
+export const ExploreMarketsTable = ({
+  mobileHeaderTop,
+}: {
+  mobileHeaderTop?: React.ReactNode
+}) => {
   const isMobile = useMobileResolution()
   const { t } = useTranslation()
   const {
@@ -924,148 +928,154 @@ export const ExploreMarketsTable = () => {
 
   if (isMobile)
     return (
-      <Box sx={{ display: "flex", flexDirection: "column", padding: "0 8px" }}>
-        <Typography
-          variant="mobH3"
-          sx={{
-            padding: "8px",
-            color: COLORS.bunker,
-            letterSpacing: "-0.36px",
-          }}
-        >
-          Top Markets
-        </Typography>
-
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            padding: "4px 0 12px",
-            overflowX: "auto",
-            scrollbarWidth: "none",
-            "&::-webkit-scrollbar": { display: "none" },
-          }}
-        >
-          {isLoading ? (
-            <RepeatingSkeletons
-              itemsLength={4}
-              skeletonSX={{
-                height: "28px",
-                width: "90px",
-                flexShrink: 0,
-                borderRadius: "20px",
-              }}
-            />
-          ) : (
-            SORT_OPTIONS.map((option) => (
-              <ButtonBase
-                key={option}
-                disableRipple
-                onClick={() => handleSortModeChange(option)}
-                aria-pressed={sortMode === option}
+      <MobileMarketList
+        variant="card"
+        markets={rows}
+        isLoading={isLoading}
+        destinationsByMarket={destinationsByMarket}
+        pagination={false}
+        skeletonCount={EXPLORE_PAGE_SIZE}
+        sx={{ marginTop: 0 }}
+        headerSx={{ padding: "8px 0", overflow: "hidden" }}
+        header={
+          <>
+            {mobileHeaderTop}
+            <Box sx={{ padding: "0 8px" }}>
+              <Typography
+                variant="mobH3"
                 sx={{
-                  flexShrink: 0,
-                  padding: sortMode === option ? "4px 12px" : "0 2px",
-                  borderRadius: "20px",
-                  backgroundColor:
-                    sortMode === option ? COLORS.athensGrey : "transparent",
-                  color: COLORS.blackRock,
-                  fontFamily: "inherit",
-                  fontSize: "12px",
-                  fontWeight: sortMode === option ? 600 : 500,
-                  lineHeight: "20px",
-                  whiteSpace: "nowrap",
-                  "&.Mui-focusVisible": {
-                    outline: `2px solid ${COLORS.ultramarineBlue}`,
-                    outlineOffset: "1px",
-                  },
+                  padding: "8px",
+                  color: COLORS.bunker,
+                  letterSpacing: "-0.36px",
                 }}
               >
-                {option}
-              </ButtonBase>
-            ))
-          )}
-        </Box>
-
-        <MobileMarketList
-          variant="bare"
-          markets={rows}
-          isLoading={isLoading}
-          destinationsByMarket={destinationsByMarket}
-          pagination={false}
-          skeletonCount={EXPLORE_PAGE_SIZE}
-          header={
-            <MobileMarketsToolbar
-              variant="embedded"
-              left={
-                showComposableToggle && (
-                  <ComposableOnlySwitch
-                    checked={showComposableOnly}
-                    onChange={setShowComposableOnly}
-                  />
-                )
-              }
-              right={
-                <>
-                  <MobileFilterButton
-                    assetsOptions={tokens.map((token) => ({
-                      id: token.address,
-                      name: token.symbol,
-                    }))}
-                    statusesOptions={statusFilterOptions}
-                    withdrawalCycleOptions={withdrawalCycleOptions}
-                    marketAssets={assets}
-                    marketStatuses={statuses}
-                    marketWithdrawalCycles={withdrawalCycles}
-                    setMarketAssets={setAssets}
-                    setMarketStatuses={setStatuses}
-                    setMarketWithdrawalCycles={setWithdrawalCycles}
-                    showSelfOnboard={showSelfOnboard}
-                    showOnboardByBorrower={showOnboardByBorrower}
-                    setShowSelfOnboard={setShowSelfOnboard}
-                    setShowOnboardByBorrower={setShowOnboardByBorrower}
-                  />
-
-                  <MobileSearchButton
-                    marketAccounts={marketAccounts.filter(
-                      (a) => !a.market.isClosed,
-                    )}
-                    marketSearch={search}
-                    setMarketSearch={setSearch}
-                    isExplorePage
-                  />
-                </>
-              }
-            />
-          }
-          emptyState={
-            <Box
-              sx={{
-                width: "100%",
-                padding: "24px 12px",
-                textAlign: "center",
-              }}
-            >
-              <Typography variant="mobText3" color={COLORS.santasGrey}>
-                {isFilteredEmpty
-                  ? t("dashboard.markets.noMarkets.filteredEmpty")
-                  : t("dashboard.markets.noMarkets.explore.title")}
+                Top Markets
               </Typography>
-              {isFilteredEmpty && (
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={resetFilters}
-                  sx={{ marginTop: "8px" }}
-                >
-                  {t("buttons.resetFilters")}
-                </Button>
-              )}
+
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "4px 0 12px",
+                  overflowX: "auto",
+                  scrollbarWidth: "none",
+                  "&::-webkit-scrollbar": { display: "none" },
+                }}
+              >
+                {isLoading ? (
+                  <RepeatingSkeletons
+                    itemsLength={4}
+                    skeletonSX={{
+                      height: "28px",
+                      width: "90px",
+                      flexShrink: 0,
+                      borderRadius: "20px",
+                    }}
+                  />
+                ) : (
+                  SORT_OPTIONS.map((option) => (
+                    <ButtonBase
+                      key={option}
+                      disableRipple
+                      onClick={() => handleSortModeChange(option)}
+                      aria-pressed={sortMode === option}
+                      sx={{
+                        flexShrink: 0,
+                        padding: sortMode === option ? "4px 12px" : "0 2px",
+                        borderRadius: "20px",
+                        backgroundColor:
+                          sortMode === option
+                            ? COLORS.athensGrey
+                            : "transparent",
+                        color: COLORS.blackRock,
+                        fontFamily: "inherit",
+                        fontSize: "12px",
+                        fontWeight: sortMode === option ? 600 : 500,
+                        lineHeight: "20px",
+                        whiteSpace: "nowrap",
+                        "&.Mui-focusVisible": {
+                          outline: `2px solid ${COLORS.ultramarineBlue}`,
+                          outlineOffset: "1px",
+                        },
+                      }}
+                    >
+                      {option}
+                    </ButtonBase>
+                  ))
+                )}
+              </Box>
+              <MobileMarketsToolbar
+                variant="embedded"
+                left={
+                  showComposableToggle && (
+                    <ComposableOnlySwitch
+                      checked={showComposableOnly}
+                      onChange={setShowComposableOnly}
+                    />
+                  )
+                }
+                right={
+                  <>
+                    <MobileFilterButton
+                      assetsOptions={tokens.map((token) => ({
+                        id: token.address,
+                        name: token.symbol,
+                      }))}
+                      statusesOptions={statusFilterOptions}
+                      withdrawalCycleOptions={withdrawalCycleOptions}
+                      marketAssets={assets}
+                      marketStatuses={statuses}
+                      marketWithdrawalCycles={withdrawalCycles}
+                      setMarketAssets={setAssets}
+                      setMarketStatuses={setStatuses}
+                      setMarketWithdrawalCycles={setWithdrawalCycles}
+                      showSelfOnboard={showSelfOnboard}
+                      showOnboardByBorrower={showOnboardByBorrower}
+                      setShowSelfOnboard={setShowSelfOnboard}
+                      setShowOnboardByBorrower={setShowOnboardByBorrower}
+                    />
+
+                    <MobileSearchButton
+                      marketAccounts={marketAccounts.filter(
+                        (a) => !a.market.isClosed,
+                      )}
+                      marketSearch={search}
+                      setMarketSearch={setSearch}
+                      isExplorePage
+                    />
+                  </>
+                }
+              />
             </Box>
-          }
-        />
-      </Box>
+          </>
+        }
+        emptyState={
+          <Box
+            sx={{
+              width: "100%",
+              padding: "24px 12px",
+              textAlign: "center",
+            }}
+          >
+            <Typography variant="mobText3" color={COLORS.santasGrey}>
+              {isFilteredEmpty
+                ? t("dashboard.markets.noMarkets.filteredEmpty")
+                : t("dashboard.markets.noMarkets.explore.title")}
+            </Typography>
+            {isFilteredEmpty && (
+              <Button
+                variant="contained"
+                size="small"
+                onClick={resetFilters}
+                sx={{ marginTop: "8px" }}
+              >
+                {t("buttons.resetFilters")}
+              </Button>
+            )}
+          </Box>
+        }
+      />
     )
 
   return (

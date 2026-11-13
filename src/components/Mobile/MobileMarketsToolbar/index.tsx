@@ -12,14 +12,19 @@ export type MobileMarketsToolbarProps = {
 
 const VARIANT_SX = {
   page: {
-    padding: "4px 0 11px",
-    borderBottom: `1px solid ${COLORS.whiteLilac}`,
+    padding: "4px 0",
+    "&:not(:last-child)": {
+      paddingBottom: "11px",
+      borderBottom: `1px solid ${COLORS.whiteLilac}`,
+    },
   },
   embedded: {
     minHeight: "48px",
     padding: "7px 0",
     borderTop: `1px solid ${COLORS.whiteLilac}`,
-    borderBottom: `1px solid ${COLORS.whiteLilac}`,
+    "&:not(:last-child)": {
+      borderBottom: `1px solid ${COLORS.whiteLilac}`,
+    },
   },
 } as const
 
