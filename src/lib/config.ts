@@ -5,6 +5,7 @@ import { safe, walletConnect } from "wagmi/connectors"
 
 import { plasmaMainnet } from "./chains/plasma-mainnet"
 import { plasmaTestnet } from "./chains/plasma-testnet"
+import { withWalletConnectApprovalWindow } from "./walletConnectRequestExpiry"
 
 const DefaultNetwork = process.env.NEXT_PUBLIC_TARGET_NETWORK
 
@@ -48,17 +49,19 @@ export const config = createConfig({
     ...(typeof window === "undefined"
       ? []
       : [
-          walletConnect({
-            metadata: {
-              description: "An undercollateralised credit facility protocol.",
-              name: "Wildcat",
-              url: "https://app.wildcat.finance",
-              icons: [
-                "https://avatars.githubusercontent.com/u/113041915?s=200&v=4",
-              ],
-            },
-            projectId: "b129ed6623af640bbab035d6b906dfd6",
-          }),
+          withWalletConnectApprovalWindow(
+            walletConnect({
+              metadata: {
+                description: "An undercollateralised credit facility protocol.",
+                name: "Wildcat",
+                url: "https://app.wildcat.finance",
+                icons: [
+                  "https://avatars.githubusercontent.com/u/113041915?s=200&v=4",
+                ],
+              },
+              projectId: "b129ed6623af640bbab035d6b906dfd6",
+            }),
+          ),
         ]),
   ],
 })
