@@ -6,6 +6,7 @@ import { Box, Skeleton, Typography } from "@mui/material"
 import { LenderRole, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
+import { LenderKycCard } from "@/app/[locale]/lender/components/LenderKyc/LenderKycCard"
 import { LenderMarketsMobileHeader } from "@/app/[locale]/lender/components/LenderMarketsMobileHeader"
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
 import { DefaultedPositionsHeading } from "@/components/DefaultedPositionsHeading"
@@ -362,6 +363,9 @@ export const MyMarketsSection = () => {
 
   return (
     <Box sx={{ overflow: { xs: "auto", md: "visible" } }}>
+      {!isWrongNetwork && (
+        <LenderKycCard sx={{ padding: { xs: "0 0 4px", md: "20px 16px 0" } }} />
+      )}
       {/* Mobile Version */}
       {isMobile && <LenderMarketsMobileHeader page="yours" />}
 

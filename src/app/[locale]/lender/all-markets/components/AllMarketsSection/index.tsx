@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
 import { getAllMarketsAmounts } from "@/app/[locale]/lender/components/LenderDataProvider/allMarketsAmounts"
+import { LenderKycCard } from "@/app/[locale]/lender/components/LenderKyc/LenderKycCard"
 import { LenderMarketsMobileHeader } from "@/app/[locale]/lender/components/LenderMarketsMobileHeader"
 import { useLenderMarketsContext } from "@/app/[locale]/lender/context"
 import { ComposableOnlySwitch } from "@/components/Destinations"
@@ -328,6 +329,9 @@ export const AllMarketsSection = () => {
 
   return (
     <Box sx={{ width: "100%", overflow: { xs: "auto", md: "visible" } }}>
+      {!isWrongNetwork && (
+        <LenderKycCard sx={{ padding: { xs: "0 0 4px", md: "20px 16px 0" } }} />
+      )}
       {!isMobile && (
         <Box
           sx={{

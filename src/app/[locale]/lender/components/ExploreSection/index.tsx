@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next"
 
 import { ExploreMarketsTable } from "@/app/[locale]/lender/components/ExploreSection/ExploreMarketsTable"
 import { TrendingMarketsCarousel } from "@/app/[locale]/lender/components/ExploreSection/TrendingMarketsCarousel"
+import { LenderKycCard } from "@/app/[locale]/lender/components/LenderKyc/LenderKycCard"
 import { WrongNetworkAlert } from "@/components/WrongNetworkAlert"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
@@ -72,6 +73,10 @@ export const ExploreSection = () => {
         overflow: "auto",
       }}
     >
+      {!isWrongNetwork && (
+        <LenderKycCard sx={{ padding: { xs: "0 0 4px", md: "24px 16px 0" } }} />
+      )}
+
       {isWrongNetwork && <WrongNetworkAlert />}
 
       {!isWrongNetwork && (

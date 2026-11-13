@@ -80,6 +80,70 @@
     "subtitle": "Receive notifications for market\u00a0events",
     "button": "Subscribe"
   },
+  "lenderKyc": {
+    "card": {
+      "title": "Not KYC'd yet",
+      "description": "Some markets accept only KYC-verified lenders. Verification runs on SOMA.finance.",
+      "button": "Get KYC'd"
+    },
+    "modal": {
+      "overline": "Lender verification",
+      "title": "Get KYC'd with SOMA.finance",
+      "close": "Close",
+      "connectedWallet": "Connected wallet",
+      "fields": {
+        "fullName": "Full name",
+        "fullNamePlaceholder": "Jane Doe",
+        "email": "Email address",
+        "emailPlaceholder": "jane@company.com",
+        "company": "Company name",
+        "companyPlaceholder": "Company Ltd",
+        "optional": "(optional)",
+        "lenderType": "Lender type"
+      },
+      "lenderTypes": {
+        "retail": "Retail",
+        "institutional": "Institutional",
+        "protocolOrDao": "Protocol or DAO"
+      },
+      "errors": {
+        "email": "Enter a full email address, for example jane@company.com, or clear the field.",
+        "tooLong": "Keep it under {{max}} characters, or clear the field."
+      },
+      "terms": "I accept the <termsLink>Wildcat KYC Terms</termsLink> and agree to be forwarded to SOMA.finance for verification.",
+      "termsByReturning": "By signing you accept the <termsLink>Wildcat KYC Terms</termsLink> and agree to be forwarded to SOMA.finance for verification.",
+      "privacyNotice": "All fields are optional. Wildcat Labs stores what you share with your wallet address and signing time and uses it to contact you about your KYC and Wildcat markets. <privacyLink>Privacy Policy</privacyLink>",
+      "showMessage": "Show the message you sign",
+      "hideMessage": "Hide the message you sign",
+      "editDetails": "Edit details (you sign again)",
+      "buttons": {
+        "sign": "Sign with wallet",
+        "signAgain": "Sign again",
+        "confirming": "Confirm in your wallet…",
+        "continue": "Continue to SOMA.finance"
+      },
+      "captions": {
+        "tickTerms": "Tick the terms box to enable signing. One signature, no gas, no transaction.",
+        "sign": "One signature, no gas, no transaction. It covers your wallet, the details above and the terms.",
+        "signReturning": "One signature, no gas, no transaction. No second signature unless you edit your details.",
+        "confirming": "Approve the signature request in your wallet app.",
+        "confirmingSafe": "Approve the message in your Safe. Other owners may need to confirm it too. If you close this window, sign again later to pick up the same request.",
+        "continue": "SOMA.finance opens in a new tab."
+      },
+      "notices": {
+        "returning": "Welcome back. This wallet has a saved record. Sign once to confirm you own it: your details load and you can continue to SOMA.finance.",
+        "loaded": "Wallet confirmed. Your saved details are loaded (last saved {{date}}).",
+        "invalid": "Fix or clear the highlighted field, then sign.",
+        "walletMismatch": "The signature did not come from the connected wallet. Switch accounts in your wallet and sign again. Nothing was saved.",
+        "declined": "You declined the signature. Signing is required to continue. Nothing was saved.",
+        "failed": "We could not save your signature. Try again in a moment. Nothing was saved.",
+        "signedWithDetails": "Signed by {{address}}. Terms accepted, details saved.",
+        "signedNoDetails": "Signed by {{address}}. Terms accepted. No details shared.",
+        "signedUnchanged": "Signed by {{address}}. No further signature needed unless you edit.",
+        "edited": "You changed your details after signing. Sign again to save them."
+      }
+    }
+  },
   "admin": {
     "inviteBorrower": {
       "button": "Invite Borrower",
