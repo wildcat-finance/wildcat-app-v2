@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.25.2](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.25.1...v2.25.2) (2026-11-13)
+
+
+### Bug Fixes
+
+* **market-list:** apply card view for market lists ([3c4df4f](https://github.com/wildcat-finance/wildcat-app-v2/commit/3c4df4fbefcae067926a91c487667edc8b1ddd1a))
+* **wc:** increase wait time for reply ([3ab3c31](https://github.com/wildcat-finance/wildcat-app-v2/commit/3ab3c312400f3492b6e486362b699e7ec4ee8908))
+* **wc:** increase wait time for reply ([1e37de2](https://github.com/wildcat-finance/wildcat-app-v2/commit/1e37de2bde93b91d6bc844263a149f226c11874a))
+
 ## [2.25.1](https://github.com/wildcat-finance/wildcat-app-v2/compare/v2.25.0...v2.25.1) (2026-11-10)
 
 
