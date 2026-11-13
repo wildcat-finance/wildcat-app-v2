@@ -145,6 +145,60 @@
     }
   },
   "admin": {
+    "lenderKyc": {
+      "section": "Lender KYC Starts",
+      "overline": "Internal · Wildcat operators only",
+      "title": "Lender KYC starts",
+      "description": "One row per wallet, latest outcome shown. Skipped and closed starts are kept, so the team can follow up on who declined.",
+      "filters": {
+        "all": "All",
+        "withDetails": "With details"
+      },
+      "outcomeFilter": "Outcome",
+      "sampleRows": "Sample rows",
+      "sampleTag": "Sample",
+      "exportCsv": "Export CSV",
+      "empty": "No KYC starts recorded yet.",
+      "columns": {
+        "wallet": "Wallet address",
+        "firstClicked": "First click (UTC)",
+        "lastClicked": "Last click (UTC)",
+        "outcome": "Prompt outcome",
+        "outcomeTime": "Outcome time (UTC)",
+        "signed": "Signed, terms accepted",
+        "forwarded": "Forwarded to SOMA (UTC)",
+        "name": "Name",
+        "email": "Email",
+        "company": "Company",
+        "lenderType": "Lender type"
+      },
+      "csv": {
+        "signed": "Signed",
+        "termsVersion": "Terms version",
+        "yes": "Yes"
+      },
+      "outcomes": {
+        "submitted": "Submitted",
+        "updated": "Updated",
+        "unchanged": "Unchanged",
+        "skipped": "Skipped",
+        "closed": "Closed",
+        "notSigned": "Not signed",
+        "notSignedDeclined": "Not signed: declined",
+        "notSignedWalletMismatch": "Not signed: wallet mismatch",
+        "pending": "No outcome yet"
+      },
+      "values": {
+        "signedYes": "Yes, terms {{version}}",
+        "no": "No",
+        "notForwarded": "Not forwarded",
+        "notProvided": "Not provided"
+      },
+      "notes": {
+        "separateWallets": "Same email on a second wallet stays a separate record. Merging contacts is a CRM task, not an app task.",
+        "csvSafety": "CSV is formula-safe: every cell is quoted, and cells starting with = + - @ get an apostrophe. Contact values are untrusted data for any tool that imports them."
+      }
+    },
     "inviteBorrower": {
       "button": "Invite Borrower",
       "title": "Invite New Borrower",

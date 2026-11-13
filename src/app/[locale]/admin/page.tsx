@@ -9,6 +9,7 @@ import AuthWrapper from "@/components/AuthWrapper"
 import { AdminSectionSwitcher } from "./components/AdminSectionSwitcher"
 import { BorrowerInvitesTable } from "./components/BorrowerInvitesTable"
 import { BorrowersTable } from "./components/BorrowersTable"
+import { LenderKycStartsTable } from "./components/LenderKycStartsTable"
 
 const AdminPageContainer = {
   height: "calc(100vh - 43px - 43px - 52px)",
@@ -29,6 +30,7 @@ const AdminPage = () => {
         />
         {activeSection === "invitations" && <BorrowerInvitesTable />}
         {activeSection === "borrowers" && <BorrowersTable />}
+        {activeSection === "lenderKyc" && <LenderKycStartsTable />}
       </Box>
     </AuthWrapper>
   )

@@ -57,6 +57,13 @@ export const AdminSectionSwitcher = ({
         activeSection={activeSection}
         onSetSection={setActiveSection}
       />
+
+      <SwitcherButton
+        label={t("admin.lenderKyc.section")}
+        section="lenderKyc"
+        activeSection={activeSection}
+        onSetSection={setActiveSection}
+      />
     </Box>
   )
 }
