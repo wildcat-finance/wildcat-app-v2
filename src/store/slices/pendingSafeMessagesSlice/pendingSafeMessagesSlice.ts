@@ -13,6 +13,7 @@ export type SafeMessageFlow =
   | "borrower-mla-decline"
   | "lender-mla"
   | "non-mla-acknowledgement"
+  | "lender-kyc"
 
 export type PendingSafeMessageStatus =
   | "awaitingConfirmations"
