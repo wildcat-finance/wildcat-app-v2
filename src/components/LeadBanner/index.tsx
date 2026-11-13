@@ -16,6 +16,7 @@ export type LeadBannerProps = {
   buttonLink?: Link
   buttonOnClick?: () => void
   compact?: boolean
+  tone?: "brand" | "neutral"
 }
 
 export const LeadBanner = ({
@@ -25,6 +26,7 @@ export const LeadBanner = ({
   buttonLink,
   buttonOnClick,
   compact = false,
+  tone = "brand",
 }: LeadBannerProps) => (
   <Box
     sx={{
@@ -39,12 +41,16 @@ export const LeadBanner = ({
 
       padding: compact ? "20px 24px" : "28px 40px 32px 32px",
       borderRadius: "16px",
-      color: "white",
+      color: tone === "neutral" ? COLORS.bunker : "white",
 
-      backgroundImage: `url(${Image.src})`,
-      backgroundPosition: "center",
-      backgroundRepeat: "no-repeat",
-      backgroundSize: "cover",
+      ...(tone === "neutral"
+        ? { backgroundColor: COLORS.whiteSmoke }
+        : {
+            backgroundImage: `url(${Image.src})`,
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+          }),
     }}
   >
     <Box
@@ -57,10 +63,17 @@ export const LeadBanner = ({
         gap: "8px",
       }}
     >
-      <Typography variant="title2" color={COLORS.white}>
+      <Typography
+        variant="title2"
+        color={tone === "neutral" ? COLORS.bunker : COLORS.white}
+      >
         {title}
       </Typography>
-      <Typography variant="text2" color={COLORS.white} sx={{ opacity: 0.8 }}>
+      <Typography
+        variant="text2"
+        color={tone === "neutral" ? COLORS.manate : COLORS.white}
+        sx={{ opacity: tone === "neutral" ? 1 : 0.8 }}
+      >
         {subtitle}
       </Typography>
     </Box>
@@ -76,7 +89,7 @@ export const LeadBanner = ({
           : {})}
         onClick={buttonOnClick}
         variant="contained"
-        color="secondary"
+        color={tone === "neutral" ? "primary" : "secondary"}
         size="medium"
         sx={{ width: "fit-content", flexShrink: 0 }}
       >

@@ -9,6 +9,7 @@ export type MobileLenderBannerProps = {
   buttonText: string
   href?: string
   onButtonClick?: () => void
+  tone?: "brand" | "neutral"
 }
 
 export const MobileLenderBanner = ({
@@ -17,6 +18,7 @@ export const MobileLenderBanner = ({
   buttonText,
   href,
   onButtonClick,
+  tone = "brand",
 }: MobileLenderBannerProps) => (
   <Box
     sx={{
@@ -33,14 +35,14 @@ export const MobileLenderBanner = ({
         display: "flex",
         flexDirection: "column",
         padding: "12px",
-        backgroundColor: COLORS.bunker,
+        backgroundColor: tone === "neutral" ? COLORS.whiteSmoke : COLORS.bunker,
         borderRadius: "14px",
         width: "100%",
       }}
     >
       <Typography
         variant="mobH3"
-        color={COLORS.white}
+        color={tone === "neutral" ? COLORS.bunker : COLORS.white}
         textAlign="center"
         marginTop="4px"
       >
@@ -50,7 +52,7 @@ export const MobileLenderBanner = ({
       <Typography
         variant="mobText3"
         textAlign="center"
-        color={COLORS.white06}
+        color={tone === "neutral" ? COLORS.manate : COLORS.white06}
         marginTop="4px"
       >
         {subtitle}
@@ -59,7 +61,7 @@ export const MobileLenderBanner = ({
       <Button
         {...(href ? { component: Link, href } : {})}
         variant="contained"
-        color="secondary"
+        color={tone === "neutral" ? "primary" : "secondary"}
         size="medium"
         sx={{ mt: "12px" }}
         onClick={onButtonClick}
