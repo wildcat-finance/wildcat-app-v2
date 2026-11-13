@@ -148,7 +148,7 @@
     "lenderKyc": {
       "section": "Lender KYC Starts",
       "title": "Lender KYC starts",
-      "description": "One row per wallet, latest outcome shown. Skipped and closed starts are kept, so the team can follow up on who declined.",
+      "description": "One row per wallet. Outcome shows the latest signature, or the most recent outcome if the wallet never signed.",
       "filters": {
         "all": "All",
         "withDetails": "With details"
@@ -198,6 +198,7 @@
         "signedYes": "Yes, terms {{version}}",
         "no": "No",
         "notForwarded": "Not forwarded",
+        "walletSwitch": "Via wallet switch",
         "notProvided": "Not provided"
       },
       "notes": {

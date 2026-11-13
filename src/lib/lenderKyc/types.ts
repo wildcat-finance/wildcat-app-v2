@@ -13,10 +13,13 @@ export type LenderKycOutcome =
 
 export type LenderKycNotSignedReason = "declined" | "walletMismatch"
 
+export type LenderKycStartSource = "click" | "walletSwitch"
+
 export type LenderKycStart = {
   id: string
   address: string
   chainId: number
+  source: LenderKycStartSource
   clickedAt: string
   outcome?: LenderKycOutcome
   outcomeReason?: LenderKycNotSignedReason
@@ -66,9 +69,12 @@ export type LenderKycSavedProfile = {
   savedAt: string
 }
 
-export type LenderKycStartResult = {
-  start: LenderKycStart
+export type LenderKycWalletStatus = {
   hasSavedRecord: boolean
+}
+
+export type LenderKycStartResult = LenderKycWalletStatus & {
+  start: LenderKycStart
 }
 
 export type LenderKycSignedPayload = {
@@ -88,8 +94,8 @@ export type LenderKycDetailsResult = {
 export type LenderKycWalletRow = {
   address: string
   chainId: number
-  firstClickedAt: string
-  lastClickedAt: string
+  firstClickedAt?: string
+  lastClickedAt?: string
   starts: number
   outcome?: LenderKycOutcome
   outcomeReason?: LenderKycNotSignedReason

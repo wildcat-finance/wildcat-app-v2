@@ -117,6 +117,13 @@ export const LenderKycStartsTable = () => {
       ? t("admin.lenderKyc.values.signedYes", { version: row.termsVersion })
       : t("admin.lenderKyc.values.no")
 
+  const renderClickCell = (value: string | undefined) =>
+    value ? (
+      <CellText value={formatUtcDateTime(value)} />
+    ) : (
+      <CellText value={t("admin.lenderKyc.values.walletSwitch")} muted />
+    )
+
   const forwardedLabel = (row: LenderKycTableRow) =>
     row.forwardedAt
       ? formatUtcDateTime(row.forwardedAt)
@@ -154,14 +161,14 @@ export const LenderKycStartsTable = () => {
       headerName: t("admin.lenderKyc.columns.firstClicked"),
       minWidth: 140,
       flex: 1,
-      renderCell: ({ value }) => <CellText value={formatUtcDateTime(value)} />,
+      renderCell: ({ value }) => renderClickCell(value),
     },
     {
       field: "lastClickedAt",
       headerName: t("admin.lenderKyc.columns.lastClicked"),
       minWidth: 140,
       flex: 1,
-      renderCell: ({ value }) => <CellText value={formatUtcDateTime(value)} />,
+      renderCell: ({ value }) => renderClickCell(value),
     },
     {
       field: "outcome",

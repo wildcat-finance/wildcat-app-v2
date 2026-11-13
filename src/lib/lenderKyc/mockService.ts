@@ -17,8 +17,10 @@ import {
   LenderKycSignedPayload,
   LenderKycStart,
   LenderKycStartResult,
+  LenderKycStartSource,
   LenderKycStore,
   LenderKycWalletRow,
+  LenderKycWalletStatus,
 } from "./types"
 
 const STORAGE_KEY = "wildcat:lender-kyc-mock:v1"
@@ -142,6 +144,7 @@ export const lenderKycMockService = {
   async recordStart(
     address: string,
     chainId: number,
+    source: LenderKycStartSource = "click",
   ): Promise<LenderKycStartResult> {
     await delay()
     const store = readStore()
@@ -150,6 +153,7 @@ export const lenderKycMockService = {
       id: createId(),
       address: normalizedAddress,
       chainId,
+      source,
       clickedAt: nowIso(),
     }
     store.starts.push(start)
@@ -157,6 +161,14 @@ export const lenderKycMockService = {
     return {
       start,
       hasSavedRecord: !!latestRevision(store, normalizedAddress),
+    }
+  },
+
+  async getWalletStatus(address: string): Promise<LenderKycWalletStatus> {
+    await delay()
+    const store = readStore()
+    return {
+      hasSavedRecord: !!latestRevision(store, address.toLowerCase()),
     }
   },
 
@@ -281,10 +293,15 @@ export const lenderKycMockService = {
         const sorted = [...starts].sort((a, b) =>
           a.clickedAt.localeCompare(b.clickedAt),
         )
+        const clicks = sorted.filter((start) => start.source !== "walletSwitch")
         const withOutcome = sorted
           .filter((start) => start.outcomeAt)
           .sort((a, b) => (b.outcomeAt ?? "").localeCompare(a.outcomeAt ?? ""))
-        const latestOutcome = withOutcome[0]
+        const latestOutcome =
+          withOutcome.find(
+            (start) =>
+              start.outcome && SUCCESS_OUTCOMES.includes(start.outcome),
+          ) ?? withOutcome[0]
         const latestSignature = store.signatures
           .filter((signature) => signature.address === address)
           .sort((a, b) => b.signedAt.localeCompare(a.signedAt))[0]
@@ -295,11 +312,11 @@ export const lenderKycMockService = {
           .pop()
         const revision = latestRevision(store, address)
 
-        return {
+        const row: LenderKycWalletRow = {
           address,
           chainId: sorted[sorted.length - 1].chainId,
-          firstClickedAt: sorted[0].clickedAt,
-          lastClickedAt: sorted[sorted.length - 1].clickedAt,
+          firstClickedAt: clicks[0]?.clickedAt,
+          lastClickedAt: clicks[clicks.length - 1]?.clickedAt,
           starts: sorted.length,
           outcome: latestOutcome?.outcome,
           outcomeReason: latestOutcome?.outcomeReason,
@@ -308,8 +325,10 @@ export const lenderKycMockService = {
           forwardedAt: forwarded,
           details: revision?.details,
         }
+        return { row, lastStartedAt: sorted[sorted.length - 1].clickedAt }
       })
-      .sort((a, b) => b.lastClickedAt.localeCompare(a.lastClickedAt))
+      .sort((a, b) => b.lastStartedAt.localeCompare(a.lastStartedAt))
+      .map(({ row }) => row)
   },
 }
 

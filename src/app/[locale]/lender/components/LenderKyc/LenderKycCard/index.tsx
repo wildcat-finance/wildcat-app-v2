@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { Box, SxProps, Theme } from "@mui/material"
 import { useTranslation } from "react-i18next"
@@ -24,8 +24,15 @@ export const LenderKycCard = ({ sx }: { sx?: SxProps<Theme> }) => {
   const [isDialogMounted, setIsDialogMounted] = useState(false)
 
   const isWalletReady = isWalletHydrated && !isConnecting && !isReconnecting
+  const isWalletAvailable = isWalletReady && isConnected && !!address
 
-  if (!isWalletReady || !isConnected || !address) return null
+  useEffect(() => {
+    if (isWalletAvailable) return
+    setIsDialogOpen(false)
+    setIsDialogMounted(false)
+  }, [isWalletAvailable])
+
+  if (!isWalletAvailable || !address) return null
 
   const openDialog = () => {
     setIsDialogMounted(true)

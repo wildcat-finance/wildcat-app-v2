@@ -7,7 +7,7 @@ import {
 } from "@/app/[locale]/lender/hooks/useLenderKyc"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { lenderKycMockService } from "@/lib/lenderKyc/mockService"
-import { LenderKycOutcome } from "@/lib/lenderKyc/types"
+import { LenderKycOutcome, LenderKycStartSource } from "@/lib/lenderKyc/types"
 import {
   areLenderKycDetailsEqual,
   LenderKycDetails,
@@ -41,6 +41,8 @@ export const useLenderKycDialogState = ({
   const { reset: resetSign } = signMutation
 
   const [startId, setStartId] = useState<string>()
+  const [isReady, setIsReady] = useState(false)
+  const [isStarting, setIsStarting] = useState(false)
   const [mode, setMode] = useState<LenderKycDialogMode>("new")
   const [details, setDetails] = useState<LenderKycDetails>(
     EMPTY_LENDER_KYC_DETAILS,
@@ -61,6 +63,7 @@ export const useLenderKycDialogState = ({
   const sessionRef = useRef(0)
   const visitRef = useRef(0)
   const lastScopeRef = useRef<string>()
+  const visitSourceRef = useRef<LenderKycStartSource>("click")
   const lastSessionRef = useRef<{ session: number; visit: number }>()
   const discardableSessionsRef = useRef(new Set<number>())
 
@@ -86,11 +89,19 @@ export const useLenderKycDialogState = ({
     startIdRef.current = undefined
   }, [])
 
+  const recordPageHide = useCallback(() => {
+    const currentStartId = startIdRef.current
+    if (currentStartId) {
+      lenderKycMockService.recordClosed(currentStartId)
+    }
+  }, [])
+
   useEffect(() => {
     const scope =
       open && address ? `${address.toLowerCase()}:${chainId}` : undefined
     if (scope !== lastScopeRef.current) {
       visitRef.current += 1
+      visitSourceRef.current = lastScopeRef.current ? "walletSwitch" : "click"
       lastScopeRef.current = scope
     }
     if (!scope || !address) return undefined
@@ -103,30 +114,54 @@ export const useLenderKycDialogState = ({
     const session = sessionRef.current
     lastSessionRef.current = { session, visit: visitRef.current }
     setStartId(undefined)
+    setIsReady(false)
+    setIsStarting(false)
     resetForm()
 
-    startKyc({ address, chainId }).then(({ start, hasSavedRecord }) => {
-      if (session !== sessionRef.current) {
-        if (discardableSessionsRef.current.delete(session)) {
-          lenderKycMockService.discardStart(start.id)
-        } else {
-          lenderKycMockService.recordClosed(start.id)
-        }
-        return
-      }
-      startIdRef.current = start.id
-      setStartId(start.id)
+    const showWalletStatus = (hasSavedRecord: boolean) => {
       setMode(hasSavedRecord ? "returning" : "new")
-    })
+      setIsReady(true)
+    }
 
-    window.addEventListener("pagehide", closeCurrentStart)
+    if (visitSourceRef.current === "click") {
+      startKyc({ address, chainId }).then(({ start, hasSavedRecord }) => {
+        if (session !== sessionRef.current) {
+          if (discardableSessionsRef.current.delete(session)) {
+            lenderKycMockService.discardStart(start.id)
+          } else {
+            lenderKycMockService.recordClosed(start.id)
+          }
+          return
+        }
+        startIdRef.current = start.id
+        setStartId(start.id)
+        showWalletStatus(hasSavedRecord)
+      })
+    } else {
+      lenderKycMockService
+        .getWalletStatus(address)
+        .then(({ hasSavedRecord }) => {
+          if (session !== sessionRef.current) return
+          showWalletStatus(hasSavedRecord)
+        })
+    }
+
+    window.addEventListener("pagehide", recordPageHide)
 
     return () => {
-      window.removeEventListener("pagehide", closeCurrentStart)
+      window.removeEventListener("pagehide", recordPageHide)
       sessionRef.current += 1
       closeCurrentStart()
     }
-  }, [open, address, chainId, startKyc, resetForm, closeCurrentStart])
+  }, [
+    open,
+    address,
+    chainId,
+    startKyc,
+    resetForm,
+    closeCurrentStart,
+    recordPageHide,
+  ])
 
   const fieldErrors = useMemo(
     () => validateLenderKycDetails(details),
@@ -134,8 +169,8 @@ export const useLenderKycDialogState = ({
   )
   const hasFieldErrors = Object.keys(fieldErrors).length > 0
 
-  const isLoading = !startId
-  const isSigning = signMutation.isPending
+  const isLoading = !isReady
+  const isSigning = signMutation.isPending || isStarting
   const isReturningLocked = mode === "returning" && !verifiedDetails
   const isDirty =
     !!verifiedDetails && !areLenderKycDetailsEqual(details, verifiedDetails)
@@ -190,8 +225,33 @@ export const useLenderKycDialogState = ({
     setSignError(null)
   }, [])
 
+  const ensureStartId = useCallback(
+    async (isStillRelevant: () => boolean) => {
+      if (startIdRef.current) return startIdRef.current
+      if (!address) return undefined
+      setIsStarting(true)
+      try {
+        const { start } = await startKyc({
+          address,
+          chainId,
+          source: "walletSwitch",
+        })
+        if (!isStillRelevant()) {
+          lenderKycMockService.recordClosed(start.id)
+          return undefined
+        }
+        startIdRef.current = start.id
+        setStartId(start.id)
+        return start.id
+      } finally {
+        if (isStillRelevant()) setIsStarting(false)
+      }
+    },
+    [address, chainId, startKyc],
+  )
+
   const sign = useCallback(async () => {
-    if (!address || !startId) return
+    if (!open || !address || !isReady || isStarting) return
     if (hasFieldErrors) {
       setShowInvalid(true)
       return
@@ -199,13 +259,27 @@ export const useLenderKycDialogState = ({
     setSignError(null)
     const session = sessionRef.current
     const isStillRelevant = () => session === sessionRef.current
+    let currentStartId: string | undefined
+    try {
+      currentStartId = await ensureStartId(isStillRelevant)
+    } catch {
+      if (isStillRelevant()) setSignError("failed")
+      return
+    }
+    if (!currentStartId || !isStillRelevant()) return
     try {
       const result = await signMutation.mutateAsync(
         isReturningLocked
-          ? { kind: "ownership", startId, address, chainId, isStillRelevant }
+          ? {
+              kind: "ownership",
+              startId: currentStartId,
+              address,
+              chainId,
+              isStillRelevant,
+            }
           : {
               kind: "details",
-              startId,
+              startId: currentStartId,
               address,
               chainId,
               details,
@@ -222,12 +296,15 @@ export const useLenderKycDialogState = ({
         return
       }
       setSignError(kind)
-      lenderKycMockService.recordNotSigned(startId, kind)
+      lenderKycMockService.recordNotSigned(currentStartId, kind)
     }
   }, [
+    open,
     address,
-    startId,
+    isReady,
+    isStarting,
     hasFieldErrors,
+    ensureStartId,
     signMutation,
     isReturningLocked,
     chainId,

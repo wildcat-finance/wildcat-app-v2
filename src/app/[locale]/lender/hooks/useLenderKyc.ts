@@ -7,6 +7,7 @@ import { lenderKycMockService } from "@/lib/lenderKyc/mockService"
 import {
   LenderKycDetailsResult,
   LenderKycSavedProfile,
+  LenderKycStartSource,
 } from "@/lib/lenderKyc/types"
 import {
   buildLenderKycMessage,
@@ -17,8 +18,15 @@ import {
 
 export const useStartLenderKyc = () =>
   useMutation({
-    mutationFn: ({ address, chainId }: { address: string; chainId: number }) =>
-      lenderKycMockService.recordStart(address, chainId),
+    mutationFn: ({
+      address,
+      chainId,
+      source,
+    }: {
+      address: string
+      chainId: number
+      source?: LenderKycStartSource
+    }) => lenderKycMockService.recordStart(address, chainId, source),
   })
 
 type SignLenderKycInput = {
