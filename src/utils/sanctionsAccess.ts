@@ -84,7 +84,8 @@ export async function assertSanctionsAccess(
   await assertSanctionsAccess(address, chainId, deadline)
 }
 
-const signingMethod =
+/** JSON-RPC methods that need the account holder's approval in their wallet. */
+export const signingMethod =
   /^(eth_sendTransaction|eth_sendRawTransaction|eth_signTransaction|eth_sign|personal_sign|eth_signTypedData(?:_v[134])?|wallet_sendCalls)$/
 
 /** Ethers forwards signing through this transport even after a modal unmounts. */

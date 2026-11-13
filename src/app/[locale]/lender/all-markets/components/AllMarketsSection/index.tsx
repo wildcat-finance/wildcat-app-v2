@@ -422,7 +422,9 @@ export const AllMarketsSection = () => {
         </Box>
       )}
 
-      {isMobile && <LenderMarketsMobileHeader page="others" />}
+      {isMobile && isWrongNetwork && (
+        <LenderMarketsMobileHeader page="others" />
+      )}
 
       {isWrongNetwork && <WrongNetworkAlert />}
 
@@ -435,43 +437,46 @@ export const AllMarketsSection = () => {
           filters={filters}
           destinations={destinations}
           mobileHeader={
-            <MobileMarketsToolbar
-              variant="page"
-              left={
-                showComposableSwitch && (
-                  <ComposableOnlySwitch
-                    checked={composableOnly}
-                    onChange={setComposableOnly}
-                  />
-                )
-              }
-              right={
-                <>
-                  <MobileFilterButton
-                    size={28}
-                    assetsOptions={
-                      tokens?.map((token) => ({
-                        id: token.address,
-                        name: token.symbol,
-                      })) ?? []
-                    }
-                    statusesOptions={marketStatusesMock}
-                    withdrawalCycleOptions={withdrawalCycleOptions}
-                    marketAssets={marketAssets}
-                    marketStatuses={marketStatuses}
-                    marketWithdrawalCycles={marketWithdrawalCycles}
-                    setMarketAssets={setMarketAssets}
-                    setMarketStatuses={setMarketStatuses}
-                    setMarketWithdrawalCycles={setMarketWithdrawalCycles}
-                  />
-                  <MobileSearchButton
-                    marketAccounts={filteredMarketAccounts ?? []}
-                    marketSearch={marketSearch}
-                    setMarketSearch={setMarketSearch}
-                  />
-                </>
-              }
-            />
+            <>
+              <LenderMarketsMobileHeader page="others" embedded />
+              <MobileMarketsToolbar
+                variant="page"
+                left={
+                  showComposableSwitch && (
+                    <ComposableOnlySwitch
+                      checked={composableOnly}
+                      onChange={setComposableOnly}
+                    />
+                  )
+                }
+                right={
+                  <>
+                    <MobileFilterButton
+                      size={28}
+                      assetsOptions={
+                        tokens?.map((token) => ({
+                          id: token.address,
+                          name: token.symbol,
+                        })) ?? []
+                      }
+                      statusesOptions={marketStatusesMock}
+                      withdrawalCycleOptions={withdrawalCycleOptions}
+                      marketAssets={marketAssets}
+                      marketStatuses={marketStatuses}
+                      marketWithdrawalCycles={marketWithdrawalCycles}
+                      setMarketAssets={setMarketAssets}
+                      setMarketStatuses={setMarketStatuses}
+                      setMarketWithdrawalCycles={setMarketWithdrawalCycles}
+                    />
+                    <MobileSearchButton
+                      marketAccounts={filteredMarketAccounts ?? []}
+                      marketSearch={marketSearch}
+                      setMarketSearch={setMarketSearch}
+                    />
+                  </>
+                }
+              />
+            </>
           }
         />
       )}

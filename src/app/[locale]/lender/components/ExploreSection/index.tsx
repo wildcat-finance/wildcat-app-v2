@@ -80,16 +80,18 @@ export const ExploreSection = () => {
             display: "flex",
             flexDirection: "column",
             gap: { xs: 0, md: "32px" },
-            ...(isMobile && {
-              padding: "8px 0",
-              borderRadius: "14px",
-              backgroundColor: COLORS.white,
-              overflow: "hidden",
-            }),
           }}
         >
-          <TrendingMarketsCarousel />
-          <ExploreMarketsTable />
+          {isMobile ? (
+            <ExploreMarketsTable
+              mobileHeaderTop={<TrendingMarketsCarousel />}
+            />
+          ) : (
+            <>
+              <TrendingMarketsCarousel />
+              <ExploreMarketsTable />
+            </>
+          )}
         </Box>
       )}
 

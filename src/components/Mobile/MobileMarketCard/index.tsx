@@ -23,7 +23,7 @@ import {
   formatCompactNumber,
   formatSecsToHours,
 } from "@/utils/formatters"
-import { getMarketStatusChip, MarketStatus } from "@/utils/marketStatus"
+import { getMarketStatusChip } from "@/utils/marketStatus"
 import { getMarketTypeChip } from "@/utils/marketType"
 
 export type LenderMobileMarketItem = {
@@ -331,7 +331,6 @@ export const MobileMarketCard = ({
     : `Fixed Term: ${formatFixedTermDate(marketItem.term.fixedPeriod ?? 0)}`
   const href = buildMarketHref(marketItem.id, marketItem.chainId, baseRoute)
 
-  const isHealthy = marketItem.status.status === MarketStatus.HEALTHY
   return (
     <Box
       sx={{
@@ -482,10 +481,8 @@ export const MobileMarketCard = ({
                 width: `${depositedPct}%`,
                 height: "100%",
                 borderRadius: "inherit",
-                backgroundColor: isHealthy
-                  ? COLORS.blueRibbon
-                  : COLORS.greySuit,
-                opacity: isHealthy ? 0.8 : 1,
+                backgroundColor: COLORS.blueRibbon,
+                opacity: 0.8,
               }}
             />
           </Box>
