@@ -109,6 +109,9 @@ export const LenderKycStartsTable = () => {
 
   const exportRows = rows.filter((row) => !row.isSample)
 
+  const emptyStateKey =
+    data?.length || showSampleRows ? "filteredEmpty" : "empty"
+
   const signedLabel = (row: LenderKycTableRow) =>
     row.termsVersion
       ? t("admin.lenderKyc.values.signedYes", { version: row.termsVersion })
@@ -351,7 +354,7 @@ export const LenderKycStartsTable = () => {
         </Button>
       </Box>
 
-      {isLoading ? (
+      {isLoading && (
         <Box display="flex" flexDirection="column" rowGap="8px">
           {["first", "second", "third", "fourth"].map((key) => (
             <Skeleton
@@ -362,7 +365,20 @@ export const LenderKycStartsTable = () => {
             />
           ))}
         </Box>
-      ) : (
+      )}
+
+      {!isLoading && !rows.length && (
+        <Box display="flex" flexDirection="column" padding="24px 16px 12px">
+          <Typography variant="title3" color={COLORS.blackRock}>
+            {t(`admin.lenderKyc.${emptyStateKey}.title`)}
+          </Typography>
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            {t(`admin.lenderKyc.${emptyStateKey}.subtitle`)}
+          </Typography>
+        </Box>
+      )}
+
+      {!isLoading && !!rows.length && (
         <DataGrid
           sx={{
             overflow: "auto",
@@ -379,7 +395,6 @@ export const LenderKycStartsTable = () => {
           columns={columns}
           columnHeaderHeight={40}
           getRowHeight={() => "auto"}
-          localeText={{ noRowsLabel: t("admin.lenderKyc.empty") }}
           disableRowSelectionOnClick
         />
       )}

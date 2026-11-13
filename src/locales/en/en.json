@@ -157,7 +157,14 @@
       "sampleRows": "Sample rows",
       "sampleTag": "Sample",
       "exportCsv": "Export CSV",
-      "empty": "No KYC starts recorded yet.",
+      "empty": {
+        "title": "No KYC starts yet",
+        "subtitle": "A row appears here when a lender clicks Get KYC'd."
+      },
+      "filteredEmpty": {
+        "title": "No starts match these filters",
+        "subtitle": "Change the outcome filter or switch to All."
+      },
       "columns": {
         "wallet": "Wallet address",
         "firstClicked": "First click (UTC)",
