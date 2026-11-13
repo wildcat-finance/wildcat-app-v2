@@ -287,9 +287,6 @@ export const LenderKycStartsTable = () => {
       }}
     >
       <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-        <Typography variant="text4" color={COLORS.santasGrey}>
-          {t("admin.lenderKyc.overline")}
-        </Typography>
         <Typography variant="title3" color={COLORS.blackRock}>
           {t("admin.lenderKyc.title")}
         </Typography>

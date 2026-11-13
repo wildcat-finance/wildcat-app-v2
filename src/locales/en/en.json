@@ -147,7 +147,6 @@
   "admin": {
     "lenderKyc": {
       "section": "Lender KYC Starts",
-      "overline": "Internal · Wildcat operators only",
       "title": "Lender KYC starts",
       "description": "One row per wallet, latest outcome shown. Skipped and closed starts are kept, so the team can follow up on who declined.",
       "filters": {
