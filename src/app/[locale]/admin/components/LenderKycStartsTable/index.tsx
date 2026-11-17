@@ -21,7 +21,9 @@ import {
   SmallFilterSelect,
   SmallFilterSelectItem,
 } from "@/components/SmallFilterSelect"
+import { TablePagination } from "@/components/TablePagination"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { LenderKycApiError } from "@/lib/lenderKyc/apiClient"
 import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
@@ -68,6 +70,7 @@ const CellText = ({
 export const LenderKycStartsTable = () => {
   const { t } = useTranslation()
   const { getAddressUrl } = useBlockExplorer()
+  const { stringID: networkId } = useSelectedNetwork()
   const { data, isLoading, isError, error, errorUpdateCount, dataUpdatedAt } =
     useLenderKycStarts()
   const [lastError, setLastError] = useState<unknown>()
@@ -80,6 +83,14 @@ export const LenderKycStartsTable = () => {
   const [outcomeFilter, setOutcomeFilter] = useState<SmallFilterSelectItem[]>(
     [],
   )
+  const [paginationModel, setPaginationModel] = useState({
+    pageSize: 50,
+    page: 0,
+  })
+
+  useEffect(() => {
+    setPaginationModel((previous) => ({ ...previous, page: 0 }))
+  }, [filter, outcomeFilter, showSampleRows])
 
   const outcomeOptions: SmallFilterSelectItem[] = LENDER_KYC_OUTCOME_KEYS.map(
     (key) => ({ id: key, name: t(`admin.lenderKyc.outcomes.${key}`) }),
@@ -98,11 +109,11 @@ export const LenderKycStartsTable = () => {
 
   const rows: LenderKycTableRow[] = useMemo(() => {
     const source = [
-      ...(data ?? []).map((row) => ({ ...row, isSample: false })),
       ...(showSampleRows ? LENDER_KYC_SAMPLE_ROWS : []).map((row) => ({
         ...row,
         isSample: true,
       })),
+      ...(data ?? []).map((row) => ({ ...row, isSample: false })),
     ]
     return source
       .filter((row) => matchesFilter(row, filter))
@@ -296,13 +307,16 @@ export const LenderKycStartsTable = () => {
       row.lenderType ?? "",
     ])
     downloadCsv(
-      `lender-kyc-starts-${filter}-${dayjs.utc().format("YYYY-MM-DD")}.csv`,
+      `lender-kyc-starts-${networkId}-${filter}-${dayjs
+        .utc()
+        .format("YYYY-MM-DD")}.csv`,
       buildLenderKycCsv(headers, csvRows),
     )
   }
 
   return (
     <Box
+      data-hj-suppress
       sx={{
         display: "flex",
         flexDirection: "column",
@@ -445,29 +459,13 @@ export const LenderKycStartsTable = () => {
           columnHeaderHeight={40}
           getRowHeight={() => "auto"}
           disableRowSelectionOnClick
+          paginationModel={paginationModel}
+          onPaginationModelChange={setPaginationModel}
+          pageSizeOptions={[50]}
+          slots={{ pagination: TablePagination }}
+          hideFooter={rows.length <= paginationModel.pageSize}
         />
       )}
-
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", md: "repeat(2, minmax(0, 1fr))" },
-          gap: "12px",
-        }}
-      >
-        <Alert
-          color="blue"
-          variant="text3"
-          sx={{ maxWidth: "none" }}
-          text={t("admin.lenderKyc.notes.separateWallets")}
-        />
-        <Alert
-          color="blue"
-          variant="text3"
-          sx={{ maxWidth: "none" }}
-          text={t("admin.lenderKyc.notes.csvSafety")}
-        />
-      </Box>
     </Box>
   )
 }
