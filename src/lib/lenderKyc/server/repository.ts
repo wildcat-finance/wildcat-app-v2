@@ -371,17 +371,19 @@ export const createPrismaLenderKycRepository = (
         ? toProfile(previousRevision)
         : undefined
 
+      const isUnchanged =
+        !!previous && areLenderKycDetailsEqual(previous.details, normalized)
       let outcome: LenderKycOutcome
-      if (!previous) {
-        outcome = isEmpty ? "skipped" : "submitted"
-      } else if (areLenderKycDetailsEqual(previous.details, normalized)) {
+      if (isUnchanged) {
         outcome = "unchanged"
+      } else if (isEmpty) {
+        outcome = "skipped"
       } else {
-        outcome = "updated"
+        outcome = previous ? "updated" : "submitted"
       }
 
       const signature = await createSignature(tx, signed, outcome, now)
-      if ((!previous && !isEmpty) || outcome === "updated") {
+      if (!isUnchanged && (!!previous || !isEmpty)) {
         const id = randomUUID()
         await tx.lenderKycProfileRevision.create({
           data: {
