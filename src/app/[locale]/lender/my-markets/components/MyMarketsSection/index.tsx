@@ -362,7 +362,16 @@ export const MyMarketsSection = () => {
     )
 
   return (
-    <Box sx={{ overflow: { xs: "auto", md: "visible" } }}>
+    <Box
+      sx={{
+        overflowX: { xs: "auto", md: "hidden" },
+        overflowY: "auto",
+        display: { md: "flex" },
+        flexDirection: { md: "column" },
+        flex: { md: "1 1 0" },
+        minHeight: { md: 0 },
+      }}
+    >
       {!isWrongNetwork && (
         <LenderKycCard sx={{ padding: { xs: "0 0 4px", md: "20px 16px 0" } }} />
       )}
