@@ -1,9 +1,15 @@
 import { randomBytes, timingSafeEqual } from "crypto"
 
-import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
+import {
+  AccountKind,
+  describeAccount,
+  isSupportedChainId,
+} from "@wildcatfi/wildcat-sdk"
+import { utils } from "ethers"
 
 import {
   LENDER_KYC_SIGNATURE_MAX_AGE_MS,
+  LENDER_KYC_START_TIMEOUT_MS,
   LENDER_KYC_TERMS_VERSION,
 } from "@/config/lender-kyc"
 import { getProviderForServer } from "@/lib/provider"
@@ -31,17 +37,42 @@ import { LenderKycDetailsResult, LenderKycSavedProfile } from "../types"
 const CLOCK_SKEW_MS = 5 * 60 * 1000
 const REPLAY_WINDOW_MS = 15 * 60 * 1000
 
-export type LenderKycErrorCode = "nonceConsumed"
+export type LenderKycErrorCode = "nonceConsumed" | "walletMismatch"
 
 export class LenderKycRequestError extends Error {
   constructor(
     message: string,
     readonly status: number,
     readonly code?: LenderKycErrorCode,
+    readonly signer?: string,
   ) {
     super(message)
   }
 }
+
+const findMismatchedEoaSigner = async (
+  provider: ReturnType<typeof getProviderForServer>,
+  address: string,
+  message: string,
+  signature: string,
+) => {
+  let signer: string
+  try {
+    signer = utils.verifyMessage(message, signature)
+  } catch {
+    return undefined
+  }
+  if (signer.toLowerCase() === address) return undefined
+  try {
+    const account = await describeAccount(provider, address)
+    return account.kind === AccountKind.EOA ? signer : undefined
+  } catch {
+    return undefined
+  }
+}
+
+const isWalletMismatch = (error: unknown) =>
+  error instanceof LenderKycRequestError && error.code === "walletMismatch"
 
 const nonceConsumedError = () =>
   new LenderKycRequestError("Nonce already used", 409, "nonceConsumed")
@@ -204,10 +235,11 @@ const verifySignedInput = async (
   }
 
   const signedMessage = buildMessage(input, kind, details)
+  const provider = getProviderForServer(input.chainId)
   let verified: Awaited<ReturnType<typeof verifyAndDescribeSignature>>
   try {
     verified = await verifyAndDescribeSignature({
-      provider: getProviderForServer(input.chainId),
+      provider,
       address: input.address,
       message: signedMessage,
       signature: input.signature,
@@ -217,6 +249,20 @@ const verifySignedInput = async (
     throw new LenderKycRequestError("Signature could not be verified", 502)
   }
   if (!verified || verified.kind === "GnosisOwnerECDSA") {
+    const signer = await findMismatchedEoaSigner(
+      provider,
+      input.address,
+      signedMessage,
+      input.signature,
+    )
+    if (signer) {
+      throw new LenderKycRequestError(
+        "Signed by a different wallet",
+        400,
+        "walletMismatch",
+        signer,
+      )
+    }
     throw new LenderKycRequestError("Invalid signature", 400)
   }
 
@@ -236,6 +282,23 @@ const verifySignedInput = async (
   }
 }
 
+const verifyOrRecordMismatch = async (
+  repository: LenderKycRepository,
+  input: LenderKycSignedInput,
+  nonce: LenderKycNonceRecord,
+  kind: LenderKycMessageKind,
+  details?: LenderKycDetails,
+): Promise<LenderKycSignedRecord> => {
+  try {
+    return await verifySignedInput(input, nonce, kind, details)
+  } catch (error) {
+    if (isWalletMismatch(error)) {
+      await repository.recordNotSigned(input.startId, "walletMismatch")
+    }
+    throw error
+  }
+}
+
 const mapRepositoryError = (error: unknown): never => {
   if (isNonceConsumedConflict(error)) throw nonceConsumedError()
   if (error instanceof LenderKycConflictError) {
@@ -243,6 +306,15 @@ const mapRepositoryError = (error: unknown): never => {
   }
   throw error
 }
+
+export const closeStaleLenderKycStarts = (
+  repository: LenderKycRepository,
+  chainId?: number,
+) =>
+  repository.closeStaleStarts(
+    new Date(Date.now() - LENDER_KYC_START_TIMEOUT_MS),
+    chainId,
+  )
 
 export const issueLenderKycNonce = async (
   repository: LenderKycRepository,
@@ -268,7 +340,13 @@ export const submitLenderKycDetails = async (
   const replay = await findReplay(repository, input, "details", details)
   if (replay) return replayDetails(repository, input, details, replay)
   await requireOwnStart(repository, input)
-  const signed = await verifySignedInput(input, nonce, "details", details)
+  const signed = await verifyOrRecordMismatch(
+    repository,
+    input,
+    nonce,
+    "details",
+    details,
+  )
   try {
     return await repository.recordSignedDetails(signed, details)
   } catch (error) {
@@ -290,7 +368,12 @@ export const confirmLenderKycOwnership = async (
   const replay = await findReplay(repository, input, "ownership")
   if (replay) return replayOwnership(repository, input, replay)
   await requireOwnStart(repository, input)
-  const signed = await verifySignedInput(input, nonce, "ownership")
+  const signed = await verifyOrRecordMismatch(
+    repository,
+    input,
+    nonce,
+    "ownership",
+  )
   try {
     return await repository.recordOwnership(signed)
   } catch (error) {
@@ -306,9 +389,11 @@ export const toLenderKycErrorResponse = (error: unknown) => {
   if (error instanceof LenderKycRequestError) {
     return {
       status: error.status,
-      body: error.code
-        ? { error: error.message, code: error.code }
-        : { error: error.message },
+      body: {
+        error: error.message,
+        ...(error.code && { code: error.code }),
+        ...(error.signer && { signer: error.signer }),
+      },
     }
   }
   if (error instanceof LenderKycStorageNotConfiguredError) {

@@ -15,8 +15,11 @@ export const classifyWalletSignError = (
   if (
     err.code === "ACTION_REJECTED" ||
     err.code === 4001 ||
+    err.code === 5000 ||
     err.cause?.code === 4001 ||
-    /user (rejected|denied)|rejected the request/i.test(message)
+    /user (rejected|denied)|rejected the request|was rejected|denied by the user/i.test(
+      message,
+    )
   ) {
     return "declined"
   }

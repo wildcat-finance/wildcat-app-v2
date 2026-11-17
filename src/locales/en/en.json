@@ -135,12 +135,14 @@
         "loaded": "Wallet confirmed. Your saved details are loaded (last saved {{date}}).",
         "invalid": "Fix or clear the highlighted field, then sign.",
         "walletMismatch": "The signature did not come from the connected wallet. Switch accounts in your wallet and sign again. Nothing was saved.",
+        "walletMismatchSigner": "Signed by {{address}}, not the connected wallet. Switch accounts in your wallet and sign again. Nothing was saved.",
         "declined": "You declined the signature. Signing is required to continue. Nothing was saved.",
         "failed": "We could not save your signature. Try again in a moment. Nothing was saved.",
         "signedWithDetails": "Signed by {{address}}. Terms accepted, details saved.",
         "signedNoDetails": "Signed by {{address}}. Terms accepted. No details shared.",
         "signedUnchanged": "Signed by {{address}}. No further signature needed unless you edit.",
-        "edited": "You changed your details after signing. Sign again to save them."
+        "edited": "You changed your details after signing. Sign again to save them.",
+        "safePending": "Your Safe already has a signature request for this form from an earlier visit. Sign to pick it up: no new request is created, but other owners may still need to confirm it."
       }
     }
   },
@@ -207,10 +209,6 @@
         "walletSwitch": "Via wallet switch",
         "notProvided": "Not provided",
         "unreadable": "Can't decrypt"
-      },
-      "notes": {
-        "separateWallets": "Same email on a second wallet stays a separate record. Merging contacts is a CRM task, not an app task.",
-        "csvSafety": "CSV is formula-safe: every cell is quoted, and cells starting with = + - @ get an apostrophe. Contact values are untrusted data for any tool that imports them."
       }
     },
     "inviteBorrower": {

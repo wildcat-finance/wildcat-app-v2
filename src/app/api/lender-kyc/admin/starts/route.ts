@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { isAdminForChain, verifyApiToken } from "@/app/api/auth/verify-header"
 import {
+  closeStaleLenderKycStarts,
   isLenderKycStorageConfigured,
   lenderKycRepository,
 } from "@/lib/lenderKyc/server"
@@ -26,6 +27,7 @@ export async function GET(request: NextRequest) {
   }
   if (!isLenderKycStorageConfigured()) return lenderKycStorageUnavailable()
   try {
+    await closeStaleLenderKycStarts(lenderKycRepository, chainId)
     return NextResponse.json(await lenderKycRepository.listWalletRows(chainId))
   } catch (error) {
     return lenderKycErrorResponse(error)

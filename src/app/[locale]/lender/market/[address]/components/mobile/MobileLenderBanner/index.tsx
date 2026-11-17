@@ -35,7 +35,7 @@ export const MobileLenderBanner = ({
         display: "flex",
         flexDirection: "column",
         padding: "12px",
-        backgroundColor: tone === "neutral" ? COLORS.whiteSmoke : COLORS.bunker,
+        backgroundColor: tone === "neutral" ? COLORS.white : COLORS.bunker,
         borderRadius: "14px",
         width: "100%",
       }}

@@ -1,15 +1,6 @@
 "use client"
 
-import {
-  forwardRef,
-  ReactElement,
-  ReactNode,
-  Ref,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react"
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react"
 
 import {
   Box,
@@ -17,11 +8,9 @@ import {
   Dialog,
   IconButton,
   Skeleton,
-  Slide,
   SvgIcon,
   Typography,
 } from "@mui/material"
-import { TransitionProps } from "@mui/material/transitions"
 import { useTranslation } from "react-i18next"
 
 import Cross from "@/assets/icons/cross_icon.svg"
@@ -53,20 +42,15 @@ import {
   FooterSx,
   HeaderSx,
   LoadingSkeletonSx,
-  MobileSheetSx,
+  MobileCloseIconSx,
+  MobileDialogSx,
+  MobileTitleRowSx,
   ContinueIconSx,
   PrimaryButtonSx,
   ROW_HEIGHT,
-  SheetHandleSx,
   WalletRowSx,
 } from "./style"
 import { useLenderKycDialogState } from "./useLenderKycDialogState"
-
-const SlideUpTransition = forwardRef(
-  (props: TransitionProps & { children: ReactElement }, ref: Ref<unknown>) => (
-    <Slide direction="up" ref={ref} {...props} />
-  ),
-)
 
 const MESSAGE_PREVIEW_NONCE = "issued when you sign"
 
@@ -138,14 +122,18 @@ export const LenderKycDialog = ({
       if (state.signError === "walletMismatch")
         return {
           color: "amber",
-          text: t("lenderKyc.modal.notices.walletMismatch"),
+          text: state.mismatchSigner
+            ? t("lenderKyc.modal.notices.walletMismatchSigner", {
+                address: trimAddress(state.mismatchSigner),
+              })
+            : t("lenderKyc.modal.notices.walletMismatch"),
         }
       if (state.signError === "failed")
         return { color: "red", text: t("lenderKyc.modal.notices.failed") }
       if (state.showInvalidNotice)
         return { color: "amber", text: t("lenderKyc.modal.notices.invalid") }
       return null
-    }, [state.signError, state.showInvalidNotice, t])
+    }, [state.signError, state.mismatchSigner, state.showInvalidNotice, t])
 
   const successNotice = useMemo(() => {
     if (!state.canContinue) return null
@@ -328,6 +316,14 @@ export const LenderKycDialog = ({
             })}
           />
         )}
+        {state.resumesSafeRequest && (
+          <Alert
+            color="blue"
+            variant="text3"
+            sx={{ maxWidth: "none" }}
+            text={t("lenderKyc.modal.notices.safePending")}
+          />
+        )}
 
         {state.isReturningLocked ? <KycTermsStatement /> : renderForm()}
       </>
@@ -336,44 +332,63 @@ export const LenderKycDialog = ({
 
   return (
     <Dialog
+      data-hj-suppress
       open={open}
       onClose={onClose}
       maxWidth={false}
       aria-labelledby="lender-kyc-dialog-title"
-      TransitionComponent={isMobile ? SlideUpTransition : undefined}
       TransitionProps={{ onExited }}
-      sx={isMobile ? MobileSheetSx : DesktopDialogSx}
+      sx={isMobile ? MobileDialogSx : DesktopDialogSx}
     >
-      {isMobile && <Box sx={SheetHandleSx} />}
-
-      <Box sx={HeaderSx}>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-          <Typography
-            variant={isMobile ? "mobText4" : "text4"}
-            color={COLORS.santasGrey}
-          >
-            {t("lenderKyc.modal.overline")}
-          </Typography>
+      {isMobile ? (
+        <Box sx={MobileTitleRowSx}>
+          <Box width="20px" height="20px" flexShrink={0} />
           <Typography
             id="lender-kyc-dialog-title"
             component="h2"
-            variant={isMobile ? "mobH3" : "title3"}
-            color={COLORS.bunker}
+            variant="mobText1"
+            textAlign="center"
+            color={COLORS.blackRock}
           >
             {t("lenderKyc.modal.title")}
           </Typography>
+          <IconButton
+            disableRipple
+            onClick={onClose}
+            aria-label={t("lenderKyc.modal.close")}
+          >
+            <SvgIcon sx={MobileCloseIconSx}>
+              <Cross />
+            </SvgIcon>
+          </IconButton>
         </Box>
-        <IconButton
-          disableRipple
-          onClick={onClose}
-          aria-label={t("lenderKyc.modal.close")}
-          sx={{ marginTop: "2px" }}
-        >
-          <SvgIcon fontSize="big">
-            <Cross />
-          </SvgIcon>
-        </IconButton>
-      </Box>
+      ) : (
+        <Box sx={HeaderSx}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <Typography variant="text4" color={COLORS.santasGrey}>
+              {t("lenderKyc.modal.overline")}
+            </Typography>
+            <Typography
+              id="lender-kyc-dialog-title"
+              component="h2"
+              variant="title3"
+              color={COLORS.bunker}
+            >
+              {t("lenderKyc.modal.title")}
+            </Typography>
+          </Box>
+          <IconButton
+            disableRipple
+            onClick={onClose}
+            aria-label={t("lenderKyc.modal.close")}
+            sx={{ marginTop: "2px" }}
+          >
+            <SvgIcon fontSize="big">
+              <Cross />
+            </SvgIcon>
+          </IconButton>
+        </Box>
+      )}
 
       <Box ref={bodyRef} sx={BodySx(isMessageOpen)}>
         <Box sx={BodyInnerSx(lockedBodyHeight)}>

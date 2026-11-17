@@ -6,6 +6,7 @@ export const lenderKycRepository = createPrismaLenderKycRepository(prisma)
 
 export { isLenderKycStorageConfigured } from "./crypto"
 export {
+  closeStaleLenderKycStarts,
   confirmLenderKycOwnership,
   isLenderKycChainSupported,
   issueLenderKycNonce,

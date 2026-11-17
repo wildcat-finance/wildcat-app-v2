@@ -12,7 +12,7 @@ export const EXTERNAL_LINKS = {
   PRIVACY_POLICY:
     "https://docs.wildcat.finance/legal/protocol-ui-privacy-policy",
   LENDER_KYC_TERMS: "https://docs.wildcat.finance/legal",
-  SOMA_FINANCE: "https://soma.finance",
+  SOMA_FINANCE: "https://onboard.soma.finance",
   BUSINESS_INQUIRY:
     "https://docs.google.com/forms/d/e/1FAIpQLSfnCu3FjMtA48sWn28oRXxw71dc4ofnfaF1NdNnK62tkFxu7A/viewform?usp=send_form",
 } as const

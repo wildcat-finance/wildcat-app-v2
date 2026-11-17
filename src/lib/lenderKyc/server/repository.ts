@@ -115,6 +115,7 @@ export type LenderKycRepository = {
   ): Promise<LenderKycDetailsResult>
   recordOwnership(signed: LenderKycSignedRecord): Promise<LenderKycSavedProfile>
   listWalletRows(chainId: number): Promise<LenderKycWalletRow[]>
+  closeStaleStarts(clickedBefore: Date, chainId?: number): Promise<number>
 }
 
 type Client = PrismaClient | Prisma.TransactionClient
@@ -436,6 +437,18 @@ export const createPrismaLenderKycRepository = (
     })
   },
 
+  async closeStaleStarts(clickedBefore, chainId) {
+    const { count } = await database.lenderKycStart.updateMany({
+      where: {
+        outcome: null,
+        clickedAt: { lt: clickedBefore },
+        ...(chainId !== undefined && { chainId }),
+      },
+      data: { outcome: "closed", outcomeAt: new Date() },
+    })
+    return count
+  },
+
   async listWalletRows(chainId) {
     const [starts, signatures, revisions] = await Promise.all([
       database.lenderKycStart.findMany({
@@ -468,17 +481,16 @@ export const createPrismaLenderKycRepository = (
     return Array.from(groupByAddress(starts).entries())
       .map(([address, rows]) => {
         const clicks = rows.filter((start) => start.source === "click")
-        const withOutcome = rows
-          .filter((start) => start.outcomeAt)
-          .sort(
-            (a, b) =>
-              (b.outcomeAt?.getTime() ?? 0) - (a.outcomeAt?.getTime() ?? 0),
-          )
+        const attemptsWithOutcome = rows.filter((start) => start.outcomeAt)
+        const withOutcome = [...attemptsWithOutcome].sort(
+          (a, b) =>
+            (b.outcomeAt?.getTime() ?? 0) - (a.outcomeAt?.getTime() ?? 0),
+        )
         const latestOutcome =
           withOutcome.find(
             (start) =>
               start.outcome && SUCCESS_OUTCOMES.includes(start.outcome),
-          ) ?? withOutcome[0]
+          ) ?? attemptsWithOutcome[attemptsWithOutcome.length - 1]
         const forwardedAt = rows
           .map((start) => start.forwardedAt)
           .filter((value): value is Date => !!value)

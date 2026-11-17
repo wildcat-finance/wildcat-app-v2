@@ -1,6 +1,12 @@
+import { useCallback } from "react"
+
 import { useMutation } from "@tanstack/react-query"
 
-import { LENDER_KYC_SIGNATURE_MAX_AGE_MS } from "@/config/lender-kyc"
+import {
+  LENDER_KYC_SIGNATURE_MAX_AGE_MS,
+  LENDER_TYPES,
+  LenderType,
+} from "@/config/lender-kyc"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
 import {
@@ -18,6 +24,76 @@ import {
   LenderKycMessageKind,
   normalizeLenderKycDetails,
 } from "@/utils/lenderKycMessage"
+
+const isLenderType = (value: unknown): value is LenderType =>
+  LENDER_TYPES.some((type) => type === value)
+
+const parsePendingDetails = (
+  context?: Record<string, string | number | boolean>,
+): LenderKycDetails | undefined => {
+  if (
+    context?.kind !== "details" ||
+    typeof context.detailsKey !== "string" ||
+    typeof context.nonce !== "string" ||
+    typeof context.secret !== "string"
+  ) {
+    return undefined
+  }
+  try {
+    const parsed: unknown = JSON.parse(context.detailsKey)
+    if (!parsed || typeof parsed !== "object") return undefined
+    const { fullName, email, companyName, lenderType } = parsed as Record<
+      string,
+      unknown
+    >
+    if (
+      typeof fullName !== "string" ||
+      typeof email !== "string" ||
+      typeof companyName !== "string" ||
+      (lenderType !== "" && !isLenderType(lenderType))
+    ) {
+      return undefined
+    }
+    return normalizeLenderKycDetails({
+      fullName,
+      email,
+      companyName,
+      lenderType,
+    })
+  } catch {
+    return undefined
+  }
+}
+
+export const usePendingSafeLenderKycDetails = () => {
+  const { safeConnected, getPendingForFlow } = useSafeMessageSigning()
+
+  return useCallback(
+    (address: string, chainId: number): LenderKycDetails | undefined => {
+      if (!safeConnected) return undefined
+      return getPendingForFlow("lender-kyc", address, chainId)
+        .filter(
+          (record) =>
+            record.status !== "failed" &&
+            (!record.expiresAt || record.expiresAt > Date.now()),
+        )
+        .flatMap((record) => {
+          const details = parsePendingDetails(record.context)
+          if (!details) return []
+          const rebuilt = buildLenderKycMessage({
+            kind: "details",
+            address: address.toLowerCase(),
+            chainId,
+            nonce: String(record.context?.nonce),
+            timeSigned: record.timeSigned,
+            details,
+          })
+          return rebuilt === record.message ? [details] : []
+        })[0]
+    },
+    [safeConnected, getPendingForFlow],
+  )
+}
 
 export const useStartLenderKyc = () =>
   useMutation({

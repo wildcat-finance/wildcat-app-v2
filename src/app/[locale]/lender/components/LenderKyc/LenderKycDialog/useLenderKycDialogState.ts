@@ -2,11 +2,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import {
   SignLenderKycResult,
+  usePendingSafeLenderKycDetails,
   useSignLenderKyc,
   useStartLenderKyc,
 } from "@/app/[locale]/lender/hooks/useLenderKyc"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
-import { lenderKycApi } from "@/lib/lenderKyc/apiClient"
+import {
+  isLenderKycWalletMismatch,
+  lenderKycApi,
+} from "@/lib/lenderKyc/apiClient"
 import { LenderKycOutcome, LenderKycStartSource } from "@/lib/lenderKyc/types"
 import {
   areLenderKycDetailsEqual,
@@ -39,6 +43,12 @@ export const useLenderKycDialogState = ({
   const signMutation = useSignLenderKyc()
   const { mutateAsync: startKyc } = startMutation
   const { reset: resetSign } = signMutation
+  const findPendingSafeDetails = usePendingSafeLenderKycDetails()
+  const findPendingSafeDetailsRef = useRef(findPendingSafeDetails)
+
+  useEffect(() => {
+    findPendingSafeDetailsRef.current = findPendingSafeDetails
+  }, [findPendingSafeDetails])
 
   const [startId, setStartId] = useState<string>()
   const [isReady, setIsReady] = useState(false)
@@ -57,7 +67,10 @@ export const useLenderKycDialogState = ({
   const [lastOutcome, setLastOutcome] = useState<LenderKycOutcome>()
   const [isEditing, setIsEditing] = useState(false)
   const [signError, setSignError] = useState<LenderKycSignError | null>(null)
+  const [mismatchSigner, setMismatchSigner] = useState<string | null>(null)
   const [showInvalid, setShowInvalid] = useState(false)
+  const [pendingSafeDetails, setPendingSafeDetails] =
+    useState<LenderKycDetails | null>(null)
 
   const startIdRef = useRef<string>()
   const sessionRef = useRef(0)
@@ -77,7 +90,9 @@ export const useLenderKycDialogState = ({
     setLastOutcome(undefined)
     setIsEditing(false)
     setSignError(null)
+    setMismatchSigner(null)
     setShowInvalid(false)
+    setPendingSafeDetails(null)
     resetSign()
   }, [resetSign])
 
@@ -118,7 +133,16 @@ export const useLenderKycDialogState = ({
     setIsStarting(false)
     resetForm()
 
-    const showWalletStatus = (hasSavedRecord: boolean) => {
+    const showWalletStatus = (hasSavedRecord: boolean, isKnown = true) => {
+      const pending =
+        isKnown && !hasSavedRecord
+          ? findPendingSafeDetailsRef.current(address, chainId)
+          : undefined
+      if (pending) {
+        setPendingSafeDetails(pending)
+        setDetails(pending)
+        setTermsAccepted(true)
+      }
       setMode(hasSavedRecord ? "returning" : "new")
       setIsReady(true)
     }
@@ -140,7 +164,7 @@ export const useLenderKycDialogState = ({
         },
         () => {
           if (session !== sessionRef.current) return
-          showWalletStatus(false)
+          showWalletStatus(false, false)
         },
       )
     } else {
@@ -151,7 +175,7 @@ export const useLenderKycDialogState = ({
         },
         () => {
           if (session !== sessionRef.current) return
-          showWalletStatus(false)
+          showWalletStatus(false, false)
         },
       )
     }
@@ -186,6 +210,12 @@ export const useLenderKycDialogState = ({
     !!verifiedDetails && !areLenderKycDetailsEqual(details, verifiedDetails)
   const canContinue = !!verifiedDetails && !isDirty && !isSigning
   const fieldsReadOnly = !!verifiedDetails && !isEditing
+  const resumesSafeRequest =
+    !!pendingSafeDetails &&
+    mode === "new" &&
+    !verifiedDetails &&
+    !isSigning &&
+    areLenderKycDetailsEqual(details, pendingSafeDetails)
   const visibleFieldErrors = useMemo(() => {
     const visible: LenderKycFieldErrors = {}
     ;(Object.keys(fieldErrors) as FieldName[]).forEach((field) => {
@@ -234,6 +264,14 @@ export const useLenderKycDialogState = ({
     setShowInvalid(false)
     setSignError(null)
   }, [])
+
+  const refreshPendingSafeDetails = useCallback(() => {
+    if (address) {
+      setPendingSafeDetails(
+        findPendingSafeDetailsRef.current(address, chainId) ?? null,
+      )
+    }
+  }, [address, chainId])
 
   const ensureStartId = useCallback(
     async (
@@ -287,6 +325,7 @@ export const useLenderKycDialogState = ({
       return
     }
     const currentStartId = started.startId
+    refreshPendingSafeDetails()
     try {
       const result = await signMutation.mutateAsync(
         isReturningLocked
@@ -310,11 +349,18 @@ export const useLenderKycDialogState = ({
       applySignResult(result)
     } catch (error) {
       if (session !== sessionRef.current) return
+      refreshPendingSafeDetails()
+      if (isLenderKycWalletMismatch(error)) {
+        setMismatchSigner(error.signer ?? null)
+        setSignError("walletMismatch")
+        return
+      }
       const kind = classifyWalletSignError(error)
       if (kind === "unknown") {
         setSignError("failed")
         return
       }
+      setMismatchSigner(null)
       setSignError(kind)
       lenderKycApi.recordNotSigned(currentStartId, kind)
     }
@@ -332,6 +378,7 @@ export const useLenderKycDialogState = ({
     chainId,
     details,
     applySignResult,
+    refreshPendingSafeDetails,
   ])
 
   const continueToSoma = useCallback(() => {
@@ -352,6 +399,7 @@ export const useLenderKycDialogState = ({
     savedAt,
     lastOutcome,
     signError,
+    mismatchSigner,
     fieldErrors: visibleFieldErrors,
     showInvalidNotice: hasVisibleFieldErrors && !isReturningLocked,
     isLoading,
@@ -362,6 +410,7 @@ export const useLenderKycDialogState = ({
     canContinue,
     canSign,
     fieldsReadOnly,
+    resumesSafeRequest,
     isVerified: !!verifiedDetails,
     updateField,
     touchField,

@@ -17,34 +17,41 @@ export const DesktopDialogSx = {
   },
 }
 
-export const MobileSheetSx = {
-  backdropFilter: "blur(10px)",
-  "& .MuiDialog-container": {
-    alignItems: "flex-end",
-  },
-  "& .MuiDialog-paper": {
-    width: "100%",
-    maxWidth: "100%",
-    minWidth: "0 !important",
-    maxHeight: "calc(100dvh - 16px)",
-    border: "none",
-    borderRadius: "14px",
+export const MobileDialogSx = {
+  marginTop: "auto",
+  zIndex: 9999,
+
+  "& .MuiPaper-root.MuiDialog-paper": {
     margin: "auto 4px 4px",
-    padding: "8px 0 16px",
+    maxWidth: "100%",
+    width: "100%",
+    minWidth: "0 !important",
+    maxHeight: "calc(100dvh - 8px)",
+    padding: "24px 0 20px",
     display: "flex",
     flexDirection: "column",
     gap: "16px",
     overflow: "hidden",
   },
+  "& .MuiBackdrop-root": {
+    marginTop: "auto",
+    backgroundColor: "transparent",
+    backdropFilter: "blur(20px)",
+  },
 }
 
-export const SheetHandleSx = {
-  alignSelf: "center",
+export const MobileTitleRowSx = {
+  paddingX: "12px",
   flexShrink: 0,
-  width: "36px",
-  height: "4px",
-  borderRadius: "2px",
-  backgroundColor: COLORS.iron,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: "8px",
+}
+
+export const MobileCloseIconSx = {
+  fontSize: "20px",
+  "& path": { fill: COLORS.greySuit },
 }
 
 export const ROW_HEIGHT = 40
@@ -56,7 +63,7 @@ export const LoadingSkeletonSx = {
   bgcolor: COLORS.athensGrey,
 }
 
-export const SectionPaddingSx = { paddingX: { xs: "16px", md: "24px" } }
+export const SectionPaddingSx = { paddingX: { xs: "12px", md: "24px" } }
 
 export const HeaderSx = {
   ...SectionPaddingSx,

@@ -18,6 +18,7 @@ export class LenderKycApiError extends Error {
     message: string,
     readonly status: number,
     readonly code?: string,
+    readonly signer?: string,
   ) {
     super(message)
   }
@@ -25,6 +26,11 @@ export class LenderKycApiError extends Error {
 
 export const isLenderKycNonceConsumed = (error: unknown) =>
   error instanceof LenderKycApiError && error.code === "nonceConsumed"
+
+export const isLenderKycWalletMismatch = (
+  error: unknown,
+): error is LenderKycApiError =>
+  error instanceof LenderKycApiError && error.code === "walletMismatch"
 
 const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
   const response = await fetch(`${BASE_PATH}${path}`, {
@@ -39,6 +45,7 @@ const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
         : "Lender KYC request failed",
       response.status,
       typeof body?.code === "string" ? body.code : undefined,
+      typeof body?.signer === "string" ? body.signer : undefined,
     )
   }
   return response.json() as Promise<T>
