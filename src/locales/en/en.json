@@ -165,6 +165,12 @@
         "title": "No starts match these filters",
         "subtitle": "Change the outcome filter or switch to All."
       },
+      "loadError": {
+        "title": "Couldn't load KYC starts",
+        "subtitle": "The server returned an error. The list keeps retrying in the background.",
+        "storageSubtitle": "KYC storage isn't configured on the server: the encryption key is missing."
+      },
+      "staleData": "Couldn't refresh the list. Showing data from {{time}} UTC. CSV export is off until the list loads again.",
       "columns": {
         "wallet": "Wallet address",
         "firstClicked": "First click (UTC)",
@@ -199,7 +205,8 @@
         "no": "No",
         "notForwarded": "Not forwarded",
         "walletSwitch": "Via wallet switch",
-        "notProvided": "Not provided"
+        "notProvided": "Not provided",
+        "unreadable": "Can't decrypt"
       },
       "notes": {
         "separateWallets": "Same email on a second wallet stays a separate record. Merging contacts is a CRM task, not an app task.",

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import {
   Box,
@@ -22,12 +22,13 @@ import {
   SmallFilterSelectItem,
 } from "@/components/SmallFilterSelect"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
-import { LENDER_KYC_SAMPLE_ROWS } from "@/lib/lenderKyc/mockService"
+import { LenderKycApiError } from "@/lib/lenderKyc/apiClient"
 import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
 import { trimAddress } from "@/utils/formatters"
 
 import { LenderKycFilter, LenderKycTableRow, TypeSafeColDef } from "./interface"
+import { LENDER_KYC_SAMPLE_ROWS } from "./sampleRows"
 import {
   buildLenderKycCsv,
   downloadCsv,
@@ -67,7 +68,13 @@ const CellText = ({
 export const LenderKycStartsTable = () => {
   const { t } = useTranslation()
   const { getAddressUrl } = useBlockExplorer()
-  const { data, isLoading } = useLenderKycStarts()
+  const { data, isLoading, isError, error, errorUpdateCount, dataUpdatedAt } =
+    useLenderKycStarts()
+  const [lastError, setLastError] = useState<unknown>()
+
+  useEffect(() => {
+    if (error) setLastError(error)
+  }, [error])
   const [filter, setFilter] = useState<LenderKycFilter>("all")
   const [showSampleRows, setShowSampleRows] = useState(false)
   const [outcomeFilter, setOutcomeFilter] = useState<SmallFilterSelectItem[]>(
@@ -79,6 +86,15 @@ export const LenderKycStartsTable = () => {
   )
 
   const notProvided = t("admin.lenderKyc.values.notProvided")
+  const unreadable = t("admin.lenderKyc.values.unreadable")
+  const missingDetailsLabel = (row: LenderKycTableRow) =>
+    row.detailsUnreadable ? unreadable : notProvided
+
+  const loadFailed = !data && errorUpdateCount > 0
+  const isStale = isError && !!data
+  const showSkeleton = isLoading && errorUpdateCount === 0
+  const isStorageUnavailable =
+    lastError instanceof LenderKycApiError && lastError.status === 503
 
   const rows: LenderKycTableRow[] = useMemo(() => {
     const source = [
@@ -215,8 +231,8 @@ export const LenderKycStartsTable = () => {
       headerName: t("admin.lenderKyc.columns.name"),
       minWidth: 130,
       flex: 1,
-      renderCell: ({ value }) => (
-        <CellText value={value ?? notProvided} muted={!value} />
+      renderCell: ({ value, row }) => (
+        <CellText value={value ?? missingDetailsLabel(row)} muted={!value} />
       ),
     },
     {
@@ -224,8 +240,8 @@ export const LenderKycStartsTable = () => {
       headerName: t("admin.lenderKyc.columns.email"),
       minWidth: 190,
       flex: 1,
-      renderCell: ({ value }) => (
-        <CellText value={value ?? notProvided} muted={!value} />
+      renderCell: ({ value, row }) => (
+        <CellText value={value ?? missingDetailsLabel(row)} muted={!value} />
       ),
     },
     {
@@ -233,8 +249,8 @@ export const LenderKycStartsTable = () => {
       headerName: t("admin.lenderKyc.columns.company"),
       minWidth: 130,
       flex: 1,
-      renderCell: ({ value }) => (
-        <CellText value={value ?? notProvided} muted={!value} />
+      renderCell: ({ value, row }) => (
+        <CellText value={value ?? missingDetailsLabel(row)} muted={!value} />
       ),
     },
     {
@@ -274,9 +290,9 @@ export const LenderKycStartsTable = () => {
         : t("admin.lenderKyc.values.no"),
       row.termsVersion ?? "",
       formatCsvUtcDateTime(row.forwardedAt),
-      row.name ?? "",
-      row.email ?? "",
-      row.company ?? "",
+      row.name ?? (row.detailsUnreadable ? unreadable : ""),
+      row.email ?? (row.detailsUnreadable ? unreadable : ""),
+      row.company ?? (row.detailsUnreadable ? unreadable : ""),
       row.lenderType ?? "",
     ])
     downloadCsv(
@@ -353,7 +369,7 @@ export const LenderKycStartsTable = () => {
         <Button
           variant="contained"
           size="small"
-          disabled={!exportRows.length}
+          disabled={!exportRows.length || isError}
           onClick={handleExport}
           sx={{ height: "32px" }}
         >
@@ -361,7 +377,7 @@ export const LenderKycStartsTable = () => {
         </Button>
       </Box>
 
-      {isLoading && (
+      {showSkeleton && (
         <Box display="flex" flexDirection="column" rowGap="8px">
           {["first", "second", "third", "fourth"].map((key) => (
             <Skeleton
@@ -374,7 +390,33 @@ export const LenderKycStartsTable = () => {
         </Box>
       )}
 
-      {!isLoading && !rows.length && (
+      {isStale && (
+        <Alert
+          color="amber"
+          variant="text3"
+          sx={{ maxWidth: "none" }}
+          text={t("admin.lenderKyc.staleData", {
+            time: formatUtcDateTime(new Date(dataUpdatedAt).toISOString()),
+          })}
+        />
+      )}
+
+      {loadFailed && (
+        <Box display="flex" flexDirection="column" padding="24px 16px 12px">
+          <Typography variant="title3" color={COLORS.blackRock}>
+            {t("admin.lenderKyc.loadError.title")}
+          </Typography>
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            {t(
+              isStorageUnavailable
+                ? "admin.lenderKyc.loadError.storageSubtitle"
+                : "admin.lenderKyc.loadError.subtitle",
+            )}
+          </Typography>
+        </Box>
+      )}
+
+      {!showSkeleton && !loadFailed && !rows.length && (
         <Box display="flex" flexDirection="column" padding="24px 16px 12px">
           <Typography variant="title3" color={COLORS.blackRock}>
             {t(`admin.lenderKyc.${emptyStateKey}.title`)}
@@ -385,7 +427,7 @@ export const LenderKycStartsTable = () => {
         </Box>
       )}
 
-      {!isLoading && !!rows.length && (
+      {!showSkeleton && !!rows.length && (
         <DataGrid
           sx={{
             overflow: "auto",

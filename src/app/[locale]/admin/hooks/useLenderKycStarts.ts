@@ -3,13 +3,14 @@
 import { useQuery } from "@tanstack/react-query"
 
 import { QueryKeys } from "@/config/query-keys"
-import { useAuthToken } from "@/hooks/useApiAuth"
+import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
-import { lenderKycMockService } from "@/lib/lenderKyc/mockService"
+import { LenderKycApiError, lenderKycApi } from "@/lib/lenderKyc/apiClient"
 
 export const useLenderKycStarts = () => {
   const token = useAuthToken()
   const { chainId } = useSelectedNetwork()
+  const { mutate: removeBadToken } = useRemoveBadApiToken()
   const isAdminForChain = token?.isAdmin && token.chainId === chainId
 
   return useQuery({
@@ -18,7 +19,16 @@ export const useLenderKycStarts = () => {
       isAdminForChain,
       token?.address,
     ),
-    queryFn: () => lenderKycMockService.listWalletRows(),
+    queryFn: async () => {
+      try {
+        return await lenderKycApi.listWalletRows(chainId, token.token)
+      } catch (error) {
+        if (error instanceof LenderKycApiError && error.status === 401) {
+          removeBadToken()
+        }
+        throw error
+      }
+    },
     enabled: !!isAdminForChain,
     refetchInterval: 10_000,
   })

@@ -1,7 +1,4 @@
-import {
-  LenderKycDetails,
-  LenderKycMessageKind,
-} from "@/utils/lenderKycMessage"
+import { LenderKycDetails } from "@/utils/lenderKycMessage"
 
 export type LenderKycOutcome =
   | "submitted"
@@ -27,43 +24,6 @@ export type LenderKycStart = {
   forwardedAt?: string
 }
 
-export type LenderKycSignatureRecord = {
-  id: string
-  startId: string
-  kind: LenderKycMessageKind
-  address: string
-  chainId: number
-  nonce: string
-  message: string
-  signature: string
-  termsVersion: string
-  signedAt: string
-}
-
-export type LenderKycProfileRevision = {
-  id: string
-  address: string
-  signatureId: string
-  details: LenderKycDetails
-  savedAt: string
-}
-
-export type LenderKycNonce = {
-  nonce: string
-  address: string
-  chainId: number
-  issuedAt: string
-  expiresAt: string
-  usedAt?: string
-}
-
-export type LenderKycStore = {
-  starts: LenderKycStart[]
-  signatures: LenderKycSignatureRecord[]
-  revisions: LenderKycProfileRevision[]
-  nonces: LenderKycNonce[]
-}
-
 export type LenderKycSavedProfile = {
   details: LenderKycDetails
   savedAt: string
@@ -82,7 +42,8 @@ export type LenderKycSignedPayload = {
   address: string
   chainId: number
   nonce: string
-  message: string
+  secret: string
+  timeSigned: number
   signature: string
 }
 
@@ -103,4 +64,5 @@ export type LenderKycWalletRow = {
   termsVersion?: string
   forwardedAt?: string
   details?: LenderKycDetails
+  detailsUnreadable?: boolean
 }

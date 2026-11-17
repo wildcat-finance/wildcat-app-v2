@@ -3,7 +3,10 @@ import { useMutation } from "@tanstack/react-query"
 import { LENDER_KYC_SIGNATURE_MAX_AGE_MS } from "@/config/lender-kyc"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
-import { lenderKycMockService } from "@/lib/lenderKyc/mockService"
+import {
+  isLenderKycNonceConsumed,
+  lenderKycApi,
+} from "@/lib/lenderKyc/apiClient"
 import {
   LenderKycDetailsResult,
   LenderKycSavedProfile,
@@ -26,7 +29,7 @@ export const useStartLenderKyc = () =>
       address: string
       chainId: number
       source?: LenderKycStartSource
-    }) => lenderKycMockService.recordStart(address, chainId, source),
+    }) => lenderKycApi.recordStart(address, chainId, source),
   })
 
 type SignLenderKycInput = {
@@ -69,82 +72,107 @@ export const useSignLenderKyc = () => {
       ) =>
         context?.kind === input.kind &&
         context?.detailsKey === detailsKey &&
-        typeof context?.nonce === "string"
+        typeof context?.nonce === "string" &&
+        typeof context?.secret === "string"
 
-      const pendingNonce = safeSigning.safeConnected
-        ? safeSigning
-            .getPendingForFlow("lender-kyc", input.address, input.chainId)
-            .find(
-              (record) =>
-                record.status !== "failed" &&
-                (!record.expiresAt || record.expiresAt > Date.now()) &&
-                matchesAttempt(record.context),
-            )?.context?.nonce
-        : undefined
-      const nonce =
-        typeof pendingNonce === "string"
-          ? pendingNonce
-          : await lenderKycMockService.issueNonce(address, input.chainId)
-      const timeSigned = Date.now()
+      const isStillRelevant = () =>
+        !input.isStillRelevant || input.isStillRelevant()
 
-      const signed = await safeSigning.signMessage({
-        flow: "lender-kyc",
-        address: input.address,
-        chainId: input.chainId,
-        timeSigned,
-        expiresAt: timeSigned + LENDER_KYC_SIGNATURE_MAX_AGE_MS,
-        context: { nonce, kind: input.kind, detailsKey },
-        canResumePending: matchesAttempt,
-        isStillRelevant: input.isStillRelevant,
-        buildMessage: (time, context) =>
-          buildLenderKycMessage({
-            kind: input.kind,
+      const attempt = async (
+        allowResume: boolean,
+      ): Promise<SignLenderKycResult> => {
+        const pendingRecord =
+          allowResume && safeSigning.safeConnected
+            ? safeSigning
+                .getPendingForFlow("lender-kyc", input.address, input.chainId)
+                .find(
+                  (record) =>
+                    record.status !== "failed" &&
+                    (!record.expiresAt || record.expiresAt > Date.now()) &&
+                    matchesAttempt(record.context),
+                )
+            : undefined
+        const pendingContext = pendingRecord?.context
+        const { nonce, secret } = pendingContext
+          ? {
+              nonce: String(pendingContext.nonce),
+              secret: String(pendingContext.secret),
+            }
+          : await lenderKycApi.issueNonce(address, input.chainId)
+        const timeSigned = Date.now()
+
+        const signed = await safeSigning.signMessage({
+          flow: "lender-kyc",
+          address: input.address,
+          chainId: input.chainId,
+          timeSigned,
+          expiresAt: timeSigned + LENDER_KYC_SIGNATURE_MAX_AGE_MS,
+          context: { nonce, secret, kind: input.kind, detailsKey },
+          canResumePending: allowResume ? matchesAttempt : () => false,
+          isStillRelevant: input.isStillRelevant,
+          buildMessage: (time, context) =>
+            buildLenderKycMessage({
+              kind: input.kind,
+              address,
+              chainId: input.chainId,
+              nonce: String(context?.nonce ?? nonce),
+              timeSigned: time,
+              details,
+            }),
+        })
+        const signedNonce = String(signed.context?.nonce ?? nonce)
+        const signedSecret = String(signed.context?.secret ?? secret)
+
+        if (!isStillRelevant()) {
+          throw Error("Signing request was discarded")
+        }
+
+        if (!safeSigning.safeConnected && signed.signature === "0x") {
+          throw Error("Wallet returned an empty signature")
+        }
+
+        safeSigning.markSubmitting(signed.pendingSafeMessageId)
+        try {
+          const payload = {
+            startId: input.startId,
             address,
             chainId: input.chainId,
-            nonce: String(context?.nonce ?? nonce),
-            timeSigned: time,
-            details,
-          }),
-      })
-      const signedNonce = String(signed.context?.nonce ?? nonce)
-
-      if (input.isStillRelevant && !input.isStillRelevant()) {
-        throw Error("Signing request was discarded")
-      }
-
-      if (!safeSigning.safeConnected && signed.signature === "0x") {
-        throw Error("Wallet returned an empty signature")
-      }
-
-      safeSigning.markSubmitting(signed.pendingSafeMessageId)
-      try {
-        const payload = {
-          startId: input.startId,
-          address,
-          chainId: input.chainId,
-          nonce: signedNonce,
-          message: signed.message,
-          signature: signed.signature,
+            nonce: signedNonce,
+            secret: signedSecret,
+            timeSigned: signed.timeSigned,
+            signature: signed.signature,
+          }
+          const response: SignLenderKycResult =
+            input.kind === "details"
+              ? {
+                  kind: "details",
+                  result: await lenderKycApi.submitDetails(
+                    payload,
+                    input.details,
+                  ),
+                }
+              : {
+                  kind: "ownership",
+                  profile: await lenderKycApi.confirmOwnership(payload),
+                }
+          safeSigning.markCompleted(signed.pendingSafeMessageId)
+          return response
+        } catch (error) {
+          if (!isLenderKycNonceConsumed(error)) {
+            safeSigning.markSubmissionFailed(signed.pendingSafeMessageId, error)
+            throw error
+          }
+          safeSigning.markCompleted(signed.pendingSafeMessageId)
+          if (!pendingRecord) throw error
+          if (pendingRecord.id !== signed.pendingSafeMessageId) {
+            safeSigning.markCompleted(pendingRecord.id)
+          }
+          if (isStillRelevant()) return attempt(false)
+          throw error
         }
-        const response: SignLenderKycResult =
-          input.kind === "details"
-            ? {
-                kind: "details",
-                result: await lenderKycMockService.submitDetails(
-                  payload,
-                  input.details,
-                ),
-              }
-            : {
-                kind: "ownership",
-                profile: await lenderKycMockService.confirmOwnership(payload),
-              }
-        safeSigning.markCompleted(signed.pendingSafeMessageId)
-        return response
-      } catch (error) {
-        safeSigning.markSubmissionFailed(signed.pendingSafeMessageId, error)
-        throw error
       }
+
+      return attempt(true)
     },
   })
 }

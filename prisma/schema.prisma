@@ -383,6 +383,103 @@ model BorrowerProfileUpdateRequest {
   @@index([chainId, address])
 }
 
+enum LenderKycStartSource {
+  click
+  walletSwitch
+}
+
+enum LenderKycOutcome {
+  submitted
+  updated
+  unchanged
+  skipped
+  closed
+  notSigned
+}
+
+enum LenderKycNotSignedReason {
+  declined
+  walletMismatch
+}
+
+enum LenderKycMessageKind {
+  details
+  ownership
+}
+
+enum LenderKycSignatureKind {
+  ECDSA
+  GnosisSignature
+  EIP1271
+}
+
+model LenderKycStart {
+  id            String                    @id @default(uuid())
+  chainId       Int
+  address       String
+  source        LenderKycStartSource
+  clickedAt     DateTime                  @default(now())
+  outcome       LenderKycOutcome?
+  outcomeReason LenderKycNotSignedReason?
+  outcomeAt     DateTime?
+  forwardedAt   DateTime?
+
+  signatures LenderKycSignature[]
+
+  @@index([chainId, address])
+}
+
+model LenderKycNonce {
+  nonce      String    @id
+  chainId    Int
+  address    String
+  secretHash String
+  issuedAt   DateTime  @default(now())
+  expiresAt  DateTime
+  usedAt     DateTime?
+}
+
+model LenderKycSignature {
+  id            String                 @id
+  startId       String
+  messageKind   LenderKycMessageKind
+  outcome       LenderKycOutcome
+  chainId       Int
+  address       String
+  signer        String
+  signatureKind LenderKycSignatureKind
+  blockNumber   Int?
+  nonce         String                 @unique
+  timeSigned    DateTime
+  signature     String
+  signedMessage String
+  termsVersion  String
+  createdAt     DateTime               @default(now())
+
+  start     LenderKycStart             @relation(fields: [startId], references: [id], onDelete: Restrict)
+  revisions LenderKycProfileRevision[]
+
+  @@index([chainId, address])
+  @@index([startId])
+}
+
+model LenderKycProfileRevision {
+  id          String   @id
+  chainId     Int
+  address     String
+  signatureId String
+  fullName    String
+  email       String
+  companyName String
+  lenderType  String?
+  savedAt     DateTime @default(now())
+
+  signature LenderKycSignature @relation(fields: [signatureId], references: [id], onDelete: Restrict)
+
+  @@index([chainId, address, savedAt])
+  @@index([signatureId])
+}
+
 model MarketDescription {
   chainId Int
   marketAddress String

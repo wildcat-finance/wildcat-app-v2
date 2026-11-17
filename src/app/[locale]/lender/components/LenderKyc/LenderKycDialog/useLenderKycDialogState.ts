@@ -6,7 +6,7 @@ import {
   useStartLenderKyc,
 } from "@/app/[locale]/lender/hooks/useLenderKyc"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
-import { lenderKycMockService } from "@/lib/lenderKyc/mockService"
+import { lenderKycApi } from "@/lib/lenderKyc/apiClient"
 import { LenderKycOutcome, LenderKycStartSource } from "@/lib/lenderKyc/types"
 import {
   areLenderKycDetailsEqual,
@@ -84,7 +84,7 @@ export const useLenderKycDialogState = ({
   const closeCurrentStart = useCallback(() => {
     const currentStartId = startIdRef.current
     if (currentStartId) {
-      lenderKycMockService.recordClosed(currentStartId)
+      lenderKycApi.recordClosed(currentStartId)
     }
     startIdRef.current = undefined
   }, [])
@@ -92,7 +92,7 @@ export const useLenderKycDialogState = ({
   const recordPageHide = useCallback(() => {
     const currentStartId = startIdRef.current
     if (currentStartId) {
-      lenderKycMockService.recordClosed(currentStartId)
+      lenderKycApi.recordClosedOnPageHide(currentStartId)
     }
   }, [])
 
@@ -124,26 +124,36 @@ export const useLenderKycDialogState = ({
     }
 
     if (visitSourceRef.current === "click") {
-      startKyc({ address, chainId }).then(({ start, hasSavedRecord }) => {
-        if (session !== sessionRef.current) {
-          if (discardableSessionsRef.current.delete(session)) {
-            lenderKycMockService.discardStart(start.id)
-          } else {
-            lenderKycMockService.recordClosed(start.id)
+      startKyc({ address, chainId }).then(
+        ({ start, hasSavedRecord }) => {
+          if (session !== sessionRef.current) {
+            if (discardableSessionsRef.current.delete(session)) {
+              lenderKycApi.discardStart(start.id)
+            } else {
+              lenderKycApi.recordClosed(start.id)
+            }
+            return
           }
-          return
-        }
-        startIdRef.current = start.id
-        setStartId(start.id)
-        showWalletStatus(hasSavedRecord)
-      })
+          startIdRef.current = start.id
+          setStartId(start.id)
+          showWalletStatus(hasSavedRecord)
+        },
+        () => {
+          if (session !== sessionRef.current) return
+          showWalletStatus(false)
+        },
+      )
     } else {
-      lenderKycMockService
-        .getWalletStatus(address)
-        .then(({ hasSavedRecord }) => {
+      lenderKycApi.getWalletStatus(address, chainId).then(
+        ({ hasSavedRecord }) => {
           if (session !== sessionRef.current) return
           showWalletStatus(hasSavedRecord)
-        })
+        },
+        () => {
+          if (session !== sessionRef.current) return
+          showWalletStatus(false)
+        },
+      )
     }
 
     window.addEventListener("pagehide", recordPageHide)
@@ -226,23 +236,25 @@ export const useLenderKycDialogState = ({
   }, [])
 
   const ensureStartId = useCallback(
-    async (isStillRelevant: () => boolean) => {
-      if (startIdRef.current) return startIdRef.current
+    async (
+      isStillRelevant: () => boolean,
+    ): Promise<{ startId: string; hasSavedRecord?: boolean } | undefined> => {
+      if (startIdRef.current) return { startId: startIdRef.current }
       if (!address) return undefined
       setIsStarting(true)
       try {
-        const { start } = await startKyc({
+        const { start, hasSavedRecord } = await startKyc({
           address,
           chainId,
-          source: "walletSwitch",
+          source: visitSourceRef.current,
         })
         if (!isStillRelevant()) {
-          lenderKycMockService.recordClosed(start.id)
+          lenderKycApi.recordClosed(start.id)
           return undefined
         }
         startIdRef.current = start.id
         setStartId(start.id)
-        return start.id
+        return { startId: start.id, hasSavedRecord }
       } finally {
         if (isStillRelevant()) setIsStarting(false)
       }
@@ -259,14 +271,22 @@ export const useLenderKycDialogState = ({
     setSignError(null)
     const session = sessionRef.current
     const isStillRelevant = () => session === sessionRef.current
-    let currentStartId: string | undefined
+    let started: Awaited<ReturnType<typeof ensureStartId>>
     try {
-      currentStartId = await ensureStartId(isStillRelevant)
+      started = await ensureStartId(isStillRelevant)
     } catch {
       if (isStillRelevant()) setSignError("failed")
       return
     }
-    if (!currentStartId || !isStillRelevant()) return
+    if (!started || !isStillRelevant()) return
+    if (started.hasSavedRecord && mode === "new" && !verifiedDetails) {
+      setMode("returning")
+      setDetails(EMPTY_LENDER_KYC_DETAILS)
+      setTouched({})
+      setShowInvalid(false)
+      return
+    }
+    const currentStartId = started.startId
     try {
       const result = await signMutation.mutateAsync(
         isReturningLocked
@@ -296,7 +316,7 @@ export const useLenderKycDialogState = ({
         return
       }
       setSignError(kind)
-      lenderKycMockService.recordNotSigned(currentStartId, kind)
+      lenderKycApi.recordNotSigned(currentStartId, kind)
     }
   }, [
     open,
@@ -305,6 +325,8 @@ export const useLenderKycDialogState = ({
     isStarting,
     hasFieldErrors,
     ensureStartId,
+    mode,
+    verifiedDetails,
     signMutation,
     isReturningLocked,
     chainId,
@@ -314,7 +336,7 @@ export const useLenderKycDialogState = ({
 
   const continueToSoma = useCallback(() => {
     if (!startId || !canContinue) return
-    lenderKycMockService.recordForward(startId)
+    lenderKycApi.recordForward(startId)
     window.open(EXTERNAL_LINKS.SOMA_FINANCE, "_blank", "noopener,noreferrer")
   }, [startId, canContinue])
 

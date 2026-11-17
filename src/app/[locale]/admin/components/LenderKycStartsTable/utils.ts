@@ -15,7 +15,8 @@ export const formatCsvUtcDateTime = (iso: string | undefined) =>
   iso ? dayjs.utc(iso).format("YYYY-MM-DD HH:mm:ss") : ""
 
 export const hasDetails = (row: LenderKycWalletRow) =>
-  !!row.details && !isLenderKycDetailsEmpty(row.details)
+  !!row.detailsUnreadable ||
+  (!!row.details && !isLenderKycDetailsEmpty(row.details))
 
 export const matchesFilter = (
   row: LenderKycWalletRow,
