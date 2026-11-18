@@ -35,6 +35,7 @@ it("accepts new terms without a legacy wrapper hash", async () => {
     address,
     signer: address,
     party: "Lender" as const,
+    borrowerId: null,
     serviceAgreementId: 5,
     signature: "0x1234",
     kind: "ECDSA" as const,

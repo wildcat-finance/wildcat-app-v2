@@ -40,6 +40,7 @@ const acceptance = (agreement: typeof current) => ({
   address: account.toLowerCase(),
   signer: account.toLowerCase(),
   party: ServiceAgreementParty.Lender,
+  borrowerId: null,
   serviceAgreementId: agreement.id,
   signature: "0xsignature",
   kind: null,

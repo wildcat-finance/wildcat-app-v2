@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { prisma } from "@/lib/db"
+import { isTestnetChain } from "@/lib/networkClass"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
 import { MlaTemplate } from "../../interface"
@@ -18,10 +19,10 @@ export async function GET(
   const id = parseInt(params.id, 10)
   const mlaTemplate = await prisma.mlaTemplate
     .findFirst({
-      where: { id, chainId },
+      where: { id, isTestnet: isTestnetChain(chainId) },
       select: {
         id: true,
-        chainId: true,
+        isTestnet: true,
         name: true,
         description: true,
         html: true,

@@ -173,6 +173,9 @@ const ADMIN_QUERY_KEYS = {
     isAdmin?: boolean,
     address?: string,
   ) => k(["admin", "GET_ALL_BORROWER_PROFILES", chainId, isAdmin, address]),
+  // GET_BORROWER_ORGANISATIONS_KEY
+  GET_BORROWER_ORGANISATIONS: (chainId: number, address?: string) =>
+    k(["admin", "GET_BORROWER_ORGANISATIONS", chainId, address]),
 } as const
 
 const USER_QUERY_KEYS = {

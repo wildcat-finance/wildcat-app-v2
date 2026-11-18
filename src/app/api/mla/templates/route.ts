@@ -1,8 +1,10 @@
 /// GET /api/mla/templates
 
+import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
 import { prisma } from "@/lib/db"
+import { isTestnetChain } from "@/lib/networkClass"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 import { getZodParseError } from "@/lib/zod-error"
 
@@ -10,7 +12,7 @@ import { CreateMlaTemplateInputDTO } from "./dto"
 import { isAdminForChain, verifyApiToken } from "../../auth/verify-header"
 import { CreateMlaTemplateInput, MlaTemplateMetadata } from "../interface"
 
-/// Route to get list of all MLA templates for a chain.
+/// Route to get list of all MLA templates for a chain's network class.
 export async function GET(request: NextRequest) {
   const chainId = validateChainIdParam(request)
   if (!chainId) {
@@ -19,11 +21,11 @@ export async function GET(request: NextRequest) {
   const mlas: MlaTemplateMetadata[] = (
     await prisma.mlaTemplate.findMany({
       where: {
-        chainId,
+        isTestnet: isTestnetChain(chainId),
       },
       select: {
         id: true,
-        chainId: true,
+        isTestnet: true,
         name: true,
         description: true,
         hide: true,
@@ -54,14 +56,19 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     return getZodParseError(error)
   }
-  if (!(await isAdminForChain(token, body.chainId))) {
+  if (
+    !isSupportedChainId(body.chainId) ||
+    !(await isAdminForChain(token, body.chainId))
+  ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
+  const { chainId, ...template } = body
+  const isTestnet = isTestnetChain(chainId)
   const mlaTemplate = await prisma.$transaction(async (tx) => {
-    if (body.isDefault) {
+    if (template.isDefault) {
       await tx.mlaTemplate.updateMany({
         where: {
-          chainId: body.chainId,
+          isTestnet,
           isDefault: true,
         },
         data: {
@@ -69,7 +76,7 @@ export async function POST(request: NextRequest) {
         },
       })
     }
-    return tx.mlaTemplate.create({ data: body })
+    return tx.mlaTemplate.create({ data: { ...template, isTestnet } })
   })
   return NextResponse.json(mlaTemplate)
 }

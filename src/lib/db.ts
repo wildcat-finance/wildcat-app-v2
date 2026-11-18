@@ -1,8 +1,7 @@
-import { PrismaClient } from "@prisma/client"
+import { Borrower, Prisma, PrismaClient } from "@prisma/client"
 import {
   getArchControllerContract,
   getDeploymentAddress,
-  MakeOptional,
   SignerOrProvider,
   SupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
@@ -50,42 +49,91 @@ export async function getBorrowerAcceptanceTimes(
   return acceptanceTimes
 }
 
-/// Display names of every borrower profile on the chain. Market tables, the
+/// Display names of every borrower address on the chain. Market tables, the
 /// export and the composability affiliation check all label borrowers from
 /// this one set, so a name shown in one place is the name matched in another.
 export async function findBorrowerNames(chainId: SupportedChainId) {
-  return prisma.borrower.findMany({
+  const registrations = await prisma.borrowerRegistration.findMany({
     where: { chainId },
-    select: { address: true, name: true, alias: true },
+    select: {
+      address: true,
+      borrower: { select: { name: true, alias: true } },
+    },
+  })
+  return registrations.map(({ address, borrower }) => ({
+    address,
+    name: borrower.name,
+    alias: borrower.alias,
+  }))
+}
+
+/// The registration of `address` on `chainId`, with its organisation.
+export async function findBorrowerRegistration(
+  chainId: SupportedChainId,
+  address: string,
+) {
+  return prisma.borrowerRegistration.findUnique({
+    where: { chainId_address: { chainId, address: address.toLowerCase() } },
+    include: { borrower: true },
   })
 }
+
+type RegistrationWithBorrower = Prisma.BorrowerRegistrationGetPayload<{
+  include: { borrower: true }
+}>
+
+const toBorrowerInvitation = (
+  registration: RegistrationWithBorrower,
+  timeSigned: Date | undefined,
+): BorrowerInvitation => {
+  const { borrower } = registration
+  return {
+    borrowerId: registration.borrowerId,
+    inviter: registration.invitedBy as string,
+    timeInvited: registration.invitedAt as Date,
+    chainId: registration.chainId,
+    address: registration.address,
+    name: borrower.name,
+    alias: borrower.alias || undefined,
+    description: borrower.description || undefined,
+    founded: borrower.founded || undefined,
+    headquarters: borrower.headquarters || undefined,
+    jurisdiction: borrower.jurisdiction || undefined,
+    physicalAddress: borrower.physicalAddress || undefined,
+    entityKind: borrower.entityKind || undefined,
+    timeSigned: timeSigned || undefined,
+    registeredOnChain: registration.registeredOnChain,
+  }
+}
+
+const markRegisteredOnChain = (
+  chainId: SupportedChainId,
+  address: string,
+  registeredBy: string | undefined,
+) =>
+  prisma.borrowerRegistration.update({
+    where: { chainId_address: { chainId, address } },
+    data: {
+      registeredOnChain: true,
+      checkedAt: new Date(),
+      ...(registeredBy ? { registeredBy } : {}),
+    },
+  })
 
 export async function findBorrowerWithPendingInvitation(
   address: string,
   chainId: SupportedChainId,
 ): Promise<BorrowerInvitation | undefined> {
   address = address.toLowerCase()
-  const profile = await prisma.borrower.findFirst({
-    where: {
-      address: address.toLowerCase(),
-      chainId,
-      NOT: {
-        invitation: null,
-      },
-    },
-    include: {
-      invitation: true,
-    },
-  })
-  if (!profile?.invitation) return undefined
-  const { invitation, registeredOnChain } = profile
+  const registration = await findBorrowerRegistration(chainId, address)
+  if (!registration?.invitedAt || !registration.invitedBy) return undefined
   const timeSigned = (await getBorrowerAcceptanceTimes(chainId, [address])).get(
     address,
   )
   // If the borrower has signed the service agreement, check if they are registered
-  // on chain. If they are, update the borrower record and return undefined.
+  // on chain. If they are, update the registration and return undefined.
   if (timeSigned) {
-    if (registeredOnChain) return undefined
+    if (registration.registeredOnChain) return undefined
     const provider = getProviderForServer(chainId)
     const isRegistered = await getArchControllerContract(
       chainId,
@@ -97,36 +145,12 @@ export async function findBorrowerWithPendingInvitation(
         address,
         provider,
       )
-      await prisma.borrower.update({
-        where: {
-          chainId_address: {
-            chainId,
-            address,
-          },
-        },
-        data: {
-          registeredOnChain: true,
-          ...(registeredBy ? { registeredBy } : {}),
-        },
-      })
+      await markRegisteredOnChain(chainId, address, registeredBy)
       return undefined
     }
   }
   return {
-    id: invitation.id,
-    inviter: invitation.inviter,
-    timeInvited: invitation.timeInvited,
-    chainId: invitation.chainId,
-    address: invitation.address,
-    name: invitation.name,
-    alias: invitation.alias || undefined,
-    description: invitation.description || undefined,
-    founded: invitation.founded || undefined,
-    headquarters: invitation.headquarters || undefined,
-    jurisdiction: invitation.jurisdiction || undefined,
-    physicalAddress: invitation.physicalAddress || undefined,
-    entityKind: invitation.entityKind || undefined,
-    timeSigned: timeSigned || undefined,
+    ...toBorrowerInvitation(registration, timeSigned),
     registeredOnChain: false,
   }
 }
@@ -152,61 +176,36 @@ async function checkRegisteredBorrowers(
 export async function findBorrowersWithPendingInvitations(
   chainId: SupportedChainId,
 ): Promise<BorrowerInvitation[]> {
-  const profiles = await prisma.borrower.findMany({
-    where: {
-      chainId,
-      NOT: {
-        invitation: null,
-      },
-    },
-    include: {
-      invitation: true,
-    },
+  const registrations = await prisma.borrowerRegistration.findMany({
+    where: { chainId, invitedAt: { not: null } },
+    include: { borrower: true },
   })
   const acceptanceTimes = await getBorrowerAcceptanceTimes(
     chainId,
-    profiles.map(({ address }) => address),
+    registrations.map(({ address }) => address),
   )
-  return profiles
-    .map((profile) => {
-      if (!profile?.invitation) return undefined
-      const { invitation } = profile
-      const timeSigned = acceptanceTimes.get(profile.address)
-      if (timeSigned && profile.registeredOnChain) return undefined
-      return {
-        id: invitation.id,
-        inviter: invitation.inviter,
-        timeInvited: invitation.timeInvited,
-        chainId: invitation.chainId,
-        address: invitation.address,
-        name: invitation.name,
-        alias: invitation.alias || undefined,
-        description: invitation.description || undefined,
-        founded: invitation.founded || undefined,
-        headquarters: invitation.headquarters || undefined,
-        jurisdiction: invitation.jurisdiction || undefined,
-        physicalAddress: invitation.physicalAddress || undefined,
-        entityKind: invitation.entityKind || undefined,
-        timeSigned: timeSigned || undefined,
-        additionalUrls: profile.additionalUrls || undefined,
-        registeredOnChain: profile.registeredOnChain,
-      }
-    })
-    .filter(Boolean) as BorrowerInvitation[]
+  return registrations.flatMap((registration) => {
+    const timeSigned = acceptanceTimes.get(registration.address)
+    if (timeSigned && registration.registeredOnChain) return []
+    return [
+      {
+        ...toBorrowerInvitation(registration, timeSigned),
+        additionalUrls: registration.borrower.additionalUrls || undefined,
+      },
+    ]
+  })
 }
 
 export async function tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered(
   chainId: SupportedChainId,
 ) {
-  // Find all borrowers that have an invitation, have signed the service agreement
-  // but are not registered on chain
-  const invitedBorrowers = await prisma.borrower.findMany({
+  // Find all invited registrations whose borrower has signed the service
+  // agreement but is not yet registered on chain
+  const invitedBorrowers = await prisma.borrowerRegistration.findMany({
     where: {
       chainId,
       registeredOnChain: false,
-      NOT: {
-        invitation: null,
-      },
+      invitedAt: { not: null },
     },
     select: {
       address: true,
@@ -245,19 +244,44 @@ export async function tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered(
     console.error(`Failed to resolve registeredBy on chain ${chainId}:`, err)
   }
   await prisma.$transaction(
-    borrowersToUpdate.map((borrower) => {
-      const registeredBy = registeredByMap.get(borrower.toLowerCase())
-      return prisma.borrower.update({
+    borrowersToUpdate.map((borrower) =>
+      markRegisteredOnChain(
+        chainId,
+        borrower,
+        registeredByMap.get(borrower.toLowerCase()),
+      ),
+    ),
+  )
+}
+
+/// Delete registrations, their borrower ToU rows (by cascade), and every
+/// organisation left with no registration and no MLA decision. Returns the
+/// number of registrations deleted.
+export async function deleteBorrowerRegistrations(
+  where: Prisma.BorrowerRegistrationWhereInput,
+): Promise<number> {
+  return prisma.$transaction(async (transaction) => {
+    const registrations = await transaction.borrowerRegistration.findMany({
+      where,
+      select: { borrowerId: true },
+    })
+    const { count } = await transaction.borrowerRegistration.deleteMany({
+      where,
+    })
+    const borrowerIds = Array.from(
+      new Set(registrations.map(({ borrowerId }) => borrowerId)),
+    )
+    if (borrowerIds.length > 0) {
+      await transaction.borrower.deleteMany({
         where: {
-          chainId_address: { chainId, address: borrower },
-        },
-        data: {
-          registeredOnChain: true,
-          ...(registeredBy ? { registeredBy } : {}),
+          id: { in: borrowerIds },
+          registrations: { none: {} },
+          mlaDecisions: { none: {} },
         },
       })
-    }),
-  )
+    }
+    return count
+  })
 }
 
 export async function getBorrowerProfileUpdates(
@@ -265,14 +289,28 @@ export async function getBorrowerProfileUpdates(
   address?: string,
   onlyPending = true,
 ): Promise<BorrowerProfileUpdate[]> {
+  const registrationFilter = {
+    chainId,
+    ...(address && { address: address.toLowerCase() }),
+  }
   const data = await prisma.borrowerProfileUpdateRequest.findMany({
     where: {
-      ...(address && { address: address.toLowerCase() }),
-      chainId,
+      borrower: { registrations: { some: registrationFilter } },
       ...(onlyPending && {
         acceptedAt: null,
         rejectedAt: null,
       }),
+    },
+    include: {
+      borrower: {
+        select: {
+          registrations: {
+            where: registrationFilter,
+            select: { address: true },
+            take: 1,
+          },
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
@@ -285,18 +323,22 @@ export async function getBorrowerProfileUpdates(
       rejectedAt,
       rejectedReason,
       id,
+      borrower,
       additionalUrls,
       name,
       alias,
+      avatar,
       description,
       founded,
       headquarters,
       website,
       twitter,
+      telegram,
       linkedin,
       email,
-      address: profileAddress,
-      chainId: accountChainId,
+      jurisdiction,
+      physicalAddress,
+      entityKind,
     }) => ({
       updateId: id,
       createdAt: createdAt.getTime(),
@@ -305,17 +347,22 @@ export async function getBorrowerProfileUpdates(
       rejectedReason: rejectedReason || undefined,
 
       update: {
-        address: profileAddress,
-        chainId: accountChainId,
+        address: borrower.registrations[0]?.address ?? "",
+        chainId,
         name: name || undefined,
         alias: alias || undefined,
+        avatar: avatar || undefined,
         description: description || undefined,
         founded: founded || undefined,
         headquarters: headquarters || undefined,
         website: website || undefined,
         twitter: twitter || undefined,
+        telegram: telegram || undefined,
         linkedin: linkedin || undefined,
         email: email || undefined,
+        jurisdiction: jurisdiction || undefined,
+        physicalAddress: physicalAddress || undefined,
+        entityKind: entityKind || undefined,
         additionalUrls: (additionalUrls || undefined) as
           | BorrowerAdditionalUrl[]
           | undefined,
@@ -324,95 +371,105 @@ export async function getBorrowerProfileUpdates(
   )
 }
 
-export async function getSignedMasterLoanAgreement(
+/// The borrower's MLA decision for a market: an assigned agreement or a refusal.
+export async function getMarketMlaDecision(
   market: string,
   chainId: SupportedChainId,
-): Promise<
-  MakeOptional<MasterLoanAgreementResponse, "borrowerSignature"> | undefined
-> {
-  market = market.toLowerCase()
-  const mla:
-    | Omit<MasterLoanAgreementResponse, "borrowerSignature">
-    | undefined = await prisma.masterLoanAgreement
-    .findUnique({
-      where: {
-        chainId_market: {
-          chainId,
-          market,
-        },
-      },
-      include: {
-        template: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    })
-    .then((obj) => {
-      if (!obj) return undefined
-      const { template, lenderFields, ...rest } = obj
-      return {
-        ...rest,
-        lenderFields: lenderFields as MlaTemplateField[],
-        templateName: template.name,
-      }
-    })
-  if (!mla) return undefined
-  const borrowerSignature: MlaSignatureResponse | undefined =
-    await prisma.mlaSignature
-      .findFirst({
-        where: {
-          chainId,
-          market,
-          address: mla.borrower,
-        },
-      })
-      .then((obj) => {
-        if (!obj) return undefined
-        const { blockNumber, ...rest } = obj
-        return {
-          ...rest,
-          blockNumber: blockNumber || undefined,
-        } as MlaSignatureResponse
-      })
+) {
+  return prisma.marketMlaDecision.findUnique({
+    where: { chainId_market: { chainId, market: market.toLowerCase() } },
+    include: { template: { select: { name: true } } },
+  })
+}
+
+type MarketMlaDecisionWithTemplateName = NonNullable<
+  Awaited<ReturnType<typeof getMarketMlaDecision>>
+>
+
+/// Map an assigned decision to the API shape; undefined for a refusal.
+export const toMasterLoanAgreementResponse = (
+  decision: MarketMlaDecisionWithTemplateName,
+): MasterLoanAgreementResponse | undefined => {
+  if (
+    decision.outcome !== "Assigned" ||
+    decision.templateId === null ||
+    decision.html === null ||
+    decision.plaintext === null ||
+    decision.lenderFields === null
+  ) {
+    return undefined
+  }
+  const borrowerSignature: MlaSignatureResponse = {
+    kind: decision.kind,
+    address: decision.borrowerAddress,
+    signer: decision.signer,
+    signature: decision.signature,
+    blockNumber: decision.blockNumber ?? undefined,
+    chainId: decision.chainId,
+    market: decision.market,
+    timeSigned: decision.timeSigned,
+  }
   return {
-    ...mla,
+    chainId: decision.chainId,
+    market: decision.market,
+    borrower: decision.borrowerAddress,
+    html: decision.html,
+    plaintext: decision.plaintext,
+    templateId: decision.templateId,
+    templateName: decision.template?.name ?? "",
+    lenderFields: decision.lenderFields as MlaTemplateField[],
     borrowerSignature,
   }
 }
+
+/// The assigned agreement of a market with the borrower's signature, or
+/// undefined when the market has no agreement (none yet, or declined).
+export async function getSignedMasterLoanAgreement(
+  market: string,
+  chainId: SupportedChainId,
+): Promise<MasterLoanAgreementResponse | undefined> {
+  const decision = await getMarketMlaDecision(market, chainId)
+  return decision ? toMasterLoanAgreementResponse(decision) : undefined
+}
+
+export const toBorrowerProfile = (
+  address: string,
+  chainId: number,
+  registeredOnChain: boolean,
+  borrower: Borrower,
+): BorrowerProfile => ({
+  address,
+  chainId,
+  name: borrower.name || undefined,
+  alias: borrower.alias || undefined,
+  description: borrower.description || undefined,
+  founded: borrower.founded || undefined,
+  headquarters: borrower.headquarters || undefined,
+  website: borrower.website || undefined,
+  twitter: borrower.twitter || undefined,
+  telegram: borrower.telegram || undefined,
+  linkedin: borrower.linkedin || undefined,
+  email: borrower.email || undefined,
+  registeredOnChain,
+  jurisdiction: borrower.jurisdiction || undefined,
+  physicalAddress: borrower.physicalAddress || undefined,
+  entityKind: borrower.entityKind || undefined,
+  avatar: borrower.avatar || undefined,
+  additionalUrls: (borrower.additionalUrls || undefined) as
+    | BorrowerAdditionalUrl[]
+    | undefined,
+})
 
 export async function getBorrowerProfile(
   address: string,
   chainId: SupportedChainId,
 ): Promise<BorrowerProfile | undefined> {
-  const borrower = await prisma.borrower.findFirst({
-    where: {
-      address: address.toLowerCase(),
-      chainId,
-    },
-  })
-  if (!borrower) return undefined
-  return {
-    address: borrower.address,
-    chainId: borrower.chainId,
-    name: borrower.name || undefined,
-    alias: borrower.alias || undefined,
-    description: borrower.description || undefined,
-    founded: borrower.founded || undefined,
-    headquarters: borrower.headquarters || undefined,
-    website: borrower.website || undefined,
-    twitter: borrower.twitter || undefined,
-    telegram: borrower.telegram || undefined,
-    linkedin: borrower.linkedin || undefined,
-    email: borrower.email || undefined,
-    registeredOnChain: borrower.registeredOnChain,
-    jurisdiction: borrower.jurisdiction || undefined,
-    physicalAddress: borrower.physicalAddress || undefined,
-    entityKind: borrower.entityKind || undefined,
-    avatar: borrower.avatar || undefined,
-    additionalUrls: (borrower.additionalUrls || undefined) as
-      | BorrowerAdditionalUrl[]
-      | undefined,
-  }
+  const registration = await findBorrowerRegistration(chainId, address)
+  if (!registration) return undefined
+  return toBorrowerProfile(
+    registration.address,
+    registration.chainId,
+    registration.registeredOnChain,
+    registration.borrower,
+  )
 }

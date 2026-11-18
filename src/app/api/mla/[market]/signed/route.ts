@@ -19,10 +19,6 @@ export async function GET(
   if (!mla) {
     return new NextResponse(null, { status: 404 })
   }
-  if (!mla.borrowerSignature) {
-    // This is a 500 error because the borrower signature should always be present.
-    return new NextResponse(null, { status: 500 })
-  }
   const result = [
     mla.plaintext,
     `-----BEGIN BORROWER SIGNATURE-----`,

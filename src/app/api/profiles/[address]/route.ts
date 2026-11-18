@@ -2,7 +2,7 @@ import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
 import { BorrowerProfile } from "@/app/api/profiles/interface"
-import { getBorrowerProfile, prisma } from "@/lib/db"
+import { deleteBorrowerRegistrations, getBorrowerProfile } from "@/lib/db"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
 import { isAdminForChain, verifyApiToken } from "../../auth/verify-header"
@@ -78,31 +78,13 @@ export async function DELETE(
       { status: 400 },
     )
   }
-  // The versioned ToU records have no FK to Borrower, so clear both
-  // snapshots explicitly when the borrower is removed.
-  const [result] = await prisma.$transaction([
-    prisma.borrower.deleteMany({
-      where: {
-        chainId,
-        ...(borrower !== "all" && { address: borrower }),
-      },
-    }),
-    prisma.serviceAgreementSignature.deleteMany({
-      where: {
-        chainId,
-        party: "Borrower",
-        ...(borrower !== "all" && { address: borrower }),
-      },
-    }),
-    prisma.serviceAgreementRefusal.deleteMany({
-      where: {
-        chainId,
-        party: "Borrower",
-        ...(borrower !== "all" && { address: borrower }),
-      },
-    }),
-  ])
-  return NextResponse.json({ success: true, deleted: result.count })
+  // Borrower ToU rows go with their registration; an organisation left with
+  // no registration on any network goes too.
+  const deleted = await deleteBorrowerRegistrations({
+    chainId,
+    ...(borrower !== "all" && { address: borrower }),
+  })
+  return NextResponse.json({ success: true, deleted })
 }
 
 export const dynamic = "force-dynamic"

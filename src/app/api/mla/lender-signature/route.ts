@@ -3,7 +3,10 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
 import { fillInMlaForLender, getFieldValuesForLender } from "@/lib/mla"
-import { isPrismaUniqueConstraintError } from "@/lib/mlaPersistence"
+import {
+  isPrismaUniqueConstraintError,
+  toStoredSignature,
+} from "@/lib/mlaPersistence"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
@@ -12,7 +15,7 @@ import { isServiceAgreementTimeSignedInBounds } from "@/utils/serviceAgreementMe
 
 import { LenderMlaSignatureInputDTO } from "./dto"
 import { LenderMlaSignatureInput } from "./interface"
-import { MlaSignatureResponse } from "../interface"
+import { toMlaSignatureResponse } from "../interface"
 
 /// GET /api/mla/lender-signature?chainId=<chainId>
 export async function GET(request: NextRequest) {
@@ -30,19 +33,13 @@ export async function GET(request: NextRequest) {
     )
   }
   const mlaSignatures = (
-    await prisma.mlaSignature.findMany({
+    await prisma.mlaLenderSignature.findMany({
       where: {
         chainId,
         address: lenderAddress,
       },
     })
-  ).map(
-    ({ blockNumber, ...rest }) =>
-      ({
-        ...rest,
-        blockNumber: blockNumber || undefined,
-      }) as MlaSignatureResponse,
-  )
+  ).map(toMlaSignatureResponse)
   return NextResponse.json(mlaSignatures)
 }
 
@@ -63,12 +60,15 @@ export async function POST(request: NextRequest) {
   const lenderAddress = body.address.toLowerCase()
   const { timeSigned, signature, chainId } = body
 
-  const signatureExists = await prisma.mlaSignature.findFirst({
-    where: {
+  const lenderSignatureKey = {
+    chainId_market_address: {
       chainId,
-      address: lenderAddress,
       market: marketAddress,
+      address: lenderAddress,
     },
+  }
+  const signatureExists = await prisma.mlaLenderSignature.findUnique({
+    where: lenderSignatureKey,
   })
   if (signatureExists) {
     if (
@@ -98,13 +98,6 @@ export async function POST(request: NextRequest) {
   if (!mla) {
     return NextResponse.json({ error: "MLA not found" }, { status: 404 })
   }
-  if (!mla.borrowerSignature) {
-    // This is a 500 error because the borrower signature should always be present.
-    return NextResponse.json(
-      { error: "Borrower signature not found" },
-      { status: 500 },
-    )
-  }
   const values = getFieldValuesForLender(lenderAddress, timeSigned)
   const { plaintext, message } = fillInMlaForLender(mla, values, marketAddress)
   const provider = getProviderForServer(chainId)
@@ -121,28 +114,20 @@ export async function POST(request: NextRequest) {
     )
   }
   try {
-    await prisma.mlaSignature.create({
+    await prisma.mlaLenderSignature.create({
       data: {
         chainId,
         address: lenderAddress,
         market: marketAddress,
         signature,
-        blockNumber:
-          "blockNumber" in verifiedSignature
-            ? verifiedSignature.blockNumber
-            : undefined,
-        kind: verifiedSignature.kind,
-        signer:
-          "owner" in verifiedSignature
-            ? verifiedSignature.owner.toLowerCase()
-            : lenderAddress,
-        timeSigned: new Date(timeSigned).toISOString(),
+        ...toStoredSignature(verifiedSignature),
+        timeSigned: new Date(timeSigned),
       },
     })
   } catch (error) {
     if (!isPrismaUniqueConstraintError(error)) throw error
-    const concurrent = await prisma.mlaSignature.findFirst({
-      where: { chainId, address: lenderAddress, market: marketAddress },
+    const concurrent = await prisma.mlaLenderSignature.findUnique({
+      where: lenderSignatureKey,
     })
     if (
       concurrent?.signature !== signature ||

@@ -72,16 +72,10 @@ export async function GET(
   if (!mla) {
     return new NextResponse(null, { status: 404 })
   }
-  if (!mla.borrowerSignature) {
-    // This is a 500 error because the borrower signature should always be present.
-    return new NextResponse(null, { status: 500 })
-  }
 
-  const mlaSignature = await prisma.mlaSignature.findFirst({
+  const mlaSignature = await prisma.mlaLenderSignature.findUnique({
     where: {
-      chainId,
-      address: lenderAddress,
-      market,
+      chainId_market_address: { chainId, market, address: lenderAddress },
     },
   })
   if (!mlaSignature) {
@@ -94,7 +88,7 @@ export async function GET(
   const timeSigned = +mlaSignature.timeSigned
   const values = getFieldValuesForLender(lenderAddress, timeSigned)
   const { plaintext, message } = fillInMlaForLender(mla, values, market)
-  const borrowerSignature = mla.borrowerSignature!
+  const { borrowerSignature } = mla
 
   const zip = new JSZip()
   zip.file("Borrower Signed MLA.txt", mla.plaintext)

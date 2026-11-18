@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
-import {
-  fillInMlaForLender,
-  MlaFieldValueKey,
-  MlaTemplateField,
-} from "@/lib/mla"
+import { getSignedMasterLoanAgreement } from "@/lib/db"
+import { fillInMlaForLender, MlaFieldValueKey } from "@/lib/mla"
 import { launchPuppeteer } from "@/lib/puppeteer"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
@@ -24,25 +20,9 @@ export async function GET(
   if (!mla) {
     return new NextResponse(null, { status: 404 })
   }
-  const template = await prisma.mlaTemplate.findFirst({
-    where: {
-      chainId,
-      id: mla.templateId,
-    },
-  })
-  if (!template) {
-    return new NextResponse(null, { status: 404 })
-  }
-  if (!mla.borrowerSignature) {
-    // This is a 500 error because the borrower signature should always be present.
-    return new NextResponse(null, { status: 500 })
-  }
   // For the HTML version, we replace any unfilled fields with the placeholders.
   const values: Map<MlaFieldValueKey, string> = new Map(
-    (template.lenderFields as MlaTemplateField[]).map((field) => [
-      field.source,
-      `[${field.placeholder}]`,
-    ]),
+    mla.lenderFields.map((field) => [field.source, `[${field.placeholder}]`]),
   )
   const { html } = fillInMlaForLender(mla, values, market)
   const finalHtml = encodeURIComponent(html)

@@ -1,7 +1,14 @@
 import * as React from "react"
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
-import { Box, Button, Dialog, TextField, Typography } from "@mui/material"
+import {
+  Box,
+  Button,
+  Dialog,
+  MenuItem,
+  TextField,
+  Typography,
+} from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import EditProfileForm from "@/app/[locale]/borrower/profile/edit/components/EditProfileForm"
@@ -13,21 +20,50 @@ import { COLORS } from "@/theme/colors"
 import { ErrorModal } from "../../../borrower/market/[address]/components/Modals/FinalModals/ErrorModal"
 import { LoadingModal } from "../../../borrower/market/[address]/components/Modals/FinalModals/LoadingModal"
 import { SuccessModal } from "../../../borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
+import { useBorrowerOrganisations } from "../../hooks/useBorrowerOrganisations"
 import { useInviteBorrower } from "../../hooks/useInviteBorrower"
+
+const NEW_BORROWER = "new"
+
+const isAddress = (value: string) => /^0x[0-9a-fA-F]{40}$/.test(value)
 
 export const InviteBorrowerModal = () => {
   const { t } = useTranslation()
-  const { chainId } = useSelectedNetwork()
+  const { chainId, name: networkName } = useSelectedNetwork()
   const [isOpen, setIsOpen] = useState(false)
   const [address, setAddress] = useState("")
   const [addressError, setAddressError] = useState("")
+  const [borrowerId, setBorrowerId] = useState(NEW_BORROWER)
+  const [borrowerTouched, setBorrowerTouched] = useState(false)
 
   const { mutate, isPending, isSuccess, isError } = useInviteBorrower(address)
+  const { data: organisations } = useBorrowerOrganisations()
+
+  const selectedOrganisation = organisations?.find(
+    ({ id }) => id === borrowerId,
+  )
+
+  // An address the borrower already uses on another network of this class
+  // most likely belongs to the same organisation: offer it as the default.
+  const organisationOfAddress = useMemo(() => {
+    if (!isAddress(address)) return undefined
+    const lowered = address.toLowerCase()
+    return organisations?.find(({ registrations }) =>
+      registrations.some((registration) => registration.address === lowered),
+    )
+  }, [address, organisations])
+
+  useEffect(() => {
+    if (borrowerTouched) return
+    setBorrowerId(organisationOfAddress?.id ?? NEW_BORROWER)
+  }, [organisationOfAddress, borrowerTouched])
 
   const handleClose = () => {
     setIsOpen(false)
     setAddress("")
     setAddressError("")
+    setBorrowerId(NEW_BORROWER)
+    setBorrowerTouched(false)
   }
 
   const handleSubmit = (data: BorrowerProfileInput) => {
@@ -42,6 +78,20 @@ export const InviteBorrowerModal = () => {
       jurisdiction: data.jurisdiction,
       physicalAddress: data.physicalAddress,
       entityKind: data.entityKind,
+    })
+  }
+
+  const handleSubmitExisting = () => {
+    if (!selectedOrganisation) return
+    if (!isAddress(address)) {
+      setAddressError(t("admin.inviteBorrower.invalidAddress"))
+      return
+    }
+    mutate({
+      chainId,
+      address,
+      borrowerId: selectedOrganisation.id,
+      name: selectedOrganisation.name,
     })
   }
 
@@ -81,7 +131,13 @@ export const InviteBorrowerModal = () => {
                 </Typography>
               </Box>
             </TxModalHeader>
-            <Box width="100%" padding="24px">
+            <Box
+              width="100%"
+              padding="24px"
+              display="flex"
+              flexDirection="column"
+              gap="16px"
+            >
               <TextField
                 label={t("admin.inviteBorrower.addressLabel")}
                 value={address}
@@ -94,16 +150,61 @@ export const InviteBorrowerModal = () => {
                 fullWidth
               />
 
-              {address && (
-                <EditProfileForm
-                  key={address}
-                  address={address as `0x${string}`}
-                  hideAvatar
-                  hideExternalLinks
-                  hideHeaders
-                  isAdmin
-                  onSubmit={handleSubmit}
-                />
+              <TextField
+                select
+                label={t("admin.inviteBorrower.borrowerLabel")}
+                value={borrowerId}
+                onChange={(e) => {
+                  setBorrowerId(e.target.value)
+                  setBorrowerTouched(true)
+                }}
+                helperText={t("admin.inviteBorrower.borrowerHelp")}
+                fullWidth
+              >
+                <MenuItem value={NEW_BORROWER}>
+                  {t("admin.inviteBorrower.newBorrower")}
+                </MenuItem>
+                {organisations?.map((organisation) => (
+                  <MenuItem key={organisation.id} value={organisation.id}>
+                    {organisation.alias
+                      ? `${organisation.name} (${organisation.alias})`
+                      : organisation.name}
+                    {` · ${t("admin.inviteBorrower.addressCount", {
+                      count: organisation.registrations.length,
+                    })}`}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              {selectedOrganisation ? (
+                <>
+                  <Typography variant="text3" color={COLORS.santasGrey}>
+                    {t("admin.inviteBorrower.existingBorrower", {
+                      name: selectedOrganisation.name,
+                      network: networkName,
+                    })}
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    disabled={!address}
+                    onClick={handleSubmitExisting}
+                  >
+                    {t("admin.inviteBorrower.submit")}
+                  </Button>
+                </>
+              ) : (
+                address && (
+                  <EditProfileForm
+                    key={address}
+                    address={address as `0x${string}`}
+                    hideAvatar
+                    hideExternalLinks
+                    hideHeaders
+                    isAdmin
+                    onSubmit={handleSubmit}
+                  />
+                )
               )}
             </Box>
           </>

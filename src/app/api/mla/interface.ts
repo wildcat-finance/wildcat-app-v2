@@ -1,3 +1,4 @@
+import type { MlaLenderSignature } from "@prisma/client"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 
 import { MlaTemplateField } from "@/lib/mla"
@@ -16,7 +17,7 @@ export interface SetMasterLoanAgreementInput {
 
 export interface MlaTemplateMetadata {
   id: number
-  chainId: number
+  isTestnet: boolean
   name: string
   description?: string
   hide?: boolean
@@ -25,7 +26,7 @@ export interface MlaTemplateMetadata {
 
 export interface MlaTemplate {
   id: number
-  chainId: number
+  isTestnet: boolean
   name: string
   description?: string
   hide?: boolean
@@ -36,18 +37,31 @@ export interface MlaTemplate {
   lenderFields: MlaTemplateField[]
 }
 
-export type CreateMlaTemplateInput = Omit<MlaTemplate, "id">
+export type CreateMlaTemplateInput = Omit<MlaTemplate, "id" | "isTestnet"> & {
+  /* An admin network; the template serves every network of its class */
+  chainId: SupportedChainId
+}
 
 export type MlaSignatureResponse = {
   kind: VerifiedSignature["kind"]
   address: string
   signer: string
   signature: string
-  blockNumber: number
+  blockNumber?: number
   chainId: number
   market: string
   timeSigned: Date
 }
+
+export const toMlaSignatureResponse = ({
+  blockNumber,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  outcome,
+  ...rest
+}: MlaLenderSignature): MlaSignatureResponse => ({
+  ...rest,
+  blockNumber: blockNumber ?? undefined,
+})
 
 export type MasterLoanAgreementResponse = {
   chainId: number
