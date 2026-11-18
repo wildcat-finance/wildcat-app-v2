@@ -160,6 +160,9 @@ export const InviteBorrowerModal = () => {
                 }}
                 helperText={t("admin.inviteBorrower.borrowerHelp")}
                 fullWidth
+                // The theme's fixed field height would put the help text
+                // over the next field.
+                sx={{ height: "auto" }}
               >
                 <MenuItem value={NEW_BORROWER}>
                   {t("admin.inviteBorrower.newBorrower")}

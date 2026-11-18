@@ -36,12 +36,24 @@ export interface MlaTemplate extends MlaTemplateMetadata {
 
 export type CreateMlaTemplateInput = Omit<
   MlaTemplate,
-  "id" | "isTestnet" | "html"
+  "id" | "isTestnet" | "html" | "borrowerId"
 > & {
   /* An admin network; the template serves every network of its class */
   chainId: SupportedChainId
   /* Generated from the plain text when omitted */
   html?: string
+}
+
+/// A custom MLA as an admin registers it: the borrower's agreement text,
+/// pasted verbatim. The app adds the execution block and its fields.
+export type CreateCustomMlaInput = {
+  /* An admin network; the MLA serves every network of its class */
+  chainId: SupportedChainId
+  borrowerId: string
+  name: string
+  version: string
+  description?: string
+  text: string
 }
 
 /// A custom MLA as the admin screen lists it.

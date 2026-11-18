@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import {
-  CreateMlaTemplateInput,
+  CreateCustomMlaInput,
   CustomMlaTemplateForAdminView,
 } from "@/app/api/mla/interface"
 import { QueryKeys } from "@/config/query-keys"
@@ -64,14 +64,14 @@ const useInvalidateTemplates = () => {
   }
 }
 
-/// Register a custom MLA for one borrower.
+/// Register a custom MLA for one borrower: its agreement text, pasted verbatim.
 export const useRegisterCustomMla = () => {
   const { token, chainId, isAdminForChain } = useAdminToken()
   const invalidate = useInvalidateTemplates()
   return useMutation({
-    mutationFn: async (input: Omit<CreateMlaTemplateInput, "chainId">) => {
+    mutationFn: async (input: Omit<CreateCustomMlaInput, "chainId">) => {
       if (!isAdminForChain) throw Error("Not an admin on this network")
-      const response = await fetch("/api/mla/templates", {
+      const response = await fetch("/api/mla/templates/custom", {
         method: "POST",
         body: JSON.stringify({ ...input, chainId }),
         headers: { Authorization: `Bearer ${token.token}` },

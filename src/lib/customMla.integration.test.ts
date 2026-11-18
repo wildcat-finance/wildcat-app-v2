@@ -25,11 +25,11 @@ import {
   PATCH as retireTemplate,
   GET as getTemplate,
 } from "@/app/api/mla/templates/[id]/route"
-import { GET as listCustom } from "@/app/api/mla/templates/custom/route"
 import {
-  GET as listTemplates,
-  POST as createTemplate,
-} from "@/app/api/mla/templates/route"
+  GET as listCustom,
+  POST as registerCustomMla,
+} from "@/app/api/mla/templates/custom/route"
+import { GET as listTemplates } from "@/app/api/mla/templates/route"
 import { prisma } from "@/lib/db"
 
 jest.mock("@/lib/provider", () => ({
@@ -184,8 +184,8 @@ describeWithDatabase("custom MLAs against Postgres", () => {
   })
 
   it("registers the fixture for one borrower", async () => {
-    const response = await createTemplate(
-      request("/api/mla/templates", {
+    const response = await registerCustomMla(
+      request("/api/mla/templates/custom", {
         method: "POST",
         token: tokenFor(admin, SEPOLIA, true),
         body: { ...dummyCustomMla, chainId: SEPOLIA, borrowerId: ownId },
@@ -194,8 +194,8 @@ describeWithDatabase("custom MLAs against Postgres", () => {
     expect(response.status).toBe(200)
     templateId = (await response.json()).id
 
-    const duplicate = await createTemplate(
-      request("/api/mla/templates", {
+    const duplicate = await registerCustomMla(
+      request("/api/mla/templates/custom", {
         method: "POST",
         token: tokenFor(admin, SEPOLIA, true),
         body: { ...dummyCustomMla, chainId: SEPOLIA, borrowerId: ownId },

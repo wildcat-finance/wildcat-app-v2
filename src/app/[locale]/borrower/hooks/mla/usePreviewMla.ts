@@ -24,6 +24,7 @@ import {
   fillInMlaTemplate,
   getFieldValuesForBorrower,
 } from "@/lib/mla"
+import { toDeployedMarketName } from "@/utils/marketName"
 
 import { fetchMlaTemplate } from "./fetchMlaTemplate"
 import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
@@ -46,7 +47,9 @@ export function getFieldValuesForBorrowerFromForm(
   const withdrawalAccess = marketParams.withdrawalRequiresAccess
     ? WithdrawalAccess.RequiresCredential
     : WithdrawalAccess.Open
-  const marketName = `${marketParams.namePrefix}${asset?.name}`
+  // Named exactly as the deployed contract will be, or the server rejects the
+  // borrower's MLA signature.
+  const marketName = toDeployedMarketName(marketParams.namePrefix, asset?.name)
   const marketSymbol = `${marketParams.symbolPrefix}${asset?.symbol}`
   // Deposits are only open if `depositRequiresAccess` is defined and false
   const depositAccess =

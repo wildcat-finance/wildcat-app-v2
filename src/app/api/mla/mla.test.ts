@@ -1,4 +1,5 @@
 /** @jest-environment node */
+import { Prisma } from "@prisma/client"
 import { Market } from "@wildcatfi/wildcat-sdk"
 import { NextRequest } from "next/server"
 
@@ -15,6 +16,7 @@ import {
   GET as getTemplate,
   PATCH as updateTemplate,
 } from "./templates/[id]/route"
+import { POST as registerCustomMla } from "./templates/custom/route"
 import { GET as listTemplates, POST as createTemplate } from "./templates/route"
 
 const SEPOLIA = 11155111
@@ -189,7 +191,7 @@ describe("GET /api/mla/templates/[id]", () => {
     expect(await response.json()).toMatchObject({
       id: 7,
       borrowerId: OWN_BORROWER,
-      version: "1.0",
+      version: dummyCustomMla.version,
     })
   })
 
@@ -203,48 +205,47 @@ describe("GET /api/mla/templates/[id]", () => {
   })
 })
 
-describe("POST /api/mla/templates", () => {
+describe("POST /api/mla/templates/custom", () => {
+  const ownFixture = { ...dummyCustomMla, borrowerId: OWN_BORROWER }
+
   beforeEach(() => {
     loginAs(BORROWER_ADDRESS, true)
     jest.mocked(isAdminForChain).mockResolvedValue(true)
-    jest
-      .mocked(prisma.$transaction)
-      .mockImplementation(async (fn: unknown) =>
-        (fn as (tx: typeof prisma) => unknown)(prisma),
-      )
     jest
       .mocked(prisma.mlaTemplate.create)
       .mockImplementation((({ data }: { data: object }) =>
         Promise.resolve({ id: 9, ...data })) as never)
   })
 
-  it("registers the fixture for one borrower, generating escaped HTML", async () => {
+  const register = (body: unknown) =>
+    registerCustomMla(request("/api/mla/templates/custom", "POST", body))
+
+  it("stores the pasted text word for word with the execution block", async () => {
     jest
       .mocked(prisma.borrower.findUnique)
       .mockResolvedValue({ isTestnet: true } as never)
-    const response = await createTemplate(
-      request("/api/mla/templates", "POST", {
-        ...dummyCustomMla,
-        borrowerId: OWN_BORROWER,
-      }),
-    )
+    const response = await register(ownFixture)
     expect(response.status).toBe(200)
+    expect((await response.json()).id).toBe(9)
     const { data } = jest.mocked(prisma.mlaTemplate.create).mock.calls[0][0]
     expect(data).toMatchObject({
       borrowerId: OWN_BORROWER,
       isTestnet: true,
       name: dummyCustomMla.name,
       version: dummyCustomMla.version,
+      lenderFields: [
+        { source: "lender.address", placeholder: "Lender Address" },
+        { source: "lender.timeSigned", placeholder: "Date Signed" },
+      ],
     })
-    expect(data.html).toContain("<p>MASTER LOAN AGREEMENT")
-    expect(prisma.mlaTemplate.updateMany).not.toHaveBeenCalled()
+    expect(data.plaintext.startsWith(dummyCustomMla.text)).toBe(true)
+    expect(data.plaintext).toContain("Execution details")
+    expect(data.html).toContain("<p>MASTER LOAN AGREEMENT (TEST ONLY)</p>")
   })
 
   it("refuses the fixture unchanged: its borrower id matches nobody", async () => {
     jest.mocked(prisma.borrower.findUnique).mockResolvedValue(null)
-    const response = await createTemplate(
-      request("/api/mla/templates", "POST", dummyCustomMla),
-    )
+    const response = await register(dummyCustomMla)
     expect(response.status).toBe(400)
     expect(prisma.mlaTemplate.create).not.toHaveBeenCalled()
   })
@@ -253,49 +254,58 @@ describe("POST /api/mla/templates", () => {
     jest
       .mocked(prisma.borrower.findUnique)
       .mockResolvedValue({ isTestnet: false } as never)
-    const response = await createTemplate(
-      request("/api/mla/templates", "POST", {
-        ...dummyCustomMla,
-        borrowerId: OWN_BORROWER,
-      }),
-    )
-    expect(response.status).toBe(400)
+    expect((await register(ownFixture)).status).toBe(400)
   })
 
-  it("refuses a placeholder that is not listed as a field", async () => {
+  it("refuses text containing {{, which the execution block reserves", async () => {
+    const response = await register({
+      ...ownFixture,
+      text: `${dummyCustomMla.text}\nPay {{amount}}`,
+    })
+    expect(response.status).toBe(400)
+    expect(prisma.mlaTemplate.create).not.toHaveBeenCalled()
+  })
+
+  it("needs a version", async () => {
+    expect((await register({ ...ownFixture, version: "" })).status).toBe(400)
+  })
+
+  it("refuses a second MLA with the same name and version", async () => {
+    jest
+      .mocked(prisma.borrower.findUnique)
+      .mockResolvedValue({ isTestnet: true } as never)
+    jest.mocked(prisma.mlaTemplate.create).mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError("duplicate", {
+        code: "P2002",
+        clientVersion: "6.0.1",
+      }),
+    )
+    expect((await register(ownFixture)).status).toBe(409)
+  })
+
+  it("is admin-only", async () => {
+    jest.mocked(isAdminForChain).mockResolvedValue(false)
+    expect((await register(ownFixture)).status).toBe(403)
+  })
+})
+
+describe("POST /api/mla/templates", () => {
+  it("refuses a market MLA placeholder that is not listed as a field", async () => {
+    loginAs(BORROWER_ADDRESS, true)
+    jest.mocked(isAdminForChain).mockResolvedValue(true)
     const response = await createTemplate(
       request("/api/mla/templates", "POST", {
-        ...dummyCustomMla,
-        borrowerId: OWN_BORROWER,
-        plaintext: `${dummyCustomMla.plaintext}\n{{market.symbol}}`,
+        chainId: SEPOLIA,
+        name: "Market MLA",
+        plaintext: "Market {{market.address}} at {{market.symbol}}",
+        borrowerFields: [{ source: "market.address", placeholder: "" }],
+        lenderFields: [],
       }),
     )
     expect(response.status).toBe(400)
     expect((await response.json()).problems).toEqual([
       "{{market.symbol}} is used in the text but not listed as a field",
     ])
-  })
-
-  it("refuses a custom MLA without a version", async () => {
-    const response = await createTemplate(
-      request("/api/mla/templates", "POST", {
-        ...dummyCustomMla,
-        borrowerId: OWN_BORROWER,
-        version: undefined,
-      }),
-    )
-    expect(response.status).toBe(400)
-  })
-
-  it("is admin-only", async () => {
-    jest.mocked(isAdminForChain).mockResolvedValue(false)
-    const response = await createTemplate(
-      request("/api/mla/templates", "POST", {
-        ...dummyCustomMla,
-        borrowerId: OWN_BORROWER,
-      }),
-    )
-    expect(response.status).toBe(403)
   })
 })
 

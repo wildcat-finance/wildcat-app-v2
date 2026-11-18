@@ -2,7 +2,6 @@ import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
 import { prisma } from "@/lib/db"
-import { isPrismaUniqueConstraintError } from "@/lib/mlaPersistence"
 import {
   getMlaTemplateViewer,
   selectableMlaTemplatesWhere,
@@ -56,8 +55,8 @@ export async function GET(request: NextRequest) {
 }
 
 /// POST /api/mla/templates
-/// Route to create a new MLA template. With `borrowerId` it registers a custom
-/// MLA that only that borrower may select.
+/// Route to create a new market MLA template. Custom MLAs are registered
+/// through POST /api/mla/templates/custom.
 /// Admin-only endpoint.
 export async function POST(request: NextRequest) {
   const token = await verifyApiToken(request)
@@ -77,7 +76,7 @@ export async function POST(request: NextRequest) {
   ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
-  const { chainId, html: inputHtml, borrowerId, ...template } = body
+  const { chainId, html: inputHtml, ...template } = body
   const isTestnet = isTestnetChain(chainId)
   const html = inputHtml?.trim() ? inputHtml : plaintextToHtml(body.plaintext)
   const problems = validateTemplateFields({ ...template, html })
@@ -87,46 +86,23 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     )
   }
-  if (borrowerId) {
-    const borrower = await prisma.borrower.findUnique({
-      where: { id: borrowerId },
-      select: { isTestnet: true },
-    })
-    if (!borrower || borrower.isTestnet !== isTestnet) {
-      return NextResponse.json(
-        { error: `Borrower ${borrowerId} not found for this network` },
-        { status: 400 },
-      )
-    }
-  }
-  try {
-    const mlaTemplate = await prisma.$transaction(async (tx) => {
-      if (template.isDefault) {
-        await tx.mlaTemplate.updateMany({
-          where: {
-            isTestnet,
-            isDefault: true,
-          },
-          data: {
-            isDefault: false,
-          },
-        })
-      }
-      return tx.mlaTemplate.create({
-        data: { ...template, html, isTestnet, borrowerId },
+  const mlaTemplate = await prisma.$transaction(async (tx) => {
+    if (template.isDefault) {
+      await tx.mlaTemplate.updateMany({
+        where: {
+          isTestnet,
+          isDefault: true,
+        },
+        data: {
+          isDefault: false,
+        },
       })
+    }
+    return tx.mlaTemplate.create({
+      data: { ...template, html, isTestnet },
     })
-    return NextResponse.json(mlaTemplate)
-  } catch (error) {
-    if (!isPrismaUniqueConstraintError(error)) throw error
-    return NextResponse.json(
-      {
-        error:
-          "This borrower already has a custom MLA with this name and version",
-      },
-      { status: 409 },
-    )
-  }
+  })
+  return NextResponse.json(mlaTemplate)
 }
 
 export const dynamic = "force-dynamic"

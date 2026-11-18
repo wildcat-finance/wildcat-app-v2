@@ -1,31 +1,33 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import {
   Box,
+  Button,
   FormControl,
   InputLabel,
-  Select,
   MenuItem,
+  Select,
   Typography,
-  Button,
 } from "@mui/material"
-import { Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import type { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { CustomMlaLoginHint } from "@/app/[locale]/borrower/components/CustomMlaLoginHint"
-import { MlaModal } from "@/app/[locale]/borrower/components/MlaModal"
+import { MlaDocument } from "@/app/[locale]/borrower/components/MlaDocument"
 import { useGetMlaTemplates } from "@/app/[locale]/borrower/hooks/mla/useGetMlaTemplates"
 import { usePreviewMla } from "@/app/[locale]/borrower/hooks/mla/usePreviewMla"
 import {
   useBorrowerProfileTmp,
   useSetMarketMLA,
 } from "@/app/[locale]/borrower/hooks/mla/useSignBorrowerMla"
-import { MasterLoanAgreementResponse } from "@/app/api/mla/interface"
+import type { MasterLoanAgreementResponse } from "@/app/api/mla/interface"
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 import { useMarketMla } from "@/hooks/useMarketMla"
-import { BasicBorrowerInfo } from "@/lib/mla"
+import type { BasicBorrowerInfo } from "@/lib/mla"
+import { fillLenderPlaceholders } from "@/lib/mlaTemplateText"
+import { COLORS } from "@/theme/colors"
 import { getMlaTemplateLabel } from "@/utils/mlaTemplateLabel"
 
 const SetMarketMLAForm = ({
@@ -42,7 +44,6 @@ const SetMarketMLAForm = ({
     number | "noMLA" | undefined
   >(undefined)
   const { mutate: signMla, isPending: isSigning } = useSetMarketMLA()
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false)
 
   const { data: previewMla, isLoading: isLoadingPreviewMla } = usePreviewMla(
     marketAccount.market,
@@ -71,16 +72,27 @@ const SetMarketMLAForm = ({
     })) ?? []),
   ]
 
+  const isTemplateSelected = typeof selectedTemplateId === "number"
+
   return (
-    <Box sx={{ width: "100%" }}>
+    <Box
+      sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 2 }}
+    >
       <Typography variant="h6">
         {t("borrowerMarketDetails.mla.template.label")}
       </Typography>
       {!isLoggedIn && <CustomMlaLoginHint />}
       <Box
-        sx={{ display: "flex", flexDirection: "row", gap: 2, width: "100%" }}
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          flexWrap: "wrap",
+          alignItems: "center",
+          gap: 2,
+          width: "100%",
+        }}
       >
-        <FormControl sx={{ mb: 2, width: "200px" }}>
+        <FormControl sx={{ width: "420px", maxWidth: "100%" }}>
           <InputLabel>Select MLA Template</InputLabel>
           <Select
             value={selectedTemplateId || ""}
@@ -98,11 +110,12 @@ const SetMarketMLAForm = ({
             ))}
           </Select>
         </FormControl>
-        {selectedTemplateId === "noMLA" ? (
+        {selectedTemplateId === "noMLA" && (
           <Button
             variant="outlined"
             color="secondary"
             size="small"
+            disabled={isSigning}
             onClick={() =>
               signMla({
                 template: "noMLA",
@@ -114,36 +127,40 @@ const SetMarketMLAForm = ({
           >
             {t("borrowerMarketDetails.mla.buttons.refuse")}
           </Button>
-        ) : (
-          <MlaModal
-            mla={
-              previewMla
-                ? {
-                    html: previewMla.htmlWithPlaceholders,
-                  }
-                : null
+        )}
+        {isTemplateSelected && (
+          <Button
+            variant="contained"
+            size="small"
+            disabled={!previewMla || isLoadingPreviewMla || isSigning}
+            onClick={() =>
+              previewMla &&
+              signMla({
+                template: previewMla.mlaTemplate,
+                timeSigned,
+                market: marketAccount.market,
+                profile: borrowerProfile,
+              })
             }
-            isLoading={isLoadingPreviewMla}
-            onSign={() =>
-              previewMla
-                ? signMla({
-                    template: previewMla.mlaTemplate,
-                    timeSigned,
-                    market: marketAccount.market,
-                    profile: borrowerProfile,
-                  })
-                : {}
-            }
-            showSignButton
-            disableModalButton={!selectedTemplateId || isLoadingPreviewMla}
-            buttonText={
-              isLoadingPreviewMla
-                ? t("borrowerMarketDetails.mla.buttons.loading")
-                : t("borrowerMarketDetails.mla.buttons.set")
-            }
-          />
+          >
+            {(isSigning && t("mla.signing")) ||
+              (isLoadingPreviewMla &&
+                t("borrowerMarketDetails.mla.buttons.loading")) ||
+              t("mla.signAndSet")}
+          </Button>
         )}
       </Box>
+      {isTemplateSelected && previewMla && (
+        <>
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            {t("mla.previewCaption")}
+          </Typography>
+          <MlaDocument
+            html={previewMla.htmlWithPlaceholders}
+            title={t("mla.previewTitle")}
+          />
+        </>
+      )}
     </Box>
   )
 }
@@ -175,25 +192,47 @@ const ShowExistingMla = ({
     version: mla.templateVersion,
     isCustom: mla.isCustomTemplate,
   })
+  // The agreement as the borrower signed it, with each lender's details
+  // shown as placeholders, as the market's MLA download shows it.
+  const html = useMemo(
+    () => fillLenderPlaceholders(mla.html, mla.lenderFields),
+    [mla],
+  )
+  const { address, chainId } = marketAccount.market
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-      <Typography variant="text3">
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <Typography variant="h6">
         {t("mla.governing", {
           name: label,
           interpolation: { escapeValue: false },
         })}
       </Typography>
-      <MlaModal
-        mla={mla}
-        isLoading={false}
-        showSignButton={false}
-        buttonText={t("mla.viewNamed", {
-          name: label,
-          interpolation: { escapeValue: false },
-        })}
-        downloadPdfUrl={`/api/mla/${marketAccount.market.address}/pdf?chainId=${marketAccount.market.chainId}`}
-        downloadSignedUrl={`/api/mla/${marketAccount.market.address}/signed?chainId=${marketAccount.market.chainId}`}
-      />
+      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+        <Button
+          variant="outlined"
+          color="secondary"
+          size="small"
+          onClick={() =>
+            window.open(`/api/mla/${address}/pdf?chainId=${chainId}`, "_blank")
+          }
+        >
+          {t("mla.downloadPdf")}
+        </Button>
+        <Button
+          variant="outlined"
+          color="secondary"
+          size="small"
+          onClick={() =>
+            window.open(
+              `/api/mla/${address}/signed?chainId=${chainId}`,
+              "_blank",
+            )
+          }
+        >
+          {t("mla.downloadSigned")}
+        </Button>
+      </Box>
+      <MlaDocument html={html} title={label} />
     </Box>
   )
 }

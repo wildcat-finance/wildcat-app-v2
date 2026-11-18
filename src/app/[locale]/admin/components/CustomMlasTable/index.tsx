@@ -137,19 +137,30 @@ export const CustomMlasTable = () => {
       <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
         <RegisterCustomMlaModal />
       </Box>
-      {isLoading ? (
+      {isLoading && (
         <Skeleton
           height="52px"
           width="100%"
           sx={{ bgcolor: COLORS.athensGrey }}
         />
-      ) : (
+      )}
+      {!isLoading && !data?.length && (
+        <Typography
+          variant="text3"
+          color={COLORS.santasGrey}
+          sx={{ textAlign: "center", padding: "32px 0" }}
+        >
+          {t("admin.customMla.empty")}
+        </Typography>
+      )}
+      {!isLoading && !!data?.length && (
         <DataGrid
-          sx={{ overflow: "auto", maxWidth: "calc(100vw - 267px)" }}
-          rows={data ?? []}
+          sx={{ maxWidth: "calc(100vw - 267px)" }}
+          autoHeight
+          rows={data}
           columns={columns}
           columnHeaderHeight={40}
-          localeText={{ noRowsLabel: t("admin.customMla.empty") }}
+          hideFooter={data.length <= 100}
         />
       )}
       {retiring && (

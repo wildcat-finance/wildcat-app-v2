@@ -1,119 +1,59 @@
 "use client"
 
 import * as React from "react"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 
 import {
   Box,
   Button,
   Dialog,
-  IconButton,
   MenuItem,
   TextField,
   Typography,
 } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
+import { CustomMlaTemplateForAdminView } from "@/app/api/mla/interface"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
 import {
-  MlaFieldValueKey,
-  MlaFieldValueKeys,
-  MlaTemplateField,
-} from "@/lib/mlaFields"
-import {
-  deriveTemplateFields,
-  isLenderField,
-  plaintextToHtml,
-  validateTemplateFields,
+  buildCustomMlaTemplate,
+  fillWithPlaceholders,
+  hasTemplateBraces,
 } from "@/lib/mlaTemplateText"
 import { COLORS } from "@/theme/colors"
 
 import { useBorrowerOrganisations } from "../../hooks/useBorrowerOrganisations"
-import { useRegisterCustomMla } from "../../hooks/useCustomMlaTemplates"
+import {
+  useCustomMlaTemplates,
+  useRegisterCustomMla,
+} from "../../hooks/useCustomMlaTemplates"
 
-const BORROWER_SOURCES = MlaFieldValueKeys.filter(
-  (source) => !isLenderField(source),
-)
-const LENDER_SOURCES = MlaFieldValueKeys.filter(isLenderField)
+// The theme pins every TextField root to a fixed height, which clips a
+// multi-line field and pushes its help text over the next field.
+const GROWING_FIELD = {
+  height: "auto",
+  "& .MuiInputBase-root": {
+    height: "auto",
+    alignItems: "flex-start",
+    padding: 0,
+  },
+}
 
-const FieldList = ({
-  title,
-  fields,
-  sources,
-  onChange,
-}: {
-  title: string
-  fields: MlaTemplateField[]
-  sources: readonly MlaFieldValueKey[]
-  onChange: (fields: MlaTemplateField[]) => void
-}) => {
-  const { t } = useTranslation()
-  const update = (index: number, field: Partial<MlaTemplateField>) =>
-    onChange(
-      fields.map((current, i) =>
-        i === index ? { ...current, ...field } : current,
-      ),
-    )
-  return (
-    <Box display="flex" flexDirection="column" gap="8px">
-      <Typography variant="text2">{title}</Typography>
-      {fields.map((field, index) => (
-        <Box
-          // eslint-disable-next-line react/no-array-index-key
-          key={index}
-          display="flex"
-          gap="8px"
-          alignItems="center"
-        >
-          <TextField
-            select
-            size="small"
-            label={t("admin.customMla.fieldSource")}
-            value={field.source}
-            onChange={(e) =>
-              update(index, { source: e.target.value as MlaFieldValueKey })
-            }
-            sx={{ width: "45%" }}
-          >
-            {sources.map((source) => (
-              <MenuItem key={source} value={source}>
-                {source}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            size="small"
-            label={t("admin.customMla.fieldPlaceholder")}
-            value={field.placeholder}
-            onChange={(e) => update(index, { placeholder: e.target.value })}
-            sx={{ flex: 1 }}
-          />
-          <IconButton
-            aria-label={t("admin.customMla.removeField")}
-            onClick={() => onChange(fields.filter((_, i) => i !== index))}
-          >
-            ×
-          </IconButton>
-        </Box>
-      ))}
-      <Button
-        variant="text"
-        size="small"
-        sx={{ width: "fit-content" }}
-        onClick={() =>
-          onChange([
-            ...fields,
-            { source: sources[0], placeholder: `[${sources[0]}]` },
-          ])
-        }
-      >
-        {t("admin.customMla.addField")}
-      </Button>
-    </Box>
+/// The version to suggest for a borrower's next custom MLA: one above its
+/// highest numbered version, or a count when versions are not numbers.
+export const nextCustomMlaVersion = (
+  existing: Pick<CustomMlaTemplateForAdminView, "version">[],
+) => {
+  const numbers = existing
+    .map(({ version }) => Number(version))
+    .filter((version) => Number.isInteger(version))
+  return String(
+    numbers.length > 0 ? Math.max(...numbers) + 1 : existing.length + 1,
   )
 }
 
-/// Register a custom MLA, entered by hand, for one borrower.
+/// Register a custom MLA for one borrower: the agreement text exactly as the
+/// borrower supplied it.
 export const RegisterCustomMlaModal = () => {
   const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
@@ -122,29 +62,32 @@ export const RegisterCustomMlaModal = () => {
   const [name, setName] = useState("")
   const [version, setVersion] = useState("")
   const [description, setDescription] = useState("")
-  const [plaintext, setPlaintext] = useState("")
-  const [html, setHtml] = useState("")
-  const [borrowerFields, setBorrowerFields] = useState<MlaTemplateField[]>([])
-  const [lenderFields, setLenderFields] = useState<MlaTemplateField[]>([])
+  const [text, setText] = useState("")
 
   const { data: organisations } = useBorrowerOrganisations()
+  const { data: customMlas } = useCustomMlaTemplates()
   const { mutate, isPending, error, reset } = useRegisterCustomMla()
 
-  const effectiveHtml = html.trim() ? html : plaintextToHtml(plaintext)
-  const problems = useMemo(
-    () =>
-      plaintext.trim()
-        ? validateTemplateFields({
-            plaintext,
-            html: effectiveHtml,
-            borrowerFields,
-            lenderFields,
-          })
-        : [],
-    [plaintext, effectiveHtml, borrowerFields, lenderFields],
-  )
+  const borrower = organisations?.find(({ id }) => id === borrowerId)
+  const borrowerMlas =
+    customMlas?.filter((mla) => mla.borrowerId === borrowerId) ?? []
+  const hasBraces = hasTemplateBraces(text)
   const isComplete =
-    !!borrowerId && !!name.trim() && !!version.trim() && !!plaintext.trim()
+    !!borrowerId && !!name.trim() && !!version.trim() && !!text.trim()
+
+  const handleSelectBorrower = (id: string) => {
+    const selected = organisations?.find(
+      (organisation) => organisation.id === id,
+    )
+    setBorrowerId(id)
+    if (!selected) return
+    setName(`${selected.name} MLA`)
+    setVersion(
+      nextCustomMlaVersion(
+        customMlas?.filter((mla) => mla.borrowerId === id) ?? [],
+      ),
+    )
+  }
 
   const handleClose = () => {
     if (isPending) return
@@ -154,20 +97,8 @@ export const RegisterCustomMlaModal = () => {
     setName("")
     setVersion("")
     setDescription("")
-    setPlaintext("")
-    setHtml("")
-    setBorrowerFields([])
-    setLenderFields([])
+    setText("")
     reset()
-  }
-
-  const handleDetectFields = () => {
-    const derived = deriveTemplateFields(
-      [plaintext, html],
-      [...borrowerFields, ...lenderFields],
-    )
-    setBorrowerFields(derived.borrowerFields)
-    setLenderFields(derived.lenderFields)
   }
 
   const handleSubmit = () =>
@@ -177,10 +108,7 @@ export const RegisterCustomMlaModal = () => {
         name: name.trim(),
         version: version.trim(),
         description: description.trim() || undefined,
-        plaintext,
-        html: html.trim() ? html : undefined,
-        borrowerFields,
-        lenderFields,
+        text,
       },
       { onSuccess: handleClose },
     )
@@ -225,8 +153,22 @@ export const RegisterCustomMlaModal = () => {
             select
             label={t("admin.customMla.borrower")}
             value={borrowerId}
-            onChange={(e) => setBorrowerId(e.target.value)}
+            onChange={(e) => handleSelectBorrower(e.target.value)}
+            helperText={
+              borrower &&
+              (borrowerMlas.length === 0
+                ? t("admin.customMla.firstForBorrower", {
+                    borrower: borrower.name,
+                    interpolation: { escapeValue: false },
+                  })
+                : t("admin.customMla.existingForBorrower", {
+                    borrower: borrower.name,
+                    count: borrowerMlas.length,
+                    interpolation: { escapeValue: false },
+                  }))
+            }
             fullWidth
+            sx={{ height: "auto" }}
           >
             {organisations?.map((organisation) => (
               <MenuItem key={organisation.id} value={organisation.id}>
@@ -257,51 +199,35 @@ export const RegisterCustomMlaModal = () => {
             fullWidth
           />
           <TextField
-            label={t("admin.customMla.plaintext")}
-            helperText={t("admin.customMla.plaintextHelp", {
-              borrowerExample: "{{borrower.name}}",
-              lenderExample: "{{lender.address}}",
-            })}
-            value={plaintext}
-            onChange={(e) => setPlaintext(e.target.value)}
+            label={t("admin.customMla.text")}
+            helperText={
+              hasBraces
+                ? t("admin.customMla.braces")
+                : t("admin.customMla.textHelp")
+            }
+            error={hasBraces}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
             multiline
             minRows={10}
             maxRows={24}
             fullWidth
+            sx={GROWING_FIELD}
           />
-          <TextField
-            label={t("admin.customMla.html")}
-            helperText={t("admin.customMla.htmlHelp")}
-            value={html}
-            onChange={(e) => setHtml(e.target.value)}
-            multiline
-            minRows={3}
-            maxRows={16}
-            fullWidth
-          />
-          <Box display="flex" gap="12px">
-            <Button
-              variant="outlined"
-              size="small"
-              disabled={!plaintext.trim()}
-              onClick={handleDetectFields}
-            >
-              {t("admin.customMla.detectFields")}
-            </Button>
-            <Button
-              variant="outlined"
-              size="small"
-              disabled={!plaintext.trim()}
-              onClick={() => setShowPreview((shown) => !shown)}
-            >
-              {showPreview
-                ? t("admin.customMla.hidePreview")
-                : t("admin.customMla.showPreview")}
-            </Button>
-          </Box>
+          <Button
+            variant="outlined"
+            size="small"
+            sx={{ width: "fit-content" }}
+            disabled={!text.trim()}
+            onClick={() => setShowPreview((shown) => !shown)}
+          >
+            {showPreview
+              ? t("admin.customMla.hidePreview")
+              : t("admin.customMla.showPreview")}
+          </Button>
           {showPreview && (
             <iframe
-              srcDoc={effectiveHtml}
+              srcDoc={fillWithPlaceholders(buildCustomMlaTemplate(text))}
               title={t("admin.customMla.preview")}
               sandbox=""
               style={{
@@ -311,32 +237,6 @@ export const RegisterCustomMlaModal = () => {
               }}
             />
           )}
-          <FieldList
-            title={t("admin.customMla.borrowerFields")}
-            fields={borrowerFields}
-            sources={BORROWER_SOURCES}
-            onChange={setBorrowerFields}
-          />
-          <FieldList
-            title={t("admin.customMla.lenderFields")}
-            fields={lenderFields}
-            sources={LENDER_SOURCES}
-            onChange={setLenderFields}
-          />
-          {problems.length > 0 && (
-            <Box component="ul" sx={{ margin: 0, paddingLeft: "20px" }}>
-              {problems.map((problem) => (
-                <Typography
-                  component="li"
-                  key={problem}
-                  variant="text3"
-                  color={COLORS.wildWatermelon}
-                >
-                  {problem}
-                </Typography>
-              ))}
-            </Box>
-          )}
           {error && (
             <Typography variant="text3" color={COLORS.wildWatermelon}>
               {error.message}
@@ -345,7 +245,7 @@ export const RegisterCustomMlaModal = () => {
           <Button
             variant="contained"
             size="large"
-            disabled={!isComplete || problems.length > 0 || isPending}
+            disabled={!isComplete || hasBraces || isPending}
             onClick={handleSubmit}
           >
             {isPending

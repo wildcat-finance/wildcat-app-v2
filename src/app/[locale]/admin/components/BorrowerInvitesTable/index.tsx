@@ -275,6 +275,10 @@ export const BorrowerInvitesTable = () => {
           },
         }}
         rows={tableData}
+        // An invitation is a registration: one address on one network.
+        getRowId={(row: BorrowerInvitationRow) =>
+          `${row.chainId}:${row.address}`
+        }
         columns={columns}
         columnHeaderHeight={40}
         getRowHeight={() => "auto"}
