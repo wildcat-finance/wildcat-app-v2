@@ -378,7 +378,9 @@ export async function getMarketMlaDecision(
 ) {
   return prisma.marketMlaDecision.findUnique({
     where: { chainId_market: { chainId, market: market.toLowerCase() } },
-    include: { template: { select: { name: true } } },
+    include: {
+      template: { select: { name: true, version: true, borrowerId: true } },
+    },
   })
 }
 
@@ -417,6 +419,8 @@ export const toMasterLoanAgreementResponse = (
     plaintext: decision.plaintext,
     templateId: decision.templateId,
     templateName: decision.template?.name ?? "",
+    templateVersion: decision.template?.version ?? undefined,
+    isCustomTemplate: !!decision.template?.borrowerId,
     lenderFields: decision.lenderFields as MlaTemplateField[],
     borrowerSignature,
   }

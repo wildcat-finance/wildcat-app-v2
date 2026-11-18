@@ -2,8 +2,8 @@
   "counts": {
     "bytes_asset": 206567,
     "bytes_binary": 102801,
-    "bytes_blob": 186479,
-    "bytes_generated": 308929
+    "bytes_blob": 20102,
+    "bytes_generated": 341143
   },
   "entries": [
     {
@@ -154,6 +154,20 @@
       "path": "prisma/migrations/20261022000000_terms_of_use_v3/migration.sql"
     },
     {
+      "bytes": 30916,
+      "category": "generated",
+      "evidence": "sql file under a migrations directory segment",
+      "grade": "candidate",
+      "path": "prisma/migrations/20261118000000_borrower_organisations/migration.sql"
+    },
+    {
+      "bytes": 1298,
+      "category": "generated",
+      "evidence": "sql file under a migrations directory segment",
+      "grade": "candidate",
+      "path": "prisma/migrations/20261118010000_custom_mla_templates/migration.sql"
+    },
+    {
       "bytes": 1375,
       "category": "asset",
       "evidence": "svg root element in the first 4096 bytes",
@@ -173,13 +187,6 @@
       "evidence": "svg root element in the first 4096 bytes",
       "grade": "candidate",
       "path": "public/wildcat-logo.svg"
-    },
-    {
-      "bytes": 166377,
-      "category": "blob",
-      "evidence": "mean line length above 400 in the first 4096 bytes",
-      "grade": "candidate",
-      "path": "src/app/api/mla/default-mla.json"
     },
     {
       "bytes": 102801,

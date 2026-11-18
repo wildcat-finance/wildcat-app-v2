@@ -13,8 +13,13 @@ import {
   toBorrowerProfile,
   toMasterLoanAgreementResponse,
 } from "@/lib/db"
-import { fillInMlaTemplate, getFieldValuesForBorrower } from "@/lib/mla"
+import {
+  fillInMlaTemplate,
+  getFieldValuesForBorrower,
+  MlaTemplateField,
+} from "@/lib/mla"
 import { lockMlaAssignment, toStoredSignature } from "@/lib/mlaPersistence"
+import { canSelectMlaTemplate } from "@/lib/mlaTemplateAccess"
 import { isTestnetChain } from "@/lib/networkClass"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
@@ -23,11 +28,7 @@ import { getZodParseError } from "@/lib/zod-error"
 import { isServiceAgreementTimeSignedInBounds } from "@/utils/serviceAgreementMessage"
 
 import { SetMasterLoanAgreementInputDTO } from "./dto"
-import {
-  lastSlaUpdateTime,
-  MlaTemplate,
-  SetMasterLoanAgreementInput,
-} from "../interface"
+import { lastSlaUpdateTime, SetMasterLoanAgreementInput } from "../interface"
 
 /// GET /api/mla/[market]?chainId=<chainId>
 /// Route to get the MLA for a given market.
@@ -120,25 +121,13 @@ export async function POST(
   )
   const address = market.borrower.toLowerCase()
 
-  const mlaTemplate: MlaTemplate | undefined = await prisma.mlaTemplate
-    .findFirst({
-      where: {
-        id: body.mlaTemplate,
-        isTestnet: isTestnetChain(chainId),
-      },
-    })
-    .then((obj) => {
-      if (!obj) return undefined
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { isDefault, hide, description, ...rest } = obj
-      return {
-        ...rest,
-        description: description || undefined,
-        hide: hide || false,
-        isDefault: isDefault || false,
-      } as MlaTemplate
-    })
-  if (!mlaTemplate) {
+  const template = await prisma.mlaTemplate.findFirst({
+    where: {
+      id: body.mlaTemplate,
+      isTestnet: isTestnetChain(chainId),
+    },
+  })
+  if (!template) {
     return NextResponse.json(
       { error: "MLA template not found" },
       { status: 400 },
@@ -150,6 +139,20 @@ export async function POST(
       { error: "Borrower profile not found" },
       { status: 400 },
     )
+  }
+  // A custom MLA belongs to one borrower, and a retired template takes no new
+  // markets. The pick lists only present this; here it is enforced.
+  if (!canSelectMlaTemplate(template, registration.borrowerId)) {
+    return NextResponse.json(
+      { error: "MLA template not available to this borrower" },
+      { status: 400 },
+    )
+  }
+  const mlaTemplate = {
+    html: template.html,
+    plaintext: template.plaintext,
+    borrowerFields: template.borrowerFields as MlaTemplateField[],
+    lenderFields: template.lenderFields as MlaTemplateField[],
   }
   const borrowerProfile = toBorrowerProfile(
     registration.address,
@@ -203,7 +206,7 @@ export async function POST(
           ...toStoredSignature(signature),
           signature: body.signature,
           timeSigned: new Date(body.timeSigned),
-          templateId: mlaTemplate.id,
+          templateId: template.id,
           html,
           plaintext,
           lenderFields: mlaTemplate.lenderFields,

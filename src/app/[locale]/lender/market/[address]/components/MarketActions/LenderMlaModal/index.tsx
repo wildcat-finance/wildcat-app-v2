@@ -6,6 +6,8 @@ import { Box, Button, Modal } from "@mui/material"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
+import { getMlaTemplateLabel } from "@/utils/mlaTemplateLabel"
+
 import { LenderMlaModalProps } from "./interface"
 import { useSignLenderMLA } from "../../../../../hooks/useSignLenderMla"
 import { useGetSignedMla } from "../../../../../hooks/useSignMla"
@@ -46,13 +48,24 @@ export const LenderMlaModal = ({
     return null
   }, [signedMla, address, mla, chainId])
 
-  const buttonText =
-    // eslint-disable-next-line no-nested-ternary
-    mla === null
-      ? t("lenderMarketDetails.buttons.mlaNotSet")
-      : mlaInput && "noMLA" in mlaInput
-        ? t("lenderMarketDetails.buttons.mlaRefused")
-        : t("lenderMarketDetails.buttons.viewMla")
+  // Names the agreement that governs the market: the market MLA or the
+  // borrower's custom MLA.
+  const getButtonText = () => {
+    if (mla === null) return t("lenderMarketDetails.buttons.mlaNotSet")
+    if (mlaInput && "noMLA" in mlaInput) {
+      return t("lenderMarketDetails.buttons.mlaRefused")
+    }
+    if (!mla) return t("lenderMarketDetails.buttons.viewMla")
+    return t("mla.viewNamed", {
+      name: getMlaTemplateLabel(t, {
+        name: mla.templateName,
+        version: mla.templateVersion,
+        isCustom: mla.isCustomTemplate,
+      }),
+      interpolation: { escapeValue: false },
+    })
+  }
+  const buttonText = getButtonText()
 
   return (
     <>
@@ -62,9 +75,21 @@ export const LenderMlaModal = ({
         size="small"
         disabled={isLoading || !mla || signedMlaLoading || isPending}
         onClick={() => mla && setIsMlaOpen(true)}
-        sx={{ height: "28px" }}
+        title={buttonText}
+        sx={{ height: "28px", maxWidth: "320px" }}
       >
-        {(isLoading && "Loading MLA...") || buttonText}
+        <Box
+          component="span"
+          sx={{
+            display: "block",
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {(isLoading && "Loading MLA...") || buttonText}
+        </Box>
       </Button>
       <Modal
         open={isMlaOpen}

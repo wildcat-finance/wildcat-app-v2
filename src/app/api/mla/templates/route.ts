@@ -1,9 +1,13 @@
-/// GET /api/mla/templates
-
 import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
 import { prisma } from "@/lib/db"
+import { isPrismaUniqueConstraintError } from "@/lib/mlaPersistence"
+import {
+  getMlaTemplateViewer,
+  selectableMlaTemplatesWhere,
+} from "@/lib/mlaTemplateAccess"
+import { plaintextToHtml, validateTemplateFields } from "@/lib/mlaTemplateText"
 import { isTestnetChain } from "@/lib/networkClass"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 import { getZodParseError } from "@/lib/zod-error"
@@ -12,37 +16,48 @@ import { CreateMlaTemplateInputDTO } from "./dto"
 import { isAdminForChain, verifyApiToken } from "../../auth/verify-header"
 import { CreateMlaTemplateInput, MlaTemplateMetadata } from "../interface"
 
-/// Route to get list of all MLA templates for a chain's network class.
+/// GET /api/mla/templates?chainId=<chainId>
+/// The MLA templates a borrower may pick on this network: the market MLAs of
+/// the network's class, plus the caller's own custom MLAs when the request
+/// carries the borrower's API token for this network.
 export async function GET(request: NextRequest) {
   const chainId = validateChainIdParam(request)
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
   }
+  const viewer = await getMlaTemplateViewer(request, chainId)
   const mlas: MlaTemplateMetadata[] = (
     await prisma.mlaTemplate.findMany({
-      where: {
-        isTestnet: isTestnetChain(chainId),
-      },
+      where: selectableMlaTemplatesWhere(
+        isTestnetChain(chainId),
+        viewer.borrowerId,
+      ),
       select: {
         id: true,
         isTestnet: true,
+        borrowerId: true,
         name: true,
+        version: true,
         description: true,
         hide: true,
         isDefault: true,
       },
+      orderBy: [{ id: "asc" }],
     })
-  ).map(({ description, hide, isDefault, ...rest }) => ({
+  ).map(({ borrowerId, version, description, ...rest }) => ({
     ...rest,
-    description: description || undefined,
-    hide: hide || false,
-    isDefault: isDefault || false,
+    borrowerId: borrowerId ?? undefined,
+    version: version ?? undefined,
+    description: description ?? undefined,
   }))
-  return NextResponse.json(mlas)
+  return NextResponse.json(mlas, {
+    headers: { "Cache-Control": "private, no-store" },
+  })
 }
 
 /// POST /api/mla/templates
-/// Route to create a new MLA template.
+/// Route to create a new MLA template. With `borrowerId` it registers a custom
+/// MLA that only that borrower may select.
 /// Admin-only endpoint.
 export async function POST(request: NextRequest) {
   const token = await verifyApiToken(request)
@@ -62,23 +77,56 @@ export async function POST(request: NextRequest) {
   ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
-  const { chainId, ...template } = body
+  const { chainId, html: inputHtml, borrowerId, ...template } = body
   const isTestnet = isTestnetChain(chainId)
-  const mlaTemplate = await prisma.$transaction(async (tx) => {
-    if (template.isDefault) {
-      await tx.mlaTemplate.updateMany({
-        where: {
-          isTestnet,
-          isDefault: true,
-        },
-        data: {
-          isDefault: false,
-        },
-      })
+  const html = inputHtml?.trim() ? inputHtml : plaintextToHtml(body.plaintext)
+  const problems = validateTemplateFields({ ...template, html })
+  if (problems.length > 0) {
+    return NextResponse.json(
+      { error: "Invalid template fields", problems },
+      { status: 400 },
+    )
+  }
+  if (borrowerId) {
+    const borrower = await prisma.borrower.findUnique({
+      where: { id: borrowerId },
+      select: { isTestnet: true },
+    })
+    if (!borrower || borrower.isTestnet !== isTestnet) {
+      return NextResponse.json(
+        { error: `Borrower ${borrowerId} not found for this network` },
+        { status: 400 },
+      )
     }
-    return tx.mlaTemplate.create({ data: { ...template, isTestnet } })
-  })
-  return NextResponse.json(mlaTemplate)
+  }
+  try {
+    const mlaTemplate = await prisma.$transaction(async (tx) => {
+      if (template.isDefault) {
+        await tx.mlaTemplate.updateMany({
+          where: {
+            isTestnet,
+            isDefault: true,
+          },
+          data: {
+            isDefault: false,
+          },
+        })
+      }
+      return tx.mlaTemplate.create({
+        data: { ...template, html, isTestnet, borrowerId },
+      })
+    })
+    return NextResponse.json(mlaTemplate)
+  } catch (error) {
+    if (!isPrismaUniqueConstraintError(error)) throw error
+    return NextResponse.json(
+      {
+        error:
+          "This borrower already has a custom MLA with this name and version",
+      },
+      { status: 409 },
+    )
+  }
 }
 
 export const dynamic = "force-dynamic"

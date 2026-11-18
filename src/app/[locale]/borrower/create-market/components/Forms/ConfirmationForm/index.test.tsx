@@ -15,6 +15,10 @@ jest.mock("@/app/[locale]/borrower/hooks/mla/usePreviewMla", () => ({
   usePreviewMlaFromForm: () => ({ data: undefined, isLoading: false }),
 }))
 
+jest.mock("@/app/[locale]/borrower/hooks/mla/useGetMlaTemplates", () => ({
+  useGetMlaTemplates: () => ({ data: [], isLoading: false, isLoggedIn: false }),
+}))
+
 jest.mock("@/app/[locale]/borrower/components/MlaModal", () => ({
   MlaModal: () => null,
 }))

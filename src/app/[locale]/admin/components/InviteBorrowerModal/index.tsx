@@ -182,6 +182,7 @@ export const InviteBorrowerModal = () => {
                     {t("admin.inviteBorrower.existingBorrower", {
                       name: selectedOrganisation.name,
                       network: networkName,
+                      interpolation: { escapeValue: false },
                     })}
                   </Typography>
                   <Button

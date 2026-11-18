@@ -9,6 +9,7 @@ import {
 } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
+import { CustomMlaLoginHint } from "@/app/[locale]/borrower/components/CustomMlaLoginHint"
 import { FormFooter } from "@/app/[locale]/borrower/create-market/components/FormFooter"
 import { FormContainer } from "@/app/[locale]/borrower/create-market/components/Forms/style"
 import { useGetMlaTemplates } from "@/app/[locale]/borrower/hooks/mla/useGetMlaTemplates"
@@ -21,6 +22,7 @@ import {
   setIsDisabled,
   setIsValid,
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
+import { getMlaTemplateLabel } from "@/utils/mlaTemplateLabel"
 
 import { MLAFormProps } from "./interface"
 import { MLAOption } from "./style"
@@ -46,8 +48,11 @@ export const MlaForm = ({ form }: MLAFormProps) => {
     setValue("mla", event.target.value)
   }
 
-  const { data: templates, isLoading: isLoadingTemplates } =
-    useGetMlaTemplates()
+  const {
+    data: templates,
+    isLoading: isLoadingTemplates,
+    isLoggedIn,
+  } = useGetMlaTemplates()
   const options = [
     {
       id: "noMLA",
@@ -58,7 +63,10 @@ export const MlaForm = ({ form }: MLAFormProps) => {
       ?.filter((x) => !x.hide)
       .map((template) => ({
         id: template.id.toString(),
-        label: template.name,
+        label: getMlaTemplateLabel(t, {
+          ...template,
+          isCustom: !!template.borrowerId,
+        }),
         value: template.id.toString(),
       })) ?? []),
   ]
@@ -106,6 +114,7 @@ export const MlaForm = ({ form }: MLAFormProps) => {
               sx={MLAOption}
             />
           ))}
+          {!isLoggedIn && <CustomMlaLoginHint />}
           {isLoadingTemplates && (
             <FormControlLabel
               key="loading"

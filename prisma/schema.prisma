@@ -161,8 +161,10 @@ model Borrower {
   registrations BorrowerRegistration[]
   updates       BorrowerProfileUpdateRequest[]
   mlaDecisions  MarketMlaDecision[]
+  mlaTemplates  MlaTemplate[]
 
-  // Foreign key target that keeps registrations in the borrower's class.
+  // Foreign key target that keeps registrations and custom MLA templates in
+  // the borrower's class.
   @@unique([id, isTestnet])
 }
 
@@ -319,20 +321,32 @@ model ServiceAgreementRefusal {
 }
 
 // MLA template, shared by every network of its class. Rows are append-only:
-// a signed agreement points at the template it was filled from.
+// a signed agreement points at the template it was filled from, so a revision
+// is a new row and the old one is retired.
 model MlaTemplate {
-  id             Int     @id @default(autoincrement())
+  id             Int       @id @default(autoincrement())
   isTestnet      Boolean
+  // Set on a custom MLA: the one borrower that may select it. NULL on a market
+  // MLA, which every borrower may select.
+  borrowerId     String?   @db.Uuid
   name           String
+  // Tells revisions of one custom MLA apart; required when borrowerId is set.
+  version        String?
   description    String?
-  hide           Boolean @default(false)
-  isDefault      Boolean @default(false)
+  hide           Boolean   @default(false)
+  isDefault      Boolean   @default(false)
   html           String
   plaintext      String
   borrowerFields Json
   lenderFields   Json
+  // Set when Wildcat retires the template: it leaves every pick list, and the
+  // markets that use it keep their signed agreement.
+  retiredAt      DateTime?
 
+  borrower  Borrower?           @relation(fields: [borrowerId, isTestnet], references: [id, isTestnet], onDelete: Restrict)
   decisions MarketMlaDecision[]
+
+  @@index([borrowerId])
 }
 
 // The borrower's one decision about one market: an assigned agreement or a

@@ -14,6 +14,7 @@ import {
 import { Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
+import { CustomMlaLoginHint } from "@/app/[locale]/borrower/components/CustomMlaLoginHint"
 import { MlaModal } from "@/app/[locale]/borrower/components/MlaModal"
 import { useGetMlaTemplates } from "@/app/[locale]/borrower/hooks/mla/useGetMlaTemplates"
 import { usePreviewMla } from "@/app/[locale]/borrower/hooks/mla/usePreviewMla"
@@ -25,6 +26,7 @@ import { MasterLoanAgreementResponse } from "@/app/api/mla/interface"
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import { BasicBorrowerInfo } from "@/lib/mla"
+import { getMlaTemplateLabel } from "@/utils/mlaTemplateLabel"
 
 const SetMarketMLAForm = ({
   borrowerProfile,
@@ -34,8 +36,7 @@ const SetMarketMLAForm = ({
   marketAccount: MarketAccount
 }) => {
   const { t } = useTranslation()
-  const { data: templates, isLoading: isLoadingTemplates } =
-    useGetMlaTemplates()
+  const { data: templates, isLoggedIn } = useGetMlaTemplates()
   const [timeSigned, setTimeSigned] = useState(0)
   const [selectedTemplateId, setSelectedTemplateId] = useState<
     number | "noMLA" | undefined
@@ -62,7 +63,10 @@ const SetMarketMLAForm = ({
     },
     ...(templates?.map((template) => ({
       id: template.id,
-      label: template.name,
+      label: getMlaTemplateLabel(t, {
+        ...template,
+        isCustom: !!template.borrowerId,
+      }),
       value: template.id,
     })) ?? []),
   ]
@@ -72,6 +76,7 @@ const SetMarketMLAForm = ({
       <Typography variant="h6">
         {t("borrowerMarketDetails.mla.template.label")}
       </Typography>
+      {!isLoggedIn && <CustomMlaLoginHint />}
       <Box
         sx={{ display: "flex", flexDirection: "row", gap: 2, width: "100%" }}
       >
@@ -159,23 +164,39 @@ const NoExistingMla = ({ marketAccount }: { marketAccount: MarketAccount }) => {
 
 const ShowExistingMla = ({
   mla,
-  borrowerProfile,
   marketAccount,
 }: {
   mla: MasterLoanAgreementResponse
-  borrowerProfile: BasicBorrowerInfo
   marketAccount: MarketAccount
-}) => (
-  <Box>
-    <MlaModal
-      mla={mla}
-      isLoading={false}
-      showSignButton={false}
-      downloadPdfUrl={`/api/mla/${marketAccount.market.address}/pdf?chainId=${marketAccount.market.chainId}`}
-      downloadSignedUrl={`/api/mla/${marketAccount.market.address}/signed?chainId=${marketAccount.market.chainId}`}
-    />
-  </Box>
-)
+}) => {
+  const { t } = useTranslation()
+  const label = getMlaTemplateLabel(t, {
+    name: mla.templateName,
+    version: mla.templateVersion,
+    isCustom: mla.isCustomTemplate,
+  })
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+      <Typography variant="text3">
+        {t("mla.governing", {
+          name: label,
+          interpolation: { escapeValue: false },
+        })}
+      </Typography>
+      <MlaModal
+        mla={mla}
+        isLoading={false}
+        showSignButton={false}
+        buttonText={t("mla.viewNamed", {
+          name: label,
+          interpolation: { escapeValue: false },
+        })}
+        downloadPdfUrl={`/api/mla/${marketAccount.market.address}/pdf?chainId=${marketAccount.market.chainId}`}
+        downloadSignedUrl={`/api/mla/${marketAccount.market.address}/signed?chainId=${marketAccount.market.chainId}`}
+      />
+    </Box>
+  )
+}
 
 export const MarketMLA = ({
   marketAccount,
@@ -188,19 +209,15 @@ export const MarketMLA = ({
     marketAccount.market.address,
     marketAccount.market.chainId,
   )
+  const { t } = useTranslation()
   if (isLoadingMarketMla || isLoadingBorrowerProfile)
     return <div>Loading...</div>
 
   if (!borrowerProfile) return <Box>No Borrower Profile</Box>
   if (!marketAccount.isBorrower) return <Box>Wrong Borrower Address</Box>
-  if (marketMla && "noMLA" in marketMla) return <Box>Borrower Declined MLA</Box>
+  if (marketMla && "noMLA" in marketMla)
+    return <Box>{t("mla.governing", { name: t("mla.noMla") })}</Box>
   if (marketMla)
-    return (
-      <ShowExistingMla
-        mla={marketMla}
-        borrowerProfile={borrowerProfile as BasicBorrowerInfo}
-        marketAccount={marketAccount}
-      />
-    )
+    return <ShowExistingMla mla={marketMla} marketAccount={marketAccount} />
   return <NoExistingMla marketAccount={marketAccount} />
 }

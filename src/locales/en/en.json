@@ -80,6 +80,15 @@
     "subtitle": "Receive notifications for market\u00a0events",
     "button": "Subscribe"
   },
+  "mla": {
+    "marketMla": "Market MLA",
+    "customMla": "{{name}} ({{version}})",
+    "noMla": "No MLA",
+    "governing": "Governing MLA: {{name}}",
+    "viewNamed": "View/Sign {{name}}",
+    "loginForCustom": "Log in to see the custom MLAs registered for your organisation.",
+    "login": "Log in"
+  },
   "admin": {
     "inviteBorrower": {
       "button": "Invite Borrower",
@@ -119,6 +128,40 @@
       "title": "Cancel Invitation",
       "description": "Are you sure you want to cancel the invitation for {{name}} ({{address}})? This action cannot be undone.",
       "confirm": "Cancel Invitation"
+    },
+    "customMla": {
+      "section": "Custom MLAs",
+      "register": "Register Custom MLA",
+      "title": "Register Custom MLA",
+      "description": "The MLA is offered only to the chosen borrower, on every network of this network's class. It cannot be edited after registration: register a new version and retire the old one.",
+      "borrower": "Borrower",
+      "name": "Name",
+      "version": "Version",
+      "notes": "Description (optional)",
+      "plaintext": "Agreement text",
+      "plaintextHelp": "The exact text the borrower and lenders sign. Mark values with fields such as {{borrowerExample}} or {{lenderExample}}.",
+      "html": "Formatted HTML (optional)",
+      "htmlHelp": "Shown and downloaded instead of the plain text. Leave empty to generate it from the agreement text.",
+      "detectFields": "Detect fields from text",
+      "showPreview": "Show preview",
+      "hidePreview": "Hide preview",
+      "preview": "Custom MLA preview",
+      "borrowerFields": "Borrower fields (filled in when the borrower signs)",
+      "lenderFields": "Lender fields (filled in when each lender signs)",
+      "fieldSource": "Field",
+      "fieldPlaceholder": "Shown before it is filled",
+      "addField": "+ Add field",
+      "removeField": "Remove field",
+      "submit": "Register",
+      "registering": "Registering...",
+      "markets": "Markets",
+      "status": "Status",
+      "active": "Active",
+      "retiredOn": "Retired {{date}}",
+      "retire": "Retire",
+      "retireTitle": "Retire Custom MLA",
+      "retireDescription": "Retire {{name}} ({{version}}) for {{borrower}}? It leaves the MLA list for new markets. Markets that already use it keep it, and it stays readable and downloadable there. This cannot be undone.",
+      "empty": "No custom MLAs on this network class yet"
     },
     "editBorrower": {
       "button": "Edit",

@@ -19,27 +19,44 @@ export interface MlaTemplateMetadata {
   id: number
   isTestnet: boolean
   name: string
+  /* Set on a custom MLA, which only its borrower may select */
+  borrowerId?: string
+  version?: string
   description?: string
   hide?: boolean
   isDefault?: boolean
 }
 
-export interface MlaTemplate {
-  id: number
-  isTestnet: boolean
-  name: string
-  description?: string
-  hide?: boolean
-  isDefault?: boolean
+export interface MlaTemplate extends MlaTemplateMetadata {
   html: string
   plaintext: string
   borrowerFields: MlaTemplateField[]
   lenderFields: MlaTemplateField[]
 }
 
-export type CreateMlaTemplateInput = Omit<MlaTemplate, "id" | "isTestnet"> & {
+export type CreateMlaTemplateInput = Omit<
+  MlaTemplate,
+  "id" | "isTestnet" | "html"
+> & {
   /* An admin network; the template serves every network of its class */
   chainId: SupportedChainId
+  /* Generated from the plain text when omitted */
+  html?: string
+}
+
+/// A custom MLA as the admin screen lists it.
+export type CustomMlaTemplateForAdminView = MlaTemplateMetadata & {
+  borrowerId: string
+  borrowerName: string
+  version: string
+  retiredAt?: Date
+  /* Markets whose agreement was filled from this template */
+  marketCount: number
+}
+
+export type UpdateMlaTemplateInput = {
+  /* Retiring removes the template from every pick list; it cannot be undone */
+  retired: true
 }
 
 export type MlaSignatureResponse = {
@@ -71,6 +88,9 @@ export type MasterLoanAgreementResponse = {
   plaintext: string
   templateId: number
   templateName: string
+  templateVersion?: string
+  /* The agreement was filled from a custom MLA registered for this borrower */
+  isCustomTemplate: boolean
   lenderFields: MlaTemplateField[]
   borrowerSignature: MlaSignatureResponse
 }
