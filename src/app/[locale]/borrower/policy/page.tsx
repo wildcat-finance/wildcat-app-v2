@@ -16,7 +16,10 @@ import { LendersTab } from "@/app/[locale]/borrower/policy/components/LendersTab
 import { EditLenderFlowStatuses } from "@/app/[locale]/borrower/policy/components/LendersTab/interface"
 import { MarketsTab } from "@/app/[locale]/borrower/policy/components/MarketsTab"
 import { PolicySelect } from "@/app/[locale]/borrower/policy/components/PolicySelect"
-import { POLICY_TYPE_KEY } from "@/constants/i18nKeys"
+import {
+  POLICY_TYPE_KEY,
+  POLICY_ACCESS_CONTROL_KEY,
+} from "@/constants/i18nKeys"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { CreateMarketSteps } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import {
@@ -27,7 +30,7 @@ import {
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 import { pageCalcHeights } from "@/utils/constants"
-import { hasActiveLenderOnboardingRoleProvider } from "@/utils/marketCapabilities"
+import { getPolicyAccessControl } from "@/utils/marketCapabilities"
 import { mergePolicyLenderAccess } from "@/utils/policyLenderAccess"
 import { shouldSyncPolicyLenderDraft } from "@/utils/policyLenderDraft"
 
@@ -97,11 +100,11 @@ export default function PolicyPage() {
     }
   }, [data, policyName, policyAddress])
 
-  const accessControl = hasActiveLenderOnboardingRoleProvider(
-    data?.hooksInstance?.roleProviders ?? [],
+  const accessControl = t(
+    POLICY_ACCESS_CONTROL_KEY[
+      getPolicyAccessControl(data?.hooksInstance?.roleProviders ?? [])
+    ],
   )
-    ? t("marketParameters.roleProviders.defaultPullProvider")
-    : t("marketParameters.roleProviders.manualApproval")
 
   const [tab, setTab] = useState<PolicyTabs>(PolicyTabs.DETAILS)
 

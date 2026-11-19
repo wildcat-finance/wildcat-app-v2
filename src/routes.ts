@@ -6,6 +6,7 @@ export const ROUTES = {
   // Legacy lender onboarding URL. New navigation should use the explicit
   // lender/borrower agreement routes below.
   agreement: "/agreement",
+  kycAdmin: "/admin/kyc",
   profile: {
     borrower: `${PROFILE_ROOT}/borrower`,
   },

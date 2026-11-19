@@ -294,3 +294,35 @@ describe("createMarketDeploy", () => {
     expect(getDeployMarketPreviewError(status)).toBe(expected)
   })
 })
+
+it("attaches the deployed shared KYC provider only for a new policy on a supported chain", () => {
+  const input = {
+    accessControl: "sharedKyc",
+    chainId: SupportedChainId.Sepolia,
+    borrower: zeroAddress,
+    salt: "",
+    hasExistingHooks: false,
+  }
+  expect(getCreateMarketRoleProviderInputs(input)).toEqual({
+    existingProviders: [
+      {
+        providerAddress: getDeploymentAddress(
+          SupportedChainId.Sepolia,
+          "KYCRoleProvider",
+        ),
+        timeToLive: 0,
+      },
+    ],
+    newProviderInputs: [],
+    roleProviderFactory: zeroAddress,
+  })
+  expect(
+    getCreateMarketRoleProviderInputs({ ...input, hasExistingHooks: true }),
+  ).toEqual({})
+  expect(() =>
+    getCreateMarketRoleProviderInputs({
+      ...input,
+      chainId: SupportedChainId.Mainnet,
+    }),
+  ).toThrow("unavailable")
+})

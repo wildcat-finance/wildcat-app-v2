@@ -31,6 +31,8 @@ import {
 import { COLORS } from "@/theme/colors"
 import {
   BORROW_REPAY_SECTION,
+  LENDERS_SECTION,
+  MLA_SECTION,
   showBorrowRepayTab,
   STATUS_DETAILS_SECTION,
 } from "@/utils/borrowerMarketSections"
@@ -252,7 +254,7 @@ export const MarketSidebar = () => {
                 : "transparent",
             }}
             onClick={() => {
-              dispatch(setCheckBlock(5))
+              dispatch(setCheckBlock(LENDERS_SECTION))
               dispatch(
                 setSidebarHighlightState({
                   borrowRepay: false,
@@ -283,7 +285,7 @@ export const MarketSidebar = () => {
                   : "transparent",
               }}
               onClick={() => {
-                dispatch(setCheckBlock(6))
+                dispatch(setCheckBlock(MLA_SECTION))
                 dispatch(
                   setSidebarHighlightState({
                     borrowRepay: false,

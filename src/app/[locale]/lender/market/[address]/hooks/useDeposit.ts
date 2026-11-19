@@ -10,12 +10,14 @@ import {
   toSafeTransactionInput,
   wildcatMarketAbi,
 } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { isUSDTLikeToken } from "@/utils/constants"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
+import { acceptsKycForDeposit } from "@/utils/marketCapabilities"
 import { invalidateMarketStateQueries } from "@/utils/marketStateQueries"
 import { waitForSubmittedTransaction } from "@/utils/transactions"
 
@@ -23,6 +25,7 @@ export const useDeposit = (
   marketAccount: MarketAccount,
   setTxHash: Dispatch<React.SetStateAction<string | undefined>>,
 ) => {
+  const { t } = useTranslation()
   const signer = useEthersSigner()
   const client = useQueryClient()
   const { connected: safeConnected, sdk, safe } = useSafeAppsSDK()
@@ -53,6 +56,8 @@ export const useDeposit = (
       }
 
       await marketAccount.market.update()
+      if (acceptsKycForDeposit(marketAccount.market))
+        await marketAccount.update()
       const step = marketAccount.previewDeposit(tokenAmount)
 
       const gnosisTransactions: SafeTransactionInput[] = []
@@ -78,8 +83,11 @@ export const useDeposit = (
           )
         } else {
           throw Error(
-            SDK_ERRORS_MAPPING.deposit[step.status] ??
-              "Deposit approval is required",
+            step.status === "RequiresAccess" &&
+              acceptsKycForDeposit(marketAccount.market)
+              ? t("marketDetails.lender.kyc.lenderHint")
+              : SDK_ERRORS_MAPPING.deposit[step.status] ??
+                  "Deposit approval is required",
           )
         }
       }

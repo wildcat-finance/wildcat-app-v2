@@ -2,10 +2,13 @@
 
 import { useState } from "react"
 
-import { Box } from "@mui/material"
+import { Box, Button } from "@mui/material"
+import { hasDeploymentAddress } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import AuthWrapper from "@/components/AuthWrapper"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { ROUTES } from "@/routes"
 
 import { AdminSectionSwitcher } from "./components/AdminSectionSwitcher"
 import { BorrowerInvitesTable } from "./components/BorrowerInvitesTable"
@@ -21,19 +24,31 @@ const AdminPageContainer = {
 const AdminPage = () => {
   const { t } = useTranslation()
 
+  const { chainId } = useSelectedNetwork()
   const [activeSection, setActiveSection] = useState("invitations")
 
   return (
-    <AuthWrapper requiresAdmin title={t("admin.title")}>
-      <Box sx={AdminPageContainer}>
-        <AdminSectionSwitcher
-          activeSection={activeSection}
-          setActiveSection={setActiveSection}
-        />
-        {activeSection === "invitations" && <BorrowerInvitesTable />}
-        {activeSection === "borrowers" && <BorrowersTable />}
-      </Box>
-    </AuthWrapper>
+    <>
+      {hasDeploymentAddress(chainId, "KYCRoleProvider") && (
+        <Button
+          component="a"
+          href={ROUTES.kycAdmin}
+          sx={{ alignSelf: "flex-start", mx: 3, mt: 2 }}
+        >
+          {t("admin.kyc.adminTitle")}
+        </Button>
+      )}
+      <AuthWrapper requiresAdmin title={t("admin.title")}>
+        <Box sx={AdminPageContainer}>
+          <AdminSectionSwitcher
+            activeSection={activeSection}
+            setActiveSection={setActiveSection}
+          />
+          {activeSection === "invitations" && <BorrowerInvitesTable />}
+          {activeSection === "borrowers" && <BorrowersTable />}
+        </Box>
+      </AuthWrapper>
+    </>
   )
 }
 

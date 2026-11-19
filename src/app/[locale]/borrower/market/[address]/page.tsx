@@ -23,6 +23,7 @@ import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { useIdlePrefetchMarketRecords } from "@/components/PaginatedMarketRecordsTable/hooks/usePrefetchMarketRecords"
+import { MarketRoleProviders } from "@/components/RoleProviders/MarketRoleProviders"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { useMarketDetailPerformanceMark } from "@/hooks/useMarketDetailPerformance"
@@ -42,6 +43,8 @@ import {
 import { COLORS } from "@/theme/colors"
 import {
   BORROW_REPAY_SECTION,
+  LENDERS_SECTION,
+  MLA_SECTION,
   borrowerMarketFallbackSection,
   showBorrowRepayTab,
   STATUS_DETAILS_SECTION,
@@ -287,7 +290,7 @@ export default function MarketDetails({
   if (
     !isLoadingMarketMla &&
     marketMla === null &&
-    currentSection !== 6 &&
+    currentSection !== MLA_SECTION &&
     market?.version === MarketVersion.V2 &&
     canBorrowAndRepay
   )
@@ -300,8 +303,11 @@ export default function MarketDetails({
               "marketDetails.borrower.mlaSelectionWasNotSuccessfully",
             )}
             buttonText={t("marketDetails.borrower.goMlaSettings")}
-            buttonOnClick={() => dispatch(setCheckBlock(5))}
+            buttonOnClick={() => dispatch(setCheckBlock(MLA_SECTION))}
           />
+          {currentSection === LENDERS_SECTION && (
+            <MarketRoleProviders market={market} />
+          )}
         </Box>
       </Box>
     )
@@ -435,8 +441,9 @@ export default function MarketDetails({
           {/*    <MarketAuthorisedLenders market={market} /> */}
           {/*  </Box> */}
           {/* </Slide> */}
-          {currentSection === 5 && (
+          {currentSection === LENDERS_SECTION && (
             <Box sx={SlideContentContainer} marginTop="12px">
+              <MarketRoleProviders market={market} />
               <MarketAuthorisedLenders
                 market={market}
                 marketAccount={marketAccount}
@@ -444,12 +451,12 @@ export default function MarketDetails({
             </Box>
           )}
 
-          {currentSection === 6 && canInteract && marketAccount && (
+          {currentSection === MLA_SECTION && canInteract && marketAccount && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketMLA marketAccount={marketAccount} />
             </Box>
           )}
-          {currentSection === 6 && canInteract && !marketAccount && (
+          {currentSection === MLA_SECTION && canInteract && !marketAccount && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <AccountRowsSkeleton />
             </Box>

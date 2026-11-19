@@ -4,6 +4,7 @@ import * as React from "react"
 import { useEffect, useState } from "react"
 
 import { Box, Divider, Skeleton, Typography, useTheme } from "@mui/material"
+import { DepositStatus } from "@wildcatfi/wildcat-sdk"
 import dynamic from "next/dynamic"
 import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
@@ -78,6 +79,7 @@ import {
   buildBorrowerProfileHref,
   formatTokenWithCommas,
 } from "@/utils/formatters"
+import { acceptsKycForDeposit } from "@/utils/marketCapabilities"
 
 import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
 import { LenderAnalyticsSummary } from "./components/LenderAnalyticsSummary"
@@ -381,6 +383,22 @@ export default function LenderMarketDetails({
   const showLenderAccessError = lenderBannerState === "authorization-error"
   const showLenderBlocked = lenderBannerState === "blocked"
   const showLenderRequestBanner = lenderBannerState === "request-access"
+  const kycAccessDenied =
+    authoritativeAccount?.depositAvailability ===
+      DepositStatus.RequiresAccess &&
+    acceptsKycForDeposit(authoritativeAccount.market)
+  const requestBannerCopy = kycAccessDenied
+    ? {
+        title: t("marketDetails.lender.kyc.lenderTitle"),
+        subtitle: t("marketDetails.lender.kyc.lenderHint"),
+      }
+    : {
+        title: t("marketDetails.lender.lendThroughWildcat"),
+        subtitle: t(
+          "marketDetails.lender.interestedLendingThroughWildcatConnect",
+        ),
+        buttonText: t("marketDetails.lender.leaveRequest"),
+      }
   const isLenderAccessResolving =
     isConnected &&
     !isDifferentChain &&
@@ -911,11 +929,7 @@ export default function LenderMarketDetails({
 
           {showLenderRequestBanner && (
             <MobileLenderBanner
-              title={t("marketDetails.lender.lendThroughWildcat")}
-              subtitle={t(
-                "marketDetails.lender.interestedLendingThroughWildcatConnect",
-              )}
-              buttonText={t("marketDetails.lender.leaveRequest")}
+              {...requestBannerCopy}
               href={buildBorrowerProfileHref(market.borrower, market.chainId)}
             />
           )}
@@ -1037,11 +1051,7 @@ export default function LenderMarketDetails({
         {showLenderRequestBanner && !isDesktopAccountLoading && (
           <Box sx={LenderBannerWrapper}>
             <LeadBanner
-              title={t("marketDetails.lender.lendThroughWildcat")}
-              subtitle={t(
-                "marketDetails.lender.interestedLendingThroughWildcatConnect",
-              )}
-              buttonText={t("marketDetails.lender.leaveRequest")}
+              {...requestBannerCopy}
               buttonLink={{
                 isExternal: false,
                 url: buildBorrowerProfileHref(market.borrower, market.chainId),

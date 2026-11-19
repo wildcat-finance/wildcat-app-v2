@@ -1,5 +1,7 @@
 export const BORROW_REPAY_SECTION = 1
 export const STATUS_DETAILS_SECTION = 2
+export const LENDERS_SECTION = 5
+export const MLA_SECTION = 6
 
 export interface BorrowerMarketSectionInputs {
   canInteract: boolean

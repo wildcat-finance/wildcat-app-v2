@@ -6,6 +6,9 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 
 import {
+  acceptsKycForDeposit,
+  acceptsKycForWithdrawal,
+  getPolicyAccessControl,
   getEffectiveMarketAccess,
   getFixedTermHooksConfig,
   getMarketPolicyAddress,
@@ -298,4 +301,44 @@ describe("marketCapabilities", () => {
       getEffectiveMarketAccess({ chainId: SupportedChainId.Sepolia }),
     ).toEqual({ depositAccess: "restricted", withdrawalAccess: "restricted" })
   })
+})
+
+it("applies KYC guidance only to gated actions with an active KYC provider", () => {
+  const kyc = { kind: "kyc" as const, isApproved: true, pullProviderIndex: 0 }
+  const market = {
+    roleProviders: [kyc],
+    hooksConfig: {
+      kind: HooksKind.FixedTerm,
+      flags: { useOnDeposit: true, useOnQueueWithdrawal: true },
+      depositRequiresAccess: true,
+      queueWithdrawalRequiresAccess: false,
+    },
+  }
+  expect(acceptsKycForDeposit(market)).toBe(true)
+  expect(acceptsKycForWithdrawal(market)).toBe(false)
+  expect(
+    acceptsKycForWithdrawal({
+      ...market,
+      hooksConfig: {
+        ...market.hooksConfig,
+        queueWithdrawalRequiresAccess: true,
+      },
+    }),
+  ).toBe(true)
+  expect(
+    acceptsKycForDeposit({
+      ...market,
+      hooksConfig: { ...market.hooksConfig, depositRequiresAccess: false },
+    }),
+  ).toBe(false)
+  expect(
+    acceptsKycForDeposit({
+      ...market,
+      roleProviders: [{ ...kyc, isApproved: false }],
+    }),
+  ).toBe(false)
+  expect(getPolicyAccessControl([kyc])).toBe("sharedKyc")
+  expect(
+    getPolicyAccessControl([kyc, { isApproved: true, pullProviderIndex: 1 }]),
+  ).toBe("defaultPullProvider")
 })

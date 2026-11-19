@@ -231,6 +231,11 @@ describe("prepareCompatibilityLenderAddition", () => {
 })
 
 describe("canManagePolicyLenders", () => {
+  it("keeps shared KYC membership out of the borrower lender editor", () => {
+    const { policy } = makePolicy()
+    policy.roleProviders[0].kind = "kyc"
+    expect(canManagePolicyLenders(policy)).toBe(false)
+  })
   it("matches the provider paths supported by lender updates", () => {
     expect(canManagePolicyLenders(makePolicy().policy)).toBe(true)
     expect(canManagePolicyLenders(makePolicy("legacy-push").policy)).toBe(true)

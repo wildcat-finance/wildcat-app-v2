@@ -61,13 +61,40 @@ export const hasActiveLenderOnboardingRoleProvider = (
 ): boolean =>
   roleProviders.some(
     (provider) =>
-      // Access-list, Merkle, and explicitly managed providers can pull a
+      // Managed lists and Merkle providers can pull a
       // credential, but the lender cannot establish eligibility alone.
       isActivePullRoleProvider(provider) &&
       provider.isManaged !== true &&
       provider.kind !== "access-list" &&
+      provider.kind !== "kyc" &&
       provider.kind !== "merkle",
   )
+
+export const hasActiveKycProvider = (
+  providers: readonly PullRoleProviderLike[] = [],
+) =>
+  providers.some(
+    (provider) => provider.kind === "kyc" && isActivePullRoleProvider(provider),
+  )
+
+export const getPolicyAccessControl = (
+  providers: readonly PullRoleProviderLike[],
+) => {
+  if (hasActiveLenderOnboardingRoleProvider(providers))
+    return "defaultPullProvider"
+  return hasActiveKycProvider(providers) ? "sharedKyc" : "manualApproval"
+}
+
+export const acceptsKycForDeposit = (market?: MarketLike) =>
+  !!market?.hooksConfig?.flags?.useOnDeposit &&
+  !!market.hooksConfig.depositRequiresAccess &&
+  hasActiveKycProvider(market.roleProviders)
+
+export const acceptsKycForWithdrawal = (market: MarketLike) =>
+  !!market.hooksConfig?.flags?.useOnQueueWithdrawal &&
+  (market.hooksConfig.kind === HooksKind.OpenTerm ||
+    !!market.hooksConfig.queueWithdrawalRequiresAccess) &&
+  hasActiveKycProvider(market.roleProviders)
 
 export const isHooksManagedMarket = (market: MarketLike): boolean =>
   market.hooksConfig?.hooksAddress !== undefined

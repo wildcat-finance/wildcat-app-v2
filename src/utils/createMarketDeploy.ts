@@ -76,15 +76,22 @@ export const getCreateMarketRoleProviderInputs = ({
 }: CreateMarketRoleProviderInput): CreateMarketRoleProviderInputs => {
   if (hasExistingHooks) return {}
 
-  if (accessControl === "defaultPullProvider") {
+  if (
+    accessControl === "sharedKyc" ||
+    accessControl === "defaultPullProvider"
+  ) {
+    const sharedKyc = accessControl === "sharedKyc"
+    if (sharedKyc && !hasDeploymentAddress(chainId, "KYCRoleProvider")) {
+      throw Error("Shared KYC is unavailable on this network")
+    }
     return {
       existingProviders: [
         {
           providerAddress: getDeploymentAddress(
             chainId,
-            "OpenAccessRoleProvider",
+            sharedKyc ? "KYCRoleProvider" : "OpenAccessRoleProvider",
           ),
-          timeToLive: 90 * 86_400,
+          timeToLive: sharedKyc ? 0 : 90 * 86_400,
         },
       ],
       newProviderInputs: [],

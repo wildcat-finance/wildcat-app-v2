@@ -11,6 +11,7 @@ import {
 import { DesktopDatePicker } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
+import { hasDeploymentAddress } from "@wildcatfi/wildcat-sdk"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
@@ -24,6 +25,7 @@ import { ExtendedSelect } from "@/components/@extended/ExtendedSelect"
 import { HorizontalInputLabel } from "@/components/HorisontalInputLabel"
 import { InputLabel } from "@/components/InputLabel"
 import { getMaxFixedTermDays } from "@/config/market-duration"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import {
   mockedAccessControlOptions,
   mockedMarketTypesOptions,
@@ -75,6 +77,12 @@ export const MarketPolicyForm = ({
   isTestnet,
 }: MarketPolicyFormProps) => {
   const { t } = useTranslation()
+  const { chainId } = useSelectedNetwork()
+  const accessOptions = mockedAccessControlOptions.filter(
+    (option) =>
+      option.value !== "sharedKyc" ||
+      hasDeploymentAddress(chainId, "KYCRoleProvider"),
+  )
   const dispatch = useAppDispatch()
   const router = useRouter()
 
@@ -259,7 +267,7 @@ export const MarketPolicyForm = ({
             control={control}
             name="accessControl"
             label={t("common.placeholders.pleaseSelect")}
-            options={mockedAccessControlOptions}
+            options={accessOptions}
             optionSX={{ width: "360px" }}
             disabled={disableFields}
           />

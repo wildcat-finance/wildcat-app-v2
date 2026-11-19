@@ -58,7 +58,7 @@ export const useCreateWrapper = ({
         market.address,
       )
     },
-    staleTime: Infinity,
+    staleTime: 0,
   })
   const deploymentStatus = deploymentCapabilityQuery.data?.status
   const canCreateWrapper =

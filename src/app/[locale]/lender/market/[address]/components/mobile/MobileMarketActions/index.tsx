@@ -33,6 +33,10 @@ import { COLORS } from "@/theme/colors"
 import { hasManuallyDisabledMarketActions } from "@/utils/constants"
 import { formatTokenWithCommas } from "@/utils/formatters"
 import {
+  acceptsKycForDeposit,
+  acceptsKycForWithdrawal,
+} from "@/utils/marketCapabilities"
+import {
   formatPeriodicWithdrawalWindowStart,
   getPeriodicWindowTiming,
   isPeriodicWithdrawalWindowClosed,
@@ -253,8 +257,12 @@ export const MobileMarketActions = ({
     marketAccount.maximumDeposit.eq(0) ||
     marketAccount.depositAvailability !== DepositStatus.Ready
 
+  const kycDepositDenied =
+    marketAccount.depositAvailability === DepositStatus.RequiresAccess &&
+    acceptsKycForDeposit(market)
   const showFaucet =
     hideDeposit &&
+    !kycDepositDenied &&
     isTestnet &&
     market.underlyingToken.isMock &&
     marketAccount.underlyingBalance.eq(0)
@@ -283,10 +291,14 @@ export const MobileMarketActions = ({
     withdrawalAvailability: marketAccount.withdrawalAvailability,
     periodicWindowClosed,
   })
-  const withdrawalUnavailableText =
-    withdrawalActionState === "ready"
-      ? undefined
-      : t(WITHDRAWAL_UNAVAILABLE_KEY[withdrawalActionState])
+  let withdrawalUnavailableText
+  if (withdrawalActionState !== "ready") {
+    withdrawalUnavailableText =
+      withdrawalActionState === "requires-access" &&
+      acceptsKycForWithdrawal(market)
+        ? t("marketDetails.lender.kyc.lenderHint")
+        : t(WITHDRAWAL_UNAVAILABLE_KEY[withdrawalActionState])
+  }
   const actionState = resolveLenderActionState({
     isConnected,
     isDifferentChain,
@@ -376,7 +388,11 @@ export const MobileMarketActions = ({
       ↓ {depositButtonText}
     </Button>
   )
-  if (showFaucet) {
+  if (kycDepositDenied) {
+    depositAction = (
+      <MobileDepositStatus text={t("marketDetails.lender.kyc.lenderHint")} />
+    )
+  } else if (showFaucet) {
     depositAction = <MobileFaucetButton marketAccount={marketAccount} />
   } else if (actionState.deposit === "unavailable") {
     depositAction = null

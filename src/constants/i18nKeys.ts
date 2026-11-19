@@ -290,3 +290,9 @@ export const PENDING_APR_REDUCTION_BODY_KEY: Record<
   exitNow: "marketDetails.lender.pendingAprReduction.exitNow.body",
   elapsed: "marketDetails.lender.pendingAprReduction.elapsed.body",
 }
+
+export const POLICY_ACCESS_CONTROL_KEY = {
+  defaultPullProvider: "marketParameters.roleProviders.defaultPullProvider",
+  manualApproval: "marketParameters.roleProviders.manualApproval",
+  sharedKyc: "marketParameters.roleProviders.sharedKyc",
+} as const

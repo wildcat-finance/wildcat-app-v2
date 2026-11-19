@@ -44,6 +44,7 @@ import {
   trimAddress,
 } from "@/utils/formatters"
 import { getDisplayLenderAprBips } from "@/utils/marketApr"
+import { acceptsKycForDeposit } from "@/utils/marketCapabilities"
 import { getMarketTotalDebt } from "@/utils/marketDebt"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import {
@@ -163,6 +164,7 @@ export const OtherMarketsTable = ({
           onboardingByMarket,
         ),
         depositStatus: account.depositAvailability,
+        acceptsKyc: acceptsKycForDeposit(market),
         button: address,
         chainId,
       }
@@ -403,6 +405,7 @@ export const OtherMarketsTable = ({
         const action = getLenderMarketAction(
           params.row.onboardingMode,
           params.row.depositStatus,
+          params.row.acceptsKyc,
         )
 
         return (
@@ -416,6 +419,11 @@ export const OtherMarketsTable = ({
               >
                 {t("marketList.shared.tables.other.depositBTN")}
               </Button>
+            )}
+            {action === LenderMarketAction.ViewAccess && (
+              <Typography variant="body2">
+                {t("marketDetails.lender.kyc.viewAccess")}
+              </Typography>
             )}
             {action === LenderMarketAction.RequestAccess && (
               <Link

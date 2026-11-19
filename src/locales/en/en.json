@@ -1,5 +1,21 @@
 {
   "admin": {
+    "kyc": {
+      "adminTitle": "KYC list administration",
+      "providerAddress": "KYC provider {{address}}",
+      "wallet": "Wallet address",
+      "lookupError": "Could not check this wallet’s enrollment.",
+      "enrolledSince": "Enrolled since {{date}}.",
+      "unlisted": "This wallet is not enrolled.",
+      "addWallet": "Enroll wallet",
+      "removeWallet": "Remove wallet",
+      "members": "Enrolled wallets",
+      "indexDelay": "This list follows the subgraph. The wallet lookup above reads directly from the contract.",
+      "listError": "Could not load the indexed list. You can still check a wallet by address.",
+      "loadingMembers": "Loading enrolled wallets…",
+      "empty": "No enrolled wallets indexed yet.",
+      "unsupported": "Shared KYC is unavailable on the selected network."
+    },
     "borrowers": {
       "pendingRegistration": "Pending Registration",
       "register": "Register",
@@ -122,6 +138,24 @@
     "walletRequired": "Connect your wallet to continue."
   },
   "borrower": {
+    "kyc": {
+      "policyAddress": "Policy {{address}}",
+      "providers": "Role providers",
+      "policyScope": "Changes apply to every market using this policy. Each attached provider offers a separate way to qualify. Markets created with open deposits do not check credentials.",
+      "provider": "Role provider address",
+      "sharedAddress": "Shared KYC provider {{address}}",
+      "current": "Attached providers",
+      "openDeposits": "This market currently accepts deposits without KYC.",
+      "attachmentError": "Could not read this provider’s status from the policy.",
+      "attached": "Attached. Credential lifetime is {{seconds}} seconds.",
+      "detached": "This provider is not attached.",
+      "ttl": "Credential lifetime (seconds)",
+      "ttlHelp": "A lifetime of 0 prevents approvals from carrying over to later blocks. A longer lifetime can keep a cached approval valid after removal.",
+      "invalidTtl": "Enter a whole number from 0 to 4294967295.",
+      "updateTtl": "Update lifetime",
+      "attach": "Attach provider",
+      "detach": "Remove provider"
+    },
     "createMarket": {
       "basic": {
         "asset": {
@@ -571,6 +605,17 @@
     }
   },
   "common": {
+    "kyc": {
+      "connect": "Connect the administrator wallet to make changes.",
+      "network": "Switch your wallet to the selected network to make changes.",
+      "authorityError": "Could not read the administrator from the contract.",
+      "checkingAuthority": "Checking the administrator…",
+      "adminOnly": "Only {{address}} can make changes here.",
+      "pending": "Waiting for the transaction to execute…",
+      "confirmed": "Transaction confirmed.",
+      "invalidAddress": "Enter a valid, nonzero wallet or contract address.",
+      "checking": "Reading from the contract…"
+    },
     "buttons": {
       "add": "Add",
       "addName": "Add Name",
@@ -1001,6 +1046,11 @@
       }
     },
     "lender": {
+      "kyc": {
+        "lenderTitle": "Wallet approval required",
+        "lenderHint": "This market accepts shared KYC. Contact the KYC list administrator to enroll this wallet, or use a wallet with a valid credential.",
+        "viewAccess": "View access requirements"
+      },
       "access": {
         "blocked": {
           "subtitle": "The market's onchain access check reports this wallet as blocked. Claimable withdrawals remain available below.",
@@ -1308,6 +1358,7 @@
         "deployButton": "Deploy Wrapper",
         "deployment": {
           "checking": "Checking wrapper availability...",
+          "protectionNotApproved": "The hooks factory must approve this wrapper factory for nuke protection before a wrapper can be deployed.",
           "factoryUnavailable": "Wrappers are not available on this chain yet.",
           "unsupportedFactory": "Wrapper deployment is not available for this market.",
           "verificationFailed": "Unable to verify wrapper availability."
@@ -1754,6 +1805,7 @@
     },
     "portionGracePeriodLeftBorrowers": "The portion of the grace period left for borrowers to fix non-compliance issues, such as restoring reserves.",
     "roleProviders": {
+      "sharedKyc": "Shared KYC list",
       "defaultPullProvider": "Lender Self-Onboarding",
       "manualApproval": "Borrower Operated Allowlist"
     },

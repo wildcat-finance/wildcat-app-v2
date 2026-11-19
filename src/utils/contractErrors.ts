@@ -1,3 +1,4 @@
+import { wildcatMarketV2_5Abi as marketErrorAbi } from "@wildcatfi/wildcat-sdk"
 import { decodeErrorResult, type Abi, type Hex } from "viem"
 
 /**
@@ -6,6 +7,12 @@ import { decodeErrorResult, type Abi, type Hex } from "viem"
  * "Something went wrong".
  */
 const CONTRACT_ERROR_MESSAGES: Record<string, string> = {
+  AccountBlocked: "This wallet is blocked from this action.",
+  CallerNotAdministrator:
+    "Only the current administrator can make this change.",
+  InvalidMember: "Enter a valid, nonzero wallet address.",
+  MemberAlreadyExists: "This wallet is already enrolled.",
+  MemberNotFound: "This wallet is no longer enrolled.",
   CallerNotBorrower: "Only the borrower of this policy can change its lenders.",
   ProviderNotFound:
     "This wallet is not a role provider on this policy, so it cannot grant or revoke lender credentials.",
@@ -29,11 +36,20 @@ const CONTRACT_ERROR_MESSAGES: Record<string, string> = {
  * depends on whether the failure came from `eth_call`, gas estimation or the
  * wallet, and some RPCs bury it in a JSON body string.
  */
-const extractRevertData = (error: unknown): string | undefined => {
+export const getContractErrorName = (
+  error: unknown,
+  abi?: Abi,
+): string | undefined => {
   const seen = new Set<unknown>()
   const visit = (node: unknown): string | undefined => {
     if (typeof node === "string") {
-      if (node.startsWith("0x") && node.length >= 10) return node
+      if (abi && /^0x[\da-f]{8,}$/i.test(node)) {
+        try {
+          return decodeErrorResult({ abi, data: node as Hex }).errorName
+        } catch {
+          return undefined
+        }
+      }
       if (node.trimStart().startsWith("{")) {
         try {
           return visit(JSON.parse(node))
@@ -43,14 +59,23 @@ const extractRevertData = (error: unknown): string | undefined => {
       }
       return undefined
     }
-    if (typeof node !== "object" || node === null || seen.has(node)) {
+    if (typeof node !== "object" || node === null || seen.has(node))
       return undefined
-    }
     seen.add(node)
-    const keys = ["data", "error", "body", "cause", "originalError", "info"]
-    for (let i = 0; i < keys.length; i += 1) {
-      const found = visit((node as Record<string, unknown>)[keys[i]])
-      if (found) return found
+    const details = node as Record<string, unknown>
+    if (typeof details.errorName === "string") return details.errorName
+    const keys = [
+      "data",
+      "error",
+      "body",
+      "cause",
+      "originalError",
+      "info",
+      "raw",
+    ]
+    for (let index = 0; index < keys.length; index += 1) {
+      const name = visit(details[keys[index]])
+      if (name) return name
     }
     return undefined
   }
@@ -69,27 +94,6 @@ const getErrorMessage = (error: unknown): string | undefined => {
   return undefined
 }
 
-export const getContractErrorName = (
-  error: unknown,
-  contractAbi?: Abi,
-): string | undefined => {
-  const named = (error as { errorName?: string } | null)?.errorName
-  if (named) return named
-
-  const data = extractRevertData(error)
-  if (data && contractAbi) {
-    try {
-      return decodeErrorResult({
-        abi: contractAbi,
-        data: data as Hex,
-      }).errorName
-    } catch {
-      return undefined
-    }
-  }
-  return undefined
-}
-
 /**
  * Turn a failed contract interaction into something a borrower can act on.
  * Decodes the custom error against the contract's own ABI when revert data is
@@ -104,3 +108,15 @@ export const describeContractError = (
 
   return getErrorMessage(error) ?? "Transaction failed"
 }
+
+// Only a policy access rejection warrants enrollment guidance. Preserve wallet,
+// sanctions, amount and network errors even when shared KYC is attached.
+export const describeLenderError = (
+  error: unknown,
+  acceptsKyc: boolean,
+  kycHint: string,
+) =>
+  acceptsKyc &&
+  getContractErrorName(error, marketErrorAbi) === "NotApprovedLender"
+    ? kycHint
+    : describeContractError(error, marketErrorAbi)
