@@ -86,6 +86,22 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     )
   }
+  // Borrowers pick market MLAs by name, so two offered at once must differ.
+  if (!template.hide) {
+    const sameName = await prisma.mlaTemplate.findFirst({
+      where: { isTestnet, borrowerId: null, hide: false, name: template.name },
+      select: { id: true },
+    })
+    if (sameName) {
+      return NextResponse.json(
+        {
+          error:
+            "A market MLA with this name is already offered on this network class; name the new one differently or hide the old one first",
+        },
+        { status: 409 },
+      )
+    }
+  }
   const mlaTemplate = await prisma.$transaction(async (tx) => {
     if (template.isDefault) {
       await tx.mlaTemplate.updateMany({

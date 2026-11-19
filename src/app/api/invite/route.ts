@@ -329,6 +329,17 @@ export async function PUT(request: NextRequest) {
       { status: 404 },
     )
   }
+  // A wallet joining an organisation that already acts through another
+  // wallet accepts under the organisation's name, and leaves the shared
+  // profile as it is; that changes only through a reviewed profile update.
+  if (borrowerInvitation.profileLocked && name !== borrowerInvitation.name) {
+    return NextResponse.json(
+      {
+        error: `This wallet joins ${borrowerInvitation.name}; accept the invitation under that name`,
+      },
+      { status: 409 },
+    )
+  }
   const verified = await verifyServiceAgreementSignature({
     agreement,
     chainId,
@@ -361,13 +372,14 @@ export async function PUT(request: NextRequest) {
   // )
   await prisma.$transaction(async (transaction) => {
     if (
-      borrowerInvitation.name !== name ||
-      borrowerInvitation.description !== description ||
-      borrowerInvitation.entityKind !== entityKind ||
-      borrowerInvitation.founded !== founded ||
-      borrowerInvitation.headquarters !== headquarters ||
-      borrowerInvitation.jurisdiction !== jurisdiction ||
-      borrowerInvitation.physicalAddress !== physicalAddress
+      !borrowerInvitation.profileLocked &&
+      (borrowerInvitation.name !== name ||
+        borrowerInvitation.description !== description ||
+        borrowerInvitation.entityKind !== entityKind ||
+        borrowerInvitation.founded !== founded ||
+        borrowerInvitation.headquarters !== headquarters ||
+        borrowerInvitation.jurisdiction !== jurisdiction ||
+        borrowerInvitation.physicalAddress !== physicalAddress)
     ) {
       await transaction.borrower.update({
         where: { id: borrowerInvitation.borrowerId },

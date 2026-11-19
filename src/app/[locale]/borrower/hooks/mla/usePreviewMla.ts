@@ -25,6 +25,7 @@ import {
   getFieldValuesForBorrower,
 } from "@/lib/mla"
 import { toDeployedMarketName } from "@/utils/marketName"
+import { assertMlaTemplateSignableAt } from "@/utils/mlaTemplateRetirement"
 
 import { fetchMlaTemplate } from "./fetchMlaTemplate"
 import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
@@ -120,6 +121,10 @@ export async function getMlaFromForm(
     mlaTemplateId,
     authToken,
   )
+  // Signing and the check before deploying both come through here, so a
+  // template retired since it was picked stops the flow before the market is
+  // deployed; an agreement signed before retirement carries on.
+  assertMlaTemplateSignableAt(mlaTemplate, timeSigned)
   const values = form.getValues()
   const borrowerValues = getFieldValuesForBorrowerFromForm(
     values,
@@ -233,6 +238,7 @@ export const usePreviewMla = (
         mlaTemplateId,
         authToken,
       )
+      assertMlaTemplateSignableAt(mlaTemplate, timeSigned)
       const borrowerValues = getFieldValuesForBorrower({
         market,
         borrowerInfo: borrowerProfile as BasicBorrowerInfo,

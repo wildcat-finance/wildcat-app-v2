@@ -9,7 +9,10 @@ import {
 import { CheckBorrowersRegistered__factory } from "@wildcatfi/wildcat-sdk/dist/typechain"
 import { defaultAbiCoder } from "ethers/lib/utils"
 
-import { BorrowerInvitation } from "@/app/api/invite/interface"
+import {
+  BorrowerInvitation,
+  PendingBorrowerInvitation,
+} from "@/app/api/invite/interface"
 import {
   MasterLoanAgreementResponse,
   MlaSignatureResponse,
@@ -120,10 +123,28 @@ const markRegisteredOnChain = (
     },
   })
 
+/// Whether the organisation already acts through another wallet: one
+/// registered on chain or whose borrower signed the Terms of Use. Its profile
+/// is then shared, and an invited wallet joins it as it is.
+async function hasOtherOnboardedRegistration(
+  borrowerId: string,
+  chainId: SupportedChainId,
+  address: string,
+) {
+  const count = await prisma.borrowerRegistration.count({
+    where: {
+      borrowerId,
+      NOT: { chainId, address },
+      OR: [{ registeredOnChain: true }, { serviceSignatures: { some: {} } }],
+    },
+  })
+  return count > 0
+}
+
 export async function findBorrowerWithPendingInvitation(
   address: string,
   chainId: SupportedChainId,
-): Promise<BorrowerInvitation | undefined> {
+): Promise<PendingBorrowerInvitation | undefined> {
   address = address.toLowerCase()
   const registration = await findBorrowerRegistration(chainId, address)
   if (!registration?.invitedAt || !registration.invitedBy) return undefined
@@ -152,6 +173,11 @@ export async function findBorrowerWithPendingInvitation(
   return {
     ...toBorrowerInvitation(registration, timeSigned),
     registeredOnChain: false,
+    profileLocked: await hasOtherOnboardedRegistration(
+      registration.borrowerId,
+      chainId,
+      address,
+    ),
   }
 }
 
@@ -255,8 +281,10 @@ export async function tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered(
 }
 
 /// Delete registrations, their borrower ToU rows (by cascade), and every
-/// organisation left with no registration and no MLA decision. Returns the
-/// number of registrations deleted.
+/// organisation left with no registration, no MLA decision and no custom MLA.
+/// An organisation that owns a custom MLA (active or retired) is kept, so
+/// cancelling an invitation never fails on the template's reference to it.
+/// Returns the number of registrations deleted.
 export async function deleteBorrowerRegistrations(
   where: Prisma.BorrowerRegistrationWhereInput,
 ): Promise<number> {
@@ -277,6 +305,7 @@ export async function deleteBorrowerRegistrations(
           id: { in: borrowerIds },
           registrations: { none: {} },
           mlaDecisions: { none: {} },
+          mlaTemplates: { none: {} },
         },
       })
     }

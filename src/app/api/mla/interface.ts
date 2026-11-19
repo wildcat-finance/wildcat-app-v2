@@ -32,11 +32,13 @@ export interface MlaTemplate extends MlaTemplateMetadata {
   plaintext: string
   borrowerFields: MlaTemplateField[]
   lenderFields: MlaTemplateField[]
+  /* Set once a custom MLA is retired: no agreement signed later may use it */
+  retiredAt?: Date
 }
 
 export type CreateMlaTemplateInput = Omit<
   MlaTemplate,
-  "id" | "isTestnet" | "html" | "borrowerId"
+  "id" | "isTestnet" | "html" | "borrowerId" | "retiredAt"
 > & {
   /* An admin network; the template serves every network of its class */
   chainId: SupportedChainId

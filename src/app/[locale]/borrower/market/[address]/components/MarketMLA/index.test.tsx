@@ -20,6 +20,9 @@ jest.mock("@/app/[locale]/borrower/components/CustomMlaLoginHint", () => ({
 jest.mock("@/app/[locale]/borrower/hooks/mla/useGetMlaTemplates", () => ({
   useGetMlaTemplates: () => ({
     data: [
+      { id: 1, isTestnet: true, name: "Wildcat MLA 2024", hide: false },
+      // A copy kept for agreements that name it, offered no more.
+      { id: 3, isTestnet: true, name: "Wildcat MLA 2024", hide: true },
       {
         id: 7,
         isTestnet: true,
@@ -52,9 +55,6 @@ jest.mock("@/app/[locale]/borrower/hooks/mla/useSignBorrowerMla", () => ({
 jest.mock("@/hooks/useMarketMla", () => ({
   useMarketMla: () => ({ data: mockMarketMla, isLoading: false }),
 }))
-jest.mock("@/utils/mlaTemplateLabel", () => ({
-  getMlaTemplateLabel: (_t: unknown, { name }: { name: string }) => name,
-}))
 
 const marketAccount = {
   isBorrower: true,
@@ -68,6 +68,20 @@ beforeEach(() => {
   signMla.mockClear()
 })
 
+it("offers each visible template by name and hides hidden copies", () => {
+  mockMarketMla = undefined
+  render(<MarketMLA marketAccount={marketAccount} />)
+  fireEvent.mouseDown(screen.getByRole("combobox"))
+  const options = within(screen.getByRole("listbox"))
+    .getAllByRole("option")
+    .map((option) => option.textContent)
+  expect(options).toEqual([
+    "Don’t Use",
+    "Wildcat MLA 2024",
+    "mla.customMla:Stormwind Custom MLA",
+  ])
+})
+
 it("shows the selected MLA's text on the page and signs it from there", () => {
   mockMarketMla = undefined
   render(<MarketMLA marketAccount={marketAccount} />)
@@ -75,7 +89,9 @@ it("shows the selected MLA's text on the page and signs it from there", () => {
 
   fireEvent.mouseDown(screen.getByRole("combobox"))
   fireEvent.click(
-    within(screen.getByRole("listbox")).getByText("Stormwind Custom MLA"),
+    within(screen.getByRole("listbox")).getByText(
+      "mla.customMla:Stormwind Custom MLA",
+    ),
   )
   expect(frameHtml()).toBe("<p>Stormwind agreement</p>")
 
@@ -99,7 +115,7 @@ it("shows an existing agreement with lender details as placeholders", () => {
     lenderFields: [{ source: "lender.address", placeholder: "Lender Address" }],
   }
   render(<MarketMLA marketAccount={marketAccount} />)
-  screen.getByText("mla.governing:Stormwind Custom MLA")
+  screen.getByText("mla.governing:mla.customMla:Stormwind Custom MLA")
   expect(frameHtml()).toBe("<p>Lender: [Lender Address]</p>")
   screen.getByText("mla.downloadPdf")
   screen.getByText("mla.downloadSigned")

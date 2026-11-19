@@ -21,6 +21,14 @@ export type BorrowerInvitation = {
   registeredOnChain: boolean
 }
 
+/// An invitation as the invited wallet accepts it.
+export type PendingBorrowerInvitation = BorrowerInvitation & {
+  /// The organisation already acts through another wallet, so its profile is
+  /// shared: accepting keeps the organisation's name and details, which change
+  /// only through a reviewed profile update.
+  profileLocked: boolean
+}
+
 /// Input for inviting a borrower.
 ///
 /// With `borrowerId`, the address joins that existing organisation on this

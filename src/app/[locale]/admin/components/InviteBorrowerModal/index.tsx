@@ -22,6 +22,7 @@ import { LoadingModal } from "../../../borrower/market/[address]/components/Moda
 import { SuccessModal } from "../../../borrower/market/[address]/components/Modals/FinalModals/SuccessModal"
 import { useBorrowerOrganisations } from "../../hooks/useBorrowerOrganisations"
 import { useInviteBorrower } from "../../hooks/useInviteBorrower"
+import { BorrowerOrganisationOption } from "../BorrowerOrganisationOption"
 
 const NEW_BORROWER = "new"
 
@@ -169,12 +170,7 @@ export const InviteBorrowerModal = () => {
                 </MenuItem>
                 {organisations?.map((organisation) => (
                   <MenuItem key={organisation.id} value={organisation.id}>
-                    {organisation.alias
-                      ? `${organisation.name} (${organisation.alias})`
-                      : organisation.name}
-                    {` · ${t("admin.inviteBorrower.addressCount", {
-                      count: organisation.registrations.length,
-                    })}`}
+                    <BorrowerOrganisationOption organisation={organisation} />
                   </MenuItem>
                 ))}
               </TextField>

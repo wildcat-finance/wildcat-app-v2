@@ -22,7 +22,7 @@ import {
   setIsDisabled,
   setIsValid,
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
-import { getMlaTemplateLabel } from "@/utils/mlaTemplateLabel"
+import { getMlaTemplateOptions } from "@/utils/mlaTemplateLabel"
 
 import { MLAFormProps } from "./interface"
 import { MLAOption } from "./style"
@@ -59,16 +59,11 @@ export const MlaForm = ({ form }: MLAFormProps) => {
       label: "Don’t Use",
       value: "noMLA",
     },
-    ...(templates
-      ?.filter((x) => !x.hide)
-      .map((template) => ({
-        id: template.id.toString(),
-        label: getMlaTemplateLabel(t, {
-          ...template,
-          isCustom: !!template.borrowerId,
-        }),
-        value: template.id.toString(),
-      })) ?? []),
+    ...getMlaTemplateOptions(t, templates).map(({ id, label }) => ({
+      id: id.toString(),
+      label,
+      value: id.toString(),
+    })),
   ]
 
   useEffect(() => {

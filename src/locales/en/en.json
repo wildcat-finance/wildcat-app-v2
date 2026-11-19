@@ -81,7 +81,6 @@
     "button": "Subscribe"
   },
   "mla": {
-    "marketMla": "Market MLA",
     "customMla": "{{name}} ({{version}})",
     "noMla": "No MLA",
     "governing": "Governing MLA: {{name}}",
@@ -93,7 +92,9 @@
     "previewCaption": "This is the agreement you sign, filled in for this market. Each lender's details are added when they sign.",
     "previewTitle": "MLA preview",
     "downloadPdf": "Download PDF",
-    "downloadSigned": "Download signed copy"
+    "downloadSigned": "Download signed copy",
+    "downloadBorrowerSigned": "Download borrower-signed copy",
+    "signMla": "Sign MLA"
   },
   "admin": {
     "inviteBorrower": {
@@ -106,8 +107,6 @@
       "borrowerLabel": "Borrower",
       "borrowerHelp": "Choose an existing borrower when this wallet belongs to an organisation that already borrows on another network.",
       "newBorrower": "New borrower",
-      "addressCount_one": "{{count}} address",
-      "addressCount_other": "{{count}} addresses",
       "existingBorrower": "This wallet will act for {{name}} on {{network}}. The borrower keeps one profile and signs the Terms of Use on this network as usual.",
       "descriptionLabel": "Description",
       "foundedLabel": "Founded",

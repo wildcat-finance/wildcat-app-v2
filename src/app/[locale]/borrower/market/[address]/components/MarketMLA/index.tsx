@@ -15,7 +15,6 @@ import type { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
 import { CustomMlaLoginHint } from "@/app/[locale]/borrower/components/CustomMlaLoginHint"
-import { MlaDocument } from "@/app/[locale]/borrower/components/MlaDocument"
 import { useGetMlaTemplates } from "@/app/[locale]/borrower/hooks/mla/useGetMlaTemplates"
 import { usePreviewMla } from "@/app/[locale]/borrower/hooks/mla/usePreviewMla"
 import {
@@ -24,11 +23,15 @@ import {
 } from "@/app/[locale]/borrower/hooks/mla/useSignBorrowerMla"
 import type { MasterLoanAgreementResponse } from "@/app/api/mla/interface"
 import { BorrowerProfile } from "@/app/api/profiles/interface"
+import { MlaDocument } from "@/components/MlaDocument"
 import { useMarketMla } from "@/hooks/useMarketMla"
 import type { BasicBorrowerInfo } from "@/lib/mla"
 import { fillLenderPlaceholders } from "@/lib/mlaTemplateText"
 import { COLORS } from "@/theme/colors"
-import { getMlaTemplateLabel } from "@/utils/mlaTemplateLabel"
+import {
+  getMlaTemplateLabel,
+  getMlaTemplateOptions,
+} from "@/utils/mlaTemplateLabel"
 
 const SetMarketMLAForm = ({
   borrowerProfile,
@@ -62,14 +65,11 @@ const SetMarketMLAForm = ({
       label: "Don’t Use",
       value: "noMLA",
     },
-    ...(templates?.map((template) => ({
-      id: template.id,
-      label: getMlaTemplateLabel(t, {
-        ...template,
-        isCustom: !!template.borrowerId,
-      }),
-      value: template.id,
-    })) ?? []),
+    ...getMlaTemplateOptions(t, templates).map(({ id, label }) => ({
+      id,
+      label,
+      value: id,
+    })),
   ]
 
   const isTemplateSelected = typeof selectedTemplateId === "number"

@@ -22,7 +22,9 @@ const parseTemplateId = (id: string) =>
 
 /// GET /api/mla/templates/[id]?chainId=<chainId>
 /// Route to get the full content of an MLA template. A custom MLA is visible
-/// only to its borrower (API token for this network) and to admins.
+/// only to its borrower (API token for this network) and to admins. A retired
+/// template is still returned, with `retiredAt`, so agreements signed before
+/// retirement can be checked and completed; signing refuses it after that.
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } },
@@ -50,6 +52,7 @@ export async function GET(
             lenderFields: true,
             hide: true,
             isDefault: true,
+            retiredAt: true,
           },
         })
   if (
@@ -61,12 +64,13 @@ export async function GET(
       { status: 404 },
     )
   }
-  const { borrowerId, version, description, ...rest } = template
+  const { borrowerId, version, description, retiredAt, ...rest } = template
   const response: MlaTemplate = {
     ...rest,
     borrowerId: borrowerId ?? undefined,
     version: version ?? undefined,
     description: description ?? undefined,
+    retiredAt: retiredAt ?? undefined,
     borrowerFields: rest.borrowerFields as MlaTemplateField[],
     lenderFields: rest.lenderFields as MlaTemplateField[],
   }

@@ -18,7 +18,8 @@ export const isMlaFieldValueKey = (token: string): token is MlaFieldValueKey =>
 export const isLenderField = (source: MlaFieldValueKey) =>
   source.startsWith(LENDER_PREFIX)
 
-const escapeHtml = (text: string) =>
+/// Text made safe to place in HTML, in element content or a quoted attribute.
+export const escapeHtml = (text: string) =>
   text
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")

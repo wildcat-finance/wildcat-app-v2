@@ -27,6 +27,7 @@ import {
   useCustomMlaTemplates,
   useRegisterCustomMla,
 } from "../../hooks/useCustomMlaTemplates"
+import { BorrowerOrganisationOption } from "../BorrowerOrganisationOption"
 
 // The theme pins every TextField root to a fixed height, which clips a
 // multi-line field and pushes its help text over the next field.
@@ -172,9 +173,7 @@ export const RegisterCustomMlaModal = () => {
           >
             {organisations?.map((organisation) => (
               <MenuItem key={organisation.id} value={organisation.id}>
-                {organisation.alias
-                  ? `${organisation.name} (${organisation.alias})`
-                  : organisation.name}
+                <BorrowerOrganisationOption organisation={organisation} />
               </MenuItem>
             ))}
           </TextField>

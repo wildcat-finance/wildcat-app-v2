@@ -9,6 +9,7 @@ import {
   verifyApiToken,
 } from "@/app/api/auth/verify-header"
 import { findBorrowerRegistration, prisma } from "@/lib/db"
+import { getFieldValuesForBorrower } from "@/lib/mla"
 
 import { POST as assignMla } from "./[market]/route"
 import { dummyCustomMla } from "./__fixtures__/dummyCustomMla"
@@ -195,6 +196,25 @@ describe("GET /api/mla/templates/[id]", () => {
     })
   })
 
+  it("returns a retired template with its retirement time", async () => {
+    loginAs(BORROWER_ADDRESS)
+    jest
+      .mocked(findBorrowerRegistration)
+      .mockResolvedValue(registration(OWN_BORROWER))
+    const retiredAt = new Date("2026-11-19T10:00:00Z")
+    jest
+      .mocked(prisma.mlaTemplate.findFirst)
+      .mockResolvedValue(template({ retiredAt }) as never)
+    const response = await getTemplate(
+      request(`/api/mla/templates/7?chainId=${SEPOLIA}`),
+      { params: { id: "7" } },
+    )
+    expect(response.status).toBe(200)
+    expect(await response.json()).toMatchObject({
+      retiredAt: retiredAt.toISOString(),
+    })
+  })
+
   it("rejects an id that is not a number", async () => {
     const response = await getTemplate(
       request(`/api/mla/templates/abc?chainId=${SEPOLIA}`),
@@ -307,6 +327,34 @@ describe("POST /api/mla/templates", () => {
       "{{market.symbol}} is used in the text but not listed as a field",
     ])
   })
+
+  it("refuses a name another offered market MLA of the class has", async () => {
+    loginAs(BORROWER_ADDRESS, true)
+    jest.mocked(isAdminForChain).mockResolvedValue(true)
+    jest
+      .mocked(prisma.mlaTemplate.findFirst)
+      .mockResolvedValue({ id: 4 } as never)
+    const response = await createTemplate(
+      request("/api/mla/templates", "POST", {
+        chainId: SEPOLIA,
+        name: "Wildcat MLA Template",
+        plaintext: "Market {{market.address}}",
+        borrowerFields: [{ source: "market.address", placeholder: "" }],
+        lenderFields: [],
+      }),
+    )
+    expect(response.status).toBe(409)
+    expect(prisma.mlaTemplate.findFirst).toHaveBeenCalledWith({
+      where: {
+        isTestnet: true,
+        borrowerId: null,
+        hide: false,
+        name: "Wildcat MLA Template",
+      },
+      select: { id: true },
+    })
+    expect(prisma.mlaTemplate.create).not.toHaveBeenCalled()
+  })
 })
 
 describe("PATCH /api/mla/templates/[id]", () => {
@@ -363,12 +411,12 @@ describe("POST /api/mla/[market]", () => {
       )
   })
 
-  const assign = () =>
+  const assign = (timeSigned = Date.now()) =>
     assignMla(
       request(`/api/mla/${MARKET}`, "POST", {
         chainId: SEPOLIA,
         mlaTemplate: 7,
-        timeSigned: Date.now(),
+        timeSigned,
         signature: "0xsignature",
       }),
       { params: { market: MARKET } },
@@ -389,16 +437,77 @@ describe("POST /api/mla/[market]", () => {
     expect(transaction.marketMlaDecision.create).not.toHaveBeenCalled()
   })
 
-  it("refuses a retired template", async () => {
+  it("refuses an agreement signed after its template was retired", async () => {
     jest
       .mocked(findBorrowerRegistration)
       .mockResolvedValue(registration(OWN_BORROWER))
     jest
       .mocked(prisma.mlaTemplate.findFirst)
-      .mockResolvedValue(template({ retiredAt: new Date() }) as never)
+      .mockResolvedValue(
+        template({ retiredAt: new Date(Date.now() - 60_000) }) as never,
+      )
     const response = await assign()
     expect(response.status).toBe(400)
     expect(transaction.marketMlaDecision.create).not.toHaveBeenCalled()
+  })
+
+  it("keeps an agreement signed before its template was retired", async () => {
+    // A Safe collected approvals for the deployment while an admin retired
+    // the template; the market is on chain and its agreement still uploads.
+    jest
+      .mocked(findBorrowerRegistration)
+      .mockResolvedValue(registration(OWN_BORROWER))
+    jest
+      .mocked(prisma.mlaTemplate.findFirst)
+      .mockResolvedValue(
+        template({ retiredAt: new Date(Date.now() - 60_000) }) as never,
+      )
+    const response = await assign(Date.now() - 120_000)
+    expect(response.status).toBe(200)
+    expect(transaction.marketMlaDecision.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ templateId: 7 }),
+    })
+  })
+
+  it("accepts a hidden market MLA, which is only off the pick lists", async () => {
+    jest
+      .mocked(findBorrowerRegistration)
+      .mockResolvedValue(registration(OWN_BORROWER))
+    jest
+      .mocked(prisma.mlaTemplate.findFirst)
+      .mockResolvedValue(template({ borrowerId: null, hide: true }) as never)
+    const response = await assign()
+    expect(response.status).toBe(200)
+  })
+
+  it("stores HTML with filled values escaped and signs the plain text as is", async () => {
+    jest
+      .mocked(findBorrowerRegistration)
+      .mockResolvedValue(registration(OWN_BORROWER))
+    jest.mocked(prisma.mlaTemplate.findFirst).mockResolvedValue(
+      template({
+        html: "<p>{{market.address}} {{borrower.name}}</p>",
+        plaintext: "Market {{market.address}} {{borrower.name}}",
+        borrowerFields: [
+          { source: "market.address", placeholder: "Market" },
+          { source: "borrower.name", placeholder: "Borrower Name" },
+        ],
+      }) as never,
+    )
+    jest.mocked(getFieldValuesForBorrower).mockReturnValueOnce(
+      new Map([
+        ["market.address", MARKET],
+        ["borrower.name", '<img src=x onerror="alert(1)">'],
+      ]),
+    )
+    const response = await assign()
+    expect(response.status).toBe(200)
+    expect(transaction.marketMlaDecision.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        html: `<p>${MARKET} &lt;img src=x onerror=&quot;alert(1)&quot;&gt;</p>`,
+        plaintext: `Market ${MARKET} <img src=x onerror="alert(1)">`,
+      }),
+    })
   })
 
   it("assigns the borrower's own custom MLA", async () => {

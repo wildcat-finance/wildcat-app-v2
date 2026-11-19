@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { getSignedMasterLoanAgreement } from "@/lib/db"
-import { fillInMlaForLender, MlaFieldValueKey } from "@/lib/mla"
+import {
+  AGREEMENT_HTML_CSP,
+  fillInMlaForLender,
+  MlaFieldValueKey,
+} from "@/lib/mla"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
 /// GET /api/mla/[market]?chainId=<chainId>
@@ -28,6 +32,7 @@ export async function GET(
     status: 200,
     headers: {
       "Content-Type": "text/html",
+      "Content-Security-Policy": AGREEMENT_HTML_CSP,
     },
   })
 }

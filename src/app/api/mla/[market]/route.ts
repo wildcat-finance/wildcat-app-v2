@@ -140,9 +140,12 @@ export async function POST(
       { status: 400 },
     )
   }
-  // A custom MLA belongs to one borrower, and a retired template takes no new
-  // markets. The pick lists only present this; here it is enforced.
-  if (!canSelectMlaTemplate(template, registration.borrowerId)) {
+  // A custom MLA belongs to one borrower, and a retired template takes no
+  // agreement signed after it was retired. The pick lists only present this;
+  // here it is enforced.
+  if (
+    !canSelectMlaTemplate(template, registration.borrowerId, body.timeSigned)
+  ) {
     return NextResponse.json(
       { error: "MLA template not available to this borrower" },
       { status: 400 },

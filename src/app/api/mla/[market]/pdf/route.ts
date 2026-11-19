@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { getSignedMasterLoanAgreement } from "@/lib/db"
 import { fillInMlaForLender, MlaFieldValueKey } from "@/lib/mla"
-import { launchPuppeteer } from "@/lib/puppeteer"
+import { renderAgreementPdf } from "@/lib/puppeteer"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
 /// GET /api/mla/[market]/pdf?chainId=<chainId>
@@ -25,23 +25,7 @@ export async function GET(
     mla.lenderFields.map((field) => [field.source, `[${field.placeholder}]`]),
   )
   const { html } = fillInMlaForLender(mla, values, market)
-  const finalHtml = encodeURIComponent(html)
-  const browser = await launchPuppeteer()
-  const page = await browser.newPage()
-  await page.goto(`data:text/html;charset=UTF-8,${finalHtml}`, {
-    waitUntil: "networkidle0",
-  })
-  const pdfBuffer = await page.pdf({
-    format: "A4",
-    headerTemplate: "<p></p>",
-    footerTemplate: "<p></p>",
-    displayHeaderFooter: false,
-    margin: {
-      top: "40px",
-      bottom: "40px",
-    },
-    printBackground: true,
-  })
+  const pdfBuffer = await renderAgreementPdf(html)
   const fileName = `${market} Master Loan Agreement.pdf`
   return new NextResponse(pdfBuffer, {
     status: 200,

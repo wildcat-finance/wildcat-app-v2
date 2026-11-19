@@ -3,7 +3,7 @@
     "bytes_asset": 206567,
     "bytes_binary": 102801,
     "bytes_blob": 20102,
-    "bytes_generated": 341143
+    "bytes_generated": 342326
   },
   "entries": [
     {
@@ -154,7 +154,7 @@
       "path": "prisma/migrations/20261022000000_terms_of_use_v3/migration.sql"
     },
     {
-      "bytes": 30916,
+      "bytes": 32099,
       "category": "generated",
       "evidence": "sql file under a migrations directory segment",
       "grade": "candidate",

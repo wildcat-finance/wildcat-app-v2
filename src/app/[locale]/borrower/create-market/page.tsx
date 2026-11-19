@@ -52,6 +52,7 @@ import {
 import { removePendingSafeMessage } from "@/store/slices/pendingSafeMessagesSlice/pendingSafeMessagesSlice"
 import { COLORS } from "@/theme/colors"
 import { toDeployedNamePrefix } from "@/utils/marketName"
+import { isRetiredMlaTemplateError } from "@/utils/mlaTemplateRetirement"
 import { SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS } from "@/utils/serviceAgreementMessage"
 
 import { BasicSetupForm } from "./components/Forms/BasicSetupForn"
@@ -757,9 +758,13 @@ export default function CreateMarketPage() {
       console.log(`clicked deploy`)
       setFinalOpen(true)
       handleDeployMarket()
-    } catch {
+    } catch (error) {
       setFinalOpen(false)
-      toastError("Couldn't validate the market agreement. Please try again.")
+      toastError(
+        isRetiredMlaTemplateError(error)
+          ? error.message
+          : "Couldn't validate the market agreement. Please try again.",
+      )
     } finally {
       setIsValidatingSignature(false)
     }

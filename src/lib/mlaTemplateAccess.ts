@@ -8,6 +8,7 @@ import {
 } from "@/app/api/auth/verify-header"
 import { findBorrowerRegistration } from "@/lib/db"
 import { isTestnetChain } from "@/lib/networkClass"
+import { isMlaTemplateSignableAt } from "@/utils/mlaTemplateRetirement"
 
 /// Who is asking for MLA templates on a network: the organisation of the
 /// account logged in on that network, if any, and whether it administers the
@@ -49,11 +50,15 @@ export const canViewMlaTemplate = (
   viewer.isAdmin ||
   template.borrowerId === viewer.borrowerId
 
-/// Whether a borrower may attach the template to a new market. This is the
-/// rule that matters: lists only present it.
+/// Whether a borrower may attach the template to a market with an agreement
+/// signed at `timeSigned`. This is the rule that matters: lists only present
+/// it. Hidden templates stay acceptable: hiding only takes a template off the
+/// pick lists, and agreements signed from a list before it was hidden must
+/// still upload after their market deploys.
 export const canSelectMlaTemplate = (
   template: { borrowerId: string | null; retiredAt: Date | null },
   borrowerId: string,
+  timeSigned: number,
 ) =>
-  template.retiredAt === null &&
+  isMlaTemplateSignableAt(template.retiredAt, timeSigned) &&
   (template.borrowerId === null || template.borrowerId === borrowerId)

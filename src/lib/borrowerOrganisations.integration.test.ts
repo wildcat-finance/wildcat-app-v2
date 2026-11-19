@@ -317,4 +317,116 @@ describeWithDatabase("borrower organisations against Postgres", () => {
       await prisma.borrower.count({ where: { name: organisationName } }),
     ).toBe(0)
   })
+
+  // The organisation of `wallet`, found by the wallet: several organisations
+  // in this suite share a name.
+  const organisationOf = (chainId: number, wallet: string) =>
+    prisma.borrower.findFirstOrThrow({
+      where: { registrations: { some: { chainId, address: wallet } } },
+      include: { registrations: true },
+    })
+
+  const inviteNew = async (chainId: number, wallet: string) => {
+    const response = await invite(
+      request("/api/invite", {
+        method: "POST",
+        token: tokenFor(admin, chainId, true),
+        body: {
+          chainId,
+          address: wallet,
+          name: organisationName,
+          jurisdiction: "Testland",
+        },
+      }),
+    )
+    expect(response.status).toBe(200)
+    return organisationOf(chainId, wallet)
+  }
+
+  const accept = (
+    chainId: number,
+    wallet: string,
+    name: string,
+    jurisdiction = "Elsewhere",
+  ) =>
+    acceptInvite(
+      request("/api/invite", {
+        method: "PUT",
+        token: tokenFor(wallet, chainId),
+        body: {
+          chainId,
+          address: wallet,
+          name,
+          jurisdiction,
+          signature: "0xsignature",
+          timeSigned: Date.now(),
+        },
+      }),
+    )
+
+  it("a wallet joining an onboarded organisation keeps its name and profile", async () => {
+    const firstWallet = randomAddress()
+    const joiningWallet = randomAddress()
+    const { id } = await inviteNew(SEPOLIA, firstWallet)
+    expect((await accept(SEPOLIA, firstWallet, organisationName)).status).toBe(
+      200,
+    )
+    const added = await invite(
+      request("/api/invite", {
+        method: "POST",
+        token: tokenFor(admin, PLASMA_TESTNET, true),
+        body: {
+          chainId: PLASMA_TESTNET,
+          address: joiningWallet,
+          borrowerId: id,
+          name: "ignored for an existing borrower",
+        },
+      }),
+    )
+    expect(added.status).toBe(200)
+
+    const renamed = await accept(PLASMA_TESTNET, joiningWallet, "Someone Else")
+    expect(renamed.status).toBe(409)
+    const joined = await accept(
+      PLASMA_TESTNET,
+      joiningWallet,
+      organisationName,
+      "Changed by the joining wallet",
+    )
+    expect(joined.status).toBe(200)
+
+    const shared = await organisationOf(PLASMA_TESTNET, joiningWallet)
+    expect(shared).toMatchObject({ id, name: organisationName })
+    // The first wallet set the profile on acceptance; joining left it alone.
+    expect(shared.jurisdiction).toBe("Elsewhere")
+    expect(shared.registrations).toHaveLength(2)
+  })
+
+  it("keeps an organisation that owns a custom MLA when its last invitation is cancelled", async () => {
+    const wallet = randomAddress()
+    const { id } = await inviteNew(SEPOLIA, wallet)
+    await prisma.mlaTemplate.create({
+      data: {
+        isTestnet: true,
+        borrowerId: id,
+        name: `Integration template ${runId}`,
+        version: "1",
+        html: "<p>Agreement</p>",
+        plaintext: "Agreement",
+        borrowerFields: [],
+        lenderFields: [],
+      },
+    })
+    const response = await cancelInvite(
+      request(`/api/invite?address=${wallet}&chainId=${SEPOLIA}`, {
+        method: "DELETE",
+        token: tokenFor(admin, SEPOLIA, true),
+      }),
+    )
+    expect(response.status).toBe(200)
+    expect(
+      await prisma.borrowerRegistration.count({ where: { address: wallet } }),
+    ).toBe(0)
+    expect(await prisma.borrower.count({ where: { id } })).toBe(1)
+  })
 })

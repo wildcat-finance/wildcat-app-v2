@@ -9,14 +9,21 @@
   - "MasterLoanAgreement", "RefusalToAssignMla" and the borrower's row in
     "MlaSignature" become one "MarketMlaDecision" per market. Lender rows move
     to "MlaLenderSignature"; "NonMlaAcknowledgement" points at the decision.
-  - MLA templates are stored once per network class.
+  - MLA templates belong to a network class. Identical copies made per
+    network are hidden behind the lowest id but keep their own ids, so
+    agreements and saved create-market drafts that name them still resolve.
+    A template that only a network the application does not serve had stays
+    hidden, as it was never offered on the others.
 
   There is no compatibility layer. Every application instance that reads these
   tables, on every branch and environment sharing this database, must run code
   from the same commit as this migration.
 
-  The old tables are kept, renamed with a "legacy_" prefix, as the rollback
-  path. A later migration drops them once the new shape is confirmed.
+  Rollback path: the replaced tables are kept, renamed with a "legacy_"
+  prefix, and the tables reshaped in place ("MlaTemplate",
+  "BorrowerProfileUpdateRequest", "NonMlaAcknowledgement") are first copied to
+  "legacy_" tables with every row and column. A later migration drops them
+  once the new shape is confirmed.
 */
 
 BEGIN;
@@ -155,8 +162,12 @@ BEGIN
 END $$;
 
 -- ---------------------------------------------------------------------------
--- Keep the replaced tables under new names
+-- Keep the old rows: copy the tables reshaped in place, rename the replaced ones
 -- ---------------------------------------------------------------------------
+CREATE TABLE "legacy_MlaTemplate" AS TABLE "MlaTemplate";
+CREATE TABLE "legacy_BorrowerProfileUpdateRequest" AS TABLE "BorrowerProfileUpdateRequest";
+CREATE TABLE "legacy_NonMlaAcknowledgement" AS TABLE "NonMlaAcknowledgement";
+
 -- Foreign keys between the replaced tables move with them. These three point
 -- from or to a table that is reshaped in place, so they go.
 ALTER TABLE "BorrowerProfileUpdateRequest" DROP CONSTRAINT "BorrowerProfileUpdateRequest_chainId_address_fkey";
@@ -377,13 +388,15 @@ ALTER TABLE "MlaTemplate" ADD COLUMN "isTestnet" BOOLEAN;
 UPDATE "MlaTemplate" t SET "isTestnet" = n."isTestnet" FROM "Network" n WHERE n."chainId" = t."chainId";
 UPDATE "MlaTemplate" SET "hide" = coalesce("hide", false), "isDefault" = coalesce("isDefault", false);
 
--- Identical copies made per network collapse onto the lowest id.
+-- Identical copies made per network are hidden behind the lowest id.
 CREATE TEMP TABLE "template_keep" ON COMMIT DROP AS
 SELECT
   t."id",
   min(t."id") OVER w AS "keepId",
   -- The group has a copy on its class's primary network (Ethereum, Sepolia).
-  bool_or(t."chainId" IN (1, 11155111)) OVER w AS "onPrimaryNetwork"
+  bool_or(t."chainId" IN (1, 11155111)) OVER w AS "onPrimaryNetwork",
+  -- The group has a copy on a network the application serves.
+  bool_or(t."chainId" IN (1, 9745, 11155111, 9746)) OVER w AS "onServedNetwork"
 FROM "MlaTemplate" t
 WINDOW w AS (
   PARTITION BY t."isTestnet", t."name", t."description", t."hide", t."isDefault",
@@ -432,14 +445,13 @@ SELECT
   s."kind",
   s."blockNumber",
   s."timeSigned",
-  k."keepId",
+  m."templateId",
   m."html",
   m."plaintext",
   m."lenderFields"
 FROM "legacy_MasterLoanAgreement" m
 JOIN "legacy_MlaSignature" s
   ON s."chainId" = m."chainId" AND s."market" = m."market" AND s."address" = m."borrower"
-JOIN "template_keep" k ON k."id" = m."templateId"
 JOIN "BorrowerRegistration" r ON r."chainId" = m."chainId" AND r."address" = m."borrower";
 
 INSERT INTO "MarketMlaDecision" (
@@ -498,9 +510,13 @@ ALTER TABLE "NonMlaAcknowledgement"
   DROP COLUMN "timeSigned",
   ADD COLUMN "outcome" "MlaDecisionOutcome" NOT NULL DEFAULT 'Declined';
 
--- Templates: drop the collapsed copies, keep one default per class (the one
--- on the primary network when two differ), and settle the column types.
-DELETE FROM "MlaTemplate" t USING "template_keep" k WHERE k."id" = t."id" AND k."keepId" <> t."id";
+-- Templates: hide the copies (never delete them: agreements and drafts name
+-- them by id) and the templates no served network offered, keep one default
+-- per class (the one on the primary network when two differ), and settle the
+-- column types.
+UPDATE "MlaTemplate" t SET "hide" = true, "isDefault" = false
+FROM "template_keep" k
+WHERE k."id" = t."id" AND (k."keepId" <> t."id" OR NOT k."onServedNetwork");
 
 WITH ranked AS (
   SELECT
@@ -534,6 +550,9 @@ DROP TYPE "AccountKind";
 -- ---------------------------------------------------------------------------
 DO $$
 BEGIN
+  IF (SELECT count(*) FROM "MlaTemplate") <> (SELECT count(*) FROM "legacy_MlaTemplate") THEN
+    RAISE EXCEPTION 'Template count differs from the old "MlaTemplate" row count';
+  END IF;
   IF (SELECT count(*) FROM "BorrowerRegistration") <> (SELECT count(*) FROM "legacy_Borrower") THEN
     RAISE EXCEPTION 'Registration count differs from the old "Borrower" row count';
   END IF;
