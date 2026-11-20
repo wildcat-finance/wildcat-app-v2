@@ -9,10 +9,8 @@ import {
   normalizeLenderKycDetails,
 } from "@/utils/lenderKycMessage"
 import {
-  LenderKycOutcome as DbLenderKycOutcome,
   LenderKycProfileRevision as DbLenderKycProfileRevision,
   LenderKycSignatureKind,
-  LenderKycStart as DbLenderKycStart,
   Prisma,
   PrismaClient,
 } from "@prisma-ops/client"
@@ -20,12 +18,8 @@ import {
 import { decryptLenderKycField, encryptLenderKycField } from "./crypto"
 import {
   LenderKycDetailsResult,
-  LenderKycNotSignedReason,
   LenderKycOutcome,
   LenderKycSavedProfile,
-  LenderKycStart,
-  LenderKycStartResult,
-  LenderKycStartSource,
   LenderKycWalletRow,
   LenderKycWalletStatus,
 } from "../types"
@@ -41,7 +35,6 @@ export type LenderKycNonceRecord = {
 }
 
 export type LenderKycSignedRecord = {
-  startId: string
   messageKind: LenderKycMessageKind
   chainId: number
   address: string
@@ -76,24 +69,10 @@ export class LenderKycConflictError extends Error {
 }
 
 export type LenderKycRepository = {
-  createStart(input: {
-    address: string
-    chainId: number
-    source: LenderKycStartSource
-  }): Promise<LenderKycStartResult>
   getWalletStatus(
     address: string,
     chainId: number,
   ): Promise<LenderKycWalletStatus>
-  findStart(startId: string): Promise<LenderKycStart | undefined>
-  discardStart(startId: string): Promise<void>
-  recordClosed(startId: string): Promise<void>
-  recordNotSigned(
-    startId: string,
-    reason: LenderKycNotSignedReason,
-  ): Promise<void>
-  recordForward(startId: string): Promise<void>
-  recordReplayOutcome(startId: string, outcome: LenderKycOutcome): Promise<void>
   issueNonce(input: {
     address: string
     chainId: number
@@ -114,29 +93,11 @@ export type LenderKycRepository = {
   ): Promise<LenderKycDetailsResult>
   recordOwnership(signed: LenderKycSignedRecord): Promise<LenderKycSavedProfile>
   listWalletRows(chainId: number): Promise<LenderKycWalletRow[]>
-  closeStaleStarts(clickedBefore: Date, chainId?: number): Promise<number>
 }
 
 type Client = PrismaClient | Prisma.TransactionClient
 
-const SUCCESS_OUTCOMES: DbLenderKycOutcome[] = [
-  "submitted",
-  "updated",
-  "unchanged",
-  "skipped",
-]
-
-const toStart = (row: DbLenderKycStart): LenderKycStart => ({
-  id: row.id,
-  address: row.address,
-  chainId: row.chainId,
-  source: row.source,
-  clickedAt: row.clickedAt.toISOString(),
-  outcome: row.outcome ?? undefined,
-  outcomeReason: row.outcomeReason ?? undefined,
-  outcomeAt: row.outcomeAt?.toISOString(),
-  forwardedAt: row.forwardedAt?.toISOString(),
-})
+const NONCE_PURGE_GRACE_MS = 60 * 60 * 1000
 
 const toProfile = (row: DbLenderKycProfileRevision): LenderKycSavedProfile => ({
   details: {
@@ -198,7 +159,6 @@ const createSignature = (
   return client.lenderKycSignature.create({
     data: {
       id,
-      startId: signed.startId,
       messageKind: signed.messageKind,
       outcome,
       chainId: signed.chainId,
@@ -220,95 +180,18 @@ const createSignature = (
   })
 }
 
-const setStartOutcome = (
-  client: Prisma.TransactionClient,
-  startId: string,
-  outcome: LenderKycOutcome,
-  now: Date,
-) =>
-  client.lenderKycStart.update({
-    where: { id: startId },
-    data: { outcome, outcomeReason: null, outcomeAt: now },
-  })
-
-const groupByAddress = <T extends { address: string }>(rows: T[]) => {
-  const groups = new Map<string, T[]>()
-  rows.forEach((row) => {
-    const group = groups.get(row.address)
-    if (group) group.push(row)
-    else groups.set(row.address, [row])
-  })
-  return groups
-}
-
 export const createPrismaLenderKycRepository = (
   database: PrismaClient,
 ): LenderKycRepository => ({
-  async createStart({ address, chainId, source }) {
-    const row = await database.lenderKycStart.create({
-      data: { address, chainId, source },
-    })
-    const revision = await findVisibleRevision(database, address, chainId)
-    return { start: toStart(row), hasSavedRecord: !!revision }
-  },
-
   async getWalletStatus(address, chainId) {
     const revision = await findVisibleRevision(database, address, chainId)
     return { hasSavedRecord: !!revision }
   },
 
-  async findStart(startId) {
-    const row = await database.lenderKycStart.findUnique({
-      where: { id: startId },
-    })
-    return row ? toStart(row) : undefined
-  },
-
-  async discardStart(startId) {
-    await database.lenderKycStart.deleteMany({
-      where: { id: startId, outcome: null, signatures: { none: {} } },
-    })
-  },
-
-  async recordClosed(startId) {
-    await database.lenderKycStart.updateMany({
-      where: { id: startId, outcome: null },
-      data: { outcome: "closed", outcomeAt: new Date() },
-    })
-  },
-
-  async recordNotSigned(startId, reason) {
-    await database.lenderKycStart.updateMany({
-      where: {
-        id: startId,
-        OR: [{ outcome: null }, { outcome: { notIn: SUCCESS_OUTCOMES } }],
-      },
-      data: {
-        outcome: "notSigned",
-        outcomeReason: reason,
-        outcomeAt: new Date(),
-      },
-    })
-  },
-
-  async recordForward(startId) {
-    await database.lenderKycStart.updateMany({
-      where: { id: startId, outcome: { in: SUCCESS_OUTCOMES } },
-      data: { forwardedAt: new Date() },
-    })
-  },
-
-  async recordReplayOutcome(startId, outcome) {
-    await database.lenderKycStart.updateMany({
-      where: {
-        id: startId,
-        OR: [{ outcome: null }, { outcome: { notIn: SUCCESS_OUTCOMES } }],
-      },
-      data: { outcome, outcomeReason: null, outcomeAt: new Date() },
-    })
-  },
-
   async issueNonce({ address, chainId, secretHash, expiresAt }) {
+    await database.lenderKycNonce.deleteMany({
+      where: { expiresAt: { lt: new Date(Date.now() - NONCE_PURGE_GRACE_MS) } },
+    })
     return database.lenderKycNonce.create({
       data: {
         nonce: randomBytes(16).toString("hex"),
@@ -401,7 +284,6 @@ export const createPrismaLenderKycRepository = (
           },
         })
       }
-      await setStartOutcome(tx, signed.startId, outcome, now)
 
       return {
         outcome,
@@ -428,45 +310,22 @@ export const createPrismaLenderKycRepository = (
       const profile = toProfile(revision)
       await burnNonce(tx, signed.nonce, now)
       await createSignature(tx, signed, "unchanged", now)
-      await setStartOutcome(tx, signed.startId, "unchanged", now)
       return profile
     })
   },
 
-  async closeStaleStarts(clickedBefore, chainId) {
-    const { count } = await database.lenderKycStart.updateMany({
-      where: {
-        outcome: null,
-        clickedAt: { lt: clickedBefore },
-        ...(chainId !== undefined && { chainId }),
-      },
-      data: { outcome: "closed", outcomeAt: new Date() },
-    })
-    return count
-  },
-
   async listWalletRows(chainId) {
-    const [starts, signatures, revisions] = await Promise.all([
-      database.lenderKycStart.findMany({
-        where: { chainId },
-        orderBy: { clickedAt: "asc" },
-      }),
+    const [signatures, revisions] = await Promise.all([
       database.lenderKycSignature.findMany({
         where: { chainId },
-        select: { address: true, termsVersion: true },
-        orderBy: { createdAt: "desc" },
+        select: { address: true, termsVersion: true, createdAt: true },
+        orderBy: { createdAt: "asc" },
       }),
       database.lenderKycProfileRevision.findMany({
         where: { chainId },
         orderBy: { savedAt: "desc" },
       }),
     ])
-    const latestTermsVersion = new Map<string, string>()
-    signatures.forEach((signature) => {
-      if (!latestTermsVersion.has(signature.address)) {
-        latestTermsVersion.set(signature.address, signature.termsVersion)
-      }
-    })
     const latestRevision = new Map<string, DbLenderKycProfileRevision>()
     revisions.forEach((revision) => {
       if (!latestRevision.has(revision.address)) {
@@ -474,42 +333,28 @@ export const createPrismaLenderKycRepository = (
       }
     })
 
-    return Array.from(groupByAddress(starts).entries())
-      .map(([address, rows]) => {
-        const clicks = rows.filter((start) => start.source === "click")
-        const attemptsWithOutcome = rows.filter((start) => start.outcomeAt)
-        const withOutcome = [...attemptsWithOutcome].sort(
-          (a, b) =>
-            (b.outcomeAt?.getTime() ?? 0) - (a.outcomeAt?.getTime() ?? 0),
-        )
-        const latestOutcome =
-          withOutcome.find(
-            (start) =>
-              start.outcome && SUCCESS_OUTCOMES.includes(start.outcome),
-          ) ?? attemptsWithOutcome[attemptsWithOutcome.length - 1]
-        const forwardedAt = rows
-          .map((start) => start.forwardedAt)
-          .filter((value): value is Date => !!value)
-          .sort((a, b) => b.getTime() - a.getTime())[0]
-        const revision = latestRevision.get(address)
-        const lastStart = rows[rows.length - 1]
-
-        const row: LenderKycWalletRow = {
-          address,
-          chainId,
-          firstClickedAt: clicks[0]?.clickedAt.toISOString(),
-          lastClickedAt: clicks[clicks.length - 1]?.clickedAt.toISOString(),
-          starts: rows.length,
-          outcome: latestOutcome?.outcome ?? undefined,
-          outcomeReason: latestOutcome?.outcomeReason ?? undefined,
-          outcomeAt: latestOutcome?.outcomeAt?.toISOString(),
-          termsVersion: latestTermsVersion.get(address),
-          forwardedAt: forwardedAt?.toISOString(),
-          ...(revision ? readRevisionDetails(revision) : {}),
-        }
-        return { row, lastStartedAt: lastStart.clickedAt.getTime() }
+    const rows = new Map<string, LenderKycWalletRow>()
+    signatures.forEach((signature) => {
+      const signedAt = signature.createdAt.toISOString()
+      const row = rows.get(signature.address)
+      if (row) {
+        row.lastSignedAt = signedAt
+        row.termsVersion = signature.termsVersion
+        return
+      }
+      const revision = latestRevision.get(signature.address)
+      rows.set(signature.address, {
+        address: signature.address,
+        chainId,
+        firstSignedAt: signedAt,
+        lastSignedAt: signedAt,
+        termsVersion: signature.termsVersion,
+        ...(revision ? readRevisionDetails(revision) : {}),
       })
-      .sort((a, b) => b.lastStartedAt - a.lastStartedAt)
-      .map(({ row }) => row)
+    })
+
+    return Array.from(rows.values()).sort((a, b) =>
+      b.lastSignedAt.localeCompare(a.lastSignedAt),
+    )
   },
 })

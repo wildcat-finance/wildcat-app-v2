@@ -8,7 +8,6 @@ export const lenderKycRepository = createPrismaLenderKycRepository(opsPrisma)
 export const isLenderKycStorageConfigured = () =>
   isOpsDatabaseConfigured() && isLenderKycEncryptionConfigured()
 export {
-  closeStaleLenderKycStarts,
   confirmLenderKycOwnership,
   isLenderKycChainSupported,
   issueLenderKycNonce,

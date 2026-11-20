@@ -173,11 +173,11 @@ const ADMIN_QUERY_KEYS = {
     isAdmin?: boolean,
     address?: string,
   ) => k(["admin", "GET_ALL_BORROWER_PROFILES", chainId, isAdmin, address]),
-  GET_LENDER_KYC_STARTS: (
-    chainId: number,
-    isAdmin?: boolean,
-    address?: string,
-  ) => k(["admin", "GET_LENDER_KYC_STARTS", chainId, isAdmin, address]),
+} as const
+
+const OPS_QUERY_KEYS = {
+  GET_LENDER_KYC_ROWS: (chainId: number, address?: string) =>
+    k(["ops", "GET_LENDER_KYC_ROWS", chainId, address]),
 } as const
 
 const USER_QUERY_KEYS = {
@@ -440,6 +440,7 @@ const DESTINATIONS_QUERY_KEYS = {
 export const QueryKeys = {
   Borrower: BORROWER_QUERY_KEYS,
   Admin: ADMIN_QUERY_KEYS,
+  Ops: OPS_QUERY_KEYS,
   User: USER_QUERY_KEYS,
   Token: TOKEN_QUERY_KEYS,
   Lender: LENDER_QUERY_KEYS,

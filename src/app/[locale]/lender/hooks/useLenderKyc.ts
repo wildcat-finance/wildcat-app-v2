@@ -15,7 +15,6 @@ import {
 import {
   LenderKycDetailsResult,
   LenderKycSavedProfile,
-  LenderKycStartSource,
 } from "@/lib/lenderKyc/types"
 import {
   buildLenderKycMessage,
@@ -92,21 +91,7 @@ export const usePendingSafeLenderKycDetails = () => {
   )
 }
 
-export const useStartLenderKyc = () =>
-  useMutation({
-    mutationFn: ({
-      address,
-      chainId,
-      source,
-    }: {
-      address: string
-      chainId: number
-      source?: LenderKycStartSource
-    }) => lenderKycApi.recordStart(address, chainId, source),
-  })
-
 type SignLenderKycInput = {
-  startId: string
   address: string
   chainId: number
   isStillRelevant?: () => boolean
@@ -207,7 +192,6 @@ export const useSignLenderKyc = () => {
         safeSigning.markSubmitting(signed.pendingSafeMessageId)
         try {
           const payload = {
-            startId: input.startId,
             address,
             chainId: input.chainId,
             nonce: signedNonce,

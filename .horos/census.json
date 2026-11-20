@@ -8,7 +8,7 @@
     },
     {
       "boundary_bytes": 3633780,
-      "bytes": 3923887,
+      "bytes": 3923238,
       "files": 18,
       "suffix": ".json"
     },
@@ -20,14 +20,14 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 2285628,
-      "files": 401,
+      "bytes": 2283877,
+      "files": 402,
       "suffix": ".tsx"
     },
     {
       "boundary_bytes": 0,
-      "bytes": 1638516,
-      "files": 696,
+      "bytes": 1620741,
+      "files": 693,
       "suffix": ".ts"
     },
     {
@@ -44,8 +44,8 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 313288,
-      "files": 22,
+      "bytes": 314080,
+      "files": 23,
       "suffix": ".sql"
     },
     {
@@ -86,7 +86,7 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 14490,
+      "bytes": 13781,
       "files": 2,
       "suffix": ".prisma"
     },
@@ -147,6 +147,6 @@
   ],
   "schema": 1,
   "tool": "horos",
-  "total_bytes": 20262825,
-  "total_files": 1364
+  "total_bytes": 20242733,
+  "total_files": 1363
 }

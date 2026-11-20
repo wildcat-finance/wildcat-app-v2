@@ -9,10 +9,6 @@
     {
       "path": "/api/export/reconcile",
       "schedule": "*/10 * * * *"
-    },
-    {
-      "path": "/api/lender-kyc/close-stale-starts",
-      "schedule": "*/15 * * * *"
     }
   ]
 }

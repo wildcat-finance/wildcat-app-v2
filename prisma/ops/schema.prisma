@@ -14,23 +14,11 @@ model OpsAdmin {
   createdAt DateTime @default(now())
 }
 
-enum LenderKycStartSource {
-  click
-  walletSwitch
-}
-
 enum LenderKycOutcome {
   submitted
   updated
   unchanged
   skipped
-  closed
-  notSigned
-}
-
-enum LenderKycNotSignedReason {
-  declined
-  walletMismatch
 }
 
 enum LenderKycMessageKind {
@@ -42,22 +30,6 @@ enum LenderKycSignatureKind {
   ECDSA
   GnosisSignature
   EIP1271
-}
-
-model LenderKycStart {
-  id            String                    @id @default(uuid())
-  chainId       Int
-  address       String
-  source        LenderKycStartSource
-  clickedAt     DateTime                  @default(now())
-  outcome       LenderKycOutcome?
-  outcomeReason LenderKycNotSignedReason?
-  outcomeAt     DateTime?
-  forwardedAt   DateTime?
-
-  signatures LenderKycSignature[]
-
-  @@index([chainId, address])
 }
 
 model LenderKycNonce {
@@ -72,7 +44,6 @@ model LenderKycNonce {
 
 model LenderKycSignature {
   id            String                 @id
-  startId       String
   messageKind   LenderKycMessageKind
   outcome       LenderKycOutcome
   chainId       Int
@@ -87,11 +58,9 @@ model LenderKycSignature {
   termsVersion  String
   createdAt     DateTime               @default(now())
 
-  start     LenderKycStart             @relation(fields: [startId], references: [id], onDelete: Restrict)
   revisions LenderKycProfileRevision[]
 
   @@index([chainId, address])
-  @@index([startId])
 }
 
 model LenderKycProfileRevision {

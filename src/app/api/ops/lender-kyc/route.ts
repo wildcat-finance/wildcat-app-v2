@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { isAdminForChain, verifyApiToken } from "@/app/api/auth/verify-header"
-import {
-  closeStaleLenderKycStarts,
-  isLenderKycStorageConfigured,
-  lenderKycRepository,
-} from "@/lib/lenderKyc/server"
-import { validateChainIdParam } from "@/lib/validateChainIdParam"
-
+import { verifyApiToken } from "@/app/api/auth/verify-header"
 import {
   lenderKycErrorResponse,
   lenderKycStorageUnavailable,
-} from "../../respond"
+} from "@/app/api/lender-kyc/respond"
+import {
+  isLenderKycStorageConfigured,
+  lenderKycRepository,
+} from "@/lib/lenderKyc/server"
+import { isOpsAdmin, isOpsDatabaseConfigured } from "@/lib/opsDb"
+import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
 export async function GET(request: NextRequest) {
   const chainId = validateChainIdParam(request)
@@ -22,12 +21,15 @@ export async function GET(request: NextRequest) {
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
-  if (!(await isAdminForChain(token, chainId))) {
+  if (token.chainId !== chainId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
-  if (!isLenderKycStorageConfigured()) return lenderKycStorageUnavailable()
+  if (!isOpsDatabaseConfigured()) return lenderKycStorageUnavailable()
   try {
-    await closeStaleLenderKycStarts(lenderKycRepository, chainId)
+    if (!(await isOpsAdmin(token.address))) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
+    if (!isLenderKycStorageConfigured()) return lenderKycStorageUnavailable()
     return NextResponse.json(await lenderKycRepository.listWalletRows(chainId))
   } catch (error) {
     return lenderKycErrorResponse(error)

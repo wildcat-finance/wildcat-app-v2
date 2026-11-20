@@ -49,11 +49,13 @@ export default function AuthWrapper({
   title,
   children,
   requiresAdmin,
+  loginMessage = "Log in with your wallet to access the admin panel.",
 }: {
   buttonText?: string
   title?: string
   children: React.ReactNode | React.ReactNode[]
   requiresAdmin?: boolean
+  loginMessage?: string
 }) {
   const { address } = useAccount()
   const { chainId } = useSelectedNetwork()
@@ -83,7 +85,7 @@ export default function AuthWrapper({
       return (
         <PanelFallback
           title={title}
-          message="Log in with your wallet to access the admin panel."
+          message={loginMessage}
           action={
             <Button
               variant="contained"

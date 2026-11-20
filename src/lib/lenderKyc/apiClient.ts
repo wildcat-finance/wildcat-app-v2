@@ -2,16 +2,15 @@ import { LenderKycDetails } from "@/utils/lenderKycMessage"
 
 import {
   LenderKycDetailsResult,
-  LenderKycNotSignedReason,
   LenderKycSavedProfile,
   LenderKycSignedPayload,
-  LenderKycStartResult,
-  LenderKycStartSource,
   LenderKycWalletRow,
   LenderKycWalletStatus,
 } from "./types"
 
 const BASE_PATH = "/api/lender-kyc"
+
+const OPS_LIST_PATH = "/api/ops/lender-kyc"
 
 export class LenderKycApiError extends Error {
   constructor(
@@ -32,8 +31,8 @@ export const isLenderKycWalletMismatch = (
 ): error is LenderKycApiError =>
   error instanceof LenderKycApiError && error.code === "walletMismatch"
 
-const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
-  const response = await fetch(`${BASE_PATH}${path}`, {
+const requestUrl = async <T>(url: string, init?: RequestInit): Promise<T> => {
+  const response = await fetch(url, {
     ...init,
     headers: { "Content-Type": "application/json", ...init?.headers },
   })
@@ -51,34 +50,13 @@ const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
   return response.json() as Promise<T>
 }
 
+const request = <T>(path: string, init?: RequestInit) =>
+  requestUrl<T>(`${BASE_PATH}${path}`, init)
+
 const postJson = <T>(path: string, body: unknown) =>
   request<T>(path, { method: "POST", body: JSON.stringify(body) })
 
-type StartAction =
-  | { action: "closed" }
-  | { action: "discard" }
-  | { action: "forward" }
-  | { action: "notSigned"; reason: LenderKycNotSignedReason }
-
-const sendStartAction = (startId: string, action: StartAction) =>
-  postJson<{ success: true }>(`/starts/${startId}`, action).then(
-    () => undefined,
-    () => undefined,
-  )
-
 export const lenderKycApi = {
-  recordStart(
-    address: string,
-    chainId: number,
-    source: LenderKycStartSource = "click",
-  ) {
-    return postJson<LenderKycStartResult>("/starts", {
-      address,
-      chainId,
-      source,
-    })
-  },
-
   getWalletStatus(address: string, chainId: number) {
     const params = new URLSearchParams({
       address,
@@ -105,43 +83,10 @@ export const lenderKycApi = {
     return postJson<LenderKycSavedProfile>("/ownership", payload)
   },
 
-  discardStart(startId: string) {
-    return sendStartAction(startId, { action: "discard" })
-  },
-
-  recordClosed(startId: string) {
-    return sendStartAction(startId, { action: "closed" })
-  },
-
-  recordClosedOnPageHide(startId: string) {
-    const body = new Blob([JSON.stringify({ action: "closed" })], {
-      type: "application/json",
-    })
-    if (
-      typeof navigator !== "undefined" &&
-      navigator.sendBeacon?.(`${BASE_PATH}/starts/${startId}`, body)
-    ) {
-      return
-    }
-    fetch(`${BASE_PATH}/starts/${startId}`, {
-      method: "POST",
-      body,
-      keepalive: true,
-      headers: { "Content-Type": "application/json" },
-    }).catch(() => undefined)
-  },
-
-  recordNotSigned(startId: string, reason: LenderKycNotSignedReason) {
-    return sendStartAction(startId, { action: "notSigned", reason })
-  },
-
-  recordForward(startId: string) {
-    return sendStartAction(startId, { action: "forward" })
-  },
-
-  listWalletRows(chainId: number, token: string) {
-    return request<LenderKycWalletRow[]>(`/admin/starts?chainId=${chainId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+  listOpsRows(chainId: number, token: string) {
+    return requestUrl<LenderKycWalletRow[]>(
+      `${OPS_LIST_PATH}?chainId=${chainId}`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    )
   },
 }

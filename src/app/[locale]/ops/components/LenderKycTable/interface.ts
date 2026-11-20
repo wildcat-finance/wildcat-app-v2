@@ -6,17 +6,6 @@ export type TypeSafeColDef<T> = GridColDef & { field: keyof T }
 
 export type LenderKycFilter = "all" | "withDetails"
 
-export type LenderKycOutcomeKey =
-  | "submitted"
-  | "updated"
-  | "unchanged"
-  | "skipped"
-  | "closed"
-  | "notSignedDeclined"
-  | "notSignedWalletMismatch"
-  | "notSigned"
-  | "pending"
-
 export type LenderKycTableRow = LenderKycWalletRow & {
   id: string
   isSample: boolean

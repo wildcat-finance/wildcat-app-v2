@@ -24,12 +24,6 @@ const EmailFieldDTO = TextFieldDTO.refine(
   { message: "email" },
 )
 
-export const LenderKycStartInputDTO = z.object({
-  address: AddressDTO,
-  chainId: ChainIdDTO,
-  source: z.enum(["click", "walletSwitch"]).default("click"),
-})
-
 export const LenderKycStatusQueryDTO = z.object({
   address: AddressDTO,
   chainId: z.coerce.number().int().positive(),
@@ -40,18 +34,7 @@ export const LenderKycNonceInputDTO = z.object({
   chainId: ChainIdDTO,
 })
 
-export const LenderKycStartActionDTO = z.discriminatedUnion("action", [
-  z.object({ action: z.literal("closed") }),
-  z.object({ action: z.literal("discard") }),
-  z.object({ action: z.literal("forward") }),
-  z.object({
-    action: z.literal("notSigned"),
-    reason: z.enum(["declined", "walletMismatch"]),
-  }),
-])
-
 export const LenderKycSignedInputDTO = z.object({
-  startId: z.string().uuid(),
   address: AddressDTO,
   chainId: ChainIdDTO,
   nonce: z.string().regex(/^[0-9a-f]{32}$/),

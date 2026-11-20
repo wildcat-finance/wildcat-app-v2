@@ -149,70 +149,6 @@
     }
   },
   "admin": {
-    "lenderKyc": {
-      "section": "Lender KYC Starts",
-      "title": "Lender KYC starts",
-      "description": "One row per wallet. Outcome shows the latest signature, or the most recent outcome if the wallet never signed.",
-      "filters": {
-        "all": "All",
-        "withDetails": "With details"
-      },
-      "outcomeFilter": "Outcome",
-      "sampleRows": "Sample rows",
-      "sampleTag": "Sample",
-      "exportCsv": "Export CSV",
-      "empty": {
-        "title": "No KYC starts yet",
-        "subtitle": "A row appears here when a lender clicks Get verified."
-      },
-      "filteredEmpty": {
-        "title": "No starts match these filters",
-        "subtitle": "Change the outcome filter or switch to All."
-      },
-      "loadError": {
-        "title": "Couldn't load KYC starts",
-        "subtitle": "The server returned an error. The list keeps retrying in the background.",
-        "storageSubtitle": "KYC storage isn't configured on the server: the encryption key is missing."
-      },
-      "staleData": "Couldn't refresh the list. Showing data from {{time}} UTC. CSV export is off until the list loads again.",
-      "columns": {
-        "wallet": "Wallet address",
-        "firstClicked": "First click (UTC)",
-        "lastClicked": "Last click (UTC)",
-        "outcome": "Prompt outcome",
-        "outcomeTime": "Outcome time (UTC)",
-        "signed": "Signed, terms accepted",
-        "forwarded": "Forwarded to SOMA (UTC)",
-        "name": "Name",
-        "email": "Email",
-        "company": "Company",
-        "lenderType": "Lender type"
-      },
-      "csv": {
-        "signed": "Signed",
-        "termsVersion": "Terms version",
-        "yes": "Yes"
-      },
-      "outcomes": {
-        "submitted": "Submitted",
-        "updated": "Updated",
-        "unchanged": "Unchanged",
-        "skipped": "Skipped",
-        "closed": "Closed",
-        "notSigned": "Not signed",
-        "notSignedDeclined": "Not signed: declined",
-        "notSignedWalletMismatch": "Not signed: wallet mismatch",
-        "pending": "No outcome yet"
-      },
-      "values": {
-        "signedYes": "Yes, terms {{version}}",
-        "no": "No",
-        "notForwarded": "Not forwarded",
-        "walletSwitch": "Via wallet switch",
-        "notProvided": "Not provided",
-        "unreadable": "Can't decrypt"
-      }
-    },
     "inviteBorrower": {
       "button": "Invite Borrower",
       "title": "Invite New Borrower",
@@ -250,6 +186,53 @@
       "title": "Edit Borrower Profile",
       "description": "Edit borrower's profile details.",
       "submit": "Save Changes"
+    }
+  },
+  "ops": {
+    "title": "Ops Panel",
+    "loginMessage": "Log in with your wallet to access the ops panel.",
+    "lenderKyc": {
+      "title": "Lender verifications",
+      "description": "One row per wallet that signed the Wildcat Verification Terms on this network. Details show what the lender shared most recently.",
+      "filters": {
+        "all": "All",
+        "withDetails": "With details"
+      },
+      "sampleRows": "Sample rows",
+      "sampleTag": "Sample",
+      "exportCsv": "Export CSV",
+      "empty": {
+        "title": "No signed verifications yet",
+        "subtitle": "A row appears here after a lender signs in the verification dialog."
+      },
+      "filteredEmpty": {
+        "title": "No rows match this filter",
+        "subtitle": "Switch to All to see every signed wallet."
+      },
+      "loadError": {
+        "title": "Couldn't load verifications",
+        "subtitle": "The server returned an error. The list keeps retrying in the background.",
+        "storageSubtitle": "Verification storage isn't configured on the server."
+      },
+      "noAccess": {
+        "title": "No access",
+        "subtitle": "This wallet isn't on the ops list for this panel. Ask a Wildcat admin to add it."
+      },
+      "staleData": "Couldn't refresh the list. Showing data from {{time}} UTC. CSV export is off until the list loads again.",
+      "columns": {
+        "wallet": "Wallet address",
+        "firstSigned": "First signed (UTC)",
+        "lastSigned": "Last signed (UTC)",
+        "termsVersion": "Terms version",
+        "name": "Name",
+        "email": "Email",
+        "company": "Company",
+        "lenderType": "Lender type"
+      },
+      "values": {
+        "notProvided": "Not provided",
+        "unreadable": "Can't decrypt"
+      }
     }
   },
   "dashboard": {

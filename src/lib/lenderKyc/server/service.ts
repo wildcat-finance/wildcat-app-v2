@@ -9,7 +9,6 @@ import { utils } from "ethers"
 
 import {
   LENDER_KYC_SIGNATURE_MAX_AGE_MS,
-  LENDER_KYC_START_TIMEOUT_MS,
   LENDER_KYC_TERMS_VERSION,
 } from "@/config/lender-kyc"
 import { getProviderForServer } from "@/lib/provider"
@@ -71,9 +70,6 @@ const findMismatchedEoaSigner = async (
   }
 }
 
-const isWalletMismatch = (error: unknown) =>
-  error instanceof LenderKycRequestError && error.code === "walletMismatch"
-
 const nonceConsumedError = () =>
   new LenderKycRequestError("Nonce already used", 409, "nonceConsumed")
 
@@ -81,7 +77,6 @@ const isNonceConsumedConflict = (error: unknown) =>
   error instanceof LenderKycConflictError && error.reason === "nonceConsumed"
 
 export type LenderKycSignedInput = {
-  startId: string
   address: string
   chainId: number
   nonce: string
@@ -120,20 +115,6 @@ const requireOwnNonce = async (
   return nonce
 }
 
-const requireOwnStart = async (
-  repository: LenderKycRepository,
-  input: LenderKycSignedInput,
-) => {
-  const start = await repository.findStart(input.startId)
-  if (
-    !start ||
-    start.address !== input.address ||
-    start.chainId !== input.chainId
-  ) {
-    throw new LenderKycRequestError("Unknown KYC start", 404)
-  }
-}
-
 const buildMessage = (
   input: LenderKycSignedInput,
   kind: LenderKycMessageKind,
@@ -167,22 +148,12 @@ const findReplay = async (
   return stored
 }
 
-const settleReplay = async (
-  repository: LenderKycRepository,
-  input: LenderKycSignedInput,
-  replay: LenderKycStoredSignature,
-) => {
-  await requireOwnStart(repository, input)
-  await repository.recordReplayOutcome(input.startId, replay.outcome)
-}
-
 const replayDetails = async (
   repository: LenderKycRepository,
   input: LenderKycSignedInput,
   details: LenderKycDetails,
   replay: LenderKycStoredSignature,
 ): Promise<LenderKycDetailsResult> => {
-  await settleReplay(repository, input, replay)
   const profile = await repository.getVisibleProfile(
     input.address,
     input.chainId,
@@ -199,7 +170,6 @@ const replayDetails = async (
 const replayOwnership = async (
   repository: LenderKycRepository,
   input: LenderKycSignedInput,
-  replay: LenderKycStoredSignature,
 ): Promise<LenderKycSavedProfile> => {
   const profile = await repository.getVisibleProfile(
     input.address,
@@ -208,7 +178,6 @@ const replayOwnership = async (
   if (!profile) {
     throw new LenderKycRequestError("No saved record for this wallet", 409)
   }
-  await settleReplay(repository, input, replay)
   return profile
 }
 
@@ -267,7 +236,6 @@ const verifySignedInput = async (
   }
 
   return {
-    startId: input.startId,
     messageKind: kind,
     chainId: input.chainId,
     address: input.address,
@@ -282,23 +250,6 @@ const verifySignedInput = async (
   }
 }
 
-const verifyOrRecordMismatch = async (
-  repository: LenderKycRepository,
-  input: LenderKycSignedInput,
-  nonce: LenderKycNonceRecord,
-  kind: LenderKycMessageKind,
-  details?: LenderKycDetails,
-): Promise<LenderKycSignedRecord> => {
-  try {
-    return await verifySignedInput(input, nonce, kind, details)
-  } catch (error) {
-    if (isWalletMismatch(error)) {
-      await repository.recordNotSigned(input.startId, "walletMismatch")
-    }
-    throw error
-  }
-}
-
 const mapRepositoryError = (error: unknown): never => {
   if (isNonceConsumedConflict(error)) throw nonceConsumedError()
   if (error instanceof LenderKycConflictError) {
@@ -306,15 +257,6 @@ const mapRepositoryError = (error: unknown): never => {
   }
   throw error
 }
-
-export const closeStaleLenderKycStarts = (
-  repository: LenderKycRepository,
-  chainId?: number,
-) =>
-  repository.closeStaleStarts(
-    new Date(Date.now() - LENDER_KYC_START_TIMEOUT_MS),
-    chainId,
-  )
 
 export const issueLenderKycNonce = async (
   repository: LenderKycRepository,
@@ -339,14 +281,7 @@ export const submitLenderKycDetails = async (
   const nonce = await requireOwnNonce(repository, input)
   const replay = await findReplay(repository, input, "details", details)
   if (replay) return replayDetails(repository, input, details, replay)
-  await requireOwnStart(repository, input)
-  const signed = await verifyOrRecordMismatch(
-    repository,
-    input,
-    nonce,
-    "details",
-    details,
-  )
+  const signed = await verifySignedInput(input, nonce, "details", details)
   try {
     return await repository.recordSignedDetails(signed, details)
   } catch (error) {
@@ -366,20 +301,14 @@ export const confirmLenderKycOwnership = async (
 ): Promise<LenderKycSavedProfile> => {
   const nonce = await requireOwnNonce(repository, input)
   const replay = await findReplay(repository, input, "ownership")
-  if (replay) return replayOwnership(repository, input, replay)
-  await requireOwnStart(repository, input)
-  const signed = await verifyOrRecordMismatch(
-    repository,
-    input,
-    nonce,
-    "ownership",
-  )
+  if (replay) return replayOwnership(repository, input)
+  const signed = await verifySignedInput(input, nonce, "ownership")
   try {
     return await repository.recordOwnership(signed)
   } catch (error) {
     if (isNonceConsumedConflict(error)) {
       const concurrent = await findReplay(repository, input, "ownership")
-      if (concurrent) return replayOwnership(repository, input, concurrent)
+      if (concurrent) return replayOwnership(repository, input)
     }
     return mapRepositoryError(error)
   }

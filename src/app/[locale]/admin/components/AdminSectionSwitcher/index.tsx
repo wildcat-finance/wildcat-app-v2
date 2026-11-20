@@ -1,7 +1,6 @@
 import React from "react"
 
 import { Box, Button, Typography } from "@mui/material"
-import { useTranslation } from "react-i18next"
 
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { setMarketSection } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
@@ -39,31 +38,20 @@ export const AdminSectionSwitcher = ({
 }: {
   activeSection: string
   setActiveSection: (section: string) => void
-}) => {
-  const { t } = useTranslation()
+}) => (
+  <Box sx={{ width: "fit-content", display: "flex", gap: "12px" }}>
+    <SwitcherButton
+      label="Pending Invitations"
+      section="invitations"
+      activeSection={activeSection}
+      onSetSection={setActiveSection}
+    />
 
-  return (
-    <Box sx={{ width: "fit-content", display: "flex", gap: "12px" }}>
-      <SwitcherButton
-        label="Pending Invitations"
-        section="invitations"
-        activeSection={activeSection}
-        onSetSection={setActiveSection}
-      />
-
-      <SwitcherButton
-        label="Registered Borrowers"
-        section="borrowers"
-        activeSection={activeSection}
-        onSetSection={setActiveSection}
-      />
-
-      <SwitcherButton
-        label={t("admin.lenderKyc.section")}
-        section="lenderKyc"
-        activeSection={activeSection}
-        onSetSection={setActiveSection}
-      />
-    </Box>
-  )
-}
+    <SwitcherButton
+      label="Registered Borrowers"
+      section="borrowers"
+      activeSection={activeSection}
+      onSetSection={setActiveSection}
+    />
+  </Box>
+)
