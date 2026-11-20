@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from "react"
 
-import { Box, Divider, Typography, useTheme } from "@mui/material"
+import { Box, Button, Divider, Typography, useTheme } from "@mui/material"
 import { MarketVersion } from "@wildcatfi/wildcat-sdk"
 import humanizeDuration from "humanize-duration"
 import Link from "next/link"
@@ -54,6 +54,7 @@ import {
   hasLiveDelinquencyClock,
 } from "@/utils/delinquencyClock"
 import {
+  buildBorrowerProfileHref,
   formatBps,
   formatSecsToHours,
   formatTokenWithCommas,
@@ -63,14 +64,20 @@ import {
 } from "@/utils/formatters"
 import { getMarketAprDisplayBips } from "@/utils/marketApr"
 import {
+  acceptsKycForDeposit,
+  hasBorrowerAccessPath,
   getEffectiveMarketAccess,
   getFixedTermHooksConfig,
+  getProviderLabelKey,
 } from "@/utils/marketCapabilities"
 import {
   getMarketImplementationConfig,
   getMarketImplementationType,
 } from "@/utils/marketImplementation"
-import { getLenderOnboardingType } from "@/utils/marketOnboarding"
+import {
+  getLenderOnboardingType,
+  MARKET_ACCESS_SECTION,
+} from "@/utils/marketOnboarding"
 import { getPendingPeriodicAprChange } from "@/utils/periodicApr"
 import {
   formatCompactDuration,
@@ -370,6 +377,12 @@ export const MarketParameters = ({
   const implementationConfig = getMarketImplementationConfig(implementationType)
   const fixedTermHooksConfig = getFixedTermHooksConfig(market)
   const lenderOnboarding = getLenderOnboardingType(market.onboardingMode)
+  const attachedProviders =
+    market.roleProviders?.filter((provider) => provider.isApproved) ?? []
+  const scrollToAccess = React.useCallback((element: HTMLDivElement | null) => {
+    if (element && window.location.hash === `#${MARKET_ACCESS_SECTION}`)
+      element.scrollIntoView()
+  }, [])
   const { depositAccess, withdrawalAccess } = getEffectiveMarketAccess(market)
 
   let transferAccess: "open" | "restricted" | "disabled"
@@ -536,6 +549,43 @@ export const MarketParameters = ({
             title={t("marketParameters.totalInterestAccrued")}
             value={toTokenAmountProps(totalInterestAccrued).value}
           />
+          {attachedProviders.length > 0 && (
+            <Box id={MARKET_ACCESS_SECTION} ref={scrollToAccess}>
+              {attachedProviders.map((provider) => {
+                const { providerAddress } = provider
+                const key = getProviderLabelKey(
+                  market.chainId,
+                  providerAddress,
+                  provider.kind,
+                )
+                return (
+                  <React.Fragment key={providerAddress}>
+                    <Divider sx={{ margin: "12px 0" }} />
+                    <ParametersItem
+                      title={t("marketParameters.attachedProvider")}
+                      value={key ? t(key) : trimAddress(providerAddress)}
+                      valueTitle={providerAddress}
+                      copy={providerAddress}
+                      link={getAddressUrl(providerAddress)}
+                    />
+                  </React.Fragment>
+                )
+              })}
+            </Box>
+          )}
+          {viewerType === "lender" &&
+            acceptsKycForDeposit(market) &&
+            hasBorrowerAccessPath(market) && (
+              <Button
+                component={Link}
+                href={buildBorrowerProfileHref(market.borrower, market.chainId)}
+                variant="text"
+                size="small"
+                sx={{ alignSelf: "flex-start" }}
+              >
+                {t("marketDetails.lender.leaveRequest")}
+              </Button>
+            )}
           {isMobileOpen && additionalItems && additionalItems.length > 0 && (
             <>
               {additionalItems.slice(0, -1).map((item) => (

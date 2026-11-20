@@ -66,6 +66,7 @@ import {
   setIsLender,
   setIsLoading,
   setDefaultSection,
+  setSection,
   resetPageState,
   setWithdrawalsCount,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
@@ -79,7 +80,12 @@ import {
   buildBorrowerProfileHref,
   formatTokenWithCommas,
 } from "@/utils/formatters"
-import { acceptsKycForDeposit } from "@/utils/marketCapabilities"
+import {
+  acceptsKycForDeposit,
+  hasBorrowerAccessPath,
+  hasActiveKycProvider,
+} from "@/utils/marketCapabilities"
+import { MARKET_ACCESS_SECTION } from "@/utils/marketOnboarding"
 
 import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
 import { LenderAnalyticsSummary } from "./components/LenderAnalyticsSummary"
@@ -387,10 +393,18 @@ export default function LenderMarketDetails({
     authoritativeAccount?.depositAvailability ===
       DepositStatus.RequiresAccess &&
     acceptsKycForDeposit(authoritativeAccount.market)
+  const canRequestKycAccess =
+    kycAccessDenied &&
+    hasBorrowerAccessPath(authoritativeAccount.market, market?.roleProviders)
   const requestBannerCopy = kycAccessDenied
     ? {
         title: t("marketDetails.lender.kyc.lenderTitle"),
-        subtitle: t("marketDetails.lender.kyc.lenderHint"),
+        subtitle: canRequestKycAccess
+          ? t("marketDetails.lender.kyc.mixedHint")
+          : t("marketDetails.lender.kyc.lenderHint"),
+        buttonText: canRequestKycAccess
+          ? t("marketDetails.lender.leaveRequest")
+          : undefined,
       }
     : {
         title: t("marketDetails.lender.lendThroughWildcat"),
@@ -449,11 +463,19 @@ export default function LenderMarketDetails({
     dispatch(setIsLoading(isLoading))
   }, [dispatch, isLoading])
 
+  const hasSharedKyc = hasActiveKycProvider(market?.roleProviders)
+  useEffect(() => {
+    if (window.location.hash === `#${MARKET_ACCESS_SECTION}`)
+      dispatch(setSection(LenderMarketSections.STATUS))
+  }, [address, dispatch])
+
   useEffect(() => {
     if (!isWalletHydrated || isConnecting || isReconnecting) return
 
     if (!isConnected || isDifferentChain) {
       dispatch(setIsLender(false))
+      if (!isConnected && hasSharedKyc)
+        dispatch(setDefaultSection(LenderMarketSections.STATUS))
       return
     }
 
@@ -468,6 +490,7 @@ export default function LenderMarketDetails({
     dispatch(setDefaultSection(lenderLandingSection))
   }, [
     dispatch,
+    hasSharedKyc,
     isAccountLoading,
     isConnected,
     isConnecting,

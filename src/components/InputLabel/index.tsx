@@ -13,6 +13,7 @@ import { TooltipButton } from "@/components/TooltipButton"
 
 export const InputLabel = ({
   label,
+  htmlFor,
   subtitle,
   margin,
   tooltipText,
@@ -21,7 +22,9 @@ export const InputLabel = ({
   <Box margin={margin} sx={InputContainer}>
     <Box sx={InputLabelContainer} marginBottom={!subtitle ? "8px" : ""}>
       <Box sx={InputLabelTypo}>
-        <Typography variant="text3">{label}</Typography>
+        <Typography variant="text3">
+          {htmlFor ? <label htmlFor={htmlFor}>{label}</label> : label}
+        </Typography>
       </Box>
       {tooltipText && <TooltipButton value={tooltipText} />}
     </Box>

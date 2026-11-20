@@ -77,7 +77,7 @@ describe("sendTransactionAndWait", () => {
       sendTransactionAndWait(publicClient, walletClient, lenderTx, {
         errorAbi: lenderPolicyErrorAbi,
       }),
-    ).rejects.toThrow("not a role provider")
+    ).rejects.toThrow("role provider is not attached")
     expect(sendTransaction).not.toHaveBeenCalled()
   })
 

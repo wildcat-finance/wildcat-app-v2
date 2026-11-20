@@ -2,6 +2,7 @@ import { Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
 import type { useRoleProviderAdmin } from "@/hooks/useRoleProviderAdmin"
+import { COLORS } from "@/theme/colors"
 
 export function AuthorityStatus({
   admin,
@@ -18,13 +19,19 @@ export function AuthorityStatus({
     transactionError,
   } = admin
   if (transactionError)
-    return <Typography role="alert">{transactionError}</Typography>
+    return (
+      <Typography variant="text3" color={COLORS.wildWatermelon} role="alert">
+        {transactionError}
+      </Typography>
+    )
   let message
   if (!actor) message = t("common.kyc.connect")
   else if (!correctChain) message = t("common.kyc.network")
   else if (authority.isError)
     return (
-      <Typography role="alert">{t("common.kyc.authorityError")}</Typography>
+      <Typography variant="text3" color={COLORS.wildWatermelon} role="alert">
+        {t("common.kyc.authorityError")}
+      </Typography>
     )
   else if (!authority.data) message = t("common.kyc.checkingAuthority")
   else if (!canWrite)
@@ -32,7 +39,7 @@ export function AuthorityStatus({
   else if (transaction.isPending) message = t("common.kyc.pending")
   else if (transaction.isSuccess) message = t("common.kyc.confirmed")
   return message ? (
-    <Typography role="status" sx={{ overflowWrap: "anywhere" }}>
+    <Typography variant="text3" role="status" sx={{ overflowWrap: "anywhere" }}>
       {message}
     </Typography>
   ) : null

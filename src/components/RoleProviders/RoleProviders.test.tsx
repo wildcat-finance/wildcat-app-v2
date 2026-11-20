@@ -5,12 +5,11 @@ import {
   getDeploymentAddress,
   iOpenTermHooksAbi,
   kycRoleProviderAbi,
-  type Market,
   SupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
 import { type Address, decodeFunctionData, type Hex } from "viem"
 
-import KycAdminPage from "@/app/[locale]/admin/kyc/page"
+import { KycAdminSection } from "@/app/[locale]/admin/components/KycAdminSection"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 
 import { MarketRoleProviders } from "./MarketRoleProviders"
@@ -46,6 +45,7 @@ jest.mock("@wildcatfi/wildcat-sdk", () => ({
   getRoleProviderAuthority: (...args: unknown[]) => mockMembers(...args),
 }))
 
+const mockBytecode = jest.fn()
 const mockRead = jest.fn()
 const mockSend = jest.fn()
 const mockReceipt = jest.fn()
@@ -80,13 +80,15 @@ beforeEach(() => {
   mockSelected.mockReturnValue({ chainId })
   mockSafe.mockReturnValue({ connected: false, sdk: {} })
   mockWallet.mockReturnValue({ address: admin, chainId })
-  mockRead.mockResolvedValue(admin)
+  mockRead.mockReset().mockResolvedValue(admin)
+  mockBytecode.mockReset().mockResolvedValue("0x6000")
   mockMembers.mockResolvedValue({ kind: "kyc", members: [] })
   mockTimestamp.mockResolvedValue(BigInt(0))
   mockSend.mockResolvedValue("0xabc")
   mockReceipt.mockResolvedValue({ status: "success" })
   connected.mockReturnValue({
     publicClient: {
+      getBytecode: mockBytecode,
       readContract: mockRead,
       estimateGas: jest.fn().mockResolvedValue(BigInt(31000)),
       waitForTransactionReceipt: mockReceipt,
@@ -117,7 +119,7 @@ it("enrolls and removes the selected wallet using live state while the index lag
       return "0xabc"
     },
   )
-  mount(<KycAdminPage />)
+  mount(<KycAdminSection />)
   const input = await screen.findByLabelText("admin.kyc.wallet")
   fireEvent.change(input, { target: { value: "0x00" } })
   expect(
@@ -155,7 +157,7 @@ it.each([
   "gates membership by current authority and chain",
   async (address, walletChain, reason) => {
     mockWallet.mockReturnValue({ address, chainId: walletChain })
-    mount(<KycAdminPage />)
+    mount(<KycAdminSection />)
     await screen.findByText(String(reason))
     expect(screen.queryByLabelText("admin.kyc.wallet")).toBeNull()
     expect(mockMembers).not.toHaveBeenCalled()
@@ -163,7 +165,7 @@ it.each([
 )
 
 it("stops a write if authority changes after the initial read", async () => {
-  mount(<KycAdminPage />)
+  mount(<KycAdminSection />)
   fireEvent.change(await screen.findByLabelText("admin.kyc.wallet"), {
     target: { value: lender },
   })
@@ -186,7 +188,7 @@ it("waits for the Safe execution receipt before reporting a membership change", 
   })
   mockWallet.mockReturnValue({ address: lender, chainId })
   mockWait.mockResolvedValue({ status: 0 })
-  mount(<KycAdminPage />)
+  mount(<KycAdminSection />)
   fireEvent.change(await screen.findByLabelText("admin.kyc.wallet"), {
     target: { value: lender },
   })
@@ -204,6 +206,10 @@ it("waits for the Safe execution receipt before reporting a membership change", 
 it("manages the market's shared policy and distinguishes a zero TTL from absence", async () => {
   let seconds: number | null = null
   mockRead.mockImplementation(async ({ address, functionName, args }) => {
+    if (functionName === "isPullProvider") {
+      expect(address.toLowerCase()).toBe(kyc.toLowerCase())
+      return true
+    }
     expect(address).toBe(hooks)
     if (functionName === "borrower") return admin
     expect(functionName).toBe("getRoleProvider")
@@ -223,16 +229,11 @@ it("manages the market's shared policy and distinguishes a zero TTL from absence
       return "0xabc"
     },
   )
-  const market = {
-    chainId,
-    hooksConfig: {
-      hooksAddress: hooks,
-      flags: { useOnDeposit: true },
-      depositRequiresAccess: true,
-    },
-    roleProviders: [],
-  } as unknown as Market
-  mount(<MarketRoleProviders market={market} />)
+  mount(
+    <MarketRoleProviders
+      policy={{ chainId, address: hooks, roleProviders: [] }}
+    />,
+  )
   await screen.findByText("borrower.kyc.detached")
   fireEvent.click(
     await screen.findByRole("button", { name: "borrower.kyc.attach" }),
@@ -262,13 +263,79 @@ it("manages the market's shared policy and distinguishes a zero TTL from absence
     ).toBe(false),
   )
   fireEvent.click(screen.getByRole("button", { name: "borrower.kyc.detach" }))
+  await screen.findByRole("dialog")
+  expect(mockSend).toHaveBeenCalledTimes(2)
+  fireEvent.click(screen.getByRole("button", { name: "common.buttons.cancel" }))
+  expect(mockSend).toHaveBeenCalledTimes(2)
+  fireEvent.click(
+    await screen.findByRole("button", { name: "borrower.kyc.detach" }),
+  )
+  fireEvent.click(
+    await screen.findByRole("button", { name: "common.buttons.confirm" }),
+  )
   await screen.findByText("borrower.kyc.detached")
   expect(mockSend).toHaveBeenCalledTimes(3)
 })
 
 it("does not show a KYC deployment on an unsupported network", async () => {
   mockSelected.mockReturnValue({ chainId: SupportedChainId.Mainnet })
-  mount(<KycAdminPage />)
+  mount(<KycAdminSection />)
   await screen.findByText("admin.kyc.unsupported")
   expect(mockRead).not.toHaveBeenCalled()
 })
+
+it.each(["no code", "invalid interface", "explicit push", "pull"])(
+  "validates a custom contract before attachment: %s",
+  async (kind) => {
+    mockBytecode.mockImplementation(async ({ address }) =>
+      address === lender && kind === "no code" ? undefined : "0x6000",
+    )
+    mockRead.mockImplementation(async ({ functionName, address }) => {
+      if (functionName === "borrower") return admin
+      if (functionName === "getRoleProvider") return BigInt(0)
+      if (address === lender && kind === "invalid interface")
+        throw Error("invalid response")
+      return address !== lender || kind === "pull"
+    })
+    mount(
+      <MarketRoleProviders
+        policy={{ chainId, address: hooks, roleProviders: [] }}
+      />,
+    )
+    fireEvent.change(
+      await screen.findByLabelText("borrower.kyc.selectProvider"),
+      { target: { value: "custom" } },
+    )
+    fireEvent.change(screen.getByLabelText("borrower.kyc.provider"), {
+      target: { value: lender },
+    })
+    const attach = screen.getByRole("button", {
+      name: "borrower.kyc.attach",
+    }) as HTMLButtonElement
+    if (kind === "no code" || kind === "invalid interface") {
+      await screen.findByRole("alert")
+      expect(attach.disabled).toBe(true)
+      expect(mockSend).not.toHaveBeenCalled()
+      return
+    }
+    await screen.findByText("borrower.kyc.detached")
+    if (kind === "explicit push") {
+      expect(attach.disabled).toBe(true)
+      expect(screen.getByText("borrower.kyc.pushNotice")).toBeTruthy()
+      const ttl = screen.getByLabelText("borrower.kyc.ttl")
+      fireEvent.change(ttl, { target: { value: "0" } })
+      expect(attach.disabled).toBe(false)
+      fireEvent.change(ttl, { target: { value: "60" } })
+    }
+    fireEvent.click(attach)
+    await waitFor(() => expect(mockSend).toHaveBeenCalledTimes(1))
+    const tx = mockSend.mock.calls[0][0]
+    expect(tx.to).toBe(hooks)
+    expect(
+      decodeFunctionData({ abi: iOpenTermHooksAbi, data: tx.data }),
+    ).toEqual({
+      functionName: "addRoleProvider",
+      args: [lender, kind === "explicit push" ? 60 : 0],
+    })
+  },
+)

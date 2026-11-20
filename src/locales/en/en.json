@@ -143,18 +143,25 @@
       "providers": "Role providers",
       "policyScope": "Changes apply to every market using this policy. Each attached provider offers a separate way to qualify. Markets created with open deposits do not check credentials.",
       "provider": "Role provider address",
-      "sharedAddress": "Shared KYC provider {{address}}",
       "current": "Attached providers",
-      "openDeposits": "This market currently accepts deposits without KYC.",
-      "attachmentError": "Could not read this provider’s status from the policy.",
-      "attached": "Attached. Credential lifetime is {{seconds}} seconds.",
+      "attachmentError": "Could not verify the attachment or read isPullProvider() from this contract. Check the address and try again.",
+      "attached": "Attached. Credential lifetime: {{lifetime}}.",
       "detached": "This provider is not attached.",
       "ttl": "Credential lifetime (seconds)",
-      "ttlHelp": "A lifetime of 0 prevents approvals from carrying over to later blocks. A longer lifetime can keep a cached approval valid after removal.",
-      "invalidTtl": "Enter a whole number from 0 to 4294967295.",
+      "ttlHelp": "Zero makes a pull provider check eligibility on each use. A longer lifetime can keep an approval valid after a wallet leaves the list.",
+      "invalidTtl": "Enter a whole number from 0 to 4,294,967,295.",
       "updateTtl": "Update lifetime",
       "attach": "Attach provider",
-      "detach": "Remove provider"
+      "detach": "Remove provider",
+      "selectProvider": "Choose a provider",
+      "custom": "Custom contract address",
+      "customHelp": "An attached contract can grant lender access across this policy. Only attach a contract you trust.",
+      "noneIndexed": "No attached providers indexed yet.",
+      "noCode": "No contract is deployed at this address on the selected network.",
+      "ttlPlaceholder": "Enter seconds",
+      "pushNotice": "This push provider can grant lender credentials across the policy. With a lifetime of zero, a grant is valid only at its grant timestamp.",
+      "confirmRemove": "Remove {{provider}} from policy {{policy}}? Every market using this policy will stop accepting credentials from this provider on the next access check. Other attached providers can still grant access.",
+      "pullNotice": "This is a pull provider. The policy can ask it for a wallet’s credential when access is checked."
     },
     "createMarket": {
       "basic": {
@@ -455,7 +462,8 @@
         },
         "noActive": "No Active Lenders",
         "notEditableNotice": "This policy's lender provider cannot be edited here.",
-        "selfOnboardNotice": "Lenders onboard themselves to this policy, so there is no allowlist to edit."
+        "selfOnboardNotice": "Lenders onboard themselves to this policy, so there is no allowlist to edit.",
+        "kycNotice": "The shared KYC list administrator manages enrollment. You can review this policy’s attached providers in Role providers."
       },
       "lendersEdits": "Lenders Edits",
       "lendersWereEdited": "Lenders were edited!",
@@ -614,7 +622,11 @@
       "pending": "Waiting for the transaction to execute…",
       "confirmed": "Transaction confirmed.",
       "invalidAddress": "Enter a valid, nonzero wallet or contract address.",
-      "checking": "Reading from the contract…"
+      "checking": "Reading from the contract…",
+      "checkedOnUse": "Checked on use",
+      "openAccess": "Open access",
+      "allowlist": "Access list",
+      "addressPlaceholder": "0x…"
     },
     "buttons": {
       "add": "Add",
@@ -1049,7 +1061,9 @@
       "kyc": {
         "lenderTitle": "Wallet approval required",
         "lenderHint": "This market accepts shared KYC. Contact the KYC list administrator to enroll this wallet, or use a wallet with a valid credential.",
-        "viewAccess": "View access requirements"
+        "viewAccess": "View access requirements",
+        "accessDetails": "View access",
+        "mixedHint": "This market accepts shared KYC. You can also request access through the borrower’s allowlist."
       },
       "access": {
         "blocked": {
@@ -1857,7 +1871,8 @@
     "wrapperStatus": {
       "active": "Active",
       "inactive": "Inactive"
-    }
+    },
+    "attachedProvider": "Attached role provider"
   },
   "modals": {
     "shared": {

@@ -67,7 +67,10 @@ import {
   trimAddress,
 } from "@/utils/formatters"
 import { getDisplayLenderAprBips } from "@/utils/marketApr"
-import { acceptsKycForDeposit } from "@/utils/marketCapabilities"
+import {
+  acceptsKycForDeposit,
+  hasBorrowerAccessPath,
+} from "@/utils/marketCapabilities"
 import { getMarketTotalDebt } from "@/utils/marketDebt"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import {
@@ -75,6 +78,7 @@ import {
   getKnownMarketOnboardingMode,
   isSelfServiceMarketOnboardingMode,
   LenderMarketAction,
+  MARKET_ACCESS_SECTION,
   MarketOnboardingMode,
 } from "@/utils/marketOnboarding"
 import {
@@ -183,6 +187,7 @@ export type LenderOtherMarketsTableModel = {
   withdrawalBatchDuration: number
   onboardingMode: MarketOnboardingMode | undefined
   acceptsKyc: boolean
+  canRequestFromBorrower: boolean
   depositStatus: DepositStatus
   button?: string
   capacityLeft: TokenAmount
@@ -462,6 +467,7 @@ export const ExploreMarketsTable = () => {
           ),
           depositStatus: account.depositAvailability,
           acceptsKyc: acceptsKycForDeposit(market),
+          canRequestFromBorrower: hasBorrowerAccessPath(market),
           button: address,
           chainId,
         }
@@ -737,6 +743,7 @@ export const ExploreMarketsTable = () => {
             params.row.onboardingMode,
             params.row.depositStatus,
             params.row.acceptsKyc,
+            params.row.canRequestFromBorrower,
           )
 
           return (
@@ -752,9 +759,20 @@ export const ExploreMarketsTable = () => {
                 </Button>
               )}
               {action === LenderMarketAction.ViewAccess && (
-                <Typography variant="body2">
-                  {t("marketDetails.lender.kyc.viewAccess")}
-                </Typography>
+                <Button
+                  component={Link}
+                  href={`${buildMarketHref(
+                    params.row.id,
+                    params.row.chainId,
+                  )}#${MARKET_ACCESS_SECTION}`}
+                  onClick={(event) => event.stopPropagation()}
+                  aria-label={t("marketDetails.lender.kyc.viewAccess")}
+                  variant="contained"
+                  color="secondary"
+                  size="small"
+                >
+                  {t("marketDetails.lender.kyc.accessDetails")}
+                </Button>
               )}
               {action === LenderMarketAction.RequestAccess && (
                 <Link

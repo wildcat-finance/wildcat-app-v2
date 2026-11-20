@@ -23,7 +23,6 @@ import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { useIdlePrefetchMarketRecords } from "@/components/PaginatedMarketRecordsTable/hooks/usePrefetchMarketRecords"
-import { MarketRoleProviders } from "@/components/RoleProviders/MarketRoleProviders"
 import { useGetMarket } from "@/hooks/useGetMarket"
 import { useGetMarketAccountForBorrowerLegacy } from "@/hooks/useGetMarketAccount"
 import { useMarketDetailPerformanceMark } from "@/hooks/useMarketDetailPerformance"
@@ -305,9 +304,6 @@ export default function MarketDetails({
             buttonText={t("marketDetails.borrower.goMlaSettings")}
             buttonOnClick={() => dispatch(setCheckBlock(MLA_SECTION))}
           />
-          {currentSection === LENDERS_SECTION && (
-            <MarketRoleProviders market={market} />
-          )}
         </Box>
       </Box>
     )
@@ -443,7 +439,6 @@ export default function MarketDetails({
           {/* </Slide> */}
           {currentSection === LENDERS_SECTION && (
             <Box sx={SlideContentContainer} marginTop="12px">
-              <MarketRoleProviders market={market} />
               <MarketAuthorisedLenders
                 market={market}
                 marketAccount={marketAccount}

@@ -3,11 +3,14 @@ import type {
   PolicyMarketsAndLenders,
 } from "@wildcatfi/wildcat-sdk"
 
+import { isCheckedOnUseCredential } from "./marketCapabilities"
+
 type PolicyLender = PolicyMarketsAndLenders["lenders"][number]
 
 export type PolicyLenderAccessSource =
   | "access-list"
   | "credential"
+  | "checked-on-use"
   | "controller"
 
 export type PolicyLenderAccess = {
@@ -24,6 +27,7 @@ export const POLICY_LENDER_ACCESS_SOURCE_KEY: Record<
   string
 > = {
   "access-list": "borrower.policies.lenders.accessSources.accessList",
+  "checked-on-use": "common.kyc.checkedOnUse",
   credential: "borrower.policies.lenders.accessSources.credential",
   controller: "borrower.policies.lenders.accessSources.controller",
 }
@@ -40,7 +44,12 @@ export const mergePolicyLenderAccess = (
 
   lenders.forEach((lender) => {
     const sources: PolicyLenderAccessSource[] = []
-    if (lender.credential) sources.push("credential")
+    if (lender.credential)
+      sources.push(
+        isCheckedOnUseCredential(lender.credential)
+          ? "checked-on-use"
+          : "credential",
+      )
     if (lender.isAuthorizedOnController) sources.push("controller")
 
     rows.set(lender.address.toLowerCase(), {

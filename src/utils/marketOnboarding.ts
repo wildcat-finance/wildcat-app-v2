@@ -87,17 +87,22 @@ export const getLenderOnboardingType = (
  * Resolve the lender-specific action separately from the market's stable
  * onboarding policy.
  */
+export const MARKET_ACCESS_SECTION = "access-requirements"
+
 export const getLenderMarketAction = (
   onboardingMode: MarketOnboardingMode | undefined,
   depositStatus: DepositStatus,
   acceptsKyc = false,
+  canRequestFromBorrower = false,
 ): LenderMarketAction => {
   if (depositStatus === DepositStatus.Ready) {
     return LenderMarketAction.Deposit
   }
 
   if (acceptsKyc && depositStatus === DepositStatus.RequiresAccess)
-    return LenderMarketAction.ViewAccess
+    return canRequestFromBorrower
+      ? LenderMarketAction.RequestAccess
+      : LenderMarketAction.ViewAccess
 
   if (
     onboardingMode === MarketOnboardingMode.Managed &&

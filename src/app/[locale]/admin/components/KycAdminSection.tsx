@@ -16,10 +16,13 @@ import {
 import { useTranslation } from "react-i18next"
 import { type Address, getAddress, isAddress, zeroAddress } from "viem"
 
+import { InputLabel } from "@/components/InputLabel"
 import { AuthorityStatus } from "@/components/RoleProviders/AuthorityStatus"
 import { useRoleProviderAdmin } from "@/hooks/useRoleProviderAdmin"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useSubgraphClient } from "@/providers/SubgraphProvider"
+import { COLORS } from "@/theme/colors"
+import { formatUtcMaturity } from "@/utils/formatters"
 
 function KycMembers({
   chainId,
@@ -62,7 +65,7 @@ function KycMembers({
   if (enrollment.isError) enrollmentText = t("admin.kyc.lookupError")
   else if (enrolled)
     enrollmentText = t("admin.kyc.enrolledSince", {
-      date: new Date(Number(enrollment.data) * 1000).toISOString(),
+      date: formatUtcMaturity(Number(enrollment.data)),
     })
   else if (known) enrollmentText = t("admin.kyc.unlisted")
   const select = (value: string) => {
@@ -71,28 +74,37 @@ function KycMembers({
   }
   return (
     <Stack spacing={2}>
-      <Typography variant="body2" sx={{ overflowWrap: "anywhere" }}>
+      <Typography variant="text3" sx={{ overflowWrap: "anywhere" }}>
         {t("admin.kyc.providerAddress", { address: contract })}
       </Typography>
       <AuthorityStatus admin={admin} />
       {canWrite && (
         <>
-          <TextField
-            label={t("admin.kyc.wallet")}
-            value={input}
-            disabled={transaction.isPending}
-            error={!!input && !account}
-            helperText={
-              input && !account ? t("common.kyc.invalidAddress") : undefined
-            }
-            onChange={(event) => select(event.target.value)}
-          />
+          <InputLabel htmlFor="kyc-wallet" label={t("admin.kyc.wallet")}>
+            <TextField
+              id="kyc-wallet"
+              placeholder={t("common.kyc.addressPlaceholder")}
+              sx={{ height: "auto" }}
+              value={input}
+              disabled={transaction.isPending}
+              error={!!input && !account}
+              helperText={
+                input && !account ? t("common.kyc.invalidAddress") : undefined
+              }
+              onChange={(event) => select(event.target.value)}
+            />
+          </InputLabel>
           {account && (
-            <Typography role={enrollment.isError ? "alert" : "status"}>
+            <Typography
+              variant="text3"
+              color={enrollment.isError ? COLORS.wildWatermelon : undefined}
+              role={enrollment.isError ? "alert" : "status"}
+            >
               {enrollmentText}
             </Typography>
           )}
           <Button
+            sx={{ alignSelf: "flex-start" }}
             variant="contained"
             disabled={!known || !account || transaction.isPending}
             onClick={() => {
@@ -105,20 +117,26 @@ function KycMembers({
           >
             {enrolled ? t("admin.kyc.removeWallet") : t("admin.kyc.addWallet")}
           </Button>
-          <Typography component="h2" variant="h6">
+          <Typography component="h2" variant="title3">
             {t("admin.kyc.members")}
           </Typography>
-          <Typography variant="body2">{t("admin.kyc.indexDelay")}</Typography>
+          <Typography variant="text3">{t("admin.kyc.indexDelay")}</Typography>
           {members.isError && (
-            <Typography role="alert">{t("admin.kyc.listError")}</Typography>
+            <Typography
+              variant="text3"
+              color={COLORS.wildWatermelon}
+              role="alert"
+            >
+              {t("admin.kyc.listError")}
+            </Typography>
           )}
           {members.isPending && (
-            <Typography role="status">
+            <Typography variant="text3" role="status">
               {t("admin.kyc.loadingMembers")}
             </Typography>
           )}
           {members.isSuccess && members.data.length === 0 && (
-            <Typography>{t("admin.kyc.empty")}</Typography>
+            <Typography variant="text3">{t("admin.kyc.empty")}</Typography>
           )}
           {members.isSuccess && members.data.length > 0 && (
             <Box component="ul" sx={{ pl: 2, overflowWrap: "anywhere" }}>
@@ -141,12 +159,12 @@ function KycMembers({
   )
 }
 
-export default function KycAdminPage() {
+export function KycAdminSection() {
   const { t } = useTranslation()
   const { chainId } = useSelectedNetwork()
   return (
-    <Stack spacing={3} sx={{ maxWidth: 720, p: { xs: 2, md: 5 } }}>
-      <Typography component="h1" variant="h4">
+    <Stack spacing={3} sx={{ maxWidth: 640, py: 3 }}>
+      <Typography component="h1" variant="title2">
         {t("admin.kyc.adminTitle")}
       </Typography>
       {hasDeploymentAddress(chainId, "KYCRoleProvider") ? (
@@ -158,7 +176,7 @@ export default function KycAdminPage() {
           )}
         />
       ) : (
-        <Typography>{t("admin.kyc.unsupported")}</Typography>
+        <Typography variant="text3">{t("admin.kyc.unsupported")}</Typography>
       )}
     </Stack>
   )

@@ -14,8 +14,7 @@ const CONTRACT_ERROR_MESSAGES: Record<string, string> = {
   MemberAlreadyExists: "This wallet is already enrolled.",
   MemberNotFound: "This wallet is no longer enrolled.",
   CallerNotBorrower: "Only the borrower of this policy can change its lenders.",
-  ProviderNotFound:
-    "This wallet is not a role provider on this policy, so it cannot grant or revoke lender credentials.",
+  ProviderNotFound: "The role provider is not attached to this policy.",
   InvalidCredentialTimestamp:
     "The credential timestamp is ahead of the latest block. Refresh and try again.",
   GrantedCredentialExpired:
@@ -31,21 +30,23 @@ const CONTRACT_ERROR_MESSAGES: Record<string, string> = {
   NullWithdrawalAmount: "No assets are currently available to claim.",
 }
 
+type DecodedRevert = { errorName: string; args?: readonly unknown[] }
+
 /**
  * Pull the ABI-encoded revert payload out of a provider error. Where it sits
  * depends on whether the failure came from `eth_call`, gas estimation or the
  * wallet, and some RPCs bury it in a JSON body string.
  */
-export const getContractErrorName = (
+const getContractRevert = (
   error: unknown,
   abi?: Abi,
-): string | undefined => {
+): DecodedRevert | undefined => {
   const seen = new Set<unknown>()
-  const visit = (node: unknown): string | undefined => {
+  const visit = (node: unknown): DecodedRevert | undefined => {
     if (typeof node === "string") {
-      if (abi && /^0x[\da-f]{8,}$/i.test(node)) {
+      if (/^0x[\da-f]{8,}$/i.test(node)) {
         try {
-          return decodeErrorResult({ abi, data: node as Hex }).errorName
+          return decodeErrorResult({ abi: abi ?? [], data: node as Hex })
         } catch {
           return undefined
         }
@@ -63,7 +64,11 @@ export const getContractErrorName = (
       return undefined
     seen.add(node)
     const details = node as Record<string, unknown>
-    if (typeof details.errorName === "string") return details.errorName
+    const name =
+      typeof details.errorName === "string" ? details.errorName : undefined
+    const args = details.args ?? details.errorArgs
+    if (name && (Array.isArray(args) || (name !== "Error" && name !== "Panic")))
+      return { errorName: name, args: Array.isArray(args) ? args : undefined }
     const keys = [
       "data",
       "error",
@@ -74,13 +79,16 @@ export const getContractErrorName = (
       "raw",
     ]
     for (let index = 0; index < keys.length; index += 1) {
-      const name = visit(details[keys[index]])
-      if (name) return name
+      const revert = visit(details[keys[index]])
+      if (revert) return revert
     }
-    return undefined
+    return name ? { errorName: name } : undefined
   }
   return visit(error)
 }
+
+export const getContractErrorName = (error: unknown, abi?: Abi) =>
+  getContractRevert(error, abi)?.errorName
 
 const getErrorMessage = (error: unknown): string | undefined => {
   if (typeof error === "object" && error !== null) {
@@ -89,7 +97,7 @@ const getErrorMessage = (error: unknown): string | undefined => {
       reason?: string
       message?: string
     }
-    return shortMessage || reason || message
+    return reason || shortMessage || message
   }
   return undefined
 }
@@ -103,8 +111,20 @@ export const describeContractError = (
   error: unknown,
   contractAbi?: Abi,
 ): string => {
-  const named = getContractErrorName(error, contractAbi)
-  if (named) return CONTRACT_ERROR_MESSAGES[named] ?? `Reverted: ${named}`
+  const revert = getContractRevert(error, contractAbi)
+  if (revert?.errorName === "Error") {
+    const reason = revert.args?.[0]
+    if (typeof reason === "string" && reason) return reason
+  } else if (revert?.errorName === "Panic") {
+    const code = revert.args?.[0]
+    if (typeof code === "bigint" || typeof code === "number")
+      return `Solidity panic (0x${code.toString(16)})`
+  } else if (revert) {
+    return (
+      CONTRACT_ERROR_MESSAGES[revert.errorName] ??
+      `Reverted: ${revert.errorName}`
+    )
+  }
 
   return getErrorMessage(error) ?? "Transaction failed"
 }

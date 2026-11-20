@@ -41,6 +41,7 @@ import {
   timestampToDateFormatted,
   trimAddress,
 } from "@/utils/formatters"
+import { isCheckedOnUseCredential } from "@/utils/marketCapabilities"
 
 import { MarketAuthorisedLendersProps } from "./interface"
 import {
@@ -92,6 +93,7 @@ export const MarketAuthorisedLenders = ({
     ? data?.map((lender) => {
         const isAccessListMember = lender.accessSources.includes("access-list")
 
+        const checkedOnUse = isCheckedOnUseCredential(lender.credential)
         const lenderData = {
           id: lender.address,
           balance: market.marketToken.getAmount(
@@ -123,20 +125,22 @@ export const MarketAuthorisedLenders = ({
                     : lender.credential !== undefined
                       ? !lender.hasValidCredential &&
                         lender.credentialExpiry !== undefined &&
-                        lender.credentialExpiry < Date.now()
+                        lender.credentialExpiry < Date.now() / 1000
                         ? "Credential Expired"
                         : "Provider Removed"
                       : "Unknown", // @todo
 
-          accessExpiry: isAccessListMember
-            ? "On Demand"
-            : lender.credentialExpiry
-              ? formatBlockTimestamp(lender.credentialExpiry, {
-                  year: "numeric",
-                  hour: undefined,
-                  minute: undefined,
-                })
-              : "Never", // @todo
+          accessExpiry: checkedOnUse
+            ? t("common.kyc.checkedOnUse")
+            : isAccessListMember
+              ? "On Demand"
+              : lender.credentialExpiry
+                ? formatBlockTimestamp(lender.credentialExpiry, {
+                    year: "numeric",
+                    hour: undefined,
+                    minute: undefined,
+                  })
+                : "Never", // @todo
           name: (() => {
             const correctLender =
               lendersNames[lender.address.toLowerCase()] || ""

@@ -163,3 +163,14 @@ it.each([
     ).toBe(action)
   },
 )
+
+it("keeps the borrower request action for an eligible mixed policy", () => {
+  expect(
+    getLenderMarketAction(
+      MarketOnboardingMode.Managed,
+      DepositStatus.RequiresAccess,
+      true,
+      true,
+    ),
+  ).toBe(LenderMarketAction.RequestAccess)
+})

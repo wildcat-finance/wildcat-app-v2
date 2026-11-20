@@ -29,7 +29,10 @@ import {
   setPolicyLendersTableData,
 } from "@/store/slices/editPolicySlice/editPolicySlice"
 import { canManagePolicyLenders } from "@/utils/lenderAccess"
-import { getPolicyAccessControl } from "@/utils/marketCapabilities"
+import {
+  getPolicyAccessControl,
+  getPolicyLenderNoticeKey,
+} from "@/utils/marketCapabilities"
 import {
   mergePolicyLenderAccess,
   POLICY_LENDER_ACCESS_SOURCE_KEY,
@@ -97,7 +100,11 @@ export default function EditPolicyPage() {
         const { credential } = access.lender ?? {}
         const { lastProvider } = credential ?? {}
         let credentialExpiry: number | undefined
-        if (credential && lastProvider) {
+        if (
+          credential &&
+          lastProvider &&
+          !access.sources.includes("checked-on-use")
+        ) {
           credentialExpiry =
             lastProvider.timeToLive === maxTimeToLive
               ? maxTimeToLive
@@ -315,6 +322,9 @@ export default function EditPolicyPage() {
         <EditLendersForm
           isLoading={isLoading}
           canEditLenders={canEditLenders}
+          notice={t(
+            getPolicyLenderNoticeKey(data?.hooksInstance?.roleProviders),
+          )}
         />
       )}
 

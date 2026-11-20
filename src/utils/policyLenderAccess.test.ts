@@ -1,6 +1,7 @@
 import type {
   PolicyAccessListMember,
   PolicyMarketsAndLenders,
+  RoleProvider,
 } from "@wildcatfi/wildcat-sdk"
 
 import { mergePolicyLenderAccess } from "./policyLenderAccess"
@@ -70,4 +71,30 @@ describe("mergePolicyLenderAccess", () => {
       }),
     ])
   })
+})
+
+it("labels an attached zero-TTL pull credential as checked on use in the policy tables", () => {
+  const lender = makeLender(CREDENTIAL_LENDER)
+  const provider: RoleProvider = {
+    providerAddress: ACCESS_MEMBER,
+    isApproved: true,
+    timeToLive: 0,
+    pullProviderIndex: 0,
+    pushProviderIndex: -1,
+    isPullProvider: true,
+    isPushProvider: false,
+  }
+  lender.credential = {
+    lastProvider: provider,
+    lastApprovalTimestamp: 1,
+    canRefresh: true,
+    isBlockedFromDeposits: false,
+  }
+  expect(mergePolicyLenderAccess([lender], [])[0].sources).toEqual([
+    "checked-on-use",
+  ])
+  provider.timeToLive = 60
+  expect(mergePolicyLenderAccess([lender], [])[0].sources).toEqual([
+    "credential",
+  ])
 })

@@ -30,6 +30,7 @@ export type OtherMarketsTableModel = {
   withdrawalBatchDuration: number
   onboardingMode: MarketOnboardingMode | undefined
   acceptsKyc: boolean
+  canRequestFromBorrower: boolean
   depositStatus: DepositStatus
   button?: string
   capacityLeft: TokenAmount
