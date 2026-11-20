@@ -268,13 +268,13 @@ export const issueLenderKycNonce = async (
   chainId: number,
 ) => {
   const secret = randomBytes(32).toString("hex")
-  const { nonce, expiresAt } = await repository.issueNonce({
+  const { nonce, issuedAt, expiresAt } = await repository.issueNonce({
     address,
     chainId,
     secretHash: hashLenderKycSecret(secret),
     expiresAt: new Date(Date.now() + LENDER_KYC_SIGNATURE_MAX_AGE_MS),
   })
-  return { nonce, secret, expiresAt }
+  return { nonce, secret, issuedAt, expiresAt }
 }
 
 export const submitLenderKycDetails = async (

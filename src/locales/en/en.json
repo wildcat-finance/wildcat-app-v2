@@ -141,6 +141,7 @@
         "walletMismatchSigner": "Signed by {{address}}, not the connected wallet. Switch accounts in your wallet and sign again. Nothing was saved.",
         "declined": "You declined the signature. Signing is required to continue. Nothing was saved.",
         "failed": "We could not save your signature. Try again in a moment. Nothing was saved.",
+        "unavailable": "Verification is temporarily unavailable. Please come back later. Nothing was saved.",
         "signedWithDetails": "Signed by {{address}}. Terms accepted, details saved.",
         "signedNoDetails": "Signed by {{address}}. Terms accepted. No details shared.",
         "signedUnchanged": "Signed by {{address}}. No further signature needed unless you edit.",
@@ -199,8 +200,6 @@
         "all": "All",
         "withDetails": "With details"
       },
-      "sampleRows": "Sample rows",
-      "sampleTag": "Sample",
       "exportCsv": "Export CSV",
       "empty": {
         "title": "No signed verifications yet",

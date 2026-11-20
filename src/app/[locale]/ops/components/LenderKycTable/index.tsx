@@ -2,15 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 
-import {
-  Box,
-  Button,
-  Chip,
-  Skeleton,
-  Tab,
-  Tabs,
-  Typography,
-} from "@mui/material"
+import { Box, Button, Skeleton, Tab, Tabs, Typography } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
 import { useTranslation } from "react-i18next"
 
@@ -26,7 +18,6 @@ import { dayjs } from "@/utils/dayjs"
 import { trimAddress } from "@/utils/formatters"
 
 import { LenderKycFilter, LenderKycTableRow, TypeSafeColDef } from "./interface"
-import { LENDER_KYC_SAMPLE_ROWS } from "./sampleRows"
 import {
   buildLenderKycCsv,
   downloadCsv,
@@ -95,7 +86,6 @@ export const LenderKycTable = () => {
     if (error) setLastError(error)
   }, [error])
   const [filter, setFilter] = useState<LenderKycFilter>("all")
-  const [showSampleRows, setShowSampleRows] = useState(false)
   const [paginationModel, setPaginationModel] = useState({
     pageSize: 50,
     page: 0,
@@ -103,7 +93,7 @@ export const LenderKycTable = () => {
 
   useEffect(() => {
     setPaginationModel((previous) => ({ ...previous, page: 0 }))
-  }, [filter, showSampleRows])
+  }, [filter])
 
   const notProvided = t("ops.lenderKyc.values.notProvided")
   const unreadable = t("ops.lenderKyc.values.unreadable")
@@ -117,59 +107,40 @@ export const LenderKycTable = () => {
   const isStorageUnavailable =
     lastError instanceof LenderKycApiError && lastError.status === 503
 
-  const rows: LenderKycTableRow[] = useMemo(() => {
-    const source = [
-      ...(showSampleRows ? LENDER_KYC_SAMPLE_ROWS : []).map((row) => ({
-        ...row,
-        isSample: true,
-      })),
-      ...(liveData ?? []).map((row) => ({ ...row, isSample: false })),
-    ]
-    return source
-      .filter((row) => matchesFilter(row, filter))
-      .map((row) => ({
-        ...row,
-        id: `${row.isSample ? "sample" : "live"}:${row.address}`,
-        name: row.details?.fullName || undefined,
-        email: row.details?.email || undefined,
-        company: row.details?.companyName || undefined,
-        lenderType: row.details?.lenderTypes.length
-          ? row.details.lenderTypes
-              .map((type) => t(`lenderKyc.modal.lenderTypes.${type}`))
-              .join(", ")
-          : undefined,
-      }))
-  }, [liveData, showSampleRows, filter, t])
+  const rows: LenderKycTableRow[] = useMemo(
+    () =>
+      (liveData ?? [])
+        .filter((row) => matchesFilter(row, filter))
+        .map((row) => ({
+          ...row,
+          id: row.address,
+          name: row.details?.fullName || undefined,
+          email: row.details?.email || undefined,
+          company: row.details?.companyName || undefined,
+          lenderType: row.details?.lenderTypes.length
+            ? row.details.lenderTypes
+                .map((type) => t(`lenderKyc.modal.lenderTypes.${type}`))
+                .join(", ")
+            : undefined,
+        })),
+    [liveData, filter, t],
+  )
 
-  const exportRows = rows.filter((row) => !row.isSample)
-
-  const emptyStateKey =
-    liveData?.length || showSampleRows ? "filteredEmpty" : "empty"
+  const emptyStateKey = liveData?.length ? "filteredEmpty" : "empty"
 
   const columns: TypeSafeColDef<LenderKycTableRow>[] = [
     {
       field: "address",
       headerName: t("ops.lenderKyc.columns.wallet"),
-      minWidth: showSampleRows ? 240 : 176,
+      minWidth: 176,
       flex: 1,
       sortable: false,
-      renderCell: ({ value, row }) => (
+      renderCell: ({ value }) => (
         <Box sx={MarketWithdrawalRequetstCell}>
           <Typography sx={{ minWidth: "92px" }} variant="text3">
             {trimAddress(value)}
           </Typography>
           <LinkGroup linkValue={getAddressUrl(value)} copyValue={value} />
-          {row.isSample && (
-            <Chip
-              label={t("ops.lenderKyc.sampleTag")}
-              size="small"
-              sx={{
-                marginLeft: "8px",
-                backgroundColor: COLORS.oasis,
-                color: COLORS.butteredRum,
-              }}
-            />
-          )}
         </Box>
       ),
     },
@@ -243,7 +214,7 @@ export const LenderKycTable = () => {
       t("ops.lenderKyc.columns.company"),
       t("ops.lenderKyc.columns.lenderType"),
     ]
-    const csvRows = exportRows.map((row) => [
+    const csvRows = rows.map((row) => [
       row.address,
       formatCsvUtcDateTime(row.firstSignedAt),
       formatCsvUtcDateTime(row.lastSignedAt),
@@ -315,23 +286,8 @@ export const LenderKycTable = () => {
             </Tabs>
             <Button
               variant="contained"
-              color="secondary"
               size="small"
-              onClick={() => setShowSampleRows((value) => !value)}
-              sx={{
-                height: "32px",
-                ...(showSampleRows && {
-                  backgroundColor: COLORS.glitter,
-                  color: COLORS.ultramarineBlue,
-                }),
-              }}
-            >
-              {t("ops.lenderKyc.sampleRows")}
-            </Button>
-            <Button
-              variant="contained"
-              size="small"
-              disabled={!exportRows.length || isError}
+              disabled={!rows.length || isError}
               onClick={handleExport}
               sx={{ height: "32px" }}
             >

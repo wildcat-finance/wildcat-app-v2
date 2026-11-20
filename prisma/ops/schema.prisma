@@ -40,6 +40,8 @@ model LenderKycNonce {
   issuedAt   DateTime  @default(now())
   expiresAt  DateTime
   usedAt     DateTime?
+
+  @@index([expiresAt])
 }
 
 model LenderKycSignature {

@@ -19,7 +19,7 @@ export const POST = withNoStore(async (request: NextRequest) => {
   const parsed = await parseLenderKycBody(request, LenderKycNonceInputDTO)
   if ("response" in parsed) return parsed.response
   try {
-    const { nonce, secret, expiresAt } = await issueLenderKycNonce(
+    const { nonce, secret, issuedAt, expiresAt } = await issueLenderKycNonce(
       lenderKycRepository,
       parsed.data.address,
       parsed.data.chainId,
@@ -27,6 +27,7 @@ export const POST = withNoStore(async (request: NextRequest) => {
     return NextResponse.json({
       nonce,
       secret,
+      issuedAt: issuedAt.toISOString(),
       expiresAt: expiresAt.toISOString(),
     })
   } catch (error) {

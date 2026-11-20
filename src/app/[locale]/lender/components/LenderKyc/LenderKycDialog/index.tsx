@@ -117,6 +117,8 @@ export const LenderKycDialog = ({
 
   const signErrorNotice: { color: AlertColor; text: string } | null =
     useMemo(() => {
+      if (state.isUnavailable)
+        return { color: "red", text: t("lenderKyc.modal.notices.unavailable") }
       if (state.signError === "declined")
         return { color: "amber", text: t("lenderKyc.modal.notices.declined") }
       if (state.signError === "walletMismatch")
@@ -133,7 +135,13 @@ export const LenderKycDialog = ({
       if (state.showInvalidNotice)
         return { color: "amber", text: t("lenderKyc.modal.notices.invalid") }
       return null
-    }, [state.signError, state.mismatchSigner, state.showInvalidNotice, t])
+    }, [
+      state.isUnavailable,
+      state.signError,
+      state.mismatchSigner,
+      state.showInvalidNotice,
+      t,
+    ])
 
   const successNotice = useMemo(() => {
     if (!state.canContinue) return null

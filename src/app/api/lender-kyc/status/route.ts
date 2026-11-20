@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 
 import {
   isLenderKycChainSupported,
+  isLenderKycStorageConfigured,
   lenderKycRepository,
 } from "@/lib/lenderKyc/server"
-import { isOpsDatabaseConfigured } from "@/lib/opsDb"
 import { getZodParseError } from "@/lib/zod-error"
 
 import { LenderKycStatusQueryDTO } from "../dto"
@@ -15,7 +15,7 @@ import {
 } from "../respond"
 
 export const GET = withNoStore(async (request: NextRequest) => {
-  if (!isOpsDatabaseConfigured()) return lenderKycStorageUnavailable()
+  if (!isLenderKycStorageConfigured()) return lenderKycStorageUnavailable()
   const { searchParams } = request.nextUrl
   const parsed = LenderKycStatusQueryDTO.safeParse({
     address: searchParams.get("address"),

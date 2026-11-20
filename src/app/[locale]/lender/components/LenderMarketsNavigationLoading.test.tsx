@@ -61,6 +61,9 @@ jest.mock("@/hooks/destinations/useDestinations", () => ({
 jest.mock("@/app/[locale]/lender/components/LenderMarketsMobileHeader", () => ({
   LenderMarketsMobileHeader: () => null,
 }))
+jest.mock("@/app/[locale]/lender/components/LenderKyc/LenderKycCard", () => ({
+  LenderKycCard: () => null,
+}))
 jest.mock(
   "@/app/[locale]/lender/all-markets/components/MarketsTables/OtherMarketsTable",
   () => ({

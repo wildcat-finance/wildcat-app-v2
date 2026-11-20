@@ -7,6 +7,7 @@ import {
 } from "@/app/[locale]/lender/hooks/useLenderKyc"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import {
+  isLenderKycUnavailable,
   isLenderKycWalletMismatch,
   lenderKycApi,
 } from "@/lib/lenderKyc/apiClient"
@@ -63,6 +64,7 @@ export const useLenderKycDialogState = ({
   const [lastOutcome, setLastOutcome] = useState<LenderKycOutcome>()
   const [isEditing, setIsEditing] = useState(false)
   const [signError, setSignError] = useState<LenderKycSignError | null>(null)
+  const [isUnavailable, setIsUnavailable] = useState(false)
   const [mismatchSigner, setMismatchSigner] = useState<string | null>(null)
   const [showInvalid, setShowInvalid] = useState(false)
   const [pendingSafeDetails, setPendingSafeDetails] =
@@ -81,6 +83,7 @@ export const useLenderKycDialogState = ({
     setLastOutcome(undefined)
     setIsEditing(false)
     setSignError(null)
+    setIsUnavailable(false)
     setMismatchSigner(null)
     setShowInvalid(false)
     setPendingSafeDetails(null)
@@ -117,8 +120,9 @@ export const useLenderKycDialogState = ({
         if (session !== sessionRef.current) return
         showWalletStatus(hasSavedRecord)
       },
-      () => {
+      (error) => {
         if (session !== sessionRef.current) return
+        if (isLenderKycUnavailable(error)) setIsUnavailable(true)
         showWalletStatus(false, false)
       },
     )
@@ -157,6 +161,7 @@ export const useLenderKycDialogState = ({
   const hasVisibleFieldErrors = Object.keys(visibleFieldErrors).length > 0
 
   const canSign =
+    !isUnavailable &&
     !isLoading &&
     !isSigning &&
     !canContinue &&
@@ -221,10 +226,11 @@ export const useLenderKycDialogState = ({
           address,
           chainId,
         ))
-      } catch {
+      } catch (error) {
         if (isStillRelevant()) {
           setIsCheckingStatus(false)
-          setSignError("failed")
+          if (isLenderKycUnavailable(error)) setIsUnavailable(true)
+          else setSignError("failed")
         }
         return
       }
@@ -262,6 +268,10 @@ export const useLenderKycDialogState = ({
     } catch (error) {
       if (session !== sessionRef.current) return
       refreshPendingSafeDetails()
+      if (isLenderKycUnavailable(error)) {
+        setIsUnavailable(true)
+        return
+      }
       if (isLenderKycWalletMismatch(error)) {
         setMismatchSigner(error.signer ?? null)
         setSignError("walletMismatch")
@@ -308,6 +318,7 @@ export const useLenderKycDialogState = ({
     savedAt,
     lastOutcome,
     signError,
+    isUnavailable,
     mismatchSigner,
     fieldErrors: visibleFieldErrors,
     showInvalidNotice: hasVisibleFieldErrors && !isReturningLocked,

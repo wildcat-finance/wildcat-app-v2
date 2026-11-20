@@ -23,6 +23,17 @@ import {
   normalizeLenderKycDetails,
 } from "@/utils/lenderKycMessage"
 
+let serverClockOffsetMs = 0
+
+const issueNonce = async (address: string, chainId: number) => {
+  const issued = await lenderKycApi.issueNonce(address, chainId)
+  const serverTime = Date.parse(issued.issuedAt)
+  if (Number.isFinite(serverTime)) {
+    serverClockOffsetMs = serverTime - Date.now()
+  }
+  return issued
+}
+
 const parsePendingDetails = (
   context?: Record<string, string | number | boolean>,
 ): LenderKycDetails | undefined => {
@@ -156,8 +167,8 @@ export const useSignLenderKyc = () => {
               nonce: String(pendingContext.nonce),
               secret: String(pendingContext.secret),
             }
-          : await lenderKycApi.issueNonce(address, input.chainId)
-        const timeSigned = Date.now()
+          : await issueNonce(address, input.chainId)
+        const timeSigned = Date.now() + serverClockOffsetMs
 
         const signed = await safeSigning.signMessage({
           flow: "lender-kyc",
@@ -213,6 +224,9 @@ export const useSignLenderKyc = () => {
                   profile: await lenderKycApi.confirmOwnership(payload),
                 }
           safeSigning.markCompleted(signed.pendingSafeMessageId)
+          safeSigning
+            .getPendingForFlow("lender-kyc", input.address, input.chainId)
+            .forEach((record) => safeSigning.markCompleted(record.id))
           return response
         } catch (error) {
           if (!isLenderKycNonceConsumed(error)) {

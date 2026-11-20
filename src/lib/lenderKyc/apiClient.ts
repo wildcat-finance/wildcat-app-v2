@@ -26,6 +26,9 @@ export class LenderKycApiError extends Error {
 export const isLenderKycNonceConsumed = (error: unknown) =>
   error instanceof LenderKycApiError && error.code === "nonceConsumed"
 
+export const isLenderKycUnavailable = (error: unknown) =>
+  error instanceof LenderKycApiError && error.status === 503
+
 export const isLenderKycWalletMismatch = (
   error: unknown,
 ): error is LenderKycApiError =>
@@ -66,10 +69,12 @@ export const lenderKycApi = {
   },
 
   issueNonce(address: string, chainId: number) {
-    return postJson<{ nonce: string; secret: string; expiresAt: string }>(
-      "/nonce",
-      { address, chainId },
-    )
+    return postJson<{
+      nonce: string
+      secret: string
+      issuedAt: string
+      expiresAt: string
+    }>("/nonce", { address, chainId })
   },
 
   submitDetails(payload: LenderKycSignedPayload, details: LenderKycDetails) {

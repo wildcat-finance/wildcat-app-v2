@@ -8,7 +8,6 @@ export type LenderKycFilter = "all" | "withDetails"
 
 export type LenderKycTableRow = LenderKycWalletRow & {
   id: string
-  isSample: boolean
   name?: string
   email?: string
   company?: string
