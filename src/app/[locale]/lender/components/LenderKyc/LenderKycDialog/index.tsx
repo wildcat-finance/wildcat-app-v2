@@ -164,8 +164,7 @@ export const LenderKycDialog = ({
         ? t("lenderKyc.modal.captions.confirmingSafe")
         : t("lenderKyc.modal.captions.confirming")
     if (state.canContinue) return t("lenderKyc.modal.captions.continue")
-    if (state.isReturningLocked)
-      return t("lenderKyc.modal.captions.signReturning")
+    if (state.isReturningLocked) return null
     if (!state.termsAccepted) return t("lenderKyc.modal.captions.tickTerms")
     return t("lenderKyc.modal.captions.sign")
   })()
@@ -461,14 +460,16 @@ export const LenderKycDialog = ({
             </SvgIcon>
           )}
         </Button>
-        <Typography
-          variant={isMobile ? "mobText4" : "text4"}
-          component="p"
-          color={COLORS.santasGrey}
-          textAlign="center"
-        >
-          {caption}
-        </Typography>
+        {caption && (
+          <Typography
+            variant={isMobile ? "mobText4" : "text4"}
+            component="p"
+            color={COLORS.santasGrey}
+            textAlign="center"
+          >
+            {caption}
+          </Typography>
+        )}
       </Box>
     </Dialog>
   )

@@ -9,8 +9,6 @@ export const EXTERNAL_LINKS = {
   DOCS_WRAPPER:
     "https://docs.wildcat.finance/using-wildcat/day-to-day-usage/wildcat-4626-wrapper",
   JURIS: "https://wildcat-juris.vercel.app",
-  PRIVACY_POLICY:
-    "https://docs.wildcat.finance/legal/protocol-ui-privacy-policy",
   LENDER_KYC_TERMS: "https://docs.wildcat.finance/legal",
   SOMA_FINANCE: "https://onboard.soma.finance",
   BUSINESS_INQUIRY:

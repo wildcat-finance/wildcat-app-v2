@@ -28,7 +28,7 @@ const flowLabels: Record<PendingSafeMessage["flow"], string> = {
   "borrower-mla-decline": "market agreement decline",
   "lender-mla": "lender agreement",
   "non-mla-acknowledgement": "market acknowledgement",
-  "lender-kyc": "KYC verification request",
+  "lender-kyc": "lender verification",
 }
 
 const toastId = (id: string) => `safe-message:${id}`

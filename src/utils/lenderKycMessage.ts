@@ -65,8 +65,8 @@ export const areLenderKycDetailsEqual = (
 
 const buildStatement = (kind: LenderKycMessageKind) =>
   kind === "ownership"
-    ? `I confirm that I control this wallet. I accept the Wildcat KYC Terms ${LENDER_KYC_TERMS_VERSION} and agree to be forwarded to SOMA.finance for verification.`
-    : `I accept the Wildcat KYC Terms ${LENDER_KYC_TERMS_VERSION} and agree to be forwarded to SOMA.finance for verification. The details below are linked to this wallet.`
+    ? `I confirm that I control this wallet. I accept the Wildcat Verification Terms ${LENDER_KYC_TERMS_VERSION} and agree to be forwarded to SOMA.finance.`
+    : `I accept the Wildcat Verification Terms ${LENDER_KYC_TERMS_VERSION} and agree to be forwarded to SOMA.finance. The details below are linked to this wallet.`
 
 const buildDetailsBlock = (details: LenderKycDetails) => {
   const normalized = normalizeLenderKycDetails(details)

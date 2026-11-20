@@ -1,5 +1,5 @@
 import { Box, Link as MuiLink, Typography } from "@mui/material"
-import { Trans } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 
 import ExtendedCheckbox from "@/components/@extended/ExtendedСheckbox"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
@@ -63,21 +63,12 @@ export const KycTermsStatement = () => (
   </Typography>
 )
 
-export const KycPrivacyNotice = () => (
-  <Typography variant="text4" component="p" color={COLORS.santasGrey}>
-    <Trans
-      i18nKey="lenderKyc.modal.privacyNotice"
-      components={{
-        privacyLink: (
-          <MuiLink
-            href={EXTERNAL_LINKS.PRIVACY_POLICY}
-            target="_blank"
-            rel="noopener noreferrer"
-            underline="always"
-            color={COLORS.blueRibbon}
-          />
-        ),
-      }}
-    />
-  </Typography>
-)
+export const KycPrivacyNotice = () => {
+  const { t } = useTranslation()
+
+  return (
+    <Typography variant="text4" component="p" color={COLORS.santasGrey}>
+      {t("lenderKyc.modal.privacyNotice")}
+    </Typography>
+  )
+}
