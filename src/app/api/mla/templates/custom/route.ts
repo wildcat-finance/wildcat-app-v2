@@ -2,8 +2,9 @@ import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
 import { prisma } from "@/lib/db"
+import { MlaTemplateField } from "@/lib/mla"
 import { isPrismaUniqueConstraintError } from "@/lib/mlaPersistence"
-import { buildCustomMlaTemplate } from "@/lib/mlaTemplateText"
+import { prepareCustomMlaTemplate } from "@/lib/mlaTemplateText"
 import { isTestnetChain } from "@/lib/networkClass"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 import { getZodParseError } from "@/lib/zod-error"
@@ -65,9 +66,10 @@ export async function GET(request: NextRequest) {
 }
 
 /// POST /api/mla/templates/custom
-/// Register a custom MLA for one borrower: the agreement text exactly as the
-/// borrower supplied it. The app adds the execution block that names the
-/// borrower, the market and each lender when they sign.
+/// Register a custom MLA for one borrower: the HTML and plain text of the
+/// borrower's copy of the market MLA, as edited in the admin dialog. Its `{{field}}` placeholders become
+/// the template's fields, labelled as the class's market MLA labels them, and
+/// are filled in at signing exactly as the market MLA's are.
 /// Admin-only endpoint.
 export async function POST(request: NextRequest) {
   const token = await verifyApiToken(request)
@@ -97,19 +99,39 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     )
   }
+  const marketMla = await prisma.mlaTemplate.findFirst({
+    where: { isTestnet, borrowerId: null, retiredAt: null },
+    select: { borrowerFields: true, lenderFields: true },
+    orderBy: [{ isDefault: "desc" }, { id: "asc" }],
+  })
+  const { template, problems } = prepareCustomMlaTemplate(
+    body,
+    marketMla
+      ? {
+          borrowerFields: marketMla.borrowerFields as MlaTemplateField[],
+          lenderFields: marketMla.lenderFields as MlaTemplateField[],
+        }
+      : undefined,
+  )
+  if (problems.length > 0) {
+    return NextResponse.json(
+      { error: "Invalid template fields", problems },
+      { status: 400 },
+    )
+  }
   try {
-    const template = await prisma.mlaTemplate.create({
+    const created = await prisma.mlaTemplate.create({
       data: {
         isTestnet,
         borrowerId: body.borrowerId,
         name: body.name,
         version: body.version,
         description: body.description || null,
-        ...buildCustomMlaTemplate(body.text),
+        ...template,
       },
       select: { id: true },
     })
-    return NextResponse.json(template)
+    return NextResponse.json(created)
   } catch (error) {
     if (!isPrismaUniqueConstraintError(error)) throw error
     return NextResponse.json(

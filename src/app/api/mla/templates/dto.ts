@@ -1,7 +1,6 @@
 import { z } from "zod"
 
 import { MlaFieldValueKeys } from "@/lib/mla"
-import { hasTemplateBraces } from "@/lib/mlaTemplateText"
 
 export const MlaTemplateFieldDTO = z.object({
   source: z.enum(MlaFieldValueKeys),
@@ -23,20 +22,16 @@ export const CreateMlaTemplateInputDTO = z.object({
   lenderFields: z.array(MlaTemplateFieldDTO),
 })
 
-/// A custom MLA: the borrower's agreement text, pasted verbatim.
+/// A custom MLA: the HTML and plain text of the borrower's copy of the
+/// market MLA, placeholders included.
 export const CreateCustomMlaInputDTO = z.object({
   chainId: z.number(),
   borrowerId: z.string().uuid(),
   name: z.string().trim().min(1).max(128),
   version: z.string().trim().min(1).max(64),
   description: z.string().trim().max(1024).optional(),
-  text: z
-    .string()
-    .refine((text) => text.trim().length > 0, "Paste the agreement text")
-    .refine(
-      (text) => !hasTemplateBraces(text),
-      "The agreement text cannot contain {{",
-    ),
+  html: z.string().trim().min(1, "Enter the HTML"),
+  plaintext: z.string().trim().min(1, "Enter the plain text"),
 })
 
 export const UpdateMlaTemplateInputDTO = z.object({

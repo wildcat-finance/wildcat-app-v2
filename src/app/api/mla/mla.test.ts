@@ -231,6 +231,7 @@ describe("POST /api/mla/templates/custom", () => {
   beforeEach(() => {
     loginAs(BORROWER_ADDRESS, true)
     jest.mocked(isAdminForChain).mockResolvedValue(true)
+    jest.mocked(prisma.mlaTemplate.findFirst).mockResolvedValue(null)
     jest
       .mocked(prisma.mlaTemplate.create)
       .mockImplementation((({ data }: { data: object }) =>
@@ -240,27 +241,67 @@ describe("POST /api/mla/templates/custom", () => {
   const register = (body: unknown) =>
     registerCustomMla(request("/api/mla/templates/custom", "POST", body))
 
-  it("stores the pasted text word for word with the execution block", async () => {
+  it("stores both texts, with fields labelled as the class's market MLA labels them", async () => {
     jest
       .mocked(prisma.borrower.findUnique)
       .mockResolvedValue({ isTestnet: true } as never)
+    jest.mocked(prisma.mlaTemplate.findFirst).mockResolvedValue({
+      borrowerFields: [{ source: "market.apr", placeholder: "Interest Rate" }],
+      lenderFields: [
+        { source: "lender.address", placeholder: "Lender Wallet" },
+      ],
+    } as never)
     const response = await register(ownFixture)
     expect(response.status).toBe(200)
     expect((await response.json()).id).toBe(9)
+    expect(prisma.mlaTemplate.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { isTestnet: true, borrowerId: null, retiredAt: null },
+      }),
+    )
     const { data } = jest.mocked(prisma.mlaTemplate.create).mock.calls[0][0]
     expect(data).toMatchObject({
       borrowerId: OWN_BORROWER,
       isTestnet: true,
       name: dummyCustomMla.name,
       version: dummyCustomMla.version,
+      html: dummyCustomMla.html,
+      plaintext: dummyCustomMla.plaintext,
+      borrowerFields: [
+        { source: "borrower.name", placeholder: "Borrower Name" },
+        { source: "market.address", placeholder: "Market Address" },
+        { source: "market.apr", placeholder: "Interest Rate" },
+        {
+          source: "market.withdrawalBatchDuration",
+          placeholder: "Withdrawal Cycle",
+        },
+      ],
       lenderFields: [
-        { source: "lender.address", placeholder: "Lender Address" },
         { source: "lender.timeSigned", placeholder: "Date Signed" },
+        { source: "lender.address", placeholder: "Lender Wallet" },
       ],
     })
-    expect(data.plaintext.startsWith(dummyCustomMla.text)).toBe(true)
-    expect(data.plaintext).toContain("Execution details")
-    expect(data.html).toContain("<p>MASTER LOAN AGREEMENT (TEST ONLY)</p>")
+  })
+
+  it("refuses texts whose placeholders do not match", async () => {
+    jest
+      .mocked(prisma.borrower.findUnique)
+      .mockResolvedValue({ isTestnet: true } as never)
+    const response = await register({
+      ...ownFixture,
+      plaintext: `${dummyCustomMla.plaintext}\n{{market.capacity}}`,
+    })
+    expect(response.status).toBe(400)
+    expect((await response.json()).problems).toEqual([
+      "{{market.capacity}} is in the plain text but not the HTML",
+    ])
+    expect(prisma.mlaTemplate.create).not.toHaveBeenCalled()
+  })
+
+  it("needs both texts", async () => {
+    expect((await register({ ...ownFixture, html: " " })).status).toBe(400)
+    expect((await register({ ...ownFixture, plaintext: "" })).status).toBe(400)
+    expect(prisma.mlaTemplate.create).not.toHaveBeenCalled()
   })
 
   it("refuses the fixture unchanged: its borrower id matches nobody", async () => {
@@ -275,15 +316,6 @@ describe("POST /api/mla/templates/custom", () => {
       .mocked(prisma.borrower.findUnique)
       .mockResolvedValue({ isTestnet: false } as never)
     expect((await register(ownFixture)).status).toBe(400)
-  })
-
-  it("refuses text containing {{, which the execution block reserves", async () => {
-    const response = await register({
-      ...ownFixture,
-      text: `${dummyCustomMla.text}\nPay {{amount}}`,
-    })
-    expect(response.status).toBe(400)
-    expect(prisma.mlaTemplate.create).not.toHaveBeenCalled()
   })
 
   it("needs a version", async () => {

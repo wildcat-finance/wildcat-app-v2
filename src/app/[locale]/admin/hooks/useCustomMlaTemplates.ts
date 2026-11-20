@@ -64,7 +64,8 @@ const useInvalidateTemplates = () => {
   }
 }
 
-/// Register a custom MLA for one borrower: its agreement text, pasted verbatim.
+/// Register a custom MLA for one borrower from the HTML and plain text of
+/// its copy of the market MLA.
 export const useRegisterCustomMla = () => {
   const { token, chainId, isAdminForChain } = useAdminToken()
   const invalidate = useInvalidateTemplates()

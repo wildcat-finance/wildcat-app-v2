@@ -99,3 +99,44 @@ export type MlaTemplateField = {
   /* text to use when value is unavailable */
   placeholder: string
 }
+
+/// The placeholder a custom MLA gives a field when the network class's market
+/// MLA does not list it.
+export const MLA_FIELD_PLACEHOLDERS: Record<MlaFieldValueKey, string> = {
+  "network.chainId": "Chain ID",
+  "network.name": "Network",
+  "asset.name": "Asset Name",
+  "asset.symbol": "Asset Symbol",
+  "market.marketType": "Market Type",
+  "market.name": "Market Name",
+  "market.symbol": "Market Symbol",
+  "borrower.name": "Borrower Name",
+  "borrower.jurisdiction": "Borrower Jurisdiction",
+  "borrower.physicalAddress": "Borrower Physical Address",
+  "borrower.entityKind": "Borrower Entity Type",
+  "market.depositAccess": "Deposit Access",
+  "market.transferAccess": "Transfer Access",
+  "market.withdrawalAccess": "Withdrawal Access",
+  "asset.address": "Asset Address",
+  "market.address": "Market Address",
+  "borrower.address": "Borrower Address",
+  "lender.address": "Lender Address",
+  "chainalysisOracle.address": "Chainalysis Oracle Address",
+  "hooksFactory.address": "Hooks Factory Address",
+  "market.capacity": "Market Capacity",
+  "market.minimumDeposit": "Minimum Deposit",
+  "market.delinquencyGracePeriod": "Grace Period",
+  "market.withdrawalBatchDuration": "Withdrawal Cycle",
+  "market.fixedTermEndTime": "Fixed Term End Date",
+  "borrower.timeSigned": "Borrower Signing Date",
+  "lender.timeSigned": "Date Signed",
+  "lender.timeSignedDayOrdinal": "Day Signed",
+  "lender.timeSignedMonthYear": "Month and Year Signed",
+  "sla.timeUpdated": "Service Agreement Date",
+  "market.apr": "Annual Interest Rate",
+  "market.delinquencyFee": "Delinquency Fee",
+  "market.reserveRatio": "Reserve Ratio",
+  "market.allowClosureBeforeTerm": "Closure Before Term Allowed",
+  "market.allowTermReduction": "Term Reduction Allowed",
+  "market.allowForceBuyBack": "Force Buyback Allowed",
+}

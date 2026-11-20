@@ -1,4 +1,5 @@
 import {
+  MLA_FIELD_PLACEHOLDERS,
   MlaFieldValueKey,
   MlaFieldValueKeys,
   MlaTemplateField,
@@ -49,62 +50,76 @@ export const plaintextToHtml = (plaintext: string): string => {
   ].join("\n")
 }
 
-/// A custom MLA is the borrower's agreement text, pasted verbatim, followed by
-/// a fixed execution block that names the borrower, the market and the lender.
-/// The block is the only part filled in at signing: the borrower's details when
-/// the market is created, the lender's when each lender signs.
-const CUSTOM_MLA_BORROWER_FIELDS: MlaTemplateField[] = [
-  { source: "borrower.name", placeholder: "Borrower Name" },
-  { source: "borrower.address", placeholder: "Borrower Address" },
-  { source: "borrower.timeSigned", placeholder: "Borrower Signing Date" },
-  { source: "market.name", placeholder: "Market Name" },
-  { source: "market.address", placeholder: "Market Address" },
-  { source: "network.name", placeholder: "Network" },
-]
+type TemplateText = { plaintext: string; html: string }
 
-const CUSTOM_MLA_LENDER_FIELDS: MlaTemplateField[] = [
-  { source: "lender.address", placeholder: "Lender Address" },
-  { source: "lender.timeSigned", placeholder: "Date Signed" },
-]
+type TemplateFields = {
+  borrowerFields: MlaTemplateField[]
+  lenderFields: MlaTemplateField[]
+}
 
-const EXECUTION_BLOCK_TITLE = "Execution details"
-const EXECUTION_BLOCK_LINES = [
-  "Borrower: {{borrower.name}} ({{borrower.address}}), signed {{borrower.timeSigned}}",
-  "Market: {{market.name}} ({{market.address}}) on {{network.name}}",
-  "Lender: {{lender.address}}, signed {{lender.timeSigned}}",
-]
+/// A template text as stored: without a byte-order mark, with Unix line
+/// endings and no surrounding blank lines.
+const normaliseTemplateText = (text: string) =>
+  text
+    .replace(/^\uFEFF/, "")
+    .replaceAll("\r\n", "\n")
+    .trim()
 
-/// Whether pasted text contains `{{`, which a stored template reserves for
-/// the execution block; such text is refused so it is signed exactly as pasted.
-export const hasTemplateBraces = (text: string) => text.includes("{{")
-
-/// The stored template for a pasted agreement text. The text keeps its words
-/// and line breaks; only line endings are normalised and trailing blank lines
-/// dropped before the execution block.
-export const buildCustomMlaTemplate = (text: string) => {
-  const agreement = text.replaceAll("\r\n", "\n").replace(/\s+$/, "")
-  const plaintext = [
-    agreement,
-    "",
-    EXECUTION_BLOCK_TITLE,
-    ...EXECUTION_BLOCK_LINES,
-  ].join("\n")
-  const blockHtml = [
-    '<div style="border-top: 1px solid #ccc; margin-top: 24px; padding-top: 12px; font-family: Arial, sans-serif; font-size: 13px;">',
-    `<p><strong>${EXECUTION_BLOCK_TITLE}</strong><br />${EXECUTION_BLOCK_LINES.join(
-      "<br />",
-    )}</p>`,
-    "</div>",
-  ].join("\n")
+/// The fields a template's text uses, worked out from its placeholders: the
+/// lender's are filled when each lender signs, the rest at market creation.
+/// Each takes the placeholder the source template (the network class's
+/// market MLA) gives it, so both read alike before they are filled.
+export const deriveTemplateFields = (
+  { plaintext, html }: TemplateText,
+  placeholderSource?: TemplateFields,
+): TemplateFields => {
+  const known = new Map(
+    [
+      ...(placeholderSource?.borrowerFields ?? []),
+      ...(placeholderSource?.lenderFields ?? []),
+    ].map(({ source, placeholder }) => [source, placeholder]),
+  )
+  const fields = findTemplateTokens(`${plaintext}\n${html}`)
+    .filter(isMlaFieldValueKey)
+    .map((source) => ({
+      source,
+      placeholder: known.get(source) ?? MLA_FIELD_PLACEHOLDERS[source],
+    }))
   return {
-    plaintext,
-    html: plaintextToHtml(agreement).replace(
-      "</body></html>",
-      `${blockHtml}\n</body></html>`,
-    ),
-    borrowerFields: CUSTOM_MLA_BORROWER_FIELDS,
-    lenderFields: CUSTOM_MLA_LENDER_FIELDS,
+    borrowerFields: fields.filter(({ source }) => !isLenderField(source)),
+    lenderFields: fields.filter(({ source }) => isLenderField(source)),
   }
+}
+
+/// Placeholders that write the same value another way. The market MLA's HTML
+/// dates itself "this 20th day of November 2026" where its plain text says
+/// "this 20 November 2026": both are the lender's signing date.
+const SAME_VALUE_AS: Record<string, string> = {
+  "lender.timeSignedDayOrdinal": "lender.timeSigned",
+  "lender.timeSignedMonthYear": "lender.timeSigned",
+}
+
+const valueOf = (token: string) => SAME_VALUE_AS[token] ?? token
+
+/// Placeholders only one of the two texts uses. Lenders read the HTML but
+/// sign the plain text, so both must fill in the same values; a value may be
+/// written differently in each.
+export const compareTemplateTokens = ({
+  plaintext,
+  html,
+}: TemplateText): string[] => {
+  const inText = findTemplateTokens(plaintext)
+  const inHtml = findTemplateTokens(html)
+  const textValues = inText.map(valueOf)
+  const htmlValues = inHtml.map(valueOf)
+  return [
+    ...inText
+      .filter((token) => !htmlValues.includes(valueOf(token)))
+      .map((token) => `{{${token}}} is in the plain text but not the HTML`),
+    ...inHtml
+      .filter((token) => !textValues.includes(valueOf(token)))
+      .map((token) => `{{${token}}} is in the HTML but not the plain text`),
+  ]
 }
 
 /// A stored agreement's HTML with each lender field shown as its bracketed
@@ -176,4 +191,27 @@ export const validateTemplateFields = ({
     }
   })
   return problems
+}
+
+/// The template a custom MLA is registered as, from the HTML and plain text
+/// of the borrower's copy of a stored MLA, with the problems that would stop
+/// it filling in like the market MLA.
+export const prepareCustomMlaTemplate = (
+  texts: TemplateText,
+  placeholderSource?: TemplateFields,
+) => {
+  const plaintext = normaliseTemplateText(texts.plaintext)
+  const html = normaliseTemplateText(texts.html)
+  const template = {
+    plaintext,
+    html,
+    ...deriveTemplateFields({ plaintext, html }, placeholderSource),
+  }
+  const problems = [
+    ...(/<[a-z][^>]*>/i.test(html) ? [] : ["The HTML has no markup"]),
+    ...(/<(html|body)[\s>]/i.test(plaintext) ? ["The plain text is HTML"] : []),
+    ...compareTemplateTokens(template),
+    ...validateTemplateFields(template),
+  ]
+  return { template, problems }
 }

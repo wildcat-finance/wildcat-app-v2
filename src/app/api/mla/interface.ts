@@ -46,8 +46,8 @@ export type CreateMlaTemplateInput = Omit<
   html?: string
 }
 
-/// A custom MLA as an admin registers it: the borrower's agreement text,
-/// pasted verbatim. The app adds the execution block and its fields.
+/// A custom MLA as an admin registers it: both texts of the borrower's copy
+/// of the market MLA. Its fields are worked out from the placeholders.
 export type CreateCustomMlaInput = {
   /* An admin network; the MLA serves every network of its class */
   chainId: SupportedChainId
@@ -55,7 +55,10 @@ export type CreateCustomMlaInput = {
   name: string
   version: string
   description?: string
-  text: string
+  /* The agreement as borrowers and lenders read it */
+  html: string
+  /* The same agreement as plain text; this is what is signed */
+  plaintext: string
 }
 
 /// A custom MLA as the admin screen lists it.

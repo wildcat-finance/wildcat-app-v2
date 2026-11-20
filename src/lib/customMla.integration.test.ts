@@ -31,6 +31,7 @@ import {
 } from "@/app/api/mla/templates/custom/route"
 import { GET as listTemplates } from "@/app/api/mla/templates/route"
 import { prisma } from "@/lib/db"
+import { MlaTemplateField } from "@/lib/mlaFields"
 
 jest.mock("@/lib/provider", () => ({
   getProviderForServer: jest.fn(() => ({ getCode: async () => "0x1234" })),
@@ -91,6 +92,7 @@ describeWithDatabase("custom MLAs against Postgres", () => {
   let ownId = ""
   let otherId = ""
   let templateId = 0
+  let lenderAddressPlaceholder = ""
 
   const tokenFor = (address: string, chainId: number, isAdmin = false) =>
     sign(
@@ -183,7 +185,7 @@ describeWithDatabase("custom MLAs against Postgres", () => {
     await prisma.$disconnect()
   })
 
-  it("registers the fixture for one borrower", async () => {
+  it("registers the fixture for one borrower, with fields from its placeholders", async () => {
     const response = await registerCustomMla(
       request("/api/mla/templates/custom", {
         method: "POST",
@@ -193,6 +195,17 @@ describeWithDatabase("custom MLAs against Postgres", () => {
     )
     expect(response.status).toBe(200)
     templateId = (await response.json()).id
+    const stored = await prisma.mlaTemplate.findUniqueOrThrow({
+      where: { id: templateId },
+      select: { plaintext: true, lenderFields: true },
+    })
+    expect(stored.plaintext).toBe(dummyCustomMla.plaintext)
+    const lenderFields = stored.lenderFields as MlaTemplateField[]
+    expect(lenderFields.map(({ source }) => source)).toEqual([
+      "lender.timeSigned",
+      "lender.address",
+    ])
+    lenderAddressPlaceholder = lenderFields[1].placeholder
 
     const duplicate = await registerCustomMla(
       request("/api/mla/templates/custom", {
@@ -262,7 +275,7 @@ describeWithDatabase("custom MLAs against Postgres", () => {
       { params: { market: ownMarket } },
     )
     expect(html.status).toBe(200)
-    expect(await html.text()).toContain("[Lender Address]")
+    expect(await html.text()).toContain(`[${lenderAddressPlaceholder}]`)
 
     const signed = await borrowerSigned(
       request(`/api/mla/${ownMarket}/signed?chainId=${SEPOLIA}`),
