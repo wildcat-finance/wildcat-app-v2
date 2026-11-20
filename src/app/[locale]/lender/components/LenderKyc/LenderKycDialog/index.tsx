@@ -364,24 +364,18 @@ export const LenderKycDialog = ({
         </Box>
       ) : (
         <Box sx={HeaderSx}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-            <Typography variant="text4" color={COLORS.santasGrey}>
-              {t("lenderKyc.modal.overline")}
-            </Typography>
-            <Typography
-              id="lender-kyc-dialog-title"
-              component="h2"
-              variant="title3"
-              color={COLORS.bunker}
-            >
-              {t("lenderKyc.modal.title")}
-            </Typography>
-          </Box>
+          <Typography
+            id="lender-kyc-dialog-title"
+            component="h2"
+            variant="title3"
+            color={COLORS.bunker}
+          >
+            {t("lenderKyc.modal.title")}
+          </Typography>
           <IconButton
             disableRipple
             onClick={onClose}
             aria-label={t("lenderKyc.modal.close")}
-            sx={{ marginTop: "2px" }}
           >
             <SvgIcon fontSize="big">
               <Cross />
