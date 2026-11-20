@@ -8,7 +8,7 @@
     },
     {
       "boundary_bytes": 3633780,
-      "bytes": 3923711,
+      "bytes": 3923887,
       "files": 18,
       "suffix": ".json"
     },
@@ -26,8 +26,8 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 1637571,
-      "files": 695,
+      "bytes": 1638516,
+      "files": 696,
       "suffix": ".ts"
     },
     {
@@ -44,7 +44,7 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 312688,
+      "bytes": 313288,
       "files": 22,
       "suffix": ".sql"
     },
@@ -86,13 +86,13 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 14168,
-      "files": 1,
+      "bytes": 14490,
+      "files": 2,
       "suffix": ".prisma"
     },
     {
       "boundary_bytes": 0,
-      "bytes": 12993,
+      "bytes": 13015,
       "files": 2,
       "suffix": ".mjs"
     },
@@ -122,15 +122,15 @@
     },
     {
       "boundary_bytes": 0,
-      "bytes": 1306,
-      "files": 6,
-      "suffix": "(no suffix)"
+      "bytes": 1321,
+      "files": 1,
+      "suffix": ".example"
     },
     {
       "boundary_bytes": 0,
-      "bytes": 1287,
-      "files": 1,
-      "suffix": ".example"
+      "bytes": 1306,
+      "files": 6,
+      "suffix": "(no suffix)"
     },
     {
       "boundary_bytes": 0,
@@ -139,14 +139,14 @@
       "suffix": ".cjs"
     },
     {
-      "boundary_bytes": 126,
-      "bytes": 126,
-      "files": 1,
+      "boundary_bytes": 252,
+      "bytes": 252,
+      "files": 2,
       "suffix": ".toml"
     }
   ],
   "schema": 1,
   "tool": "horos",
-  "total_bytes": 20260600,
-  "total_files": 1361
+  "total_bytes": 20262825,
+  "total_files": 1364
 }

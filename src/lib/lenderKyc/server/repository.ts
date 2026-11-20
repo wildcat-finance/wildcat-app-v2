@@ -1,15 +1,6 @@
 import { randomBytes, randomUUID } from "crypto"
 
-import {
-  LenderKycOutcome as DbLenderKycOutcome,
-  LenderKycProfileRevision as DbLenderKycProfileRevision,
-  LenderKycSignatureKind,
-  LenderKycStart as DbLenderKycStart,
-  Prisma,
-  PrismaClient,
-} from "@prisma/client"
-
-import { LenderType, sortLenderTypes } from "@/config/lender-kyc"
+import { sortLenderTypes } from "@/config/lender-kyc"
 import {
   areLenderKycDetailsEqual,
   isLenderKycDetailsEmpty,
@@ -17,6 +8,14 @@ import {
   LenderKycMessageKind,
   normalizeLenderKycDetails,
 } from "@/utils/lenderKycMessage"
+import {
+  LenderKycOutcome as DbLenderKycOutcome,
+  LenderKycProfileRevision as DbLenderKycProfileRevision,
+  LenderKycSignatureKind,
+  LenderKycStart as DbLenderKycStart,
+  Prisma,
+  PrismaClient,
+} from "@prisma-ops/client"
 
 import { decryptLenderKycField, encryptLenderKycField } from "./crypto"
 import {
@@ -139,18 +138,12 @@ const toStart = (row: DbLenderKycStart): LenderKycStart => ({
   forwardedAt: row.forwardedAt?.toISOString(),
 })
 
-const toLenderTypes = (value: string | null): LenderType[] =>
-  value ? sortLenderTypes(value.split(",")) : []
-
-const fromLenderTypes = (values: LenderType[]) =>
-  values.length ? values.join(",") : null
-
 const toProfile = (row: DbLenderKycProfileRevision): LenderKycSavedProfile => ({
   details: {
     fullName: decryptLenderKycField("fullName", row.id, row.fullName),
     email: decryptLenderKycField("email", row.id, row.email),
     companyName: decryptLenderKycField("companyName", row.id, row.companyName),
-    lenderTypes: toLenderTypes(row.lenderType),
+    lenderTypes: sortLenderTypes(row.lenderTypes),
   },
   savedAt: row.savedAt.toISOString(),
 })
@@ -167,7 +160,7 @@ const readRevisionDetails = (
         fullName: "",
         email: "",
         companyName: "",
-        lenderTypes: toLenderTypes(row.lenderType),
+        lenderTypes: sortLenderTypes(row.lenderTypes),
       },
     }
   }
@@ -403,7 +396,7 @@ export const createPrismaLenderKycRepository = (
               id,
               normalized.companyName,
             ),
-            lenderType: fromLenderTypes(normalized.lenderTypes),
+            lenderTypes: normalized.lenderTypes,
             savedAt: now,
           },
         })

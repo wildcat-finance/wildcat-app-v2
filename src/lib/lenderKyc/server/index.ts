@@ -1,10 +1,12 @@
-import { prisma } from "@/lib/db"
+import { isOpsDatabaseConfigured, opsPrisma } from "@/lib/opsDb"
 
+import { isLenderKycEncryptionConfigured } from "./crypto"
 import { createPrismaLenderKycRepository } from "./repository"
 
-export const lenderKycRepository = createPrismaLenderKycRepository(prisma)
+export const lenderKycRepository = createPrismaLenderKycRepository(opsPrisma)
 
-export { isLenderKycStorageConfigured } from "./crypto"
+export const isLenderKycStorageConfigured = () =>
+  isOpsDatabaseConfigured() && isLenderKycEncryptionConfigured()
 export {
   closeStaleLenderKycStarts,
   confirmLenderKycOwnership,

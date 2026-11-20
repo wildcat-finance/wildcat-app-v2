@@ -8,8 +8,9 @@
     "npm": "11.12.0"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && next build",
+    "dev": "npm run prisma:generate && next dev",
+    "build": "npm run prisma:generate && next build",
+    "prisma:generate": "prisma generate && prisma generate --schema prisma/ops/schema.prisma",
     "start": "next start",
     "storybook": "storybook dev -p 6006",
     "storybook:build": "storybook build",

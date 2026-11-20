@@ -14,6 +14,14 @@ CREATE TYPE "LenderKycMessageKind" AS ENUM ('details', 'ownership');
 CREATE TYPE "LenderKycSignatureKind" AS ENUM ('ECDSA', 'GnosisSignature', 'EIP1271');
 
 -- CreateTable
+CREATE TABLE "OpsAdmin" (
+    "address" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "OpsAdmin_pkey" PRIMARY KEY ("address")
+);
+
+-- CreateTable
 CREATE TABLE "LenderKycStart" (
     "id" TEXT NOT NULL,
     "chainId" INTEGER NOT NULL,
@@ -71,7 +79,7 @@ CREATE TABLE "LenderKycProfileRevision" (
     "fullName" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "companyName" TEXT NOT NULL,
-    "lenderType" TEXT,
+    "lenderTypes" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "savedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "LenderKycProfileRevision_pkey" PRIMARY KEY ("id")
@@ -101,8 +109,22 @@ ALTER TABLE "LenderKycSignature" ADD CONSTRAINT "LenderKycSignature_startId_fkey
 -- AddForeignKey
 ALTER TABLE "LenderKycProfileRevision" ADD CONSTRAINT "LenderKycProfileRevision_signatureId_fkey" FOREIGN KEY ("signatureId") REFERENCES "LenderKycSignature"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
+
+-- AddCheckConstraint
+ALTER TABLE "OpsAdmin" ADD CONSTRAINT "OpsAdmin_address_check" CHECK ("address" ~ '^0x[0-9a-f]{40}$');
+
 -- EnableRowLevelSecurity
+ALTER TABLE "OpsAdmin" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "LenderKycStart" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "LenderKycNonce" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "LenderKycSignature" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "LenderKycProfileRevision" ENABLE ROW LEVEL SECURITY;
+
+-- EnableRowLevelSecurityOnMigrationsTable
+DO $$
+BEGIN
+  IF to_regclass('public._prisma_migrations') IS NOT NULL THEN
+    ALTER TABLE "_prisma_migrations" ENABLE ROW LEVEL SECURITY;
+  END IF;
+END
+$$;

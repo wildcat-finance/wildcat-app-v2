@@ -35,7 +35,7 @@ const loadKey = () => {
 export const hashLenderKycSecret = (secret: string) =>
   createHash("sha256").update(secret, "utf8").digest("hex")
 
-export const isLenderKycStorageConfigured = () => {
+export const isLenderKycEncryptionConfigured = () => {
   try {
     loadKey()
     return true

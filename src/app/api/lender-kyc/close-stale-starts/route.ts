@@ -4,8 +4,9 @@ import {
   closeStaleLenderKycStarts,
   lenderKycRepository,
 } from "@/lib/lenderKyc/server"
+import { isOpsDatabaseConfigured } from "@/lib/opsDb"
 
-import { lenderKycErrorResponse } from "../respond"
+import { lenderKycErrorResponse, lenderKycStorageUnavailable } from "../respond"
 
 export const runtime = "nodejs"
 
@@ -17,6 +18,7 @@ export async function GET(request: NextRequest) {
   ) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
+  if (!isOpsDatabaseConfigured()) return lenderKycStorageUnavailable()
 
   try {
     const closed = await closeStaleLenderKycStarts(lenderKycRepository)

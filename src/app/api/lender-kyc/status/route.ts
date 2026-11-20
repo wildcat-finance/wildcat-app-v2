@@ -4,12 +4,14 @@ import {
   isLenderKycChainSupported,
   lenderKycRepository,
 } from "@/lib/lenderKyc/server"
+import { isOpsDatabaseConfigured } from "@/lib/opsDb"
 import { getZodParseError } from "@/lib/zod-error"
 
 import { LenderKycStatusQueryDTO } from "../dto"
-import { lenderKycErrorResponse } from "../respond"
+import { lenderKycErrorResponse, lenderKycStorageUnavailable } from "../respond"
 
 export async function GET(request: NextRequest) {
+  if (!isOpsDatabaseConfigured()) return lenderKycStorageUnavailable()
   const { searchParams } = request.nextUrl
   const parsed = LenderKycStatusQueryDTO.safeParse({
     address: searchParams.get("address"),

@@ -114,7 +114,7 @@ const nextConfig = {
   productionBrowserSourceMaps: !!process.env.SOURCE_MAPS,
   // @vercel/queue imports this CommonJS helper at runtime. Bundling it removes
   // require.main/process.argv context and breaks Workflow's local world.
-  serverExternalPackages: ['xdg-app-paths', '@sparticuz/chromium'],
+  serverExternalPackages: ['xdg-app-paths', '@sparticuz/chromium', '@prisma-ops/client'],
 
   webpack(config) {
     // Fix pino-pretty and lokijs resolve

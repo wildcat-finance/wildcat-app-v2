@@ -2,14 +2,20 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
 import { lenderKycRepository } from "@/lib/lenderKyc/server"
+import { isOpsDatabaseConfigured } from "@/lib/opsDb"
 
 import { LenderKycStartActionDTO } from "../../dto"
-import { lenderKycErrorResponse, parseLenderKycBody } from "../../respond"
+import {
+  lenderKycErrorResponse,
+  lenderKycStorageUnavailable,
+  parseLenderKycBody,
+} from "../../respond"
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  if (!isOpsDatabaseConfigured()) return lenderKycStorageUnavailable()
   if (!z.string().uuid().safeParse(params.id).success) {
     return NextResponse.json({ error: "Unknown KYC start" }, { status: 404 })
   }

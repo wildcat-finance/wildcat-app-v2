@@ -92,6 +92,7 @@
     ]
   },
   "settings": {
+    "import/internal-regex": "^@prisma-ops/",
     "import/extensions": [
       ".js",
       ".jsx",

@@ -1,10 +1,10 @@
 {
   "counts": {
     "bytes_binary": 4102227,
-    "bytes_generated": 9015991,
+    "bytes_generated": 9016117,
     "bytes_lockfile": 2178869,
     "files_skipped_unreadable": 0,
-    "files_walked": 1289
+    "files_walked": 1292
   },
   "entries": [
     {
@@ -20,6 +20,13 @@
       "evidence": "marker 'do not edit' on a comment-led line in the first 4096 bytes",
       "grade": "hard",
       "path": "prisma/migrations/migration_lock.toml"
+    },
+    {
+      "bytes": 126,
+      "category": "generated",
+      "evidence": "marker 'do not edit' on a comment-led line in the first 4096 bytes",
+      "grade": "hard",
+      "path": "prisma/ops/migrations/migration_lock.toml"
     },
     {
       "bytes": 4665,
