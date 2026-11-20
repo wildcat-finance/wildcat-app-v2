@@ -6,6 +6,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  MenuItem,
   Select,
   Stack,
   TextField,
@@ -171,8 +172,8 @@ export function MarketRoleProviders({ policy }: { policy: Policy }) {
             label={t("borrower.kyc.selectProvider")}
           >
             <Select
-              native
               id="policy-provider-choice"
+              labelId="policy-provider-choice-label"
               value={choice}
               disabled={transaction.isPending}
               onChange={(event) => {
@@ -181,15 +182,15 @@ export function MarketRoleProviders({ policy }: { policy: Policy }) {
               }}
             >
               {choices.map((item) => (
-                <option key={item} value={item}>
+                <MenuItem key={item} value={item}>
                   {label(item)}
-                </option>
+                </MenuItem>
               ))}
               {choice !== "custom" &&
                 !choices.some((item) => item === choice) && (
-                  <option value={choice}>{label(choice)}</option>
+                  <MenuItem value={choice}>{label(choice)}</MenuItem>
                 )}
-              <option value="custom">{t("borrower.kyc.custom")}</option>
+              <MenuItem value="custom">{t("borrower.kyc.custom")}</MenuItem>
             </Select>
           </InputLabel>
           {choice === "custom" && (

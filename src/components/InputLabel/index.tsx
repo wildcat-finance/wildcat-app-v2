@@ -23,7 +23,13 @@ export const InputLabel = ({
     <Box sx={InputLabelContainer} marginBottom={!subtitle ? "8px" : ""}>
       <Box sx={InputLabelTypo}>
         <Typography variant="text3">
-          {htmlFor ? <label htmlFor={htmlFor}>{label}</label> : label}
+          {htmlFor ? (
+            <label id={`${htmlFor}-label`} htmlFor={htmlFor}>
+              {label}
+            </label>
+          ) : (
+            label
+          )}
         </Typography>
       </Box>
       {tooltipText && <TooltipButton value={tooltipText} />}

@@ -302,10 +302,12 @@ it.each(["no code", "invalid interface", "explicit push", "pull"])(
         policy={{ chainId, address: hooks, roleProviders: [] }}
       />,
     )
-    fireEvent.change(
-      await screen.findByLabelText("borrower.kyc.selectProvider"),
-      { target: { value: "custom" } },
+    fireEvent.mouseDown(
+      await screen.findByRole("combobox", {
+        name: /borrower\.kyc\.selectProvider/,
+      }),
     )
+    fireEvent.click(screen.getByRole("option", { name: "borrower.kyc.custom" }))
     fireEvent.change(screen.getByLabelText("borrower.kyc.provider"), {
       target: { value: lender },
     })
