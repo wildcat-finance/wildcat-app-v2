@@ -15,7 +15,10 @@ import {
   InputLabelSubtitle,
   InputLabelTypo,
 } from "@/components/InputLabel/style"
-import { POLICY_TYPE_KEY } from "@/constants/i18nKeys"
+import {
+  POLICY_TYPE_KEY,
+  POLICY_ACCESS_CONTROL_KEY,
+} from "@/constants/i18nKeys"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
   resetEditPolicyState,
@@ -26,7 +29,10 @@ import {
   setPolicyLendersTableData,
 } from "@/store/slices/editPolicySlice/editPolicySlice"
 import { canManagePolicyLenders } from "@/utils/lenderAccess"
-import { hasActiveLenderOnboardingRoleProvider } from "@/utils/marketCapabilities"
+import {
+  getPolicyAccessControl,
+  getPolicyLenderNoticeKey,
+} from "@/utils/marketCapabilities"
 import {
   mergePolicyLenderAccess,
   POLICY_LENDER_ACCESS_SOURCE_KEY,
@@ -75,15 +81,13 @@ export default function EditPolicyPage() {
       const hooksKind = hooksInstance?.kind ?? HooksKind.OpenTerm
       if (hooksInstance) {
         policyName = hooksInstance.name
-        const hasPullProvider = hasActiveLenderOnboardingRoleProvider(
-          hooksInstance.roleProviders,
-        )
         setAccessControl(
-          hasPullProvider
-            ? t("marketParameters.roleProviders.defaultPullProvider")
-            : t("marketParameters.roleProviders.manualApproval"),
+          t(
+            POLICY_ACCESS_CONTROL_KEY[
+              getPolicyAccessControl(hooksInstance.roleProviders)
+            ],
+          ),
         )
-        // @todo update when we have provider names
       } else {
         policyName = "V1 Markets"
         setAccessControl(t("marketParameters.roleProviders.manualApproval"))
@@ -96,7 +100,11 @@ export default function EditPolicyPage() {
         const { credential } = access.lender ?? {}
         const { lastProvider } = credential ?? {}
         let credentialExpiry: number | undefined
-        if (credential && lastProvider) {
+        if (
+          credential &&
+          lastProvider &&
+          !access.sources.includes("checked-on-use")
+        ) {
           credentialExpiry =
             lastProvider.timeToLive === maxTimeToLive
               ? maxTimeToLive
@@ -314,6 +322,9 @@ export default function EditPolicyPage() {
         <EditLendersForm
           isLoading={isLoading}
           canEditLenders={canEditLenders}
+          notice={t(
+            getPolicyLenderNoticeKey(data?.hooksInstance?.roleProviders),
+          )}
         />
       )}
 

@@ -30,11 +30,13 @@ import { EditLendersTable } from "./EditLendersTable"
 export type EditLendersFormProps = {
   isLoading: boolean
   canEditLenders: boolean
+  notice: string
 }
 
 export const EditLendersForm = ({
   isLoading,
   canEditLenders,
+  notice,
 }: EditLendersFormProps) => {
   const { t } = useTranslation()
   // Constants
@@ -219,7 +221,7 @@ export const EditLendersForm = ({
         ) : (
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Typography variant="text3" color={COLORS.santasGrey}>
-              {t("borrower.policies.lenders.selfOnboardNotice")}
+              {notice}
             </Typography>
           </Box>
         )}

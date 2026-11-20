@@ -38,6 +38,12 @@ export const WrapperDeployment = ({
     statusMessage = t(
       "marketDetails.lender.wrapDebtToken.deployment.unsupportedFactory",
     )
+  } else if (
+    deploymentStatus === WrapperDeploymentStatus.ProtectionNotApproved
+  ) {
+    statusMessage = t(
+      "marketDetails.lender.wrapDebtToken.deployment.protectionNotApproved",
+    )
   } else if (deploymentStatus === WrapperDeploymentStatus.FactoryUnavailable) {
     statusMessage = t(
       "marketDetails.lender.wrapDebtToken.deployment.factoryUnavailable",

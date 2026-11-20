@@ -34,6 +34,10 @@ import {
 import { COLORS } from "@/theme/colors"
 import { formatTokenWithCommas } from "@/utils/formatters"
 import { isRevolvingAprMarket } from "@/utils/marketApr"
+import {
+  acceptsKycForDeposit,
+  acceptsKycForWithdrawal,
+} from "@/utils/marketCapabilities"
 import { isPeriodicWithdrawalWindowClosed } from "@/utils/periodicWithdrawalWindow"
 
 import { MarketActionsProps } from "./interface"
@@ -126,8 +130,12 @@ export const MarketActions = ({
     marketAccount.maximumDeposit.eq(0) ||
     marketAccount.depositAvailability !== DepositStatus.Ready
 
+  const kycDepositDenied =
+    marketAccount.depositAvailability === DepositStatus.RequiresAccess &&
+    acceptsKycForDeposit(market)
   const showFaucet =
     hideDeposit &&
+    !kycDepositDenied &&
     isTestnet &&
     market.underlyingToken.isMock &&
     marketAccount.underlyingBalance.eq(0)
@@ -143,10 +151,14 @@ export const MarketActions = ({
     withdrawalAvailability: marketAccount.withdrawalAvailability,
     periodicWindowClosed,
   })
-  const withdrawalUnavailableText =
-    withdrawalActionState === "ready"
-      ? undefined
-      : t(WITHDRAWAL_UNAVAILABLE_KEY[withdrawalActionState])
+  let withdrawalUnavailableText
+  if (withdrawalActionState !== "ready") {
+    withdrawalUnavailableText =
+      withdrawalActionState === "requires-access" &&
+      acceptsKycForWithdrawal(market)
+        ? t("marketDetails.lender.kyc.lenderHint")
+        : t(WITHDRAWAL_UNAVAILABLE_KEY[withdrawalActionState])
+  }
 
   const ongoingCount = (
     withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
@@ -293,6 +305,11 @@ export const MarketActions = ({
                 tooltip={t("marketDetails.lender.transactions.deposit.tooltip")}
                 amount={formatTokenWithCommas(marketAccount.maximumDeposit)}
                 asset={market.underlyingToken.symbol}
+                status={
+                  kycDepositDenied
+                    ? t("marketDetails.lender.kyc.lenderHint")
+                    : undefined
+                }
                 rows={depositRows}
               >
                 {(() => {

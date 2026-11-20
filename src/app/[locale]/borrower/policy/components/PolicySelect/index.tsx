@@ -1,12 +1,5 @@
 import * as React from "react"
-import {
-  ChangeEvent,
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useRef,
-  useState,
-} from "react"
+import { ChangeEvent, useRef, useState } from "react"
 
 import {
   Box,
@@ -38,14 +31,9 @@ import { SmallFilterSelectItem } from "../../../../../../components/SmallFilterS
 export type PolicySelectProps = {
   policies: SmallFilterSelectItem[]
   selected: SmallFilterSelectItem
-  setSelected: Dispatch<SetStateAction<SmallFilterSelectItem>>
 }
 
-export const PolicySelect = ({
-  policies,
-  selected,
-  setSelected,
-}: PolicySelectProps) => {
+export const PolicySelect = ({ policies, selected }: PolicySelectProps) => {
   const { t } = useTranslation()
 
   const router = useRouter()
@@ -67,14 +55,7 @@ export const PolicySelect = ({
   const handleChangePolicy = (event: SelectChangeEvent) => {
     const selectedValue = event.target.value
 
-    const selectedPolicy = policies.find(
-      (policy) => policy.id === selectedValue,
-    )
-    if (selectedPolicy) {
-      setSelected(selectedPolicy)
-    }
-
-    router.push(policyLink(selected.id))
+    router.push(policyLink(selectedValue))
     setPolicyName("")
     dispatch(resetPolicyLendersState())
   }
@@ -102,14 +83,6 @@ export const PolicySelect = ({
       previousElement?.classList.remove("Mui-focused")
     }
   }
-
-  const policyAddress = selected.id
-
-  useEffect(() => {
-    if (policyAddress) {
-      router.push(policyLink(policyAddress))
-    }
-  }, [policyAddress])
 
   return (
     <Select

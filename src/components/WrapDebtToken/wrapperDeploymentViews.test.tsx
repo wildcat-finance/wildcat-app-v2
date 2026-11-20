@@ -170,24 +170,36 @@ describe("wrapper deployment market views", () => {
     ).toBeTruthy()
   })
 
-  it("hides deployment for an unsupported market factory", () => {
-    useCreateWrapperMock.mockReturnValue({
-      canCreateWrapper: false,
-      transfersDisabled: false,
-      deploymentStatus: WrapperDeploymentStatus.UnsupportedFactory,
-      isCheckingDeploymentCapability: false,
-      isDeploymentCapabilityError: false,
-      createWrapper: createWrapperMock,
-      isCreatingWrapper: false,
-    })
+  it.each([
+    [
+      WrapperDeploymentStatus.UnsupportedFactory,
+      "Wrapper deployment is not available for this market.",
+    ],
+    [
+      WrapperDeploymentStatus.ProtectionNotApproved,
+      "The hooks factory must approve this wrapper factory for nuke protection before a wrapper can be deployed.",
+    ],
+  ])(
+    "explains blocked wrapper deployment for %s",
+    (deploymentStatus, reason) => {
+      useCreateWrapperMock.mockReturnValue({
+        canCreateWrapper: false,
+        transfersDisabled: false,
+        deploymentStatus,
+        isCheckingDeploymentCapability: false,
+        isDeploymentCapabilityError: false,
+        createWrapper: createWrapperMock,
+        isCreatingWrapper: false,
+      })
 
-    renderWithTranslations(<BorrowerWrapDebtToken {...wrapperProps} />)
+      renderWithTranslations(<BorrowerWrapDebtToken {...wrapperProps} />)
 
-    expect(screen.queryByRole("button", { name: "Deploy wrapper" })).toBeNull()
-    expect(
-      screen.getByText("Wrapper deployment is not available for this market."),
-    ).toBeTruthy()
-  })
+      expect(
+        screen.queryByRole("button", { name: "Deploy wrapper" }),
+      ).toBeNull()
+      expect(screen.getByText(reason)).toBeTruthy()
+    },
+  )
 
   it("keeps both views on the shared post-deployment section", () => {
     const wrapper = {

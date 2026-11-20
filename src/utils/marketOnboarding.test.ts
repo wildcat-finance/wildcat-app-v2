@@ -149,3 +149,28 @@ describe("marketOnboarding", () => {
     ).toBe(LenderMarketAction.DepositUnavailable)
   })
 })
+
+it.each([
+  [DepositStatus.RequiresAccess, LenderMarketAction.ViewAccess],
+  [DepositStatus.Ready, LenderMarketAction.Deposit],
+  [DepositStatus.Blocked, LenderMarketAction.Unavailable],
+  [DepositStatus.MarketClosed, LenderMarketAction.Unavailable],
+])(
+  "routes a KYC market according to the lender status %s",
+  (status, action) => {
+    expect(
+      getLenderMarketAction(MarketOnboardingMode.Managed, status, true),
+    ).toBe(action)
+  },
+)
+
+it("keeps the borrower request action for an eligible mixed policy", () => {
+  expect(
+    getLenderMarketAction(
+      MarketOnboardingMode.Managed,
+      DepositStatus.RequiresAccess,
+      true,
+      true,
+    ),
+  ).toBe(LenderMarketAction.RequestAccess)
+})

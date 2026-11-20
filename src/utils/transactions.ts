@@ -101,7 +101,10 @@ export const sendTransactionAndWait = async (
     const receipt = await publicClient.waitForTransactionReceipt({ hash })
     return assertTransactionSucceeded(receipt, hash)
   } catch (error) {
-    throw Error(describeContractError(error, options?.errorAbi))
+    // Keep the original failure so a caller can still identify the revert.
+    throw Error(describeContractError(error, options?.errorAbi), {
+      cause: error,
+    })
   }
 }
 

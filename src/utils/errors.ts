@@ -123,6 +123,7 @@ export const SDK_ERRORS_MAPPING: SDKErrorsMapping = {
     BelowCurrentSupply: "Capacity cannot be below the current supply",
   },
   setMinimumDeposit: {
+    MarketClosed: "The market is closed to minimum deposit changes",
     MarketInRepayment:
       "Minimum deposit cannot be changed after the repayment date",
     NotBorrower: "Only the borrower can change the minimum deposit",
@@ -133,6 +134,7 @@ export const SDK_ERRORS_MAPPING: SDKErrorsMapping = {
       "Minimum deposit is too large for this periodic market.",
   },
   setMaturity: {
+    MarketClosed: "The market is closed to maturity changes",
     MarketInRepayment: "Maturity cannot be changed after the repayment date",
     NotBorrower: "Only the borrower can change maturity",
     NotV2Market: "This market does not support maturity changes",

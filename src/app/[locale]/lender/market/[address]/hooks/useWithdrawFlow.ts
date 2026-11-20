@@ -17,13 +17,16 @@ import {
   wildcatMarketAbi,
   wildcatMarketV2Abi,
 } from "@wildcatfi/wildcat-sdk"
+import { useTranslation } from "react-i18next"
 import { decodeEventLog, Hex } from "viem"
 import { useAccount } from "wagmi"
 
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
+import { describeLenderError } from "@/utils/contractErrors"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
+import { acceptsKycForWithdrawal } from "@/utils/marketCapabilities"
 import { invalidateMarketStateQueries } from "@/utils/marketStateQueries"
 import {
   assertTransactionSucceeded,
@@ -221,16 +224,22 @@ export const useWithdrawFlow = ({
    * can close, a credential can lapse. Re-check before spending a signature,
    * so we do not strand a lender holding unwrapped market tokens.
    */
+  const { t } = useTranslation()
   const assertCanQueue = useCallback(async () => {
     await marketAccount.market.update()
+    if (acceptsKycForWithdrawal(marketAccount.market))
+      await marketAccount.update()
     const availability = marketAccount.withdrawalAvailability
     if (availability !== QueueWithdrawalStatus.Ready) {
       throw new Error(
-        SDK_ERRORS_MAPPING.queueWithdrawal[availability] ??
-          "Withdrawals are not available for this market right now",
+        availability === QueueWithdrawalStatus.RequiresAccess &&
+        acceptsKycForWithdrawal(marketAccount.market)
+          ? t("marketDetails.lender.kyc.lenderHint")
+          : SDK_ERRORS_MAPPING.queueWithdrawal[availability] ??
+            "Withdrawals are not available for this market right now",
       )
     }
-  }, [marketAccount])
+  }, [marketAccount, t])
 
   const bindWrapperSigner = useCallback(() => {
     if (wrapper && signer && Signer.isSigner(signer)) {
@@ -524,15 +533,28 @@ export const useWithdrawFlow = ({
         setCurrentLeg((prev) => prev + 1)
         invalidate()
       } catch (e) {
-        const err = e as Error & { reason?: string }
-        console.log(err)
         setFailed(true)
-        setError(err.reason || err.message || "Transaction failed")
+        setError(
+          describeLenderError(
+            e,
+            acceptsKycForWithdrawal(marketAccount.market),
+            t("marketDetails.lender.kyc.lenderHint"),
+          ),
+        )
       } finally {
         setBusy(false)
       }
     },
-    [assertReady, assertCanQueue, runUnwrap, runBatched, runQueue, invalidate],
+    [
+      assertReady,
+      assertCanQueue,
+      runUnwrap,
+      runBatched,
+      runQueue,
+      invalidate,
+      marketAccount,
+      t,
+    ],
   )
 
   const signCurrent = useCallback(() => {

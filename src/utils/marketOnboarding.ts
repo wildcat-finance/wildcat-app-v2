@@ -13,6 +13,7 @@ export type MarketOnboardingByAddress = Record<string, MarketOnboardingMode>
 
 export enum LenderMarketAction {
   Deposit = "deposit",
+  ViewAccess = "view-access",
   RequestAccess = "request-access",
   DepositUnavailable = "deposit-unavailable",
   Unavailable = "unavailable",
@@ -86,13 +87,22 @@ export const getLenderOnboardingType = (
  * Resolve the lender-specific action separately from the market's stable
  * onboarding policy.
  */
+export const MARKET_ACCESS_SECTION = "access-requirements"
+
 export const getLenderMarketAction = (
   onboardingMode: MarketOnboardingMode | undefined,
   depositStatus: DepositStatus,
+  acceptsKyc = false,
+  canRequestFromBorrower = false,
 ): LenderMarketAction => {
   if (depositStatus === DepositStatus.Ready) {
     return LenderMarketAction.Deposit
   }
+
+  if (acceptsKyc && depositStatus === DepositStatus.RequiresAccess)
+    return canRequestFromBorrower
+      ? LenderMarketAction.RequestAccess
+      : LenderMarketAction.ViewAccess
 
   if (
     onboardingMode === MarketOnboardingMode.Managed &&

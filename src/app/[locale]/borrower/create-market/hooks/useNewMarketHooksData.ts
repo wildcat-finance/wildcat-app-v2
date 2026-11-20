@@ -11,7 +11,7 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
-import { hasActiveLenderOnboardingRoleProvider } from "@/utils/marketCapabilities"
+import { getPolicyAccessControl } from "@/utils/marketCapabilities"
 
 import { NewMarketFormType } from "./useNewMarketForm"
 import { useGetBorrowerHooksData } from "../../hooks/useGetBorrowerHooksData"
@@ -127,9 +127,7 @@ export function useNewMarketHooksData(
           )
           setValue(
             "accessControl",
-            hasActiveLenderOnboardingRoleProvider(hooksInstance.roleProviders)
-              ? "defaultPullProvider"
-              : "manualApproval",
+            getPolicyAccessControl(hooksInstance.roleProviders),
           )
           setValue("policyName", hooksInstance.name)
         } else if (!preserveUnavailablePolicy) {

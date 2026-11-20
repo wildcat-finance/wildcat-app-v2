@@ -1,5 +1,37 @@
 {
   "admin": {
+    "kyc": {
+      "adminTitle": "KYC list administration",
+      "providerAddress": "KYC provider {{address}}",
+      "wallet": "Wallet address",
+      "lookupError": "Could not check this wallet’s enrollment.",
+      "enrolledSince": "Enrolled since {{date}}.",
+      "unlisted": "This wallet is not enrolled.",
+      "addWallet": "Enroll wallet",
+      "removeWallet": "Remove wallet",
+      "members": "Enrolled wallets",
+      "indexDelay": "This list follows the subgraph. The wallet lookup above reads directly from the contract.",
+      "listError": "Could not load the indexed list. You can still check a wallet by address.",
+      "loadingMembers": "Loading enrolled wallets…",
+      "empty": "No enrolled wallets indexed yet.",
+      "unsupported": "Shared KYC is unavailable on the selected network.",
+      "bulk": {
+        "title": "Batch update",
+        "help": "Paste up to {{max}} wallet addresses separated by commas, spaces or new lines. Each batch is one transaction: if the contract rejects one wallet, none are changed.",
+        "wallets": "Wallet addresses",
+        "placeholder": "0x…, 0x…",
+        "invalid": "Invalid entries ({{count}}): {{entries}}. Each entry must be a nonzero wallet address.",
+        "tooMany": "A batch can hold at most {{max}} wallets. This list has {{count}}.",
+        "lookupError": "Could not check these wallets’ enrollment.",
+        "summary": "Wallets checked: {{total}}. Not enrolled: {{absent}}. Enrolled: {{enrolled}}.",
+        "duplicates": "Repeated entries ignored: {{count}}.",
+        "add": "Enroll wallets ({{count}})",
+        "remove": "Remove wallets ({{count}})",
+        "alreadyEnrolled": "Batch rejected: at least one of these wallets is already enrolled, so none were added. Check the updated counts above before trying again.",
+        "notEnrolled": "Batch rejected: at least one of these wallets is not enrolled, so none were removed. Check the updated counts above before trying again.",
+        "zeroAddress": "Batch rejected: it contains the zero address, so no wallets were changed."
+      }
+    },
     "borrowers": {
       "pendingRegistration": "Pending Registration",
       "register": "Register",
@@ -122,6 +154,31 @@
     "walletRequired": "Connect your wallet to continue."
   },
   "borrower": {
+    "kyc": {
+      "policyAddress": "Policy {{address}}",
+      "providers": "Role providers",
+      "policyScope": "Changes apply to every market using this policy. Each attached provider offers a separate way to qualify. Markets created with open deposits do not check credentials.",
+      "provider": "Role provider address",
+      "current": "Attached providers",
+      "attachmentError": "Could not verify the attachment or read isPullProvider() from this contract. Check the address and try again.",
+      "attached": "Attached. Credential lifetime: {{lifetime}}.",
+      "detached": "This provider is not attached.",
+      "ttl": "Credential lifetime (seconds)",
+      "ttlHelp": "Zero makes a pull provider check eligibility on each use. A longer lifetime can keep an approval valid after a wallet leaves the list.",
+      "invalidTtl": "Enter a whole number from 0 to 4,294,967,295.",
+      "updateTtl": "Update lifetime",
+      "attach": "Attach provider",
+      "detach": "Remove provider",
+      "selectProvider": "Choose a provider",
+      "custom": "Custom contract address",
+      "customHelp": "An attached contract can grant lender access across this policy. Only attach a contract you trust.",
+      "noneIndexed": "No attached providers indexed yet.",
+      "noCode": "No contract is deployed at this address on the selected network.",
+      "ttlPlaceholder": "Enter seconds",
+      "pushNotice": "This push provider can grant lender credentials across the policy. With a lifetime of zero, a grant is valid only at its grant timestamp.",
+      "confirmRemove": "Remove {{provider}} from policy {{policy}}? Every market using this policy will stop accepting credentials from this provider on the next access check. Other attached providers can still grant access.",
+      "pullNotice": "This is a pull provider. The policy can ask it for a wallet’s credential when access is checked."
+    },
     "createMarket": {
       "basic": {
         "asset": {
@@ -421,7 +478,8 @@
         },
         "noActive": "No Active Lenders",
         "notEditableNotice": "This policy's lender provider cannot be edited here.",
-        "selfOnboardNotice": "Lenders onboard themselves to this policy, so there is no allowlist to edit."
+        "selfOnboardNotice": "Lenders onboard themselves to this policy, so there is no allowlist to edit.",
+        "kycNotice": "The shared KYC list administrator manages enrollment. You can review this policy’s attached providers in Role providers."
       },
       "lendersEdits": "Lenders Edits",
       "lendersWereEdited": "Lenders were edited!",
@@ -571,6 +629,21 @@
     }
   },
   "common": {
+    "kyc": {
+      "connect": "Connect the administrator wallet to make changes.",
+      "network": "Switch your wallet to the selected network to make changes.",
+      "authorityError": "Could not read the administrator from the contract.",
+      "checkingAuthority": "Checking the administrator…",
+      "adminOnly": "Only {{address}} can make changes here.",
+      "pending": "Waiting for the transaction to execute…",
+      "confirmed": "Transaction confirmed.",
+      "invalidAddress": "Enter a valid, nonzero wallet or contract address.",
+      "checking": "Reading from the contract…",
+      "checkedOnUse": "Checked on use",
+      "openAccess": "Open access",
+      "allowlist": "Access list",
+      "addressPlaceholder": "0x…"
+    },
     "buttons": {
       "add": "Add",
       "addName": "Add Name",
@@ -1001,6 +1074,13 @@
       }
     },
     "lender": {
+      "kyc": {
+        "lenderTitle": "Wallet approval required",
+        "lenderHint": "This market accepts shared KYC. Contact the KYC list administrator to enroll this wallet, or use a wallet with a valid credential.",
+        "viewAccess": "View access requirements",
+        "accessDetails": "View access",
+        "mixedHint": "This market accepts shared KYC. You can also request access through the borrower’s allowlist."
+      },
       "access": {
         "blocked": {
           "subtitle": "The market's onchain access check reports this wallet as blocked. Claimable withdrawals remain available below.",
@@ -1308,6 +1388,7 @@
         "deployButton": "Deploy Wrapper",
         "deployment": {
           "checking": "Checking wrapper availability...",
+          "protectionNotApproved": "The hooks factory must approve this wrapper factory for nuke protection before a wrapper can be deployed.",
           "factoryUnavailable": "Wrappers are not available on this chain yet.",
           "unsupportedFactory": "Wrapper deployment is not available for this market.",
           "verificationFailed": "Unable to verify wrapper availability."
@@ -1754,6 +1835,7 @@
     },
     "portionGracePeriodLeftBorrowers": "The portion of the grace period left for borrowers to fix non-compliance issues, such as restoring reserves.",
     "roleProviders": {
+      "sharedKyc": "Shared KYC list",
       "defaultPullProvider": "Lender Self-Onboarding",
       "manualApproval": "Borrower Operated Allowlist"
     },
@@ -1805,7 +1887,8 @@
     "wrapperStatus": {
       "active": "Active",
       "inactive": "Inactive"
-    }
+    },
+    "attachedProvider": "Attached role provider"
   },
   "modals": {
     "shared": {

@@ -7,9 +7,13 @@ import { useTranslation } from "react-i18next"
 
 import AuthWrapper from "@/components/AuthWrapper"
 
-import { AdminSectionSwitcher } from "./components/AdminSectionSwitcher"
+import {
+  AdminSectionSwitcher,
+  type AdminSection,
+} from "./components/AdminSectionSwitcher"
 import { BorrowerInvitesTable } from "./components/BorrowerInvitesTable"
 import { BorrowersTable } from "./components/BorrowersTable"
+import { KycAdminSection } from "./components/KycAdminSection"
 
 const AdminPageContainer = {
   height: "calc(100vh - 43px - 43px - 52px)",
@@ -21,7 +25,8 @@ const AdminPageContainer = {
 const AdminPage = () => {
   const { t } = useTranslation()
 
-  const [activeSection, setActiveSection] = useState("invitations")
+  const [activeSection, setActiveSection] =
+    useState<AdminSection>("invitations")
 
   return (
     <AuthWrapper requiresAdmin title={t("admin.title")}>
@@ -32,6 +37,7 @@ const AdminPage = () => {
         />
         {activeSection === "invitations" && <BorrowerInvitesTable />}
         {activeSection === "borrowers" && <BorrowersTable />}
+        {activeSection === "kyc" && <KycAdminSection />}
       </Box>
     </AuthWrapper>
   )

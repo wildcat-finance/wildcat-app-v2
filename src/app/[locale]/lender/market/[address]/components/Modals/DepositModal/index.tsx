@@ -43,8 +43,10 @@ import {
   hasManuallyDisabledMarketActions,
   isUSDTLikeToken,
 } from "@/utils/constants"
+import { describeLenderError } from "@/utils/contractErrors"
 import { SDK_ERRORS_MAPPING } from "@/utils/errors"
 import { formatTokenWithCommas, formatUtcMaturity } from "@/utils/formatters"
+import { acceptsKycForDeposit } from "@/utils/marketCapabilities"
 import { getStepProgress } from "@/utils/stepProgress"
 
 import { EarningsProjection } from "./EarningsProjection"
@@ -190,6 +192,7 @@ export const DepositModal = ({
     isPending: isDepositing,
     isSuccess: isDeposed,
     isError: isDepositError,
+    error: depositFailure,
     reset: resetDeposit,
   } = useDeposit(marketAccount, setTxHash)
 
@@ -443,6 +446,13 @@ export const DepositModal = ({
       ? market.hooksConfig.allowTermReduction
       : false
 
+  const transactionErrorMessage = depositFailure
+    ? describeLenderError(
+        depositFailure,
+        acceptsKycForDeposit(market),
+        t("marketDetails.lender.kyc.lenderHint"),
+      )
+    : undefined
   const showForm = !(isDepositing || showSuccessPopup || showErrorPopup)
 
   /**
@@ -524,8 +534,14 @@ export const DepositModal = ({
       return
     }
 
-    setDepositError(SDK_ERRORS_MAPPING.deposit[depositStep])
+    setDepositError(
+      depositStep === "RequiresAccess" && acceptsKycForDeposit(market)
+        ? t("marketDetails.lender.kyc.lenderHint")
+        : SDK_ERRORS_MAPPING.deposit[depositStep],
+    )
   }, [
+    market,
+    t,
     depositStep,
     amount,
     isAllowanceSufficient,
@@ -1020,6 +1036,7 @@ export const DepositModal = ({
           {txView === "error" && (
             <TxStatusPanel
               status="error"
+              subtitle={transactionErrorMessage}
               onAction={handleTryAgain}
               onClose={() => {
                 setShowErrorPopup(false)
@@ -1549,6 +1566,7 @@ export const DepositModal = ({
               {txView === "error" && (
                 <TxStatusPanel
                   status="error"
+                  subtitle={transactionErrorMessage}
                   onAction={handleTryAgain}
                   onClose={() => {
                     setShowErrorPopup(false)

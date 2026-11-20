@@ -1,7 +1,12 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import { configureStore } from "@reduxjs/toolkit"
 import { act, fireEvent, render, screen } from "@testing-library/react"
-import { LenderRole, Market, MarketAccount } from "@wildcatfi/wildcat-sdk"
+import {
+  DepositStatus,
+  LenderRole,
+  Market,
+  MarketAccount,
+} from "@wildcatfi/wildcat-sdk"
 import { Provider } from "react-redux"
 
 import lenderMarketRouting, {
@@ -405,6 +410,104 @@ describe("lender market progressive loading", () => {
     expect(screen.getByTestId("market-header")).not.toBeNull()
     expect(store.getState().lenderMarketRouting.isLoading).toBe(false)
   })
+
+  it("shows KYC market parameters while the wallet is disconnected", () => {
+    mockUseAccount.mockReturnValue({
+      ...walletResult,
+      address: undefined,
+      isConnected: false,
+    })
+    mockUseGetMarket.mockReturnValue({
+      ...marketResult,
+      data: {
+        ...market,
+        roleProviders: [
+          { kind: "kyc", isApproved: true, pullProviderIndex: 0 },
+        ],
+      },
+    })
+    mockUseLenderMarketAccount.mockReturnValue({
+      ...accountResult,
+      data: undefined,
+      authoritativeAccount: undefined,
+      authoritativeStatus: "idle",
+    })
+    mountPage()
+    expect(screen.getByTestId("market-parameters")).toBeTruthy()
+  })
+
+  it("keeps the access link on public parameters after a wallet qualifies", () => {
+    const path = window.location.pathname + window.location.search
+    window.history.replaceState(null, "", `${path}#access-requirements`)
+    try {
+      const qualified = account(LenderRole.DepositAndWithdraw)
+      mockUseLenderMarketAccount.mockReturnValue({
+        ...accountResult,
+        data: qualified,
+        authoritativeAccount: qualified,
+      })
+      const { store } = mountPage()
+      expect(store.getState().lenderMarketRouting.currentSection).toBe(
+        LenderMarketSections.STATUS,
+      )
+      expect(screen.getByTestId("market-parameters")).toBeTruthy()
+    } finally {
+      window.history.replaceState(null, "", path)
+    }
+  })
+
+  it.each([false, true])(
+    "keeps the borrower request button only with a borrower-managed access path (%s)",
+    (mixed) => {
+      const roleProviders = [
+        {
+          kind: "kyc",
+          isApproved: true,
+          pullProviderIndex: 0,
+          providerAddress: "0x1111111111111111111111111111111111111111",
+        },
+        ...(mixed
+          ? [
+              {
+                kind: "access-list",
+                isApproved: true,
+                pullProviderIndex: 1,
+                providerAddress: "0x4444444444444444444444444444444444444444",
+                administrator: market.borrower,
+              },
+            ]
+          : []),
+      ]
+      const gatedMarket = {
+        ...market,
+        roleProviders,
+        hooksConfig: {
+          flags: { useOnDeposit: true },
+          depositRequiresAccess: true,
+        },
+      }
+      const denied = {
+        ...account(),
+        market: gatedMarket,
+        depositAvailability: DepositStatus.RequiresAccess,
+      }
+      mockUseGetMarket.mockReturnValue({ ...marketResult, data: gatedMarket })
+      mockUseLenderMarketAccount.mockReturnValue({
+        ...accountResult,
+        data: denied,
+        authoritativeAccount: denied,
+      })
+      mountPage()
+      expect(
+        screen.getByText("marketDetails.lender.kyc.lenderTitle"),
+      ).toBeTruthy()
+      expect(
+        !!screen.queryByRole("button", {
+          name: "marketDetails.lender.leaveRequest",
+        }),
+      ).toBe(mixed)
+    },
+  )
 
   it("reveals public content during wallet hydration and connect before anonymous reads finish", () => {
     mockWalletHydrated = false

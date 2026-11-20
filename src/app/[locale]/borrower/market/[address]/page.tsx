@@ -42,6 +42,8 @@ import {
 import { COLORS } from "@/theme/colors"
 import {
   BORROW_REPAY_SECTION,
+  LENDERS_SECTION,
+  MLA_SECTION,
   borrowerMarketFallbackSection,
   showBorrowRepayTab,
   STATUS_DETAILS_SECTION,
@@ -287,7 +289,7 @@ export default function MarketDetails({
   if (
     !isLoadingMarketMla &&
     marketMla === null &&
-    currentSection !== 6 &&
+    currentSection !== MLA_SECTION &&
     market?.version === MarketVersion.V2 &&
     canBorrowAndRepay
   )
@@ -300,7 +302,7 @@ export default function MarketDetails({
               "marketDetails.borrower.mlaSelectionWasNotSuccessfully",
             )}
             buttonText={t("marketDetails.borrower.goMlaSettings")}
-            buttonOnClick={() => dispatch(setCheckBlock(5))}
+            buttonOnClick={() => dispatch(setCheckBlock(MLA_SECTION))}
           />
         </Box>
       </Box>
@@ -435,7 +437,7 @@ export default function MarketDetails({
           {/*    <MarketAuthorisedLenders market={market} /> */}
           {/*  </Box> */}
           {/* </Slide> */}
-          {currentSection === 5 && (
+          {currentSection === LENDERS_SECTION && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketAuthorisedLenders
                 market={market}
@@ -444,12 +446,12 @@ export default function MarketDetails({
             </Box>
           )}
 
-          {currentSection === 6 && canInteract && marketAccount && (
+          {currentSection === MLA_SECTION && canInteract && marketAccount && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <MarketMLA marketAccount={marketAccount} />
             </Box>
           )}
-          {currentSection === 6 && canInteract && !marketAccount && (
+          {currentSection === MLA_SECTION && canInteract && !marketAccount && (
             <Box sx={SlideContentContainer} marginTop="12px">
               <AccountRowsSkeleton />
             </Box>

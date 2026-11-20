@@ -1,11 +1,9 @@
-import React from "react"
-
-import { Box, Button, Typography } from "@mui/material"
+import { Box, Button } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
-import { useAppDispatch, useAppSelector } from "@/store/hooks"
-import { setMarketSection } from "@/store/slices/borrowerDashboardSlice/borrowerDashboardSlice"
 import { COLORS } from "@/theme/colors"
+
+export type AdminSection = "invitations" | "borrowers" | "kyc"
 
 const SwitcherButton = ({
   label,
@@ -14,12 +12,13 @@ const SwitcherButton = ({
   onSetSection,
 }: {
   label: string
-  section: string
-  activeSection: string
-  onSetSection: (section: string) => void
+  section: AdminSection
+  activeSection: AdminSection
+  onSetSection: (section: AdminSection) => void
 }) => (
   <Button
     variant="text"
+    aria-pressed={activeSection === section}
     onClick={() => onSetSection(section)}
     sx={{
       gap: "6px",
@@ -37,13 +36,20 @@ export const AdminSectionSwitcher = ({
   activeSection,
   setActiveSection,
 }: {
-  activeSection: string
-  setActiveSection: (section: string) => void
+  activeSection: AdminSection
+  setActiveSection: (section: AdminSection) => void
 }) => {
   const { t } = useTranslation()
 
   return (
-    <Box sx={{ width: "fit-content", display: "flex", gap: "12px" }}>
+    <Box
+      sx={{
+        width: "fit-content",
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "12px",
+      }}
+    >
       <SwitcherButton
         label={t("admin.invites.pendingTitle")}
         section="invitations"
@@ -54,6 +60,12 @@ export const AdminSectionSwitcher = ({
       <SwitcherButton
         label={t("admin.borrowers.registeredTitle")}
         section="borrowers"
+        activeSection={activeSection}
+        onSetSection={setActiveSection}
+      />
+      <SwitcherButton
+        label={t("admin.kyc.adminTitle")}
+        section="kyc"
         activeSection={activeSection}
         onSetSection={setActiveSection}
       />

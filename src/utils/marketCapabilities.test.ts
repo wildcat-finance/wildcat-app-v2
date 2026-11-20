@@ -1,16 +1,22 @@
 import {
   getDeploymentAddress,
   HooksKind,
+  type RoleProvider,
   MarketOnboardingMode,
   SupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
 
 import {
+  acceptsKycForDeposit,
+  acceptsKycForWithdrawal,
+  getPolicyAccessControl,
   getEffectiveMarketAccess,
   getFixedTermHooksConfig,
   getMarketPolicyAddress,
   hasActiveLenderOnboardingRoleProvider,
   hasActivePullRoleProvider,
+  hasBorrowerAccessPath,
+  isCheckedOnUseCredential,
   isFixedTermMarket,
   isHooksManagedMarket,
   isSelfOnboardMarketAccount,
@@ -298,4 +304,99 @@ describe("marketCapabilities", () => {
       getEffectiveMarketAccess({ chainId: SupportedChainId.Sepolia }),
     ).toEqual({ depositAccess: "restricted", withdrawalAccess: "restricted" })
   })
+})
+
+it("applies KYC guidance only to gated actions with an active KYC provider", () => {
+  const kyc = { kind: "kyc" as const, isApproved: true, pullProviderIndex: 0 }
+  const market = {
+    roleProviders: [kyc],
+    hooksConfig: {
+      kind: HooksKind.FixedTerm,
+      flags: { useOnDeposit: true, useOnQueueWithdrawal: true },
+      depositRequiresAccess: true,
+      queueWithdrawalRequiresAccess: false,
+    },
+  }
+  expect(acceptsKycForDeposit(market)).toBe(true)
+  expect(acceptsKycForWithdrawal(market)).toBe(false)
+  expect(
+    acceptsKycForWithdrawal({
+      ...market,
+      hooksConfig: {
+        ...market.hooksConfig,
+        queueWithdrawalRequiresAccess: true,
+      },
+    }),
+  ).toBe(true)
+  expect(
+    acceptsKycForDeposit({
+      ...market,
+      hooksConfig: { ...market.hooksConfig, depositRequiresAccess: false },
+    }),
+  ).toBe(false)
+  expect(
+    acceptsKycForDeposit({
+      ...market,
+      roleProviders: [{ ...kyc, isApproved: false }],
+    }),
+  ).toBe(false)
+  expect(getPolicyAccessControl([kyc])).toBe("sharedKyc")
+  expect(
+    getPolicyAccessControl([kyc, { isApproved: true, pullProviderIndex: 1 }]),
+  ).toBe("defaultPullProvider")
+})
+
+const borrower = "0x1111111111111111111111111111111111111111"
+const accessList = {
+  providerAddress: "0x2222222222222222222222222222222222222222",
+  administrator: borrower,
+  kind: "access-list",
+  timeToLive: 0,
+  isApproved: true,
+  isPullProvider: true,
+  isPushProvider: false,
+  pullProviderIndex: 0,
+  pushProviderIndex: -1,
+} satisfies RoleProvider
+
+it("uses an attached borrower-managed allowlist even when the live lens omits its kind", () => {
+  const market = {
+    borrower,
+    roleProviders: [{ ...accessList, kind: "unknown" as const }],
+  }
+  expect(hasBorrowerAccessPath(market, [accessList])).toBe(true)
+  expect(
+    hasBorrowerAccessPath({ ...market, roleProviders: [] }, [accessList]),
+  ).toBe(false)
+  expect(
+    hasBorrowerAccessPath({
+      borrower,
+      roleProviders: [
+        { ...accessList, administrator: accessList.providerAddress },
+      ],
+    }),
+  ).toBe(false)
+  expect(
+    hasBorrowerAccessPath({
+      borrower,
+      roleProviders: [{ ...accessList, kind: "kyc" }],
+    }),
+  ).toBe(false)
+})
+it("only describes attached zero-lifetime pull credentials as checked on use", () => {
+  const check = (overrides: Partial<RoleProvider>) =>
+    isCheckedOnUseCredential({
+      lastApprovalTimestamp: 1,
+      isBlockedFromDeposits: false,
+      canRefresh: true,
+      lastProvider: { ...accessList, ...overrides },
+    })
+  expect(check({})).toBe(true)
+  expect(check({ timeToLive: 60 })).toBe(false)
+  expect(check({ isApproved: false })).toBe(false)
+  expect(check({ pullProviderIndex: 0xffffff })).toBe(false)
+  expect(check({ pullProviderIndex: -1 })).toBe(false)
+  expect(
+    check({ providerAddress: "0x0000000000000000000000000000000000000000" }),
+  ).toBe(false)
 })

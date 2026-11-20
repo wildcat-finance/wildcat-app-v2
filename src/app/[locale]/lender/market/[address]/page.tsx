@@ -4,6 +4,7 @@ import * as React from "react"
 import { useEffect, useState } from "react"
 
 import { Box, Divider, Skeleton, Typography, useTheme } from "@mui/material"
+import { DepositStatus } from "@wildcatfi/wildcat-sdk"
 import dynamic from "next/dynamic"
 import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
@@ -65,6 +66,7 @@ import {
   setIsLender,
   setIsLoading,
   setDefaultSection,
+  setSection,
   resetPageState,
   setWithdrawalsCount,
 } from "@/store/slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
@@ -78,6 +80,12 @@ import {
   buildBorrowerProfileHref,
   formatTokenWithCommas,
 } from "@/utils/formatters"
+import {
+  acceptsKycForDeposit,
+  hasBorrowerAccessPath,
+  hasActiveKycProvider,
+} from "@/utils/marketCapabilities"
+import { MARKET_ACCESS_SECTION } from "@/utils/marketOnboarding"
 
 import { CapacityBarChart } from "./components/BarCharts/CapacityBarChart"
 import { LenderAnalyticsSummary } from "./components/LenderAnalyticsSummary"
@@ -381,6 +389,30 @@ export default function LenderMarketDetails({
   const showLenderAccessError = lenderBannerState === "authorization-error"
   const showLenderBlocked = lenderBannerState === "blocked"
   const showLenderRequestBanner = lenderBannerState === "request-access"
+  const kycAccessDenied =
+    authoritativeAccount?.depositAvailability ===
+      DepositStatus.RequiresAccess &&
+    acceptsKycForDeposit(authoritativeAccount.market)
+  const canRequestKycAccess =
+    kycAccessDenied &&
+    hasBorrowerAccessPath(authoritativeAccount.market, market?.roleProviders)
+  const requestBannerCopy = kycAccessDenied
+    ? {
+        title: t("marketDetails.lender.kyc.lenderTitle"),
+        subtitle: canRequestKycAccess
+          ? t("marketDetails.lender.kyc.mixedHint")
+          : t("marketDetails.lender.kyc.lenderHint"),
+        buttonText: canRequestKycAccess
+          ? t("marketDetails.lender.leaveRequest")
+          : undefined,
+      }
+    : {
+        title: t("marketDetails.lender.lendThroughWildcat"),
+        subtitle: t(
+          "marketDetails.lender.interestedLendingThroughWildcatConnect",
+        ),
+        buttonText: t("marketDetails.lender.leaveRequest"),
+      }
   const isLenderAccessResolving =
     isConnected &&
     !isDifferentChain &&
@@ -431,11 +463,19 @@ export default function LenderMarketDetails({
     dispatch(setIsLoading(isLoading))
   }, [dispatch, isLoading])
 
+  const hasSharedKyc = hasActiveKycProvider(market?.roleProviders)
+  useEffect(() => {
+    if (window.location.hash === `#${MARKET_ACCESS_SECTION}`)
+      dispatch(setSection(LenderMarketSections.STATUS))
+  }, [address, dispatch])
+
   useEffect(() => {
     if (!isWalletHydrated || isConnecting || isReconnecting) return
 
     if (!isConnected || isDifferentChain) {
       dispatch(setIsLender(false))
+      if (!isConnected && hasSharedKyc)
+        dispatch(setDefaultSection(LenderMarketSections.STATUS))
       return
     }
 
@@ -450,6 +490,7 @@ export default function LenderMarketDetails({
     dispatch(setDefaultSection(lenderLandingSection))
   }, [
     dispatch,
+    hasSharedKyc,
     isAccountLoading,
     isConnected,
     isConnecting,
@@ -911,11 +952,7 @@ export default function LenderMarketDetails({
 
           {showLenderRequestBanner && (
             <MobileLenderBanner
-              title={t("marketDetails.lender.lendThroughWildcat")}
-              subtitle={t(
-                "marketDetails.lender.interestedLendingThroughWildcatConnect",
-              )}
-              buttonText={t("marketDetails.lender.leaveRequest")}
+              {...requestBannerCopy}
               href={buildBorrowerProfileHref(market.borrower, market.chainId)}
             />
           )}
@@ -1037,11 +1074,7 @@ export default function LenderMarketDetails({
         {showLenderRequestBanner && !isDesktopAccountLoading && (
           <Box sx={LenderBannerWrapper}>
             <LeadBanner
-              title={t("marketDetails.lender.lendThroughWildcat")}
-              subtitle={t(
-                "marketDetails.lender.interestedLendingThroughWildcatConnect",
-              )}
-              buttonText={t("marketDetails.lender.leaveRequest")}
+              {...requestBannerCopy}
               buttonLink={{
                 isExternal: false,
                 url: buildBorrowerProfileHref(market.borrower, market.chainId),

@@ -1,11 +1,15 @@
 import {
   FixedTermHooksConfig,
   getDeploymentAddress,
+  hasDeploymentAddress,
   HooksKind,
   MarketOnboardingMode,
+  type HooksCredential,
+  type Market,
   type RoleProvider,
   type SupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
+import { zeroAddress } from "viem"
 
 type MarketHooksConfigLike = {
   kind?: HooksKind
@@ -52,6 +56,38 @@ const isActivePullRoleProvider = ({
   pullProviderIndex >= 0 &&
   pullProviderIndex !== NULL_PROVIDER_INDEX
 
+export const isCheckedOnUseCredential = (credential?: HooksCredential) => {
+  const provider = credential?.lastProvider
+  return (
+    !!provider &&
+    provider.timeToLive === 0 &&
+    isActivePullRoleProvider(provider) &&
+    provider.providerAddress !== zeroAddress
+  )
+}
+
+export const getProviderLabelKey = (
+  chainId: SupportedChainId,
+  address: string,
+  kind?: RoleProvider["kind"],
+) => {
+  if (
+    kind === "kyc" ||
+    (hasDeploymentAddress(chainId, "KYCRoleProvider") &&
+      getDeploymentAddress(chainId, "KYCRoleProvider").toLowerCase() ===
+        address.toLowerCase())
+  )
+    return "marketParameters.roleProviders.sharedKyc"
+  if (
+    hasDeploymentAddress(chainId, "OpenAccessRoleProvider") &&
+    getDeploymentAddress(chainId, "OpenAccessRoleProvider").toLowerCase() ===
+      address.toLowerCase()
+  )
+    return "common.kyc.openAccess"
+  if (kind === "access-list") return "common.kyc.allowlist"
+  return undefined
+}
+
 export const hasActivePullRoleProvider = (
   roleProviders: readonly PullRoleProviderLike[],
 ): boolean => roleProviders.some(isActivePullRoleProvider)
@@ -61,13 +97,72 @@ export const hasActiveLenderOnboardingRoleProvider = (
 ): boolean =>
   roleProviders.some(
     (provider) =>
-      // Access-list, Merkle, and explicitly managed providers can pull a
+      // Managed lists and Merkle providers can pull a
       // credential, but the lender cannot establish eligibility alone.
       isActivePullRoleProvider(provider) &&
       provider.isManaged !== true &&
       provider.kind !== "access-list" &&
+      provider.kind !== "kyc" &&
       provider.kind !== "merkle",
   )
+
+export const hasActiveKycProvider = (
+  providers: readonly PullRoleProviderLike[] = [],
+) =>
+  providers.some(
+    (provider) => provider.kind === "kyc" && isActivePullRoleProvider(provider),
+  )
+
+// A live lens identifies attachments and their administrators, but only the index knows
+// the kind of a borrower AccessList. Join metadata by address so a detached list cannot qualify.
+export const hasBorrowerAccessPath = (
+  market: Pick<Market, "borrower" | "roleProviders">,
+  indexedProviders?: readonly RoleProvider[],
+) =>
+  market.roleProviders?.some((provider) => {
+    if (!provider.isApproved) return false
+    const address = provider.providerAddress.toLowerCase()
+    const borrower = market.borrower.toLowerCase()
+    if (provider.isPushProvider && address === borrower) return true
+    const indexed = indexedProviders?.find(
+      (item) => item.providerAddress.toLowerCase() === address,
+    )
+    const kind =
+      !provider.kind || provider.kind === "unknown"
+        ? indexed?.kind
+        : provider.kind
+    const administrator = provider.administrator ?? indexed?.administrator
+    return kind === "access-list" && administrator?.toLowerCase() === borrower
+  }) ?? false
+
+export const getPolicyAccessControl = (
+  providers: readonly PullRoleProviderLike[],
+) => {
+  if (hasActiveLenderOnboardingRoleProvider(providers))
+    return "defaultPullProvider"
+  return hasActiveKycProvider(providers) ? "sharedKyc" : "manualApproval"
+}
+
+export const getPolicyLenderNoticeKey = (
+  providers: readonly PullRoleProviderLike[] = [],
+) => {
+  if (hasActiveKycProvider(providers))
+    return "borrower.policies.lenders.kycNotice"
+  if (hasActiveLenderOnboardingRoleProvider(providers))
+    return "borrower.policies.lenders.selfOnboardNotice"
+  return "borrower.policies.lenders.notEditableNotice"
+}
+
+export const acceptsKycForDeposit = (market?: MarketLike) =>
+  !!market?.hooksConfig?.flags?.useOnDeposit &&
+  !!market.hooksConfig.depositRequiresAccess &&
+  hasActiveKycProvider(market.roleProviders)
+
+export const acceptsKycForWithdrawal = (market: MarketLike) =>
+  !!market.hooksConfig?.flags?.useOnQueueWithdrawal &&
+  (market.hooksConfig.kind === HooksKind.OpenTerm ||
+    !!market.hooksConfig.queueWithdrawalRequiresAccess) &&
+  hasActiveKycProvider(market.roleProviders)
 
 export const isHooksManagedMarket = (market: MarketLike): boolean =>
   market.hooksConfig?.hooksAddress !== undefined

@@ -4,7 +4,7 @@ import * as React from "react"
 import { useEffect, useState } from "react"
 
 import { Box, Tab, Tabs, Typography } from "@mui/material"
-import { HooksKind } from "@wildcatfi/wildcat-sdk"
+import { hasDeploymentAddress, HooksKind } from "@wildcatfi/wildcat-sdk"
 import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
@@ -16,7 +16,11 @@ import { LendersTab } from "@/app/[locale]/borrower/policy/components/LendersTab
 import { EditLenderFlowStatuses } from "@/app/[locale]/borrower/policy/components/LendersTab/interface"
 import { MarketsTab } from "@/app/[locale]/borrower/policy/components/MarketsTab"
 import { PolicySelect } from "@/app/[locale]/borrower/policy/components/PolicySelect"
-import { POLICY_TYPE_KEY } from "@/constants/i18nKeys"
+import { MarketRoleProviders } from "@/components/RoleProviders/MarketRoleProviders"
+import {
+  POLICY_TYPE_KEY,
+  POLICY_ACCESS_CONTROL_KEY,
+} from "@/constants/i18nKeys"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { CreateMarketSteps } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import {
@@ -27,11 +31,9 @@ import {
 import { COLORS } from "@/theme/colors"
 import { lh, pxToRem } from "@/theme/units"
 import { pageCalcHeights } from "@/utils/constants"
-import { hasActiveLenderOnboardingRoleProvider } from "@/utils/marketCapabilities"
+import { getPolicyAccessControl } from "@/utils/marketCapabilities"
 import { mergePolicyLenderAccess } from "@/utils/policyLenderAccess"
 import { shouldSyncPolicyLenderDraft } from "@/utils/policyLenderDraft"
-
-import { SmallFilterSelectItem } from "../../../../components/SmallFilterSelect"
 
 const TabStyle = {
   fontSize: pxToRem(13),
@@ -49,6 +51,7 @@ enum PolicyTabs {
   DETAILS = "details",
   MARKETS = "markets",
   LENDERS = "lenders",
+  PROVIDERS = "providers",
 }
 
 export default function PolicyPage() {
@@ -80,31 +83,26 @@ export default function PolicyPage() {
       : []),
   ]
 
-  const [selectedPolicy, setSelectedPolicy] = useState<SmallFilterSelectItem>({
-    id: "",
-    name: "",
-  })
+  const selectedPolicy = policies.find(
+    (item) => item.id.toLowerCase() === policyAddress?.toLowerCase(),
+  ) ?? { id: policyAddress ?? "", name: data?.hooksInstance?.name ?? "" }
+  const policyName = selectedPolicy.name
 
-  const policyName = policies.find((policy) => policy.id === policyAddress)
-    ?.name
-
-  useEffect(() => {
-    if (policyName && policyAddress) {
-      setSelectedPolicy({
-        id: policyAddress,
-        name: policyName,
-      })
-    }
-  }, [data, policyName, policyAddress])
-
-  const accessControl = hasActiveLenderOnboardingRoleProvider(
-    data?.hooksInstance?.roleProviders ?? [],
+  const accessControl = t(
+    POLICY_ACCESS_CONTROL_KEY[
+      getPolicyAccessControl(data?.hooksInstance?.roleProviders ?? [])
+    ],
   )
-    ? t("marketParameters.roleProviders.defaultPullProvider")
-    : t("marketParameters.roleProviders.manualApproval")
 
   const [tab, setTab] = useState<PolicyTabs>(PolicyTabs.DETAILS)
 
+  const policy = data?.hooksInstance
+  const supportsProviders =
+    !!policy && hasDeploymentAddress(policy.chainId, "KYCRoleProvider")
+  const activeTab =
+    tab === PolicyTabs.PROVIDERS && !supportsProviders
+      ? PolicyTabs.DETAILS
+      : tab
   const handleTabsChange = (
     event: React.SyntheticEvent,
     newTab: PolicyTabs,
@@ -169,15 +167,11 @@ export default function PolicyPage() {
             {t("borrower.policies.policyInfo")}
           </Typography>
 
-          <PolicySelect
-            policies={policies}
-            selected={selectedPolicy}
-            setSelected={setSelectedPolicy}
-          />
+          <PolicySelect policies={policies} selected={selectedPolicy} />
         </Box>
 
         <Tabs
-          value={tab}
+          value={activeTab}
           onChange={handleTabsChange}
           sx={{
             marginTop: "16px",
@@ -212,6 +206,13 @@ export default function PolicyPage() {
             label={t("common.placeholders.lenders")}
             sx={TabStyle}
           />
+          {supportsProviders && (
+            <Tab
+              value={PolicyTabs.PROVIDERS}
+              label={t("borrower.kyc.providers")}
+              sx={TabStyle}
+            />
+          )}
           <Box
             sx={{
               width: "100%",
@@ -222,7 +223,7 @@ export default function PolicyPage() {
         </Tabs>
 
         <Box sx={{ width: "100%", padding: "0 24px" }}>
-          {tab === PolicyTabs.DETAILS && (
+          {activeTab === PolicyTabs.DETAILS && (
             <DetailsTab
               name={policyName}
               type={t(
@@ -235,11 +236,21 @@ export default function PolicyPage() {
             />
           )}
 
-          {tab === PolicyTabs.MARKETS && (
+          {activeTab === PolicyTabs.MARKETS && (
             <MarketsTab markets={markets} isLoading={isLoading} />
           )}
 
-          {tab === PolicyTabs.LENDERS && (
+          {activeTab === PolicyTabs.PROVIDERS &&
+            policy &&
+            selectedPolicy.id.toLowerCase() ===
+              policy.address.toLowerCase() && (
+              <MarketRoleProviders
+                key={`${policy.chainId}-${policy.address}`}
+                policy={policy}
+              />
+            )}
+
+          {activeTab === PolicyTabs.LENDERS && (
             <LendersTab
               isLoading={isLoading}
               policyName={selectedPolicy.name}
@@ -250,7 +261,7 @@ export default function PolicyPage() {
         </Box>
       </Box>
 
-      {tab === PolicyTabs.DETAILS && (
+      {activeTab === PolicyTabs.DETAILS && (
         <GlossarySidebar step={CreateMarketSteps.POLICY} />
       )}
     </Box>

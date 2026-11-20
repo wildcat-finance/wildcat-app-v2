@@ -18,7 +18,7 @@ import Search from "@/assets/icons/search_icon.svg"
 import { useAppSelector } from "@/store/hooks"
 import { COLORS } from "@/theme/colors"
 import { canManagePolicyLenders } from "@/utils/lenderAccess"
-import { hasActiveLenderOnboardingRoleProvider } from "@/utils/marketCapabilities"
+import { getPolicyLenderNoticeKey } from "@/utils/marketCapabilities"
 
 import { EditLendersTable } from "./components/EditLendersTable"
 import { AddModal } from "./components/Modals/AddModal"
@@ -34,9 +34,6 @@ export const LendersTab = ({
 }: LendersTabProps) => {
   const { t } = useTranslation()
 
-  const isSelfOnboardPolicy = hasActiveLenderOnboardingRoleProvider(
-    policy?.roleProviders ?? [],
-  )
   const canEditLenders = controller ? true : canManagePolicyLenders(policy)
 
   const initialLendersList = useAppSelector(
@@ -174,11 +171,7 @@ export const LendersTab = ({
         {!canEditLenders ? (
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Typography variant="text3" color={COLORS.santasGrey}>
-              {t(
-                isSelfOnboardPolicy
-                  ? "borrower.policies.lenders.selfOnboardNotice"
-                  : "borrower.policies.lenders.notEditableNotice",
-              )}
+              {t(getPolicyLenderNoticeKey(policy?.roleProviders))}
             </Typography>
           </Box>
         ) : (

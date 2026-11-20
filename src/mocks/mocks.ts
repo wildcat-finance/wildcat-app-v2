@@ -59,6 +59,7 @@ const mockedAccessControls = [
     label: "Borrower Operated Allowlist",
     value: "manualApproval",
   },
+  { label: "Shared KYC list", value: "sharedKyc" },
 ]
 
 const mockedMLATemplates = [

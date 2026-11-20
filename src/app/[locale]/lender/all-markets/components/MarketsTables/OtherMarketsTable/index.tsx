@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react"
 import * as React from "react"
 
-import { Box, Button, Typography } from "@mui/material"
+import { Chip, Box, Button, Typography } from "@mui/material"
 import {
   DataGrid,
   GridRow,
@@ -44,6 +44,10 @@ import {
   trimAddress,
 } from "@/utils/formatters"
 import { getDisplayLenderAprBips } from "@/utils/marketApr"
+import {
+  acceptsKycForDeposit,
+  hasBorrowerAccessPath,
+} from "@/utils/marketCapabilities"
 import { getMarketTotalDebt } from "@/utils/marketDebt"
 import { getMarketImplementationType } from "@/utils/marketImplementation"
 import {
@@ -51,6 +55,7 @@ import {
   getKnownMarketOnboardingMode,
   isSelfServiceMarketOnboardingMode,
   LenderMarketAction,
+  MARKET_ACCESS_SECTION,
   MarketOnboardingMode,
 } from "@/utils/marketOnboarding"
 import { getMarketStatusChip } from "@/utils/marketStatus"
@@ -61,12 +66,21 @@ import { DataGridSx } from "../style"
 
 const MarketLinkRow = (props: GridRowProps) => {
   const buildMarketHref = useMarketHref()
+  const { row } = props
+  const viewAccess =
+    getLenderMarketAction(
+      row.onboardingMode,
+      row.depositStatus,
+      row.acceptsKyc,
+      row.canRequestFromBorrower,
+    ) === LenderMarketAction.ViewAccess
+  const href = buildMarketHref(row.id, row.chainId)
 
   return (
     <Link
-      href={buildMarketHref(props.row.id, props.row.chainId)}
+      href={viewAccess ? `${href}#${MARKET_ACCESS_SECTION}` : href}
       style={{ display: "contents", color: "inherit" }}
-      tabIndex={-1}
+      tabIndex={viewAccess ? 0 : -1}
     >
       <GridRow {...props} />
     </Link>
@@ -163,6 +177,8 @@ export const OtherMarketsTable = ({
           onboardingByMarket,
         ),
         depositStatus: account.depositAvailability,
+        acceptsKyc: acceptsKycForDeposit(market),
+        canRequestFromBorrower: hasBorrowerAccessPath(market),
         button: address,
         chainId,
       }
@@ -403,6 +419,8 @@ export const OtherMarketsTable = ({
         const action = getLenderMarketAction(
           params.row.onboardingMode,
           params.row.depositStatus,
+          params.row.acceptsKyc,
+          params.row.canRequestFromBorrower,
         )
 
         return (
@@ -416,6 +434,13 @@ export const OtherMarketsTable = ({
               >
                 {t("marketList.shared.tables.other.depositBTN")}
               </Button>
+            )}
+            {action === LenderMarketAction.ViewAccess && (
+              <Chip
+                size="small"
+                title={t("marketDetails.lender.kyc.viewAccess")}
+                label={t("marketDetails.lender.kyc.accessDetails")}
+              />
             )}
             {action === LenderMarketAction.RequestAccess && (
               <Link
