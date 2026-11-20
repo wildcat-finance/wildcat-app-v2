@@ -7,7 +7,13 @@ import {
   kycRoleProviderAbi,
   SupportedChainId,
 } from "@wildcatfi/wildcat-sdk"
-import { type Address, decodeFunctionData, type Hex } from "viem"
+import {
+  type Address,
+  decodeFunctionData,
+  encodeErrorResult,
+  getAddress,
+  type Hex,
+} from "viem"
 
 import { KycAdminSection } from "@/app/[locale]/admin/components/KycAdminSection"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
@@ -51,6 +57,8 @@ const mockSend = jest.fn()
 const mockReceipt = jest.fn()
 const mockCall = jest.fn()
 const mockWait = jest.fn()
+const mockEstimate = jest.fn()
+const mockMulticall = jest.fn()
 const connected = useEthersProvider as jest.MockedFunction<
   typeof useEthersProvider
 >
@@ -86,11 +94,14 @@ beforeEach(() => {
   mockTimestamp.mockResolvedValue(BigInt(0))
   mockSend.mockResolvedValue("0xabc")
   mockReceipt.mockResolvedValue({ status: "success" })
+  mockEstimate.mockReset().mockResolvedValue(BigInt(31000))
+  mockMulticall.mockReset().mockResolvedValue([])
   connected.mockReturnValue({
     publicClient: {
       getBytecode: mockBytecode,
       readContract: mockRead,
-      estimateGas: jest.fn().mockResolvedValue(BigInt(31000)),
+      multicall: mockMulticall,
+      estimateGas: mockEstimate,
       waitForTransactionReceipt: mockReceipt,
       call: mockCall,
     },
@@ -201,6 +212,121 @@ it("waits for the Safe execution receipt before reporting a membership change", 
     expect.objectContaining({ account: admin }),
   )
   expect(mockSend).not.toHaveBeenCalled()
+})
+
+describe("batch membership", () => {
+  const first = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  const second = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  const third = "0xcccccccccccccccccccccccccccccccccccccccc"
+  const enrolled = new Set<string>()
+  const button = (name: string) =>
+    screen.getByRole("button", { name }) as HTMLButtonElement
+  const paste = async (value: string) =>
+    fireEvent.change(await screen.findByLabelText("admin.kyc.bulk.wallets"), {
+      target: { value },
+    })
+
+  beforeEach(() => {
+    enrolled.clear()
+    mockMulticall.mockImplementation(
+      async ({
+        contracts,
+      }: {
+        contracts: { address: string; functionName: string; args: [string] }[]
+      }) =>
+        contracts.map(({ address, functionName, args }) => {
+          expect(address.toLowerCase()).toBe(kyc.toLowerCase())
+          expect(functionName).toBe("addedAt")
+          return BigInt(enrolled.has(args[0].toLowerCase()) ? 1730000000 : 0)
+        }),
+    )
+  })
+
+  it("sends one call for the wallets a batch can change", async () => {
+    enrolled.add(third)
+    const calls: { functionName: string; members: string[] }[] = []
+    mockSend.mockImplementation(
+      async ({ to, data }: { to: string; data: Hex }) => {
+        expect(to.toLowerCase()).toBe(kyc.toLowerCase())
+        const call = decodeFunctionData({ abi: kycRoleProviderAbi, data })
+        const members = (call.args as [string[]])[0].map((member) =>
+          member.toLowerCase(),
+        )
+        calls.push({ functionName: call.functionName, members })
+        members.forEach((member) =>
+          call.functionName === "addMembers"
+            ? enrolled.add(member)
+            : enrolled.delete(member),
+        )
+        return "0xabc"
+      },
+    )
+    mount(<KycAdminSection />)
+    // The checksummed repeat of `first` would revert the batch if it were sent.
+    await paste(`${first}\n${second}, ${third} ${getAddress(first)}`)
+    await waitFor(() =>
+      expect(button("admin.kyc.bulk.add").disabled).toBe(false),
+    )
+    fireEvent.click(button("admin.kyc.bulk.add"))
+    await screen.findByText("common.kyc.confirmed")
+    expect(calls).toEqual([
+      { functionName: "addMembers", members: [first, second] },
+    ])
+    expect(button("admin.kyc.bulk.add").disabled).toBe(true)
+    fireEvent.click(button("admin.kyc.bulk.remove"))
+    await waitFor(() => expect(mockSend).toHaveBeenCalledTimes(2))
+    await screen.findByText("common.kyc.confirmed")
+    expect(calls[1]).toEqual({
+      functionName: "removeMembers",
+      members: [first, second, third],
+    })
+    expect(enrolled.size).toBe(0)
+  })
+
+  it.each([
+    ["an invalid entry", `${first}\nnot-a-wallet`],
+    [
+      "more wallets than the limit",
+      Array.from(
+        { length: 101 },
+        (_, index) => `0x${(index + 1).toString(16).padStart(40, "0")}`,
+      ).join("\n"),
+    ],
+  ])("blocks a batch with %s before reading or sending", async (_, value) => {
+    mount(<KycAdminSection />)
+    await paste(value)
+    await screen.findByRole("alert")
+    expect(button("admin.kyc.bulk.add").disabled).toBe(true)
+    expect(button("admin.kyc.bulk.remove").disabled).toBe(true)
+    expect(mockMulticall).not.toHaveBeenCalled()
+    expect(mockSend).not.toHaveBeenCalled()
+  })
+
+  it("explains a rejected batch and checks the list again", async () => {
+    mockEstimate.mockRejectedValue(
+      Object.assign(new Error("execution reverted"), {
+        data: encodeErrorResult({
+          abi: kycRoleProviderAbi,
+          errorName: "MemberAlreadyExists",
+        }),
+      }),
+    )
+    mount(<KycAdminSection />)
+    await paste(`${first}\n${second}`)
+    await waitFor(() =>
+      expect(button("admin.kyc.bulk.add").disabled).toBe(false),
+    )
+    const reads = mockMulticall.mock.calls.length
+    fireEvent.click(button("admin.kyc.bulk.add"))
+    // Only the batch form reports it, with the batch wording.
+    expect((await screen.findByRole("alert")).textContent).toBe(
+      "admin.kyc.bulk.alreadyEnrolled",
+    )
+    expect(mockSend).not.toHaveBeenCalled()
+    await waitFor(() =>
+      expect(mockMulticall.mock.calls.length).toBeGreaterThan(reads),
+    )
+  })
 })
 
 it("manages the market's shared policy and distinguishes a zero TTL from absence", async () => {

@@ -14,7 +14,23 @@
       "listError": "Could not load the indexed list. You can still check a wallet by address.",
       "loadingMembers": "Loading enrolled wallets…",
       "empty": "No enrolled wallets indexed yet.",
-      "unsupported": "Shared KYC is unavailable on the selected network."
+      "unsupported": "Shared KYC is unavailable on the selected network.",
+      "bulk": {
+        "title": "Batch update",
+        "help": "Paste up to {{max}} wallet addresses separated by commas, spaces or new lines. Each batch is one transaction: if the contract rejects one wallet, none are changed.",
+        "wallets": "Wallet addresses",
+        "placeholder": "0x…, 0x…",
+        "invalid": "Invalid entries ({{count}}): {{entries}}. Each entry must be a nonzero wallet address.",
+        "tooMany": "A batch can hold at most {{max}} wallets. This list has {{count}}.",
+        "lookupError": "Could not check these wallets’ enrollment.",
+        "summary": "Wallets checked: {{total}}. Not enrolled: {{absent}}. Enrolled: {{enrolled}}.",
+        "duplicates": "Repeated entries ignored: {{count}}.",
+        "add": "Enroll wallets ({{count}})",
+        "remove": "Remove wallets ({{count}})",
+        "alreadyEnrolled": "Batch rejected: at least one of these wallets is already enrolled, so none were added. Check the updated counts above before trying again.",
+        "notEnrolled": "Batch rejected: at least one of these wallets is not enrolled, so none were removed. Check the updated counts above before trying again.",
+        "zeroAddress": "Batch rejected: it contains the zero address, so no wallets were changed."
+      }
     },
     "borrowers": {
       "pendingRegistration": "Pending Registration",

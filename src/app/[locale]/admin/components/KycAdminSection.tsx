@@ -24,6 +24,8 @@ import { useSubgraphClient } from "@/providers/SubgraphProvider"
 import { COLORS } from "@/theme/colors"
 import { formatUtcMaturity } from "@/utils/formatters"
 
+import { KycBulkMembers, type KycBatchAction } from "./KycBulkMembers"
+
 function KycMembers({
   chainId,
   contract,
@@ -33,6 +35,8 @@ function KycMembers({
 }) {
   const { t } = useTranslation()
   const [input, setInput] = useState("")
+  // The batch form reports its own transaction next to its buttons.
+  const [batch, setBatch] = useState<KycBatchAction>()
   const account =
     isAddress(input) && input !== zeroAddress ? getAddress(input) : undefined
   const admin = useRoleProviderAdmin(chainId, contract, "kyc")
@@ -77,7 +81,7 @@ function KycMembers({
       <Typography variant="text3" sx={{ overflowWrap: "anywhere" }}>
         {t("admin.kyc.providerAddress", { address: contract })}
       </Typography>
-      <AuthorityStatus admin={admin} />
+      <AuthorityStatus admin={admin} showTransaction={!batch} />
       {canWrite && (
         <>
           <InputLabel htmlFor="kyc-wallet" label={t("admin.kyc.wallet")}>
@@ -112,11 +116,19 @@ function KycMembers({
               const prepare = enrolled
                 ? prepareRemoveRoleProviderMembers
                 : prepareAddRoleProviderMembers
+              setBatch(undefined)
               transaction.mutate(prepare(contract, [account]))
             }}
           >
             {enrolled ? t("admin.kyc.removeWallet") : t("admin.kyc.addWallet")}
           </Button>
+          <KycBulkMembers
+            chainId={chainId}
+            contract={contract}
+            admin={admin}
+            action={batch}
+            onSubmit={setBatch}
+          />
           <Typography component="h2" variant="title3">
             {t("admin.kyc.members")}
           </Typography>
