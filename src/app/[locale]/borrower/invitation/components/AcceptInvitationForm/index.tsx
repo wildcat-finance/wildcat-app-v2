@@ -7,7 +7,7 @@ import Link from "next/link"
 import { Trans } from "react-i18next"
 
 import { AgreementText } from "@/app/[locale]/agreement/components/AgreementText"
-import { BorrowerInvitation } from "@/app/api/invite/interface"
+import { PendingBorrowerInvitation } from "@/app/api/invite/interface"
 import { ServiceAgreementVersionChip } from "@/components/ServiceAgreementVersionChip"
 import { useCurrentServiceAgreement } from "@/hooks/useCurrentServiceAgreement"
 
@@ -34,7 +34,7 @@ export const AcceptInvitationForm = ({
   invitation,
   address,
 }: {
-  invitation: BorrowerInvitation
+  invitation: PendingBorrowerInvitation
   address: string
 }) => {
   const [name, setName] = useState(invitation.name || "")
@@ -77,14 +77,23 @@ export const AcceptInvitationForm = ({
             inputProps={{ "aria-label": "Borrower name" }}
             sx={BorrowerNameInput}
             value={name}
+            readOnly={invitation.profileLocked}
             onChange={(e) => setName(e.target.value)}
           />
         </Box>
-        <Typography variant="text3" sx={BorrowerNameNote}>
-          This name is appended to the signed Terms of Use acknowledgement and
-          recorded as the <strong>borrower organization</strong> accepting the
-          invitation.
-        </Typography>
+        {invitation.profileLocked ? (
+          <Typography variant="text3" sx={BorrowerNameNote}>
+            This wallet joins <strong>{invitation.name}</strong>, which already
+            borrows on Wildcat with another wallet. You accept under its name;
+            changes to its profile go through a profile update request.
+          </Typography>
+        ) : (
+          <Typography variant="text3" sx={BorrowerNameNote}>
+            This name is appended to the signed Terms of Use acknowledgement and
+            recorded as the <strong>borrower organization</strong> accepting the
+            invitation.
+          </Typography>
+        )}
 
         <Box sx={TermsPanel}>
           <Box sx={TermsHeader}>

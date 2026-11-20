@@ -11,10 +11,11 @@ import {
 } from "@wildcatfi/wildcat-sdk"
 import { UseFormReturn } from "react-hook-form"
 
-import { lastSlaUpdateTime, MlaTemplate } from "@/app/api/mla/interface"
+import { lastSlaUpdateTime } from "@/app/api/mla/interface"
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 import { NetworkInfo } from "@/config/network"
 import { QueryKeys } from "@/config/query-keys"
+import { useAuthToken } from "@/hooks/useApiAuth"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import {
@@ -23,7 +24,10 @@ import {
   fillInMlaTemplate,
   getFieldValuesForBorrower,
 } from "@/lib/mla"
+import { toDeployedMarketName } from "@/utils/marketName"
+import { assertMlaTemplateSignableAt } from "@/utils/mlaTemplateRetirement"
 
+import { fetchMlaTemplate } from "./fetchMlaTemplate"
 import { useCalculateMarketAddress } from "./useCalculateMarketAddress"
 import { MarketValidationSchemaType } from "../../create-market/validation/validationSchema"
 
@@ -44,7 +48,9 @@ export function getFieldValuesForBorrowerFromForm(
   const withdrawalAccess = marketParams.withdrawalRequiresAccess
     ? WithdrawalAccess.RequiresCredential
     : WithdrawalAccess.Open
-  const marketName = `${marketParams.namePrefix}${asset?.name}`
+  // Named exactly as the deployed contract will be, or the server rejects the
+  // borrower's MLA signature.
+  const marketName = toDeployedMarketName(marketParams.namePrefix, asset?.name)
   const marketSymbol = `${marketParams.symbolPrefix}${asset?.symbol}`
   // Deposits are only open if `depositRequiresAccess` is defined and false
   const depositAccess =
@@ -101,6 +107,8 @@ export async function getMlaFromForm(
   asset: Token,
   salt: string,
   networkData: NetworkInfo,
+  // The borrower's API token for the network: a custom MLA needs it.
+  authToken?: string,
 ) {
   const hooksFactoryContract = getHooksFactoryContract(
     networkData.chainId,
@@ -108,9 +116,15 @@ export async function getMlaFromForm(
   )
   const marketAddress = await hooksFactoryContract.computeMarketAddress(salt)
 
-  const mlaTemplate = await fetch(
-    `/api/mla/templates/${mlaTemplateId}?chainId=${networkData.chainId}`,
-  ).then((res) => res.json() as Promise<MlaTemplate>)
+  const mlaTemplate = await fetchMlaTemplate(
+    networkData.chainId,
+    mlaTemplateId,
+    authToken,
+  )
+  // Signing and the check before deploying both come through here, so a
+  // template retired since it was picked stops the flow before the market is
+  // deployed; an agreement signed before retirement carries on.
+  assertMlaTemplateSignableAt(mlaTemplate, timeSigned)
   const values = form.getValues()
   const borrowerValues = getFieldValuesForBorrowerFromForm(
     values,
@@ -159,6 +173,9 @@ export const usePreviewMlaFromForm = (
   const { provider } = useEthersProvider()
   const { data: marketAddress } = useCalculateMarketAddress(salt)
   const selectedNetwork = useSelectedNetwork()
+  const token = useAuthToken()
+  const authToken =
+    token?.chainId === selectedNetwork.chainId ? token.token : undefined
   return useQuery({
     refetchOnMount: true,
     queryKey: QueryKeys.Borrower.PREVIEW_MLA.FROM_FORM(
@@ -166,6 +183,7 @@ export const usePreviewMlaFromForm = (
       marketAddress,
       borrowerProfile,
       asset,
+      mlaTemplateId,
     ),
     enabled: !!provider && !!borrowerProfile && !!asset && !!marketAddress,
     queryFn: async () => {
@@ -183,6 +201,7 @@ export const usePreviewMlaFromForm = (
         asset,
         salt,
         selectedNetwork,
+        authToken,
       )
     },
   })
@@ -194,6 +213,9 @@ export const usePreviewMla = (
   borrowerProfile: BorrowerProfile | undefined,
 ) => {
   const selectedNetwork = useSelectedNetwork()
+  const token = useAuthToken()
+  const authToken =
+    token?.chainId === selectedNetwork.chainId ? token.token : undefined
   return useQuery({
     enabled:
       !!mlaTemplateId &&
@@ -211,9 +233,12 @@ export const usePreviewMla = (
     queryFn: async () => {
       if (!mlaTemplateId) throw new Error("MLA template ID is required")
       if (!borrowerProfile) throw new Error("Borrower profile is required")
-      const mlaTemplate = await fetch(
-        `/api/mla/templates/${mlaTemplateId}?chainId=${selectedNetwork.chainId}`,
-      ).then((res) => res.json() as Promise<MlaTemplate>)
+      const mlaTemplate = await fetchMlaTemplate(
+        selectedNetwork.chainId,
+        mlaTemplateId,
+        authToken,
+      )
+      assertMlaTemplateSignableAt(mlaTemplate, timeSigned)
       const borrowerValues = getFieldValuesForBorrower({
         market,
         borrowerInfo: borrowerProfile as BasicBorrowerInfo,

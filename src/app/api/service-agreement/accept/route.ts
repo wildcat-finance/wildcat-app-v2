@@ -2,7 +2,7 @@ import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
 import { AcceptServiceAgreementInput } from "@/app/api/service-agreement/interface"
-import { prisma } from "@/lib/db"
+import { findBorrowerRegistration, prisma } from "@/lib/db"
 import {
   getCurrentServiceAgreement,
   isServiceAgreementTimeSignedInBounds,
@@ -69,18 +69,17 @@ export async function POST(request: NextRequest) {
   // The borrower message embeds the organization name; derive it from the
   // stored profile rather than trusting request input for a legal record.
   let organizationName: string | undefined
+  let borrowerId: string | undefined
   if (party === "Borrower") {
-    const borrower = await prisma.borrower.findFirst({
-      where: { chainId, address },
-      select: { name: true },
-    })
-    if (!borrower?.name) {
+    const registration = await findBorrowerRegistration(chainId, address)
+    if (!registration) {
       return NextResponse.json(
         { error: `No borrower profile with a name for ${address}` },
         { status: 400 },
       )
     }
-    organizationName = borrower.name
+    organizationName = registration.borrower.name
+    borrowerId = registration.borrowerId
   }
 
   const verified = await verifyServiceAgreementSignature({
@@ -91,6 +90,7 @@ export async function POST(request: NextRequest) {
     signature,
     timeSigned,
     organizationName,
+    borrowerId,
   })
   if (!verified) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })

@@ -6,7 +6,11 @@ import {
   BorrowerAdditionalUrl,
   BorrowerProfileInput,
 } from "@/app/api/profiles/interface"
-import { getBorrowerProfileUpdates, prisma } from "@/lib/db"
+import {
+  findBorrowerRegistration,
+  getBorrowerProfileUpdates,
+  prisma,
+} from "@/lib/db"
 import { uploadProfilePicture } from "@/lib/upload-profile-picture"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 import { getZodParseError } from "@/lib/zod-error"
@@ -16,7 +20,11 @@ import {
   BorrowerProfileUpdateResponseDTO,
 } from "./dto"
 import { BorrowerProfileUpdateResponse } from "./interface"
-import { isAdminForChain, verifyApiToken } from "../../auth/verify-header"
+import {
+  isAdminForChain,
+  isAdminForNetworkClass,
+  verifyApiToken,
+} from "../../auth/verify-header"
 
 /// POST /api/profiles/updates
 /// Route to submit a new borrower profile update request.
@@ -97,31 +105,25 @@ export async function POST(request: NextRequest) {
   } = data
 
   const address = data.address.toLowerCase()
-  const existingBorrower = await prisma.borrower.findFirst({
-    where: {
-      chainId,
-      address,
-    },
-  })
-  if (!existingBorrower) {
+  const registration = await findBorrowerRegistration(chainId, address)
+  if (!registration) {
     return NextResponse.json(
       { error: `Borrower ${address} not found` },
       { status: 404 },
     )
   }
+  const { borrowerId } = registration
   const [, updateRequest] = await prisma.$transaction([
     prisma.borrowerProfileUpdateRequest.deleteMany({
       where: {
-        chainId,
-        address,
+        borrowerId,
         acceptedAt: null,
         rejectedAt: null,
       },
     }),
     prisma.borrowerProfileUpdateRequest.create({
       data: {
-        chainId,
-        address,
+        borrowerId,
         createdAt: new Date().toISOString(),
         name,
         alias,
@@ -182,6 +184,9 @@ export async function POST(request: NextRequest) {
           }
         })
         newData[key] = data[key] || undefined
+      } else if (key === "name") {
+        // An organisation always has a name: an empty one leaves it unchanged.
+        if (data.name) newData.name = data.name
       } else {
         newData[key] = data[key] || null
       }
@@ -189,13 +194,12 @@ export async function POST(request: NextRequest) {
   })
   await Promise.all([
     prisma.borrower.update({
-      where: {
-        chainId_address: {
-          address: updateRequest.address,
-          chainId: updateRequest.chainId,
-        },
-      },
-      data: newData as Omit<typeof newData, "additionalUrls" | "chainId"> & {
+      where: { id: borrowerId },
+      data: newData as Omit<
+        typeof newData,
+        "additionalUrls" | "chainId" | "name"
+      > & {
+        name?: string
         additionalUrls?: ReadonlyArray<BorrowerAdditionalUrl>
       },
     }),
@@ -258,6 +262,7 @@ export async function PUT(request: NextRequest) {
     where: {
       id: updateId,
     },
+    include: { borrower: { select: { isTestnet: true } } },
   })
   if (!updateRequest) {
     return NextResponse.json(
@@ -265,7 +270,9 @@ export async function PUT(request: NextRequest) {
       { status: 404 },
     )
   }
-  if (!(await isAdminForChain(token, updateRequest.chainId))) {
+  if (
+    !(await isAdminForNetworkClass(token, updateRequest.borrower.isTestnet))
+  ) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
@@ -300,12 +307,7 @@ export async function PUT(request: NextRequest) {
     })
     proms.push(
       prisma.borrower.update({
-        where: {
-          chainId_address: {
-            address: updateRequest.address,
-            chainId: updateRequest.chainId,
-          },
-        },
+        where: { id: updateRequest.borrowerId },
         data: newData,
       }),
       prisma.borrowerProfileUpdateRequest.update({

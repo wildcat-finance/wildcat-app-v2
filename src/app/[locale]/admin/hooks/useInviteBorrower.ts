@@ -37,6 +37,9 @@ export const useInviteBorrower = (address?: string) => {
       client.invalidateQueries({
         queryKey: QueryKeys.Admin.GET_ALL_BORROWER_INVITATIONS(chainId),
       })
+      client.invalidateQueries({
+        queryKey: QueryKeys.Admin.GET_BORROWER_ORGANISATIONS(chainId),
+      })
       const normalizedAddress = address?.toLowerCase()
       client.invalidateQueries({
         queryKey: QueryKeys.Borrower.GET_PROFILE(chainId, normalizedAddress),

@@ -28,6 +28,8 @@ export interface BorrowerProfile {
 }
 
 export type BorrowerProfileForAdminView = BorrowerProfile & {
+  /// The organisation this address acts for.
+  borrowerId: string
   timeInvited?: Date
   timeSigned?: Date
 }

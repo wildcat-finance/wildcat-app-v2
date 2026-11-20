@@ -7,12 +7,20 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { NETWORKS_BY_ID } from "@/config/network"
 import {
-  getBorrowerProfile,
-  getSignedMasterLoanAgreement,
+  findBorrowerRegistration,
+  getMarketMlaDecision,
   prisma,
+  toBorrowerProfile,
+  toMasterLoanAgreementResponse,
 } from "@/lib/db"
-import { fillInMlaTemplate, getFieldValuesForBorrower } from "@/lib/mla"
-import { lockMlaAssignment } from "@/lib/mlaPersistence"
+import {
+  fillInMlaTemplate,
+  getFieldValuesForBorrower,
+  MlaTemplateField,
+} from "@/lib/mla"
+import { lockMlaAssignment, toStoredSignature } from "@/lib/mlaPersistence"
+import { canSelectMlaTemplate } from "@/lib/mlaTemplateAccess"
+import { isTestnetChain } from "@/lib/networkClass"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
@@ -20,12 +28,7 @@ import { getZodParseError } from "@/lib/zod-error"
 import { isServiceAgreementTimeSignedInBounds } from "@/utils/serviceAgreementMessage"
 
 import { SetMasterLoanAgreementInputDTO } from "./dto"
-import {
-  lastSlaUpdateTime,
-  MasterLoanAgreementResponse,
-  MlaTemplate,
-  SetMasterLoanAgreementInput,
-} from "../interface"
+import { lastSlaUpdateTime, SetMasterLoanAgreementInput } from "../interface"
 
 /// GET /api/mla/[market]?chainId=<chainId>
 /// Route to get the MLA for a given market.
@@ -38,27 +41,14 @@ export async function GET(
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
   }
-  const mla = await getSignedMasterLoanAgreement(market, chainId)
-  if (!mla) {
-    const refusal = await prisma.refusalToAssignMla.findFirst({
-      where: {
-        chainId,
-        market,
-      },
-    })
-    if (refusal) {
-      return NextResponse.json({ noMLA: true })
-    }
+  const decision = await getMarketMlaDecision(market, chainId)
+  if (!decision) {
     return NextResponse.json({ error: "MLA not found" }, { status: 404 })
   }
-  if (!mla.borrowerSignature) {
-    // This is a 500 error because the borrower signature should always be present.
-    return NextResponse.json(
-      { error: "Borrower signature not found" },
-      { status: 500 },
-    )
+  if (decision.outcome === "Declined") {
+    return NextResponse.json({ noMLA: true })
   }
-  return NextResponse.json(mla as MasterLoanAgreementResponse)
+  return NextResponse.json(toMasterLoanAgreementResponse(decision))
 }
 
 /// POST /api/mla/[market]
@@ -83,24 +73,14 @@ export async function POST(
   const marketAddress = params.market.toLowerCase()
   const { chainId } = body
 
-  const existingAgreement = await prisma.masterLoanAgreement.findFirst({
-    where: {
-      chainId,
-      market: marketAddress,
-    },
+  const existingDecision = await prisma.marketMlaDecision.findUnique({
+    where: { chainId_market: { chainId, market: marketAddress } },
   })
-  if (existingAgreement) {
-    const existingSignature = await prisma.mlaSignature.findFirst({
-      where: {
-        chainId,
-        market: marketAddress,
-        address: existingAgreement.borrower,
-      },
-    })
+  if (existingDecision?.outcome === "Assigned") {
     if (
-      existingAgreement.templateId === body.mlaTemplate &&
-      existingSignature?.signature === body.signature &&
-      existingSignature.timeSigned.getTime() === body.timeSigned
+      existingDecision.templateId === body.mlaTemplate &&
+      existingDecision.signature === body.signature &&
+      existingDecision.timeSigned.getTime() === body.timeSigned
     ) {
       return NextResponse.json({ success: true })
     }
@@ -122,13 +102,7 @@ export async function POST(
   const codeSize = (await provider.getCode(marketAddress)).length
   console.log(`Code size for market ${marketAddress}: ${codeSize}`)
 
-  const refusal = await prisma.refusalToAssignMla.findFirst({
-    where: {
-      chainId,
-      market: marketAddress,
-    },
-  })
-  if (refusal) {
+  if (existingDecision?.outcome === "Declined") {
     return NextResponse.json(
       { error: "MLA assignment already declined" },
       { status: 400 },
@@ -147,37 +121,48 @@ export async function POST(
   )
   const address = market.borrower.toLowerCase()
 
-  const mlaTemplate: MlaTemplate | undefined = await prisma.mlaTemplate
-    .findFirst({
-      where: {
-        id: body.mlaTemplate,
-        chainId,
-      },
-    })
-    .then((obj) => {
-      if (!obj) return undefined
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { isDefault, hide, description, ...rest } = obj
-      return {
-        ...rest,
-        description: description || undefined,
-        hide: hide || false,
-        isDefault: isDefault || false,
-      } as MlaTemplate
-    })
-  if (!mlaTemplate) {
+  const template = await prisma.mlaTemplate.findFirst({
+    where: {
+      id: body.mlaTemplate,
+      isTestnet: isTestnetChain(chainId),
+    },
+  })
+  if (!template) {
     return NextResponse.json(
       { error: "MLA template not found" },
       { status: 400 },
     )
   }
-  const borrowerProfile = await getBorrowerProfile(address, chainId)
-  if (!borrowerProfile) {
+  const registration = await findBorrowerRegistration(chainId, address)
+  if (!registration) {
     return NextResponse.json(
       { error: "Borrower profile not found" },
       { status: 400 },
     )
   }
+  // A custom MLA belongs to one borrower, and a retired template takes no
+  // agreement signed after it was retired. The pick lists only present this;
+  // here it is enforced.
+  if (
+    !canSelectMlaTemplate(template, registration.borrowerId, body.timeSigned)
+  ) {
+    return NextResponse.json(
+      { error: "MLA template not available to this borrower" },
+      { status: 400 },
+    )
+  }
+  const mlaTemplate = {
+    html: template.html,
+    plaintext: template.plaintext,
+    borrowerFields: template.borrowerFields as MlaTemplateField[],
+    lenderFields: template.lenderFields as MlaTemplateField[],
+  }
+  const borrowerProfile = toBorrowerProfile(
+    registration.address,
+    registration.chainId,
+    registration.registeredOnChain,
+    registration.borrower,
+  )
 
   const values = getFieldValuesForBorrower({
     market,
@@ -203,47 +188,31 @@ export async function POST(
   const result = await prisma.$transaction(
     async (transaction) => {
       await lockMlaAssignment(transaction, chainId, marketAddress)
-      const [concurrentAgreement, concurrentRefusal] = await Promise.all([
-        transaction.masterLoanAgreement.findUnique({
-          where: { chainId_market: { chainId, market: marketAddress } },
-        }),
-        transaction.refusalToAssignMla.findUnique({
-          where: { chainId_market: { chainId, market: marketAddress } },
-        }),
-      ])
-      if (concurrentAgreement) {
-        const concurrentSignature = await transaction.mlaSignature.findFirst({
-          where: { chainId, market: marketAddress, address },
-        })
-        return concurrentAgreement.templateId === body.mlaTemplate &&
-          concurrentSignature?.signature === body.signature &&
-          concurrentSignature.timeSigned.getTime() === body.timeSigned
+      const concurrentDecision = await transaction.marketMlaDecision.findUnique(
+        { where: { chainId_market: { chainId, market: marketAddress } } },
+      )
+      if (concurrentDecision?.outcome === "Declined") return "refusal-conflict"
+      if (concurrentDecision) {
+        return concurrentDecision.templateId === body.mlaTemplate &&
+          concurrentDecision.signature === body.signature &&
+          concurrentDecision.timeSigned.getTime() === body.timeSigned
           ? "success"
           : "mla-conflict"
       }
-      if (concurrentRefusal) return "refusal-conflict"
-      await transaction.masterLoanAgreement.create({
+      await transaction.marketMlaDecision.create({
         data: {
           chainId,
           market: marketAddress,
-          templateId: mlaTemplate.id,
-          borrower: address,
+          outcome: "Assigned",
+          borrowerId: registration.borrowerId,
+          borrowerAddress: address,
+          ...toStoredSignature(signature),
+          signature: body.signature,
+          timeSigned: new Date(body.timeSigned),
+          templateId: template.id,
           html,
           plaintext,
           lenderFields: mlaTemplate.lenderFields,
-        },
-      })
-      await transaction.mlaSignature.create({
-        data: {
-          chainId,
-          market: marketAddress,
-          address,
-          signer: address,
-          signature: body.signature,
-          blockNumber:
-            "blockNumber" in signature ? signature.blockNumber : undefined,
-          kind: signature.kind,
-          timeSigned: new Date(body.timeSigned).toISOString(),
         },
       })
       return "success"

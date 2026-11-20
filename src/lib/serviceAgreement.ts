@@ -140,6 +140,8 @@ export type VerifiedServiceAgreementSignature = {
   address: string
   signer: string
   party: ServiceAgreementParty
+  // Set exactly when party = Borrower: the organisation the address acts for.
+  borrowerId: string | null
   serviceAgreementId: number
   signature: string
   kind: SignatureKind
@@ -147,6 +149,19 @@ export type VerifiedServiceAgreementSignature = {
   timeSigned: Date
   organizationName: string | null
   signedMessage: string
+}
+
+// A borrower-party ToU row must name the organisation its registration acts
+// for; the database rejects a borrower row without it and a lender row with it.
+const borrowerIdForParty = (
+  party: ServiceAgreementParty,
+  borrowerId: string | undefined,
+): string | null => {
+  if (party !== "Borrower") return null
+  if (!borrowerId) {
+    throw new Error("A borrower ToU signature needs the borrower's id")
+  }
+  return borrowerId
 }
 
 /// Build the signable message for `agreement`, verify `signature` against it,
@@ -160,6 +175,7 @@ export async function verifyServiceAgreementSignature({
   signature,
   timeSigned,
   organizationName,
+  borrowerId,
 }: {
   agreement: ServiceAgreementMeta
   chainId: SupportedChainId
@@ -168,8 +184,10 @@ export async function verifyServiceAgreementSignature({
   signature: string
   timeSigned: number
   organizationName?: string
+  borrowerId?: string
 }): Promise<VerifiedServiceAgreementSignature | undefined> {
   const accountAddress = address.toLowerCase()
+  const partyBorrowerId = borrowerIdForParty(party, borrowerId)
   const signedMessage = buildServiceAgreementMessage({
     acknowledgementText: agreement.acknowledgementText,
     timeSigned,
@@ -192,6 +210,7 @@ export async function verifyServiceAgreementSignature({
       : result.address
     ).toLowerCase(),
     party,
+    borrowerId: partyBorrowerId,
     serviceAgreementId: agreement.id,
     signature,
     kind: result.kind,
@@ -285,6 +304,8 @@ export type VerifiedServiceAgreementRefusal = {
   address: string
   signer: string
   party: ServiceAgreementParty
+  // Set exactly when party = Borrower: the organisation the address acts for.
+  borrowerId: string | null
   serviceAgreementId: number
   signature: string
   kind: SignatureKind
@@ -306,6 +327,7 @@ export async function verifyServiceAgreementRefusal({
   timeSigned,
   reason,
   organizationName,
+  borrowerId,
 }: {
   agreement: ServiceAgreementMeta
   chainId: SupportedChainId
@@ -315,8 +337,10 @@ export async function verifyServiceAgreementRefusal({
   timeSigned: number
   reason?: string
   organizationName?: string
+  borrowerId?: string
 }): Promise<VerifiedServiceAgreementRefusal | undefined> {
   const accountAddress = address.toLowerCase()
+  const partyBorrowerId = borrowerIdForParty(party, borrowerId)
   const signedMessage = buildServiceAgreementDeclineMessage({
     version: agreement.version,
     plaintextSha256: agreement.plaintextSha256,
@@ -342,6 +366,7 @@ export async function verifyServiceAgreementRefusal({
       : result.address
     ).toLowerCase(),
     party,
+    borrowerId: partyBorrowerId,
     serviceAgreementId: agreement.id,
     signature,
     kind: result.kind,

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import {
   getBorrowerAcceptanceTimes,
   prisma,
+  toBorrowerProfile,
   tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered,
 } from "@/lib/db"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
@@ -24,48 +25,30 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
   await tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered(chainId)
-  const data = await prisma.borrower.findMany({
+  const registrations = await prisma.borrowerRegistration.findMany({
     where: {
       chainId,
       registeredOnChain: true,
     },
-    include: {
-      invitation: {
-        select: {
-          timeInvited: true,
-        },
-      },
-    },
+    include: { borrower: true },
   })
   const acceptanceTimes = await getBorrowerAcceptanceTimes(
     chainId,
-    data.map(({ address }) => address),
+    registrations.map(({ address }) => address),
   )
-  const allProfiles = data
-    .filter((borrower) => acceptanceTimes.has(borrower.address))
-    .map(
-      (borrower) =>
-        ({
-          address: borrower.address,
-          chainId: borrower.chainId,
-          name: borrower.name || undefined,
-          description: borrower.description || undefined,
-          founded: borrower.founded || undefined,
-          headquarters: borrower.headquarters || undefined,
-          website: borrower.website || undefined,
-          twitter: borrower.twitter || undefined,
-          telegram: borrower.telegram || undefined,
-          linkedin: borrower.linkedin || undefined,
-          email: borrower.email || undefined,
-          registeredOnChain: borrower.registeredOnChain,
-          entityKind: borrower.entityKind || undefined,
-          jurisdiction: borrower.jurisdiction || undefined,
-          physicalAddress: borrower.physicalAddress || undefined,
-          timeInvited: borrower.invitation?.timeInvited || undefined,
-          timeSigned: acceptanceTimes.get(borrower.address),
-          additionalUrls: borrower.additionalUrls || undefined,
-        }) as BorrowerProfileForAdminView,
-    )
+  const allProfiles: BorrowerProfileForAdminView[] = registrations
+    .filter((registration) => acceptanceTimes.has(registration.address))
+    .map((registration) => ({
+      ...toBorrowerProfile(
+        registration.address,
+        registration.chainId,
+        registration.registeredOnChain,
+        registration.borrower,
+      ),
+      borrowerId: registration.borrowerId,
+      timeInvited: registration.invitedAt || undefined,
+      timeSigned: acceptanceTimes.get(registration.address),
+    }))
 
   return NextResponse.json(allProfiles)
 }

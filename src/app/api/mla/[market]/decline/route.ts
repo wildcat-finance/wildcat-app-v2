@@ -6,9 +6,9 @@ import {
 import { NextRequest, NextResponse } from "next/server"
 
 import { DECLINE_MLA_ASSIGNMENT_MESSAGE } from "@/config/mla-rejection"
-import { getSignedMasterLoanAgreement, prisma } from "@/lib/db"
+import { findBorrowerRegistration, prisma } from "@/lib/db"
 import { formatDate } from "@/lib/mla"
-import { lockMlaAssignment } from "@/lib/mlaPersistence"
+import { lockMlaAssignment, toStoredSignature } from "@/lib/mlaPersistence"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
 import { getZodParseError } from "@/lib/zod-error"
@@ -36,13 +36,13 @@ export const POST = async (
   const marketAddress = params.params.market.toLowerCase()
   const provider = getProviderForServer(chainId)
 
-  const existingRefusal = await prisma.refusalToAssignMla.findFirst({
-    where: { chainId, market: marketAddress },
+  const existingDecision = await prisma.marketMlaDecision.findUnique({
+    where: { chainId_market: { chainId, market: marketAddress } },
   })
-  if (existingRefusal) {
+  if (existingDecision?.outcome === "Declined") {
     if (
-      existingRefusal.signature === body.signature &&
-      existingRefusal.timeSigned.getTime() === body.timeSigned
+      existingDecision.signature === body.signature &&
+      existingDecision.timeSigned.getTime() === body.timeSigned
     ) {
       return NextResponse.json({ success: true })
     }
@@ -63,8 +63,7 @@ export const POST = async (
     )
   }
 
-  const mla = await getSignedMasterLoanAgreement(marketAddress, chainId)
-  if (mla) {
+  if (existingDecision) {
     return NextResponse.json({ error: "MLA already exists" }, { status: 400 })
   }
 
@@ -95,35 +94,31 @@ export const POST = async (
   if (!signature) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
+  const registration = await findBorrowerRegistration(chainId, address)
   const result = await prisma.$transaction(
     async (transaction) => {
       await lockMlaAssignment(transaction, chainId, marketAddress)
-      const [concurrentRefusal, concurrentMla] = await Promise.all([
-        transaction.refusalToAssignMla.findUnique({
-          where: { chainId_market: { chainId, market: marketAddress } },
-        }),
-        transaction.masterLoanAgreement.findUnique({
-          where: { chainId_market: { chainId, market: marketAddress } },
-        }),
-      ])
-      if (concurrentRefusal) {
-        return concurrentRefusal.signature === body.signature &&
-          concurrentRefusal.timeSigned.getTime() === body.timeSigned
+      const concurrentDecision = await transaction.marketMlaDecision.findUnique(
+        { where: { chainId_market: { chainId, market: marketAddress } } },
+      )
+      if (concurrentDecision?.outcome === "Assigned") return "mla-conflict"
+      if (concurrentDecision) {
+        return concurrentDecision.signature === body.signature &&
+          concurrentDecision.timeSigned.getTime() === body.timeSigned
           ? "success"
           : "refusal-conflict"
       }
-      if (concurrentMla) return "mla-conflict"
-      await transaction.refusalToAssignMla.create({
+      await transaction.marketMlaDecision.create({
         data: {
           chainId,
           market: marketAddress,
-          address,
-          signer: signature.address,
+          outcome: "Declined",
+          // A refusal may come from an account with no borrower record.
+          borrowerId: registration?.borrowerId ?? null,
+          borrowerAddress: address,
+          ...toStoredSignature(signature),
           signature: body.signature,
-          timeSigned: new Date(body.timeSigned).toISOString(),
-          kind: signature.kind,
-          blockNumber:
-            "blockNumber" in signature ? signature.blockNumber : undefined,
+          timeSigned: new Date(body.timeSigned),
         },
       })
       return "success"

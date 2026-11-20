@@ -5,11 +5,13 @@ import {
 import { NextRequest, NextResponse } from "next/server"
 
 import {
+  deleteBorrowerRegistrations,
   findBorrowersWithPendingInvitations,
   findBorrowerWithPendingInvitation,
   prisma,
   tryUpdateBorrowerInvitationsWhereAcceptedButNotRegistered,
 } from "@/lib/db"
+import { isTestnetChain } from "@/lib/networkClass"
 import { getProviderForServer } from "@/lib/provider"
 import { tryResolveRegisteredBy } from "@/lib/registrar"
 import {
@@ -59,7 +61,9 @@ export async function GET(request: NextRequest) {
 }
 
 /// POST /api/invite
-/// Route to create a new invitation for a borrower.
+/// Route to invite an address to borrow on one network.
+/// With `borrowerId`, the address joins that existing organisation; otherwise a
+/// new organisation is created from the profile fields.
 /// Admin-only endpoint.
 export async function POST(request: NextRequest) {
   const token = await verifyApiToken(request)
@@ -83,6 +87,7 @@ export async function POST(request: NextRequest) {
   const {
     name,
     chainId,
+    borrowerId,
     alias,
     description,
     entityKind,
@@ -91,40 +96,72 @@ export async function POST(request: NextRequest) {
     jurisdiction,
     physicalAddress,
   } = body
-  const inviter = token.address
-  const existingBorrower = await prisma.borrower.findFirst({
-    where: {
-      chainId,
-      address,
-    },
+  const isTestnet = isTestnetChain(chainId)
+  const invitation = { invitedBy: token.address, invitedAt: new Date() }
+
+  const existingRegistration = await prisma.borrowerRegistration.findUnique({
+    where: { chainId_address: { chainId, address } },
   })
+  if (existingRegistration) {
+    if (existingRegistration.invitedAt) {
+      return NextResponse.json(
+        {
+          error: `An invitation for ${address} already exists`,
+        },
+        { status: 400 },
+      )
+    }
+    if (borrowerId && borrowerId !== existingRegistration.borrowerId) {
+      return NextResponse.json(
+        {
+          error: `${address} already acts for another borrower on this network`,
+        },
+        { status: 400 },
+      )
+    }
+    await prisma.borrowerRegistration.update({
+      where: { chainId_address: { chainId, address } },
+      data: invitation,
+    })
+    return NextResponse.json({ success: true })
+  }
+
+  if (borrowerId) {
+    const borrower = await prisma.borrower.findUnique({
+      where: { id: borrowerId },
+      select: { isTestnet: true },
+    })
+    if (!borrower || borrower.isTestnet !== isTestnet) {
+      return NextResponse.json(
+        { error: `Borrower ${borrowerId} not found for this network` },
+        { status: 400 },
+      )
+    }
+  }
 
   const provider = getProviderForServer(chainId)
   const archController = getArchControllerContract(chainId, provider)
-
-  if (!existingBorrower) {
-    const isRegisteredBorrower =
-      await archController.isRegisteredBorrower(address)
-    const registeredBy = isRegisteredBorrower
-      ? await tryResolveRegisteredBy(chainId, address, provider)
-      : undefined
-    await prisma.borrower.create({
-      data: {
-        chainId,
-        address,
-        name,
-        alias,
-        description,
-        entityKind,
-        founded,
-        headquarters,
-        jurisdiction,
-        physicalAddress,
-        registeredOnChain: isRegisteredBorrower,
-        ...(registeredBy ? { registeredBy } : {}),
-        invitation: {
-          create: {
-            inviter,
+  const isRegisteredBorrower =
+    await archController.isRegisteredBorrower(address)
+  const registeredBy = isRegisteredBorrower
+    ? await tryResolveRegisteredBy(chainId, address, provider)
+    : undefined
+  const registration = {
+    chainId,
+    address,
+    isTestnet,
+    registeredOnChain: isRegisteredBorrower,
+    checkedAt: new Date(),
+    ...(registeredBy ? { registeredBy } : {}),
+    ...invitation,
+  }
+  await prisma.$transaction(async (transaction) => {
+    const organisationId =
+      borrowerId ??
+      (
+        await transaction.borrower.create({
+          data: {
+            isTestnet,
             name,
             alias,
             description,
@@ -133,42 +170,21 @@ export async function POST(request: NextRequest) {
             headquarters,
             jurisdiction,
             physicalAddress,
-            timeInvited: new Date().toISOString(),
           },
-        },
-      },
+          select: { id: true },
+        })
+      ).id
+    await transaction.borrowerRegistration.create({
+      data: { ...registration, borrowerId: organisationId },
     })
-  } else {
-    const existingInvitation = await prisma.borrowerInvitation.findFirst({
-      where: {
-        chainId,
-        address,
-      },
-    })
-    if (existingInvitation) {
-      return NextResponse.json(
-        {
-          error: `An invitation for ${address} already exists`,
-        },
-        { status: 400 },
-      )
-    }
-    await prisma.borrowerInvitation.create({
-      data: {
-        chainId,
-        address,
-        inviter,
-        name,
-        alias,
-        timeInvited: new Date().toISOString(),
-      },
-    })
-  }
+  })
   return NextResponse.json({ success: true })
 }
 
 /// DELETE /api/invite?address=<address>&chainId=<chainId>
 /// Route to delete an invitation for a borrower.
+/// An address that has not completed onboarding loses its registration on this
+/// network, with its ToU rows; an organisation left with no registration goes too.
 /// Admin-only endpoint.
 export async function DELETE(request: NextRequest) {
   const token = await verifyApiToken(request)
@@ -190,45 +206,27 @@ export async function DELETE(request: NextRequest) {
     )
   }
   const borrowerAddress = address.toLowerCase()
-  const borrower = await findBorrowerWithPendingInvitation(
+  const registration = await prisma.borrowerRegistration.findUnique({
+    where: { chainId_address: { chainId, address: borrowerAddress } },
+    select: { invitedAt: true },
+  })
+  if (!registration?.invitedAt) {
+    return NextResponse.json(
+      { success: false, message: `No invitation for ${borrowerAddress}` },
+      { status: 404 },
+    )
+  }
+  const pendingInvitation = await findBorrowerWithPendingInvitation(
     borrowerAddress,
     chainId,
   )
-  await prisma.borrowerInvitation.delete({
-    where: {
-      chainId_address: {
-        chainId,
-        address: borrowerAddress,
-      },
-    },
-  })
-  if (borrower) {
-    // The versioned ToU records have no FK to Borrower, so clear both
-    // snapshots explicitly when the borrower is removed.
-    await prisma.$transaction([
-      prisma.serviceAgreementSignature.deleteMany({
-        where: {
-          chainId,
-          address: borrowerAddress,
-          party: "Borrower",
-        },
-      }),
-      prisma.serviceAgreementRefusal.deleteMany({
-        where: {
-          chainId,
-          address: borrowerAddress,
-          party: "Borrower",
-        },
-      }),
-      prisma.borrower.delete({
-        where: {
-          chainId_address: {
-            chainId,
-            address: borrowerAddress,
-          },
-        },
-      }),
-    ])
+  if (pendingInvitation) {
+    await deleteBorrowerRegistrations({ chainId, address: borrowerAddress })
+  } else {
+    await prisma.borrowerRegistration.update({
+      where: { chainId_address: { chainId, address: borrowerAddress } },
+      data: { invitedBy: null, invitedAt: null },
+    })
   }
   return NextResponse.json({ success: true })
 }
@@ -331,6 +329,17 @@ export async function PUT(request: NextRequest) {
       { status: 404 },
     )
   }
+  // A wallet joining an organisation that already acts through another
+  // wallet accepts under the organisation's name, and leaves the shared
+  // profile as it is; that changes only through a reviewed profile update.
+  if (borrowerInvitation.profileLocked && name !== borrowerInvitation.name) {
+    return NextResponse.json(
+      {
+        error: `This wallet joins ${borrowerInvitation.name}; accept the invitation under that name`,
+      },
+      { status: 409 },
+    )
+  }
   const verified = await verifyServiceAgreementSignature({
     agreement,
     chainId,
@@ -339,6 +348,7 @@ export async function PUT(request: NextRequest) {
     signature,
     timeSigned,
     organizationName: name,
+    borrowerId: borrowerInvitation.borrowerId,
   })
   if (!verified) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
@@ -362,21 +372,17 @@ export async function PUT(request: NextRequest) {
   // )
   await prisma.$transaction(async (transaction) => {
     if (
-      borrowerInvitation.name !== name ||
-      borrowerInvitation.description !== description ||
-      borrowerInvitation.entityKind !== entityKind ||
-      borrowerInvitation.founded !== founded ||
-      borrowerInvitation.headquarters !== headquarters ||
-      borrowerInvitation.jurisdiction !== jurisdiction ||
-      borrowerInvitation.physicalAddress !== physicalAddress
+      !borrowerInvitation.profileLocked &&
+      (borrowerInvitation.name !== name ||
+        borrowerInvitation.description !== description ||
+        borrowerInvitation.entityKind !== entityKind ||
+        borrowerInvitation.founded !== founded ||
+        borrowerInvitation.headquarters !== headquarters ||
+        borrowerInvitation.jurisdiction !== jurisdiction ||
+        borrowerInvitation.physicalAddress !== physicalAddress)
     ) {
       await transaction.borrower.update({
-        where: {
-          chainId_address: {
-            chainId,
-            address,
-          },
-        },
+        where: { id: borrowerInvitation.borrowerId },
         data: {
           name,
           description,

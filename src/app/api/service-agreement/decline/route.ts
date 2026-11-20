@@ -2,7 +2,7 @@ import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest, NextResponse } from "next/server"
 
 import { DeclineServiceAgreementInput } from "@/app/api/service-agreement/interface"
-import { prisma } from "@/lib/db"
+import { findBorrowerRegistration, prisma } from "@/lib/db"
 import {
   getCurrentServiceAgreement,
   isServiceAgreementTimeSignedInBounds,
@@ -73,18 +73,17 @@ export async function POST(request: NextRequest) {
   }
 
   let organizationName: string | undefined
+  let borrowerId: string | undefined
   if (party === "Borrower") {
-    const borrower = await prisma.borrower.findFirst({
-      where: { chainId, address },
-      select: { name: true },
-    })
-    if (!borrower?.name) {
+    const registration = await findBorrowerRegistration(chainId, address)
+    if (!registration) {
       return NextResponse.json(
         { error: `No borrower profile with a name for ${address}` },
         { status: 400 },
       )
     }
-    organizationName = borrower.name
+    organizationName = registration.borrower.name
+    borrowerId = registration.borrowerId
   }
 
   const verified = await verifyServiceAgreementRefusal({
@@ -96,6 +95,7 @@ export async function POST(request: NextRequest) {
     timeSigned,
     reason,
     organizationName,
+    borrowerId,
   })
   if (!verified) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })

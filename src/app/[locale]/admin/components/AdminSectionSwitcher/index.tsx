@@ -57,6 +57,13 @@ export const AdminSectionSwitcher = ({
         activeSection={activeSection}
         onSetSection={setActiveSection}
       />
+
+      <SwitcherButton
+        label={t("admin.customMla.section")}
+        section="customMlas"
+        activeSection={activeSection}
+        onSetSection={setActiveSection}
+      />
     </Box>
   )
 }

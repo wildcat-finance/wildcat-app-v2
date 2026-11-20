@@ -5,6 +5,7 @@ import { UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
 import { MlaModal } from "@/app/[locale]/borrower/components/MlaModal"
+import { useGetMlaTemplates } from "@/app/[locale]/borrower/hooks/mla/useGetMlaTemplates"
 import { usePreviewMlaFromForm } from "@/app/[locale]/borrower/hooks/mla/usePreviewMla"
 import { SignMlaFromFormInputs } from "@/app/[locale]/borrower/hooks/mla/useSignBorrowerMla"
 import { BorrowerProfile } from "@/app/api/profiles/interface"
@@ -25,12 +26,30 @@ import {
 } from "@/store/slices/createMarketSidebarSlice/createMarketSidebarSlice"
 import { COLORS } from "@/theme/colors"
 import { formatUtcMaturity } from "@/utils/formatters"
+import { getMlaTemplateLabel } from "@/utils/mlaTemplateLabel"
 
 import { ConfirmationFormProps } from "./interface"
 import { AlertContainer, DividerStyle, SubtitleStyle } from "./style"
 import { MarketValidationSchemaType } from "../../../validation/validationSchema"
 import { ConfirmationFormItem } from "../../ConfirmationFormItem"
 import { FormContainer, SectionGrid } from "../style"
+
+/// The MLA the market will be governed by: the market MLA or the borrower's
+/// named custom MLA.
+const SelectedMlaLabel = ({ mlaTemplateId }: { mlaTemplateId: number }) => {
+  const { t } = useTranslation()
+  const { data: templates } = useGetMlaTemplates()
+  const template = templates?.find(({ id }) => id === mlaTemplateId)
+  if (!template) return null
+  return (
+    <Typography variant="text3">
+      {getMlaTemplateLabel(t, {
+        ...template,
+        isCustom: !!template.borrowerId,
+      })}
+    </Typography>
+  )
+}
 
 const PreviewMlaModal = ({
   form,
@@ -269,22 +288,25 @@ export const ConfirmationForm = ({
             >
               {t("createNewMarket.buttons.viewMLA")}
             </Button> */}
-            <PreviewMlaModal
-              form={form}
-              mlaTemplateId={mlaTemplateId}
-              timeSigned={timeSigned}
-              borrowerProfile={borrowerData}
-              asset={tokenAsset}
-              salt={salt}
-              isSigning={false}
-              disabled={actionsLocked}
-              sx={{ width: "fit-content" }}
-              modalButtonVariant="contained"
-              modalButtonSize="small"
-              buttonText={t("createNewMarket.buttons.viewMLA")}
-              showSignButton={false}
-              isClosed={actionsLocked}
-            />
+            <Box sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <SelectedMlaLabel mlaTemplateId={mlaTemplateId} />
+              <PreviewMlaModal
+                form={form}
+                mlaTemplateId={mlaTemplateId}
+                timeSigned={timeSigned}
+                borrowerProfile={borrowerData}
+                asset={tokenAsset}
+                salt={salt}
+                isSigning={false}
+                disabled={actionsLocked}
+                sx={{ width: "fit-content" }}
+                modalButtonVariant="contained"
+                modalButtonSize="small"
+                buttonText={t("createNewMarket.buttons.viewMLA")}
+                showSignButton={false}
+                isClosed={actionsLocked}
+              />
+            </Box>
           </Box>
 
           <Divider sx={DividerStyle} />

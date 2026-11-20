@@ -31,6 +31,7 @@ import { Loader } from "@/components/Loader"
 import { toastError } from "@/components/Toasts"
 import { DECLINE_MLA_ASSIGNMENT_MESSAGE } from "@/config/mla-rejection"
 import { NETWORKS_BY_ID } from "@/config/network"
+import { useAuthToken } from "@/hooks/useApiAuth"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
@@ -50,6 +51,8 @@ import {
 } from "@/store/slices/createMarketSigningDraftsSlice/createMarketSigningDraftsSlice"
 import { removePendingSafeMessage } from "@/store/slices/pendingSafeMessagesSlice/pendingSafeMessagesSlice"
 import { COLORS } from "@/theme/colors"
+import { toDeployedNamePrefix } from "@/utils/marketName"
+import { isRetiredMlaTemplateError } from "@/utils/mlaTemplateRetirement"
 import { SERVICE_AGREEMENT_TIME_SIGNED_MAX_AGE_MS } from "@/utils/serviceAgreementMessage"
 
 import { BasicSetupForm } from "./components/Forms/BasicSetupForn"
@@ -123,6 +126,7 @@ export default function CreateMarketPage() {
   const { chainId: targetChainId } = useAppSelector(
     (state) => state.selectedNetwork,
   )
+  const authToken = useAuthToken(targetChainId)
   const signingDraftScope = address
     ? getCreateMarketSigningDraftScope(address, targetChainId)
     : undefined
@@ -625,7 +629,7 @@ export default function CreateMarketPage() {
             ? Number(marketParams.mla)
             : undefined,
         mlaSignature: mlaSignature.signature as string,
-        namePrefix: `${marketParams.namePrefix.trimEnd()} `,
+        namePrefix: toDeployedNamePrefix(marketParams.namePrefix),
         symbolPrefix: marketParams.symbolPrefix,
         annualInterestBips: Number(marketParams.annualInterestBips) * 100,
         delinquencyFeeBips: Number(marketParams.delinquencyFeeBips) * 100,
@@ -737,6 +741,7 @@ export default function CreateMarketPage() {
           tokenAsset,
           salt,
           NETWORKS_BY_ID[targetChainId as SupportedChainId],
+          authToken?.token,
         )
         currentMessage = currentMla.message
       }
@@ -753,9 +758,13 @@ export default function CreateMarketPage() {
       console.log(`clicked deploy`)
       setFinalOpen(true)
       handleDeployMarket()
-    } catch {
+    } catch (error) {
       setFinalOpen(false)
-      toastError("Couldn't validate the market agreement. Please try again.")
+      toastError(
+        isRetiredMlaTemplateError(error)
+          ? error.message
+          : "Couldn't validate the market agreement. Please try again.",
+      )
     } finally {
       setIsValidatingSignature(false)
     }
