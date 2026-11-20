@@ -138,28 +138,59 @@ export const FieldLabelSx = {
   marginBottom: "4px",
 }
 
-export const LenderTypeTilesSx = {
-  display: "grid",
-  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-  gap: "8px",
-}
-
-export const LenderTypeTileSx = (checked: boolean) => ({
-  width: "100%",
-  minHeight: "44px",
-  border: `1px solid ${checked ? COLORS.ultramarineBlue : COLORS.whiteLilac}`,
-  borderRadius: "8px",
-  padding: "6px 10px",
-  display: "flex",
-  alignItems: "center",
-  transition: "border-color 0.15s ease-in-out",
-  "&:hover": {
-    borderColor: checked ? COLORS.ultramarineBlue : COLORS.greySuit,
+export const LenderTypeSelectSx = (readOnly: boolean) => ({
+  "&.MuiInputBase-root": {
+    height: "44px",
+    ...(readOnly && {
+      backgroundColor: COLORS.whiteSmoke,
+      borderColor: "transparent",
+      "&:hover, &.Mui-focused": {
+        backgroundColor: COLORS.whiteSmoke,
+        borderColor: "transparent",
+      },
+    }),
   },
-  "&.Mui-disabled .MuiFormControlLabel-label": {
-    color: COLORS.santasGrey,
+  "& .MuiSelect-select.MuiInputBase-input": {
+    height: "20px",
+    minHeight: "20px",
+    padding: "11px 40px 11px 15px",
+    cursor: readOnly ? "default" : "pointer",
+  },
+  "& .MuiSelect-icon": {
+    display: readOnly ? "none" : "block",
   },
 })
+
+export const LenderTypePlaceholderSx = {
+  color: COLORS.santasGrey,
+}
+
+export const LenderTypeMenuSx = (width: number | undefined) => ({
+  "data-hj-suppress": true,
+  sx: {
+    zIndex: 10000,
+    "& .MuiPaper-root": {
+      minWidth: "0 !important",
+      width: width ? `${width}px` : "auto",
+      maxWidth: "calc(100vw - 16px)",
+    },
+  },
+  anchorOrigin: { vertical: "bottom" as const, horizontal: "left" as const },
+  transformOrigin: { vertical: "top" as const, horizontal: "left" as const },
+})
+
+export const LenderTypeMenuItemSx = {
+  display: "flex",
+  alignItems: "center",
+  gap: "10px",
+  whiteSpace: "normal",
+  "&.Mui-selected": {
+    color: COLORS.blackRock,
+    background: "transparent",
+    "&:hover": { background: COLORS.hintOfRed },
+    "&.Mui-focusVisible": { background: COLORS.hintOfRed },
+  },
+}
 
 export const TermsLabelSx = {
   display: "flex",

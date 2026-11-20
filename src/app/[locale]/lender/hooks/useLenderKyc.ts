@@ -3,9 +3,8 @@ import { useCallback } from "react"
 import { useMutation } from "@tanstack/react-query"
 
 import {
+  isLenderType,
   LENDER_KYC_SIGNATURE_MAX_AGE_MS,
-  LENDER_TYPES,
-  LenderType,
 } from "@/config/lender-kyc"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
@@ -25,9 +24,6 @@ import {
   normalizeLenderKycDetails,
 } from "@/utils/lenderKycMessage"
 
-const isLenderType = (value: unknown): value is LenderType =>
-  LENDER_TYPES.some((type) => type === value)
-
 const parsePendingDetails = (
   context?: Record<string, string | number | boolean>,
 ): LenderKycDetails | undefined => {
@@ -42,7 +38,7 @@ const parsePendingDetails = (
   try {
     const parsed: unknown = JSON.parse(context.detailsKey)
     if (!parsed || typeof parsed !== "object") return undefined
-    const { fullName, email, companyName, lenderType } = parsed as Record<
+    const { fullName, email, companyName, lenderTypes } = parsed as Record<
       string,
       unknown
     >
@@ -50,7 +46,8 @@ const parsePendingDetails = (
       typeof fullName !== "string" ||
       typeof email !== "string" ||
       typeof companyName !== "string" ||
-      (lenderType !== "" && !isLenderType(lenderType))
+      !Array.isArray(lenderTypes) ||
+      !lenderTypes.every(isLenderType)
     ) {
       return undefined
     }
@@ -58,7 +55,7 @@ const parsePendingDetails = (
       fullName,
       email,
       companyName,
-      lenderType,
+      lenderTypes,
     })
   } catch {
     return undefined

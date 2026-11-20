@@ -9,7 +9,7 @@ import {
   PrismaClient,
 } from "@prisma/client"
 
-import { LENDER_TYPES, LenderType } from "@/config/lender-kyc"
+import { LenderType, sortLenderTypes } from "@/config/lender-kyc"
 import {
   areLenderKycDetailsEqual,
   isLenderKycDetailsEmpty,
@@ -139,17 +139,18 @@ const toStart = (row: DbLenderKycStart): LenderKycStart => ({
   forwardedAt: row.forwardedAt?.toISOString(),
 })
 
-const toLenderType = (value: string | null): LenderType | "" =>
-  value && (LENDER_TYPES as readonly string[]).includes(value)
-    ? (value as LenderType)
-    : ""
+const toLenderTypes = (value: string | null): LenderType[] =>
+  value ? sortLenderTypes(value.split(",")) : []
+
+const fromLenderTypes = (values: LenderType[]) =>
+  values.length ? values.join(",") : null
 
 const toProfile = (row: DbLenderKycProfileRevision): LenderKycSavedProfile => ({
   details: {
     fullName: decryptLenderKycField("fullName", row.id, row.fullName),
     email: decryptLenderKycField("email", row.id, row.email),
     companyName: decryptLenderKycField("companyName", row.id, row.companyName),
-    lenderType: toLenderType(row.lenderType),
+    lenderTypes: toLenderTypes(row.lenderType),
   },
   savedAt: row.savedAt.toISOString(),
 })
@@ -166,7 +167,7 @@ const readRevisionDetails = (
         fullName: "",
         email: "",
         companyName: "",
-        lenderType: toLenderType(row.lenderType),
+        lenderTypes: toLenderTypes(row.lenderType),
       },
     }
   }
@@ -402,7 +403,7 @@ export const createPrismaLenderKycRepository = (
               id,
               normalized.companyName,
             ),
-            lenderType: normalized.lenderType || null,
+            lenderType: fromLenderTypes(normalized.lenderTypes),
             savedAt: now,
           },
         })

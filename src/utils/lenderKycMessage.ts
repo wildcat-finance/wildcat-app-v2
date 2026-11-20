@@ -4,6 +4,7 @@ import {
   LENDER_KYC_URI,
   LENDER_TYPE_MESSAGE_LABELS,
   LenderType,
+  sortLenderTypes,
 } from "@/config/lender-kyc"
 import { formatUnixMsAsDate } from "@/utils/formatters"
 
@@ -11,7 +12,7 @@ export type LenderKycDetails = {
   fullName: string
   email: string
   companyName: string
-  lenderType: LenderType | ""
+  lenderTypes: LenderType[]
 }
 
 export type LenderKycMessageKind = "details" | "ownership"
@@ -36,7 +37,7 @@ export const normalizeLenderKycDetails = (
   fullName: details.fullName.trim(),
   email: details.email.trim().toLowerCase(),
   companyName: details.companyName.trim(),
-  lenderType: details.lenderType,
+  lenderTypes: sortLenderTypes(details.lenderTypes),
 })
 
 export const isLenderKycDetailsEmpty = (details: LenderKycDetails) => {
@@ -45,7 +46,7 @@ export const isLenderKycDetailsEmpty = (details: LenderKycDetails) => {
     !normalized.fullName &&
     !normalized.email &&
     !normalized.companyName &&
-    !normalized.lenderType
+    !normalized.lenderTypes.length
   )
 }
 
@@ -59,7 +60,7 @@ export const areLenderKycDetailsEqual = (
     left.fullName === right.fullName &&
     left.email === right.email &&
     left.companyName === right.companyName &&
-    left.lenderType === right.lenderType
+    left.lenderTypes.join(",") === right.lenderTypes.join(",")
   )
 }
 
@@ -75,8 +76,10 @@ const buildDetailsBlock = (details: LenderKycDetails) => {
     `Email: ${valueOrNotProvided(normalized.email)}`,
     `Company: ${valueOrNotProvided(normalized.companyName)}`,
     `Lender type: ${
-      normalized.lenderType
-        ? LENDER_TYPE_MESSAGE_LABELS[normalized.lenderType]
+      normalized.lenderTypes.length
+        ? normalized.lenderTypes
+            .map((type) => LENDER_TYPE_MESSAGE_LABELS[type])
+            .join(", ")
         : NOT_PROVIDED
     }`,
   ].join("\n")

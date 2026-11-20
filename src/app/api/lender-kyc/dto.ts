@@ -68,6 +68,6 @@ export const LenderKycDetailsInputDTO = LenderKycSignedInputDTO.extend({
     fullName: TextFieldDTO,
     email: EmailFieldDTO,
     companyName: TextFieldDTO,
-    lenderType: z.union([z.literal(""), z.enum(LENDER_TYPES)]),
+    lenderTypes: z.array(z.enum(LENDER_TYPES)).max(LENDER_TYPES.length),
   }),
 })

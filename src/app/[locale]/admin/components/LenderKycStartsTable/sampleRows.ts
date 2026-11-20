@@ -16,7 +16,7 @@ export const LENDER_KYC_SAMPLE_ROWS: LenderKycWalletRow[] = [
       fullName: "Jane Doe",
       email: "jane@newcompany.com",
       companyName: "Company Ltd",
-      lenderType: "institutional",
+      lenderTypes: ["assetManagerInstitutionalFund", "corporateTreasury"],
     },
   },
   {
@@ -33,7 +33,7 @@ export const LENDER_KYC_SAMPLE_ROWS: LenderKycWalletRow[] = [
       fullName: "Jane Doe",
       email: "jane@newcompany.com",
       companyName: "Company Ltd",
-      lenderType: "institutional",
+      lenderTypes: ["individual"],
     },
   },
   {

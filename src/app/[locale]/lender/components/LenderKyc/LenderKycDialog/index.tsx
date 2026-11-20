@@ -31,7 +31,7 @@ import {
   KycTermsStatement,
 } from "./components/KycTermsCheckbox"
 import { KycTextField } from "./components/KycTextField"
-import { LenderTypeTiles } from "./components/LenderTypeTiles"
+import { LenderTypeSelect } from "./components/LenderTypeSelect"
 import { SignedMessagePreview } from "./components/SignedMessagePreview"
 import {
   BodyInnerSx,
@@ -250,10 +250,11 @@ export const LenderKycDialog = ({
       )}
 
       {withLoadingSkeleton(
-        <LenderTypeTiles
-          value={state.details.lenderType}
-          disabled={state.isSigning || state.fieldsReadOnly}
-          onChange={(value) => state.updateField("lenderType", value)}
+        <LenderTypeSelect
+          value={state.details.lenderTypes}
+          disabled={state.isSigning}
+          readOnly={state.fieldsReadOnly}
+          onChange={(value) => state.updateField("lenderTypes", value)}
         />,
       )}
 

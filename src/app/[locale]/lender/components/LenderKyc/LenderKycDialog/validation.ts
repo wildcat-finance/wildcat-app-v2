@@ -33,5 +33,5 @@ export const EMPTY_LENDER_KYC_DETAILS: LenderKycDetails = {
   fullName: "",
   email: "",
   companyName: "",
-  lenderType: "",
+  lenderTypes: [],
 }

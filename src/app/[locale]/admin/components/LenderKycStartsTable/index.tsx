@@ -128,8 +128,10 @@ export const LenderKycStartsTable = () => {
         name: row.details?.fullName || undefined,
         email: row.details?.email || undefined,
         company: row.details?.companyName || undefined,
-        lenderType: row.details?.lenderType
-          ? t(`lenderKyc.modal.lenderTypes.${row.details.lenderType}`)
+        lenderType: row.details?.lenderTypes.length
+          ? row.details.lenderTypes
+              .map((type) => t(`lenderKyc.modal.lenderTypes.${type}`))
+              .join(", ")
           : undefined,
       }))
   }, [data, showSampleRows, filter, outcomeFilter, t])
@@ -267,8 +269,8 @@ export const LenderKycStartsTable = () => {
     {
       field: "lenderType",
       headerName: t("admin.lenderKyc.columns.lenderType"),
-      minWidth: 130,
-      flex: 1,
+      minWidth: 200,
+      flex: 1.5,
       renderCell: ({ value }) => (
         <CellText value={value ?? notProvided} muted={!value} />
       ),
