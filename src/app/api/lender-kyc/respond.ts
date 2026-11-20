@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 
 import {
@@ -39,3 +39,11 @@ export const lenderKycErrorResponse = (error: unknown) => {
 
 export const lenderKycStorageUnavailable = () =>
   NextResponse.json({ error: "KYC storage is not configured" }, { status: 503 })
+
+export const withNoStore =
+  (handler: (request: NextRequest) => Promise<NextResponse>) =>
+  async (request: NextRequest) => {
+    const response = await handler(request)
+    response.headers.set("Cache-Control", "no-store")
+    return response
+  }

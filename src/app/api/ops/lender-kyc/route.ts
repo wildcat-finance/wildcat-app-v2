@@ -4,6 +4,7 @@ import { verifyApiToken } from "@/app/api/auth/verify-header"
 import {
   lenderKycErrorResponse,
   lenderKycStorageUnavailable,
+  withNoStore,
 } from "@/app/api/lender-kyc/respond"
 import {
   isLenderKycStorageConfigured,
@@ -12,7 +13,7 @@ import {
 import { isOpsAdmin, isOpsDatabaseConfigured } from "@/lib/opsDb"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
-export async function GET(request: NextRequest) {
+export const GET = withNoStore(async (request: NextRequest) => {
   const chainId = validateChainIdParam(request)
   if (!chainId) {
     return NextResponse.json({ error: "Invalid chain ID" }, { status: 400 })
@@ -34,6 +35,6 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     return lenderKycErrorResponse(error)
   }
-}
+})
 
 export const dynamic = "force-dynamic"

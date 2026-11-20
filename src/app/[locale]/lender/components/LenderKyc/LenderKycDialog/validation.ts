@@ -1,9 +1,12 @@
 import { z } from "zod"
 
 import { LENDER_KYC_FIELD_MAX_LENGTH } from "@/config/lender-kyc"
-import { LenderKycDetails } from "@/utils/lenderKycMessage"
+import {
+  hasLenderKycForbiddenCharacters,
+  LenderKycDetails,
+} from "@/utils/lenderKycMessage"
 
-export type LenderKycFieldError = "email" | "tooLong"
+export type LenderKycFieldError = "email" | "tooLong" | "invalidCharacters"
 
 export type LenderKycFieldErrors = Partial<
   Record<"fullName" | "email" | "companyName", LenderKycFieldError>
@@ -11,18 +14,24 @@ export type LenderKycFieldErrors = Partial<
 
 const emailSchema = z.string().email()
 
+const validateText = (value: string): LenderKycFieldError | undefined => {
+  if (hasLenderKycForbiddenCharacters(value)) return "invalidCharacters"
+  if (value.trim().length > LENDER_KYC_FIELD_MAX_LENGTH) return "tooLong"
+  return undefined
+}
+
 export const validateLenderKycDetails = (
   details: LenderKycDetails,
 ): LenderKycFieldErrors => {
   const errors: LenderKycFieldErrors = {}
-  const fullName = details.fullName.trim()
   const email = details.email.trim()
-  const companyName = details.companyName.trim()
 
-  if (fullName.length > LENDER_KYC_FIELD_MAX_LENGTH) errors.fullName = "tooLong"
-  if (companyName.length > LENDER_KYC_FIELD_MAX_LENGTH)
-    errors.companyName = "tooLong"
-  if (email.length > LENDER_KYC_FIELD_MAX_LENGTH) errors.email = "tooLong"
+  const fullNameError = validateText(details.fullName)
+  if (fullNameError) errors.fullName = fullNameError
+  const companyNameError = validateText(details.companyName)
+  if (companyNameError) errors.companyName = companyNameError
+  const emailError = validateText(details.email)
+  if (emailError) errors.email = emailError
   else if (email && !emailSchema.safeParse(email).success)
     errors.email = "email"
 

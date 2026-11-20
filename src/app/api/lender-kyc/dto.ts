@@ -1,6 +1,9 @@
 import { z } from "zod"
 
 import { LENDER_KYC_FIELD_MAX_LENGTH, LENDER_TYPES } from "@/config/lender-kyc"
+import { hasLenderKycForbiddenCharacters } from "@/utils/lenderKycMessage"
+
+const MAX_DATE_MS = 8_640_000_000_000_000
 
 const AddressDTO = z
   .string()
@@ -14,6 +17,9 @@ const TextFieldDTO = z
   .max(LENDER_KYC_FIELD_MAX_LENGTH * 4)
   .refine((value) => value.trim().length <= LENDER_KYC_FIELD_MAX_LENGTH, {
     message: "tooLong",
+  })
+  .refine((value) => !hasLenderKycForbiddenCharacters(value), {
+    message: "invalidCharacters",
   })
 
 const EmailFieldDTO = TextFieldDTO.refine(
@@ -39,7 +45,7 @@ export const LenderKycSignedInputDTO = z.object({
   chainId: ChainIdDTO,
   nonce: z.string().regex(/^[0-9a-f]{32}$/),
   secret: z.string().regex(/^[0-9a-f]{64}$/),
-  timeSigned: z.number().int().positive(),
+  timeSigned: z.number().int().positive().max(MAX_DATE_MS),
   signature: z
     .string()
     .regex(/^0x([0-9a-fA-F]{2})*$/)

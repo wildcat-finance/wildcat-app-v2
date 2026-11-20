@@ -8,9 +8,13 @@ import { isOpsDatabaseConfigured } from "@/lib/opsDb"
 import { getZodParseError } from "@/lib/zod-error"
 
 import { LenderKycStatusQueryDTO } from "../dto"
-import { lenderKycErrorResponse, lenderKycStorageUnavailable } from "../respond"
+import {
+  lenderKycErrorResponse,
+  lenderKycStorageUnavailable,
+  withNoStore,
+} from "../respond"
 
-export async function GET(request: NextRequest) {
+export const GET = withNoStore(async (request: NextRequest) => {
   if (!isOpsDatabaseConfigured()) return lenderKycStorageUnavailable()
   const { searchParams } = request.nextUrl
   const parsed = LenderKycStatusQueryDTO.safeParse({
@@ -32,6 +36,6 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     return lenderKycErrorResponse(error)
   }
-}
+})
 
 export const dynamic = "force-dynamic"

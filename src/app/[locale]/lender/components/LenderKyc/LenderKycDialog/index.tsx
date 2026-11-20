@@ -180,11 +180,13 @@ export const LenderKycDialog = ({
   const errorText = (field: "fullName" | "email" | "companyName") => {
     const error = state.fieldErrors[field]
     if (!error) return undefined
-    return error === "email"
-      ? t("lenderKyc.modal.errors.email")
-      : t("lenderKyc.modal.errors.tooLong", {
-          max: LENDER_KYC_FIELD_MAX_LENGTH,
-        })
+    if (error === "email") return t("lenderKyc.modal.errors.email")
+    if (error === "invalidCharacters") {
+      return t("lenderKyc.modal.errors.invalidCharacters")
+    }
+    return t("lenderKyc.modal.errors.tooLong", {
+      max: LENDER_KYC_FIELD_MAX_LENGTH,
+    })
   }
 
   const withLoadingSkeleton = (node: ReactNode) =>

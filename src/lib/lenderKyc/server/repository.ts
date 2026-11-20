@@ -87,6 +87,11 @@ export type LenderKycRepository = {
     address: string,
     chainId: number,
   ): Promise<LenderKycSavedProfile | undefined>
+  findProfileSavedAt(
+    address: string,
+    chainId: number,
+    at: Date,
+  ): Promise<Date | undefined>
   recordSignedDetails(
     signed: LenderKycSignedRecord,
     details: LenderKycDetails,
@@ -136,6 +141,20 @@ const findVisibleRevision = (
     where: { address, chainId },
     orderBy: { savedAt: "desc" },
   })
+
+const lockWallet = (
+  client: Prisma.TransactionClient,
+  address: string,
+  chainId: number,
+) =>
+  client.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`lender-kyc:${chainId}:${address}`}, 0))`
+
+const nextSavedAt = (previous: Date | undefined) => {
+  const now = new Date()
+  return previous && previous.getTime() >= now.getTime()
+    ? new Date(previous.getTime() + 1)
+    : now
+}
 
 const burnNonce = async (
   client: Prisma.TransactionClient,
@@ -233,17 +252,27 @@ export const createPrismaLenderKycRepository = (
     return revision ? toProfile(revision) : undefined
   },
 
+  async findProfileSavedAt(address, chainId, at) {
+    const revision = await database.lenderKycProfileRevision.findFirst({
+      where: { address, chainId, savedAt: { lt: at } },
+      orderBy: { savedAt: "desc" },
+      select: { savedAt: true },
+    })
+    return revision?.savedAt
+  },
+
   async recordSignedDetails(signed, details) {
     const normalized = normalizeLenderKycDetails(details)
     const isEmpty = isLenderKycDetailsEmpty(normalized)
     return database.$transaction(async (tx) => {
-      const now = new Date()
-      await burnNonce(tx, signed.nonce, now)
+      await lockWallet(tx, signed.address, signed.chainId)
       const previousRevision = await findVisibleRevision(
         tx,
         signed.address,
         signed.chainId,
       )
+      const now = nextSavedAt(previousRevision?.savedAt)
+      await burnNonce(tx, signed.nonce, now)
       const previous = previousRevision
         ? toProfile(previousRevision)
         : undefined

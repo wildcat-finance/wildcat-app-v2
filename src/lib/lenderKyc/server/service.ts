@@ -154,15 +154,19 @@ const replayDetails = async (
   details: LenderKycDetails,
   replay: LenderKycStoredSignature,
 ): Promise<LenderKycDetailsResult> => {
-  const profile = await repository.getVisibleProfile(
-    input.address,
-    input.chainId,
-  )
+  const savedAt =
+    replay.outcome === "unchanged"
+      ? await repository.findProfileSavedAt(
+          input.address,
+          input.chainId,
+          replay.createdAt,
+        )
+      : undefined
   return {
     outcome: replay.outcome,
-    profile: profile ?? {
+    profile: {
       details: normalizeLenderKycDetails(details),
-      savedAt: replay.createdAt.toISOString(),
+      savedAt: (savedAt ?? replay.createdAt).toISOString(),
     },
   }
 }

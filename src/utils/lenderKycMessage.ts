@@ -28,15 +28,26 @@ export type LenderKycMessageInput = {
 
 const NOT_PROVIDED = "Not provided"
 
+const FORBIDDEN_CHARACTERS =
+  /[\p{Cc}\u061c\u200e\u200f\u2028\u2029\u202a-\u202e\u2066-\u2069\ufeff]/u
+
+export const hasLenderKycForbiddenCharacters = (value: string) =>
+  FORBIDDEN_CHARACTERS.test(value.trim())
+
 const valueOrNotProvided = (value: string | undefined) =>
   value && value.trim() ? value.trim() : NOT_PROVIDED
+
+const normalizeText = (value: string) => {
+  const trimmed = value.trim()
+  return trimmed === NOT_PROVIDED ? "" : trimmed
+}
 
 export const normalizeLenderKycDetails = (
   details: LenderKycDetails,
 ): LenderKycDetails => ({
-  fullName: details.fullName.trim(),
-  email: details.email.trim().toLowerCase(),
-  companyName: details.companyName.trim(),
+  fullName: normalizeText(details.fullName),
+  email: normalizeText(details.email).toLowerCase(),
+  companyName: normalizeText(details.companyName),
   lenderTypes: sortLenderTypes(details.lenderTypes),
 })
 
