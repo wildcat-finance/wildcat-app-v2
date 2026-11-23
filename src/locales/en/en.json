@@ -86,6 +86,9 @@
       "description": "Some markets accept only verified lenders. Wildcat verification runs on SOMA.finance.",
       "button": "Get verified"
     },
+    "sidebar": {
+      "button": "Get Verified"
+    },
     "modal": {
       "title": "Get verified via SOMA.finance",
       "close": "Close",

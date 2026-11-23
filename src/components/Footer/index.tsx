@@ -169,7 +169,7 @@ export const Footer = ({
               }}
               onClick={handleOpenKycDialog}
             >
-              {t("lenderKyc.card.button")}
+              {t("lenderKyc.sidebar.button")}
               {kycDot}
             </Button>
           )}
@@ -246,7 +246,7 @@ export const Footer = ({
                 }}
                 onClick={handleOpenKycDialog}
               >
-                {t("lenderKyc.card.button")}
+                {t("lenderKyc.sidebar.button")}
                 {kycDot}
               </Button>
             )}

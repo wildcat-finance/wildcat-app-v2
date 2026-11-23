@@ -624,7 +624,7 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                     >
                       <Box sx={{ display: "flex", alignItems: "center" }}>
                         <Typography variant="text3">
-                          {t("lenderKyc.card.button")}
+                          {t("lenderKyc.sidebar.button")}
                         </Typography>
                         {kycStatus?.hasSigned && (
                           <StatusDot color={COLORS.galliano} />
