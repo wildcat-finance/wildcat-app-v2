@@ -31,7 +31,6 @@ import { Loader } from "@/components/Loader"
 import { toastError } from "@/components/Toasts"
 import { DECLINE_MLA_ASSIGNMENT_MESSAGE } from "@/config/mla-rejection"
 import { NETWORKS_BY_ID } from "@/config/network"
-import { useAuthToken } from "@/hooks/useApiAuth"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
@@ -126,7 +125,6 @@ export default function CreateMarketPage() {
   const { chainId: targetChainId } = useAppSelector(
     (state) => state.selectedNetwork,
   )
-  const authToken = useAuthToken(targetChainId)
   const signingDraftScope = address
     ? getCreateMarketSigningDraftScope(address, targetChainId)
     : undefined
@@ -741,7 +739,6 @@ export default function CreateMarketPage() {
           tokenAsset,
           salt,
           NETWORKS_BY_ID[targetChainId as SupportedChainId],
-          authToken?.token,
         )
         currentMessage = currentMla.message
       }

@@ -110,9 +110,14 @@ describeWithDatabase("custom MLAs against Postgres", () => {
       headers: init.token ? { Authorization: `Bearer ${init.token}` } : {},
     })
 
-  const listedIds = async (chainId: number, token?: string) => {
+  // The app names the wallet it is connected with; no login is needed.
+  const listedIds = async (chainId: number, wallet?: string) => {
     const response = await listTemplates(
-      request(`/api/mla/templates?chainId=${chainId}`, { token }),
+      request(
+        `/api/mla/templates?chainId=${chainId}${
+          wallet ? `&borrower=${wallet}` : ""
+        }`,
+      ),
     )
     return ((await response.json()) as MlaTemplateMetadata[]).map(
       ({ id }) => id,
@@ -218,24 +223,20 @@ describeWithDatabase("custom MLAs against Postgres", () => {
   })
 
   it("lists it for its borrower on every network of the class, and for nobody else", async () => {
-    expect(await listedIds(SEPOLIA, tokenFor(ownSepolia, SEPOLIA))).toContain(
-      templateId,
-    )
-    expect(
-      await listedIds(PLASMA_TESTNET, tokenFor(ownPlasma, PLASMA_TESTNET)),
-    ).toContain(templateId)
-    expect(
-      await listedIds(SEPOLIA, tokenFor(otherSepolia, SEPOLIA)),
-    ).not.toContain(templateId)
+    expect(await listedIds(SEPOLIA, ownSepolia)).toContain(templateId)
+    expect(await listedIds(PLASMA_TESTNET, ownPlasma)).toContain(templateId)
+    expect(await listedIds(SEPOLIA, otherSepolia)).not.toContain(templateId)
     expect(await listedIds(SEPOLIA)).not.toContain(templateId)
 
-    const hidden = await getTemplate(
-      request(`/api/mla/templates/${templateId}?chainId=${SEPOLIA}`, {
-        token: tokenFor(otherSepolia, SEPOLIA),
-      }),
-      { params: { id: String(templateId) } },
-    )
-    expect(hidden.status).toBe(404)
+    const readAs = (wallet: string) =>
+      getTemplate(
+        request(
+          `/api/mla/templates/${templateId}?chainId=${SEPOLIA}&borrower=${wallet}`,
+        ),
+        { params: { id: String(templateId) } },
+      )
+    expect((await readAs(otherSepolia)).status).toBe(404)
+    expect((await readAs(ownSepolia)).status).toBe(200)
   })
 
   it("attaches only to the owning borrower's markets", async () => {
@@ -265,9 +266,7 @@ describeWithDatabase("custom MLAs against Postgres", () => {
       { params: { id: String(templateId) } },
     )
     expect(retired.status).toBe(200)
-    expect(
-      await listedIds(SEPOLIA, tokenFor(ownSepolia, SEPOLIA)),
-    ).not.toContain(templateId)
+    expect(await listedIds(SEPOLIA, ownSepolia)).not.toContain(templateId)
     expect((await assign(lateMarket, ownSepolia)).status).toBe(400)
 
     const html = await marketHtml(

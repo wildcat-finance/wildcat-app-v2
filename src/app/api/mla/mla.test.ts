@@ -133,8 +133,11 @@ beforeEach(() => {
 })
 
 describe("GET /api/mla/templates", () => {
-  it("lists only market MLAs without a login", async () => {
-    await listTemplates(request(`/api/mla/templates?chainId=${SEPOLIA}`))
+  it("lists only market MLAs when no borrower wallet is named", async () => {
+    await listTemplates(
+      request(`/api/mla/templates?chainId=${SEPOLIA}&borrower=0xnot-a-wallet`),
+    )
+    expect(findBorrowerRegistration).not.toHaveBeenCalled()
     expect(prisma.mlaTemplate.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { isTestnet: true, retiredAt: null, OR: [{ borrowerId: null }] },
@@ -142,12 +145,19 @@ describe("GET /api/mla/templates", () => {
     )
   })
 
-  it("adds the logged-in borrower's own custom MLAs", async () => {
-    loginAs(BORROWER_ADDRESS)
+  it("adds the custom MLAs of the named wallet's organisation, without a login", async () => {
     jest
       .mocked(findBorrowerRegistration)
       .mockResolvedValue(registration(OWN_BORROWER))
-    await listTemplates(request(`/api/mla/templates?chainId=${SEPOLIA}`))
+    await listTemplates(
+      request(
+        `/api/mla/templates?chainId=${SEPOLIA}&borrower=${BORROWER_ADDRESS}`,
+      ),
+    )
+    expect(findBorrowerRegistration).toHaveBeenCalledWith(
+      SEPOLIA,
+      BORROWER_ADDRESS,
+    )
     expect(prisma.mlaTemplate.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: {
@@ -161,33 +171,30 @@ describe("GET /api/mla/templates", () => {
 })
 
 describe("GET /api/mla/templates/[id]", () => {
-  it("hides another borrower's custom MLA", async () => {
-    loginAs(BORROWER_ADDRESS)
-    jest
-      .mocked(findBorrowerRegistration)
-      .mockResolvedValue(registration(OTHER_BORROWER))
+  const getOwnTemplate = (query = `&borrower=${BORROWER_ADDRESS}`) =>
+    getTemplate(request(`/api/mla/templates/7?chainId=${SEPOLIA}${query}`), {
+      params: { id: "7" },
+    })
+
+  it("hides a custom MLA from other borrowers' wallets and from no wallet", async () => {
     jest
       .mocked(prisma.mlaTemplate.findFirst)
       .mockResolvedValue(template() as never)
-    const response = await getTemplate(
-      request(`/api/mla/templates/7?chainId=${SEPOLIA}`),
-      { params: { id: "7" } },
-    )
-    expect(response.status).toBe(404)
+    jest
+      .mocked(findBorrowerRegistration)
+      .mockResolvedValue(registration(OTHER_BORROWER))
+    expect((await getOwnTemplate()).status).toBe(404)
+    expect((await getOwnTemplate("")).status).toBe(404)
   })
 
-  it("shows a custom MLA to its borrower", async () => {
-    loginAs(BORROWER_ADDRESS)
+  it("shows a custom MLA to its borrower's wallet, without a login", async () => {
     jest
       .mocked(findBorrowerRegistration)
       .mockResolvedValue(registration(OWN_BORROWER))
     jest
       .mocked(prisma.mlaTemplate.findFirst)
       .mockResolvedValue(template() as never)
-    const response = await getTemplate(
-      request(`/api/mla/templates/7?chainId=${SEPOLIA}`),
-      { params: { id: "7" } },
-    )
+    const response = await getOwnTemplate()
     expect(response.status).toBe(200)
     expect(await response.json()).toMatchObject({
       id: 7,
@@ -196,8 +203,16 @@ describe("GET /api/mla/templates/[id]", () => {
     })
   })
 
+  it("shows any custom MLA to an admin of the network class", async () => {
+    loginAs(BORROWER_ADDRESS, true)
+    jest.mocked(isAdminForNetworkClass).mockResolvedValue(true)
+    jest
+      .mocked(prisma.mlaTemplate.findFirst)
+      .mockResolvedValue(template() as never)
+    expect((await getOwnTemplate("")).status).toBe(200)
+  })
+
   it("returns a retired template with its retirement time", async () => {
-    loginAs(BORROWER_ADDRESS)
     jest
       .mocked(findBorrowerRegistration)
       .mockResolvedValue(registration(OWN_BORROWER))
@@ -205,10 +220,7 @@ describe("GET /api/mla/templates/[id]", () => {
     jest
       .mocked(prisma.mlaTemplate.findFirst)
       .mockResolvedValue(template({ retiredAt }) as never)
-    const response = await getTemplate(
-      request(`/api/mla/templates/7?chainId=${SEPOLIA}`),
-      { params: { id: "7" } },
-    )
+    const response = await getOwnTemplate()
     expect(response.status).toBe(200)
     expect(await response.json()).toMatchObject({
       retiredAt: retiredAt.toISOString(),

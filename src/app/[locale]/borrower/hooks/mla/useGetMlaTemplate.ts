@@ -14,7 +14,7 @@ export const useGetMlaTemplate = (id: number | undefined) => {
   const authToken = token?.chainId === chainId ? token.token : undefined
   return useQuery({
     queryKey: QueryKeys.Borrower.GET_MLA_TEMPLATE(chainId, id, token?.address),
-    queryFn: () => fetchMlaTemplate(chainId, id as number, authToken),
+    queryFn: () => fetchMlaTemplate(chainId, id as number, { authToken }),
     enabled: !!chainId && id !== undefined,
   })
 }

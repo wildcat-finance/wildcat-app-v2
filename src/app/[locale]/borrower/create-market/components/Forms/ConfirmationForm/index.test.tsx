@@ -16,7 +16,7 @@ jest.mock("@/app/[locale]/borrower/hooks/mla/usePreviewMla", () => ({
 }))
 
 jest.mock("@/app/[locale]/borrower/hooks/mla/useGetMlaTemplates", () => ({
-  useGetMlaTemplates: () => ({ data: [], isLoading: false, isLoggedIn: false }),
+  useGetMlaTemplates: () => ({ data: [], isLoading: false }),
 }))
 
 jest.mock("@/app/[locale]/borrower/components/MlaModal", () => ({

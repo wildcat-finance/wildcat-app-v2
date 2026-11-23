@@ -14,9 +14,6 @@ jest.mock("react-i18next", () => ({
       values?.name ? `${key}:${values.name}` : key,
   }),
 }))
-jest.mock("@/app/[locale]/borrower/components/CustomMlaLoginHint", () => ({
-  CustomMlaLoginHint: () => null,
-}))
 jest.mock("@/app/[locale]/borrower/hooks/mla/useGetMlaTemplates", () => ({
   useGetMlaTemplates: () => ({
     data: [
@@ -31,7 +28,6 @@ jest.mock("@/app/[locale]/borrower/hooks/mla/useGetMlaTemplates", () => ({
         borrowerId: "11111111-1111-4111-8111-111111111111",
       },
     ],
-    isLoggedIn: true,
   }),
 }))
 jest.mock("@/app/[locale]/borrower/hooks/mla/usePreviewMla", () => ({

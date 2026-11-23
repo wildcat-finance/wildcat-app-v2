@@ -20,9 +20,10 @@ import { UpdateMlaTemplateInputDTO } from "../dto"
 const parseTemplateId = (id: string) =>
   /^\d+$/.test(id) ? Number.parseInt(id, 10) : undefined
 
-/// GET /api/mla/templates/[id]?chainId=<chainId>
+/// GET /api/mla/templates/[id]?chainId=<chainId>&borrower=<wallet>
 /// Route to get the full content of an MLA template. A custom MLA is visible
-/// only to its borrower (API token for this network) and to admins. A retired
+/// only to its borrower's wallets (named in `borrower`) and to admins (API
+/// token for this network). A retired
 /// template is still returned, with `retiredAt`, so agreements signed before
 /// retirement can be checked and completed; signing refuses it after that.
 export async function GET(

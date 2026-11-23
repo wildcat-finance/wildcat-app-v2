@@ -15,7 +15,6 @@ import { lastSlaUpdateTime } from "@/app/api/mla/interface"
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 import { NetworkInfo } from "@/config/network"
 import { QueryKeys } from "@/config/query-keys"
-import { useAuthToken } from "@/hooks/useApiAuth"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import {
@@ -107,8 +106,6 @@ export async function getMlaFromForm(
   asset: Token,
   salt: string,
   networkData: NetworkInfo,
-  // The borrower's API token for the network: a custom MLA needs it.
-  authToken?: string,
 ) {
   const hooksFactoryContract = getHooksFactoryContract(
     networkData.chainId,
@@ -116,10 +113,13 @@ export async function getMlaFromForm(
   )
   const marketAddress = await hooksFactoryContract.computeMarketAddress(salt)
 
+  // A custom MLA is returned for its borrower's wallet.
   const mlaTemplate = await fetchMlaTemplate(
     networkData.chainId,
     mlaTemplateId,
-    authToken,
+    {
+      borrower: borrowerProfile.address,
+    },
   )
   // Signing and the check before deploying both come through here, so a
   // template retired since it was picked stops the flow before the market is
@@ -173,9 +173,6 @@ export const usePreviewMlaFromForm = (
   const { provider } = useEthersProvider()
   const { data: marketAddress } = useCalculateMarketAddress(salt)
   const selectedNetwork = useSelectedNetwork()
-  const token = useAuthToken()
-  const authToken =
-    token?.chainId === selectedNetwork.chainId ? token.token : undefined
   return useQuery({
     refetchOnMount: true,
     queryKey: QueryKeys.Borrower.PREVIEW_MLA.FROM_FORM(
@@ -201,7 +198,6 @@ export const usePreviewMlaFromForm = (
         asset,
         salt,
         selectedNetwork,
-        authToken,
       )
     },
   })
@@ -213,9 +209,6 @@ export const usePreviewMla = (
   borrowerProfile: BorrowerProfile | undefined,
 ) => {
   const selectedNetwork = useSelectedNetwork()
-  const token = useAuthToken()
-  const authToken =
-    token?.chainId === selectedNetwork.chainId ? token.token : undefined
   return useQuery({
     enabled:
       !!mlaTemplateId &&
@@ -236,7 +229,7 @@ export const usePreviewMla = (
       const mlaTemplate = await fetchMlaTemplate(
         selectedNetwork.chainId,
         mlaTemplateId,
-        authToken,
+        { borrower: market.borrower },
       )
       assertMlaTemplateSignableAt(mlaTemplate, timeSigned)
       const borrowerValues = getFieldValuesForBorrower({

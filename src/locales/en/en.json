@@ -85,8 +85,6 @@
     "noMla": "No MLA",
     "governing": "Governing MLA: {{name}}",
     "viewNamed": "View/Sign {{name}}",
-    "loginForCustom": "Log in to see the custom MLAs registered for your organisation.",
-    "login": "Log in",
     "signAndSet": "Sign and set this MLA",
     "signing": "Signing...",
     "previewCaption": "This is the agreement you sign, filled in for this market. Each lender's details are added when they sign.",

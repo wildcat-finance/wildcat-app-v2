@@ -14,7 +14,6 @@ import {
 import type { MarketAccount } from "@wildcatfi/wildcat-sdk"
 import { useTranslation } from "react-i18next"
 
-import { CustomMlaLoginHint } from "@/app/[locale]/borrower/components/CustomMlaLoginHint"
 import { useGetMlaTemplates } from "@/app/[locale]/borrower/hooks/mla/useGetMlaTemplates"
 import { usePreviewMla } from "@/app/[locale]/borrower/hooks/mla/usePreviewMla"
 import {
@@ -41,7 +40,7 @@ const SetMarketMLAForm = ({
   marketAccount: MarketAccount
 }) => {
   const { t } = useTranslation()
-  const { data: templates, isLoggedIn } = useGetMlaTemplates()
+  const { data: templates } = useGetMlaTemplates()
   const [timeSigned, setTimeSigned] = useState(0)
   const [selectedTemplateId, setSelectedTemplateId] = useState<
     number | "noMLA" | undefined
@@ -81,7 +80,6 @@ const SetMarketMLAForm = ({
       <Typography variant="h6">
         {t("borrowerMarketDetails.mla.template.label")}
       </Typography>
-      {!isLoggedIn && <CustomMlaLoginHint />}
       <Box
         sx={{
           display: "flex",

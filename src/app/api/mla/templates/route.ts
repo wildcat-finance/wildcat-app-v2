@@ -15,10 +15,10 @@ import { CreateMlaTemplateInputDTO } from "./dto"
 import { isAdminForChain, verifyApiToken } from "../../auth/verify-header"
 import { CreateMlaTemplateInput, MlaTemplateMetadata } from "../interface"
 
-/// GET /api/mla/templates?chainId=<chainId>
+/// GET /api/mla/templates?chainId=<chainId>&borrower=<wallet>
 /// The MLA templates a borrower may pick on this network: the market MLAs of
-/// the network's class, plus the caller's own custom MLAs when the request
-/// carries the borrower's API token for this network.
+/// the network's class, plus the custom MLAs of the organisation that
+/// `borrower` (the wallet the app is connected with) borrows for.
 export async function GET(request: NextRequest) {
   const chainId = validateChainIdParam(request)
   if (!chainId) {

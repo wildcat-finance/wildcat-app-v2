@@ -14,7 +14,6 @@ import { toastRequest } from "@/components/Toasts"
 import { DECLINE_MLA_ASSIGNMENT_MESSAGE } from "@/config/mla-rejection"
 import { NETWORKS_BY_ID } from "@/config/network"
 import { QueryKeys } from "@/config/query-keys"
-import { useAuthToken } from "@/hooks/useApiAuth"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
@@ -229,7 +228,6 @@ export const useSignMla = (salt: string) => {
   const store = useAppStore()
   const client = useQueryClient()
   const { chainId } = useSelectedNetwork()
-  const authToken = useAuthToken(chainId)?.token
 
   const { data: marketAddress } = useCalculateMarketAddress(salt)
 
@@ -300,7 +298,6 @@ export const useSignMla = (salt: string) => {
               asset,
               salt,
               NETWORKS_BY_ID[chainId as SupportedChainId],
-              authToken,
             )
             return mlaData.message
           },

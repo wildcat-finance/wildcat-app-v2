@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client"
 import { SupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { NextRequest } from "next/server"
+import { isAddress } from "viem"
 
 import {
   isAdminForNetworkClass,
@@ -11,8 +12,11 @@ import { isTestnetChain } from "@/lib/networkClass"
 import { isMlaTemplateSignableAt } from "@/utils/mlaTemplateRetirement"
 
 /// Who is asking for MLA templates on a network: the organisation of the
-/// account logged in on that network, if any, and whether it administers the
-/// network's class. Custom MLAs are visible to their borrower and to admins.
+/// wallet the request names in `borrower`, if it borrows on that network, and
+/// whether the caller is logged in as an admin of the network's class. Custom
+/// MLAs are visible to their borrower and to admins. Naming a wallet needs no
+/// signature: the app sends the wallet it is connected with, and asking a
+/// borrower to log in just to see its custom MLAs was judged not worth it.
 export type MlaTemplateViewer = {
   borrowerId?: string
   isAdmin: boolean
@@ -22,11 +26,15 @@ export async function getMlaTemplateViewer(
   request: NextRequest,
   chainId: SupportedChainId,
 ): Promise<MlaTemplateViewer> {
+  const wallet = request.nextUrl.searchParams.get("borrower")
   const token = await verifyApiToken(request)
-  if (!token || token.chainId !== chainId) return { isAdmin: false }
   const [registration, isAdmin] = await Promise.all([
-    findBorrowerRegistration(chainId, token.address),
-    isAdminForNetworkClass(token, isTestnetChain(chainId)),
+    wallet && isAddress(wallet)
+      ? findBorrowerRegistration(chainId, wallet)
+      : undefined,
+    token && token.chainId === chainId
+      ? isAdminForNetworkClass(token, isTestnetChain(chainId))
+      : false,
   ])
   return { borrowerId: registration?.borrowerId, isAdmin }
 }
