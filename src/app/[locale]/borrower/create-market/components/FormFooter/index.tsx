@@ -12,6 +12,7 @@ export const FormFooter = ({
   backOnClick,
   nextOnClick,
   disableNext,
+  secondaryAction,
 }: FormFooterProps) => {
   const { t } = useTranslation()
 
@@ -35,15 +36,18 @@ export const FormFooter = ({
         {t("createNewMarket.buttons.back")}
       </Button>
 
-      <Button
-        size="large"
-        variant="contained"
-        sx={{ width: "140px" }}
-        disabled={disableNext}
-        onClick={nextOnClick}
-      >
-        {t("createNewMarket.buttons.next")}
-      </Button>
+      <Box sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        {secondaryAction}
+        <Button
+          size="large"
+          variant="contained"
+          sx={{ width: "140px" }}
+          disabled={disableNext}
+          onClick={nextOnClick}
+        >
+          {t("createNewMarket.buttons.next")}
+        </Button>
+      </Box>
     </Box>
   )
 }

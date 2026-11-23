@@ -1,14 +1,9 @@
-import { Box, Button, Divider, SxProps, Theme, Typography } from "@mui/material"
+import { Box, Button, Divider, Typography } from "@mui/material"
 import SvgIcon from "@mui/material/SvgIcon"
-import { Token } from "@wildcatfi/wildcat-sdk"
-import { UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
-import { MlaModal } from "@/app/[locale]/borrower/components/MlaModal"
+import { PreviewMlaModal } from "@/app/[locale]/borrower/create-market/components/PreviewMlaModal"
 import { useGetMlaTemplates } from "@/app/[locale]/borrower/hooks/mla/useGetMlaTemplates"
-import { usePreviewMlaFromForm } from "@/app/[locale]/borrower/hooks/mla/usePreviewMla"
-import { SignMlaFromFormInputs } from "@/app/[locale]/borrower/hooks/mla/useSignBorrowerMla"
-import { BorrowerProfile } from "@/app/api/profiles/interface"
 import BackArrow from "@/assets/icons/arrowLeft_icon.svg"
 import Info from "@/assets/icons/info_icon.svg"
 import ELFsByCountry from "@/config/elfs-by-country.json"
@@ -30,7 +25,6 @@ import { getMlaTemplateLabel } from "@/utils/mlaTemplateLabel"
 
 import { ConfirmationFormProps } from "./interface"
 import { AlertContainer, DividerStyle, SubtitleStyle } from "./style"
-import { MarketValidationSchemaType } from "../../../validation/validationSchema"
 import { ConfirmationFormItem } from "../../ConfirmationFormItem"
 import { FormContainer, SectionGrid } from "../style"
 
@@ -48,72 +42,6 @@ const SelectedMlaLabel = ({ mlaTemplateId }: { mlaTemplateId: number }) => {
         isCustom: !!template.borrowerId,
       })}
     </Typography>
-  )
-}
-
-const PreviewMlaModal = ({
-  form,
-  mlaTemplateId,
-  timeSigned,
-  borrowerProfile,
-  asset,
-  salt,
-  onSign,
-  isSigning,
-  sx,
-  disabled,
-  modalButtonVariant,
-  modalButtonSize,
-  buttonText = "Sign",
-  showSignButton = true,
-  isClosed,
-}: {
-  form: UseFormReturn<MarketValidationSchemaType>
-  mlaTemplateId: number
-  timeSigned: number
-  borrowerProfile: BorrowerProfile | undefined
-  asset: Token | undefined
-  salt: string
-  onSign?: (args: SignMlaFromFormInputs) => void
-  isSigning: boolean
-  sx?: SxProps<Theme> | undefined
-  disabled?: boolean
-  modalButtonVariant?: "text" | "outlined" | "contained"
-  modalButtonSize?: "small" | "medium" | "large"
-  buttonText?: string
-  showSignButton?: boolean
-  isClosed?: boolean
-}) => {
-  const { data: mla, isLoading } = usePreviewMlaFromForm(
-    form,
-    mlaTemplateId,
-    timeSigned,
-    borrowerProfile,
-    asset,
-    salt,
-  )
-  return (
-    <MlaModal
-      mla={mla ? { html: mla.htmlWithPlaceholders } : mla}
-      onSign={() => {
-        onSign?.({
-          form,
-          timeSigned,
-          borrowerProfile,
-          asset,
-        })
-      }}
-      disableModalButton={disabled}
-      disableSignButton={disabled}
-      isLoading={isLoading}
-      showSignButton={showSignButton}
-      isSigning={isSigning}
-      buttonText={buttonText}
-      sx={sx}
-      modalButtonVariant={modalButtonVariant}
-      modalButtonSize={modalButtonSize}
-      isClosed={isClosed}
-    />
   )
 }
 

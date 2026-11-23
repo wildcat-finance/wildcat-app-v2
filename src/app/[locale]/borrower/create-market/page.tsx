@@ -934,7 +934,13 @@ export default function CreateMarketPage() {
         )}
 
         {currentStep === CreateMarketSteps.MLA && (
-          <MlaForm form={newMarketForm} />
+          <MlaForm
+            form={newMarketForm}
+            timeSigned={timeSigned}
+            salt={salt}
+            borrowerProfile={borrowerProfile}
+            tokenAsset={tokenAsset}
+          />
         )}
 
         {currentStep === CreateMarketSteps.FINANCIAL && (

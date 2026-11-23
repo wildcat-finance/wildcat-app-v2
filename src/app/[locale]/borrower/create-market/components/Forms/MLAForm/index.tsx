@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next"
 
 import { FormFooter } from "@/app/[locale]/borrower/create-market/components/FormFooter"
 import { FormContainer } from "@/app/[locale]/borrower/create-market/components/Forms/style"
+import { PreviewMlaModal } from "@/app/[locale]/borrower/create-market/components/PreviewMlaModal"
 import { useGetMlaTemplates } from "@/app/[locale]/borrower/hooks/mla/useGetMlaTemplates"
 import ExtendedRadio from "@/components/@extended/ExtendedRadio"
 import { HorizontalInputLabel } from "@/components/HorisontalInputLabel"
@@ -26,7 +27,13 @@ import { getMlaTemplateOptions } from "@/utils/mlaTemplateLabel"
 import { MLAFormProps } from "./interface"
 import { MLAOption } from "./style"
 
-export const MlaForm = ({ form }: MLAFormProps) => {
+export const MlaForm = ({
+  form,
+  timeSigned,
+  salt,
+  borrowerProfile,
+  tokenAsset,
+}: MLAFormProps) => {
   const { t } = useTranslation()
 
   const { setValue, watch } = form
@@ -126,6 +133,27 @@ export const MlaForm = ({ form }: MLAFormProps) => {
         backOnClick={handleBackClick}
         nextOnClick={handleNextClick}
         disableNext={!mlaWatch || isLoadingTemplates}
+        secondaryAction={
+          // Lets a borrower with several MLAs check the one chosen, filled in
+          // with this market's terms, before moving on.
+          mlaWatch &&
+          mlaWatch !== "noMLA" && (
+            <PreviewMlaModal
+              form={form}
+              mlaTemplateId={Number(mlaWatch)}
+              timeSigned={timeSigned}
+              borrowerProfile={borrowerProfile}
+              asset={tokenAsset}
+              salt={salt}
+              isSigning={false}
+              showSignButton={false}
+              buttonText={t("createNewMarket.buttons.viewMLA")}
+              modalButtonVariant="outlined"
+              modalButtonSize="large"
+              sx={{ width: "140px" }}
+            />
+          )
+        }
       />
     </Box>
   )
