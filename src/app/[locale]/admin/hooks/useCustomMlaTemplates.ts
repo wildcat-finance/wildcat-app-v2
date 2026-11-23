@@ -2,13 +2,16 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
+import { fetchMlaTemplate } from "@/app/[locale]/borrower/hooks/mla/fetchMlaTemplate"
 import {
   CreateCustomMlaInput,
   CustomMlaTemplateForAdminView,
 } from "@/app/api/mla/interface"
+import { toastError } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
+import { fillWithPlaceholders } from "@/lib/mlaTemplateText"
 
 const readError = async (response: Response, fallback: string) => {
   const body = await response.json().catch(() => undefined)
@@ -102,5 +105,51 @@ export const useRetireMlaTemplate = () => {
       }
     },
     onSuccess: invalidate,
+  })
+}
+
+const saveFile = (blob: Blob, fileName: string) => {
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement("a")
+  link.href = url
+  link.download = fileName
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  // Some browsers start the download after the click returns.
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+export type MlaPdfRequest = { fileName: string } & (
+  | { html: string }
+  | { templateId: number }
+)
+
+/// Download an MLA as the PDF borrowers and lenders get: HTML shown on screen,
+/// or a stored template with its placeholders in brackets.
+export const useDownloadMlaPdf = () => {
+  const { token, chainId, isAdminForChain } = useAdminToken()
+  return useMutation({
+    mutationFn: async (request: MlaPdfRequest) => {
+      if (!isAdminForChain) throw Error("Not an admin on this network")
+      const html =
+        "html" in request
+          ? request.html
+          : fillWithPlaceholders(
+              await fetchMlaTemplate(chainId, request.templateId, {
+                authToken: token.token,
+              }),
+            )
+      const response = await fetch("/api/mla/templates/pdf", {
+        method: "POST",
+        body: JSON.stringify({ chainId, html }),
+        headers: { Authorization: `Bearer ${token.token}` },
+      })
+      if (!response.ok) {
+        throw await readError(response, "Failed to make the PDF")
+      }
+      saveFile(await response.blob(), request.fileName)
+    },
+    onError: (error) => toastError(error.message),
   })
 }

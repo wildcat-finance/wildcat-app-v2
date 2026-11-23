@@ -33,11 +33,13 @@ import {
   splitHtmlBody,
 } from "@/lib/mlaTextSync"
 import { COLORS } from "@/theme/colors"
+import { toMlaPdfFileName } from "@/utils/mlaPdfFileName"
 import { getMlaTemplateLabel } from "@/utils/mlaTemplateLabel"
 
 import { useBorrowerOrganisations } from "../../hooks/useBorrowerOrganisations"
 import {
   useCustomMlaTemplates,
+  useDownloadMlaPdf,
   useRegisterCustomMla,
 } from "../../hooks/useCustomMlaTemplates"
 import { BorrowerOrganisationPicker } from "../BorrowerOrganisationPicker"
@@ -167,6 +169,7 @@ export const RegisterCustomMlaModal = () => {
   const { data: organisations } = useBorrowerOrganisations()
   const { data: customMlas } = useCustomMlaTemplates()
   const { mutate, isPending, error, reset } = useRegisterCustomMla()
+  const { mutate: downloadPdf, isPending: isDownloading } = useDownloadMlaPdf()
   const { data: templates } = useGetMlaTemplates()
   const marketMla = findPlaceholderSource(templates)
   const { data: placeholderSource } = useGetMlaTemplate(marketMla?.id)
@@ -292,27 +295,46 @@ export const RegisterCustomMlaModal = () => {
     reset()
   }
 
-  const handleSubmit = () => {
-    if (!synced) return
-    // Register what is on screen, even if the HTML has not caught up yet.
+  // The texts as typed, with every edit so far carried into the HTML, even if
+  // the preview has not caught up yet.
+  const prepareLatest = () => {
+    if (!synced) return undefined
     const latest = carryTextEdits(
       synced.html,
       syncedParagraphs,
       synced.plaintext,
       plaintext,
     )
-    const { problems } = prepareCustomMlaTemplate(
-      { html: latest.html, plaintext },
-      placeholderSource,
-    )
-    if (latest.unplaced.length > 0 || problems.length > 0) return
+    return {
+      unplaced: latest.unplaced,
+      ...prepareCustomMlaTemplate(
+        { html: latest.html, plaintext },
+        placeholderSource,
+      ),
+    }
+  }
+
+  const handleDownloadPdf = () => {
+    const latest = prepareLatest()
+    if (!latest) return
+    downloadPdf({
+      html: fillWithPlaceholders(latest.template),
+      fileName: toMlaPdfFileName(name, version),
+    })
+  }
+
+  const handleSubmit = () => {
+    const latest = prepareLatest()
+    if (!latest || latest.unplaced.length > 0 || latest.problems.length > 0) {
+      return
+    }
     mutate(
       {
         borrowerId,
         name: name.trim(),
         version: version.trim(),
         description: description.trim() || undefined,
-        html: latest.html,
+        html: latest.template.html,
         plaintext,
       },
       { onSuccess: handleClose },
@@ -510,17 +532,29 @@ export const RegisterCustomMlaModal = () => {
                 ? t("admin.customMla.hideHtml")
                 : t("admin.customMla.editHtml")}
             </Button>
-            <Button
-              variant="contained"
-              size="large"
-              disabled={!isComplete || isPending}
-              onClick={handleSubmit}
-              sx={{ minWidth: "200px" }}
-            >
-              {isPending
-                ? t("admin.customMla.registering")
-                : t("admin.customMla.submit")}
-            </Button>
+            <Box display="flex" gap="12px">
+              <Button
+                variant="outlined"
+                size="large"
+                disabled={!synced || isDownloading}
+                onClick={handleDownloadPdf}
+              >
+                {isDownloading
+                  ? t("admin.customMla.preparingPdf")
+                  : t("admin.customMla.downloadPdf")}
+              </Button>
+              <Button
+                variant="contained"
+                size="large"
+                disabled={!isComplete || isPending}
+                onClick={handleSubmit}
+                sx={{ minWidth: "200px" }}
+              >
+                {isPending
+                  ? t("admin.customMla.registering")
+                  : t("admin.customMla.submit")}
+              </Button>
+            </Box>
           </Box>
         </Box>
       </Dialog>

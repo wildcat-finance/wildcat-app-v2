@@ -10,6 +10,7 @@ import {
 } from "@/app/api/auth/verify-header"
 import { findBorrowerRegistration, prisma } from "@/lib/db"
 import { getFieldValuesForBorrower } from "@/lib/mla"
+import { renderAgreementPdf } from "@/lib/puppeteer"
 
 import { POST as assignMla } from "./[market]/route"
 import { dummyCustomMla } from "./__fixtures__/dummyCustomMla"
@@ -18,6 +19,7 @@ import {
   PATCH as updateTemplate,
 } from "./templates/[id]/route"
 import { POST as registerCustomMla } from "./templates/custom/route"
+import { POST as renderTemplatePdf } from "./templates/pdf/route"
 import { GET as listTemplates, POST as createTemplate } from "./templates/route"
 
 const SEPOLIA = 11155111
@@ -68,6 +70,9 @@ jest.mock("@/lib/signatures", () => ({
       signature,
     }),
   ),
+}))
+jest.mock("@/lib/puppeteer", () => ({
+  renderAgreementPdf: jest.fn(async () => Buffer.from("%PDF-1.4")),
 }))
 jest.mock("@/lib/mla", () => ({
   ...jest.requireActual("@/lib/mla"),
@@ -350,6 +355,36 @@ describe("POST /api/mla/templates/custom", () => {
   it("is admin-only", async () => {
     jest.mocked(isAdminForChain).mockResolvedValue(false)
     expect((await register(ownFixture)).status).toBe(403)
+  })
+})
+
+describe("POST /api/mla/templates/pdf", () => {
+  const renderPdf = (body: unknown) =>
+    renderTemplatePdf(request("/api/mla/templates/pdf", "POST", body))
+
+  it("renders the HTML an admin sends as a PDF", async () => {
+    loginAs(BORROWER_ADDRESS, true)
+    jest.mocked(isAdminForChain).mockResolvedValue(true)
+    const response = await renderPdf({ chainId: SEPOLIA, html: "<p>MLA</p>" })
+    expect(response.status).toBe(200)
+    expect(response.headers.get("Content-Type")).toBe("application/pdf")
+    expect(renderAgreementPdf).toHaveBeenCalledWith("<p>MLA</p>")
+    expect(Buffer.from(await response.arrayBuffer()).toString()).toBe(
+      "%PDF-1.4",
+    )
+  })
+
+  it("is admin-only and needs HTML", async () => {
+    expect(
+      (await renderPdf({ chainId: SEPOLIA, html: "<p>MLA</p>" })).status,
+    ).toBe(401)
+    loginAs(BORROWER_ADDRESS)
+    expect(
+      (await renderPdf({ chainId: SEPOLIA, html: "<p>MLA</p>" })).status,
+    ).toBe(403)
+    jest.mocked(isAdminForChain).mockResolvedValue(true)
+    expect((await renderPdf({ chainId: SEPOLIA, html: " " })).status).toBe(400)
+    expect(renderAgreementPdf).not.toHaveBeenCalled()
   })
 })
 

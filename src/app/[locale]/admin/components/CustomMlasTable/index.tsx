@@ -7,13 +7,18 @@ import { Box, Button, Dialog, Skeleton, Typography } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { useTranslation } from "react-i18next"
 
+import { useGetMlaTemplate } from "@/app/[locale]/borrower/hooks/mla/useGetMlaTemplate"
 import { CustomMlaTemplateForAdminView } from "@/app/api/mla/interface"
+import { MlaDocument } from "@/components/MlaDocument"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { fillWithPlaceholders } from "@/lib/mlaTemplateText"
 import { COLORS } from "@/theme/colors"
 import { timestampToDateFormatted } from "@/utils/formatters"
+import { toMlaPdfFileName } from "@/utils/mlaPdfFileName"
 
 import {
   useCustomMlaTemplates,
+  useDownloadMlaPdf,
   useRetireMlaTemplate,
 } from "../../hooks/useCustomMlaTemplates"
 import { RegisterCustomMlaModal } from "../RegisterCustomMlaModal"
@@ -71,13 +76,90 @@ const RetireMlaDialog = ({
   )
 }
 
-/// Custom MLAs of the selected network's class, with registration and
-/// retirement for admins.
+/// A custom MLA as borrowers and lenders read it, placeholders in brackets.
+const ViewMlaDialog = ({
+  template,
+  onClose,
+}: {
+  template: CustomMlaTemplateForAdminView
+  onClose: () => void
+}) => {
+  const { t } = useTranslation()
+  const { data, isLoading } = useGetMlaTemplate(template.id)
+  const { mutate: download, isPending: isDownloading } = useDownloadMlaPdf()
+  const html = data ? fillWithPlaceholders(data) : ""
+  return (
+    <Dialog
+      open
+      onClose={onClose}
+      maxWidth="lg"
+      fullWidth
+      sx={{
+        "& .MuiDialog-paper": { borderRadius: "20px", padding: "24px 0" },
+      }}
+    >
+      <TxModalHeader
+        title={`${template.name} (${template.version})`}
+        crossOnClick={onClose}
+        arrowOnClick={null}
+      >
+        <Box sx={{ padding: "0 24px" }}>
+          <Typography variant="text3" color={COLORS.santasGrey}>
+            {template.borrowerName}
+          </Typography>
+        </Box>
+      </TxModalHeader>
+      <Box padding="24px" display="flex" flexDirection="column" gap="16px">
+        {isLoading ? (
+          <Skeleton
+            variant="rounded"
+            height="560px"
+            sx={{ bgcolor: COLORS.athensGrey }}
+          />
+        ) : (
+          <MlaDocument html={html} title={t("admin.customMla.preview")} />
+        )}
+        <Box display="flex" justifyContent="flex-end">
+          <Button
+            variant="contained"
+            size="large"
+            disabled={!data || isDownloading}
+            onClick={() =>
+              download({
+                html,
+                fileName: toMlaPdfFileName(template.name, template.version),
+              })
+            }
+          >
+            {isDownloading
+              ? t("admin.customMla.preparingPdf")
+              : t("admin.customMla.downloadPdf")}
+          </Button>
+        </Box>
+      </Box>
+    </Dialog>
+  )
+}
+
+/// Custom MLAs of the selected network's class, with registration, viewing,
+/// download and retirement for admins. Clicking a row views its MLA.
 export const CustomMlasTable = () => {
   const { t } = useTranslation()
   const { data, isLoading } = useCustomMlaTemplates()
   const [retiring, setRetiring] =
     useState<CustomMlaTemplateForAdminView | null>(null)
+  const [viewing, setViewing] = useState<CustomMlaTemplateForAdminView | null>(
+    null,
+  )
+  const {
+    mutate: download,
+    isPending: isDownloading,
+    variables: downloadRequest,
+  } = useDownloadMlaPdf()
+  const downloadingId =
+    isDownloading && downloadRequest && "templateId" in downloadRequest
+      ? downloadRequest.templateId
+      : undefined
 
   const columns: GridColDef<CustomMlaTemplateForAdminView>[] = [
     {
@@ -108,19 +190,51 @@ export const CustomMlasTable = () => {
       field: "id",
       headerName: "",
       sortable: false,
-      minWidth: 100,
+      minWidth: 260,
       align: "right",
-      renderCell: ({ row }) =>
-        row.retiredAt ? null : (
+      renderCell: ({ row }) => (
+        <Box display="flex" justifyContent="flex-end" gap="4px" width="100%">
           <Button
             variant="text"
-            color="error"
             size="small"
-            onClick={() => setRetiring(row)}
+            onClick={(event) => {
+              event.stopPropagation()
+              setViewing(row)
+            }}
           >
-            {t("admin.customMla.retire")}
+            {t("admin.customMla.view")}
           </Button>
-        ),
+          <Button
+            variant="text"
+            size="small"
+            disabled={downloadingId === row.id}
+            onClick={(event) => {
+              event.stopPropagation()
+              download({
+                templateId: row.id,
+                fileName: toMlaPdfFileName(row.name, row.version),
+              })
+            }}
+          >
+            {downloadingId === row.id
+              ? t("admin.customMla.preparingPdf")
+              : t("admin.customMla.download")}
+          </Button>
+          {!row.retiredAt && (
+            <Button
+              variant="text"
+              color="error"
+              size="small"
+              onClick={(event) => {
+                event.stopPropagation()
+                setRetiring(row)
+              }}
+            >
+              {t("admin.customMla.retire")}
+            </Button>
+          )}
+        </Box>
+      ),
     },
   ]
 
@@ -155,10 +269,14 @@ export const CustomMlasTable = () => {
       )}
       {!isLoading && !!data?.length && (
         <DataGrid
-          sx={{ maxWidth: "calc(100vw - 267px)" }}
+          sx={{
+            maxWidth: "calc(100vw - 267px)",
+            "& .MuiDataGrid-row": { cursor: "pointer" },
+          }}
           autoHeight
           rows={data}
           columns={columns}
+          onRowClick={({ row }) => setViewing(row)}
           columnHeaderHeight={40}
           hideFooter={data.length <= 100}
         />
@@ -168,6 +286,9 @@ export const CustomMlasTable = () => {
           template={retiring}
           onClose={() => setRetiring(null)}
         />
+      )}
+      {viewing && (
+        <ViewMlaDialog template={viewing} onClose={() => setViewing(null)} />
       )}
     </Box>
   )

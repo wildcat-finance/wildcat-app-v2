@@ -6,6 +6,7 @@ import { CustomMlaTemplateForAdminView } from "@/app/api/mla/interface"
 import { CustomMlasTable } from "."
 
 const retire = jest.fn()
+const download = jest.fn()
 let mockTemplates: CustomMlaTemplateForAdminView[] = []
 const templates: CustomMlaTemplateForAdminView[] = [
   {
@@ -38,7 +39,19 @@ jest.mock("@/components/TxModalComponents/TxModalHeader", () => ({
 jest.mock("../RegisterCustomMlaModal", () => ({
   RegisterCustomMlaModal: () => null,
 }))
+jest.mock("@/app/[locale]/borrower/hooks/mla/useGetMlaTemplate", () => ({
+  useGetMlaTemplate: (id: number) => ({
+    data: {
+      id,
+      html: "<p>Rate {{market.apr}}</p>",
+      borrowerFields: [{ source: "market.apr", placeholder: "APR" }],
+      lenderFields: [],
+    },
+    isLoading: false,
+  }),
+}))
 jest.mock("../../hooks/useCustomMlaTemplates", () => ({
+  useDownloadMlaPdf: () => ({ mutate: download, isPending: false }),
   useCustomMlaTemplates: () => ({ data: mockTemplates, isLoading: false }),
   useRetireMlaTemplate: () => ({
     mutate: retire,
@@ -65,4 +78,34 @@ it("lists custom MLAs and retires only active ones", () => {
   fireEvent.click(retireButtons[0])
   fireEvent.click(screen.getAllByText("admin.customMla.retire")[1])
   expect(retire).toHaveBeenCalledWith(3, expect.anything())
+})
+
+it("views and downloads any custom MLA, retired ones too", () => {
+  mockTemplates = templates
+  render(<CustomMlasTable />)
+  expect(screen.getAllByText("admin.customMla.view")).toHaveLength(2)
+
+  fireEvent.click(screen.getAllByText("admin.customMla.download")[1])
+  expect(download).toHaveBeenCalledWith({
+    templateId: 2,
+    fileName: "Old MLA 1.pdf",
+  })
+  expect(screen.queryByTitle("admin.customMla.preview")).toBeNull()
+
+  fireEvent.click(screen.getAllByText("admin.customMla.view")[0])
+  expect(
+    screen.getByTitle("admin.customMla.preview").getAttribute("srcdoc"),
+  ).toBe("<p>Rate [APR]</p>")
+  fireEvent.click(screen.getByText("admin.customMla.downloadPdf"))
+  expect(download).toHaveBeenLastCalledWith({
+    html: "<p>Rate [APR]</p>",
+    fileName: "Active MLA 2.pdf",
+  })
+})
+
+it("views a custom MLA when its row is clicked", () => {
+  mockTemplates = templates
+  render(<CustomMlasTable />)
+  fireEvent.click(screen.getByText("Old MLA"))
+  screen.getByTitle("admin.customMla.preview")
 })

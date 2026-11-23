@@ -16,6 +16,7 @@ import {
 } from "."
 
 const mutate = jest.fn()
+const downloadPdf = jest.fn()
 const BORROWER_ID = "11111111-1111-4111-8111-111111111111"
 
 // The stored templates the dialog can start from: the class's market MLA and
@@ -72,6 +73,7 @@ jest.mock("../../hooks/useBorrowerOrganisations", () => ({
   }),
 }))
 jest.mock("../../hooks/useCustomMlaTemplates", () => ({
+  useDownloadMlaPdf: () => ({ mutate: downloadPdf, isPending: false }),
   useCustomMlaTemplates: () => ({
     data: [
       {
@@ -108,7 +110,10 @@ const openForLemon = () => {
   fireEvent.click(within(screen.getByRole("listbox")).getByText("Lemon Ltd"))
 }
 
-beforeEach(() => mutate.mockClear())
+beforeEach(() => {
+  mutate.mockClear()
+  downloadPdf.mockClear()
+})
 
 it("carries text edits into the HTML, previews it and registers both", async () => {
   openForLemon()
@@ -223,4 +228,18 @@ it("suggests the next version number", () => {
   expect(nextCustomMlaVersion([])).toBe("1")
   expect(nextCustomMlaVersion([{ version: "1" }, { version: "4" }])).toBe("5")
   expect(nextCustomMlaVersion([{ version: "v1" }, { version: "v2" }])).toBe("3")
+})
+
+it("downloads the agreement as shown, placeholders in brackets, as a PDF", () => {
+  openForLemon()
+  edit(
+    "admin.customMla.textTitle",
+    dummyCustomMla.plaintext.replace("England and Wales", "Singapore"),
+  )
+  fireEvent.click(screen.getByText("admin.customMla.downloadPdf"))
+  const [[{ html, fileName }]] = downloadPdf.mock.calls
+  expect(fileName).toBe("Lemon Ltd MLA 3.pdf")
+  expect(html).toContain("the laws of Singapore")
+  expect(html).toContain("Interest accrues at [Annual Interest Rate] a year")
+  expect(html).not.toContain("{{")
 })

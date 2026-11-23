@@ -19,9 +19,13 @@ export const launchPuppeteer = async (
       ...options,
     })
   }
+  // Locally, use the Chrome installed on the machine: .puppeteerrc.cjs points
+  // puppeteer's own download at the Vercel build cache, which a developer
+  // machine does not have. PUPPETEER_EXECUTABLE_PATH picks another browser.
   return puppeteer.launch({
     args: ["--no-sandbox"],
     headless: true,
+    ...(process.env.PUPPETEER_EXECUTABLE_PATH ? {} : { channel: "chrome" }),
     ...options,
   })
 }
