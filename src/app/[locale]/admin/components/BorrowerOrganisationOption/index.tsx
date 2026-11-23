@@ -21,6 +21,13 @@ export const describeOrganisationWallets = (
     )
     .join(" · ")
 
+/// An organisation's name, with its alias when it has one.
+export const getOrganisationLabel = ({
+  name,
+  alias,
+}: Pick<BorrowerOrganisation, "name" | "alias">) =>
+  alias ? `${name} (${alias})` : name
+
 /// An organisation in an admin pick list: its name and alias, and below them
 /// the wallets it borrows with.
 export const BorrowerOrganisationOption = ({
@@ -30,9 +37,7 @@ export const BorrowerOrganisationOption = ({
 }) => (
   <Box sx={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
     <Typography variant="text3">
-      {organisation.alias
-        ? `${organisation.name} (${organisation.alias})`
-        : organisation.name}
+      {getOrganisationLabel(organisation)}
     </Typography>
     <Typography
       variant="text4"

@@ -40,7 +40,7 @@ import {
   useCustomMlaTemplates,
   useRegisterCustomMla,
 } from "../../hooks/useCustomMlaTemplates"
-import { BorrowerOrganisationOption } from "../BorrowerOrganisationOption"
+import { BorrowerOrganisationPicker } from "../BorrowerOrganisationPicker"
 
 // Two fields share a row on wide screens and stack on narrow ones.
 const ROW = {
@@ -357,25 +357,13 @@ export const RegisterCustomMlaModal = () => {
         >
           <Box display="flex" flexDirection="column" gap="12px">
             <Box sx={ROW}>
-              <TextField
-                select
-                label={t("admin.customMla.borrower")}
+              <BorrowerOrganisationPicker
+                organisations={organisations}
                 value={borrowerId}
-                onChange={(e) => handleSelectBorrower(e.target.value)}
-                SelectProps={{
-                  renderValue: (id) =>
-                    organisations?.find(
-                      (organisation) => organisation.id === id,
-                    )?.name ?? "",
-                }}
+                onChange={handleSelectBorrower}
+                label={t("admin.customMla.borrower")}
                 sx={{ flex: 5 }}
-              >
-                {organisations?.map((organisation) => (
-                  <MenuItem key={organisation.id} value={organisation.id}>
-                    <BorrowerOrganisationOption organisation={organisation} />
-                  </MenuItem>
-                ))}
-              </TextField>
+              />
               <TextField
                 label={t("admin.customMla.name")}
                 value={name}

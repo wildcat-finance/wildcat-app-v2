@@ -134,6 +134,10 @@
       "description": "Are you sure you want to cancel the invitation for {{name}} ({{address}})? This action cannot be undone.",
       "confirm": "Cancel Invitation"
     },
+    "borrowerPicker": {
+      "loading": "Loading borrowers...",
+      "noMatch": "No borrower matches"
+    },
     "customMla": {
       "section": "Custom MLAs",
       "register": "Register Custom MLA",

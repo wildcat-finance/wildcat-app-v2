@@ -42,6 +42,7 @@ const STORED_TEMPLATES: Record<number, object> = {
 jest.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }))
+jest.mock("@/assets/icons/downArrow20_icon.svg", () => () => null)
 jest.mock("@/components/TxModalComponents/TxModalHeader", () => ({
   TxModalHeader: ({ children }: { children?: React.ReactNode }) => (
     <div>{children}</div>
