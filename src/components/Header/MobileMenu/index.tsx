@@ -21,6 +21,7 @@ import { useTranslation } from "react-i18next"
 import { useAccount, useDisconnect } from "wagmi"
 
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
+import { useLenderKycWalletStatus } from "@/app/[locale]/lender/hooks/useLenderKyc"
 import Avatar from "@/assets/icons/avatar_icon.svg"
 import BackArrow from "@/assets/icons/backArrow_icon.svg"
 import Menu from "@/assets/icons/burgerMenu_icon.svg"
@@ -36,10 +37,13 @@ import {
 } from "@/components/HelpModal/HelpMenuItems"
 import { LinkGroup } from "@/components/LinkComponent"
 import { MobileConnectWallet } from "@/components/MobileConnectWallet"
+import { StatusDot } from "@/components/StatusDot"
 import { EXTERNAL_LINKS } from "@/constants/external-links"
 import { useBlockExplorer } from "@/hooks/useBlockExplorer"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useAppDispatch } from "@/store/hooks"
 import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
+import { setLenderKycDialogOpen } from "@/store/slices/lenderKycDialogSlice/lenderKycDialogSlice"
 import { setTouModalOpen } from "@/store/slices/touModalSlice/touModalSlice"
 import { COLORS } from "@/theme/colors"
 import { trimAddress } from "@/utils/formatters"
@@ -93,6 +97,14 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
 
   const handleOpenTouModal = () => {
     dispatch(setTouModalOpen(true))
+    handleToggleModal()
+  }
+
+  const { chainId } = useSelectedNetwork()
+  const { data: kycStatus } = useLenderKycWalletStatus(address, chainId)
+
+  const handleOpenKycDialog = () => {
+    dispatch(setLenderKycDialogOpen(true))
     handleToggleModal()
   }
 
@@ -585,6 +597,39 @@ export const MobileMenu = ({ open, setIsOpen }: MobileMenuProps) => {
                       <Typography variant="text3">
                         Terms of Use status
                       </Typography>
+                      <SvgIcon
+                        aria-hidden="true"
+                        sx={{
+                          transform: "rotate(-180deg)",
+                          fontSize: "16px",
+                          "& path": { fill: COLORS.santasGrey },
+                        }}
+                      >
+                        <Arrow />
+                      </SvgIcon>
+                    </Box>
+                    <Divider sx={{ borderColor: COLORS.whiteLilac }} />
+
+                    <Box
+                      onClick={handleOpenKycDialog}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "12px 6px",
+                        cursor: "pointer",
+                        borderRadius: "8px",
+                        "&:hover": { backgroundColor: COLORS.whiteSmoke },
+                      }}
+                    >
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <Typography variant="text3">
+                          {t("lenderKyc.card.button")}
+                        </Typography>
+                        {kycStatus?.hasSigned && (
+                          <StatusDot color={COLORS.galliano} />
+                        )}
+                      </Box>
                       <SvgIcon
                         aria-hidden="true"
                         sx={{

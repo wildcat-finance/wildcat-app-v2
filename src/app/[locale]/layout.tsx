@@ -17,6 +17,7 @@ import {
   PageContainer,
   RootScaffold,
 } from "@/app/[locale]/layout-style"
+import { LenderKycDialogHost } from "@/app/[locale]/lender/components/LenderKyc/LenderKycDialogHost"
 import initTranslations from "@/app/i18n"
 import { DefaultedMarketsPrefetch } from "@/components/DefaultedMarketsPrefetch"
 import Header from "@/components/Header"
@@ -102,6 +103,7 @@ export default async function RootLayout({
                         <HelpModal />
                         <SafeMessageCoordinator />
                         <ToUReacceptanceModal />
+                        <LenderKycDialogHost />
                       </SubgraphProvider>
                     </RedirectsProvider>
                   </SanctionsGate>

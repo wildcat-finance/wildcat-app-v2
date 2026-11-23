@@ -119,6 +119,7 @@
       "privacyNotice": "All fields are optional. Wildcat Labs stores what you share with your wallet address and signing time and uses it to contact you about your verification and Wildcat markets.",
       "showMessage": "Show the message you sign",
       "hideMessage": "Hide the message you sign",
+      "messagePreviewNonce": "issued when you sign",
       "editDetails": "Edit details (you sign again)",
       "buttons": {
         "sign": "Sign with wallet",

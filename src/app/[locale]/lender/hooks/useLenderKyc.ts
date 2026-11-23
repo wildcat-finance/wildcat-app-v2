@@ -1,11 +1,12 @@
 import { useCallback } from "react"
 
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import {
   isLenderType,
   LENDER_KYC_SIGNATURE_MAX_AGE_MS,
 } from "@/config/lender-kyc"
+import { QueryKeys } from "@/config/query-keys"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
 import { useSafeMessageSigning } from "@/hooks/useSafeMessageSigning"
 import {
@@ -118,9 +119,22 @@ export type SignLenderKycResult =
   | { kind: "details"; result: LenderKycDetailsResult }
   | { kind: "ownership"; profile: LenderKycSavedProfile }
 
+export const useLenderKycWalletStatus = (
+  address: string | undefined,
+  chainId: number,
+) =>
+  useQuery({
+    queryKey: QueryKeys.LenderKyc.GET_WALLET_STATUS(chainId, address),
+    queryFn: () => lenderKycApi.getWalletStatus(address as string, chainId),
+    enabled: !!address,
+    retry: false,
+    refetchOnWindowFocus: false,
+  })
+
 export const useSignLenderKyc = () => {
   const signer = useEthersSigner()
   const safeSigning = useSafeMessageSigning()
+  const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (
@@ -244,6 +258,14 @@ export const useSignLenderKyc = () => {
       }
 
       return attempt(true)
+    },
+    onSuccess: (_result, input) => {
+      queryClient.invalidateQueries({
+        queryKey: QueryKeys.LenderKyc.GET_WALLET_STATUS(
+          input.chainId,
+          input.address,
+        ),
+      })
     },
   })
 }

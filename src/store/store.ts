@@ -17,6 +17,7 @@ import createMarketSigningDraftsSlice from "./slices/createMarketSigningDraftsSl
 import editLendersListSlice from "./slices/editLendersListSlice/editLendersListSlice"
 import editPolicySlice from "./slices/editPolicySlice/editPolicySlice"
 import highlightSidebarSlice from "./slices/highlightSidebarSlice/highlightSidebarSlice"
+import lenderKycDialogSlice from "./slices/lenderKycDialogSlice/lenderKycDialogSlice"
 import lenderMarketRoutingSlice from "./slices/lenderMarketRoutingSlice/lenderMarketRoutingSlice"
 import lenderMlaSignaturesSlice from "./slices/lenderMlaSignaturesSlice/mlaSignaturesSlice"
 import marketFiltersSlice from "./slices/marketFiltersSlice/marketFiltersSlice"
@@ -55,6 +56,7 @@ export const makeStore = () => {
       selectedNetwork: selectedNetworkSlice,
       marketFilters: marketFiltersSlice,
       touModal: touModalSlice,
+      lenderKycDialog: lenderKycDialogSlice,
       pendingSafeMessages: pendingSafeMessagesSlice,
       createMarketSigningDrafts: createMarketSigningDraftsSlice,
     },

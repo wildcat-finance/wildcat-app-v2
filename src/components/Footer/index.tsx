@@ -6,10 +6,14 @@ import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
+import { useLenderKycWalletStatus } from "@/app/[locale]/lender/hooks/useLenderKyc"
+import { StatusDot } from "@/components/StatusDot"
 import { useMobileResolution } from "@/hooks/useMobileResolution"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
+import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 import { useAppDispatch } from "@/store/hooks"
 import { setIsVisible } from "@/store/slices/cookieBannerSlice/cookieBannerSlice"
+import { setLenderKycDialogOpen } from "@/store/slices/lenderKycDialogSlice/lenderKycDialogSlice"
 import { setTouModalOpen } from "@/store/slices/touModalSlice/touModalSlice"
 import { COLORS } from "@/theme/colors"
 import { dayjs } from "@/utils/dayjs"
@@ -92,17 +96,14 @@ export const Footer = ({
       ? COLORS.galliano
       : (touState === "staleExpired" || touState === "declined") &&
         COLORS.dullRed
-  const touDot = touAttentionColor && (
-    <Box
-      sx={{
-        width: "6px",
-        height: "6px",
-        borderRadius: "50%",
-        marginLeft: "6px",
-        backgroundColor: touAttentionColor,
-      }}
-    />
-  )
+  const touDot = touAttentionColor && <StatusDot color={touAttentionColor} />
+
+  // "Get verified" opens the verification dialog. Amber once the wallet has
+  // signed: verification is then in progress at SOMA.finance.
+  const { chainId } = useSelectedNetwork()
+  const { data: kycStatus } = useLenderKycWalletStatus(address, chainId)
+  const handleOpenKycDialog = () => dispatch(setLenderKycDialogOpen(true))
+  const kycDot = kycStatus?.hasSigned && <StatusDot color={COLORS.galliano} />
 
   const COMMIT_INFO = getCommitInfo(isMobile)
 
@@ -152,6 +153,24 @@ export const Footer = ({
             >
               Terms of Use status
               {touDot}
+            </Button>
+          )}
+
+          {address && showFooterOnPage && (
+            <Button
+              size="small"
+              variant="contained"
+              color="secondary"
+              sx={{
+                borderRadius: "8px",
+                color: COLORS.white,
+                bgcolor: COLORS.white03,
+                "&:hover": { color: COLORS.white, bgcolor: COLORS.white03 },
+              }}
+              onClick={handleOpenKycDialog}
+            >
+              {t("lenderKyc.card.button")}
+              {kycDot}
             </Button>
           )}
 
@@ -213,6 +232,22 @@ export const Footer = ({
               >
                 Terms of Use status
                 {touDot}
+              </Button>
+            )}
+
+            {address && (
+              <Button
+                size="small"
+                variant="contained"
+                color="secondary"
+                sx={{
+                  borderRadius: "8px",
+                  marginBottom: "8px",
+                }}
+                onClick={handleOpenKycDialog}
+              >
+                {t("lenderKyc.card.button")}
+                {kycDot}
               </Button>
             )}
 

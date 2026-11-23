@@ -203,8 +203,14 @@ export const createPrismaLenderKycRepository = (
   database: PrismaClient,
 ): LenderKycRepository => ({
   async getWalletStatus(address, chainId) {
-    const revision = await findVisibleRevision(database, address, chainId)
-    return { hasSavedRecord: !!revision }
+    const [revision, signature] = await Promise.all([
+      findVisibleRevision(database, address, chainId),
+      database.lenderKycSignature.findFirst({
+        where: { address, chainId },
+        select: { id: true },
+      }),
+    ])
+    return { hasSavedRecord: !!revision, hasSigned: !!signature }
   },
 
   async issueNonce({ address, chainId, secretHash, expiresAt }) {

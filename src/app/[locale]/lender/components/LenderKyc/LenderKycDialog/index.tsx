@@ -52,8 +52,6 @@ import {
 } from "./style"
 import { useLenderKycDialogState } from "./useLenderKycDialogState"
 
-const MESSAGE_PREVIEW_NONCE = "issued when you sign"
-
 export type LenderKycDialogProps = {
   open: boolean
   address: string
@@ -108,11 +106,11 @@ export const LenderKycDialog = ({
         kind: state.isReturningLocked ? "ownership" : "details",
         address,
         chainId,
-        nonce: MESSAGE_PREVIEW_NONCE,
+        nonce: t("lenderKyc.modal.messagePreviewNonce"),
         timeSigned: Date.now(),
         details: state.details,
       }),
-    [address, chainId, state.isReturningLocked, state.details],
+    [address, chainId, state.isReturningLocked, state.details, t],
   )
 
   const signErrorNotice: { color: AlertColor; text: string } | null =

@@ -9,6 +9,7 @@ export type LenderKycSavedProfile = {
 
 export type LenderKycWalletStatus = {
   hasSavedRecord: boolean
+  hasSigned: boolean
 }
 
 export type LenderKycSignedPayload = {
