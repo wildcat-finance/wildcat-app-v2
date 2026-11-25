@@ -71,7 +71,7 @@ export function useMarketRecords({
       search ?? "",
     ),
     queryFn: getMarketRecordsInternal,
-    refetchOnMount: false,
+    refetchOnMount: "always",
     refetchInterval: 2 * 60 * 1000, // 2min
   })
 
