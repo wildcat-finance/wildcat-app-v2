@@ -37,12 +37,22 @@ import { MarketDestinationsSection } from "@/components/Destinations"
 import { Footer } from "@/components/Footer"
 import { ConnectWalletDialog } from "@/components/Header/HeaderButton/ConnectWalletDialog"
 import { LeadBanner } from "@/components/LeadBanner"
+import {
+  AccountRowsSkeleton,
+  ChartSectionSkeleton,
+  DescriptionSkeleton,
+  LenderTransactionsSkeleton,
+  MarketHeaderSkeleton,
+  MarketRecordsSkeleton,
+  StandaloneActionsSkeleton,
+} from "@/components/MarketDetailSkeletons"
 import { MarketHeader } from "@/components/MarketHeader"
 import { MarketParameters } from "@/components/MarketParameters"
 import { MarketStandaloneActions } from "@/components/MarketStandaloneActions"
 import { MobileConnectWallet } from "@/components/MobileConnectWallet"
 import { PaginatedMarketRecordsTable } from "@/components/PaginatedMarketRecordsTable"
 import { ProfileSection } from "@/components/Profile/ProfileSection"
+import { WrapperSkeleton } from "@/components/WrapDebtToken/WrapperSkeleton"
 import { useMarketDestinations } from "@/hooks/destinations/useDestinations"
 import { useDefaultedMarkets } from "@/hooks/useDefaultedMarkets"
 import { useGetMarket } from "@/hooks/useGetMarket"
@@ -54,6 +64,7 @@ import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { useWagmiHydrated } from "@/hooks/useWagmiHydrated"
 import { useWrapperBalances } from "@/hooks/wrapper/useWrapperBalances"
 import { useWrapperForMarket } from "@/hooks/wrapper/useWrapperForMarket"
+import { useWrapperLimits } from "@/hooks/wrapper/useWrapperLimits"
 import { ROUTES } from "@/routes"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { hideDescriptionSection } from "@/store/slices/hideMarketSectionsSlice/hideMarketSectionsSlice"
@@ -86,8 +97,6 @@ import {
   MarketContentColumn,
   MarketPageContainer,
   SectionContainer,
-  SkeletonContainer,
-  SkeletonStyle,
   StandaloneActionsDivider,
   StandaloneActionsWrapper,
 } from "./style"
@@ -98,13 +107,28 @@ import {
   shouldShowLenderTransactions,
 } from "./utils"
 
-const AccountSectionSkeleton = () => (
-  <Box sx={SkeletonContainer} flexDirection="column" gap="20px">
-    <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
-    <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
-    <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
-  </Box>
-)
+const renderSectionSkeleton = (
+  section: LenderMarketSections,
+  isLender: boolean,
+) => {
+  switch (section) {
+    case LenderMarketSections.STATUS:
+      return <ChartSectionSkeleton isLender={isLender} />
+    case LenderMarketSections.SUMMARY:
+      return <DescriptionSkeleton />
+    case LenderMarketSections.MARKET_HISTORY:
+      return <MarketRecordsSkeleton />
+    case LenderMarketSections.WRAP_DEBT_TOKEN:
+      return <WrapperSkeleton />
+    case LenderMarketSections.REQUESTS:
+    case LenderMarketSections.BORROWER_PROFILE:
+    case LenderMarketSections.DESTINATIONS:
+      return <AccountRowsSkeleton />
+    case LenderMarketSections.TRANSACTIONS:
+    default:
+      return <LenderTransactionsSkeleton />
+  }
+}
 
 export default function LenderMarketDetails({
   params: { address },
@@ -239,6 +263,21 @@ export default function LenderMarketDetails({
       hasMarketPosition,
       hasWithdrawalActivity,
     })
+  const {
+    isLoading: isWrapperLimitsLoading,
+    isFetched: isWrapperLimitsFetched,
+    failureCount: wrapperLimitsFailureCount,
+  } = useWrapperLimits(
+    market?.chainId,
+    wrapper,
+    showLenderTransactions ? walletAddress : undefined,
+  )
+  const isWrapperLimitsFirstLoad =
+    isWrapperLimitsLoading &&
+    !isWrapperLimitsFetched &&
+    wrapperLimitsFailureCount === 0
+  const isWrapperPositionLoading =
+    showLenderTransactions && hasWrapper && isWrapperLimitsFirstLoad
   const isActivityLoading =
     isWithdrawalsLoading || isWrapperLoading || isWrapperBalanceLoading
   const isActivityError =
@@ -278,6 +317,9 @@ export default function LenderMarketDetails({
   const currentSection = useAppSelector(
     (state) => state.lenderMarketRouting.currentSection,
   )
+  const landingSection = showLenderTransactions
+    ? LenderMarketSections.TRANSACTIONS
+    : LenderMarketSections.STATUS
 
   useEffect(() => {
     dispatch(setIsLoading(isLoading))
@@ -290,15 +332,10 @@ export default function LenderMarketDetails({
       (isConnected && !isDifferentChain && isActivityLoading)
     )
       return
-    dispatch(
-      setDefaultSection(
-        showLenderTransactions
-          ? LenderMarketSections.TRANSACTIONS
-          : LenderMarketSections.STATUS,
-      ),
-    )
+    dispatch(setDefaultSection(landingSection))
   }, [
     dispatch,
+    landingSection,
     showLenderTransactions,
     isAuthorizationPending,
     isActivityLoading,
@@ -358,6 +395,18 @@ export default function LenderMarketDetails({
         Unable to load live market data
       </Alert>
     ) : null
+
+  const connectBanner = bannerState === "connect" && (
+    <Box sx={LenderBannerWrapper}>
+      <LeadBanner
+        title="Connect Your Wallet"
+        subtitle="Connect a wallet to deposit into this market, view your position, and manage withdrawals."
+        buttonText="Connect Wallet"
+        buttonOnClick={openConnectDialog}
+        compact
+      />
+    </Box>
+  )
 
   const ongoingCount = (
     withdrawals.activeWithdrawal ? [withdrawals.activeWithdrawal] : []
@@ -547,28 +596,25 @@ export default function LenderMarketDetails({
 
   if (isLoading && !isMobile)
     return (
-      <Box sx={{ padding: "52px 20px 0 44px" }}>
-        <Box sx={{ width: "69%" }}>
-          <Box width="100%" height="90px">
-            <Skeleton
-              height="20px"
-              width="132px"
-              sx={{ bgcolor: COLORS.athensGrey }}
+      <Box sx={MarketPageContainer(theme)}>
+        <MarketHeaderSkeleton />
+
+        <Box sx={MarketContentColumn(theme)}>
+          {connectBanner}
+          {!isConnected && (
+            <ConnectWalletDialog
+              open={isConnectDialogOpen}
+              handleClose={closeConnectDialog}
             />
-          </Box>
-          <Box sx={SkeletonContainer}>
-            <Skeleton height="82px" width="395px" sx={SkeletonStyle} />
-            <Skeleton height="82px" width="395px" sx={SkeletonStyle} />
-          </Box>
-          <Box
-            sx={SkeletonContainer}
-            marginTop="56px"
-            flexDirection="column"
-            gap="20px"
-          >
-            <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
-            <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
-            <Skeleton height="36px" width="100%" sx={SkeletonStyle} />
+          )}
+          {showStandaloneActions && (
+            <Box sx={StandaloneActionsWrapper(false)}>
+              <StandaloneActionsSkeleton />
+              <Divider sx={StandaloneActionsDivider} />
+            </Box>
+          )}
+          <Box sx={SectionContainer(theme)}>
+            {renderSectionSkeleton(currentSection, showLenderTransactions)}
           </Box>
         </Box>
       </Box>
@@ -744,21 +790,15 @@ export default function LenderMarketDetails({
 
           {showPenaltyOnlyWarning && <BorrowerPenaltyWarning />}
 
-          <Box id="depositWithdraw">
-            {!isBarChartsLoading && marketAccount ? (
+          {!isBarChartsLoading && marketAccount && (
+            <Box id="depositWithdraw">
               <BarCharts
                 marketAccount={marketAccount}
                 withdrawals={withdrawals}
                 isLender={showLenderTransactions}
               />
-            ) : (
-              (isAuthorizationPending ||
-                isWithdrawalsLoading ||
-                (!hasLiveMarket && !liveMarketError)) && (
-                <AccountSectionSkeleton />
-              )
-            )}
-          </Box>
+            </Box>
+          )}
 
           {destinations.length > 0 && (
             <Box id="destinations">
@@ -896,17 +936,7 @@ export default function LenderMarketDetails({
         {accessNotice}
         {activityNotice}
         {marketNotice}
-        {bannerState === "connect" && (
-          <Box sx={LenderBannerWrapper}>
-            <LeadBanner
-              title="Connect Your Wallet"
-              subtitle="Connect a wallet to deposit into this market, view your position, and manage withdrawals."
-              buttonText="Connect Wallet"
-              buttonOnClick={openConnectDialog}
-              compact
-            />
-          </Box>
-        )}
+        {connectBanner}
 
         {showLenderRequestBanner && (
           <Box sx={LenderBannerWrapper}>
@@ -953,8 +983,10 @@ export default function LenderMarketDetails({
         <Box sx={SectionContainer(theme)}>
           {currentSection === LenderMarketSections.TRANSACTIONS && (
             <Box>
-              {isTransactionsLoading ? (
-                <AccountSectionSkeleton />
+              {isTransactionsLoading ||
+              !showLenderTransactions ||
+              isWrapperPositionLoading ? (
+                <LenderTransactionsSkeleton />
               ) : (
                 liveAccount &&
                 marketAccount && (
@@ -998,8 +1030,9 @@ export default function LenderMarketDetails({
               ) : (
                 (isAuthorizationPending ||
                   isWithdrawalsLoading ||
+                  authoritativeStatus === "resolving" ||
                   (!hasLiveMarket && !liveMarketError)) && (
-                  <AccountSectionSkeleton />
+                  <ChartSectionSkeleton isLender={showLenderTransactions} />
                 )
               )}
               <MarketParameters
@@ -1027,10 +1060,14 @@ export default function LenderMarketDetails({
 
           {currentSection === LenderMarketSections.REQUESTS && (
             <Box marginTop="12px">
-              <WithdrawalRequests
-                withdrawals={withdrawals}
-                chainId={market.chainId}
-              />
+              {isWithdrawalsLoading ? (
+                <AccountRowsSkeleton />
+              ) : (
+                <WithdrawalRequests
+                  withdrawals={withdrawals}
+                  chainId={market.chainId}
+                />
+              )}
             </Box>
           )}
           {currentSection === LenderMarketSections.MARKET_HISTORY && (
