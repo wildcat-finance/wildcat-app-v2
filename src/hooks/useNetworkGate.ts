@@ -47,6 +47,13 @@ const NO_WALLET_RESTRICTED_PATHS = [
   ROUTES.lender.myMarkets,
 ]
 
+const WALLET_ONLY_PATHS = [
+  ROUTES.borrower.policy,
+  ROUTES.borrower.notifications,
+  ROUTES.borrower.profile,
+  ROUTES.borrower.editProfile,
+]
+
 const isNotPublicPath = (pathname: string) => {
   if (pathname.startsWith(ROUTES.borrower.market)) {
     return true
@@ -162,7 +169,10 @@ export const useNetworkGate = ({
     const lenderMarketPath = isLenderMarketPath(pathname)
     const borrowerMarketPath = pathname.startsWith(ROUTES.borrower.market)
 
-    if (!address && isNotPublicPath(pathname)) {
+    if (
+      !address &&
+      (isNotPublicPath(pathname) || WALLET_ONLY_PATHS.includes(pathname))
+    ) {
       return "/"
     }
 
