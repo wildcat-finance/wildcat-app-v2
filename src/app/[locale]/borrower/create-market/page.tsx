@@ -118,8 +118,12 @@ export default function CreateMarketPage() {
     useGetBorrowerProfile(address)
   const { isTestnet } = useCurrentNetwork()
   // ToU re-acceptance lockout (staleExpired / declined): no new markets.
-  const { touGateState, isAgreementFetching, refetchAgreementStatus } =
-    useNetworkGate()
+  const {
+    touGateState,
+    touState,
+    isAgreementFetching,
+    refetchAgreementStatus,
+  } = useNetworkGate()
   const { chainId: targetChainId } = useAppSelector(
     (state) => state.selectedNetwork,
   )
@@ -872,7 +876,9 @@ export default function CreateMarketPage() {
             </SvgIcon>
           </Box>
           <Typography variant="title2" fontWeight={600} textAlign="center">
-            Terms of Use update required
+            {touState === "neverSigned"
+              ? "Terms of Use signature required"
+              : "Terms of Use update required"}
           </Typography>
           <Typography
             variant="text2"
