@@ -12,16 +12,16 @@ const defaultStyle = {
   fontFamily: "Roboto, sans-serif",
 }
 
-export type ToastRequestConfig = {
+export type ToastRequestConfig<T = unknown> = {
   pending?: string
-  success?: string
+  success?: string | ((value: T) => string)
   error?: string
   getErrorMessage?: (error: unknown) => string
 }
 
 export const toastRequest = async <T,>(
   promiseFn: Promise<T>,
-  config?: ToastRequestConfig,
+  config?: ToastRequestConfig<T>,
   style: object = {},
 ) => {
   toast.promise(
