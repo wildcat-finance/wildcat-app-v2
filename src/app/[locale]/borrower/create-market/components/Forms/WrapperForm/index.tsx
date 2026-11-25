@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 
-import { Box, Switch, Typography } from "@mui/material"
+import { Box, Switch } from "@mui/material"
 import { UseFormReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 
@@ -48,10 +48,6 @@ export const WrapperForm = ({
 
   return (
     <Box sx={FormContainer}>
-      <Typography variant="title2" sx={{ marginBottom: "36px" }}>
-        {t("createNewMarket.wrapper.title")}
-      </Typography>
-
       <HorizontalInputLabel
         label={t("createNewMarket.wrapper.deploy.label")}
         explainer={t("createNewMarket.wrapper.deploy.explainer")}

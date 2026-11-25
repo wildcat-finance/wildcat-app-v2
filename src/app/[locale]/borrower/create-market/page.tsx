@@ -20,7 +20,13 @@ import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
 import { useAccount } from "wagmi"
 
-import { PageContainer } from "@/app/[locale]/borrower/create-market/style"
+import {
+  GlossaryColumn,
+  PageContainer,
+  StepContainer,
+  StepHeader,
+  StepHeaderBar,
+} from "@/app/[locale]/borrower/create-market/style"
 import { useGetBorrowerProfile } from "@/app/[locale]/borrower/profile/hooks/useGetBorrowerProfile"
 import { BorrowerProfile } from "@/app/api/profiles/interface"
 import CircledCheckBlue from "@/assets/icons/circledCheckBlue_icon.svg"
@@ -150,6 +156,7 @@ export default function CreateMarketPage() {
   )
   const steps = useAppSelector((state) => state.createMarketSidebar.steps)
   const currentNumber = steps.find((step) => step.step === currentStep)?.number
+  const currentTitle = steps.find((step) => step.step === currentStep)?.title
 
   const newMarketForm = useNewMarketForm(isTestnet ?? false)
 
@@ -806,6 +813,7 @@ export default function CreateMarketPage() {
           alignItems: "center",
           justifyContent: "center",
           gap: "16px",
+          overflowY: "auto",
         }}
       >
         {isAgreementFetching ? (
@@ -833,7 +841,7 @@ export default function CreateMarketPage() {
 
   if (touGateState === "blocked") {
     return (
-      <Box sx={PageContainer}>
+      <Box sx={{ ...PageContainer, overflowY: "auto" }}>
         <Box
           sx={{
             width: "100%",
@@ -898,13 +906,16 @@ export default function CreateMarketPage() {
 
   return (
     <Box sx={PageContainer}>
-      <Box
-        sx={{
-          width: "100%",
-          padding: "40px 100px 0",
-        }}
-      >
-        <StepCounterTitle current={currentNumber} total={steps.length - 1} />
+      <Box sx={StepContainer}>
+        <Box sx={StepHeader}>
+          <Box sx={StepHeaderBar}>
+            <StepCounterTitle
+              current={currentNumber}
+              total={steps.length - 1}
+            />
+            <Typography variant="title2">{t(currentTitle ?? "")}</Typography>
+          </Box>
+        </Box>
 
         {currentStep === CreateMarketSteps.POLICY && (
           <MarketPolicyForm
@@ -1132,7 +1143,9 @@ export default function CreateMarketPage() {
         </Dialog>
       </Box>
 
-      {currentNumber && <GlossarySidebar step={currentStep} />}
+      <Box sx={GlossaryColumn}>
+        <GlossarySidebar step={currentStep} hideGlossary={!currentNumber} />
+      </Box>
     </Box>
   )
 }
