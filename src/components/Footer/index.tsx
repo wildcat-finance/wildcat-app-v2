@@ -193,7 +193,7 @@ export const Footer = ({
               color="secondary"
               sx={{
                 borderRadius: "8px",
-                marginBottom: "8px",
+                marginBottom: "6px",
               }}
               onClick={handleOpenCookiesModal}
             >
