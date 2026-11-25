@@ -219,8 +219,6 @@ const compactNumberFormat = new Intl.NumberFormat("en-US", {
 export const formatCompactNumber = (value: number) =>
   compactNumberFormat.format(value)
 
-// Coerce first: inputs bound with react-hook-form's register() hand back
-// strings, and a string's toLocaleString() skips the digit grouping.
 export const formatNumberWithCommas = (
   value: number | string | undefined,
   fractionDigits: number = TOKEN_FORMAT_DECIMALS,

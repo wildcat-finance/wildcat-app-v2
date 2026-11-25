@@ -336,6 +336,7 @@ export const ConfirmationForm = ({
           label={t("createNewMarket.financial.maxCapacity.label")}
           value={`${formatNumberWithCommas(
             getValues("maxTotalSupply"),
+            tokenAsset?.decimals,
           )} ${tokenAsset?.symbol}`}
         />
 
@@ -386,6 +387,7 @@ export const ConfirmationForm = ({
           label={t("createNewMarket.financial.minDeposit.label")}
           value={`${formatNumberWithCommas(
             getValues("minimumDeposit"),
+            tokenAsset?.decimals,
           )} ${tokenAsset?.symbol}`}
         />
       </Box>
@@ -540,7 +542,7 @@ export const ConfirmationForm = ({
       )}
 
       <Box sx={FooterContainer}>
-        <Box sx={FooterBar}>
+        <Box sx={{ ...FooterBar, flexWrap: "wrap", rowGap: "12px" }}>
           <Button
             size="large"
             variant="text"
@@ -560,7 +562,15 @@ export const ConfirmationForm = ({
             {t("createNewMarket.buttons.back")}
           </Button>
 
-          <Box sx={{ display: "flex", gap: "4px" }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "flex-end",
+              gap: "4px",
+              marginLeft: "auto",
+            }}
+          >
             {isMLA && (
               <PreviewMlaModal
                 form={form}

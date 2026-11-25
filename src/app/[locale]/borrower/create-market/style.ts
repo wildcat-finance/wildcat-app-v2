@@ -19,6 +19,8 @@ export const StepContainer = {
   overflowX: "hidden",
   overflowY: "auto",
   scrollbarGutter: "stable",
+  scrollPaddingTop: "145px",
+  scrollPaddingBottom: "129px",
 }
 
 export const StepHeader = {
@@ -26,8 +28,6 @@ export const StepHeader = {
   paddingBottom: "20px",
   position: "sticky",
   top: 0,
-  // Above the forms' floating input labels, which sit at z-index 1 and come
-  // later in the DOM.
   zIndex: 2,
   pointerEvents: "none",
 }
