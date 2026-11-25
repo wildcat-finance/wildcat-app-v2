@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import {
   Box,
@@ -18,6 +18,7 @@ import { Loader } from "@/components/Loader"
 import { ServiceAgreementChip } from "@/components/ServiceAgreementVersionChip"
 import { TxModalFooterContainer } from "@/components/TxModalComponents/TxModalFooter/style"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { useGetIsRegisteredBorrower } from "@/hooks/useIsRegisteredBorrower"
 import { useNetworkGate } from "@/hooks/useNetworkGate"
 import { useAcceptToU, useDeclineToU } from "@/hooks/useToUReacceptance"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -28,6 +29,10 @@ import {
   getServiceAgreementRouteForParty,
   isServiceAgreementPath,
 } from "@/utils/serviceAgreementParty"
+import {
+  remembersToUPromptDismissal,
+  shouldAutoOpenToUPrompt,
+} from "@/utils/serviceAgreementState"
 import { formatServiceAgreementVersionLabel } from "@/utils/serviceAgreementVersions"
 
 const dismissKey = (
@@ -47,6 +52,8 @@ const formatChipDate = (iso: string) => dayjs(iso).utc().format("DD MMM YYYY")
 /// - staleExpired: forced choice - accept or decline (no dismiss).
 /// - declined: dismissible notice; actions for the active capacity stay
 ///   blocked (withdrawals are never blocked), and re-accepting reinstates.
+/// - neverSigned as Borrower: dismissible first-signature prompt, shown only
+///   to registered borrowers whose signing capacity resolves.
 /// Can also be opened manually (footer "Terms of Use status" button) for any
 /// state - that bypasses the session dismissal without erasing it, and adds
 /// read-only views for signedCurrent accounts and first-time Lenders.
@@ -73,6 +80,12 @@ export const ToUReacceptanceModal = () => {
   } = useNetworkGate()
   const accept = useAcceptToU(touParty)
   const decline = useDeclineToU(touParty)
+  const {
+    data: isRegisteredBorrower,
+    isPlaceholderData: isRegistrationCarriedOver,
+    isError: isRegistrationError,
+    refetch: refetchRegistration,
+  } = useGetIsRegisteredBorrower()
 
   const [dismissed, setDismissed] = useState(false)
   const [pendingDismissed, setPendingDismissed] = useState(false)
@@ -113,6 +126,13 @@ export const ToUReacceptanceModal = () => {
     if (!hasPendingSafeAction) setPendingDismissed(false)
   }, [hasPendingSafeAction])
 
+  const wasWrongNetworkRef = useRef(isWrongNetwork)
+  useEffect(() => {
+    const returnedToNetwork = wasWrongNetworkRef.current && !isWrongNetwork
+    wasWrongNetworkRef.current = isWrongNetwork
+    if (returnedToNetwork && isRegistrationError) refetchRegistration()
+  }, [isRegistrationError, isWrongNetwork, refetchRegistration])
+
   // A manual open doesn't outlive the surface it applies to: reset it when
   // the wallet disconnects or the user lands on an agreement page (which has
   // the actions itself and always suppresses this modal).
@@ -129,10 +149,7 @@ export const ToUReacceptanceModal = () => {
     }
     // Only stamp the session dismissal for states whose AUTO popup is
     // dismissible - a manual open of a read-only view never records one.
-    if (
-      storageKey &&
-      (touState === "staleWithinGrace" || touState === "declined")
-    ) {
+    if (storageKey && remembersToUPromptDismissal(touState, touParty)) {
       sessionStorage.setItem(storageKey, "1")
       setDismissed(true)
     }
@@ -219,7 +236,6 @@ export const ToUReacceptanceModal = () => {
     )
   }
 
-  const isGrace = touState === "staleWithinGrace"
   const isExpired = touState === "staleExpired"
   const isDeclined = touState === "declined"
   const isSignedCurrent = touState === "signedCurrent"
@@ -228,8 +244,19 @@ export const ToUReacceptanceModal = () => {
   // (newer version, no campaign) opens the normal sign/decline view.
   const isReadOnly = isSignedCurrent || (isNeverSigned && touParty === "Lender")
 
+  const needsFirstBorrowerAcceptance = isNeverSigned && touParty === "Borrower"
+  const canPromptFirstBorrowerAcceptance =
+    isRegisteredBorrower === true &&
+    !isRegistrationCarriedOver &&
+    accept.isReady
   const autoOpen =
-    (isExpired && !pendingDismissed) || ((isGrace || isDeclined) && !dismissed)
+    shouldAutoOpenToUPrompt({
+      state: touState,
+      party: touParty,
+      dismissed,
+      pendingDismissed,
+    }) &&
+    (!needsFirstBorrowerAcceptance || canPromptFirstBorrowerAcceptance)
   if (!forcedOpen && !autoOpen) return null
 
   const deadlineLabel = touDeadline
@@ -267,6 +294,7 @@ export const ToUReacceptanceModal = () => {
     if (view === "decline") return "Decline Terms of Use"
     if (isDeclined) return "Terms of Use Declined"
     if (isReadOnly) return "Terms of Use"
+    if (needsFirstBorrowerAcceptance) return "Terms of Use Signature Required"
     return "Updated Terms of Use"
   })()
 
@@ -287,7 +315,8 @@ export const ToUReacceptanceModal = () => {
       `restore access in this capacity.`
   } else if (isSignedCurrent) {
     description =
-      "You have accepted the current Wildcat Terms of Use - you are up to date."
+      `This account has accepted the current Wildcat Terms of Use as ` +
+      `${touParty} on this network - this capacity is up to date.`
   } else if (isNeverSigned) {
     description = `This account has not accepted the Wildcat Terms of Use as ${touParty} on this network yet.`
   } else if (isExpired) {

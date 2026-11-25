@@ -17,7 +17,7 @@ export const MarketParametersContainerColumn = (
   width: "48%",
   display: "flex",
   flexDirection: "column",
-  justifyContent: "space-between",
+  justifyContent: "flex-start",
   [theme.breakpoints.down("md")]: {
     width: "100%",
   },

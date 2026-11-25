@@ -28,6 +28,7 @@ import {
   MobileContentContainer,
   PageContentContainer,
 } from "@/components/Profile/ProfilePage/style"
+import { useHistoryBack } from "@/hooks/useHistoryBack"
 import { ROUTES } from "@/routes"
 
 import { ProfilePageSkeletonProps } from "./interface"
@@ -66,6 +67,12 @@ export const ProfilePageSkeleton = ({
   const backLink = pathname.includes(ROUTES.borrower.profile)
     ? ROUTES.borrower.root
     : ROUTES.lender.root
+  const goBack = useHistoryBack(backLink)
+
+  const handleBack = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault()
+    goBack()
+  }
 
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
@@ -76,7 +83,7 @@ export const ProfilePageSkeleton = ({
     return (
       <Box sx={MobileContentContainer}>
         <Box sx={MobileNameBlockContainer}>
-          <Link href={backLink} style={MobileBackButton}>
+          <Link href={backLink} onClick={handleBack} style={MobileBackButton}>
             <SvgIcon sx={MobileBackButtonIcon}>
               <Arrow />
             </SvgIcon>

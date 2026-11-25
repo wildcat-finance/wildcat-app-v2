@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
+import { useHistoryBack } from "@/hooks/useHistoryBack"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 
@@ -31,6 +32,12 @@ export const MobileNamePageBlockWrapper = ({
   const backLink = pathname.includes(ROUTES.borrower.profile)
     ? ROUTES.borrower.root
     : ROUTES.lender.root
+  const goBack = useHistoryBack(backLink)
+
+  const handleBack = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault()
+    goBack()
+  }
 
   const handleChangeSection = (sectionTab: "markets" | "info") => {
     setSection(sectionTab)
@@ -38,7 +45,7 @@ export const MobileNamePageBlockWrapper = ({
 
   return (
     <Box sx={MobileNameBlockContainer}>
-      <Link href={backLink} style={MobileBackButton}>
+      <Link href={backLink} onClick={handleBack} style={MobileBackButton}>
         <SvgIcon sx={MobileBackButtonIcon}>
           <Arrow />
         </SvgIcon>

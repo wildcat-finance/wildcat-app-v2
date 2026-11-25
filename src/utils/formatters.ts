@@ -8,6 +8,7 @@ import { Dayjs } from "dayjs"
 import duration from "dayjs/plugin/duration"
 import { BigNumber } from "ethers"
 import { formatUnits } from "ethers/lib/utils"
+import humanizeDuration from "humanize-duration"
 
 import { ROUTES } from "@/routes"
 import { dayjs } from "@/utils/dayjs"
@@ -143,6 +144,38 @@ export const formatSecsToHours = (seconds: number, short?: boolean) => {
   return timeString.trim()
 }
 
+let compactDurationHumanizer: humanizeDuration.Humanizer | undefined
+
+const getCompactDurationHumanizer = () => {
+  compactDurationHumanizer ??= humanizeDuration.humanizer({
+    language: "compactEn",
+    languages: {
+      compactEn: {
+        y: () => "y",
+        mo: () => "mo",
+        w: () => "w",
+        d: () => "d",
+        h: () => "h",
+        m: () => "m",
+        s: () => "s",
+      },
+    },
+    units: ["d", "h", "m", "s"],
+    spacer: "",
+    delimiter: " ",
+  })
+  return compactDurationHumanizer
+}
+
+export const formatCompactDuration = (
+  seconds: number,
+  largest: number = 2,
+): string =>
+  getCompactDurationHumanizer()(Math.max(0, seconds) * 1000, {
+    round: true,
+    largest,
+  })
+
 // <---- MARKET PARAMETERS FORMATTERS ---->
 export const TOKEN_FORMAT_DECIMALS = 5
 export const MARKET_PERCENTAGE_PARAM_DECIMALS = 2
@@ -244,8 +277,11 @@ export const buildMarketHref = (
 export const trimAddress = (
   address: string,
   maxLength: number | undefined = 6,
-) =>
-  `${address.slice(0, 6)}...${address.slice(-(maxLength - 2), address.length)}`
+) => {
+  const prefix = address.slice(0, 6).toUpperCase().replace(/^0X/, "0x")
+  const suffix = address.slice(-(maxLength - 2)).toUpperCase()
+  return `${prefix}...${suffix}`
+}
 
 export const formatTokenAmount = (
   amount: bigint,

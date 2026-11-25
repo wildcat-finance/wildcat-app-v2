@@ -14,6 +14,14 @@ jest.mock("next/navigation", () => ({
 }))
 jest.mock("wagmi", () => ({ useAccount: () => ({ address: "0x1234" }) }))
 jest.mock("@/hooks/useNetworkGate", () => ({ useNetworkGate: jest.fn() }))
+jest.mock("@/hooks/useIsRegisteredBorrower", () => ({
+  useGetIsRegisteredBorrower: () => ({
+    data: undefined,
+    isPlaceholderData: false,
+    isError: false,
+    refetch: jest.fn(),
+  }),
+}))
 jest.mock("@/hooks/useToUReacceptance", () => ({
   useAcceptToU: () => ({ isPending: false, isReady: true, mutate: jest.fn() }),
   useDeclineToU: () => ({ isPending: false, isReady: true, mutate: jest.fn() }),
