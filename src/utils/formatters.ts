@@ -144,28 +144,34 @@ export const formatSecsToHours = (seconds: number, short?: boolean) => {
   return timeString.trim()
 }
 
-const compactDurationHumanizer = humanizeDuration.humanizer({
-  language: "compactEn",
-  languages: {
-    compactEn: {
-      y: () => "y",
-      mo: () => "mo",
-      w: () => "w",
-      d: () => "d",
-      h: () => "h",
-      m: () => "m",
-      s: () => "s",
+let compactDurationHumanizer: humanizeDuration.Humanizer | undefined
+
+const getCompactDurationHumanizer = () => {
+  compactDurationHumanizer ??= humanizeDuration.humanizer({
+    language: "compactEn",
+    languages: {
+      compactEn: {
+        y: () => "y",
+        mo: () => "mo",
+        w: () => "w",
+        d: () => "d",
+        h: () => "h",
+        m: () => "m",
+        s: () => "s",
+      },
     },
-  },
-  spacer: "",
-  delimiter: " ",
-})
+    units: ["d", "h", "m", "s"],
+    spacer: "",
+    delimiter: " ",
+  })
+  return compactDurationHumanizer
+}
 
 export const formatCompactDuration = (
   seconds: number,
   largest: number = 2,
 ): string =>
-  compactDurationHumanizer(Math.max(0, seconds) * 1000, {
+  getCompactDurationHumanizer()(Math.max(0, seconds) * 1000, {
     round: true,
     largest,
   })

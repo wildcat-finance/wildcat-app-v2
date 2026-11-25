@@ -3,6 +3,7 @@ export type DelinquencyClockState = {
   isDelinquent: boolean
   timeDelinquent: number
   delinquencyGracePeriod: number
+  delinquencyFeeBips: number
   lastInterestAccruedTimestamp: number
 }
 
@@ -11,6 +12,7 @@ export const getLiveTimeDelinquent = (
   nowSec: number = Date.now() / 1000,
 ): number => {
   if (market.isClosed) return 0
+  if (market.delinquencyFeeBips === 0) return market.timeDelinquent
 
   const elapsed = Math.max(
     0,
@@ -41,4 +43,5 @@ export const hasLiveDelinquencyClock = (
   nowSec: number = Date.now() / 1000,
 ): boolean =>
   !market.isClosed &&
+  market.delinquencyFeeBips > 0 &&
   (market.isDelinquent || getLiveTimeDelinquent(market, nowSec) > 0)

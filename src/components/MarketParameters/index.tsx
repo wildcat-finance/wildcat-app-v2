@@ -637,7 +637,7 @@ export const MarketParameters = ({
             <Divider sx={{ margin: "12px 0 12px" }} />
             <ParametersItem
               title={t("borrowerMarketDetails.parameters.maximumGracePeriod")}
-              value={formatCompactDuration(market.delinquencyGracePeriod)}
+              value={formatCompactDuration(market.delinquencyGracePeriod, 4)}
               tooltipText="The duration borrowers have to resolve reserve deficiencies or correct delinquency in the market before penalties take effect."
             />
             <Divider sx={{ margin: "12px 0 12px" }} />

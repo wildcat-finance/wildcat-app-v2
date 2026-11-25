@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import {
   Box,
@@ -126,8 +126,11 @@ export const ToUReacceptanceModal = () => {
     if (!hasPendingSafeAction) setPendingDismissed(false)
   }, [hasPendingSafeAction])
 
+  const wasWrongNetworkRef = useRef(isWrongNetwork)
   useEffect(() => {
-    if (isRegistrationError && !isWrongNetwork) refetchRegistration()
+    const returnedToNetwork = wasWrongNetworkRef.current && !isWrongNetwork
+    wasWrongNetworkRef.current = isWrongNetwork
+    if (returnedToNetwork && isRegistrationError) refetchRegistration()
   }, [isRegistrationError, isWrongNetwork, refetchRegistration])
 
   // A manual open doesn't outlive the surface it applies to: reset it when

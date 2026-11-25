@@ -2,10 +2,11 @@ import * as React from "react"
 
 import { Box, Button, Divider, SvgIcon } from "@mui/material"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import Arrow from "@/assets/icons/arrowLeft_icon.svg"
+import { useHistoryBack } from "@/hooks/useHistoryBack"
 import { ROUTES } from "@/routes"
 import { COLORS } from "@/theme/colors"
 
@@ -27,20 +28,15 @@ export const MobileNamePageBlockWrapper = ({
 }: MobileNamePageBlockWrapperProps) => {
   const { t } = useTranslation()
 
-  const router = useRouter()
   const pathname = usePathname()
   const backLink = pathname.includes(ROUTES.borrower.profile)
     ? ROUTES.borrower.root
     : ROUTES.lender.root
+  const goBack = useHistoryBack(backLink)
 
   const handleBack = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault()
-
-    if (window.history.length > 1) {
-      router.back()
-    } else {
-      router.push(backLink)
-    }
+    goBack()
   }
 
   const handleChangeSection = (sectionTab: "markets" | "info") => {
