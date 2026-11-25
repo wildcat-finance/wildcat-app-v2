@@ -28,6 +28,7 @@ import { formatNumberWithCommas, formatUtcMaturity } from "@/utils/formatters"
 
 import { ConfirmationFormProps } from "./interface"
 import { AlertContainer, DividerStyle, SubtitleStyle } from "./style"
+import { formatDurationFromHoursInput } from "../../../utils/units"
 import { MarketValidationSchemaType } from "../../../validation/validationSchema"
 import { ConfirmationFormItem } from "../../ConfirmationFormItem"
 import { FooterBar, FooterContainer } from "../../FormFooter/style"
@@ -370,17 +371,15 @@ export const ConfirmationForm = ({
 
         <ConfirmationFormItem
           label={t("createNewMarket.periods.grace.label")}
-          value={`${formatNumberWithCommas(
+          value={formatDurationFromHoursInput(
             getValues("delinquencyGracePeriod"),
-            2,
-          )} hours`}
+          )}
         />
         <ConfirmationFormItem
           label={t("createNewMarket.periods.wdCycle.label")}
-          value={`${formatNumberWithCommas(
+          value={formatDurationFromHoursInput(
             getValues("withdrawalBatchDuration"),
-            2,
-          )} hours`}
+          )}
         />
 
         <ConfirmationFormItem
