@@ -219,6 +219,14 @@ const compactNumberFormat = new Intl.NumberFormat("en-US", {
 export const formatCompactNumber = (value: number) =>
   compactNumberFormat.format(value)
 
+export const formatNumberWithCommas = (
+  value: number | string | undefined,
+  fractionDigits: number = TOKEN_FORMAT_DECIMALS,
+) =>
+  Number(value ?? 0).toLocaleString("en-US", {
+    maximumFractionDigits: fractionDigits,
+  })
+
 export const formatBps = (bps: number, fixed?: number) => {
   const fixedNum = (bps / 100).toFixed(fixed || 2)
 

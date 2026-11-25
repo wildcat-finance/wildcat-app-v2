@@ -15,7 +15,7 @@ export const ConfirmationFormItem = ({
     <Typography variant="text4" sx={{ color: COLORS.santasGrey }}>
       {label}
     </Typography>
-    <Typography variant="text2" sx={{ height: "20px" }}>
+    <Typography variant="text2" sx={{ minHeight: "20px" }}>
       {value}
     </Typography>
   </Box>
