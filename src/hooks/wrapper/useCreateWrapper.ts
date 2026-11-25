@@ -14,7 +14,10 @@ import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersProvider } from "@/hooks/useEthersSigner"
 import { useScreenedSafeAppsSDK as useSafeAppsSDK } from "@/hooks/useScreenedSafeAppsSDK"
-import { waitForSafeTransactionExecution } from "@/utils/transactions"
+import {
+  SAFE_EXECUTION_WAIT_OPTIONS,
+  waitForSafeTransactionExecution,
+} from "@/utils/transactions"
 
 const WRAPPER_TRANSFERS_DISABLED_ERROR =
   "A wrapper cannot be deployed when market transfers are disabled"
@@ -81,6 +84,7 @@ export const useCreateWrapper = ({
         const transactionHash = await waitForSafeTransactionExecution(
           sdk,
           safeTxHash,
+          SAFE_EXECUTION_WAIT_OPTIONS,
         )
         await sdk.eth.getTransactionReceipt([transactionHash])
         return transactionHash

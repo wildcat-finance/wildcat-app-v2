@@ -52,8 +52,10 @@ import { isUSDTLikeToken } from "@/utils/constants"
 import { formatTokenWithCommas } from "@/utils/formatters"
 import { invalidateMarketListQueries } from "@/utils/marketListQueries"
 import {
+  SAFE_EXECUTION_WAIT_OPTIONS,
   isApprovalAllowanceSufficient,
   isApprovalAllowanceMismatchError,
+  isApprovalConfirmationTimeoutError,
   rejectOnTransactionCancelled,
   toReceiptRequestProvider,
   waitForApproval,
@@ -378,6 +380,7 @@ export const WrapperSection = ({
     : "Approving"
 
   const isApproveButtonDisabled =
+    !isAuthorizedLender ||
     !approvalRequired ||
     isApproved ||
     isDifferentChain ||
@@ -466,6 +469,7 @@ export const WrapperSection = ({
     const resolvedTxHash = await waitForSafeTransactionExecution(
       sdk,
       safeTxHash,
+      SAFE_EXECUTION_WAIT_OPTIONS,
     )
     await sdk.eth.getTransactionReceipt([resolvedTxHash])
     return resolvedTxHash
@@ -1034,10 +1038,13 @@ export const WrapperSection = ({
                         confirmation.confirmedBy === "allowance"
                           ? "Allowance ready"
                           : "Approved",
-                      getErrorMessage: (error) =>
-                        isApprovalAllowanceMismatchError(error)
-                          ? "Approved allowance is smaller than requested"
-                          : "Approval failed",
+                      getErrorMessage: (error) => {
+                        if (isApprovalAllowanceMismatchError(error))
+                          return "Approved allowance is smaller than requested"
+                        if (isApprovalConfirmationTimeoutError(error))
+                          return "Approval not confirmed yet. Check the transaction and try again"
+                        return "Approval failed"
+                      },
                     })
                   }
                   disabled={isApproveButtonDisabled}

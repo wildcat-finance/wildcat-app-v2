@@ -98,17 +98,40 @@ type TimedRead<T> =
   | { status: "error"; error: unknown }
   | { status: "timeout" }
 
-const readUpTo = async <T>(
-  read: () => Promise<T>,
-  timeoutMs: number,
-): Promise<TimedRead<T>> => {
-  try {
-    const result = await waitUpTo(read(), timeoutMs)
-    return result === WAIT_TIMED_OUT
-      ? { status: "timeout" }
-      : { status: "value", value: result }
-  } catch (error) {
-    return { status: "error", error }
+const createPolledRead = <T>(start: () => Promise<T>, retryAfterMs: number) => {
+  let requestCount = 0
+  let current:
+    | { id: number; startedAt: number; done: Promise<void> }
+    | undefined
+  let settled: TimedRead<T> | undefined
+
+  return async (timeoutMs: number): Promise<TimedRead<T>> => {
+    if (
+      !settled &&
+      (!current || Date.now() - current.startedAt >= retryAfterMs)
+    ) {
+      requestCount += 1
+      const id = requestCount
+      const done = Promise.resolve()
+        .then(start)
+        .then(
+          (value) => {
+            if (current?.id !== id) return
+            settled = { status: "value", value }
+            current = undefined
+          },
+          (error) => {
+            if (current?.id !== id) return
+            settled = { status: "error", error }
+            current = undefined
+          },
+        )
+      current = { id, startedAt: Date.now(), done }
+    }
+    if (!settled && current) await waitUpTo(current.done, timeoutMs)
+    const result: TimedRead<T> = settled ?? { status: "timeout" }
+    settled = undefined
+    return result
   }
 }
 
@@ -180,6 +203,13 @@ export type SafeTransactionExecutionOptions = {
   onWaiting?: (elapsedMs: number) => void
 }
 
+export const SAFE_EXECUTION_WAIT_OPTIONS: SafeTransactionExecutionOptions = {
+  slowPollIntervalMs: SAFE_EXECUTION_SLOW_POLL_INTERVAL_MS,
+  fastPollWindowMs: SAFE_EXECUTION_FAST_POLL_WINDOW_MS,
+  serviceFailureGraceMs: SAFE_EXECUTION_SERVICE_FAILURE_GRACE_MS,
+  timeoutMs: SAFE_EXECUTION_TIMEOUT_MS,
+}
+
 export const waitForSafeTransactionExecution = async (
   sdk: SafeSdkLike,
   safeTxHash: string,
@@ -249,6 +279,7 @@ const APPROVAL_CONFIRMATION_POLL_INTERVAL_MS = 1000
 const APPROVAL_CONFIRMATION_TIMEOUT_MS = 300_000
 const APPROVAL_ALLOWANCE_GRACE_MS = 15_000
 const APPROVAL_ALLOWANCE_RECONCILIATION_MS = 15_000
+const APPROVAL_READ_RETRY_MS = 15_000
 
 const createApprovalConfirmationTimeoutError = (
   transactionHash: string,
@@ -273,6 +304,9 @@ const createApprovalAllowanceMismatchError = (transactionHash: string) => {
 
 export const isApprovalAllowanceMismatchError = (error: unknown) =>
   error instanceof Error && error.name === "ApprovalAllowanceMismatchError"
+
+export const isApprovalConfirmationTimeoutError = (error: unknown) =>
+  error instanceof Error && error.name === "ApprovalConfirmationTimeoutError"
 
 export const isApprovalAllowanceSufficient = (
   allowance: bigint,
@@ -342,11 +376,6 @@ export const waitForApproval = async ({
   let lastSafeError: unknown
   let lastReceiptError: unknown
   let lastAllowanceError: unknown
-  let safeRequest:
-    | Promise<SafeTransactionDetails | null | undefined>
-    | undefined
-  let receiptRequest: Promise<unknown> | undefined
-  let allowanceRequest: Promise<boolean> | undefined
 
   if (transactionHash) onTransactionHash?.(transactionHash)
 
@@ -355,38 +384,22 @@ export const waitForApproval = async ({
     cancellation = { error }
   })
 
-  const readSafe = () => {
+  const readSafe = createPolledRead(() => {
     if (!safeSdk) throw Error("No Safe SDK")
-    safeRequest ??= Promise.resolve()
-      .then(() => safeSdk.txs.getBySafeTxHash(submittedHash))
-      .finally(() => {
-        safeRequest = undefined
-      })
-    return safeRequest
-  }
-  const readReceipt = () => {
+    return safeSdk.txs.getBySafeTxHash(submittedHash)
+  }, APPROVAL_READ_RETRY_MS)
+  const readReceipt = createPolledRead(() => {
     const hashToRead = transactionHash
     if (!hashToRead) throw Error("No transaction hash")
-    receiptRequest ??= Promise.resolve()
-      .then(() =>
-        provider.request({
-          method: "eth_getTransactionReceipt",
-          params: [hashToRead],
-        }),
-      )
-      .finally(() => {
-        receiptRequest = undefined
-      })
-    return receiptRequest
-  }
-  const readAllowance = () => {
-    allowanceRequest ??= Promise.resolve()
-      .then(isAllowanceSufficient)
-      .finally(() => {
-        allowanceRequest = undefined
-      })
-    return allowanceRequest
-  }
+    return provider.request({
+      method: "eth_getTransactionReceipt",
+      params: [hashToRead],
+    })
+  }, APPROVAL_READ_RETRY_MS)
+  const readAllowance = createPolledRead(
+    isAllowanceSufficient,
+    APPROVAL_READ_RETRY_MS,
+  )
   const allowanceFailure = () =>
     allowanceObserved === false
       ? createApprovalAllowanceMismatchError(transactionHash ?? submittedHash)
@@ -400,13 +413,11 @@ export const waitForApproval = async ({
     if (cancellation) throw cancellation.error
     const readTimeoutMs = Math.max(1, pollingIntervalMs)
     const [allowanceRead, safeRead, receiptRead] = await Promise.all([
-      readUpTo(readAllowance, readTimeoutMs),
+      readAllowance(readTimeoutMs),
       safeConnected && safeSdk && !safeOutcomeConfirmed
-        ? readUpTo(readSafe, readTimeoutMs)
+        ? readSafe(readTimeoutMs)
         : Promise.resolve(undefined),
-      transactionHash
-        ? readUpTo(readReceipt, readTimeoutMs)
-        : Promise.resolve(undefined),
+      transactionHash ? readReceipt(readTimeoutMs) : Promise.resolve(undefined),
     ])
     const observedAt = Date.now()
 

@@ -36,7 +36,7 @@ export const WrapDebtToken = ({
   <Box>
     {hasWrapper && !isAuthorizedLender && (
       <Typography variant="text3" color={COLORS.manate}>
-        Only authorized lenders can access the wrapper.
+        Only authorized lenders can wrap and unwrap.
       </Typography>
     )}
 
@@ -57,18 +57,14 @@ export const WrapDebtToken = ({
 
     {hasFactory && isWrapperLoading && !isWrapperError && <WrapperSkeleton />}
 
-    {isAuthorizedLender &&
-      hasWrapper &&
-      wrapper &&
-      !isWrapperLoading &&
-      !isWrapperError && (
-        <WrapperSection
-          market={market}
-          wrapper={wrapper}
-          isDifferentChain={isDifferentChain}
-          isAuthorizedLender={isAuthorizedLender}
-        />
-      )}
+    {hasWrapper && wrapper && !isWrapperLoading && !isWrapperError && (
+      <WrapperSection
+        market={market}
+        wrapper={wrapper}
+        isDifferentChain={isDifferentChain}
+        isAuthorizedLender={isAuthorizedLender}
+      />
+    )}
 
     {hasFactory && isWrapperError && (
       <WrapperLookupError onRetry={onRetryWrapper} />

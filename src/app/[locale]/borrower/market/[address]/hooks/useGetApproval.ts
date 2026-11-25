@@ -10,6 +10,7 @@ import { useEthersSigner } from "@/hooks/useEthersSigner"
 import {
   isApprovalAllowanceSufficient,
   isApprovalAllowanceMismatchError,
+  isApprovalConfirmationTimeoutError,
   rejectOnTransactionCancelled,
   toReceiptRequestProvider,
   waitForApproval,
@@ -100,10 +101,13 @@ export const useApprove = (
         confirmation.confirmedBy === "allowance"
           ? `${tokenAmount.format()} ${token.symbol} allowance is ready`
           : `Successfully approved ${tokenAmount.format()} ${token.symbol}`,
-      getErrorMessage: (error) =>
-        isApprovalAllowanceMismatchError(error)
-          ? `Approved ${token.symbol} allowance is smaller than requested`
-          : "Failed to approve",
+      getErrorMessage: (error) => {
+        if (isApprovalAllowanceMismatchError(error))
+          return `Approved ${token.symbol} allowance is smaller than requested`
+        if (isApprovalConfirmationTimeoutError(error))
+          return `${token.symbol} approval not confirmed yet. Check the transaction and try again`
+        return "Failed to approve"
+      },
     })
   }
 
