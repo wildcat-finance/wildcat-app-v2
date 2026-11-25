@@ -7,6 +7,14 @@ import { toastRequest } from "@/components/Toasts"
 import { QueryKeys } from "@/config/query-keys"
 import { useCurrentNetwork } from "@/hooks/useCurrentNetwork"
 import { useEthersSigner } from "@/hooks/useEthersSigner"
+import {
+  isApprovalAllowanceSufficient,
+  isApprovalAllowanceMismatchError,
+  isApprovalConfirmationTimeoutError,
+  rejectOnTransactionCancelled,
+  toReceiptRequestProvider,
+  waitForApproval,
+} from "@/utils/transactions"
 
 export const useApprove = (
   token: Token,
@@ -51,25 +59,29 @@ export const useApprove = (
           tokenAmount.raw,
         )
 
-        if (!safeConnected && setTxHash) setTxHash(tx.hash)
-
-        if (safeConnected) {
-          const checkTransaction = async () => {
-            const transactionBySafeHash = await sdk.txs.getBySafeTxHash(tx.hash)
-            if (transactionBySafeHash?.txHash) {
-              if (setTxHash) setTxHash(transactionBySafeHash.txHash)
-            } else {
-              setTimeout(checkTransaction, 1000)
-            }
-          }
-
-          await checkTransaction()
-        }
-
-        return tx.wait()
+        return waitForApproval({
+          provider: toReceiptRequestProvider(signer.provider),
+          hash: tx.hash,
+          isAllowanceSufficient: async () => {
+            const allowance = await token.contract.allowance(
+              signingAddress,
+              market.address,
+            )
+            return isApprovalAllowanceSufficient(
+              allowance.toBigInt(),
+              tokenAmount.raw.toBigInt(),
+            )
+          },
+          safeConnected,
+          safeSdk: sdk,
+          onTransactionHash: setTxHash,
+          cancelled: safeConnected
+            ? undefined
+            : rejectOnTransactionCancelled(tx),
+        })
       }
 
-      await approve()
+      return approve()
     },
     onSuccess() {
       client.invalidateQueries({
@@ -85,8 +97,17 @@ export const useApprove = (
   const approveWithToast = async (tokenAmount: TokenAmount) => {
     await toastRequest(mutation.mutateAsync(tokenAmount), {
       pending: `Approving ${tokenAmount.format()} ${token.symbol}...`,
-      success: `Successfully approved ${tokenAmount.format()} ${token.symbol}`,
-      error: "Failed to approve",
+      success: (confirmation) =>
+        confirmation.confirmedBy === "allowance"
+          ? `${tokenAmount.format()} ${token.symbol} allowance is ready`
+          : `Successfully approved ${tokenAmount.format()} ${token.symbol}`,
+      getErrorMessage: (error) => {
+        if (isApprovalAllowanceMismatchError(error))
+          return `Approved ${token.symbol} allowance is smaller than requested`
+        if (isApprovalConfirmationTimeoutError(error))
+          return `${token.symbol} approval not confirmed yet. Check the transaction and try again`
+        return "Failed to approve"
+      },
     })
   }
 
