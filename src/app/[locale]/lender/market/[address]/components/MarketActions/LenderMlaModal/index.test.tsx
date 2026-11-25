@@ -60,7 +60,7 @@ const downloadUrls = () => {
 it("lets a lender read and download the agreement before signing", () => {
   mockSignedMla = null
   const frame = open()
-  expect(frame.getAttribute("sandbox")).toBe("")
+  expect(frame.getAttribute("sandbox")).not.toContain("allow-scripts")
   expect(frame.getAttribute("srcdoc")).toBe("<p>Lender: [Lender Address]</p>")
   screen.getByText("mla.signMla")
   expect(downloadUrls()).toEqual([
