@@ -5,6 +5,8 @@ import { useEffect, useState } from "react"
 import { Box, Button, Modal } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
+import { MlaDocument } from "@/components/MlaDocument"
+
 import { MlaModalProps } from "./interface"
 
 export const MlaModal = ({
@@ -71,14 +73,16 @@ export const MlaModal = ({
               marginBottom: 2,
             }}
           >
-            <iframe
-              srcDoc={mla?.html}
-              style={{
+            <MlaDocument
+              html={mla?.html ?? ""}
+              title={t("mla.previewTitle")}
+              sx={{
                 width: "800px",
                 height: "100%",
+                minHeight: 0,
                 border: "none",
+                borderRadius: 0,
               }}
-              title="Market Lending Agreement"
             />
           </Box>
           <Box

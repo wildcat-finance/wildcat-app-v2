@@ -91,11 +91,14 @@ const BORROWER_QUERY_KEYS = {
   GET_LENDERS_BY_MARKET: (chainId: number, marketAddress?: string) =>
     k(["borrower", "GET_LENDERS_BY_MARKET", chainId, marketAddress]),
   // GET_MLA_TEMPLATES_KEY
-  GET_MLA_TEMPLATES: (chainId: number) =>
-    k(["borrower", "GET_MLA_TEMPLATES", chainId]),
+  GET_MLA_TEMPLATES: (chainId: number, viewer?: string) =>
+    k(["borrower", "GET_MLA_TEMPLATES", chainId, viewer]),
   // GET_MLA_TEMPLATE_KEY
-  GET_MLA_TEMPLATE: (chainId: number, id?: number) =>
-    k(["borrower", "GET_MLA_TEMPLATE", chainId, id]),
+  GET_MLA_TEMPLATE: (chainId: number, id?: number, viewer?: string) =>
+    k(["borrower", "GET_MLA_TEMPLATE", chainId, id, viewer]),
+  // GET_CUSTOM_MLA_TEMPLATES_KEY (admin)
+  GET_CUSTOM_MLA_TEMPLATES: (chainId: number, admin?: string) =>
+    k(["borrower", "GET_CUSTOM_MLA_TEMPLATES", chainId, admin]),
   // GET_POLICY_KEY
   GET_POLICY: (chainId: number, policyAddress?: string) =>
     k(["borrower", "GET_POLICY", chainId, policyAddress]),
@@ -126,6 +129,7 @@ const BORROWER_QUERY_KEYS = {
       marketAddress?: string,
       borrowerProfile?: unknown,
       asset?: unknown,
+      mlaTemplateId?: number,
     ) =>
       k([
         "borrower",
@@ -134,6 +138,7 @@ const BORROWER_QUERY_KEYS = {
         marketAddress,
         borrowerProfile,
         asset,
+        mlaTemplateId,
       ]),
     FROM_MARKET: (
       chainId: number,
@@ -173,6 +178,9 @@ const ADMIN_QUERY_KEYS = {
     isAdmin?: boolean,
     address?: string,
   ) => k(["admin", "GET_ALL_BORROWER_PROFILES", chainId, isAdmin, address]),
+  // GET_BORROWER_ORGANISATIONS_KEY
+  GET_BORROWER_ORGANISATIONS: (chainId: number, address?: string) =>
+    k(["admin", "GET_BORROWER_ORGANISATIONS", chainId, address]),
 } as const
 
 const USER_QUERY_KEYS = {

@@ -3,6 +3,7 @@ import { sign, verify } from "jsonwebtoken"
 import { NextRequest } from "next/server"
 
 import { prisma } from "@/lib/db"
+import { isTestnetChain } from "@/lib/networkClass"
 
 import { DataStoredInToken } from "./login/interface"
 
@@ -56,6 +57,17 @@ export const isAdminForChain = async (
     },
   })
   return !!admin
+}
+
+/// Admin authority over data shared by every network of a class, such as a
+/// borrower organisation or an MLA template: the token must be an admin on a
+/// network of that class.
+export const isAdminForNetworkClass = async (
+  token: DataStoredInToken | undefined,
+  isTestnet: boolean,
+) => {
+  if (!token || isTestnetChain(token.chainId) !== isTestnet) return false
+  return isAdminForChain(token, token.chainId)
 }
 
 export const createApiToken = async (

@@ -19,9 +19,39 @@ export const launchPuppeteer = async (
       ...options,
     })
   }
+  // Locally, use the Chrome installed on the machine: .puppeteerrc.cjs points
+  // puppeteer's own download at the Vercel build cache, which a developer
+  // machine does not have. PUPPETEER_EXECUTABLE_PATH picks another browser.
   return puppeteer.launch({
     args: ["--no-sandbox"],
     headless: true,
+    ...(process.env.PUPPETEER_EXECUTABLE_PATH ? {} : { channel: "chrome" }),
     ...options,
   })
+}
+
+/// An A4 PDF of an agreement's HTML. The HTML holds text that borrowers and
+/// token deployers chose, so the page runs no scripts.
+export const renderAgreementPdf = async (html: string): Promise<Buffer> => {
+  const browser = await launchPuppeteer()
+  try {
+    const page = await browser.newPage()
+    await page.setJavaScriptEnabled(false)
+    await page.goto(
+      `data:text/html;charset=UTF-8,${encodeURIComponent(html)}`,
+      { waitUntil: "networkidle0" },
+    )
+    return Buffer.from(
+      await page.pdf({
+        format: "A4",
+        headerTemplate: "<p></p>",
+        footerTemplate: "<p></p>",
+        displayHeaderFooter: false,
+        margin: { top: "40px", bottom: "40px" },
+        printBackground: true,
+      }),
+    )
+  } finally {
+    await browser.close()
+  }
 }

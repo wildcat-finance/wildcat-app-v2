@@ -1,14 +1,12 @@
+import { NonMlaAcknowledgement } from "@prisma/client"
 import { isSupportedChainId } from "@wildcatfi/wildcat-sdk"
 import { WildcatMarket__factory as WildcatMarketFactory } from "@wildcatfi/wildcat-sdk/dist/typechain"
 import { NextRequest, NextResponse } from "next/server"
 
 import { NETWORKS_BY_ID } from "@/config/network"
 import { NON_MLA_ACKNOWLEDGEMENT_TEXT_VERSION } from "@/config/non-mla-acknowledgement"
-import {
-  getBorrowerProfile,
-  getSignedMasterLoanAgreement,
-  prisma,
-} from "@/lib/db"
+import { findBorrowerRegistration, prisma } from "@/lib/db"
+import { toStoredSignature } from "@/lib/mlaPersistence"
 import { getProviderForServer } from "@/lib/provider"
 import { verifyAndDescribeSignature } from "@/lib/signatures"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
@@ -20,6 +18,19 @@ import {
   NonMlaAcknowledgementInput,
   NonMlaAcknowledgementResponse,
 } from "./interface"
+
+// The acknowledgement has one server time; the response keeps its old name.
+const toResponse = ({
+  blockNumber,
+  createdAt,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  outcome,
+  ...rest
+}: NonMlaAcknowledgement): NonMlaAcknowledgementResponse => ({
+  ...rest,
+  blockNumber: blockNumber || undefined,
+  timeSigned: createdAt,
+})
 
 /// GET /api/mla/[market]/acknowledgement?chainId=<chainId>&lenderAddress=<address>
 export async function GET(
@@ -56,11 +67,7 @@ export async function GET(
     )
   }
 
-  const { blockNumber, ...rest } = acknowledgement
-  return NextResponse.json({
-    ...rest,
-    blockNumber: blockNumber || undefined,
-  } as NonMlaAcknowledgementResponse)
+  return NextResponse.json(toResponse(acknowledgement))
 }
 
 /// POST /api/mla/[market]/acknowledgement
@@ -103,32 +110,33 @@ export async function POST(
         { status: 409 },
       )
     }
-    const { blockNumber, ...rest } = existingAcknowledgement
-    return NextResponse.json({
-      ...rest,
-      blockNumber: blockNumber || undefined,
-    } as NonMlaAcknowledgementResponse)
+    return NextResponse.json(toResponse(existingAcknowledgement))
   }
 
-  const mla = await getSignedMasterLoanAgreement(marketAddress, chainId)
-  if (mla) {
-    return NextResponse.json({ error: "MLA already exists" }, { status: 400 })
-  }
-
-  const refusal = await prisma.refusalToAssignMla.findFirst({
-    where: {
-      chainId,
-      market: marketAddress,
+  const decision = await prisma.marketMlaDecision.findUnique({
+    where: { chainId_market: { chainId, market: marketAddress } },
+    select: {
+      outcome: true,
+      borrowerAddress: true,
+      borrower: { select: { name: true, alias: true } },
     },
   })
-  if (!refusal) {
+  if (decision?.outcome === "Assigned") {
+    return NextResponse.json({ error: "MLA already exists" }, { status: 400 })
+  }
+  if (!decision) {
     return NextResponse.json(
       { error: "MLA assignment refusal not found" },
       { status: 400 },
     )
   }
 
-  const borrowerProfile = await getBorrowerProfile(refusal.address, chainId)
+  // A refusal from an account with no borrower record at the time may have
+  // gained one since.
+  const borrowerProfile =
+    decision.borrower ??
+    (await findBorrowerRegistration(chainId, decision.borrowerAddress))
+      ?.borrower
   if (!borrowerProfile?.name) {
     return NextResponse.json(
       { error: "Borrower profile not found" },
@@ -156,7 +164,7 @@ export async function POST(
     marketAddress,
     marketName,
     borrowerLegalName: borrowerProfile.name,
-    borrowerAlias: borrowerProfile.alias,
+    borrowerAlias: borrowerProfile.alias ?? undefined,
     networkName,
     chainId,
   })
@@ -184,26 +192,14 @@ export async function POST(
       chainId,
       market: marketAddress,
       address: lenderAddress,
-      signer:
-        "owner" in verifiedSignature
-          ? verifiedSignature.owner.toLowerCase()
-          : verifiedSignature.address.toLowerCase(),
+      ...toStoredSignature(verifiedSignature),
       signature,
-      blockNumber:
-        "blockNumber" in verifiedSignature
-          ? verifiedSignature.blockNumber
-          : undefined,
-      kind: verifiedSignature.kind,
       acknowledgementTextVersion: NON_MLA_ACKNOWLEDGEMENT_TEXT_VERSION,
       acknowledgementText,
     },
   })
 
-  const { blockNumber, ...rest } = acknowledgement
-  return NextResponse.json({
-    ...rest,
-    blockNumber: blockNumber || undefined,
-  } as NonMlaAcknowledgementResponse)
+  return NextResponse.json(toResponse(acknowledgement))
 }
 
 export const dynamic = "force-dynamic"

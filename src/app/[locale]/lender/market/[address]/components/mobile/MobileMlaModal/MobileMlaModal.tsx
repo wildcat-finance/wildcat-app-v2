@@ -1,19 +1,21 @@
-import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react"
+import { Dispatch, SetStateAction } from "react"
 import * as React from "react"
 
 import { Box, Button } from "@mui/material"
-import { useAccount } from "wagmi"
+import { useTranslation } from "react-i18next"
 
-import { useSignLenderMLA } from "@/app/[locale]/lender/hooks/useSignLenderMla"
-import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
-import { MasterLoanAgreementResponse } from "@/app/api/mla/interface"
+import {
+  LenderMlaInput,
+  useLenderMla,
+} from "@/app/[locale]/lender/hooks/useLenderMla"
+import { MlaDocument } from "@/components/MlaDocument"
 import { TransactionHeader } from "@/components/Mobile/TransactionHeader"
 import { COLORS } from "@/theme/colors"
 
 export type MobileMlaModalProps = {
   isMobileOpen: boolean
   setIsMobileOpen: Dispatch<SetStateAction<boolean>>
-  mla: MasterLoanAgreementResponse | undefined | null | { noMLA: boolean }
+  mla: LenderMlaInput
   isLoading: boolean
 }
 
@@ -23,36 +25,18 @@ export const MobileMlaModal = ({
   isMobileOpen,
   setIsMobileOpen,
 }: MobileMlaModalProps) => {
-  const mla = mlaInput && "noMLA" in mlaInput ? undefined : mlaInput
-  const { address, chainId } = useAccount()
-  const { data: signedMla, isLoading: signedMlaLoading } = useGetSignedMla(mla)
-  const [timeSigned, setTimeSigned] = useState(0)
-  useEffect(() => {
-    setTimeSigned(Date.now())
-  }, [])
-  const { mutate: signMla, isPending } = useSignLenderMLA()
-  const onSign = () => {
-    if (mla && !signedMla && address) {
-      signMla({ lenderAddress: address, mla, timeSigned })
-    }
-  }
-  const disableActions = isLoading || signedMlaLoading || isPending
-  const downloadPdfUrl = useMemo(() => {
-    if (mla && signedMla && address) {
-      const resolvedChainId = mla.chainId ?? chainId
-      if (!resolvedChainId) return null
-      return `/api/mla/${mla.market.toLowerCase()}/${address.toLowerCase()}/pdf?chainId=${resolvedChainId}`
-    }
-    return null
-  }, [signedMla, address, mla, chainId])
-  const downloadSignedUrl = useMemo(() => {
-    if (mla && signedMla && address) {
-      const resolvedChainId = mla.chainId ?? chainId
-      if (!resolvedChainId) return null
-      return `/api/mla/${mla.market.toLowerCase()}/${address.toLowerCase()}/signed?chainId=${resolvedChainId}`
-    }
-    return null
-  }, [signedMla, address, mla, chainId])
+  const { t } = useTranslation()
+  const {
+    label,
+    buttonText,
+    html,
+    downloads,
+    signedMlaLoading,
+    isSigning,
+    canSign,
+    sign,
+  } = useLenderMla(mlaInput)
+  const disableActions = isLoading || signedMlaLoading || isSigning
 
   const htmlContent = `
   <html>
@@ -67,7 +51,7 @@ export const MobileMlaModal = ({
       </style>
     </head>
     <body>
-      ${signedMla?.html ?? mla?.html ?? ""}
+      ${html}
     </body>
   </html>
 `
@@ -87,7 +71,7 @@ export const MobileMlaModal = ({
       }}
     >
       <TransactionHeader
-        label="Market Lending Agreement"
+        label={label ?? buttonText}
         arrowOnClick={null}
         crossOnClick={() => setIsMobileOpen(false)}
       />
@@ -98,55 +82,51 @@ export const MobileMlaModal = ({
           paddingX: "12px",
         }}
       >
-        <iframe
-          srcDoc={htmlContent}
-          style={{
-            width: "100%",
+        <MlaDocument
+          html={htmlContent}
+          title={label ?? buttonText}
+          sx={{
             height: "100%",
+            minHeight: 0,
             border: "none",
+            borderRadius: 0,
           }}
-          title="Market Lending Agreement"
         />
       </Box>
 
-      <Box sx={{ display: "flex", gap: "6px", padding: "12px" }}>
-        {downloadPdfUrl && (
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "6px",
+          padding: "12px",
+        }}
+      >
+        {downloads.map(({ label: downloadLabel, url }, index) => (
           <Button
+            key={url}
             sx={{ padding: "12px 20px" }}
             variant="contained"
             size="large"
-            color="secondary"
-            onClick={() => window.open(downloadPdfUrl, "_blank")}
+            color={index === 0 ? "secondary" : "primary"}
+            onClick={() => window.open(url, "_blank")}
             disabled={disableActions}
             fullWidth
           >
-            Download PDF
+            {downloadLabel}
           </Button>
-        )}
+        ))}
 
-        {downloadSignedUrl && (
+        {canSign && (
           <Button
             sx={{ padding: "12px 20px" }}
             variant="contained"
             size="large"
-            onClick={() => window.open(downloadSignedUrl, "_blank")}
+            onClick={sign}
             disabled={disableActions}
             fullWidth
           >
-            Download Signed MLA
-          </Button>
-        )}
-
-        {signedMla === null && (
-          <Button
-            sx={{ padding: "12px 20px" }}
-            variant="contained"
-            size="large"
-            onClick={onSign}
-            disabled={disableActions}
-            fullWidth
-          >
-            {signedMlaLoading ? "Signing..." : "Sign MLA"}
+            {isSigning ? t("mla.signing") : t("mla.signMla")}
           </Button>
         )}
       </Box>

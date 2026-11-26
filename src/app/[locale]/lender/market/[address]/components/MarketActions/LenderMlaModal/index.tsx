@@ -1,58 +1,32 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useState } from "react"
 
 import { Box, Button, Modal } from "@mui/material"
 import { useTranslation } from "react-i18next"
-import { useAccount } from "wagmi"
+
+import { useLenderMla } from "@/app/[locale]/lender/hooks/useLenderMla"
+import { MlaDocument } from "@/components/MlaDocument"
 
 import { LenderMlaModalProps } from "./interface"
-import { useSignLenderMLA } from "../../../../../hooks/useSignLenderMla"
-import { useGetSignedMla } from "../../../../../hooks/useSignMla"
 
 export const LenderMlaModal = ({
   mla: mlaInput,
   isLoading,
 }: LenderMlaModalProps) => {
-  const mla = mlaInput && "noMLA" in mlaInput ? undefined : mlaInput
-  const { address, chainId } = useAccount()
-  const { data: signedMla, isLoading: signedMlaLoading } = useGetSignedMla(mla)
-  const [timeSigned, setTimeSigned] = useState(0)
-  useEffect(() => {
-    setTimeSigned(Date.now())
-  }, [])
-  const { mutate: signMla, isPending } = useSignLenderMLA()
-  const [isMlaOpen, setIsMlaOpen] = useState(false) // Add new state
   const { t } = useTranslation()
-  const onSign = () => {
-    if (mla && !signedMla && address) {
-      signMla({ lenderAddress: address, mla, timeSigned })
-    }
-  }
-  const downloadPdfUrl = useMemo(() => {
-    if (mla && signedMla && address) {
-      const resolvedChainId = mla.chainId ?? chainId
-      if (!resolvedChainId) return null
-      return `/api/mla/${mla.market.toLowerCase()}/${address.toLowerCase()}/pdf?chainId=${resolvedChainId}`
-    }
-    return null
-  }, [signedMla, address, mla, chainId])
-  const downloadSignedUrl = useMemo(() => {
-    if (mla && signedMla && address) {
-      const resolvedChainId = mla.chainId ?? chainId
-      if (!resolvedChainId) return null
-      return `/api/mla/${mla.market.toLowerCase()}/${address.toLowerCase()}/signed?chainId=${resolvedChainId}`
-    }
-    return null
-  }, [signedMla, address, mla, chainId])
-
-  const buttonText =
-    // eslint-disable-next-line no-nested-ternary
-    mla === null
-      ? t("lenderMarketDetails.buttons.mlaNotSet")
-      : mlaInput && "noMLA" in mlaInput
-        ? t("lenderMarketDetails.buttons.mlaRefused")
-        : t("lenderMarketDetails.buttons.viewMla")
+  const {
+    mla,
+    label,
+    buttonText,
+    html,
+    downloads,
+    signedMlaLoading,
+    isSigning,
+    canSign,
+    sign,
+  } = useLenderMla(mlaInput)
+  const [isMlaOpen, setIsMlaOpen] = useState(false)
 
   return (
     <>
@@ -60,11 +34,23 @@ export const LenderMlaModal = ({
         variant="outlined"
         color="secondary"
         size="small"
-        disabled={isLoading || !mla || signedMlaLoading || isPending}
+        disabled={isLoading || !mla || signedMlaLoading || isSigning}
         onClick={() => mla && setIsMlaOpen(true)}
-        sx={{ height: "28px" }}
+        title={buttonText}
+        sx={{ height: "28px", maxWidth: "320px" }}
       >
-        {(isLoading && "Loading MLA...") || buttonText}
+        <Box
+          component="span"
+          sx={{
+            display: "block",
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {(isLoading && "Loading MLA...") || buttonText}
+        </Box>
       </Button>
       <Modal
         open={isMlaOpen}
@@ -91,14 +77,16 @@ export const LenderMlaModal = ({
               marginBottom: 2,
             }}
           >
-            <iframe
-              srcDoc={signedMla?.html ?? mla?.html}
-              style={{
+            <MlaDocument
+              html={html}
+              title={label ?? buttonText}
+              sx={{
                 width: "800px",
                 height: "100%",
+                minHeight: 0,
                 border: "none",
+                borderRadius: 0,
               }}
-              title="Market Lending Agreement"
             />
           </Box>
           <Box
@@ -108,33 +96,20 @@ export const LenderMlaModal = ({
               justifyContent: "center",
             }}
           >
-            {signedMlaLoading ? (
-              <Button variant="outlined" onClick={onSign}>
-                Signing...
+            {canSign && (
+              <Button variant="outlined" onClick={sign} disabled={isSigning}>
+                {isSigning ? t("mla.signing") : t("mla.signMla")}
               </Button>
-            ) : (
-              signedMla === null && (
-                <Button variant="outlined" onClick={onSign}>
-                  Sign MLA
-                </Button>
-              )
             )}
-            {downloadPdfUrl && (
+            {downloads.map(({ label: downloadLabel, url }) => (
               <Button
+                key={url}
                 variant="outlined"
-                onClick={() => window.open(downloadPdfUrl, "_blank")}
+                onClick={() => window.open(url, "_blank")}
               >
-                Download PDF
+                {downloadLabel}
               </Button>
-            )}
-            {downloadSignedUrl && (
-              <Button
-                variant="outlined"
-                onClick={() => window.open(downloadSignedUrl, "_blank")}
-              >
-                Download Signed MLA
-              </Button>
-            )}
+            ))}
           </Box>
         </Box>
       </Modal>

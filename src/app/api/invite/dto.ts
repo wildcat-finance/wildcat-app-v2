@@ -17,7 +17,8 @@ export const AcceptInvitationInputDTO = z.object({
 
 export const BorrowerInvitationInputDTO = z.object({
   chainId: z.number(),
-  address: z.string().min(2).max(42),
+  address: z.string().regex(/^0x[0-9a-fA-F]{40}$/, "Invalid address"),
+  borrowerId: z.string().uuid().optional(),
   name: z.string().min(1).max(64),
   alias: z.string().min(0).max(64).optional(),
   description: z.string().min(0).max(1024).optional(),

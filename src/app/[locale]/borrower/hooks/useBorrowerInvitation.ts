@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 
-import { BorrowerInvitation } from "@/app/api/invite/interface"
+import { PendingBorrowerInvitation } from "@/app/api/invite/interface"
 import { useAuthToken, useRemoveBadApiToken } from "@/hooks/useApiAuth"
 import { useSelectedNetwork } from "@/hooks/useSelectedNetwork"
 
@@ -19,7 +19,7 @@ export const useGetBorrowerInvitation = (address: string | undefined) => {
         method: "HEAD",
       },
     ).then((res) => res.status === 200)
-    let invitation: BorrowerInvitation | undefined
+    let invitation: PendingBorrowerInvitation | undefined
     if (exists && token) {
       const response = await fetch(
         `/api/invite/${address.toLowerCase()}?chainId=${chainId}`,
@@ -110,7 +110,9 @@ export const useBorrowerInvitation = (address: string | undefined) => {
       console.log(err)
       return undefined
     })
-    return invitation === undefined ? null : (invitation as BorrowerInvitation)
+    return invitation === undefined
+      ? null
+      : (invitation as PendingBorrowerInvitation)
   }
   const { data, ...result } = useQuery({
     enabled: !!address && !!token,

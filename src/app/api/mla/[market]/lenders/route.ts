@@ -31,7 +31,7 @@ export async function GET(
   if (mla.borrower.toLowerCase() !== token.address.toLowerCase()) {
     return new NextResponse(null, { status: 403 })
   }
-  const mlaSignatures = await prisma.mlaSignature.findMany({
+  const mlaSignatures = await prisma.mlaLenderSignature.findMany({
     where: {
       chainId,
       market,

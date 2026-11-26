@@ -4,14 +4,18 @@ import { Dispatch, SetStateAction } from "react"
 import { Box, Button, SvgIcon, Typography } from "@mui/material"
 import { useTranslation } from "react-i18next"
 
+import {
+  getLenderMlaButtonText,
+  getLenderMlaLabel,
+  LenderMlaInput,
+} from "@/app/[locale]/lender/hooks/useLenderMla"
 import { useGetSignedMla } from "@/app/[locale]/lender/hooks/useSignMla"
-import { MasterLoanAgreementResponse } from "@/app/api/mla/interface"
 import Check from "@/assets/icons/check_icon.svg"
 import { COLORS } from "@/theme/colors"
 import { formatDate } from "@/utils/formatters"
 
 export type MobileMlaAlertProps = {
-  mla: MasterLoanAgreementResponse | undefined | null | { noMLA: boolean }
+  mla: LenderMlaInput
   isLoading: boolean
   isMLAOpen: boolean
   setIsMLAOpen: Dispatch<SetStateAction<boolean>>
@@ -36,13 +40,7 @@ export const MobileMlaAlert = ({
     setIsMLAOpen(!isMLAOpen)
   }
 
-  const buttonText =
-    // eslint-disable-next-line no-nested-ternary
-    mla === null
-      ? t("lenderMarketDetails.buttons.mlaNotSet")
-      : mla && "noMLA" in mla
-        ? t("lenderMarketDetails.buttons.mlaRefused")
-        : t("lenderMarketDetails.buttons.viewMla")
+  const buttonText = getLenderMlaButtonText(t, mla)
 
   if (!mlaRequiredAndUnsigned && !!signedMla)
     return (
@@ -57,7 +55,7 @@ export const MobileMlaAlert = ({
         }}
       >
         <Typography variant="mobH3" textAlign="center" marginTop="12px">
-          Master Loan Agreement
+          {mlaResponse ? getLenderMlaLabel(t, mlaResponse) : buttonText}
         </Typography>
 
         <Box

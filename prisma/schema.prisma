@@ -8,12 +8,6 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-enum AccountKind {
-  EOA
-  GnosisSafe
-  OtherContract
-}
-
 enum SignatureKind {
   // Signature from the target account (e.g. borrower)
   ECDSA
@@ -28,6 +22,11 @@ enum SignatureKind {
 enum ServiceAgreementParty {
   Borrower
   Lender
+}
+
+enum MlaDecisionOutcome {
+  Assigned
+  Declined
 }
 
 enum ExportJobStatus {
@@ -110,72 +109,21 @@ model ExportProviderThrottle {
   nextRequestAt DateTime
 }
 
-// @todo - need to make the borrower/lender signatures distinct as the borrower
-// can technically also be a lender, but that would use a different message
+// One row per network the database accepts rows for. `isTestnet` is the
+// network class: mainnet and testnet borrowers and MLA templates never mix.
+model Network {
+  chainId   Int     @id
+  isTestnet Boolean
 
-model MlaSignature {
-  kind        SignatureKind
-  address     String
-  // If the signature is from a single owner of a gnosis safe, this is the address of the
-  // owner that made the signature; otherwise, it's the same as `address`
-  signer      String
-  signature   String
-  // The block number at which the signature was verified - only relevant for non-EOA signatures
-  blockNumber Int?
-  // The chain ID and market address of the master loan agreement that this signature is for
-  chainId     Int
-  market      String
+  registrations      BorrowerRegistration[]
+  serviceSignatures  ServiceAgreementSignature[]
+  serviceRefusals    ServiceAgreementRefusal[]
+  mlaDecisions       MarketMlaDecision[]
+  marketDescriptions MarketDescription[]
+  adminAccounts      AdminAccount[]
 
-  timeSigned DateTime
-
-  // Relation to the master loan agreement
-  mla MasterLoanAgreement @relation("MlaSignatureToMasterLoanAgreement", fields: [chainId, market], references: [chainId, market])
-
-  @@id([chainId, market, signer])
-}
-
-model RefusalToAssignMla {
-  chainId     Int
-  // The market address
-  market      String
-  // The address of the borrower
-  address     String
-  // The address of the signer declining the MLA
-  signer      String
-  // The signature of the borrower declining the MLA
-  signature   String
-  timeSigned  DateTime
-  // The block number at which the signature was verified - only relevant for non-EOA signatures
-  blockNumber Int?
-  kind        SignatureKind
-
-  acknowledgements NonMlaAcknowledgement[] @relation("RefusalToAssignMlaToNonMlaAcknowledgement")
-
-  @@id([chainId, market])
-}
-
-model NonMlaAcknowledgement {
-  chainId                    Int
-  // The market address
-  market                     String
-  // The lender address
-  address                    String
-  // If the signature is from a single owner of a gnosis safe, this is the address of the
-  // owner that made the signature; otherwise, it's the same as `address`
-  signer                     String
-  signature                  String
-  kind                       SignatureKind
-  // The block number at which the signature was verified - only relevant for non-EOA signatures
-  blockNumber                Int?
-  acknowledgementTextVersion String
-  acknowledgementText        String
-  timeSigned                 DateTime      @default(now())
-  createdAt                  DateTime      @default(now())
-
-  refusal RefusalToAssignMla @relation("RefusalToAssignMlaToNonMlaAcknowledgement", fields: [chainId, market], references: [chainId, market], onDelete: Cascade)
-
-  @@id([chainId, market, address, acknowledgementTextVersion])
-  @@index([chainId, address])
+  // Foreign key target that proves a network belongs to a class.
+  @@unique([chainId, isTestnet])
 }
 
 model AdminAccount {
@@ -183,180 +131,83 @@ model AdminAccount {
   chainId Int
   address String
 
+  network Network @relation(fields: [chainId], references: [chainId])
+
   @@unique([chainId, address])
 }
 
+// A borrowing organisation. One row serves every network of its class; its
+// addresses and on-chain approvals are BorrowerRegistration rows.
+model Borrower {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  isTestnet Boolean
 
-model MlaTemplate {
-  id             Int      @id @default(autoincrement())
-  chainId        Int
-  name           String
-  description    String?
-  hide           Boolean? @default(false)
-  isDefault      Boolean?
-  html           String
-  plaintext      String
-  borrowerFields Json
-  lenderFields   Json
-
-  mlas MasterLoanAgreement[] @relation("MlaTemplateToMasterLoanAgreement")
-
-  @@unique([chainId, id])
-}
-
-
-model MasterLoanAgreement {
-  chainId        Int
-  market         String
-  borrower       String
-  html           String
-  plaintext      String
-  templateId     Int
-  lenderFields   Json
-  mlaSignatureId Int?
-
-  borrowerProfile Borrower @relation("BorrowerToMasterLoanAgreement", fields: [chainId, borrower], references: [chainId, address])
-
-  template      MlaTemplate    @relation("MlaTemplateToMasterLoanAgreement", fields: [chainId, templateId], references: [chainId, id])
-  mlaSignatures MlaSignature[] @relation("MlaSignatureToMasterLoanAgreement")
-
-  // market must be unique
-  @@id([chainId, market])
-}
-
-// One immutable ToU version. Global, not chain-scoped.
-model ServiceAgreement {
-  id                  Int      @id @default(autoincrement())
-  version             String
-  plaintext           String
-  html                String
-  plaintextSha256     String   @unique // bare lowercase SHA-256 hex of plaintext
-  legacyWrapperHash   String?  @unique // 0x-prefixed keccak256 of the signed wrapper
-  acknowledgementText String   // exact wrapper body, no Date / Organization Name lines
-  effectiveDate       DateTime
-  isCurrent           Boolean  @default(false)
-  // Re-acceptance campaign deadline for accounts that accepted an older version.
-  // NULL = no campaign: a newer version exists but nothing is enforced yet.
-  // Set explicitly when the campaign is announced (default now + 14 days).
-  reacceptanceDeadline DateTime?
-  createdAt           DateTime @default(now())
-
-  signatures ServiceAgreementSignature[]
-  refusals   ServiceAgreementRefusal[]
-}
-
-// One ToU acceptance. Chain-scoped, serves both parties.
-// No FK to Borrower: borrower deletion must delete these rows explicitly.
-model ServiceAgreementSignature {
-  id                 Int                   @id @default(autoincrement())
-  chainId            Int
-  address            String
-  // If the signature is from a single owner of a gnosis safe, this is the address of the
-  // owner that made the signature; otherwise, it's the same as `address`
-  signer             String
-  party              ServiceAgreementParty
-  serviceAgreementId Int
-  signature          String
-  // NULL for backfilled legacy rows; always set for new rows
-  kind               SignatureKind?
-  // The block number at which the signature was verified - only relevant for non-EOA signatures
-  blockNumber        Int?
-  timeSigned         DateTime
-  organizationName   String?
-  // Exact signed message for new rows; reconstructed (or NULL) for legacy rows
-  signedMessage      String?
-  createdAt          DateTime              @default(now())
-
-  serviceAgreement ServiceAgreement @relation(fields: [serviceAgreementId], references: [id])
-
-  @@unique([chainId, address, party, serviceAgreementId])
-  @@index([serviceAgreementId])
-}
-
-// A signed refusal ("decline") of a ToU version. Kept separate from
-// ServiceAgreementSignature so acceptance readers can never mistake a decline
-// for an acceptance, and so a later acceptance of the same version coexists
-// with the recorded decline (mirrors MlaSignature / RefusalToAssignMla).
-model ServiceAgreementRefusal {
-  id                 Int                   @id @default(autoincrement())
-  chainId            Int
-  address            String
-  // If the signature is from a single owner of a gnosis safe, this is the address of the
-  // owner that made the signature; otherwise, it's the same as `address`
-  signer             String
-  party              ServiceAgreementParty
-  serviceAgreementId Int
-  signature          String
-  kind               SignatureKind
-  // The block number at which the signature was verified - only relevant for non-EOA signatures
-  blockNumber        Int?
-  // Optional free-text reason the account gave when declining
-  reason             String?
-  timeSigned         DateTime
-  createdAt          DateTime              @default(now())
-
-  serviceAgreement ServiceAgreement @relation(fields: [serviceAgreementId], references: [id])
-
-  @@unique([chainId, address, party, serviceAgreementId])
-  @@index([serviceAgreementId])
-}
-
-model BorrowerInvitation {
-  id              Int      @id @default(autoincrement())
-  chainId         Int
-  address         String
   name            String
   alias           String?
-  inviter         String
+  avatar          String?
   description     String?
   founded         String?
   headquarters    String?
+  website         String?
+  twitter         String?
+  telegram        String?
+  linkedin        String?
+  email           String?
   jurisdiction    String?
   physicalAddress String?
   entityKind      String?
-  timeInvited     DateTime
+  additionalUrls  Json?
 
-  borrower Borrower @relation("BorrowerToInvitation", fields: [chainId, address], references: [chainId, address], onDelete: Cascade)
+  registrations BorrowerRegistration[]
+  updates       BorrowerProfileUpdateRequest[]
+  mlaDecisions  MarketMlaDecision[]
+  mlaTemplates  MlaTemplate[]
 
-  @@unique([chainId, address])
+  // Foreign key target that keeps registrations and custom MLA templates in
+  // the borrower's class.
+  @@unique([id, isTestnet])
 }
 
-model Borrower {
-  chainId Int
-  address String
+// One address of an organisation on one network: invited by an admin,
+// seen on chain, or both. The Terms of Use is still signed per registration.
+model BorrowerRegistration {
+  chainId    Int
+  address    String
+  // The organisation this address acts for on this network.
+  borrowerId String  @db.Uuid
+  // Controlled copy: ties the network and the organisation to one class.
+  isTestnet  Boolean
 
-  name              String?
-  alias             String?
-  avatar            String?
-  description       String?
-  founded           String?
-  headquarters      String?
-  website           String?
-  twitter           String?
-  telegram          String?
-  linkedin          String?
-  email             String?
-  jurisdiction      String?
-  physicalAddress   String?
-  entityKind        String?
-  additionalUrls    Json?
-  registeredOnChain Boolean
-  // Raw `from` of the tx that emitted BorrowerAdded; may be a Safe executor/relayer.
-  // NULL = not yet resolved.
+  // Cache of WildcatArchController.isRegisteredBorrower on this network; the
+  // contract is authoritative.
+  registeredOnChain Boolean   @default(false)
+  // Raw `from` of the tx that emitted BorrowerAdded; may be a Safe
+  // executor/relayer. NULL = not yet resolved.
   registeredBy      String?
+  // When the cache was last compared with the contract; NULL = never.
+  checkedAt         DateTime?
 
-  invitation BorrowerInvitation?            @relation("BorrowerToInvitation")
-  updates    BorrowerProfileUpdateRequest[] @relation("BorrowerToProfileUpdateRequest")
-  mlas       MasterLoanAgreement[]          @relation("BorrowerToMasterLoanAgreement")
+  // Set when an admin invited this address on this network; both NULL when
+  // there is no open or past invitation.
+  invitedBy String?
+  invitedAt DateTime?
 
-  @@unique([chainId, address])
+  borrower Borrower @relation(fields: [borrowerId, isTestnet], references: [id, isTestnet], onDelete: Cascade)
+  network  Network  @relation(fields: [chainId, isTestnet], references: [chainId, isTestnet])
+
+  serviceSignatures ServiceAgreementSignature[]
+  serviceRefusals   ServiceAgreementRefusal[]
+
+  @@id([chainId, address])
+  // Foreign key target for borrower-party ToU rows.
+  @@unique([chainId, address, borrowerId])
+  @@index([borrowerId])
 }
 
 model BorrowerProfileUpdateRequest {
-  id        Int      @id @default(autoincrement())
-  chainId   Int
-  address   String
-  createdAt DateTime
+  id         Int      @id @default(autoincrement())
+  borrowerId String   @db.Uuid
+  createdAt  DateTime
 
   name            String?
   alias           String?
@@ -378,15 +229,224 @@ model BorrowerProfileUpdateRequest {
   rejectedAt     DateTime?
   rejectedReason String?
 
-  borrowerProfile Borrower @relation("BorrowerToProfileUpdateRequest", fields: [chainId, address], references: [chainId, address], onDelete: Cascade)
+  borrower Borrower @relation(fields: [borrowerId], references: [id], onDelete: Cascade)
 
+  @@index([borrowerId, createdAt(sort: Desc)])
+}
+
+// One immutable ToU version. Global, not chain-scoped.
+model ServiceAgreement {
+  id                  Int      @id @default(autoincrement())
+  version             String   @unique
+  plaintext           String
+  html                String
+  plaintextSha256     String   @unique // bare lowercase SHA-256 hex of plaintext
+  legacyWrapperHash   String?  @unique // 0x-prefixed keccak256 of the signed wrapper
+  acknowledgementText String   // exact wrapper body, no Date / Organization Name lines
+  effectiveDate       DateTime
+  isCurrent           Boolean  @default(false)
+  // Re-acceptance campaign deadline for accounts that accepted an older version.
+  // NULL = no campaign: a newer version exists but nothing is enforced yet.
+  // Set explicitly when the campaign is announced (default now + 14 days).
+  reacceptanceDeadline DateTime?
+  createdAt           DateTime @default(now())
+
+  signatures ServiceAgreementSignature[]
+  refusals   ServiceAgreementRefusal[]
+}
+
+// One ToU acceptance. Chain-scoped, serves both parties. A borrower row is
+// tied to its registration and goes when the registration is deleted.
+model ServiceAgreementSignature {
+  id                 Int                   @id @default(autoincrement())
+  chainId            Int
+  address            String
+  // If the signature is from a single owner of a gnosis safe, this is the address of the
+  // owner that made the signature; otherwise, it's the same as `address`
+  signer             String
+  party              ServiceAgreementParty
+  // Set exactly when party = Borrower: the organisation the address acted for.
+  borrowerId         String?               @db.Uuid
+  serviceAgreementId Int
+  signature          String
+  // NULL for backfilled legacy rows; always set for new rows
+  kind               SignatureKind?
+  // The block number at which the signature was verified - only relevant for non-EOA signatures
+  blockNumber        Int?
+  timeSigned         DateTime
+  organizationName   String?
+  // Exact signed message for new rows; reconstructed (or NULL) for legacy rows
+  signedMessage      String?
+  createdAt          DateTime              @default(now())
+
+  network          Network               @relation(fields: [chainId], references: [chainId])
+  // Applies to borrower rows only: PostgreSQL skips a foreign key with a NULL column.
+  registration     BorrowerRegistration? @relation(fields: [chainId, address, borrowerId], references: [chainId, address, borrowerId], onDelete: Cascade, onUpdate: Cascade)
+  serviceAgreement ServiceAgreement      @relation(fields: [serviceAgreementId], references: [id])
+
+  @@unique([chainId, address, party, serviceAgreementId])
+  @@index([serviceAgreementId])
+}
+
+// A signed refusal ("decline") of a ToU version. Kept separate from
+// ServiceAgreementSignature so acceptance readers can never mistake a decline
+// for an acceptance, and so a later acceptance of the same version coexists
+// with the recorded decline.
+model ServiceAgreementRefusal {
+  id                 Int                   @id @default(autoincrement())
+  chainId            Int
+  address            String
+  // If the signature is from a single owner of a gnosis safe, this is the address of the
+  // owner that made the signature; otherwise, it's the same as `address`
+  signer             String
+  party              ServiceAgreementParty
+  // Set exactly when party = Borrower: the organisation the address acted for.
+  borrowerId         String?               @db.Uuid
+  serviceAgreementId Int
+  signature          String
+  kind               SignatureKind
+  // The block number at which the signature was verified - only relevant for non-EOA signatures
+  blockNumber        Int?
+  // Optional free-text reason the account gave when declining
+  reason             String?
+  timeSigned         DateTime
+  createdAt          DateTime              @default(now())
+
+  network          Network               @relation(fields: [chainId], references: [chainId])
+  registration     BorrowerRegistration? @relation(fields: [chainId, address, borrowerId], references: [chainId, address, borrowerId], onDelete: Cascade, onUpdate: Cascade)
+  serviceAgreement ServiceAgreement      @relation(fields: [serviceAgreementId], references: [id])
+
+  @@unique([chainId, address, party, serviceAgreementId])
+  @@index([serviceAgreementId])
+}
+
+// MLA template, shared by every network of its class. Rows are append-only:
+// a signed agreement points at the template it was filled from, so a revision
+// is a new row and the old one is retired.
+model MlaTemplate {
+  id             Int       @id @default(autoincrement())
+  isTestnet      Boolean
+  // Set on a custom MLA: the one borrower that may select it. NULL on a market
+  // MLA, which every borrower may select.
+  borrowerId     String?   @db.Uuid
+  name           String
+  // Tells a borrower's custom MLAs apart whatever their names: no two of one
+  // borrower's share a version. Required when borrowerId is set.
+  version        String?
+  description    String?
+  hide           Boolean   @default(false)
+  isDefault      Boolean   @default(false)
+  html           String
+  plaintext      String
+  borrowerFields Json
+  lenderFields   Json
+  // Set when Wildcat retires the template: it leaves every pick list, and the
+  // markets that use it keep their signed agreement.
+  retiredAt      DateTime?
+  // When the template was registered. Templates from before this column
+  // carry the time it was added.
+  createdAt      DateTime  @default(now())
+
+  borrower  Borrower?           @relation(fields: [borrowerId, isTestnet], references: [id, isTestnet], onDelete: Restrict)
+  decisions MarketMlaDecision[]
+
+  @@index([borrowerId])
+}
+
+// The borrower's one decision about one market: an assigned agreement or a
+// signed refusal.
+model MarketMlaDecision {
+  chainId Int
+  market  String
+  outcome MlaDecisionOutcome
+
+  // The organisation that signed. Required when Assigned; NULL on a refusal
+  // from an account with no borrower record.
+  borrowerId      String? @db.Uuid
+  // The market's on-chain borrower account that signed. A snapshot, not a key.
+  borrowerAddress String
+
+  // Equals borrowerAddress unless kind is GnosisOwnerECDSA.
+  signer      String
+  signature   String
+  kind        SignatureKind
+  // The block number at which the signature was verified - only relevant for non-EOA signatures
+  blockNumber Int?
+  timeSigned  DateTime
+
+  // Present exactly when outcome = Assigned: the filled agreement the borrower
+  // signed, a legal record that must not change with the template or profile.
+  templateId   Int?
+  html         String?
+  plaintext    String?
+  lenderFields Json?
+
+  network          Network                 @relation(fields: [chainId], references: [chainId])
+  borrower         Borrower?               @relation(fields: [borrowerId], references: [id], onDelete: Restrict)
+  template         MlaTemplate?            @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  lenderSignatures MlaLenderSignature[]
+  acknowledgements NonMlaAcknowledgement[]
+
+  @@id([chainId, market])
+  // Foreign key target: lender rows can only reach a decision with their outcome.
+  @@unique([chainId, market, outcome])
+  @@index([borrowerId])
+}
+
+model MlaLenderSignature {
+  chainId Int
+  market  String
+  // The lender
+  address String
+  // Always Assigned; exists so the foreign key can only reach an assigned agreement.
+  outcome MlaDecisionOutcome @default(Assigned)
+
+  // If the signature is from a single owner of a gnosis safe, this is the address of the
+  // owner that made the signature; otherwise, it's the same as `address`
+  signer      String
+  signature   String
+  kind        SignatureKind
+  // The block number at which the signature was verified - only relevant for non-EOA signatures
+  blockNumber Int?
+  timeSigned  DateTime
+
+  decision MarketMlaDecision @relation(fields: [chainId, market, outcome], references: [chainId, market, outcome], onDelete: Restrict)
+
+  @@id([chainId, market, address])
+  @@index([chainId, address])
+}
+
+model NonMlaAcknowledgement {
+  chainId                    Int
+  // The market address
+  market                     String
+  // The lender address
+  address                    String
+  // Always Declined; exists so the foreign key can only reach a declined market.
+  outcome                    MlaDecisionOutcome @default(Declined)
+  // If the signature is from a single owner of a gnosis safe, this is the address of the
+  // owner that made the signature; otherwise, it's the same as `address`
+  signer                     String
+  signature                  String
+  kind                       SignatureKind
+  // The block number at which the signature was verified - only relevant for non-EOA signatures
+  blockNumber                Int?
+  acknowledgementTextVersion String
+  acknowledgementText        String
+  createdAt                  DateTime           @default(now())
+
+  decision MarketMlaDecision @relation(fields: [chainId, market, outcome], references: [chainId, market, outcome], onDelete: Restrict)
+
+  @@id([chainId, market, address, acknowledgementTextVersion])
   @@index([chainId, address])
 }
 
 model MarketDescription {
-  chainId Int
+  chainId       Int
   marketAddress String
-  description String
+  description   String
 
-  @@unique([chainId, marketAddress])
+  network Network @relation(fields: [chainId], references: [chainId])
+
+  @@id([chainId, marketAddress])
 }

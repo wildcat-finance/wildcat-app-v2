@@ -20,6 +20,9 @@ import { NETWORKS_BY_ID } from "@/config/network"
 import { dayjs } from "@/utils/dayjs"
 import { formatBps, formatUnixMsAsDate } from "@/utils/formatters"
 
+import type { MlaFieldValueKey, MlaTemplateField } from "./mlaFields"
+import { escapeHtml } from "./mlaTemplateText"
+
 type NetworkData = {
   chainId?: number
   name?: string
@@ -79,105 +82,8 @@ export type MlaBorrowerFields = {
   timeSigned: number
 }
 
-export const MlaFieldValueKeys = [
-  // number
-  "network.chainId",
-  // string
-  "network.name",
-  "asset.name",
-  "asset.symbol",
-  "market.marketType",
-  "market.name",
-  "market.symbol",
-  "borrower.name",
-  "borrower.jurisdiction",
-  "borrower.physicalAddress",
-  "borrower.entityKind",
-  // address (format as checksum address)
-  "market.depositAccess",
-  "market.transferAccess",
-  "market.withdrawalAccess",
-  "asset.address",
-  "market.address",
-  "borrower.address",
-  "lender.address",
-  "chainalysisOracle.address",
-  "hooksFactory.address",
-  // token amount
-  "market.capacity",
-  "market.minimumDeposit",
-  // duration
-  "market.delinquencyGracePeriod",
-  "market.withdrawalBatchDuration",
-  // Date
-  "market.fixedTermEndTime",
-  "borrower.timeSigned",
-  "lender.timeSigned",
-  "lender.timeSignedDayOrdinal",
-  "lender.timeSignedMonthYear",
-  "sla.timeUpdated",
-  // bips (format as %)
-  "market.apr",
-  "market.delinquencyFee",
-  "market.reserveRatio",
-  // boolean (format as Yes, No, N/A)
-  "market.allowClosureBeforeTerm",
-  "market.allowTermReduction",
-  "market.allowForceBuyBack",
-] as const
-
-export type MlaFieldValueKey = (typeof MlaFieldValueKeys)[number]
-// // number
-// | "network.chainId"
-// // string
-// | "network.name"
-// | "asset.name"
-// | "asset.symbol"
-// | "market.marketType"
-// | "market.name"
-// | "market.symbol"
-// | "borrower.name"
-// | "borrower.jurisdiction"
-// | "borrower.physicalAddress"
-// | "borrower.entityKind"
-// // address (format as checksum address)
-// | "market.depositAccess"
-// | "market.transferAccess"
-// | "market.withdrawalAccess"
-// | "asset.address"
-// | "market.address"
-// | "borrower.address"
-// | "lender.address"
-// | "chainalysisOracle.address"
-// | "hooksFactory.address"
-// // token amount
-// | "market.capacity"
-// | "market.minimumDeposit"
-// // duration
-// | "market.delinquencyGracePeriod"
-// | "market.withdrawalBatchDuration"
-// // Date
-// | "market.fixedTermEndTime"
-// | "borrower.timeSigned"
-// | "lender.timeSigned"
-// | "lender.timeSignedDayOrdinal"
-// | "lender.timeSignedMonthYear"
-// | "sla.timeUpdated"
-// // bips (format as %)
-// | "market.apr"
-// | "market.delinquencyFee"
-// | "market.reserveRatio"
-// // boolean (format as Yes, No, N/A)
-// | "market.allowClosureBeforeTerm"
-// | "market.allowTermReduction"
-// | "market.allowForceBuyBack"
-
-export type MlaTemplateField = {
-  /* one of the possible field keys */
-  source: MlaFieldValueKey
-  /* text to use when value is unavailable */
-  placeholder: string
-}
+export { MlaFieldValueKeys } from "./mlaFields"
+export type { MlaFieldValueKey, MlaTemplateField } from "./mlaFields"
 
 type MlaTemplate = {
   html: string
@@ -500,6 +406,9 @@ export function getFieldValuesForLender(
   return data
 }
 
+/// Fill a template's borrower fields. Values are text: they are escaped in the
+/// HTML, where names chosen by borrowers and token deployers would otherwise
+/// be markup, and kept as they are in the plain text, whose hash is signed.
 export function fillInMlaTemplate(
   template: MlaTemplate,
   fieldValues: Map<MlaFieldValueKey, string | undefined>,
@@ -511,7 +420,7 @@ export function fillInMlaTemplate(
       return
     }
     plaintext = plaintext.replaceAll(`{{${field.source}}}`, value)
-    html = html.replaceAll(`{{${field.source}}}`, value)
+    html = html.replaceAll(`{{${field.source}}}`, escapeHtml(value))
   })
   const marketAddress = fieldValues.get("market.address")
   if (!marketAddress) {
@@ -537,7 +446,7 @@ export function fillInMlaForLender(
   mla.lenderFields.forEach((field) => {
     const value = values.get(field.source) ?? field.placeholder
     plaintext = plaintext.replaceAll(`{{${field.source}}}`, value)
-    html = html.replaceAll(`{{${field.source}}}`, value)
+    html = html.replaceAll(`{{${field.source}}}`, escapeHtml(value))
   })
   const message = ACCEPT_MLA_MESSAGE.replace(
     "{{market}}",
@@ -546,3 +455,13 @@ export function fillInMlaForLender(
 
   return { html, plaintext, message }
 }
+
+/// Policy for an agreement served as a page of its own: an opaque origin with
+/// no scripts, keeping the styles, fonts and images exported documents use.
+export const AGREEMENT_HTML_CSP = [
+  "sandbox",
+  "default-src 'none'",
+  "style-src 'unsafe-inline' https:",
+  "font-src https: data:",
+  "img-src https: data:",
+].join("; ")

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { validateChainIdParam } from "@/lib/validateChainIdParam"
 
-import { MlaSignatureResponse } from "../../interface"
+import { toMlaSignatureResponse } from "../../interface"
 
 /// GET /api/mla/[market]/[lender]?chainId=<chainId>
 export async function GET(
@@ -22,11 +22,13 @@ export async function GET(
       { status: 400 },
     )
   }
-  const mlaSignature = await prisma.mlaSignature.findFirst({
+  const mlaSignature = await prisma.mlaLenderSignature.findUnique({
     where: {
-      chainId,
-      address: lenderAddress,
-      market: marketAddress,
+      chainId_market_address: {
+        chainId,
+        market: marketAddress,
+        address: lenderAddress,
+      },
     },
   })
   if (!mlaSignature) {
@@ -35,9 +37,5 @@ export async function GET(
       { status: 404 },
     )
   }
-  const { blockNumber, ...rest } = mlaSignature
-  return NextResponse.json({
-    ...rest,
-    blockNumber: blockNumber || undefined,
-  } as MlaSignatureResponse)
+  return NextResponse.json(toMlaSignatureResponse(mlaSignature))
 }
