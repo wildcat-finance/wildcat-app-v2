@@ -23,6 +23,10 @@ import {
 } from "../../hooks/useCustomMlaTemplates"
 import { RegisterCustomMlaModal } from "../RegisterCustomMlaModal"
 
+const NEWEST_FIRST = {
+  sorting: { sortModel: [{ field: "createdAt", sort: "desc" as const }] },
+}
+
 const RetireMlaDialog = ({
   template,
   onClose,
@@ -141,8 +145,9 @@ const ViewMlaDialog = ({
   )
 }
 
-/// Custom MLAs of the selected network's class, with registration, viewing,
-/// download and retirement for admins. Clicking a row views its MLA.
+/// Custom MLAs of the selected network's class, newest first, with
+/// registration, viewing, download and retirement for admins. Clicking a row
+/// views its MLA.
 export const CustomMlasTable = () => {
   const { t } = useTranslation()
   const { data, isLoading } = useCustomMlaTemplates()
@@ -170,6 +175,15 @@ export const CustomMlasTable = () => {
     },
     { field: "name", headerName: t("admin.customMla.name"), flex: 1.5 },
     { field: "version", headerName: t("admin.customMla.version"), flex: 0.7 },
+    {
+      field: "createdAt",
+      headerName: t("admin.customMla.added"),
+      type: "dateTime",
+      flex: 1,
+      minWidth: 150,
+      valueGetter: (value) => new Date(value),
+      valueFormatter: (value: Date) => timestampToDateFormatted(+value / 1000),
+    },
     {
       field: "marketCount",
       headerName: t("admin.customMla.markets"),
@@ -276,6 +290,7 @@ export const CustomMlasTable = () => {
           autoHeight
           rows={data}
           columns={columns}
+          initialState={NEWEST_FIRST}
           onRowClick={({ row }) => setViewing(row)}
           columnHeaderHeight={40}
           hideFooter={data.length <= 100}

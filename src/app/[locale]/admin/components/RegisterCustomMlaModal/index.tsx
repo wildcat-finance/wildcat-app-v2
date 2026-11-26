@@ -21,6 +21,7 @@ import {
 } from "@/app/api/mla/interface"
 import { MlaDocument } from "@/components/MlaDocument"
 import { TxModalHeader } from "@/components/TxModalComponents/TxModalHeader"
+import { importMlaHtml } from "@/lib/mlaHtmlImport"
 import {
   fillWithPlaceholders,
   prepareCustomMlaTemplate,
@@ -76,6 +77,9 @@ const CODE_FONT = { fontFamily: "monospace", fontSize: "12px" }
 // Rendering the formatted agreement reloads a large document, so it follows
 // the text once typing pauses.
 const PREVIEW_DELAY_MS = 400
+
+// The "Start from" option that stands for an imported .html file.
+const IMPORTED = -1
 
 const excerpt = (text: string) =>
   text.length > 140 ? `${text.slice(0, 137)}...` : text
@@ -160,6 +164,7 @@ export const RegisterCustomMlaModal = () => {
   const [version, setVersion] = useState("")
   const [description, setDescription] = useState("")
   const [startFromId, setStartFromId] = useState<number>()
+  const [importedFrom, setImportedFrom] = useState<string>()
   const [synced, setSynced] = useState<SyncedTexts>()
   const [plaintext, setPlaintext] = useState("")
   const [knownGaps, setKnownGaps] = useState<Set<string>>(new Set())
@@ -182,7 +187,8 @@ export const RegisterCustomMlaModal = () => {
   // admin's edits. Paragraphs its two texts already disagree on are noted,
   // so only gaps the admin's edits open are reported.
   useEffect(() => {
-    if (!isOpen || !startTemplate || startTemplate.id !== startId) return
+    if (!isOpen || importedFrom) return
+    if (!startTemplate || startTemplate.id !== startId) return
     if (loadedFromId.current === startTemplate.id) return
     loadedFromId.current = startTemplate.id
     const html = prettifyHtmlBody(startTemplate.html)
@@ -195,7 +201,7 @@ export const RegisterCustomMlaModal = () => {
         ),
       ),
     )
-  }, [isOpen, startTemplate, startId])
+  }, [isOpen, importedFrom, startTemplate, startId])
 
   // The 125 KB HTML is reworked as the text changes; typing stays responsive
   // while that catches up.
@@ -247,10 +253,16 @@ export const RegisterCustomMlaModal = () => {
       label: getMlaTemplateLabel(t, { ...mla, isCustom: true }),
     })),
   ]
+  // A borrower's custom MLAs share one sequence of versions, whatever their
+  // names, retired ones included.
+  const versionTakenBy = borrowerMlas.find(
+    (mla) => mla.version === version.trim(),
+  )
   const isComplete =
     !!borrowerId &&
     !!name.trim() &&
     !!version.trim() &&
+    !versionTakenBy &&
     !!prepared &&
     prepared.problems.length === 0 &&
     unplaced.length === 0
@@ -274,6 +286,24 @@ export const RegisterCustomMlaModal = () => {
     )
   }
 
+  // A Google Docs "Web page (.html)" download replaces the MLA started from:
+  // its HTML is the formatted agreement, its text the text to sign.
+  const handleImport = (file: File) =>
+    file.text().then((source) => {
+      const imported = importMlaHtml(source)
+      setImportedFrom(file.name)
+      setSynced(imported)
+      setPlaintext(imported.plaintext)
+      setKnownGaps(new Set())
+    })
+
+  const handleStartFrom = (id: number) => {
+    if (id === IMPORTED) return
+    setImportedFrom(undefined)
+    loadedFromId.current = undefined
+    setStartFromId(id)
+  }
+
   // A hand edit to the HTML makes it the version that matches the text.
   const handleEditHtml = (editedBody: string) =>
     setSynced({ html: head + editedBody + tail, plaintext: text })
@@ -287,6 +317,7 @@ export const RegisterCustomMlaModal = () => {
     setVersion("")
     setDescription("")
     setStartFromId(undefined)
+    setImportedFrom(undefined)
     setSynced(undefined)
     setPlaintext("")
     setKnownGaps(new Set())
@@ -396,17 +427,32 @@ export const RegisterCustomMlaModal = () => {
                 label={t("admin.customMla.version")}
                 value={version}
                 onChange={(e) => setVersion(e.target.value)}
+                error={!!versionTakenBy}
                 sx={{ flex: 2 }}
               />
             </Box>
+            {versionTakenBy && (
+              <Typography variant="text3" color={COLORS.wildWatermelon}>
+                {t("admin.customMla.versionTaken", {
+                  borrower: versionTakenBy.borrowerName,
+                  version: versionTakenBy.version,
+                  name: versionTakenBy.name,
+                  next: nextCustomMlaVersion(borrowerMlas),
+                  interpolation: { escapeValue: false },
+                })}
+              </Typography>
+            )}
             <Box sx={ROW}>
               <TextField
                 select
                 label={t("admin.customMla.startFrom")}
-                value={startId ?? ""}
-                onChange={(e) => setStartFromId(Number(e.target.value))}
+                value={importedFrom ? IMPORTED : startId ?? ""}
+                onChange={(e) => handleStartFrom(Number(e.target.value))}
                 sx={{ flex: 5 }}
               >
+                {importedFrom && (
+                  <MenuItem value={IMPORTED}>{importedFrom}</MenuItem>
+                )}
                 {startOptions.map((option) => (
                   <MenuItem key={option.id} value={option.id}>
                     {option.label}
@@ -523,15 +569,30 @@ export const RegisterCustomMlaModal = () => {
             alignItems="center"
             gap="12px"
           >
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => setShowHtml((shown) => !shown)}
-            >
-              {showHtml
-                ? t("admin.customMla.hideHtml")
-                : t("admin.customMla.editHtml")}
-            </Button>
+            <Box display="flex" gap="12px">
+              <Button variant="outlined" size="small" component="label">
+                {t("admin.customMla.importHtml")}
+                <input
+                  hidden
+                  type="file"
+                  accept=".html,.htm,text/html"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    e.target.value = ""
+                    if (file) handleImport(file)
+                  }}
+                />
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => setShowHtml((shown) => !shown)}
+              >
+                {showHtml
+                  ? t("admin.customMla.hideHtml")
+                  : t("admin.customMla.editHtml")}
+              </Button>
+            </Box>
             <Box display="flex" gap="12px">
               <Button
                 variant="outlined"

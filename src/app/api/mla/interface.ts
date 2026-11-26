@@ -67,6 +67,8 @@ export type CustomMlaTemplateForAdminView = MlaTemplateMetadata & {
   borrowerName: string
   version: string
   retiredAt?: Date
+  /* When it was registered */
+  createdAt: Date
   /* Markets whose agreement was filled from this template */
   marketCount: number
 }

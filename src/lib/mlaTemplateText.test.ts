@@ -128,6 +128,17 @@ describe("custom MLA texts", () => {
     ])
   })
 
+  it("refuses a document download's comments and separate image files", () => {
+    const { problems } = prepareCustomMlaTemplate({
+      html: `${dummyCustomMla.html}<img src="images/image1.png"><img src="images/image1.png"><img src="data:image/png;base64,AA=="><sup><a href="#cmnt1" id="cmnt_ref1">[a]</a></sup>`,
+      plaintext: dummyCustomMla.plaintext,
+    })
+    expect(problems).toEqual([
+      "The HTML has the document's comments. Resolve or delete them, then download it again",
+      "The HTML shows images/image1.png, a separate file the MLA cannot include. Remove the image from the document",
+    ])
+  })
+
   it("fills in at market creation and lender signing as the market MLA does", () => {
     const { template } = prepareCustomMlaTemplate(dummyCustomMla, marketMla)
     const borrowerCopy = fillInMlaTemplate(

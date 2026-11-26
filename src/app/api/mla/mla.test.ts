@@ -339,7 +339,7 @@ describe("POST /api/mla/templates/custom", () => {
     expect((await register({ ...ownFixture, version: "" })).status).toBe(400)
   })
 
-  it("refuses a second MLA with the same name and version", async () => {
+  it("refuses a version the borrower already has", async () => {
     jest
       .mocked(prisma.borrower.findUnique)
       .mockResolvedValue({ isTestnet: true } as never)
@@ -349,7 +349,11 @@ describe("POST /api/mla/templates/custom", () => {
         clientVersion: "6.0.1",
       }),
     )
-    expect((await register(ownFixture)).status).toBe(409)
+    const response = await register(ownFixture)
+    expect(response.status).toBe(409)
+    expect((await response.json()).error).toBe(
+      `This borrower already has a custom MLA with version ${dummyCustomMla.version}`,
+    )
   })
 
   it("is admin-only", async () => {

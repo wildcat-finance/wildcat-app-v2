@@ -1,7 +1,8 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import { fireEvent, render, screen } from "@testing-library/react"
+import { fireEvent, render, screen, within } from "@testing-library/react"
 
 import { CustomMlaTemplateForAdminView } from "@/app/api/mla/interface"
+import { timestampToDateFormatted } from "@/utils/formatters"
 
 import { CustomMlasTable } from "."
 
@@ -16,6 +17,7 @@ const templates: CustomMlaTemplateForAdminView[] = [
     version: "2",
     borrowerId: "11111111-1111-4111-8111-111111111111",
     borrowerName: "Test Borrower",
+    createdAt: new Date("2026-11-20T09:30:00Z"),
     marketCount: 0,
   },
   {
@@ -26,6 +28,7 @@ const templates: CustomMlaTemplateForAdminView[] = [
     borrowerId: "11111111-1111-4111-8111-111111111111",
     borrowerName: "Test Borrower",
     retiredAt: new Date("2026-11-01T00:00:00Z"),
+    createdAt: new Date("2026-10-02T14:00:00Z"),
     marketCount: 4,
   },
 ]
@@ -65,6 +68,19 @@ it("shows a readable empty state instead of an empty grid", () => {
   render(<CustomMlasTable />)
   screen.getByText("admin.customMla.empty")
   expect(screen.queryByRole("grid")).toBeNull()
+})
+
+it("lists the newest first, with the date each was added", () => {
+  mockTemplates = [...templates].reverse()
+  render(<CustomMlasTable />)
+  const names = screen
+    .getAllByRole("row")
+    .slice(1)
+    .map((row) => within(row).getAllByRole("gridcell")[1].textContent)
+  expect(names).toEqual(["Active MLA", "Old MLA"])
+  screen.getByText(
+    timestampToDateFormatted(+new Date("2026-10-02T14:00:00Z") / 1000),
+  )
 })
 
 it("lists custom MLAs and retires only active ones", () => {

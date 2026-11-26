@@ -44,8 +44,11 @@ const QUOTES = new Set(
 const BULLETS = [0x2022, 0x25cf, 0x25cb, 0x25a0, 0x25aa, 0x25e6]
   .map(ch)
   .join("")
+// One part of a clause number: 12, b or iv. Parts join with dots, as in
+// 2.1 or 2.b.iv.
+const PART = "(?:\\d+|[a-z]|[ivxlc]+)"
 const ENUMERATOR = new RegExp(
-  `^\\s*(?:[${BULLETS}*-]|\\(?(?:\\d+(?:\\.\\d+)+\\.?|\\d+[.)]|[a-z][.)]|[ivxlc]+[.)]))\\s+`,
+  `^\\s*(?:[${BULLETS}*-]|\\(?(?:${PART}(?:\\.${PART})+\\.?|${PART}[.)]))\\s+`,
   "i",
 )
 

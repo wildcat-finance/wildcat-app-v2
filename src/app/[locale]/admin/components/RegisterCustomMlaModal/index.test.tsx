@@ -194,6 +194,18 @@ it("will not register a placeholder the app does not know", () => {
   expect(submit().disabled).toBe(true)
 })
 
+it("will not reuse a version the borrower has, under any name", () => {
+  openForLemon()
+  edit("admin.customMla.name", "Lemon Ltd Side Letter")
+  edit("admin.customMla.version", " 2 ")
+  screen.getByText("admin.customMla.versionTaken")
+  expect(submit().disabled).toBe(true)
+
+  edit("admin.customMla.version", "4")
+  expect(screen.queryByText("admin.customMla.versionTaken")).toBeNull()
+  expect(submit().disabled).toBe(false)
+})
+
 it("starts a new version from the borrower's earlier custom MLA", () => {
   openForLemon()
   fireEvent.mouseDown(screen.getByLabelText("admin.customMla.startFrom"))
@@ -206,6 +218,43 @@ it("starts a new version from the borrower's earlier custom MLA", () => {
   fireEvent.click(screen.getByText("admin.customMla.editHtml"))
   expect(field("admin.customMla.htmlTitle").value.trim()).toBe(
     "<p>Lemon terms for {{market.address}}</p>",
+  )
+})
+
+it("imports a Google Docs .html as the agreement, until a stored MLA is chosen again", async () => {
+  openForLemon()
+  const html =
+    '<html><head><style>.lst-kix_a-0>li:before{content:"" counter(lst-ctn-kix_a-0,decimal) ". "}</style></head>' +
+    '<body><ol class="lst-kix_a-0 start" start="1"><li><span>Interest accrues at {{market.apr}} a year.</span></li></ol></body></html>'
+  const file = new File([html], "Lemon MLA.html", { type: "text/html" })
+  Object.defineProperty(file, "text", { value: () => Promise.resolve(html) })
+  const input = screen
+    .getByText("admin.customMla.importHtml")
+    .closest("label")
+    ?.querySelector("input") as HTMLInputElement
+  fireEvent.change(input, { target: { files: [file] } })
+
+  const text = "1. Interest accrues at {{market.apr}} a year."
+  await waitFor(() =>
+    expect(field("admin.customMla.textTitle").value).toBe(text),
+  )
+  screen.getByText("Lemon MLA.html")
+  await waitFor(() => expect(submit().disabled).toBe(false))
+  fireEvent.click(submit())
+  expect(mutate).toHaveBeenCalledWith(
+    expect.objectContaining({
+      plaintext: text,
+      html: expect.stringContaining('<ol class="lst-kix_a-0 start"'),
+    }),
+    expect.anything(),
+  )
+
+  fireEvent.mouseDown(screen.getByLabelText("admin.customMla.startFrom"))
+  fireEvent.click(within(screen.getByRole("listbox")).getByText("Wildcat MLA"))
+  await waitFor(() =>
+    expect(field("admin.customMla.textTitle").value).toBe(
+      dummyCustomMla.plaintext,
+    ),
   )
 })
 

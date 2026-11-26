@@ -59,7 +59,7 @@ type TemplateFields = {
 
 /// A template text as stored: without a byte-order mark, with Unix line
 /// endings and no surrounding blank lines.
-const normaliseTemplateText = (text: string) =>
+export const normaliseTemplateText = (text: string) =>
   text
     .replace(/^\uFEFF/, "")
     .replaceAll("\r\n", "\n")
@@ -193,6 +193,25 @@ export const validateTemplateFields = ({
   return problems
 }
 
+const COMMENT_ANCHOR = /\bid\s*=\s*["']?cmnt(?:_ref)?\d/i
+const LOCAL_IMAGE =
+  /<img\b[^>]*?\bsrc\s*=\s*["']?(?!data:|https?:)([^"'\s>]+)/gi
+
+/// What a document download can carry that an MLA must not: the document's
+/// comments, and images saved as separate files beside the HTML.
+const findDocumentLeftovers = (html: string) => [
+  ...(COMMENT_ANCHOR.test(html)
+    ? [
+        "The HTML has the document's comments. Resolve or delete them, then download it again",
+      ]
+    : []),
+  ...Array.from(
+    new Set(Array.from(html.matchAll(LOCAL_IMAGE), (match) => match[1])),
+    (image) =>
+      `The HTML shows ${image}, a separate file the MLA cannot include. Remove the image from the document`,
+  ),
+]
+
 /// The template a custom MLA is registered as, from the HTML and plain text
 /// of the borrower's copy of a stored MLA, with the problems that would stop
 /// it filling in like the market MLA.
@@ -210,6 +229,7 @@ export const prepareCustomMlaTemplate = (
   const problems = [
     ...(/<[a-z][^>]*>/i.test(html) ? [] : ["The HTML has no markup"]),
     ...(/<(html|body)[\s>]/i.test(plaintext) ? ["The plain text is HTML"] : []),
+    ...findDocumentLeftovers(html),
     ...compareTemplateTokens(template),
     ...validateTemplateFields(template),
   ]

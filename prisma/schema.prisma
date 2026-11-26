@@ -330,7 +330,8 @@ model MlaTemplate {
   // MLA, which every borrower may select.
   borrowerId     String?   @db.Uuid
   name           String
-  // Tells revisions of one custom MLA apart; required when borrowerId is set.
+  // Tells a borrower's custom MLAs apart whatever their names: no two of one
+  // borrower's share a version. Required when borrowerId is set.
   version        String?
   description    String?
   hide           Boolean   @default(false)
@@ -342,6 +343,9 @@ model MlaTemplate {
   // Set when Wildcat retires the template: it leaves every pick list, and the
   // markets that use it keep their signed agreement.
   retiredAt      DateTime?
+  // When the template was registered. Templates from before this column
+  // carry the time it was added.
+  createdAt      DateTime  @default(now())
 
   borrower  Borrower?           @relation(fields: [borrowerId, isTestnet], references: [id, isTestnet], onDelete: Restrict)
   decisions MarketMlaDecision[]

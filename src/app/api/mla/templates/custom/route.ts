@@ -17,8 +17,8 @@ import {
 import { CreateCustomMlaInputDTO } from "../dto"
 
 /// GET /api/mla/templates/custom?chainId=<chainId>
-/// Every custom MLA of the network's class, retired ones included, with its
-/// borrower and the number of markets that use it.
+/// Every custom MLA of the network's class, retired ones included, newest
+/// first, with its borrower and the number of markets that use it.
 /// Admin-only endpoint.
 export async function GET(request: NextRequest) {
   const chainId = validateChainIdParam(request)
@@ -41,10 +41,11 @@ export async function GET(request: NextRequest) {
       version: true,
       description: true,
       retiredAt: true,
+      createdAt: true,
       borrower: { select: { id: true, name: true } },
       _count: { select: { decisions: true } },
     },
-    orderBy: [{ id: "desc" }],
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
   })
   const response: CustomMlaTemplateForAdminView[] = templates.flatMap(
     ({ borrower, version, description, retiredAt, _count, ...template }) =>
@@ -67,9 +68,11 @@ export async function GET(request: NextRequest) {
 
 /// POST /api/mla/templates/custom
 /// Register a custom MLA for one borrower: the HTML and plain text of the
-/// borrower's copy of the market MLA, as edited in the admin dialog. Its `{{field}}` placeholders become
-/// the template's fields, labelled as the class's market MLA labels them, and
-/// are filled in at signing exactly as the market MLA's are.
+/// borrower's copy of the market MLA, as edited in the admin dialog. Its
+/// `{{field}}` placeholders become the template's fields, labelled as the
+/// class's market MLA labels them, and are filled in at signing exactly as the
+/// market MLA's are. Its version must be new for the borrower, retired custom
+/// MLAs included, whatever their names.
 /// Admin-only endpoint.
 export async function POST(request: NextRequest) {
   const token = await verifyApiToken(request)
@@ -136,8 +139,7 @@ export async function POST(request: NextRequest) {
     if (!isPrismaUniqueConstraintError(error)) throw error
     return NextResponse.json(
       {
-        error:
-          "This borrower already has a custom MLA with this name and version",
+        error: `This borrower already has a custom MLA with version ${body.version}`,
       },
       { status: 409 },
     )

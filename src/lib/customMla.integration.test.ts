@@ -212,11 +212,17 @@ describeWithDatabase("custom MLAs against Postgres", () => {
     ])
     lenderAddressPlaceholder = lenderFields[1].placeholder
 
+    // Versions are the borrower's, whatever the MLA is called.
     const duplicate = await registerCustomMla(
       request("/api/mla/templates/custom", {
         method: "POST",
         token: tokenFor(admin, SEPOLIA, true),
-        body: { ...dummyCustomMla, chainId: SEPOLIA, borrowerId: ownId },
+        body: {
+          ...dummyCustomMla,
+          name: `${dummyCustomMla.name} renamed`,
+          chainId: SEPOLIA,
+          borrowerId: ownId,
+        },
       }),
     )
     expect(duplicate.status).toBe(409)

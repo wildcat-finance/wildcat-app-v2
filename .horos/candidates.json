@@ -3,7 +3,7 @@
     "bytes_asset": 206567,
     "bytes_binary": 102801,
     "bytes_blob": 20102,
-    "bytes_generated": 342326
+    "bytes_generated": 343011
   },
   "entries": [
     {
@@ -166,6 +166,13 @@
       "evidence": "sql file under a migrations directory segment",
       "grade": "candidate",
       "path": "prisma/migrations/20261118010000_custom_mla_templates/migration.sql"
+    },
+    {
+      "bytes": 685,
+      "category": "generated",
+      "evidence": "sql file under a migrations directory segment",
+      "grade": "candidate",
+      "path": "prisma/migrations/20261125000000_custom_mla_dates_and_versions/migration.sql"
     },
     {
       "bytes": 1375,
